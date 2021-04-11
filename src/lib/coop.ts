@@ -195,7 +195,7 @@ export class Contributor {
     this.earningsBoost = 0;
     this.eggLayingRateBoost = 0;
     if (Array.isArray(contributor.buffHistory) && contributor.buffHistory.length > 0) {
-      const currentBuff = contributor.buffHistory[0];
+      const currentBuff = contributor.buffHistory[contributor.buffHistory.length - 1];
       this.earningsBoost = currentBuff.earnings! - 1;
       this.eggLayingRateBoost = currentBuff.eggLayingRate! - 1;
     }
