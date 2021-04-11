@@ -1,0 +1,213 @@
+/*** Table ***/
+
+::v-deep(.p-datatable-thead) {
+  @apply bg-gray-100 dark:bg-gray-700;
+}
+
+::v-deep(.p-column-title) {
+  @apply text-gray-500 dark:text-gray-200;
+}
+
+::v-deep(.p-column-title) {
+  @apply mr-0.5;
+}
+
+::v-deep(.p-datatable-tbody > tr:nth-child(even)) {
+  @apply bg-gray-100 dark:bg-gray-750;
+}
+
+::v-deep(.p-datatable-tbody > tr:nth-child(odd)) {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
+/*** Sort icons ***/
+
+::v-deep(.p-sortable-column-icon) {
+  @apply block h-3 w-2 ml-0.5;
+}
+
+::v-deep(.p-sortable-column-icon::before) {
+  @apply block h-3 w-2 bg-no-repeat;
+  content: ' ';
+  background-size: auto 0.75rem;
+}
+
+::v-deep(.p-sortable-column-icon.pi-sort-alt::before) {
+  background-image: svg-load('../svg/fa-sort-solid.svg', fill: #a1a1aa); /* gray-400 */
+}
+
+::v-deep(.p-sortable-column-icon.pi-sort-amount-down::before) {
+  background-image: svg-load('../svg/fa-sort-down-solid.svg', fill: #a1a1aa); /* gray-400 */
+}
+
+::v-deep(.p-sortable-column-icon.pi-sort-amount-up-alt::before) {
+  background-image: svg-load('../svg/fa-sort-up-solid.svg', fill: #a1a1aa); /* gray-400 */
+}
+
+/*** Filter ***/
+
+::v-deep(.p-column-filter.p-column-filter-menu) {
+  @apply ml-1 focus:outline-none;
+}
+
+::v-deep(.p-column-filter .p-column-filter-menu-button) {
+  @apply focus:outline-none;
+}
+
+::v-deep(.p-column-filter .p-column-filter-menu-button .pi-filter-icon.pi-filter::before) {
+  @apply block h-2.5 w-2.5 bg-no-repeat;
+  content: ' ';
+  background-image: svg-load('../svg/fa-filter-regular.svg', fill: #a1a1aa); /* gray-400 */
+}
+
+::v-deep(.p-column-filter .p-column-filter-menu-button.p-column-filter-menu-button-active .pi-filter-icon.pi-filter::before) {
+  background-image: svg-load('../svg/fa-filter-solid.svg', fill: #a1a1aa); /* gray-400 */
+}
+
+/*** Toggler ***/
+
+::v-deep(.p-row-toggler) {
+  @apply block focus:outline-none;
+}
+
+::v-deep(.p-row-toggler-icon) {
+  @apply block h-4 w-4;
+}
+
+::v-deep(.p-row-toggler-icon::before) {
+  @apply block h-4 w-4 bg-no-repeat;
+  content: ' ';
+  background-size: 1rem 1rem;
+}
+
+/* chevron-right */
+
+::v-deep(.p-row-toggler-icon.pi-chevron-right::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-right-outline.svg',
+    stroke: #71717a
+  ); /* gray-500 */
+}
+
+.dark ::v-deep(.p-row-toggler-icon.pi-chevron-right::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-right-outline.svg',
+    stroke: #e4e4e7
+  ); /* gray-200 */
+}
+
+/* chevron-down */
+
+::v-deep(.p-row-toggler-icon.pi-chevron-down::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-down-outline.svg',
+    stroke: #71717a
+  ); /* gray-500 */
+}
+
+.dark ::v-deep(.p-row-toggler-icon.pi-chevron-down::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-down-outline.svg',
+    stroke: #e4e4e7
+  ); /* gray-200 */
+}
+
+/*** Paginator ***/
+
+::v-deep(.p-paginator) {
+  @apply mt-0.5;
+}
+
+::v-deep(.p-paginator .p-paginator-pages) {
+  @apply inline-flex items-center;
+}
+
+::v-deep(.p-paginator .p-paginator-current) {
+  @apply hidden sm:block ml-auto text-sm text-gray-500 dark:text-gray-400 cursor-text select-text;
+}
+
+::v-deep(.p-paginator .p-paginator-element) {
+  @apply px-1 text-sm text-gray-500 dark:text-gray-400 leading-none tabular-nums focus:outline-none;
+}
+
+::v-deep(.p-paginator .p-paginator-element.p-highlight) {
+  @apply text-gray-900 dark:text-gray-200 font-medium;
+}
+
+::v-deep(.p-paginator .p-paginator-element.p-disabled) {
+  @apply opacity-40 cursor-not-allowed;
+}
+
+::v-deep(.p-paginator .p-paginator-right-content) {
+  @apply ml-auto sm:ml-2;
+}
+
+::v-deep(.p-paginator .p-paginator-icon::before) {
+  @apply block h-3 w-3 bg-no-repeat;
+  content: ' ';
+  background-size: 0.75rem 0.75rem;
+}
+
+/* angle-double-left */
+
+::v-deep(.p-paginator .p-paginator-icon.pi-angle-double-left::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-double-left-outline.svg',
+    stroke: #71717a
+  ); /* gray-500 */
+}
+
+.dark ::v-deep(.p-paginator .p-paginator-icon.pi-angle-double-left::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-double-left-outline.svg',
+    stroke: #a1a1aa
+  ); /* gray-400 */
+}
+
+/* angle-left */
+
+::v-deep(.p-paginator .p-paginator-icon.pi-angle-left::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-left-outline.svg',
+    stroke: #71717a
+  ); /* gray-500 */
+}
+
+.dark ::v-deep(.p-paginator .p-paginator-icon.pi-angle-left::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-left-outline.svg',
+    stroke: #a1a1aa
+  ); /* gray-400 */
+}
+
+/* angle-double-right */
+
+::v-deep(.p-paginator .p-paginator-icon.pi-angle-double-right::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-double-right-outline.svg',
+    stroke: #71717a
+  ); /* gray-500 */
+}
+
+.dark ::v-deep(.p-paginator .p-paginator-icon.pi-angle-double-right::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-double-right-outline.svg',
+    stroke: #a1a1aa
+  ); /* gray-400 */
+}
+
+/* angle-right */
+
+::v-deep(.p-paginator .p-paginator-icon.pi-angle-right::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-right-outline.svg',
+    stroke: #71717a
+  ); /* gray-500 */
+}
+
+.dark ::v-deep(.p-paginator .p-paginator-icon.pi-angle-right::before) {
+  background-image: svg-load(
+    '../svg/heroicons-chevron-right-outline.svg',
+    stroke: #a1a1aa
+  ); /* gray-400 */
+}

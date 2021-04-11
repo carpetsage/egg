@@ -1,0 +1,17 @@
+.p-dropdown.p-inputwrapper {
+  @apply bg-white relative w-full border border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500;
+}
+
+::v-deep(.p-hidden-accessible) {
+  @apply hidden;
+}
+
+::v-deep(.p-dropdown-trigger) {
+  @apply ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none;
+}
+
+::v-deep(.p-dropdown-trigger .p-dropdown-trigger-icon::before) {
+  @apply block h-5 w-5 bg-no-repeat;
+  content: ' ';
+  background-image: svg-load('../svg/heroicons-selector-solid.svg', fill: #a1a1aa); /* gray-400 */
+}

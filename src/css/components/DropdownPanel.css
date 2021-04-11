@@ -1,0 +1,25 @@
+/* The dropdown panel is appended to the body, hence cannot be scoped. */
+
+.p-dropdown-panel {
+  @apply absolute mt-1 bg-white shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm dark:bg-gray-700;
+}
+
+.p-dropdown-panel ul.p-dropdown-items > li.p-dropdown-item {
+  @apply text-gray-900 dark:text-white cursor-default select-none relative py-1 pl-3 pr-9 transition-none;
+}
+
+.p-dropdown-panel ul.p-dropdown-items > li.p-dropdown-item:hover {
+  @apply text-white bg-blue-600;
+}
+
+.p-dropdown-panel.p-connected-overlay-leave-active {
+  @apply transition ease-in duration-200;
+}
+
+.p-dropdown-panel.p-connected-overlay-leave-from {
+  @apply opacity-100;
+}
+
+.p-dropdown-panel.p-connected-overlay-leave-to {
+  @apply opacity-0;
+}

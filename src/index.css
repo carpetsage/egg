@@ -1,0 +1,38 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import './css/components/DataTableColumnFilterOverlay.css';
+@import './css/components/DropdownPanel.css';
+
+html {
+  height: 100vh;
+  height: stretch;
+}
+
+body {
+  min-height: 100vh;
+  min-height: stretch;
+}
+
+* {
+  @apply transition-colors duration-0 ease-in;
+}
+
+/*
+Enable color animation effect only after theming has finished (signaled by the
+addition of the 'theme' class to html). This way, we don't get a prolonged
+transition when the theme is first applied.
+*/
+html.themed * {
+  @apply duration-500;
+}
+
+.tippy-content {
+  @apply text-xs px-2 py-1 !important;
+}
+
+:root {
+  --color-gray-200: #e4e4e7;
+  --color-gray-500: #71717a;
+}
