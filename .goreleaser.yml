@@ -1,0 +1,16 @@
+dist: updater
+archives:
+  - name_template: 'updater_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+builds:
+  - env:
+      - CGO_ENABLED=0
+      - GOFLAGS=-trimpath
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+    binary: updater
+snapshot:
+  name_template: snapshot
