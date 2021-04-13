@@ -17,6 +17,7 @@ export class CoopStatus {
   eggsLaid: number;
   eggsPerHour: number;
   secondsRemaining: number;
+  projectedEggsLaid: number;
   totalEarningsBoost: number;
   totalEggLayingRateBoost: number;
   contributors: Contributor[];
@@ -34,6 +35,8 @@ export class CoopStatus {
     this.contributors = (cs.contributors || []).map(c => new Contributor(c));
     this.eggsPerHour = this.contributors.reduce((sum, c) => sum + c.eggsPerHour, 0);
     this.secondsRemaining = cs.secondsRemaining!;
+    this.projectedEggsLaid =
+      this.eggsLaid + (this.eggsPerHour * Math.max(this.secondsRemaining, 0)) / 3600;
     this.totalEarningsBoost = this.contributors.reduce((sum, c) => sum + c.earningsBoost, 0);
     this.totalEggLayingRateBoost = this.contributors.reduce(
       (sum, c) => sum + c.eggLayingRateBoost,

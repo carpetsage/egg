@@ -117,7 +117,11 @@
         </div>
       </dl>
 
-      <coop-card-progress-bar :eggsLaid="coopStatus.eggsLaid" :leagueStatus="leagueStatus" />
+      <coop-card-progress-bar
+        :eggsLaid="coopStatus.eggsLaid"
+        :projectedEggsLaid="coopStatus.projectedEggsLaid"
+        :leagueStatus="leagueStatus"
+      />
     </div>
 
     <div class="flex flex-col">
