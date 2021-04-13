@@ -3,6 +3,7 @@ import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-rou
 
 import Home from '@/views/Home.vue';
 import Coop from '@/views/Coop.vue';
+import DevMode from '@/views/DevMode.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -32,6 +33,11 @@ const router = createRouter({
           return `${coopCode}@${contractId} - CoopTracker`;
         },
       },
+    },
+    {
+      name: 'devmode',
+      path: '/devmode/',
+      component: DevMode,
     },
     {
       path: '/:catchAll(.*)',
