@@ -55,7 +55,20 @@
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Created by</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            <template v-if="coopStatus.creator">{{ coopStatus.creator.name }}</template>
+            <template v-if="coopStatus.creator">
+              <template v-if="devmode">
+                <base-click-to-copy
+                  :text="coopStatus.creator.id"
+                  class="text-gray-900 dark:text-gray-100 truncate"
+                >
+                  {{ coopStatus.creator.name }}
+                  <template #tooltip>Click to copy ID: {{ coopStatus.creator.id }}</template>
+                </base-click-to-copy>
+              </template>
+              <template v-else>
+                {{ coopStatus.creator.name }}
+              </template>
+            </template>
             <template v-else>
               <span v-tippy="{ content: 'The creator has left.' }" class="cursor-help"
                 >&ndash;</span
@@ -137,7 +150,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue';
+import { computed, defineComponent, inject, ref } from 'vue';
 import { useStore } from 'vuex';
 import { Tippy } from 'vue-tippy';
 
@@ -151,6 +164,7 @@ import {
 } from '@/lib';
 import { key } from '@/store';
 import { completionStatusColorClass } from '@/styles';
+import { devmodeKey } from '@/symbols';
 import { iconURL } from '@/utils';
 import CoopCardStatusLabel from '@/components/CoopCardStatusLabel.vue';
 import CoopCardProgressBar from '@/components/CoopCardProgressBar.vue';
@@ -181,6 +195,7 @@ export default defineComponent({
   // changes. The component must be recreated on changes.
   async setup({ contractId, coopCode }) {
     const store = useStore(key);
+    const devmode = inject(devmodeKey);
 
     const getCoopStatus = async (existingStatus?: CoopStatus) => {
       const status = new CoopStatus(
@@ -200,6 +215,7 @@ export default defineComponent({
     const league = computed(() => ContractLeague[coopStatus.value.league!]);
     const leagueStatus = computed(() => coopStatus.value.leagueStatus!);
     return {
+      devmode,
       contract,
       egg,
       league,

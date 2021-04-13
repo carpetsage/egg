@@ -48,7 +48,18 @@
         <td
           class="px-4 py-1 flex flex-row items-center space-x-0.5 max-w-xxs sm:max-w-xs md:max-w-sm text-sm"
         >
-          <span class="text-gray-500 dark:text-gray-200 truncate">{{ contributor.name }}</span>
+          <template v-if="devmode">
+            <base-click-to-copy
+              :text="contributor.id"
+              class="text-gray-500 dark:text-gray-200 truncate"
+            >
+              {{ contributor.name }}
+              <template #tooltip>Click to copy ID: {{ contributor.id }}</template>
+            </base-click-to-copy>
+          </template>
+          <template v-else>
+            <span class="text-gray-500 dark:text-gray-200 truncate">{{ contributor.name }}</span>
+          </template>
           <!-- Inactive -->
           <svg
             v-if="!contributor.isActive"
@@ -119,12 +130,14 @@
 </template>
 
 <script lang="ts">
-import { PropType, computed, defineComponent, ref, toRefs } from 'vue';
+import { PropType, computed, defineComponent, ref, toRefs, inject } from 'vue';
 import { useStore } from 'vuex';
 
 import { CoopStatus, formatEIValue } from '@/lib';
 import { getSessionStorage, setSessionStorage, iconURL } from '@/utils';
 import { key } from '@/store';
+import { devmodeKey } from '@/symbols';
+import BaseClickToCopy from './BaseClickToCopy.vue';
 
 type SortBy =
   | 'name'
@@ -160,6 +173,9 @@ const validSortBys: string[] = columns.map(col => col.sortBy);
 const defaultSortBy: SortBy = 'eggsLaid';
 
 export default defineComponent({
+  components: {
+    BaseClickToCopy,
+  },
   props: {
     coopStatus: {
       type: Object as PropType<CoopStatus>,
@@ -169,6 +185,7 @@ export default defineComponent({
   setup(props) {
     const { coopStatus } = toRefs(props);
     const store = useStore(key);
+    const devmode = inject(devmodeKey);
 
     const sortBySessionStorageKey = computed(
       () => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortBy`
@@ -216,6 +233,7 @@ export default defineComponent({
     const showRoleColumn = computed(() => store.state.coopConfig.showRoleColumn);
 
     return {
+      devmode,
       columns,
       sortBy,
       sortAscending,

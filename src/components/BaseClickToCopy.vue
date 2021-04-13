@@ -5,7 +5,9 @@
     @click="copyTextToClipboard(text)"
   >
     <slot>{{ text }}</slot>
-    <template #content>Click to copy</template>
+    <template #content>
+      <slot name="tooltip">Click to copy</slot>
+    </template>
   </tippy>
 </template>
 
