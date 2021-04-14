@@ -66,6 +66,7 @@
       :sortable="true"
       headerClass="pl-4 pr-1 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none"
       bodyClass="pl-4 pr-1 py-1"
+      :bodyStyle="{ minWidth: '2.25rem' }"
     >
       <template #body="slotProps">
         <img :src="eggIconURL(slotProps.data)" class="block -ml-0.5 h-4 w-4" />
