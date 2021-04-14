@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 max-w-8xl w-full mx-auto my-6">
+  <div class="flex-1 max-w-8xl w-full mx-auto mt-6">
     <p class="text-sm text-gray-900 dark:text-gray-100 text-center tabular-nums">
       Developer mode enabled. Redirecting to home page in {{ countdown }} seconds...
     </p>
