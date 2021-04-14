@@ -6,7 +6,10 @@ import contracts from './modules/contracts';
 import coopConfig from './modules/coopConfig';
 import coopSelector from './modules/coopSelector';
 import devmode from './modules/devmode';
+import history from './modules/history';
 import theme from './modules/theme';
+
+export type { HistoryCoopEntry } from './modules/history';
 
 export const key: InjectionKey<Store<RootState>> = Symbol();
 
@@ -16,6 +19,7 @@ export const store = createStore<RootState>({
     coopConfig,
     coopSelector,
     devmode,
+    history,
     theme,
   },
   strict: import.meta.env.DEV,

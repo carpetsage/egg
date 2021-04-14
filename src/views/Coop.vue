@@ -17,7 +17,7 @@
     <base-error-boundary :key="`${contractId}:${coopCode}:${refreshId}`">
       <Suspense>
         <template #default>
-          <coop-card :contractId="contractId" :coopCode="coopCode" />
+          <coop-card :contractId="contractId" :coopCode="coopCode" @success="onSuccess" />
         </template>
         <template #fallback>
           <base-loading />
@@ -31,7 +31,8 @@
 import { computed, defineComponent, provide, ref } from 'vue';
 import { useStore } from 'vuex';
 
-import { key } from '@/store';
+import { CoopStatus } from '@/lib';
+import { HistoryCoopEntry, key } from '@/store';
 import { refreshCallbackKey } from '@/symbols';
 import BaseCheckbox from '@/components/BaseCheckbox.vue';
 import BaseCollapsiblePanel from '@/components/BaseCollapsiblePanel.vue';
@@ -77,12 +78,22 @@ export default defineComponent({
       refreshId.value = Date.now();
     });
 
+    const onSuccess = (coopStatus: CoopStatus) => {
+      const entry: HistoryCoopEntry = {
+        contractId: coopStatus.contractId,
+        contractName: coopStatus.contract!.name!,
+        coopCode: coopStatus.coopCode,
+      };
+      store.dispatch('history/addCoop', entry);
+    };
+
     return {
       showConfig,
       toggleConfig,
       configShowRoleColumn,
       toggleConfigShowRoleColumn,
       refreshId,
+      onSuccess,
     };
   },
 });

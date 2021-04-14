@@ -150,7 +150,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, inject, ref } from 'vue';
+import { computed, defineComponent, inject, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import { Tippy } from 'vue-tippy';
 
@@ -191,11 +191,20 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: {
+    success(payload: CoopStatus) {
+      return true;
+    },
+  },
   // Note that this async component does NOT react to contractId and coopCode
   // changes. The component must be recreated on changes.
-  async setup({ contractId, coopCode }) {
+  async setup({ contractId, coopCode }, { emit }) {
     const store = useStore(key);
     const devmode = inject(devmodeKey);
+
+    onMounted(() => {
+      emit('success', coopStatus.value);
+    });
 
     const getCoopStatus = async (existingStatus?: CoopStatus) => {
       const status = new CoopStatus(
@@ -214,6 +223,7 @@ export default defineComponent({
     const egg = computed(() => contract.value.egg!);
     const league = computed(() => ContractLeague[coopStatus.value.league!]);
     const leagueStatus = computed(() => coopStatus.value.leagueStatus!);
+
     return {
       devmode,
       contract,
