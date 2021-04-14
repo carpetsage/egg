@@ -1,5 +1,6 @@
 import { ActionTree, Module, MutationTree } from 'vuex';
 
+import { ei } from '@/lib';
 import { getLocalStorage, setLocalStorage } from '@/utils';
 
 import { RootState } from '../types';
@@ -12,6 +13,7 @@ const COOPS_KEY = 'coops';
 export interface HistoryCoopEntry {
   contractId: string;
   contractName: string;
+  contractEgg: ei.Egg;
   coopCode: string;
 }
 
@@ -21,7 +23,10 @@ export interface State {
 
 function isHistoryCoopEntry(obj: any): obj is HistoryCoopEntry {
   return (
-    obj.contractId !== undefined && obj.contractName !== undefined && obj.coopCode !== undefined
+    obj.contractId !== undefined &&
+    obj.contractName !== undefined &&
+    obj.contractEgg !== undefined &&
+    obj.coopCode !== undefined
   );
 }
 
@@ -56,6 +61,7 @@ function persistCoopsToLocalStorage(coops: HistoryCoopEntry[]) {
         (e: HistoryCoopEntry): HistoryCoopEntry => ({
           contractId: e.contractId,
           contractName: e.contractName,
+          contractEgg: e.contractEgg,
           coopCode: e.coopCode,
         })
       )

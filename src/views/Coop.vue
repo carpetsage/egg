@@ -82,6 +82,7 @@ export default defineComponent({
       const entry: HistoryCoopEntry = {
         contractId: coopStatus.contractId,
         contractName: coopStatus.contract!.name!,
+        contractEgg: coopStatus.contract!.egg!,
         coopCode: coopStatus.coopCode,
       };
       store.dispatch('history/addCoop', entry);
