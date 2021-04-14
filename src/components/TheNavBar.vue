@@ -43,6 +43,8 @@
                 </svg>
               </coop-selector-show>
 
+              <the-recently-viewed-dropdown />
+
               <a
                 href="https://wasmegg.netlify.app/"
                 target="_blank"
@@ -81,10 +83,12 @@ import { key } from '@/store';
 import { iconURL } from '@/utils';
 import CoopSelectorShow from './CoopSelectorShow.vue';
 import TheThemeSwitcher from './TheThemeSwitcher.vue';
+import TheRecentlyViewedDropdown from './TheRecentlyViewedDropdown.vue';
 
 export default defineComponent({
   components: {
     CoopSelectorShow,
+    TheRecentlyViewedDropdown,
     TheThemeSwitcher,
   },
   props: {

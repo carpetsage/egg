@@ -13,6 +13,8 @@ import 'tippy.js/themes/translucent.css';
 
 import hotkeys from 'hotkeys-js';
 
+import { directive as clickOutsideDirective } from '@/directives/v-click-outside';
+
 if (
   localStorage.theme === 'dark' ||
   (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
@@ -50,4 +52,5 @@ app.use(PrimeVue);
 app.use(VueTippy, {
   defaultProps: { theme: 'translucent' },
 });
+app.directive('click-outside', clickOutsideDirective);
 app.mount('#app');

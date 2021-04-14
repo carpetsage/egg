@@ -72,6 +72,8 @@
       </ul>
     </base-collapsible-panel>
 
+    <recently-viewed-block class="sm:mx-1 mb-4" />
+
     <contract-list :contracts="contracts" v-model:rowsPerPage="rowsPerPage" />
   </main>
 </template>
@@ -84,6 +86,7 @@ import { Contract } from '@/lib';
 import { key } from '@/store';
 import { getLocalStorage, setLocalStorage } from '@/utils';
 import BaseCollapsiblePanel from '@/components/BaseCollapsiblePanel.vue';
+import RecentlyViewedBlock from '@/components/RecentlyViewedBlock.vue';
 import ContractList from '@/components/ContractList.vue';
 
 const SHOW_INSTRUCTIONS_LOCALSTORAGE_KEY = 'showInstructions';
@@ -93,6 +96,7 @@ const legitRowsPerPageNumbers = [20, 50, 100, 10000];
 export default defineComponent({
   components: {
     BaseCollapsiblePanel,
+    RecentlyViewedBlock,
     ContractList,
   },
   setup() {
