@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Download updater
         run: |
-          url="$(curl -fsS https://api.github.com/repos/fanaticscripter/CoopTracker/releases/latest | jq -r '.assets[].browser_download_url' | grep linux_amd64)"
+          url="$(curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -fsS https://api.github.com/repos/fanaticscripter/CoopTracker/releases/latest | jq -r '.assets[].browser_download_url' | grep linux_amd64)"
           curl -L -o updater.tar.gz "$url"
           tar xf updater.tar.gz
       - name: Update contracts
@@ -37,5 +37,3 @@ jobs:
               https://api.github.com/repos/${{ github.repository }}/actions/workflows/build.yml/dispatches \
               -d '{"ref": "'${GITHUB_REF##*/}'"}'
           }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
