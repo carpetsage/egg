@@ -138,6 +138,8 @@ export class CoopStatus {
 }
 
 export class CoopLeagueStatus {
+  eggsLaid: number;
+  eggsPerHour: number;
   completionStatus: ContractCompletionStatus;
   goals: ei.Contract.IGoal[];
   finalTarget: number;
@@ -150,6 +152,8 @@ export class CoopLeagueStatus {
     secondsRemaining: number,
     goals: ei.Contract.IGoal[]
   ) {
+    this.eggsLaid = eggsLaid;
+    this.eggsPerHour = eggsPerHour;
     this.goals = goals;
     this.finalTarget = goals[goals.length - 1].targetAmount!;
     if (eggsLaid >= this.finalTarget) {
@@ -169,6 +173,14 @@ export class CoopLeagueStatus {
       eggsPerHour >= this.requiredEggsPerHour
         ? ContractCompletionStatus.IsOnTrackToFinish
         : ContractCompletionStatus.IsNotOnTrackToFinish;
+  }
+
+  expectedTimeToCompleteGoal(goal: ei.Contract.IGoal): number {
+    const target = goal.targetAmount!;
+    if (this.eggsLaid >= target) {
+      return 0;
+    }
+    return ((target - this.eggsLaid) / this.eggsPerHour) * 3600;
   }
 }
 

@@ -21,18 +21,21 @@
       </template>
     </tippy>
     <template v-for="(goal, index) in leagueStatus.goals" :key="index">
-      <img
+      <tippy
+        tag="img"
         class="h-8 absolute top-0 transform -translate-x-1/2"
         :style="{ left: percentage(target(goal), leagueStatus.finalTarget) }"
         :src="iconURL(rewardIconPath(goal), 64)"
-        v-tippy="{
-          content: `${formatEIValue(target(goal), true)}, ${percentage(
-            eggsLaid,
-            target(goal),
-            1
-          )} completed`,
-        }"
-      />
+      >
+        <template #content>
+          {{ formatEIValue(target(goal), true) }},
+          {{ percentage(eggsLaid, target(goal), 1) }} completed<template
+            v-if="eggsLaid < target(goal)"
+            >, expected in
+            {{ formatDuration(leagueStatus.expectedTimeToCompleteGoal(goal)) }}
+          </template>
+        </template>
+      </tippy>
     </template>
   </div>
 </template>
@@ -41,7 +44,14 @@
 import { defineComponent, PropType } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { CoopLeagueStatus, rewardIconPath, formatEIValue, trimTrailingZeros, ei } from '@/lib';
+import {
+  CoopLeagueStatus,
+  rewardIconPath,
+  formatDuration,
+  formatEIValue,
+  trimTrailingZeros,
+  ei,
+} from '@/lib';
 import { iconURL } from '@/utils';
 
 function percentage(x: number, y: number, decimals = 3): string {
@@ -70,6 +80,7 @@ export default defineComponent({
     return {
       percentage,
       rewardIconPath,
+      formatDuration,
       formatEIValue,
       iconURL,
       // target does a non-null assertion on targetAmount to avoid typing problem in the template.
