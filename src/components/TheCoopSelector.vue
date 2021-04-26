@@ -32,7 +32,7 @@
             </div>
             <p class="mt-2 -mb-1 text-xs text-gray-500">
               The contract ID is not visible within the game.
-              <base-info classes="h-3.5 w-3.5">
+              <base-info classes="h-3.5 w-3.5" class="align-middle relative -top-0.5">
                 If you're on the Egg, Inc. Discord server, you can find the ID in the #contracts
                 channel, or through the bot command "ecci".
               </base-info>
