@@ -1,5 +1,5 @@
 <template>
-  <transition name="modal">
+  <transition enter-active-class="block" leave-active-class="block">
     <div
       v-show="shouldShow"
       class="fixed z-10 inset-0 overflow-y-auto"
@@ -11,7 +11,14 @@
         class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
       >
         <!-- Background overlay -->
-        <transition name="overlay">
+        <transition
+          enter-active-class="ease-out duration-300"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="ease-in duration-200"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
           <div
             v-if="shouldShow"
             class="fixed inset-0 bg-gray-500 dark:bg-gray-700 bg-opacity-75 dark:bg-opacity-75 transition-opacity"
@@ -27,7 +34,12 @@
 
         <!-- Modal panel -->
         <transition
-          name="modal-panel"
+          enter-active-class="ease-out duration-300"
+          enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+          leave-active-class="ease-in duration-200"
+          leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+          leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           @before-enter="beforeEnter"
           @enter="enter"
           @after-enter="afterEnter"
@@ -74,46 +86,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="postcss" scoped>
-.modal-enter-active,
-.modal-leave-active {
-  @apply block;
-}
-
-.overlay-enter-from,
-.overlay-leave-to {
-  @apply opacity-0;
-}
-
-.overlay-leave-from,
-.overlay-enter-to {
-  @apply opacity-100;
-}
-
-.overlay-enter-active {
-  @apply ease-out duration-300;
-}
-
-.overlay-leave-active {
-  @apply ease-in duration-300;
-}
-
-.modal-panel-enter-from,
-.modal-panel-leave-to {
-  @apply opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95;
-}
-
-.modal-panel-enter-to,
-.modal-panel-leave-from {
-  @apply opacity-100 translate-y-0 sm:scale-100;
-}
-
-.modal-panel-enter-active {
-  @apply ease-out duration-300;
-}
-
-.modal-panel-leave-active {
-  @apply ease-in duration-300;
-}
-</style>
