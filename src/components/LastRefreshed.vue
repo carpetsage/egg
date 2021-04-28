@@ -27,11 +27,11 @@
 <script lang="ts">
 import { defineComponent, inject, onBeforeUnmount, onMounted, ref, toRefs, watch } from 'vue';
 import dayjs, { Dayjs } from 'dayjs';
-import refreshTime from 'dayjs/plugin/relativeTime';
+import relativeTime from 'dayjs/plugin/relativeTime';
 
 import { refreshCallbackKey } from '@/symbols';
 
-dayjs.extend(refreshTime);
+dayjs.extend(relativeTime);
 
 export default defineComponent({
   props: {
