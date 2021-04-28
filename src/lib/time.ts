@@ -8,7 +8,7 @@ export function formatDuration(seconds: number, trim = false): string {
   if (seconds < 0) {
     return '-' + formatDuration(-seconds);
   }
-  if (seconds < 1) {
+  if (seconds < 60) {
     return trim ? '0m' : '0d0h0m';
   }
   if (!isFinite(seconds)) {
