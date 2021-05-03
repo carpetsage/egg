@@ -13,17 +13,23 @@ export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
       switch (r.rewardSubType!) {
         case 'epic_internal_incubators':
           name = 'epic_internal_hatchery';
+          break;
         case 'cheaper_research':
           name = 'lab_upgrade';
+          break;
         case 'epic_silo_quality':
           // Defunct, replaced by pro permit
           name = 'silo_quality';
+          break;
         case 'int_hatch_sharing':
           name = 'internal_hatchery_sharing';
+          break;
         case 'int_hatch_calm':
           name = 'internal_hatchery_calm';
+          break;
         case 'soul_eggs':
           name = 'soul_food';
+          break;
         case 'warp_shift':
           // Defunct, replaced by boosts
           name = 'warp_boost';
