@@ -37,6 +37,11 @@ export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
       return 'egginc-extras/icon_piggy_level_up.png';
     case ei.RewardType.BOOST:
       return `egginc/b_icon_${r.rewardSubType!}.png`;
+    case ei.RewardType.ARTIFACT_CASE:
+      return `egginc/icon_afx_chest_3.png`;
+    // We haven't seen a single-artifact reward yet, so I'd rather not guess
+    // what rewardSubType would be, so unknown it is.
+    case ei.RewardType.ARTIFACT:
     case ei.RewardType.CASH:
     case ei.RewardType.BOOST_TOKEN:
     case ei.RewardType.UNKNOWN_REWARD:
