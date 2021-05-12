@@ -68,7 +68,7 @@ export class CoopStatus {
     const contract = knownContract || store.get(this.contractId, this.expirationTime.unix());
     if (contract) {
       this.contract = contract;
-      this.resolveLeague();
+      await this.resolveLeague();
     } else {
       if (this.contributors.length === 0) {
         throw new Error(
@@ -97,11 +97,11 @@ export class CoopStatus {
     );
   }
 
-  async resolveLeague() {
+  async resolveLeague(): Promise<ContractLeague> {
     if (this.contributors.length === 0) {
       // Ghost coop, don't care.
       this.league = ContractLeague.Elite;
-      return;
+      return this.league;
     }
 
     // Heuristics.
@@ -111,11 +111,11 @@ export class CoopStatus {
       const eb = contributor.earningBonusPercentage;
       if (eb < COOP_LEAGUE_DEFINITELY_STANDARD_EB) {
         this.league = ContractLeague.Standard;
-        return;
+        return this.league;
       }
       if (eb > COOP_LEAGUE_DEFINITELY_ELITE_EB) {
         this.league = ContractLeague.Elite;
-        return;
+        return this.league;
       }
       if (eb < COOP_LEAGUE_DIVIDER_EB) {
         belowThresholdCount++;
@@ -132,9 +132,11 @@ export class CoopStatus {
       this.league = queryCoopResponse.differentLeague
         ? ContractLeague.Standard
         : ContractLeague.Elite;
+      return this.league;
     } catch (e) {
       console.error(`failed to query coop ${this.contractId}:${this.coopCode}: ${e}`);
       this.league = heuristicLeague;
+      return this.league;
     }
   }
 }
