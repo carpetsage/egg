@@ -4,32 +4,40 @@
       <tr>
         <template v-for="column in columns" :key="column.sortBy">
           <th
-            v-if="!(!showRoleColumn && column.sortBy === 'role')"
+            v-if="!(!showRoleColumn && column.id === 'role')"
             scope="col"
-            class="px-4 py-2 text-xs font-medium uppercase tracking-wider cursor-pointer select-none"
-            :class="column.sortBy === 'name' ? 'text-left' : 'text-center'"
-            @click="setSortBy(column.sortBy)"
+            class="px-4 py-2 text-xs font-medium whitespace-nowrap cursor-pointer select-none"
+            :class="column.id === 'name' ? 'text-left' : 'text-center'"
+            @click="setSortBy(column.id)"
           >
             <span
               class="flex flex-row items-center space-x-1"
-              :class="{ 'justify-center': column.sortBy !== 'name' }"
+              :class="{ 'justify-center': column.id !== 'name' }"
               v-tippy="{ content: column.tooltip }"
             >
               <template v-if="column.iconPath">
-                <img :src="iconURL(column.iconPath, 64)" class="h-4 w-4" />
+                <span class="flex flex-shrink-0 flex-row items-center space-x-px">
+                  <span v-if="column.prefix" class="text-gray-500 dark:text-gray-200">{{
+                    column.prefix
+                  }}</span>
+                  <img :src="iconURL(column.iconPath, 64)" class="h-4 w-4" />
+                  <span v-if="column.suffix" class="text-gray-500 dark:text-gray-200">{{
+                    column.suffix
+                  }}</span>
+                </span>
               </template>
               <template v-else>
                 <span class="text-gray-500 dark:text-gray-200">{{ column.name }}</span>
               </template>
 
-              <svg viewBox="0 0 320 512" class="h-3 text-gray-400">
+              <svg viewBox="0 0 320 512" class="flex-shrink-0 h-3 text-gray-400">
                 <path
-                  v-if="!(sortBy === column.sortBy && !sortAscending)"
+                  v-if="!(sortBy === column.id && !sortAscending)"
                   fill="currentColor"
                   d="M279 224H41c-21.4 0-32.1-25.9-17-41L143 64c9.4-9.4 24.6-9.4 33.9 0l119 119c15.2 15.1 4.5 41-16.9 41z"
                 />
                 <path
-                  v-if="!(sortBy === column.sortBy && sortAscending)"
+                  v-if="!(sortBy === column.id && sortAscending)"
                   fill="currentColor"
                   d="M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41z"
                 />
@@ -64,7 +72,11 @@
           <svg
             v-if="!contributor.isActive"
             viewBox="0 0 256 256"
-            class="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0"
+            class="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0 cursor-help"
+            v-tippy="{
+              content:
+                'This player hasn\'t reported in for a long time and can be kicked by the coop creator.',
+            }"
           >
             <path
               fill="currentColor"
@@ -83,9 +95,29 @@
           <img
             v-if="contributor.isTimeCheating"
             :src="iconURL('egginc-extras/icon_time_cheat.png', 64)"
-            class="h-4 w-4 flex-shrink-0"
+            class="h-4 w-4 flex-shrink-0 cursor-help"
             :style="{ filter: 'brightness(0.5) sepia(1) saturate(10000%)' }"
+            v-tippy="{
+              content: 'This player is suspected of time cheating and can be kicked by anyone.',
+            }"
           />
+          <!-- Leech -->
+          <svg
+            v-if="contributor.isLeeching"
+            class="h-3.5 w-3.5 flex-shrink-0 text-red-500 cursor-help"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            v-tippy="{
+              content:
+                'This player\'s contribution rate has been deemed unsatisfactory, and is at the risk of being kicked by anyone.',
+            }"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
         </td>
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
@@ -124,69 +156,238 @@
         >
           {{ (contributor.eggLayingRateBoost * 100).toFixed(0) }}%
         </td>
+        <td
+          v-if="showOptionalColumn.tokensSpent"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <template v-if="contributor.tokensSpent !== null">
+            {{ contributor.tokensSpent }}
+          </template>
+          <template v-else>&ndash;</template>
+        </td>
+        <td
+          v-if="showOptionalColumn.hourlyLayingRateUncapped"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <template v-if="contributor.hourlyLayingRateUncapped !== null">
+            {{ formatEIValue(contributor.hourlyLayingRateUncapped) }}
+            <img
+              v-if="
+                contributor.hourlyShippingCapacity !== null &&
+                contributor.hourlyLayingRateUncapped > contributor.hourlyShippingCapacity
+              "
+              class="inline h-4 w-4 relative -top-px cursor-help"
+              :src="iconURL('egginc-extras/icon_warning.png', 64)"
+              v-tippy="{
+                content:
+                  'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
+              }"
+            />
+          </template>
+          <template v-else>&ndash;</template>
+        </td>
+        <td
+          v-if="showOptionalColumn.hourlyShippingCapacity"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <template v-if="contributor.hourlyShippingCapacity !== null">
+            {{ formatEIValue(contributor.hourlyShippingCapacity) }}
+          </template>
+          <template v-else>&ndash;</template>
+        </td>
+        <td
+          v-if="showOptionalColumn.farmPopulation"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <template v-if="contributor.farmPopulation !== null">
+            {{ contributor.farmPopulation.toLocaleString('en-US') }}
+          </template>
+          <template v-else>&ndash;</template>
+        </td>
+        <td
+          v-if="showOptionalColumn.farmCapacity"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <template v-if="contributor.farmCapacity !== null">
+            {{ contributor.farmCapacity.toLocaleString('en-US') }}
+          </template>
+          <template v-else>&ndash;</template>
+        </td>
+        <td
+          v-if="showOptionalColumn.internalHatcheryRatePerMinPerHab"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <template v-if="contributor.internalHatcheryRatePerMinPerHab !== null">
+            {{ contributor.internalHatcheryRatePerMinPerHab.toLocaleString('en-US') }}
+          </template>
+          <template v-else>&ndash;</template>
+        </td>
       </tr>
     </tbody>
   </table>
 </template>
 
 <script lang="ts">
-import { PropType, computed, defineComponent, ref, toRefs, inject } from 'vue';
+import { PropType, computed, defineComponent, ref, toRefs, inject, Ref } from 'vue';
 import { useStore } from 'vuex';
 
-import { CoopStatus, formatEIValue } from '@/lib';
+import { CoopStatus, eggIconPath, ei, formatEIValue } from '@/lib';
 import { getSessionStorage, setSessionStorage, iconURL } from '@/utils';
 import { key } from '@/store';
 import { devmodeKey } from '@/symbols';
 import BaseClickToCopy from './BaseClickToCopy.vue';
 
-type SortBy =
-  | 'name'
-  | 'eggsLaid'
-  | 'eggsPerHour'
-  | 'earningBonusPercentage'
-  | 'tokens'
-  | 'earningsBoost'
-  | 'role'
-  | 'eggLayingRateBoost';
+const requiredColumnIds = [
+  'name',
+  'eggsLaid',
+  'eggsPerHour',
+  'earningBonusPercentage',
+  'tokens',
+  'earningsBoost',
+  'role',
+  'eggLayingRateBoost',
+] as const;
 
-const columns: { sortBy: SortBy; name: string; iconPath?: string; tooltip?: string }[] = [
-  { sortBy: 'name', name: 'Player' },
-  { sortBy: 'eggsLaid', name: 'Laid' },
-  { sortBy: 'eggsPerHour', name: 'Rate/hr' },
-  { sortBy: 'earningBonusPercentage', name: 'EB%' },
-  { sortBy: 'role', name: 'Role' },
-  { sortBy: 'tokens', name: 'Tokens', iconPath: 'egginc/b_icon_token.png', tooltip: 'Tokens' },
-  {
-    sortBy: 'earningsBoost',
-    name: 'SiaB',
-    iconPath: 'egginc/afx_ship_in_a_bottle_4.png',
-    tooltip: 'Earnings boost percentage from Ship in a Bottle equipped by each contributor',
-  },
-  {
-    sortBy: 'eggLayingRateBoost',
-    name: 'TD',
-    iconPath: 'egginc/afx_tachyon_deflector_4.png',
-    tooltip: 'Egg laying rate boost percentage from Tachyon Deflector equipped by each contributor',
-  },
-];
-const validSortBys: string[] = columns.map(col => col.sortBy);
-const defaultSortBy: SortBy = 'eggsLaid';
+const optionalColumnIds = [
+  'tokensSpent',
+  'hourlyLayingRateUncapped',
+  'hourlyShippingCapacity',
+  'farmPopulation',
+  'farmCapacity',
+  'internalHatcheryRatePerMinPerHab',
+] as const;
+
+type ColumnId = typeof requiredColumnIds[number] | OptionalColumnId;
+type OptionalColumnId = typeof optionalColumnIds[number];
+
+type ColumnSpec = {
+  id: ColumnId;
+  name: string;
+  iconPath?: string;
+  prefix?: string;
+  suffix?: string;
+  tooltip?: string;
+};
 
 export default defineComponent({
   components: {
     BaseClickToCopy,
   },
   props: {
+    egg: {
+      type: Number as PropType<ei.Egg>,
+      required: true,
+    },
     coopStatus: {
       type: Object as PropType<CoopStatus>,
       required: true,
     },
   },
   setup(props) {
-    const { coopStatus } = toRefs(props);
+    const { egg, coopStatus } = toRefs(props);
     const store = useStore(key);
     const devmode = inject(devmodeKey);
 
+    const showOptionalColumn = computed(
+      () =>
+        Object.fromEntries(
+          optionalColumnIds.map(col => [
+            col,
+            coopStatus.value.contributors.some(contributor => contributor[col] !== null),
+          ])
+        ) as Record<OptionalColumnId, boolean>
+    );
+    const columns: Ref<ColumnSpec[]> = computed(() => {
+      const cols: ColumnSpec[] = [
+        {
+          id: 'name',
+          name: 'Player',
+        },
+        {
+          id: 'eggsLaid',
+          name: 'Shipped',
+        },
+        {
+          id: 'eggsPerHour',
+          name: 'Rate/hr',
+          iconPath: eggIconPath(egg.value),
+          suffix: '/ hr',
+        },
+        {
+          id: 'earningBonusPercentage',
+          name: 'EB%',
+        },
+        {
+          id: 'role',
+          name: 'Role',
+        },
+        {
+          id: 'tokens',
+          name: 'Tokens',
+          iconPath: 'egginc/b_icon_token.png',
+          tooltip: 'Tokens left',
+        },
+        {
+          id: 'earningsBoost',
+          name: 'SiaB',
+          iconPath: 'egginc/afx_ship_in_a_bottle_4.png',
+          tooltip: 'Earnings boost percentage from Ship in a Bottle equipped by each contributor',
+        },
+        {
+          id: 'eggLayingRateBoost',
+          name: 'TD',
+          iconPath: 'egginc/afx_tachyon_deflector_4.png',
+          tooltip:
+            'Egg laying rate boost percentage from Tachyon Deflector equipped by each contributor',
+        },
+      ];
+      if (showOptionalColumn.value.tokensSpent) {
+        cols.push({
+          id: 'tokensSpent',
+          name: 'Tokens spent',
+          iconPath: 'egginc/b_icon_token.png',
+          suffix: ' \u{00a0}spent',
+          tooltip: 'Tokens spent',
+        });
+      }
+      if (showOptionalColumn.value.hourlyLayingRateUncapped) {
+        cols.push({
+          id: 'hourlyLayingRateUncapped',
+          name: 'Laying / hr',
+          tooltip: 'Egg laying rate from all chickens, not capped by shipping capacity',
+        });
+      }
+      if (showOptionalColumn.value.hourlyShippingCapacity) {
+        cols.push({
+          id: 'hourlyShippingCapacity',
+          name: 'Max shipping / hr',
+          tooltip: 'Egg laying rate from all chickens, not capped by shipping capacity',
+        });
+      }
+      if (showOptionalColumn.value.farmPopulation) {
+        cols.push({
+          id: 'farmPopulation',
+          name: 'Population',
+        });
+      }
+      if (showOptionalColumn.value.farmCapacity) {
+        cols.push({
+          id: 'farmCapacity',
+          name: 'Hab space',
+        });
+      }
+      if (showOptionalColumn.value.internalHatcheryRatePerMinPerHab) {
+        cols.push({
+          id: 'internalHatcheryRatePerMinPerHab',
+          name: 'IHR / min / hab',
+          tooltip: 'Internal hatchery rate, including boost effect if any',
+        });
+      }
+      return cols;
+    });
+
+    const columnIds: Ref<string[]> = computed(() => columns.value.map(col => col.id));
+    const defaultSortBy: ColumnId = 'eggsLaid';
     const sortBySessionStorageKey = computed(
       () => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortBy`
     );
@@ -194,13 +395,16 @@ export default defineComponent({
       () => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortAscending`
     );
     let initialSortBy = getSessionStorage(sortBySessionStorageKey.value);
-    if (initialSortBy === undefined || !validSortBys.includes(initialSortBy)) {
+    if (initialSortBy === undefined || !columnIds.value.includes(initialSortBy)) {
       initialSortBy = defaultSortBy;
     }
-    const sortBy = ref(initialSortBy as SortBy);
+    const sortBy = ref(initialSortBy as ColumnId);
     const initialSortAscending = getSessionStorage(sortAscendingSessionStorageKey.value) === 'true';
     const sortAscending = ref(initialSortAscending);
-    const setSortBy = (by: SortBy) => {
+    const setSortBy = (by: ColumnId) => {
+      if (!columnIds.value.includes(by)) {
+        by = defaultSortBy;
+      }
       if (sortBy.value === by) {
         sortAscending.value = !sortAscending.value;
       } else {
@@ -222,7 +426,7 @@ export default defineComponent({
             cmp = c1.earningBonusPercentage - c2.earningBonusPercentage;
             break;
           default:
-            cmp = c1[sortBy.value] - c2[sortBy.value];
+            cmp = (c1[sortBy.value] || 0) - (c2[sortBy.value] || 0);
         }
         // Use eggsLaid as tiebreaker.
         return cmp !== 0 ? cmp : c1.eggsLaid - c2.eggsLaid;
@@ -235,6 +439,7 @@ export default defineComponent({
     return {
       devmode,
       columns,
+      showOptionalColumn,
       sortBy,
       sortAscending,
       setSortBy,

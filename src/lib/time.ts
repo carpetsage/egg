@@ -15,7 +15,7 @@ export function formatDuration(seconds: number, trim = false): string {
     return 'Forever';
   }
   if (seconds > 315_360_000) {
-    return '>10yr'
+    return '>10yr';
   }
   const dd = Math.floor(seconds / 86400);
   seconds -= dd * 86400;

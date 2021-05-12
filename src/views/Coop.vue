@@ -1,5 +1,5 @@
 <template>
-  <main class="flex-1 max-w-4xl w-full mx-auto mt-6">
+  <main class="flex-1 max-w-8xl w-full mx-auto mt-6">
     <base-collapsible-panel title="Configuration" :collapse="!showConfig" :toggle="toggleConfig">
       <base-checkbox
         name="config-show-role-column"

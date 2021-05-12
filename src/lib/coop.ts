@@ -14,6 +14,7 @@ export class CoopStatus {
   contractId: string;
   contract: ei.IContract | null;
   coopCode: string;
+  isPublic: boolean;
   eggsLaid: number;
   eggsPerHour: number;
   secondsRemaining: number;
@@ -31,6 +32,7 @@ export class CoopStatus {
     this.contractId = cs.contractIdentifier!;
     this.contract = null;
     this.coopCode = cs.coopIdentifier!;
+    this.isPublic = cs.public!;
     this.eggsLaid = cs.totalAmount!;
     this.contributors = (cs.contributors || []).map(c => new Contributor(c));
     this.eggsPerHour = this.contributors.reduce((sum, c) => sum + c.eggsPerHour, 0);
@@ -194,8 +196,17 @@ export class Contributor {
   tokens: number;
   isActive: boolean;
   isTimeCheating: boolean;
+  isLeeching: boolean; // New in v1.20.8
   earningsBoost: number;
   eggLayingRateBoost: number;
+  // New in v1.20.8, not available for coops before that or (maybe) contributors
+  // on lower app versions.
+  tokensSpent: number | null;
+  hourlyLayingRateUncapped: number | null;
+  hourlyShippingCapacity: number | null;
+  farmPopulation: number | null;
+  farmCapacity: number | null;
+  internalHatcheryRatePerMinPerHab: number | null;
 
   constructor(contributor: ei.ContractCoopStatusResponse.IContributionInfo) {
     this.id = contributor.userId!;
@@ -207,6 +218,7 @@ export class Contributor {
     this.tokens = contributor.boostTokens!;
     this.isActive = contributor.active!;
     this.isTimeCheating = contributor.timeCheatDetected!;
+    this.isLeeching = contributor.leech!;
     this.earningsBoost = 0;
     this.eggLayingRateBoost = 0;
     if (Array.isArray(contributor.buffHistory) && contributor.buffHistory.length > 0) {
@@ -214,5 +226,34 @@ export class Contributor {
       this.earningsBoost = currentBuff.earnings! - 1;
       this.eggLayingRateBoost = currentBuff.eggLayingRate! - 1;
     }
+
+    this.tokensSpent = isValue(contributor.boostTokensSpent) ? contributor.boostTokensSpent : null;
+    this.hourlyLayingRateUncapped = null;
+    this.hourlyShippingCapacity = null;
+    this.farmPopulation = null;
+    this.farmCapacity = null;
+    this.internalHatcheryRatePerMinPerHab = null;
+    const params = contributor.productionParams;
+    if (params) {
+      if (isValue(params.elr) && isValue(params.farmPopulation)) {
+        this.hourlyLayingRateUncapped = params.elr * params.farmPopulation * 3600;
+      }
+      if (isValue(params.sr)) {
+        this.hourlyShippingCapacity = params.sr * 3600;
+      }
+      if (isValue(params.farmPopulation)) {
+        this.farmPopulation = params.farmPopulation;
+      }
+      if (isValue(params.farmCapacity)) {
+        this.farmCapacity = params.farmCapacity;
+      }
+      if (isValue(params.ihr)) {
+        this.internalHatcheryRatePerMinPerHab = params.ihr * 60;
+      }
+    }
   }
+}
+
+function isValue<T>(x: T | null | undefined): x is T {
+  return x !== null && x !== undefined;
 }
