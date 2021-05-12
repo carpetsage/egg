@@ -69,7 +69,11 @@
       :bodyStyle="{ minWidth: '2.25rem' }"
     >
       <template #body="slotProps">
-        <img :src="eggIconURL(slotProps.data)" class="block -ml-0.5 h-4 w-4" />
+        <img
+          :src="eggIconURL(slotProps.data)"
+          class="block -ml-0.5 h-4 w-4"
+          v-tippy="{ content: contractEggTooltip(slotProps.data) }"
+        />
       </template>
     </Column>
     <Column
@@ -319,7 +323,7 @@ import dayjs from 'dayjs';
 
 import { Contract, eggIconPath, formatDuration, formatEIValue } from '@/lib';
 import { key } from '@/store';
-import { iconURL } from '@/utils';
+import { eggTooltip, iconURL } from '@/utils';
 import ContractListExpansion from './ContractListExpansion.vue';
 
 export default defineComponent({
@@ -385,6 +389,7 @@ export default defineComponent({
     const selectContractAndShowCoopSelector = (contractId: string) =>
       store.dispatch('coopSelector/selectContractAndShow', contractId);
     const eggIconURL = (contract: Contract) => iconURL(eggIconPath(contract.egg!), 64);
+    const contractEggTooltip = (contract: Contract) => eggTooltip(contract.egg!);
     const currentTimestamp = Date.now() / 1000;
     const isAvailable = (contract: Contract) => currentTimestamp < contract.expirationTime!;
     const durationUntilExpiration = (contract: Contract) =>
@@ -412,6 +417,7 @@ export default defineComponent({
       isAvailable,
       durationUntilExpiration,
       eggIconURL,
+      contractEggTooltip,
       formatEIValue,
       formatDate,
       formatDateTime,

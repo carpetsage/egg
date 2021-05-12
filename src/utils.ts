@@ -1,3 +1,5 @@
+import { eggName, eggValue, ei, formatEIValue, trimTrailingZeros } from './lib';
+
 export function getLocalStorage(key: string, prefix?: string): string | undefined {
   if (prefix === undefined) {
     prefix = `${window.location.pathname}_`;
@@ -46,6 +48,17 @@ export function setSessionStorage(key: string, val: any, prefix?: string) {
 
 export function iconURL(relpath: string, size: number | string = 'orig') {
   return `https://eggincassets.tcl.sh/${size}/${relpath}`;
+}
+
+export function eggTooltip(egg: ei.Egg) {
+  const value = eggValue(egg);
+  const valueDisplay =
+    value < 0.01
+      ? value.toFixed(7)
+      : value < 100
+      ? trimTrailingZeros(value.toFixed(2))
+      : formatEIValue(value, true);
+  return `${eggName(egg)} Egg, value: ${valueDisplay}`;
 }
 
 export enum RoundingMode {

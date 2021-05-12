@@ -7,6 +7,7 @@
             <img
               class="inline relative -top-px -left-1 -mr-1 h-6 w-6"
               :src="iconURL(eggIconPath(egg), 64)"
+              v-tippy="{ content: eggTooltip(egg) }"
             />
             {{ contract.name }}
             (<base-click-to-copy
@@ -193,7 +194,7 @@ import {
 import { key } from '@/store';
 import { completionStatusColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
-import { iconURL } from '@/utils';
+import { eggTooltip, iconURL } from '@/utils';
 import CoopCardStatusLabel from '@/components/CoopCardStatusLabel.vue';
 import CoopCardProgressBar from '@/components/CoopCardProgressBar.vue';
 import CoopCardContributionTable from '@/components/CoopCardContributionTable.vue';
@@ -263,6 +264,7 @@ export default defineComponent({
       formatDuration,
       completionStatusColorClass,
       eggIconPath,
+      eggTooltip,
       iconURL,
       max: Math.max,
     };

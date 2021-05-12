@@ -1,5 +1,68 @@
 import { ei } from './proto';
 
+export function eggName(egg: ei.Egg): string {
+  const symbol = ei.Egg[egg];
+  return symbol
+    .split('_')
+    .map(word => word[0] + word.substring(1).toLowerCase())
+    .join(' ');
+}
+
+export function eggValue(egg: ei.Egg): number {
+  switch (egg) {
+    case ei.Egg.EDIBLE:
+      return 0.1;
+    case ei.Egg.SUPERFOOD:
+      return 1.25;
+    case ei.Egg.MEDICAL:
+      return 6.25;
+    case ei.Egg.ROCKET_FUEL:
+      return 30;
+    case ei.Egg.SUPER_MATERIAL:
+      return 150;
+    case ei.Egg.FUSION:
+      return 700;
+    case ei.Egg.QUANTUM:
+      return 3_000;
+    case ei.Egg.IMMORTALITY:
+      return 12_500;
+    case ei.Egg.TACHYON:
+      return 50_000;
+    case ei.Egg.GRAVITON:
+      return 175_000;
+    case ei.Egg.DILITHIUM:
+      return 525_000;
+    case ei.Egg.PRODIGY:
+      return 1_500_000;
+    case ei.Egg.TERRAFORM:
+      return 10_000_000;
+    case ei.Egg.ANTIMATTER:
+      return 1e9;
+    case ei.Egg.DARK_MATTER:
+      return 1e11;
+    case ei.Egg.AI:
+      return 1e12;
+    case ei.Egg.NEBULA:
+      return 1.5e13;
+    case ei.Egg.UNIVERSE:
+      return 1e14;
+    case ei.Egg.ENLIGHTENMENT:
+      return 1e-7;
+    case ei.Egg.CHOCOLATE:
+      return 5;
+    case ei.Egg.EASTER:
+      return 0.05;
+    case ei.Egg.WATERBALLOON:
+      return 0.1;
+    case ei.Egg.FIREWORK:
+      return 4.99;
+    case ei.Egg.PUMPKIN:
+      return 0.99;
+    case ei.Egg.UNKNOWN:
+      return 0;
+  }
+}
+
 export function eggIconPath(egg: ei.Egg): string {
   switch (egg) {
     case ei.Egg.EDIBLE:
