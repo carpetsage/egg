@@ -68,11 +68,11 @@
       bodyClass="pl-4 pr-1 py-1"
       :bodyStyle="{ minWidth: '2.25rem' }"
     >
-      <template #body="slotProps">
+      <template #body="{ data: contract }">
         <img
-          :src="eggIconURL(slotProps.data)"
+          :src="eggIconURL(contract)"
           class="block -ml-0.5 h-4 w-4"
-          v-tippy="{ content: contractEggTooltip(slotProps.data) }"
+          v-tippy="{ content: contractEggTooltip(contract) }"
         />
       </template>
     </Column>
@@ -83,20 +83,17 @@
       :headerClass="columnHeaderClasses"
       :bodyClass="columnBodyClasses"
     >
-      <template #body="slotProps">
+      <template #body="{ data: contract }">
         <span
-          :class="[
-            isAvailable(slotProps.data) ? 'text-green-500' : columnColorClasses,
-            'cursor-pointer',
-          ]"
-          @click="selectContractAndShowCoopSelector(slotProps.data.id)"
+          :class="[isAvailable(contract) ? 'text-green-500' : columnColorClasses, 'cursor-pointer']"
+          @click="selectContractAndShowCoopSelector(contract.id)"
           v-tippy="
-            isAvailable(slotProps.data)
-              ? { content: `Expires in ${durationUntilExpiration(slotProps.data)}` }
+            isAvailable(contract)
+              ? { content: `Expires in ${durationUntilExpiration(contract)}` }
               : {}
           "
         >
-          {{ slotProps.data.name }}
+          {{ contract.name }}
         </span>
       </template>
     </Column>
@@ -107,12 +104,12 @@
       :headerClass="columnHeaderClasses"
       :bodyClass="columnBodyClasses"
     >
-      <template #body="slotProps">
+      <template #body="{ data: contract }">
         <span
           :class="[columnColorClasses, 'cursor-pointer']"
-          @click="selectContractAndShowCoopSelector(slotProps.data.id)"
+          @click="selectContractAndShowCoopSelector(contract.id)"
         >
-          {{ slotProps.data.id }}
+          {{ contract.id }}
         </span>
       </template>
     </Column>
@@ -171,8 +168,8 @@
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
-      <template #body="slotProps">
-        {{ formatDuration(slotProps.data.lengthSeconds, true) }}
+      <template #body="{ data: contract }">
+        {{ formatDuration(contract.lengthSeconds, true) }}
       </template>
     </Column>
     <Column
@@ -182,8 +179,8 @@
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
-      <template #body="slotProps">
-        {{ slotProps.data.maxCoopSize || '\u2013' }}
+      <template #body="{ data: contract }">
+        {{ contract.maxCoopSize || '\u2013' }}
       </template>
     </Column>
     <Column
@@ -193,10 +190,8 @@
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
-      <template #body="slotProps">
-        <template v-if="slotProps.data.minutesPerToken">
-          {{ slotProps.data.minutesPerToken }}m
-        </template>
+      <template #body="{ data: contract }">
+        <template v-if="contract.minutesPerToken"> {{ contract.minutesPerToken }}m </template>
         <template v-else>&ndash;</template>
       </template>
     </Column>
@@ -236,14 +231,14 @@
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
-      <template #body="slotProps">
+      <template #body="{ data: contract }">
         <span
           :class="columnColorClasses"
           v-tippy="{
-            content: formatDateTime(slotProps.data.offeringTime),
+            content: formatDateTime(contract.offeringTime),
           }"
         >
-          {{ formatDate(slotProps.data.offeringTime) }}
+          {{ formatDate(contract.offeringTime) }}
         </span>
       </template>
     </Column>
@@ -254,14 +249,14 @@
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
-      <template #body="slotProps">
+      <template #body="{ data: contract }">
         <span
           :class="columnColorClasses"
           v-tippy="{
-            content: formatDateTime(slotProps.data.expirationTime),
+            content: formatDateTime(contract.expirationTime),
           }"
         >
-          {{ formatDate(slotProps.data.expirationTime) }}
+          {{ formatDate(contract.expirationTime) }}
         </span>
       </template>
     </Column>
@@ -272,9 +267,9 @@
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
-      <template #body="slotProps">
-        <template v-if="slotProps.data.eliteGoal">
-          {{ formatEIValue(slotProps.data.eliteGoal, true) }}
+      <template #body="{ data: contract }">
+        <template v-if="contract.eliteGoal">
+          {{ formatEIValue(contract.eliteGoal, true) }}
         </template>
         <template v-else>&ndash;</template>
       </template>
@@ -286,16 +281,16 @@
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
-      <template #body="slotProps">
-        <template v-if="slotProps.data.standardGoal">
-          {{ formatEIValue(slotProps.data.standardGoal, true) }}
+      <template #body="{ data: contract }">
+        <template v-if="contract.standardGoal">
+          {{ formatEIValue(contract.standardGoal, true) }}
         </template>
         <template v-else>&ndash;</template>
       </template>
     </Column>
 
-    <template #expansion="slotProps">
-      <contract-list-expansion :contract="slotProps.data" />
+    <template #expansion="{ data: contract }">
+      <contract-list-expansion :contract="contract" />
     </template>
 
     <template #paginatorRight>
