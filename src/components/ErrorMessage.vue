@@ -11,9 +11,12 @@
       <base-click-to-copy
         class="text-sm"
         colorClasses="active:text-red-400 dark:active:text-red-600"
-        :text="encodedError"
+        :text="devmode ? error.stack || error.toString() : encodedError"
       >
-        {{ formattedError }}
+        <template v-if="devmode">
+          <div class="whitespace-pre">{{ error.stack }}</div>
+        </template>
+        <template v-else>{{ formattedError }}</template>
       </base-click-to-copy>
     </div>
 
@@ -25,8 +28,9 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, toRefs } from 'vue';
+import { computed, defineComponent, inject, toRefs } from 'vue';
 
+import { devmodeKey } from '@/symbols';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 
 export default defineComponent({
@@ -41,7 +45,8 @@ export default defineComponent({
   },
   setup(props) {
     const { error } = toRefs(props);
-    // Scrub user IDs.
+    const devmode = inject(devmodeKey);
+    console.error(error.value);
     const formattedError = computed(() =>
       String(error.value).replaceAll(
         /EI\d{16}/g,
@@ -50,6 +55,7 @@ export default defineComponent({
     );
     const encodedError = computed(() => btoa(String(error.value)));
     return {
+      devmode,
       formattedError,
       encodedError,
     };
