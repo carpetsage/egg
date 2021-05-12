@@ -47,3 +47,28 @@ export function setSessionStorage(key: string, val: any, prefix?: string) {
 export function iconURL(relpath: string, size: number | string = 'orig') {
   return `https://eggincassets.tcl.sh/${size}/${relpath}`;
 }
+
+export enum RoundingMode {
+  Down = -1,
+  Nearest = 0,
+  Up = 1,
+}
+
+export function formatWithThousandSeparators(
+  x: number,
+  roundingMode = RoundingMode.Nearest
+): string {
+  let rounded: number;
+  switch (roundingMode) {
+    case RoundingMode.Down:
+      rounded = Math.floor(x);
+      break;
+    case RoundingMode.Nearest:
+      rounded = Math.round(x);
+      break;
+    case RoundingMode.Up:
+      rounded = Math.ceil(x);
+      break;
+  }
+  return rounded.toLocaleString('en-US');
+}

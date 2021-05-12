@@ -200,7 +200,7 @@
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           <template v-if="contributor.farmPopulation !== null">
-            {{ contributor.farmPopulation.toLocaleString('en-US') }}
+            {{ formatWithThousandSeparators(contributor.farmPopulation, -1) }}
           </template>
           <template v-else>&ndash;</template>
         </td>
@@ -209,7 +209,7 @@
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           <template v-if="contributor.farmCapacity !== null">
-            {{ contributor.farmCapacity.toLocaleString('en-US') }}
+            {{ formatWithThousandSeparators(contributor.farmCapacity, -1) }}
           </template>
           <template v-else>&ndash;</template>
         </td>
@@ -218,7 +218,7 @@
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           <template v-if="contributor.internalHatcheryRatePerMinPerHab !== null">
-            {{ contributor.internalHatcheryRatePerMinPerHab.toLocaleString('en-US') }}
+            {{ formatWithThousandSeparators(contributor.internalHatcheryRatePerMinPerHab, -1) }}
           </template>
           <template v-else>&ndash;</template>
         </td>
@@ -232,7 +232,12 @@ import { PropType, computed, defineComponent, ref, toRefs, inject, Ref } from 'v
 import { useStore } from 'vuex';
 
 import { CoopStatus, eggIconPath, ei, formatEIValue } from '@/lib';
-import { getSessionStorage, setSessionStorage, iconURL } from '@/utils';
+import {
+  getSessionStorage,
+  setSessionStorage,
+  iconURL,
+  formatWithThousandSeparators,
+} from '@/utils';
 import { key } from '@/store';
 import { devmodeKey } from '@/symbols';
 import BaseClickToCopy from './BaseClickToCopy.vue';
@@ -446,6 +451,7 @@ export default defineComponent({
       sortedContributors,
       showRoleColumn,
       formatEIValue,
+      formatWithThousandSeparators,
       iconURL,
     };
   },
