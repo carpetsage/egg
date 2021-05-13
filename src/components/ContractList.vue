@@ -20,7 +20,7 @@
       <div class="flex flex-row mb-2">
         <button
           type="button"
-          class="flex-shrink-0 px-2 py-1 mx-1 border border-transparent shadow-sm text-xs leading-4 rounded-md text-white bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none"
+          class="flex-shrink-0 px-2 py-1 mx-1 ultrawide:ml-0 border border-transparent shadow-sm text-xs leading-4 rounded-md text-white bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none"
           @click="expandAll"
         >
           Expand all
@@ -32,7 +32,7 @@
         >
           Collapse all
         </button>
-        <div class="relative ml-auto mr-1 rounded-md shadow-sm">
+        <div class="relative ml-auto mr-1 ultrawide:mr-0 rounded-md shadow-sm">
           <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
             <svg
               class="h-4 w-4 text-gray-400"
@@ -426,10 +426,8 @@ export default defineComponent({
 <style lang="postcss" scoped src="@/css/components/DataTable.css"></style>
 
 <style lang="postcss" scoped>
-@media (min-width: 1440px) {
-  ::v-deep(.p-datatable-table) {
-    @apply rounded-md overflow-hidden;
-  }
+::v-deep(.p-datatable-table) {
+  @apply ultrawide:rounded-md overflow-hidden;
 }
 
 ::v-deep(.Column__Header--center .p-column-header-content) {

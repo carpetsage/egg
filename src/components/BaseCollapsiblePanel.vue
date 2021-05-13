@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-md bg-green-50 dark:bg-green-800 px-4 py-3 mx-1 mb-4">
+  <div class="bg-green-50 dark:bg-green-800 px-4 sm:px-6 py-3 mb-4 ultrawide:rounded-md">
     <div class="flex items-center">
       <div>
         <p class="text-sm font-medium text-green-800 dark:text-green-200">

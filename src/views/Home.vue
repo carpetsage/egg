@@ -1,5 +1,5 @@
 <template>
-  <main class="flex-1 max-w-8xl w-full mx-auto mt-6">
+  <main class="flex-1 max-w-ultrawide w-full mx-auto mt-6 ultrawide:px-4">
     <base-collapsible-panel
       title="Notes and instructions"
       :collapse="!showInstructions"
@@ -72,7 +72,7 @@
       </ul>
     </base-collapsible-panel>
 
-    <recently-viewed-block class="sm:mx-1 mb-4" />
+    <recently-viewed-block class="ultrawide:rounded-lg mb-4" />
 
     <contract-list :contracts="contracts" v-model:rowsPerPage="rowsPerPage" />
   </main>

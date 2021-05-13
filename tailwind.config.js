@@ -6,6 +6,9 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
+      screens: {
+        ultrawide: '1440px',
+      },
       colors: {
         gray: {
           ...colors.gray,
@@ -18,7 +21,7 @@ module.exports = {
       },
       maxWidth: {
         xxs: '16rem',
-        '8xl': '88rem',
+        ultrawide: '90rem',
       },
     },
   },

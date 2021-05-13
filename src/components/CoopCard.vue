@@ -1,5 +1,5 @@
 <template>
-  <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+  <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg">
     <div class="px-4 py-4 sm:px-6 bg-gray-50 dark:bg-gray-700">
       <div class="relative -ml-4 -mt-2 sm:flex items-start justify-between">
         <div class="flex-grow ml-4 mt-2">

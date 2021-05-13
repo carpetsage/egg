@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-8xl w-full mx-auto my-6 px-4 space-y-3">
+  <div class="max-w-ultrawide w-full mx-auto my-6 px-4 space-y-3">
     <div class="text-center break-words text-red-500">
       <svg class="relative inline h-4 w-4 -top-px mr-1" viewBox="0 0 20 20" fill="currentColor">
         <path
