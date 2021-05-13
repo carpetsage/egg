@@ -8,10 +8,6 @@
     <div>
       <form class="space-y-4" @submit="submit">
         <fieldset class="space-y-2 min-w-0">
-          <label class="block text-sm text-gray-900 dark:text-gray-100" for="contract_id_selected">
-            Select a contract:
-          </label>
-
           <coop-selector-contract-select v-model="selectedContractId" :contracts="contracts" />
 
           <label class="block text-sm text-gray-900 dark:text-gray-100" for="contract_id_manual">
