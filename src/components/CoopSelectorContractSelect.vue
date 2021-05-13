@@ -1,72 +1,99 @@
 <template>
-  <Dropdown
-    :modelValue="selectedContract"
-    :options="contracts"
-    optionLabel="name"
-    placeholder="-- Select contract --"
-    @update:modelValue="updateSelectedContract"
-  >
-    <template #value="slotProps">
-      <div class="flex items-center transition-none">
-        <img
-          :src="
-            slotProps.value ? eggIconURL(slotProps.value) : iconURL('egginc/egg_unknown.png', 64)
-          "
-          class="flex-shrink-0 -ml-0.5 h-6 w-6 rounded-full"
-        />
-        <div class="ml-2 block truncate transition-none">
-          {{ slotProps.value ? slotProps.value.name : slotProps.placeholder }}
-        </div>
-      </div>
-    </template>
-
-    <template #option="slotProps">
-      <div class="flex items-center transition-none">
-        <img
-          :src="eggIconURL(slotProps.option)"
-          class="flex-shrink-0 -ml-0.5 h-6 w-6 rounded-full"
-        />
-        <div
-          class="ml-2 block truncate transition-none"
-          :class="slotProps.option.id === modelValue ? 'font-semibold' : 'font-normal'"
-        >
-          {{ slotProps.option.name }}
-        </div>
-      </div>
-
-      <span
-        v-if="slotProps.option.id === modelValue"
-        class="text-green-500 absolute inset-y-0 right-0 flex items-center pr-4"
+  <Listbox as="div" :modelValue="selectedContract" @update:modelValue="updateSelectedContract">
+    <ListboxLabel class="block text-sm text-gray-900 dark:text-gray-100" for="contract_id_selected">
+      Select a contract:
+    </ListboxLabel>
+    <!-- <ListboxLabel class="block text-sm font-medium text-gray-700"> Assigned to </ListboxLabel> -->
+    <div class="mt-1 relative">
+      <ListboxButton
+        class="bg-white relative w-full border border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
       >
-        <!-- Heroicon name: solid/check -->
-        <svg
-          class="h-5 w-5"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-            clip-rule="evenodd"
+        <span class="flex items-center">
+          <img
+            :src="
+              selectedContract
+                ? eggIconURL(selectedContract)
+                : iconURL('egginc/egg_unknown.png', 64)
+            "
+            class="flex-shrink-0 -ml-0.5 h-6 w-6 rounded-full"
           />
-        </svg>
-      </span>
-    </template>
-  </Dropdown>
+          <span class="ml-2 block truncate">
+            {{ selectedContract ? selectedContract.name : '-- Select contract --' }}
+          </span>
+        </span>
+        <span class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+          <SelectorIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+        </span>
+      </ListboxButton>
+
+      <transition
+        leave-active-class="transition ease-in !duration-100"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <ListboxOptions
+          class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+        >
+          <ListboxOption
+            as="template"
+            v-for="contract in contracts"
+            :key="contract.id"
+            :value="contract"
+            v-slot="{ active, selected }"
+          >
+            <li
+              :class="[
+                active ? 'text-white dark:text-white bg-blue-600' : 'text-gray-900',
+                'dark:text-white cursor-default select-none relative py-1 pl-3 pr-9 transition-none',
+              ]"
+            >
+              <div class="flex items-center">
+                <img
+                  :src="eggIconURL(contract)"
+                  class="flex-shrink-0 -ml-0.5 h-6 w-6 rounded-full"
+                />
+                <span :class="[selected ? 'font-semibold' : 'font-normal', 'ml-2 block truncate']">
+                  {{ contract.name }}
+                </span>
+              </div>
+
+              <span
+                v-if="selected"
+                class="text-green-500 absolute inset-y-0 right-0 flex items-center pr-4"
+              >
+                <CheckIcon class="h-5 w-5" aria-hidden="true" />
+              </span>
+            </li>
+          </ListboxOption>
+        </ListboxOptions>
+      </transition>
+    </div>
+  </Listbox>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
-import Dropdown from 'primevue/dropdown';
+import {
+  Listbox,
+  ListboxButton,
+  ListboxLabel,
+  ListboxOption,
+  ListboxOptions,
+} from '@headlessui/vue';
+import { CheckIcon, SelectorIcon } from '@heroicons/vue/solid';
 
 import { Contract, eggIconPath } from '@/lib';
 import { iconURL } from '@/utils';
 
 export default defineComponent({
   components: {
-    Dropdown,
+    Listbox,
+    ListboxButton,
+    ListboxLabel,
+    ListboxOption,
+    ListboxOptions,
+    CheckIcon,
+    SelectorIcon,
   },
   props: {
     modelValue: {
@@ -89,8 +116,10 @@ export default defineComponent({
       }
       return null;
     });
-    const updateSelectedContract = (selected: Contract | null) => {
-      emit('update:modelValue', selected ? selected.id : '');
+    // Use 'any' type for selected to accommodate weak type info on the Listbox
+    // component's update:modelValue event ($event has 'unknown' type).
+    const updateSelectedContract = (selected: any) => {
+      emit('update:modelValue', (selected as Contract).id);
     };
     const eggIconURL = (contract: Contract) => iconURL(eggIconPath(contract.egg!), 64);
     return {
@@ -102,5 +131,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="postcss" scoped src="@/css/components/Dropdown.css"></style>

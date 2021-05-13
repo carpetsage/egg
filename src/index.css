@@ -3,7 +3,6 @@
 @import 'tailwindcss/utilities';
 
 @import './css/components/DataTableColumnFilterOverlay.css';
-@import './css/components/DropdownPanel.css';
 
 html {
   height: 100vh;
