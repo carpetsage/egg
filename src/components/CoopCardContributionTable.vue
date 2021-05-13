@@ -61,7 +61,7 @@
               :text="contributor.id"
               class="text-gray-500 dark:text-gray-200 truncate"
             >
-              {{ contributor.name }}
+              {{ renderNonempty(contributor.name) }}
               <template #tooltip>Click to copy ID: {{ contributor.id }}</template>
             </base-click-to-copy>
           </template>
@@ -237,10 +237,11 @@ import {
   setSessionStorage,
   iconURL,
   formatWithThousandSeparators,
+  renderNonempty,
 } from '@/utils';
 import { key } from '@/store';
 import { devmodeKey } from '@/symbols';
-import BaseClickToCopy from './BaseClickToCopy.vue';
+import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 
 const requiredColumnIds = [
   'name',
@@ -453,6 +454,7 @@ export default defineComponent({
       formatEIValue,
       formatWithThousandSeparators,
       iconURL,
+      renderNonempty,
     };
   },
 });

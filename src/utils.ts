@@ -85,3 +85,13 @@ export function formatWithThousandSeparators(
   }
   return rounded.toLocaleString('en-US');
 }
+
+// If the string is entirely HTML whitespace (and hence entirely collapsed by
+// default), replace it with &nbsp; so that we have a select target.
+export function renderNonempty(s: string): string {
+  // ASCII whitespace in the HTML context is U+0009 TAB, U+000A LF, U+000C FF,
+  // U+000D CR, or U+0020 SPACE.
+  // https://developer.mozilla.org/en-US/docs/Glossary/Whitespace
+  // http://infra.spec.whatwg.org/#ascii-whitespace
+  return !s.match(/^[\t\n\f\r ]*$/) ? s : '\u00a0';
+}
