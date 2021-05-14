@@ -3,7 +3,6 @@ import { createStore, createLogger, Store } from 'vuex';
 
 import { RootState } from './types';
 import contracts from './modules/contracts';
-import coopConfig from './modules/coopConfig';
 import coopSelector from './modules/coopSelector';
 import devmode from './modules/devmode';
 import history from './modules/history';
@@ -16,7 +15,6 @@ export const key: InjectionKey<Store<RootState>> = Symbol();
 export const store = createStore<RootState>({
   modules: {
     contracts,
-    coopConfig,
     coopSelector,
     devmode,
     history,

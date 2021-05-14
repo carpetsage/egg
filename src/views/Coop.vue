@@ -1,18 +1,5 @@
 <template>
   <main class="flex-1 max-w-ultrawide w-full mx-auto mt-6 ultrawide:px-4">
-    <base-collapsible-panel title="Configuration" :collapse="!showConfig" :toggle="toggleConfig">
-      <base-checkbox
-        name="config-show-role-column"
-        :modelValue="configShowRoleColumn"
-        @update:modelValue="toggleConfigShowRoleColumn"
-      >
-        <span class="text-green-700 dark:text-green-300">Show role column</span>
-        <base-info class="ml-0.5" classes="text-green-600 dark:text-green-400">
-          The roles shown are farmer roles used in the Egg, Inc. Discord server.
-        </base-info>
-      </base-checkbox>
-    </base-collapsible-panel>
-
     <!-- Use a key to recreate on navigation -->
     <base-error-boundary :key="`${contractId}:${coopCode}:${refreshId}`">
       <Suspense>
@@ -28,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, provide, ref } from 'vue';
+import { defineComponent, provide, ref } from 'vue';
 import { useStore } from 'vuex';
 
 import { CoopStatus } from '@/lib';
@@ -63,16 +50,6 @@ export default defineComponent({
   setup() {
     const store = useStore(key);
 
-    const showConfig = computed(() => store.state.coopConfig.showConfig);
-    const toggleConfig = () => {
-      store.dispatch('coopConfig/toggleShowConfig');
-    };
-
-    const configShowRoleColumn = computed(() => store.state.coopConfig.showRoleColumn);
-    const toggleConfigShowRoleColumn = () => {
-      store.dispatch('coopConfig/toggleShowRoleColumn');
-    };
-
     const refreshId = ref(Date.now());
     provide(refreshCallbackKey, () => {
       refreshId.value = Date.now();
@@ -89,10 +66,6 @@ export default defineComponent({
     };
 
     return {
-      showConfig,
-      toggleConfig,
-      configShowRoleColumn,
-      toggleConfigShowRoleColumn,
       refreshId,
       onSuccess,
     };

@@ -4,7 +4,6 @@
       <tr>
         <template v-for="column in columns" :key="column.sortBy">
           <th
-            v-if="!(!showRoleColumn && column.id === 'role')"
             scope="col"
             class="px-4 py-2 text-xs font-medium whitespace-nowrap cursor-pointer select-none"
             :class="column.id === 'name' ? 'text-left' : 'text-center'"
@@ -135,7 +134,6 @@
           {{ formatEIValue(contributor.earningBonusPercentage) }}
         </td>
         <td
-          v-if="showRoleColumn"
           class="px-4 py-1 whitespace-nowrap text-center text-sm tabular-nums"
           :style="{ color: contributor.farmerRole.color }"
         >
@@ -229,7 +227,6 @@
 
 <script lang="ts">
 import { PropType, computed, defineComponent, ref, toRefs, inject, Ref } from 'vue';
-import { useStore } from 'vuex';
 
 import { CoopStatus, eggIconPath, ei, formatEIValue } from '@/lib';
 import {
@@ -239,7 +236,6 @@ import {
   formatWithThousandSeparators,
   renderNonempty,
 } from '@/utils';
-import { key } from '@/store';
 import { devmodeKey } from '@/symbols';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 
@@ -291,7 +287,6 @@ export default defineComponent({
   },
   setup(props) {
     const { egg, coopStatus } = toRefs(props);
-    const store = useStore(key);
     const devmode = inject(devmodeKey);
 
     const showOptionalColumn = computed(
@@ -440,8 +435,6 @@ export default defineComponent({
       return sortAscending.value ? sorted : sorted.reverse();
     });
 
-    const showRoleColumn = computed(() => store.state.coopConfig.showRoleColumn);
-
     return {
       devmode,
       columns,
@@ -450,7 +443,6 @@ export default defineComponent({
       sortAscending,
       setSortBy,
       sortedContributors,
-      showRoleColumn,
       formatEIValue,
       formatWithThousandSeparators,
       iconURL,
