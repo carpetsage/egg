@@ -16,11 +16,18 @@ function fileResponse(filename: string) {
   };
 }
 
+let counter = 0;
+
 export default [
   {
     url: '/api/ei/coop_status',
     method: 'post',
-    rawResponse: fileResponse('coop_status.txt'),
+    rawResponse: (req, res) => {
+      // Cycle through two responses.
+      const filename = `coop_status_${counter % 2}.txt`;
+      counter++;
+      fileResponse(filename)(req, res);
+    },
   },
   {
     url: '/api/ei/first_contact',
