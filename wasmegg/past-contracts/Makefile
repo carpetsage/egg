@@ -24,6 +24,7 @@ webpack: wasm
 postcss:
 	yarn postcss --env=production src/app.css -o dist/app.css
 
+# TODO: migrate to a unified contracts database with CoopTracker.
 dist/contracts.csv: ../../../misc/ContractAggregator/data/contracts.csv
 	mkdir -p dist
 	cp -f ../../../misc/ContractAggregator/data/contracts.csv dist

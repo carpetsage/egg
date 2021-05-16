@@ -7,9 +7,9 @@ import (
 	"log"
 	"strings"
 
+	"github.com/fanaticscripter/Egg/wasmegg/_common/eiafx"
+	"github.com/fanaticscripter/Egg/wasmegg/_common/loot"
 	"github.com/fanaticscripter/EggContractor/api"
-	"github.com/fanaticscripter/EggContractor/port/wasm/_common/eiafx"
-	"github.com/fanaticscripter/EggContractor/port/wasm/_common/loot"
 	"github.com/fanaticscripter/EggContractor/util"
 )
 

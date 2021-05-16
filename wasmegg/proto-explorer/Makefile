@@ -19,8 +19,8 @@ html: webpack postcss
 webpack: proto
 	yarn webpack
 
-proto:
-	yarn run pbjs -p ../../../misc/protobuf -t static-module -w es6 -o src/lib/proto.js ../../../misc/protobuf/*.proto
+proto: ../../protobuf/*.proto
+	yarn run pbjs -p ../../protobuf -t static-module -w es6 -o src/lib/proto.js ../../protobuf/*.proto
 
 postcss:
 	yarn postcss --env=production src/app.css -o dist/app.css
@@ -29,9 +29,9 @@ static:
 	mkdir -p dist/static
 	cp -f static/favicon* dist/static
 
-doc:
+doc: ../../protobuf/*.proto
 	mkdir -p dist/doc
-	protoc --doc_out=html,index.html:./dist/doc --proto_path ../../../misc/protobuf ../../../misc/protobuf/*.proto
+	protoc --doc_out=html,index.html:./dist/doc --proto_path ../../protobuf ../../protobuf/*.proto
 
 clean:
 	@$(RM) -r dist/*.html dist/*.*.css dist/*.*.js dist/manifest.*.json dist/doc

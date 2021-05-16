@@ -9,8 +9,8 @@ init:
 build: data src/lib/proto.js
 	yarn build
 
-src/lib/proto.js: ../../../misc/protobuf/*.proto
-	yarn run pbjs -p ../../../misc/protobuf -t static-module -w es6 -o src/lib/proto.js ../../../misc/protobuf/*.proto
+src/lib/proto.js: ../../protobuf/*.proto
+	yarn run pbjs -p ../../protobuf -t static-module -w es6 -o src/lib/proto.js ../../protobuf/*.proto
 	yarn run pbts -o src/lib/proto.d.ts src/lib/proto.js
 	# Fix issue of Long not being imported.
 	# https://github.com/protobufjs/protobuf.js/issues/1533

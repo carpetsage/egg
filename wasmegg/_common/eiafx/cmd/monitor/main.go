@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/fanaticscripter/EggContractor/api"
-	"github.com/fanaticscripter/EggContractor/port/wasm/_common/eiafx"
+	"github.com/fanaticscripter/Egg/wasmegg/_common/eiafx"
 )
 
 const _dataFilePath = "eiafx-config.json"
