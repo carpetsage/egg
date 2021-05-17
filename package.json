@@ -2,7 +2,8 @@
   "private": true,
   "workspaces": [
     "lib",
-    "eicoop"
+    "eicoop",
+    "wasmegg/enlightenment"
   ],
   "dependencies": {
     "vue": "^3.0.5"
