@@ -1,7 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 
-import { ei } from 'lib';
-import { requestQueryCoop } from './api';
+import { ei, requestQueryCoop } from 'lib';
 import { ContractLeague, ContractCompletionStatus, getContractFromPlayerSave } from './contract';
 import { SortedContractList } from './contractList';
 import { FarmerRole, soulPowerToFarmerRole } from './role';

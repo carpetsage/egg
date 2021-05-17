@@ -1,5 +1,4 @@
-import { ei } from 'lib';
-import { requestFirstContact } from './api';
+import { ei, requestFirstContact } from 'lib';
 
 export type ContractType = 'Original' | 'Leggacy';
 

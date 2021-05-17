@@ -1,7 +1,6 @@
-import { ei } from 'lib';
+import { ei, decodeMessage } from 'lib';
 import contractProtos from './contracts.json';
 import { ContractType } from './contract';
-import { decodeMessage } from './decode';
 
 const ORIGINAL_CONTRACT_VALID_DURATION = 21 * 86400;
 const LEGGACY_CONTRACT_VALID_DURATION = 7 * 86400;
