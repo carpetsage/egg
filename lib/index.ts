@@ -2,6 +2,7 @@ export * from './api';
 export * from './earning_bonus';
 export * from './artifacts';
 export * from './eggs';
+export * from './farm';
 export * from './fundraising';
 export * from './missions';
 export * from './prophecy_eggs';

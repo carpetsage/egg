@@ -10,6 +10,10 @@ module.exports = {
         ultrawide: '1440px',
       },
       colors: {
+        green: {
+          ...colors.emerald,
+          350: '#51dda8', // A blend of emerald-300 #6ee7b7 and emerald-400 #34d399
+        },
         gray: {
           ...colors.gray,
           750: '#333338',

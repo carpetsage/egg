@@ -3,6 +3,7 @@ import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-rou
 
 import Home from '@/views/Home.vue';
 import Coop from '@/views/Coop.vue';
+import Dashboard from '@/views/Dashboard.vue';
 import DevMode from '@/views/DevMode.vue';
 
 declare module 'vue-router' {
@@ -32,6 +33,15 @@ const router = createRouter({
           const coopCode = route.params.coopCode as string;
           return `${coopCode}@${contractId} - CoopTracker`;
         },
+      },
+    },
+    {
+      name: 'dashboard',
+      path: '/u/:userId/',
+      component: Dashboard,
+      props: true,
+      meta: {
+        title: 'Dashboard - CoopTracker',
       },
     },
     {

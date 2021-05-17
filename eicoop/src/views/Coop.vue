@@ -1,35 +1,23 @@
 <template>
   <main class="flex-1 max-w-ultrawide w-full mx-auto mt-6 ultrawide:px-4">
-    <!-- Use a key to recreate on navigation -->
-    <base-error-boundary :key="`${contractId}:${coopCode}:${refreshId}`">
-      <Suspense>
-        <template #default>
-          <coop-card :contract-id="contractId" :coop-code="coopCode" @success="onSuccess" />
-        </template>
-        <template #fallback>
-          <base-loading />
-        </template>
-      </Suspense>
-    </base-error-boundary>
+    <coop-card-loader :contract-id="contractId" :coop-code="coopCode" @success="onSuccess" />
+    <frequently-asked-questions />
   </main>
 </template>
 
 <script lang="ts">
-import { defineComponent, provide, ref } from 'vue';
+import { defineComponent } from 'vue';
 import { useStore } from 'vuex';
 
 import { CoopStatus } from '@/lib';
 import { HistoryCoopEntry, key } from '@/store';
-import { refreshCallbackKey } from '@/symbols';
-import BaseErrorBoundary from '@/components/BaseErrorBoundary.vue';
-import BaseLoading from '@/components/BaseLoading.vue';
-import CoopCard from '@/components/CoopCard.vue';
+import CoopCardLoader from '@/components/CoopCardLoader.vue';
+import FrequentlyAskedQuestions from '@/components/FrequentlyAskedQuestions.vue';
 
 export default defineComponent({
   components: {
-    BaseErrorBoundary,
-    BaseLoading,
-    CoopCard,
+    CoopCardLoader,
+    FrequentlyAskedQuestions,
   },
   props: {
     contractId: {
@@ -43,12 +31,6 @@ export default defineComponent({
   },
   setup() {
     const store = useStore(key);
-
-    const refreshId = ref(Date.now());
-    provide(refreshCallbackKey, () => {
-      refreshId.value = Date.now();
-    });
-
     const onSuccess = (coopStatus: CoopStatus) => {
       const entry: HistoryCoopEntry = {
         contractId: coopStatus.contractId,
@@ -58,9 +40,7 @@ export default defineComponent({
       };
       store.dispatch('history/addCoop', entry);
     };
-
     return {
-      refreshId,
       onSuccess,
     };
   },

@@ -1,7 +1,6 @@
 import { ActionTree, Module, MutationTree } from 'vuex';
 
-import { ei } from '@/lib';
-import { getLocalStorage, setLocalStorage } from '@/utils';
+import { ei, getLocalStorage, setLocalStorage } from '@/lib';
 
 import { RootState } from '../types';
 

@@ -6,7 +6,7 @@
     <!-- <ListboxLabel class="block text-sm font-medium text-gray-700"> Assigned to </ListboxLabel> -->
     <div class="mt-1 relative">
       <ListboxButton
-        class="bg-white relative w-full border border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
+        class="bg-white relative w-full border border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500 !duration-0"
       >
         <span class="flex items-center">
           <img
@@ -42,17 +42,18 @@
             :value="contract"
           >
             <li
-              :class="[
-                active ? 'text-white dark:text-white bg-blue-600' : 'text-gray-900',
-                'dark:text-white cursor-default select-none relative py-1 pl-3 pr-9 transition-none',
-              ]"
+              class="dark:text-white cursor-default select-none relative py-1 pl-3 pr-9 transition-none"
+              :class="active ? 'text-white dark:text-white bg-blue-600' : 'text-gray-900'"
             >
-              <div class="flex items-center">
+              <div class="flex items-center !duration-0">
                 <img
                   :src="eggIconURL(contract)"
                   class="flex-shrink-0 -ml-0.5 h-6 w-6 rounded-full"
                 />
-                <span :class="[selected ? 'font-semibold' : 'font-normal', 'ml-2 block truncate']">
+                <span
+                  class="!duration-0"
+                  :class="[selected ? 'font-semibold' : 'font-normal', 'ml-2 block truncate']"
+                >
                   {{ contract.name }}
                 </span>
               </div>

@@ -34,6 +34,10 @@ export class SortedContractList extends Array<Contract> {
   }
 
   add(raw: ei.IContract): void {
+    if (this.get(raw.identifier!, raw.expirationTime!)) {
+      // Do not add if an instance already exists.
+      return;
+    }
     this.rawList.push(raw);
     const newSortedList = annotateAndSortContracts(this.rawList);
     this.length = 0;

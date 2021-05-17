@@ -2,7 +2,7 @@
   <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
     <thead class="bg-gray-50 dark:bg-gray-700">
       <tr>
-        <template v-for="column in columns" :key="column.sortBy">
+        <template v-for="column in columns" :key="column.id">
           <th
             scope="col"
             class="px-4 py-2 text-xs font-medium whitespace-nowrap cursor-pointer select-none"
@@ -15,7 +15,7 @@
               :class="{ 'justify-center': column.id !== 'name' }"
             >
               <template v-if="column.iconPath">
-                <span class="flex flex-shrink-0 flex-row items-center space-x-px">
+                <span class="flex flex-shrink-0 flex-row items-center justify-center space-x-px">
                   <span v-if="column.prefix" class="text-gray-500 dark:text-gray-200">{{
                     column.prefix
                   }}</span>
@@ -142,7 +142,7 @@
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
-          {{ contributor.tokens }}
+          {{ formatWithThousandSeparators(contributor.tokens) }}
         </td>
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
@@ -159,7 +159,7 @@
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           <template v-if="contributor.tokensSpent !== null">
-            {{ contributor.tokensSpent }}
+            {{ formatWithThousandSeparators(contributor.tokensSpent) }}
           </template>
           <template v-else>&ndash;</template>
         </td>

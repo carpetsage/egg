@@ -11,6 +11,7 @@ export default ({ command }: ConfigEnv): UserConfigExport => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      ui: path.resolve(__dirname, '../ui'),
     },
   },
   plugins: [
@@ -21,6 +22,6 @@ export default ({ command }: ConfigEnv): UserConfigExport => ({
     }),
   ],
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000,
   },
 });

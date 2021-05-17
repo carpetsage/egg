@@ -40,3 +40,53 @@ export async function getContractFromPlayerSave(
   }
   return null;
 }
+
+export class ContractLeagueStatus {
+  eggsLaid: number;
+  eggsPerHour: number;
+  secondsRemaining: number;
+  completionStatus: ContractCompletionStatus;
+  goals: ei.Contract.IGoal[];
+  finalTarget: number;
+  expectedTimeToComplete: number;
+  // requiredEggsPerHour is null if already failed.
+  requiredEggsPerHour: number | null;
+
+  constructor(
+    eggsLaid: number,
+    eggsPerHour: number,
+    secondsRemaining: number,
+    goals: ei.Contract.IGoal[]
+  ) {
+    this.eggsLaid = eggsLaid;
+    this.eggsPerHour = eggsPerHour;
+    this.secondsRemaining = secondsRemaining;
+    this.goals = goals;
+    this.finalTarget = goals[goals.length - 1].targetAmount!;
+    if (eggsLaid >= this.finalTarget) {
+      this.completionStatus = ContractCompletionStatus.HasCompleted;
+      this.expectedTimeToComplete = 0;
+      this.requiredEggsPerHour = 0;
+      return;
+    }
+    this.expectedTimeToComplete = ((this.finalTarget - eggsLaid) / eggsPerHour) * 3600;
+    if (secondsRemaining <= 0) {
+      this.completionStatus = ContractCompletionStatus.HasNoTimeLeft;
+      this.requiredEggsPerHour = null;
+      return;
+    }
+    this.requiredEggsPerHour = ((this.finalTarget - eggsLaid) / secondsRemaining) * 3600;
+    this.completionStatus =
+      eggsPerHour >= this.requiredEggsPerHour
+        ? ContractCompletionStatus.IsOnTrackToFinish
+        : ContractCompletionStatus.IsNotOnTrackToFinish;
+  }
+
+  expectedTimeToCompleteGoal(goal: ei.Contract.IGoal): number {
+    const target = goal.targetAmount!;
+    if (this.eggsLaid >= target) {
+      return 0;
+    }
+    return ((target - this.eggsLaid) / this.eggsPerHour) * 3600;
+  }
+}

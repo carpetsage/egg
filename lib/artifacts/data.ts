@@ -36,7 +36,10 @@ export function getArtifactTierProps(afxId: Name, afxLevel: Level): Tier {
   if (type === Type.STONE_INGREDIENT) {
     tierNumber = 0;
   }
-  const tier = familyIdToFamily.get(familyId)!.tiers[tierNumber];
+  const tier = familyIdToFamily.get(familyId)?.tiers[tierNumber];
+  if (tier === undefined) {
+    throw new Error(`there's no artifact tier with id ${afxId} and level ${afxLevel}`);
+  }
   if (tier.afx_id !== afxId || tier.afx_level !== afxLevel) {
     throw new Error(
       `the impossible happened: getArtifactTierProps(${afxId}, ${afxLevel}) returned wrong item`

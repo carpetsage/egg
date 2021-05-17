@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 
 import { ei, FarmerRole, requestQueryCoop, soulPowerToFarmerRole } from 'lib';
-import { ContractLeague, ContractCompletionStatus, getContractFromPlayerSave } from './contract';
+import { ContractLeague, getContractFromPlayerSave, ContractLeagueStatus } from './contract';
 import { SortedContractList } from './contractList';
 
 const COOP_LEAGUE_DIVIDER_EB = 1e13; // 10T%
@@ -22,7 +22,8 @@ export class CoopStatus {
   contributors: Contributor[];
   creator: Contributor | null;
   league: ContractLeague | null;
-  leagueStatus: CoopLeagueStatus | null;
+  goals: ei.Contract.IGoal[] | null;
+  leagueStatus: ContractLeagueStatus | null;
   refreshTime: Dayjs;
   expirationTime: Dayjs;
 
@@ -49,6 +50,7 @@ export class CoopStatus {
       }
     }
     this.league = null;
+    this.goals = null;
     this.leagueStatus = null;
     this.refreshTime = dayjs(cs.localTimestamp! * 1000);
     this.expirationTime = this.refreshTime.add(cs.secondsRemaining!, 'second');
@@ -56,11 +58,9 @@ export class CoopStatus {
 
   async resolveContract({
     store,
-    addToStore,
     knownContract,
   }: {
     store: SortedContractList;
-    addToStore?: (contract: ei.IContract) => void;
     knownContract?: ei.IContract;
   }): Promise<void> {
     const contract = knownContract || store.get(this.contractId, this.expirationTime.unix());
@@ -80,18 +80,15 @@ export class CoopStatus {
       }
       this.contract = result.contract;
       this.league = result.league;
-      if (addToStore) {
-        addToStore(result.contract);
-      }
     }
-    const goals = this.contract.goalSets
+    this.goals = this.contract.goalSets
       ? this.contract.goalSets[this.league as number].goals!
       : this.contract.goals!;
-    this.leagueStatus = new CoopLeagueStatus(
+    this.leagueStatus = new ContractLeagueStatus(
       this.eggsLaid,
       this.eggsPerHour,
       this.secondsRemaining,
-      goals
+      this.goals
     );
   }
 
@@ -136,53 +133,6 @@ export class CoopStatus {
       this.league = heuristicLeague;
       return this.league;
     }
-  }
-}
-
-export class CoopLeagueStatus {
-  eggsLaid: number;
-  eggsPerHour: number;
-  completionStatus: ContractCompletionStatus;
-  goals: ei.Contract.IGoal[];
-  finalTarget: number;
-  expectedTimeToComplete: number;
-  requiredEggsPerHour: number;
-
-  constructor(
-    eggsLaid: number,
-    eggsPerHour: number,
-    secondsRemaining: number,
-    goals: ei.Contract.IGoal[]
-  ) {
-    this.eggsLaid = eggsLaid;
-    this.eggsPerHour = eggsPerHour;
-    this.goals = goals;
-    this.finalTarget = goals[goals.length - 1].targetAmount!;
-    if (eggsLaid >= this.finalTarget) {
-      this.completionStatus = ContractCompletionStatus.HasCompleted;
-      this.expectedTimeToComplete = 0;
-      this.requiredEggsPerHour = 0;
-      return;
-    }
-    this.expectedTimeToComplete = ((this.finalTarget - eggsLaid) / eggsPerHour) * 3600;
-    if (secondsRemaining <= 0) {
-      this.completionStatus = ContractCompletionStatus.HasNoTimeLeft;
-      this.requiredEggsPerHour = 0;
-      return;
-    }
-    this.requiredEggsPerHour = ((this.finalTarget - eggsLaid) / secondsRemaining) * 3600;
-    this.completionStatus =
-      eggsPerHour >= this.requiredEggsPerHour
-        ? ContractCompletionStatus.IsOnTrackToFinish
-        : ContractCompletionStatus.IsNotOnTrackToFinish;
-  }
-
-  expectedTimeToCompleteGoal(goal: ei.Contract.IGoal): number {
-    const target = goal.targetAmount!;
-    if (this.eggsLaid >= target) {
-      return 0;
-    }
-    return ((target - this.eggsLaid) / this.eggsPerHour) * 3600;
   }
 }
 

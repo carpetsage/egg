@@ -6,7 +6,8 @@
   "sideEffects": false,
   "dependencies": {
     "dayjs": "^1.10.4",
-    "protobufjs": "^6.11.2"
+    "protobufjs": "^6.11.2",
+    "typescript-memoize": "^1.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",

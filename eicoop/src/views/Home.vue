@@ -1,5 +1,7 @@
 <template>
   <main class="flex-1 max-w-ultrawide w-full mx-auto mt-6 ultrawide:px-4">
+    <user-dashboard-entry-form class="mb-4" />
+
     <base-collapsible-panel
       title="Notes and instructions"
       :collapse="!showInstructions"
@@ -82,12 +84,12 @@
 import { computed, defineComponent, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 
-import { Contract } from '@/lib';
+import { Contract, getLocalStorage, setLocalStorage } from '@/lib';
 import { key } from '@/store';
-import { getLocalStorage, setLocalStorage } from '@/utils';
 import BaseCollapsiblePanel from '@/components/BaseCollapsiblePanel.vue';
 import RecentlyViewedBlock from '@/components/RecentlyViewedBlock.vue';
 import ContractList from '@/components/ContractList.vue';
+import UserDashboardEntryForm from '@/components/UserDashboardEntryForm.vue';
 
 const SHOW_INSTRUCTIONS_LOCALSTORAGE_KEY = 'showInstructions';
 const ROWS_PER_PAGE_LOCALSTORAGE_KEY = 'rowsPerPage';
@@ -98,6 +100,7 @@ export default defineComponent({
     BaseCollapsiblePanel,
     RecentlyViewedBlock,
     ContractList,
+    UserDashboardEntryForm,
   },
   setup() {
     const store = useStore(key);

@@ -14,11 +14,32 @@
         :text="devmode ? error.stack || error.toString() : encodedError"
       >
         <template v-if="devmode">
-          <div class="whitespace-pre">{{ error.stack }}</div>
+          <div class="whitespace-pre-wrap">{{ error.stack }}</div>
         </template>
         <template v-else>{{ formattedError }}</template>
       </base-click-to-copy>
     </div>
+
+    <button
+      type="button"
+      class="mx-auto flex items-center justify-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 focus:outline-none rounded-md !duration-0"
+      @click="triggerRefresh"
+    >
+      <svg
+        class="-ml-px mr-1.5 h-3 w-3 text-gray-100"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+        />
+      </svg>
+      <span class="text-xs text-gray-100">Refresh</span>
+    </button>
 
     <div class="text-center break-words text-sm text-gray-700 dark:text-gray-200">
       If you believe this is a bug, contact @mk2 on
@@ -30,7 +51,7 @@
 <script lang="ts">
 import { computed, defineComponent, inject, toRefs } from 'vue';
 
-import { devmodeKey } from '@/symbols';
+import { devmodeKey, refreshCallbackKey } from '@/symbols';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 
 export default defineComponent({
@@ -54,10 +75,14 @@ export default defineComponent({
       )
     );
     const encodedError = computed(() => btoa(String(error.value)));
+    const triggerRefresh = inject(refreshCallbackKey, () => {
+      window.location.reload();
+    });
     return {
       devmode,
       formattedError,
       encodedError,
+      triggerRefresh,
     };
   },
 });

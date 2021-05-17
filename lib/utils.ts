@@ -10,6 +10,10 @@ export function getLocalStorage(key: string, prefix?: string): string | undefine
   }
 }
 
+export function getLocalStorageNoPrefix(key: string): string | undefined {
+  return getLocalStorage(key, '');
+}
+
 export function setLocalStorage(key: string, val: unknown, prefix?: string): void {
   if (prefix === undefined) {
     prefix = `${window.location.pathname}_`;
@@ -19,6 +23,10 @@ export function setLocalStorage(key: string, val: unknown, prefix?: string): voi
   } catch (err) {
     console.error(err);
   }
+}
+
+export function setLocalStorageNoPrefix(key: string, val: unknown): void {
+  setLocalStorage(key, val, '');
 }
 
 export function iconURL(relpath: string, size: number | string = 'orig'): string {

@@ -6,12 +6,12 @@
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
             <img
               v-tippy="{ content: eggTooltip(egg) }"
-              class="inline relative -top-px -left-1 -mr-1 h-6 w-6"
+              class="inline relative -top-px -left-1 h-6 w-6"
               :src="iconURL(eggIconPath(egg), 64)"
             />
-            {{ contract.name }}
+            <span>{{ contract.name }}</span>
             (<base-click-to-copy
-              :text="coopStatus.contractId"
+              :text="status.contractId"
               class="text-gray-900 dark:text-gray-100"
             />)
           </h2>
@@ -28,7 +28,7 @@
               </svg>
             </span>
             <base-click-to-copy
-              :text="coopStatus.coopCode"
+              :text="status.coopCode"
               class="pl-px text-sm text-gray-700 dark:text-gray-300 truncate"
               :style="{ maxWidth: 'min(20rem, 50vw)' }"
             />
@@ -40,12 +40,12 @@
             </template>
             <!-- public/private -->
             <svg
-              v-tippy="{ content: coopStatus.isPublic ? 'Public coop' : 'Private coop' }"
+              v-tippy="{ content: status.isPublic ? 'Public coop' : 'Private coop' }"
               class="h-4 w-4 text-gray-400 dark:text-gray-300 ml-1.5"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
-              <template v-if="coopStatus.isPublic">
+              <template v-if="status.isPublic">
                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                 <path
                   fill-rule="evenodd"
@@ -64,36 +64,72 @@
                 />
               </template>
             </svg>
+            <!-- share button -->
+            <coop-card-share-sheet
+              class="ml-1.5"
+              :contract-id="status.contractId"
+              :coop-code="status.coopCode"
+            />
           </div>
         </div>
-        <coop-card-status-label :status="leagueStatus.completionStatus" />
+
+        <contract-status-label :status="leagueStatus.completionStatus" />
+
         <div class="absolute right-0 bottom-0 sm:bottom-1">
-          <last-refreshed :refresh-time="coopStatus.refreshTime" :style="{ maxWidth: '50vw' }" />
+          <auto-refreshed-relative-time :reference-time="status.refreshTime">
+            <template #default="{ relativeTime, referenceTimeFormatted, triggerRefresh }">
+              <span class="flex items-center space-x-0.5" :style="{ maxWidth: '50vw' }">
+                <span
+                  v-tippy="{
+                    content: `Last refreshed ${referenceTimeFormatted}`,
+                  }"
+                  class="text-xs text-gray-500 dark:text-gray-400 cursor-help truncate"
+                >
+                  Refreshed {{ relativeTime }}
+                </span>
+                <svg
+                  v-tippy="{ content: 'Refresh' }"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 focus:outline-none cursor-pointer select-none"
+                  @click="triggerRefresh"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </span>
+            </template>
+          </auto-refreshed-relative-time>
         </div>
       </div>
     </div>
 
-    <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6 space-y-4">
-      <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6 space-y-4">
+      <dl class="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Type</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ league }}</dd>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ leagueName }}</dd>
         </div>
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Created by</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            <template v-if="coopStatus.creator">
+            <template v-if="status.creator">
               <template v-if="devmode">
                 <base-click-to-copy
-                  :text="coopStatus.creator.id"
-                  class="text-gray-900 dark:text-gray-100 truncate"
+                  :text="status.creator.id"
+                  class="block text-gray-900 dark:text-gray-100 truncate"
                 >
-                  {{ coopStatus.creator.name }}
-                  <template #tooltip>Click to copy ID: {{ coopStatus.creator.id }}</template>
+                  {{ status.creator.name }}
+                  <template #tooltip>Click to copy ID: {{ status.creator.id }}</template>
                 </base-click-to-copy>
               </template>
               <template v-else>
-                {{ coopStatus.creator.name }}
+                {{ status.creator.name }}
               </template>
             </template>
             <template v-else>
@@ -106,13 +142,13 @@
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Players</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            {{ coopStatus.contributors.length }} / {{ contract.maxCoopSize }}
+            {{ status.contributors.length }} / {{ contract.maxCoopSize }}
           </dd>
         </div>
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Eggs shipped</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            <span class="text-green-500">{{ formatEIValue(coopStatus.eggsLaid) }}</span> /
+            <span class="text-green-500">{{ formatEIValue(status.eggsLaid) }}</span> /
             {{ formatEIValue(leagueStatus.finalTarget, { trim: true }) }}
           </dd>
         </div>
@@ -122,9 +158,11 @@
           </dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
             <span :class="completionStatusColorClass(leagueStatus.completionStatus)">{{
-              formatEIValue(coopStatus.eggsPerHour)
+              formatEIValue(status.eggsPerHour)
             }}</span>
-            current / {{ formatEIValue(leagueStatus.requiredEggsPerHour) }} required
+            <template v-if="leagueStatus.requiredEggsPerHour !== null">
+              current / {{ formatEIValue(leagueStatus.requiredEggsPerHour) }} required
+            </template>
           </dd>
         </div>
         <div class="sm:col-span-1">
@@ -135,10 +173,10 @@
             }}</span>
             expected /
             <tippy class="text-gray-900 dark:text-gray-100">
-              {{ formatDuration(max(coopStatus.secondsRemaining, 0)) }} remaining
+              {{ formatDuration(max(status.secondsRemaining, 0)) }} remaining
               <template #content>
-                {{ coopStatus.secondsRemaining > 0 ? 'Expires' : 'Expired' }} at
-                {{ coopStatus.expirationTime.format('YYYY-MM-DD HH:mm') }}
+                {{ status.secondsRemaining > 0 ? 'Expires' : 'Expired' }} at
+                {{ status.expirationTime.format('YYYY-MM-DD HH:mm') }}
               </template>
             </tippy>
           </dd>
@@ -146,7 +184,7 @@
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Total earnings boost</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            {{ (coopStatus.totalEarningsBoost * 100).toFixed(0) }}%
+            {{ (status.totalEarningsBoost * 100).toFixed(0) }}%
           </dd>
         </div>
         <div class="sm:col-span-1">
@@ -154,14 +192,14 @@
             Total egg laying rate boost
           </dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            {{ (coopStatus.totalEggLayingRateBoost * 100).toFixed(0) }}%
+            {{ (status.totalEggLayingRateBoost * 100).toFixed(0) }}%
           </dd>
         </div>
       </dl>
 
-      <coop-card-progress-bar
-        :eggs-laid="coopStatus.eggsLaid"
-        :projected-eggs-laid="coopStatus.projectedEggsLaid"
+      <contract-progress-bar
+        :eggs-laid="status.eggsLaid"
+        :projected-eggs-laid="status.projectedEggsLaid"
         :league-status="leagueStatus"
       />
     </div>
@@ -170,7 +208,7 @@
       <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
           <div class="shadow overflow-hidden border-b border-gray-200 dark:border-gray-700">
-            <coop-card-contribution-table :egg="egg" :coop-status="coopStatus" />
+            <coop-card-contribution-table :egg="egg" :coop-status="status" />
           </div>
         </div>
       </div>
@@ -179,87 +217,50 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, inject, onMounted, ref } from 'vue';
-import { useStore } from 'vuex';
+import { computed, defineComponent, inject, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import {
-  CoopStatus,
-  requestCoopStatus,
-  eggIconPath,
-  formatEIValue,
-  formatDuration,
-  ContractLeague,
-} from '@/lib';
-import { key } from '@/store';
+import { CoopStatus, eggIconPath, formatEIValue, formatDuration, ContractLeague } from '@/lib';
 import { completionStatusColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
 import { eggTooltip, iconURL } from '@/utils';
-import CoopCardStatusLabel from '@/components/CoopCardStatusLabel.vue';
-import CoopCardProgressBar from '@/components/CoopCardProgressBar.vue';
+import ContractStatusLabel from '@/components/ContractStatusLabel.vue';
+import CoopCardShareSheet from '@/components/CoopCardShareSheet.vue';
+import ContractProgressBar from '@/components/ContractProgressBar.vue';
 import CoopCardContributionTable from '@/components/CoopCardContributionTable.vue';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
-import LastRefreshed from '@/components/LastRefreshed.vue';
+import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vue';
 
 export default defineComponent({
   components: {
-    CoopCardStatusLabel,
-    CoopCardProgressBar,
+    ContractStatusLabel,
+    CoopCardShareSheet,
+    ContractProgressBar,
     CoopCardContributionTable,
     BaseClickToCopy,
-    LastRefreshed,
+    AutoRefreshedRelativeTime,
     Tippy,
   },
   props: {
-    contractId: {
-      type: String,
-      required: true,
-    },
-    coopCode: {
-      type: String,
+    status: {
+      type: Object as PropType<CoopStatus>,
       required: true,
     },
   },
-  emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    success(payload: CoopStatus) {
-      return true;
-    },
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-  },
-  // Note that this async component does NOT react to contractId and coopCode
-  // changes. The component must be recreated on changes.
-  /* eslint-disable vue/no-setup-props-destructure */
-  async setup({ contractId, coopCode }, { emit }) {
-    const store = useStore(key);
+  setup(props) {
     const devmode = inject(devmodeKey);
+    const { status } = toRefs(props);
 
-    onMounted(() => {
-      emit('success', coopStatus.value);
-    });
-
-    const getCoopStatus = async (existingStatus?: CoopStatus) => {
-      const status = new CoopStatus(await requestCoopStatus(contractId, coopCode.toLowerCase()));
-      await status.resolveContract({
-        store: store.state.contracts.list,
-        addToStore: contract => store.commit('contracts/addContract', contract),
-        knownContract: existingStatus?.contract || undefined,
-      });
-      return status;
-    };
-    const coopStatus = ref(await getCoopStatus());
-
-    const contract = computed(() => coopStatus.value.contract!);
+    const contract = computed(() => status.value.contract!);
     const egg = computed(() => contract.value.egg!);
-    const league = computed(() => ContractLeague[coopStatus.value.league!]);
-    const leagueStatus = computed(() => coopStatus.value.leagueStatus!);
+    const leagueName = computed(() => ContractLeague[status.value.league!]);
+    const leagueStatus = computed(() => status.value.leagueStatus!);
 
     return {
       devmode,
       contract,
       egg,
-      league,
-      coopStatus,
+      leagueName,
       leagueStatus,
       formatEIValue,
       formatDuration,

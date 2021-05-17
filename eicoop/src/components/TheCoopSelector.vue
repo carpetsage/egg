@@ -21,7 +21,7 @@
                 v-model.trim="manuallyEnteredContractId"
                 name="contract_id_manual"
                 type="text"
-                class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
+                class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500 !duration-0"
                 placeholder="Contract ID"
                 spellcheck="false"
                 autocapitalize="off"
@@ -29,10 +29,12 @@
             </div>
             <p class="mt-2 -mb-1 text-xs text-gray-500">
               The contract ID is not visible within the game.
-              <base-info classes="h-3.5 w-3.5" class="align-middle relative -top-0.5">
-                If you're on the Egg, Inc. Discord server, you can find the ID in the #contracts
-                channel, or through the bot command "ecci".
-              </base-info>
+              <base-info
+                v-tippy="{
+                  content: `If you're on the Egg, Inc. Discord server, you can find the ID in the #contracts channel, or through the bot command 'ecci'.`,
+                }"
+                class="inline relative -top-px"
+              />
             </p>
           </div>
         </fieldset>
@@ -48,7 +50,7 @@
               name="coop_code"
               type="text"
               required
-              class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
+              class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500 !duration-0"
               placeholder="Coop Code"
               spellcheck="false"
               autocapitalize="off"
@@ -59,7 +61,7 @@
         <div class="mt-5 sm:mt-6">
           <button
             type="submit"
-            class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 sm:text-sm disabled:opacity-50 disabled:cursor-default disabled:hover:bg-blue-600"
+            class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 sm:text-sm disabled:opacity-50 disabled:cursor-default disabled:hover:bg-blue-600 !duration-0"
             :disabled="!submittable"
           >
             View coop status
@@ -78,7 +80,7 @@ import hotkeys from 'hotkeys-js';
 
 import { Contract } from '@/lib';
 import { key } from '@/store';
-import BaseInfo from './BaseInfo.vue';
+import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseModal from '@/components/BaseModal.vue';
 import CoopSelectorContractSelect from '@/components/CoopSelectorContractSelect.vue';
 
