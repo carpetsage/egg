@@ -1,5 +1,6 @@
 import * as $protobuf from "protobufjs/minimal";
-import { ei } from "./proto";
+
+import { ei } from "lib";
 
 export class ProtobufMessage {
   toJSON(): { [k: string]: any };

@@ -1,4 +1,4 @@
-import { ei } from "../proto";
+import { ei } from "lib";
 import { Artifact } from "../types";
 import { multiplicativeEffect } from "./common";
 

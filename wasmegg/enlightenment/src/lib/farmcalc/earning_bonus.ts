@@ -1,5 +1,5 @@
+import { ei } from "lib";
 import { prophecyEggBonusFromArtifacts, soulEggBonusFromArtifacts } from "../effects";
-import { ei } from "../proto";
 import { Artifact, Research } from "../types";
 import { farmResearch } from "./common";
 import { accountProphecyEggsCount } from "./prophecy_eggs";

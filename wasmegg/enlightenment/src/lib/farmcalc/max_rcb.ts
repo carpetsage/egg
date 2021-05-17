@@ -1,5 +1,5 @@
+import { ei } from "lib";
 import { maxRCBBonusFromArtifacts } from "../effects/max_rcb";
-import { ei } from "../proto";
 import { Artifact, Research, ResearchInstance } from "../types";
 import { farmResearches } from "./common";
 

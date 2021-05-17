@@ -1,4 +1,4 @@
-import { ei } from "./proto";
+import { ei } from "lib";
 
 export function eggIconPath(egg: ei.Egg): string {
   switch (egg) {

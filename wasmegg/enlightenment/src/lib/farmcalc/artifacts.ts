@@ -1,6 +1,6 @@
+import { ei } from "lib";
 import { artifactSpecToItem } from "../catalog";
 import { clarityEffect, researchPriceMultiplierFromArtifacts } from "../effects";
-import { ei } from "../proto";
 import { Artifact, Item, Stone } from "../types";
 import { requiredWDLevelForEnlightenmentDiamond } from "./hab_space";
 

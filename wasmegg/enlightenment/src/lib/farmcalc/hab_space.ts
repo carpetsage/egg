@@ -1,5 +1,5 @@
 import { habSpaceMultiplier } from "../effects";
-import { ei } from "../proto";
+import { ei } from "lib";
 import { Artifact, Research, ResearchInstance } from "../types";
 import { farmResearch, farmResearches } from "./common";
 

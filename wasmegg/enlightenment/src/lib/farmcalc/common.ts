@@ -1,4 +1,4 @@
-import { ei } from "../proto";
+import { ei } from "lib";
 import { Research } from "../types";
 
 export function farmResearches<R extends Research>(

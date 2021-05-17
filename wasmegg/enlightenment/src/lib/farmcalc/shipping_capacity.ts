@@ -1,7 +1,7 @@
 // https://egg-inc.fandom.com/wiki/Vehicles
 
+import { ei } from "lib";
 import { shippingCapacityMultiplier } from "../effects";
-import { ei } from "../proto";
 import { Artifact, Research, ResearchInstance } from "../types";
 import { farmResearches } from "./common";
 

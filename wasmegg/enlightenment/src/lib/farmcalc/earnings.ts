@@ -1,5 +1,5 @@
+import { ei } from "lib";
 import { awayEarningsMultiplier } from "../effects";
-import { ei } from "../proto";
 import { Artifact } from "../types";
 import { farmEarningBonus } from "./earning_bonus";
 import { farmEggValue, farmEggValueResearches } from "./egg_value";

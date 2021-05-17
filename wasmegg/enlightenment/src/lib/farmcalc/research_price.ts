@@ -1,4 +1,4 @@
-import { ei } from "../proto";
+import { ei } from "lib";
 import { farmResearch } from "./common";
 
 export function researchPriceMultiplierFromResearches(

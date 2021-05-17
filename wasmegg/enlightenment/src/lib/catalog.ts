@@ -1,5 +1,5 @@
+import { ei } from "lib";
 import data from "./catalog.json";
-import { ei } from "./proto";
 import { Item } from "./types";
 
 export const catalog: Item[] = data;

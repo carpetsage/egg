@@ -1,4 +1,4 @@
-import { ei } from "../proto";
+import { ei } from "lib";
 import { Artifact, Item, Stone } from "../types";
 
 export function clarityEffect(hostItem: Item, stones: Stone[]): number {
