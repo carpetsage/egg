@@ -1,0 +1,39 @@
+name: update contracts
+on:
+  push:
+  pull_request_target:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download updater
+        run: |
+          url="$(curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -fsS https://api.github.com/repos/fanaticscripter/CoopTracker/releases/latest | jq -r '.assets[].browser_download_url' | grep linux_amd64)"
+          curl -L -o updater.tar.gz "$url"
+          tar xf updater.tar.gz
+      - name: Update contracts
+        run: |
+          ./updater
+        env:
+          EI_USERID: ${{ secrets.UPDATER_EI_USERID }}
+      - name: Commit, push changes, and possibly trigger new build
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'actions@github.com'
+          git add data
+          git diff --cached --quiet || {
+            git commit -m 'Update data/contracts.json (from GitHub Actions)'
+            git push
+            # Use a separate personal access token since the token included doesn't seem to trigger
+            # anything, although the response (HTTP 204) looks all right.
+            curl -fsS -D- \
+              -X POST \
+              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
+              -H 'Accept: application/vnd.github.v3+json' \
+              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build.yml/dispatches \
+              -d '{"ref": "'${GITHUB_REF##*/}'"}'
+          }
