@@ -1,4 +1,4 @@
-import { ei } from './proto';
+import { ei } from 'lib';
 
 export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
   switch (r.rewardType!) {

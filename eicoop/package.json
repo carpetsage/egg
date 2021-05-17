@@ -1,5 +1,6 @@
 {
   "name": "coop-tracker",
+  "version": "0.1.0",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
@@ -7,6 +8,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "lib": ">=0.1.0",
     "@headlessui/vue": "^1.2.0",
     "@heroicons/vue": "^1.0.1",
     "copy-text-to-clipboard": "^3.0.1",

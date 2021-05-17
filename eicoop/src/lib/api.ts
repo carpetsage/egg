@@ -1,6 +1,6 @@
+import { ei } from 'lib';
 import { decodeMessage } from './decode';
 import { encodeMessage } from './encode';
-import { ei } from './proto';
 import { APP_VERSION, APP_BUILD, CLIENT_VERSION, PLATFORM, PLATFORM_STRING } from './version';
 
 const API_ROOT =
