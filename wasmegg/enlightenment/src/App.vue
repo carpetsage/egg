@@ -42,9 +42,9 @@
 import { defineComponent, ref } from 'vue';
 
 import { getLocalStorage, setLocalStorage } from '@/utils';
+import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import BaseErrorBoundary from '@/components/BaseErrorBoundary.vue';
 import BaseLoading from '@/components/BaseLoading.vue';
-import ThePlayerIdForm from '@/components/ThePlayerIdForm.vue';
 import TheCompanion from '@/components/TheCompanion.vue';
 import TheCalculatorWrapper from '@/components/TheCalculatorWrapper.vue';
 

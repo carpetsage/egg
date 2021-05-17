@@ -1,0 +1,10 @@
+html {
+  height: 100vh;
+  height: stretch;
+}
+
+body {
+  min-height: 100vh;
+  min-height: stretch;
+  @apply flex flex-col;
+}

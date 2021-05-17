@@ -268,7 +268,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, ref } from 'vue';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -315,7 +315,7 @@ import TrophyForecast from '@/components/TrophyForecast.vue';
 import ArtifactsGallery from '@/components/ArtifactsGallery.vue';
 import UnfinishedResearches from '@/components/UnfinishedResearches.vue';
 import TargetCashMatrix from '@/components/TargetCashMatrix.vue';
-import BaseInfo from '@/components/BaseInfo.vue';
+import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseEIValue from '@/components/BaseEIValue.vue';
 
 // Note that timezone abbreviation may not work due to

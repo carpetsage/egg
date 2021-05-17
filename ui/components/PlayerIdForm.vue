@@ -41,10 +41,13 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, toRefs } from 'vue';
+
 import BaseInfo from './BaseInfo.vue';
 
 export default defineComponent({
-  components: { BaseInfo },
+  components: {
+    BaseInfo,
+  },
   props: {
     playerIdPreload: {
       type: String,
