@@ -83,7 +83,7 @@
 </template>
 
 <script>
-import { iconURL } from "./utils";
+import { iconURL } from './utils';
 
 export default {
   props: {
@@ -103,7 +103,7 @@ export default {
       if (tier.rarityCounts[3] > 0) {
         clauses.push(`${tier.rarityCounts[3]} Legendary`);
       }
-      return clauses.join(", ");
+      return clauses.join(', ');
     },
 
     iconURL,

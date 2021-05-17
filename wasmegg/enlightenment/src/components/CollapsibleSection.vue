@@ -6,7 +6,7 @@
         class="ml-0.5 text-indigo-500 hover:text-indigo-600 font-normal underline cursor-pointer select-none"
         @click="$emit('toggle')"
       >
-        {{ visible ? "collapse section" : "expand section" }}
+        {{ visible ? 'collapse section' : 'expand section' }}
       </span>
     </h2>
     <div v-show="visible">
@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   props: {
@@ -29,6 +29,6 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ["toggle"],
+  emits: ['toggle'],
 });
 </script>

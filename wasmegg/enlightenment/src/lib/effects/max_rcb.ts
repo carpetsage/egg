@@ -1,6 +1,6 @@
-import { ei } from "lib";
-import { Artifact } from "../types";
-import { additiveEffect } from "./common";
+import { ei } from 'lib';
+import { Artifact } from '../types';
+import { additiveEffect } from './common';
 
 export function maxRCBBonusFromArtifacts(artifacts: Artifact[]) {
   return additiveEffect(artifacts, [

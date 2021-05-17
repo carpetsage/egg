@@ -1,17 +1,17 @@
-import { createApp } from "vue";
+import { createApp } from 'vue';
 
-import VueTippy from "vue-tippy";
-import "tippy.js/dist/tippy.css";
-import "tippy.js/themes/translucent.css";
+import VueTippy from 'vue-tippy';
+import 'tippy.js/dist/tippy.css';
+import 'tippy.js/themes/translucent.css';
 
-import App from "./App.vue";
-import router from "./router";
+import App from './App.vue';
+import router from './router';
 
 window.onload = () => {
   const app = createApp(App);
   app.use(router);
   app.use(VueTippy, {
-    defaultProps: { theme: "translucent" },
+    defaultProps: { theme: 'translucent' },
   });
-  app.mount("#app");
+  app.mount('#app');
 };

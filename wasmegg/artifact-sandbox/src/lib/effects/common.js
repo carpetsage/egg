@@ -1,4 +1,4 @@
-import { Build, Config } from "../models";
+import { Build, Config } from '../models';
 
 /**
  * @typedef effect

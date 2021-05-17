@@ -6,15 +6,15 @@ const API_URL = `${EGG_CONTRACTOR_BASEURL}/api/events/`;
 
 async function handleRequest(request) {
   const url = new URL(request.url);
-  if (url.pathname !== "/") {
+  if (url.pathname !== '/') {
     return new Response(null, {
       status: 404,
-      statusText: "Not Found",
+      statusText: 'Not Found',
     });
   }
   return await fetch(API_URL);
 }
 
-addEventListener("fetch", event => {
+addEventListener('fetch', event => {
   return event.respondWith(handleRequest(event.request));
 });

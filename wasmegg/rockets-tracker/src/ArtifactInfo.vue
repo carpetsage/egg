@@ -35,7 +35,7 @@
         >
         <span class="inline-flex items-center space-x-1 text-sm text-gray-900">
           <img class="h-4 w-4" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
-          <span>{{ totalCraftingCost.toLocaleString("en-US") }}</span>
+          <span>{{ totalCraftingCost.toLocaleString('en-US') }}</span>
           <info />
         </span>
       </div>
@@ -47,7 +47,7 @@
         <span class="text-sm text-gray-900 truncate">Account balance:</span>
         <span class="inline-flex items-center space-x-1 text-sm text-gray-900">
           <img class="h-4 w-4" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
-          {{ accountBalance.toLocaleString("en-US") }}
+          {{ accountBalance.toLocaleString('en-US') }}
         </span>
       </div>
 
@@ -79,10 +79,10 @@
 </template>
 
 <script>
-import ArtifactGrid from "./ArtifactGrid.vue";
-import Info from "../../artifact-explorer/src/components/Info.vue";
+import ArtifactGrid from './ArtifactGrid.vue';
+import Info from '../../artifact-explorer/src/components/Info.vue';
 
-import { getLocalStorage, setLocalStorage, iconURL } from "./utils";
+import { getLocalStorage, setLocalStorage, iconURL } from './utils';
 
 export default {
   components: {
@@ -134,13 +134,13 @@ export default {
 
   data() {
     return {
-      spoilers: getLocalStorage("spoilers") === "true",
+      spoilers: getLocalStorage('spoilers') === 'true',
     };
   },
 
   watch: {
     spoilers() {
-      setLocalStorage("spoilers", this.spoilers);
+      setLocalStorage('spoilers', this.spoilers);
     },
   },
 

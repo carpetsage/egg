@@ -3,7 +3,7 @@ import {
   artifactFromAfxIdLevelRarity,
   stoneFromId,
   stoneFromAfxIdLevel,
-} from "./data";
+} from './data';
 
 class Builds {
   /**
@@ -152,7 +152,7 @@ class Artifact {
   constructor(artifactProps, stones) {
     if (artifactProps === null) {
       this.props = null;
-      this.id = "";
+      this.id = '';
     } else {
       this.props = artifactProps;
       for (const prop in artifactProps) {
@@ -203,7 +203,7 @@ class Artifact {
   buildProps() {
     return {
       id: this.id,
-      stones: this.stones.map(s => (s === null ? "" : s.id)),
+      stones: this.stones.map(s => (s === null ? '' : s.id)),
     };
   }
 
@@ -238,14 +238,14 @@ class Artifact {
    * @returns {!Boolean}
    */
   isEmpty() {
-    return this.id === "";
+    return this.id === '';
   }
 
   /**
    * @returns {!Array<Stone>}
    */
   get activeStones() {
-    if (this.id === "") {
+    if (this.id === '') {
       return [];
     }
     return this.stones.slice(0, this.slots).filter(s => s !== null);
@@ -372,7 +372,7 @@ class Config {
   constructor() {
     this.prophecyEggs = 0;
     this.soulEggs = 0;
-    this.soulEggsInput = "";
+    this.soulEggsInput = '';
     this.isEnlightenment = false;
     this.soulFood = maxSoulFood;
     this.prophecyBonus = maxProphecyBonus;
@@ -390,7 +390,7 @@ class Config {
     const self = new Config();
     self.prophecyEggs = 1;
     self.soulEggs = 250;
-    self.soulEggsInput = "250";
+    self.soulEggsInput = '250';
     return self;
   }
 

@@ -89,10 +89,10 @@
 </template>
 
 <script>
-import MissionSummary from "./components/MissionSummary.vue";
-import LootChart from "./components/LootChart.vue";
+import MissionSummary from './components/MissionSummary.vue';
+import LootChart from './components/LootChart.vue';
 
-import data from "@/app-data.json";
+import data from '@/app-data.json';
 
 export default {
   components: {

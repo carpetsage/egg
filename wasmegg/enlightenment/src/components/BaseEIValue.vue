@@ -9,8 +9,8 @@
 </template>
 
 <script lang="ts">
-import { formatEIValue } from "@/lib";
-import { defineComponent } from "@vue/runtime-core";
+import { formatEIValue } from '@/lib';
+import { defineComponent } from '@vue/runtime-core';
 
 export default defineComponent({
   props: {
@@ -20,11 +20,11 @@ export default defineComponent({
     },
     prefix: {
       type: String,
-      default: "",
+      default: '',
     },
     suffix: {
       type: String,
-      default: "",
+      default: '',
     },
   },
   setup() {

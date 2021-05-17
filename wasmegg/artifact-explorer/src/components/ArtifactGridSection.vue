@@ -94,7 +94,7 @@
 </template>
 
 <script>
-import { iconURL } from "@/utils";
+import { iconURL } from '@/utils';
 
 export default {
   props: {
@@ -108,19 +108,19 @@ export default {
       // Get family effect from the last tier. The first tier's effects may be
       // null (stone fragment).
       const tier = family.tiers[family.tiers.length - 1];
-      return tier.has_effects ? tier.effects[0].family_effect : "";
+      return tier.has_effects ? tier.effects[0].family_effect : '';
     },
 
     rarityFgClass(rarity) {
       switch (rarity) {
         case 1:
-          return "text-blue-400";
+          return 'text-blue-400';
         case 2:
-          return "text-purple-400";
+          return 'text-purple-400';
         case 3:
-          return "text-yellow-400";
+          return 'text-yellow-400';
         default:
-          return "";
+          return '';
       }
     },
   },
@@ -129,10 +129,10 @@ export default {
 
 <style scoped>
 .dagger:after {
-  content: "\2020";
+  content: '\2020';
 }
 
 .Dagger:after {
-  content: "\2021";
+  content: '\2021';
 }
 </style>

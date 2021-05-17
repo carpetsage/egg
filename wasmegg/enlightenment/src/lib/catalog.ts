@@ -1,6 +1,6 @@
-import { ei } from "lib";
-import data from "./catalog.json";
-import { Item } from "./types";
+import { ei } from 'lib';
+import data from './catalog.json';
+import { Item } from './types';
 
 export const catalog: Item[] = data;
 export const keyToItemMap = new Map(catalog.map(item => [item.key, item]));

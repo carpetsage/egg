@@ -1,11 +1,11 @@
-import { createApp } from "vue";
+import { createApp } from 'vue';
 
-import App from "./App.vue";
-import "./index.css";
+import App from './App.vue';
+import './index.css';
 
-import { initDatabase } from "./data";
+import { initDatabase } from './data';
 
 (async () => {
   await initDatabase();
-  createApp(App).mount("#app");
+  createApp(App).mount('#app');
 })();

@@ -22,8 +22,8 @@
 </template>
 
 <script>
-import { artifactFromId } from "@/lib/data";
-import ArtifactPickerItemSelect from "./ArtifactPickerItemSelect.vue";
+import { artifactFromId } from '@/lib/data';
+import ArtifactPickerItemSelect from './ArtifactPickerItemSelect.vue';
 
 export default {
   components: {
@@ -47,12 +47,12 @@ export default {
     };
   },
 
-  emits: ["update:artifact"],
+  emits: ['update:artifact'],
 
   watch: {
     selectedArtifact: {
       handler() {
-        this.$emit("update:artifact", this.selectedArtifact);
+        this.$emit('update:artifact', this.selectedArtifact);
       },
       deep: true,
     },

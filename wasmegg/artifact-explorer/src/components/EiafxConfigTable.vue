@@ -223,18 +223,18 @@
 </template>
 
 <script>
-import ArtifactName from "@/components/ArtifactName.vue";
-import SortArrow from "@/components/SortArrow.vue";
+import ArtifactName from '@/components/ArtifactName.vue';
+import SortArrow from '@/components/SortArrow.vue';
 
-import { iconURL, stringCmp } from "@/utils";
+import { iconURL, stringCmp } from '@/utils';
 
 const SORT_BY = {
-  ITEM: "item",
-  TIER: "tier",
-  QUALITY: "quality",
-  ODDS_MULTIPLIER: "odds_multiplier",
-  VALUE: "value",
-  CRAFTING_PRICE: "crafting_price",
+  ITEM: 'item',
+  TIER: 'tier',
+  QUALITY: 'quality',
+  ODDS_MULTIPLIER: 'odds_multiplier',
+  VALUE: 'value',
+  CRAFTING_PRICE: 'crafting_price',
 };
 
 export default {
@@ -316,14 +316,14 @@ export default {
 
     formatSmallFloat(x) {
       if (x === 0) {
-        return "0";
+        return '0';
       }
       if (x >= 1) {
         let s = x.toFixed(2);
-        return s.replace(/\.?0+$/, "");
+        return s.replace(/\.?0+$/, '');
       }
       let s = x.toPrecision(2);
-      return s.replace(/0+$/, "");
+      return s.replace(/0+$/, '');
     },
   },
 };

@@ -35,6 +35,6 @@ export default {
     placeholder: String,
   },
 
-  emits: ["update:modelValue"],
+  emits: ['update:modelValue'],
 };
 </script>

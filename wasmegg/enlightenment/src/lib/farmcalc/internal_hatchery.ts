@@ -1,7 +1,7 @@
-import { ei } from "lib";
-import { internalHatcheryRateMultiplier } from "../effects";
-import { Artifact, Research, ResearchInstance } from "../types";
-import { farmResearches } from "./common";
+import { ei } from 'lib';
+import { internalHatcheryRateMultiplier } from '../effects';
+import { Artifact, Research, ResearchInstance } from '../types';
+import { farmResearches } from './common';
 
 export interface InternalHatcheryResearch extends Research {
   multiplicative?: boolean;
@@ -15,52 +15,52 @@ export interface InternalHatcheryResearchInstance extends ResearchInstance {
 
 const availableInternalHatcheryResearches: InternalHatcheryResearch[] = [
   {
-    id: "internal_hatchery1",
-    name: "Internal Hatcheries",
+    id: 'internal_hatchery1',
+    name: 'Internal Hatcheries',
     maxLevel: 10,
     perLevel: 2,
   },
   {
-    id: "internal_hatchery2",
-    name: "Internal Hatchery Upgrades",
+    id: 'internal_hatchery2',
+    name: 'Internal Hatchery Upgrades',
     maxLevel: 10,
     perLevel: 5,
   },
   {
-    id: "internal_hatchery3",
-    name: "Internal Hatchery Expansion",
+    id: 'internal_hatchery3',
+    name: 'Internal Hatchery Expansion',
     maxLevel: 15,
     perLevel: 10,
   },
   {
-    id: "internal_hatchery4",
-    name: "Internal Hatchery Expansion",
+    id: 'internal_hatchery4',
+    name: 'Internal Hatchery Expansion',
     maxLevel: 30,
     perLevel: 25,
   },
   {
-    id: "internal_hatchery5",
-    name: "Machine Learning Incubators",
+    id: 'internal_hatchery5',
+    name: 'Machine Learning Incubators',
     maxLevel: 250,
     perLevel: 5,
   },
   {
-    id: "neural_linking",
-    name: "Neural Linking",
+    id: 'neural_linking',
+    name: 'Neural Linking',
     maxLevel: 30,
     perLevel: 50,
   },
   {
-    id: "epic_internal_incubators",
-    name: "Epic Int. Hatcheries",
+    id: 'epic_internal_incubators',
+    name: 'Epic Int. Hatcheries',
     maxLevel: 20,
     perLevel: 0.05,
     epic: true,
     multiplicative: true,
   },
   {
-    id: "int_hatch_calm",
-    name: "Internal Hatchery Calm",
+    id: 'int_hatch_calm',
+    name: 'Internal Hatchery Calm',
     maxLevel: 20,
     perLevel: 0.1,
     epic: true,

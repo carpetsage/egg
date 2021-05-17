@@ -181,8 +181,8 @@
 </template>
 
 <script>
-import ConsumptionOutcome from "./ConsumptionOutcome.vue";
-import Sources from "./Sources.vue";
+import ConsumptionOutcome from './ConsumptionOutcome.vue';
+import Sources from './Sources.vue';
 
 export default {
   components: {

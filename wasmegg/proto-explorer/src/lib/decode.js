@@ -1,5 +1,5 @@
-import { ei } from "./proto";
-import * as $protobuf from "protobufjs/minimal";
+import { ei } from './proto';
+import * as $protobuf from 'protobufjs/minimal';
 
 /**
  * @typedef {Object} decodeResult
@@ -24,7 +24,7 @@ function decodeMessage(messageName, encoded, authenticated) {
   }
 
   if (authenticated) {
-    const wrapperResult = decodeMessage("AuthenticatedMessage", encoded, false);
+    const wrapperResult = decodeMessage('AuthenticatedMessage', encoded, false);
     if (wrapperResult.error !== undefined) {
       return {
         error: wrapperResult.error,
@@ -40,7 +40,7 @@ function decodeMessage(messageName, encoded, authenticated) {
     binary = atob(encoded);
   } catch (e) {
     return {
-      error: "Error decoding input as base64.",
+      error: 'Error decoding input as base64.',
     };
   }
   const buf = new Uint8Array(new ArrayBuffer(binary.length));

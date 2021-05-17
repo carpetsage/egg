@@ -1,6 +1,6 @@
-import { ei } from "lib";
-import { Artifact } from "../types";
-import { additiveEffect } from "./common";
+import { ei } from 'lib';
+import { Artifact } from '../types';
+import { additiveEffect } from './common';
 
 export function soulEggBonusFromArtifacts(artifacts: Artifact[]) {
   return additiveEffect(artifacts, [ei.ArtifactSpec.Name.SOUL_STONE]);

@@ -60,16 +60,16 @@
 </template>
 
 <script>
-import CopyButton from "@/components/CopyButton.vue";
-import DecodeResult from "@/components/DecodeResult.vue";
-import LoadingSpinner from "./LoadingSpinner.vue";
-import RequestButton from "@/components/RequestButton.vue";
+import CopyButton from '@/components/CopyButton.vue';
+import DecodeResult from '@/components/DecodeResult.vue';
+import LoadingSpinner from './LoadingSpinner.vue';
+import RequestButton from '@/components/RequestButton.vue';
 
 import {
   useAPIClient,
   getPayloadsFromLocalStorage,
   persistPayloadsToLocalStorage,
-} from "@/composables/api";
+} from '@/composables/api';
 
 export default {
   components: {

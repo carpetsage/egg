@@ -1,9 +1,9 @@
 // https://egg-inc.fandom.com/wiki/Vehicles
 
-import { ei } from "lib";
-import { shippingCapacityMultiplier } from "../effects";
-import { Artifact, Research, ResearchInstance } from "../types";
-import { farmResearches } from "./common";
+import { ei } from 'lib';
+import { shippingCapacityMultiplier } from '../effects';
+import { Artifact, Research, ResearchInstance } from '../types';
+import { farmResearches } from './common';
 
 type VehicleId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
 
@@ -25,62 +25,62 @@ export interface Vehicle extends VehicleType {
 export const vehicleTypes: VehicleType[] = [
   {
     id: 0,
-    name: "Trike",
+    name: 'Trike',
     baseCapacity: 5e3 / 60,
   },
   {
     id: 1,
-    name: "Transit Van",
+    name: 'Transit Van',
     baseCapacity: 15e3 / 60,
   },
   {
     id: 2,
-    name: "Pickup",
+    name: 'Pickup',
     baseCapacity: 50e3 / 60,
   },
   {
     id: 3,
-    name: "10 Foot",
+    name: '10 Foot',
     baseCapacity: 100e3 / 60,
   },
   {
     id: 4,
-    name: "24 Foot",
+    name: '24 Foot',
     baseCapacity: 250e3 / 60,
   },
   {
     id: 5,
-    name: "Semi",
+    name: 'Semi',
     baseCapacity: 500e3 / 60,
   },
   {
     id: 6,
-    name: "Double Semi",
+    name: 'Double Semi',
     baseCapacity: 1e6 / 60,
   },
   {
     id: 7,
-    name: "Future Semi",
+    name: 'Future Semi',
     baseCapacity: 5e6 / 60,
   },
   {
     id: 8,
-    name: "Mega Semi",
+    name: 'Mega Semi',
     baseCapacity: 15e6 / 60,
   },
   {
     id: 9,
-    name: "Hover Semi",
+    name: 'Hover Semi',
     baseCapacity: 30e6 / 60,
   },
   {
     id: 10,
-    name: "Quantum Transporter",
+    name: 'Quantum Transporter',
     baseCapacity: 50e6 / 60,
   },
   {
     id: 11,
-    name: "Hyperloop Train",
+    name: 'Hyperloop Train',
     baseCapacity: 50e6 / 60,
   },
 ];
@@ -105,64 +105,64 @@ export interface ShippingCapacityResearchInstance extends ResearchInstance {
 
 const availableShippingCapacityResearches: ShippingCapacityResearch[] = [
   {
-    id: "leafsprings",
-    name: "Improved Leafsprings",
+    id: 'leafsprings',
+    name: 'Improved Leafsprings',
     maxLevel: 30,
     perLevel: 0.05,
   },
   {
-    id: "lightweight_boxes",
-    name: "Lightweight Boxes",
+    id: 'lightweight_boxes',
+    name: 'Lightweight Boxes',
     maxLevel: 40,
     perLevel: 0.1,
   },
   {
-    id: "driver_training",
-    name: "Driver Training",
+    id: 'driver_training',
+    name: 'Driver Training',
     maxLevel: 30,
     perLevel: 0.05,
   },
   {
-    id: "super_alloy",
-    name: "Super Alloy Frames",
+    id: 'super_alloy',
+    name: 'Super Alloy Frames',
     maxLevel: 50,
     perLevel: 0.05,
   },
   {
-    id: "quantum_storage",
-    name: "Quantum Egg Storage",
+    id: 'quantum_storage',
+    name: 'Quantum Egg Storage',
     maxLevel: 20,
     perLevel: 0.05,
   },
   {
-    id: "hover_upgrades",
-    name: "Hover Upgrades",
+    id: 'hover_upgrades',
+    name: 'Hover Upgrades',
     maxLevel: 25,
     perLevel: 0.05,
     hoverOnly: true,
   },
   {
-    id: "dark_containment",
-    name: "Dark Containment",
+    id: 'dark_containment',
+    name: 'Dark Containment',
     maxLevel: 25,
     perLevel: 0.05,
   },
   {
-    id: "neural_net_refine",
-    name: "Neural Net Refinement",
+    id: 'neural_net_refine',
+    name: 'Neural Net Refinement',
     maxLevel: 25,
     perLevel: 0.05,
   },
   {
-    id: "hyper_portalling",
-    name: "Hyper Portalling",
+    id: 'hyper_portalling',
+    name: 'Hyper Portalling',
     maxLevel: 25,
     perLevel: 0.05,
     hyperloopOnly: true,
   },
   {
-    id: "transportation_lobbyist",
-    name: "Transportation Lobbyists",
+    id: 'transportation_lobbyist',
+    name: 'Transportation Lobbyists',
     maxLevel: 30,
     perLevel: 0.05,
   },

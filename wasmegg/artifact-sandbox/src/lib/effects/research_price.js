@@ -1,5 +1,5 @@
-import { Build, Config } from "../models";
-import { aggregateEffect } from "./common";
+import { Build, Config } from '../models';
+import { aggregateEffect } from './common';
 
 /**
  * @param {!Build} build

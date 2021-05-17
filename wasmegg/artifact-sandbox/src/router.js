@@ -1,23 +1,23 @@
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from 'vue-router';
 
-import Builds from "@/views/Builds.vue";
+import Builds from '@/views/Builds.vue';
 
 const routes = [
   {
-    name: "home",
-    path: "/",
+    name: 'home',
+    path: '/',
     component: Builds,
     props: true,
   },
   {
-    name: "builds",
-    path: "/b/:serializedBuilds",
+    name: 'builds',
+    path: '/b/:serializedBuilds',
     component: Builds,
     props: true,
   },
   {
-    path: "/:catchAll(.*)",
-    redirect: "/",
+    path: '/:catchAll(.*)',
+    redirect: '/',
   },
 ];
 

@@ -65,18 +65,18 @@
 </template>
 
 <script>
-import ArtifactName from "@/components/ArtifactName.vue";
-import LootDataCredit from "@/components/LootDataCredit.vue";
-import MissionName from "@/components/MissionName.vue";
-import Share from "@/components/Share.vue";
+import ArtifactName from '@/components/ArtifactName.vue';
+import LootDataCredit from '@/components/LootDataCredit.vue';
+import MissionName from '@/components/MissionName.vue';
+import Share from '@/components/Share.vue';
 
-import { getLocalStorage, setLocalStorage, iconURL, stringCmp } from "@/utils";
+import { getLocalStorage, setLocalStorage, iconURL, stringCmp } from '@/utils';
 
-const SORT_BY_LOCALSTORAGE_KEY = "artifactSortBy";
+const SORT_BY_LOCALSTORAGE_KEY = 'artifactSortBy';
 const SORT_BY = {
-  QUALITY: "quality",
-  FAMILY: "family",
-  NAME: "name",
+  QUALITY: 'quality',
+  FAMILY: 'family',
+  NAME: 'name',
 };
 
 export default {

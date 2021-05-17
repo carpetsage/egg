@@ -1,5 +1,5 @@
-import { ei } from "lib";
-import { Artifact } from "../types";
+import { ei } from 'lib';
+import { Artifact } from '../types';
 
 type Effect = {
   delta: number;

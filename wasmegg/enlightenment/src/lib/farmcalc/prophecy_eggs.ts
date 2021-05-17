@@ -1,4 +1,4 @@
-import { ei } from "lib";
+import { ei } from 'lib';
 
 export function accountProphecyEggsCount(backup: ei.IBackup): number {
   return (

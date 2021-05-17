@@ -47,16 +47,16 @@
 </template>
 
 <script>
-import { render } from "vue";
+import { render } from 'vue';
 
-import { getLocalStorage, setLocalStorage } from "@/utils";
+import { getLocalStorage, setLocalStorage } from '@/utils';
 
-const SPOILER_ALERT_CONSENT_LOCALSTORAGE_KEY = "spoilerAlertConsent";
+const SPOILER_ALERT_CONSENT_LOCALSTORAGE_KEY = 'spoilerAlertConsent';
 
 export default {
   data() {
     return {
-      show: getLocalStorage(SPOILER_ALERT_CONSENT_LOCALSTORAGE_KEY) !== "true",
+      show: getLocalStorage(SPOILER_ALERT_CONSENT_LOCALSTORAGE_KEY) !== 'true',
     };
   },
 
@@ -67,7 +67,7 @@ export default {
     },
 
     unmountApp() {
-      const app = document.getElementById("app");
+      const app = document.getElementById('app');
       render(null, app);
       app.innerHTML = `<div class="text-center">Enjoy your spoiler-free experience.</div>`;
     },

@@ -48,16 +48,16 @@
 </template>
 
 <script>
-import DecodeResult from "@/components/DecodeResult.vue";
+import DecodeResult from '@/components/DecodeResult.vue';
 
-import { ref, watch } from "vue";
-import { messageGroups } from "@/lib/lib";
-import { getLocalStorage, setLocalStorage } from "@/utils";
+import { ref, watch } from 'vue';
+import { messageGroups } from '@/lib/lib';
+import { getLocalStorage, setLocalStorage } from '@/utils';
 
-const MESSAGE_LOCALSTORAGE_KEY = "message";
-const AUTHENTICATED_LOCALSTORAGE_KEY = "authenticated";
-const ENCODED_PAYLOAD_LOCALSTORAGE_KEY = "encoded_payload";
-const DEFAULT_MESSAGE = "EggIncFirstContactResponse";
+const MESSAGE_LOCALSTORAGE_KEY = 'message';
+const AUTHENTICATED_LOCALSTORAGE_KEY = 'authenticated';
+const ENCODED_PAYLOAD_LOCALSTORAGE_KEY = 'encoded_payload';
+const DEFAULT_MESSAGE = 'EggIncFirstContactResponse';
 
 export default {
   components: {
@@ -66,8 +66,8 @@ export default {
 
   setup() {
     const message = ref(getLocalStorage(MESSAGE_LOCALSTORAGE_KEY) || DEFAULT_MESSAGE);
-    const authenticated = ref(getLocalStorage(AUTHENTICATED_LOCALSTORAGE_KEY) === "true");
-    const encodedPayload = ref(getLocalStorage(ENCODED_PAYLOAD_LOCALSTORAGE_KEY) || "");
+    const authenticated = ref(getLocalStorage(AUTHENTICATED_LOCALSTORAGE_KEY) === 'true');
+    const encodedPayload = ref(getLocalStorage(ENCODED_PAYLOAD_LOCALSTORAGE_KEY) || '');
 
     watch(message, () => setLocalStorage(MESSAGE_LOCALSTORAGE_KEY, message.value));
     watch(authenticated, () =>

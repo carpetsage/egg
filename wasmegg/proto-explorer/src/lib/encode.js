@@ -1,4 +1,4 @@
-import { ei } from "./proto";
+import { ei } from './proto';
 
 /**
  * @param {!String} messageName - Name of the protobuf message.
@@ -23,7 +23,7 @@ function encodeMessage(messageName, messageObj, authenticated) {
     return btoa(
       Array.from(buf)
         .map(c => String.fromCharCode(c))
-        .join("")
+        .join('')
     );
   } catch (e) {
     throw new Error(`Encoding ${messageName} ${JSON.stringify(messageObj)}: ${e}.`);

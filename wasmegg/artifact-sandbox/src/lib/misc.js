@@ -1,4 +1,4 @@
-import { Build, Artifact, Stone } from "./models";
+import { Build, Artifact, Stone } from './models';
 
 /**
  * @param {!Artifact} artifact

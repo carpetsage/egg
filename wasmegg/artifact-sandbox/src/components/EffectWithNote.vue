@@ -41,7 +41,7 @@ sup {
 }
 
 .Dagger::before {
-  content: "\2020";
+  content: '\2020';
   position: absolute;
   top: -0.25em;
   left: -0.75em;

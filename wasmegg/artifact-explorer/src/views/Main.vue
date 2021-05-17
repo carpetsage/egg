@@ -31,10 +31,10 @@
 </template>
 
 <script>
-import SpoilerAlert from "@/components/SpoilerAlert.vue";
-import ArtifactGrid from "@/components/ArtifactGrid.vue";
-import ArtifactSelector from "@/components/ArtifactSelector.vue";
-import MissionSelector from "@/components/MissionSelector.vue";
+import SpoilerAlert from '@/components/SpoilerAlert.vue';
+import ArtifactGrid from '@/components/ArtifactGrid.vue';
+import ArtifactSelector from '@/components/ArtifactSelector.vue';
+import MissionSelector from '@/components/MissionSelector.vue';
 
 export default {
   components: {

@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import FontSwitcher from "@/components/FontSwitcher.vue";
+import FontSwitcher from '@/components/FontSwitcher.vue';
 
 export default {
   components: {

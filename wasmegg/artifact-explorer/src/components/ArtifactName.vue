@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { iconURL } from "@/utils";
+import { iconURL } from '@/utils';
 
 export default {
   props: {
@@ -57,10 +57,10 @@ export default {
   computed: {
     availabilityClass() {
       return !this.artifact.available_from_missions
-        ? "text-red-900 dagger"
+        ? 'text-red-900 dagger'
         : this.artifact.notDroppableInPractice
-        ? "text-red-900 Dagger"
-        : "";
+        ? 'text-red-900 Dagger'
+        : '';
     },
   },
 
@@ -70,13 +70,13 @@ export default {
     rarityFgClass(rarity) {
       switch (rarity) {
         case 1:
-          return "text-blue-500";
+          return 'text-blue-500';
         case 2:
-          return "text-purple-500";
+          return 'text-purple-500';
         case 3:
-          return "text-yellow-500";
+          return 'text-yellow-500';
         default:
-          return "";
+          return '';
       }
     },
   },
@@ -85,10 +85,10 @@ export default {
 
 <style scoped>
 .dagger:after {
-  content: "\2020";
+  content: '\2020';
 }
 
 .Dagger:after {
-  content: "\2021";
+  content: '\2021';
 }
 </style>

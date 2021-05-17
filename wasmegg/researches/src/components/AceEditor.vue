@@ -12,16 +12,16 @@ import {
   Ref,
   toRefs,
   watch,
-} from "vue";
-import { Ace, config, edit } from "ace-builds";
-import "ace-builds/src-noconflict/mode-json";
-import "ace-builds/src-noconflict/mode-sql";
-import "ace-builds/src-noconflict/ext-searchbox";
-import "ace-builds/src-noconflict/ext-language_tools";
-import AceWorkerJsonInline from "ace-builds/src-noconflict/worker-json.js?url";
-import { Emitter } from "mitt";
+} from 'vue';
+import { Ace, config, edit } from 'ace-builds';
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/mode-sql';
+import 'ace-builds/src-noconflict/ext-searchbox';
+import 'ace-builds/src-noconflict/ext-language_tools';
+import AceWorkerJsonInline from 'ace-builds/src-noconflict/worker-json.js?url';
+import { Emitter } from 'mitt';
 
-config.setModuleUrl("ace/mode/json_worker", AceWorkerJsonInline);
+config.setModuleUrl('ace/mode/json_worker', AceWorkerJsonInline);
 
 // Extend the signature of foldAll.
 interface Folding extends Ace.Folding {
@@ -67,7 +67,7 @@ export default defineComponent({
     },
   },
   emits: {
-    "update:modelValue": (value: string) => true,
+    'update:modelValue': (value: string) => true,
   },
   setup(props, { emit }) {
     const { modelValue, lang, readonly, foldAtIndentation, commands, eventBus } = toRefs(props);
@@ -92,10 +92,10 @@ export default defineComponent({
       commands.value.forEach(command => editor?.commands.addCommand(command));
       fold();
 
-      eventBus?.value?.on("getValue", () => {
+      eventBus?.value?.on('getValue', () => {
         const value = editor?.session.getValue();
         if (value !== undefined) {
-          emit("update:modelValue", value);
+          emit('update:modelValue', value);
         }
       });
     });

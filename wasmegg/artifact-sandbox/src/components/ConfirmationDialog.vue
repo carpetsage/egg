@@ -93,6 +93,6 @@ export default {
     },
   },
 
-  emits: ["confirmed", "cancelled", "dismissed"],
+  emits: ['confirmed', 'cancelled', 'dismissed'],
 };
 </script>

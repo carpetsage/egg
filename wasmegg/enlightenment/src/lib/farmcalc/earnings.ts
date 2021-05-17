@@ -1,11 +1,11 @@
-import { ei } from "lib";
-import { awayEarningsMultiplier } from "../effects";
-import { Artifact } from "../types";
-import { farmEarningBonus } from "./earning_bonus";
-import { farmEggValue, farmEggValueResearches } from "./egg_value";
-import { farmEggLayingRate } from "./laying_rate";
-import { farmMaxRCB, farmMaxRCBResearches } from "./max_rcb";
-import { farmShippingCapacity } from "./shipping_capacity";
+import { ei } from 'lib';
+import { awayEarningsMultiplier } from '../effects';
+import { Artifact } from '../types';
+import { farmEarningBonus } from './earning_bonus';
+import { farmEggValue, farmEggValueResearches } from './egg_value';
+import { farmEggLayingRate } from './laying_rate';
+import { farmMaxRCB, farmMaxRCBResearches } from './max_rcb';
+import { farmShippingCapacity } from './shipping_capacity';
 
 export function farmEarningRate(
   backup: ei.IBackup,

@@ -1,5 +1,5 @@
-import { ei } from "lib";
-import { Artifact, Item, Stone } from "../types";
+import { ei } from 'lib';
+import { Artifact, Item, Stone } from '../types';
 
 export function clarityEffect(hostItem: Item, stones: Stone[]): number {
   if (hostItem.afxId === ei.ArtifactSpec.Name.LIGHT_OF_EGGENDIL) {

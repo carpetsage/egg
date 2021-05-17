@@ -10,7 +10,7 @@
       :key="config.isEnlightenment"
       class="inline h-5 w-5"
     />
-    <span class="text-sm">{{ config.isEnlightenment ? "Enlightenment" : "Regular" }} farm</span>
+    <span class="text-sm">{{ config.isEnlightenment ? 'Enlightenment' : 'Regular' }} farm</span>
   </div>
 
   <div class="grid grid-cols-4 gap-2 sm:gap-4">
@@ -64,7 +64,7 @@
                 >(<img
                   class="inline h-3 w-3"
                   :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
-                />{{ stoneSettingCost(artifact, stone).toLocaleString("en-US") }})</span
+                />{{ stoneSettingCost(artifact, stone).toLocaleString('en-US') }})</span
               >
             </div>
           </div>
@@ -120,18 +120,18 @@
       <span class="text-sm">Total stone-setting costs:</span>
       <img class="inline h-3 w-3" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
       <span class="text-xs text-dark-60">{{
-        aggregateStoneSettingCost(build).toLocaleString("en-US")
+        aggregateStoneSettingCost(build).toLocaleString('en-US')
       }}</span>
     </div>
   </template>
 </template>
 
 <script>
-import ArtifactDisplay from "@/components/ArtifactDisplay.vue";
+import ArtifactDisplay from '@/components/ArtifactDisplay.vue';
 
-import { Build, Config } from "@/lib/models";
-import { stoneSettingCost, aggregateStoneSettingCost } from "@/lib/misc";
-import { formatPercentage } from "@/lib/utils/misc";
+import { Build, Config } from '@/lib/models';
+import { stoneSettingCost, aggregateStoneSettingCost } from '@/lib/misc';
+import { formatPercentage } from '@/lib/utils/misc';
 
 export default {
   components: {

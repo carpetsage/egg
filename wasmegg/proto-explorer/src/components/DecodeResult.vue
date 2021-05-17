@@ -57,10 +57,10 @@
 </template>
 
 <script>
-import CopyButton from "./CopyButton.vue";
+import CopyButton from './CopyButton.vue';
 
-import { computed, onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
-import { decodeMessage, formatEIValue } from "@/lib/lib";
+import { computed, onBeforeUnmount, onMounted, ref, toRefs, watch } from 'vue';
+import { decodeMessage, formatEIValue } from '@/lib/lib';
 
 export default {
   components: {
@@ -75,7 +75,7 @@ export default {
 
   setup(props) {
     const { message, authenticated, encodedPayload } = toRefs(props);
-    const eiValue = ref("");
+    const eiValue = ref('');
 
     const decodeResult = computed(() => {
       if (!message.value || !encodedPayload.value) {
@@ -112,21 +112,21 @@ export default {
 
     const formattedDecodedPayload = computed(() => {
       const decoded = decodedPayload.value;
-      return decoded === null ? "" : JSON.stringify(decoded, null, 2);
+      return decoded === null ? '' : JSON.stringify(decoded, null, 2);
     });
 
     const formattedEIValue = computed(() => {
       const val = eiValue.value;
-      return val === "" || isNaN(val) ? "" : formatEIValue(val);
+      return val === '' || isNaN(val) ? '' : formatEIValue(val);
     });
 
     let editor;
 
     onMounted(() => {
-      editor = ace.edit("editor");
+      editor = ace.edit('editor');
       editor.setReadOnly(true);
-      editor.setOption("tabSize", 2);
-      editor.session.setMode("ace/mode/json");
+      editor.setOption('tabSize', 2);
+      editor.session.setMode('ace/mode/json');
       editor.session.setUseWrapMode(true);
       editor.session.setValue(formattedDecodedPayload.value);
     });
@@ -151,13 +151,13 @@ export default {
 
 <style scoped>
 /* Disable spin button for number input */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-input[type="number"] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 </style>

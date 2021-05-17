@@ -279,7 +279,7 @@
 </template>
 
 <script>
-import copyTextToClipboard from "copy-text-to-clipboard";
+import copyTextToClipboard from 'copy-text-to-clipboard';
 
 export default {
   props: {
@@ -294,8 +294,8 @@ export default {
       hideNoPE: false,
       popupTimeoutId: null,
       popupShow: false,
-      popupMessage: "",
-      csvBlobURL: window.URL.createObjectURL(new Blob([this.csvdata], { type: "text/csv" })),
+      popupMessage: '',
+      csvBlobURL: window.URL.createObjectURL(new Blob([this.csvdata], { type: 'text/csv' })),
     };
   },
   computed: {
@@ -334,25 +334,25 @@ export default {
       let visibleIndex = 0;
       for (const contract of contracts) {
         contract.fgClass = !contract.attempted
-          ? "text-green-500"
+          ? 'text-green-500'
           : contract.prophecyEggNotCollected
-          ? "text-red-500"
+          ? 'text-red-500'
           : contract.incomplete
-          ? "text-yellow-500"
-          : "text-gray-500";
+          ? 'text-yellow-500'
+          : 'text-gray-500';
         contract.fgHoverClass = !contract.attempted
-          ? "hover:text-green-400"
+          ? 'hover:text-green-400'
           : contract.prophecyEggNotCollected
-          ? "hover:text-red-400"
+          ? 'hover:text-red-400'
           : contract.incomplete
-          ? "hover:text-yellow-400"
-          : "hover:text-gray-400";
+          ? 'hover:text-yellow-400'
+          : 'hover:text-gray-400';
         contract.hidden = this.shouldHideContract(contract);
         if (!contract.hidden) {
-          contract.bgClass = visibleIndex % 2 === 1 ? "bg-gray-50" : "bg-white";
+          contract.bgClass = visibleIndex % 2 === 1 ? 'bg-gray-50' : 'bg-white';
           visibleIndex++;
         } else {
-          contract.bgClass = "bg-white";
+          contract.bgClass = 'bg-white';
         }
       }
       return contracts;
@@ -361,7 +361,7 @@ export default {
       const details = this.otherPEProgress.trophies.eggs.map(
         e => `${e.egg}: ${e.trophy}, ${e.collected}/${e.total}`
       );
-      return '<div class="">' + details.join("<br>") + "</div>";
+      return '<div class="">' + details.join('<br>') + '</div>';
     },
   },
   methods: {
@@ -386,7 +386,7 @@ export default {
     },
 
     wikiLink(contract) {
-      const underscoredName = contract.name.replace(/^LEGG?ACY: /, "").replace(" ", "_");
+      const underscoredName = contract.name.replace(/^LEGG?ACY: /, '').replace(' ', '_');
       return `https://egg-inc.fandom.com/wiki/Contracts/${encodeURIComponent(underscoredName)}`;
     },
   },

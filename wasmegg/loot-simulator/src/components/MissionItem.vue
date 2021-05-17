@@ -9,11 +9,11 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, toRefs } from "vue";
+import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { missionIdToMission } from "@/data";
-import { MissionId } from "@/types";
-import { iconURL } from "@/utils";
+import { missionIdToMission } from '@/data';
+import { MissionId } from '@/types';
+import { iconURL } from '@/utils';
 
 export default defineComponent({
   props: {

@@ -10,9 +10,9 @@
 </template>
 
 <script>
-import EiafxConfigTable from "@/components/EiafxConfigTable.vue";
+import EiafxConfigTable from '@/components/EiafxConfigTable.vue';
 
-import data from "@/app-data.json";
+import data from '@/app-data.json';
 
 export default {
   components: {

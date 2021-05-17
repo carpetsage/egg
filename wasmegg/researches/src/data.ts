@@ -1,22 +1,22 @@
-import initSqlJs, { Database, ParamsObject, SqlValue } from "sql.js";
-import sqljsWasmURL from "sql.js/dist/sql-wasm.wasm?url";
+import initSqlJs, { Database, ParamsObject, SqlValue } from 'sql.js';
+import sqljsWasmURL from 'sql.js/dist/sql-wasm.wasm?url';
 
-import researchesData from "./researches.json";
+import researchesData from './researches.json';
 
-type ResearchType = "common" | "epic";
+type ResearchType = 'common' | 'epic';
 type ResearchCategory =
-  | "egg_laying_rate"
-  | "egg_value"
-  | "fleet_size"
-  | "hab_capacity"
-  | "hatchery_capacity"
-  | "hatchery_refill_rate"
-  | "internal_hatchery_rate"
-  | "running_chicken_bonus"
-  | "shipping_capacity";
-type ResearchCategories = ResearchCategory | "" | "egg_laying_rate,egg_value";
-type ResearchEffectType = "additive" | "multiplicative";
-type ResearchCompoundType = "additive" | "multiplicative";
+  | 'egg_laying_rate'
+  | 'egg_value'
+  | 'fleet_size'
+  | 'hab_capacity'
+  | 'hatchery_capacity'
+  | 'hatchery_refill_rate'
+  | 'internal_hatchery_rate'
+  | 'running_chicken_bonus'
+  | 'shipping_capacity';
+type ResearchCategories = ResearchCategory | '' | 'egg_laying_rate,egg_value';
+type ResearchEffectType = 'additive' | 'multiplicative';
+type ResearchCompoundType = 'additive' | 'multiplicative';
 type Research = {
   serial_id: number;
   id: string;
@@ -107,7 +107,7 @@ export async function initDatabase() {
       per_level,
       levels_compound,
       prices
-    ) VALUES ` + Array(researches.length).fill("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", "),
+    ) VALUES ` + Array(researches.length).fill('(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', '),
     researches
       .map(r => [
         r.serial_id,
@@ -144,7 +144,7 @@ function transformResult(x: ParamsObject): { [key: string]: any } {
       continue;
     }
     // Try to decode JSON objects and arrays.
-    if (typeof val === "string" && val.length > 0 && val.match(/^(\{.*\}|\[.*\])$/)) {
+    if (typeof val === 'string' && val.length > 0 && val.match(/^(\{.*\}|\[.*\])$/)) {
       result[key] = JSON.parse(val);
     } else {
       result[key] = val;

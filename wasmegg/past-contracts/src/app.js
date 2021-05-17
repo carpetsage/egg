@@ -1,15 +1,15 @@
-import { createApp } from "vue";
+import { createApp } from 'vue';
 
-import VueTippy from "vue-tippy";
-import "tippy.js/dist/tippy.css";
-import "tippy.js/themes/translucent.css";
+import VueTippy from 'vue-tippy';
+import 'tippy.js/dist/tippy.css';
+import 'tippy.js/themes/translucent.css';
 
-import App from "./App.vue";
+import App from './App.vue';
 
 (async function () {
   const wasm = __WASM_FILE__;
   let mod;
-  if ("compileStreaming" in WebAssembly) {
+  if ('compileStreaming' in WebAssembly) {
     mod = await WebAssembly.compileStreaming(fetch(wasm));
   } else {
     // Safari doesn't support WebAssembly.compileStreaming
@@ -41,7 +41,7 @@ import App from "./App.vue";
 
   const app = createApp(App, { retrievePastContracts });
   app.use(VueTippy, {
-    defaultProps: { theme: "translucent" },
+    defaultProps: { theme: 'translucent' },
   });
-  app.mount("#app");
+  app.mount('#app');
 })();

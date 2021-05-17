@@ -124,15 +124,15 @@
 </template>
 
 <script>
-import ArtifactInfo from "./ArtifactInfo.vue";
-import MissionInfo from "./MissionInfo.vue";
-import Info from "../../artifact-explorer/src/components/Info.vue";
+import ArtifactInfo from './ArtifactInfo.vue';
+import MissionInfo from './MissionInfo.vue';
+import Info from '../../artifact-explorer/src/components/Info.vue';
 
-import { getLocalStorage, setLocalStorage } from "./utils";
+import { getLocalStorage, setLocalStorage } from './utils';
 
 const whatsNew = [
   {
-    id: "notifications",
+    id: 'notifications',
     message: `<strong class="font-medium underline">OS-level mission return notifications</strong>
     (displayed in macOS Notification Center, Windows 10 Action Center, etc.) are now available!
     This feature is supported on all modern, mainstream desktop browsers, and possibly a select few
@@ -144,7 +144,7 @@ const whatsNew = [
     expires: 1612169010000, // Wed Jan 27 08:43:30 UTC 2021 +5days
   },
   {
-    id: "artifacting-progress",
+    id: 'artifacting-progress',
     message: `Now you can also <strong class="font-medium underline">track your artifact collection progress</strong>
     with an organized and intuitive interface. Scroll down to the "Artifacting progress" section once data is loaded.`,
     rawHTML: true,
@@ -163,9 +163,9 @@ export default {
   },
   data() {
     const playerId =
-      new URLSearchParams(window.location.search).get("playerId") ||
-      getLocalStorage("playerId") ||
-      "";
+      new URLSearchParams(window.location.search).get('playerId') ||
+      getLocalStorage('playerId') ||
+      '';
     return {
       playerId,
       playerIdSubmitted: false,
@@ -176,13 +176,13 @@ export default {
       artifactsProgress: null,
       save: null,
       loading: false,
-      error: "",
+      error: '',
       whatsNew,
     };
   },
   computed: {
     submitDisabled() {
-      return this.playerId.trim() === "" || this.loading;
+      return this.playerId.trim() === '' || this.loading;
     },
     truncatedError() {
       return this.error.length <= 500 ? this.error : `${this.error.substr(0, 497)}...`;
@@ -198,10 +198,10 @@ export default {
       if (!playerId) {
         return;
       }
-      setLocalStorage("playerId", playerId);
+      setLocalStorage('playerId', playerId);
       this.playerIdSubmitted = true;
       this.loading = true;
-      this.error = "";
+      this.error = '';
       try {
         const {
           activeMissions,

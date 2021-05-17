@@ -1,6 +1,6 @@
 // Adapted from https://github.com/davidbau/seedrandom/pull/70/files#diff-093ad82a25aee498b11febf1cdcb6546e4d223ffcb49ed69cc275ac27ce0ccce
 
-declare module "seedrandom" {
+declare module 'seedrandom' {
   const seedrandom: Seedrandom;
   export default seedrandom;
 
@@ -55,13 +55,13 @@ declare module "seedrandom" {
     type StateWithArray<Props extends string, ArrayProps extends string> = State<Props> &
       { [P in ArrayProps]: number[] };
 
-    type Arc4 = StateWithArray<"i" | "j", "S">;
-    type Alea = State<"c" | "s0" | "s1" | "s2">;
-    type Xor128 = State<"x" | "y" | "z" | "w">;
-    type Xorwow = State<"x" | "y" | "z" | "w" | "v" | "d">;
-    type Xorshift7 = StateWithArray<"i", "x">;
-    type Xor4096 = StateWithArray<"i" | "w", "X">;
-    type Tychei = State<"a" | "b" | "c" | "d">;
+    type Arc4 = StateWithArray<'i' | 'j', 'S'>;
+    type Alea = State<'c' | 's0' | 's1' | 's2'>;
+    type Xor128 = State<'x' | 'y' | 'z' | 'w'>;
+    type Xorwow = State<'x' | 'y' | 'z' | 'w' | 'v' | 'd'>;
+    type Xorshift7 = StateWithArray<'i', 'x'>;
+    type Xor4096 = StateWithArray<'i' | 'w', 'X'>;
+    type Tychei = State<'a' | 'b' | 'c' | 'd'>;
   }
 
   export namespace option {

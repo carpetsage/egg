@@ -1,8 +1,8 @@
-import { ei } from "lib";
-import { artifactSpecToItem } from "../catalog";
-import { clarityEffect, researchPriceMultiplierFromArtifacts } from "../effects";
-import { Artifact, Item, Stone } from "../types";
-import { requiredWDLevelForEnlightenmentDiamond } from "./hab_space";
+import { ei } from 'lib';
+import { artifactSpecToItem } from '../catalog';
+import { clarityEffect, researchPriceMultiplierFromArtifacts } from '../effects';
+import { Artifact, Item, Stone } from '../types';
+import { requiredWDLevelForEnlightenmentDiamond } from './hab_space';
 
 export function homeFarmArtifacts(backup: ei.IBackup): Artifact[] {
   const db = backup.artifactsDb;

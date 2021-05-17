@@ -1,6 +1,6 @@
-import { ei } from "lib";
-import { Artifact } from "../types";
-import { multiplicativeEffect } from "./common";
+import { ei } from 'lib';
+import { Artifact } from '../types';
+import { multiplicativeEffect } from './common';
 
 export function awayEarningsMultiplier(artifacts: Artifact[]) {
   return multiplicativeEffect(artifacts, [

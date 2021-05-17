@@ -163,13 +163,13 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, nextTick, PropType, Ref, ref, toRefs } from "vue";
-import scrollIntoView from "scroll-into-view-if-needed";
+import { computed, defineComponent, nextTick, PropType, Ref, ref, toRefs } from 'vue';
+import scrollIntoView from 'scroll-into-view-if-needed';
 
-import { missions, missionIdToMission, searchMissions } from "@/data";
-import { iconURL } from "@/utils";
-import { Mission, MissionId, MissionSelectSpec } from "@/types";
-import BaseIntegerInput from "@/components/BaseIntegerInput.vue";
+import { missions, missionIdToMission, searchMissions } from '@/data';
+import { iconURL } from '@/utils';
+import { Mission, MissionId, MissionSelectSpec } from '@/types';
+import BaseIntegerInput from '@/components/BaseIntegerInput.vue';
 
 export default defineComponent({
   components: {
@@ -182,7 +182,7 @@ export default defineComponent({
     },
   },
   emits: {
-    "update:modelValue": (payload: MissionSelectSpec) => true,
+    'update:modelValue': (payload: MissionSelectSpec) => true,
     delete: () => true,
   },
   setup(props, { emit }) {
@@ -194,14 +194,14 @@ export default defineComponent({
     const selected = computed(() =>
       modelValue.value.id !== null ? missionIdToMission.get(modelValue.value.id)! : null
     );
-    const searchFilter = ref(selected.value ? selected.value.display : "");
+    const searchFilter = ref(selected.value ? selected.value.display : '');
     const filteredMissions = computed(() =>
-      searchFilter.value !== "" ? searchMissions(searchFilter.value) : missions
+      searchFilter.value !== '' ? searchMissions(searchFilter.value) : missions
     );
     const active: Ref<Mission | null> = ref(null);
 
     const updateCount = (count: number) => {
-      emit("update:modelValue", {
+      emit('update:modelValue', {
         ...modelValue.value,
         count,
       });
@@ -218,28 +218,28 @@ export default defineComponent({
     };
     const scrollDropdownListEntryIntoViewIfNeeded = (
       index: number,
-      block: ScrollLogicalPosition = "nearest"
+      block: ScrollLogicalPosition = 'nearest'
     ) => {
       const node = dropdownList.value?.querySelector(`:scope > li:nth-child(${index + 1})`);
       if (node) {
         scrollIntoView(node, {
-          scrollMode: "if-needed",
+          scrollMode: 'if-needed',
           block,
-          inline: "nearest",
+          inline: 'nearest',
         });
       }
     };
 
     const open = ref(false);
     const openDropdown = () => {
-      searchFilter.value = "";
+      searchFilter.value = '';
       active.value = selected.value;
       open.value = true;
       nextTick(() => {
         if (active.value) {
           const index = dropdownListEntryIndex(active.value.id);
           if (index !== -1) {
-            scrollDropdownListEntryIntoViewIfNeeded(index, "center");
+            scrollDropdownListEntryIntoViewIfNeeded(index, 'center');
           }
         } else {
           scrollDropdownListEntryIntoViewIfNeeded(0);
@@ -247,11 +247,11 @@ export default defineComponent({
       });
     };
     const closeDropdown = () => {
-      searchFilter.value = selected.value !== null ? selected.value.display : "";
+      searchFilter.value = selected.value !== null ? selected.value.display : '';
       open.value = false;
     };
     const selectMission = (mission: Mission) => {
-      emit("update:modelValue", {
+      emit('update:modelValue', {
         ...modelValue.value,
         id: mission.id,
       });
@@ -264,7 +264,7 @@ export default defineComponent({
     };
     const handleKeydown = (event: KeyboardEvent) => {
       switch (event.key) {
-        case "Enter":
+        case 'Enter':
           event.preventDefault();
           // Select the active entry, or the first entry.
           const mission = active.value ? active.value : filteredMissions.value[0];
@@ -277,17 +277,17 @@ export default defineComponent({
             selectButton.value?.blur();
           });
           return;
-        case "ArrowDown":
-        case "ArrowUp":
+        case 'ArrowDown':
+        case 'ArrowUp':
           event.preventDefault();
           const entries = filteredMissions.value;
           let currentIndex = active.value ? dropdownListEntryIndex(active.value.id) : -1;
           if (currentIndex === -1) {
             // No entry currently active.
-            currentIndex = event.key === "ArrowDown" ? -1 : entries.length;
+            currentIndex = event.key === 'ArrowDown' ? -1 : entries.length;
           }
           const newIndex =
-            (((event.key === "ArrowDown" ? currentIndex + 1 : currentIndex - 1) % entries.length) +
+            (((event.key === 'ArrowDown' ? currentIndex + 1 : currentIndex - 1) % entries.length) +
               entries.length) %
             entries.length;
           active.value = entries[newIndex];
@@ -297,7 +297,7 @@ export default defineComponent({
     };
 
     const deleteEntry = () => {
-      emit("delete");
+      emit('delete');
     };
 
     return {

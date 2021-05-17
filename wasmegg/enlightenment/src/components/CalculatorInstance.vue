@@ -40,10 +40,10 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, toRefs, watch } from "vue";
+import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 
-import { calculateWithOoMUnits, units } from "@/lib";
-import BaseEIValue from "@/components/BaseEIValue.vue";
+import { calculateWithOoMUnits, units } from '@/lib';
+import BaseEIValue from '@/components/BaseEIValue.vue';
 
 export default defineComponent({
   components: {
@@ -53,17 +53,17 @@ export default defineComponent({
     // The expression.
     modelValue: {
       type: String,
-      default: "",
+      default: '',
     },
   },
   emits: {
-    "update:modelValue": (newValue: string) => true,
+    'update:modelValue': (newValue: string) => true,
   },
   setup(props, { emit }) {
     const { modelValue } = toRefs(props);
     const expr = ref(modelValue.value);
     const result = computed(() => calculateWithOoMUnits(expr.value));
-    watch(expr, () => emit("update:modelValue", expr.value));
+    watch(expr, () => emit('update:modelValue', expr.value));
     return {
       expr,
       result,

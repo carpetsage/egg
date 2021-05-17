@@ -1,12 +1,12 @@
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from 'uuid';
 
-import { itemIds, missionIds } from "./data";
-import { ItemSelectSpec, MissionSelectSpec } from "./types";
+import { itemIds, missionIds } from './data';
+import { ItemSelectSpec, MissionSelectSpec } from './types';
 
-const MISSIONS_KEY = "missions";
-const TARGETS_KEY = "targets";
-const TOTAL_TRIALS_KEY = "totalTrials";
-const SEED_KEY = "seed";
+const MISSIONS_KEY = 'missions';
+const TARGETS_KEY = 'targets';
+const TOTAL_TRIALS_KEY = 'totalTrials';
+const SEED_KEY = 'seed';
 
 export function getLocalStorage(key: string, prefix?: string): string | undefined {
   if (prefix === undefined) {
@@ -41,7 +41,7 @@ function isMissionSelectSpecArray(x: unknown): x is MissionSelectSpec[] {
       return false;
     }
     const count = (entry as MissionSelectSpec).count;
-    if (!(typeof count === "number" && isFinite(count))) {
+    if (!(typeof count === 'number' && isFinite(count))) {
       return false;
     }
   }
@@ -51,7 +51,7 @@ function isMissionSelectSpecArray(x: unknown): x is MissionSelectSpec[] {
 const defaultMissions: MissionSelectSpec[] = [{ id: null, count: 1, rowid: uuidv4() }];
 
 export function getMissions(): MissionSelectSpec[] {
-  const raw = getLocalStorage(MISSIONS_KEY) || "[]";
+  const raw = getLocalStorage(MISSIONS_KEY) || '[]';
   let parsed: unknown = undefined;
   try {
     parsed = JSON.parse(raw);
@@ -80,7 +80,7 @@ function isItemSelectSpecArray(x: unknown): x is ItemSelectSpec[] {
       return false;
     }
     const count = (entry as ItemSelectSpec).count;
-    if (!(typeof count === "number" && isFinite(count))) {
+    if (!(typeof count === 'number' && isFinite(count))) {
       return false;
     }
   }
@@ -90,7 +90,7 @@ function isItemSelectSpecArray(x: unknown): x is ItemSelectSpec[] {
 const defaultItems: ItemSelectSpec[] = [{ id: null, count: 1, rowid: uuidv4() }];
 
 export function getTargets(): ItemSelectSpec[] {
-  const raw = getLocalStorage(TARGETS_KEY) || "[]";
+  const raw = getLocalStorage(TARGETS_KEY) || '[]';
   let parsed: unknown = undefined;
   try {
     parsed = JSON.parse(raw);
@@ -110,7 +110,7 @@ export function setTargets(t: ItemSelectSpec[]) {
 }
 
 export function getTotalTrials(): number {
-  return parseInt(getLocalStorage(TOTAL_TRIALS_KEY) || "") || 100_000;
+  return parseInt(getLocalStorage(TOTAL_TRIALS_KEY) || '') || 100_000;
 }
 
 export function setTotalTrials(n: number) {
@@ -118,7 +118,7 @@ export function setTotalTrials(n: number) {
 }
 
 export function getSeed(): string {
-  return getLocalStorage(SEED_KEY) || "";
+  return getLocalStorage(SEED_KEY) || '';
 }
 
 export function setSeed(s: string) {

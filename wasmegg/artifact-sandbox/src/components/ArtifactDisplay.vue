@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { Artifact, Config } from "@/lib/models";
+import { Artifact, Config } from '@/lib/models';
 
 export default {
   props: {
@@ -51,7 +51,7 @@ export default {
     glowBackgroundImage(afxId, rarity) {
       const serial = (afxId % 21) + 1;
       return this.iconURL(
-        `egginc-extras/glow/${rarity.toLowerCase()}-${serial.toString().padStart(2, "0")}.png`,
+        `egginc-extras/glow/${rarity.toLowerCase()}-${serial.toString().padStart(2, '0')}.png`,
         256
       );
     },

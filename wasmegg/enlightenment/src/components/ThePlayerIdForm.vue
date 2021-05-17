@@ -40,15 +40,15 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, ref, toRefs } from "vue";
-import BaseInfo from "./BaseInfo.vue";
+import { computed, defineComponent, PropType, ref, toRefs } from 'vue';
+import BaseInfo from './BaseInfo.vue';
 
 export default defineComponent({
   components: { BaseInfo },
   props: {
     playerIdPreload: {
       type: String,
-      default: "",
+      default: '',
     },
     submit: {
       type: Function as PropType<(playerId: string) => void>,
@@ -59,7 +59,7 @@ export default defineComponent({
     const { playerIdPreload } = toRefs(props);
     const playerId = ref(playerIdPreload.value);
     const submittable = computed(() => {
-      return playerId.value !== "";
+      return playerId.value !== '';
     });
     return {
       playerId,

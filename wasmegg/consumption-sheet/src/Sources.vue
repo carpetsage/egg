@@ -37,13 +37,13 @@ export default {
     rarityBgClass(rarity) {
       switch (rarity) {
         case 1:
-          return "bg-rare";
+          return 'bg-rare';
         case 2:
-          return "bg-epic";
+          return 'bg-epic';
         case 3:
-          return "bg-legendary";
+          return 'bg-legendary';
         default:
-          return "bg-common";
+          return 'bg-common';
       }
     },
   },

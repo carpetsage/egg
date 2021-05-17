@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import copyTextToClipboard from "copy-text-to-clipboard";
+import copyTextToClipboard from 'copy-text-to-clipboard';
 
 export default {
   props: {
@@ -20,7 +20,7 @@ export default {
     },
     tooltip: {
       type: String,
-      default: "Copy",
+      default: 'Copy',
     },
   },
 

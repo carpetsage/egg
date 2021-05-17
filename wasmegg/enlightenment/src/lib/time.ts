@@ -6,23 +6,23 @@
  */
 export function formatDuration(seconds: number, trim = false): string {
   if (seconds < 0) {
-    return "-" + formatDuration(-seconds);
+    return '-' + formatDuration(-seconds);
   }
   if (seconds < 60) {
-    return trim ? "0m" : "0d0h0m";
+    return trim ? '0m' : '0d0h0m';
   }
   if (!isFinite(seconds)) {
-    return "Forever";
+    return 'Forever';
   }
   if (seconds > 315_360_000) {
-    return ">10yr";
+    return '>10yr';
   }
   const dd = Math.floor(seconds / 86400);
   seconds -= dd * 86400;
   const hh = Math.floor(seconds / 3600);
   seconds -= hh * 3600;
   const mm = Math.floor(seconds / 60);
-  let s = "";
+  let s = '';
   if (!trim || dd > 0) {
     s += `${dd}d`;
   }

@@ -30,7 +30,7 @@ export default {
     };
   },
 
-  emits: ["update:modelValue"],
+  emits: ['update:modelValue'],
 
   computed: {
     invalid() {
@@ -56,7 +56,7 @@ export default {
       if (this.invalid) {
         return;
       }
-      this.$emit("update:modelValue", this.value);
+      this.$emit('update:modelValue', this.value);
     },
   },
 };

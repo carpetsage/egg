@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { toRefs } from "vue";
+import { toRefs } from 'vue';
 
 export default {
   props: {

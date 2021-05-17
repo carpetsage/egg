@@ -1,13 +1,13 @@
-import { ei } from "lib";
-import { farmResearch } from "./common";
+import { ei } from 'lib';
+import { farmResearch } from './common';
 
 export function researchPriceMultiplierFromResearches(
   farm: ei.Backup.ISimulation,
   progress: ei.Backup.IGame
 ): number {
   const research = farmResearch(farm, progress, {
-    id: "cheaper_research",
-    name: "Lab Upgrade",
+    id: 'cheaper_research',
+    name: 'Lab Upgrade',
     maxLevel: 10,
     perLevel: -0.05,
   });

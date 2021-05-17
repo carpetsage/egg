@@ -85,10 +85,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, toRefs } from "vue";
+import { defineComponent, PropType, toRefs } from 'vue';
 
-import { formatPercentage } from "@/utils";
-import BaseEIValue from "@/components/BaseEIValue.vue";
+import { formatPercentage } from '@/utils';
+import BaseEIValue from '@/components/BaseEIValue.vue';
 
 type Target = {
   multiplier: number;

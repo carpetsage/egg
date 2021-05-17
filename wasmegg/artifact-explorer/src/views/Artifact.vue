@@ -22,7 +22,7 @@
     <template v-if="artifact.has_effects">
       <div class="px-2 py-4 sm:px-4 space-y-2">
         <div class="px-2 text-sm font-medium text-gray-500">
-          {{ artifact.effects.length > 1 ? "Effects" : "Effect" }}:
+          {{ artifact.effects.length > 1 ? 'Effects' : 'Effect' }}:
         </div>
         <div class="flex flex-col space-y-2">
           <div class="flex-grow overflow-auto">
@@ -86,8 +86,8 @@
               src="https://eggincassets.tcl.sh/64/egginc-extras/icon_golden_egg.png"
             />
             <span class="text-sm">
-              {{ artifact.recipe.crafting_price.initial.toLocaleString("en-US") }} &ndash;
-              {{ artifact.recipe.crafting_price.minimum.toLocaleString("en-US") }}
+              {{ artifact.recipe.crafting_price.initial.toLocaleString('en-US') }} &ndash;
+              {{ artifact.recipe.crafting_price.minimum.toLocaleString('en-US') }}
             </span>
             <info
               v-tippy="{
@@ -293,7 +293,7 @@
       <div v-if="artifact.type === 'Stone' || artifact.type === 'Stone ingredient'">
         <span class="text-sm font-medium text-gray-500 mr-1">
           Consuming which items yields this
-          {{ artifact.type === "Stone" ? "stone" : "stone fragment" }}?
+          {{ artifact.type === 'Stone' ? 'stone' : 'stone fragment' }}?
         </span>
         <a
           :href="`https://wasmegg.netlify.app/consumption-sheet/#${artifact.id}-sources`"
@@ -316,13 +316,13 @@
 </template>
 
 <script>
-import ArtifactName from "@/components/ArtifactName.vue";
-import Info from "@/components/Info.vue";
-import LootDataCredit from "@/components/LootDataCredit.vue";
-import MissionName from "@/components/MissionName.vue";
-import Share from "@/components/Share.vue";
+import ArtifactName from '@/components/ArtifactName.vue';
+import Info from '@/components/Info.vue';
+import LootDataCredit from '@/components/LootDataCredit.vue';
+import MissionName from '@/components/MissionName.vue';
+import Share from '@/components/Share.vue';
 
-import { iconURL, stringCmp } from "@/utils";
+import { iconURL, stringCmp } from '@/utils';
 
 export default {
   components: {
@@ -469,26 +469,26 @@ export default {
     rarityFgClass(rarity) {
       switch (rarity) {
         case 1:
-          return "text-blue-500";
+          return 'text-blue-500';
         case 2:
-          return "text-purple-500";
+          return 'text-purple-500';
         case 3:
-          return "text-yellow-500";
+          return 'text-yellow-500';
         default:
-          return "";
+          return '';
       }
     },
 
     rarityFgClassOnDarkBg(rarity) {
       switch (rarity) {
         case 1:
-          return "text-blue-400";
+          return 'text-blue-400';
         case 2:
-          return "text-purple-400";
+          return 'text-purple-400';
         case 3:
-          return "text-yellow-400";
+          return 'text-yellow-400';
         default:
-          return "";
+          return '';
       }
     },
 
@@ -527,18 +527,18 @@ export default {
       const s = x.toPrecision(precision);
       // If the formatted string is a decimal without exponent, or one with a
       // negative exponent, return as is.
-      if (s.match(/^\d+\.\d+$/) || s.includes("e-")) {
+      if (s.match(/^\d+\.\d+$/) || s.includes('e-')) {
         return s;
       }
       // If the formatted string is an integer, or has a positive exponent,
       // convert it to non-scientific notation, and add a ~ in front to mark it
       // as an approximate.
-      return "~" + parseFloat(s).toFixed();
+      return '~' + parseFloat(s).toFixed();
     },
 
     formattedNumMissionsPerItem(count, missionCount) {
       if (count === 0) {
-        return "\u221e";
+        return '\u221e';
       }
       const precision = Math.min(count.toString().length, 3);
       return this.formatToPrecision(missionCount / count, precision);

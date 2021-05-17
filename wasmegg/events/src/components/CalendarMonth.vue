@@ -3,7 +3,7 @@
     class="CalendarMonth mx-auto px-4 py-4 space-y-4 bg-gray-50 border md:rounded-lg md:shadow md:px-6"
     :class="forceFullWidth ? 'CalendarMonth--full-width' : null"
   >
-    <h2 class="text-center text-sm font-medium">{{ month.format("MMMM YYYY") }}</h2>
+    <h2 class="text-center text-sm font-medium">{{ month.format('MMMM YYYY') }}</h2>
     <div class="grid grid-cols-7 gap-2">
       <div
         v-for="(weekday, index) in ['S', 'M', 'T', 'W', 'T', 'F', 'S']"
@@ -17,7 +17,7 @@
 
       <div v-for="d in dates" :key="d.date.date()">
         <div class="text-center text-sm" :class="{ 'text-gray-400': d.date > now }">
-          {{ d.date.format("D") }}
+          {{ d.date.format('D') }}
         </div>
         <div class="space-y-1">
           <template v-for="(event, index) in d.events" :key="index">
@@ -48,7 +48,7 @@
                     </p>
                     <p>
                       <span class="text-white">Starting time:</span>
-                      {{ event.startTime.local().format("MM-DD HH:mm Z") }}
+                      {{ event.startTime.local().format('MM-DD HH:mm Z') }}
                     </p>
                     <p>
                       <span class="text-white">Duration:</span>
@@ -68,7 +68,7 @@
                     </p>
                     <p>
                       <span class="text-white">Release date:</span>
-                      {{ event.startTime.format("MM-DD") }}
+                      {{ event.startTime.format('MM-DD') }}
                     </p>
                     <p>
                       <span class="text-white">Release notes:</span><br />
@@ -86,14 +86,14 @@
 </template>
 
 <script>
-import { Tippy } from "vue-tippy";
-import EventBadge from "@/components/EventBadge.vue";
+import { Tippy } from 'vue-tippy';
+import EventBadge from '@/components/EventBadge.vue';
 
-import { computed, toRefs } from "vue";
-import dayjs from "dayjs";
+import { computed, toRefs } from 'vue';
+import dayjs from 'dayjs';
 
-import { eventCaption, eventFgClass, eventBrightFgClass } from "@/lib";
-import { iconURL } from "@/utils";
+import { eventCaption, eventFgClass, eventBrightFgClass } from '@/lib';
+import { iconURL } from '@/utils';
 
 export default {
   components: {
@@ -124,7 +124,7 @@ export default {
     const dates = computed(() => {
       const monthNumber = month.value.month();
       const dates = [];
-      for (let date = month.value.clone(); date.month() === monthNumber; date = date.add(1, "d")) {
+      for (let date = month.value.clone(); date.month() === monthNumber; date = date.add(1, 'd')) {
         dates.push({
           date,
           events: date2events.value[date.date()] || [],
@@ -135,17 +135,17 @@ export default {
 
     const formatDuration = seconds => {
       if (seconds < 0) {
-        return "-" + formatDuration(-seconds);
+        return '-' + formatDuration(-seconds);
       }
       if (seconds < 1) {
-        return "0m";
+        return '0m';
       }
       const dd = Math.floor(seconds / 86400);
       seconds -= dd * 86400;
       const hh = Math.floor(seconds / 3600);
       seconds -= hh * 3600;
       const mm = Math.floor(seconds / 60);
-      let s = "";
+      let s = '';
       if (dd > 0) {
         s += `${dd}d`;
       }

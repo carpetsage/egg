@@ -1,35 +1,35 @@
 // https://egg-inc.fandom.com/wiki/Order_of_Magnitude
 const units = [
-  { symbol: "M", oom: 6 },
-  { symbol: "B", oom: 9 },
-  { symbol: "T", oom: 12 },
-  { symbol: "q", oom: 15 },
-  { symbol: "Q", oom: 18 },
-  { symbol: "s", oom: 21 },
-  { symbol: "S", oom: 24 },
-  { symbol: "o", oom: 27 },
-  { symbol: "N", oom: 30 },
-  { symbol: "d", oom: 33 },
-  { symbol: "U", oom: 36 },
-  { symbol: "D", oom: 39 },
-  { symbol: "Td", oom: 42 },
-  { symbol: "qd", oom: 45 },
-  { symbol: "Qd", oom: 48 },
-  { symbol: "sd", oom: 51 },
-  { symbol: "Sd", oom: 54 },
-  { symbol: "Od", oom: 57 },
-  { symbol: "Nd", oom: 60 },
-  { symbol: "V", oom: 63 },
-  { symbol: "uV", oom: 66 },
-  { symbol: "dV", oom: 69 },
-  { symbol: "tV", oom: 72 },
-  { symbol: "qV", oom: 75 },
-  { symbol: "QV", oom: 78 },
-  { symbol: "sV", oom: 81 },
-  { symbol: "SV", oom: 84 },
-  { symbol: "OV", oom: 87 },
-  { symbol: "NV", oom: 90 },
-  { symbol: "tT", oom: 93 },
+  { symbol: 'M', oom: 6 },
+  { symbol: 'B', oom: 9 },
+  { symbol: 'T', oom: 12 },
+  { symbol: 'q', oom: 15 },
+  { symbol: 'Q', oom: 18 },
+  { symbol: 's', oom: 21 },
+  { symbol: 'S', oom: 24 },
+  { symbol: 'o', oom: 27 },
+  { symbol: 'N', oom: 30 },
+  { symbol: 'd', oom: 33 },
+  { symbol: 'U', oom: 36 },
+  { symbol: 'D', oom: 39 },
+  { symbol: 'Td', oom: 42 },
+  { symbol: 'qd', oom: 45 },
+  { symbol: 'Qd', oom: 48 },
+  { symbol: 'sd', oom: 51 },
+  { symbol: 'Sd', oom: 54 },
+  { symbol: 'Od', oom: 57 },
+  { symbol: 'Nd', oom: 60 },
+  { symbol: 'V', oom: 63 },
+  { symbol: 'uV', oom: 66 },
+  { symbol: 'dV', oom: 69 },
+  { symbol: 'tV', oom: 72 },
+  { symbol: 'qV', oom: 75 },
+  { symbol: 'QV', oom: 78 },
+  { symbol: 'sV', oom: 81 },
+  { symbol: 'SV', oom: 84 },
+  { symbol: 'OV', oom: 87 },
+  { symbol: 'NV', oom: 90 },
+  { symbol: 'tT', oom: 93 },
 ];
 
 const oom2symbol = new Map(units.map(u => [u.oom, u.symbol]));
@@ -39,7 +39,7 @@ const maxOom = units[units.length - 1].oom;
 
 const valueWithUnitRegExpPattern = `^(?<value>\\d+(\\.(\\d+)?)?)(?<unit>${units
   .map(u => u.symbol)
-  .join("|")})?$`;
+  .join('|')})?$`;
 const valueWithUnitRegExp = new RegExp(valueWithUnitRegExpPattern);
 
 /**
@@ -65,13 +65,13 @@ function parseValueWithUnit(s) {
  */
 function formatEIValue(x) {
   if (isNaN(x)) {
-    return "NaN";
+    return 'NaN';
   }
   if (x < 0) {
-    return "-" + formatEIValue(-x);
+    return '-' + formatEIValue(-x);
   }
   if (!isFinite(x)) {
-    return "infinity";
+    return 'infinity';
   }
   const oom = Math.log10(x);
   if (oom < minOom) {
@@ -98,7 +98,7 @@ function formatEIValue(x) {
  * @returns {String}
  */
 function formatEIPercentage(x) {
-  return formatEIValue(x * 100) + "%";
+  return formatEIValue(x * 100) + '%';
 }
 
 export {

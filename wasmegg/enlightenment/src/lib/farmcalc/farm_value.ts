@@ -1,18 +1,18 @@
-import { ei } from "lib";
-import { farmValueMultiplier } from "../effects/farm_value";
-import { Artifact } from "../types";
-import { farmResearch } from "./common";
-import { farmEarningBonus } from "./earning_bonus";
-import { farmEggValue, farmEggValueResearches } from "./egg_value";
-import { farmHabs, farmHabSpaceResearches, farmHabSpaces } from "./hab_space";
-import { farmInternalHatcheryRates, farmInternalHatcheryResearches } from "./internal_hatchery";
+import { ei } from 'lib';
+import { farmValueMultiplier } from '../effects/farm_value';
+import { Artifact } from '../types';
+import { farmResearch } from './common';
+import { farmEarningBonus } from './earning_bonus';
+import { farmEggValue, farmEggValueResearches } from './egg_value';
+import { farmHabs, farmHabSpaceResearches, farmHabSpaces } from './hab_space';
+import { farmInternalHatcheryRates, farmInternalHatcheryResearches } from './internal_hatchery';
 import {
   farmEggLayingRate,
   farmEggLayingRatePerChicken,
   farmEggLayingRateResearches,
-} from "./laying_rate";
-import { farmMaxRCB, farmMaxRCBResearches } from "./max_rcb";
-import { farmShippingCapacity } from "./shipping_capacity";
+} from './laying_rate';
+import { farmMaxRCB, farmMaxRCBResearches } from './max_rcb';
+import { farmShippingCapacity } from './shipping_capacity';
 
 // https://cdn.discordapp.com/attachments/455385659079917569/798052527156494336/fv.png
 // by @mikit
@@ -69,8 +69,8 @@ export function calculateFarmValue(
 function maxAwayTime(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): number {
   let awayTimePerSilo = 60; // Unupgraded silo can last one hour.
   const research = farmResearch(farm, progress, {
-    id: "silo_capacity",
-    name: "Silo Capacity",
+    id: 'silo_capacity',
+    name: 'Silo Capacity',
     maxLevel: 20,
     perLevel: 6,
   });
@@ -82,8 +82,8 @@ function maxAwayTime(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): nu
 
 function accountingTrickMultiplier(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): number {
   const research = farmResearch(farm, progress, {
-    id: "accounting_tricks",
-    name: "Accounting Tricks",
+    id: 'accounting_tricks',
+    name: 'Accounting Tricks',
     maxLevel: 20,
     perLevel: 0.05,
   });

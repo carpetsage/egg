@@ -1,46 +1,46 @@
-import { ei } from "./proto";
+import { ei } from './proto';
 
 const messages = {
   commonlyInspected: [
-    "EggIncFirstContactRequest",
-    "EggIncFirstContactResponse",
-    "GetPeriodicalsRequest",
-    "PeriodicalsResponse",
-    "ConfigRequest",
-    "ConfigResponse",
-    "MissionRequest",
-    "MissionResponse",
-    "CompleteMissionResponse",
-    "ContractCoopStatusRequest",
-    "ContractCoopStatusResponse",
-    "Backup",
-    "SaveBackupResponse",
+    'EggIncFirstContactRequest',
+    'EggIncFirstContactResponse',
+    'GetPeriodicalsRequest',
+    'PeriodicalsResponse',
+    'ConfigRequest',
+    'ConfigResponse',
+    'MissionRequest',
+    'MissionResponse',
+    'CompleteMissionResponse',
+    'ContractCoopStatusRequest',
+    'ContractCoopStatusResponse',
+    'Backup',
+    'SaveBackupResponse',
   ],
   otherArtifactRequestResponse: [
-    "ArtifactsConfigurationRequest",
-    "ArtifactsConfigurationResponse",
-    "CraftArtifactRequest",
-    "CraftArtifactResponse",
-    "ConsumeArtifactRequest",
-    "ConsumeArtifactResponse",
-    "SetArtifactRequest",
-    "SetArtifactResponse",
+    'ArtifactsConfigurationRequest',
+    'ArtifactsConfigurationResponse',
+    'CraftArtifactRequest',
+    'CraftArtifactResponse',
+    'ConsumeArtifactRequest',
+    'ConsumeArtifactResponse',
+    'SetArtifactRequest',
+    'SetArtifactResponse',
   ],
   otherCoopRequestResponse: [
-    "QueryCoopRequest",
-    "QueryCoopResponse",
-    "CreateCoopRequest",
-    "CreateCoopResponse",
-    "JoinCoopRequest",
-    "JoinCoopResponse",
-    "AutoJoinCoopRequest",
-    "UpdateCoopPermissionsRequest",
-    "UpdateCoopPermissionsResponse",
-    "LeaveCoopRequest",
-    "GiftPlayerCoopRequest",
-    "KickPlayerCoopRequest",
-    "ContractCoopStatusUpdateRequest",
-    "ContractCoopStatusUpdateResponse",
+    'QueryCoopRequest',
+    'QueryCoopResponse',
+    'CreateCoopRequest',
+    'CreateCoopResponse',
+    'JoinCoopRequest',
+    'JoinCoopResponse',
+    'AutoJoinCoopRequest',
+    'UpdateCoopPermissionsRequest',
+    'UpdateCoopPermissionsResponse',
+    'LeaveCoopRequest',
+    'GiftPlayerCoopRequest',
+    'KickPlayerCoopRequest',
+    'ContractCoopStatusUpdateRequest',
+    'ContractCoopStatusUpdateResponse',
   ],
   other: [],
 };
@@ -53,7 +53,7 @@ const seen = [].concat(
 for (const name in ei) {
   // Make sure we only pick up capitalized names just in case some lower case
   // helpers are introduced in the future.
-  if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(name[0])) {
+  if ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.includes(name[0])) {
     if (!seen.includes(name)) {
       messages.other.push(name);
     }
@@ -63,19 +63,19 @@ messages.other.sort();
 
 const messageGroups = [
   {
-    label: "Commonly inspected",
+    label: 'Commonly inspected',
     messages: messages.commonlyInspected,
   },
   {
-    label: "Other artifact-related requests & responses",
+    label: 'Other artifact-related requests & responses',
     messages: messages.otherArtifactRequestResponse,
   },
   {
-    label: "Other coop-related requests & responses",
+    label: 'Other coop-related requests & responses',
     messages: messages.otherCoopRequestResponse,
   },
   {
-    label: "Other",
+    label: 'Other',
     messages: messages.other,
   },
 ];

@@ -10,8 +10,8 @@ function formatFloat(x, fractionDigits) {
   }
   let s = x.toFixed(3);
   // Trim trailing zeros, and possibly the decimal point.
-  s = s.replace(/0+$/, "");
-  if (s.endsWith(".")) {
+  s = s.replace(/0+$/, '');
+  if (s.endsWith('.')) {
     s = s.substring(0, s.length - 1);
   }
   return s;
@@ -24,7 +24,7 @@ function formatFloat(x, fractionDigits) {
  * @returns {String}
  */
 function formatPercentage(x, fractionDigits) {
-  return formatFloat(x * 100, fractionDigits) + "%";
+  return formatFloat(x * 100, fractionDigits) + '%';
 }
 
 export { formatFloat, formatPercentage };

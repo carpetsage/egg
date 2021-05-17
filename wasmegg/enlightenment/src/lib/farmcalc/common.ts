@@ -1,5 +1,5 @@
-import { ei } from "lib";
-import { Research } from "../types";
+import { ei } from 'lib';
+import { Research } from '../types';
 
 export function farmResearches<R extends Research>(
   farm: ei.Backup.ISimulation,

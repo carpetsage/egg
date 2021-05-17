@@ -1,7 +1,7 @@
-import lunr from "lunr";
+import lunr from 'lunr';
 
-import data from "./app-data.json";
-import { Item, ItemId, Mission, MissionId } from "./types";
+import data from './app-data.json';
+import { Item, ItemId, Mission, MissionId } from './types';
 
 export const items = data.items as Item[];
 export const itemIds = items.map(item => item.id);
@@ -11,17 +11,17 @@ export const missionIds = missions.map(mission => mission.id);
 export const missionIdToMission = new Map(missions.map(mission => [mission.id, mission]));
 
 const itemsSearchIndex = lunr(function () {
-  this.ref("id");
-  this.field("display");
-  this.field("tier_name");
+  this.ref('id');
+  this.field('display');
+  this.field('tier_name');
   for (const item of items) {
     this.add(item);
   }
 });
 
 const missionsSearchIndex = lunr(function () {
-  this.ref("id");
-  this.field("display");
+  this.ref('id');
+  this.field('display');
   for (const mission of missions) {
     this.add(mission);
   }
@@ -29,7 +29,7 @@ const missionsSearchIndex = lunr(function () {
 
 // These words or prefix of words aren't indexed, and would cause zero matches
 // if otherwise queried as required.
-const searchTermIgnoreList = ["a", "i", "in", "o", "of", "t", "th", "the"];
+const searchTermIgnoreList = ['a', 'i', 'in', 'o', 'of', 't', 'th', 'the'];
 
 // Since lunr's wildcard doesn't match the empty string (e.g. "Simple Demeters
 // necklace" is matched by "+necklace" but not "+necklace*"), we have to search
@@ -39,13 +39,13 @@ const searchTermIgnoreList = ["a", "i", "in", "o", "of", "t", "th", "the"];
 // See https://github.com/olivernn/lunr.js/issues/370
 function search<T>(index: lunr.Index, userQuery: string, refToItem: (ref: string) => T): T[] {
   let terms = userQuery
-    .replace(/[^A-Za-z0-9\s]/g, " ")
+    .replace(/[^A-Za-z0-9\s]/g, ' ')
     .split(/\s+/)
     .map(term => term.toLowerCase());
   // As long as the query doesn't end in whitespace, the final term should be
   // treated as partial (user is in the middle of typing the term).
-  const partialFinal = terms[terms.length - 1] !== "";
-  terms = terms.filter(term => term !== "");
+  const partialFinal = terms[terms.length - 1] !== '';
+  terms = terms.filter(term => term !== '');
   const fullMatches = index.query(query => {
     terms.forEach(term => {
       if (!searchTermIgnoreList.includes(term)) {

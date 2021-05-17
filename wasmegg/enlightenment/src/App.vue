@@ -39,16 +39,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref } from 'vue';
 
-import { getLocalStorage, setLocalStorage } from "@/utils";
-import BaseErrorBoundary from "@/components/BaseErrorBoundary.vue";
-import BaseLoading from "@/components/BaseLoading.vue";
-import ThePlayerIdForm from "@/components/ThePlayerIdForm.vue";
-import TheCompanion from "@/components/TheCompanion.vue";
-import TheCalculatorWrapper from "@/components/TheCalculatorWrapper.vue";
+import { getLocalStorage, setLocalStorage } from '@/utils';
+import BaseErrorBoundary from '@/components/BaseErrorBoundary.vue';
+import BaseLoading from '@/components/BaseLoading.vue';
+import ThePlayerIdForm from '@/components/ThePlayerIdForm.vue';
+import TheCompanion from '@/components/TheCompanion.vue';
+import TheCalculatorWrapper from '@/components/TheCalculatorWrapper.vue';
 
-const PLAYER_ID_LOCALSTORAGE_KEY = "playerId";
+const PLAYER_ID_LOCALSTORAGE_KEY = 'playerId';
 
 export default defineComponent({
   components: {
@@ -60,10 +60,10 @@ export default defineComponent({
   },
   setup() {
     const playerIdPreload =
-      new URLSearchParams(window.location.search).get("playerId") ||
+      new URLSearchParams(window.location.search).get('playerId') ||
       getLocalStorage(PLAYER_ID_LOCALSTORAGE_KEY) ||
-      "";
-    const playerId = ref("");
+      '';
+    const playerId = ref('');
     const refreshId = ref(Date.now());
     const submitPlayerId = (id: string) => {
       playerId.value = id;

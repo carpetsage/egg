@@ -32,30 +32,30 @@
 </template>
 
 <script>
-import APIRequester from "@/components/APIRequester.vue";
-import ParameterInput from "@/components/ParameterInput.vue";
-import RequestButton from "@/components/RequestButton.vue";
+import APIRequester from '@/components/APIRequester.vue';
+import ParameterInput from '@/components/ParameterInput.vue';
+import RequestButton from '@/components/RequestButton.vue';
 
-import { computed, ref } from "vue";
-import { CLIENT_VERSION, basicRequestInfo, randomEiUserId } from "@/lib/lib";
-import { getLocalStorage, setLocalStorage } from "@/utils";
+import { computed, ref } from 'vue';
+import { CLIENT_VERSION, basicRequestInfo, randomEiUserId } from '@/lib/lib';
+import { getLocalStorage, setLocalStorage } from '@/utils';
 
-const CONTRACT_ID_LOCALSTORAGE_KEY = "contract_id";
-const COOP_CODE_LOCALSTORAGE_KEY = "coop_code";
-const USER_ID_LOCALSTORAGE_KEY = "user_id";
+const CONTRACT_ID_LOCALSTORAGE_KEY = 'contract_id';
+const COOP_CODE_LOCALSTORAGE_KEY = 'coop_code';
+const USER_ID_LOCALSTORAGE_KEY = 'user_id';
 
 export default {
   components: {
-    "api-requester": APIRequester,
+    'api-requester': APIRequester,
     ParameterInput,
     RequestButton,
   },
 
   setup() {
-    const contractId = ref(getLocalStorage(CONTRACT_ID_LOCALSTORAGE_KEY) || "");
-    const coopCode = ref(getLocalStorage(COOP_CODE_LOCALSTORAGE_KEY) || "");
-    const userId = ref(getLocalStorage(USER_ID_LOCALSTORAGE_KEY) || "");
-    const formValid = computed(() => contractId.value !== "" && coopCode.value != "");
+    const contractId = ref(getLocalStorage(CONTRACT_ID_LOCALSTORAGE_KEY) || '');
+    const coopCode = ref(getLocalStorage(COOP_CODE_LOCALSTORAGE_KEY) || '');
+    const userId = ref(getLocalStorage(USER_ID_LOCALSTORAGE_KEY) || '');
+    const formValid = computed(() => contractId.value !== '' && coopCode.value != '');
 
     const persistFormData = () => {
       setLocalStorage(CONTRACT_ID_LOCALSTORAGE_KEY, contractId.value);

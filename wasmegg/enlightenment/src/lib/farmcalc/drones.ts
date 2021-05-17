@@ -1,7 +1,7 @@
-import { ei } from "lib";
-import { droneRewardsMultiplier } from "../effects";
-import { Artifact } from "../types";
-import { farmResearch } from "./common";
+import { ei } from 'lib';
+import { droneRewardsMultiplier } from '../effects';
+import { Artifact } from '../types';
+import { farmResearch } from './common';
 
 // Based on @mikit's research:
 // https://discord.com/channels/455380663013736479/455385659079917569/799780925793763379
@@ -61,8 +61,8 @@ function biggerDronesProbabilityMultiplier(
   progress: ei.Backup.IGame
 ): number {
   const research = farmResearch(farm, progress, {
-    id: "drone_rewards",
-    name: "Drone Rewards",
+    id: 'drone_rewards',
+    name: 'Drone Rewards',
     maxLevel: 20,
     perLevel: 0.1,
   });

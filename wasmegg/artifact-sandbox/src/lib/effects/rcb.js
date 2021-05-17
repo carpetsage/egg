@@ -1,5 +1,5 @@
-import { Build, Config } from "../models";
-import { additiveEffect } from "./common";
+import { Build, Config } from '../models';
+import { additiveEffect } from './common';
 
 /**
  * @param {!Build} build

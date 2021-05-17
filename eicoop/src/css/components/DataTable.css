@@ -60,7 +60,9 @@
   background-image: svg-load('../svg/fa-filter-regular.svg', fill: #a1a1aa); /* gray-400 */
 }
 
-::v-deep(.p-column-filter .p-column-filter-menu-button.p-column-filter-menu-button-active .pi-filter-icon.pi-filter::before) {
+::v-deep(.p-column-filter
+    .p-column-filter-menu-button.p-column-filter-menu-button-active
+    .pi-filter-icon.pi-filter::before) {
   background-image: svg-load('../svg/fa-filter-solid.svg', fill: #a1a1aa); /* gray-400 */
 }
 

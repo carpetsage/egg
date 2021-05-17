@@ -1,6 +1,6 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 .other-tools-ribbon {
   @apply block absolute top-0 right-0 overflow-hidden;
@@ -14,7 +14,7 @@
 .other-tools-ribbon::before {
   @apply transform rotate-45 absolute top-0 right-0 bg-gray-600 shadow-md;
   /* width / 2 + margin-right == height / 2 + margin-top */
-  content: "";
+  content: '';
   width: 150px;
   height: 30px;
   margin-right: -40px;
@@ -29,7 +29,7 @@
   @apply transform rotate-45 absolute top-0 right-0
     text-center align-middle text-white font-medium uppercase whitespace-nowrap
     border border-white border-dotted;
-  content: "Other tools";
+  content: 'Other tools';
   width: 150px;
   height: 26px;
   margin-right: -39px;

@@ -1,6 +1,6 @@
-import { parseValueWithUnit, valueWithUnitRegExpGlobal } from "./units";
+import { parseValueWithUnit, valueWithUnitRegExpGlobal } from './units';
 
-export {} from "./units";
+export {} from './units';
 
 // Map lower case version of a Math proper to the qualified property (with
 // proper case), e.g. abs => Math.abs, pi => Math.PI.
@@ -9,18 +9,18 @@ export {} from "./units";
 // notations all the time.
 const supportedMathSymbols = new Map(
   (Object.getOwnPropertyNames(Math)
-    .filter(symbol => symbol !== "E")
+    .filter(symbol => symbol !== 'E')
     .map(symbol => [symbol.toLowerCase(), `Math.${symbol}`]) as [string, string][]).concat(
     // Additional supported aliases.
     [
-      ["ln", "Math.log"],
-      ["lg", "Math.log10"],
+      ['ln', 'Math.log'],
+      ['lg', 'Math.log10'],
     ]
   )
 );
 
-const mathSymbolPattern = `\\b${[...supportedMathSymbols.keys()].join("|")}\\b`;
-const mathSymbolRegExpGlobal = new RegExp(mathSymbolPattern, "gi");
+const mathSymbolPattern = `\\b${[...supportedMathSymbols.keys()].join('|')}\\b`;
+const mathSymbolRegExpGlobal = new RegExp(mathSymbolPattern, 'gi');
 
 // Returns null on error.
 export function calculateWithOoMUnits(expr: string): number | null {
@@ -30,10 +30,10 @@ export function calculateWithOoMUnits(expr: string): number | null {
     value => supportedMathSymbols.get(value.toLowerCase())!
   );
   // Interpret ^ as exponentiation, because who the hell cares about xor.
-  expr = expr.replaceAll(/\^/g, "**");
+  expr = expr.replaceAll(/\^/g, '**');
   try {
     const result = eval(expr);
-    return typeof result === "number" ? result : null;
+    return typeof result === 'number' ? result : null;
   } catch (e) {
     return null;
   }

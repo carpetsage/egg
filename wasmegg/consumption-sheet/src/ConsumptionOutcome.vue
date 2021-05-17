@@ -18,7 +18,7 @@
   <div v-if="outcome.gold > 0" class="flex">
     <span class="inline-flex items-center space-x-1 text-xs text-gray-500">
       <img class="h-4 w-4 -ml-0.5" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
-      {{ Math.floor(outcome.gold).toLocaleString("en-US") }}
+      {{ Math.floor(outcome.gold).toLocaleString('en-US') }}
     </span>
   </div>
 
@@ -112,13 +112,13 @@ export default {
     rarityFgClass(rarity) {
       switch (rarity) {
         case 1:
-          return "text-blue-500";
+          return 'text-blue-500';
         case 2:
-          return "text-purple-500";
+          return 'text-purple-500';
         case 3:
-          return "text-yellow-500";
+          return 'text-yellow-500';
         default:
-          return "text-gray-500";
+          return 'text-gray-500';
       }
     },
   },

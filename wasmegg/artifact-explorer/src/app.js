@@ -1,20 +1,20 @@
-import { createApp } from "vue";
+import { createApp } from 'vue';
 
-import VueTippy, { Tippy } from "vue-tippy";
-import "tippy.js/dist/tippy.css";
-import "tippy.js/themes/translucent.css";
+import VueTippy, { Tippy } from 'vue-tippy';
+import 'tippy.js/dist/tippy.css';
+import 'tippy.js/themes/translucent.css';
 
-import App from "./App.vue";
-import router from "./router";
+import App from './App.vue';
+import router from './router';
 
 const app = createApp(App);
 app.use(router);
 app.use(VueTippy, {
   defaultProps: {
-    theme: "translucent",
+    theme: 'translucent',
     onShow: instance => {
       // Image lazyloading.
-      for (const img of instance.popper.querySelectorAll("img")) {
+      for (const img of instance.popper.querySelectorAll('img')) {
         if (!img.src && img.dataset.src) {
           img.src = img.dataset.src;
         }
@@ -22,5 +22,5 @@ app.use(VueTippy, {
     },
   },
 });
-app.component("tippy", Tippy);
-app.mount("#app");
+app.component('tippy', Tippy);
+app.mount('#app');

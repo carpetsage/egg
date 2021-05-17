@@ -168,9 +168,9 @@
 </template>
 
 <script>
-import { Config } from "@/lib/models";
-import IntegerInput from "@/components/IntegerInput.vue";
-import EiValueWithUnitInput from "@/components/EiValueWithUnitInput.vue";
+import { Config } from '@/lib/models';
+import IntegerInput from '@/components/IntegerInput.vue';
+import EiValueWithUnitInput from '@/components/EiValueWithUnitInput.vue';
 
 export default {
   components: {
@@ -191,12 +191,12 @@ export default {
     };
   },
 
-  emits: ["update:config"],
+  emits: ['update:config'],
 
   watch: {
     conf: {
       handler() {
-        this.$emit("update:config", this.conf);
+        this.$emit('update:config', this.conf);
       },
       deep: true,
     },

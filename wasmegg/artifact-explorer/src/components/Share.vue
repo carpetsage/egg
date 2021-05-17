@@ -38,8 +38,8 @@
 </template>
 
 <script>
-import copyTextToClipboard from "copy-text-to-clipboard";
-import html2canvas from "html2canvas";
+import copyTextToClipboard from 'copy-text-to-clipboard';
+import html2canvas from 'html2canvas';
 
 export default {
   props: {
@@ -60,11 +60,11 @@ export default {
   },
 
   mounted() {
-    document.addEventListener("click", this.click);
+    document.addEventListener('click', this.click);
   },
 
   beforeUnmount() {
-    document.removeEventListener("click", this.click);
+    document.removeEventListener('click', this.click);
   },
 
   methods: {
@@ -96,13 +96,13 @@ export default {
           // The naive approach of window.open(blobURL, "_blank") doesn't work on iOS Safari.
           // Use the suggestion in https://dev.to/nombrekeff/download-file-from-blob-21ho,
           // create a link and trigger a click.
-          const link = document.createElement("a");
+          const link = document.createElement('a');
           link.href = blobURL;
           link.download = `${this.id}.png`;
-          link.style.display = "none";
+          link.style.display = 'none';
           document.body.appendChild(link);
           link.dispatchEvent(
-            new MouseEvent("click", {
+            new MouseEvent('click', {
               bubbles: true,
               cancelable: true,
               view: window,
@@ -110,7 +110,7 @@ export default {
           );
           document.body.removeChild(link);
           this.open = false;
-        }, "image/png");
+        }, 'image/png');
       } catch (e) {
         console.error(e);
       }

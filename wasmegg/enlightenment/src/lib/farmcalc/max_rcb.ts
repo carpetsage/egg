@@ -1,33 +1,33 @@
-import { ei } from "lib";
-import { maxRCBBonusFromArtifacts } from "../effects/max_rcb";
-import { Artifact, Research, ResearchInstance } from "../types";
-import { farmResearches } from "./common";
+import { ei } from 'lib';
+import { maxRCBBonusFromArtifacts } from '../effects/max_rcb';
+import { Artifact, Research, ResearchInstance } from '../types';
+import { farmResearches } from './common';
 
 export interface MaxRCBResearch extends Research {}
 export interface MaxRCBResearchInstance extends ResearchInstance {}
 
 const availableMaxRCBResearches: MaxRCBResearch[] = [
   {
-    id: "coordinated_clucking",
-    name: "Coordinated Clucking",
+    id: 'coordinated_clucking',
+    name: 'Coordinated Clucking',
     maxLevel: 50,
     perLevel: 0.2,
   },
   {
-    id: "motivational_clucking",
-    name: "Motivational Clucking",
+    id: 'motivational_clucking',
+    name: 'Motivational Clucking',
     maxLevel: 50,
     perLevel: 0.5,
   },
   {
-    id: "enlightened_chickens",
-    name: "Enlightened Chickens",
+    id: 'enlightened_chickens',
+    name: 'Enlightened Chickens',
     maxLevel: 150,
     perLevel: 2,
   },
   {
-    id: "epic_multiplier",
-    name: "Epic Multiplier",
+    id: 'epic_multiplier',
+    name: 'Epic Multiplier',
     maxLevel: 100,
     perLevel: 2,
   },

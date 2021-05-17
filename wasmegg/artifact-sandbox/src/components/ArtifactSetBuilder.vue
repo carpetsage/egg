@@ -32,10 +32,10 @@
 </template>
 
 <script>
-import ArtifactPicker from "@/components/ArtifactPicker.vue";
-import ConfirmationDialog from "./ConfirmationDialog.vue";
+import ArtifactPicker from '@/components/ArtifactPicker.vue';
+import ConfirmationDialog from './ConfirmationDialog.vue';
 
-import { Build } from "@/lib/models";
+import { Build } from '@/lib/models';
 
 export default {
   components: {
@@ -59,12 +59,12 @@ export default {
     };
   },
 
-  emits: ["update:build"],
+  emits: ['update:build'],
 
   watch: {
     buildProps: {
       handler() {
-        this.$emit("update:build", Build.fromBuildProps(this.buildProps));
+        this.$emit('update:build', Build.fromBuildProps(this.buildProps));
       },
       deep: true,
     },
@@ -75,7 +75,7 @@ export default {
       const emptyBuild = Build.newEmptyBuild();
       this.buildProps = emptyBuild.buildProps();
       this.key = 1 - this.key;
-      this.$emit("update:build", emptyBuild);
+      this.$emit('update:build', emptyBuild);
     },
   },
 };

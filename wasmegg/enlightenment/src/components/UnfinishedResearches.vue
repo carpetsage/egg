@@ -17,9 +17,9 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, toRefs } from "vue";
+import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { ResearchInstance } from "@/lib/types";
+import { ResearchInstance } from '@/lib/types';
 
 export default defineComponent({
   props: {

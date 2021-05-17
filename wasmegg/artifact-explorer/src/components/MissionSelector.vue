@@ -32,19 +32,19 @@ export default {
 
   data() {
     return {
-      missionId: this.initialMissionId || "",
+      missionId: this.initialMissionId || '',
     };
   },
 
   watch: {
     missionId() {
-      if (this.missionId === "") {
+      if (this.missionId === '') {
         this.$router.push({
-          name: "home",
+          name: 'home',
         });
       } else {
         this.$router.push({
-          name: "mission",
+          name: 'mission',
           params: {
             missionId: this.missionId,
           },

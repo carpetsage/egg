@@ -1,4 +1,4 @@
-import { trimTrailingZeros } from "@/lib";
+import { trimTrailingZeros } from '@/lib';
 
 export function getLocalStorage(key: string, prefix?: string): string | undefined {
   if (prefix === undefined) {
@@ -23,7 +23,7 @@ export function setLocalStorage(key: string, val: any, prefix?: string) {
   }
 }
 
-export function iconURL(relpath: string, size: number | string = "orig") {
+export function iconURL(relpath: string, size: number | string = 'orig') {
   return `https://eggincassets.tcl.sh/${size}/${relpath}`;
 }
 
@@ -49,31 +49,31 @@ export function formatWithThousandSeparators(
       rounded = Math.ceil(x);
       break;
   }
-  return rounded.toLocaleString("en-US");
+  return rounded.toLocaleString('en-US');
 }
 
 export function formatPercentage(x: number, maxDecimals = 2): string {
   const s = (x * 100).toFixed(maxDecimals);
-  return trimTrailingZeros(s) + "%";
+  return trimTrailingZeros(s) + '%';
 }
 
 export function formatDurationAuto(seconds: number): string {
   if (seconds < 0) {
-    return "-" + formatDurationAuto(-seconds);
+    return '-' + formatDurationAuto(-seconds);
   }
   if (!isFinite(seconds)) {
-    return "Forever";
+    return 'Forever';
   }
   let unit: string;
   let value: number;
   if (seconds < 60 * 59.5) {
-    unit = "min";
+    unit = 'min';
     value = seconds / 60;
   } else if (seconds < 3600 * 23.5) {
-    unit = "hr";
+    unit = 'hr';
     value = seconds / 3600;
   } else {
-    unit = "d";
+    unit = 'd';
     value = seconds / 86400;
   }
   return trimTrailingZeros(value.toFixed(1)) + unit;

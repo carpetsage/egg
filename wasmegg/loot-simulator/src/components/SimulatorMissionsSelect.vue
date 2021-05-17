@@ -30,11 +30,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, toRefs } from "vue";
-import { v4 as uuidv4 } from "uuid";
+import { defineComponent, PropType, toRefs } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
-import { MissionSelectSpec } from "@/types";
-import SimulatorMissionSelect from "@/components/SimulatorMissionSelect.vue";
+import { MissionSelectSpec } from '@/types';
+import SimulatorMissionSelect from '@/components/SimulatorMissionSelect.vue';
 
 export default defineComponent({
   components: {
@@ -47,7 +47,7 @@ export default defineComponent({
     },
   },
   emits: {
-    "update:modelValue": (payload: MissionSelectSpec[]) => true,
+    'update:modelValue': (payload: MissionSelectSpec[]) => true,
   },
   setup(props, { emit }) {
     const { modelValue } = toRefs(props);
@@ -58,17 +58,17 @@ export default defineComponent({
         count: 1,
         rowid: uuidv4(),
       });
-      emit("update:modelValue", updated);
+      emit('update:modelValue', updated);
     };
     const updateMission = (index: number, spec: MissionSelectSpec) => {
       const updated = [...modelValue.value];
       updated[index] = spec;
-      emit("update:modelValue", updated);
+      emit('update:modelValue', updated);
     };
     const deleteMission = (index: number) => {
       const updated = [...modelValue.value];
       updated.splice(index, 1);
-      emit("update:modelValue", updated);
+      emit('update:modelValue', updated);
     };
     return {
       addMission,

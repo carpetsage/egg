@@ -209,7 +209,7 @@
           class="py-1 text-center text-xs text-gray-500 underline cursor-pointer select-none"
           @click="furtherShipsToUnlockExpanded = !furtherShipsToUnlockExpanded"
         >
-          Click here to {{ furtherShipsToUnlockExpanded ? "collapse" : "expand" }} the full list of
+          Click here to {{ furtherShipsToUnlockExpanded ? 'collapse' : 'expand' }} the full list of
           ships to unlock
         </div>
         <template v-if="furtherShipsToUnlockExpanded">
@@ -383,10 +383,10 @@
 </template>
 
 <script>
-import CountdownTimer from "./CountdownTimer.vue";
-import ProgressRing from "./ProgressRing.vue";
-import dayjs from "dayjs";
-import { getLocalStorage, setLocalStorage, iconURL } from "./utils";
+import CountdownTimer from './CountdownTimer.vue';
+import ProgressRing from './ProgressRing.vue';
+import dayjs from 'dayjs';
+import { getLocalStorage, setLocalStorage, iconURL } from './utils';
 
 // Note: This component must be recreated for notifications to properly
 // unregister/re-register.
@@ -405,11 +405,11 @@ export default {
 
   data() {
     return {
-      notificationSupportedByBrowser: "Notification" in window,
-      notificationsOn: getLocalStorage("notifications") === "true",
+      notificationSupportedByBrowser: 'Notification' in window,
+      notificationsOn: getLocalStorage('notifications') === 'true',
       notificationPermissionDenied: false,
       furtherShipsToUnlockExpanded: false,
-      launchLogFilter: getLocalStorage("launchLogFilter") || "7d",
+      launchLogFilter: getLocalStorage('launchLogFilter') || '7d',
     };
   },
 
@@ -430,13 +430,13 @@ export default {
     filteredLaunchLog() {
       let days = 0;
       switch (this.launchLogFilter) {
-        case "3d":
+        case '3d':
           days = 3;
           break;
-        case "7d":
+        case '7d':
           days = 7;
           break;
-        case "30d":
+        case '30d':
           days = 30;
           break;
       }
@@ -470,14 +470,14 @@ export default {
 
   watch: {
     launchLogFilter() {
-      setLocalStorage("launchLogFilter", this.launchLogFilter);
+      setLocalStorage('launchLogFilter', this.launchLogFilter);
     },
   },
 
   methods: {
     async toggleNotifications() {
       this.notificationsOn = !this.notificationsOn;
-      setLocalStorage("notifications", this.notificationsOn);
+      setLocalStorage('notifications', this.notificationsOn);
       if (this.notificationsOn) {
         await this.registerNotifications();
       } else {
@@ -486,18 +486,18 @@ export default {
     },
 
     async registerNotifications() {
-      if (!("Notification" in window)) {
+      if (!('Notification' in window)) {
         return;
       }
       // Safari doesn't support the promise version of Notification.requestPermission. Thanks Apple!
       const permission = await new Promise((resolve, _) => {
         Notification.requestPermission(result => resolve(result));
       });
-      if (permission === "default" || permission === "denied") {
+      if (permission === 'default' || permission === 'denied') {
         console.error(`no permissions to display notifications: ${permission}`);
         this.notificationPermissionDenied = true;
         this.notificationsOn = false;
-        setLocalStorage("notifications", this.notificationsOn);
+        setLocalStorage('notifications', this.notificationsOn);
         return;
       }
       this.notificationPermissionDenied = false;
@@ -532,38 +532,38 @@ export default {
     },
 
     formatDate(timestamp) {
-      return dayjs(timestamp * 1000).format("YYYY-MM-DD");
+      return dayjs(timestamp * 1000).format('YYYY-MM-DD');
     },
 
     formatTime(timestamp) {
-      return dayjs(timestamp * 1000).format("HH:mm:ss");
+      return dayjs(timestamp * 1000).format('HH:mm:ss');
     },
 
     durationTypeFgClass(durationType) {
       switch (durationType) {
-        case "Tutorial":
-        case "Short":
-          return "text-blue-500";
-        case "Standard":
-          return "text-purple-500";
-        case "Extended":
-          return "text-yellow-500";
+        case 'Tutorial':
+        case 'Short':
+          return 'text-blue-500';
+        case 'Standard':
+          return 'text-purple-500';
+        case 'Extended':
+          return 'text-yellow-500';
         default:
-          return "text-black";
+          return 'text-black';
       }
     },
 
     durationTypeBgClass(durationType) {
       switch (durationType) {
-        case "Tutorial":
-        case "Short":
-          return "bg-blue-500";
-        case "Standard":
-          return "bg-purple-500";
-        case "Extended":
-          return "bg-yellow-500";
+        case 'Tutorial':
+        case 'Short':
+          return 'bg-blue-500';
+        case 'Standard':
+          return 'bg-purple-500';
+        case 'Extended':
+          return 'bg-yellow-500';
         default:
-          return "bg-black";
+          return 'bg-black';
       }
     },
 

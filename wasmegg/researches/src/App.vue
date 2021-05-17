@@ -71,14 +71,14 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, onMounted, ref } from "vue";
-import hotkeys from "hotkeys-js";
-import mitt from "mitt";
-import { ParamsObject } from "sql.js";
+import { computed, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
+import hotkeys from 'hotkeys-js';
+import mitt from 'mitt';
+import { ParamsObject } from 'sql.js';
 
-import { executeQuery, researches, schema } from "@/data";
-import AceEditor from "@/components/AceEditor.vue";
-import { isApplePlatform } from "./utils";
+import { executeQuery, researches, schema } from '@/data';
+import AceEditor from '@/components/AceEditor.vue';
+import { isApplePlatform } from './utils';
 
 const sampleQuery = `-- All internal hatchery rate researches.
 SELECT id, name, levels AS maxLevel, per_level AS perLevel, effect_type = 'multiplicative' AS multiplicative, prices FROM research WHERE categories LIKE '%internal_hatchery_rate%' ORDER BY serial_id;
@@ -86,14 +86,14 @@ SELECT id, name, levels AS maxLevel, per_level AS perLevel, effect_type = 'multi
 --SELECT research.id, research.name, research.levels AS maxLevel, research.per_level AS perLevel, research.effect_type = 'multiplicative' AS multiplicative, sum(CAST(prices.value AS REAL)) AS totalPrice FROM research, json_each(prices) AS prices WHERE categories LIKE '%internal_hatchery_rate%' GROUP BY research.serial_id ORDER BY research.serial_id;`;
 
 export default defineComponent({
-  name: "App",
+  name: 'App',
   components: {
     AceEditor,
   },
   setup() {
     const researchesJson = JSON.stringify(researches, null, 2);
     const researchedJsonUrl = URL.createObjectURL(
-      new Blob([researchesJson], { type: "application/json" })
+      new Blob([researchesJson], { type: 'application/json' })
     );
     onBeforeUnmount(() => {
       URL.revokeObjectURL(researchedJsonUrl);
@@ -102,7 +102,7 @@ export default defineComponent({
     const query = ref(sampleQuery);
     const eventBus = mitt();
     const submitQuery = () => {
-      eventBus.emit("getValue");
+      eventBus.emit('getValue');
     };
 
     const executedQuery = computed(() => {
@@ -122,8 +122,8 @@ export default defineComponent({
     const queryResultsJson = computed(() => JSON.stringify(queryResults.value, null, 2));
     const queryError = computed(() => executedQuery.value.error);
 
-    const submitQueryHotkeyDisplay = isApplePlatform() ? "⌘⏎" : "Ctrl+⏎";
-    const submitQueryHotkeys = "command+enter, ctrl+enter";
+    const submitQueryHotkeyDisplay = isApplePlatform() ? '⌘⏎' : 'Ctrl+⏎';
+    const submitQueryHotkeys = 'command+enter, ctrl+enter';
     onMounted(() => {
       hotkeys(submitQueryHotkeys, () => {
         submitQuery();
@@ -134,8 +134,8 @@ export default defineComponent({
     });
     // Ace traps keys, so we need to configure the keybinding separately for Ace.
     const submitQueryAceCommand = {
-      name: "submitQuery",
-      bindKey: { win: "Ctrl-Enter", mac: "Cmd-Enter" },
+      name: 'submitQuery',
+      bindKey: { win: 'Ctrl-Enter', mac: 'Cmd-Enter' },
       exec: () => {
         submitQuery();
       },

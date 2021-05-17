@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { iconURL } from "@/utils";
+import { iconURL } from '@/utils';
 
 export default {
   props: {
@@ -38,13 +38,13 @@ export default {
     borderClass() {
       switch (this.mission.typeId) {
         case 0:
-          return "border-blue-500";
+          return 'border-blue-500';
         case 1:
-          return "border-purple-500";
+          return 'border-purple-500';
         case 2:
-          return "border-yellow-500";
+          return 'border-yellow-500';
         default:
-          return "";
+          return '';
       }
     },
   },

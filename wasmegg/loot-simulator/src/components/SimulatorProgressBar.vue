@@ -20,13 +20,13 @@
 </template>
 
 <script lang="ts">
-import { SimulationProgress } from "@/types";
-import { computed, defineComponent, PropType, toRefs } from "vue";
+import { SimulationProgress } from '@/types';
+import { computed, defineComponent, PropType, toRefs } from 'vue';
 
 function formatDuration(seconds: number) {
   const mm = Math.floor(seconds / 60);
   const ss = Math.floor(seconds - mm * 60);
-  return `${mm}:${String(ss).padStart(2, "0")}`;
+  return `${mm}:${String(ss).padStart(2, '0')}`;
 }
 
 export default defineComponent({
@@ -41,18 +41,18 @@ export default defineComponent({
     const elapsed = computed(() => formatDuration(progress.value.secondsElapsed));
     const finishedPercentage = computed(() =>
       progress.value.finishedTrials >= progress.value.totalTrials
-        ? "100%"
-        : ((progress.value.finishedTrials / progress.value.totalTrials) * 100).toFixed(1) + "%"
+        ? '100%'
+        : ((progress.value.finishedTrials / progress.value.totalTrials) * 100).toFixed(1) + '%'
     );
     const rate = computed(() =>
       progress.value.secondsElapsed > 0
         ? progress.value.finishedTrials / progress.value.secondsElapsed
         : 0
     );
-    const rateDisplay = computed(() => (rate.value > 0 ? rate.value.toFixed(0) : "0") + "/s");
+    const rateDisplay = computed(() => (rate.value > 0 ? rate.value.toFixed(0) : '0') + '/s');
     const eta = computed(() =>
       rate.value === 0
-        ? "\u2013"
+        ? '\u2013'
         : formatDuration((progress.value.totalTrials - progress.value.finishedTrials) / rate.value)
     );
     return {

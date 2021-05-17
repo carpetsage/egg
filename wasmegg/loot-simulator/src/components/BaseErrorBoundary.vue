@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onErrorCaptured, ref } from "vue";
+import { defineComponent, onErrorCaptured, ref } from 'vue';
 
 export default defineComponent({
   setup() {

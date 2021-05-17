@@ -60,13 +60,13 @@
 </template>
 
 <script>
-import ArtifactSetBuilder from "@/components/ArtifactSetBuilder.vue";
-import ArtifactSetDisplay from "@/components/ArtifactSetDisplay.vue";
-import ArtifactSetsEffects from "@/components/ArtifactSetsEffects.vue";
-import Configurator from "@/components/Configurator.vue";
-import ShareSheet from "@/components/ShareSheet.vue";
+import ArtifactSetBuilder from '@/components/ArtifactSetBuilder.vue';
+import ArtifactSetDisplay from '@/components/ArtifactSetDisplay.vue';
+import ArtifactSetsEffects from '@/components/ArtifactSetsEffects.vue';
+import Configurator from '@/components/Configurator.vue';
+import ShareSheet from '@/components/ShareSheet.vue';
 
-import { Builds } from "@/lib/models";
+import { Builds } from '@/lib/models';
 
 export default {
   components: {
@@ -86,7 +86,7 @@ export default {
       // Use an initial-path dependent key to work around the problem of
       // artifact-set-builder and configurator not updating upon manual
       // hashchange.
-      key: this.serializedBuilds || "",
+      key: this.serializedBuilds || '',
       builds: this.deserializeBuilds(this.serializedBuilds),
       showShareSheet: false,
       showFootnotesWhenSharing: true,
@@ -114,7 +114,7 @@ export default {
           {},
           null,
           this.$router.resolve({
-            name: "builds",
+            name: 'builds',
             params: { serializedBuilds: this.builds.serialize() },
           }).href
         );
@@ -126,7 +126,7 @@ export default {
   beforeRouteUpdate(to, from) {
     // Rerender on manual hashchange.
     this.builds = this.deserializeBuilds(to.params.serializedBuilds);
-    this.key = to.params.serializedBuilds || "";
+    this.key = to.params.serializedBuilds || '';
   },
 };
 </script>

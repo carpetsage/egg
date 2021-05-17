@@ -1,9 +1,9 @@
-import { Build, Config } from "../models";
-import { multiplicativeEffect } from "./common";
-import { boostMultiplier } from "./boosts";
-import { earningBonusMultiplier } from "./earning_bonus";
-import { layingRateMultiplier } from "./laying_rate";
-import { maxRunningChickenBonusMultiplier } from "./rcb";
+import { Build, Config } from '../models';
+import { multiplicativeEffect } from './common';
+import { boostMultiplier } from './boosts';
+import { earningBonusMultiplier } from './earning_bonus';
+import { layingRateMultiplier } from './laying_rate';
+import { maxRunningChickenBonusMultiplier } from './rcb';
 
 /**
  * @param {!Build} build

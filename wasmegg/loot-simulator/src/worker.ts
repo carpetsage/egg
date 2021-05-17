@@ -1,8 +1,8 @@
-import { expose } from "comlink";
-import seedrandom, { prng } from "seedrandom";
+import { expose } from 'comlink';
+import seedrandom, { prng } from 'seedrandom';
 
-import { ItemSpec, SimulationWorkerInterface } from "@/types";
-import { items, missionIdToMission } from "@/data";
+import { ItemSpec, SimulationWorkerInterface } from '@/types';
+import { items, missionIdToMission } from '@/data';
 
 const ABORT_CHECK_INTERVAL = 200;
 const REPORT_INTERVAL = 200;

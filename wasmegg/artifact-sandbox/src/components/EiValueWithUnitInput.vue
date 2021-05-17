@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { valueWithUnitRegExpPattern, parseValueWithUnit } from "@/lib/utils/utils";
+import { valueWithUnitRegExpPattern, parseValueWithUnit } from '@/lib/utils/utils';
 
 export default {
   props: {
@@ -31,7 +31,7 @@ export default {
     };
   },
 
-  emits: ["update:raw", "update:value"],
+  emits: ['update:raw', 'update:value'],
 
   valueWithUnitRegExpPattern,
 
@@ -46,8 +46,8 @@ export default {
       if (this.parsed === null) {
         return;
       }
-      this.$emit("update:raw", this.input);
-      this.$emit("update:value", this.parsed);
+      this.$emit('update:raw', this.input);
+      this.$emit('update:value', this.parsed);
     },
   },
 
@@ -57,8 +57,8 @@ export default {
       const parsed = parseValueWithUnit(value);
       if (parsed !== null) {
         this.invalid = false;
-        this.$emit("update:raw", value);
-        this.$emit("update:value", parsed);
+        this.$emit('update:raw', value);
+        this.$emit('update:value', parsed);
       } else {
         this.invalid = true;
       }

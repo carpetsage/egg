@@ -161,12 +161,12 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, Ref, ref } from "vue";
-import { proxy, wrap } from "comlink";
+import { computed, defineComponent, Ref, ref } from 'vue';
+import { proxy, wrap } from 'comlink';
 
-import SimulationWorker from "@/worker?worker";
-import { missionIdToMission } from "@/data";
-import { ModuleWorkerNotSupportedError } from "@/errors";
+import SimulationWorker from '@/worker?worker';
+import { missionIdToMission } from '@/data';
+import { ModuleWorkerNotSupportedError } from '@/errors';
 import {
   getMissions,
   getSeed,
@@ -176,7 +176,7 @@ import {
   setSeed,
   setTargets,
   setTotalTrials,
-} from "@/storage";
+} from '@/storage';
 import {
   ItemId,
   ItemSpec,
@@ -186,13 +186,13 @@ import {
   MissionSelectSpec,
   SimulationProgress,
   SimulationWorkerInterface,
-} from "@/types";
-import SimulatorMissionsSelect from "@/components/SimulatorMissionsSelect.vue";
-import SimulatorItemsSelect from "@/components/SimulatorItemsSelect.vue";
-import SimulatorProgressBar from "@/components/SimulatorProgressBar.vue";
-import ArtifactItem from "@/components/ArtifactItem.vue";
-import MissionItem from "@/components/MissionItem.vue";
-import BaseIntegerInput from "@/components/BaseIntegerInput.vue";
+} from '@/types';
+import SimulatorMissionsSelect from '@/components/SimulatorMissionsSelect.vue';
+import SimulatorItemsSelect from '@/components/SimulatorItemsSelect.vue';
+import SimulatorProgressBar from '@/components/SimulatorProgressBar.vue';
+import ArtifactItem from '@/components/ArtifactItem.vue';
+import MissionItem from '@/components/MissionItem.vue';
+import BaseIntegerInput from '@/components/BaseIntegerInput.vue';
 
 function dedupeTargets(targets: ItemSelectSpec[]): ItemSpec[] {
   const deduped = new Map<ItemId, number>();
@@ -216,13 +216,13 @@ function dedupeMissions(missions: MissionSelectSpec[]): MissionSpec[] {
 
 function formatMissionsDuration(seconds: number): string {
   if (seconds < 3600) {
-    return formatMaxDecimalDigits(seconds / 60, 0) + "m";
+    return formatMaxDecimalDigits(seconds / 60, 0) + 'm';
   }
   if (seconds < 86400) {
-    return formatMaxDecimalDigits(seconds / 3600, 1) + "h";
+    return formatMaxDecimalDigits(seconds / 3600, 1) + 'h';
   }
   if (seconds < 86400 * 365) {
-    return formatMaxDecimalDigits(seconds / 86400, 1) + "d";
+    return formatMaxDecimalDigits(seconds / 86400, 1) + 'd';
   }
   const years = Math.floor(seconds / (86400 * 365));
   const days = (seconds % (86400 * 365)) / 86400;
@@ -234,13 +234,13 @@ function formatMaxDecimalDigits(x: number, digits: number) {
     return x.toFixed(0);
   }
   let s = x.toFixed(digits);
-  s = s.replace(/0+$/, "");
-  s = s.replace(/\.$/, "");
+  s = s.replace(/0+$/, '');
+  s = s.replace(/\.$/, '');
   return s;
 }
 
 function formatWithThousandSeparators(x: number): string {
-  return x.toLocaleString("en-US");
+  return x.toLocaleString('en-US');
 }
 
 function randomSeed(): string {
@@ -263,8 +263,8 @@ export default defineComponent({
     if (
       (await Promise.race([
         worker.ping(),
-        new Promise(resolve => setTimeout(resolve, 1000, "timeout")),
-      ])) === "timeout"
+        new Promise(resolve => setTimeout(resolve, 1000, 'timeout')),
+      ])) === 'timeout'
     ) {
       throw new ModuleWorkerNotSupportedError();
     }
@@ -286,7 +286,7 @@ export default defineComponent({
     const submittedTotalTrials = ref(0);
 
     const seed = ref(getSeed());
-    const submittedSeed = ref("");
+    const submittedSeed = ref('');
 
     const validForSubmission = computed(() => {
       const targetsToSubmit = dedupeTargets(targets.value);
@@ -322,17 +322,17 @@ export default defineComponent({
         return 0;
       }
       if (p.finishedTrials === 0) {
-        return "\u2013";
+        return '\u2013';
       }
       if (p.successfulTrials === 0) {
-        return "0%";
+        return '0%';
       }
       const percentage = (p.successfulTrials / p.finishedTrials) * 100;
       if (percentage < 1e-6) {
-        return "~0%";
+        return '~0%';
       }
       const precision = Math.min(3, String(p.successfulTrials).length);
-      return percentage.toPrecision(precision) + "%";
+      return percentage.toPrecision(precision) + '%';
     });
 
     let controller: AbortController;
@@ -347,7 +347,7 @@ export default defineComponent({
       submittedTargets.value = dedupeTargets(targets.value);
       submittedMissions.value = dedupeMissions(missions.value);
       submittedTotalTrials.value = totalTrials.value;
-      submittedSeed.value = seed.value !== "" ? seed.value : randomSeed();
+      submittedSeed.value = seed.value !== '' ? seed.value : randomSeed();
       inProgress.value = true;
       progress.value = {
         totalTrials: submittedTotalTrials.value,

@@ -236,7 +236,7 @@
             chickens/min
           </span>
           <!-- Force a space between the two nowrap spans to prevent the two being treated as a whole. -->
-          {{ " " }}
+          {{ ' ' }}
           <span class="whitespace-nowrap">
             (<span class="text-green-500">{{
               formatWithThousandSeparators(onlineIHRPerHab, -1)
@@ -267,13 +267,13 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref } from "vue";
-import dayjs, { Dayjs } from "dayjs";
-import advancedFormat from "dayjs/plugin/advancedFormat";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import relativeTime from "dayjs/plugin/relativeTime";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
+import { computed, defineComponent, onBeforeUnmount, ref } from 'vue';
+import dayjs, { Dayjs } from 'dayjs';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 
 import {
   bestPossibleCubeForEnlightenment,
@@ -301,7 +301,7 @@ import {
   requiredWDLevelForEnlightenmentDiamond,
   researchPriceMultiplierFromArtifacts,
   researchPriceMultiplierFromResearches,
-} from "@/lib";
+} from '@/lib';
 import {
   iconURL,
   formatPercentage,
@@ -309,14 +309,14 @@ import {
   formatDurationAuto,
   getLocalStorage,
   setLocalStorage,
-} from "@/utils";
-import CollapsibleSection from "@/components/CollapsibleSection.vue";
-import TrophyForecast from "@/components/TrophyForecast.vue";
-import ArtifactsGallery from "@/components/ArtifactsGallery.vue";
-import UnfinishedResearches from "@/components/UnfinishedResearches.vue";
-import TargetCashMatrix from "@/components/TargetCashMatrix.vue";
-import BaseInfo from "@/components/BaseInfo.vue";
-import BaseEIValue from "@/components/BaseEIValue.vue";
+} from '@/utils';
+import CollapsibleSection from '@/components/CollapsibleSection.vue';
+import TrophyForecast from '@/components/TrophyForecast.vue';
+import ArtifactsGallery from '@/components/ArtifactsGallery.vue';
+import UnfinishedResearches from '@/components/UnfinishedResearches.vue';
+import TargetCashMatrix from '@/components/TargetCashMatrix.vue';
+import BaseInfo from '@/components/BaseInfo.vue';
+import BaseEIValue from '@/components/BaseEIValue.vue';
 
 // Note that timezone abbreviation may not work due to
 // https://github.com/iamkun/dayjs/issues/1154, in which case the GMT offset is
@@ -328,11 +328,11 @@ dayjs.extend(timezone);
 dayjs.extend(utc);
 
 const trophies = [
-  { level: 1, name: "Bronze", targetPopulation: 10e6 },
-  { level: 2, name: "Silver", targetPopulation: 50e6 },
-  { level: 3, name: "Gold", targetPopulation: 250e6 },
-  { level: 4, name: "Platinum", targetPopulation: 1e9 },
-  { level: 5, name: "Diamond", targetPopulation: 10e9 },
+  { level: 1, name: 'Bronze', targetPopulation: 10e6 },
+  { level: 2, name: 'Silver', targetPopulation: 50e6 },
+  { level: 3, name: 'Gold', targetPopulation: 250e6 },
+  { level: 4, name: 'Platinum', targetPopulation: 1e9 },
+  { level: 5, name: 'Diamond', targetPopulation: 10e9 },
 ];
 
 export default defineComponent({
@@ -443,31 +443,31 @@ export default defineComponent({
     const bestPossibleCubeSet = bestPossibleCube ? [bestPossibleCube] : [];
     const bestPriceMultiplier = researchPriceMultiplierFromArtifacts(bestPossibleCubeSet);
     const cashTargets = [
-      { multiplier: 1, description: "No research sale\nno artifacts" },
-      { multiplier: 0.35, description: "65% research sale\n no artifacts" },
+      { multiplier: 1, description: 'No research sale\nno artifacts' },
+      { multiplier: 0.35, description: '65% research sale\n no artifacts' },
     ];
     if (currentPriceMultiplier < 1) {
       cashTargets.push(
-        { multiplier: currentPriceMultiplier, description: "No research sale\ncurrent artifacts" },
+        { multiplier: currentPriceMultiplier, description: 'No research sale\ncurrent artifacts' },
         {
           multiplier: currentPriceMultiplier * 0.35,
-          description: "65% research sale\ncurrent artifacts",
+          description: '65% research sale\ncurrent artifacts',
         }
       );
     }
     const betterCubePossible = bestPriceMultiplier < currentPriceMultiplier;
     if (betterCubePossible) {
       cashTargets.push(
-        { multiplier: bestPriceMultiplier, description: "No research sale\nbest cube possible" },
+        { multiplier: bestPriceMultiplier, description: 'No research sale\nbest cube possible' },
         {
           multiplier: bestPriceMultiplier * 0.35,
-          description: "65% research sale\nbest cube possible",
+          description: '65% research sale\nbest cube possible',
         }
       );
     }
     const calculateAndFormatDuration = (target: number, rate: number): string => {
       if (target <= 0) {
-        return "-";
+        return '-';
       }
       return formatDurationAuto(target / rate);
     };
@@ -476,7 +476,7 @@ export default defineComponent({
       if (target <= 0) {
         count = 0;
       } else if (rate === 0) {
-        count = "\u221E";
+        count = '\u221E';
       } else {
         count = Math.ceil(target / rate);
       }
@@ -485,17 +485,17 @@ export default defineComponent({
     const cashMeans = [
       {
         rate: earningRateOnlineMaxRCB * 2,
-        description: "Active earnings w/ max RCB, video 2x",
+        description: 'Active earnings w/ max RCB, video 2x',
         calc: calculateAndFormatDuration,
       },
       {
         rate: earningRateOffline,
-        description: "Offline earnings",
+        description: 'Offline earnings',
         calc: calculateAndFormatDuration,
       },
       {
         rate: droneValuesAtMaxRCB.elite,
-        description: "Elite drone at max RCB",
+        description: 'Elite drone at max RCB',
         calc: calculateAndFormatNumDrones,
       },
     ];
@@ -571,10 +571,10 @@ export default defineComponent({
 
 type SectionVisibility = { [section: string]: boolean };
 
-const SECTION_VISIBILITY_LOCALSTORAGE_KEY = "sectionVisibility";
+const SECTION_VISIBILITY_LOCALSTORAGE_KEY = 'sectionVisibility';
 
 function loadSectionVisibilityFromLocalStorage(): SectionVisibility {
-  const encoded = getLocalStorage(SECTION_VISIBILITY_LOCALSTORAGE_KEY) || "{}";
+  const encoded = getLocalStorage(SECTION_VISIBILITY_LOCALSTORAGE_KEY) || '{}';
   try {
     const visibility: SectionVisibility = {};
     for (const [key, val] of Object.entries(JSON.parse(encoded))) {

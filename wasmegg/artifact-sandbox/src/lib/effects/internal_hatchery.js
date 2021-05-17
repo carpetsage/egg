@@ -1,5 +1,5 @@
-import { Build, Config } from "../models";
-import { multiplicativeEffect } from "./common";
+import { Build, Config } from '../models';
+import { multiplicativeEffect } from './common';
 
 /**
  * @param {!Build} build

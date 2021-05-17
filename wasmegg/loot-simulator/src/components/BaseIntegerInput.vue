@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, ref, toRefs, watch } from "vue";
+import { computed, defineComponent, PropType, ref, toRefs, watch } from 'vue';
 
 export default defineComponent({
   props: {
@@ -30,7 +30,7 @@ export default defineComponent({
     },
   },
   emits: {
-    "update:modelValue": (payload: number) => true,
+    'update:modelValue': (payload: number) => true,
   },
   setup(props, { emit }) {
     const { modelValue, max, min } = toRefs(props);
@@ -55,7 +55,7 @@ export default defineComponent({
       if (invalid.value) {
         return;
       }
-      emit("update:modelValue", value.value);
+      emit('update:modelValue', value.value);
     });
     return {
       value,

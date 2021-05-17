@@ -41,7 +41,7 @@
       </div>
       <div v-for="(stone, stoneIndex) in artifact.stones" :key="stoneIndex">
         <span class="text-effect">{{ stone.effectSize }}</span>
-        {{ stone.effectTarget.replace(" on enlightenment egg farms", "") }}
+        {{ stone.effectTarget.replace(' on enlightenment egg farms', '') }}
       </div>
       <div v-if="warnings[artifactIndex]">
         <img
@@ -55,12 +55,12 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, toRefs } from "vue";
+import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { Artifact } from "@/lib/types";
-import { iconURL } from "@/utils";
-import { ei } from "@/lib";
-import { hasIneffectiveClarityStones, hasNoEffect } from "@/lib/effects";
+import { Artifact } from '@/lib/types';
+import { iconURL } from '@/utils';
+import { ei } from '@/lib';
+import { hasIneffectiveClarityStones, hasNoEffect } from '@/lib/effects';
 
 export default defineComponent({
   props: {
@@ -74,34 +74,34 @@ export default defineComponent({
     const rarityFgClass = (afxRarity: ei.ArtifactSpec.Rarity): string => {
       switch (afxRarity) {
         case ei.ArtifactSpec.Rarity.COMMON:
-          return "";
+          return '';
         case ei.ArtifactSpec.Rarity.RARE:
-          return "text-rare";
+          return 'text-rare';
         case ei.ArtifactSpec.Rarity.EPIC:
-          return "text-epic";
+          return 'text-epic';
         case ei.ArtifactSpec.Rarity.LEGENDARY:
-          return "text-legendary";
+          return 'text-legendary';
       }
     };
     const rarityBgClass = (afxRarity: ei.ArtifactSpec.Rarity): string => {
       switch (afxRarity) {
         case ei.ArtifactSpec.Rarity.COMMON:
-          return "";
+          return '';
         case ei.ArtifactSpec.Rarity.RARE:
-          return "bg-rare";
+          return 'bg-rare';
         case ei.ArtifactSpec.Rarity.EPIC:
-          return "bg-epic";
+          return 'bg-epic';
         case ei.ArtifactSpec.Rarity.LEGENDARY:
-          return "bg-legendary";
+          return 'bg-legendary';
       }
     };
     const warnings = computed(() =>
       artifacts.value.map(artifact => {
         if (hasNoEffect(artifact)) {
-          return "Has no clarity stone";
+          return 'Has no clarity stone';
         }
         if (hasIneffectiveClarityStones(artifact)) {
-          return "Clarity stone redundant on Light of Eggendil";
+          return 'Clarity stone redundant on Light of Eggendil';
         }
         return null;
       })

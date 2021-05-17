@@ -106,7 +106,7 @@
 </template>
 
 <script>
-import ContractTable from "./ContractTable.vue";
+import ContractTable from './ContractTable.vue';
 
 function getLocalStorage(key) {
   try {
@@ -134,9 +134,9 @@ export default {
   },
   data() {
     const playerId =
-      new URLSearchParams(window.location.search).get("playerId") ||
-      getLocalStorage("playerId") ||
-      "";
+      new URLSearchParams(window.location.search).get('playerId') ||
+      getLocalStorage('playerId') ||
+      '';
     return {
       playerId,
       playerIdSubmitted: false,
@@ -144,12 +144,12 @@ export default {
       csvdata: null,
       otherPEProgress: null,
       contractsLoading: false,
-      error: "",
+      error: '',
     };
   },
   computed: {
     submitDisabled() {
-      return this.playerId.trim() === "" || this.contractsLoading;
+      return this.playerId.trim() === '' || this.contractsLoading;
     },
     truncatedError() {
       return this.error.length <= 500 ? this.error : `${this.error.substr(0, 497)}...`;
@@ -161,10 +161,10 @@ export default {
       if (!playerId) {
         return;
       }
-      setLocalStorage("playerId", playerId);
+      setLocalStorage('playerId', playerId);
       this.playerIdSubmitted = true;
       this.contractsLoading = true;
-      this.error = "";
+      this.error = '';
       try {
         const { contracts, csv: csvdata, otherPEProgress } = await this.retrievePastContracts(
           playerId

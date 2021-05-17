@@ -6,7 +6,14 @@
     <div class="max-w-4xl w-full mx-auto px-4 xl:px-0 space-y-2">
       <div class="space-y-1">
         <p class="text-xs text-red-500">
-          Be forewarned that this tool puts great power into the hands of even non-technical folk. As such it can facilitate the infliction of chaos and damage in the wrong hands. Unless you want to see this tool taken down by the author, <strong>please do not discuss or share the URL in the public or where naughty kiddies are around</strong>. If you're not sure whether there are naughty kiddies lurking in your audience, assume there are.
+          Be forewarned that this tool puts great power into the hands of even non-technical folk.
+          As such it can facilitate the infliction of chaos and damage in the wrong hands. Unless
+          you want to see this tool taken down by the author,
+          <strong
+            >please do not discuss or share the URL in the public or where naughty kiddies are
+            around</strong
+          >. If you're not sure whether there are naughty kiddies lurking in your audience, assume
+          there are.
         </p>
         <p class="text-sm font-medium text-gray-700">
           App version:
@@ -71,9 +78,9 @@
 </template>
 
 <script>
-import { ref, watch } from "vue";
-import { useRouter } from "vue-router";
-import { APP_VERSION } from "@/lib/lib";
+import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { APP_VERSION } from '@/lib/lib';
 
 export default {
   props: {
@@ -87,24 +94,24 @@ export default {
     const appVersion = APP_VERSION;
     const tabs = [
       {
-        name: "arbitrary_payload",
-        display: "Arbitrary payload",
+        name: 'arbitrary_payload',
+        display: 'Arbitrary payload',
       },
       {
-        name: "first_contact",
-        display: "<code>/first_contact</code>",
+        name: 'first_contact',
+        display: '<code>/first_contact</code>',
       },
       {
-        name: "get_periodicals",
-        display: "<code>/get_periodicals</code>",
+        name: 'get_periodicals',
+        display: '<code>/get_periodicals</code>',
       },
       {
-        name: "get_config",
-        display: "<code>/get_config</code>",
+        name: 'get_config',
+        display: '<code>/get_config</code>',
       },
       {
-        name: "coop_status",
-        display: "<code>/coop_status</code>",
+        name: 'coop_status',
+        display: '<code>/coop_status</code>',
       },
     ];
     const selectedRoute = ref(props.route);

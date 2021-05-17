@@ -152,29 +152,29 @@
 </template>
 
 <script>
-import CalendarMonth from "@/components/CalendarMonth.vue";
-import EventBadge from "@/components/EventBadge.vue";
-import Info from "@/components/Info.vue";
+import CalendarMonth from '@/components/CalendarMonth.vue';
+import EventBadge from '@/components/EventBadge.vue';
+import Info from '@/components/Info.vue';
 
-import { computed, ref, watch } from "vue";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
+import { computed, ref, watch } from 'vue';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
-import { events, eventTypes } from "@/lib";
-import { getLocalStorage, setLocalStorage } from "@/utils";
+import { events, eventTypes } from '@/lib';
+import { getLocalStorage, setLocalStorage } from '@/utils';
 
 dayjs.extend(utc);
 
-const USE_UTC_DATES_LOCALSTORAGE_KEY = "useUtcDates";
-const FORCE_FULL_WIDTH_LOCALSTORAGE_KEY = "forceFullWidth";
-const FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY = "forceSingleColumn";
+const USE_UTC_DATES_LOCALSTORAGE_KEY = 'useUtcDates';
+const FORCE_FULL_WIDTH_LOCALSTORAGE_KEY = 'forceFullWidth';
+const FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY = 'forceSingleColumn';
 
 const eventTypeOnLocalStorageKey = eventType => `show-${eventType}`;
 
 const getEventTypesOn = () => {
   const eventTypesOn = {};
   for (const ev of eventTypes) {
-    eventTypesOn[ev[0]] = getLocalStorage(eventTypeOnLocalStorageKey(ev[0])) !== "false";
+    eventTypesOn[ev[0]] = getLocalStorage(eventTypeOnLocalStorageKey(ev[0])) !== 'false';
   }
   return eventTypesOn;
 };
@@ -187,11 +187,11 @@ export default {
   },
 
   setup() {
-    const useUtcDates = ref(getLocalStorage(USE_UTC_DATES_LOCALSTORAGE_KEY) !== "false");
+    const useUtcDates = ref(getLocalStorage(USE_UTC_DATES_LOCALSTORAGE_KEY) !== 'false');
     watch(useUtcDates, () => setLocalStorage(USE_UTC_DATES_LOCALSTORAGE_KEY, useUtcDates.value));
-    const forceFullWidth = ref(getLocalStorage(FORCE_FULL_WIDTH_LOCALSTORAGE_KEY) === "true");
+    const forceFullWidth = ref(getLocalStorage(FORCE_FULL_WIDTH_LOCALSTORAGE_KEY) === 'true');
     watch(forceFullWidth, () => setLocalStorage(FORCE_FULL_WIDTH_LOCALSTORAGE_KEY, forceFullWidth));
-    const forceSingleColumn = ref(getLocalStorage(FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY) === "true");
+    const forceSingleColumn = ref(getLocalStorage(FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY) === 'true');
     watch(forceSingleColumn, () =>
       setLocalStorage(FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY, forceSingleColumn.value)
     );
@@ -220,7 +220,7 @@ export default {
         if (useUtcDates.value) {
           startTime = startTime.utc();
         }
-        const month = startTime.format("YYYY-MM");
+        const month = startTime.format('YYYY-MM');
         const date = startTime.date();
         if (month !== currentMonth) {
           if (currentMonth) {

@@ -36,9 +36,9 @@
 </template>
 
 <script>
-import ArtifactName from "@/components/ArtifactName.vue";
+import ArtifactName from '@/components/ArtifactName.vue';
 
-import { stringCmp } from "@/utils";
+import { stringCmp } from '@/utils';
 
 export default {
   components: {
@@ -53,33 +53,33 @@ export default {
   data() {
     return {
       commonArtifacts: this.artifacts.filter(artifact => artifact.afxRarity === 0),
-      artifactId: this.initialArtifactId || "",
+      artifactId: this.initialArtifactId || '',
     };
   },
 
   computed: {
     artifactsSection() {
-      return this.sectionByType("Artifact");
+      return this.sectionByType('Artifact');
     },
 
     stonesSection() {
-      return this.sectionByType("Stone");
+      return this.sectionByType('Stone');
     },
 
     ingredientsSection() {
-      return this.sectionByType("Ingredient");
+      return this.sectionByType('Ingredient');
     },
   },
 
   watch: {
     artifactId() {
-      if (this.artifactId === "") {
+      if (this.artifactId === '') {
         this.$router.push({
-          name: "home",
+          name: 'home',
         });
       } else {
         this.$router.push({
-          name: "artifact",
+          name: 'artifact',
           params: {
             artifactId: this.artifactId,
           },

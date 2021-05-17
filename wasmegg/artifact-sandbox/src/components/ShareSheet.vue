@@ -136,9 +136,9 @@
 </template>
 
 <script>
-import copyTextToClipboard from "copy-text-to-clipboard";
-import html2canvas from "html2canvas";
-import { Builds } from "@/lib/models";
+import copyTextToClipboard from 'copy-text-to-clipboard';
+import html2canvas from 'html2canvas';
+import { Builds } from '@/lib/models';
 
 let runId;
 
@@ -155,14 +155,14 @@ export default {
   data() {
     return {
       linkCopied: false,
-      imageURL: "",
+      imageURL: '',
       placeholderAspectRatio: 1,
       generateImageErrored: false,
-      generateImageError: "",
+      generateImageError: '',
     };
   },
 
-  emits: ["update:show", "update:showFootnotes"],
+  emits: ['update:show', 'update:showFootnotes'],
 
   computed: {
     link() {
@@ -170,14 +170,14 @@ export default {
         window.location.origin +
         window.location.pathname +
         this.$router.resolve({
-          name: "builds",
+          name: 'builds',
           params: { serializedBuilds: this.builds.serialize() },
         }).href
       );
     },
 
     encodedError() {
-      return btoa(`${this.generateImageError}` || "");
+      return btoa(`${this.generateImageError}` || '');
     },
   },
 
@@ -210,10 +210,10 @@ export default {
       runId = Math.floor(Math.random() * 65536);
       const currentRunId = runId;
 
-      this.imageURL = "";
+      this.imageURL = '';
       this.generateImageErrored = false;
-      this.generateImageError = "";
-      const target = document.getElementById("builds");
+      this.generateImageError = '';
+      const target = document.getElementById('builds');
       if (target.offsetWidth !== 0) {
         this.placeholderAspectRatio = target.offsetHeight / target.offsetWidth;
       }
@@ -236,8 +236,8 @@ export default {
             // https://github.com/niklasvh/html2canvas/issues/1878#issuecomment-756504779
             //
             // Using html2canvas has always been shots in the dark like this.
-            const clone = doc.getElementById("builds");
-            clone.style.position = "fixed";
+            const clone = doc.getElementById('builds');
+            clone.style.position = 'fixed';
             clone.style.left = `${offsetX}px`;
             clone.style.top = `${offsetY}px`;
             clone.style.width = `${width}px`;
@@ -257,7 +257,7 @@ export default {
             this.placeholderAspectRatio = canvas.height / canvas.width;
           }
           this.imageURL = window.URL.createObjectURL(blob);
-        }, "image/png");
+        }, 'image/png');
       } catch (e) {
         this.generateImageErrored = true;
         this.generateImageError = e.stack;

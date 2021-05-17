@@ -11,9 +11,9 @@
 </template>
 
 <script>
-import ArtifactGridSection from "@/components/ArtifactGridSection.vue";
+import ArtifactGridSection from '@/components/ArtifactGridSection.vue';
 
-import { stringCmp } from "@/utils";
+import { stringCmp } from '@/utils';
 
 export default {
   components: {
@@ -54,13 +54,13 @@ export default {
       const ingredients = [];
       for (const family of families) {
         switch (family.type) {
-          case "Artifact":
+          case 'Artifact':
             artifacts.push(family);
             break;
-          case "Stone":
+          case 'Stone':
             stones.push(family);
             break;
-          case "Ingredient":
+          case 'Ingredient':
             ingredients.push(family);
             break;
         }

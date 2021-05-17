@@ -1,6 +1,6 @@
-import { Build, Config } from "../models";
-import { multiplicativeEffect } from "./common";
-import { maxHabSpace, baseMaxHabSpace, habSpaceMultiplier } from "./hab_space";
+import { Build, Config } from '../models';
+import { multiplicativeEffect } from './common';
+import { maxHabSpace, baseMaxHabSpace, habSpaceMultiplier } from './hab_space';
 
 /**
  * Laying rate multiplier per chicken.

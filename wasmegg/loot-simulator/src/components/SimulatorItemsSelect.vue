@@ -30,11 +30,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, toRefs } from "vue";
-import { v4 as uuidv4 } from "uuid";
+import { defineComponent, PropType, toRefs } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
-import { ItemSelectSpec } from "@/types";
-import SimulatorItemSelect from "@/components/SimulatorItemSelect.vue";
+import { ItemSelectSpec } from '@/types';
+import SimulatorItemSelect from '@/components/SimulatorItemSelect.vue';
 
 export default defineComponent({
   components: {
@@ -47,7 +47,7 @@ export default defineComponent({
     },
   },
   emits: {
-    "update:modelValue": (payload: ItemSelectSpec[]) => true,
+    'update:modelValue': (payload: ItemSelectSpec[]) => true,
   },
   setup(props, { emit }) {
     const { modelValue } = toRefs(props);
@@ -58,17 +58,17 @@ export default defineComponent({
         count: 1,
         rowid: uuidv4(),
       });
-      emit("update:modelValue", updated);
+      emit('update:modelValue', updated);
     };
     const updateItem = (index: number, spec: ItemSelectSpec) => {
       const updated = [...modelValue.value];
       updated[index] = spec;
-      emit("update:modelValue", updated);
+      emit('update:modelValue', updated);
     };
     const deleteItem = (index: number) => {
       const updated = [...modelValue.value];
       updated.splice(index, 1);
-      emit("update:modelValue", updated);
+      emit('update:modelValue', updated);
     };
     return {
       addItem,

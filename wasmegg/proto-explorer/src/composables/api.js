@@ -1,9 +1,9 @@
-import { onBeforeUnmount, ref, Ref } from "vue";
-import { APIClient, encodeMessage } from "@/lib/lib";
-import { getLocalStorage, setLocalStorage } from "@/utils";
+import { onBeforeUnmount, ref, Ref } from 'vue';
+import { APIClient, encodeMessage } from '@/lib/lib';
+import { getLocalStorage, setLocalStorage } from '@/utils';
 
-const ENCODED_REQUEST_PAYLOAD_LOCALSTORAGE_KEY = "encoded_request_payload";
-const ENCODED_RESPONSE_PAYLOAD_LOCALSTORAGE_KEY = "encoded_response_payload";
+const ENCODED_REQUEST_PAYLOAD_LOCALSTORAGE_KEY = 'encoded_request_payload';
+const ENCODED_RESPONSE_PAYLOAD_LOCALSTORAGE_KEY = 'encoded_response_payload';
 
 /**
  * @callback payloadObjectGetter
@@ -52,15 +52,15 @@ function useAPIClient(
   persistValues
 ) {
   /** @type {persistedValues} */
-  const persistedValues = typeof getPersistedValues === "function" ? getPersistedValues() : {};
+  const persistedValues = typeof getPersistedValues === 'function' ? getPersistedValues() : {};
   const {
-    encodedRequestPayload: defaultEncodedRequestPayload = "",
-    encodedResponsePayload: defaultEncodedResponsePayload = "",
+    encodedRequestPayload: defaultEncodedRequestPayload = '',
+    encodedResponsePayload: defaultEncodedResponsePayload = '',
   } = persistedValues;
 
   let encodedRequestPayload = ref(defaultEncodedRequestPayload);
   let encodedResponsePayload = ref(defaultEncodedResponsePayload);
-  let requestError = ref("");
+  let requestError = ref('');
   let loading = ref(false);
 
   const client = new APIClient();
@@ -84,7 +84,7 @@ function useAPIClient(
     if (requestId === thisRequestId) {
       encodedResponsePayload.value = result.payload;
       requestError.value = result.error;
-      if (typeof persistValues === "function") {
+      if (typeof persistValues === 'function') {
         if (result.error === null) {
           persistValues({
             encodedRequestPayload: encodedRequestPayload.value,
@@ -92,8 +92,8 @@ function useAPIClient(
           });
         } else {
           persistValues({
-            encodedRequestPayload: "",
-            encodedResponsePayload: "",
+            encodedRequestPayload: '',
+            encodedResponsePayload: '',
           });
         }
       }
@@ -160,8 +160,8 @@ async function request(
  */
 function getPayloadsFromLocalStorage() {
   return {
-    encodedRequestPayload: getLocalStorage(ENCODED_REQUEST_PAYLOAD_LOCALSTORAGE_KEY) || "",
-    encodedResponsePayload: getLocalStorage(ENCODED_RESPONSE_PAYLOAD_LOCALSTORAGE_KEY) || "",
+    encodedRequestPayload: getLocalStorage(ENCODED_REQUEST_PAYLOAD_LOCALSTORAGE_KEY) || '',
+    encodedResponsePayload: getLocalStorage(ENCODED_RESPONSE_PAYLOAD_LOCALSTORAGE_KEY) || '',
   };
 }
 

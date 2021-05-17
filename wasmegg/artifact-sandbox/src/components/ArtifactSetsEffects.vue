@@ -287,7 +287,7 @@
             >
           </td>
           <td v-if="buildValidities[0]" class="px-4 py-1.5 text-base text-right whitespace-nowrap">
-            <span class="Value">{{ maxHabSpace(...buildConfig(0)).toLocaleString("en-US") }}</span>
+            <span class="Value">{{ maxHabSpace(...buildConfig(0)).toLocaleString('en-US') }}</span>
             <span class="Bonus"
               >&nbsp;(&times;{{ formatFloat(habSpaceMultiplier(...buildConfig(0))) }})</span
             >
@@ -309,7 +309,7 @@
           <td v-if="buildValidities[0]" class="px-4 py-1.5 text-base text-right whitespace-nowrap">
             <span class="Value"
               >{{
-                maxInternalHatcheryRatePerMinPerHab(...buildConfig(0)).toLocaleString("en-US")
+                maxInternalHatcheryRatePerMinPerHab(...buildConfig(0)).toLocaleString('en-US')
               }}/min/hab</span
             >
             <span class="Bonus"
@@ -420,8 +420,8 @@
 </template>
 
 <script>
-import EffectWithNote from "./EffectWithNote.vue";
-import { Builds } from "@/lib/models";
+import EffectWithNote from './EffectWithNote.vue';
+import { Builds } from '@/lib/models';
 import {
   earningBonus,
   earningBonusMultiplier,
@@ -442,9 +442,9 @@ import {
   maxHourlyLayingRate,
   shippingCapacityMultiplier,
   maxHourlyShippingCapacity,
-} from "@/lib/effects/effects";
-import { earningBonusToFarmerRole } from "@/lib/role";
-import { formatEIValue, formatEIPercentage, formatFloat } from "@/lib/utils/utils";
+} from '@/lib/effects/effects';
+import { earningBonusToFarmerRole } from '@/lib/role';
+import { formatEIValue, formatEIPercentage, formatFloat } from '@/lib/utils/utils';
 
 export default {
   components: {
@@ -462,50 +462,50 @@ export default {
   data() {
     return {
       notes: [
-        ["EB", "Earning bonus, as shown on the prestige screen."],
+        ['EB', 'Earning bonus, as shown on the prestige screen.'],
         [
-          "Role",
-          "This is the role (rank) corresponding to the earning bonus, as used in the Egg, Inc. Discord.",
+          'Role',
+          'This is the role (rank) corresponding to the earning bonus, as used in the Egg, Inc. Discord.',
         ],
         [
-          "Earnings",
-          "Aggregate effect on bock earning rate from earning bonus increase, egg value increase, and egg laying rate increase (not considering shipping-limited scenarios). Running chicken bonus is not taken into account here; see “Earnings w/ max RCB” instead. Indirect bonus from boosted chicken population growth is not included.",
+          'Earnings',
+          'Aggregate effect on bock earning rate from earning bonus increase, egg value increase, and egg laying rate increase (not considering shipping-limited scenarios). Running chicken bonus is not taken into account here; see “Earnings w/ max RCB” instead. Indirect bonus from boosted chicken population growth is not included.',
         ],
-        ["Max RCB", "Max running chicken bonus."],
+        ['Max RCB', 'Max running chicken bonus.'],
         [
-          "Earnings w/ max RCB",
-          "Increase in bock earning rate assuming the respective max running chicken bonus is attained with and without artifacts.",
-        ],
-        [
-          "SE gain",
-          "Soul egg earning rate multiplier from bock earning rate bonus (with max RCB) and soul egg collection rate bonus. The late game dampening exponent (0.21) is used; may not be accurate for early game players. Indirect bonus from boosted chicken population growth is not included; see “SE gain w/ empty habs start” instead.",
+          'Earnings w/ max RCB',
+          'Increase in bock earning rate assuming the respective max running chicken bonus is attained with and without artifacts.',
         ],
         [
-          "SE gain w/ empty habs start",
-          "Same as “SE gain” except for taking into account the indirect earnings bonus from faster chicken population growth when there is a monocle-boosted tachyon prism active. Assumes the tachyon prism is activated at zero population, and population never hits the hab space cap; otherwise, the actual effect is between this stat and “SE gain”.",
+          'SE gain',
+          'Soul egg earning rate multiplier from bock earning rate bonus (with max RCB) and soul egg collection rate bonus. The late game dampening exponent (0.21) is used; may not be accurate for early game players. Indirect bonus from boosted chicken population growth is not included; see “SE gain w/ empty habs start” instead.',
         ],
         [
-          "Boost duration",
-          "Affects the duration of any boost activated while this artifact set is equipped. Artifact changes after activation have no effect on the duration.",
+          'SE gain w/ empty habs start',
+          'Same as “SE gain” except for taking into account the indirect earnings bonus from faster chicken population growth when there is a monocle-boosted tachyon prism active. Assumes the tachyon prism is activated at zero population, and population never hits the hab space cap; otherwise, the actual effect is between this stat and “SE gain”.',
         ],
         [
-          "Research discount",
-          "Only applies to common research. Compounds with research sale events: e.g. 60% discount compounded with a 65% research sale results in an aggregate 1−(1−60%)×(1−65%) = 86% discount.",
-        ],
-        ["Max hab space", "Hab space from four chicken universe habs."],
-        [
-          "Max IHR",
-          "Internal hatchery rate as shown on the stats page, without taking internal hatchery calm into account.",
+          'Boost duration',
+          'Affects the duration of any boost activated while this artifact set is equipped. Artifact changes after activation have no effect on the duration.',
         ],
         [
-          "Egg laying rate",
-          "Per-chicken multiplier from egg laying rate bonuses. Tachyon deflector bonus included.",
+          'Research discount',
+          'Only applies to common research. Compounds with research sale events: e.g. 60% discount compounded with a 65% research sale results in an aggregate 1−(1−60%)×(1−65%) = 86% discount.',
+        ],
+        ['Max hab space', 'Hab space from four chicken universe habs.'],
+        [
+          'Max IHR',
+          'Internal hatchery rate as shown on the stats page, without taking internal hatchery calm into account.',
         ],
         [
-          "Max egg laying rate",
-          "Total hourly egg laying rate with full habs. Tachyon deflector bonus included.",
+          'Egg laying rate',
+          'Per-chicken multiplier from egg laying rate bonuses. Tachyon deflector bonus included.',
         ],
-        ["Max shipping capacity", "Actual egg shipping rate is capped at this value."],
+        [
+          'Max egg laying rate',
+          'Total hourly egg laying rate with full habs. Tachyon deflector bonus included.',
+        ],
+        ['Max shipping capacity', 'Actual egg shipping rate is capped at this value.'],
       ],
     };
   },

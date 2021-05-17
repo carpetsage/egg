@@ -1,4 +1,4 @@
-const API_ROOT = "https://wasmegg.zw.workers.dev/?url=https://afx-2-dot-auxbrainhome.appspot.com";
+const API_ROOT = 'https://wasmegg.zw.workers.dev/?url=https://afx-2-dot-auxbrainhome.appspot.com';
 const TIMEOUT = 10000;
 
 class APIClient {
@@ -29,10 +29,10 @@ class APIClient {
     const url = API_ROOT + endpoint;
     try {
       const resp = await fetch(url, {
-        method: "POST",
-        mode: "cors",
+        method: 'POST',
+        mode: 'cors',
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: `data=${encodedPayload}`,
         signal: controller.signal,
@@ -43,7 +43,7 @@ class APIClient {
       }
       return text;
     } catch (e) {
-      if (e.name === "AbortError") {
+      if (e.name === 'AbortError') {
         throw new Error(`POST ${url} data=${encodedPayload}: timeout after ${TIMEOUT}ms.`);
       } else {
         throw new Error(`POST ${url} data=${encodedPayload}: ${e}`);

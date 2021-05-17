@@ -1,11 +1,11 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory } from 'vue-router';
 
-import AppHeader from "@/views/AppHeader.vue";
-import ArbitraryPayload from "@/views/ArbitraryPayload.vue";
-import CoopStatus from "@/views/CoopStatus.vue";
-import FirstContact from "@/views/FirstContact.vue";
-import GetConfig from "@/views/GetConfig.vue";
-import GetPeriodicals from "@/views/GetPeriodicals.vue";
+import AppHeader from '@/views/AppHeader.vue';
+import ArbitraryPayload from '@/views/ArbitraryPayload.vue';
+import CoopStatus from '@/views/CoopStatus.vue';
+import FirstContact from '@/views/FirstContact.vue';
+import GetConfig from '@/views/GetConfig.vue';
+import GetPeriodicals from '@/views/GetPeriodicals.vue';
 
 function routeNameProp(route) {
   return {
@@ -15,8 +15,8 @@ function routeNameProp(route) {
 
 const routes = [
   {
-    name: "arbitrary_payload",
-    path: "/",
+    name: 'arbitrary_payload',
+    path: '/',
     components: {
       default: ArbitraryPayload,
       header: AppHeader,
@@ -27,8 +27,8 @@ const routes = [
     },
   },
   {
-    name: "first_contact",
-    path: "/first_contact/",
+    name: 'first_contact',
+    path: '/first_contact/',
     components: {
       default: FirstContact,
       header: AppHeader,
@@ -39,8 +39,8 @@ const routes = [
     },
   },
   {
-    name: "get_periodicals",
-    path: "/get_periodicals/",
+    name: 'get_periodicals',
+    path: '/get_periodicals/',
     components: {
       default: GetPeriodicals,
       header: AppHeader,
@@ -51,8 +51,8 @@ const routes = [
     },
   },
   {
-    name: "get_config",
-    path: "/get_config/",
+    name: 'get_config',
+    path: '/get_config/',
     components: {
       default: GetConfig,
       header: AppHeader,
@@ -63,8 +63,8 @@ const routes = [
     },
   },
   {
-    name: "coop_status",
-    path: "/coop_status/",
+    name: 'coop_status',
+    path: '/coop_status/',
     components: {
       default: CoopStatus,
       header: AppHeader,
@@ -75,18 +75,18 @@ const routes = [
     },
   },
   {
-    name: "doc",
-    path: "/doc/",
+    name: 'doc',
+    path: '/doc/',
   },
   {
-    path: "/:catchAll(.*)",
-    redirect: "/",
+    path: '/:catchAll(.*)',
+    redirect: '/',
   },
 ];
 
 const router = createRouter({
   routes,
-  history: createWebHistory("/proto-explorer/"),
+  history: createWebHistory('/proto-explorer/'),
 });
 
 export default router;

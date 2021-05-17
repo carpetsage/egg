@@ -16,9 +16,9 @@
 </template>
 
 <script>
-import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
-import { PieChart, ScatterChart, CustomChart } from "echarts/charts";
+import { use } from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import { PieChart, ScatterChart, CustomChart } from 'echarts/charts';
 import {
   DataZoomComponent,
   DataZoomSliderComponent,
@@ -26,9 +26,9 @@ import {
   MarkLineComponent,
   ToolboxComponent,
   TooltipComponent,
-} from "echarts/components";
-import { computed, ref } from "vue";
-import VChart, { THEME_KEY } from "vue-echarts";
+} from 'echarts/components';
+import { computed, ref } from 'vue';
+import VChart, { THEME_KEY } from 'vue-echarts';
 
 use([
   CanvasRenderer,
@@ -48,25 +48,25 @@ use([
 const tierSymbols = {
   1: {
     // Regular triangle
-    path: "M 50 15,100 100,0 100z",
+    path: 'M 50 15,100 100,0 100z',
     // (5\sqrt{3}, 15/2)
     size: [8.66, 7.5],
   },
   2: {
     // Square
-    path: "M 0 0,0 100,100 100,100 0z",
+    path: 'M 0 0,0 100,100 100,100 0z',
     // (5\sqrt{2}, 5\sqrt{2})
     size: [7.07, 7.07],
   },
   3: {
     // Regular pentagon
-    path: "M 26,86 11.2,40.4 50,12.2 88.8,40.4 74,86 z",
+    path: 'M 26,86 11.2,40.4 50,12.2 88.8,40.4 74,86 z',
     // (10 \cos(\pi/10), 10 \cos^2(\pi/10))
     size: [9.51, 9.05],
   },
   4: {
     // Regular hexagon
-    path: "M 30.1,84.5 10.2,50 30.1,15.5 69.9,15.5 89.8,50 69.9,84.5z",
+    path: 'M 30.1,84.5 10.2,50 30.1,15.5 69.9,15.5 89.8,50 69.9,84.5z',
     // (10, 5\sqrt{3})
     size: [10, 8.66],
   },
@@ -75,9 +75,9 @@ const tierSymbols = {
 // z_{1-\alpha/2}, where \alpha = 1 - confidence level.
 // http://www.z-table.com/
 const zscores = {
-  "68%": 1.0,
-  "95%": 1.96,
-  "99.7%": 2.97,
+  '68%': 1.0,
+  '95%': 1.96,
+  '99.7%': 2.97,
 };
 
 // Render error bar. Adapted from
@@ -92,16 +92,16 @@ function renderItem(params, api) {
 
   const halfWidth = 2;
   const style = api.style({
-    stroke: api.visual("color"),
+    stroke: api.visual('color'),
     fill: null,
   });
 
   return {
-    type: "group",
+    type: 'group',
     children: [
       {
-        type: "line",
-        transition: ["shape"],
+        type: 'line',
+        transition: ['shape'],
         shape: {
           x1: highPoint[0] - halfWidth,
           y1: highPoint[1],
@@ -111,8 +111,8 @@ function renderItem(params, api) {
         style,
       },
       {
-        type: "line",
-        transition: ["shape"],
+        type: 'line',
+        transition: ['shape'],
         shape: {
           x1: highPoint[0],
           y1: highPoint[1],
@@ -122,8 +122,8 @@ function renderItem(params, api) {
         style,
       },
       {
-        type: "line",
-        transition: ["shape"],
+        type: 'line',
+        transition: ['shape'],
         shape: {
           x1: lowPoint[0] - halfWidth,
           y1: lowPoint[1],
@@ -142,7 +142,7 @@ export default {
   },
 
   provide: {
-    [THEME_KEY]: "infographic",
+    [THEME_KEY]: 'infographic',
   },
 
   props: {
@@ -151,7 +151,7 @@ export default {
   },
 
   setup({ items, missionStats }) {
-    const confidenceLevel = ref("95%");
+    const confidenceLevel = ref('95%');
     const zscore = computed(() => zscores[confidenceLevel.value]);
 
     const missionCount = missionStats.missionCount;
@@ -161,24 +161,24 @@ export default {
     const total = missionCount * capacity;
 
     const dimensions = [
-      "Name",
-      "Tier",
-      "Quality",
-      "Odds multipler",
-      "Count",
-      "Expectation",
-      "Normalized expectation",
-      "Normalized expectation (upper)",
-      "Normalized expectation (lower)",
+      'Name',
+      'Tier',
+      'Quality',
+      'Odds multipler',
+      'Count',
+      'Expectation',
+      'Normalized expectation',
+      'Normalized expectation (upper)',
+      'Normalized expectation (lower)',
     ];
     const tooltipDimensions = [
-      "Quality",
-      "Odds multipler",
-      "Count",
-      "Expectation",
-      "Normalized expectation",
-      "Normalized expectation (upper)",
-      "Normalized expectation (lower)",
+      'Quality',
+      'Odds multipler',
+      'Count',
+      'Expectation',
+      'Normalized expectation',
+      'Normalized expectation (upper)',
+      'Normalized expectation (lower)',
     ];
     const data = computed(() =>
       missionStats.categories.map(category => ({
@@ -224,40 +224,40 @@ export default {
 
     const option = computed(() => ({
       color: [
-        "#27727b",
-        "#60a5fa",
-        "#a78bfa",
-        "#fbbf24",
-        "#c1232b",
-        "#9bca63",
-        "#e87c25",
+        '#27727b',
+        '#60a5fa',
+        '#a78bfa',
+        '#fbbf24',
+        '#c1232b',
+        '#9bca63',
+        '#e87c25',
 
-        "#aaaaaa",
-        "#aaaaaa",
-        "#aaaaaa",
-        "#aaaaaa",
+        '#aaaaaa',
+        '#aaaaaa',
+        '#aaaaaa',
+        '#aaaaaa',
       ],
       dataZoom: [
         {
           xAxisIndex: [0],
-          type: "slider",
-          filterMode: "filter",
+          type: 'slider',
+          filterMode: 'filter',
         },
         {
           yAxisIndex: [0],
-          type: "slider",
+          type: 'slider',
         },
       ],
       grid: {
         top: 40,
       },
       legend: {
-        left: "left",
-        orient: "vertical",
+        left: 'left',
+        orient: 'vertical',
         selected: {
-          "Artifacts (Rare)": false,
-          "Artifacts (Epic)": false,
-          "Artifacts (Legendary)": false,
+          'Artifacts (Rare)': false,
+          'Artifacts (Epic)': false,
+          'Artifacts (Legendary)': false,
         },
       },
       toolbox: {
@@ -265,8 +265,8 @@ export default {
           dataZoom: {},
           restore: {},
           saveAsImage: {
-            title: "Save",
-            type: "png",
+            title: 'Save',
+            type: 'png',
             name: `Loot analysis - ${info.display}`,
             pixelRatio: 2,
           },
@@ -281,19 +281,19 @@ export default {
       series: data.value
         .map(category => [
           {
-            type: "scatter",
+            type: 'scatter',
             name: category.name,
             dimensions,
             encode: {
-              x: "Quality",
-              y: "Normalized expectation",
+              x: 'Quality',
+              y: 'Normalized expectation',
               tooltip: tooltipDimensions,
-              itemName: "Name",
+              itemName: 'Name',
             },
             data: category.data,
             symbol: (value, params) => {
               const tier = value[1];
-              return tier in tierSymbols ? `path://${tierSymbols[tier].path}` : "circle";
+              return tier in tierSymbols ? `path://${tierSymbols[tier].path}` : 'circle';
             },
             symbolSize: (value, params) => {
               const tier = value[1];
@@ -302,17 +302,17 @@ export default {
             markLine: {
               silent: true,
               lineStyle: {
-                color: "#000",
-                type: "dashed",
+                color: '#000',
+                type: 'dashed',
                 width: 1.5,
               },
-              symbol: "none",
+              symbol: 'none',
               data: [
                 [
                   {
                     name: `Mission target quality (${info.quality.toFixed(1)})`,
                     label: {
-                      position: "start",
+                      position: 'start',
                       offset: [0, -20],
                     },
                     xAxis: info.quality,
@@ -320,22 +320,22 @@ export default {
                   },
                   {
                     xAxis: info.quality,
-                    yAxis: "max",
+                    yAxis: 'max',
                   },
                 ],
               ],
             },
           },
           {
-            type: "custom",
+            type: 'custom',
             name: category.name,
             dimensions,
             encode: {
-              x: "Quality",
+              x: 'Quality',
               y: [
-                "Normalized expectation",
-                "Normalized expectation (upper)",
-                "Normalized expectation (lower)",
+                'Normalized expectation',
+                'Normalized expectation (upper)',
+                'Normalized expectation (lower)',
               ],
               tooltip: tooltipDimensions,
               itemName: 0,
@@ -349,7 +349,7 @@ export default {
         .concat(
           // Phantom series used to create legends for tier shapes.
           [1, 2, 3, 4].map(tier => ({
-            type: "scatter",
+            type: 'scatter',
             name: `Tier ${tier}`,
             symbol: `path://${tierSymbols[tier].path}`,
           }))

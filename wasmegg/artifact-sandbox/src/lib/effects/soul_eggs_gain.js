@@ -1,7 +1,7 @@
-import { Build, Config } from "../models";
-import { multiplicativeEffect } from "./common";
-import { boostMultiplier } from "./boosts";
-import { earningsWithMaxRunningChickenBonusMultiplier } from "./earnings";
+import { Build, Config } from '../models';
+import { multiplicativeEffect } from './common';
+import { boostMultiplier } from './boosts';
+import { earningsWithMaxRunningChickenBonusMultiplier } from './earnings';
 
 /**
  * @param {!Build} build

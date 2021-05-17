@@ -155,8 +155,8 @@
 </template>
 
 <script>
-import { computed, defineComponent, nextTick, ref, toRefs } from "vue";
-import scrollIntoView from "scroll-into-view-if-needed";
+import { computed, defineComponent, nextTick, ref, toRefs } from 'vue';
+import scrollIntoView from 'scroll-into-view-if-needed';
 
 import {
   artifacts,
@@ -165,8 +165,8 @@ import {
   stoneIdToStone,
   searchArtifacts,
   searchStones,
-} from "@/lib/data";
-import { iconURL } from "@/utils";
+} from '@/lib/data';
+import { iconURL } from '@/utils';
 
 export default defineComponent({
   props: {
@@ -178,7 +178,7 @@ export default defineComponent({
     type: {
       type: String,
       required: true,
-      validator: value => ["artifact", "stone"].includes(value),
+      validator: value => ['artifact', 'stone'].includes(value),
     },
     disabled: {
       type: Boolean,
@@ -186,24 +186,24 @@ export default defineComponent({
     },
   },
   emits: {
-    "update:modelValue": itemId => true,
+    'update:modelValue': itemId => true,
   },
   setup(props, { emit }) {
     // Note that we do NOT react to type change.
     const { type } = props;
     const { modelValue } = toRefs(props);
 
-    const items = type === "artifact" ? artifacts : stones;
-    const itemIdToItem = type === "artifact" ? artifactIdToArtifact : stoneIdToStone;
-    const searchItems = type === "artifact" ? searchArtifacts : searchStones;
+    const items = type === 'artifact' ? artifacts : stones;
+    const itemIdToItem = type === 'artifact' ? artifactIdToArtifact : stoneIdToStone;
+    const searchItems = type === 'artifact' ? searchArtifacts : searchStones;
 
     const selectButton = ref(null);
     const dropdownList = ref(null);
 
     const selected = computed(() => (modelValue.value ? itemIdToItem.get(modelValue.value) : null));
-    const searchFilter = ref(selected.value ? selected.value.display : "");
+    const searchFilter = ref(selected.value ? selected.value.display : '');
     const filteredItems = computed(() =>
-      searchFilter.value !== "" ? searchItems(searchFilter.value) : items
+      searchFilter.value !== '' ? searchItems(searchFilter.value) : items
     );
     const active = ref(null);
 
@@ -217,13 +217,13 @@ export default defineComponent({
       return -1;
     };
     const scrollDropdownListEntryIntoViewIfNeeded = (index, block /* ScrollLogicalPosition? */) => {
-      block ||= "nearest";
+      block ||= 'nearest';
       const node = dropdownList.value?.querySelector(`:scope > li:nth-child(${index + 1})`);
       if (node) {
         scrollIntoView(node, {
-          scrollMode: "if-needed",
+          scrollMode: 'if-needed',
           block,
-          inline: "nearest",
+          inline: 'nearest',
           boundary: dropdownList.value,
         });
       }
@@ -231,14 +231,14 @@ export default defineComponent({
 
     const open = ref(false);
     const openDropdown = () => {
-      searchFilter.value = "";
+      searchFilter.value = '';
       active.value = selected.value;
       open.value = true;
       nextTick(() => {
         if (active.value) {
           const index = dropdownListEntryIndex(active.value.id);
           if (index !== -1) {
-            scrollDropdownListEntryIntoViewIfNeeded(index, "center");
+            scrollDropdownListEntryIntoViewIfNeeded(index, 'center');
           }
         } else {
           scrollDropdownListEntryIntoViewIfNeeded(0);
@@ -246,11 +246,11 @@ export default defineComponent({
       });
     };
     const closeDropdown = () => {
-      searchFilter.value = selected.value !== null ? selected.value.display : "";
+      searchFilter.value = selected.value !== null ? selected.value.display : '';
       open.value = false;
     };
     const selectItem = item => {
-      emit("update:modelValue", item.id);
+      emit('update:modelValue', item.id);
     };
     const activateItem = item => {
       active.value = item;
@@ -260,7 +260,7 @@ export default defineComponent({
     };
     const handleKeydown = event => {
       switch (event.key) {
-        case "Enter":
+        case 'Enter':
           event.preventDefault();
           // Do nothing if there are no matching entries.
           if (filteredItems.value.length === 0) {
@@ -277,8 +277,8 @@ export default defineComponent({
             selectButton.value?.blur();
           });
           return;
-        case "ArrowDown":
-        case "ArrowUp":
+        case 'ArrowDown':
+        case 'ArrowUp':
           event.preventDefault();
           // Do nothing if there are no matching entries.
           if (filteredItems.value.length === 0) {
@@ -288,10 +288,10 @@ export default defineComponent({
           let currentIndex = active.value ? dropdownListEntryIndex(active.value.id) : -1;
           if (currentIndex === -1) {
             // No entry currently active.
-            currentIndex = event.key === "ArrowDown" ? -1 : entries.length;
+            currentIndex = event.key === 'ArrowDown' ? -1 : entries.length;
           }
           const newIndex =
-            (((event.key === "ArrowDown" ? currentIndex + 1 : currentIndex - 1) % entries.length) +
+            (((event.key === 'ArrowDown' ? currentIndex + 1 : currentIndex - 1) % entries.length) +
               entries.length) %
             entries.length;
           active.value = entries[newIndex];
@@ -301,8 +301,8 @@ export default defineComponent({
     };
 
     const clear = () => {
-      emit("update:modelValue", "");
-      searchFilter.value = "";
+      emit('update:modelValue', '');
+      searchFilter.value = '';
     };
 
     return {

@@ -8,7 +8,7 @@
     </template>
     <template v-if="completionForecast">
       <span class="text-green-500 whitespace-nowrap">
-        {{ completionForecast.format("LLL z") }}
+        {{ completionForecast.format('LLL z') }}
       </span>
       <template v-if="completionForecastDays !== null && completionForecastDays > 0">
         ({{ completionForecastDays.toFixed(1) }} days)
@@ -30,13 +30,13 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref, toRefs } from "vue";
-import dayjs from "dayjs";
-import advancedFormat from "dayjs/plugin/advancedFormat";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import relativeTime from "dayjs/plugin/relativeTime";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
+import { computed, defineComponent, onBeforeUnmount, ref, toRefs } from 'vue';
+import dayjs from 'dayjs';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 
 // Note that timezone abbreviation may not work due to
 // https://github.com/iamkun/dayjs/issues/1154, in which case the GMT offset is
@@ -93,7 +93,7 @@ export default defineComponent({
     const now = ref(dayjs());
     const completionForecastDays = computed(() =>
       completionForecast.value !== null
-        ? completionForecast.value.diff(now.value, "day", true)
+        ? completionForecast.value.diff(now.value, 'day', true)
         : null
     );
     const refreshIntervalId = setInterval(() => {

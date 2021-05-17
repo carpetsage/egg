@@ -72,16 +72,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref } from 'vue';
 import {
   Dialog,
   DialogOverlay,
   DialogTitle,
   TransitionChild,
   TransitionRoot,
-} from "@headlessui/vue";
+} from '@headlessui/vue';
 
-import CalculatorInstance from "@/components/CalculatorInstance.vue";
+import CalculatorInstance from '@/components/CalculatorInstance.vue';
 
 export default defineComponent({
   components: {
@@ -95,7 +95,7 @@ export default defineComponent({
   setup() {
     const open = ref(false);
     // Persist between calculator component rerenders.
-    const calculatorExpr = ref("");
+    const calculatorExpr = ref('');
     return {
       open,
       calculatorExpr,

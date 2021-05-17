@@ -22,8 +22,8 @@
 </template>
 
 <script>
-import { eventIcon, eventBgClass } from "@/lib";
-import { iconURL } from "@/utils";
+import { eventIcon, eventBgClass } from '@/lib';
+import { iconURL } from '@/utils';
 
 export default {
   props: {
