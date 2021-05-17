@@ -1,5 +1,5 @@
-import { ProtobufType } from "../types";
-import { uint8ArrayToBinaryString } from "./utils";
+import { ProtobufType } from './types';
+import { uint8ArrayToBinaryString } from './utils';
 
 /**
  * @param {!String} messageName - Name of the protobuf message.

@@ -1,8 +1,6 @@
-import * as $protobuf from "protobufjs/minimal";
-
-import { ei } from "lib";
-import { ProtobufType } from "../types";
-import { uint8ArrayToBinaryString, binaryStringToUint8Array } from "./utils";
+import { ei } from '../proto';
+import { ProtobufType } from './types';
+import { uint8ArrayToBinaryString, binaryStringToUint8Array } from './utils';
 
 /**
  * Decode base64-encoded message.
@@ -24,7 +22,7 @@ export function decodeMessage(
       false
     ) as ei.IAuthenticatedMessage;
     if (wrapperPayload.message === null || wrapperPayload.message === undefined) {
-      throw new Error("No message found behind wrap.");
+      throw new Error('No message found behind wrap.');
     }
     return decodeMessage(message, wrapperPayload.message, false);
   }

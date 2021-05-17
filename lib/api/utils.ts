@@ -1,7 +1,7 @@
 export function uint8ArrayToBinaryString(a: Uint8Array): string {
   return Array.from(a)
     .map(c => String.fromCharCode(c))
-    .join("");
+    .join('');
 }
 
 export function binaryStringToUint8Array(b: string): Uint8Array {

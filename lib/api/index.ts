@@ -1,12 +1,14 @@
-import { ei } from "lib";
-import { decodeMessage } from "./decode";
-import { encodeMessage } from "./encode";
-import { APP_VERSION, APP_BUILD, CLIENT_VERSION, PLATFORM, PLATFORM_STRING } from "../version";
+import { ei } from '../proto';
+import { decodeMessage } from './decode';
+import { encodeMessage } from './encode';
+import { APP_VERSION, APP_BUILD, CLIENT_VERSION, PLATFORM, PLATFORM_STRING } from './version';
+
+export * from './version';
 
 const API_ROOT =
   import.meta.env.DEV && import.meta.env.VITE_APP_MOCK
-    ? "/api"
-    : "https://wasmegg.zw.workers.dev/?url=https://afx-2-dot-auxbrainhome.appspot.com";
+    ? '/api'
+    : 'https://wasmegg.zw.workers.dev/?url=https://afx-2-dot-auxbrainhome.appspot.com';
 const TIMEOUT = 5000;
 
 /**
@@ -22,10 +24,10 @@ export async function request(endpoint: string, encodedPayload: string) {
   const url = API_ROOT + endpoint;
   try {
     const resp = await fetch(url, {
-      method: "POST",
-      mode: "cors",
+      method: 'POST',
+      mode: 'cors',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: `data=${encodedPayload}`,
       signal: controller.signal,
@@ -36,7 +38,7 @@ export async function request(endpoint: string, encodedPayload: string) {
     }
     return text;
   } catch (e) {
-    if (e.name === "AbortError") {
+    if (e.name === 'AbortError') {
       throw new Error(`POST ${url} data=${encodedPayload}: timeout after ${TIMEOUT}ms.`);
     } else {
       throw new Error(`POST ${url} data=${encodedPayload}: ${e}`);
@@ -51,13 +53,13 @@ export async function request(endpoint: string, encodedPayload: string) {
  */
 export async function requestFirstContact(userId: string) {
   const requestPayload: ei.IEggIncFirstContactRequest = {
-    rinfo: basicRequestInfo(""),
+    rinfo: basicRequestInfo(''),
     eiUserId: userId,
     clientVersion: CLIENT_VERSION,
     platform: PLATFORM,
   };
   const encodedRequestPayload = encodeMessage(ei.EggIncFirstContactRequest, requestPayload);
-  const encodedResponsePayload = await request("/ei/first_contact", encodedRequestPayload);
+  const encodedResponsePayload = await request('/ei/first_contact', encodedRequestPayload);
   return decodeMessage(
     ei.EggIncFirstContactResponse,
     encodedResponsePayload,

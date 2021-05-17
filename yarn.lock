@@ -191,7 +191,7 @@
   dependencies:
     "@types/node" "*"
 
-"@vitejs/plugin-vue@^1.1.5":
+"@vitejs/plugin-vue@^1.1.5", "@vitejs/plugin-vue@^1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-1.2.2.tgz#b0038fc11b9099f4cd01fcbf0ee419adda417b52"
   integrity sha512-5BI2WFfs/Z0pAV4S/IQf1oH3bmFYlL5ATMBHgTt1Lf7hAnfpNd5oUAAs6hZPfk3QhvyUQgtk0rJBlabwNFcBJQ==
@@ -1584,7 +1584,7 @@ unpipe@~1.0.0:
   resolved "https://registry.yarnpkg.com/unpipe/-/unpipe-1.0.0.tgz#b2bf4ee8514aae6165b4817829d21b2ef49904ec"
   integrity sha1-sr9O6FFKrmFltIF4KdIbLvSZBOw=
 
-unzipper@latest:
+unzipper@0.10.11, unzipper@latest:
   version "0.10.11"
   resolved "https://registry.yarnpkg.com/unzipper/-/unzipper-0.10.11.tgz#0b4991446472cbdb92ee7403909f26c2419c782e"
   integrity sha512-+BrAq2oFqWod5IESRjL3S8baohbevGcVA+teAIOYWM3pDVdseogqbzhhvvmiyQrUNKFUnDMtELW3X8ykbyDCJw==
@@ -1625,7 +1625,7 @@ vite-plugin-mock@^2.4.2:
     fast-glob "^3.2.5"
     path-to-regexp "^6.2.0"
 
-vite@^2.1.3:
+vite@^2.1.3, vite@^2.3.0:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/vite/-/vite-2.3.2.tgz#cfac76b04d4dee1c7303b55f563b5b62d32f41fe"
   integrity sha512-QhLdOompDrfkyryCNTts9HE+eJhvhN9ibKNJ5Q8DpQai+6nOsuIlaveZNg67e1O/2QaWqXeBo82eHnAs1De2bQ==
@@ -1650,6 +1650,13 @@ vue-tippy@^6.0.0-alpha.28:
   integrity sha512-NqSfgjGAlOJF0YZjzL22rSviqGkvvCv7wQepSepXvjPC9UMjV82ke55bXD6TfhSPdjdpeKi6VqFwFzmgw/g0lg==
   dependencies:
     tippy.js "^6.3.1"
+
+vue-tsc@^0.0.24:
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/vue-tsc/-/vue-tsc-0.0.24.tgz#0cd90db679f53ea1694254b8663fdb3d624a0872"
+  integrity sha512-Qx0V7jkWMtvddtaWa1SA8YKkBCRmjq9zZUB2UIMZiso6JSH538oHD2VumSzkoDnAfFbY3t0/j1mB2abpA0bGWA==
+  dependencies:
+    unzipper "0.10.11"
 
 vue-tsc@^0.0.8:
   version "0.0.8"
