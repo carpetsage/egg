@@ -7,10 +7,11 @@
         {{ lastRefreshedRelative }}
       </span>
     </p>
-    <p
-      class="flex items-center space-x-1"
-      v-tippy="{
-        content: `
+    <p>
+      <span
+        class="inline-flex items-center space-x-1"
+        v-tippy="{
+          content: `
           <p>The game, while active, saves to Egg, Inc.&rsquo;s server every couple of minutes if network condition allows.
           Other than soon after a fresh launch of the game, such server syncs are unpredictable from the user&rsquo;s point of view.
           <span class='text-blue-300'>You can force close then reopen the app to reasonably reliably trigger a sync</span>
@@ -20,11 +21,12 @@
           (usually within a minute or so) for the game&rsquo;s server to serve the updated save through its API,
           which is then picked up by this tool. There is no solution other than clicking &ldquo;Load Player Data&rdquo;
           periodically until the fresh save shows up. Please do not refresh too fast, which is not helpful.</p>`,
-        allowHTML: true,
-      }"
-    >
-      <base-info />
-      <span class="text-xs text-gray-500">Why is my save out of date?</span>
+          allowHTML: true,
+        }"
+      >
+        <base-info />
+        <span class="text-xs text-gray-500">Why is my save out of date?</span>
+      </span>
     </p>
     <p v-if="egg !== enlightenmentEgg" class="text-sm text-red-500 inline-flex items-center">
       Current egg is <img :src="eggIconURL" class="inline h-8 w-8" />, not
