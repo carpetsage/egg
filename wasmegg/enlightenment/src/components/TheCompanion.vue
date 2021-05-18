@@ -275,6 +275,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
+import { iconURL, getLocalStorage, setLocalStorage } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
   bestPossibleGussetForEnlightenment,
@@ -302,14 +303,7 @@ import {
   researchPriceMultiplierFromArtifacts,
   researchPriceMultiplierFromResearches,
 } from '@/lib';
-import {
-  iconURL,
-  formatPercentage,
-  formatWithThousandSeparators,
-  formatDurationAuto,
-  getLocalStorage,
-  setLocalStorage,
-} from '@/utils';
+import { formatPercentage, formatWithThousandSeparators, formatDurationAuto } from '@/utils';
 import CollapsibleSection from '@/components/CollapsibleSection.vue';
 import TrophyForecast from '@/components/TrophyForecast.vue';
 import ArtifactsGallery from '@/components/ArtifactsGallery.vue';

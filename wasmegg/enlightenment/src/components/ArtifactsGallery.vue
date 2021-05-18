@@ -57,8 +57,8 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
+import { iconURL } from 'lib';
 import { Artifact } from '@/lib/types';
-import { iconURL } from '@/utils';
 import { ei } from '@/lib';
 import { hasIneffectiveClarityStones, hasNoEffect } from '@/lib/effects';
 
