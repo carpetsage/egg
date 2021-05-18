@@ -43,8 +43,8 @@ import { defineComponent, ref } from 'vue';
 
 import { getLocalStorage, setLocalStorage } from '@/utils';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
-import BaseErrorBoundary from '@/components/BaseErrorBoundary.vue';
-import BaseLoading from '@/components/BaseLoading.vue';
+import BaseErrorBoundary from 'ui/components/BaseErrorBoundary.vue';
+import BaseLoading from 'ui/components/BaseLoading.vue';
 import TheCompanion from '@/components/TheCompanion.vue';
 import TheCalculatorWrapper from '@/components/TheCalculatorWrapper.vue';
 
