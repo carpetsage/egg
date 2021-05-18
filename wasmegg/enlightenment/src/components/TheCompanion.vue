@@ -275,7 +275,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
-import { iconURL, getLocalStorage, setLocalStorage } from 'lib';
+import { eggIconPath, iconURL, getLocalStorage, setLocalStorage } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
   bestPossibleGussetForEnlightenment,
@@ -283,7 +283,6 @@ import {
   calculateFarmValue,
   calculateWDLevelsCost,
   earningBonusToFarmerRole,
-  eggIconPath,
   ei,
   farmCurrentWDLevel,
   farmEarningBonus,
