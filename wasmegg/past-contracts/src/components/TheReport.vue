@@ -1,0 +1,382 @@
+<template>
+  <the-report-prophecy-eggs :progress="prophecyEggsProgress" />
+
+  <div class="flex justify-center my-3">
+    <div class="px-4 py-2 border rounded-md shadow">
+      <div class="text-center mb-0.5 text-sm font-medium text-gray-900">Contracts progress</div>
+      <ul class="text-center">
+        <li class="text-sm text-gray-700">
+          Contracts completed:&nbsp;
+          <span class="font-medium text-gray-900">
+            {{ contractsCompleted.length }}/{{ contracts.length }}
+          </span>
+        </li>
+        <li class="text-sm text-gray-700">
+          PE contracts:&nbsp;
+          <span class="inline-flex items-center font-medium text-gray-900">
+            {{ prophecyEggsProgress.fromContracts.numPEContractsCompleted }}/{{
+              prophecyEggsProgress.fromContracts.numPEContractsAvailable
+            }}
+            <base-info
+              class="inline ml-0.5"
+              v-tippy="{
+                content:
+                  'The former number includes partially completed contracts where the PE rewards have been collected.',
+              }"
+            />
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="flex justify-center my-3">
+    <div class="px-3 py-2 border rounded-md shadow space-y-0.5">
+      <div class="flex justify-center mb-1 text-sm font-medium text-gray-900">Color coding</div>
+      <div class="relative flex items-start">
+        <span class="flex items-center text-green-500">
+          <svg viewBox="-32 -32 576 576" class="h-4">
+            <path
+              fill="currentColor"
+              d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
+            ></path>
+          </svg>
+        </span>
+        <span class="ml-2 text-xs text-gray-600">Never attempted</span>
+      </div>
+      <div class="relative flex items-start">
+        <span class="flex items-center h-4 text-red-500">
+          <svg viewBox="-32 -32 576 576" class="h-4">
+            <path
+              fill="currentColor"
+              d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
+            ></path>
+          </svg>
+        </span>
+        <span class="ml-2 text-xs text-gray-600">Attempted, failed to collect prophecy egg(s)</span>
+      </div>
+      <div class="relative flex items-start">
+        <span class="flex items-center h-4 text-yellow-500">
+          <svg viewBox="-32 -32 576 576" class="h-4">
+            <path
+              fill="currentColor"
+              d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
+            ></path>
+          </svg>
+        </span>
+        <span class="ml-2 text-xs text-gray-600">Attempted, failed to complete all goals</span>
+      </div>
+      <div class="relative flex items-start">
+        <span class="flex items-center h-4 text-gray-500">
+          <svg viewBox="-32 -32 576 576" class="h-4">
+            <path
+              fill="currentColor"
+              d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
+            ></path>
+          </svg>
+        </span>
+        <span class="ml-2 text-xs text-gray-600">Completed</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-center my-3">
+    <div class="space-y-0.5">
+      <div class="relative flex items-start">
+        <div class="flex items-center h-5">
+          <input
+            id="hideUnattempted"
+            name="hideUnattempted"
+            v-model="hideUnattempted"
+            type="checkbox"
+            class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="hideUnattempted" class="text-gray-600">Hide unattempted contracts</label>
+        </div>
+      </div>
+      <div class="relative flex items-start">
+        <div class="flex items-center h-5">
+          <input
+            id="hideCompleted"
+            name="hideCompleted"
+            v-model="hideCompleted"
+            type="checkbox"
+            class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="hideCompleted" class="text-gray-600">Hide completed contracts</label>
+        </div>
+      </div>
+      <div class="relative flex items-start">
+        <div class="flex items-center h-5">
+          <input
+            id="hideNoPE"
+            name="hideNoPE"
+            v-model="hideNoPE"
+            type="checkbox"
+            class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="hideNoPE" class="text-gray-600"
+            >Hide contracts without prophecy egg reward</label
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col">
+    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+        <div class="shadow overflow-hidden border-b border-gray-200">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+                ID
+              </th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+                Name
+              </th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+                Date
+              </th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+                Code
+              </th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+                Goals
+              </th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+                PE
+              </th>
+            </thead>
+            <tbody>
+              <template v-for="(contract, index) in visibleContracts" :key="contract.id">
+                <tr
+                  :class="[index % 2 === 0 ? 'bg-white' : 'bg-gray-50', contractFgClass(contract)]"
+                >
+                  <td class="px-6 py-1 whitespace-nowrap text-center text-sm cursor-pointer">
+                    <a
+                      :href="contractLink(contract)"
+                      target="_blank"
+                      :class="contractFgClass(contract, true)"
+                    >
+                      {{ contract.id }}
+                    </a>
+                  </td>
+                  <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
+                    <a
+                      :href="contractLink(contract)"
+                      target="_blank"
+                      class="inline-flex items-center"
+                      :class="contractFgClass(contract, true)"
+                    >
+                      <img
+                        :src="iconURL(eggIconPath(contract.egg), 64)"
+                        class="inline h-4 w-4 mr-0.5 -my-1"
+                      />
+                      {{ contract.name }}
+                    </a>
+                  </td>
+                  <td class="px-6 py-1 whitespace-nowrap text-center text-sm tabular-nums">
+                    {{ epochSecondsToFormattedDate(contract.timestamp) }}
+                  </td>
+                  <td class="px-6 py-1 max-w-column truncate text-center text-sm cursor-pointer">
+                    <template v-if="contract.coopCode !== null">
+                      <a
+                        :href="coopLink(contract)"
+                        target="_blank"
+                        :class="contractFgClass(contract, true)"
+                      >
+                        {{ contract.coopCode }}
+                      </a>
+                    </template>
+                    <template v-else>&nbsp;</template>
+                  </td>
+                  <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
+                    {{ contract.attempted ? contract.numCompletedGoals : '-' }}/{{
+                      contract.numAvailableGoals
+                    }}
+                  </td>
+                  <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
+                    <template v-if="contract.indexOfPEGoal !== null">
+                      <template v-if="contract.hasLeagues">
+                        {{ contract.league === 1 ? 'std' : 'elt' }}
+                      </template>
+                      #{{ contract.indexOfPEGoal + 1 }}
+                      <template v-if="contract.numAvailablePEs > 1">
+                        ({{ contract.numAvailablePEs }})
+                      </template>
+                    </template>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mx-4 my-4 xl:mx-0 text-xs">
+    Notes:
+    <ul class="list-disc">
+      <li>
+        For contracts with multiple incarnations, i.e. original run and leggacy run(s), only one
+        incarnation is listed. If the player has attempted the contract, the last attempted
+        incarnation is shown; otherwise, the latest incarnation is shown.
+      </li>
+      <li>
+        The "Date" column shows the date on which the player last started a contract farm for the
+        contract, or the estimated date the contract was offered (which may not be accurate) if it
+        was never attempted.
+      </li>
+      <li>
+        The "PE" column indicates which reward of the contract, if any, was one or more prophecy
+        eggs (the number of prophecy eggs is noted in parentheses if it's more than 1). The column
+        is blank if there's no PE associated with the contract. Otherwise, for older contracts
+        without standard/elite tiers, this column should look like "#2", meaning the second reward
+        being a PE; for newer contracts with tiers, this column should look like "std #3", meaning
+        the third reward of standard tier being a PE, or "elt #2", meaning the second reward of
+        elite tier being a PE. The tier shown is the tier the player last attempted the contract on,
+        with the exception that if the player completed none of the goals then the tier shown
+        defaults to elite (since in that case it's harder to tell which tier the player was on at
+        the time, if they did make an attempt).
+      </li>
+      <li>
+        Clicking on a contract ID or name takes you to the contract on
+        <a
+          href="https://eicoop.netlify.app/"
+          target="_blank"
+          class="text-blue-500 hover:text-blue-600"
+          >CoopTracker</a
+        >. Clicking on a coop code takes you to that specific coop. Note that data for old coops may
+        have been purged from Egg, Inc.'s server, so you may encounter an error, or find the coop
+        has no players in it.
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script lang="ts">
+import { computed, defineComponent, ref, watch } from 'vue';
+import dayjs from 'dayjs';
+
+import {
+  eggIconPath,
+  getLocalStorage,
+  getProphecyEggsProgress,
+  iconURL,
+  requestFirstContact,
+  setLocalStorage,
+} from 'lib';
+import { getUserContractList, UserContract } from '@/contracts';
+import BaseInfo from 'ui/components/BaseInfo.vue';
+import TheReportProphecyEggs from '@/components/TheReportProphecyEggs.vue';
+
+const HIDE_UNATTEMPTED_LOCALSTORAGE_KEY = 'hideUnattempted';
+const HIDE_COMPLETED_LOCALSTORAGE_KEY = 'hideCompleted';
+const HIDE_NO_PE_LOCALSTORAGE_KEY = 'hideNoPE';
+
+export default defineComponent({
+  components: {
+    BaseInfo,
+    TheReportProphecyEggs,
+  },
+  props: {
+    playerId: {
+      type: String,
+      required: true,
+    },
+  },
+  // This async component does not respond to playerId changes.
+  async setup({ playerId }) {
+    const data = await requestFirstContact(playerId);
+    if (!data.backup || !data.backup.game) {
+      throw new Error(`${playerId}: backup is empty`);
+    }
+    const backup = data.backup;
+
+    const contracts = getUserContractList(backup);
+    const contractsWithPE = contracts.filter(c => c.numAvailablePEs > 0);
+    const contractsCompleted = contracts.filter(c => c.numCompletedGoals === c.numAvailableGoals);
+    const contractFgClass = (contract: UserContract, hover = false): string => {
+      if (!contract.attempted) {
+        return hover ? 'hover:text-green-400' : 'text-green-500';
+      }
+      if (contract.indexOfPEGoal !== null && contract.numCompletedGoals <= contract.indexOfPEGoal) {
+        return hover ? 'hover:text-red-400' : 'text-red-500';
+      }
+      if (contract.numCompletedGoals < contract.numAvailableGoals) {
+        return hover ? 'hover:text-yellow-400' : 'text-yellow-500';
+      }
+      return hover ? 'hover:text-gray-400' : 'text-gray-500';
+    };
+    const prophecyEggsProgress = getProphecyEggsProgress(backup, {
+      numPEsAvailable: contractsWithPE.reduce((total, c) => total + c.numAvailablePEs, 0),
+      numPEContractsAvailable: contractsWithPE.length,
+    });
+
+    const hideUnattempted = ref(getLocalStorage(HIDE_UNATTEMPTED_LOCALSTORAGE_KEY) === 'true');
+    const hideCompleted = ref(getLocalStorage(HIDE_COMPLETED_LOCALSTORAGE_KEY) === 'true');
+    const hideNoPE = ref(getLocalStorage(HIDE_NO_PE_LOCALSTORAGE_KEY) === 'true');
+    watch(hideUnattempted, () => {
+      setLocalStorage(HIDE_UNATTEMPTED_LOCALSTORAGE_KEY, hideUnattempted.value);
+    });
+    watch(hideCompleted, () => {
+      setLocalStorage(HIDE_COMPLETED_LOCALSTORAGE_KEY, hideCompleted.value);
+    });
+    watch(hideNoPE, () => {
+      setLocalStorage(HIDE_NO_PE_LOCALSTORAGE_KEY, hideNoPE.value);
+    });
+
+    const visibleContracts = computed(() =>
+      contracts.filter(c => {
+        if (hideUnattempted.value && !c.attempted) {
+          return false;
+        }
+        if (hideCompleted.value && c.numCompletedGoals >= c.numAvailableGoals) {
+          return false;
+        }
+        if (hideNoPE.value && c.numAvailablePEs === 0) {
+          return false;
+        }
+        return true;
+      })
+    );
+
+    const contractLink = (contract: UserContract) =>
+      `https://eicoop.netlify.app/?q=${encodeURIComponent(contract.id)}`;
+    const coopLink = (contract: UserContract) =>
+      contract.coopCode
+        ? `https://eicoop.netlify.app/${encodeURIComponent(contract.id)}/${encodeURIComponent(
+            contract.coopCode
+          )}/`
+        : contractLink(contract);
+
+    return {
+      prophecyEggsProgress,
+      contracts,
+      contractsCompleted,
+      hideUnattempted,
+      hideCompleted,
+      hideNoPE,
+      visibleContracts,
+      contractFgClass,
+      epochSecondsToFormattedDate,
+      contractLink,
+      coopLink,
+      iconURL,
+      eggIconPath,
+    };
+  },
+});
+
+function epochSecondsToFormattedDate(t: number): string {
+  return dayjs(t * 1000).format('YYYY-MM-DD');
+}
+</script>

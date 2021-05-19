@@ -3,7 +3,8 @@
   "workspaces": [
     "lib",
     "eicoop",
-    "wasmegg/enlightenment"
+    "wasmegg/enlightenment",
+    "wasmegg/past-contracts"
   ],
   "dependencies": {
     "vue": "^3.0.5"
