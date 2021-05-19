@@ -134,7 +134,7 @@ export default defineComponent({
       router.push({
         name: 'coop',
         params: {
-          contractId: contractId.value.toLowerCase(),
+          contractId: contractId.value,
           coopCode: coopCode.value.toLowerCase(),
         },
       });

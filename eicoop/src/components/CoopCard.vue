@@ -236,9 +236,7 @@ export default defineComponent({
     });
 
     const getCoopStatus = async (existingStatus?: CoopStatus) => {
-      const status = new CoopStatus(
-        await requestCoopStatus(contractId.toLowerCase(), coopCode.toLowerCase())
-      );
+      const status = new CoopStatus(await requestCoopStatus(contractId, coopCode.toLowerCase()));
       await status.resolveContract({
         store: store.state.contracts.list,
         addToStore: contract => store.commit('contracts/addContract', contract),
