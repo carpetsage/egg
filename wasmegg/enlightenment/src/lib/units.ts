@@ -45,9 +45,10 @@ const valueWithUnitRegExpPattern = `\\b(?<value>\\d+(\\.(\\d+)?)?)\\s*(?<unit>${
   .join('|')})\\b`;
 export const valueWithUnitRegExp = new RegExp(valueWithUnitRegExpPattern);
 export const valueWithUnitRegExpGlobal = new RegExp(valueWithUnitRegExpPattern, 'g');
+export const valueWithUnitRegExpExact = new RegExp(`^${valueWithUnitRegExpPattern}$`);
 
 export function parseValueWithUnit(s: string): number | null {
-  const match = s.match(valueWithUnitRegExp);
+  const match = s.match(valueWithUnitRegExpExact);
   if (match === null) {
     return null;
   }
