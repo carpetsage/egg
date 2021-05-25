@@ -21,6 +21,7 @@ export default defineComponent({
   setup() {
     const error = ref(null as Error | null);
     onErrorCaptured(err => {
+      console.error(err);
       error.value = err as Error;
       return false;
     });
