@@ -20,7 +20,7 @@ const TIMEOUT = 5000;
  * @returns base64-encoded response payload.
  * @throws Throws an error on network failure (including timeout) or non-2XX response.
  */
-export async function request(endpoint: string, encodedPayload: string) {
+export async function request(endpoint: string, encodedPayload: string): Promise<string> {
   const controller = new AbortController();
   setTimeout(() => controller.abort(), TIMEOUT);
   const url = API_ROOT + endpoint;
@@ -53,7 +53,7 @@ export async function request(endpoint: string, encodedPayload: string) {
  * @returns
  * @throws
  */
-export async function requestFirstContact(userId: string) {
+export async function requestFirstContact(userId: string): Promise<ei.IEggIncFirstContactResponse> {
   const requestPayload: ei.IEggIncFirstContactRequest = {
     rinfo: basicRequestInfo(''),
     eiUserId: userId,
@@ -75,7 +75,10 @@ export async function requestFirstContact(userId: string) {
  * @returns
  * @throws
  */
-export async function requestCoopStatus(contractId: string, coopCode: string) {
+export async function requestCoopStatus(
+  contractId: string,
+  coopCode: string
+): Promise<ei.IContractCoopStatusResponse> {
   const userId = '';
   const requestPayload: ei.IContractCoopStatusRequest = {
     rinfo: basicRequestInfo(userId),
@@ -104,7 +107,11 @@ export async function requestCoopStatus(contractId: string, coopCode: string) {
  * @returns
  * @throws
  */
-export async function requestQueryCoop(contractId: string, coopCode: string, league: number) {
+export async function requestQueryCoop(
+  contractId: string,
+  coopCode: string,
+  league: number
+): Promise<ei.IQueryCoopResponse> {
   const requestPayload: ei.IQueryCoopRequest = {
     rinfo: basicRequestInfo(''),
     contractIdentifier: contractId,

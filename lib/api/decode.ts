@@ -14,7 +14,7 @@ export function decodeMessage(
   message: ProtobufType,
   encoded: string | Uint8Array,
   authenticated = false
-): object {
+): Record<string, unknown> {
   if (authenticated) {
     const wrapperPayload = decodeMessage(
       ei.AuthenticatedMessage,

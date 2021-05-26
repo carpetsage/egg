@@ -1,11 +1,11 @@
 import * as $protobuf from 'protobufjs/minimal';
 
 export class ProtobufMessage {
-  toJSON(): { [k: string]: any };
+  toJSON(): { [k: string]: unknown };
 }
 
 export class ProtobufType {
-  encode(message: object, writer?: $protobuf.Writer): $protobuf.Writer;
+  encode(message: unknown, writer?: $protobuf.Writer): $protobuf.Writer;
 
   /**
    * @throws {Error} If the payload is not a reader or valid buffer
@@ -13,5 +13,8 @@ export class ProtobufType {
    */
   decode(reader: $protobuf.Reader | Uint8Array, length?: number): ProtobufMessage;
 
-  toObject(message: ProtobufMessage, options?: $protobuf.IConversionOptions): { [k: string]: any };
+  toObject(
+    message: ProtobufMessage,
+    options?: $protobuf.IConversionOptions
+  ): { [k: string]: unknown };
 }

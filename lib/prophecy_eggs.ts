@@ -119,7 +119,7 @@ export function getProphecyEggsProgressFromTrophies(
   }
   let totalAvailable = 0;
   let totalCompleted = 0;
-  let eggProgresses = <ProphecyEggsProgressFromEggTrophies[]>[];
+  const eggProgresses = <ProphecyEggsProgressFromEggTrophies[]>[];
   for (let i = 0, egg = ei.Egg.EDIBLE; i < 19; i++, egg++) {
     const level = trophyLevels[i];
     if (level > TrophyLevel.Diamond) {
