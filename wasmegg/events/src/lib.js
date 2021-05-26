@@ -10,7 +10,17 @@ dayjs.extend(utc);
 //
 // [
 //   {
+//     "versionDisplay": "1.20.10",
+//     "releaseNotes": "- Small improvements and bug fixes",
+//     "releaseDate": "2021-05-25"
+//   },
+//   {
 //     "versionDisplay": "1.20.9",
+//     "releaseNotes": "- New Contracts UI and more\n* contains some bug fixes",
+//     "releaseDate": "2021-05-02"
+//   },
+//   {
+//     "versionDisplay": "1.20.8",
 //     "releaseNotes": "- New Contracts UI and features",
 //     "releaseDate": "2021-04-30"
 //   },
@@ -311,12 +321,24 @@ const eventsAndAppUpdates = [
     releaseNotes: '- Small improvements and bug fixes',
   },
   {
-    type: 'app-update',
-    version: '1.20.9',
-    startTimestamp: utcDateToTimestamp('2021-04-30'),
-    releaseNotes: '- New Contracts UI and features',
+    type: "app-update",
+    version: "1.20.8",
+    startTimestamp: utcDateToTimestamp("2021-04-30"),
+    releaseNotes: "- New Contracts UI and features",
   },
-].sort((e1, e2) => e1.startTimestamp - e2.startTimestamp);
+  {
+    type: "app-update",
+    version: "1.20.9",
+    startTimestamp: utcDateToTimestamp("2021-05-02"),
+    releaseNotes: "- New Contracts UI and more\n* contains some bug fixes",
+  },
+  {
+    type: "app-update",
+    version: "1.20.10",
+    startTimestamp: utcDateToTimestamp("2021-05-25"),
+    releaseNotes: "- Small improvements and bug fixes",
+  },
+].sort((e1, e2) => e1.startTimestamp - e2.startTimestamp);].sort((e1, e2) => e1.startTimestamp - e2.startTimestamp);
 
 const existingEventTypes = new Set(eventsAndAppUpdates.map(e => e.type));
 
