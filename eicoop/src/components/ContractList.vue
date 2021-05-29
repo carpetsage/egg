@@ -269,7 +269,7 @@
     >
       <template #body="{ data: contract }">
         <template v-if="contract.eliteGoal">
-          {{ formatEIValue(contract.eliteGoal, true) }}
+          {{ formatEIValue(contract.eliteGoal, { trim: true }) }}
         </template>
         <template v-else>&ndash;</template>
       </template>
@@ -283,7 +283,7 @@
     >
       <template #body="{ data: contract }">
         <template v-if="contract.standardGoal">
-          {{ formatEIValue(contract.standardGoal, true) }}
+          {{ formatEIValue(contract.standardGoal, { trim: true }) }}
         </template>
         <template v-else>&ndash;</template>
       </template>

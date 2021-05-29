@@ -23,7 +23,7 @@
             class="pl-3 pr-2 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
             :style="{ minWidth: '4rem' }"
           >
-            {{ formatEIValue(target(goal), true) }}
+            {{ formatEIValue(target(goal), { trim: true }) }}
           </td>
           <td
             class="pl-2 pr-3 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
@@ -35,7 +35,7 @@
             <span class="flex items-center space-x-1">
               <img :src="iconURL(rewardIconPath(goal), 64)" class="h-5 w-5" />
               <span class="text-sm text-gray-500 dark:text-gray-200">
-                {{ rewardSign(goal) }}{{ formatEIValue(rewardAmount(goal), true) }}
+                {{ rewardSign(goal) }}{{ formatEIValue(rewardAmount(goal), { trim: true }) }}
               </span>
             </span>
           </td>

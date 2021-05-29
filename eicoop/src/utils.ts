@@ -57,7 +57,7 @@ export function eggTooltip(egg: ei.Egg) {
       ? value.toFixed(7)
       : value < 100
       ? trimTrailingZeros(value.toFixed(2))
-      : formatEIValue(value, true);
+      : formatEIValue(value, { trim: true });
   return `${eggName(egg)} Egg, value: ${valueDisplay}`;
 }
 

@@ -17,7 +17,7 @@
           (projected {{ formatEIValue(projectedEggsLaid) }})
         </template>
         /
-        {{ formatEIValue(leagueStatus.finalTarget, true) }}
+        {{ formatEIValue(leagueStatus.finalTarget, { trim: true }) }}
       </template>
     </tippy>
     <template v-for="(goal, index) in leagueStatus.goals" :key="index">
@@ -28,7 +28,7 @@
         :src="iconURL(rewardIconPath(goal), 64)"
       >
         <template #content>
-          {{ formatEIValue(target(goal), true) }},
+          {{ formatEIValue(target(goal), { trim: true }) }},
           {{ percentage(eggsLaid, target(goal), 1) }} completed<template
             v-if="eggsLaid < target(goal)"
             >, expected in
