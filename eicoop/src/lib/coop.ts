@@ -1,9 +1,8 @@
 import dayjs, { Dayjs } from 'dayjs';
 
-import { ei, requestQueryCoop } from 'lib';
+import { ei, FarmerRole, requestQueryCoop, soulPowerToFarmerRole } from 'lib';
 import { ContractLeague, ContractCompletionStatus, getContractFromPlayerSave } from './contract';
 import { SortedContractList } from './contractList';
-import { FarmerRole, soulPowerToFarmerRole } from './role';
 
 const COOP_LEAGUE_DIVIDER_EB = 1e13; // 10T%
 const COOP_LEAGUE_DEFINITELY_STANDARD_EB = 1e12;

@@ -123,3 +123,7 @@ export function soulPowerToFarmerRole(soulPower: number): FarmerRole {
   const rank = Math.floor(Math.max(soulPower, 0));
   return rank < roles.length ? roles[rank] : roles[roles.length - 1];
 }
+
+export function earningBonusToFarmerRole(earningBonus: number): FarmerRole {
+  return soulPowerToFarmerRole(Math.log10(earningBonus));
+}
