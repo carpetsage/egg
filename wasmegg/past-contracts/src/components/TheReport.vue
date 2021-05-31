@@ -18,11 +18,11 @@
               prophecyEggsProgress.fromContracts.numPEContractsAvailable
             }}
             <base-info
-              class="inline ml-0.5"
               v-tippy="{
                 content:
                   'The former number includes partially completed contracts where the PE rewards have been collected.',
               }"
+              class="inline ml-0.5"
             />
           </span>
         </li>
@@ -39,7 +39,7 @@
             <path
               fill="currentColor"
               d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
-            ></path>
+            />
           </svg>
         </span>
         <span class="ml-2 text-xs text-gray-600">Never attempted</span>
@@ -50,7 +50,7 @@
             <path
               fill="currentColor"
               d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
-            ></path>
+            />
           </svg>
         </span>
         <span class="ml-2 text-xs text-gray-600">Attempted, failed to collect prophecy egg(s)</span>
@@ -61,7 +61,7 @@
             <path
               fill="currentColor"
               d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
-            ></path>
+            />
           </svg>
         </span>
         <span class="ml-2 text-xs text-gray-600">Attempted, failed to complete all goals</span>
@@ -72,7 +72,7 @@
             <path
               fill="currentColor"
               d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
-            ></path>
+            />
           </svg>
         </span>
         <span class="ml-2 text-xs text-gray-600">Completed</span>
@@ -86,8 +86,8 @@
         <div class="flex items-center h-5">
           <input
             id="hideUnattempted"
-            name="hideUnattempted"
             v-model="hideUnattempted"
+            name="hideUnattempted"
             type="checkbox"
             class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
           />
@@ -100,8 +100,8 @@
         <div class="flex items-center h-5">
           <input
             id="hideCompleted"
-            name="hideCompleted"
             v-model="hideCompleted"
+            name="hideCompleted"
             type="checkbox"
             class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
           />
@@ -114,8 +114,8 @@
         <div class="flex items-center h-5">
           <input
             id="hideNoPE"
-            name="hideNoPE"
             v-model="hideNoPE"
+            name="hideNoPE"
             type="checkbox"
             class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
           />
@@ -294,6 +294,7 @@ export default defineComponent({
     },
   },
   // This async component does not respond to playerId changes.
+  /* eslint-disable vue/no-setup-props-destructure */
   async setup({ playerId }) {
     const data = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
@@ -324,6 +325,7 @@ export default defineComponent({
     const hideUnattempted = ref(getLocalStorage(HIDE_UNATTEMPTED_LOCALSTORAGE_KEY) === 'true');
     const hideCompleted = ref(getLocalStorage(HIDE_COMPLETED_LOCALSTORAGE_KEY) === 'true');
     const hideNoPE = ref(getLocalStorage(HIDE_NO_PE_LOCALSTORAGE_KEY) === 'true');
+    /* eslint-disable vue/no-watch-after-await */
     watch(hideUnattempted, () => {
       setLocalStorage(HIDE_UNATTEMPTED_LOCALSTORAGE_KEY, hideUnattempted.value);
     });
@@ -333,6 +335,7 @@ export default defineComponent({
     watch(hideNoPE, () => {
       setLocalStorage(HIDE_NO_PE_LOCALSTORAGE_KEY, hideNoPE.value);
     });
+    /* eslint-enable vue/no-watch-after-await */
 
     const visibleContracts = computed(() =>
       contracts.filter(c => {
