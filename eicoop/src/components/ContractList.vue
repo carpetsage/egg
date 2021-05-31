@@ -1,19 +1,22 @@
 <template>
+  <!-- primevue does not work with kebab-case props -->
+  <!-- https://github.com/primefaces/primevue/issues/1263 -->
+  <!-- eslint-disable vue/attribute-hyphenation -->
   <DataTable
     v-model:filters="filters"
     v-model:expandedRows="expandedRows"
     :value="contracts"
-    responsive-layout="scroll"
-    data-key="uniqueKey"
-    sort-field="offeringTime"
-    :sort-order="-1"
-    removable-sort
+    responsiveLayout="scroll"
+    dataKey="uniqueKey"
+    sortField="offeringTime"
+    :sortOrder="-1"
+    removableSort
     :paginator="true"
     :rows="rowsPerPage"
-    paginator-template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
-    current-page-report-template="Showing {first} to {last} of {totalRecords} entries"
-    :global-filter-fields="['id', 'name']"
-    filter-display="menu"
+    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    :globalFilterFields="['id', 'name']"
+    filterDisplay="menu"
     :class="{ dark: darkThemeOn }"
   >
     <template #header>
@@ -59,14 +62,14 @@
       </div>
     </template>
 
-    <Column :expander="true" header-class="pl-2 py-2" body-class="pl-2 py-1" />
+    <Column :expander="true" headerClass="pl-2 py-2" bodyClass="pl-2 py-1" />
     <Column
       field="egg"
       header=""
       :sortable="true"
-      header-class="pl-4 pr-1 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none"
-      body-class="pl-4 pr-1 py-1"
-      :body-style="{ minWidth: '2.25rem' }"
+      headerClass="pl-4 pr-1 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none"
+      bodyClass="pl-4 pr-1 py-1"
+      :bodyStyle="{ minWidth: '2.25rem' }"
     >
       <template #body="{ data: contract }">
         <img
@@ -80,8 +83,8 @@
       field="name"
       header="Title"
       :sortable="true"
-      :header-class="columnHeaderClasses"
-      :body-class="columnBodyClasses"
+      :headerClass="columnHeaderClasses"
+      :bodyClass="columnBodyClasses"
     >
       <template #body="{ data: contract }">
         <span
@@ -101,8 +104,8 @@
       field="identifier"
       header="ID"
       :sortable="true"
-      :header-class="columnHeaderClasses"
-      :body-class="columnBodyClasses"
+      :headerClass="columnHeaderClasses"
+      :bodyClass="columnBodyClasses"
     >
       <template #body="{ data: contract }">
         <span
@@ -117,9 +120,9 @@
       field="type"
       header="Type"
       :sortable="true"
-      :header-class="columnHeaderClassesCentered"
-      :body-class="columnBodyClassesCentered"
-      :show-filter-match-modes="false"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
+      :showFilterMatchModes="false"
     >
       <template #filter="{ filterModel }">
         <select
@@ -136,9 +139,9 @@
       field="numLeggacies"
       header="Leggacies"
       :sortable="true"
-      :header-class="columnHeaderNarrowClassesCentered"
-      :body-class="columnBodyClassesCentered"
-      :show-filter-match-modes="false"
+      :headerClass="columnHeaderNarrowClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
+      :showFilterMatchModes="false"
     >
       <template #filter="{ filterModel }">
         <div class="relative ml-auto mr-1 rounded-md shadow-sm">
@@ -165,8 +168,8 @@
       field="lengthSeconds"
       header="Duration"
       :sortable="true"
-      :header-class="columnHeaderClassesCentered"
-      :body-class="columnBodyClassesCentered"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         {{ formatDuration(contract.lengthSeconds, true) }}
@@ -176,8 +179,8 @@
       field="maxCoopSize"
       header="Size"
       :sortable="true"
-      :header-class="columnHeaderClassesCentered"
-      :body-class="columnBodyClassesCentered"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         {{ contract.maxCoopSize || '\u2013' }}
@@ -187,8 +190,8 @@
       field="minutesPerToken"
       header="Tokens"
       :sortable="true"
-      :header-class="columnHeaderClassesCentered"
-      :body-class="columnBodyClassesCentered"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <template v-if="contract.minutesPerToken"> {{ contract.minutesPerToken }}m </template>
@@ -199,9 +202,9 @@
       field="prophecyEggs"
       header="PE"
       :sortable="true"
-      :header-class="columnHeaderNarrowClassesCentered"
-      :body-class="columnBodyClassesCentered"
-      :show-filter-match-modes="false"
+      :headerClass="columnHeaderNarrowClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
+      :showFilterMatchModes="false"
     >
       <template #filter="{ filterModel }">
         <div class="relative ml-auto mr-1 rounded-md shadow-sm">
@@ -228,8 +231,8 @@
       field="offeringTime"
       header="Offering"
       :sortable="true"
-      :header-class="columnHeaderClassesCentered"
-      :body-class="columnBodyClassesCentered"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <span
@@ -246,8 +249,8 @@
       field="expirationTime"
       header="Expiration"
       :sortable="true"
-      :header-class="columnHeaderClassesCentered"
-      :body-class="columnBodyClassesCentered"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <span
@@ -264,8 +267,8 @@
       field="eliteGoal"
       header="Elite goal"
       :sortable="true"
-      :header-class="columnHeaderClassesCentered"
-      :body-class="columnBodyClassesCentered"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <template v-if="contract.eliteGoal">
@@ -278,8 +281,8 @@
       field="standardGoal"
       header="Std goal"
       :sortable="true"
-      :header-class="columnHeaderClassesCentered"
-      :body-class="columnBodyClassesCentered"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <template v-if="contract.standardGoal">
@@ -306,6 +309,7 @@
       </select>
     </template>
   </DataTable>
+  <!-- eslint-enable vue/attribute-hyphenation -->
 </template>
 
 <script lang="ts">
