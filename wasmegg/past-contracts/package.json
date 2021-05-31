@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "lint": "eslint --ext .js,.ts,.vue src"
   },
   "dependencies": {
     "dayjs": "^1.10.4",
