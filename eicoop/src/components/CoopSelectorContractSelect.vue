@@ -116,9 +116,9 @@ export default defineComponent({
       }
       return null;
     });
-    // Use 'any' type for selected to accommodate weak type info on the Listbox
+    // Use 'unknown' type for selected to accommodate weak type info on the Listbox
     // component's update:modelValue event ($event has 'unknown' type).
-    const updateSelectedContract = (selected: any) => {
+    const updateSelectedContract = (selected: unknown) => {
       emit('update:modelValue', (selected as Contract).id);
     };
     const eggIconURL = (contract: Contract) => iconURL(eggIconPath(contract.egg!), 64);

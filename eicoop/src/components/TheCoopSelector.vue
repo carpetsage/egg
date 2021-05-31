@@ -115,7 +115,7 @@ export default defineComponent({
     });
 
     const contracts = computed(
-      () => store.getters['contracts/deduplicatedList'].reverse() as Contract[]
+      () => [...store.getters['contracts/deduplicatedList']].reverse() as Contract[]
     );
 
     const storeContractId = computed(() => store.state.coopSelector.selectedContractId);

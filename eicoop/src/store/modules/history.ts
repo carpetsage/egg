@@ -21,12 +21,17 @@ export interface State {
   coops: HistoryCoopEntry[];
 }
 
-function isHistoryCoopEntry(obj: any): obj is HistoryCoopEntry {
+function isObject(x: unknown): x is Record<string, unknown> {
+  return typeof x === 'object' && x != null;
+}
+
+function isHistoryCoopEntry(x: unknown): x is HistoryCoopEntry {
   return (
-    obj.contractId !== undefined &&
-    obj.contractName !== undefined &&
-    obj.contractEgg !== undefined &&
-    obj.coopCode !== undefined
+    isObject(x) &&
+    x.contractId !== undefined &&
+    x.contractName !== undefined &&
+    x.contractEgg !== undefined &&
+    x.coopCode !== undefined
   );
 }
 

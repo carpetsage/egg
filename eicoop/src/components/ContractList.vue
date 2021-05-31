@@ -1,11 +1,11 @@
 <template>
   <DataTable
+    v-model:filters="filters"
+    v-model:expandedRows="expandedRows"
     :value="contracts"
     responsive-layout="scroll"
     data-key="uniqueKey"
-    v-model:filters="filters"
     sort-field="offeringTime"
-    v-model:expandedRows="expandedRows"
     :sort-order="-1"
     removable-sort
     :paginator="true"

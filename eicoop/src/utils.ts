@@ -12,7 +12,7 @@ export function getLocalStorage(key: string, prefix?: string): string | undefine
   }
 }
 
-export function setLocalStorage(key: string, val: any, prefix?: string) {
+export function setLocalStorage(key: string, val: unknown, prefix?: string): void {
   if (prefix === undefined) {
     prefix = `${window.location.pathname}_`;
   }
@@ -35,7 +35,7 @@ export function getSessionStorage(key: string, prefix?: string): string | undefi
   }
 }
 
-export function setSessionStorage(key: string, val: any, prefix?: string) {
+export function setSessionStorage(key: string, val: unknown, prefix?: string): void {
   if (prefix === undefined) {
     prefix = `${window.location.pathname}_`;
   }
@@ -46,11 +46,11 @@ export function setSessionStorage(key: string, val: any, prefix?: string) {
   }
 }
 
-export function iconURL(relpath: string, size: number | string = 'orig') {
+export function iconURL(relpath: string, size: number | string = 'orig'): string {
   return `https://eggincassets.tcl.sh/${size}/${relpath}`;
 }
 
-export function eggTooltip(egg: ei.Egg) {
+export function eggTooltip(egg: ei.Egg): string {
   const value = eggValue(egg);
   const valueDisplay =
     value < 0.01

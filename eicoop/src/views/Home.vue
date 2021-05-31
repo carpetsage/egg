@@ -108,7 +108,7 @@ export default defineComponent({
       setLocalStorage(SHOW_INSTRUCTIONS_LOCALSTORAGE_KEY, showInstructions.value);
     };
 
-    const contracts = computed(() => store.getters['contracts/list'].reverse() as Contract[]);
+    const contracts = computed(() => [...store.getters['contracts/list']].reverse() as Contract[]);
     let initialRowsPerPage = parseInt(getLocalStorage(ROWS_PER_PAGE_LOCALSTORAGE_KEY) || '');
     if (!legitRowsPerPageNumbers.includes(initialRowsPerPage)) {
       initialRowsPerPage = legitRowsPerPageNumbers[0];

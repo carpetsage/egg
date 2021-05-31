@@ -1,7 +1,6 @@
 <template>
   <transition
     name="slide-toggle"
-    @before-enter="beforeEnter"
     @enter="enter"
     @after-enter="afterEnter"
     @before-leave="beforeLeave"
@@ -17,7 +16,6 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   setup() {
-    const beforeEnter = (el: Element) => {};
     const enter = (el: Element) => {
       const e = el as HTMLElement;
       const fullHeight = e.offsetHeight;
@@ -55,7 +53,6 @@ export default defineComponent({
     };
 
     return {
-      beforeEnter,
       enter,
       afterEnter,
       beforeLeave,

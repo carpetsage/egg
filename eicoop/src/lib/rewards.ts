@@ -8,7 +8,7 @@ export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
       return 'egginc/egg_soul.png';
     case ei.RewardType.EGGS_OF_PROPHECY:
       return 'egginc/egg_of_prophecy.png';
-    case ei.RewardType.EPIC_RESEARCH_ITEM:
+    case ei.RewardType.EPIC_RESEARCH_ITEM: {
       let name = r.rewardSubType!;
       switch (r.rewardSubType!) {
         case 'epic_internal_incubators':
@@ -35,6 +35,7 @@ export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
           name = 'warp_boost';
       }
       return `egginc/r_icon_${name}.png`;
+    }
     case ei.RewardType.PIGGY_FILL:
       return 'egginc-extras/icon_piggy_golden_egg.png';
     case ei.RewardType.PIGGY_MULTIPLIER:

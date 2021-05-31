@@ -68,7 +68,7 @@ export default defineComponent({
     // title can also be defined in the #title slot
     title: {
       type: String,
-      required: false,
+      default: '',
     },
     collapse: {
       type: Boolean,

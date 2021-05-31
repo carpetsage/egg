@@ -34,6 +34,5 @@ export default defineComponent({
       default: 'text-gray-400',
     },
   },
-  setup() {},
 });
 </script>

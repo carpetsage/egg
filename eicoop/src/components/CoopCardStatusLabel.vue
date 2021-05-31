@@ -36,6 +36,7 @@ export default defineComponent({
         case ContractCompletionStatus.IsNotOnTrackToFinish:
           return 'Not on track';
       }
+      throw new Error(`the impossible happened: unexpected completion status: ${status.value}`);
     });
     const iconPathD = computed(() => {
       switch (status.value) {
@@ -48,6 +49,7 @@ export default defineComponent({
         case ContractCompletionStatus.IsNotOnTrackToFinish:
           return 'M6 18L18 6M6 6l12 12';
       }
+      throw new Error(`the impossible happened: unexpected completion status: ${status.value}`);
     });
     const colorClass = computed(() => completionStatusColorClass(status.value));
     return {

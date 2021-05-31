@@ -29,18 +29,18 @@ export class SortedContractList extends Array<Contract> {
     this.rawList = rawList;
   }
 
-  static get [Symbol.species]() {
+  static get [Symbol.species](): ArrayConstructor {
     return Array;
   }
 
-  add(raw: ei.IContract) {
+  add(raw: ei.IContract): void {
     this.rawList.push(raw);
     const newSortedList = annotateAndSortContracts(this.rawList);
     this.length = 0;
     this.push(...newSortedList);
   }
 
-  deduplicated() {
+  deduplicated(): Contract[] {
     const seen = new Set<string>();
     const deduped: Contract[] = [];
     for (let i = this.length - 1; i >= 0; i--) {

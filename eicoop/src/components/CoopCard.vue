@@ -221,12 +221,15 @@ export default defineComponent({
     },
   },
   emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     success(payload: CoopStatus) {
       return true;
     },
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   // Note that this async component does NOT react to contractId and coopCode
   // changes. The component must be recreated on changes.
+  /* eslint-disable vue/no-setup-props-destructure */
   async setup({ contractId, coopCode }, { emit }) {
     const store = useStore(key);
     const devmode = inject(devmodeKey);

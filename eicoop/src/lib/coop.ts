@@ -62,7 +62,7 @@ export class CoopStatus {
     store: SortedContractList;
     addToStore?: (contract: ei.IContract) => void;
     knownContract?: ei.IContract;
-  }) {
+  }): Promise<void> {
     const contract = knownContract || store.get(this.contractId, this.expirationTime.unix());
     if (contract) {
       this.contract = contract;

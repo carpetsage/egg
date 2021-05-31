@@ -21,19 +21,13 @@ import { useStore } from 'vuex';
 import { CoopStatus } from '@/lib';
 import { HistoryCoopEntry, key } from '@/store';
 import { refreshCallbackKey } from '@/symbols';
-import BaseCheckbox from '@/components/BaseCheckbox.vue';
-import BaseCollapsiblePanel from '@/components/BaseCollapsiblePanel.vue';
 import BaseErrorBoundary from '@/components/BaseErrorBoundary.vue';
-import BaseInfo from '@/components/BaseInfo.vue';
 import BaseLoading from '@/components/BaseLoading.vue';
 import CoopCard from '@/components/CoopCard.vue';
 
 export default defineComponent({
   components: {
-    BaseCheckbox,
-    BaseCollapsiblePanel,
     BaseErrorBoundary,
-    BaseInfo,
     BaseLoading,
     CoopCard,
   },
