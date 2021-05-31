@@ -74,7 +74,7 @@
 
     <recently-viewed-block class="ultrawide:rounded-lg mb-4" />
 
-    <contract-list :contracts="contracts" v-model:rowsPerPage="rowsPerPage" />
+    <contract-list v-model:rowsPerPage="rowsPerPage" :contracts="contracts" />
   </main>
 </template>
 

@@ -5,9 +5,9 @@
         <div class="flex-grow ml-4 mt-2">
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
             <img
+              v-tippy="{ content: eggTooltip(egg) }"
               class="inline relative -top-px -left-1 -mr-1 h-6 w-6"
               :src="iconURL(eggIconPath(egg), 64)"
-              v-tippy="{ content: eggTooltip(egg) }"
             />
             {{ contract.name }}
             (<base-click-to-copy
@@ -40,10 +40,10 @@
             </template>
             <!-- public/private -->
             <svg
+              v-tippy="{ content: coopStatus.isPublic ? 'Public coop' : 'Private coop' }"
               class="h-4 w-4 text-gray-400 dark:text-gray-300 ml-1.5"
               viewBox="0 0 20 20"
               fill="currentColor"
-              v-tippy="{ content: coopStatus.isPublic ? 'Public coop' : 'Private coop' }"
             >
               <template v-if="coopStatus.isPublic">
                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -68,7 +68,7 @@
         </div>
         <coop-card-status-label :status="leagueStatus.completionStatus" />
         <div class="absolute right-0 bottom-0 sm:bottom-1">
-          <last-refreshed :refreshTime="coopStatus.refreshTime" :style="{ maxWidth: '50vw' }" />
+          <last-refreshed :refresh-time="coopStatus.refreshTime" :style="{ maxWidth: '50vw' }" />
         </div>
       </div>
     </div>
@@ -160,9 +160,9 @@
       </dl>
 
       <coop-card-progress-bar
-        :eggsLaid="coopStatus.eggsLaid"
-        :projectedEggsLaid="coopStatus.projectedEggsLaid"
-        :leagueStatus="leagueStatus"
+        :eggs-laid="coopStatus.eggsLaid"
+        :projected-eggs-laid="coopStatus.projectedEggsLaid"
+        :league-status="leagueStatus"
       />
     </div>
 
@@ -170,7 +170,7 @@
       <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
           <div class="shadow overflow-hidden border-b border-gray-200 dark:border-gray-700">
-            <coop-card-contribution-table :egg="egg" :coopStatus="coopStatus" />
+            <coop-card-contribution-table :egg="egg" :coop-status="coopStatus" />
           </div>
         </div>
       </div>

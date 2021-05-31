@@ -1,5 +1,5 @@
 <template>
-  <Listbox as="div" :modelValue="selectedContract" @update:modelValue="updateSelectedContract">
+  <Listbox as="div" :model-value="selectedContract" @update:modelValue="updateSelectedContract">
     <ListboxLabel class="block text-sm text-gray-900 dark:text-gray-100" for="contract_id_selected">
       Select a contract:
     </ListboxLabel>
@@ -35,11 +35,11 @@
           class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
         >
           <ListboxOption
-            as="template"
             v-for="contract in contracts"
             :key="contract.id"
-            :value="contract"
             v-slot="{ active, selected }"
+            as="template"
+            :value="contract"
           >
             <li
               :class="[

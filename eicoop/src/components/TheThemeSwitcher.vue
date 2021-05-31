@@ -1,9 +1,9 @@
 <template>
   <svg
+    v-tippy="{ content: 'Toggle light/dark theme' }"
     viewBox="0 0 20 20"
     class="h-4 w-4 text-gray-200 cursor-pointer select-none focus:outline-none"
     @click="toggleDarkTheme"
-    v-tippy="{ content: 'Toggle light/dark theme' }"
   >
     <path
       class="transition-all duration-500"

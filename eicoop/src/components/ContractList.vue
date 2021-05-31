@@ -1,19 +1,19 @@
 <template>
   <DataTable
     :value="contracts"
-    responsiveLayout="scroll"
-    dataKey="uniqueKey"
-    sortField="offeringTime"
-    :sortOrder="-1"
-    removableSort
+    responsive-layout="scroll"
+    data-key="uniqueKey"
+    v-model:filters="filters"
+    sort-field="offeringTime"
+    v-model:expandedRows="expandedRows"
+    :sort-order="-1"
+    removable-sort
     :paginator="true"
     :rows="rowsPerPage"
-    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-    :globalFilterFields="['id', 'name']"
-    filterDisplay="menu"
-    v-model:filters="filters"
-    v-model:expandedRows="expandedRows"
+    paginator-template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+    current-page-report-template="Showing {first} to {last} of {totalRecords} entries"
+    :global-filter-fields="['id', 'name']"
+    filter-display="menu"
     :class="{ dark: darkThemeOn }"
   >
     <template #header>
@@ -48,31 +48,31 @@
             </svg>
           </div>
           <input
+            id="email"
+            v-model.trim="filters.global.value"
             type="text"
             name="email"
-            id="email"
             class="block min-w-0 px-2 py-1 w-full pl-8 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 rounded-md"
             placeholder="Keyword"
-            v-model.trim="filters.global.value"
           />
         </div>
       </div>
     </template>
 
-    <Column :expander="true" headerClass="pl-2 py-2" bodyClass="pl-2 py-1" />
+    <Column :expander="true" header-class="pl-2 py-2" body-class="pl-2 py-1" />
     <Column
       field="egg"
       header=""
       :sortable="true"
-      headerClass="pl-4 pr-1 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none"
-      bodyClass="pl-4 pr-1 py-1"
-      :bodyStyle="{ minWidth: '2.25rem' }"
+      header-class="pl-4 pr-1 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none"
+      body-class="pl-4 pr-1 py-1"
+      :body-style="{ minWidth: '2.25rem' }"
     >
       <template #body="{ data: contract }">
         <img
+          v-tippy="{ content: contractEggTooltip(contract) }"
           :src="eggIconURL(contract)"
           class="block -ml-0.5 h-4 w-4"
-          v-tippy="{ content: contractEggTooltip(contract) }"
         />
       </template>
     </Column>
@@ -80,18 +80,18 @@
       field="name"
       header="Title"
       :sortable="true"
-      :headerClass="columnHeaderClasses"
-      :bodyClass="columnBodyClasses"
+      :header-class="columnHeaderClasses"
+      :body-class="columnBodyClasses"
     >
       <template #body="{ data: contract }">
         <span
-          :class="[isAvailable(contract) ? 'text-green-500' : columnColorClasses, 'cursor-pointer']"
-          @click="selectContractAndShowCoopSelector(contract.id)"
           v-tippy="
             isAvailable(contract)
               ? { content: `Expires in ${durationUntilExpiration(contract)}` }
               : {}
           "
+          :class="[isAvailable(contract) ? 'text-green-500' : columnColorClasses, 'cursor-pointer']"
+          @click="selectContractAndShowCoopSelector(contract.id)"
         >
           {{ contract.name }}
         </span>
@@ -101,8 +101,8 @@
       field="identifier"
       header="ID"
       :sortable="true"
-      :headerClass="columnHeaderClasses"
-      :bodyClass="columnBodyClasses"
+      :header-class="columnHeaderClasses"
+      :body-class="columnBodyClasses"
     >
       <template #body="{ data: contract }">
         <span
@@ -117,14 +117,14 @@
       field="type"
       header="Type"
       :sortable="true"
-      :headerClass="columnHeaderClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
-      :showFilterMatchModes="false"
+      :header-class="columnHeaderClassesCentered"
+      :body-class="columnBodyClassesCentered"
+      :show-filter-match-modes="false"
     >
       <template #filter="{ filterModel }">
         <select
-          class="mt-1 block w-full pl-3 pr-10 py-1 text-base border border-gray-300 focus:outline-none focus:border-gray-500 sm:text-sm rounded-md text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
           v-model="filterModel.value"
+          class="mt-1 block w-full pl-3 pr-10 py-1 text-base border border-gray-300 focus:outline-none focus:border-gray-500 sm:text-sm rounded-md text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
         >
           <option value="">-- Type --</option>
           <option>Original</option>
@@ -136,9 +136,9 @@
       field="numLeggacies"
       header="Leggacies"
       :sortable="true"
-      :headerClass="columnHeaderNarrowClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
-      :showFilterMatchModes="false"
+      :header-class="columnHeaderNarrowClassesCentered"
+      :body-class="columnBodyClassesCentered"
+      :show-filter-match-modes="false"
     >
       <template #filter="{ filterModel }">
         <div class="relative ml-auto mr-1 rounded-md shadow-sm">
@@ -151,12 +151,12 @@
             </svg>
           </div>
           <input
+            id="email"
+            v-model.number="filterModel.value"
             type="text"
             name="email"
-            id="email"
             class="block min-w-0 px-2 py-1 w-full pl-6 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 rounded-md"
             placeholder="Max # of leggacies"
-            v-model.number="filterModel.value"
           />
         </div>
       </template>
@@ -165,8 +165,8 @@
       field="lengthSeconds"
       header="Duration"
       :sortable="true"
-      :headerClass="columnHeaderClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
+      :header-class="columnHeaderClassesCentered"
+      :body-class="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         {{ formatDuration(contract.lengthSeconds, true) }}
@@ -176,8 +176,8 @@
       field="maxCoopSize"
       header="Size"
       :sortable="true"
-      :headerClass="columnHeaderClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
+      :header-class="columnHeaderClassesCentered"
+      :body-class="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         {{ contract.maxCoopSize || '\u2013' }}
@@ -187,8 +187,8 @@
       field="minutesPerToken"
       header="Tokens"
       :sortable="true"
-      :headerClass="columnHeaderClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
+      :header-class="columnHeaderClassesCentered"
+      :body-class="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <template v-if="contract.minutesPerToken"> {{ contract.minutesPerToken }}m </template>
@@ -199,9 +199,9 @@
       field="prophecyEggs"
       header="PE"
       :sortable="true"
-      :headerClass="columnHeaderNarrowClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
-      :showFilterMatchModes="false"
+      :header-class="columnHeaderNarrowClassesCentered"
+      :body-class="columnBodyClassesCentered"
+      :show-filter-match-modes="false"
     >
       <template #filter="{ filterModel }">
         <div class="relative ml-auto mr-1 rounded-md shadow-sm">
@@ -214,12 +214,12 @@
             </svg>
           </div>
           <input
+            id="email"
+            v-model.number="filterModel.value"
             type="text"
             name="email"
-            id="email"
             class="block min-w-0 px-2 py-1 w-full pl-6 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 rounded-md"
             placeholder="Min # of PEs"
-            v-model.number="filterModel.value"
           />
         </div>
       </template>
@@ -228,15 +228,15 @@
       field="offeringTime"
       header="Offering"
       :sortable="true"
-      :headerClass="columnHeaderClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
+      :header-class="columnHeaderClassesCentered"
+      :body-class="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <span
-          :class="columnColorClasses"
           v-tippy="{
             content: formatDateTime(contract.offeringTime),
           }"
+          :class="columnColorClasses"
         >
           {{ formatDate(contract.offeringTime) }}
         </span>
@@ -246,15 +246,15 @@
       field="expirationTime"
       header="Expiration"
       :sortable="true"
-      :headerClass="columnHeaderClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
+      :header-class="columnHeaderClassesCentered"
+      :body-class="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <span
-          :class="columnColorClasses"
           v-tippy="{
             content: formatDateTime(contract.expirationTime),
           }"
+          :class="columnColorClasses"
         >
           {{ formatDate(contract.expirationTime) }}
         </span>
@@ -264,8 +264,8 @@
       field="eliteGoal"
       header="Elite goal"
       :sortable="true"
-      :headerClass="columnHeaderClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
+      :header-class="columnHeaderClassesCentered"
+      :body-class="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <template v-if="contract.eliteGoal">
@@ -278,8 +278,8 @@
       field="standardGoal"
       header="Std goal"
       :sortable="true"
-      :headerClass="columnHeaderClassesCentered"
-      :bodyClass="columnBodyClassesCentered"
+      :header-class="columnHeaderClassesCentered"
+      :body-class="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
         <template v-if="contract.standardGoal">

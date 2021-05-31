@@ -10,7 +10,7 @@
       </svg>
       <base-click-to-copy
         class="text-sm"
-        colorClasses="active:text-red-400 dark:active:text-red-600"
+        color-classes="active:text-red-400 dark:active:text-red-600"
         :text="devmode ? error.stack || error.toString() : encodedError"
       >
         <template v-if="devmode">

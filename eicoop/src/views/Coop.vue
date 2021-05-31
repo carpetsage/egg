@@ -4,7 +4,7 @@
     <base-error-boundary :key="`${contractId}:${coopCode}:${refreshId}`">
       <Suspense>
         <template #default>
-          <coop-card :contractId="contractId" :coopCode="coopCode" @success="onSuccess" />
+          <coop-card :contract-id="contractId" :coop-code="coopCode" @success="onSuccess" />
         </template>
         <template #fallback>
           <base-loading />

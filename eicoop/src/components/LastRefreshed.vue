@@ -1,18 +1,18 @@
 <template>
   <span class="flex items-center space-x-0.5">
     <span
-      class="text-xs text-gray-500 dark:text-gray-400 cursor-help truncate"
       v-tippy="{ content: `Last refreshed ${refreshTime.format('YYYY-MM-DD HH:mm:ss')}` }"
+      class="text-xs text-gray-500 dark:text-gray-400 cursor-help truncate"
     >
       Refreshed {{ relativeTime }}
     </span>
     <svg
+      v-tippy="{ content: 'Refresh page' }"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
       class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 cursor-pointer select-none"
       @click="triggerRefresh"
-      v-tippy="{ content: 'Refresh page' }"
     >
       <path
         stroke-linecap="round"

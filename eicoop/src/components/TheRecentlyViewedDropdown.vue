@@ -26,22 +26,22 @@
     >
       <div
         v-if="showDropdown"
+        v-click-outside="{ handler: close, trigger: triggerRef }"
         class="z-10 origin-top-right absolute right-0 mt-2 w-max rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 dark:divide-gray-600 dark:border dark:border-gray-600 focus:outline-none"
         :style="{ minWidth: '14rem', maxWidth: 'min(calc(100vw - 5rem), 40rem)' }"
         role="menu"
         aria-orientation="vertical"
         aria-labelledby="options-menu"
-        v-click-outside="{ handler: close, trigger: triggerRef }"
       >
         <div class="px-4 py-3 text-gray-900 dark:text-gray-100 text-sm font-medium" role="none">
           Recently viewed coops
         </div>
-        <div class="py-2" role="none" v-if="entries.length > 0">
+        <div v-if="entries.length > 0" class="py-2" role="none">
           <template v-for="(entry, index) in entries" :key="index">
             <recently-viewed-entry class="px-4 py-1" :entry="entry" @click="close" />
           </template>
         </div>
-        <div class="py-2" role="none" v-else>
+        <div v-else class="py-2" role="none">
           <div class="px-4 py-1 text-sm text-gray-700 dark:text-gray-200">None</div>
         </div>
       </div>

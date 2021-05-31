@@ -10,9 +10,9 @@
             @click="setSortBy(column.id)"
           >
             <span
+              v-tippy="{ content: column.tooltip }"
               class="flex flex-row items-center space-x-1"
               :class="{ 'justify-center': column.id !== 'name' }"
-              v-tippy="{ content: column.tooltip }"
             >
               <template v-if="column.iconPath">
                 <span class="flex flex-shrink-0 flex-row items-center space-x-px">
@@ -70,12 +70,12 @@
           <!-- Inactive -->
           <svg
             v-if="!contributor.isActive"
-            viewBox="0 0 256 256"
-            class="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0 cursor-help"
             v-tippy="{
               content:
                 'This player hasn\'t reported in for a long time and can be kicked by the coop creator.',
             }"
+            viewBox="0 0 256 256"
+            class="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0 cursor-help"
           >
             <path
               fill="currentColor"
@@ -93,23 +93,23 @@
           <!-- Time cheat -->
           <img
             v-if="contributor.isTimeCheating"
-            :src="iconURL('egginc-extras/icon_time_cheat.png', 64)"
-            class="h-4 w-4 flex-shrink-0 cursor-help"
-            :style="{ filter: 'brightness(0.5) sepia(1) saturate(10000%)' }"
             v-tippy="{
               content: 'This player is suspected of time cheating and can be kicked by anyone.',
             }"
+            :src="iconURL('egginc-extras/icon_time_cheat.png', 64)"
+            class="h-4 w-4 flex-shrink-0 cursor-help"
+            :style="{ filter: 'brightness(0.5) sepia(1) saturate(10000%)' }"
           />
           <!-- Leech -->
           <svg
             v-if="contributor.isLeeching"
-            class="h-3.5 w-3.5 flex-shrink-0 text-red-500 cursor-help"
-            viewBox="0 0 20 20"
-            fill="currentColor"
             v-tippy="{
               content:
                 'This player\'s contribution rate has been deemed unsatisfactory, and is at the risk of being kicked by anyone.',
             }"
+            class="h-3.5 w-3.5 flex-shrink-0 text-red-500 cursor-help"
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
             <path
               fill-rule="evenodd"
@@ -174,12 +174,12 @@
                 contributor.hourlyShippingCapacity !== null &&
                 contributor.hourlyLayingRateUncapped > contributor.hourlyShippingCapacity
               "
-              class="inline h-4 w-4 relative -top-px cursor-help"
-              :src="iconURL('egginc-extras/icon_warning.png', 64)"
               v-tippy="{
                 content:
                   'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
               }"
+              class="inline h-4 w-4 relative -top-px cursor-help"
+              :src="iconURL('egginc-extras/icon_warning.png', 64)"
             />
           </template>
           <template v-else>&ndash;</template>
