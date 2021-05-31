@@ -1,0 +1,92 @@
+<template>
+  <player-card :backup="backup" :inventory="inventory" />
+
+  <collapsible-section
+    section-title="Active missions"
+    :visible="isVisibleSection('active-missions')"
+    @toggle="toggleSectionVisibility('active-missions')"
+  >
+    <active-missions-report :active-missions="activeMissions" />
+  </collapsible-section>
+
+  <collapsible-section
+    section-title="Mission statistics"
+    :visible="isVisibleSection('mission-statistics')"
+    @toggle="toggleSectionVisibility('mission-statistics')"
+  >
+    <mission-statistics-report :artifacts-d-b="artifactsDB" :permit="permit" />
+  </collapsible-section>
+
+  <collapsible-section
+    section-title="Launch log"
+    :visible="isVisibleSection('launch-log')"
+    @toggle="toggleSectionVisibility('launch-log')"
+  >
+    <launch-log :artifacts-d-b="artifactsDB" />
+  </collapsible-section>
+
+  <collapsible-section
+    section-title="Artifacting progress"
+    :visible="isVisibleSection('artifacting-progress')"
+    @toggle="toggleSectionVisibility('artifacting-progress')"
+  >
+    <artifacting-progress-report :inventory="inventory" />
+  </collapsible-section>
+</template>
+
+<script lang="ts">
+import { computed, defineComponent } from 'vue';
+
+import { Inventory, requestFirstContact } from 'lib';
+import { PermitLevel } from '@/lib';
+import { useSectionVisibility } from 'ui/composables/section_visibility';
+import CollapsibleSection from '@/components/CollapsibleSection.vue';
+import PlayerCard from '@/components/PlayerCard.vue';
+import ActiveMissionsReport from '@/components/ActiveMissionsReport.vue';
+import MissionStatisticsReport from '@/components/MissionStatisticsReport.vue';
+import LaunchLog from '@/components/LaunchLog.vue';
+import ArtifactingProgressReport from '@/components/ArtifactingProgressReport.vue';
+
+export default defineComponent({
+  components: {
+    CollapsibleSection,
+    PlayerCard,
+    ActiveMissionsReport,
+    MissionStatisticsReport,
+    LaunchLog,
+    ArtifactingProgressReport,
+  },
+  props: {
+    playerId: {
+      type: String,
+      required: true,
+    },
+  },
+  // This async component does not respond to playerId changes.
+  /* eslint-disable vue/no-setup-props-destructure */
+  async setup({ playerId }) {
+    const data = await requestFirstContact(playerId);
+    if (!data.backup || !data.backup.game) {
+      throw new Error(`${playerId}: backup is empty`);
+    }
+    const backup = data.backup;
+    const artifactsDB = backup.artifactsDb;
+    if (!artifactsDB) {
+      throw new Error(`${playerId}: no artifacts database in backup`);
+    }
+    const permit = (backup.game?.permitLevel as PermitLevel) || PermitLevel.STANDARD;
+    const inventory = computed(() => new Inventory(artifactsDB));
+    const activeMissions = artifactsDB.missionInfos || [];
+    const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
+    return {
+      backup,
+      permit,
+      artifactsDB,
+      inventory,
+      activeMissions,
+      isVisibleSection,
+      toggleSectionVisibility,
+    };
+  },
+});
+</script>

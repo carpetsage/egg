@@ -1,0 +1,375 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://eiafx-data.tcl.sh/data.schema.json",
+  "title": "Egg, Inc. artifacts-related data",
+  "type": "object",
+  "definitions": {
+    "afx_id": {
+      "description": "ArtifactSpec.Name enum value",
+      "type": "integer",
+      "enum": [
+        0,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        1,
+        31,
+        32,
+        33,
+        34,
+        39,
+        36,
+        37,
+        38,
+        40,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        35,
+        41,
+        42,
+        43,
+        2,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52
+      ]
+    },
+    "afx_level": {
+      "description": "ArtifactSpec.Level enum value",
+      "type": "integer",
+      "enum": [0, 1, 2, 3]
+    },
+    "afx_rarity": {
+      "description": "ArtifactSpec.Rarity enum value",
+      "type": "integer",
+      "enum": [0, 1, 2, 3]
+    },
+    "afx_type": {
+      "description": "ArtifactSpec.Type enum value",
+      "type": "integer",
+      "enum": [0, 1, 2, 3]
+    },
+    "family_core": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "A human-readable unique ID of the family based on its name",
+          "type": "string"
+        },
+        "afx_id": {
+          "$ref": "#/definitions/afx_id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "afx_type": {
+          "$ref": "#/definitions/afx_type",
+          "enum": [0, 1, 2]
+        },
+        "type": {
+          "description": "Human-readable type of the family",
+          "type": "string",
+          "enum": ["Artifact", "Stone", "Ingredient"]
+        },
+        "sort_key": {
+          "description": "An unsigned integer key for sorting families based on type first, then the order of appearance on the quality ladder. This roughly matches how the game sorts families in the inventory system (with minor discrepancies around stones.)",
+          "type": "integer"
+        },
+        "child_afx_ids": {
+          "description": "afx_id's belonging to the family. For artifacts and ingredients, this only contains the family's own afx_id; for stones, this also contains the afx_id of the corresponding stone fragment.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/afx_id"
+          }
+        }
+      },
+      "required": ["id", "afx_id", "name", "afx_type", "type", "sort_key", "child_afx_ids"]
+    },
+    "family": {
+      "description": "A family consists of different tiers of the same artifact, stone (including fragment form), or ingredient.",
+      "allOf": [
+        { "$ref": "#/definitions/family_core" },
+        {
+          "properties": {
+            "effect": {
+              "description": "Empty for ingredients.",
+              "type": "string"
+            },
+            "effect_target": {
+              "description": "Effect without verbs like \"increases\", matches effect_target in child tiers. Empty for ingredients.",
+              "type": "string"
+            },
+            "tiers": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/tier"
+              }
+            }
+          },
+          "required": ["effect", "effect_target", "tiers"]
+        }
+      ]
+    },
+    "tier_core": {
+      "type": "object",
+      "properties": {
+        "family": {
+          "$ref": "#/definitions/family_core"
+        },
+        "id": {
+          "description": "A human-readable unique ID of the family based on its family name and tier number",
+          "type": "string"
+        },
+        "afx_id": {
+          "$ref": "#/definitions/afx_id"
+        },
+        "afx_level": {
+          "$ref": "#/definitions/afx_level"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tier_number": {
+          "description": "Positive tier number in the 4-tier structure of artifacts and stones (including fragments as tier 1), or 3-tier structure of ingredients.",
+          "type": "integer",
+          "enum": [1, 2, 3, 4]
+        },
+        "tier_name": {
+          "description": "Name (qualifier) of the tier after stripping the common family name; 'Regular' if there's no specific qualifier.",
+          "type": "string"
+        },
+        "afx_type": {
+          "$ref": "#/definitions/afx_type"
+        },
+        "icon_filename": {
+          "description": "Filename of the corresponding icon in the app's assets",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "afx_id",
+        "afx_level",
+        "name",
+        "tier_number",
+        "tier_name",
+        "afx_type",
+        "type",
+        "icon_filename"
+      ]
+    },
+    "tier": {
+      "description": "An item tier, or in other words, a specific item, with a name and an icon",
+      "allOf": [
+        { "$ref": "#/definitions/tier_core" },
+        {
+          "properties": {
+            "quality": {
+              "type": "number"
+            },
+            "craftable": {
+              "description": "Whether the item is craftable (false for T1 items, true otherwise)",
+              "type": "boolean"
+            },
+            "has_rarities": {
+              "description": "Whether this item's family supports rarities, i.e., true only for artifacts (doesn't matter if this specific tier has only common rarity).",
+              "type": "boolean"
+            },
+            "possible_afx_rarities": {
+              "description": "Possible rarity variants of this item (null if has_rarities is false).",
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/afx_rarity"
+                  }
+                }
+              ]
+            },
+            "has_effects": {
+              "type": "boolean"
+            },
+            "available_from_missions": {
+              "type": "boolean"
+            },
+            "effects": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "description": "Effects for all rarity levels (or a single effect object when rarity does not apply to the family).",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/effect"
+                  }
+                }
+              ]
+            },
+            "recipe": {
+              "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/recipe" }]
+            },
+            "ingredients_available_from_missions": {
+              "type": "boolean",
+              "description": "Whether all of this item's ingredients are available from missions."
+            },
+            "hard_dependencies": {
+              "description": "For an item unobtainable from missions, the hard dependencies are the highest level mission-obtainable items in the crafting ingredient tree; i.e., the ingredients must be gathered in order to craft the item in question, no way to skip them.",
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ingredient"
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "quality",
+            "craftable",
+            "has_rarities",
+            "possible_afx_rarities",
+            "has_effects",
+            "available_from_missions",
+            "effects",
+            "recipe",
+            "ingredients_available_from_missions",
+            "hard_dependencies"
+          ]
+        }
+      ]
+    },
+    "effect": {
+      "type": "object",
+      "properties": {
+        "afx_rarity": {
+          "$ref": "#/definitions/afx_rarity"
+        },
+        "rarity": {
+          "type": "string"
+        },
+        "effect": {
+          "description": "The full effect description",
+          "type": "string"
+        },
+        "effect_target": {
+          "description": "Effect description sans the effect size (amount), common to all rarity levels of the same item.",
+          "type": "string"
+        },
+        "effect_size": {
+          "type": "string"
+        },
+        "family_effect": {
+          "description": "Matches family's effect.",
+          "type": "string"
+        },
+        "slots": {
+          "description": "Number of slots; null if the family isn't supposed to have slots.",
+          "type": ["integer", "null"]
+        }
+      },
+      "required": [
+        "afx_rarity",
+        "rarity",
+        "effect",
+        "effect_target",
+        "effect_size",
+        "family_effect",
+        "slots"
+      ]
+    },
+    "recipe": {
+      "type": "object",
+      "properties": {
+        "ingredients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ingredient"
+          }
+        },
+        "crafting_price": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "description": "ArtifactsConfigurationResponse.ArtifactParameters.crafting_price",
+              "type": "number"
+            },
+            "low": {
+              "description": "ArtifactsConfigurationResponse.ArtifactParameters.crafting_price_low",
+              "type": "number"
+            },
+            "domain": {
+              "description": "ArtifactsConfigurationResponse.ArtifactParameters.crafting_price_domain",
+              "type": "integer"
+            },
+            "curve": {
+              "description": "ArtifactsConfigurationResponse.ArtifactParameters.crafting_price_curve",
+              "type": "number"
+            },
+            "initial": {
+              "description": "Golden eggs cost of crafting this item for the first time",
+              "type": "integer"
+            },
+            "minimum": {
+              "description": "Minimum golden eggs cost of crafting this item",
+              "type": "integer"
+            }
+          },
+          "required": ["base", "low", "domain", "curve", "initial", "minimum"]
+        }
+      },
+      "required": ["ingredients", "crafting_price"]
+    },
+    "ingredient": {
+      "allOf": [
+        { "$ref": "#/definitions/tier_core" },
+        {
+          "properties": {
+            "count": {
+              "type": "integer"
+            }
+          },
+          "required": ["count"]
+        }
+      ]
+    }
+  },
+  "properties": {
+    "artifact_families": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/family"
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+module.exports = {
+  root: true,
+  env: {
+    node: true,
+  },
+  parser: 'vue-eslint-parser',
+  parserOptions: {
+    parser: '@typescript-eslint/parser',
+    sourceType: 'module',
+  },
+  plugins: ['@typescript-eslint'],
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:vue/vue3-recommended',
+  ],
+  rules: {
+    'no-constant-condition': ['error', { checkLoops: false }],
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    'vue/html-closing-bracket-newline': 'off',
+    'vue/html-indent': 'off',
+    'vue/html-self-closing': [
+      'error',
+      {
+        html: {
+          normal: 'never',
+          void: 'always',
+        },
+      },
+    ],
+    'vue/max-attributes-per-line': 'off',
+    'vue/singleline-html-element-content-newline': 'off',
+  },
+};

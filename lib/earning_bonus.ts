@@ -1,3 +1,31 @@
+import { getNumProphecyEggs } from './prophecy_eggs';
+import { ei } from './proto';
+
+export function getNumSoulEggs(backup: ei.IBackup): number {
+  return backup.game?.soulEggsD || 0;
+}
+
+export function getNakedEarningBonus(backup: ei.IBackup): number {
+  const epicResearches = backup.game?.epicResearch || [];
+  let soulFoodLevel = 0;
+  for (const r of epicResearches) {
+    if (r.id === 'soul_eggs') {
+      soulFoodLevel = r.level!;
+    }
+  }
+  const soulEggBonus = 0.1 + soulFoodLevel * 0.01;
+  let prophecyBonusLevel = 0;
+  for (const r of epicResearches) {
+    if (r.id === 'prophecy_bonus') {
+      prophecyBonusLevel = r.level!;
+    }
+  }
+  const prophecyEggBonus = 0.05 + prophecyBonusLevel * 0.01;
+  return (
+    getNumSoulEggs(backup) * soulEggBonus * (1 + prophecyEggBonus) ** getNumProphecyEggs(backup)
+  );
+}
+
 // Implements farmer roles from the Egg, Inc. Discord.
 //
 // !?gethexcodes all
