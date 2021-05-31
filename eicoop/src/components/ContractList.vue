@@ -360,7 +360,7 @@ export default defineComponent({
 
     const filters = ref({
       global: {
-        value: null,
+        value: new URLSearchParams(window.location.search).get('q'),
         matchMode: FilterMatchMode.CONTAINS,
       },
       type: {
