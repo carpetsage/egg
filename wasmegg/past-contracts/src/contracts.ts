@@ -33,7 +33,7 @@ const LEGGACY_CONTRACT_VALID_DURATION = 7 * 86400;
 
 export const rawContractList: ContractProps[] = (() => {
   const list: ContractProps[] = contractProtos
-    .map(contractProto => decodeMessage(ei.Contract, contractProto) as ei.IContract)
+    .map(c => decodeMessage(ei.Contract, c.proto) as ei.IContract)
     .sort((c1, c2) => c1.expirationTime! - c2.expirationTime!)
     .map(c => ({
       ...c,

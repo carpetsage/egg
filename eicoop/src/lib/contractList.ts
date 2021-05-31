@@ -6,7 +6,7 @@ const ORIGINAL_CONTRACT_VALID_DURATION = 21 * 86400;
 const LEGGACY_CONTRACT_VALID_DURATION = 7 * 86400;
 
 export const rawContractList = contractProtos.map(
-  contractProto => decodeMessage(ei.Contract, contractProto) as ei.IContract
+  c => decodeMessage(ei.Contract, c.proto) as ei.IContract
 );
 
 export interface Contract extends ei.IContract {
