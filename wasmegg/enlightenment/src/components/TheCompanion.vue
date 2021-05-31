@@ -304,6 +304,7 @@ import {
   researchPriceMultiplierFromArtifacts,
   researchPriceMultiplierFromResearches,
 } from '@/lib';
+import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { formatPercentage, formatWithThousandSeparators, formatDurationAuto } from '@/utils';
 import CollapsibleSection from '@/components/CollapsibleSection.vue';
 import TrophyForecast from '@/components/TrophyForecast.vue';
@@ -502,15 +503,7 @@ export default defineComponent({
       offlineRate: offlineIHR,
     } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts);
 
-    const sectionVisibility = ref(loadSectionVisibilityFromLocalStorage());
-    const isVisibleSection = (section: string) => {
-      return sectionVisibility.value[section] !== false;
-    };
-    const toggleSectionVisibility = (section: string) => {
-      const current = sectionVisibility.value[section] !== false;
-      sectionVisibility.value[section] = !current;
-      persistSectionVisibilityToLocalStorage(sectionVisibility.value);
-    };
+    const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 
     return {
       nickname,
@@ -554,7 +547,6 @@ export default defineComponent({
       onlineIHR,
       onlineIHRPerHab,
       offlineIHR,
-      sectionVisibility,
       isVisibleSection,
       toggleSectionVisibility,
       formatWithThousandSeparators,
@@ -563,28 +555,4 @@ export default defineComponent({
     };
   },
 });
-
-type SectionVisibility = { [section: string]: boolean };
-
-const SECTION_VISIBILITY_LOCALSTORAGE_KEY = 'sectionVisibility';
-
-function loadSectionVisibilityFromLocalStorage(): SectionVisibility {
-  const encoded = getLocalStorage(SECTION_VISIBILITY_LOCALSTORAGE_KEY) || '{}';
-  try {
-    const visibility: SectionVisibility = {};
-    for (const [key, val] of Object.entries(JSON.parse(encoded))) {
-      if (val === false) {
-        visibility[key] = val;
-      }
-    }
-    return visibility;
-  } catch (e) {
-    console.error(`error loading sectionVisibility from localStorage: ${e}`);
-    return {};
-  }
-}
-
-function persistSectionVisibilityToLocalStorage(value: SectionVisibility) {
-  setLocalStorage(SECTION_VISIBILITY_LOCALSTORAGE_KEY, JSON.stringify(value));
-}
 </script>
