@@ -19,7 +19,7 @@ $(init-targets): init-%:
 	$(MAKE) -C $(patsubst init-%,%,$@) init
 
 $(targets): %:
-	$(MAKE) -C $@
+	ets -s -f '[$@ %H:%M:%S]' $(MAKE) -C $@
 
 $(clean-targets): clean-%:
 	$(MAKE) -C $(patsubst clean-%,%,$@) clean
