@@ -185,7 +185,10 @@
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm tabular-nums">
                     {{ epochSecondsToFormattedDate(contract.timestamp) }}
                   </td>
-                  <td class="px-6 py-1 max-w-column truncate text-center text-sm cursor-pointer">
+                  <td
+                    class="px-6 py-1 truncate text-center text-sm cursor-pointer"
+                    :style="{ maxWidth: '12rem' }"
+                  >
                     <template v-if="contract.coopCode !== null">
                       <a
                         :href="coopLink(contract)"
