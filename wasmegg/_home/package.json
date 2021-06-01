@@ -1,7 +1,7 @@
 {
-  "name": "@@ID@@",
+  "name": "home",
   "version": "0.0.0",
-  "license": "MIT",
+  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
@@ -11,6 +11,7 @@
   "dependencies": {
     "lib": ">=0.1.0",
     "vue": "^3.0.5",
+    "vue-router": "^4.0.8",
     "vue-tippy": "^6.0.0-alpha.28"
   },
   "devDependencies": {

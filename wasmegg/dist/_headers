@@ -1,3 +1,6 @@
+/assets/*
+  cache-control: public,max-age=2592000,immutable
+
 /*/app.*.css
   cache-control: public,max-age=2592000,immutable
 
@@ -7,10 +10,7 @@
 /*/app.*.wasm
   cache-control: public,max-age=2592000,immutable
 
-/*/assets/*.css
-  cache-control: public,max-age=2592000,immutable
-
-/*/assets/*.js
+/*/assets/*
   cache-control: public,max-age=2592000,immutable
 
 /*/*.otf

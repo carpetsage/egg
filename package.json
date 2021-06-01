@@ -6,6 +6,7 @@
   "workspaces": [
     "lib",
     "eicoop",
+    "wasmegg/_home",
     "wasmegg/enlightenment",
     "wasmegg/past-contracts",
     "wasmegg/rockets-tracker"
