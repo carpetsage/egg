@@ -11,6 +11,14 @@ declare module 'vue-router' {
   }
 }
 
+declare global {
+  interface Window {
+    goatcounter: {
+      count: (options: { path: string; title: string; event: boolean }) => void;
+    };
+  }
+}
+
 const router = createRouter({
   routes: [
     {
@@ -49,6 +57,15 @@ router.afterEach((to, from, failure) => {
   if (!failure) {
     nextTick(() => {
       document.title = to.meta.title;
+      if (to.name === 'donate') {
+        setTimeout(() => {
+          window.goatcounter?.count({
+            path: 'https://wasmegg.netlify.app/#/donate',
+            title: 'Visited donation page',
+            event: true,
+          });
+        }, 0);
+      }
     });
   }
 });
