@@ -64,8 +64,6 @@ export const tools = [
     iconUrl: eicoopIconUrl,
     displayIconOnly: true,
     iconCssClasses: 'h-6 -ml-0.5 -mr-1 -top-0.5',
-    // TODO: remove newUntil
-    // newUntil: 1623155597000,
   }),
 
   new Tool({
