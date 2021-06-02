@@ -4,6 +4,10 @@
 
 @import 'ui/styles/base';
 
+ul {
+  @apply list-disc pl-10 my-2;
+}
+
 strong {
   @apply font-medium;
 }

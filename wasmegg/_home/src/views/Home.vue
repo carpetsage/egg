@@ -12,7 +12,6 @@
 
   <ul>
     <li>
-      <!-- TODO: attach goatcounter event -->
       <base-router-link
         :to="{ name: 'donate' }"
         class="relative text-green-500 hover:text-green-600 visited:text-green-500 visited:hover:text-green-600"
@@ -110,10 +109,18 @@
     </li>
   </ul>
 
+  <h2>Supporters</h2>
   <p>
-    You can find the author on the
-    <base-link href="https://discord.gg/egginc">Egg, Inc. Discord server</base-link>.
+    Hosting costs come from donations of the awesome individuals listed below. Find out how you can
+    support my tools by visiting the
+    <base-router-link
+      :to="{ name: 'donate' }"
+      class="relative text-green-500 hover:text-green-600 visited:text-green-500 visited:hover:text-green-600"
+      >Donate</base-router-link
+    >
+    page.
   </p>
+  <donor-list />
 </template>
 
 <script lang="ts">
@@ -123,12 +130,14 @@ import { getDonationPageVisited } from 'lib';
 import BaseLink from '@/components/BaseLink.vue';
 import BaseRouterLink from '@/components/BaseRouterLink.vue';
 import ToolLink from '@/components/ToolLink.vue';
+import DonorList from '@/components/DonorList.vue';
 
 export default defineComponent({
   components: {
     BaseLink,
     BaseRouterLink,
     ToolLink,
+    DonorList,
   },
   setup() {
     const donationPageVisited = getDonationPageVisited();
@@ -146,9 +155,5 @@ h2 {
 
 h3 {
   @apply font-medium text-h3 my-2;
-}
-
-ul {
-  @apply list-disc pl-10 my-2;
 }
 </style>

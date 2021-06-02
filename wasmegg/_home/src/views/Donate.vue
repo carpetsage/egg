@@ -28,7 +28,7 @@
     <base-link href="https://discord.gg/egginc">Egg, Inc. Discord server</base-link>.
   </p>
 
-  <h2 class="my-2 font-medium underline">Why am I calling for donations now</h2>
+  <h2 class="my-4 font-medium underline">Why am I calling for donations now</h2>
 
   <p>
     My public tools are hosted on <base-link href="https://netlify.com">Netlify</base-link>, which
@@ -73,6 +73,13 @@
     I might consider ways to further reduce costs if I cannot raise enough funds.
   </p>
 
+  <h2 class="my-4 font-medium underline">Supporters</h2>
+
+  <div>
+    <p>The following supporters have my gratitude:</p>
+    <donor-list />
+  </div>
+
   <p><base-router-link :to="{ name: 'home' }">Back to home page</base-router-link></p>
 </template>
 
@@ -82,6 +89,7 @@ import { defineComponent } from 'vue';
 import { setDonationPageVisited } from 'lib';
 import BaseLink from '@/components/BaseLink.vue';
 import BaseRouterLink from '@/components/BaseRouterLink.vue';
+import DonorList from '@/components/DonorList.vue';
 
 import patreonIconUrl from '@/brands/patreon.png';
 import paypalIconUrl from '@/brands/paypal.svg';
@@ -90,6 +98,7 @@ export default defineComponent({
   components: {
     BaseLink,
     BaseRouterLink,
+    DonorList,
   },
   setup() {
     setDonationPageVisited();
@@ -102,7 +111,8 @@ export default defineComponent({
 </script>
 
 <style scoped>
-p {
+p,
+::v-deep(p) {
   @apply my-4;
 }
 </style>
