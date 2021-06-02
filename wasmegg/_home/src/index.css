@@ -3,3 +3,7 @@
 @import 'tailwindcss/utilities';
 
 @import 'ui/styles/base';
+
+strong {
+  @apply font-medium;
+}
