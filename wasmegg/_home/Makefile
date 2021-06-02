@@ -9,7 +9,7 @@ build:
 	yarn build
 
 dist: build
-	../_tools/build.py dist --additional assets
+	../_tools/build.py dist --additional assets --additional static
 
 clean:
 	@$(RM) -r dist

@@ -1,5 +1,6 @@
 /               /_home/index.html       200
 /assets/*       /_home/assets/:splat    200
+/static/*       /_home/static/:splat    200
 
 /proto-explorer/doc/    /proto-explorer/doc/index.html  200
 /proto-explorer/*       /proto-explorer/index.html      200
