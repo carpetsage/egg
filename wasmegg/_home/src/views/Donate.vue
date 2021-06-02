@@ -21,7 +21,10 @@
     </base-link>
   </div>
 
-  <p>Donors will be credited here as well as on the home page.</p>
+  <p>
+    Donors will be credited here as well as on the home page.
+    <strong>When you donate, please leave a note on how you want to be credited!</strong>
+  </p>
 
   <p>
     Feel free to contact <span class="font-medium">mk2#4590</span> on the
