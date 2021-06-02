@@ -79,6 +79,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
+import { setDonationPageVisited } from 'lib';
 import BaseLink from '@/components/BaseLink.vue';
 import BaseRouterLink from '@/components/BaseRouterLink.vue';
 
@@ -91,6 +92,7 @@ export default defineComponent({
     BaseRouterLink,
   },
   setup() {
+    setDonationPageVisited();
     return {
       patreonIconUrl,
       paypalIconUrl,

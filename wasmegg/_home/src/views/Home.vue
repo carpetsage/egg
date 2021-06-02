@@ -16,10 +16,10 @@
       <base-router-link
         :to="{ name: 'donate' }"
         class="relative text-green-500 hover:text-green-600 visited:text-green-500 visited:hover:text-green-600"
-        :class="'bg-green-50'"
+        :class="{ 'bg-green-50': !donationPageVisited }"
       >
         Donate to help cover hosting costs
-        <span class="absolute top-0.5 -right-3 flex h-2 w-2">
+        <span v-if="!donationPageVisited" class="absolute top-0.5 -right-3 flex h-2 w-2">
           <span
             class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
           ></span>
@@ -119,6 +119,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
+import { getDonationPageVisited } from 'lib';
 import BaseLink from '@/components/BaseLink.vue';
 import BaseRouterLink from '@/components/BaseRouterLink.vue';
 import ToolLink from '@/components/ToolLink.vue';
@@ -128,6 +129,12 @@ export default defineComponent({
     BaseLink,
     BaseRouterLink,
     ToolLink,
+  },
+  setup() {
+    const donationPageVisited = getDonationPageVisited();
+    return {
+      donationPageVisited,
+    };
   },
 });
 </script>
