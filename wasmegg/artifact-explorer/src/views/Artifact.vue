@@ -153,6 +153,11 @@
     <div class="px-4 py-4 sm:px-6 space-y-2">
       <template v-if="!artifact.notDroppableInPractice && obtainableMissions.length > 0">
         <div class="text-sm font-medium text-gray-500">Available from the following missions:</div>
+        <div v-if="showDropRateWarning(artifact)" class="text-xs text-red-600">
+          This item did not drop prior to 2021-05-20 thanks to a server bug, which was fixed
+          "unintentionally" that day. Therefore, the following drop rates may differ from current
+          rates by a lot.
+        </div>
         <ul class="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
           <li
             v-for="mission in obtainableMissions"
@@ -509,6 +514,10 @@ export default {
         }
       }
       return dependents;
+    },
+
+    showDropRateWarning(item) {
+      return item.id === 'demeters-necklace-4' || item.id === 'tungsten-ankh-4';
     },
 
     // precision is optional.
