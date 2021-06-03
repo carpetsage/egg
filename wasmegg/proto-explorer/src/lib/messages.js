@@ -33,6 +33,7 @@ const messages = {
     'CreateCoopResponse',
     'JoinCoopRequest',
     'JoinCoopResponse',
+    'CollectContractArtifactRewardsRequest',
     'AutoJoinCoopRequest',
     'UpdateCoopPermissionsRequest',
     'UpdateCoopPermissionsResponse',
