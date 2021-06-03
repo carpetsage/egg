@@ -70,6 +70,9 @@ export default defineComponent({
       throw new Error(`${playerId}: backup is empty`);
     }
     const backup = data.backup;
+    if (!backup.settings) {
+      throw new Error(`${playerId}: settings not found in backup`);
+    }
     const artifactsDB = backup.artifactsDb;
     if (!artifactsDB) {
       throw new Error(`${playerId}: no artifacts database in backup`);

@@ -354,14 +354,7 @@ export default defineComponent({
       setLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY, collapsed.value);
     };
 
-    const homeFarm = computed(() => {
-      const farms = backup.value.farms || [];
-      if (farms.length === 0) {
-        throw new Error('no farm found in backup');
-      }
-      return farms[0];
-    });
-    const lastRefreshedTimestamp = computed(() => homeFarm.value.lastStepTime! * 1000);
+    const lastRefreshedTimestamp = computed(() => backup.value.settings!.lastBackupTime! * 1000);
     const lastRefreshed = computed(() => dayjs(Math.min(lastRefreshedTimestamp.value, Date.now())));
     const now = ref(dayjs());
     const lastRefreshedRelative = computed(() => now.value && lastRefreshed.value.fromNow());
