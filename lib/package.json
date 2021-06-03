@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "main": "index.ts",
   "license": "MIT",
+  "sideEffects": false,
   "dependencies": {
     "dayjs": "^1.10.4",
     "protobufjs": "^6.11.2"
