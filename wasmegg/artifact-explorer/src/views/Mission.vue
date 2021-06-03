@@ -25,12 +25,13 @@
         <select
           id="artifact-sort-by"
           name="artifact-sort-by"
-          class="ml-2 pl-2 pr-8 py-1 text-xs text-gray-500 uppercase bg-gray-50 border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
+          class="ml-2 pl-2 pr-8 py-1 text-xs text-gray-500 bg-gray-50 border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
           v-model="sortBy"
         >
-          <option :value="$options.SORT_BY.QUALITY">quality</option>
-          <option :value="$options.SORT_BY.FAMILY">family</option>
-          <option :value="$options.SORT_BY.NAME">name</option>
+          <option :value="$options.SORT_BY.QUALITY">Quality</option>
+          <option :value="$options.SORT_BY.FAMILY">Family</option>
+          <option :value="$options.SORT_BY.NAME">Name</option>
+          <option :value="$options.SORT_BY.DROP_RATE">Drop rate</option>
         </select>
       </div>
 
@@ -77,6 +78,7 @@ const SORT_BY = {
   QUALITY: 'quality',
   FAMILY: 'family',
   NAME: 'name',
+  DROP_RATE: 'dropRate',
 };
 
 export default {
@@ -131,6 +133,11 @@ export default {
               return stringCmp(artifact1.sortKey, artifact2.sortKey);
             case SORT_BY.NAME:
               return stringCmp(artifact1.name, artifact2.name);
+            case SORT_BY.DROP_RATE:
+              return (
+                this.mission.loot.items[artifact2.id].rarities[artifact2.afxRarity] -
+                this.mission.loot.items[artifact1.id].rarities[artifact1.afxRarity]
+              );
             default:
               return artifact1.quality - artifact2.quality;
           }
