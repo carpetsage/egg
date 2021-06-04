@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -102,7 +101,7 @@ func main() {
 						Effect:            r.Effect,
 						EffectTarget:      r.EffectTarget,
 						EffectSize:        r.EffectSize,
-						EffectDelta:       effectDelta(r.EffectSize),
+						EffectDelta:       r.EffectDelta,
 						Slots:             *r.Slots,
 						FamilyEffect:      r.FamilyEffect,
 						BaseCraftingPrice: t.BaseCraftingPrices[i],
@@ -124,7 +123,7 @@ func main() {
 					Effect:            e.Effect,
 					EffectTarget:      e.EffectTarget,
 					EffectSize:        e.EffectSize,
-					EffectDelta:       effectDelta(e.EffectSize),
+					EffectDelta:       e.EffectDelta,
 					FamilyEffect:      e.FamilyEffect,
 					BaseCraftingPrice: t.BaseCraftingPrices[0],
 					IconFilename:      t.IconFilename,
@@ -147,30 +146,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("error writing to %s: %s", _appDataFile, err)
 	}
-}
-
-func effectDelta(effectSize string) float64 {
-	if effectSize == "Guaranteed" {
-		return 0
-	}
-	s := effectSize
-	var delta float64 = 1
-	multiply := false
-	if s[len(s)-1] == 'x' {
-		multiply = true
-		s = s[:len(s)-1]
-	}
-	if s[len(s)-1] == '%' {
-		delta = 0.01
-		s = s[:len(s)-1]
-	}
-	value, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		panic(fmt.Sprintf("failed to parse %s", effectSize))
-	}
-	if multiply {
-		// The delta for 100x should be 99, for instance.
-		return delta * (value - 1)
-	}
-	return delta * value
 }

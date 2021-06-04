@@ -6,12 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/fanaticscripter/EggContractor/api"
 	"github.com/fanaticscripter/Egg/wasmegg/_common/eiafx"
+	"github.com/fanaticscripter/EggContractor/api"
 )
 
 const _catalogDataFile = "src/lib/catalog.json"
@@ -55,7 +54,7 @@ func main() {
 					Rarity:       r.Rarity,
 					EffectTarget: r.EffectTarget,
 					EffectSize:   r.EffectSize,
-					EffectDelta:  effectDelta(r.EffectSize),
+					EffectDelta:  r.EffectDelta,
 					Slots:        slots,
 					IconPath:     "egginc/" + t.IconFilename,
 				})
@@ -72,30 +71,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("error writing to %s: %s", _catalogDataFile, err)
 	}
-}
-
-func effectDelta(effectSize string) float64 {
-	if effectSize == "Guaranteed" {
-		return 0
-	}
-	s := effectSize
-	var delta float64 = 1
-	multiply := false
-	if s[len(s)-1] == 'x' {
-		multiply = true
-		s = s[:len(s)-1]
-	}
-	if s[len(s)-1] == '%' {
-		delta = 0.01
-		s = s[:len(s)-1]
-	}
-	value, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		panic(fmt.Sprintf("failed to parse %s", effectSize))
-	}
-	if multiply {
-		// The delta for 100x should be 99, for instance.
-		return delta * (value - 1)
-	}
-	return delta * value
 }
