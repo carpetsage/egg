@@ -130,6 +130,7 @@ export interface Effect {
    */
   effect_target: string;
   effect_size: string;
+  effect_delta: number;
   /**
    * Matches family's effect.
    */
