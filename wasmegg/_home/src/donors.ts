@@ -4,7 +4,7 @@ export const donors: FixedLengthArray<string, 12> = [
   'DhrMekmek',
   'CW_Mikey',
   'Pete Tycoon',
-  'T* W*',
+  'Zulima',
   'KCCKirby#5225',
   'WhaiFuji#4379',
   'Vijay',
