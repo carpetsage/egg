@@ -79,6 +79,7 @@ type Effect struct {
 	Effect       string                  `json:"effect"`
 	EffectTarget string                  `json:"effect_target"`
 	EffectSize   string                  `json:"effect_size"`
+	EffectDelta  float64                 `json:"effect_delta"`
 	FamilyEffect string                  `json:"family_effect"`
 	// May be null (for stones).
 	Slots *uint32 `json:"slots"`
