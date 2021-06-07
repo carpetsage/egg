@@ -19,5 +19,5 @@ export const donors: FixedLengthArray<string, 19> = [
   'calvin1719',
   'W1Z4RD#8721',
   'Professor',
-  'lazydesert#2563',
+  'aloe-scotch#2563',
 ];
