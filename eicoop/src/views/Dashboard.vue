@@ -2,6 +2,7 @@
   <div v-if="backup" class="flex-1 relative -my-px py-px">
     <main class="flex-1 max-w-ultrawide w-full mx-auto mt-6 ultrawide:px-4">
       <user-dashboard :backup="backup" />
+      <frequently-asked-questions />
     </main>
     <div
       v-if="loading || error"
@@ -17,7 +18,7 @@
   </div>
   <div v-else class="flex items-center justify-center">
     <base-loading v-if="loading" class="mt-6" />
-    <div v-else-if="error" class="overflow-y-scroll">
+    <div v-else-if="error" class="mt-6">
       <error-message :error="error" />
     </div>
   </div>
@@ -30,12 +31,14 @@ import { ei, getUserBackup, recordUserDashboardFeatureUsage } from '@/lib';
 import { refreshCallbackKey } from '@/symbols';
 import BaseLoading from '@/components/BaseLoading.vue';
 import ErrorMessage from '@/components/ErrorMessage.vue';
+import FrequentlyAskedQuestions from '@/components/FrequentlyAskedQuestions.vue';
 import UserDashboard from '@/components/UserDashboard.vue';
 
 export default defineComponent({
   components: {
     BaseLoading,
     ErrorMessage,
+    FrequentlyAskedQuestions,
     UserDashboard,
   },
   props: {
