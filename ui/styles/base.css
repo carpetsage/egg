@@ -8,3 +8,13 @@ body {
   min-height: stretch;
   @apply flex flex-col;
 }
+
+@supports (min-height:-moz-available) {
+  html {
+    height: 100vh;
+  }
+
+  body {
+    min-height: 100vh;
+  }
+}
