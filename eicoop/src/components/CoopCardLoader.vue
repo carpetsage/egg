@@ -13,7 +13,7 @@
     >
       <div class="h-full py-4 flex items-center justify-center">
         <base-loading v-if="loading" />
-        <div v-else-if="error" class="overflow-y-scroll">
+        <div v-else-if="error" class="max-h-full overflow-y-scroll">
           <error-message :error="error" />
         </div>
       </div>
