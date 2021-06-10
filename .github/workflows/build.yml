@@ -35,6 +35,13 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/master'
+      - name: Preview
+        run: |
+          "$(yarn global bin)/netlify" deploy
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        if: github.ref != 'refs/heads/master'
       - name: Deploy
         run: |
           "$(yarn global bin)/netlify" deploy --prod
@@ -93,6 +100,13 @@ jobs:
           "$(yarn global bin)/netlify" deploy --alias "${GITHUB_REF##*/}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        if: github.ref != 'refs/heads/master'
+      - name: Preview
+        run: |
+          "$(yarn global bin)/netlify" deploy
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/master'
       - name: Deploy
