@@ -2,17 +2,9 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+@import 'ui/styles/base';
+
 @import './css/components/DataTableColumnFilterOverlay.css';
-
-html {
-  height: 100vh;
-  height: stretch;
-}
-
-body {
-  min-height: 100vh;
-  min-height: stretch;
-}
 
 * {
   @apply transition-colors duration-0 ease-in;
