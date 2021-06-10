@@ -1,5 +1,5 @@
 <template>
-  <main class="flex-1 max-w-ultrawide w-full mx-auto mt-6 ultrawide:px-4">
+  <main class="flex-1 max-w-ultrawide w-full mx-auto mt-2 ultrawide:px-4">
     <coop-card-loader :contract-id="contractId" :coop-code="coopCode" @success="onSuccess" />
     <frequently-asked-questions />
   </main>
