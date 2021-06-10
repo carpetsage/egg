@@ -30,7 +30,7 @@ jobs:
           yarn global add netlify-cli
       - name: Preview
         run: |
-          "$(yarn global bin)/netlify" deploy
+          "$(yarn global bin)/netlify" deploy --alias "${GITHUB_REF##*/}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -90,7 +90,7 @@ jobs:
           yarn global add netlify-cli
       - name: Preview
         run: |
-          "$(yarn global bin)/netlify" deploy
+          "$(yarn global bin)/netlify" deploy --alias "${GITHUB_REF##*/}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
