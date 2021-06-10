@@ -93,10 +93,29 @@
               ? { content: `Expires in ${durationUntilExpiration(contract)}` }
               : {}
           "
-          :class="[isAvailable(contract) ? 'text-green-500' : columnColorClasses, 'cursor-pointer']"
+          class="flex items-center cursor-pointer"
+          :class="[
+            isAvailable(contract)
+              ? 'text-green-500'
+              : contract.type === 'Original'
+              ? columnColorClassesOriginal
+              : columnColorClasses,
+            contract.type === 'Original' ? 'font-medium ' : null,
+          ]"
           @click="selectContractAndShowCoopSelector(contract.id)"
         >
           {{ contract.name }}
+          <div
+            v-if="contract.type === 'Original' && contract.prophecyEggs > 0"
+            class="flex items-center ml-1"
+          >
+            <img
+              v-for="index in contract.prophecyEggs"
+              :key="index"
+              :src="iconURL('egginc/egg_of_prophecy.png')"
+              class="h-4 w-4"
+            />
+          </div>
         </span>
       </template>
     </Column>
@@ -133,6 +152,17 @@
           <option>Original</option>
           <option>Leggacy</option>
         </select>
+      </template>
+      <template #body="{ data: contract }">
+        <span
+          :class="
+            contract.type === 'Original'
+              ? [columnColorClassesOriginal, 'font-medium']
+              : columnColorClasses
+          "
+        >
+          {{ contract.type }}
+        </span>
       </template>
     </Column>
     <Column
@@ -357,6 +387,7 @@ export default defineComponent({
     const columnBodyClasses =
       'px-4 py-1 whitespace-nowrap text-sm text-gray-500 dark:text-gray-200 tabular-nums';
     const columnColorClasses = 'text-gray-500 dark:text-gray-200';
+    const columnColorClassesOriginal = 'text-gray-700 dark:text-yellow-200';
 
     const filters = ref({
       global: {
@@ -408,6 +439,7 @@ export default defineComponent({
       columnBodyClasses,
       columnBodyClassesCentered: `${columnBodyClasses} text-center`,
       columnColorClasses,
+      columnColorClassesOriginal,
       filters,
       expandedRows,
       expandAll,
@@ -415,6 +447,7 @@ export default defineComponent({
       selectContractAndShowCoopSelector,
       isAvailable,
       durationUntilExpiration,
+      iconURL,
       eggIconURL,
       contractEggTooltip,
       formatEIValue,
