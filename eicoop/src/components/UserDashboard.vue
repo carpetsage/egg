@@ -165,6 +165,12 @@
         </p>
       </div>
     </div>
+    <div
+      v-if="soloStatuses.length === 0 && coopParams.length === 0"
+      class="text-sm text-gray-700 dark:text-gray-300 px-4 sm:px-6 py-3 border-t border-gray-200 dark:border-gray-700"
+    >
+      No active contract found in your save. Check back when you have one!
+    </div>
   </div>
 
   <template v-for="status in soloStatuses" :key="`${status.userId}:${status.contractId}`">
