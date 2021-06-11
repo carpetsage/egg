@@ -5,7 +5,7 @@
     class="p-4 grid grid-cols-max-1 sm:grid-cols-max-2 gap-x-2 gap-y-0.5 items-center justify-center bg-green-50 rounded-lg shadow-inner"
   >
     <base-link href="https://www.patreon.com/mk2production">
-      <img :src="patreonIconUrl" class="h-5" />
+      <img :src="patreonIconUrl" class="h-5" :style="{ width: '6.08333rem' }" />
     </base-link>
     <base-link href="https://www.patreon.com/mk2production" class="px-1">
       patreon.com/mk2production
@@ -14,7 +14,7 @@
     <div class="h-1 sm:hidden"></div>
 
     <base-link href="https://www.paypal.com/paypalme/zmwangx">
-      <img :src="paypalIconUrl" class="h-5" />
+      <img :src="paypalIconUrl" class="h-5" :style="{ width: '3.94737rem' }" />
     </base-link>
     <base-link href="https://www.paypal.com/paypalme/zmwangx" class="px-1">
       paypal.me/zmwangx
