@@ -13,38 +13,50 @@ export class Tool {
   url: string;
   title: string;
   iconUrl = '';
+  description?: string;
   displayIconOnly = false;
   iconCssClasses = '';
   newUntil = 0;
   majorUpdateUntil = 0;
+  updateUntil = 0;
+  whatsNew?: string;
 
   constructor({
     id,
     url,
     title,
     iconUrl,
-    newUntil,
-    majorUpdateUntil,
+    description,
     displayIconOnly,
     iconCssClasses,
+    newUntil,
+    majorUpdateUntil,
+    updateUntil,
+    whatsNew,
   }: {
     id: string;
     url?: string;
     title: string;
     iconUrl?: string;
+    description?: string;
     displayIconOnly?: boolean;
     iconCssClasses?: string;
     newUntil?: number;
     majorUpdateUntil?: number;
+    updateUntil?: number;
+    whatsNew?: string;
   }) {
     this.id = id;
     this.url = url || `/${this.id}/`;
     this.title = title;
     this.iconUrl = iconUrl || '';
+    this.description = description;
     this.displayIconOnly = displayIconOnly || false;
     this.iconCssClasses = iconCssClasses || '';
     this.newUntil = newUntil || 0;
     this.majorUpdateUntil = majorUpdateUntil || 0;
+    this.updateUntil = updateUntil || 0;
+    this.whatsNew = whatsNew;
   }
 
   get isNew(): boolean {
@@ -54,6 +66,14 @@ export class Tool {
   get isMajorUpdate(): boolean {
     return now < this.majorUpdateUntil;
   }
+
+  get isUpdate(): boolean {
+    return now < this.updateUntil;
+  }
+
+  get isHighlight(): boolean {
+    return this.isNew || this.isMajorUpdate || this.isUpdate;
+  }
 }
 
 export const tools = [
@@ -62,31 +82,43 @@ export const tools = [
     url: 'https://eicoop.netlify.app/',
     title: 'Coop Tracker',
     iconUrl: eicoopIconUrl,
+    description: 'Coop tracker and contract master list',
     displayIconOnly: true,
     iconCssClasses: 'h-6 -ml-0.5 -mr-1 -top-0.5',
+    // Fri Jun 25 07:57:36 UTC 2021
+    majorUpdateUntil: 1624607856000,
+    whatsNew:
+      'Personal dashboard where you can check the status of all your active contracts, including solos and not-yet-joined-coops.',
   }),
 
   new Tool({
     id: 'artifact-explorer',
     title: 'Artifact explorer',
     iconUrl: artifactExplorerIconUrl,
+    description: 'Explorer for everything artifacts',
   }),
   new Tool({
     id: 'artifact-sandbox',
     title: 'Artifact sandbox',
     iconUrl: artifactSandboxIconUrl,
+    description: 'Experiment, optimize, and share your artifact builds all within this sandbox',
   }),
   new Tool({
     id: 'rockets-tracker',
     title: 'Rockets tracker',
     iconUrl: rocketsTrackerIconUrl,
-    // Tue Jun  8 12:33:17 UTC 2021
-    majorUpdateUntil: 1623155597000,
+    description:
+      'Tracker for active rocket missions, historical mission statistics, progress on artifact collection, etc.',
+    // Mon Jun 14 07:49:02 UTC 2021
+    updateUntil: 1623656942000,
+    whatsNew:
+      '"Artifact loadouts" section showing current artifact loadouts on all active farms, with prepopulated Artifact sandbox links for tweaking.',
   }),
   new Tool({
     id: 'past-contracts',
     title: 'Past contracts viewer',
     iconUrl: pastContractsIconUrl,
+    description: 'Past contracts and prophecy egg completion tracker',
     // Tue Jun  8 12:33:17 UTC 2021
     majorUpdateUntil: 1623155597000,
   }),
@@ -94,11 +126,13 @@ export const tools = [
     id: 'loot-simulator',
     title: 'Loot simulator',
     iconUrl: lootSimulatorIconUrl,
+    description: 'Simulator for mission loot drops',
   }),
   new Tool({
     id: 'enlightenment',
     title: 'Enlightenment companion',
     iconUrl: enlightenmentIconUrl,
+    description: 'Informational companion on your journey to the Enlightenment Diamond Trophy',
   }),
 
   new Tool({
@@ -112,20 +146,38 @@ export const tools = [
   new Tool({
     id: 'consumption-sheet',
     title: 'Consumption sheet',
+    description: 'Artifact consumption outcomes',
   }),
   new Tool({
     id: 'loot-analysis',
     title: 'Loot analysis',
+    description: 'Statistical analysis of mission rewards data through interactive plots',
   }),
   new Tool({
     id: 'events',
     title: 'Events calendar',
+    description: 'Filterable calendar of (not so) special events',
   }),
 
   new Tool({
     id: 'researches',
     title: 'Researches',
+    description: 'Structured data of common and epic researches, customizable by SQL',
+  }),
+
+  new Tool({
+    id: 'EggContractor',
+    url: 'https://github.com/fanaticscripter/EggContractor',
+    title: 'EggContractor',
+    description:
+      'Contract monitoring web app & CLI client, with multi-account aggregation, offline time tracking, and more',
   }),
 ];
 
-export const stemToTool = new Map<string, Tool>(tools.map(t => [t.id, t]));
+export const idToTool = new Map<string, Tool>(tools.map(t => [t.id, t]));
+
+export const newTools = tools.filter(tool => tool.isNew);
+export const majorUpdateTools = tools.filter(tool => !tool.isNew && tool.isMajorUpdate);
+export const updateTools = tools.filter(
+  tool => !tool.isNew && !tool.isMajorUpdate && tool.isUpdate
+);

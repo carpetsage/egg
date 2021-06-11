@@ -32,62 +32,36 @@
     <li><base-link href="https://github.com/fanaticscripter/Egg">Source code</base-link></li>
   </ul>
 
+  <whats-new class="my-4" />
+
   <h2>Tools hosted at independent domains</h2>
   <ul>
-    <li>
-      <tool-link id="eicoop" />
-      &mdash; Coop tracker and contract master list
-    </li>
+    <li><tool-description id="eicoop" /></li>
   </ul>
 
   <h2>Tools hosted at this domain</h2>
   <h3>Interactive apps</h3>
   <ul>
-    <li>
-      <tool-link id="artifact-explorer" />
-      &mdash; Explorer for everything artifacts
-    </li>
-    <li>
-      <tool-link id="artifact-sandbox" />
-      &mdash; Experiment, optimize, and share your artifact builds all within this sandbox
-    </li>
-    <li>
-      <tool-link id="rockets-tracker" />
-      &mdash; Tracker for active rocket missions, historical mission statistics, progress on
-      artifact collection, etc.
-    </li>
-    <li>
-      <tool-link id="past-contracts" />
-      &mdash; Past contracts and prophecy egg completion tracker
-    </li>
-    <li>
-      <tool-link id="loot-simulator" />
-      &mdash; Simulator for mission loot drops
-    </li>
-    <li>
-      <tool-link id="enlightenment" />
-      &mdash; Informational companion on your journey to the Enlightenment Diamond Trophy
-    </li>
+    <li><tool-description id="artifact-explorer" /></li>
+    <li><tool-description id="artifact-sandbox" /></li>
+    <li><tool-description id="rockets-tracker" /></li>
+    <li><tool-description id="past-contracts" /></li>
+    <li><tool-description id="loot-simulator" /></li>
+    <li><tool-description id="enlightenment" /></li>
   </ul>
 
   <h3>Data sheets</h3>
   <ul>
-    <li><tool-link id="artifact-list" /></li>
-    <li><tool-link id="mission-list" /></li>
-    <li><tool-link id="consumption-sheet" /> &mdash; Artifact consumption outcomes</li>
-    <li>
-      <tool-link id="loot-analysis" /> &mdash; Statistical analysis of mission rewards data through
-      interactive plots
-    </li>
-    <li><tool-link id="events" /> &mdash; Filterable calendar of (not so) special events.</li>
+    <li><tool-description id="artifact-list" /></li>
+    <li><tool-description id="mission-list" /></li>
+    <li><tool-description id="consumption-sheet" /></li>
+    <li><tool-description id="loot-analysis" /></li>
+    <li><tool-description id="events" /></li>
   </ul>
 
   <h3>Developer tools</h3>
   <ul>
-    <li>
-      <tool-link id="researches" /> &mdash; Structured data of common and epic researches,
-      customizable by SQL.
-    </li>
+    <li><tool-description id="researches" /></li>
   </ul>
   <p>
     Certain tools are not advertised here due to concerns. If you are interested, poke around the
@@ -96,10 +70,7 @@
 
   <h2>Self-hosted tools</h2>
   <ul>
-    <li>
-      <base-link href="https://github.com/fanaticscripter/EggContractor">EggContractor</base-link>
-      &mdash; contract monitoring web app &amp; CLI client
-    </li>
+    <li><tool-description id="EggContractor" /></li>
   </ul>
 
   <h2>Guides</h2>
@@ -129,15 +100,17 @@ import { defineComponent } from 'vue';
 import { getDonationPageVisited } from 'lib';
 import BaseLink from '@/components/BaseLink.vue';
 import BaseRouterLink from '@/components/BaseRouterLink.vue';
-import ToolLink from '@/components/ToolLink.vue';
 import DonorList from '@/components/DonorList.vue';
+import ToolDescription from '@/components/ToolDescription.vue';
+import WhatsNew from '@/components/WhatsNew.vue';
 
 export default defineComponent({
   components: {
     BaseLink,
     BaseRouterLink,
-    ToolLink,
     DonorList,
+    ToolDescription,
+    WhatsNew,
   },
   setup() {
     const donationPageVisited = getDonationPageVisited();
