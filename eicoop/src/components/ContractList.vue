@@ -51,10 +51,8 @@
             </svg>
           </div>
           <input
-            id="email"
             v-model.trim="filters.global.value"
             type="text"
-            name="email"
             class="block min-w-0 px-2 py-1 w-full pl-8 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 rounded-md"
             placeholder="Keyword"
           />
@@ -184,10 +182,8 @@
             </svg>
           </div>
           <input
-            id="email"
             v-model.number="filterModel.value"
             type="text"
-            name="email"
             class="block min-w-0 px-2 py-1 w-full pl-6 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 rounded-md"
             placeholder="Max # of leggacies"
           />
@@ -247,10 +243,8 @@
             </svg>
           </div>
           <input
-            id="email"
             v-model.number="filterModel.value"
             type="text"
-            name="email"
             class="block min-w-0 px-2 py-1 w-full pl-6 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 rounded-md"
             placeholder="Min # of PEs"
           />
