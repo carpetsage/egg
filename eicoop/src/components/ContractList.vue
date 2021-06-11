@@ -87,13 +87,13 @@
       <template #body="{ data: contract }">
         <span
           v-tippy="
-            isAvailable(contract)
-              ? { content: `Expires in ${durationUntilExpiration(contract)}` }
+            isAvailable(contract, now)
+              ? { content: `Expires in ${durationUntilExpiration(contract, now)}` }
               : {}
           "
           class="flex items-center cursor-pointer"
           :class="[
-            isAvailable(contract)
+            isAvailable(contract, now)
               ? 'text-green-500'
               : contract.type === 'Original'
               ? columnColorClassesOriginal
@@ -337,7 +337,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, ref, toRefs } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, PropType, ref, toRefs } from 'vue';
 import { useStore } from 'vuex';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -414,16 +414,23 @@ export default defineComponent({
       store.dispatch('coopSelector/selectContractAndShow', contractId);
     const eggIconURL = (contract: Contract) => iconURL(eggIconPath(contract.egg!), 64);
     const contractEggTooltip = (contract: Contract) => eggTooltip(contract.egg!);
-    const currentTimestamp = Date.now() / 1000;
-    const isAvailable = (contract: Contract) => currentTimestamp < contract.expirationTime!;
-    const durationUntilExpiration = (contract: Contract) =>
-      formatDuration(Math.max(contract.expirationTime! - currentTimestamp, 0), true);
+    const isAvailable = (contract: Contract, now: number) => contract.expirationTime! > now / 1000;
+    const durationUntilExpiration = (contract: Contract, now: number) =>
+      formatDuration(Math.max(contract.expirationTime! - now / 1000, 0), true);
     const formatDate = (timestamp: number) => dayjs(timestamp * 1000).format('YYYY-MM-DD');
     const formatDateTime = (timestamp: number) =>
       dayjs(timestamp * 1000).format('YYYY-MM-DD HH:mm');
 
     const onRowsPerPageChange = (event: Event) =>
       emit('update:rowsPerPage', parseInt((event.target! as HTMLSelectElement).value));
+
+    const now = ref(Date.now());
+    const refreshIntervalId = setInterval(() => {
+      now.value = Date.now();
+    }, 30000);
+    onBeforeUnmount(() => {
+      clearInterval(refreshIntervalId);
+    });
 
     return {
       darkThemeOn,
@@ -449,6 +456,7 @@ export default defineComponent({
       formatDateTime,
       formatDuration,
       onRowsPerPageChange,
+      now,
     };
   },
 });
