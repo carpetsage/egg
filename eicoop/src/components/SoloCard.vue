@@ -9,7 +9,7 @@
               class="inline relative -top-px -left-1 h-6 w-6"
               :src="iconURL(eggIconPath(egg), 64)"
             />
-            <span>{{ contract.name }}</span>
+            <span class="text-gray-900 dark:text-gray-100">{{ contract.name }}</span>
             (<base-click-to-copy
               :text="status.contractId"
               class="text-gray-900 dark:text-gray-100"
