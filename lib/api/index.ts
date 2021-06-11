@@ -5,6 +5,7 @@ import { APP_VERSION, APP_BUILD, CLIENT_VERSION, PLATFORM, PLATFORM_STRING } fro
 
 export * from './decode';
 export * from './encode';
+export * from './utils';
 export * from './version';
 
 const API_ROOT =

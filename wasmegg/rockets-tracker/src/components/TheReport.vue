@@ -26,6 +26,14 @@
   </collapsible-section>
 
   <collapsible-section
+    section-title="Artifact loadouts"
+    :visible="isVisibleSection('artifact-loadouts')"
+    @toggle="toggleSectionVisibility('artifact-loadouts')"
+  >
+    <artifact-loadouts-report :backup="backup" />
+  </collapsible-section>
+
+  <collapsible-section
     section-title="Artifacting progress"
     :visible="isVisibleSection('artifacting-progress')"
     @toggle="toggleSectionVisibility('artifacting-progress')"
@@ -45,6 +53,7 @@ import PlayerCard from '@/components/PlayerCard.vue';
 import ActiveMissionsReport from '@/components/ActiveMissionsReport.vue';
 import MissionStatisticsReport from '@/components/MissionStatisticsReport.vue';
 import LaunchLog from '@/components/LaunchLog.vue';
+import ArtifactLoadoutsReport from '@/components/ArtifactLoadoutsReport.vue';
 import ArtifactingProgressReport from '@/components/ArtifactingProgressReport.vue';
 
 export default defineComponent({
@@ -54,6 +63,7 @@ export default defineComponent({
     ActiveMissionsReport,
     MissionStatisticsReport,
     LaunchLog,
+    ArtifactLoadoutsReport,
     ArtifactingProgressReport,
   },
   props: {
