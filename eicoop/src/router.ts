@@ -1,6 +1,7 @@
 import { nextTick } from 'vue';
 import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router';
 
+import { recordVisit } from '@/visits';
 import Home from '@/views/Home.vue';
 import Coop from '@/views/Coop.vue';
 import Dashboard from '@/views/Dashboard.vue';
@@ -59,6 +60,7 @@ const router = createRouter({
 
 router.afterEach((to, from, failure) => {
   if (!failure) {
+    recordVisit();
     nextTick(() => {
       const title = to.meta?.title;
       document.title = title instanceof Function ? title(to) : title;
