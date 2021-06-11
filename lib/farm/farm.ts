@@ -47,12 +47,12 @@ export class Farm {
   constructor(
     backup: ei.IBackup,
     farm: ei.Backup.ISimulation,
-    opts: { tokenIntervalMinutes?: number }
+    opts?: { tokenIntervalMinutes?: number }
   ) {
     this.backup = backup;
     this.progress = backup.game!;
     this.farm = farm;
-    this.tokenIntervalMinutes = opts.tokenIntervalMinutes;
+    this.tokenIntervalMinutes = opts?.tokenIntervalMinutes;
     const isEnlightenment = this.egg === ei.Egg.ENLIGHTENMENT;
 
     // Fish out the farm index in order to extract artifact loadout. A farm is
