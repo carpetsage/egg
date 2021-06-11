@@ -2,8 +2,8 @@
   <base-modal
     :should-show="shouldShow"
     :hide="hide"
-    :before-enter="ensureDefaultContractId"
-    :after-enter="focusCoopCodeInput"
+    :initial-focus="coopCodeInputRef"
+    @before-enter="ensureDefaultContractId"
   >
     <div>
       <form class="space-y-4" @submit="submit">
@@ -45,7 +45,7 @@
           <div class="mt-1">
             <input
               id="coop_code"
-              ref="coopCodeInput"
+              ref="coopCodeInputRef"
               v-model.trim="coopCode"
               name="coop_code"
               type="text"
@@ -184,11 +184,8 @@ export default defineComponent({
       }
     };
 
-    // Focus coop code when modal is shown.
-    const coopCodeInput = ref(null as HTMLElement | null);
-    const focusCoopCodeInput = () => {
-      coopCodeInput.value?.focus();
-    };
+    // Ref to coop code input in order to focus on it when the modal is shown.
+    const coopCodeInputRef = ref(null as HTMLElement | null);
 
     return {
       shouldShow,
@@ -199,9 +196,8 @@ export default defineComponent({
       coopCode,
       submittable,
       submit,
-      coopCodeInput,
+      coopCodeInputRef,
       ensureDefaultContractId,
-      focusCoopCodeInput,
       selectedContract: ref(''),
     };
   },
