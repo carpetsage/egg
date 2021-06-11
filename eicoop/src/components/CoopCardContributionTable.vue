@@ -19,7 +19,11 @@
                   <span v-if="column.prefix" class="text-gray-500 dark:text-gray-200">{{
                     column.prefix
                   }}</span>
-                  <img :src="iconURL(column.iconPath, 64)" class="h-4 w-4" />
+                  <img
+                    :src="iconURL(column.iconPath, 64)"
+                    class="h-4 w-4"
+                    :style="{ minWidth: '1rem' }"
+                  />
                   <span v-if="column.suffix" class="text-gray-500 dark:text-gray-200">{{
                     column.suffix
                   }}</span>

@@ -244,7 +244,11 @@
                         <span
                           class="flex flex-shrink-0 flex-row items-center justify-center space-x-px"
                         >
-                          <img :src="iconURL(column.iconPath, 64)" class="h-4 w-4" />
+                          <img
+                            :src="iconURL(column.iconPath, 64)"
+                            class="h-4 w-4"
+                            :style="{ minWidth: '1rem' }"
+                          />
                           <span v-if="column.suffix" class="text-gray-500 dark:text-gray-200">{{
                             column.suffix
                           }}</span>
