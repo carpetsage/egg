@@ -181,3 +181,33 @@ export const majorUpdateTools = tools.filter(tool => !tool.isNew && tool.isMajor
 export const updateTools = tools.filter(
   tool => !tool.isNew && !tool.isMajorUpdate && tool.isUpdate
 );
+
+// This is the signature of the what's new section of a particular build. We
+// generate a signature so that a user can hide what's new and won't be bothered
+// until something changes.
+export const updateSignature = generateUpdateSignature();
+
+function generateUpdateSignature(): string {
+  let s = '';
+  for (const tool of tools) {
+    if (tool.isHighlight) {
+      s += `${tool}:${tool.newUntil}:${tool.majorUpdateUntil}:${tool.updateUntil}`;
+    }
+  }
+  return hashFNV1a32bit(s).toString(16);
+}
+
+// https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash
+// https://datatracker.ietf.org/doc/html/draft-eastlake-fnv-17
+function hashFNV1a32bit(s: string): number {
+  const prime = 0x01000193;
+  const offsetBasis = 0x811c9dc5;
+  const uint32max = 0x100000000;
+  let hash = offsetBasis;
+  const len = s.length;
+  for (let i = 0; i < len; i++) {
+    hash ^= s.charCodeAt(i);
+    hash = Math.imul(hash, prime);
+  }
+  return (hash + uint32max) % uint32max;
+}
