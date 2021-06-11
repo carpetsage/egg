@@ -159,7 +159,7 @@
     <div v-if="!allShipsUnlocked" class="mx-4 mt-2 xl:mx-0 text-xs">
       A full list of spaceship and mission types can be found
       <a
-        href="https://wasmegg.netlify.app/mission-list/"
+        href="/mission-list/"
         target="_blank"
         class="text-blue-500 hover:text-blue-600"
         >here</a

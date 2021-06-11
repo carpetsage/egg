@@ -81,5 +81,5 @@ function stonesToSandboxStones(stones: Stone[]): ISandboxStone[] {
 export function farmToSandboxURL(farm: Farm): string {
   const buf = Builds.encode(farmToSandboxConfig(farm)).finish();
   const encoded = btoa(uint8ArrayToBinaryString(buf));
-  return `https://wasmegg.netlify.app/artifact-sandbox/#/b/${encodeURIComponent(encoded)}`;
+  return `/artifact-sandbox/#/b/${encodeURIComponent(encoded)}`;
 }

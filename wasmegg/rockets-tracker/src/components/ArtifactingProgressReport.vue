@@ -22,7 +22,7 @@
         Hovering on the icon or name of an item reveals its crafting recipe; clicking on it takes
         you to the relevant page on
         <a
-          href="https://wasmegg.netlify.app/artifact-explorer/"
+          href="/artifact-explorer/"
           target="_blank"
           class="text-blue-500 hover:text-blue-600"
           >Artifact explorer</a

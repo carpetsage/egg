@@ -204,7 +204,7 @@ export default defineComponent({
 });
 
 function artifactExplorerLink(item: InventoryItem) {
-  return `https://wasmegg.netlify.app/artifact-explorer/#/artifact/${item.id}/`;
+  return `/artifact-explorer/#/artifact/${item.id}/`;
 }
 </script>
 
