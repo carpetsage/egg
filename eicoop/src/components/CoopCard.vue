@@ -19,7 +19,7 @@
             <span class="flex items-center justify-center relative h-6 w-6 -left-1">
               <svg
                 viewBox="0 0 640 512"
-                class="h-3.5 relative top-px text-gray-400 dark:text-gray-300"
+                class="h-3.5 text-gray-400 dark:text-gray-300"
               >
                 <path
                   fill="currentColor"
