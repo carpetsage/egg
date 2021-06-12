@@ -39,7 +39,7 @@
                 class="h-5 w-5"
               />
               <span class="text-sm text-gray-500 dark:text-gray-200">
-                {{ rewardSign(goal) }}{{ formatEIValue(rewardAmount(goal), { trim: true }) }}
+                {{ rewardAmountDisplay(goal) }}
               </span>
             </span>
           </td>
@@ -72,7 +72,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { rewardIconPath, rewardName } from 'lib';
+import { rewardAmountDisplay, rewardIconPath, rewardName } from 'lib';
 import { Contract, ei, formatEIValue } from '@/lib';
 import { iconURL } from '@/utils';
 
@@ -107,20 +107,16 @@ export default defineComponent({
     });
 
     const target = (goal: Goal) => goal.targetAmount!;
-    const rewardSign = (goal: Goal) =>
-      goal.rewardType! === ei.RewardType.PIGGY_MULTIPLIER ? '\u00d7' : '+';
-    const rewardAmount = (goal: Goal) => goal.rewardAmount!;
 
     return {
       hasLeagues,
       tiers,
       requiredHourlyRates,
       target,
-      rewardAmount,
-      rewardSign,
       formatEIValue,
       rewardIconPath,
       rewardName,
+      rewardAmountDisplay,
       iconURL,
     };
   },
