@@ -42,6 +42,14 @@
           :src="iconURL(rewardIconPath(goal), 64)"
         >
           <template #content>
+            <p class="mb-1">
+              {{ rewardName(goal) }}
+              <img
+                :src="iconURL(rewardIconPath(goal), 64)"
+                class="inline h-4 w-4 relative -top-px"
+              />
+              <span class="font-medium">{{ rewardAmountDisplay(goal) }}</span>
+            </p>
             {{ formatEIValue(target(goal), { trim: true }) }},
             {{ percentage(eggsLaid, target(goal), 1) }} completed<template
               v-if="eggsLaid < target(goal)"
@@ -76,11 +84,13 @@ import { Tippy } from 'vue-tippy';
 
 import {
   ContractLeagueStatus,
-  rewardIconPath,
+  ei,
   formatDuration,
   formatEIValue,
+  rewardAmountDisplay,
+  rewardIconPath,
+  rewardName,
   trimTrailingZeros,
-  ei,
 } from '@/lib';
 import { iconURL } from '@/utils';
 
@@ -114,6 +124,8 @@ export default defineComponent({
     return {
       percentage,
       rewardIconPath,
+      rewardName,
+      rewardAmountDisplay,
       formatDuration,
       formatEIValue,
       iconURL,

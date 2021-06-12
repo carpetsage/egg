@@ -7,6 +7,7 @@ export * from './fundraising';
 export * from './missions';
 export * from './prophecy_eggs';
 export { ei, aux } from './proto';
+export * from './rewards';
 export * from './time';
 export * from './units';
 export * from './utils';

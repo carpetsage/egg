@@ -33,7 +33,11 @@
             :style="{ minWidth: '6rem' }"
           >
             <span class="flex items-center space-x-1">
-              <img :src="iconURL(rewardIconPath(goal), 64)" class="h-5 w-5" />
+              <img
+                v-tippy="{ content: rewardName(goal) }"
+                :src="iconURL(rewardIconPath(goal), 64)"
+                class="h-5 w-5"
+              />
               <span class="text-sm text-gray-500 dark:text-gray-200">
                 {{ rewardSign(goal) }}{{ formatEIValue(rewardAmount(goal), { trim: true }) }}
               </span>
@@ -68,7 +72,8 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { Contract, ei, formatEIValue, rewardIconPath } from '@/lib';
+import { rewardIconPath, rewardName } from 'lib';
+import { Contract, ei, formatEIValue } from '@/lib';
 import { iconURL } from '@/utils';
 
 export default defineComponent({
@@ -115,6 +120,7 @@ export default defineComponent({
       rewardSign,
       formatEIValue,
       rewardIconPath,
+      rewardName,
       iconURL,
     };
   },
