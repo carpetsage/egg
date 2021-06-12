@@ -113,7 +113,7 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 p,
 ::v-deep(p) {
   @apply my-4;
