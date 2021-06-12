@@ -306,7 +306,16 @@
               >Max IHR</effect-with-note
             >
           </td>
-          <td v-if="buildValidities[0]" class="px-4 py-1.5 text-base text-right whitespace-nowrap">
+          <td
+            v-tippy="{
+              content: `
+                At this IHR and with max internal hatchery calm,
+                it takes roughly ${daysToDiamondTrophyAtMaxIHR(0).toFixed(1)} days
+                to hatch 10 billion chickens without boosts.`,
+            }"
+            v-if="buildValidities[0]"
+            class="px-4 py-1.5 text-base text-right whitespace-nowrap"
+          >
             <span class="Value"
               >{{
                 maxInternalHatcheryRatePerMinPerHab(...buildConfig(0)).toLocaleString('en-US')
@@ -538,6 +547,14 @@ export default {
 
     buildConfig(i) {
       return [this.builds.builds[i], this.builds.config];
+    },
+
+    daysToDiamondTrophyAtMaxIHR(i) {
+      const rate =
+        4 /* 4 habs */ *
+        3 /* internal hatchery calm */ *
+        maxInternalHatcheryRatePerMinPerHab(...this.buildConfig(0));
+      return 1e10 / (rate * 60 * 24);
     },
   },
 
