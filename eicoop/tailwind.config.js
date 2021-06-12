@@ -18,6 +18,9 @@ module.exports = {
           ...colors.gray,
           750: '#333338',
         },
+        purple: {
+          ...colors.purple,
+        },
         'cool-gray': colors.coolGray,
       },
       transitionDuration: {

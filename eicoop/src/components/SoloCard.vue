@@ -9,18 +9,20 @@
               class="inline relative -top-px -left-1 h-6 w-6"
               :src="iconURL(eggIconPath(egg), 64)"
             />
-            <span class="text-gray-900 dark:text-gray-100">{{ contract.name }}</span>
-            (<base-click-to-copy
+            <base-click-to-copy
               :text="status.contractId"
-              class="text-gray-900 dark:text-gray-100"
-            />)
+              class="text-gray-900 dark:text-gray-100 mr-0.5"
+            >
+              {{ contract.name }}
+              <template #tooltip>
+                Copy contract ID &lsquo;{{ status.contractId }}&rsquo; to clipboard
+              </template>
+            </base-click-to-copy>
+            <contract-league-label :league="league" class="relative -top-px" />
           </h2>
           <div class="flex items-center">
             <span class="flex items-center justify-center relative h-6 w-6 -left-1">
-              <svg
-                viewBox="0 0 448 512"
-                class="h-3.5 text-gray-400 dark:text-gray-300"
-              >
+              <svg viewBox="0 0 448 512" class="h-3.5 text-gray-400 dark:text-gray-300">
                 <path
                   fill="currentColor"
                   d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"
@@ -76,17 +78,13 @@
       </div>
 
       <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Type</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ leagueName }}</dd>
-        </div>
         <div v-if="showPlayerCount" class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Players</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
             1 / {{ contract.maxCoopSize }}
           </dd>
         </div>
-        <div class="sm:col-span-1" :class="showPlayerCount ? 'sm:col-start-1' : null">
+        <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Eggs shipped</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
             <span class="text-green-500">{{ formatEIValue(leagueStatus.eggsLaid) }}</span> /
@@ -382,18 +380,20 @@
 import { computed, defineComponent, inject, PropType, ref, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { eggIconPath, formatEIValue, formatDuration, ContractLeague, SoloStatus } from '@/lib';
+import { eggIconPath, formatEIValue, formatDuration, SoloStatus } from '@/lib';
 import { completionStatusColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
 import { eggTooltip, formatWithThousandSeparators, iconURL, renderNonempty } from '@/utils';
 import { useAutoRefreshedRelativeTime } from '@/composables/relative_time';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
+import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue';
 import ContractStatusLabel from '@/components/ContractStatusLabel.vue';
 import ContractProgressBar from '@/components/ContractProgressBar.vue';
 
 export default defineComponent({
   components: {
+    ContractLeagueLabel,
     ContractStatusLabel,
     ContractProgressBar,
     BaseClickToCopy,
@@ -412,7 +412,7 @@ export default defineComponent({
 
     const contract = computed(() => status.value.contract);
     const egg = computed(() => contract.value.egg!);
-    const leagueName = computed(() => ContractLeague[status.value.league]);
+    const league = computed(() => status.value.league!);
     const showPlayerCount = computed(
       () => contract.value.maxCoopSize && contract.value.maxCoopSize > 1
     );
@@ -513,7 +513,7 @@ export default defineComponent({
       devmode,
       contract,
       egg,
-      leagueName,
+      league,
       leagueStatus,
       estimatedLeagueStatus,
       tokensInStockByNow,
