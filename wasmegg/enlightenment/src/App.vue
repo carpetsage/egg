@@ -4,14 +4,14 @@
 
     <!-- Use a key to recreate on data loading -->
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
-      <Suspense>
+      <suspense>
         <template #default>
           <the-companion :player-id="playerId" />
         </template>
         <template #fallback>
           <base-loading />
         </template>
-      </Suspense>
+      </suspense>
     </base-error-boundary>
 
     <template v-else>

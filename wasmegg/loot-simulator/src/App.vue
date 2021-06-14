@@ -44,14 +44,14 @@
 
   <base-error-boundary>
     <template #default>
-      <Suspense>
+      <suspense>
         <template #default>
           <simulator-container class="flex-1" />
         </template>
         <template #fallback>
           <base-loading>Checking browser capabilities...</base-loading>
         </template>
-      </Suspense>
+      </suspense>
     </template>
 
     <template #error="{ error }">
