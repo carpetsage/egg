@@ -1,6 +1,7 @@
 import { nextTick } from 'vue';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
+import { goatcounter } from 'lib';
 import Home from '@/views/Home.vue';
 import Donate from '@/views/Donate.vue';
 import PrivacyPolicy from '@/views/PrivacyPolicy.vue';
@@ -8,14 +9,6 @@ import PrivacyPolicy from '@/views/PrivacyPolicy.vue';
 declare module 'vue-router' {
   interface RouteMeta {
     title: string;
-  }
-}
-
-declare global {
-  interface Window {
-    goatcounter: {
-      count: (options: { path: string; title: string; event: boolean }) => void;
-    };
   }
 }
 
@@ -59,7 +52,7 @@ router.afterEach((to, from, failure) => {
       document.title = to.meta.title;
       if (to.name === 'donate') {
         setTimeout(() => {
-          window.goatcounter?.count({
+          goatcounter?.count({
             path: 'https://wasmegg.netlify.app/#/donate',
             title: 'Visited donation page',
             event: true,

@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router';
 
-import { recordVisit } from '@/visits';
+import { recordVisit } from 'lib';
 import Home from '@/views/Home.vue';
 import Coop from '@/views/Coop.vue';
 import Dashboard from '@/views/Dashboard.vue';

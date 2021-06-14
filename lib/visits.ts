@@ -4,12 +4,14 @@ import { getLocalStorageNoPrefix, setLocalStorageNoPrefix } from 'lib';
 const FIRST_RECORDED_VISIT_LOCALSTORAGE_KEY = 'firstRecordedVisit';
 const LAST_RECORDED_VISIT_LOCALSTORAGE_KEY = 'lastRecordedVisit';
 const DAYS_VISITED_LOCALSTORAGE_KEY = 'daysVisited';
+const DAYS_VISITED_STREAK_LOCALSTORAGE_KEY = 'dayVisitedStreak';
 
-export function recordVisit(): void {
+export function recordVisit(): { daysVisited: number; daysVisitedStreak: number } {
   const now = dayjs();
   const firstRecorded = getNumber(FIRST_RECORDED_VISIT_LOCALSTORAGE_KEY);
   const lastRecorded = getNumber(LAST_RECORDED_VISIT_LOCALSTORAGE_KEY);
   let daysVisited = getNumber(DAYS_VISITED_LOCALSTORAGE_KEY) || 0;
+  let daysVisitedStreak = getNumber(DAYS_VISITED_STREAK_LOCALSTORAGE_KEY) || 0;
   if (firstRecorded === undefined) {
     setNumber(FIRST_RECORDED_VISIT_LOCALSTORAGE_KEY, now.valueOf());
   }
@@ -17,14 +19,29 @@ export function recordVisit(): void {
   if (lastRecorded === undefined) {
     daysVisited++;
     setNumber(DAYS_VISITED_LOCALSTORAGE_KEY, daysVisited);
+    daysVisitedStreak = 1;
+    setNumber(DAYS_VISITED_STREAK_LOCALSTORAGE_KEY, daysVisitedStreak);
   } else {
-    const lastRecordedDate = dayjs(lastRecorded).format('YYYY-MM-DD');
-    const currentDate = now.format('YYYY-MM-DD');
-    if (lastRecordedDate !== currentDate) {
+    const lastRecordedDate = dayjs(lastRecorded).startOf('day');
+    const currentDate = now.startOf('day');
+    if (!lastRecordedDate.isSame(currentDate)) {
       daysVisited++;
       setNumber(DAYS_VISITED_LOCALSTORAGE_KEY, daysVisited);
+      if (currentDate.diff(lastRecordedDate, 'day') === 1) {
+        daysVisitedStreak++;
+      } else {
+        daysVisitedStreak = 1;
+      }
+      setNumber(DAYS_VISITED_STREAK_LOCALSTORAGE_KEY, daysVisitedStreak);
     }
   }
+  if (daysVisitedStreak === 0) {
+    daysVisitedStreak = 1;
+  }
+  return {
+    daysVisited,
+    daysVisitedStreak,
+  };
 }
 
 function getNumber(key: string): number | undefined {

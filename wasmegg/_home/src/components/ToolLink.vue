@@ -1,6 +1,6 @@
 <template>
   <template v-if="tool.displayIconOnly">
-    <base-link :href="tool.url">
+    <base-link :href="tool.url" @click="$emit('visit', tool)">
       <img :src="tool.iconUrl" class="inline relative" :class="tool.iconCssClasses" />
     </base-link>
   </template>
@@ -11,7 +11,7 @@
       class="inline h-4 w-4 mr-1 relative -top-px"
       :class="tool.iconCssClasses"
     />
-    <base-link :href="tool.url">{{ tool.title }}</base-link>
+    <base-link :href="tool.url" @click="$emit('visit', tool)">{{ tool.title }}</base-link>
   </template>
 </template>
 
@@ -30,6 +30,11 @@ export default defineComponent({
       type: Object as PropType<Tool>,
       required: true,
     },
+  },
+  emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    visit: (tool: Tool) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
 });
 </script>
