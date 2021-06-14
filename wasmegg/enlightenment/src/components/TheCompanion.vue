@@ -110,6 +110,12 @@
             </p>
             <artifacts-gallery :artifacts="bestPossibleGussetSet" class="mt-2 mb-3" />
           </template>
+          <template v-if="nakedGangNickname">
+            <p class="text-yellow-500">
+              {{ nakedGangNickname }}, you're in the naked gang. Your gussets are ignored. You won't
+              get any gusset recommendations.
+            </p>
+          </template>
         </template>
       </collapsible-section>
 
@@ -299,6 +305,7 @@ import {
   farmMaxRCB,
   farmMaxRCBResearches,
   homeFarmArtifacts,
+  nakedGangNickname as getNakedGangNickname,
   requestFirstContact,
   requiredWDLevelForEnlightenmentDiamond,
   researchPriceMultiplierFromArtifacts,
@@ -403,14 +410,21 @@ export default defineComponent({
       lastRefreshedRelative.value = lastRefreshed.fromNow();
     }, 200);
 
+    // Members of the naked gang have their gussets (equipped or possessed) ignored.
+    const nakedGangNickname = getNakedGangNickname(playerId);
+
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
     const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts);
     const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
     const totalHabSpaceSufficient = totalHabSpace >= 1e10;
     const currentWDLevel = farmCurrentWDLevel(farm);
-    const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(artifacts);
-    const bestPossibleGusset = bestPossibleGussetForEnlightenment(backup);
+    const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(
+      nakedGangNickname ? [] : artifacts
+    );
+    const bestPossibleGusset = nakedGangNickname
+      ? null
+      : bestPossibleGussetForEnlightenment(backup);
     const bestPossibleGussetSet = bestPossibleGusset ? [bestPossibleGusset] : [];
     const minimumRequiredWDLevel = bestPossibleGusset
       ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset])
@@ -520,6 +534,7 @@ export default defineComponent({
       trophies,
       existingTrophyLevel,
       currentPopulation,
+      nakedGangNickname,
       habs,
       habSpaceResearches,
       totalHabSpace,
