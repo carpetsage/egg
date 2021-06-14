@@ -23,7 +23,8 @@
 
   <p>
     Donors will be credited here as well as on the home page.
-    <strong>When you donate, please leave a note on how you want to be credited!</strong>
+    <strong>When you donate, please leave a note on how you want to be credited</strong>
+    (or if you would rather stay anonymous)!
   </p>
 
   <p>
