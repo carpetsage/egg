@@ -1,11 +1,16 @@
-import { getLocalStorage, setLocalStorage } from './utils';
+import { getLocalStorageNoPrefix, setLocalStorageNoPrefix } from './utils';
 
 const DONATION_PAGE_VISITED_KEY = 'donationPageVisited';
 
 export function getDonationPageVisited(): boolean {
-  return getLocalStorage(DONATION_PAGE_VISITED_KEY, '') !== undefined;
+  const persisted = getLocalStorageNoPrefix(DONATION_PAGE_VISITED_KEY);
+  if (persisted === 'true') {
+    // Boolean is legacy behavior, convert to timestamp.
+    setLocalStorageNoPrefix(DONATION_PAGE_VISITED_KEY, Date.now());
+  }
+  return persisted !== undefined;
 }
 
 export function setDonationPageVisited(): void {
-  setLocalStorage(DONATION_PAGE_VISITED_KEY, true, '');
+  setLocalStorageNoPrefix(DONATION_PAGE_VISITED_KEY, Date.now());
 }
