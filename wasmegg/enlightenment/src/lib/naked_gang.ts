@@ -1,5 +1,5 @@
 // The naked gang is a group of crazies who insist on doing enlightenment
-// diamond with artifacts.
+// diamond without artifacts.
 
 import { sha256 } from 'js-sha256';
 
