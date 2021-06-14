@@ -12,10 +12,10 @@
                   class="px-2 py-2 whitespace-pre text-sm font-medium text-gray-500"
                 ></th>
                 <th
-                  scope="col"
-                  class="px-2 py-2 whitespace-pre text-sm font-medium text-gray-500"
                   v-for="target in targets"
                   :key="target.description"
+                  scope="col"
+                  class="px-2 py-2 whitespace-pre text-sm font-medium text-gray-500"
                 >
                   {{ target.description }}
                 </th>
@@ -27,9 +27,9 @@
                   Discount
                 </td>
                 <td
-                  class="px-2 py-1 whitespace-nowrap text-sm text-gray-500"
                   v-for="target in targets"
                   :key="target.description"
+                  class="px-2 py-1 whitespace-nowrap text-sm text-gray-500"
                 >
                   {{ formatPercentage(1 - target.multiplier) }}
                 </td>
@@ -40,9 +40,9 @@
                   Cash target
                 </td>
                 <td
-                  class="px-2 py-1 whitespace-nowrap text-sm text-gray-500"
                   v-for="target in targets"
                   :key="target.description"
+                  class="px-2 py-1 whitespace-nowrap text-sm text-gray-500"
                 >
                   <base-e-i-value :value="baseTarget * target.multiplier" />
                 </td>
@@ -53,9 +53,9 @@
                   Need to earn
                 </td>
                 <td
-                  class="px-2 py-1 whitespace-nowrap text-sm text-gray-500"
                   v-for="target in targets"
                   :key="target.description"
+                  class="px-2 py-1 whitespace-nowrap text-sm text-gray-500"
                 >
                   <base-e-i-value :value="needToEarn(target)" />
                 </td>
@@ -69,9 +69,9 @@
                   {{ m.description }}
                 </td>
                 <td
-                  class="px-2 py-1 whitespace-nowrap text-sm text-gray-500"
                   v-for="target in targets"
                   :key="target.description"
+                  class="px-2 py-1 whitespace-nowrap text-sm text-gray-500"
                 >
                   {{ m.calc(needToEarn(target), m.rate) }}
                 </td>

@@ -2,8 +2,8 @@
 <template>
   <div class="fixed right-6 bottom-6" :style="{ right: 'max(calc(50vw - 36.5rem), 1.5rem)' }">
     <div
-      class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-500 shadow-inner cursor-pointer"
       v-tippy="{ content: 'Egg Inc. OoM-aware calculator' }"
+      class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-500 shadow-inner cursor-pointer"
       @click="open = true"
     >
       <!-- Heroicon name: outline/calculator -->
@@ -29,8 +29,8 @@
       as="div"
       static
       class="fixed z-20 inset-0 overflow-y-auto"
-      @close="open = false"
       :open="open"
+      @close="open = false"
     >
       <div
         class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
@@ -63,7 +63,7 @@
           <div
             class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all w-full max-w-xs sm:my-8 sm:align-middle sm:max-w-xl sm:px-5 sm:py-5"
           >
-            <calculator-instance class="w-full" v-model="calculatorExpr" />
+            <calculator-instance v-model="calculatorExpr" class="w-full" />
           </div>
         </TransitionChild>
       </div>
@@ -73,13 +73,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import {
-  Dialog,
-  DialogOverlay,
-  DialogTitle,
-  TransitionChild,
-  TransitionRoot,
-} from '@headlessui/vue';
+import { Dialog, DialogOverlay, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
 import CalculatorInstance from '@/components/CalculatorInstance.vue';
 
@@ -87,7 +81,6 @@ export default defineComponent({
   components: {
     Dialog,
     DialogOverlay,
-    DialogTitle,
     TransitionChild,
     TransitionRoot,
     CalculatorInstance,

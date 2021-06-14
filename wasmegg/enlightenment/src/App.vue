@@ -1,12 +1,12 @@
 <template>
   <div class="max-w-5xl w-full px-4 pb-4 xl:px-0 mx-auto">
-    <the-player-id-form :playerIdPreload="playerIdPreload" :submit="submitPlayerId" />
+    <the-player-id-form :player-id-preload="playerIdPreload" :submit="submitPlayerId" />
 
     <!-- Use a key to recreate on data loading -->
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
       <Suspense>
         <template #default>
-          <the-companion :playerId="playerId" />
+          <the-companion :player-id="playerId" />
         </template>
         <template #fallback>
           <base-loading />

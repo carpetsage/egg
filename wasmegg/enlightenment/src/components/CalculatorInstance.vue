@@ -8,12 +8,12 @@
       also supported.
     </p>
     <textarea
+      v-model="expr"
       class="w-full resize border rounded-md border-gray-300 sm:text-sm"
       :style="{ minHeight: '4rem' }"
       autocapitalize="off"
       spellcheck="false"
       placeholder="Example: (1.254Od / 8.769Td)^2 * 2.282s"
-      v-model="expr"
     ></textarea>
     <template v-if="result !== null">
       <div class="text-sm">
@@ -30,7 +30,7 @@
     <hr class="my-2" />
     <p class="text-xs font-medium">Reference table</p>
     <div class="grid grid-cols-3 sm:grid-cols-6 text-xs tabular-nums mt-1">
-      <div v-for="unit in units">
+      <div v-for="unit in units" :key="unit.oom">
         <span class="inline-block" :style="{ width: '1.5rem' }">{{ unit.symbol }}</span> 10<sup>{{
           unit.oom
         }}</sup>
@@ -57,7 +57,9 @@ export default defineComponent({
     },
   },
   emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     'update:modelValue': (newValue: string) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props, { emit }) {
     const { modelValue } = toRefs(props);

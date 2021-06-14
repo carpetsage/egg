@@ -3,9 +3,9 @@ import { eggLayingRateMultiplier } from '../effects';
 import { Artifact, Research, ResearchInstance } from '../types';
 import { farmResearches } from './common';
 
-interface EggLayingRateResearch extends Research {}
+type EggLayingRateResearch = Research;
 
-interface EggLayingRateResearchInstance extends ResearchInstance {}
+type EggLayingRateResearchInstance = ResearchInstance;
 
 // https://wasmegg.netlify.app/researches/
 // SELECT id, name, levels AS maxLevel, per_level AS perLevel, iif(levels_compound = 'multiplicative', true, NULL) AS compoundMultiplicatively FROM research WHERE categories LIKE '%egg_value%' ORDER BY serial_id;

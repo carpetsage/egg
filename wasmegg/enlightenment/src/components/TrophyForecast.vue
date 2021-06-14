@@ -49,13 +49,13 @@
     "
   >
     <trophy-forecast
-      trophyLevel="Nobel"
-      trophyName="Nobel Prize in Animal Husbandry&reg;"
-      :lastRefreshedPopulation="lastRefreshedPopulation"
-      :lastRefreshedTimestamp="lastRefreshedTimestamp"
-      :targetPopulation="19_845_000_000"
-      :habSpace="habSpace"
-      :offlineIHR="offlineIHR"
+      trophy-level="Nobel"
+      trophy-name="Nobel Prize in Animal Husbandry&reg;"
+      :last-refreshed-population="lastRefreshedPopulation"
+      :last-refreshed-timestamp="lastRefreshedTimestamp"
+      :target-population="19_845_000_000"
+      :hab-space="habSpace"
+      :offline-i-h-r="offlineIHR"
     />
     <p class="text-xs text-gray-500">
       The Nobel Prize in Animal Husbandry&reg; is conferred by the Royal Mk.II Society of
@@ -67,7 +67,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref, toRefs } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, PropType, ref, toRefs } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -87,15 +87,15 @@ dayjs.extend(timezone);
 dayjs.extend(utc);
 
 export default defineComponent({
-  name: 'trophy-forecast',
+  name: 'TrophyForecast',
   props: {
     trophyLevel: {
       type: String,
       required: true,
     },
     trophyName: {
-      type: String,
-      required: false,
+      type: String as PropType<string | undefined>,
+      default: undefined,
     },
     lastRefreshedPopulation: {
       type: Number,
@@ -128,7 +128,9 @@ export default defineComponent({
       offlineIHR,
     } = toRefs(props);
     const trophyDisplayName = computed(() =>
-      trophyName !== undefined ? trophyName.value : `Enlightenment ${trophyLevel.value} Trophy`
+      trophyName.value !== undefined
+        ? trophyName.value
+        : `Enlightenment ${trophyLevel.value} Trophy`
     );
     const completionForecast = computed(() => {
       if (lastRefreshedPopulation.value < targetPopulation.value && offlineIHR.value > 0) {

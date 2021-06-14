@@ -3,8 +3,8 @@ import { maxRCBBonusFromArtifacts } from '../effects/max_rcb';
 import { Artifact, Research, ResearchInstance } from '../types';
 import { farmResearches } from './common';
 
-export interface MaxRCBResearch extends Research {}
-export interface MaxRCBResearchInstance extends ResearchInstance {}
+export type MaxRCBResearch = Research;
+export type MaxRCBResearchInstance = ResearchInstance;
 
 const availableMaxRCBResearches: MaxRCBResearch[] = [
   {

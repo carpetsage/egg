@@ -3,13 +3,12 @@
     <p>{{ nickname }}</p>
     <p class="text-sm">
       Last synced to server:
-      <span class="whitespace-nowrap" v-tippy="{ content: lastRefreshed.format('LLL') }">
+      <span v-tippy="{ content: lastRefreshed.format('LLL') }" class="whitespace-nowrap">
         {{ lastRefreshedRelative }}
       </span>
     </p>
     <p>
       <span
-        class="inline-flex items-center space-x-1"
         v-tippy="{
           content: `
           <p>The game, while active, saves to Egg, Inc.&rsquo;s server every couple of minutes if network condition allows.
@@ -23,6 +22,7 @@
           periodically until the fresh save shows up. Please do not refresh too fast, which is not helpful.</p>`,
           allowHTML: true,
         }"
+        class="inline-flex items-center space-x-1"
       >
         <base-info />
         <span class="text-xs text-gray-500">Why is my save out of date?</span>
@@ -45,42 +45,42 @@
           {{ formatWithThousandSeparators(currentPopulation) }}
         </span>
         <base-info
-          class="inline relative -top-px"
           v-tippy="{
             content:
               'The current population is calculated based on the population and offline IHR from the last save. Assuming your IHR did not change since the last save, this number should be slightly ahead of your actual population at the moment, depending on how long you remained active since the last save.',
           }"
+          class="inline relative -top-px"
         />
       </p>
       <template v-for="trophy in trophies" :key="trophy.level">
         <trophy-forecast
           v-if="trophy.level > existingTrophyLevel"
-          :trophyLevel="trophy.name"
-          :lastRefreshedPopulation="lastRefreshedPopulation"
-          :lastRefreshedTimestamp="lastRefreshedTimestamp"
-          :targetPopulation="trophy.targetPopulation"
-          :habSpace="totalHabSpace"
-          :offlineIHR="offlineIHR"
+          :trophy-level="trophy.name"
+          :last-refreshed-population="lastRefreshedPopulation"
+          :last-refreshed-timestamp="lastRefreshedTimestamp"
+          :target-population="trophy.targetPopulation"
+          :hab-space="totalHabSpace"
+          :offline-i-h-r="offlineIHR"
         />
       </template>
 
       <hr class="mt-2" />
 
       <collapsible-section
-        sectionTitle="Habs"
+        section-title="Habs"
         :visible="isVisibleSection('habs')"
-        @toggle="toggleSectionVisibility('habs')"
         class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('habs')"
       >
         <div class="flex my-2 space-x-2">
           <img
             v-for="(hab, index) in habs"
             :key="index"
-            :src="iconURL(hab.iconPath, 128)"
-            class="h-16 w-16 bg-gray-50 rounded-lg shadow"
             v-tippy="{
               content: `${hab.name}, space: ${formatWithThousandSeparators(habSpaces[index])}`,
             }"
+            :src="iconURL(hab.iconPath, 128)"
+            class="h-16 w-16 bg-gray-50 rounded-lg shadow"
           />
         </div>
         <p>
@@ -93,11 +93,11 @@
             Required Wormhole Dampening level:
             <span class="text-blue-500 mr-0.5">{{ requiredWDLevel }}/25</span>
             <base-info
-              class="inline relative -top-px"
               v-tippy="{
                 content:
                   'Minimum Wormhole Dampening level to reach 10B hab space, assuming all habs are final tier, and all other hab space-related researches have been finished.',
               }"
+              class="inline relative -top-px"
             />
           </p>
           <template v-if="minimumRequiredWDLevel < requiredWDLevel">
@@ -116,10 +116,10 @@
       <hr />
 
       <collapsible-section
-        sectionTitle="Earnings"
+        section-title="Earnings"
         :visible="isVisibleSection('earnings')"
-        @toggle="toggleSectionVisibility('earnings')"
         class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('earnings')"
       >
         <p>
           Earning bonus:
@@ -200,7 +200,7 @@
             <base-e-i-value class="text-pink-500" :value="cashTargetPreDiscount" />
           </p>
           <target-cash-matrix
-            :baseTarget="cashTargetPreDiscount"
+            :base-target="cashTargetPreDiscount"
             :current="cashOnHand"
             :targets="cashTargets"
             :means="cashMeans"
@@ -226,10 +226,10 @@
       <hr />
 
       <collapsible-section
-        sectionTitle="Internal hatchery"
+        section-title="Internal hatchery"
         :visible="isVisibleSection('internal_hatchery')"
-        @toggle="toggleSectionVisibility('internal_hatchery')"
         class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('internal_hatchery')"
       >
         <p class="mt-1">
           Active IHR:
@@ -257,10 +257,10 @@
       <hr />
 
       <collapsible-section
-        sectionTitle="Artifacts"
+        section-title="Artifacts"
         :visible="isVisibleSection('artifacts')"
-        @toggle="toggleSectionVisibility('artifacts')"
         class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('artifacts')"
       >
         <artifacts-gallery :artifacts="artifacts" />
       </collapsible-section>
@@ -277,7 +277,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
-import { eggIconPath, iconURL, getLocalStorage, setLocalStorage } from 'lib';
+import { eggIconPath, iconURL } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
   bestPossibleGussetForEnlightenment,
@@ -348,6 +348,7 @@ export default defineComponent({
     },
   },
   // This async component does not respond to playerId changes.
+  /* eslint-disable vue/no-setup-props-destructure */
   async setup({ playerId }) {
     // Validate and sanitize player ID.
     if (!playerId.match(/^EI\d+$/i)) {

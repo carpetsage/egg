@@ -21,7 +21,7 @@ export function homeFarmArtifacts(backup: ei.IBackup): Artifact[] {
     return [];
   }
   const itemIdToArtifact = new Map(inventory.map(item => [item.itemId!, item.artifact!]));
-  let artifacts: Artifact[] = [];
+  const artifacts: Artifact[] = [];
   for (const slot of activeSet.slots) {
     if (!slot.occupied) {
       continue;
