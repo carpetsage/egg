@@ -65,20 +65,20 @@
   <h2>Tools hosted at this domain</h2>
   <h3>Interactive apps</h3>
   <ul>
-    <li><tool-description id="artifact-explorer" @visit="onvisit" /></li>
+    <li><tool-description id="artifact-explorer" @visit="onvisit" /><v120-badge /></li>
     <li><tool-description id="artifact-sandbox" @visit="onvisit" /></li>
     <li><tool-description id="rockets-tracker" @visit="onvisit" /></li>
     <li><tool-description id="past-contracts" @visit="onvisit" /></li>
-    <li><tool-description id="loot-simulator" @visit="onvisit" /></li>
+    <li><tool-description id="loot-simulator" @visit="onvisit" /><v120-badge /></li>
     <li><tool-description id="enlightenment" @visit="onvisit" /></li>
   </ul>
 
   <h3>Data sheets</h3>
   <ul>
     <li><tool-description id="artifact-list" @visit="onvisit" /></li>
-    <li><tool-description id="mission-list" @visit="onvisit" /></li>
+    <li><tool-description id="mission-list" @visit="onvisit" /><v120-badge /></li>
     <li><tool-description id="consumption-sheet" @visit="onvisit" /></li>
-    <li><tool-description id="loot-analysis" @visit="onvisit" /></li>
+    <li><tool-description id="loot-analysis" @visit="onvisit" /><v120-badge /></li>
     <li><tool-description id="events" @visit="onvisit" /></li>
   </ul>
 
@@ -134,6 +134,7 @@ import BaseRouterLink from '@/components/BaseRouterLink.vue';
 import DonorList from '@/components/DonorList.vue';
 import EasterEgg from '@/components/EasterEgg.vue';
 import ToolDescription from '@/components/ToolDescription.vue';
+import V120Badge from '@/components/V120Badge.vue';
 import WhatsNew from '@/components/WhatsNew.vue';
 
 const EASTER_EGG_DAY = 7;
@@ -146,6 +147,7 @@ export default defineComponent({
     DonorList,
     EasterEgg,
     ToolDescription,
+    V120Badge,
     WhatsNew,
   },
   setup() {
