@@ -6,7 +6,7 @@
     :visible="isVisibleSection('active-missions')"
     @toggle="toggleSectionVisibility('active-missions')"
   >
-    <active-missions-report :active-missions="activeMissions" />
+    <active-missions-report :active-missions="activeMissions" :backup="backup" />
   </collapsible-section>
 
   <collapsible-section

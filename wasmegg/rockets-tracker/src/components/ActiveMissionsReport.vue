@@ -75,6 +75,8 @@
   </template>
 
   <div v-else class="text-center text-sm">No active mission. You should start one!</div>
+
+  <fuel-tank-report :backup="backup" class="mt-3" />
 </template>
 
 <script lang="ts">
@@ -86,6 +88,7 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { ei, iconURL, Mission } from 'lib';
 import { missionDurationTypeFgClass, missionDurationTypeBgClass } from '@/utils';
 import CountdownTimer from '@/components/CountdownTimer.vue';
+import FuelTankReport from '@/components/FuelTankReport.vue';
 import ProgressRing from '@/components/ProgressRing.vue';
 import ProgressRingEmpty from '@/components/ProgressRingEmpty.vue';
 import MissionNotifications from '@/components/MissionNotifications.vue';
@@ -96,6 +99,7 @@ dayjs.extend(localizedFormat);
 export default defineComponent({
   components: {
     CountdownTimer,
+    FuelTankReport,
     ProgressRing,
     ProgressRingEmpty,
     MissionNotifications,
@@ -103,6 +107,10 @@ export default defineComponent({
   props: {
     activeMissions: {
       type: Array as PropType<ei.IMissionInfo[]>,
+      required: true,
+    },
+    backup: {
+      type: Object as PropType<ei.IBackup>,
       required: true,
     },
   },
