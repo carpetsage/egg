@@ -69,15 +69,6 @@
                           </span>
                           <br />
                           <span class="flex items-center text-xs space-x-0.5">
-                            <img
-                              :src="
-                                iconURL(
-                                  permit === 1 ? 'egginc/pro_permit.png' : 'egginc/free_permit.png',
-                                  128
-                                )
-                              "
-                              class="h-3 flex-shrink-0"
-                            />
                             <span>Least time to next ship:</span>
                             <span class="text-red-500">
                               {{
@@ -90,17 +81,22 @@
                             <base-info
                               v-tippy="{
                                 content: `
-                                <p>
-                                  Earliest time the next ship can be launched:<br>
-                                  <span class='text-blue-300'>${earliestTimeTheNextShipCanBeLaunched.format(
-                                    'LLL'
-                                  )}</span>
-                                </p>
-                                <p>
-                                  This assumes you keep filling your mission ${
-                                    permit === 1 ? 'slots' : 'slot'
-                                  } with the Short ${ship.shipName} mission without gap.
-                                </p>`,
+                                  <p>
+                                    Earliest time the next ship can be launched:<br />
+                                    <span class='text-blue-300'
+                                      >${earliestTimeTheNextShipCanBeLaunched.format('LLL')}</span
+                                    >
+                                  </p>
+                                  <p>
+                                    This assumes you keep filling your mission slots with the Short ${
+                                      ship.shipName
+                                    } mission without gap.
+                                  </p>
+                                  <p class='text-red-300'>
+                                    The estimate has not been updated to take into account the FTL Drive
+                                    Upgrades epic research yet.
+                                  </p>
+                                  `,
                                 allowHTML: true,
                               }"
                             />
@@ -158,12 +154,7 @@
 
     <div v-if="!allShipsUnlocked" class="mx-4 mt-2 xl:mx-0 text-xs">
       A full list of spaceship and mission types can be found
-      <a
-        href="/mission-list/"
-        target="_blank"
-        class="text-blue-500 hover:text-blue-600"
-        >here</a
-      >.
+      <a href="/mission-list/" target="_blank" class="text-blue-500 hover:text-blue-600">here</a>.
     </div>
 
     <div class="mx-4 mt-2 xl:mx-0 text-xs">
@@ -181,7 +172,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { ei, formatDuration, iconURL, Mission } from 'lib';
-import { getMissionStatistics, PermitLevel } from '@/lib';
+import { getMissionStatistics } from '@/lib';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -196,13 +187,9 @@ export default defineComponent({
       type: Object as PropType<ei.IArtifactsDB>,
       required: true,
     },
-    permit: {
-      type: Number as PropType<PermitLevel>,
-      required: true,
-    },
   },
   setup(props) {
-    const { artifactsDB, permit } = toRefs(props);
+    const { artifactsDB } = toRefs(props);
     const activeMissions = computed(() =>
       (artifactsDB.value.missionInfos || []).map(m => new Mission(m))
     );
@@ -220,9 +207,7 @@ export default defineComponent({
     );
     const now = dayjs();
     const earliestTimeTheNextShipCanBeLaunched = computed(
-      () =>
-        lastShip.value?.earliestTimeTheNextShipCanBeLaunched(activeMissions.value, permit.value) ||
-        now
+      () => lastShip.value?.earliestTimeTheNextShipCanBeLaunched(activeMissions.value) || now
     );
     const leastTimeInSecondsUntilTheNextShipCanBeLaunched = computed(() =>
       Math.max(earliestTimeTheNextShipCanBeLaunched.value.diff(now, 'seconds'), 0)

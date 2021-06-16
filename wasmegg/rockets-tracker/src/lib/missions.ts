@@ -10,7 +10,6 @@ import {
   spaceshipList,
   spaceshipName,
 } from 'lib';
-import { PermitLevel } from './types';
 
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
@@ -73,8 +72,8 @@ export class ShipStatistics {
     return Math.max(this.requiredTotalLaunchesToUnlockNextShip - this.count, 0);
   }
 
-  earliestTimeTheNextShipCanBeLaunched(activeMissions: Mission[], permit: PermitLevel): Dayjs {
-    const missionSlots = permit === PermitLevel.PRO ? 3 : 1;
+  earliestTimeTheNextShipCanBeLaunched(activeMissions: Mission[]): Dayjs {
+    const missionSlots = 3;
     const launchedMissions = activeMissions.filter(mission => !mission.statusIsFueling);
     if (launchedMissions.length > missionSlots) {
       throw new Error(

@@ -14,7 +14,7 @@
     :visible="isVisibleSection('mission-statistics')"
     @toggle="toggleSectionVisibility('mission-statistics')"
   >
-    <mission-statistics-report :artifacts-d-b="artifactsDB" :permit="permit" />
+    <mission-statistics-report :artifacts-d-b="artifactsDB" />
   </collapsible-section>
 
   <collapsible-section
@@ -46,7 +46,6 @@
 import { computed, defineComponent } from 'vue';
 
 import { Inventory, requestFirstContact } from 'lib';
-import { PermitLevel } from '@/lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import CollapsibleSection from '@/components/CollapsibleSection.vue';
 import PlayerCard from '@/components/PlayerCard.vue';
@@ -87,13 +86,11 @@ export default defineComponent({
     if (!artifactsDB) {
       throw new Error(`${playerId}: no artifacts database in backup`);
     }
-    const permit = (backup.game?.permitLevel as PermitLevel) || PermitLevel.STANDARD;
     const inventory = computed(() => new Inventory(artifactsDB));
     const activeMissions = artifactsDB.missionInfos || [];
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
     return {
       backup,
-      permit,
       artifactsDB,
       inventory,
       activeMissions,
