@@ -1,24 +1,26 @@
 <template>
-  <div v-if="fuelTankEnabled" class="w-max mx-auto px-4 py-2 bg-gray-50 rounded-lg shadow">
-    <div class="text-sm text-center">
-      Fuel tank usage:
-      <span class="text-gray-700 whitespace-nowrap">
-        {{ formatEIValue(fuelTankUsage, { trim: true }) }} /
-        {{ formatEIValue(fuelTankCapacity, { trim: true }) }}
-      </span>
-    </div>
-    <div v-if="fuels.length > 0" class="flex flex-wrap justify-center mt-1">
-      <div
-        v-for="fuel in fuels"
-        :key="fuel.egg"
-        class="flex flex-shrink-0 items-center px-1 my-0.5"
-      >
-        <img
-          v-tippy="{ content: fuel.eggName }"
-          class="inline h-4 w-4 align-text-top"
-          :src="iconURL(fuel.eggIconPath, 64)"
-        />
-        <span class="text-xs text-gray-700 tabular-nums">{{ fuel.amountDisplay }}</span>
+  <div class="mx-4 xl:mx-0">
+    <div v-if="fuelTankEnabled" class="w-max max-w-full mx-auto px-4 py-2 bg-gray-50 rounded-lg shadow">
+      <div class="text-sm text-center">
+        Fuel tank usage:
+        <span class="text-gray-700 whitespace-nowrap">
+          {{ formatEIValue(fuelTankUsage, { trim: true }) }} /
+          {{ formatEIValue(fuelTankCapacity, { trim: true }) }}
+        </span>
+      </div>
+      <div v-if="fuels.length > 0" class="flex flex-wrap justify-center mt-1">
+        <div
+          v-for="fuel in fuels"
+          :key="fuel.egg"
+          class="flex flex-shrink-0 items-center px-1 my-0.5"
+        >
+          <img
+            v-tippy="{ content: fuel.eggName }"
+            class="inline h-4 w-4 align-text-top"
+            :src="iconURL(fuel.eggIconPath, 64)"
+          />
+          <span class="text-xs text-gray-700 tabular-nums">{{ fuel.amountDisplay }}</span>
+        </div>
       </div>
     </div>
   </div>
