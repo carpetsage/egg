@@ -16,6 +16,7 @@ module.exports = {
   ],
   rules: {
     'no-constant-condition': ['error', { checkLoops: false }],
+    'no-undef': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     'vue/html-closing-bracket-newline': 'off',
     'vue/html-indent': 'off',

@@ -6,6 +6,7 @@ import {
   missionDurationTypeList,
   MissionType,
   newMissionTypeMap,
+  requiredTotalLaunchesToUnlockNextShip,
   spaceshipIconPath,
   spaceshipList,
   spaceshipName,
@@ -44,28 +45,7 @@ export class ShipStatistics {
   }
 
   get requiredTotalLaunchesToUnlockNextShip(): number {
-    switch (this.shipType) {
-      case Spaceship.CHICKEN_ONE:
-        return 4;
-      case Spaceship.CHICKEN_NINE:
-        return 6;
-      case Spaceship.CHICKEN_HEAVY:
-        return 12;
-      case Spaceship.BCR:
-        return 15;
-      case Spaceship.MILLENIUM_CHICKEN:
-        return 18;
-      case Spaceship.CORELLIHEN_CORVETTE:
-        return 21;
-      case Spaceship.GALEGGTICA:
-        return 24;
-      case Spaceship.CHICKFIANT:
-        return 27;
-      case Spaceship.VOYEGGER:
-        return 30;
-      case Spaceship.HENERPRISE:
-        return Infinity;
-    }
+    return requiredTotalLaunchesToUnlockNextShip(this.shipType);
   }
 
   get requiredRemainingLaunchesToUnlockNextShip(): number {

@@ -4,6 +4,7 @@ import { eggIconPath, eggName } from './eggs';
 import { ei } from './proto';
 import { formatDuration } from './time';
 import { formatEIValue } from './units';
+import eiafxConfig, { MissionTypeParameters } from './eiafx-config.json';
 
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
@@ -29,6 +30,34 @@ export const missionDurationTypeList = [
   DurationType.EPIC,
 ];
 
+export interface ShipsConfig {
+  epicResearchFTLLevel: number;
+  epicResearchZerogLevel: number;
+  shipLevels: { [key in Spaceship]: number };
+}
+
+export function isShipsConfig(x: unknown): x is ShipsConfig {
+  if (typeof x !== 'object' || x === null) {
+    return false;
+  }
+  if ((x as ShipsConfig).epicResearchFTLLevel === undefined) {
+    return false;
+  }
+  if ((x as ShipsConfig).epicResearchZerogLevel === undefined) {
+    return false;
+  }
+  const shipLevels = (x as ShipsConfig).shipLevels as unknown;
+  if (typeof shipLevels !== 'object' || shipLevels === null) {
+    return false;
+  }
+  for (const level of spaceshipList) {
+    if ((shipLevels as { [key in Spaceship]: number })[level] === undefined) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export class MissionType {
   shipType: Spaceship;
   durationType: DurationType;
@@ -50,12 +79,31 @@ export class MissionType {
     return missionDurationTypeName(this.durationType);
   }
 
+  get params(): MissionTypeParameters {
+    return missionTypeParams[this.shipType][this.durationType];
+  }
+
+  get maxLevel(): number {
+    return shipMaxLevel(this.shipType);
+  }
+
+  get levelLaunchPointThresholds(): number[] {
+    const deltas = shipLevelRequirements[this.shipType];
+    let sum = 0;
+    const thresholds = [0];
+    for (const delta of deltas) {
+      sum += delta;
+      thresholds.push(sum);
+    }
+    return thresholds;
+  }
+
   get defaultCapacity(): number {
-    return missionCapacityInfo[this.shipType][this.durationType];
+    return this.params.capacity;
   }
 
   get defaultDurationSeconds(): number {
-    return missionDurationSecondsInfo[this.shipType][this.durationType];
+    return this.params.seconds;
   }
 
   get defaultDurationDisplay(): string {
@@ -64,6 +112,23 @@ export class MissionType {
 
   get defaultFuels(): MissionFuels {
     return missionFuelsInfo[this.shipType][this.durationType];
+  }
+
+  boostedCapacity(config: ShipsConfig): number {
+    return Math.floor(
+      (this.defaultCapacity + this.params.levelCapacityBump * config.shipLevels[this.shipType]) *
+        (1 + 0.05 * config.epicResearchZerogLevel)
+    );
+  }
+
+  boostedDurationSeconds(config: ShipsConfig): number {
+    return this.shipType >= Spaceship.MILLENIUM_CHICKEN
+      ? this.defaultDurationSeconds * (1 - 0.01 * config.epicResearchFTLLevel)
+      : this.defaultDurationSeconds;
+  }
+
+  boostedDurationDisplay(config: ShipsConfig): string {
+    return formatDuration(this.boostedDurationSeconds(config), true);
   }
 }
 
@@ -285,137 +350,26 @@ export function missionDurationTypeName(type: DurationType): string {
   }
 }
 
-// jq '.missionParameters[].durations[].capacity' ../_common/eiafx/eiafx-config.json
-//
-// Invalid tutorial missions are included for type safety and have zero capacity.
-const missionCapacityInfo: MissionTypeMap<number> = {
-  [Spaceship.CHICKEN_ONE]: {
-    [DurationType.TUTORIAL]: 4,
-    [DurationType.SHORT]: 4,
-    [DurationType.LONG]: 5,
-    [DurationType.EPIC]: 6,
-  },
-  [Spaceship.CHICKEN_NINE]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 7,
-    [DurationType.LONG]: 8,
-    [DurationType.EPIC]: 9,
-  },
-  [Spaceship.CHICKEN_HEAVY]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 12,
-    [DurationType.LONG]: 14,
-    [DurationType.EPIC]: 15,
-  },
-  [Spaceship.BCR]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 18,
-    [DurationType.LONG]: 20,
-    [DurationType.EPIC]: 22,
-  },
-  [Spaceship.MILLENIUM_CHICKEN]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 10,
-    [DurationType.LONG]: 12,
-    [DurationType.EPIC]: 14,
-  },
-  [Spaceship.CORELLIHEN_CORVETTE]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 18,
-    [DurationType.LONG]: 21,
-    [DurationType.EPIC]: 24,
-  },
-  [Spaceship.GALEGGTICA]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 27,
-    [DurationType.LONG]: 30,
-    [DurationType.EPIC]: 35,
-  },
-  [Spaceship.CHICKFIANT]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 20,
-    [DurationType.LONG]: 24,
-    [DurationType.EPIC]: 28,
-  },
-  [Spaceship.VOYEGGER]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 30,
-    [DurationType.LONG]: 35,
-    [DurationType.EPIC]: 40,
-  },
-  [Spaceship.HENERPRISE]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 45,
-    [DurationType.LONG]: 50,
-    [DurationType.EPIC]: 56,
-  },
-};
-
-// jq '.missionParameters[].durations[].seconds' ../_common/eiafx/eiafx-config.json
-//
-// Invalid tutorial missions are included for type safety and have zero duration.
-const missionDurationSecondsInfo: MissionTypeMap<number> = {
-  [Spaceship.CHICKEN_ONE]: {
-    [DurationType.TUTORIAL]: 60,
-    [DurationType.SHORT]: 1200,
-    [DurationType.LONG]: 3600,
-    [DurationType.EPIC]: 7200,
-  },
-  [Spaceship.CHICKEN_NINE]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 1800,
-    [DurationType.LONG]: 3600,
-    [DurationType.EPIC]: 10800,
-  },
-  [Spaceship.CHICKEN_HEAVY]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 2700,
-    [DurationType.LONG]: 5400,
-    [DurationType.EPIC]: 14400,
-  },
-  [Spaceship.BCR]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 5400,
-    [DurationType.LONG]: 14400,
-    [DurationType.EPIC]: 28800,
-  },
-  [Spaceship.MILLENIUM_CHICKEN]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 10800,
-    [DurationType.LONG]: 21600,
-    [DurationType.EPIC]: 43200,
-  },
-  [Spaceship.CORELLIHEN_CORVETTE]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 14400,
-    [DurationType.LONG]: 43200,
-    [DurationType.EPIC]: 86400,
-  },
-  [Spaceship.GALEGGTICA]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 21600,
-    [DurationType.LONG]: 57600,
-    [DurationType.EPIC]: 108000,
-  },
-  [Spaceship.CHICKFIANT]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 28800,
-    [DurationType.LONG]: 86400,
-    [DurationType.EPIC]: 172800,
-  },
-  [Spaceship.VOYEGGER]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 43200,
-    [DurationType.LONG]: 129600,
-    [DurationType.EPIC]: 259200,
-  },
-  [Spaceship.HENERPRISE]: {
-    [DurationType.TUTORIAL]: 0,
-    [DurationType.SHORT]: 86400,
-    [DurationType.LONG]: 172800,
-    [DurationType.EPIC]: 345600,
-  },
-};
+const missionTypeParams: MissionTypeMap<MissionTypeParameters> = (() => {
+  const info = newMissionTypeMapFromFactory<MissionTypeParameters>(() => ({
+    durationType: 'SHORT',
+    quality: 0,
+    seconds: 0,
+    minQuality: 0,
+    maxQuality: 0,
+    capacity: 0,
+    levelCapacityBump: 0,
+    levelQualityBump: 0,
+  }));
+  for (const mp of eiafxConfig.missionParameters) {
+    const ship = Spaceship[mp.ship];
+    for (const d of mp.durations) {
+      const durationType = DurationType[d.durationType];
+      info[ship][durationType] = d;
+    }
+  }
+  return info;
+})();
 
 // Generated from mission-list/main.go.
 //
@@ -558,5 +512,71 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
       new MissionFuel(ei.Egg.ANTIMATTER, 3e12),
       new MissionFuel(ei.Egg.DARK_MATTER, 3e12),
     ],
+  },
+};
+
+export function requiredTotalLaunchesToUnlockNextShip(shipType: Spaceship): number {
+  switch (shipType) {
+    case Spaceship.CHICKEN_ONE:
+      return 4;
+    case Spaceship.CHICKEN_NINE:
+      return 6;
+    case Spaceship.CHICKEN_HEAVY:
+      return 12;
+    case Spaceship.BCR:
+      return 15;
+    case Spaceship.MILLENIUM_CHICKEN:
+      return 18;
+    case Spaceship.CORELLIHEN_CORVETTE:
+      return 21;
+    case Spaceship.GALEGGTICA:
+      return 24;
+    case Spaceship.CHICKFIANT:
+      return 27;
+    case Spaceship.VOYEGGER:
+      return 30;
+    case Spaceship.HENERPRISE:
+      return Infinity;
+  }
+}
+
+const shipLevelRequirements: { [key in Spaceship]: number[] } = (() => {
+  const levels: { [key in Spaceship]: number[] } = {
+    [Spaceship.CHICKEN_ONE]: [],
+    [Spaceship.CHICKEN_NINE]: [],
+    [Spaceship.CHICKEN_HEAVY]: [],
+    [Spaceship.BCR]: [],
+    [Spaceship.MILLENIUM_CHICKEN]: [],
+    [Spaceship.CORELLIHEN_CORVETTE]: [],
+    [Spaceship.GALEGGTICA]: [],
+    [Spaceship.CHICKFIANT]: [],
+    [Spaceship.VOYEGGER]: [],
+    [Spaceship.HENERPRISE]: [],
+  };
+  for (const mp of eiafxConfig.missionParameters) {
+    const ship = Spaceship[mp.ship];
+    levels[ship] = mp.levelMissionRequirements;
+  }
+  return levels;
+})();
+
+export function shipMaxLevel(shipType: Spaceship): number {
+  return shipLevelRequirements[shipType].length;
+}
+
+export const perfectShipsConfig: ShipsConfig = {
+  epicResearchFTLLevel: 25,
+  epicResearchZerogLevel: 10,
+  shipLevels: {
+    [Spaceship.CHICKEN_ONE]: shipMaxLevel(Spaceship.CHICKEN_ONE),
+    [Spaceship.CHICKEN_NINE]: shipMaxLevel(Spaceship.CHICKEN_NINE),
+    [Spaceship.CHICKEN_HEAVY]: shipMaxLevel(Spaceship.CHICKEN_HEAVY),
+    [Spaceship.BCR]: shipMaxLevel(Spaceship.BCR),
+    [Spaceship.MILLENIUM_CHICKEN]: shipMaxLevel(Spaceship.MILLENIUM_CHICKEN),
+    [Spaceship.CORELLIHEN_CORVETTE]: shipMaxLevel(Spaceship.CORELLIHEN_CORVETTE),
+    [Spaceship.GALEGGTICA]: shipMaxLevel(Spaceship.GALEGGTICA),
+    [Spaceship.CHICKFIANT]: shipMaxLevel(Spaceship.CHICKFIANT),
+    [Spaceship.VOYEGGER]: shipMaxLevel(Spaceship.VOYEGGER),
+    [Spaceship.HENERPRISE]: shipMaxLevel(Spaceship.HENERPRISE),
   },
 };

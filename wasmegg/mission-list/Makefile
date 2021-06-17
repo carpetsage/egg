@@ -1,25 +1,21 @@
-MAKEFLAGS += -j4
-
-.PHONY: all init dist html postcss clean serve
+.PHONY: all init build dist clean dev serve
 
 all: clean
 	$(MAKE) dist
 
 init:
-	yarn install
 
-dist: html
-	../_tools/build.py dist
+build:
+	yarn build
 
-html: postcss
-	go run .
-	../_tools/build.py html
-
-postcss:
-	yarn postcss --env=production src/app.css -o dist/app.css
+dist: build
+	../_tools/build.py dist --additional assets
 
 clean:
-	@$(RM) -r src/index.html dist/index.html dist/*.*.css dist/manifest.*.json
+	@$(RM) -r dist
+
+dev:
+	yarn dev
 
 serve:
-	cd dist && npx serve
+	yarn serve

@@ -1,10 +1,9 @@
 module.exports = {
-  purge: ['templates/**/*.html'],
-  darkMode: false,
+  purge: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   theme: {
     extend: {
-      maxWidth: {
-        '12xl': '120rem',
+      divideWidth: {
+        3: '3px',
       },
     },
   },
