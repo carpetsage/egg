@@ -142,6 +142,11 @@ export const tools = [
   new Tool({
     id: 'mission-list',
     title: 'Mission list',
+    // Thu Jun 24 15:35:02 UTC 2021
+    majorUpdateUntil: 1624548902000,
+    description: 'Spaceship & mission parameters list',
+    whatsNew:
+      'Rewritten for v1.21. Now you can interactively configure relevant epic researches and individual ship levels, and view corresponding mission duration, capacity, etc.',
   }),
   new Tool({
     id: 'consumption-sheet',

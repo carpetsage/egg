@@ -10,7 +10,7 @@
     </template>
   </span>
   <template v-if="tool.description"> &mdash; {{ tool.description }}</template>
-  <template v-if="tool.whatsNew">
+  <template v-if="tool.isHighlight && tool.whatsNew">
     <br />
     <p class="text-sm text-green-600">New: {{ tool.whatsNew }}</p>
   </template>
