@@ -21,7 +21,7 @@
         :rowspan="missionTypes.length"
         class="px-4 py-1.5 whitespace-nowrap text-center text-sm"
       >
-        Sensor
+        {{ sensor }}
       </td>
       <td
         v-if="index === 0"
@@ -141,6 +141,7 @@ export default defineComponent({
     const missionTypes = computed(() =>
       durationTypes.map(type => new MissionType(shipType.value, type))
     );
+    const sensor = computed(() => shipSensor(shipType.value));
     const launchesToUnlockNextShip = computed(() => {
       const num = requiredTotalLaunchesToUnlockNextShip(shipType.value);
       return Number.isFinite(num) ? num : null;
@@ -153,6 +154,7 @@ export default defineComponent({
     );
     return {
       missionTypes,
+      sensor,
       launchesToUnlockNextShip,
       timeToAdvance,
       iconURL,
@@ -160,4 +162,26 @@ export default defineComponent({
     };
   },
 });
+
+function shipSensor(spaceship: Spaceship): string {
+  switch (spaceship) {
+    case Spaceship.CHICKEN_ONE:
+    case Spaceship.CHICKEN_NINE:
+      return 'Basic';
+    case Spaceship.CHICKEN_HEAVY:
+    case Spaceship.BCR:
+      return 'Intermediate';
+    case Spaceship.MILLENIUM_CHICKEN:
+    case Spaceship.CORELLIHEN_CORVETTE:
+    case Spaceship.GALEGGTICA:
+      return 'Advanced';
+    case Spaceship.CHICKFIANT:
+    case Spaceship.VOYEGGER:
+      return 'Cutting Edge';
+    case Spaceship.HENERPRISE:
+      return 'Next Generation';
+    default:
+      return 'Unknown';
+  }
+}
 </script>
