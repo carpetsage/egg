@@ -31,8 +31,9 @@
       />
     </svg>
   </div>
-  <div>
-    <div class="grid grid-cols-3 gap-x-2 mt-2">
+  <div class="mt-1">
+    <div class="text-left text-xs">Thresholds:</div>
+    <div class="grid grid-cols-3 gap-x-2">
       <template v-for="(threshold, lvl) in levelThresholds" :key="lvl">
         <div
           v-if="lvl > 0"
@@ -43,7 +44,7 @@
           <svg
             viewBox="0 0 576 512"
             class="inline h-2.5 w-2.5 relative -top-px select-none"
-            :class="lvl === level ? 'text-blue-400' : 'text-yellow-400' "
+            :class="lvl === level ? 'text-blue-400' : 'text-yellow-400'"
           >
             <path
               fill="currentColor"

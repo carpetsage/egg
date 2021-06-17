@@ -57,6 +57,11 @@
 
     <div class="text-xs mb-4 space-y-1">
       <p class="text-red-500">
+        Launching missions generate "launch points" (each short mission generates 1, standard 1.4,
+        extended 1.8). Launch points accumulate for each ship to unlock levels (stars). The
+        cumulative launch points required for each ship is shown in the "Level" column.
+      </p>
+      <p class="text-red-500">
         You can configure the level of each individual ship by clicking on the stars, or the clear
         icon for zero stars.
       </p>
