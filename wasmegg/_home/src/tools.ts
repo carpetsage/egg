@@ -109,10 +109,10 @@ export const tools = [
     iconUrl: rocketsTrackerIconUrl,
     description:
       'Tracker for active rocket missions, historical mission statistics, progress on artifact collection, etc.',
-    // Mon Jun 14 07:49:02 UTC 2021
-    updateUntil: 1623656942000,
+    // Fri Jun 25 07:58:11 UTC 2021
+    updateUntil: 1624607891000,
     whatsNew:
-      '"Artifact loadouts" section showing current artifact loadouts on all active farms, with prepopulated Artifact sandbox links for tweaking.',
+      '"Mission statistics" section overhauled for v1.21: ship levels, launch points, personalized mission duration and capacity values, etc.; "Launch log" section now displaying star ratings of past missions.',
   }),
   new Tool({
     id: 'past-contracts',
