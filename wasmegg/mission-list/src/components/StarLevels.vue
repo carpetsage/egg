@@ -31,7 +31,7 @@
       />
     </svg>
   </div>
-  <div class="mt-1">
+  <div v-if="levelThresholds.length > 1" class="mt-1">
     <div class="text-left text-xs">Thresholds:</div>
     <div class="grid grid-cols-3 gap-x-2">
       <template v-for="(threshold, lvl) in levelThresholds" :key="lvl">
