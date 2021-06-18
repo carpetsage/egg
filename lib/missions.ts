@@ -36,6 +36,37 @@ export interface ShipsConfig {
   shipLevels: { [key in Spaceship]: number };
 }
 
+export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
+  let epicResearchFTLLevel = 0;
+  let epicResearchZerogLevel = 0;
+  if (progress) {
+    for (const r of progress.epicResearch || []) {
+      if (r.id === 'afx_mission_time') {
+        epicResearchFTLLevel = r.level!;
+      }
+      if (r.id === 'afx_mission_capacity') {
+        epicResearchZerogLevel = r.level!;
+      }
+    }
+  }
+  return {
+    epicResearchFTLLevel,
+    epicResearchZerogLevel,
+    shipLevels: {
+      [Spaceship.CHICKEN_ONE]: 0,
+      [Spaceship.CHICKEN_NINE]: 0,
+      [Spaceship.CHICKEN_HEAVY]: 0,
+      [Spaceship.BCR]: 0,
+      [Spaceship.MILLENIUM_CHICKEN]: 0,
+      [Spaceship.CORELLIHEN_CORVETTE]: 0,
+      [Spaceship.GALEGGTICA]: 0,
+      [Spaceship.CHICKFIANT]: 0,
+      [Spaceship.VOYEGGER]: 0,
+      [Spaceship.HENERPRISE]: 0,
+    },
+  };
+}
+
 export function isShipsConfig(x: unknown): x is ShipsConfig {
   if (typeof x !== 'object' || x === null) {
     return false;
@@ -88,14 +119,7 @@ export class MissionType {
   }
 
   get levelLaunchPointThresholds(): number[] {
-    const deltas = shipLevelRequirements[this.shipType];
-    let sum = 0;
-    const thresholds = [0];
-    for (const delta of deltas) {
-      sum += delta;
-      thresholds.push(sum);
-    }
-    return thresholds;
+    return shipLevelLaunchPointThresholds(this.shipType);
   }
 
   get defaultCapacity(): number {
@@ -562,6 +586,17 @@ const shipLevelRequirements: { [key in Spaceship]: number[] } = (() => {
 
 export function shipMaxLevel(shipType: Spaceship): number {
   return shipLevelRequirements[shipType].length;
+}
+
+export function shipLevelLaunchPointThresholds(shipType: Spaceship): number[] {
+  const deltas = shipLevelRequirements[shipType];
+  let sum = 0;
+  const thresholds = [0];
+  for (const delta of deltas) {
+    sum += delta;
+    thresholds.push(sum);
+  }
+  return thresholds;
 }
 
 export const perfectShipsConfig: ShipsConfig = {

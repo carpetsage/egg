@@ -1,6 +1,6 @@
-import { ei, Mission } from 'lib';
+import { ei, MissionType } from 'lib';
 
-export function missionDurationTypeFgClass(mission: Mission): string {
+export function missionDurationTypeFgClass(mission: MissionType): string {
   switch (mission.durationType) {
     case ei.MissionInfo.DurationType.TUTORIAL:
     case ei.MissionInfo.DurationType.SHORT:
@@ -14,7 +14,7 @@ export function missionDurationTypeFgClass(mission: Mission): string {
   }
 }
 
-export function missionDurationTypeBgClass(mission: Mission): string {
+export function missionDurationTypeBgClass(mission: MissionType): string {
   switch (mission.durationType) {
     case ei.MissionInfo.DurationType.TUTORIAL:
     case ei.MissionInfo.DurationType.SHORT:
@@ -38,5 +38,13 @@ export function artifactRarityFgClass(afxRarity: ei.ArtifactSpec.Rarity): string
       return 'text-purple-500';
     case ei.ArtifactSpec.Rarity.LEGENDARY:
       return 'text-yellow-500';
+  }
+}
+
+export function formatLaunchPoints(x: number): string {
+  if (x.toFixed(1).endsWith('.0')) {
+    return x.toFixed(0);
+  } else {
+    return x.toFixed(1);
   }
 }

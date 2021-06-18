@@ -1,4 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
+import { Memoize } from 'typescript-memoize';
 
 import {
   ei,
@@ -6,7 +7,10 @@ import {
   missionDurationTypeList,
   MissionType,
   newMissionTypeMap,
+  newShipsConfig,
   requiredTotalLaunchesToUnlockNextShip,
+  shipLevelLaunchPointThresholds,
+  ShipsConfig,
   spaceshipIconPath,
   spaceshipList,
   spaceshipName,
@@ -16,18 +20,22 @@ import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
 
 export class Statistics {
+  config: ShipsConfig;
   ships: ShipStatistics[];
 
-  constructor(ships?: ShipStatistics[]) {
-    this.ships = ships || [];
+  constructor(config: ShipsConfig, ships: ShipStatistics[]) {
+    this.config = config;
+    this.ships = ships;
   }
 }
 
 export class ShipStatistics {
+  config: ShipsConfig;
   shipType: Spaceship;
   durations: MissionTypeStatistics[];
 
-  constructor(shipType: Spaceship, durationTypes?: MissionTypeStatistics[]) {
+  constructor(config: ShipsConfig, shipType: Spaceship, durationTypes?: MissionTypeStatistics[]) {
+    this.config = config;
     this.shipType = shipType;
     this.durations = durationTypes || [];
   }
@@ -44,55 +52,101 @@ export class ShipStatistics {
     return this.durations.reduce((count, dt) => count + dt.count, 0);
   }
 
+  @Memoize()
+  get launchPoints(): number {
+    return this.durations.reduce((lp, dt) => lp + dt.launchPoints, 0);
+  }
+
+  @Memoize()
+  get levelLaunchPointThresholds(): number[] {
+    return shipLevelLaunchPointThresholds(this.shipType);
+  }
+
+  @Memoize()
+  get launchPointsProgress(): {
+    maxLevel: number;
+    level: number;
+    launchPointsToNextLevel: number | null;
+    launchPointsToMaxLevel: number | null;
+  } {
+    const launchPoints = this.launchPoints;
+    const thresholds = this.levelLaunchPointThresholds;
+    const maxLevel = thresholds.length - 1;
+    const finalThreshold = thresholds[maxLevel];
+    const launchPointsToMaxLevel =
+      finalThreshold > launchPoints ? finalThreshold - launchPoints : null;
+    let level = 0;
+    for (; level < thresholds.length; level++) {
+      if (launchPoints >= thresholds[level]) {
+        continue;
+      }
+      return {
+        maxLevel,
+        level: level - 1,
+        launchPointsToNextLevel: thresholds[level] - launchPoints,
+        launchPointsToMaxLevel,
+      };
+    }
+    return {
+      maxLevel,
+      level,
+      launchPointsToNextLevel: null,
+      launchPointsToMaxLevel,
+    };
+  }
+
+  @Memoize()
+  get maxLevel(): number {
+    return this.launchPointsProgress.maxLevel;
+  }
+
+  @Memoize()
+  get currentLevel(): number {
+    return this.launchPointsProgress.level;
+  }
+
+  // null if already at the final level.
+  @Memoize()
+  get launchPointsToNextLevel(): number | null {
+    return this.launchPointsProgress.launchPointsToNextLevel;
+  }
+
+  get shortMissionsToNextLevel(): number {
+    return Math.ceil((this.launchPointsToNextLevel || 0) / 1);
+  }
+
+  get standardMissionsToNextLevel(): number {
+    return Math.ceil((this.launchPointsToNextLevel || 0) / 1.4);
+  }
+
+  get extendedMissionsToNextLevel(): number {
+    return Math.ceil((this.launchPointsToNextLevel || 0) / 1.8);
+  }
+
+  // null if already at the final level.
+  @Memoize()
+  get launchPointsToMaxLevel(): number | null {
+    return this.launchPointsProgress.launchPointsToMaxLevel;
+  }
+
+  get shortMissionsToMaxLevel(): number {
+    return Math.ceil((this.launchPointsToMaxLevel || 0) / 1);
+  }
+
+  get standardMissionsToMaxLevel(): number {
+    return Math.ceil((this.launchPointsToMaxLevel || 0) / 1.4);
+  }
+
+  get extendedMissionsToMaxLevel(): number {
+    return Math.ceil((this.launchPointsToMaxLevel || 0) / 1.8);
+  }
+
   get requiredTotalLaunchesToUnlockNextShip(): number {
     return requiredTotalLaunchesToUnlockNextShip(this.shipType);
   }
 
   get requiredRemainingLaunchesToUnlockNextShip(): number {
     return Math.max(this.requiredTotalLaunchesToUnlockNextShip - this.count, 0);
-  }
-
-  earliestTimeTheNextShipCanBeLaunched(activeMissions: Mission[]): Dayjs {
-    const missionSlots = 3;
-    const launchedMissions = activeMissions.filter(mission => !mission.statusIsFueling);
-    if (launchedMissions.length > missionSlots) {
-      throw new Error(
-        `the impossible happened: ${launchedMissions.length} missions in ${missionSlots} slots`
-      );
-    }
-    const now = dayjs();
-    // returnQueue is a FIFO queue holding return timestamps of launched
-    // missions (or the current timestamp, for returned but not yet collected
-    // missions). At most missionSlots members are in the queue at a time.
-    const returnQueue = <Dayjs[]>[];
-    // Initialize the queue with currently active missions, filling the empty
-    // slots with the current timestamp (can be thought of as imaginary missions
-    // that are currently collectible).
-    const currentlyEmptySlots = missionSlots - launchedMissions.length;
-    for (let i = 0; i < currentlyEmptySlots; i++) {
-      returnQueue.push(now);
-    }
-    launchedMissions.forEach(mission => {
-      const returnTime = mission.returnTime;
-      if (!returnTime) {
-        throw new Error(
-          'the impossible happend: cannot calculate return timestamp for launched mission'
-        );
-      }
-      returnQueue.push(returnTime.isBefore(now) ? now : returnTime);
-    });
-    // Start simulating launching missions.
-    let remaining = this.requiredRemainingLaunchesToUnlockNextShip;
-    const shortestMissionDurationSeconds = new MissionType(this.shipType, DurationType.SHORT)
-      .defaultDurationSeconds;
-    while (true) {
-      if (remaining === 0) {
-        return returnQueue[0];
-      }
-      const returnTime = returnQueue.shift()!;
-      returnQueue.push(returnTime.add(shortestMissionDurationSeconds, 'seconds'));
-      remaining--;
-    }
   }
 }
 
@@ -104,6 +158,18 @@ export class MissionTypeStatistics {
     this.mission = new MissionType(shipType, durationType);
     this.count = count;
   }
+
+  get launchPoints(): number {
+    switch (this.mission.durationType) {
+      case DurationType.TUTORIAL:
+      case DurationType.SHORT:
+        return this.count * 1;
+      case DurationType.LONG:
+        return this.count * 1.4;
+      case DurationType.EPIC:
+        return this.count * 1.8;
+    }
+  }
 }
 
 // Sorted in chronological order.
@@ -114,15 +180,19 @@ export function getLaunchedMissions(artifactsDB: ei.IArtifactsDB): ei.IMissionIn
     .sort((m1, m2) => m1.startTimeDerived! - m2.startTimeDerived!);
 }
 
-export function getMissionStatistics(artifactsDB: ei.IArtifactsDB): Statistics {
+export function getMissionStatistics(
+  artifactsDB: ei.IArtifactsDB,
+  progress: ei.Backup.IGame
+): Statistics {
   const missions = getLaunchedMissions(artifactsDB);
   const missionTypeCounts = newMissionTypeMap(0);
   for (const mission of missions) {
     missionTypeCounts[mission.ship!][mission.durationType!]++;
   }
-  const stats = new Statistics();
+  const config = newShipsConfig(progress);
+  const ships = [];
   for (const shipType of spaceshipList) {
-    const shipStats = new ShipStatistics(shipType);
+    const shipStats = new ShipStatistics(config, shipType);
     for (const durationType of missionDurationTypeList) {
       const count = missionTypeCounts[shipType][durationType];
       if (count > 0) {
@@ -130,10 +200,11 @@ export function getMissionStatistics(artifactsDB: ei.IArtifactsDB): Statistics {
       }
     }
     if (shipStats.durations.length > 0) {
-      stats.ships.push(shipStats);
+      ships.push(shipStats);
+      config.shipLevels[shipType] = shipStats.currentLevel;
     }
   }
-  return stats;
+  return new Statistics(config, ships);
 }
 
 export class LaunchLog {

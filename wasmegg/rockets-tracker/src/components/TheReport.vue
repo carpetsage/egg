@@ -14,7 +14,7 @@
     :visible="isVisibleSection('mission-statistics')"
     @toggle="toggleSectionVisibility('mission-statistics')"
   >
-    <mission-statistics-report :artifacts-d-b="artifactsDB" />
+    <mission-statistics-report :artifacts-d-b="artifactsDB" :progress="progress" />
   </collapsible-section>
 
   <collapsible-section
@@ -79,6 +79,7 @@ export default defineComponent({
       throw new Error(`${playerId}: backup is empty`);
     }
     const backup = data.backup;
+    const progress = data.backup.game;
     if (!backup.settings) {
       throw new Error(`${playerId}: settings not found in backup`);
     }
@@ -91,6 +92,7 @@ export default defineComponent({
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
     return {
       backup,
+      progress,
       artifactsDB,
       inventory,
       activeMissions,
