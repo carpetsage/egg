@@ -33,7 +33,7 @@ export const missionDurationTypeList = [
 export interface ShipsConfig {
   epicResearchFTLLevel: number;
   epicResearchZerogLevel: number;
-  shipLevels: { [key in Spaceship]: number };
+  shipLevels: Record<Spaceship, number>;
 }
 
 export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
@@ -82,7 +82,7 @@ export function isShipsConfig(x: unknown): x is ShipsConfig {
     return false;
   }
   for (const level of spaceshipList) {
-    if ((shipLevels as { [key in Spaceship]: number })[level] === undefined) {
+    if ((shipLevels as Record<Spaceship, number>)[level] === undefined) {
       return false;
     }
   }
@@ -257,9 +257,7 @@ export class MissionFuel {
 
 export type MissionFuels = MissionFuel[];
 
-export type MissionTypeMap<T> = {
-  [key in Spaceship]: { [key in DurationType]: T };
-};
+export type MissionTypeMap<T> = Record<Spaceship, Record<DurationType, T>>;
 
 export function newMissionTypeMap<T>(defaultValue: T): MissionTypeMap<T> {
   return newMissionTypeMapFromFactory(() => defaultValue);
@@ -568,8 +566,8 @@ export function requiredTotalLaunchesToUnlockNextShip(shipType: Spaceship): numb
   }
 }
 
-const shipLevelRequirements: { [key in Spaceship]: number[] } = (() => {
-  const levels: { [key in Spaceship]: number[] } = {
+const shipLevelRequirements: Record<Spaceship, number[]> = (() => {
+  const levels: Record<Spaceship, number[]> = {
     [Spaceship.CHICKEN_ONE]: [],
     [Spaceship.CHICKEN_NINE]: [],
     [Spaceship.CHICKEN_HEAVY]: [],
