@@ -168,6 +168,10 @@ export class Mission extends MissionType {
     return this.missionInfo.identifier!;
   }
 
+  get level(): number {
+    return this.missionInfo.level || 0;
+  }
+
   get capacity(): number {
     return this.missionInfo.capacity!;
   }
