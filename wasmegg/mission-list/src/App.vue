@@ -12,12 +12,13 @@
         <div class="relative flex items-center w-max">
           <input
             id="epic_research_ftl"
-            v-model="config.epicResearchFTLLevel"
+            v-model.number="epicResearchFTLLevelInput"
             name="epic_research_ftl"
             type="number"
             min="0"
             max="25"
-            class="block w-full sm:text-sm rounded-md border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-0.5"
+            class="block w-full sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-0.5"
+            :class="epicResearchFTLLevelInputValid ? 'border-gray-300' : 'border-red-500'"
             style="width: 4.5rem"
           />
           <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">/ 25</div>
@@ -38,12 +39,13 @@
         <div class="relative flex items-center w-max">
           <input
             id="epic_research_zerog"
-            v-model="config.epicResearchZerogLevel"
+            v-model.number="epicResearchZerogLevelInput"
             name="epic_research_zerog"
             type="number"
             min="0"
             max="10"
-            class="block w-full sm:text-sm rounded-md border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-0.5"
+            class="block w-full sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-0.5"
+            :class="epicResearchZerogLevelInputValid ? 'border-gray-300' : 'border-red-500'"
             style="width: 4.5rem"
           />
           <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">/ 10</div>
@@ -150,7 +152,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref, ref, watch } from 'vue';
+import { computed, defineComponent, Ref, ref, watch } from 'vue';
 
 import {
   spaceshipList,
@@ -187,6 +189,32 @@ export default defineComponent({
         return perfectShipsConfig;
       })()
     );
+
+    const epicResearchFTLLevelInput = ref(config.value.epicResearchFTLLevel);
+    const epicResearchZerogLevelInput = ref(config.value.epicResearchZerogLevel);
+    const epicResearchFTLLevelInputValid = computed(
+      () =>
+        Number.isInteger(epicResearchFTLLevelInput.value) &&
+        epicResearchFTLLevelInput.value >= 0 &&
+        epicResearchFTLLevelInput.value <= 25
+    );
+    const epicResearchZerogLevelInputValid = computed(
+      () =>
+        Number.isInteger(epicResearchZerogLevelInput.value) &&
+        epicResearchZerogLevelInput.value >= 0 &&
+        epicResearchZerogLevelInput.value <= 10
+    );
+    watch(epicResearchFTLLevelInput, () => {
+      if (epicResearchFTLLevelInputValid.value) {
+        config.value.epicResearchFTLLevel = epicResearchFTLLevelInput.value;
+      }
+    });
+    watch(epicResearchZerogLevelInput, () => {
+      if (epicResearchZerogLevelInputValid.value) {
+        config.value.epicResearchZerogLevel = epicResearchZerogLevelInput.value;
+      }
+    });
+
     watch(
       config,
       () => {
@@ -194,9 +222,14 @@ export default defineComponent({
       },
       { deep: true }
     );
+
     return {
       spaceshipList,
       config,
+      epicResearchFTLLevelInput,
+      epicResearchZerogLevelInput,
+      epicResearchFTLLevelInputValid,
+      epicResearchZerogLevelInputValid,
     };
   },
 });
