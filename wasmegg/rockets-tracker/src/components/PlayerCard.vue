@@ -312,6 +312,10 @@
               </template>
             </template>
           </div>
+          <div v-if="hasTooManyLegendaries" class="mt-2 text-xs text-yellow-500">
+            You have too many legendaries.<br />Hide them well, or you may soon find jealous players
+            with pitchforks at your doorstep.
+          </div>
         </div>
 
         <div v-if="!collapsed" class="py-2">
@@ -359,6 +363,8 @@ dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
+
+const LEGENDARIES_JEALOUSY_THRESHOLD = 2;
 
 export default defineComponent({
   components: {
@@ -440,6 +446,15 @@ export default defineComponent({
     const lifetimeDrones = computed(() => backup.value.stats?.droneTakedowns || 0);
     const lifetimeEliteDrones = computed(() => backup.value.stats?.droneTakedownsElite || 0);
     const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
+    const hasTooManyLegendaries = computed(() => {
+      let count = 0;
+      for (const family of inventory.value.catalog) {
+        for (const tier of family.tiers) {
+          count += tier.haveLegendary;
+        }
+      }
+      return count >= LEGENDARIES_JEALOUSY_THRESHOLD;
+    });
     return {
       collapsed,
       toggleCollapse,
@@ -468,6 +483,7 @@ export default defineComponent({
       lifetimeDrones,
       lifetimeEliteDrones,
       lifetimeBoosts,
+      hasTooManyLegendaries,
       fmt,
       formatEIValue,
       iconURL,
