@@ -115,6 +115,14 @@ export default defineComponent({
         name: 'coop_status',
         title: '/coop_status',
       },
+      {
+        name: 'afx/config',
+        title: 'afx/config',
+      },
+      {
+        name: 'afx/complete_mission',
+        title: 'afx/complete_mission',
+      },
     ];
     const selectedRoute = ref(route.value);
 
