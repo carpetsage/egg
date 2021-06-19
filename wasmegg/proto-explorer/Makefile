@@ -1,50 +1,25 @@
-MAKEFLAGS += -j4
-
-.PHONY: all init dist html webpack proto postcss static doc clean serve
+.PHONY: all init build dist clean dev serve
 
 all: clean
 	$(MAKE) dist
 
 init:
-	yarn install
-	# Install devDependencies of the pbjs cli.
-	yarn run pbjs --help || true
 
-dist: html doc static
-	../_tools/build.py dist --additional doc --additional static
+build: doc
+	yarn build
 
-html: webpack postcss
-	../_tools/build.py html
+doc:
+	mkdir -p public/doc
+	protoc --doc_out=html,index.html:./public/doc --proto_path ../../protobuf ../../protobuf/*.proto
 
-webpack: proto
-	yarn webpack
-
-proto: ../../protobuf/*.proto
-	yarn run pbjs -p ../../protobuf -t static-module -w es6 -o src/lib/proto.js ../../protobuf/*.proto
-
-postcss:
-	yarn postcss --env=production src/app.css -o dist/app.css
-
-static:
-	mkdir -p dist/static
-	cp -f static/favicon* dist/static
-
-doc: ../../protobuf/*.proto
-	mkdir -p dist/doc
-	protoc --doc_out=html,index.html:./dist/doc --proto_path ../../protobuf ../../protobuf/*.proto
+dist: build
+	../_tools/build.py dist --additional assets --additional static
 
 clean:
-	@$(RM) -r dist/*.html dist/*.*.css dist/*.*.js dist/manifest.*.json dist/doc
+	@$(RM) -r public/doc dist
+
+dev:
+	yarn dev
 
 serve:
-	# Symlink proto-explorer to . so that absolute links of assets still work
-	# even though we're serving from a wrong root.
-	#
-	# Note that /doc isn't correctly served by `npx serve --single`. I attempted
-	# to use a serve.json instead but ran into
-	# https://github.com/vercel/serve/issues/636. Maybe I should switch to
-	# superstatic.
-	cd dist && \
-	rm -f proto-explorer && \
-	ln -s . proto-explorer && \
-	npx serve --single
+	yarn serve

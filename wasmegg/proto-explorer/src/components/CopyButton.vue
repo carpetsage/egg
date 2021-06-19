@@ -1,5 +1,5 @@
 <template>
-  <button @click="copy()" v-tippy="{ content: tooltip }">
+  <button v-tippy="{ content: tooltip }" @click="copyTextToClipboard(content)">
     <svg class="h-4 w-4 text-gray-500 hover:text-gray-700" viewBox="0 0 20 20" fill="currentColor">
       <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
       <path
@@ -9,10 +9,11 @@
   </button>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import copyTextToClipboard from 'copy-text-to-clipboard';
 
-export default {
+export default defineComponent({
   props: {
     content: {
       type: String,
@@ -24,10 +25,10 @@ export default {
     },
   },
 
-  methods: {
-    copy() {
-      copyTextToClipboard(this.content);
-    },
+  setup() {
+    return {
+      copyTextToClipboard,
+    };
   },
-};
+});
 </script>

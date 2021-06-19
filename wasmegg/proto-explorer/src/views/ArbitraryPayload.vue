@@ -7,9 +7,9 @@
         </label>
         <select
           id="message"
+          v-model="messageName"
           name="message"
           class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none sm:text-sm rounded-md"
-          v-model="message"
         >
           <optgroup v-for="group in messageGroups" :key="group.label" :label="group.label">
             <option v-for="message in group.messages" :key="message">{{ message }}</option>
@@ -20,10 +20,10 @@
       <div class="flex items-center">
         <input
           id="authenticated"
+          v-model="authenticated"
           name="authenticated"
           type="checkbox"
           class="h-4 w-4 text-blue-600 focus:outline-none border-gray-300 rounded"
-          v-model="authenticated"
         />
         <label for="authenticated" class="ml-2 block text-sm text-gray-900">
           Decode as authenticated message
@@ -32,44 +32,49 @@
 
       <textarea
         id="input"
+        v-model.trim="encodedPayload"
         class="px-3 py-2 w-full resize-y border border-gray-300 rounded-md text-base sm:text-xs font-mono"
         placeholder="Paste base64-encoded payload here..."
         spellcheck="false"
-        v-model.trim="encodedPayload"
       ></textarea>
 
       <decode-result
-        :message="message"
+        :message-name="messageName"
         :authenticated="authenticated"
-        :encodedPayload="encodedPayload"
+        :encoded-payload="encodedPayload"
       />
     </div>
   </div>
 </template>
 
-<script>
-import DecodeResult from '@/components/DecodeResult.vue';
+<script lang="ts">
+import { defineComponent, ref, watch } from 'vue';
 
-import { ref, watch } from 'vue';
-import { messageGroups } from '@/lib/lib';
-import { getLocalStorage, setLocalStorage } from '@/utils';
+import { getLocalStorage, setLocalStorage } from 'lib';
+import { messageGroups, MessageName, validMessageNames } from '@/lib';
+import DecodeResult from '@/components/DecodeResult.vue';
 
 const MESSAGE_LOCALSTORAGE_KEY = 'message';
 const AUTHENTICATED_LOCALSTORAGE_KEY = 'authenticated';
 const ENCODED_PAYLOAD_LOCALSTORAGE_KEY = 'encoded_payload';
-const DEFAULT_MESSAGE = 'EggIncFirstContactResponse';
+const DEFAULT_MESSAGE: MessageName = 'EggIncFirstContactResponse';
 
-export default {
+export default defineComponent({
   components: {
     DecodeResult,
   },
 
   setup() {
-    const message = ref(getLocalStorage(MESSAGE_LOCALSTORAGE_KEY) || DEFAULT_MESSAGE);
+    const persistedMessageName = getLocalStorage(MESSAGE_LOCALSTORAGE_KEY);
+    const messageName = ref(
+      persistedMessageName && (validMessageNames as string[]).includes(persistedMessageName)
+        ? (persistedMessageName as MessageName)
+        : DEFAULT_MESSAGE
+    );
     const authenticated = ref(getLocalStorage(AUTHENTICATED_LOCALSTORAGE_KEY) === 'true');
     const encodedPayload = ref(getLocalStorage(ENCODED_PAYLOAD_LOCALSTORAGE_KEY) || '');
 
-    watch(message, () => setLocalStorage(MESSAGE_LOCALSTORAGE_KEY, message.value));
+    watch(messageName, () => setLocalStorage(MESSAGE_LOCALSTORAGE_KEY, messageName.value));
     watch(authenticated, () =>
       setLocalStorage(AUTHENTICATED_LOCALSTORAGE_KEY, authenticated.value)
     );
@@ -79,12 +84,12 @@ export default {
 
     return {
       messageGroups,
-      message,
+      messageName,
       authenticated,
       encodedPayload,
     };
   },
-};
+});
 </script>
 
 <style scoped>

@@ -18,15 +18,17 @@
         </label>
         <textarea
           id="request"
-          class="mt-1 px-3 py-2 w-full resize-y border border-gray-300 rounded-md text-base sm:text-xs font-mono"
-          rows="1"
-          spellcheck="false"
           v-model="encodedRequestPayload"
+          class="mt-1 px-3 py-2 w-full resize-y border border-gray-300 rounded-md text-base sm:text-xs font-mono"
+          :rows="1"
+          spellcheck="false"
           readonly
         ></textarea>
       </div>
 
-      <loading-spinner v-if="loading">Waiting for server response...</loading-spinner>
+      <base-loading v-if="loading" class="text-sm text-gray-700">
+        Waiting for server response...
+      </base-loading>
 
       <div v-if="!loading && encodedResponsePayload">
         <label for="message" class="flex items-center text-sm font-medium text-gray-700">
@@ -35,9 +37,9 @@
         </label>
         <textarea
           id="response"
+          v-model="encodedResponsePayload"
           class="mt-1 px-3 py-2 w-full resize-y border border-gray-300 rounded-md text-base sm:text-xs font-mono"
           spellcheck="false"
-          v-model="encodedResponsePayload"
           readonly
         ></textarea>
       </div>
@@ -51,32 +53,28 @@
 
       <decode-result
         v-show="!loading && encodedResponsePayload"
-        :message="responseMessage"
-        :authenticated="true"
-        :encodedPayload="encodedResponsePayload"
+        :message-name="responseMessage"
+        :authenticated="responseAuthenticated"
+        :encoded-payload="encodedResponsePayload || ''"
       />
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, PropType, toRefs } from 'vue';
+
+import { useAPIClient } from '@/composables/api';
+import { MessageName } from '@/lib';
+import BaseLoading from 'ui/components/BaseLoading.vue';
 import CopyButton from '@/components/CopyButton.vue';
 import DecodeResult from '@/components/DecodeResult.vue';
-import LoadingSpinner from './LoadingSpinner.vue';
-import RequestButton from '@/components/RequestButton.vue';
 
-import {
-  useAPIClient,
-  getPayloadsFromLocalStorage,
-  persistPayloadsToLocalStorage,
-} from '@/composables/api';
-
-export default {
+export default defineComponent({
   components: {
+    BaseLoading,
     CopyButton,
     DecodeResult,
-    LoadingSpinner,
-    RequestButton,
   },
 
   props: {
@@ -85,55 +83,45 @@ export default {
       required: true,
     },
     requestMessage: {
-      type: String,
+      type: String as PropType<MessageName>,
       required: true,
     },
     responseMessage: {
-      type: String,
+      type: String as PropType<MessageName>,
       required: true,
     },
+    responseAuthenticated: {
+      type: Boolean,
+      default: true,
+    },
     persistFormData: {
-      type: Function,
+      type: Function as PropType<() => void>,
       required: true,
     },
     getRequestPayloadObject: {
-      type: Function,
+      type: Function as PropType<() => Record<string, unknown>>,
       required: true,
     },
   },
 
-  setup({
-    apiEndpoint,
-    requestMessage,
-    responseMessage,
-    persistFormData,
-    getRequestPayloadObject,
-  }) {
+  setup(props) {
+    const { apiEndpoint, requestMessage, getRequestPayloadObject } = toRefs(props);
     const {
       encodedRequestPayload,
       encodedResponsePayload,
       requestError,
       loading,
       sendRequest,
-    } = useAPIClient(
-      apiEndpoint,
-      requestMessage,
-      getRequestPayloadObject,
-      getPayloadsFromLocalStorage,
-      persistPayloadsToLocalStorage
-    );
-
+    } = useAPIClient(apiEndpoint.value, requestMessage.value, getRequestPayloadObject.value);
     return {
-      responseMessage,
       encodedRequestPayload,
       encodedResponsePayload,
       requestError,
       loading,
-      persistFormData,
       sendRequest,
     };
   },
-};
+});
 </script>
 
 <style scoped>

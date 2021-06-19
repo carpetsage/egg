@@ -1,6 +1,9 @@
-import { ei } from './proto';
+import { ei } from 'lib';
 
-const messages = {
+const enumNames = ['Egg', 'FarmType', 'GoalType', 'RewardType'] as const;
+export type MessageName = Exclude<keyof typeof ei, typeof enumNames[number]>;
+
+const messages: Record<string, MessageName[]> = {
   commonlyInspected: [
     'EggIncFirstContactRequest',
     'EggIncFirstContactResponse',
@@ -46,7 +49,7 @@ const messages = {
   other: [],
 };
 
-const seen = [].concat(
+const seen = ([] as MessageName[]).concat(
   messages.commonlyInspected,
   messages.otherArtifactRequestResponse,
   messages.otherCoopRequestResponse
@@ -55,14 +58,17 @@ for (const name in ei) {
   // Make sure we only pick up capitalized names just in case some lower case
   // helpers are introduced in the future.
   if ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.includes(name[0])) {
-    if (!seen.includes(name)) {
-      messages.other.push(name);
+    if (
+      !(enumNames as ReadonlyArray<string>).includes(name) &&
+      !seen.includes(name as MessageName)
+    ) {
+      messages.other.push(name as MessageName);
     }
   }
 }
 messages.other.sort();
 
-const messageGroups = [
+export const messageGroups = [
   {
     label: 'Commonly inspected',
     messages: messages.commonlyInspected,
@@ -81,4 +87,9 @@ const messageGroups = [
   },
 ];
 
-export { messageGroups };
+export const validMessageNames = ([] as MessageName[]).concat(
+  messages.commonlyInspected,
+  messages.otherArtifactRequestResponse,
+  messages.otherCoopRequestResponse,
+  messages.other
+);

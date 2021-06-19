@@ -10,6 +10,7 @@
     "wasmegg/enlightenment",
     "wasmegg/mission-list",
     "wasmegg/past-contracts",
+    "wasmegg/proto-explorer",
     "wasmegg/rockets-tracker"
   ],
   "dependencies": {

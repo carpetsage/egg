@@ -1,12 +1,4 @@
-const defaultTheme = require('tailwindcss/defaultTheme');
-
 module.exports = {
-  purge: ['src/*.html', 'src/**/*.vue'],
-  darkMode: false,
-  variants: {
-    extend: {
-      opacity: ['disabled'],
-    },
-  },
+  purge: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   plugins: [require('@tailwindcss/forms')],
 };
