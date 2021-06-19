@@ -28,6 +28,7 @@
             <progress-ring-empty v-else :radius="72" :stroke-width="2" />
           </div>
           <h3 class="mt-4 text-gray-900 text-sm font-medium">{{ mission.shipName }}</h3>
+          <mission-star-levels :mission="mission" class="justify-center my-1" />
           <div class="mt-1 flex-grow flex flex-col">
             <div>
               <span
@@ -89,9 +90,10 @@ import { ei, iconURL, Mission } from 'lib';
 import { missionDurationTypeFgClass, missionDurationTypeBgClass } from '@/utils';
 import CountdownTimer from '@/components/CountdownTimer.vue';
 import FuelTankReport from '@/components/FuelTankReport.vue';
+import MissionNotifications from '@/components/MissionNotifications.vue';
+import MissionStarLevels from '@/components/MissionStarLevels.vue';
 import ProgressRing from '@/components/ProgressRing.vue';
 import ProgressRingEmpty from '@/components/ProgressRingEmpty.vue';
-import MissionNotifications from '@/components/MissionNotifications.vue';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -100,9 +102,10 @@ export default defineComponent({
   components: {
     CountdownTimer,
     FuelTankReport,
+    MissionNotifications,
+    MissionStarLevels,
     ProgressRing,
     ProgressRingEmpty,
-    MissionNotifications,
   },
   props: {
     activeMissions: {
