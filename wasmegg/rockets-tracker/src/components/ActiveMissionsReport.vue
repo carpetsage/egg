@@ -1,7 +1,7 @@
 <template>
   <template v-if="missions.length > 0">
     <div
-      v-if="missions.some(mission => mission.hasReturned)"
+      v-if="missions.some(mission => mission.hasReturnedBy(now))"
       class="lg:text-center text-xs mx-4 xl:mx-0 -mt-2"
     >
       You should press <span class="text-blue-500">"Load Player Data"</span> again to refresh your
@@ -57,7 +57,7 @@
             <div
               v-if="mission.returnTimestamp !== null"
               v-tippy="{
-                content: mission.hasReturned
+                content: mission.hasReturnedBy(now)
                   ? 'Mission has returned.'
                   : `Mission is scheduled to return at ${mission.returnTime?.format('LLL')}.`,
               }"
@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, toRefs } from 'vue';
+import { computed, defineComponent, onBeforeMount, PropType, ref, toRefs } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -127,8 +127,16 @@ export default defineComponent({
   setup(props) {
     const { activeMissions } = toRefs(props);
     const missions = computed(() => activeMissions.value.map(m => new Mission(m)));
+    const now = ref(dayjs());
+    const refreshIntervalId = setInterval(() => {
+      now.value = dayjs();
+    }, 10000);
+    onBeforeMount(() => {
+      clearInterval(refreshIntervalId);
+    });
     return {
       missions,
+      now,
       missionDurationTypeFgClass,
       missionDurationTypeBgClass,
       iconURL,

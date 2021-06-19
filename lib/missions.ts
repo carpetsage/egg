@@ -225,7 +225,11 @@ export class Mission extends MissionType {
   }
 
   get hasReturned(): boolean {
-    return this.returnTime !== null && this.returnTime.isBefore(dayjs());
+    return this.hasReturnedBy(dayjs());
+  }
+
+  hasReturnedBy(time: Dayjs): boolean {
+    return this.returnTime !== null && this.returnTime.isBefore(time);
   }
 
   get fuels(): MissionFuels {
