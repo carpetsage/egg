@@ -1,5 +1,12 @@
 <template>
   <template v-if="missions.length > 0">
+    <div
+      v-if="missions.some(mission => mission.hasReturned)"
+      class="lg:text-center text-xs mx-4 xl:mx-0 -mt-2"
+    >
+      You should press <span class="text-blue-500">"Load Player Data"</span> again to refresh your
+      mission list once you have collected your finished missions and sent out new ones.
+    </div>
     <ul
       class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 mx-4 xl:mx-0 my-4"
       :class="[missions.length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3']"
