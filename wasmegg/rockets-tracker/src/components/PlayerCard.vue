@@ -271,8 +271,8 @@
                   />
                   <div
                     v-if="tier.haveEpic > 1"
-                    class="absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-green-500 text-white flex items-center justify-center"
-                    :style="{ fontSize: '0.5rem' }"
+                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-green-500 text-white flex items-center justify-center"
+                    :style="{ fontSize: '0.5rem', lineHeight: '0.5rem' }"
                   >
                     {{ tier.haveEpic >= 10 ? '\u2605' : tier.haveEpic }}
                   </div>
@@ -297,8 +297,8 @@
                   />
                   <div
                     v-if="tier.haveLegendary > 1"
-                    class="absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-green-500 text-white flex items-center justify-center"
-                    :style="{ fontSize: '0.5rem' }"
+                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-green-500 text-white flex items-center justify-center"
+                    :style="{ fontSize: '0.5rem', lineHeight: '0.5rem' }"
                   >
                     {{ tier.haveLegendary >= 10 ? '\u2605' : tier.haveLegendary }}
                   </div>
@@ -483,5 +483,12 @@ function piggyLevelBonus(level: number): number {
 
 .bg-legendary {
   background: radial-gradient(#fffe41, #fffe41 35%, #eeab42);
+}
+
+/* Safri-only hack */
+_::-webkit-full-page-media,
+_:future,
+:root .badge {
+  padding-left: 0.5px;
 }
 </style>
