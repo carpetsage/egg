@@ -34,10 +34,19 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
 
-import { basicRequestInfo, CLIENT_VERSION, getLocalStorage, PLATFORM, setLocalStorage } from 'lib';
+import {
+  basicRequestInfo,
+  CLIENT_VERSION,
+  ei,
+  getLocalStorage,
+  PLATFORM,
+  setLocalStorage,
+} from 'lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import ParameterInput from '@/components/ParameterInput.vue';
 import RequestButton from '@/components/RequestButton.vue';
+
+type EggIncFirstContactRequestPayload = Omit<ei.IEggIncFirstContactRequest, ''>;
 
 const USER_ID_LOCALSTORAGE_KEY = 'user_id';
 const DEVICE_ID_LOCALSTORAGE_KEY = 'device_id';
@@ -61,7 +70,7 @@ export default defineComponent({
       setLocalStorage(GAME_SERVICES_ID_LOCALSTORAGE_KEY, gameServicesId.value);
     };
 
-    const getRequestPayloadObject = () => ({
+    const getRequestPayloadObject = (): EggIncFirstContactRequestPayload => ({
       clientVersion: CLIENT_VERSION,
       platform: PLATFORM,
       eiUserId: userId.value,

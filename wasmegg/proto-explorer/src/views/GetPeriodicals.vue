@@ -22,10 +22,12 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
 
-import { basicRequestInfo, CLIENT_VERSION, getLocalStorage, setLocalStorage } from 'lib';
+import { basicRequestInfo, CLIENT_VERSION, ei, getLocalStorage, setLocalStorage } from 'lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import ParameterInput from '@/components/ParameterInput.vue';
 import RequestButton from '@/components/RequestButton.vue';
+
+type GetPeriodicalsRequestPayload = Omit<ei.IGetPeriodicalsRequest, ''>;
 
 const USER_ID_LOCALSTORAGE_KEY = 'user_id';
 
@@ -43,7 +45,7 @@ export default defineComponent({
       setLocalStorage(USER_ID_LOCALSTORAGE_KEY, userId.value);
     };
 
-    const getRequestPayloadObject = () => ({
+    const getRequestPayloadObject = (): GetPeriodicalsRequestPayload => ({
       userId: userId.value,
       currentClientVersion: CLIENT_VERSION,
       rinfo: basicRequestInfo(userId.value),

@@ -34,11 +34,13 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
 
-import { basicRequestInfo, CLIENT_VERSION, getLocalStorage, setLocalStorage } from 'lib';
+import { basicRequestInfo, CLIENT_VERSION, ei, getLocalStorage, setLocalStorage } from 'lib';
 import { randomEiUserId } from '@/lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import ParameterInput from '@/components/ParameterInput.vue';
 import RequestButton from '@/components/RequestButton.vue';
+
+type ContractCoopStatusRequestPayload = Omit<ei.IContractCoopStatusRequest, ''>;
 
 const CONTRACT_ID_LOCALSTORAGE_KEY = 'contract_id';
 const COOP_CODE_LOCALSTORAGE_KEY = 'coop_code';
@@ -63,7 +65,7 @@ export default defineComponent({
       setLocalStorage(USER_ID_LOCALSTORAGE_KEY, userId.value);
     };
 
-    const getRequestPayloadObject = () => {
+    const getRequestPayloadObject = (): ContractCoopStatusRequestPayload => {
       const uid = userId.value || randomEiUserId();
       return {
         contractIdentifier: contractId.value,
