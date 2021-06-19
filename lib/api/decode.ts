@@ -13,7 +13,14 @@ import { uint8ArrayToBinaryString, binaryStringToUint8Array } from './utils';
 export function decodeMessage(
   message: ProtobufType,
   encoded: string | Uint8Array,
-  authenticated = false
+  authenticated = false,
+  options?: {
+    // Convert to a JSON encoding (almost the proto3 canonical JSON encoding
+    // https://developers.google.com/protocol-buffers/docs/proto3#json) that is
+    // more human readable, but is harder to work with programatically. Most
+    // notably, enums and 64-bit integer values are encoded as strings.
+    toJSON: boolean;
+  }
 ): Record<string, unknown> {
   if (authenticated) {
     const wrapperPayload = decodeMessage(
@@ -43,5 +50,6 @@ export function decodeMessage(
   } catch (e) {
     throw new Error(`Error decoding input as base64: ${e}`);
   }
-  return message.toObject(message.decode(binaryStringToUint8Array(binary)));
+  const decoded = message.decode(binaryStringToUint8Array(binary));
+  return options?.toJSON ? decoded.toJSON() : message.toObject(decoded);
 }

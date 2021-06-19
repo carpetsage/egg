@@ -199,7 +199,7 @@ function decode(
 
   try {
     return {
-      payload: decodeMessage(ei[messageName], encoded, false),
+      payload: decodeMessage(ei[messageName], encoded, false, { toJSON: true }),
     };
   } catch (e) {
     if (e instanceof $protobuf.util.ProtocolError) {
