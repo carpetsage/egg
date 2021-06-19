@@ -42,6 +42,12 @@
               class="h-4 flex-shrink-0"
             />
             <span class="font-serif truncate">{{ nickname }}</span>
+            <img
+              v-if="hasEnlightenmentDiamondTrophy"
+              v-tippy="{ content: 'Proud owner of the enlightenment diamond trophy.' }"
+              :src="iconURL('egginc/icon_trophy_diamond.png', 128)"
+              class="h-4 w-4 flex-shrink-0"
+            />
           </div>
 
           <div class="mt-1">
@@ -343,6 +349,7 @@ import {
   iconURL,
   Inventory,
   setLocalStorage,
+  TrophyLevel,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getLaunchedMissions } from '@/lib';
@@ -392,6 +399,15 @@ export default defineComponent({
     const nickname = computed(() => backup.value.userName!);
     const hasProPermit = computed(() => progress.value.permitLevel === 1);
     const prophecyEggsProgress = computed(() => getProphecyEggsProgress(backup.value));
+    const hasEnlightenmentDiamondTrophy = computed(() => {
+      const eggs = prophecyEggsProgress.value.fromTrophies.eggs;
+      for (const egg of eggs) {
+        if (egg.egg === ei.Egg.ENLIGHTENMENT) {
+          return egg.level >= TrophyLevel.Diamond;
+        }
+      }
+      return false;
+    });
     const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
     const soulEggs = computed(() => getNumSoulEggs(backup.value));
     const earningBonus = computed(() => getNakedEarningBonus(backup.value));
@@ -432,6 +448,7 @@ export default defineComponent({
       nickname,
       hasProPermit,
       prophecyEggsProgress,
+      hasEnlightenmentDiamondTrophy,
       prophecyEggs,
       soulEggs,
       earningBonus,
