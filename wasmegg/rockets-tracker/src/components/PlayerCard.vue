@@ -260,12 +260,23 @@
           >
             <template v-for="family in inventory.catalog" :key="family.id">
               <template v-for="tier in family.tiers" :key="tier.id">
-                <img
+                <div
                   v-if="tier.haveEpic > 0"
                   v-tippy="{ content: `Epic ${tier.name} \u00d7 ${tier.haveEpic}` }"
-                  :src="iconURL(tier.iconPath, 128)"
-                  class="h-6 w-6 p-0.5 mx-0.5 my-0.5 rounded-full bg-epic"
-                />
+                  class="h-6 w-6 mx-0.5 my-0.5 relative"
+                >
+                  <img
+                    :src="iconURL(tier.iconPath, 128)"
+                    class="h-6 w-6 p-0.5 rounded-full bg-epic"
+                  />
+                  <div
+                    v-if="tier.haveEpic > 1"
+                    class="absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-green-500 text-white flex items-center justify-center"
+                    :style="{ fontSize: '0.5rem' }"
+                  >
+                    {{ tier.haveEpic >= 10 ? '\u2605' : tier.haveEpic }}
+                  </div>
+                </div>
               </template>
             </template>
           </div>
@@ -275,12 +286,23 @@
           >
             <template v-for="family in inventory.catalog" :key="family.id">
               <template v-for="tier in family.tiers" :key="tier.id">
-                <img
+                <div
                   v-if="tier.haveLegendary > 0"
                   v-tippy="{ content: `Legendary ${tier.name} \u00d7 ${tier.haveLegendary}` }"
-                  :src="iconURL(tier.iconPath, 128)"
-                  class="h-6 w-6 p-0.5 mx-0.5 my-0.5 rounded-full bg-legendary"
-                />
+                  class="h-6 w-6 mx-0.5 my-0.5 relative"
+                >
+                  <img
+                    :src="iconURL(tier.iconPath, 128)"
+                    class="h-6 w-6 p-0.5 rounded-full bg-legendary"
+                  />
+                  <div
+                    v-if="tier.haveLegendary > 1"
+                    class="absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-green-500 text-white flex items-center justify-center"
+                    :style="{ fontSize: '0.5rem' }"
+                  >
+                    {{ tier.haveLegendary >= 10 ? '\u2605' : tier.haveLegendary }}
+                  </div>
+                </div>
               </template>
             </template>
           </div>
