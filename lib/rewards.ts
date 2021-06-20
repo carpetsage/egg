@@ -34,6 +34,10 @@ export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
         case 'warp_shift':
           // Defunct, replaced by boosts
           name = 'warp_boost';
+          break;
+        case 'afx_mission_time':
+          name = 'afx_mission_duration';
+          break;
       }
       return `egginc/r_icon_${name}.png`;
     }
