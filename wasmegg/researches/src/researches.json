@@ -3978,5 +3978,68 @@
       5000,
       5000
     ]
+  },
+  {
+    "serial_id": 77,
+    "id": "afx_mission_time",
+    "name": "FTL Drive Upgrades",
+    "type": "epic",
+    "categories": "",
+    "description": "Reduce Artifact mission time of FTL ships by 1%",
+    "effect_type": "multiplicative",
+    "levels": 25,
+    "per_level": -0.01,
+    "levels_compound": "additive",
+    "prices": [
+      5000,
+      6875,
+      8750,
+      10625,
+      12500,
+      14375,
+      16250,
+      18125,
+      20000,
+      21875,
+      23750,
+      25625,
+      27500,
+      29375,
+      31250,
+      33125,
+      35000,
+      36875,
+      38750,
+      40625,
+      42500,
+      44375,
+      46250,
+      48125,
+      50000
+    ]
+  },
+  {
+    "serial_id": 78,
+    "id": "afx_mission_capacity",
+    "name": "Zero-g Quantum Containment",
+    "type": "epic",
+    "categories": "",
+    "description": "Increase Artifact mission capacity by 5%",
+    "effect_type": "multiplicative",
+    "levels": 10,
+    "per_level": 0.05,
+    "levels_compound": "additive",
+    "prices": [
+      50000,
+      155555,
+      261111,
+      366666,
+      472222,
+      577777,
+      683333,
+      788888,
+      894444,
+      1000000
+    ]
   }
 ]
