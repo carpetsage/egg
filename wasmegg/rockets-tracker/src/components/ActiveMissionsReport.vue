@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeMount, PropType, ref, toRefs } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, PropType, ref, toRefs } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -131,7 +131,7 @@ export default defineComponent({
     const refreshIntervalId = setInterval(() => {
       now.value = dayjs();
     }, 10000);
-    onBeforeMount(() => {
+    onBeforeUnmount(() => {
       clearInterval(refreshIntervalId);
     });
     return {
