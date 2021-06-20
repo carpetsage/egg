@@ -11,6 +11,7 @@
     "wasmegg/mission-list",
     "wasmegg/past-contracts",
     "wasmegg/proto-explorer",
+    "wasmegg/researches",
     "wasmegg/rockets-tracker"
   ],
   "dependencies": {
