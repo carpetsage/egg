@@ -14,10 +14,10 @@
       <div class="flex flex-1 w-full max-w-4xl mx-auto xl:mx-0 p-4">
         <div class="relative w-full" :style="{ minHeight: '40rem' }">
           <ace-editor
-            :modelValue="researchesJson"
+            :model-value="researchesJson"
             lang="json"
             :readonly="true"
-            :foldAtIndentation="4"
+            :fold-at-indentation="4"
           />
         </div>
       </div>
@@ -29,7 +29,7 @@
           You can query the full list of researches as a SQLite database with the following schema:
         </p>
         <div class="relative w-full" :style="{ height: '40rem' }">
-          <ace-editor :modelValue="schema" lang="sql" :readonly="true" />
+          <ace-editor :model-value="schema" lang="sql" :readonly="true" />
         </div>
 
         <p class="text-sm">Enter your query here:</p>
@@ -59,10 +59,10 @@
           :style="{ minHeight: '20rem' }"
         >
           <ace-editor
-            :modelValue="queryResultsJson"
+            :model-value="queryResultsJson"
             lang="json"
             :readonly="true"
-            :foldAtIndentation="4"
+            :fold-at-indentation="4"
           />
         </div>
       </div>
@@ -74,7 +74,6 @@
 import { computed, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import hotkeys from 'hotkeys-js';
 import mitt from 'mitt';
-import { ParamsObject } from 'sql.js';
 
 import { executeQuery, researches, schema } from '@/data';
 import AceEditor from '@/components/AceEditor.vue';
@@ -106,7 +105,7 @@ export default defineComponent({
     };
 
     const executedQuery = computed(() => {
-      let result = <ParamsObject[]>[];
+      let result = <Record<string, unknown>[]>[];
       let error: Error | null = null;
       try {
         result = executeQuery(query.value);

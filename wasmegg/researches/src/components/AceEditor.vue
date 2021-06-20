@@ -52,22 +52,24 @@ export default defineComponent({
       default: false,
     },
     foldAtIndentation: {
-      type: Number,
-      required: false,
+      type: Number as PropType<number | null>,
+      default: null,
     },
     commands: {
       type: Array as PropType<Ace.Command[]>,
-      default: [],
+      default: () => [],
     },
     eventBus: {
       // The component listens for getValue events on the event bus, and emits
       // update:modelValue correspondingly.
-      type: Object as PropType<Emitter>,
-      required: false,
+      type: Object as PropType<Emitter | undefined>,
+      default: undefined,
     },
   },
   emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     'update:modelValue': (value: string) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props, { emit }) {
     const { modelValue, lang, readonly, foldAtIndentation, commands, eventBus } = toRefs(props);
@@ -92,7 +94,7 @@ export default defineComponent({
       commands.value.forEach(command => editor?.commands.addCommand(command));
       fold();
 
-      eventBus?.value?.on('getValue', () => {
+      eventBus.value?.on('getValue', () => {
         const value = editor?.session.getValue();
         if (value !== undefined) {
           emit('update:modelValue', value);
@@ -101,7 +103,7 @@ export default defineComponent({
     });
 
     const fold = () => {
-      if (editor && foldAtIndentation) {
+      if (editor && foldAtIndentation.value !== null) {
         const session = editor.session;
         const targetIndentation = foldAtIndentation.value;
         // https://github.com/ajaxorg/ace/blob/bfde34b510b263bd5ffa47b20445377cabe85dfb/lib/ace/edit_session/folding.js#L639-L666

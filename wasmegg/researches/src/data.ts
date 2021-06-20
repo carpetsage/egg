@@ -89,8 +89,8 @@ function undefinedToNull(x: SqlValue | undefined): SqlValue {
 //
 // https://github.com/tc39/proposal-top-level-await
 // https://caniuse.com/mdn-javascript_operators_await_top_level
-export async function initDatabase() {
-  const SQL = await initSqlJs({ locateFile: file => sqljsWasmURL });
+export async function initDatabase(): Promise<void> {
+  const SQL = await initSqlJs({ locateFile: () => sqljsWasmURL });
   db = new SQL.Database();
   db.run(schema);
   db.run(
@@ -127,7 +127,7 @@ export async function initDatabase() {
   );
 }
 
-export function executeQuery(query: string) {
+export function executeQuery(query: string): Record<string, unknown>[] {
   const stmt = db.prepare(query);
   const results = [];
   while (stmt.step()) {
@@ -136,8 +136,8 @@ export function executeQuery(query: string) {
   return results;
 }
 
-function transformResult(x: ParamsObject): { [key: string]: any } {
-  const result: { [key: string]: any } = {};
+function transformResult(x: ParamsObject): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
   for (const [key, val] of Object.entries(x)) {
     // Skip null fields so that they don't get serialized.
     if (val === null) {
