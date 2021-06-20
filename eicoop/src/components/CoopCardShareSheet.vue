@@ -21,7 +21,7 @@
       leave-to-class="transform opacity-0 scale-95"
     >
       <MenuItems
-        class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black dark:ring-gray-700 ring-opacity-5 focus:outline-none"
+        class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black dark:ring-gray-700 ring-opacity-5 focus:outline-none z-10"
       >
         <div class="py-1">
           <MenuItem v-slot="{ active }">
