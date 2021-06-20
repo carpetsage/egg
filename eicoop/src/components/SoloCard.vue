@@ -78,12 +78,6 @@
       </div>
 
       <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div v-if="showPlayerCount" class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Players</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            1 / {{ contract.maxCoopSize }}
-          </dd>
-        </div>
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Eggs shipped</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
@@ -413,9 +407,6 @@ export default defineComponent({
     const contract = computed(() => status.value.contract);
     const egg = computed(() => contract.value.egg!);
     const league = computed(() => status.value.league!);
-    const showPlayerCount = computed(
-      () => contract.value.maxCoopSize && contract.value.maxCoopSize > 1
-    );
 
     const refreshTime = computed(() => status.value.refreshTime);
     const estimatesBeingRefreshed = ref(false);
@@ -518,7 +509,6 @@ export default defineComponent({
       estimatedLeagueStatus,
       tokensInStockByNow,
       minutesFromNowUntilNextToken,
-      showPlayerCount,
       relativeRefreshTime,
       refreshTimeFormatted,
       effectiveMinutesSinceRefresh,
