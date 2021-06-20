@@ -1,7 +1,10 @@
 <template>
   <div>
-    <div class="w-max max-w-full mx-auto px-4 py-2 bg-gray-50 rounded-lg shadow -mt-1 mb-3">
-      <div class="grid gap-x-2 gap-y-1" :style="{ gridTemplateColumns: 'repeat(2, max-content)' }">
+    <div class="w-max max-w-xs mx-auto px-4 py-2 bg-gray-50 rounded-lg shadow -mt-1 mb-3">
+      <div
+        class="grid gap-x-2 gap-y-1 justify-center"
+        :style="{ gridTemplateColumns: 'repeat(2, max-content)' }"
+      >
         <div
           v-tippy="{
             content: `Reduces mission time of FTL ships by ${missionStats.config.epicResearchFTLLevel}%. Only affects Quintillion Chicken and above.`,
@@ -35,6 +38,21 @@
         <div class="flex items-center text-xs text-green-500 tabular-nums">
           {{ missionStats.config.epicResearchZerogLevel }} / 10
         </div>
+      </div>
+      <div
+        v-if="
+          missionStats.config.epicResearchFTLLevel < 25 ||
+          missionStats.config.epicResearchZerogLevel < 10
+        "
+        class="text-xs mt-2"
+      >
+        You can check costs and plan your epic research upgrades with Stickly Man!#6756's
+        <a
+          href="https://royalphysique.net/eggs/"
+          _target="_blank"
+          class="text-blue-500 hover:text-blue-600"
+          >calculator</a
+        >.
       </div>
     </div>
 
