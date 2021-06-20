@@ -1,5 +1,12 @@
 <template>
   <main class="mx-auto px-2 xl:px-8 pb-4" :style="{ maxWidth: '120rem' }">
+    <div class="rounded-md bg-green-100 px-4 py-2 mb-4 shadow">
+      <p class="text-sm text-green-800">
+        You can track your own missions and artifacts progress (and a lot more) effortlessly with
+        <a href="/rockets-tracker/" target="_blank" class="underline">Rockets tracker</a>.
+      </p>
+    </div>
+
     <div class="mb-2">
       <div class="grid gap-x-2 gap-y-1" :style="{ gridTemplateColumns: 'repeat(2, max-content)' }">
         <label for="epic_research_ftl" class="flex items-center text-sm whitespace-nowrap">
