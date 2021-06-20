@@ -21,7 +21,7 @@
             <contract-league-label :league="league" class="relative -top-px mr-1" />
             <span
               v-if="contract.maxCoopSize"
-              class="px-2.5 py-0.5 rounded-full text-xs font-medium text-white relative -top-px"
+              class="px-2.5 py-0.5 rounded-full text-xs font-medium text-white whitespace-nowrap relative -top-px"
               :class="openings > 0 ? 'bg-green-600' : 'bg-gray-400 dark:bg-gray-500'"
             >
               <template v-if="openings > 0">{{ openings }} open</template>
