@@ -1,6 +1,8 @@
 <template>
   <the-nav-bar />
-  <router-view />
+  <div class="flex flex-col flex-1">
+    <router-view />
+  </div>
   <the-footer />
   <the-coop-selector />
 </template>
