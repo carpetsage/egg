@@ -12,6 +12,9 @@ declare module 'vue-router' {
   }
 }
 
+// Always restore scroll position on home.
+let homeScrollY = 0;
+
 const router = createRouter({
   routes: [
     {
@@ -44,6 +47,18 @@ const router = createRouter({
     },
   ],
   history: createWebHashHistory(),
+  scrollBehavior(to, from, savedPosition) {
+    if (from.name === 'home') {
+      homeScrollY = window.scrollY;
+    }
+    if (savedPosition) {
+      return savedPosition;
+    }
+    if (to.name === 'home') {
+      return { top: homeScrollY };
+    }
+    return { top: 0 };
+  },
 });
 
 router.afterEach((to, from, failure) => {
