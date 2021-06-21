@@ -4,6 +4,13 @@
       class="xl:flex xl:justify-end xl:flex-1 border-b border-dark-30 xl:border-b-0 xl:border-r xl:border-dark-30"
     >
       <div class="w-full px-4 py-4 max-w-4xl mx-auto xl:mx-0">
+        <div class="text-center text-sm text-green-200 mb-2">
+          You can preload your stats and any active artifact loadout without manual entry using
+          <a href="/rockets-tracker/" target="_blank" class="text-green-400 hover:text-green-500"
+            >Rockets tracker</a
+          >.<br />
+          Check the &ldquo;artifact loadouts&rdquo; section there.
+        </div>
         <artifact-set-builder :key="key" v-model:build="builds.builds[0]" />
         <configurator :key="key" v-model:config="builds.config" />
       </div>
