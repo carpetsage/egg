@@ -82,6 +82,16 @@ export class SortedContractList extends Array<Contract> {
     }
     return undefined;
   }
+
+  get latestOriginalProphecyEggContract(): Contract | undefined {
+    for (let i = this.length - 1; i >= 0; i--) {
+      const contract = this[i];
+      if (contract.type === 'Original' && contract.prophecyEggs > 0) {
+        return contract;
+      }
+    }
+    return undefined;
+  }
 }
 
 function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {

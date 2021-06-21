@@ -76,6 +76,8 @@
 
     <recently-viewed-block class="ultrawide:rounded-lg mb-4" />
 
+    <new-contract-forecast class="ultrawide:rounded-lg mb-4" />
+
     <contract-list v-model:rowsPerPage="rowsPerPage" :contracts="contracts" />
   </main>
 </template>
@@ -88,6 +90,7 @@ import { Contract, getLocalStorage, rawContractListHash, setLocalStorage } from 
 import { key } from '@/store';
 import BaseCollapsiblePanel from '@/components/BaseCollapsiblePanel.vue';
 import RecentlyViewedBlock from '@/components/RecentlyViewedBlock.vue';
+import NewContractForecast from '@/components/NewContractForecast.vue';
 import ContractList from '@/components/ContractList.vue';
 import UserDashboardEntryForm from '@/components/UserDashboardEntryForm.vue';
 
@@ -99,6 +102,7 @@ export default defineComponent({
   components: {
     BaseCollapsiblePanel,
     RecentlyViewedBlock,
+    NewContractForecast,
     ContractList,
     UserDashboardEntryForm,
   },

@@ -173,6 +173,8 @@
     </div>
   </div>
 
+  <new-contract-forecast class="ultrawide:rounded-lg mb-4" />
+
   <template v-for="status in soloStatuses" :key="`${status.userId}:${status.contractId}`">
     <solo-card :status="status" />
   </template>
@@ -210,6 +212,7 @@ import { renderNonempty } from '@/utils';
 import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import CoopCardLoader from '@/components/CoopCardLoader.vue';
+import NewContractForecast from '@/components/NewContractForecast.vue';
 import SoloCard from '@/components/SoloCard.vue';
 
 export default defineComponent({
@@ -217,6 +220,7 @@ export default defineComponent({
     AutoRefreshedRelativeTime,
     BaseInfo,
     CoopCardLoader,
+    NewContractForecast,
     SoloCard,
   },
   props: {
