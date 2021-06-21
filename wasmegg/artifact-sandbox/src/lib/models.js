@@ -5,7 +5,9 @@ import {
   stoneFromAfxIdLevel,
 } from './data';
 
-class Builds {
+import proto from './proto';
+
+export class Builds {
   /**
    * @param {!Array<!Build>} builds
    * @param {!Config} config
@@ -33,7 +35,7 @@ class Builds {
     for (let i = 0; i < binary.length; i++) {
       buf[i] = binary.charCodeAt(i);
     }
-    const builds = proto.Builds.deserializeBinary(buf);
+    const builds = proto.Builds.decode(buf);
     return Builds.fromProto(builds);
   }
 
@@ -42,31 +44,29 @@ class Builds {
    * @returns {!Builds}
    */
   static fromProto(builds) {
-    return new Builds(
-      builds.getBuildsList().map(Build.fromProto),
-      Config.fromProto(builds.getConfig())
-    );
+    return new Builds(builds.builds.map(Build.fromProto), Config.fromProto(builds.config));
   }
 
   /**
-   * @returns {!proto.Builds}
+   * @returns {!proto.IBuilds}
    */
   toProto() {
-    const builds = new proto.Builds();
-    builds.setBuildsList(this.builds.map(b => b.toProto()));
-    builds.setConfig(this.config.toProto());
-    return builds;
+    return proto.Builds.create({
+      builds: this.builds.map(b => b.toProto()),
+      config: this.config.toProto(),
+    });
   }
 
   /**
    * @returns {String}
    */
   serialize() {
-    return serialize(this.toProto());
+    const encoded = proto.Builds.encode(this.toProto()).finish();
+    return btoa(String.fromCharCode(...encoded));
   }
 }
 
-class Build {
+export class Build {
   /**
    * @param {!Array<!Artifact>} artifacts
    */
@@ -99,7 +99,7 @@ class Build {
    * @returns {!Build}
    */
   static fromProto(build) {
-    return new Build(build.getArtifactsList().map(Artifact.fromProto));
+    return new Build(build.artifacts.map(Artifact.fromProto));
   }
 
   buildProps() {
@@ -110,9 +110,9 @@ class Build {
    * @returns {!proto.Build}
    */
   toProto() {
-    const build = new proto.Build();
-    build.setArtifactsList(this.artifacts.map(a => a.toProto()));
-    return build;
+    return proto.Build.create({
+      artifacts: this.artifacts.map(a => a.toProto()),
+    });
   }
 
   /**
@@ -144,7 +144,7 @@ class Build {
   }
 }
 
-class Artifact {
+export class Artifact {
   /**
    * @param {!Object} artifactProps
    * @param {!Array<Stone>} stones
@@ -186,14 +186,10 @@ class Artifact {
    * @returns {!Artifact}
    */
   static fromProto(artifact) {
-    const artifactProps = artifact.getIsEmpty()
+    const artifactProps = artifact.isEmpty
       ? null
-      : artifactFromAfxIdLevelRarity(
-          artifact.getAfxId(),
-          artifact.getAfxLevel(),
-          artifact.getAfxRarity()
-        );
-    const stones = artifact.getStonesList().map(Stone.fromProto);
+      : artifactFromAfxIdLevelRarity(artifact.afxId, artifact.afxLevel, artifact.afxRarity);
+    const stones = artifact.stones.map(Stone.fromProto);
     return new Artifact(artifactProps, stones);
   }
 
@@ -211,27 +207,23 @@ class Artifact {
    * @returns {!proto.Artifact}
    */
   toProto() {
-    const artifact = new proto.Artifact();
-    if (this.isEmpty()) {
-      artifact.setIsEmpty(true);
-    } else {
-      artifact.setIsEmpty(false);
-      artifact.setAfxId(this.afx_id);
-      artifact.setAfxLevel(this.afx_level);
-      artifact.setAfxRarity(this.afx_rarity);
-    }
-    artifact.setStonesList(
-      this.stones.map(s => {
-        if (s === null) {
-          const stone = new proto.Stone();
-          stone.setIsEmpty(true);
-          return stone;
-        } else {
-          return s.toProto();
-        }
-      })
+    const stones = this.stones.map(s =>
+      s !== null ? s.toProto() : proto.Stone.create({ isEmpty: true })
     );
-    return artifact;
+    return proto.Artifact.create(
+      this.isEmpty()
+        ? {
+            isEmpty: true,
+            stones,
+          }
+        : {
+            isEmpty: false,
+            afxId: this.afx_id,
+            afxLevel: this.afx_level,
+            afxRarity: this.afx_rarity,
+            stones,
+          }
+    );
   }
 
   /**
@@ -312,7 +304,7 @@ class Artifact {
   }
 }
 
-class Stone {
+export class Stone {
   /**
    * @param {!Object} stoneProps
    */
@@ -343,10 +335,10 @@ class Stone {
    * @returns {!Stone}
    */
   static fromProto(stone) {
-    if (stone.getIsEmpty()) {
+    if (stone.isEmpty) {
       return null;
     }
-    const stoneProps = stoneFromAfxIdLevel(stone.getAfxId(), stone.getAfxLevel());
+    const stoneProps = stoneFromAfxIdLevel(stone.afxId, stone.afxLevel);
     if (stoneProps === null) {
       return null;
     }
@@ -357,18 +349,18 @@ class Stone {
    * @returns {!proto.Stone}
    */
   toProto() {
-    const stone = new proto.Stone();
-    stone.setIsEmpty(false);
-    stone.setAfxId(this.afx_id);
-    stone.setAfxLevel(this.afx_level);
-    return stone;
+    return proto.Stone.create({
+      isEmpty: false,
+      afxId: this.afx_id,
+      afxLevel: this.afx_level,
+    });
   }
 }
 
 const maxSoulFood = 140;
 const maxProphecyBonus = 5;
 
-class Config {
+export class Config {
   constructor() {
     this.prophecyEggs = 0;
     this.soulEggs = 0;
@@ -400,17 +392,17 @@ class Config {
    */
   static fromProto(config) {
     const self = new Config();
-    self.prophecyEggs = config.getProphecyEggs();
-    self.soulEggs = config.getSoulEggs();
-    self.soulEggsInput = config.getSoulEggsInput();
-    self.isEnlightenment = config.getIsEnlightenment();
-    self.soulFood = maxSoulFood - config.getMissingSoulFood();
-    self.prophecyBonus = maxProphecyBonus - config.getMissingProphecyBonus();
-    self.birdFeedActive = config.getBirdFeedActive();
-    self.tachyonPrismActive = config.getTachyonPrismActive();
-    self.soulBeaconActive = config.getSoulBeaconActive();
-    self.boostBeaconActive = config.getBoostBeaconActive();
-    self.tachyonDeflectorBonus = config.getTachyonDeflectorBonus();
+    self.prophecyEggs = config.prophecyEggs;
+    self.soulEggs = config.soulEggs;
+    self.soulEggsInput = config.soulEggsInput;
+    self.isEnlightenment = config.isEnlightenment;
+    self.soulFood = maxSoulFood - config.missingSoulFood;
+    self.prophecyBonus = maxProphecyBonus - config.missingProphecyBonus;
+    self.birdFeedActive = config.birdFeedActive;
+    self.tachyonPrismActive = config.tachyonPrismActive;
+    self.soulBeaconActive = config.soulBeaconActive;
+    self.boostBeaconActive = config.boostBeaconActive;
+    self.tachyonDeflectorBonus = config.tachyonDeflectorBonus;
     return self;
   }
 
@@ -418,19 +410,19 @@ class Config {
    * @returns {!proto.Config}
    */
   toProto() {
-    const config = new proto.Config();
-    config.setProphecyEggs(this.prophecyEggs);
-    config.setSoulEggs(this.soulEggs);
-    config.setSoulEggsInput(this.soulEggsInput);
-    config.setIsEnlightenment(this.isEnlightenment);
-    config.setMissingSoulFood(maxSoulFood - this.soulFood);
-    config.setMissingProphecyBonus(maxProphecyBonus - this.prophecyBonus);
-    config.setBirdFeedActive(this.birdFeedActive);
-    config.setTachyonPrismActive(this.tachyonPrismActive);
-    config.setSoulBeaconActive(this.soulBeaconActive);
-    config.setBoostBeaconActive(this.boostBeaconActive);
-    config.setTachyonDeflectorBonus(this.tachyonDeflectorBonus);
-    return config;
+    return proto.Config.create({
+      prophecyEggs: this.prophecyEggs,
+      soulEggs: this.soulEggs,
+      soulEggsInput: this.soulEggsInput,
+      isEnlightenment: this.isEnlightenment,
+      missingSoulFood: maxSoulFood - this.soulFood,
+      prophecyBonus: maxProphecyBonus - this.prophecyBonus,
+      birdFeedActive: this.birdFeedActive,
+      tachyonPrismActive: this.tachyonPrismActive,
+      soulBeaconActive: this.soulBeaconActive,
+      boostBeaconActive: this.boostBeaconActive,
+      tachyonDeflectorBonus: this.tachyonDeflectorBonus,
+    });
   }
 
   /**
@@ -452,9 +444,3 @@ class Config {
     );
   }
 }
-
-function serialize(msg) {
-  return btoa(String.fromCharCode(...msg.serializeBinary()));
-}
-
-export { Builds, Build, Artifact, Stone, Config };

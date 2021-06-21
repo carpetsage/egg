@@ -41,7 +41,7 @@
             </svg>
           </div>
           <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-            <h3 class="text-lg leading-6 font-medium" id="modal-headline">
+            <h3 id="modal-headline" class="text-lg leading-6 font-medium">
               {{ title }}
             </h3>
             <div class="mt-2">

@@ -91,9 +91,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >EB</effect-with-note
             >
           </td>
@@ -111,9 +111,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Role</effect-with-note
             >
           </td>
@@ -134,9 +134,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Earnings</effect-with-note
             >
           </td>
@@ -154,9 +154,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Max RCB</effect-with-note
             >
           </td>
@@ -176,9 +176,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Earnings w/ Max RCB</effect-with-note
             >
           </td>
@@ -198,9 +198,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               :dagger="true"
               >SE gain</effect-with-note
             >
@@ -219,9 +219,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               :dagger="true"
               >SE gain w/<br />empty habs start</effect-with-note
             >
@@ -240,9 +240,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Boost duration</effect-with-note
             >
           </td>
@@ -260,9 +260,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Research discount</effect-with-note
             >
           </td>
@@ -280,9 +280,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Max hab space</effect-with-note
             >
           </td>
@@ -300,20 +300,20 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Max IHR</effect-with-note
             >
           </td>
           <td
+            v-if="buildValidities[0]"
             v-tippy="{
               content: `
                 At this IHR and with max internal hatchery calm,
                 it takes roughly ${daysToDiamondTrophyAtMaxIHR(0).toFixed(1)} days
                 to hatch 10 billion chickens without boosts.`,
             }"
-            v-if="buildValidities[0]"
             class="px-4 py-1.5 text-base text-right whitespace-nowrap"
           >
             <span class="Value"
@@ -335,9 +335,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Egg laying rate</effect-with-note
             >
           </td>
@@ -355,9 +355,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Max egg laying rate</effect-with-note
             >
           </td>
@@ -380,9 +380,9 @@
         <tr>
           <td class="px-4 py-1.5 text-sm text-left">
             <effect-with-note
-              :noteList="notes"
+              :note-list="notes"
               :number="footnoteNumber++"
-              :showFootnote="showFootnotes"
+              :show-footnote="showFootnotes"
               >Max shipping capacity</effect-with-note
             >
           </td>
@@ -519,6 +519,12 @@ export default {
     };
   },
 
+  computed: {
+    buildValidities() {
+      return this.builds.builds.map(build => !build.hasDuplicates());
+    },
+  },
+
   methods: {
     earningBonus,
     earningBonusMultiplier,
@@ -555,12 +561,6 @@ export default {
         3 /* internal hatchery calm */ *
         maxInternalHatcheryRatePerMinPerHab(...this.buildConfig(0));
       return 1e10 / (rate * 60 * 24);
-    },
-  },
-
-  computed: {
-    buildValidities() {
-      return this.builds.builds.map(build => !build.hasDuplicates());
     },
   },
 };

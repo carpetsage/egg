@@ -1,13 +1,13 @@
 <template>
   <div class="absolute top-4 left-4">
     <svg
-      viewBox="0 0 640 512"
-      class="h-5 w-5 p-1 rounded-lg bg-dark-60 hover:bg-dark-50 text-gray-50 focus:outline-none cursor-pointer"
-      @click="toggleFontMode"
       v-tippy="{
         content:
           'If you find the readability of the default font unsatisfying on your monitor, you can use this button to switch to a mainstream system font to improve readability. Note that the layout of the site may not adapt well to the font change, and the author does not intend to optimize the layout for this mode.',
       }"
+      viewBox="0 0 640 512"
+      class="h-5 w-5 p-1 rounded-lg bg-dark-60 hover:bg-dark-50 text-gray-50 focus:outline-none cursor-pointer"
+      @click="toggleFontMode"
     >
       <path
         fill="currentColor"

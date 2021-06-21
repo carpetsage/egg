@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 
 /**
@@ -16,7 +17,7 @@ function maxHabSpace(build, config) {
  * @returns {!Number}
  */
 function habSpaceMultiplier(build, config) {
-  return multiplicativeEffect(build, config, [proto.ArtifactSpec.Name.ORNATE_GUSSET]);
+  return multiplicativeEffect(build, config, [ArtifactSpec.Name.ORNATE_GUSSET]);
 }
 
 /**

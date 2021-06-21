@@ -27,6 +27,7 @@
         </div>
         <input
           ref="selectButton"
+          v-model="searchFilter"
           type="text"
           class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-11 pr-12 pt-2.5 pb-2 sm:text-sm bg-dark-20 rounded-md placeholder-white"
           :class="
@@ -38,7 +39,6 @@
           :placeholder="
             type === 'artifact' ? '-- Select artifact (type to filter) --' : '-- Select stone --'
           "
-          v-model="searchFilter"
           :disabled="!!disabled"
           @focus="openDropdown"
           @blur="closeDropdown"
@@ -83,8 +83,8 @@
       </div>
 
       <ul
-        ref="dropdownList"
         v-show="open"
+        ref="dropdownList"
         class="absolute mt-1 w-full bg-dark-20 shadow-lg rounded-md py-1 text-base border border-gray-500 ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm z-10"
         :style="{ maxHeight: '21.5rem' }"
         tabindex="-1"
@@ -260,7 +260,7 @@ export default defineComponent({
     };
     const handleKeydown = event => {
       switch (event.key) {
-        case 'Enter':
+        case 'Enter': {
           event.preventDefault();
           // Do nothing if there are no matching entries.
           if (filteredItems.value.length === 0) {
@@ -277,8 +277,9 @@ export default defineComponent({
             selectButton.value?.blur();
           });
           return;
+        }
         case 'ArrowDown':
-        case 'ArrowUp':
+        case 'ArrowUp': {
           event.preventDefault();
           // Do nothing if there are no matching entries.
           if (filteredItems.value.length === 0) {
@@ -297,6 +298,7 @@ export default defineComponent({
           active.value = entries[newIndex];
           scrollDropdownListEntryIntoViewIfNeeded(newIndex);
           return;
+        }
       }
     };
 

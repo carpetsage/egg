@@ -41,7 +41,7 @@
           <artifact-sets-effects
             :key="key"
             :builds="builds"
-            :showFootnotes="showShareSheet && showFootnotesWhenSharing"
+            :show-footnotes="showShareSheet && showFootnotesWhenSharing"
           />
           <div class="mt-2 text-center text-xs text-dark-60">
             Built on https://ei.tcl.sh/sandbox
@@ -77,6 +77,12 @@ export default {
     ShareSheet,
   },
 
+  beforeRouteUpdate(to, from) {
+    // Rerender on manual hashchange.
+    this.builds = this.deserializeBuilds(to.params.serializedBuilds);
+    this.key = to.params.serializedBuilds || '';
+  },
+
   props: {
     serializedBuilds: String,
   },
@@ -91,20 +97,6 @@ export default {
       showShareSheet: false,
       showFootnotesWhenSharing: true,
     };
-  },
-
-  methods: {
-    deserializeBuilds(s) {
-      let builds = Builds.newDefaultBuilds();
-      if (s !== undefined) {
-        try {
-          builds = Builds.deserialize(s);
-        } catch (e) {
-          console.error(`error deserializing ${s}: ${e}`);
-        }
-      }
-      return builds;
-    },
   },
 
   watch: {
@@ -123,10 +115,19 @@ export default {
     },
   },
 
-  beforeRouteUpdate(to, from) {
-    // Rerender on manual hashchange.
-    this.builds = this.deserializeBuilds(to.params.serializedBuilds);
-    this.key = to.params.serializedBuilds || '';
+  methods: {
+    deserializeBuilds(s) {
+      let builds = Builds.newDefaultBuilds();
+      if (s !== undefined) {
+        try {
+          builds = Builds.deserialize(s);
+        } catch (e) {
+          console.error(`error deserializing ${s}`);
+          console.error(e);
+        }
+      }
+      return builds;
+    },
   },
 };
 </script>

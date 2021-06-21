@@ -1,9 +1,9 @@
 <template>
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-    <artifact-picker :key="key" :artifactIndex="1" v-model:artifact="buildProps[0]" />
-    <artifact-picker :key="key" :artifactIndex="2" v-model:artifact="buildProps[1]" />
-    <artifact-picker :key="key" :artifactIndex="3" v-model:artifact="buildProps[2]" />
-    <artifact-picker :key="key" :artifactIndex="4" v-model:artifact="buildProps[3]" />
+    <artifact-picker :key="key" v-model:artifact="buildProps[0]" :artifact-index="1" />
+    <artifact-picker :key="key" v-model:artifact="buildProps[1]" :artifact-index="2" />
+    <artifact-picker :key="key" v-model:artifact="buildProps[2]" :artifact-index="3" />
+    <artifact-picker :key="key" v-model:artifact="buildProps[3]" :artifact-index="4" />
   </div>
 
   <div class="my-2 text-center">
@@ -20,8 +20,8 @@
     v-if="showResetConfirmation"
     title="Reset build"
     message="All currently selected artifacts and stones will be cleared. Please copy the share link if you want to restore the current configuration in the future."
-    confirmLabel="Reset"
-    cancelLabel="Cancel"
+    confirm-label="Reset"
+    cancel-label="Cancel"
     @confirmed="
       reset();
       showResetConfirmation = false;
@@ -50,6 +50,8 @@ export default {
     },
   },
 
+  emits: ['update:build'],
+
   data() {
     return {
       // Force children to rerender after resets with a key.
@@ -58,8 +60,6 @@ export default {
       showResetConfirmation: false,
     };
   },
-
-  emits: ['update:build'],
 
   watch: {
     buildProps: {

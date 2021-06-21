@@ -8,9 +8,9 @@
       </div>
       <integer-input
         id="prophecy_eggs"
+        v-model="conf.prophecyEggs"
         :min="0"
         :max="9999"
-        v-model="conf.prophecyEggs"
         class="pl-10 pt-2.5 pb-2"
       />
     </div>
@@ -30,10 +30,10 @@
     <div class="mt-2 flex items-center justify-center">
       <input
         id="is_enlightenment"
+        v-model="conf.isEnlightenment"
         name="is_enlightenment"
         type="checkbox"
         class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-dark-30 rounded"
-        v-model="conf.isEnlightenment"
       />
       <label for="is_enlightenment" class="ml-2 block text-sm">Enlightenment farm</label>
     </div>
@@ -51,9 +51,9 @@
           </label>
           <integer-input
             id="soul_food"
+            v-model="conf.soulFood"
             :min="0"
             :max="140"
-            v-model="conf.soulFood"
             class="pl-2.5 pt-1 pb-0.5"
             :style="{ width: '5rem' }"
           />
@@ -71,9 +71,9 @@
           </label>
           <integer-input
             id="prophecy_bonus"
+            v-model="conf.prophecyBonus"
             :min="0"
             :max="5"
-            v-model="conf.prophecyBonus"
             class="pl-2.5 pt-1 pb-0.5"
             :style="{ width: '5rem' }"
           />
@@ -90,20 +90,20 @@
         <div class="relative flex items-start">
           <input
             id="bird_feed_active"
+            v-model="conf.birdFeedActive"
             name="bird_feed_active"
             type="checkbox"
             class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-dark-30 rounded"
-            v-model="conf.birdFeedActive"
           />
           <label for="bird_feed_active" class="ml-2 block text-sm">Bird feed (earnings)</label>
         </div>
         <div class="relative flex items-start">
           <input
             id="tachyon_prism_active"
+            v-model="conf.tachyonPrismActive"
             name="tachyon_prism_active"
             type="checkbox"
             class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-dark-30 rounded"
-            v-model="conf.tachyonPrismActive"
           />
           <label for="tachyon_prism_active" class="ml-2 block text-sm"
             >Tachyon prism (internal hatchery)</label
@@ -112,20 +112,20 @@
         <div class="relative flex items-start">
           <input
             id="soul_beacon_active"
+            v-model="conf.soulBeaconActive"
             name="soul_beacon_active"
             type="checkbox"
             class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-dark-30 rounded"
-            v-model="conf.soulBeaconActive"
           />
           <label for="soul_beacon_active" class="ml-2 block text-sm">Soul beacon</label>
         </div>
         <div class="relative flex items-start">
           <input
             id="boost_beacon_active"
+            v-model="conf.boostBeaconActive"
             name="boost_beacon_active"
             type="checkbox"
             class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-dark-30 rounded"
-            v-model="conf.boostBeaconActive"
           />
           <label for="boost_beacon_active" class="ml-2 block text-sm">Boost beacon</label>
         </div>
@@ -137,12 +137,12 @@
         <h4 class="text-center text-sm uppercase">Other bonuses</h4>
         <div>
           <label
-            for="tachyon_deflector_percentage"
-            class="block text-center"
             v-tippy="{
               content:
                 'This is the total tachyon deflector bonus from other players in your coop. Note that the value displayed in-game may be 1% less than the actual value due to a long standing floating-point representation bug in the game. You can always find the correct value from https://eicoop.netlify.app/.',
             }"
+            for="tachyon_deflector_percentage"
+            class="block text-center"
           >
             Tachyon deflector bonus<sup class="px-0.5">?</sup>
           </label>
@@ -153,9 +153,9 @@
             <integer-input
               id="tachyon_deflector_percentage"
               :min="0"
-              :modelValue="round(conf.tachyonDeflectorBonus * 100)"
-              @update:modelValue="value => (conf.tachyonDeflectorBonus = value / 100)"
+              :model-value="round(conf.tachyonDeflectorBonus * 100)"
               class="pl-10 pr-4 pt-2.5 pb-2"
+              @update:modelValue="value => (conf.tachyonDeflectorBonus = value / 100)"
             />
             <div class="absolute inset-y-0.5 right-0 pr-2 pt-2.5 pb-2 sm:text-sm text-gray-200">
               %
@@ -185,13 +185,13 @@ export default {
     },
   },
 
+  emits: ['update:config'],
+
   data() {
     return {
       conf: this.config,
     };
   },
-
-  emits: ['update:config'],
 
   watch: {
     conf: {

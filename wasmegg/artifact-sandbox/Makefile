@@ -20,6 +20,10 @@ webpack: data src/lib/schema_pb.js
 src/lib/schema_pb.js: src/lib/schema.proto
 	protoc --proto_path=src/lib --js_out=import_style=commonjs,binary:src/lib src/lib/schema.proto
 
+src/lib/proto.js: src/lib/schema.proto
+	yarn run pbjs -p protobuf -t static-module -w es6 --force-number -o src/lib/proto.js src/lib/schema.proto
+	yarn run pbts -o src/lib/proto.d.ts src/lib/proto.js
+
 postcss:
 	yarn postcss --env=production src/app.css -o dist/app.css
 

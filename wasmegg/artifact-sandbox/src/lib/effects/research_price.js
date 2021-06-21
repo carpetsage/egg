@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 import { aggregateEffect } from './common';
 
 /**
@@ -10,7 +11,7 @@ function researchPriceMultiplier(build, config) {
   return aggregateEffect(
     build,
     config,
-    [proto.ArtifactSpec.Name.PUZZLE_CUBE],
+    [ArtifactSpec.Name.PUZZLE_CUBE],
     (aggregate, effect) =>
       effect.multiplier <= 1
         ? (1 + effect.delta * effect.multiplier) * aggregate

@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 import { boostMultiplier } from './boosts';
 import { earningsWithMaxRunningChickenBonusMultiplier } from './earnings';
@@ -29,7 +30,7 @@ function soulEggsGainWithEmptyHabsStartMultiplier(build, config) {
 function virtualEarningsMultiplier(build, config) {
   return (
     earningsWithMaxRunningChickenBonusMultiplier(build, config) *
-    multiplicativeEffect(build, config, [proto.ArtifactSpec.Name.PHOENIX_FEATHER]) *
+    multiplicativeEffect(build, config, [ArtifactSpec.Name.PHOENIX_FEATHER]) *
     (config.soulBeaconActive ? boostMultiplier(build, config) : 1)
   );
 }

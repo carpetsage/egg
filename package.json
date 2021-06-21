@@ -7,6 +7,7 @@
     "lib",
     "eicoop",
     "wasmegg/_home",
+    "wasmegg/artifact-sandbox",
     "wasmegg/enlightenment",
     "wasmegg/mission-list",
     "wasmegg/past-contracts",

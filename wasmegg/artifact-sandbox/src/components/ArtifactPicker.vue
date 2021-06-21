@@ -41,13 +41,19 @@ export default {
     },
   },
 
+  emits: ['update:artifact'],
+
   data() {
     return {
       selectedArtifact: this.artifact,
     };
   },
 
-  emits: ['update:artifact'],
+  computed: {
+    numSlots() {
+      return artifactFromId(this.artifact.id)?.slots || 0;
+    },
+  },
 
   watch: {
     selectedArtifact: {
@@ -55,12 +61,6 @@ export default {
         this.$emit('update:artifact', this.selectedArtifact);
       },
       deep: true,
-    },
-  },
-
-  computed: {
-    numSlots() {
-      return artifactFromId(this.artifact.id)?.slots || 0;
     },
   },
 };

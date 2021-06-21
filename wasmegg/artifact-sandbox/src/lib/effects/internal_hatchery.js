@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 
 /**
@@ -19,8 +20,8 @@ function maxInternalHatcheryRatePerMinPerHab(build, config) {
  */
 function internalHatcheryRateMultiplier(build, config) {
   return multiplicativeEffect(build, config, [
-    proto.ArtifactSpec.Name.THE_CHALICE,
-    proto.ArtifactSpec.Name.LIFE_STONE,
+    ArtifactSpec.Name.THE_CHALICE,
+    ArtifactSpec.Name.LIFE_STONE,
   ]);
 }
 

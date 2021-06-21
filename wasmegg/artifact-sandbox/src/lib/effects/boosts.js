@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 
 /**
@@ -7,7 +8,7 @@ import { multiplicativeEffect } from './common';
  * @returns {!Number}
  */
 function boostMultiplier(build, config) {
-  return multiplicativeEffect(build, config, [proto.ArtifactSpec.Name.DILITHIUM_MONOCLE]);
+  return multiplicativeEffect(build, config, [ArtifactSpec.Name.DILITHIUM_MONOCLE]);
 }
 
 /**
@@ -16,7 +17,7 @@ function boostMultiplier(build, config) {
  * @returns {!Number}
  */
 function boostDurationMultiplier(build, config) {
-  return multiplicativeEffect(build, config, [proto.ArtifactSpec.Name.DILITHIUM_STONE]);
+  return multiplicativeEffect(build, config, [ArtifactSpec.Name.DILITHIUM_STONE]);
 }
 
 export { boostMultiplier, boostDurationMultiplier };

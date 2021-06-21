@@ -1,2 +1,3 @@
 /src/lib/data.json
-/src/lib/schema_pb.js
+/src/lib/proto.js
+/src/lib/proto.d.ts

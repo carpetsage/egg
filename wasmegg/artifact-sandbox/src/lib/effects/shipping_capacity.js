@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 
 /**
@@ -8,8 +9,8 @@ import { multiplicativeEffect } from './common';
  */
 function shippingCapacityMultiplier(build, config) {
   return multiplicativeEffect(build, config, [
-    proto.ArtifactSpec.Name.INTERSTELLAR_COMPASS,
-    proto.ArtifactSpec.Name.QUANTUM_STONE,
+    ArtifactSpec.Name.INTERSTELLAR_COMPASS,
+    ArtifactSpec.Name.QUANTUM_STONE,
   ]);
 }
 

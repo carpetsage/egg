@@ -1,13 +1,13 @@
 <template>
   <div class="flex items-center justify-center mb-2 space-x-1">
     <img
+      :key="config.isEnlightenment"
       :src="
         iconURL(
           config.isEnlightenment ? 'egginc/egg_enlightenment.png' : 'egginc/egg_universe.png',
           64
         )
       "
-      :key="config.isEnlightenment"
       class="inline h-5 w-5"
     />
     <span class="text-sm">{{ config.isEnlightenment ? 'Enlightenment' : 'Regular' }} farm</span>

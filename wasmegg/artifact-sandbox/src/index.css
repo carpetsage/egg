@@ -1,0 +1,37 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import 'ui/styles/base';
+@import 'ui/styles/tippy';
+@import 'ui/styles/other-tools-ribbon';
+
+@font-face {
+  font-family: 'Always Together';
+  src: url('/static/Always Together.otf');
+  font-display: block;
+}
+
+body {
+  @apply text-gray-50 bg-dark-25;
+}
+
+* {
+  @apply tracking-wide;
+  font-variant-ligatures: none;
+}
+
+.other-tools-ribbon::after {
+  @apply font-default;
+}
+
+/* Disable spin button for number input */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}

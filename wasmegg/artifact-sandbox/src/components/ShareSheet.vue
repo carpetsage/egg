@@ -92,10 +92,10 @@
           <p class="flex items-center">
             <input
               id="show_footnotes"
+              v-model="showFootnotes"
               name="show_footnotes"
               type="checkbox"
               class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-dark-30 rounded"
-              v-model="showFootnotes"
               @change="$emit('update:showFootnotes', $event.target.checked)"
             />
             <label for="show_footnotes" class="ml-2 block text-sm">Show effect footnotes</label>
@@ -106,7 +106,7 @@
             :class="imageURL === '' ? 'bg-dark-20' : null"
             :style="{ paddingBottom: `${placeholderAspectRatio * 100}%` }"
           >
-            <img class="absolute top-0 left-0" v-if="imageURL !== ''" :src="imageURL" />
+            <img v-if="imageURL !== ''" class="absolute top-0 left-0" :src="imageURL" />
             <div
               v-else
               class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg uppercase"
@@ -152,6 +152,8 @@ export default {
     },
   },
 
+  emits: ['update:show', 'update:showFootnotes'],
+
   data() {
     return {
       linkCopied: false,
@@ -161,8 +163,6 @@ export default {
       generateImageError: '',
     };
   },
-
-  emits: ['update:show', 'update:showFootnotes'],
 
   computed: {
     link() {

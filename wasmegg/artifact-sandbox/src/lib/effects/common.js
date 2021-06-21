@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 
 /**
  * @typedef effect
@@ -24,7 +25,7 @@ function gatherRelevantEffects(build, config, afxIds) {
     }
 
     // Light of eggendil and slotted stones are ineffective on a non-enlightenment farm.
-    if (!config.isEnlightenment && artifact.afx_id === proto.ArtifactSpec.Name.LIGHT_OF_EGGENDIL) {
+    if (!config.isEnlightenment && artifact.afx_id === ArtifactSpec.Name.LIGHT_OF_EGGENDIL) {
       continue;
     }
 

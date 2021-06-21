@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 import { additiveEffect } from './common';
 
 /**
@@ -37,8 +38,8 @@ function prophecyEggBonus(build, config) {
   return (
     baseProphecyEggBonus(config) +
     additiveEffect(build, config, [
-      proto.ArtifactSpec.Name.BOOK_OF_BASAN,
-      proto.ArtifactSpec.Name.PROPHECY_STONE,
+      ArtifactSpec.Name.BOOK_OF_BASAN,
+      ArtifactSpec.Name.PROPHECY_STONE,
     ])
   );
 }
@@ -57,9 +58,7 @@ function baseProphecyEggBonus(config) {
  * @returns {!Number}
  */
 function soulEggBonus(build, config) {
-  return (
-    baseSoulEggBonus(config) + additiveEffect(build, config, [proto.ArtifactSpec.Name.SOUL_STONE])
-  );
+  return baseSoulEggBonus(config) + additiveEffect(build, config, [ArtifactSpec.Name.SOUL_STONE]);
 }
 
 /**

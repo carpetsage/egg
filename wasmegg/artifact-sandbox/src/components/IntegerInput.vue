@@ -1,11 +1,11 @@
 <template>
   <input
     :id="id"
+    v-model.number="value"
     :name="id"
     type="number"
     :min="min"
     :max="max"
-    v-model.number="value"
     class="bg-dark-20 block w-full sm:text-sm rounded-md"
     :class="
       invalid
@@ -24,13 +24,13 @@ export default {
     max: Number,
   },
 
+  emits: ['update:modelValue'],
+
   data() {
     return {
       value: this.modelValue,
     };
   },
-
-  emits: ['update:modelValue'],
 
   computed: {
     invalid() {

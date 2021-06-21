@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 import { additiveEffect } from './common';
 
 /**
@@ -21,8 +22,8 @@ function maxRunningChickenBonus(build, config) {
   return (
     baseMaxRunningChickenBonus(config) +
     additiveEffect(build, config, [
-      proto.ArtifactSpec.Name.VIAL_MARTIAN_DUST,
-      proto.ArtifactSpec.Name.TERRA_STONE,
+      ArtifactSpec.Name.VIAL_MARTIAN_DUST,
+      ArtifactSpec.Name.TERRA_STONE,
     ])
   );
 }

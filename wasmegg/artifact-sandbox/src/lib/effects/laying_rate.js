@@ -1,4 +1,5 @@
 import { Build, Config } from '../models';
+import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 import { maxHabSpace, baseMaxHabSpace, habSpaceMultiplier } from './hab_space';
 
@@ -11,8 +12,8 @@ import { maxHabSpace, baseMaxHabSpace, habSpaceMultiplier } from './hab_space';
 function layingRateMultiplier(build, config) {
   return (
     multiplicativeEffect(build, config, [
-      proto.ArtifactSpec.Name.QUANTUM_METRONOME,
-      proto.ArtifactSpec.Name.TACHYON_STONE,
+      ArtifactSpec.Name.QUANTUM_METRONOME,
+      ArtifactSpec.Name.TACHYON_STONE,
     ]) *
     (1 + config.tachyonDeflectorBonus)
   );

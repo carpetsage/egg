@@ -1,10 +1,10 @@
 <template>
   <input
     :id="id"
+    v-model="input"
     :name="id"
     type="text"
     :pattern="valueWithUnitRegExpPattern"
-    v-model="input"
     class="bg-dark-20 block w-full sm:text-sm rounded-md"
     :class="
       !parsed
@@ -24,16 +24,15 @@ export default {
     value: Number,
   },
 
+  emits: ['update:raw', 'update:value'],
+
   data() {
     return {
       input: this.raw,
       invalid: false,
+      valueWithUnitRegExpPattern,
     };
   },
-
-  emits: ['update:raw', 'update:value'],
-
-  valueWithUnitRegExpPattern,
 
   computed: {
     parsed() {
