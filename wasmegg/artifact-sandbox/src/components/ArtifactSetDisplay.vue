@@ -71,18 +71,18 @@
 
           <template v-if="config.isEnlightenment">
             <!-- Enlightenment farm -->
-            <div v-if="artifact.isEffectiveOnEnlightenment()" class="flex items-start">
+            <div v-if="artifact.isEffectiveOnEnlightenment()">
               <img
-                class="inline h-3.5 w-3.5"
+                class="inline h-3.5 w-3.5 relative -top-px"
                 :src="iconURL('egginc-extras/icon_lightning_green.png', 64)"
               />
               <span class="EffectSize text-xs uppercase"
                 >{{ formatPercentage(artifact.clarityEffect) }} effective on enlightenment egg</span
               >
             </div>
-            <div v-else class="flex items-start">
+            <div v-else>
               <img
-                class="inline h-3.5 w-3.5"
+                class="inline h-3.5 w-3.5 relative -top-px"
                 :src="iconURL('egginc-extras/icon_warning.png', 64)"
               />
               <span class="Warning text-xs uppercase"
