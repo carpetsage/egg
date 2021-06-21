@@ -115,12 +115,33 @@ export class ShipStatistics {
     return Math.ceil((this.launchPointsToNextLevel || 0) / 1);
   }
 
+  get shortMissionsTimeToNextLevel(): number {
+    return (
+      this.perMissionDurationSeconds(DurationType.SHORT) *
+      Math.ceil(this.shortMissionsToNextLevel / 3)
+    );
+  }
+
   get standardMissionsToNextLevel(): number {
     return Math.ceil((this.launchPointsToNextLevel || 0) / 1.4);
   }
 
+  get standardMissionsTimeToNextLevel(): number {
+    return (
+      this.perMissionDurationSeconds(DurationType.LONG) *
+      Math.ceil(this.standardMissionsToNextLevel / 3)
+    );
+  }
+
   get extendedMissionsToNextLevel(): number {
     return Math.ceil((this.launchPointsToNextLevel || 0) / 1.8);
+  }
+
+  get extendedMissionsTimeToNextLevel(): number {
+    return (
+      this.perMissionDurationSeconds(DurationType.EPIC) *
+      Math.ceil(this.extendedMissionsToNextLevel / 3)
+    );
   }
 
   // null if already at the final level.
@@ -133,12 +154,33 @@ export class ShipStatistics {
     return Math.ceil((this.launchPointsToMaxLevel || 0) / 1);
   }
 
+  get shortMissionsTimeToMaxLevel(): number {
+    return (
+      this.perMissionDurationSeconds(DurationType.SHORT) *
+      Math.ceil(this.shortMissionsToMaxLevel / 3)
+    );
+  }
+
   get standardMissionsToMaxLevel(): number {
     return Math.ceil((this.launchPointsToMaxLevel || 0) / 1.4);
   }
 
+  get standardMissionsTimeToMaxLevel(): number {
+    return (
+      this.perMissionDurationSeconds(DurationType.LONG) *
+      Math.ceil(this.standardMissionsToMaxLevel / 3)
+    );
+  }
+
   get extendedMissionsToMaxLevel(): number {
     return Math.ceil((this.launchPointsToMaxLevel || 0) / 1.8);
+  }
+
+  get extendedMissionsTimeToMaxLevel(): number {
+    return (
+      this.perMissionDurationSeconds(DurationType.EPIC) *
+      Math.ceil(this.extendedMissionsToMaxLevel / 3)
+    );
   }
 
   get requiredTotalLaunchesToUnlockNextShip(): number {
@@ -147,6 +189,10 @@ export class ShipStatistics {
 
   get requiredRemainingLaunchesToUnlockNextShip(): number {
     return Math.max(this.requiredTotalLaunchesToUnlockNextShip - this.count, 0);
+  }
+
+  perMissionDurationSeconds(durationType: DurationType): number {
+    return new MissionType(this.shipType, durationType).boostedDurationSeconds(this.config);
   }
 }
 

@@ -34,11 +34,21 @@
     till next level
 
     <template #content>
-      <span class="text-green-300">{{ ship.shortMissionsToNextLevel }}</span> short missions,<br />
-      <span class="text-green-300">{{ ship.standardMissionsToNextLevel }}</span> standard
-      missions,<br />
+      <span class="text-green-300">{{ ship.shortMissionsToNextLevel }}</span> short missions
+      (&GreaterEqual;<span class="text-green-300">{{
+        formatDuration(ship.shortMissionsTimeToNextLevel, true)
+      }}</span
+      >),<br />
+      <span class="text-green-300">{{ ship.standardMissionsToNextLevel }}</span> standard missions
+      (&GreaterEqual;<span class="text-green-300">{{
+        formatDuration(ship.standardMissionsTimeToNextLevel, true)
+      }}</span
+      >),<br />
       or <span class="text-green-300">{{ ship.extendedMissionsToNextLevel }}</span> extended
-      missions
+      missions (&GreaterEqual;<span class="text-green-300">{{
+        formatDuration(ship.extendedMissionsTimeToNextLevel, true)
+      }}</span
+      >)
     </template>
   </tippy>
 
@@ -47,10 +57,21 @@
     till max
 
     <template #content>
-      <span class="text-green-300">{{ ship.shortMissionsToMaxLevel }}</span> short missions,<br />
-      <span class="text-green-300">{{ ship.standardMissionsToMaxLevel }}</span> standard
-      missions,<br />
+      <span class="text-green-300">{{ ship.shortMissionsToMaxLevel }}</span> short missions
+      (&GreaterEqual;<span class="text-green-300">{{
+        formatDuration(ship.shortMissionsTimeToMaxLevel, true)
+      }}</span
+      >),<br />
+      <span class="text-green-300">{{ ship.standardMissionsToMaxLevel }}</span> standard missions
+      (&GreaterEqual;<span class="text-green-300">{{
+        formatDuration(ship.standardMissionsTimeToMaxLevel, true)
+      }}</span
+      >),<br />
       or <span class="text-green-300">{{ ship.extendedMissionsToMaxLevel }}</span> extended missions
+      (&GreaterEqual;<span class="text-green-300">{{
+        formatDuration(ship.extendedMissionsTimeToMaxLevel, true)
+      }}</span
+      >)
     </template>
   </tippy>
 </template>
@@ -61,6 +82,7 @@ import { Tippy } from 'vue-tippy';
 
 import { ShipStatistics } from '@/lib';
 import { formatLaunchPoints } from '@/utils';
+import { formatDuration } from 'lib';
 
 export default defineComponent({
   components: {
@@ -75,6 +97,7 @@ export default defineComponent({
   setup() {
     return {
       formatLaunchPoints,
+      formatDuration,
     };
   },
 });
