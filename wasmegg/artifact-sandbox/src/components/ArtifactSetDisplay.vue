@@ -38,8 +38,9 @@
           v-else
           class="text-sm text-center p-2 pt-2.5 bg-dark-23 rounded-lg shadow-inner leading-snug space-y-1"
         >
-          <div class="uppercase space-x-1">
-            <span>{{ artifact.name }}</span>
+          <div class="uppercase">
+            <span>{{ artifact.name }}</span
+            >{{ ' ' }}
             <span v-if="artifact.afx_rarity > 0" :class="artifact.rarity">
               {{ artifact.rarity }}
             </span>
