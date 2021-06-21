@@ -81,10 +81,10 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, watch } from 'vue';
+import { computed, defineComponent, onMounted, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 
-import { Contract, getLocalStorage, setLocalStorage } from '@/lib';
+import { Contract, getLocalStorage, rawContractListHash, setLocalStorage } from '@/lib';
 import { key } from '@/store';
 import BaseCollapsiblePanel from '@/components/BaseCollapsiblePanel.vue';
 import RecentlyViewedBlock from '@/components/RecentlyViewedBlock.vue';
@@ -119,6 +119,15 @@ export default defineComponent({
     const rowsPerPage = ref(initialRowsPerPage);
     watch(rowsPerPage, () => setLocalStorage(ROWS_PER_PAGE_LOCALSTORAGE_KEY, rowsPerPage.value));
 
+    onMounted(async () => {
+      await checkContractListUpdate(() => {
+        store.commit('notifications/upsert', {
+          message: 'The contract list has an update! Please refresh the page.',
+          key: 'contractListUpdate',
+        });
+      });
+    });
+
     return {
       showInstructions,
       toggleInstructions,
@@ -127,4 +136,31 @@ export default defineComponent({
     };
   },
 });
+
+let lastCheckTimestamp = Date.now();
+const minimumCheckInterval = 180_000;
+
+async function checkContractListUpdate(updateFoundCallback: () => void) {
+  if (Date.now() - lastCheckTimestamp < minimumCheckInterval) {
+    return;
+  }
+  lastCheckTimestamp = Date.now();
+  const hashURL = import.meta.env.BASE_URL + 'contractListHash';
+  const controller = new AbortController();
+  let hash: string;
+  try {
+    const response = await fetch(hashURL, { signal: controller.signal });
+    hash = await response.text();
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      console.error(`${hashURL}: timeout`);
+    } else {
+      console.error(`${hashURL}: ${err}`);
+    }
+    return;
+  }
+  if (hash !== rawContractListHash) {
+    updateFoundCallback();
+  }
+}
 </script>

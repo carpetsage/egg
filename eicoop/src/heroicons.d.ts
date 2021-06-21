@@ -5,4 +5,5 @@ declare module '@heroicons/vue/solid' {
   import { DefineComponent } from 'vue';
   export let CheckIcon: DefineComponent;
   export let SelectorIcon: DefineComponent;
+  export let XIcon: DefineComponent;
 }

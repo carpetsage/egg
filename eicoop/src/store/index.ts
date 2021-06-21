@@ -6,6 +6,7 @@ import contracts from './modules/contracts';
 import coopSelector from './modules/coopSelector';
 import devmode from './modules/devmode';
 import history from './modules/history';
+import notifications from './modules/notifications';
 import theme from './modules/theme';
 
 export type { HistoryCoopEntry } from './modules/history';
@@ -18,6 +19,7 @@ export const store = createStore<RootState>({
     coopSelector,
     devmode,
     history,
+    notifications,
     theme,
   },
   strict: import.meta.env.DEV,

@@ -5,6 +5,7 @@
   </div>
   <the-footer />
   <the-coop-selector />
+  <the-notification-tray />
 </template>
 
 <script lang="ts">
@@ -16,6 +17,7 @@ import { key } from '@/store';
 import TheNavBar from '@/components/TheNavBar.vue';
 import TheFooter from '@/components/TheFooter.vue';
 import TheCoopSelector from '@/components/TheCoopSelector.vue';
+import TheNotificationTray from '@/components/TheNotificationTray.vue';
 
 export default defineComponent({
   name: 'App',
@@ -23,6 +25,7 @@ export default defineComponent({
     TheNavBar,
     TheFooter,
     TheCoopSelector,
+    TheNotificationTray,
   },
   setup() {
     const store = useStore(key);

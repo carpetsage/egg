@@ -1,9 +1,13 @@
+import { sha256 } from 'js-sha256';
+
 import { ei, decodeMessage } from 'lib';
 import contractProtos from './contracts.json';
 import { ContractType } from './contract';
 
 const ORIGINAL_CONTRACT_VALID_DURATION = 21 * 86400;
 const LEGGACY_CONTRACT_VALID_DURATION = 7 * 86400;
+
+export const rawContractListHash = sha256(JSON.stringify(contractProtos.map(c => c.id)));
 
 export const rawContractList = contractProtos.map(
   c => decodeMessage(ei.Contract, c.proto) as ei.IContract
