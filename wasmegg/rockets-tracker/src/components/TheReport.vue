@@ -43,10 +43,13 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue';
+import { computed, defineComponent, PropType } from 'vue';
+import { Emitter } from 'mitt';
 
 import { Inventory, requestFirstContact } from 'lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
+import { reportLegendaries } from '@/lib';
+import { REPORT_LEGENDARIES } from '@/events';
 import CollapsibleSection from '@/components/CollapsibleSection.vue';
 import PlayerCard from '@/components/PlayerCard.vue';
 import ActiveMissionsReport from '@/components/ActiveMissionsReport.vue';
@@ -70,10 +73,14 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    eventBus: {
+      type: Object as PropType<Emitter>,
+      required: true,
+    },
   },
   // This async component does not respond to playerId changes.
   /* eslint-disable vue/no-setup-props-destructure */
-  async setup({ playerId }) {
+  async setup({ playerId, eventBus }) {
     const data = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
       throw new Error(`${playerId}: backup is empty`);
@@ -90,6 +97,11 @@ export default defineComponent({
     const inventory = computed(() => new Inventory(artifactsDB));
     const activeMissions = artifactsDB.missionInfos || [];
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
+    reportLegendaries(backup);
+    eventBus.on(REPORT_LEGENDARIES, () => {
+      console.log('event');
+      reportLegendaries(backup);
+    });
     return {
       backup,
       progress,
