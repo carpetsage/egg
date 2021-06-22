@@ -15,7 +15,7 @@
         uniqueness, but your ID cannot be recovered from it); (2) a list of legendary artifact IDs
         reflecting what you possess, e.g.
         <code>["demeters-necklace-4", "tungsten-ankh-4"]</code>, or just <code>[]</code> if you are
-        a member of Zero Legendaries Club. The hash of your ID is submitted in order to prevent
+        a member of the Zero Legendaries Club. The hash of your ID is submitted in order to prevent
         counting a single user multiple times. Submitted data is used strictly for this study and
         not correlated with anything else (and I do not have anything else on you anyway, see this
         site's
