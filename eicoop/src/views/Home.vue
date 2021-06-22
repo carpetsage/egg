@@ -151,6 +151,7 @@ async function checkContractListUpdate(updateFoundCallback: () => void) {
   lastCheckTimestamp = Date.now();
   const hashURL = import.meta.env.BASE_URL + 'contractListHash';
   const controller = new AbortController();
+  setTimeout(() => controller.abort(), 5000);
   let hash: string;
   try {
     const response = await fetch(hashURL, { signal: controller.signal });
