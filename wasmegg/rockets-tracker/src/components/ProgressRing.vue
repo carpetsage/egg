@@ -10,6 +10,7 @@
       :r="innerRadius"
       :cx="radius"
       :cy="radius"
+      :transform="`rotate(90 ${radius} ${radius})`"
     />
     <circle
       stroke="currentColor"
@@ -20,6 +21,7 @@
       :r="innerRadius"
       :cx="radius"
       :cy="radius"
+      :transform="`rotate(90 ${radius} ${radius})`"
     />
   </svg>
 </template>
@@ -59,7 +61,5 @@ export default defineComponent({
 <style scoped>
 circle {
   transition: stroke-dashoffset 0.2s;
-  transform: rotate(90deg);
-  transform-origin: 50% 50%;
 }
 </style>
