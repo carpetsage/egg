@@ -103,6 +103,20 @@
     </li>
   </ul>
 
+  <h2>Advanced</h2>
+  <ul>
+    <li>
+      <span class="bg-green-100">
+        <base-link href="https://ei.tcl.sh/tips" @click="onrick"
+          >Advanced strategies for seasoned players</base-link
+        >
+        <sup class="text-xs font-medium uppercase text-green-600 ml-1">Secret</sup>
+      </span>
+      &mdash; Strategies so next-level, they will blow your effing mind. You're advised to stay
+      away. Not for the faint-hearted.
+    </li>
+  </ul>
+
   <h2>Supporters</h2>
   <p>
     Hosting costs come from donations of the awesome individuals listed below. Find out how you can
@@ -202,6 +216,14 @@ export default defineComponent({
       }
     };
 
+    const onrick = () => {
+      goatcounter?.count({
+        path: 'ei.tcl.sh/tips',
+        title: 'Rickrolled',
+        event: true,
+      });
+    };
+
     return {
       donationPageVisited,
       daysVisitedStreak,
@@ -210,6 +232,7 @@ export default defineComponent({
       easterEggRefreshKey,
       triggerEasterEggAndDisableInTheFuture,
       onvisit,
+      onrick,
     };
   },
 });
