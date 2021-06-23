@@ -2,7 +2,7 @@
   <the-report-prophecy-eggs :progress="prophecyEggsProgress" />
 
   <div class="flex justify-center my-3">
-    <div class="px-4 py-2 border rounded-md shadow">
+    <div class="px-4 py-2 bg-gray-50 rounded-md shadow">
       <div class="text-center mb-0.5 text-sm font-medium text-gray-900">Contracts progress</div>
       <ul class="text-center">
         <li class="text-sm text-gray-700">
@@ -31,7 +31,7 @@
   </div>
 
   <div class="flex justify-center my-3">
-    <div class="px-3 py-2 border rounded-md shadow space-y-0.5">
+    <div class="px-3 py-2 bg-gray-50 rounded-md shadow space-y-0.5">
       <div class="flex justify-center mb-1 text-sm font-medium text-gray-900">Color coding</div>
       <div class="relative flex items-start">
         <span class="flex items-center text-green-500">

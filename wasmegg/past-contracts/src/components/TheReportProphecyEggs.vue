@@ -1,6 +1,6 @@
 <template>
   <div class="flex justify-center my-3">
-    <div class="px-4 py-2 border rounded-md shadow">
+    <div class="px-4 py-2 bg-gray-50 rounded-md shadow">
       <div class="text-center mb-0.5 text-sm font-medium text-gray-900">
         Eggs of Prophecy progress
       </div>
