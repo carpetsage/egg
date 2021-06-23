@@ -69,6 +69,38 @@
       Note: A mission is counted in statistics once launched.
     </div>
 
+    <div
+      v-if="henerpriseMaxedOut && !congratulationsDismissed"
+      class="mx-4 xl:mx-0 rounded-md bg-green-50 shadow px-3 py-3 mt-2 mb-3"
+    >
+      <div class="flex">
+        <p class="text-xs font-medium text-green-800">
+          &#x1f389; Woah, congratulations on maxing out Henerprise! Would you rise up to the
+          <a href="https://ei.tcl.sh/tips" target="_blank" class="underline" @click="onrick"
+            >next big challenge</a
+          >?
+        </p>
+        <div class="ml-auto pl-3">
+          <div class="-mx-1.5 -my-1.5">
+            <button
+              type="button"
+              class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600"
+              @click="onCongratulationsDismiss"
+            >
+              <span class="sr-only">Dismiss</span>
+              <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path
+                  fill-rule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="missionStats.ships.length > 0" class="flex flex-col">
       <div class="-my-2 overflow-x-auto xl:-mx-4">
         <div class="py-2 align-middle inline-block min-w-full lg:px-4">
@@ -217,13 +249,13 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, toRefs } from 'vue';
+import { computed, defineComponent, PropType, ref, toRefs } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
-import { ei, formatDuration, iconURL } from 'lib';
+import { ei, formatDuration, getLocalStorage, goatcounter, iconURL, setLocalStorage } from 'lib';
 import { getMissionStatistics } from '@/lib';
 import { formatLaunchPoints, missionDurationTypeFgClass } from '@/utils';
 import ProgressRing from '@/components/ProgressRing.vue';
@@ -232,6 +264,8 @@ import ShipStarLevels from '@/components/ShipStarLevels.vue';
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
+
+const CONGRATULATIONS_DISMISSED_LOCALSTORAGE_KEY = 'congratulationsDismissed';
 
 export default defineComponent({
   components: {
@@ -262,11 +296,39 @@ export default defineComponent({
     const requiredRemainingLaunchesToUnlockNextShip = computed(
       () => lastShip.value?.requiredRemainingLaunchesToUnlockNextShip || 0
     );
+
+    const henerpriseMaxedOut = computed(
+      () =>
+        lastShip.value !== null &&
+        lastShip.value.shipType === ei.MissionInfo.Spaceship.HENERPRISE &&
+        lastShip.value.currentLevel >= 7
+    );
+    const congratulationsDismissed = ref(
+      getLocalStorage(CONGRATULATIONS_DISMISSED_LOCALSTORAGE_KEY) !== undefined
+    );
+    const onrick = () => {
+      congratulationsDismissed.value = true;
+      setLocalStorage(CONGRATULATIONS_DISMISSED_LOCALSTORAGE_KEY, Date.now());
+      goatcounter?.count({
+        path: 'ei.tcl.sh/tips',
+        title: 'Rickrolled',
+        event: true,
+      });
+    };
+    const onCongratulationsDismiss = () => {
+      congratulationsDismissed.value = true;
+      setLocalStorage(CONGRATULATIONS_DISMISSED_LOCALSTORAGE_KEY, Date.now());
+    };
+
     return {
       missionStats,
       allShipsUnlocked,
       lastShip,
       requiredRemainingLaunchesToUnlockNextShip,
+      henerpriseMaxedOut,
+      congratulationsDismissed,
+      onrick,
+      onCongratulationsDismiss,
       missionDurationTypeFgClass,
       iconURL,
       formatDuration,
