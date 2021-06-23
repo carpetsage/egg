@@ -25,14 +25,14 @@
               class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full"
               :src="iconURL(mission.shipIconPath, 256)"
             />
-            <progress-ring
+            <countdown-timer-progress-ring
               v-if="mission.durationSeconds && mission.returnTimestamp"
               :radius="72"
               :stroke-width="2"
               :duration-seconds="mission.durationSeconds"
               :deadline="mission.returnTimestamp"
             />
-            <progress-ring-empty v-else :radius="72" :stroke-width="2" />
+            <progress-ring v-else :radius="72" :stroke-width="2" :filled-fraction="0" />
           </div>
           <h3 class="mt-4 text-gray-900 text-sm font-medium">{{ mission.shipName }}</h3>
           <mission-star-levels :mission="mission" class="justify-center my-1" />
@@ -99,8 +99,8 @@ import CountdownTimer from '@/components/CountdownTimer.vue';
 import FuelTankReport from '@/components/FuelTankReport.vue';
 import MissionNotifications from '@/components/MissionNotifications.vue';
 import MissionStarLevels from '@/components/MissionStarLevels.vue';
+import CountdownTimerProgressRing from '@/components/CountdownTimerProgressRing.vue';
 import ProgressRing from '@/components/ProgressRing.vue';
-import ProgressRingEmpty from '@/components/ProgressRingEmpty.vue';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -111,8 +111,8 @@ export default defineComponent({
     FuelTankReport,
     MissionNotifications,
     MissionStarLevels,
+    CountdownTimerProgressRing,
     ProgressRing,
-    ProgressRingEmpty,
   },
   props: {
     activeMissions: {

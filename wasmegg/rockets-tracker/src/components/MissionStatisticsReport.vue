@@ -107,10 +107,20 @@
                       class="relative px-4 py-1.5 border-r whitespace-nowrap text-sm"
                       :rowspan="ship.durations.length + 1"
                     >
-                      <img
-                        class="absolute top-1/2 left-4 transform -translate-y-1/2 w-12 h-12"
-                        :src="iconURL(ship.shipIconPath, 128)"
-                      />
+                      <div class="absolute top-1/2 left-4 transform -translate-y-1/2 w-12 h-12">
+                        <div v-if="ship.fractionalProgressToNextLevel !== null" class="p-1">
+                          <progress-ring
+                            :radius="20"
+                            :stroke-width="2"
+                            :filled-fraction="ship.fractionalProgressToNextLevel"
+                            class="text-yellow-400"
+                          />
+                        </div>
+                        <img
+                          class="absolute inset-0 w-12 h-12"
+                          :src="iconURL(ship.shipIconPath, 128)"
+                        />
+                      </div>
                       <span
                         v-if="allShipsUnlocked || ship.shipType !== lastShip?.shipType"
                         class="pl-14"
@@ -216,6 +226,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { ei, formatDuration, iconURL } from 'lib';
 import { getMissionStatistics } from '@/lib';
 import { formatLaunchPoints, missionDurationTypeFgClass } from '@/utils';
+import ProgressRing from '@/components/ProgressRing.vue';
 import ShipStarLevels from '@/components/ShipStarLevels.vue';
 
 dayjs.extend(advancedFormat);
@@ -224,6 +235,7 @@ dayjs.extend(relativeTime);
 
 export default defineComponent({
   components: {
+    ProgressRing,
     ShipStarLevels,
   },
   props: {

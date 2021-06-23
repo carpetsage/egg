@@ -67,6 +67,7 @@ export class ShipStatistics {
     maxLevel: number;
     level: number;
     launchPointsToNextLevel: number | null;
+    fractionalProgressToNextLevel: number | null;
     launchPointsToMaxLevel: number | null;
   } {
     const launchPoints = this.launchPoints;
@@ -84,6 +85,8 @@ export class ShipStatistics {
         maxLevel,
         level: level - 1,
         launchPointsToNextLevel: thresholds[level] - launchPoints,
+        fractionalProgressToNextLevel:
+          (launchPoints - thresholds[level - 1]) / (thresholds[level] - thresholds[level - 1]),
         launchPointsToMaxLevel,
       };
     }
@@ -91,6 +94,7 @@ export class ShipStatistics {
       maxLevel,
       level,
       launchPointsToNextLevel: null,
+      fractionalProgressToNextLevel: null,
       launchPointsToMaxLevel,
     };
   }
@@ -109,6 +113,12 @@ export class ShipStatistics {
   @Memoize()
   get launchPointsToNextLevel(): number | null {
     return this.launchPointsProgress.launchPointsToNextLevel;
+  }
+
+  // null if already at the final level.
+  @Memoize()
+  get fractionalProgressToNextLevel(): number | null {
+    return this.launchPointsProgress.fractionalProgressToNextLevel;
   }
 
   get shortMissionsToNextLevel(): number {

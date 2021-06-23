@@ -25,9 +25,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, toRefs } from 'vue';
-
-import { useCountdown } from '@/composables/countdown';
+import { computed, defineComponent, toRefs } from 'vue';
 
 export default defineComponent({
   props: {
@@ -39,24 +37,16 @@ export default defineComponent({
       type: Number,
       required: true,
     },
-    durationSeconds: {
-      type: Number as PropType<number>,
-      required: true,
-    },
-    // Epoch seconds.
-    deadline: {
-      type: Number as PropType<number>,
+    filledFraction: {
+      type: Number,
       required: true,
     },
   },
   setup(props) {
-    const { radius, strokeWidth, durationSeconds, deadline } = toRefs(props);
-    const innerRadius = computed(() => radius.value - strokeWidth.value * 2);
+    const { radius, strokeWidth, filledFraction } = toRefs(props);
+    const innerRadius = computed(() => radius.value - strokeWidth.value);
     const innerCircumference = computed(() => innerRadius.value * 2 * Math.PI);
-    const { secondsRemaining } = useCountdown(deadline);
-    const strokeDashoffset = computed(
-      () => (innerCircumference.value * secondsRemaining.value) / durationSeconds.value
-    );
+    const strokeDashoffset = computed(() => innerCircumference.value * (1 - filledFraction.value));
     return {
       innerRadius,
       innerCircumference,
