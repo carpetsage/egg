@@ -43,6 +43,15 @@
               Copy sharing link
             </div>
           </MenuItem>
+          <MenuItem v-slot="{ active }">
+            <div
+              class="block px-4 py-2 text-sm text-gray-900 dark:text-gray-100 !duration-0 cursor-pointer"
+              :class="active ? 'bg-gray-100 dark:bg-gray-700' : null"
+              @click="copyTextToClipboard(ecoopadCommand)"
+            >
+              Copy <code>ecoopad</code> command
+            </div>
+          </MenuItem>
         </div>
       </MenuItems>
     </transition>
@@ -86,9 +95,11 @@ export default defineComponent({
         }).href
     );
     const absoluteUrl = computed(() => new URL(url.value, document.location.href).href);
+    const ecoopadCommand = computed(() => `ecoopad ${contractId.value} ${coopCode.value}`);
     return {
       url,
       absoluteUrl,
+      ecoopadCommand,
       copyTextToClipboard,
     };
   },
