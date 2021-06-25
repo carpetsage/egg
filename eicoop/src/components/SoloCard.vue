@@ -1,6 +1,9 @@
 <template>
   <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg">
-    <div class="px-4 py-4 sm:px-6 bg-gray-50 dark:bg-gray-700">
+    <div
+      class="px-4 py-4 sm:px-6"
+      :class="completionStatusBgColorClass(leagueStatus.completionStatus)"
+    >
       <div class="relative -ml-4 -mt-2 sm:flex items-start justify-between">
         <div class="flex-grow ml-4 mt-2">
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
@@ -90,7 +93,7 @@
             Hourly production rate
           </dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            <span :class="completionStatusColorClass(leagueStatus.completionStatus)">{{
+            <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
               formatEIValue(leagueStatus.eggsPerHour)
             }}</span>
             <template v-if="leagueStatus.requiredEggsPerHour !== null">
@@ -101,7 +104,7 @@
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Time to complete</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            <span :class="completionStatusColorClass(leagueStatus.completionStatus)">{{
+            <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
               formatDuration(leagueStatus.expectedTimeToComplete)
             }}</span>
             expected /
@@ -173,7 +176,7 @@
             Hourly production rate
           </dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            <span :class="completionStatusColorClass(estimatedLeagueStatus.completionStatus)">{{
+            <span :class="completionStatusFgColorClass(estimatedLeagueStatus.completionStatus)">{{
               formatEIValue(estimatedLeagueStatus.eggsPerHour)
             }}</span>
             <template v-if="estimatedLeagueStatus.requiredEggsPerHour !== null">
@@ -184,7 +187,7 @@
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Time to complete</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            <span :class="completionStatusColorClass(estimatedLeagueStatus.completionStatus)">{{
+            <span :class="completionStatusFgColorClass(estimatedLeagueStatus.completionStatus)">{{
               formatDuration(estimatedLeagueStatus.expectedTimeToComplete)
             }}</span>
             expected /
@@ -375,7 +378,7 @@ import { computed, defineComponent, inject, PropType, ref, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
 import { eggIconPath, formatEIValue, formatDuration, SoloStatus } from '@/lib';
-import { completionStatusColorClass } from '@/styles';
+import { completionStatusFgColorClass, completionStatusBgColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
 import { eggTooltip, formatWithThousandSeparators, iconURL, renderNonempty } from '@/utils';
 import { useAutoRefreshedRelativeTime } from '@/composables/relative_time';
@@ -516,7 +519,8 @@ export default defineComponent({
       columns,
       formatEIValue,
       formatDuration,
-      completionStatusColorClass,
+      completionStatusFgColorClass,
+      completionStatusBgColorClass,
       eggIconPath,
       eggTooltip,
       iconURL,

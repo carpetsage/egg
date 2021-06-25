@@ -14,7 +14,7 @@
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
 import { ContractCompletionStatus } from '@/lib';
-import { completionStatusColorClass } from '@/styles';
+import { completionStatusFgColorClass } from '@/styles';
 
 export default defineComponent({
   props: {
@@ -51,7 +51,7 @@ export default defineComponent({
       }
       throw new Error(`the impossible happened: unexpected completion status: ${status.value}`);
     });
-    const colorClass = computed(() => completionStatusColorClass(status.value));
+    const colorClass = computed(() => completionStatusFgColorClass(status.value));
     return {
       labelText,
       iconPathD,
