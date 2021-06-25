@@ -33,11 +33,24 @@ export function artifactRarityFgClass(afxRarity: ei.ArtifactSpec.Rarity): string
     case ei.ArtifactSpec.Rarity.COMMON:
       return '';
     case ei.ArtifactSpec.Rarity.RARE:
-      return 'text-blue-500';
+      return 'text-rare';
     case ei.ArtifactSpec.Rarity.EPIC:
-      return 'text-purple-500';
+      return 'text-epic';
     case ei.ArtifactSpec.Rarity.LEGENDARY:
-      return 'text-yellow-500';
+      return 'text-legendary';
+  }
+}
+
+export function artifactRarityBgClass(afxRarity: ei.ArtifactSpec.Rarity): string {
+  switch (afxRarity) {
+    case ei.ArtifactSpec.Rarity.COMMON:
+      return '';
+    case ei.ArtifactSpec.Rarity.RARE:
+      return 'bg-rare';
+    case ei.ArtifactSpec.Rarity.EPIC:
+      return 'bg-epic';
+    case ei.ArtifactSpec.Rarity.LEGENDARY:
+      return 'bg-legendary';
   }
 }
 
