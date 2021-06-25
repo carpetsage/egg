@@ -228,7 +228,7 @@
               {{ fmt(inventoryScore) }}
               <base-info
                 v-tippy="{
-                  content: `The inventory score is an internal value used to determine the outer appearance of the hall of artifacts. The hall expands from two to four segments once the score reaches 1000, and the segments become colored once the score reaches 5000. <span class='text-blue-300'>The effect of this score is entirely cosmetic.</span>`,
+                  content: `The inventory score is an internal value used to determine the outer appearance of the hall of artifacts. The hall expands from two to four segments once the score reaches 2,000, and the segments become colored once the score reaches 10,000. <span class='text-blue-300'>The effect of this score is entirely cosmetic.</span>`,
                   allowHTML: true,
                 }"
                 class="inline ml-0.5"
