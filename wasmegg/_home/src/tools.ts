@@ -195,7 +195,7 @@ export const updateSignature = generateUpdateSignature();
 function generateUpdateSignature(): string {
   let s = '';
   for (const tool of tools) {
-    if (tool.isHighlight) {
+    if (tool.newUntil || tool.majorUpdateUntil || tool.updateUntil) {
       s += `${tool}:${tool.newUntil}:${tool.majorUpdateUntil}:${tool.updateUntil}`;
     }
   }
