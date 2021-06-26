@@ -3,7 +3,7 @@
     <div v-for="(artifact, artifactIndex) in artifactSet.artifacts" :key="artifactIndex">
       <tippy
         tag="div"
-        class="h-32 w-32 mx-2 my-2 relative rounded-full"
+        class="h-32 w-32 mx-2 my-2 relative rounded-full isolate"
         :class="artifactRarityBgClass(artifact.afxRarity) || 'bg-gray-200'"
       >
         <img

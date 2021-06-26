@@ -2,7 +2,7 @@ import { ei } from '../proto';
 import data, { Family, Tier } from './data.json';
 
 export default data;
-export type { Family as AfxFamily, Tier as AfxTier, Recipe } from './data.json';
+export type { Family as AfxFamily, Tier as AfxTier, Recipe, Effect } from './data.json';
 
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;

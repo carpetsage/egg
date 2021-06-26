@@ -12,51 +12,74 @@
       </select>
     </div>
     <div>
-      <template v-for="date in filteredLaunchLog" :key="date.date">
-        <div class="my-2 text-sm font-medium text-gray-900">{{ date.dateDisplay }}</div>
-        <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
-          <div v-for="mission in date.missions" :key="mission.id" class="text-xs tabular-nums">
-            <span
-              v-tippy="{ content: 'Copy mission ID to clipboard' }"
-              class="mr-2 cursor-pointer"
-              @click="copyTextToClipboard(mission.id)"
-            >
-              {{ mission.launchTimeDisplay }}
-            </span>
-            <span class="mr-1">{{ mission.shipName }}</span>
-            <span :class="missionDurationTypeFgClass(mission)">{{ mission.durationTypeName }}</span>
-            <span v-if="mission.level > 0" class="inline-flex items-center text-gray-700">
-              <span>&nbsp;({{ mission.level }}</span>
-              <svg
-                viewBox="0 0 576 512"
-                class="h-3 w-3 pb-px text-yellow-400 select-none"
+      <div
+        class="w-max max-w-full px-3 py-2 text-center text-xs text-green-800 bg-green-50 rounded-md shadow-sm mx-auto mt-3 mb-2"
+      >
+        Click on a mission to bring up the details view, including artifacts received from it.
+      </div>
+      <template v-if="filteredLaunchLog.length > 0">
+        <template v-for="date in filteredLaunchLog" :key="date.date">
+          <div class="my-2 text-sm font-medium text-gray-900">{{ date.dateDisplay }}</div>
+          <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div v-for="mission in date.missions" :key="mission.id">
+              <div
+                class="w-max text-xs tabular-nums cursor-pointer"
+                @click="
+                  missionLootModalMission = mission;
+                  missionLootModalOpen = true;
+                "
               >
-                <path
-                  fill="currentColor"
-                  d="M259.3 17.8L194 150.2 47.9 171.5c-26.2 3.8-36.7 36.1-17.7 54.6l105.7 103-25 145.5c-4.5 26.3 23.2 46 46.4 33.7L288 439.6l130.7 68.7c23.2 12.2 50.9-7.4 46.4-33.7l-25-145.5 105.7-103c19-18.5 8.5-50.8-17.7-54.6L382 150.2 316.7 17.8c-11.7-23.6-45.6-23.9-57.4 0z"
-                />
-              </svg>
-              <span>)</span>
-            </span>
+                <span class="mr-2">{{ mission.launchTimeDisplay }}</span>
+                <span class="mr-1">{{ mission.shipName }}</span>
+                <span :class="missionDurationTypeFgClass(mission)">{{
+                  mission.durationTypeName
+                }}</span>
+                <span v-if="mission.level > 0" class="inline-flex items-center text-gray-700">
+                  <span>&nbsp;({{ mission.level }}</span>
+                  <svg viewBox="0 0 576 512" class="h-3 w-3 pb-px text-yellow-400 select-none">
+                    <path
+                      fill="currentColor"
+                      d="M259.3 17.8L194 150.2 47.9 171.5c-26.2 3.8-36.7 36.1-17.7 54.6l105.7 103-25 145.5c-4.5 26.3 23.2 46 46.4 33.7L288 439.6l130.7 68.7c23.2 12.2 50.9-7.4 46.4-33.7l-25-145.5 105.7-103c19-18.5 8.5-50.8-17.7-54.6L382 150.2 316.7 17.8c-11.7-23.6-45.6-23.9-57.4 0z"
+                    />
+                  </svg>
+                  <span>)</span>
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
+        </template>
       </template>
+      <div v-else class="text-center text-xs">No mission in this period.</div>
     </div>
   </div>
+  <teleport to="body">
+    <base-modal v-model:open="missionLootModalOpen">
+      <mission-details :user-id="userId" :mission="missionLootModalMission" />
+    </base-modal>
+  </teleport>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, ref, toRefs, watch } from 'vue';
-import copyTextToClipboard from 'copy-text-to-clipboard';
+import { computed, defineComponent, PropType, Ref, ref, toRefs, watch } from 'vue';
 
-import { ei, getLocalStorage, setLocalStorage } from 'lib';
+import { ei, getLocalStorage, Mission, setLocalStorage } from 'lib';
 import { getLaunchLog } from '@/lib';
 import { missionDurationTypeFgClass } from '@/utils';
+import BaseModal from '@/components/BaseModal.vue';
+import MissionDetails from '@/components/MissionDetails.vue';
 
 const LAUNCH_LOG_FILTER_LOCALSTORAGE_KEY = 'launchLogFilter';
 
 export default defineComponent({
+  components: {
+    BaseModal,
+    MissionDetails,
+  },
   props: {
+    userId: {
+      type: String,
+      required: true,
+    },
     artifactsDB: {
       type: Object as PropType<ei.IArtifactsDB>,
       required: true,
@@ -87,11 +110,15 @@ export default defineComponent({
       return launchLog.value.filtered(lastNDays);
     });
 
+    const missionLootModalMission: Ref<Mission | null> = ref(null);
+    const missionLootModalOpen = ref(false);
+
     return {
       launchLogFilter,
       filteredLaunchLog,
+      missionLootModalMission,
+      missionLootModalOpen,
       missionDurationTypeFgClass,
-      copyTextToClipboard,
     };
   },
 });

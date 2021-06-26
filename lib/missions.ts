@@ -188,6 +188,10 @@ export class Mission extends MissionType {
     return this.status === Status.FUELING;
   }
 
+  get statusIsComplete(): boolean {
+    return this.status === Status.COMPLETE || this.status === Status.ARCHIVED;
+  }
+
   get launchTimestamp(): number | null {
     return this.missionInfo.startTimeDerived || null;
   }

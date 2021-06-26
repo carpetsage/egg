@@ -22,7 +22,7 @@
     :visible="isVisibleSection('launch-log')"
     @toggle="toggleSectionVisibility('launch-log')"
   >
-    <launch-log :artifacts-d-b="artifactsDB" />
+    <launch-log :user-id="playerId" :artifacts-d-b="artifactsDB" />
   </collapsible-section>
 
   <collapsible-section

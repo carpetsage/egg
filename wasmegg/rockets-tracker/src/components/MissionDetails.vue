@@ -1,0 +1,233 @@
+<template>
+  <template v-if="mission">
+    <div class="-mt-2">
+      <div class="flex items-center justify-center text-sm">
+        <span>{{ mission.shipName }}&nbsp;</span>
+        <span :class="missionDurationTypeFgClass(mission)">{{ mission.durationTypeName }}</span>
+      </div>
+      <mission-star-levels :mission="mission" class="justify-center my-1" />
+      <div class="text-xs mt-2">
+        <div class="grid gap-x-1 grid-cols-max-2 justify-center tabular-nums">
+          <div class="text-right font-medium">Launched:</div>
+          <div v-tippy="{ content: mission.launchTime?.fromNow() }">
+            {{ mission.launchTime?.format('YYYY-MM-DD HH:mm:ss') }}
+          </div>
+          <div class="text-right font-medium">
+            <template v-if="mission.returnTime?.isBefore(now())">Returned:</template>
+            <template v-else>Returns:</template>
+          </div>
+          <div v-tippy="{ content: mission.returnTime?.fromNow() }">
+            {{ mission.returnTime?.format('YYYY-MM-DD HH:mm:ss') }}
+          </div>
+        </div>
+        <div class="grid gap-x-1 grid-cols-max-2 justify-center">
+          <div class="text-right font-medium">Duration:</div>
+          <div>{{ mission.durationDisplay }}</div>
+          <div class="text-right font-medium">Capacity:</div>
+          <div>{{ mission.capacity }}</div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <div v-if="completeMissionResponse && lootSections.length > 0" class="mt-3">
+    <template v-for="[title, titleBgClass, items] in lootSections" :key="title">
+      <div
+        class="text-center text-xs text-white rounded-full w-max px-2 py-0.5 mx-auto mt-2 mb-1"
+        :class="titleBgClass"
+      >
+        {{ title }} ({{ itemsCount(items) }})
+      </div>
+      <div class="sm:max-w-lg flex flex-wrap justify-center mx-auto">
+        <div v-for="item in items" :key="item.key" class="border-box h-10 w-10 p-1">
+          <tippy
+            tag="a"
+            :href="`/artifact-explorer/#/artifact/${item.tierProps.id}/`"
+            target="_blank"
+            class="relative block h-full w-full rounded-full"
+            :class="artifactRarityBgClass(item.afxRarity) || 'bg-gray-200'"
+          >
+            <img
+              :src="iconURL(`egginc/${item.tierProps.icon_filename}`, 128)"
+              class="h-full w-full"
+            />
+            <div
+              v-if="item.count > 1"
+              class="absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
+            >
+              <img :src="badgeURL(item.count)" class="h-3 w-3" />
+            </div>
+
+            <template #content>
+              <div>
+                <div class="font-medium space-x-1">
+                  <img
+                    :src="iconURL(`egginc/${item.tierProps.icon_filename}`, 128)"
+                    class="inline h-4 w-4 relative -top-px"
+                  />
+                  <span>{{ item.tierProps.name }}</span>
+                  <span v-if="item.afxRarity > 0" :class="artifactRarityFgClass(item.afxRarity)">
+                    {{ item.effect?.rarity }}
+                  </span>
+                  <span>&times; {{ item.count }}</span>
+                </div>
+                <div v-if="item.effect">
+                  <span class="text-green-300">{{ item.effect.effect_size }}</span>
+                  {{ item.effect.effect_target }}
+                </div>
+              </div>
+            </template>
+          </tippy>
+        </div>
+      </div>
+    </template>
+    <div class="mt-2 text-xs text-gray-500 text-center">
+      Hover mouse over an item to show details.<br />
+      Click to open the relevant
+      <a href="/artifact-explorer/" target="_blank" class="underline">artifact explorer</a> page.<br />
+      Click / double click on mobile.
+    </div>
+  </div>
+  <div v-else-if="mission && missionComplete && !completeMissionResponse" class="mt-3">
+    <base-loading>
+      <span class="text-sm -ml-1">Retrieving mission data...</span>
+    </base-loading>
+  </div>
+
+  <div v-if="showDev && mission" class="mt-2">
+    <div class="text-center text-xs font-medium my-2">Dev</div>
+    <div class="text-xs">
+      <div>
+        <span class="font-medium">user_id:&nbsp;</span>
+        <span class="cursor-pointer" @click="copyUserId"
+          ><code>{{ userId }}</code></span
+        >
+      </div>
+      <div class="truncate">
+        <span class="font-medium">mission_id:&nbsp;</span>
+        <span class="cursor-pointer" @click="copyMissionId"
+          ><code>{{ missionId }}</code></span
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- Dev mode is activated or deactivated by clicking on an invisible active
+  area in the bottom right corner of the modal. -->
+  <div class="absolute bottom-0 right-0 pb-2.5 pr-2.5">
+    <div class="h-5 w-5" @click="showDev = !showDev"></div>
+  </div>
+</template>
+
+<script lang="ts">
+import { computed, defineComponent, PropType, Ref, ref, toRefs, watch } from 'vue';
+import { Tippy } from 'vue-tippy';
+import copyTextToClipboard from 'copy-text-to-clipboard';
+
+import { ei, iconURL, Mission } from 'lib';
+import { getCompletedMission, Loot, LootItem } from '@/lib';
+import { artifactRarityBgClass, artifactRarityFgClass, missionDurationTypeFgClass } from '@/utils';
+import BaseLoading from 'ui/components/BaseLoading.vue';
+import MissionStarLevels from '@/components/MissionStarLevels.vue';
+
+import Type = ei.ArtifactSpec.Type;
+import { badgeURL } from '@/badges';
+import dayjs from 'dayjs';
+
+export default defineComponent({
+  components: {
+    BaseLoading,
+    MissionStarLevels,
+    Tippy,
+  },
+  props: {
+    userId: {
+      type: String,
+      required: true,
+    },
+    mission: {
+      type: Object as PropType<Mission | null>,
+      default: null,
+    },
+  },
+  setup(props) {
+    const { userId, mission } = toRefs(props);
+    const missionId = computed(() => mission.value?.id);
+    const missionComplete = computed(() => mission.value?.statusIsComplete || false);
+    const completeMissionResponse: Ref<ei.ICompleteMissionResponse | null> = ref(null);
+    const lootItems: Ref<LootItem[]> = computed(() => {
+      const m = completeMissionResponse.value;
+      return m ? new Loot(m).itemsSortedByQuality : [];
+    });
+    const lootItemsByType = (type: Type) =>
+      lootItems.value.filter(it => it.tierProps.afx_type === type);
+    const lootSections: Ref<[string, string, LootItem[]][]> = computed(() => {
+      const sections: [string, string, LootItem[]][] = [
+        ['Artifacts', 'bg-blue-500', lootItemsByType(Type.ARTIFACT)],
+        ['Eggfinity stones', 'bg-fuchsia-500', lootItemsByType(Type.STONE)],
+        ['Ingredients', 'bg-gray-500', lootItemsByType(Type.INGREDIENT)],
+        ['Stone fragments', 'bg-gray-500', lootItemsByType(Type.STONE_INGREDIENT)],
+      ];
+      return sections.filter(([, , items]) => items.length > 0);
+    });
+    const itemsCount = (items: LootItem[]) => items.reduce((sum, item) => sum + item.count, 0);
+
+    const retrieveCompleteMissionResponse = async () => {
+      if (missionId.value && missionComplete.value) {
+        completeMissionResponse.value = null;
+        const uid = userId.value;
+        const mid = missionId.value;
+        const response = await getCompletedMission(uid, mid);
+        if (userId.value === uid && missionId.value === mid) {
+          // Props didn't get updated while the request was in progress.
+          completeMissionResponse.value = response;
+        }
+      }
+    };
+    watch(
+      [userId, missionId],
+      async () => {
+        await retrieveCompleteMissionResponse();
+      },
+      {
+        immediate: true,
+      }
+    );
+
+    const showDev = ref(false);
+    const copyUserId = () => {
+      copyTextToClipboard(userId.value);
+    };
+    const copyMissionId = () => {
+      if (missionId.value) {
+        copyTextToClipboard(missionId.value);
+      }
+    };
+
+    return {
+      missionId,
+      missionComplete,
+      completeMissionResponse,
+      lootSections,
+      itemsCount,
+      missionDurationTypeFgClass,
+      artifactRarityFgClass,
+      artifactRarityBgClass,
+      iconURL,
+      badgeURL,
+      showDev,
+      copyUserId,
+      copyMissionId,
+      now: () => dayjs(),
+    };
+  },
+});
+</script>
+
+<style scoped>
+@media (min-width: 640px) {
+  .container {
+    width: 30rem;
+  }
+}
+</style>

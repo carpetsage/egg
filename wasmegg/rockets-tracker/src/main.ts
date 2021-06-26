@@ -6,8 +6,14 @@ import VueTippy from 'vue-tippy';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/themes/translucent.css';
 
-const app = createApp(App);
-app.use(VueTippy, {
-  defaultProps: { theme: 'translucent' },
+import idbReady from 'safari-14-idb-fix';
+
+// https://github.com/jakearchibald/safari-14-idb-fix
+// https://bugs.webkit.org/show_bug.cgi?id=226547
+idbReady().then(() => {
+  const app = createApp(App);
+  app.use(VueTippy, {
+    defaultProps: { theme: 'translucent' },
+  });
+  app.mount('#app');
 });
-app.mount('#app');

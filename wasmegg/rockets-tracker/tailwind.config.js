@@ -1,3 +1,5 @@
+const colors = require('tailwindcss/colors');
+
 module.exports = {
   mode: 'jit',
   purge: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
@@ -7,6 +9,7 @@ module.exports = {
         gray: {
           150: '#eceef1',
         },
+        fuchsia: colors.fuchsia,
       },
       gridTemplateColumns: {
         'max-2': 'repeat(2, max-content)',

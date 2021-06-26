@@ -129,6 +129,38 @@ export async function requestQueryCoop(
   ) as ei.IQueryCoopResponse;
 }
 
+/**
+ * @param userId
+ * @param missionId
+ * @returns
+ * @throws
+ */
+export async function requestAfxCompleteMission(
+  userId: string,
+  missionId: string
+): Promise<ei.ICompleteMissionResponse> {
+  return decodeCompleteMissionResponse(await requestAfxCompleteMissionRaw(userId, missionId));
+}
+
+export async function requestAfxCompleteMissionRaw(
+  userId: string,
+  missionId: string
+): Promise<string> {
+  const requestPayload: ei.IMissionRequest = {
+    eiUserId: userId,
+    info: {
+      identifier: missionId,
+    },
+    rinfo: basicRequestInfo(userId),
+  };
+  const encodedRequestPayload = encodeMessage(ei.MissionRequest, requestPayload);
+  return await request('/ei_afx/complete_mission', encodedRequestPayload);
+}
+
+export function decodeCompleteMissionResponse(payload: string): ei.ICompleteMissionResponse {
+  return decodeMessage(ei.CompleteMissionResponse, payload, true) as ei.ICompleteMissionResponse;
+}
+
 export function basicRequestInfo(userId: string): ei.IBasicRequestInfo {
   return {
     eiUserId: userId,
