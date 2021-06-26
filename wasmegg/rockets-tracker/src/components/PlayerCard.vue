@@ -277,10 +277,9 @@
                   />
                   <div
                     v-if="tier.haveEpic > 1"
-                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-green-500 text-white flex items-center justify-center"
-                    :style="{ fontSize: '0.5rem', lineHeight: '0.5rem' }"
+                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
                   >
-                    {{ tier.haveEpic >= 10 ? '\u2605' : tier.haveEpic }}
+                    <img :src="badgeURL(tier.haveEpic)" class="h-3 w-3" />
                   </div>
                 </div>
               </template>
@@ -303,10 +302,9 @@
                   />
                   <div
                     v-if="tier.haveLegendary > 1"
-                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-green-500 text-white flex items-center justify-center"
-                    :style="{ fontSize: '0.5rem', lineHeight: '0.5rem' }"
+                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
                   >
-                    {{ tier.haveLegendary >= 10 ? '\u2605' : tier.haveLegendary }}
+                    <img :src="badgeURL(tier.haveLegendary)" class="h-3 w-3" />
                   </div>
                 </div>
               </template>
@@ -357,6 +355,7 @@ import {
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getLaunchedMissions } from '@/lib';
+import { badgeURL } from '@/badges';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -487,6 +486,7 @@ export default defineComponent({
       fmt,
       formatEIValue,
       iconURL,
+      badgeURL,
     };
   },
 });
@@ -508,20 +508,3 @@ function piggyLevelBonus(level: number): number {
   }
 }
 </script>
-
-<style scoped>
-.bg-epic {
-  background: radial-gradient(#ff40ff, #ff40ff 35%, #c03fe2);
-}
-
-.bg-legendary {
-  background: radial-gradient(#fffe41, #fffe41 35%, #eeab42);
-}
-
-/* Safri-only hack */
-_::-webkit-full-page-media,
-_:future,
-:root .badge {
-  padding-left: 0.5px;
-}
-</style>
