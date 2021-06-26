@@ -122,7 +122,7 @@ export class ShipStatistics {
   }
 
   get shortMissionsToNextLevel(): number {
-    return Math.ceil((this.launchPointsToNextLevel || 0) / 1);
+    return numMissionsRequired(this.launchPointsToNextLevel || 0, DurationType.SHORT);
   }
 
   get shortMissionsTimeToNextLevel(): number {
@@ -133,7 +133,7 @@ export class ShipStatistics {
   }
 
   get standardMissionsToNextLevel(): number {
-    return Math.ceil((this.launchPointsToNextLevel || 0) / 1.4);
+    return numMissionsRequired(this.launchPointsToNextLevel || 0, DurationType.LONG);
   }
 
   get standardMissionsTimeToNextLevel(): number {
@@ -144,7 +144,7 @@ export class ShipStatistics {
   }
 
   get extendedMissionsToNextLevel(): number {
-    return Math.ceil((this.launchPointsToNextLevel || 0) / 1.8);
+    return numMissionsRequired(this.launchPointsToNextLevel || 0, DurationType.EPIC);
   }
 
   get extendedMissionsTimeToNextLevel(): number {
@@ -161,7 +161,7 @@ export class ShipStatistics {
   }
 
   get shortMissionsToMaxLevel(): number {
-    return Math.ceil((this.launchPointsToMaxLevel || 0) / 1);
+    return numMissionsRequired(this.launchPointsToMaxLevel || 0, DurationType.SHORT);
   }
 
   get shortMissionsTimeToMaxLevel(): number {
@@ -172,7 +172,7 @@ export class ShipStatistics {
   }
 
   get standardMissionsToMaxLevel(): number {
-    return Math.ceil((this.launchPointsToMaxLevel || 0) / 1.4);
+    return numMissionsRequired(this.launchPointsToMaxLevel || 0, DurationType.LONG);
   }
 
   get standardMissionsTimeToMaxLevel(): number {
@@ -183,7 +183,7 @@ export class ShipStatistics {
   }
 
   get extendedMissionsToMaxLevel(): number {
-    return Math.ceil((this.launchPointsToMaxLevel || 0) / 1.8);
+    return numMissionsRequired(this.launchPointsToMaxLevel || 0, DurationType.EPIC);
   }
 
   get extendedMissionsTimeToMaxLevel(): number {
@@ -204,6 +204,25 @@ export class ShipStatistics {
   perMissionDurationSeconds(durationType: DurationType): number {
     return new MissionType(this.shipType, durationType).boostedDurationSeconds(this.config);
   }
+}
+
+function numMissionsRequired(launchPoints: number, durationType: DurationType): number {
+  // We use 10x launch points (integers) to avoid floating point problems.
+  launchPoints = Math.round(launchPoints * 10);
+  let pointsPerMission: number;
+  switch (durationType) {
+    case DurationType.TUTORIAL:
+    case DurationType.SHORT:
+      pointsPerMission = 10;
+      break;
+    case DurationType.LONG:
+      pointsPerMission = 14;
+      break;
+    case DurationType.EPIC:
+      pointsPerMission = 18;
+      break;
+  }
+  return Math.ceil(launchPoints / pointsPerMission);
 }
 
 export class MissionTypeStatistics {
