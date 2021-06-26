@@ -46,6 +46,7 @@
                       >
                         <tippy tag="img" class="h-12 w-12 p-1" :src="iconURL(tier.iconPath, 128)">
                           <template v-if="tier.props.recipe" #content>
+                            <p>Crafting recipe:</p>
                             <artifact-recipe
                               v-if="tier.props.recipe"
                               :inventory="inventory"
@@ -54,7 +55,6 @@
                             />
                           </template>
                         </tippy>
-                        <!-- <img v-else class="h-12 w-12 p-1" :src="iconURL(tier.iconPath, 128)" /> -->
                       </a>
                       <template v-else>
                         <tippy
@@ -63,6 +63,7 @@
                           :src="iconURL(tier.iconPath, 128)"
                         >
                           <template v-if="tier.props.recipe" #content>
+                            <p>Crafting recipe:</p>
                             <artifact-recipe
                               v-if="tier.props.recipe"
                               :inventory="inventory"
@@ -84,6 +85,7 @@
                         >
                           {{ tier.tierName }}
                           <template v-if="tier.props.recipe" #content>
+                            <p>Crafting recipe:</p>
                             <artifact-recipe
                               v-if="tier.props.recipe"
                               :inventory="inventory"
