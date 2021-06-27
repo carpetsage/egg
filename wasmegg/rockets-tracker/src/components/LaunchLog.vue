@@ -54,7 +54,25 @@
   </div>
   <teleport to="body">
     <base-modal v-model:open="missionLootModalOpen">
-      <mission-details :user-id="userId" :mission="missionLootModalMission" />
+      <mission-details
+        :user-id="userId"
+        :mission="missionLootModalMission"
+        :has-prev="missionLootModalPrevMission !== null"
+        :has-next="missionLootModalNextMission !== null"
+        :active="missionLootModalOpen"
+        @prev="
+          () => {
+            missionLootModalMission = missionLootModalPrevMission;
+            missionLootModalOpen = true;
+          }
+        "
+        @next="
+          () => {
+            missionLootModalMission = missionLootModalNextMission;
+            missionLootModalOpen = true;
+          }
+        "
+      />
     </base-modal>
   </teleport>
 </template>
@@ -110,13 +128,36 @@ export default defineComponent({
       return launchLog.value.filtered(lastNDays);
     });
 
+    // Flat list instead of grouped by dates
+    const missionIdToIndexMap = computed(
+      () => new Map(launchLog.value.missions.map((mission, index) => [mission.id, index]))
+    );
+    const prevMission = (mission: Mission) => {
+      const index = missionIdToIndexMap.value.get(mission.id);
+      return index !== undefined && index > 0 ? launchLog.value.missions[index - 1] : null;
+    };
+    const nextMission = (mission: Mission) => {
+      const index = missionIdToIndexMap.value.get(mission.id);
+      return index !== undefined && index < launchLog.value.missions.length - 1
+        ? launchLog.value.missions[index + 1]
+        : null;
+    };
+
     const missionLootModalMission: Ref<Mission | null> = ref(null);
+    const missionLootModalPrevMission = computed(() =>
+      missionLootModalMission.value ? prevMission(missionLootModalMission.value) : null
+    );
+    const missionLootModalNextMission = computed(() =>
+      missionLootModalMission.value ? nextMission(missionLootModalMission.value) : null
+    );
     const missionLootModalOpen = ref(false);
 
     return {
       launchLogFilter,
       filteredLaunchLog,
       missionLootModalMission,
+      missionLootModalPrevMission,
+      missionLootModalNextMission,
       missionLootModalOpen,
       missionDurationTypeFgClass,
     };

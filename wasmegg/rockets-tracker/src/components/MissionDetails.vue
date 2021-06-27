@@ -84,7 +84,8 @@
     <div class="mt-2 text-xs text-gray-500 text-center">
       Hover mouse over an item to show details.<br />
       Click to open the relevant
-      <a href="/artifact-explorer/" target="_blank" class="underline">artifact explorer</a> page.<br />
+      <a href="/artifact-explorer/" target="_blank" class="underline">artifact explorer</a>
+      page.<br />
       Click / double click on mobile.
     </div>
   </div>
@@ -117,12 +118,37 @@
   <div class="absolute bottom-0 right-0 pb-2.5 pr-2.5">
     <div class="h-5 w-5" @click="showDev = !showDev"></div>
   </div>
+
+  <button
+    class="absolute left-0 top-1/2 transform -translate-y-1/2 pl-2 rounded-md text-gray-400 focus:outline-none z-10"
+    :class="hasPrev ? 'hover:text-gray-500' : 'opacity-30 cursor-not-allowed'"
+    :disabled="!hasPrev"
+    @click="hasPrev && $emit('prev')"
+  >
+    <!-- Heroicon name: outline/chevron-left -->
+    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+  </button>
+
+  <button
+    class="absolute right-0 top-1/2 transform -translate-y-1/2 pr-2 rounded-md text-gray-400 focus:outline-none z-10"
+    :class="hasNext ? 'hover:text-gray-500' : 'opacity-30 cursor-not-allowed'"
+    :disabled="!hasNext"
+    @click="hasNext && $emit('next')"
+  >
+    <!-- Heroicon name: outline/chevron-right -->
+    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, PropType, Ref, ref, toRefs, watch } from 'vue';
 import { Tippy } from 'vue-tippy';
 import copyTextToClipboard from 'copy-text-to-clipboard';
+import hotkeys from 'hotkeys-js';
 
 import { ei, iconURL, Mission } from 'lib';
 import { getCompletedMission, Loot, LootItem } from '@/lib';
@@ -149,9 +175,25 @@ export default defineComponent({
       type: Object as PropType<Mission | null>,
       default: null,
     },
+    hasPrev: {
+      type: Boolean,
+      default: false,
+    },
+    hasNext: {
+      type: Boolean,
+      default: false,
+    },
+    active: {
+      type: Boolean,
+      default: false,
+    },
   },
-  setup(props) {
-    const { userId, mission } = toRefs(props);
+  emits: {
+    prev: () => true,
+    next: () => true,
+  },
+  setup(props, { emit }) {
+    const { userId, mission, hasPrev, hasNext, active } = toRefs(props);
     const missionId = computed(() => mission.value?.id);
     const missionComplete = computed(() => mission.value?.statusIsComplete || false);
     const completeMissionResponse: Ref<ei.ICompleteMissionResponse | null> = ref(null);
@@ -194,6 +236,22 @@ export default defineComponent({
       }
     );
 
+    watch(
+      active,
+      () => {
+        if (active.value) {
+          hotkeys('left', () => hasPrev.value && emit('prev'));
+          hotkeys('right', () => hasNext.value && emit('next'));
+        } else {
+          hotkeys.unbind('left');
+          hotkeys.unbind('right');
+        }
+      },
+      {
+        immediate: true,
+      }
+    );
+
     const showDev = ref(false);
     const copyUserId = () => {
       copyTextToClipboard(userId.value);
@@ -223,11 +281,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-@media (min-width: 640px) {
-  .container {
-    width: 30rem;
-  }
-}
-</style>

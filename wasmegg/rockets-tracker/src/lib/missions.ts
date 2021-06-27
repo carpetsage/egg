@@ -283,17 +283,21 @@ export function getMissionStatistics(
 }
 
 export class LaunchLog {
+  missions: Mission[];
   dates: DailyLaunchLog[];
 
   constructor() {
+    this.missions = [];
     this.dates = [];
   }
 
   addDate(date: Dayjs, missions: Mission[]): void {
+    this.missions.push(...missions);
     this.dates.push(new DailyLaunchLog(date, missions));
   }
 
   sort(): void {
+    this.missions.sort((m1, m2) => m2.launchTimestamp! - m1.launchTimestamp!);
     this.dates.sort((d1, d2) => d2.date.valueOf() - d1.date.valueOf());
   }
 
