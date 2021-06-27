@@ -89,10 +89,13 @@
       Click / double click on mobile.
     </div>
   </div>
-  <div v-else-if="mission && missionComplete && !completeMissionResponse" class="mt-3">
+  <div v-else-if="loading" class="mt-3">
     <base-loading>
       <span class="text-sm -ml-1">Retrieving mission data...</span>
     </base-loading>
+  </div>
+  <div v-else-if="error" class="mt-3 text-center text-red-500 text-sm">
+    Failed to retrieve mission data.
   </div>
 
   <div v-if="showDev && mission" class="mt-2">
@@ -196,7 +199,11 @@ export default defineComponent({
     const { userId, mission, hasPrev, hasNext, active } = toRefs(props);
     const missionId = computed(() => mission.value?.id);
     const missionComplete = computed(() => mission.value?.statusIsComplete || false);
+
     const completeMissionResponse: Ref<ei.ICompleteMissionResponse | null> = ref(null);
+    const loading = ref(false);
+    const error: Ref<Error | null> = ref(null);
+
     const lootItems: Ref<LootItem[]> = computed(() => {
       const m = completeMissionResponse.value;
       return m ? new Loot(m).itemsSortedByQuality : [];
@@ -217,9 +224,20 @@ export default defineComponent({
     const retrieveCompleteMissionResponse = async () => {
       if (missionId.value && missionComplete.value) {
         completeMissionResponse.value = null;
+        loading.value = true;
+        error.value = null;
         const uid = userId.value;
         const mid = missionId.value;
-        const response = await getCompletedMission(uid, mid);
+        let response;
+        try {
+          response = await getCompletedMission(uid, mid);
+          loading.value = false;
+        } catch (err) {
+          console.error(err);
+          loading.value = false;
+          error.value = err;
+          return;
+        }
         if (userId.value === uid && missionId.value === mid) {
           // Props didn't get updated while the request was in progress.
           completeMissionResponse.value = response;
@@ -266,6 +284,8 @@ export default defineComponent({
       missionId,
       missionComplete,
       completeMissionResponse,
+      loading,
+      error,
       lootSections,
       itemsCount,
       missionDurationTypeFgClass,
