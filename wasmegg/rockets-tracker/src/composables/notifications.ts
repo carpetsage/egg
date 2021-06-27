@@ -17,6 +17,7 @@ export function useNotifications(
   params: Ref<NotificationParams[]>
 ): {
   notificationSupportedByBrowser: boolean;
+  isMobileBrowser: boolean;
   notificationPermissionDenied: Ref<boolean>;
   on: Ref<boolean>;
   toggleNotifications: () => void;
@@ -24,9 +25,11 @@ export function useNotifications(
 } {
   const on = ref(false);
   const notificationPermissionDenied = ref(false);
+  const isMobileBrowser = navigator.userAgent.match(/iPhone|iPad|iPod|Android/i) !== null;
   if (!notificationSupportedByBrowser) {
     return {
       notificationSupportedByBrowser,
+      isMobileBrowser,
       notificationPermissionDenied,
       on,
       /* eslint-disable @typescript-eslint/no-empty-function */
@@ -108,6 +111,7 @@ export function useNotifications(
 
   return {
     notificationSupportedByBrowser,
+    isMobileBrowser,
     notificationPermissionDenied,
     on,
     toggleNotifications,

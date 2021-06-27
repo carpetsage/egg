@@ -1,7 +1,6 @@
 <template>
-  <div class="mt-2 space-y-1">
+  <div v-if="notificationSupportedByBrowser" class="mt-2 space-y-1">
     <div
-      v-if="notificationSupportedByBrowser"
       v-tippy="{
         content: `Your browser's notifications feature is used to display system-level notifications when your rockets return. You have to allow notifications from this site when prompted to enable this feature. Unfortunately, due to platform limitations, <span class='text-blue-300'>this feature may not work reliably on mobile devices</span>.`,
         allowHTML: true,
@@ -70,6 +69,10 @@
         />
       </svg>
     </div>
+    <div v-else-if="on && isMobileBrowser" class="text-center text-xs text-red-500">
+      You appear to be using a mobile device. You may not reliably receive notifications when this
+      page is in the background.
+    </div>
   </div>
 </template>
 
@@ -111,6 +114,7 @@ export default defineComponent({
 
     const {
       notificationSupportedByBrowser,
+      isMobileBrowser,
       notificationPermissionDenied,
       on,
       toggleNotifications,
@@ -122,6 +126,7 @@ export default defineComponent({
 
     return {
       notificationSupportedByBrowser,
+      isMobileBrowser,
       notificationPermissionDenied,
       on,
       toggleNotifications,
