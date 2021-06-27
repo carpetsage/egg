@@ -46,7 +46,7 @@
 import { computed, defineComponent, PropType } from 'vue';
 import { Emitter } from 'mitt';
 
-import { Inventory, requestFirstContact } from 'lib';
+import { Inventory, requestFirstContact, UserBackupEmptyError } from 'lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { reportLegendaries } from '@/lib';
 import { REPORT_LEGENDARIES } from '@/events';
@@ -83,7 +83,7 @@ export default defineComponent({
   async setup({ playerId, eventBus }) {
     const data = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
-      throw new Error(`${playerId}: backup is empty`);
+      throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
     const progress = data.backup.game;

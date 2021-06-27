@@ -285,6 +285,7 @@ import {
   iconURL,
   requestFirstContact,
   setLocalStorage,
+  UserBackupEmptyError,
 } from 'lib';
 import { getUserContractList, UserContract } from '@/contracts';
 import BaseInfo from 'ui/components/BaseInfo.vue';
@@ -310,7 +311,7 @@ export default defineComponent({
   async setup({ playerId }) {
     const data = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
-      throw new Error(`${playerId}: backup is empty`);
+      throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
 

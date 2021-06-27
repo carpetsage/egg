@@ -283,7 +283,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
-import { eggIconPath, iconURL } from 'lib';
+import { eggIconPath, iconURL, UserBackupEmptyError } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
   bestPossibleGussetForEnlightenment,
@@ -373,7 +373,7 @@ export default defineComponent({
 
     const data = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
-      throw new Error(`${playerId}: backup is empty`);
+      throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
     const nickname = backup.userName;

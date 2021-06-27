@@ -1,10 +1,10 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { ei, requestFirstContact } from 'lib';
+import { ei, requestFirstContact, UserBackupEmptyError } from 'lib';
 
 export async function getUserBackup(userId: string): Promise<ei.IBackup> {
   const data = await requestFirstContact(userId);
   if (!data.backup || !data.backup.game) {
-    throw new Error(`${userId}: backup is empty (please check your ID, including casing)`);
+    throw new UserBackupEmptyError(userId);
   }
   const backup = data.backup;
   if (!backup.settings) {
