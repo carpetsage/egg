@@ -33,7 +33,7 @@
   </div>
   <div v-if="levelThresholds.length > 1" class="mt-1">
     <div class="text-left text-xs">Thresholds:</div>
-    <div class="grid grid-cols-3 gap-x-2">
+    <div class="grid grid-cols-3 gap-x-2" :style="{ minWidth: '10rem' }">
       <template v-for="(threshold, lvl) in levelThresholds" :key="lvl">
         <div
           v-if="lvl > 0"
@@ -43,7 +43,7 @@
           <span class="mr-px">{{ lvl }}</span>
           <svg
             viewBox="0 0 576 512"
-            class="inline h-2.5 w-2.5 relative -top-px select-none"
+            class="inline flex-shrink-0 h-2.5 w-2.5 relative -top-px select-none"
             :class="lvl === level ? 'text-blue-400' : 'text-yellow-400'"
           >
             <path
