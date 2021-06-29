@@ -222,10 +222,10 @@ export default defineComponent({
     const itemsCount = (items: LootItem[]) => items.reduce((sum, item) => sum + item.count, 0);
 
     const retrieveCompleteMissionResponse = async () => {
+      completeMissionResponse.value = null;
+      error.value = null;
       if (missionId.value && missionComplete.value) {
-        completeMissionResponse.value = null;
         loading.value = true;
-        error.value = null;
         const uid = userId.value;
         const mid = missionId.value;
         let response;
