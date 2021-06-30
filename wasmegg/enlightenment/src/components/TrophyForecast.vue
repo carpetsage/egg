@@ -2,7 +2,14 @@
   <p v-if="lastRefreshedPopulation < targetPopulation" class="text-sm">
     <template v-if="habSpace >= targetPopulation">{{ trophyDisplayName }} forecast: </template>
     <template v-else>
-      {{ trophyDisplayName }} forecast, assuming sufficient hab space can be unlocked in time:
+      {{ trophyDisplayName }} forecast,
+      <span
+        v-tippy="{
+          content: `This is NOT a given. Check the following sections for feasibility considerations.`,
+        }"
+        class="text-red-700 underline"
+        >assuming sufficient hab space can be unlocked in time</span
+      >:
     </template>
     <template v-if="completionForecast">
       <span class="text-green-500 whitespace-nowrap">
