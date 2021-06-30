@@ -29,7 +29,9 @@
                   missionLootModalOpen = true;
                 "
               >
-                <span class="mr-2">{{ mission.launchTimeDisplay }}</span>
+                <span class="mr-2" :class="!mission.statusIsComplete ? 'text-green-500' : null">{{
+                  mission.launchTimeDisplay
+                }}</span>
                 <span class="mr-1">{{ mission.shipName }}</span>
                 <span :class="missionDurationTypeFgClass(mission)">{{
                   mission.durationTypeName
