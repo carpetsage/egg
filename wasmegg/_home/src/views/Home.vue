@@ -75,7 +75,6 @@
 
   <h3>Data sheets</h3>
   <ul>
-    <li><tool-description id="artifact-list" @visit="onvisit" /></li>
     <li><tool-description id="mission-list" @visit="onvisit" /></li>
     <li><tool-description id="consumption-sheet" @visit="onvisit" /></li>
     <li><tool-description id="loot-analysis" @visit="onvisit" /><v120-badge /></li>

@@ -136,10 +136,6 @@ export const tools = [
   }),
 
   new Tool({
-    id: 'artifact-list',
-    title: 'Artifact list',
-  }),
-  new Tool({
     id: 'mission-list',
     title: 'Mission list',
     // Thu Jun 24 15:35:02 UTC 2021
