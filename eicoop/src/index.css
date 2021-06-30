@@ -3,6 +3,8 @@
 @import 'tailwindcss/utilities';
 
 @import 'ui/styles/base';
+@import 'ui/styles/tippy';
+@import 'ui/styles/other-tools-ribbon';
 
 @import './css/components/DataTableColumnFilterOverlay.css';
 
@@ -19,10 +21,6 @@ html.themed * {
   @apply duration-500;
 }
 
-.tippy-content {
-  @apply text-xs px-2 py-1 !important;
-}
-
 :root {
   --color-gray-200: #e4e4e7;
   --color-gray-500: #71717a;
@@ -31,4 +29,14 @@ html.themed * {
 /* #8bedc4 is the blending of #6ee7b7 (green-300) and #a7f3d0 (green-200). */
 .ProgressBar--striped {
   background: repeating-linear-gradient(135deg, #8bedc4, #8bedc4 3px, #a7f3d0 3px, #a7f3d0 6px);
+}
+
+.other-tools-ribbon {
+  @apply hidden !important;
+}
+
+@media (min-width: 100rem) {
+  .other-tools-ribbon {
+    @apply block !important;
+  }
 }
