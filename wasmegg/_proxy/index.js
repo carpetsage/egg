@@ -5,12 +5,25 @@ async function handleRequest(request) {
   let requestOrigin = request.headers.get('Origin');
 
   if (proxiedURL == null) {
-    // If not requesting a URL through the url param, proxy the corresponding
-    // path at https://wasmegg.netlify.app.
-    url.host = 'wasmegg.netlify.app';
-    request = new Request(url.toString(), request);
-    request.headers.set('Origin', url.origin);
-    return await fetch(request);
+    // If not requesting a URL through the url param, return a small,
+    // informational page.
+    return new Response(
+      `<!DOCTYPE html>
+<html>
+  <head>
+    <title>${url.hostname}</title>
+    <meta name="robots" content="noindex">
+  </head>
+  <body>
+    <p>This is a supporting domain to <a href="https://wasmegg.netlify.app/">wasmegg.netlify.app</a>.</p>
+  </body>
+</html>`,
+      {
+        headers: {
+          'content-type': 'text/html;charset=UTF-8',
+        },
+      }
+    );
   }
 
   let proxiedOrigin = new URL(proxiedURL).origin;
