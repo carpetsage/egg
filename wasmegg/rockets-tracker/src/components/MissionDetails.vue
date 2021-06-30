@@ -75,6 +75,10 @@
                   <span class="text-green-300">{{ item.effect.effect_size }}</span>
                   {{ item.effect.effect_target }}
                 </div>
+                <div v-if="showDev">
+                  Quality:
+                  <span class="text-green-300">{{ item.tierProps.quality.toFixed(1) }}</span>
+                </div>
               </div>
             </template>
           </tippy>
