@@ -80,7 +80,7 @@ export const tools = [
   new Tool({
     id: 'eicoop',
     url: 'https://eicoop.netlify.app/',
-    title: 'Coop Tracker',
+    title: 'CoopTracker',
     iconUrl: eicoopIconUrl,
     description: 'Coop tracker and contract master list',
     displayIconOnly: true,
