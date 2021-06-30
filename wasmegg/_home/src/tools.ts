@@ -101,7 +101,7 @@ export const tools = [
     id: 'artifact-sandbox',
     title: 'Artifact sandbox',
     iconUrl: artifactSandboxIconUrl,
-    description: 'Experiment, optimize, and share your artifact builds all within this sandbox',
+    description: 'Sandbox for experimenting, optimizing, and sharing artifact builds',
   }),
   new Tool({
     id: 'rockets-tracker',
