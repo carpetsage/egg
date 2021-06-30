@@ -5,7 +5,7 @@
         <span>{{ mission.shipName }}&nbsp;</span>
         <span :class="missionDurationTypeFgClass(mission)">{{ mission.durationTypeName }}</span>
       </div>
-      <mission-star-levels :mission="mission" class="justify-center my-1" />
+      <mission-star-levels :mission="completedMission || mission" class="justify-center my-1" />
       <div class="text-xs mt-2">
         <div class="grid gap-x-1 grid-cols-max-2 justify-center tabular-nums">
           <div class="text-right font-medium">Launched:</div>
@@ -204,6 +204,10 @@ export default defineComponent({
     const loading = ref(false);
     const error: Ref<Error | null> = ref(null);
 
+    const completedMission: Ref<Mission | null> = computed(() => {
+      const m = completeMissionResponse.value?.info;
+      return m ? new Mission(m) : null;
+    });
     const lootItems: Ref<LootItem[]> = computed(() => {
       const m = completeMissionResponse.value;
       return m ? new Loot(m).itemsSortedByQuality : [];
@@ -286,6 +290,7 @@ export default defineComponent({
       completeMissionResponse,
       loading,
       error,
+      completedMission,
       lootSections,
       itemsCount,
       missionDurationTypeFgClass,
