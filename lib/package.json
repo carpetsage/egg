@@ -6,6 +6,7 @@
   "sideEffects": false,
   "dependencies": {
     "dayjs": "^1.10.4",
+    "js-sha256": "^0.9.0",
     "protobufjs": "^6.11.2",
     "typescript-memoize": "^1.0.1"
   },

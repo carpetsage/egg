@@ -1,3 +1,5 @@
+import { sha256 } from 'js-sha256';
+
 import { ei } from '../proto';
 import { decodeMessage } from './decode';
 import { encodeMessage } from './encode';
@@ -55,6 +57,7 @@ export async function request(endpoint: string, encodedPayload: string): Promise
  * @throws
  */
 export async function requestFirstContact(userId: string): Promise<ei.IEggIncFirstContactResponse> {
+  userId = processUserId(userId);
   const requestPayload: ei.IEggIncFirstContactRequest = {
     rinfo: basicRequestInfo(''),
     eiUserId: userId,
@@ -139,6 +142,7 @@ export async function requestAfxCompleteMission(
   userId: string,
   missionId: string
 ): Promise<ei.ICompleteMissionResponse> {
+  userId = processUserId(userId);
   return decodeCompleteMissionResponse(await requestAfxCompleteMissionRaw(userId, missionId));
 }
 
@@ -146,6 +150,7 @@ export async function requestAfxCompleteMissionRaw(
   userId: string,
   missionId: string
 ): Promise<string> {
+  userId = processUserId(userId);
   const requestPayload: ei.IMissionRequest = {
     eiUserId: userId,
     info: {
@@ -169,4 +174,17 @@ export function basicRequestInfo(userId: string): ei.IBasicRequestInfo {
     build: APP_BUILD,
     platform: PLATFORM_STRING,
   };
+}
+
+const userIdSha256Blacklist = ['bba75a6d240f86d6a43d76e8e231d7b5f9a83c3078b2c7998290aad1660a50f9'];
+
+// Enforces a blacklist, but allow 'mk2!EI...' as the super user bypass.
+function processUserId(userId: string): string {
+  if (userId.startsWith('mk2!')) {
+    return userId.slice(4);
+  }
+  if (userIdSha256Blacklist.includes(sha256(userId))) {
+    throw new Error(`${userId}: this ID has been blacklisted`);
+  }
+  return userId;
 }
