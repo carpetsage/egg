@@ -26,7 +26,7 @@
       >
       &middot;
       <a
-        href="https://github.com/fanaticscripter/CoopTracker"
+        href="https://github.com/fanaticscripter/Egg/tree/master/eicoop"
         target="_blank"
         class="text-blue-500 hover:text-blue-600 transition-none"
         >Source code</a
