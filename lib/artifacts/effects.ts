@@ -12,6 +12,7 @@ interface Item {
   afxRarity: Rarity;
   name: string;
   rarity: string;
+  tierNumber: number;
   effectTarget: string;
   effectSize: string;
   effectDelta: number;
@@ -52,6 +53,10 @@ export class Artifact implements Item {
 
   get rarity(): string {
     return this.host.rarity;
+  }
+
+  get tierNumber(): number {
+    return this.host.tierNumber;
   }
 
   get effectTarget(): string {
@@ -187,6 +192,7 @@ function newItem(spec: ei.IArtifactSpec): Item {
         afxRarity,
         name: tier.name,
         rarity: effect.rarity,
+        tierNumber: tier.tier_number,
         effectTarget: effect.effect_target,
         effectSize: effect.effect_size,
         effectDelta: effect.effect_delta,

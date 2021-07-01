@@ -65,7 +65,7 @@
                     :src="iconURL(`egginc/${item.tierProps.icon_filename}`, 128)"
                     class="inline h-4 w-4 relative -top-px"
                   />
-                  <span>{{ item.tierProps.name }}</span>
+                  <span>{{ item.tierProps.name }} (T{{ item.tierProps.tier_number }})</span>
                   <span v-if="item.afxRarity > 0" :class="artifactRarityFgClass(item.afxRarity)">
                     {{ item.effect?.rarity }}
                   </span>

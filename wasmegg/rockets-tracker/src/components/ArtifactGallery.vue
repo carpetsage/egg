@@ -22,7 +22,7 @@
             <div>
               <div class="font-medium">
                 <img :src="iconURL(artifact.iconPath)" class="inline h-4 w-4 relative -top-px" />
-                {{ artifact.name }}
+                {{ artifact.name }} (T{{ artifact.tierNumber }})
                 <span
                   v-if="artifact.afxRarity > 0"
                   :class="artifactRarityFgClass(artifact.afxRarity)"
@@ -39,7 +39,7 @@
             <div v-for="(stone, stoneIndex) in artifact.stones" :key="stoneIndex">
               <div>
                 <img :src="iconURL(stone.iconPath)" class="inline h-4 w-4 relative -top-px" />
-                {{ stone.name }}
+                {{ stone.name }} (T{{ stone.tierNumber }})
               </div>
               <div>
                 <span class="text-green-300">{{ stone.effectSize }}</span>
