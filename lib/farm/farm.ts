@@ -29,6 +29,13 @@ import {
   layableEggsPerSecond,
 } from './laying_rate';
 import {
+  bareMaxRunningChickenBonus,
+  bareMaxRunningChickenBonusWithMaxedCommonResearches,
+  maxRunningChickenBonus,
+  maxRunningChickenBonusResearches,
+  maxRunningChickenBonusWithMaxedCommonResearches,
+} from './max_rcb';
+import {
   shippingCapacityResearches,
   ShippingCapacityResearchInstance,
   Vehicle,
@@ -332,6 +339,37 @@ export class Farm {
   @Memoize()
   get activeBoostBeacons(): BoostInstance[] {
     return activeBoostBeacons(this);
+  }
+
+  @Memoize()
+  get maxRunningChickenBonusResearches(): ResearchInstance[] {
+    return maxRunningChickenBonusResearches(this);
+  }
+
+  @Memoize()
+  get bareMaxRunningChickenBonus(): number {
+    return bareMaxRunningChickenBonus(this, this.maxRunningChickenBonusResearches);
+  }
+
+  @Memoize()
+  get maxRunningChickenBonus(): number {
+    return maxRunningChickenBonus(this, this.maxRunningChickenBonusResearches);
+  }
+
+  @Memoize()
+  get bareMaxRunningChickenBonusWithMaxedCommonResearches(): number {
+    return bareMaxRunningChickenBonusWithMaxedCommonResearches(
+      this,
+      this.maxRunningChickenBonusResearches
+    );
+  }
+
+  @Memoize()
+  get maxRunningChickenBonusWithMaxedCommonResearches(): number {
+    return maxRunningChickenBonusWithMaxedCommonResearches(
+      this,
+      this.maxRunningChickenBonusResearches
+    );
   }
 }
 

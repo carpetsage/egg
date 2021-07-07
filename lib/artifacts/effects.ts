@@ -164,6 +164,10 @@ export class ArtifactSet {
   get boostEffectMultiplier(): number {
     return this.multiplicativeEffect([Name.DILITHIUM_MONOCLE]);
   }
+
+  get maxRunningChickenBonus(): number {
+    return this.additiveEffect([Name.VIAL_MARTIAN_DUST, Name.TERRA_STONE]);
+  }
 }
 
 function newItem(spec: ei.IArtifactSpec): Item {
