@@ -1,13 +1,10 @@
-import {
-  Artifact,
-  ei,
-  Farm,
-  formatEIValue,
-  getNumProphecyEggs,
-  getNumSoulEggs,
-  Stone,
-  uint8ArrayToBinaryString,
-} from 'lib';
+import { uint8ArrayToBinaryString } from '../api';
+import { Artifact, Stone } from '../artifacts';
+import { getNumSoulEggs } from '../earning_bonus';
+import { Farm } from '../farm';
+import { getNumProphecyEggs } from '../prophecy_eggs';
+import { ei } from '../proto';
+import { formatEIValue } from '../units';
 
 import {
   IArtifact as ISandboxArtifact,

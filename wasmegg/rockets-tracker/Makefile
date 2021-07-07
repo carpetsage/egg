@@ -5,15 +5,11 @@ all: clean
 
 init:
 
-build: src/lib/sandbox/schema.js
+build:
 	yarn build
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static
-
-src/lib/sandbox/schema.js: ../artifact-sandbox/src/lib/schema.proto
-	yarn run pbjs -t static-module -w es6 --force-number -o src/lib/sandbox/schema.js ../artifact-sandbox/src/lib/schema.proto
-	yarn run pbts -o src/lib/sandbox/schema.d.ts src/lib/sandbox/schema.js
 
 clean:
 	@$(RM) -r dist

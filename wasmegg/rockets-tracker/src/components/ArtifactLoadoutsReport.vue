@@ -47,9 +47,8 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { eggIconPath, ei, Farm, iconURL } from 'lib';
+import { eggIconPath, ei, Farm, farmToSandboxURL, iconURL } from 'lib';
 import ArtifactGallery from '@/components/ArtifactGallery.vue';
-import { farmToSandboxURL } from '@/lib/sandbox';
 
 export default defineComponent({
   components: {
