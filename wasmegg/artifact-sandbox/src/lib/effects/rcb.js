@@ -33,8 +33,8 @@ function maxRunningChickenBonus(build, config) {
  * @returns {!Number}
  */
 function baseMaxRunningChickenBonus(config) {
-  // Assume max common and epic research.
-  return 540;
+  // Assume max common research.
+  return 340 + config.epicMultiplier * 2;
 }
 
 export { maxRunningChickenBonus, maxRunningChickenBonusMultiplier };

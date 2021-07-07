@@ -42,6 +42,26 @@
       <div class="space-y-1">
         <h4 class="text-center text-sm uppercase">Epic research</h4>
         <div class="relative flex items-center justify-end">
+          <label for="epic_multiplier" class="flex items-center text-sm whitespace-nowrap mr-2">
+            <img
+              :src="iconURL('egginc/r_icon_epic_multiplier.png', 64)"
+              class="h-8 w-8 relative -top-px mr-px"
+            />
+            Epic multiplier
+          </label>
+          <integer-input
+            id="epic_multiplier"
+            v-model="conf.epicMultiplier"
+            :min="0"
+            :max="100"
+            class="pl-2.5 pt-1 pb-0.5"
+            :style="{ width: '5rem' }"
+          />
+          <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">
+            / 100
+          </div>
+        </div>
+        <div class="relative flex items-center justify-end">
           <label for="soul_food" class="flex items-center text-sm whitespace-nowrap mr-2">
             <img
               :src="iconURL('egginc/r_icon_soul_food.png', 64)"

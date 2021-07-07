@@ -359,6 +359,7 @@ export class Stone {
 
 const maxSoulFood = 140;
 const maxProphecyBonus = 5;
+const maxEpicMultiplier = 100;
 
 export class Config {
   constructor() {
@@ -368,6 +369,7 @@ export class Config {
     this.isEnlightenment = false;
     this.soulFood = maxSoulFood;
     this.prophecyBonus = maxProphecyBonus;
+    this.epicMultiplier = maxEpicMultiplier;
     this.birdFeedActive = false;
     this.tachyonPrismActive = false;
     this.soulBeaconActive = false;
@@ -398,6 +400,7 @@ export class Config {
     self.isEnlightenment = config.isEnlightenment;
     self.soulFood = maxSoulFood - config.missingSoulFood;
     self.prophecyBonus = maxProphecyBonus - config.missingProphecyBonus;
+    self.epicMultiplier = maxEpicMultiplier - config.missingEpicMultiplier;
     self.birdFeedActive = config.birdFeedActive;
     self.tachyonPrismActive = config.tachyonPrismActive;
     self.soulBeaconActive = config.soulBeaconActive;
@@ -417,6 +420,7 @@ export class Config {
       isEnlightenment: this.isEnlightenment,
       missingSoulFood: maxSoulFood - this.soulFood,
       missingProphecyBonus: maxProphecyBonus - this.prophecyBonus,
+      missingEpicMultiplier: maxEpicMultiplier - this.epicMultiplier,
       birdFeedActive: this.birdFeedActive,
       tachyonPrismActive: this.tachyonPrismActive,
       soulBeaconActive: this.soulBeaconActive,
@@ -429,7 +433,11 @@ export class Config {
    * @returns {!Boolean}
    */
   epicResearchMaxed() {
-    return this.soulFood === maxSoulFood && this.prophecyBonus === maxProphecyBonus;
+    return (
+      this.soulFood === maxSoulFood &&
+      this.prophecyBonus === maxProphecyBonus &&
+      this.epicMultiplier === maxEpicMultiplier
+    );
   }
 
   /**

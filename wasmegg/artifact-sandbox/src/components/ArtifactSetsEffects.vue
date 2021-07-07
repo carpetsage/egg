@@ -18,6 +18,16 @@
         <template v-if="builds.config.epicResearchMaxed()">Max epic research</template>
         <template v-else>
           <div>Max epic research except:</div>
+          <div v-if="builds.config.epicMultiplier < 100" class="flex whitespace-nowrap">
+            <img
+              :src="iconURL('egginc/r_icon_epic_multiplier.png', 64)"
+              class="inline h-6 w-6 -mt-0.5 mr-1"
+            />
+            <span class="text-sm">
+              Epic multiplier
+              <span class="Soul">{{ builds.config.epicMultiplier }} / 100</span>
+            </span>
+          </div>
           <div v-if="builds.config.soulFood < 140" class="flex whitespace-nowrap">
             <img :src="iconURL('egginc/r_icon_soul_food.png', 64)" class="inline h-6 w-6 -mt-0.5" />
             <span class="text-sm">
