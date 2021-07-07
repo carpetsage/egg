@@ -30,6 +30,9 @@ export function farmToSandboxConfig(farm: Farm): IBuilds {
   }
   const prophecyBonusResearch = farm.prophecyEggBonusResearches[0];
   const missingProphecyBonus = prophecyBonusResearch.maxLevel - prophecyBonusResearch.level;
+  const epicMultiplierResearch =
+    farm.maxRunningChickenBonusResearches[farm.maxRunningChickenBonusResearches.length - 1];
+  const missingEpicMultiplier = epicMultiplierResearch.maxLevel - epicMultiplierResearch.level;
   const config: IConfig = {
     prophecyEggs: getNumProphecyEggs(backup),
     soulEggs: getNumSoulEggs(backup),
@@ -38,6 +41,7 @@ export function farmToSandboxConfig(farm: Farm): IBuilds {
 
     missingSoulFood,
     missingProphecyBonus,
+    missingEpicMultiplier,
 
     birdFeedActive: true,
     tachyonPrismActive: true,
