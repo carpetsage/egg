@@ -416,7 +416,7 @@ export class Config {
       soulEggsInput: this.soulEggsInput,
       isEnlightenment: this.isEnlightenment,
       missingSoulFood: maxSoulFood - this.soulFood,
-      prophecyBonus: maxProphecyBonus - this.prophecyBonus,
+      missingProphecyBonus: maxProphecyBonus - this.prophecyBonus,
       birdFeedActive: this.birdFeedActive,
       tachyonPrismActive: this.tachyonPrismActive,
       soulBeaconActive: this.soulBeaconActive,
