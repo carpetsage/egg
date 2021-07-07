@@ -43,6 +43,10 @@ function virtualEarningsMultiplier(build, config) {
 function virtualEarningsWithEmptyHabsStartMultiplier(build, config) {
   return (
     virtualEarningsMultiplier(build, config) *
+    multiplicativeEffect(build, config, [
+      ArtifactSpec.Name.THE_CHALICE,
+      ArtifactSpec.Name.LIFE_STONE,
+    ]) *
     (config.tachyonPrismActive ? boostMultiplier(build, config) : 1)
   );
 }

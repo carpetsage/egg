@@ -501,7 +501,7 @@ export default {
         ],
         [
           'SE gain w/ empty habs start',
-          'Same as “SE gain” except for taking into account the indirect earnings bonus from faster chicken population growth when there is a monocle-boosted tachyon prism active. Assumes the tachyon prism is activated at zero population, and population never hits the hab space cap; otherwise, the actual effect is between this stat and “SE gain”.',
+          'Same as “SE gain” except for taking into account the indirect earnings bonus from faster chicken population growth from the chalice, life stones, and a monocle-boosted tachyon prism (if any). Assumes the tachyon prism is activated at zero population, and population never hits the hab space cap; otherwise, the actual effect is between this stat and “SE gain”.',
         ],
         [
           'Boost duration',
