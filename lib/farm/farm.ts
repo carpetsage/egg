@@ -80,7 +80,7 @@ export class Farm {
       if (!activeSet) {
         throw new Error(`no artifact info found for farm '${farm.contractId}'`);
       }
-      const inventory = backup.artifactsDb!.inventoryItems!;
+      const inventory = backup.artifactsDb!.inventoryItems || [];
       const itemIdToArtifact = new Map(inventory.map(item => [item.itemId!, item.artifact!]));
       const artifacts = activeSet
         .slots!.filter(slot => slot.occupied)
