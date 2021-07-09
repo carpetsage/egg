@@ -174,6 +174,10 @@ export class InventoryItem {
     return this.afxTier.id;
   }
 
+  get type(): Type {
+    return this.afxTier.afx_type;
+  }
+
   get tierNumber(): number {
     return this.afxTier.tier_number;
   }
@@ -228,6 +232,34 @@ export class InventoryItem {
       return 0;
     }
     return singleCraftCost(params, this.crafted);
+  }
+
+  stoneSlotCount(rarity: Rarity): number {
+    if (!this.afxTier.effects) {
+      return 0;
+    }
+    for (const effect of this.afxTier.effects) {
+      if (rarity === effect.afx_rarity) {
+        return effect.slots || 0;
+      }
+    }
+    throw new Error(
+      `the impossible happened: invalid rarity ${rarity} for ${this.afxId}:${this.afxLevel}`
+    );
+  }
+
+  effectDelta(rarity: Rarity): number {
+    if (!this.afxTier.effects) {
+      return NaN;
+    }
+    for (const effect of this.afxTier.effects) {
+      if (rarity === effect.afx_rarity) {
+        return effect.effect_delta || 0;
+      }
+    }
+    throw new Error(
+      `the impossible happened: invalid rarity ${rarity} for ${this.afxId}:${this.afxLevel}`
+    );
   }
 }
 

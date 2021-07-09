@@ -29,12 +29,20 @@ export function prophecyEggBonusResearches(farm: Farm): ResearchInstance[] {
   return farm.researches(prophecyEggBonusRelevantResearches);
 }
 
+export function bareSoulEggBonus(farm: Farm, researches: ResearchInstance[]): number {
+  return baseSoulEggBonus + researches.reduce((effect, r) => effect + r.perLevel * r.level, 0);
+}
+
 function soulEggBonus(farm: Farm, researches: ResearchInstance[]): number {
   return (
     baseSoulEggBonus +
     researches.reduce((effect, r) => effect + r.perLevel * r.level, 0) +
     farm.artifactSet.soulEggBonus
   );
+}
+
+export function bareProphecyEggBonus(farm: Farm, researches: ResearchInstance[]): number {
+  return baseProphecyEggBonus + researches.reduce((effect, r) => effect + r.perLevel * r.level, 0);
 }
 
 function prophecyEggBonus(farm: Farm, researches: ResearchInstance[]): number {

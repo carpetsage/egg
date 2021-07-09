@@ -1,5 +1,5 @@
 import { uint8ArrayToBinaryString } from '../api';
-import { Artifact, Stone } from '../artifacts';
+import { Artifact, ArtifactSet, Stone } from '../artifacts';
 import { getNumSoulEggs } from '../earning_bonus';
 import { Farm } from '../farm';
 import { getNumProphecyEggs } from '../prophecy_eggs';
@@ -15,7 +15,16 @@ import {
   IStone as ISandboxStone,
 } from './schema';
 
-export function farmToSandboxConfig(farm: Farm): IBuilds {
+type FarmToSandboxConfigOverride = {
+  isEnlightenment?: boolean;
+  artifactSet?: ArtifactSet;
+  birdFeedActive?: boolean;
+  tachyonPrismActive?: boolean;
+  soulBeaconActive?: boolean;
+  boostBeaconActive?: boolean;
+};
+
+export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOverride): IBuilds {
   const backup = farm.backup;
   if (farm.soulEggBonusResearches.length !== 1) {
     throw new Error(`unexpected soul food progress from save, please consult the developer`);
@@ -34,18 +43,20 @@ export function farmToSandboxConfig(farm: Farm): IBuilds {
     prophecyEggs: getNumProphecyEggs(backup),
     soulEggs: getNumSoulEggs(backup),
     soulEggsInput: formatEIValue(getNumSoulEggs(backup), { decimals: 6 }),
-    isEnlightenment: farm.egg === ei.Egg.ENLIGHTENMENT,
+    isEnlightenment: override?.isEnlightenment ?? farm.egg === ei.Egg.ENLIGHTENMENT,
 
     missingSoulFood,
     missingProphecyBonus,
     missingEpicMultiplier,
 
-    birdFeedActive: true,
-    tachyonPrismActive: true,
-    soulBeaconActive: true,
-    boostBeaconActive: true,
+    birdFeedActive: override?.birdFeedActive ?? true,
+    tachyonPrismActive: override?.tachyonPrismActive ?? true,
+    soulBeaconActive: override?.soulBeaconActive ?? true,
+    boostBeaconActive: override?.boostBeaconActive ?? true,
   };
-  const artifacts = farm.artifactSet.artifacts.map(artifactToSandboxArtifact);
+  const artifacts = (override?.artifactSet ?? farm.artifactSet).artifacts.map(
+    artifactToSandboxArtifact
+  );
   while (artifacts.length < 4) {
     artifacts.push({
       isEmpty: true,
@@ -79,8 +90,11 @@ function stonesToSandboxStones(stones: Stone[]): ISandboxStone[] {
   return sandboxStones;
 }
 
-export function farmToSandboxURL(farm: Farm): string {
-  const buf = Builds.encode(farmToSandboxConfig(farm)).finish();
+export function farmToSandboxURL(farm: Farm, override?: FarmToSandboxConfigOverride): string {
+  const buf = Builds.encode(farmToSandboxConfig(farm, override)).finish();
   const encoded = btoa(uint8ArrayToBinaryString(buf));
-  return `/artifact-sandbox/#/b/${encodeURIComponent(encoded)}`;
+  const relURL = `/artifact-sandbox/#/b/${encodeURIComponent(encoded)}`;
+  // Use the canonical deployed URL during development since there wouldn't be a
+  // sandbox instance served from the same origin durating development.
+  return import.meta.env.PROD ? relURL : 'https://wasmegg.netlify.app' + relURL;
 }

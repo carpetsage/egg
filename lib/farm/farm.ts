@@ -10,7 +10,13 @@ import {
   BoostInstance,
   internalHatcheryRateBoostMultiplier,
 } from './boosts';
-import { earningBonus, prophecyEggBonusResearches, soulEggBonusResearches } from './earning_bonus';
+import {
+  bareProphecyEggBonus,
+  bareSoulEggBonus,
+  earningBonus,
+  prophecyEggBonusResearches,
+  soulEggBonusResearches,
+} from './earning_bonus';
 import {
   Hab,
   habList,
@@ -210,6 +216,16 @@ export class Farm {
   @Memoize()
   get prophecyEggBonusResearches(): ResearchInstance[] {
     return prophecyEggBonusResearches(this);
+  }
+
+  @Memoize()
+  get bareSoulEggBonus(): number {
+    return bareSoulEggBonus(this, this.soulEggBonusResearches);
+  }
+
+  @Memoize()
+  get bareProphecyEggBonus(): number {
+    return bareProphecyEggBonus(this, this.prophecyEggBonusResearches);
   }
 
   @Memoize()

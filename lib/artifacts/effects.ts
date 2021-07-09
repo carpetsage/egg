@@ -5,8 +5,9 @@ import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;
 import Rarity = ei.ArtifactSpec.Rarity;
 
-interface Item {
+export interface Item {
   key: string; // Unique identifier
+  id: string; // Longer, more human readable unique identifier
   afxId: Name;
   afxLevel: Level;
   afxRarity: Rarity;
@@ -33,6 +34,10 @@ export class Artifact implements Item {
 
   get key(): string {
     return this.host.key;
+  }
+
+  get id(): string {
+    return this.host.id;
   }
 
   get afxId(): Name {
@@ -97,9 +102,13 @@ export class ArtifactSet {
   artifacts: Artifact[];
   enlightenment: boolean;
 
-  constructor(artifacts: ei.ICompleteArtifact[], enlightenment: boolean) {
+  constructor(artifacts: ei.ICompleteArtifact[] | Artifact[], enlightenment: boolean) {
     this.artifacts = [];
     for (const artifact of artifacts) {
+      if (artifact instanceof Artifact) {
+        this.artifacts.push(artifact);
+        continue;
+      }
       if (!artifact.spec) {
         throw new Error(`complete artifact has no spec: ${JSON.stringify(artifact)}`);
       }
@@ -145,6 +154,19 @@ export class ArtifactSet {
     return this.additiveEffect([Name.BOOK_OF_BASAN, Name.PROPHECY_STONE]);
   }
 
+  get eggValueMultiplier(): number {
+    return this.multiplicativeEffect([
+      Name.DEMETERS_NECKLACE,
+      Name.TUNGSTEN_ANKH,
+      Name.LIGHT_OF_EGGENDIL,
+      Name.SHELL_STONE,
+    ]);
+  }
+
+  get virtualEarningsMultiplier(): number {
+    return this.multiplicativeEffect([Name.PHOENIX_FEATHER]);
+  }
+
   get eggLayingRateMultiplier(): number {
     return this.multiplicativeEffect([Name.QUANTUM_METRONOME, Name.TACHYON_STONE]);
   }
@@ -170,7 +192,7 @@ export class ArtifactSet {
   }
 }
 
-function newItem(spec: ei.IArtifactSpec): Item {
+export function newItem(spec: ei.IArtifactSpec): Item {
   if (spec.name === null || spec.name === undefined) {
     throw new Error(`artifact spec has no name: ${JSON.stringify(spec)}`);
   }
@@ -191,6 +213,10 @@ function newItem(spec: ei.IArtifactSpec): Item {
     if (effect.afx_rarity === afxRarity) {
       return {
         key: `${afxId}:${afxLevel}:${afxRarity}`,
+        id:
+          tier.family.afx_type === ei.ArtifactSpec.Type.ARTIFACT
+            ? `${tier.id}:${Rarity[afxRarity].toLowerCase()}`
+            : tier.id,
         afxId,
         afxLevel,
         afxRarity,

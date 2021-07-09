@@ -13,7 +13,8 @@
     "wasmegg/past-contracts",
     "wasmegg/proto-explorer",
     "wasmegg/researches",
-    "wasmegg/rockets-tracker"
+    "wasmegg/rockets-tracker",
+    "wasmegg/smart-assistant"
   ],
   "dependencies": {
     "vue": "^3.0.5"
