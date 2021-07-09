@@ -3863,9 +3863,10 @@ primeicons@^4.1.0:
   resolved "https://registry.yarnpkg.com/primeicons/-/primeicons-4.1.0.tgz#19eaef8ef5594b0006358ae64e738d03e167c9bb"
   integrity sha512-uEv2pSPk1zQCfaB2VgnUfnUxxlGryYi+5rbdxmZBBt5v9S/pscIQYS5YDLxsQZ7D9jn5c76+Tx5wX/2J1nK6sA==
 
-"primevue@git://github.com/zmwangx/primevue.git#dist.typescript-fix":
-  version "3.3.6"
-  resolved "git://github.com/zmwangx/primevue.git#e6fadc181cdd26745d52039f36cbafa52396e26e"
+primevue@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/primevue/-/primevue-3.5.1.tgz#3735a1ddcea3caca5e29046e46f9787b9b666d55"
+  integrity sha512-QLXhsXse21Gz22pFJWVScy443FhnIAOK1OF07VlkaqypylftcpeVF6g9pXCSpQfkXpUc0LsH6kqwB9IlO3Lcgw==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
