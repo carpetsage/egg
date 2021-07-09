@@ -129,7 +129,7 @@
   <div v-if="showProPermitRecommendations" class="space-y-3">
     <div>
       <div class="text-center text-sm font-medium mb-2">
-        Recommended setup for multi-presitge and all-in-one single-prestige
+        Recommended setup for multi-prestige and all-in-one single-prestige
         <template v-if="!hasProPermit">
           <br />
           <span class="text-xs text-red-500">Requires Pro Permit</span>
