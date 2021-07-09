@@ -182,6 +182,9 @@ async function handleRequest(request) {
       'https://gist.github.com/fanaticscripter/ea462d5abf9716efb6053ff9a0ca5758/revisions';
   } else if (code === 'tips') {
     redirectURL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+  } else if (code === 'smart-assistant-beta') {
+    redirectURL =
+      'https://docs.google.com/forms/d/e/1FAIpQLScKvXkUDT3Cpoe5UYjAdbjF5wm0qX1FKXiihORB050pojQyeA/viewform?usp=sf_link';
   } else if (artifactIds.includes(code)) {
     redirectURL = baseRedirectURL + `/#/artifact/${code}`;
   } else if (missionIds.includes(code)) {
