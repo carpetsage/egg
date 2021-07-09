@@ -114,6 +114,7 @@
           >
         </template>
       </div>
+      <div v-if="hasStones">Stones may be arbitrarily rearranged.</div>
     </div>
     <div class="mt-1 text-center text-xs text-gray-500">
       Hover over / click on each artifact to show details
@@ -236,6 +237,9 @@ export default defineComponent({
           )
         : undefined
     );
+    const hasStones = computed(() =>
+      artifactSet.value.artifacts.some(artifact => artifact.stones.length > 0)
+    );
     const sandboxURL = computed(() =>
       farmToSandboxURL(farm.value as Farm, {
         isEnlightenment: isEnlightenment.value,
@@ -251,6 +255,7 @@ export default defineComponent({
       alreadyOptimal,
       multiplier,
       referenceMultiplier,
+      hasStones,
       sandboxURL,
       artifactRarityFgClass,
       artifactRarityBgClass,
