@@ -336,12 +336,10 @@ img.Artifact__stone:nth-child(4) {
 }
 
 svg.Artifact__check {
-  @apply absolute rounded-full;
+  @apply absolute rounded-full bg-white;
   top: 7%;
   right: 7%;
   height: 17%;
   width: 17%;
-  filter: drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white)
-    drop-shadow(-1px 0 0 white);
 }
 </style>
