@@ -43,6 +43,7 @@ export type Tier = TierCore & {
    * Whether the item is craftable (false for T1 items, true otherwise)
    */
   craftable: boolean;
+  base_crafting_prices: number[];
   /**
    * Whether this item's family supports rarities, i.e., true only for artifacts (doesn't matter if this specific tier has only common rarity).
    */

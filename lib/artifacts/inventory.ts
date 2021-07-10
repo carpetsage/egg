@@ -1,6 +1,7 @@
 import { ei } from '../proto';
 import data, { AfxFamily, AfxTier, getArtifactFamilyProps, getArtifactTierProps } from './data';
 import { CraftingPriceParams, Recipe } from './data.json';
+import { Artifact } from './effects';
 
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;
@@ -18,9 +19,11 @@ const itemIdToRecipe = new Map<ItemId, Recipe | null>(
 
 export class Inventory {
   store: Map<Name, Map<Level, InventoryItem>>;
+  stoned: Artifact[];
 
   constructor(db: ei.IArtifactsDB) {
     this.store = new Map();
+    this.stoned = [];
     // Initialize with all possible items.
     for (const tier of data.artifact_families.map(f => f.tiers).flat()) {
       let family = this.store.get(tier.afx_id);
@@ -42,6 +45,9 @@ export class Inventory {
       this.add(artifact.spec!, count);
       for (const stone of artifact.stones || []) {
         this.add(stone, count);
+      }
+      if (artifact.stones && artifact.stones.length > 0) {
+        this.stoned.push(Artifact.fromCompleteArtifact(artifact));
       }
     }
   }

@@ -76,7 +76,12 @@ import {
   Item,
   newItem,
 } from 'lib';
-import { artifactSetVirtualEarningsMultiplier, contenderToArtifactSet } from './artifact_set';
+import {
+  ArtifactAssemblyStatus,
+  ArtifactAssemblyStatusNonMissing,
+  artifactSetVirtualEarningsMultiplier,
+  contenderToArtifactSet,
+} from './artifact_set';
 import { ImpossibleError, newArray, range } from './utils';
 
 const debug = import.meta.env.DEV || import.meta.env.VITE_APP_BETA;
@@ -102,6 +107,36 @@ export class Contender {
     public numStoneSlotsTaken: StoneSlotCount,
     public effectMultiplier: number
   ) {}
+
+  // effectMultiplier is left as default (1).
+  static fromArtifactSet(set: ArtifactSet): Contender {
+    const artifacts = set.artifacts.map(a => a.host);
+    const stones = set.artifacts.map(a => a.stones).flat();
+    const numArtifactSlotsTaken = artifacts.length;
+    const numStoneSlotsTaken = -artifacts.reduce((sum, a) => sum + a.slots, 0) + stones.length;
+    return new Contender(artifacts, stones, numArtifactSlotsTaken, numStoneSlotsTaken, 1);
+  }
+
+  // effectMultiplier isn't compared.
+  equals(other: Contender): boolean {
+    if (this.numArtifactSlotsTaken !== other.numArtifactSlotsTaken) {
+      return false;
+    }
+    if (this.numStoneSlotsTaken !== other.numStoneSlotsTaken) {
+      return false;
+    }
+    const a1 = this.artifacts.map(a => a.key).sort();
+    const a2 = other.artifacts.map(a => a.key).sort();
+    if (a1.join('\t') !== a2.join('\t')) {
+      return false;
+    }
+    const s1 = this.stones.map(s => s.key).sort();
+    const s2 = other.stones.map(s => s.key).sort();
+    if (s1.join('\t') !== s2.join('\t')) {
+      return false;
+    }
+    return true;
+  }
 
   toString(): string {
     const artifactKeys = this.artifacts.map(a => a.id);
@@ -372,7 +407,10 @@ function addStonesToContenders(
   return stonedContenders;
 }
 
-export function suggestArtifactSet(backup: ei.IBackup, strategy: PrestigeStrategy): ArtifactSet {
+export function suggestArtifactSet(
+  backup: ei.IBackup,
+  strategy: PrestigeStrategy
+): { artifactSet: ArtifactSet; assemblyStatuses: ArtifactAssemblyStatusNonMissing[] } {
   let artifactSlots: number;
   switch (strategy) {
     case PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD:
@@ -676,15 +714,25 @@ export function suggestArtifactSet(backup: ei.IBackup, strategy: PrestigeStrateg
   if (flattened.length !== 1) {
     throw new ImpossibleError(`expected 1 winner, found ${flattened.length}: ${flattened}`);
   }
-  const set = contenderToArtifactSet(flattened[0], homeFarm.artifactSet);
+  const result = contenderToArtifactSet(flattened[0], homeFarm.artifactSet, inventory);
   const contenderMultiplier = flattened[0].effectMultiplier;
-  const setMultiplier = artifactSetVirtualEarningsMultiplier(homeFarm, set, strategy);
+  const setMultiplier = artifactSetVirtualEarningsMultiplier(
+    homeFarm,
+    result.artifactSet,
+    strategy
+  );
   if (contenderMultiplier - setMultiplier >= 1e-6) {
     throw new ImpossibleError(
       `recommended artifact set effect multiplier different from two calculation methods, ${contenderMultiplier} !== ${setMultiplier}`
     );
   }
-  return set;
+  if (debug) {
+    console.debug(
+      `assembly statuses:`,
+      result.assemblyStatuses.map(status => ArtifactAssemblyStatus[status]).join(', ')
+    );
+  }
+  return result;
 }
 
 function* combinations<T>(pool: T[], r: number): Generator<T[], void> {

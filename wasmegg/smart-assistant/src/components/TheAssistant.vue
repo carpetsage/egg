@@ -99,7 +99,8 @@
       </div>
       <artifact-gallery
         :strategy="PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD"
-        :artifact-set="suggestedForStandardPermitSinglePreload"
+        :artifact-set="suggestedForStandardPermitSinglePreload.artifactSet"
+        :artifact-assembly-statuses="suggestedForStandardPermitSinglePreload.assemblyStatuses"
         :reference-set="currentlyEquipped"
         :is-enlightenment="false"
         :farm="homeFarm"
@@ -110,7 +111,7 @@
         The optimized stat is &ldquo;<strong>SE gain</strong>&rdquo; in the sandbox.
       </div>
       <div
-        v-if="hasGusset(suggestedForStandardPermitSinglePreload)"
+        v-if="hasGusset(suggestedForStandardPermitSinglePreload.artifactSet)"
         class="mt-0.5 text-center text-xs text-red-500"
       >
         Note that this recommended setup assumes you can take advantage of the increased hab space.
@@ -149,7 +150,8 @@
       </div>
       <artifact-gallery
         :strategy="PrestigeStrategy.PRO_PERMIT_MULTI"
-        :artifact-set="suggestedForProPermitMulti"
+        :artifact-set="suggestedForProPermitMulti.artifactSet"
+        :artifact-assembly-statuses="suggestedForProPermitMulti.assemblyStatuses"
         :reference-set="currentlyEquipped"
         :farm="homeFarm"
         :is-enlightenment="false"
@@ -181,7 +183,8 @@
       </div>
       <artifact-gallery
         :strategy="PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD"
-        :artifact-set="suggestedForProPermitSinglePreload"
+        :artifact-set="suggestedForProPermitSinglePreload.artifactSet"
+        :artifact-assembly-statuses="suggestedForProPermitSinglePreload.assemblyStatuses"
         :reference-set="currentlyEquipped"
         :farm="homeFarm"
         :is-enlightenment="false"
@@ -193,7 +196,7 @@
         The optimized sandbox stat is <span class="underline">SE gain</span>
       </div>
       <div
-        v-if="hasGusset(suggestedForProPermitSinglePreload)"
+        v-if="hasGusset(suggestedForProPermitSinglePreload.artifactSet)"
         class="mt-0.5 text-center text-xs text-red-500"
       >
         Note that this recommended setup assumes you can take advantage of the increased hab space.

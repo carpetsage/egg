@@ -31,18 +31,32 @@
             :src="iconURL(stone.iconPath, 128)"
           />
           <svg
-            v-if="
-              referenceSet &&
-              artifactIndex < referenceSet.artifacts.length &&
-              artifactEqual(artifact, referenceSet.artifacts[artifactIndex])
-            "
-            class="Artifact__check text-green-500 z-20"
+            v-if="artifactAssemblyStatuses"
+            v-tippy="{
+              content: artifactAssemblyStatusTooltip(artifactAssemblyStatuses[artifactIndex]),
+            }"
+            class="Artifact__status z-20 cursor-help"
+            :class="artifactAssemblyStatusClass(artifactAssemblyStatuses[artifactIndex])"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
+            <!-- Heroicon name: solid/check-circle -->
             <path
+              v-if="
+                artifactAssemblyStatuses[artifactIndex] === ArtifactAssemblyStatus.EQUIPPED ||
+                artifactAssemblyStatuses[artifactIndex] === ArtifactAssemblyStatus.ASSEMBLED
+              "
               fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+            <!-- Heroicon name: solid/plus-circle -->
+            <path
+              v-if="
+                artifactAssemblyStatuses[artifactIndex] === ArtifactAssemblyStatus.AWAITING_ASSEMBLY
+              "
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
               clip-rule="evenodd"
             />
           </svg>
@@ -152,7 +166,8 @@ import { ArtifactSet, ei, Farm, farmToSandboxURL, iconURL, trimTrailingZeros } f
 
 import Rarity = ei.ArtifactSpec.Rarity;
 import {
-  artifactEqual,
+  ArtifactAssemblyStatus,
+  ArtifactAssemblyStatusNonMissing,
   artifactSetEqual,
   artifactSetVirtualEarningsMultiplier,
   PrestigeStrategy,
@@ -173,6 +188,10 @@ export default defineComponent({
     },
     referenceSet: {
       type: Object as PropType<ArtifactSet | undefined>,
+      default: undefined,
+    },
+    artifactAssemblyStatuses: {
+      type: Array as PropType<ArtifactAssemblyStatusNonMissing[] | undefined>,
       default: undefined,
     },
     farm: {
@@ -257,11 +276,12 @@ export default defineComponent({
       referenceMultiplier,
       hasStones,
       sandboxURL,
+      ArtifactAssemblyStatus,
       artifactRarityFgClass,
       artifactRarityBgClass,
+      artifactAssemblyStatusClass,
+      artifactAssemblyStatusTooltip,
       iconURL,
-      artifactEqual,
-      artifactSetEqual,
       trimTrailingZeros,
     };
   },
@@ -290,6 +310,28 @@ function artifactRarityBgClass(afxRarity: Rarity): string {
       return 'bg-epic';
     case Rarity.LEGENDARY:
       return 'bg-legendary';
+  }
+}
+
+function artifactAssemblyStatusClass(status: ArtifactAssemblyStatusNonMissing): string {
+  switch (status) {
+    case ArtifactAssemblyStatus.AWAITING_ASSEMBLY:
+      return 'text-red-400';
+    case ArtifactAssemblyStatus.ASSEMBLED:
+      return 'text-blue-400';
+    case ArtifactAssemblyStatus.EQUIPPED:
+      return 'text-green-400';
+  }
+}
+
+function artifactAssemblyStatusTooltip(status: ArtifactAssemblyStatusNonMissing): string {
+  switch (status) {
+    case ArtifactAssemblyStatus.AWAITING_ASSEMBLY:
+      return 'Needs to be assembled';
+    case ArtifactAssemblyStatus.ASSEMBLED:
+      return 'Already in your inventory';
+    case ArtifactAssemblyStatus.EQUIPPED:
+      return 'Already equipped';
   }
 }
 </script>
@@ -340,7 +382,7 @@ img.Artifact__stone:nth-child(4) {
   right: 41%;
 }
 
-svg.Artifact__check {
+svg.Artifact__status {
   @apply absolute rounded-full bg-white;
   top: 7%;
   right: 7%;

@@ -18,6 +18,8 @@ export interface Item {
   effectSize: string;
   effectDelta: number;
   slots: number;
+  quality: number;
+  baseCraftingPrice: number;
   iconPath: string;
 }
 
@@ -32,8 +34,24 @@ export class Artifact implements Item {
     this.stones = stones;
   }
 
+  static fromCompleteArtifact(artifact: ei.ICompleteArtifact): Artifact {
+    if (!artifact.spec) {
+      throw new Error(`complete artifact has no spec: ${JSON.stringify(artifact)}`);
+    }
+    const host = newItem(artifact.spec);
+    const stones = (artifact.stones || []).map(stone => newItem(stone));
+    return new Artifact(host, stones);
+  }
+
   get key(): string {
     return this.host.key;
+  }
+
+  get completeKey(): string {
+    const hostKey = this.host.key;
+    const stoneKeys = this.stones.map(stone => stone.key);
+    stoneKeys.sort();
+    return [hostKey, ...stoneKeys].join(',');
   }
 
   get id(): string {
@@ -80,6 +98,14 @@ export class Artifact implements Item {
     return this.host.slots;
   }
 
+  get quality(): number {
+    return this.host.quality;
+  }
+
+  get baseCraftingPrice(): number {
+    return this.host.baseCraftingPrice;
+  }
+
   get iconPath(): string {
     return this.host.iconPath;
   }
@@ -102,20 +128,10 @@ export class ArtifactSet {
   artifacts: Artifact[];
   enlightenment: boolean;
 
-  constructor(artifacts: ei.ICompleteArtifact[] | Artifact[], enlightenment: boolean) {
-    this.artifacts = [];
-    for (const artifact of artifacts) {
-      if (artifact instanceof Artifact) {
-        this.artifacts.push(artifact);
-        continue;
-      }
-      if (!artifact.spec) {
-        throw new Error(`complete artifact has no spec: ${JSON.stringify(artifact)}`);
-      }
-      const host = newItem(artifact.spec);
-      const stones = (artifact.stones || []).map(stone => newItem(stone));
-      this.artifacts.push(new Artifact(host, stones));
-    }
+  constructor(artifacts: (ei.ICompleteArtifact | Artifact)[], enlightenment: boolean) {
+    this.artifacts = artifacts.map(artifact =>
+      artifact instanceof Artifact ? artifact : Artifact.fromCompleteArtifact(artifact)
+    );
     this.enlightenment = enlightenment;
   }
 
@@ -209,7 +225,8 @@ export function newItem(spec: ei.IArtifactSpec): Item {
   if (tier.effects === null) {
     throw new Error(`${tier.id} has no effects`);
   }
-  for (const effect of tier.effects) {
+  for (let i = 0; i < tier.effects.length; i++) {
+    const effect = tier.effects[i];
     if (effect.afx_rarity === afxRarity) {
       return {
         key: `${afxId}:${afxLevel}:${afxRarity}`,
@@ -227,6 +244,8 @@ export function newItem(spec: ei.IArtifactSpec): Item {
         effectSize: effect.effect_size,
         effectDelta: effect.effect_delta,
         slots: effect.slots || 0,
+        quality: tier.quality,
+        baseCraftingPrice: tier.base_crafting_prices[i],
         iconPath: `egginc/${tier.icon_filename}`,
       };
     }
