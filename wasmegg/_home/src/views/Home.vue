@@ -55,6 +55,20 @@
     <li><base-link href="https://github.com/fanaticscripter/Egg">Source code</base-link></li>
   </ul>
 
+  <div class="relative px-4 py-2 my-2 bg-blue-100 rounded-lg shadow-inner">
+    A brand new tool for automatically recommending optimal prestige artifact loadouts (based on
+    your stats, progress and inventory) is now under public beta. You are invited to join the beta:
+    <base-link href="https://ei.tcl.sh/smart-assistant-beta" @click="setSmartAssistantBetaVisited()"
+      >ei.tcl.sh/smart-assistant-beta</base-link
+    >
+    <span v-if="!smartAssistantBetaVisited" class="absolute -top-1 -right-1 flex h-3 w-3">
+      <span
+        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"
+      ></span>
+      <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+    </span>
+  </div>
+
   <whats-new class="my-4" />
 
   <h2>Tools hosted at independent domains</h2>
@@ -150,6 +164,7 @@ import ToolDescription from '@/components/ToolDescription.vue';
 import V120Badge from '@/components/V120Badge.vue';
 import WhatsNew from '@/components/WhatsNew.vue';
 
+const SMART_ASSISTANT_BETA_VISITED_LOCALSTORAGE_KEY = 'smartAssistantBetaVisited';
 const EASTER_EGG_DAY = 7;
 const EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY = 'easterEggShownAt';
 
@@ -165,6 +180,14 @@ export default defineComponent({
   },
   setup() {
     const donationPageVisited = getDonationPageVisited();
+
+    const smartAssistantBetaVisited = ref(
+      getLocalStorageNoPrefix(SMART_ASSISTANT_BETA_VISITED_LOCALSTORAGE_KEY) !== undefined
+    );
+    const setSmartAssistantBetaVisited = () => {
+      smartAssistantBetaVisited.value = true;
+      setLocalStorageNoPrefix(SMART_ASSISTANT_BETA_VISITED_LOCALSTORAGE_KEY, Date.now());
+    };
 
     const daysVisitedStreak = ref(0);
     const showEasterEgg = ref(false);
@@ -225,6 +248,8 @@ export default defineComponent({
 
     return {
       donationPageVisited,
+      smartAssistantBetaVisited,
+      setSmartAssistantBetaVisited,
       daysVisitedStreak,
       EASTER_EGG_DAY,
       showEasterEgg,

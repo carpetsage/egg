@@ -8,7 +8,7 @@
             v-model="spoilers"
             name="spoilers"
             type="checkbox"
-            class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
           />
         </div>
         <div class="ml-2 text-sm">
@@ -21,10 +21,7 @@
       <li>
         Hovering on the icon or name of an item reveals its crafting recipe; clicking on it takes
         you to the relevant page on
-        <a
-          href="/artifact-explorer/"
-          target="_blank"
-          class="text-blue-500 hover:text-blue-600"
+        <a href="/artifact-explorer/" target="_blank" class="text-blue-500 hover:text-blue-600"
           >Artifact explorer</a
         >.
       </li>

@@ -1,6 +1,9 @@
 <template>
   <div class="mx-4 xl:mx-0">
-    <div v-if="fuelTankEnabled" class="w-max max-w-full mx-auto px-4 py-2 bg-gray-50 rounded-lg shadow">
+    <div
+      v-if="fuelTankEnabled"
+      class="w-max max-w-full mx-auto px-4 py-2 bg-gray-50 rounded-lg shadow"
+    >
       <div class="text-sm text-center">
         Fuel tank usage:
         <span class="text-gray-700 whitespace-nowrap">
@@ -8,28 +11,79 @@
           {{ formatEIValue(fuelTankCapacity, { trim: true }) }}
         </span>
       </div>
-      <div v-if="fuels.length > 0" class="flex flex-wrap justify-center mt-1">
-        <div
-          v-for="fuel in fuels"
-          :key="fuel.egg"
-          class="flex flex-shrink-0 items-center px-1 my-0.5"
-        >
-          <img
-            v-tippy="{ content: fuel.eggName }"
-            class="inline h-4 w-4 align-text-top"
-            :src="iconURL(fuel.eggIconPath, 64)"
-          />
-          <span class="text-xs text-gray-700 tabular-nums">{{ fuel.amountDisplay }}</span>
+
+      <div class="flex justify-center my-1">
+        <div class="relative flex items-start">
+          <div class="flex items-center h-4">
+            <input
+              id="show-exact-fuel-amounts"
+              v-model="showExactFuelAmounts"
+              name="show-exact-fuel-amounts"
+              type="checkbox"
+              class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+            />
+          </div>
+          <div class="ml-1.5 text-xs">
+            <label for="show-exact-fuel-amounts" class="text-gray-600"
+              >Show &ldquo;exact&rdquo; amounts</label
+            >
+          </div>
         </div>
       </div>
+
+      <template v-if="fuels.length > 0">
+        <div v-if="!showExactFuelAmounts" class="flex flex-wrap justify-center mt-1">
+          <div
+            v-for="fuel in fuels"
+            :key="fuel.egg"
+            class="flex flex-shrink-0 items-center px-1 my-0.5"
+          >
+            <img
+              v-tippy="{ content: fuel.eggName }"
+              class="inline h-4 w-4 align-text-top"
+              :src="iconURL(fuel.eggIconPath, 64)"
+            />
+            <span class="text-xs text-gray-700 tabular-nums">{{ fuel.amountDisplay }}</span>
+          </div>
+        </div>
+
+        <div v-else class="grid grid-cols-max-3 items-center text-xs text-gray-700 tabular-nums">
+          <template
+            v-for="fuel in fuels"
+            :key="fuel.egg"
+            class="flex flex-shrink-0 items-center px-1 my-0.5"
+          >
+            <img
+              v-tippy="{ content: fuel.eggName }"
+              class="inline h-4 w-4 align-text-top"
+              :src="iconURL(fuel.eggIconPath, 64)"
+            />
+            <span class="text-right ml-1">{{ formatEIValue(fuel.amount) }}</span>
+            <span class="text-right ml-2"
+              >({{
+                fuel.amount.toLocaleString('en-US', {
+                  minimumFractionDigits: 3,
+                  maximumFractionDigits: 3,
+                })
+              }})</span
+            >
+          </template>
+        </div>
+      </template>
+
+      <template v-else>
+        <div class="text-center text-xs text-gray-700">No fuel stored.</div>
+      </template>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, toRefs } from 'vue';
+import { computed, defineComponent, PropType, ref, toRefs, watch } from 'vue';
 
-import { ei, formatEIValue, iconURL, MissionFuel } from 'lib';
+import { ei, formatEIValue, getLocalStorage, iconURL, MissionFuel, setLocalStorage } from 'lib';
+
+const SHOW_EXACT_FUEL_AMOUNTS_LOCALSTORAGE_KEY = 'showExactFuelAmounts';
 
 export default defineComponent({
   props: {
@@ -71,11 +125,18 @@ export default defineComponent({
     const fuelTankUsage = computed(() =>
       fuels.value.reduce((total, fuel) => total + fuel.amount, 0)
     );
+    const showExactFuelAmounts = ref(
+      getLocalStorage(SHOW_EXACT_FUEL_AMOUNTS_LOCALSTORAGE_KEY) === 'true'
+    );
+    watch(showExactFuelAmounts, () => {
+      setLocalStorage(SHOW_EXACT_FUEL_AMOUNTS_LOCALSTORAGE_KEY, showExactFuelAmounts.value);
+    });
     return {
       fuelTankEnabled,
       fuelTankCapacity,
       fuels,
       fuelTankUsage,
+      showExactFuelAmounts,
       iconURL,
       formatEIValue,
     };
