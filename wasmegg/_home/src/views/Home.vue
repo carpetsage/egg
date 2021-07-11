@@ -71,6 +71,7 @@
     <li><tool-description id="past-contracts" @visit="onvisit" /></li>
     <li><tool-description id="loot-simulator" @visit="onvisit" /><v120-badge /></li>
     <li><tool-description id="enlightenment" @visit="onvisit" /></li>
+    <li><tool-description id="smart-assistant" @visit="onvisit" /></li>
   </ul>
 
   <h3>Data sheets</h3>

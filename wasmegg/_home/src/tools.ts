@@ -5,6 +5,7 @@ import rocketsTrackerIconUrl from '@/icons/rockets-tracker.svg';
 import pastContractsIconUrl from '@/icons/past-contracts.svg';
 import lootSimulatorIconUrl from '@/icons/loot-simulator.svg';
 import enlightenmentIconUrl from '@/icons/enlightenment.svg';
+import smartAssistantIconUrl from '@/icons/smart-assistant.svg';
 
 const now = Date.now();
 
@@ -133,6 +134,15 @@ export const tools = [
     title: 'Enlightenment companion',
     iconUrl: enlightenmentIconUrl,
     description: 'Informational companion on your journey to the Enlightenment Diamond Trophy',
+  }),
+  new Tool({
+    id: 'smart-assistant',
+    title: 'Smart assistant',
+    iconUrl: smartAssistantIconUrl,
+    description:
+      'Smart, personalized artifact loadout generator \u2014 effortlessly optimize your prestige loadout',
+    // Tue Aug 10 16:38:57 UTC 2021
+    newUntil: 1628613537000,
   }),
 
   new Tool({
