@@ -6,7 +6,7 @@ all: clean
 init:
 
 build:
-	VITE_APP_BETA=1 yarn build
+	yarn build
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static
