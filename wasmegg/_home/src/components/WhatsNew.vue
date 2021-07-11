@@ -9,7 +9,9 @@
     <template v-if="newTools.length > 0">
       <h2 class="px-5 font-medium">New tools</h2>
       <ul class="my-1">
-        <li v-for="tool in newTools" :key="tool.id"><tool-link :tool="tool" /></li>
+        <li v-for="tool in newTools" :key="tool.id">
+          <tool-link :tool="tool" /> &mdash; {{ tool.description }}
+        </li>
       </ul>
     </template>
 
