@@ -51,7 +51,7 @@ export function contenderToArtifactSet(
   // directly return it.
   if (contender.equals(Contender.fromArtifactSet(guide))) {
     return {
-      artifactSet: guide,
+      artifactSet: new ArtifactSet(guide.artifacts, false),
       assemblyStatuses: guide.artifacts.map(() => ArtifactAssemblyStatus.EQUIPPED),
     };
   }

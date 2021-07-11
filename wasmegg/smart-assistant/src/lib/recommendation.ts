@@ -714,8 +714,9 @@ export function suggestArtifactSet(
   if (flattened.length !== 1) {
     throw new ImpossibleError(`expected 1 winner, found ${flattened.length}: ${flattened}`);
   }
-  const result = contenderToArtifactSet(flattened[0], homeFarm.artifactSet, inventory);
-  const contenderMultiplier = flattened[0].effectMultiplier;
+  const winner = flattened[0];
+  const result = contenderToArtifactSet(winner, homeFarm.artifactSet, inventory);
+  const contenderMultiplier = winner.effectMultiplier;
   const setMultiplier = artifactSetVirtualEarningsMultiplier(
     homeFarm,
     result.artifactSet,
@@ -723,7 +724,7 @@ export function suggestArtifactSet(
   );
   if (contenderMultiplier - setMultiplier >= 1e-6) {
     throw new ImpossibleError(
-      `recommended artifact set effect multiplier different from two calculation methods, ${contenderMultiplier} !== ${setMultiplier}`
+      `recommended artifact set effect multiplier different from two calculation methods, ${contenderMultiplier} !== ${setMultiplier}: ${winner}`
     );
   }
   if (debug) {
