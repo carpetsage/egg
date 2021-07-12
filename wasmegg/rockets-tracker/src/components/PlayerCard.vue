@@ -381,7 +381,7 @@ dayjs.extend(relativeTime);
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 
-const LEGENDARIES_JEALOUSY_THRESHOLD = 2;
+const LEGENDARIES_JEALOUSY_THRESHOLD = 3;
 
 export default defineComponent({
   components: {
