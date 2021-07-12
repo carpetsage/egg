@@ -311,8 +311,26 @@
             </template>
           </div>
           <div v-if="hasTooManyLegendaries" class="mt-2 text-xs text-yellow-500">
-            You have too many legendaries.<br />Hide them well, or you may soon find jealous players
-            with pitchforks at your doorstep.
+            <template v-if="randIndex % 5 === 0">
+              You have been personally named in a class action lawsuit brought by major trade union
+              <span class="whitespace-nowrap">Farmers Without Legendaries</span>.
+            </template>
+            <template v-else-if="randIndex % 5 === 1">
+              The Secretary of Legendary has launched an investigation into the unusual number of
+              legendaries you possess.
+            </template>
+            <template v-else-if="randIndex % 5 === 2">
+              The Holy Order of Zero Legendaries has sarificed three high-legendary-count
+              individuals in dark rituals over the past week. Take care!
+            </template>
+            <template v-else-if="randIndex % 5 === 3">
+              The Gini coefficient of legendaries inequality has reached an all time high of 95%.
+              You are part of the problem, and the poor have taken note!
+            </template>
+            <template v-else>
+              You have too many legendaries.<br />Hide them well, or you may soon find jealous
+              players with pitchforks at your doorstep.
+            </template>
           </div>
         </div>
 
@@ -454,6 +472,7 @@ export default defineComponent({
       }
       return count >= LEGENDARIES_JEALOUSY_THRESHOLD;
     });
+    const randIndex = Math.floor(Math.random() * 10000);
     return {
       collapsed,
       toggleCollapse,
@@ -483,6 +502,7 @@ export default defineComponent({
       lifetimeEliteDrones,
       lifetimeBoosts,
       hasTooManyLegendaries,
+      randIndex,
       fmt,
       formatEIValue,
       iconURL,
