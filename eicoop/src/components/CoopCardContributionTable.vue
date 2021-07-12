@@ -76,7 +76,7 @@
             v-if="!contributor.isActive"
             v-tippy="{
               content:
-                'This player hasn\'t reported in for a long time and can be kicked by the coop creator.',
+                'This player hasn\'t reported in for a long time and can be kicked by anyone.',
             }"
             viewBox="0 0 256 256"
             class="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0 cursor-help"
