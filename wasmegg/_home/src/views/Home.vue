@@ -107,7 +107,7 @@
   <ul>
     <li>
       <span class="bg-green-100">
-        <base-link href="https://ei.tcl.sh/tips" @click="onrick"
+        <base-link href="https://ei.tcl.sh/tips" :everfresh="true" @click="onrick"
           >Advanced strategies for seasoned players</base-link
         >
         <sup class="text-xs font-medium uppercase text-green-600 ml-1">Secret</sup>
