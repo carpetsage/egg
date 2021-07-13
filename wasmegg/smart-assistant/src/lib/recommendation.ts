@@ -117,6 +117,14 @@ export class Contender {
     return new Contender(artifacts, stones, numArtifactSlotsTaken, numStoneSlotsTaken, 1);
   }
 
+  // Recalculate numArtifactSlotsTaken and numStoneSlotsTaken, getting rid of
+  // strategic fillers.
+  calibrate(): void {
+    this.numArtifactSlotsTaken = this.artifacts.length;
+    this.numStoneSlotsTaken =
+      -this.artifacts.reduce((sum, a) => sum + a.slots, 0) + this.stones.length;
+  }
+
   // effectMultiplier isn't compared.
   equals(other: Contender): boolean {
     if (this.numArtifactSlotsTaken !== other.numArtifactSlotsTaken) {
@@ -715,6 +723,7 @@ export function suggestArtifactSet(
     throw new ImpossibleError(`expected 1 winner, found ${flattened.length}: ${flattened}`);
   }
   const winner = flattened[0];
+  winner.calibrate();
   const result = contenderToArtifactSet(winner, homeFarm.artifactSet, inventory);
   const contenderMultiplier = winner.effectMultiplier;
   const setMultiplier = artifactSetVirtualEarningsMultiplier(
