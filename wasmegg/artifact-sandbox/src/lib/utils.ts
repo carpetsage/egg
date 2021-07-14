@@ -1,7 +1,20 @@
 import { trimTrailingZeros } from 'lib';
 
 export function formatFloat(x: number, decimals = 3): string {
-  return trimTrailingZeros(x.toFixed(decimals));
+  if (isNaN(x)) {
+    return 'NaN';
+  }
+  if (x < 0) {
+    return '-' + formatFloat(-x, decimals);
+  }
+  if (!isFinite(x)) {
+    return 'infinity';
+  }
+  if (x < 1e6) {
+    return trimTrailingZeros(x.toFixed(decimals));
+  } else {
+    return x.toExponential(decimals);
+  }
 }
 
 export function formatPercentage(x: number, decimals?: number): string {
