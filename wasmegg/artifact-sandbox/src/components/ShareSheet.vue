@@ -1,138 +1,154 @@
 <template>
-  <div v-if="show" class="fixed z-50 inset-0 overflow-y-auto">
-    <div
-      class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+  <TransitionRoot as="template" :show="show">
+    <Dialog
+      as="div"
+      static
+      class="fixed z-10 inset-0 overflow-y-auto"
+      :open="show"
+      @close="$emit('update:show', false)"
     >
-      <!-- Background overlay -->
       <div
-        class="fixed inset-0 transition-opacity"
-        aria-hidden="true"
-        @click="$emit('update:show', false)"
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
       >
-        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-      </div>
+        <TransitionChild
+          as="template"
+          enter="ease-out duration-300"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="ease-in duration-200"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <DialogOverlay class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+        </TransitionChild>
 
-      <!-- This element is to trick the browser into centering the modal contents. -->
-      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true"
-        >&#8203;</span
-      >
-
-      <!-- Modal panel -->
-      <div
-        class="inline-block align-bottom bg-dark-25 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full sm:p-6"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-headline"
-      >
-        <div class="absolute top-0 right-0 pt-4 pr-4">
-          <button
-            type="button"
-            class="rounded-md text-dark-70 hover:text-dark-60 focus:outline-none"
-            @click="$emit('update:show', false)"
-          >
-            <span class="sr-only">Close</span>
-            <svg
-              class="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <div>
-          <p class="text-base">Copy the shareable link</p>
-          <div class="mt-1 flex rounded-md shadow-sm">
-            <div class="relative flex items-stretch flex-grow focus-within:z-10">
-              <input
-                type="text"
-                class="bg-dark-20 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-none rounded-l-md sm:text-sm border truncate"
-                :value="link"
-                readonly
-              />
-            </div>
-            <button
-              class="-ml-px relative inline-flex items-center space-x-2 px-2 py-2 border border-gray-500 text-sm font-medium rounded-r-md bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              @click="copyLink"
-            >
-              <svg
-                class="h-5 w-5 transition duration-300 ease-in-out"
-                :class="linkCopied ? 'text-blue-300' : 'text-gray-50'"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
-                <path
-                  d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="relative mt-2 mb-1">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-dark-30"></div>
-          </div>
-          <div class="relative flex justify-center">
-            <span class="px-2 bg-dark-25 text-dark-60 text-sm uppercase">Or</span>
-          </div>
-        </div>
-
-        <div>
-          <p class="text-base">Share an image</p>
-          <p class="flex items-center">
-            <input
-              id="show_footnotes"
-              :checked="showFootnotes"
-              name="show_footnotes"
-              type="checkbox"
-              class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-dark-30 rounded"
-              @change="updateShowFootnotes"
-            />
-            <label for="show_footnotes" class="ml-2 block text-sm">Show effect footnotes</label>
-          </p>
-          <p class="text-xs text-dark-60">Right click / long press to copy or share</p>
+        <!-- This element is to trick the browser into centering the modal contents. -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true"
+          >&#8203;</span
+        >
+        <TransitionChild
+          as="template"
+          enter="ease-out duration-300"
+          enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          enter-to="opacity-100 translate-y-0 sm:scale-100"
+          leave="ease-in duration-200"
+          leave-from="opacity-100 translate-y-0 sm:scale-100"
+          leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        >
           <div
-            class="mt-2 relative w-full border border-dark-30 rounded-lg shadow-lg"
-            :class="imageURL === '' ? 'bg-dark-20' : null"
-            :style="{ paddingBottom: `${placeholderAspectRatio * 100}%` }"
+            class="inline-block align-bottom bg-dark-25 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
           >
-            <img v-if="imageURL !== ''" class="absolute top-0 left-0" :src="imageURL" />
-            <div
-              v-else
-              class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg uppercase"
-            >
-              <template v-if="generateImageErrored">
-                <div class="text-center text-red-500">Error generating image</div>
-                <div class="max-w-xs text-xs text-dark-60 normal-case break-all text-justify">
-                  {{ encodedError }}
+            <div class="absolute top-0 right-0 pt-4 pr-4">
+              <button
+                type="button"
+                class="rounded-md text-dark-70 hover:text-dark-60 focus:outline-none"
+                @click="$emit('update:show', false)"
+              >
+                <span class="sr-only">Close</span>
+                <svg
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div>
+              <p class="text-base">Copy the shareable link</p>
+              <div class="mt-1 flex rounded-md shadow-sm">
+                <div class="relative flex items-stretch flex-grow focus-within:z-10">
+                  <input
+                    type="text"
+                    class="bg-dark-20 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-none rounded-l-md sm:text-sm border truncate"
+                    :value="link"
+                    readonly
+                  />
                 </div>
-                <div class="my-2 text-center">
-                  <button
-                    type="button"
-                    class="inline-flex items-center px-3 py-2 border border-dark-30 shadow-sm text-sm leading-4 font-medium rounded-md bg-red-600 hover:bg-red-700 focus:outline-none"
-                    @click="copyErrorCode()"
+                <button
+                  class="-ml-px relative inline-flex items-center space-x-2 px-2 py-2 border border-gray-500 text-sm font-medium rounded-r-md bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  @click="copyLink"
+                >
+                  <svg
+                    class="h-5 w-5 transition duration-300 ease-in-out"
+                    :class="linkCopied ? 'text-blue-300' : 'text-gray-50'"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
                   >
-                    Copy error code
-                  </button>
+                    <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
+                    <path
+                      d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="relative mt-2 mb-1">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-dark-30"></div>
+              </div>
+              <div class="relative flex justify-center">
+                <span class="px-2 bg-dark-25 text-dark-60 text-sm uppercase">Or</span>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-base">Share an image</p>
+              <p class="flex items-center">
+                <input
+                  id="show_footnotes"
+                  :checked="showFootnotes"
+                  name="show_footnotes"
+                  type="checkbox"
+                  class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-dark-30 rounded"
+                  @change="updateShowFootnotes"
+                />
+                <label for="show_footnotes" class="ml-2 block text-sm">Show effect footnotes</label>
+              </p>
+              <p class="text-xs text-dark-60">Right click / long press to copy or share</p>
+              <div
+                class="mt-2 relative w-full border border-dark-30 rounded-lg shadow-lg"
+                :class="imageURL === '' ? 'bg-dark-20' : null"
+                :style="{ paddingBottom: `${placeholderAspectRatio * 100}%` }"
+              >
+                <img v-if="imageURL !== ''" class="absolute top-0 left-0" :src="imageURL" />
+                <div
+                  v-else
+                  class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg uppercase"
+                >
+                  <template v-if="generateImageErrored">
+                    <div class="text-center text-red-500">Error generating image</div>
+                    <div class="max-w-xs text-xs text-dark-60 normal-case break-all text-justify">
+                      {{ encodedError }}
+                    </div>
+                    <div class="my-2 text-center">
+                      <button
+                        type="button"
+                        class="inline-flex items-center px-3 py-2 border border-dark-30 shadow-sm text-sm leading-4 font-medium rounded-md bg-red-600 hover:bg-red-700 focus:outline-none"
+                        @click="copyErrorCode()"
+                      >
+                        Copy error code
+                      </button>
+                    </div>
+                  </template>
+                  <template v-else>Generating...</template>
                 </div>
-              </template>
-              <template v-else>Generating...</template>
+              </div>
             </div>
           </div>
-        </div>
+        </TransitionChild>
       </div>
-    </div>
-  </div>
+    </Dialog>
+  </TransitionRoot>
 </template>
 
 <script lang="ts">
@@ -140,12 +156,19 @@ import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import copyTextToClipboard from 'copy-text-to-clipboard';
 import html2canvas from 'html2canvas';
+import { Dialog, DialogOverlay, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
 import { Builds } from '@/lib';
 
 let runId = 0;
 
 export default defineComponent({
+  components: {
+    Dialog,
+    DialogOverlay,
+    TransitionChild,
+    TransitionRoot,
+  },
   props: {
     show: {
       type: Boolean,
