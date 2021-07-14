@@ -229,6 +229,11 @@ export default defineComponent({
             clone.style.top = `${offsetY}px`;
             clone.style.width = `${width}px`;
             clone.style.height = `${height}px`;
+            // Remove classes not supported or poorly supported by html2canvas.
+            // - shadow-inner: drop-shadow is broken.
+            for (const cls of ['shadow-inner']) {
+              clone.querySelectorAll(`.${CSS.escape(cls)}`).forEach(el => el.classList.remove(cls));
+            }
           },
         });
 
