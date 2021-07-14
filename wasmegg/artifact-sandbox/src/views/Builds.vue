@@ -105,10 +105,9 @@ export default defineComponent({
     const router = useRouter();
     const { serializedBuilds } = toRefs(props);
 
-    // Use an initial-path dependent key to work around the problem of
-    // artifact-set-builder and configurator not updating upon manual
-    // hashchange.
-    const key = ref(serializedBuilds.value ?? '');
+    // Use a key to work around the problem of artifact-set-builder and
+    // configurator not updating upon manual hashchange.
+    const key = ref(0);
     const builds = ref(deserializeBuilds(serializedBuilds.value));
     const showShareSheet = ref(false);
     const showFootnotesWhenSharing = ref(true);
@@ -131,10 +130,10 @@ export default defineComponent({
     );
 
     onBeforeRouteUpdate(to => {
-      // Rerender on manual hashchange.
+      // On manual hashchange, flip key to rerender everything.
       const newSerializedBuilds = to.params.serializedBuilds as string | undefined;
       builds.value = deserializeBuilds(newSerializedBuilds);
-      key.value = newSerializedBuilds ?? '';
+      key.value = 1 - key.value;
     });
 
     return {
@@ -148,7 +147,7 @@ export default defineComponent({
 
 function deserializeBuilds(s: string | undefined): Builds {
   let builds = Builds.newDefaultBuilds();
-  if (s !== undefined) {
+  if (s) {
     try {
       builds = Builds.deserialize(s);
     } catch (e) {

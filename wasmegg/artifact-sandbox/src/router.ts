@@ -4,20 +4,14 @@ import Builds from '@/views/Builds.vue';
 
 const routes: RouteRecordRaw[] = [
   {
-    name: 'home',
-    path: '/',
-    component: Builds,
-    props: true,
-  },
-  {
     name: 'builds',
-    path: '/b/:serializedBuilds',
+    path: '/b/:serializedBuilds?',
     component: Builds,
     props: true,
   },
   {
     path: '/:catchAll(.*)',
-    redirect: '/',
+    redirect: '/b/',
   },
 ];
 
