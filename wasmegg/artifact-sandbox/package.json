@@ -4,22 +4,24 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vue-tsc --noEmit && vite build",
     "serve": "vite preview",
     "lint": "eslint --ext .js,.ts,.vue src"
   },
   "dependencies": {
     "copy-text-to-clipboard": "^3.0.1",
-    "dayjs": "^1.10.4",
-    "html2canvas": "^1.0.0-rc.7",
+    "dayjs": "^1.10.6",
+    "html2canvas": "^1.0.0",
+    "lib": ">=0.1.0",
     "lunr": "^2.3.9",
-    "protobufjs": "^6.11.2",
     "scroll-into-view-if-needed": "^2.2.28",
     "vue": "^3.0.5",
+    "vue-router": "^4.0.10",
     "vue-tippy": "^6.0.0-alpha.28"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.3.2",
+    "@types/lunr": "^2.3.4",
     "@vitejs/plugin-vue": "^1.2.1",
     "@vue/compiler-sfc": "^3.0.5",
     "autoprefixer": "^10.2.5",

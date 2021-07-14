@@ -2,32 +2,19 @@ import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function shippingCapacityMultiplier(build, config) {
+export function shippingCapacityMultiplier(build: Build, config: Config): number {
   return multiplicativeEffect(build, config, [
     ArtifactSpec.Name.INTERSTELLAR_COMPASS,
     ArtifactSpec.Name.QUANTUM_STONE,
   ]);
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function maxHourlyShippingCapacity(build, config) {
+export function maxHourlyShippingCapacity(build: Build, config: Config): number {
   return baseMaxHourlyShippingCapacity(config) * shippingCapacityMultiplier(build, config);
 }
 
-/**
- * @param {!Config} config
- * @returns {!Number}
- */
-function baseMaxHourlyShippingCapacity(config) {
+/* eslint-disable @typescript-eslint/no-unused-vars */
+function baseMaxHourlyShippingCapacity(config: Config): number {
   // Hyperloop train base shipping rate: 50,000,000/min
   // Affected by the following researches:
   // {id, perLevel, maxLevels}
@@ -60,5 +47,4 @@ function baseMaxHourlyShippingCapacity(config) {
     60
   );
 }
-
-export { shippingCapacityMultiplier, maxHourlyShippingCapacity };
+/* eslint-enable @typescript-eslint/no-unused-vars */

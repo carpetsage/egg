@@ -74,16 +74,18 @@
   />
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, PropType, ref, toRefs, watch } from 'vue';
+import { onBeforeRouteUpdate, useRouter } from 'vue-router';
+
+import { Builds } from '@/lib';
 import ArtifactSetBuilder from '@/components/ArtifactSetBuilder.vue';
 import ArtifactSetDisplay from '@/components/ArtifactSetDisplay.vue';
 import ArtifactSetsEffects from '@/components/ArtifactSetsEffects.vue';
 import Configurator from '@/components/Configurator.vue';
 import ShareSheet from '@/components/ShareSheet.vue';
 
-import { Builds } from '@/lib/models';
-
-export default {
+export default defineComponent({
   components: {
     ArtifactSetBuilder,
     ArtifactSetDisplay,
@@ -92,57 +94,68 @@ export default {
     ShareSheet,
   },
 
-  beforeRouteUpdate(to, from) {
-    // Rerender on manual hashchange.
-    this.builds = this.deserializeBuilds(to.params.serializedBuilds);
-    this.key = to.params.serializedBuilds || '';
-  },
-
   props: {
-    serializedBuilds: String,
+    serializedBuilds: {
+      type: String as PropType<string | undefined>,
+      default: undefined,
+    },
   },
 
-  data() {
-    return {
-      // Use an initial-path dependent key to work around the problem of
-      // artifact-set-builder and configurator not updating upon manual
-      // hashchange.
-      key: this.serializedBuilds || '',
-      builds: this.deserializeBuilds(this.serializedBuilds),
-      showShareSheet: false,
-      showFootnotesWhenSharing: true,
-    };
-  },
+  setup(props) {
+    const router = useRouter();
+    const { serializedBuilds } = toRefs(props);
 
-  watch: {
-    builds: {
-      handler() {
+    // Use an initial-path dependent key to work around the problem of
+    // artifact-set-builder and configurator not updating upon manual
+    // hashchange.
+    const key = ref(serializedBuilds.value ?? '');
+    const builds = ref(deserializeBuilds(serializedBuilds.value));
+    const showShareSheet = ref(false);
+    const showFootnotesWhenSharing = ref(true);
+
+    watch(
+      builds,
+      () => {
         window.history.replaceState(
           {},
-          null,
-          this.$router.resolve({
+          '',
+          router.resolve({
             name: 'builds',
-            params: { serializedBuilds: this.builds.serialize() },
+            params: { serializedBuilds: builds.value.serialize() },
           }).href
         );
       },
-      deep: true,
-    },
-  },
-
-  methods: {
-    deserializeBuilds(s) {
-      let builds = Builds.newDefaultBuilds();
-      if (s !== undefined) {
-        try {
-          builds = Builds.deserialize(s);
-        } catch (e) {
-          console.error(`error deserializing ${s}`);
-          console.error(e);
-        }
+      {
+        deep: true,
       }
-      return builds;
-    },
+    );
+
+    onBeforeRouteUpdate(to => {
+      // Rerender on manual hashchange.
+      const newSerializedBuilds = to.params.serializedBuilds as string | undefined;
+      builds.value = deserializeBuilds(newSerializedBuilds);
+      key.value = newSerializedBuilds ?? '';
+    });
+
+    return {
+      key,
+      builds,
+      showShareSheet,
+      showFootnotesWhenSharing,
+    };
   },
-};
+});
+
+function deserializeBuilds(s: string | undefined): Builds {
+  let builds = Builds.newDefaultBuilds();
+  if (s !== undefined) {
+    try {
+      builds = Builds.deserialize(s);
+    } catch (e) {
+      console.error(`error deserializing ${s}`);
+      console.error(e);
+    }
+  }
+  return builds;
+}
 </script>

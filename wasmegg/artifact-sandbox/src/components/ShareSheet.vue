@@ -92,11 +92,11 @@
           <p class="flex items-center">
             <input
               id="show_footnotes"
-              v-model="showFootnotes"
+              :checked="showFootnotes"
               name="show_footnotes"
               type="checkbox"
               class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-dark-30 rounded"
-              @change="$emit('update:showFootnotes', $event.target.checked)"
+              @change="updateShowFootnotes"
             />
             <label for="show_footnotes" class="ml-2 block text-sm">Show effect footnotes</label>
           </p>
@@ -135,87 +135,74 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { computed, defineComponent, ref, toRefs, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import copyTextToClipboard from 'copy-text-to-clipboard';
 import html2canvas from 'html2canvas';
-import { Builds } from '@/lib/models';
 
-let runId;
+import { Builds } from '@/lib';
 
-export default {
+let runId = 0;
+
+export default defineComponent({
   props: {
-    show: Boolean,
-    showFootnotes: Boolean,
+    show: {
+      type: Boolean,
+      default: false,
+    },
+    showFootnotes: {
+      type: Boolean,
+      default: false,
+    },
     builds: {
       type: Builds,
       required: true,
     },
   },
-
-  emits: ['update:show', 'update:showFootnotes'],
-
-  data() {
-    return {
-      linkCopied: false,
-      imageURL: '',
-      placeholderAspectRatio: 1,
-      generateImageErrored: false,
-      generateImageError: '',
-    };
+  emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    'update:show': (payload: boolean) => true,
+    'update:showFootnotes': (payload: boolean) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
+  setup(props, { emit }) {
+    const router = useRouter();
+    const { show, showFootnotes, builds } = toRefs(props);
 
-  computed: {
-    link() {
-      return (
+    const linkCopied = ref(false);
+    const imageURL = ref('');
+    const placeholderAspectRatio = ref(0);
+    const generateImageErrored = ref(false);
+    const generateImageError = ref('');
+
+    const link = computed(
+      () =>
         window.location.origin +
         window.location.pathname +
-        this.$router.resolve({
+        router.resolve({
           name: 'builds',
-          params: { serializedBuilds: this.builds.serialize() },
+          params: { serializedBuilds: builds.value.serialize() },
         }).href
-      );
-    },
+    );
+    const copyLink = () => {
+      copyTextToClipboard(link.value);
+      linkCopied.value = true;
+    };
 
-    encodedError() {
-      return btoa(`${this.generateImageError}` || '');
-    },
-  },
-
-  watch: {
-    async show() {
-      if (this.show) {
-        this.linkCopied = false;
-        await this.generateImage();
-      }
-    },
-
-    async showFootnotes() {
-      // For some reason, await nextTick() doesn't wait until the DOM changes
-      // are applied, but a macrotask setTimeout (even at 1ms) fixes it.
-      await new Promise(resolve => setTimeout(resolve, 50));
-      await this.generateImage();
-    },
-  },
-
-  methods: {
-    copyLink() {
-      copyTextToClipboard(this.link);
-      this.linkCopied = true;
-    },
-
-    async generateImage() {
+    const generateImage = async () => {
       // Generate a unique runId for the invocation, so that we don't actually
       // render the generated image if there's a later invocation that overrides
       // this one.
       runId = Math.floor(Math.random() * 65536);
       const currentRunId = runId;
 
-      this.imageURL = '';
-      this.generateImageErrored = false;
-      this.generateImageError = '';
-      const target = document.getElementById('builds');
+      imageURL.value = '';
+      generateImageErrored.value = false;
+      generateImageError.value = '';
+      const target = document.getElementById('builds')!;
       if (target.offsetWidth !== 0) {
-        this.placeholderAspectRatio = target.offsetHeight / target.offsetWidth;
+        placeholderAspectRatio.value = target.offsetHeight / target.offsetWidth;
       }
       try {
         const { x: offsetX, y: offsetY, width, height } = target.getBoundingClientRect();
@@ -236,7 +223,7 @@ export default {
             // https://github.com/niklasvh/html2canvas/issues/1878#issuecomment-756504779
             //
             // Using html2canvas has always been shots in the dark like this.
-            const clone = doc.getElementById('builds');
+            const clone = doc.getElementById('builds')!;
             clone.style.position = 'fixed';
             clone.style.left = `${offsetX}px`;
             clone.style.top = `${offsetY}px`;
@@ -254,20 +241,53 @@ export default {
             return;
           }
           if (canvas.width !== 0) {
-            this.placeholderAspectRatio = canvas.height / canvas.width;
+            placeholderAspectRatio.value = canvas.height / canvas.width;
           }
-          this.imageURL = window.URL.createObjectURL(blob);
+          imageURL.value = window.URL.createObjectURL(blob);
         }, 'image/png');
       } catch (e) {
-        this.generateImageErrored = true;
-        this.generateImageError = e.stack;
-        console.error(`error generating image: ${e}`);
+        generateImageErrored.value = true;
+        generateImageError.value = e.stack;
+        console.error('error generating image');
+        console.error(e);
       }
-    },
+    };
 
-    copyErrorCode() {
-      copyTextToClipboard(this.encodedError);
-    },
+    watch(show, async () => {
+      if (show.value) {
+        linkCopied.value = false;
+        await generateImage();
+      }
+    });
+    watch(showFootnotes, async () => {
+      // For some reason, await nextTick() doesn't wait until the DOM changes
+      // are applied, but a macrotask setTimeout (even at 1ms) fixes it.
+      await new Promise(resolve => setTimeout(resolve, 50));
+      await generateImage();
+    });
+
+    const encodedError = computed(() => btoa(generateImageError.value));
+    const copyErrorCode = () => {
+      copyTextToClipboard(encodedError.value);
+    };
+
+    const updateShowFootnotes = (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      emit('update:showFootnotes', target.checked);
+    };
+
+    return {
+      linkCopied,
+      imageURL,
+      placeholderAspectRatio,
+      generateImageErrored,
+      generateImageError,
+      link,
+      copyLink,
+      encodedError,
+      copyErrorCode,
+      updateShowFootnotes,
+    };
   },
-};
+});
 </script>

@@ -17,62 +17,37 @@ import (
 const _appDataFile = "src/lib/data.json"
 
 type AppPayload struct {
-	Artifacts []Artifact `json:"artifacts"`
-	Stones    []Stone    `json:"stones"`
+	Artifacts []Item `json:"artifacts"`
+	Stones    []Item `json:"stones"`
 }
 
-type Artifact struct {
+type Item struct {
 	Id string `json:"id"`
 
-	AfxId     api.ArtifactSpec_Name   `json:"afx_id"`
-	AfxLevel  api.ArtifactSpec_Level  `json:"afx_level"`
-	AfxRarity api.ArtifactSpec_Rarity `json:"afx_rarity"`
+	AfxId     api.ArtifactSpec_Name   `json:"afxId"`
+	AfxLevel  api.ArtifactSpec_Level  `json:"afxLevel"`
+	AfxRarity api.ArtifactSpec_Rarity `json:"afxRarity"`
 
-	FamilyId   string `json:"family_id"`
-	FamilyName string `json:"family_name"`
+	FamilyId   string `json:"familyId"`
+	FamilyName string `json:"familyName"`
 
-	TierId     string `json:"tier_id"`
+	TierId     string `json:"tierId"`
 	Name       string `json:"name"`
-	TierNumber int    `json:"tier_number"`
-	TierName   string `json:"tier_name"`
-
-	Rarity string `json:"rarity"`
+	TierNumber int    `json:"tierNumber"`
+	TierName   string `json:"tierName"`
+	Rarity     string `json:"rarity"`
+	Display    string `json:"display"`
 
 	Effect       string  `json:"effect"`
-	EffectTarget string  `json:"effect_target"`
-	EffectSize   string  `json:"effect_size"`
-	EffectDelta  float64 `json:"effect_delta"`
+	EffectTarget string  `json:"effectTarget"`
+	EffectSize   string  `json:"effectSize"`
+	EffectDelta  float64 `json:"effectDelta"`
 	Slots        uint32  `json:"slots"`
-	FamilyEffect string  `json:"family_effect"`
+	FamilyEffect string  `json:"familyEffect"`
 
-	BaseCraftingPrice float64 `json:"base_crafting_price"`
+	BaseCraftingPrice float64 `json:"baseCraftingPrice"`
 
-	IconFilename string `json:"icon_filename"`
-}
-
-type Stone struct {
-	Id string `json:"id"`
-
-	AfxId    api.ArtifactSpec_Name  `json:"afx_id"`
-	AfxLevel api.ArtifactSpec_Level `json:"afx_level"`
-
-	FamilyId   string `json:"family_id"`
-	FamilyName string `json:"family_name"`
-
-	TierId     string `json:"tier_id"`
-	Name       string `json:"name"`
-	TierNumber int    `json:"tier_number"`
-	TierName   string `json:"tier_name"`
-
-	Effect       string  `json:"effect"`
-	EffectTarget string  `json:"effect_target"`
-	EffectSize   string  `json:"effect_size"`
-	EffectDelta  float64 `json:"effect_delta"`
-	FamilyEffect string  `json:"family_effect"`
-
-	BaseCraftingPrice float64 `json:"base_crafting_price"`
-
-	IconFilename string `json:"icon_filename"`
+	IconPath string `json:"iconPath"`
 }
 
 func main() {
@@ -80,13 +55,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var artifacts []Artifact
-	var stones []Stone
+	var artifacts []Item
+	var stones []Item
 	for _, f := range eiafx.Data.ArtifactFamilies {
 		for _, t := range f.Tiers {
 			if t.AfxType == api.ArtifactSpec_ARTIFACT {
 				for i, r := range t.Effects {
-					artifacts = append(artifacts, Artifact{
+					artifacts = append(artifacts, Item{
 						Id:                fmt.Sprintf("%s:%s", t.Id, strings.ToLower(r.Rarity)),
 						AfxId:             t.AfxId,
 						AfxLevel:          t.AfxLevel,
@@ -98,6 +73,7 @@ func main() {
 						TierNumber:        t.TierNumber,
 						TierName:          t.TierName,
 						Rarity:            r.Rarity,
+						Display:           fmt.Sprintf("%s (T%d), %s", t.Name, t.TierNumber, r.Rarity),
 						Effect:            r.Effect,
 						EffectTarget:      r.EffectTarget,
 						EffectSize:        r.EffectSize,
@@ -105,12 +81,12 @@ func main() {
 						Slots:             *r.Slots,
 						FamilyEffect:      r.FamilyEffect,
 						BaseCraftingPrice: t.BaseCraftingPrices[i],
-						IconFilename:      t.IconFilename,
+						IconPath:          "egginc/" + t.IconFilename,
 					})
 				}
 			} else if t.AfxType == api.ArtifactSpec_STONE {
 				e := t.Effects[0]
-				stones = append(stones, Stone{
+				stones = append(stones, Item{
 					Id:                t.Id,
 					AfxId:             t.AfxId,
 					AfxLevel:          t.AfxLevel,
@@ -120,13 +96,14 @@ func main() {
 					Name:              t.Name,
 					TierNumber:        t.TierNumber,
 					TierName:          t.TierName,
+					Display:           fmt.Sprintf("%s (T%d)", t.Name, t.TierNumber),
 					Effect:            e.Effect,
 					EffectTarget:      e.EffectTarget,
 					EffectSize:        e.EffectSize,
 					EffectDelta:       e.EffectDelta,
 					FamilyEffect:      e.FamilyEffect,
 					BaseCraftingPrice: t.BaseCraftingPrices[0],
-					IconFilename:      t.IconFilename,
+					IconPath:          "egginc/" + t.IconFilename,
 				})
 			}
 		}

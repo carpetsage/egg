@@ -19,7 +19,7 @@
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <img :src="iconURL('egginc/egg_soul.png', 64)" class="h-5 w-5" />
       </div>
-      <ei-value-with-unit-input
+      <e-i-value-input
         id="soul_eggs"
         v-model:raw="conf.soulEggsInput"
         v-model:value="conf.soulEggs"
@@ -187,47 +187,51 @@
   </div>
 </template>
 
-<script>
-import { Config } from '@/lib/models';
+<script lang="ts">
+import { defineComponent, ref, toRefs, watch } from 'vue';
+
+import { iconURL } from 'lib';
+import { Config } from '@/lib';
+import EIValueInput from '@/components/EIValueInput.vue';
 import IntegerInput from '@/components/IntegerInput.vue';
-import EiValueWithUnitInput from '@/components/EiValueWithUnitInput.vue';
 
-export default {
+export default defineComponent({
   components: {
+    EIValueInput,
     IntegerInput,
-    EiValueWithUnitInput,
   },
-
   props: {
     config: {
       type: Config,
       required: true,
     },
   },
-
-  emits: ['update:config'],
-
-  data() {
+  emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    'update:config': (payload: Config) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
+  },
+  setup(props, { emit }) {
+    const { config } = toRefs(props);
+    const conf = ref(config.value);
+    watch(
+      conf,
+      () => {
+        emit('update:config', conf.value);
+      },
+      { deep: true }
+    );
     return {
-      conf: this.config,
+      conf,
+      round,
+      iconURL,
     };
   },
+});
 
-  watch: {
-    conf: {
-      handler() {
-        this.$emit('update:config', this.conf);
-      },
-      deep: true,
-    },
-  },
-
-  methods: {
-    round(x) {
-      return Math.round(x);
-    },
-  },
-};
+function round(x: number): number {
+  return Math.round(x);
+}
 </script>
 
 <style scoped>

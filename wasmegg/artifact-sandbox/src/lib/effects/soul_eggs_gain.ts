@@ -4,30 +4,15 @@ import { multiplicativeEffect } from './common';
 import { boostMultiplier } from './boosts';
 import { earningsWithMaxRunningChickenBonusMultiplier } from './earnings';
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function soulEggsGainMultiplier(build, config) {
+export function soulEggsGainMultiplier(build: Build, config: Config): number {
   return Math.pow(virtualEarningsMultiplier(build, config), 0.21);
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function soulEggsGainWithEmptyHabsStartMultiplier(build, config) {
+export function soulEggsGainWithEmptyHabsStartMultiplier(build: Build, config: Config): number {
   return Math.pow(virtualEarningsWithEmptyHabsStartMultiplier(build, config), 0.21);
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function virtualEarningsMultiplier(build, config) {
+function virtualEarningsMultiplier(build: Build, config: Config): number {
   return (
     earningsWithMaxRunningChickenBonusMultiplier(build, config) *
     multiplicativeEffect(build, config, [ArtifactSpec.Name.PHOENIX_FEATHER]) *
@@ -35,12 +20,7 @@ function virtualEarningsMultiplier(build, config) {
   );
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function virtualEarningsWithEmptyHabsStartMultiplier(build, config) {
+function virtualEarningsWithEmptyHabsStartMultiplier(build: Build, config: Config): number {
   return (
     virtualEarningsMultiplier(build, config) *
     multiplicativeEffect(build, config, [
@@ -50,5 +30,3 @@ function virtualEarningsWithEmptyHabsStartMultiplier(build, config) {
     (config.tachyonPrismActive ? boostMultiplier(build, config) : 1)
   );
 }
-
-export { soulEggsGainMultiplier, soulEggsGainWithEmptyHabsStartMultiplier };

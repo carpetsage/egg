@@ -1,15 +1,9 @@
 import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
-import { maxHabSpace, baseMaxHabSpace, habSpaceMultiplier } from './hab_space';
+import { maxHabSpace, habSpaceMultiplier } from './hab_space';
 
-/**
- * Laying rate multiplier per chicken.
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function layingRateMultiplier(build, config) {
+export function layingRateMultiplier(build: Build, config: Config): number {
   return (
     multiplicativeEffect(build, config, [
       ArtifactSpec.Name.QUANTUM_METRONOME,
@@ -19,22 +13,11 @@ function layingRateMultiplier(build, config) {
   );
 }
 
-/**
- * Multiplier of max laying rate, taking hab space increase into account.
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function maxLayingRateMultiplier(build, config) {
+export function maxLayingRateMultiplier(build: Build, config: Config): number {
   return layingRateMultiplier(build, config) * habSpaceMultiplier(build, config);
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function maxHourlyLayingRate(build, config) {
+export function maxHourlyLayingRate(build: Build, config: Config): number {
   return (
     baseMaxHourlyLayingRatePerChicken(config) *
     layingRateMultiplier(build, config) *
@@ -42,19 +25,8 @@ function maxHourlyLayingRate(build, config) {
   );
 }
 
-/**
- * @param {!Config} config
- * @returns {!Number}
- */
-function baseMaxHourlyLayingRate(config) {
-  return baseMaxHourlyLayingRatePerChicken(config) * baseMaxHabSpace(config);
-}
-
-/**
- * @param {!Config} config
- * @returns {!Number}
- */
-function baseMaxHourlyLayingRatePerChicken(config) {
+/* eslint-disable @typescript-eslint/no-unused-vars */
+function baseMaxHourlyLayingRatePerChicken(config: Config): number {
   // Base rate: 1 egg per 30 seconds
   // Affected by the following researches:
   // {id, perLevel, maxLevels}
@@ -77,5 +49,4 @@ function baseMaxHourlyLayingRatePerChicken(config) {
     3600
   );
 }
-
-export { layingRateMultiplier, maxLayingRateMultiplier, maxHourlyLayingRate };
+/* eslint-enable @typescript-eslint/no-unused-vars */

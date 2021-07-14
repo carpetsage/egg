@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center justify-center mb-2 space-x-1">
     <img
-      :key="config.isEnlightenment"
+      :key="config.isEnlightenment.toString()"
       :src="
         iconURL(
           config.isEnlightenment ? 'egginc/egg_enlightenment.png' : 'egginc/egg_universe.png',
@@ -32,33 +32,32 @@
 
   <template v-else>
     <div v-if="!build.isEmpty()" class="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4 mt-4">
-      <template v-for="(artifact, index) in build.artifacts" :key="index">
-        <div v-if="artifact.isEmpty()" class="bg-dark-23 rounded-lg shadow-inner"></div>
+      <template v-for="(artifact, artifactIndex) in build.artifacts" :key="artifactIndex">
         <div
-          v-else
+          v-if="artifact.nonEmpty()"
           class="text-sm text-center p-2 pt-2.5 bg-dark-23 rounded-lg shadow-inner leading-snug space-y-1"
         >
           <div class="uppercase">
             <span>{{ artifact.name }}</span
             >{{ ' ' }}
-            <span v-if="artifact.afx_rarity > 0" :class="artifact.rarity">
+            <span v-if="artifact.afxRarity > 0" :class="artifact.rarity">
               {{ artifact.rarity }}
             </span>
           </div>
 
           <div>
-            <span class="EffectSize">{{ artifact.effect_size }}</span> {{ artifact.effect_target }}
+            <span class="EffectSize">{{ artifact.effectSize }}</span> {{ artifact.effectTarget }}
           </div>
 
           <div class="space-y-0.5">
             <div
-              v-for="(stone, index) in artifact.activeStones"
-              :key="index"
+              v-for="(stone, stoneIndex) in artifact.activeStones"
+              :key="stoneIndex"
               class="flex flex-wrap items-center justify-center"
             >
               <span class="mr-1">
-                <span class="EffectSize mr-1">{{ stone.effect_size }}</span>
-                <span>{{ stone.effect_target }}</span>
+                <span class="EffectSize mr-1">{{ stone.effectSize }}</span>
+                <span>{{ stone.effectTarget }}</span>
               </span>
               <span
                 class="inline-flex items-center text-xs text-dark-60 whitespace-nowrap leading-normal"
@@ -88,7 +87,7 @@
               />
               <span class="Warning text-xs uppercase"
                 >Not compatible with enlightenment egg
-                <template v-if="artifact.afx_rarity > 0">as configured</template></span
+                <template v-if="artifact.afxRarity > 0">as configured</template></span
               >
             </div>
           </template>
@@ -115,6 +114,7 @@
             </div>
           </template>
         </div>
+        <div v-else class="bg-dark-23 rounded-lg shadow-inner"></div>
       </template>
     </div>
     <div class="flex items-center justify-center mt-3 mb-2">
@@ -127,18 +127,24 @@
   </template>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
+
 import ArtifactDisplay from '@/components/ArtifactDisplay.vue';
 
-import { Build, Config } from '@/lib/models';
-import { stoneSettingCost, aggregateStoneSettingCost } from '@/lib/misc';
-import { formatPercentage } from '@/lib/utils/misc';
+import {
+  aggregateStoneSettingCost,
+  Build,
+  Config,
+  formatPercentage,
+  stoneSettingCost,
+} from '@/lib';
+import { iconURL } from 'lib';
 
-export default {
+export default defineComponent({
   components: {
     ArtifactDisplay,
   },
-
   props: {
     build: {
       type: Build,
@@ -149,13 +155,15 @@ export default {
       required: true,
     },
   },
-
-  methods: {
-    stoneSettingCost,
-    aggregateStoneSettingCost,
-    formatPercentage,
+  setup() {
+    return {
+      stoneSettingCost,
+      aggregateStoneSettingCost,
+      formatPercentage,
+      iconURL,
+    };
   },
-};
+});
 </script>
 
 <style scoped>

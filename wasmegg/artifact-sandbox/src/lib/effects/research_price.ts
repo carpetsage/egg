@@ -2,12 +2,7 @@ import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { aggregateEffect } from './common';
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function researchPriceMultiplier(build, config) {
+export function researchPriceMultiplier(build: Build, config: Config): number {
   return aggregateEffect(
     build,
     config,
@@ -20,13 +15,6 @@ function researchPriceMultiplier(build, config) {
   );
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function researchPriceDiscount(build, config) {
+export function researchPriceDiscount(build: Build, config: Config): number {
   return researchPriceMultiplier(build, config) - 1;
 }
-
-export { researchPriceMultiplier, researchPriceDiscount };

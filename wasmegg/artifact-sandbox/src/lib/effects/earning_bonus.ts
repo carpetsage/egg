@@ -2,12 +2,7 @@ import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { additiveEffect } from './common';
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function earningBonus(build, config) {
+export function earningBonus(build: Build, config: Config): number {
   const peBonus = prophecyEggBonus(build, config);
   const peCount = config.prophecyEggs;
   const seBonus = soulEggBonus(build, config);
@@ -15,12 +10,7 @@ function earningBonus(build, config) {
   return seCount * seBonus * Math.pow(1 + peBonus, peCount);
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function earningBonusMultiplier(build, config) {
+export function earningBonusMultiplier(build: Build, config: Config): number {
   const peBonusBase = baseProphecyEggBonus(config);
   const peBonus = prophecyEggBonus(build, config);
   const peCount = config.prophecyEggs;
@@ -29,12 +19,7 @@ function earningBonusMultiplier(build, config) {
   return Math.pow((1 + peBonus) / (1 + peBonusBase), peCount) * (seBonus / seBonusBase);
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function prophecyEggBonus(build, config) {
+function prophecyEggBonus(build: Build, config: Config): number {
   return (
     baseProphecyEggBonus(config) +
     additiveEffect(build, config, [
@@ -44,29 +29,14 @@ function prophecyEggBonus(build, config) {
   );
 }
 
-/**
- * @param {!Config} config
- * @returns {!Number}
- */
-function baseProphecyEggBonus(config) {
+function baseProphecyEggBonus(config: Config): number {
   return 0.05 + 0.01 * config.prophecyBonus;
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function soulEggBonus(build, config) {
+function soulEggBonus(build: Build, config: Config): number {
   return baseSoulEggBonus(config) + additiveEffect(build, config, [ArtifactSpec.Name.SOUL_STONE]);
 }
 
-/**
- * @param {!Config} config
- * @returns {!Number}
- */
-function baseSoulEggBonus(config) {
+function baseSoulEggBonus(config: Config): number {
   return 0.1 + 0.01 * config.soulFood;
 }
-
-export { earningBonus, earningBonusMultiplier };

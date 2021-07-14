@@ -23,21 +23,24 @@
     confirm-label="Reset"
     cancel-label="Cancel"
     @confirmed="
-      reset();
-      showResetConfirmation = false;
+      () => {
+        reset();
+        showResetConfirmation = false;
+      }
     "
     @cancelled="showResetConfirmation = false"
     @dismissed="showResetConfirmation = false"
   />
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+import { Build } from '@/lib';
 import ArtifactPicker from '@/components/ArtifactPicker.vue';
-import ConfirmationDialog from './ConfirmationDialog.vue';
+import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 
-import { Build } from '@/lib/models';
-
-export default {
+export default defineComponent({
   components: {
     ArtifactPicker,
     ConfirmationDialog,
@@ -78,5 +81,5 @@ export default {
       this.$emit('update:build', emptyBuild);
     },
   },
-};
+});
 </script>

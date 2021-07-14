@@ -31,7 +31,7 @@
           type="text"
           class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-11 pr-12 pt-2.5 pb-2 sm:text-sm bg-dark-20 rounded-md placeholder-white"
           :class="
-            selected && searchFilter === selected.display && selected.afx_rarity > 0
+            selected && searchFilter === selected.display && selected.afxRarity > 0
               ? selected.rarity
               : null
           "
@@ -104,7 +104,7 @@
               class="ml-2 block truncate mt-1"
               :class="[
                 item.id === selected?.id ? 'font-semibold' : 'font-normal',
-                item.afx_rarity > 0 ? item.rarity : null,
+                item.afxRarity > 0 ? item.rarity : null,
               ]"
             >
               {{ item.display }}
@@ -154,19 +154,20 @@
   </div>
 </template>
 
-<script>
-import { computed, defineComponent, nextTick, ref, toRefs } from 'vue';
+<script lang="ts">
+import { computed, defineComponent, nextTick, PropType, Ref, ref, toRefs } from 'vue';
 import scrollIntoView from 'scroll-into-view-if-needed';
 
+import { iconURL } from 'lib';
 import {
-  artifacts,
   artifactIdToArtifact,
-  stones,
-  stoneIdToStone,
+  artifacts,
+  ItemProps,
   searchArtifacts,
   searchStones,
-} from '@/lib/data';
-import { iconURL } from '@/utils';
+  stoneIdToStone,
+  stones,
+} from '@/lib';
 
 export default defineComponent({
   props: {
@@ -176,9 +177,8 @@ export default defineComponent({
       required: true,
     },
     type: {
-      type: String,
+      type: String as PropType<'artifact' | 'stone'>,
       required: true,
-      validator: value => ['artifact', 'stone'].includes(value),
     },
     disabled: {
       type: Boolean,
@@ -186,10 +186,13 @@ export default defineComponent({
     },
   },
   emits: {
-    'update:modelValue': itemId => true,
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    'update:modelValue': (itemId: string) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
+  // Note that we do NOT react to type change.
+  /* eslint-disable vue/no-setup-props-destructure */
   setup(props, { emit }) {
-    // Note that we do NOT react to type change.
     const { type } = props;
     const { modelValue } = toRefs(props);
 
@@ -197,17 +200,19 @@ export default defineComponent({
     const itemIdToItem = type === 'artifact' ? artifactIdToArtifact : stoneIdToStone;
     const searchItems = type === 'artifact' ? searchArtifacts : searchStones;
 
-    const selectButton = ref(null);
-    const dropdownList = ref(null);
+    const selectButton: Ref<HTMLElement | null> = ref(null);
+    const dropdownList: Ref<HTMLElement | null> = ref(null);
 
-    const selected = computed(() => (modelValue.value ? itemIdToItem.get(modelValue.value) : null));
+    const selected = computed(() =>
+      modelValue.value ? itemIdToItem.get(modelValue.value)! : null
+    );
     const searchFilter = ref(selected.value ? selected.value.display : '');
     const filteredItems = computed(() =>
       searchFilter.value !== '' ? searchItems(searchFilter.value) : items
     );
-    const active = ref(null);
+    const active: Ref<ItemProps | null> = ref(null);
 
-    const dropdownListEntryIndex = id => {
+    const dropdownListEntryIndex = (id: string) => {
       const entries = filteredItems.value;
       for (let i = 0; i < entries.length; i++) {
         if (entries[i].id === id) {
@@ -216,7 +221,10 @@ export default defineComponent({
       }
       return -1;
     };
-    const scrollDropdownListEntryIntoViewIfNeeded = (index, block /* ScrollLogicalPosition? */) => {
+    const scrollDropdownListEntryIntoViewIfNeeded = (
+      index: number,
+      block: ScrollLogicalPosition = 'nearest'
+    ) => {
       block ||= 'nearest';
       const node = dropdownList.value?.querySelector(`:scope > li:nth-child(${index + 1})`);
       if (node) {
@@ -249,16 +257,16 @@ export default defineComponent({
       searchFilter.value = selected.value !== null ? selected.value.display : '';
       open.value = false;
     };
-    const selectItem = item => {
+    const selectItem = (item: ItemProps) => {
       emit('update:modelValue', item.id);
     };
-    const activateItem = item => {
+    const activateItem = (item: ItemProps) => {
       active.value = item;
     };
     const deactivateItem = () => {
       active.value = null;
     };
-    const handleKeydown = event => {
+    const handleKeydown = (event: KeyboardEvent) => {
       switch (event.key) {
         case 'Enter': {
           event.preventDefault();

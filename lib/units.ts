@@ -40,20 +40,35 @@ const symbol2oom = new Map(units.map(u => [u.symbol, u.oom]));
 const minOom = units[0].oom;
 const maxOom = units[units.length - 1].oom;
 
-const valueWithUnitRegExpPattern = `\\b(?<value>\\d+(\\.(\\d+)?)?)\\s*(?<unit>${units
+export const valueWithUnitRegExpPattern = `\\b(?<value>\\d+(\\.(\\d+)?)?)\\s*(?<unit>${units
   .map(u => u.symbol)
   .join('|')})\\b`;
 export const valueWithUnitRegExp = new RegExp(valueWithUnitRegExpPattern);
 export const valueWithUnitRegExpGlobal = new RegExp(valueWithUnitRegExpPattern, 'g');
 export const valueWithUnitRegExpExact = new RegExp(`^${valueWithUnitRegExpPattern}$`);
 
-export function parseValueWithUnit(s: string): number | null {
-  const match = s.match(valueWithUnitRegExpExact);
+export const valueWithOptionalUnitRegExpPattern = `\\b(?<value>\\d+(\\.(\\d+)?)?)\\s*(?<unit>${units
+  .map(u => u.symbol)
+  .join('|')})?\\b`;
+export const valueWithOptionalUnitRegExp = new RegExp(valueWithOptionalUnitRegExpPattern);
+export const valueWithOptionalUnitRegExpGlobal = new RegExp(
+  valueWithOptionalUnitRegExpPattern,
+  'g'
+);
+export const valueWithOptionalUnitRegExpExact = new RegExp(
+  `^${valueWithOptionalUnitRegExpPattern}$`
+);
+
+export function parseValueWithUnit(s: string, unitRequired = true): number | null {
+  const match = s.match(unitRequired ? valueWithUnitRegExpExact : valueWithOptionalUnitRegExpExact);
   if (match === null) {
     return null;
   }
   const value = match.groups!.value;
   const unit = match.groups!.unit;
+  if (unit === undefined) {
+    return parseFloat(value);
+  }
   return parseFloat(value) * 10 ** symbol2oom.get(unit)!;
 }
 

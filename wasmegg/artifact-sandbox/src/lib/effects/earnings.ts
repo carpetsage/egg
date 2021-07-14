@@ -6,12 +6,7 @@ import { earningBonusMultiplier } from './earning_bonus';
 import { layingRateMultiplier } from './laying_rate';
 import { maxRunningChickenBonusMultiplier } from './rcb';
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function earningsMultiplier(build, config) {
+export function earningsMultiplier(build: Build, config: Config): number {
   return (
     earningBonusMultiplier(build, config) *
     multiplicativeEffect(build, config, [
@@ -25,13 +20,6 @@ function earningsMultiplier(build, config) {
   );
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function earningsWithMaxRunningChickenBonusMultiplier(build, config) {
+export function earningsWithMaxRunningChickenBonusMultiplier(build: Build, config: Config): number {
   return earningsMultiplier(build, config) * maxRunningChickenBonusMultiplier(build, config);
 }
-
-export { earningsMultiplier, earningsWithMaxRunningChickenBonusMultiplier };

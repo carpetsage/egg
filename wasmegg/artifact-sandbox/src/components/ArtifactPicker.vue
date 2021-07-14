@@ -21,47 +21,48 @@
   </div>
 </template>
 
-<script>
-import { artifactFromId } from '@/lib/data';
-import ArtifactPickerItemSelect from './ArtifactPickerItemSelect.vue';
+<script lang="ts">
+import { computed, defineComponent, PropType, ref, toRefs, watch } from 'vue';
 
-export default {
+import { ArtifactBuildProps, artifactFromId } from '@/lib';
+import ArtifactPickerItemSelect from '@/components/ArtifactPickerItemSelect.vue';
+
+export default defineComponent({
   components: {
     ArtifactPickerItemSelect,
   },
-
   props: {
     artifactIndex: {
       type: Number,
       required: true,
     },
     artifact: {
-      type: Object,
+      type: Object as PropType<ArtifactBuildProps>,
       required: true,
     },
   },
-
-  emits: ['update:artifact'],
-
-  data() {
+  emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    'update:artifact': (payload: ArtifactBuildProps) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
+  },
+  setup(props, { emit }) {
+    const { artifact } = toRefs(props);
+    const numSlots = computed(() => artifactFromId(artifact.value.id)?.slots ?? 0);
+    const selectedArtifact = ref(artifact.value);
+    watch(
+      selectedArtifact,
+      () => {
+        emit('update:artifact', selectedArtifact.value);
+      },
+      {
+        deep: true,
+      }
+    );
     return {
-      selectedArtifact: this.artifact,
+      selectedArtifact,
+      numSlots,
     };
   },
-
-  computed: {
-    numSlots() {
-      return artifactFromId(this.artifact.id)?.slots || 0;
-    },
-  },
-
-  watch: {
-    selectedArtifact: {
-      handler() {
-        this.$emit('update:artifact', this.selectedArtifact);
-      },
-      deep: true,
-    },
-  },
-};
+});
 </script>

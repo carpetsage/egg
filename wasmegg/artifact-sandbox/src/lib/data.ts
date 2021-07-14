@@ -1,31 +1,29 @@
 import lunr from 'lunr';
 
+import { ArtifactSpec } from 'lib/sandbox/schema';
 import data from './data.json';
+import { ItemProps } from './types';
 
-export const artifacts = data.artifacts.map(artifact => ({
-  ...artifact,
-  display: `${artifact.name} (T${artifact.tier_number}), ${artifact.rarity}`,
-  iconPath: `egginc/${artifact.icon_filename}`,
-}));
-export const stones = data.stones.map(stone => ({
-  ...stone,
-  display: `${stone.name} (T${stone.tier_number})`,
-  iconPath: `egginc/${stone.icon_filename}`,
-}));
+export const artifacts = data.artifacts;
+export const stones = data.stones;
 
 export const artifactIdToArtifact = new Map(artifacts.map(artifact => [artifact.id, artifact]));
 export const stoneIdToStone = new Map(stones.map(stone => [stone.id, stone]));
 
-export function artifactFromId(id) {
+export function artifactFromId(id: string): ItemProps | null {
   return artifactIdToArtifact.get(id) || null;
 }
 
-export function artifactFromAfxIdLevelRarity(afxId, afxLevel, afxRarity) {
+export function artifactFromAfxIdLevelRarity(
+  afxId: ArtifactSpec.Name,
+  afxLevel: ArtifactSpec.Level,
+  afxRarity: ArtifactSpec.Rarity
+): ItemProps | null {
   for (const artifact of artifacts) {
     if (
-      artifact.afx_id === afxId &&
-      artifact.afx_level === afxLevel &&
-      artifact.afx_rarity === afxRarity
+      artifact.afxId === afxId &&
+      artifact.afxLevel === afxLevel &&
+      artifact.afxRarity === afxRarity
     ) {
       return artifact;
     }
@@ -33,13 +31,16 @@ export function artifactFromAfxIdLevelRarity(afxId, afxLevel, afxRarity) {
   return null;
 }
 
-export function stoneFromId(id) {
+export function stoneFromId(id: string): ItemProps | null {
   return stoneIdToStone.get(id) || null;
 }
 
-export function stoneFromAfxIdLevel(afxId, afxLevel) {
+export function stoneFromAfxIdLevel(
+  afxId: ArtifactSpec.Name,
+  afxLevel: ArtifactSpec.Level
+): ItemProps | null {
   for (const stone of stones) {
-    if (stone.afx_id === afxId && stone.afx_level === afxLevel) {
+    if (stone.afxId === afxId && stone.afxLevel === afxLevel) {
       return stone;
     }
   }
@@ -74,10 +75,7 @@ const searchTermIgnoreList = ['a', 'i', 'in', 'o', 'of', 't', 'th', 'the'];
 // as the user types.
 //
 // See https://github.com/olivernn/lunr.js/issues/370
-//
-// Typescript signature:
-// function search<T>(index: lunr.Index, userQuery: string, refToItem: (ref: string) => T): T[] {
-function search(index, userQuery, refToItem) {
+function search<T>(index: lunr.Index, userQuery: string, refToItem: (ref: string) => T): T[] {
   let terms = userQuery
     .replace(/[^A-Za-z0-9\s]/g, ' ')
     .split(/\s+/)
@@ -116,13 +114,13 @@ function search(index, userQuery, refToItem) {
     .sort((result1, result2) => result2.score - result1.score);
   // Deduplicate and keep the highest score entry of each result.
   const matchRefs = new Set(matches.map(result => result.ref));
-  return [...matchRefs.entries()].map(([ref, _]) => refToItem(ref));
+  return [...matchRefs.entries()].map(([ref]) => refToItem(ref));
 }
 
-export function searchArtifacts(userQuery) {
-  return search(artifactsSearchIndex, userQuery, ref => artifactIdToArtifact.get(ref));
+export function searchArtifacts(userQuery: string): ItemProps[] {
+  return search(artifactsSearchIndex, userQuery, ref => artifactIdToArtifact.get(ref)!);
 }
 
-export function searchStones(userQuery) {
-  return search(stonesSearchIndex, userQuery, ref => stoneIdToStone.get(ref));
+export function searchStones(userQuery: string): ItemProps[] {
+  return search(stonesSearchIndex, userQuery, ref => stoneIdToStone.get(ref)!);
 }

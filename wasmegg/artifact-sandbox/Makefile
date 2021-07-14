@@ -5,21 +5,17 @@ all: clean
 
 init:
 
-build: src/lib/proto.js src/lib/data.json
+build: src/lib/data.json
 	yarn build
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static
 
-src/lib/proto.js: src/lib/schema.proto
-	yarn run pbjs -p protobuf -t static-module -w es6 --force-number -o src/lib/proto.js src/lib/schema.proto
-	yarn run pbts -o src/lib/proto.d.ts src/lib/proto.js
-
 src/lib/data.json:
 	go run .
 
 clean:
-	@$(RM) -r dist src/lib/proto.js src/lib/proto.d.ts src/lib/data.json
+	@$(RM) -r dist src/lib/data.json
 
 dev:
 	yarn dev

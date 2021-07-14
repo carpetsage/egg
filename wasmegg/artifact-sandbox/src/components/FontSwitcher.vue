@@ -17,15 +17,20 @@
   </div>
 </template>
 
-<script>
-import { setLocalStorage } from '@/utils';
+<script lang="ts">
+import { defineComponent } from 'vue';
 
-export default {
-  methods: {
-    toggleFontMode() {
+import { setLocalStorage } from 'lib';
+
+export default defineComponent({
+  setup() {
+    const toggleFontMode = () => {
       document.body.classList.toggle('font-default');
       setLocalStorage('enhancedReadabilityMode', document.body.classList.contains('font-default'));
-    },
+    };
+    return {
+      toggleFontMode,
+    };
   },
-};
+});
 </script>

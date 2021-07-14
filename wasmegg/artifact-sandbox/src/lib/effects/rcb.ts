@@ -2,23 +2,13 @@ import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { additiveEffect } from './common';
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function maxRunningChickenBonusMultiplier(build, config) {
+export function maxRunningChickenBonusMultiplier(build: Build, config: Config): number {
   const maxRCBBase = baseMaxRunningChickenBonus(config);
   const maxRCB = maxRunningChickenBonus(build, config);
   return maxRCB / maxRCBBase;
 }
 
-/**
- * @param {!Build} build
- * @param {!Config} config
- * @returns {!Number}
- */
-function maxRunningChickenBonus(build, config) {
+export function maxRunningChickenBonus(build: Build, config: Config): number {
   return (
     baseMaxRunningChickenBonus(config) +
     additiveEffect(build, config, [
@@ -28,13 +18,7 @@ function maxRunningChickenBonus(build, config) {
   );
 }
 
-/**
- * @param {!Config} config
- * @returns {!Number}
- */
-function baseMaxRunningChickenBonus(config) {
+function baseMaxRunningChickenBonus(config: Config): number {
   // Assume max common research.
   return 340 + config.epicMultiplier * 2;
 }
-
-export { maxRunningChickenBonus, maxRunningChickenBonusMultiplier };

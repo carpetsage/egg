@@ -93,324 +93,191 @@
       </span>
     </div>
 
-    <!-- :set is not a Vue feature, it's a trick to get a scoped temporary
-    variable so that we don't need to keep track of footnote numbers manually.
-    -->
-    <table class="min-w-full rounded-md overflow-hidden" :set="(footnoteNumber = 1)">
+    <table class="min-w-full rounded-md overflow-hidden">
       <tbody>
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >EB</effect-with-note
-            >
-          </td>
-          <td v-if="buildValidities[0]" class="px-4 py-1.5 text-base text-right whitespace-nowrap">
-            <span class="Value">{{ formatEIPercentage(earningBonus(...buildConfig(0))) }}</span>
-            <span class="Bonus"
-              >&nbsp;(&times;{{ formatFloat(earningBonusMultiplier(...buildConfig(0))) }})</span
-            >
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="eb"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Value">{{ formatEIPercentage(earningBonus(build, config)) }}</span>
+          <span class="Bonus"
+            >&nbsp;(&times;{{ formatFloat(earningBonusMultiplier(build, config)) }})</span
+          >
+        </artifact-sets-effects-row>
 
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Role</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap"
-            :set="(role = earningBonusToFarmerRole(earningBonus(...buildConfig(0))))"
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="role"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <template
+            v-for="role in [earningBonusToFarmerRole(earningBonus(build, config))]"
+            :key="role.name"
           >
             <span :style="{ color: role.color }">
               {{ role.name }}
             </span>
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+          </template>
+        </artifact-sets-effects-row>
 
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Earnings</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap Bonus"
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="earnings"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Bonus">&times;{{ formatFloat(earningsMultiplier(build, config)) }}</span>
+        </artifact-sets-effects-row>
+
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="max-rcb"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Value">{{ maxRunningChickenBonus(build, config) }}</span>
+          <span class="Bonus"
+            >&nbsp;(&times;{{ formatFloat(maxRunningChickenBonusMultiplier(build, config)) }})</span
           >
-            &times;{{ formatFloat(earningsMultiplier(...buildConfig(0))) }}
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+        </artifact-sets-effects-row>
 
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Max RCB</effect-with-note
-            >
-          </td>
-          <td v-if="buildValidities[0]" class="px-4 py-1.5 text-base text-right whitespace-nowrap">
-            <span class="Value">{{ maxRunningChickenBonus(...buildConfig(0)) }}</span>
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="earnings-max-rcb"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Bonus"
+            >&times;{{
+              formatFloat(earningsWithMaxRunningChickenBonusMultiplier(build, config))
+            }}</span
+          >
+        </artifact-sets-effects-row>
+
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="se-gain"
+          :show-footnote="showFootnotes"
+          :dagger="true"
+          :builds="builds"
+        >
+          <span class="Bonus">&times;{{ formatFloat(soulEggsGainMultiplier(build, config)) }}</span>
+        </artifact-sets-effects-row>
+
+        <artifact-sets-effects-row
+          effect-id="se-gain-empty-habs"
+          :show-footnote="showFootnotes"
+          :dagger="true"
+          :builds="builds"
+        >
+          <template #name>SE gain w/<br />empty habs start</template>
+          <template #default="{ build, config }">
             <span class="Bonus"
-              >&nbsp;(&times;{{
-                formatFloat(maxRunningChickenBonusMultiplier(...buildConfig(0)))
-              }})</span
+              >&times;{{
+                formatFloat(soulEggsGainWithEmptyHabsStartMultiplier(build, config))
+              }}</span
             >
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+          </template>
+        </artifact-sets-effects-row>
 
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Earnings w/ Max RCB</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap Bonus"
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="boost-duration"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Bonus"
+            >&times;{{ formatFloat(boostDurationMultiplier(build, config)) }}</span
           >
-            &times;{{
-              formatFloat(earningsWithMaxRunningChickenBonusMultiplier(...buildConfig(0)))
-            }}
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+        </artifact-sets-effects-row>
 
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              :dagger="true"
-              >SE gain</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap Bonus"
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="research-discount"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Bonus">{{ formatFloat(researchPriceDiscount(build, config) * 100) }}%</span>
+        </artifact-sets-effects-row>
+
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="max-hab-space"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Value">{{ maxHabSpace(build, config).toLocaleString('en-US') }}</span>
+          <span class="Bonus"
+            >&nbsp;(&times;{{ formatFloat(habSpaceMultiplier(build, config)) }})</span
           >
-            &times;{{ formatFloat(soulEggsGainMultiplier(...buildConfig(0))) }}
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+        </artifact-sets-effects-row>
 
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              :dagger="true"
-              >SE gain w/<br />empty habs start</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap Bonus"
-          >
-            &times;{{ formatFloat(soulEggsGainWithEmptyHabsStartMultiplier(...buildConfig(0))) }}
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
-
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Boost duration</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap Bonus"
-          >
-            &times;{{ formatFloat(boostDurationMultiplier(...buildConfig(0))) }}
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
-
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Research discount</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap Bonus"
-          >
-            {{ formatFloat(researchPriceDiscount(...buildConfig(0)) * 100) }}%
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
-
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Max hab space</effect-with-note
-            >
-          </td>
-          <td v-if="buildValidities[0]" class="px-4 py-1.5 text-base text-right whitespace-nowrap">
-            <span class="Value">{{ maxHabSpace(...buildConfig(0)).toLocaleString('en-US') }}</span>
-            <span class="Bonus"
-              >&nbsp;(&times;{{ formatFloat(habSpaceMultiplier(...buildConfig(0))) }})</span
-            >
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
-
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Max IHR</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="max-ihr"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span
             v-tippy="{
               content: `
-                At this IHR and with max internal hatchery calm,
-                it takes roughly ${daysToDiamondTrophyAtMaxIHR(0).toFixed(1)} days
-                to hatch 10 billion chickens without boosts.`,
+                At this IHR and with max internal hatchery calm, it takes roughly
+                <span class='text-blue-400'>
+                  ${daysToDiamondTrophyAtMaxIHR(build, config).toFixed(1)}
+                </span>
+                days to hatch 10 billion chickens without boosts.`,
+              allowHTML: true,
             }"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap"
+            class="cursor-help"
           >
             <span class="Value"
               >{{
-                maxInternalHatcheryRatePerMinPerHab(...buildConfig(0)).toLocaleString('en-US')
+                maxInternalHatcheryRatePerMinPerHab(build, config).toLocaleString('en-US')
               }}/min/hab</span
             >
             <span class="Bonus"
-              >&nbsp;(&times;{{
-                formatFloat(internalHatcheryRateMultiplier(...buildConfig(0)))
-              }})</span
+              >&nbsp;(&times;{{ formatFloat(internalHatcheryRateMultiplier(build, config)) }})</span
             >
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+          </span>
+        </artifact-sets-effects-row>
 
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Egg laying rate</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap Bonus"
-          >
-            &times;{{ formatFloat(layingRateMultiplier(...buildConfig(0))) }}
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="elr"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Bonus">&times;{{ formatFloat(layingRateMultiplier(build, config)) }}</span>
+        </artifact-sets-effects-row>
 
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Max egg laying rate</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap Bonus"
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="max-elr"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Value">{{ formatEIValue(maxHourlyLayingRate(build, config)) }}/hr</span>
+          <span class="Bonus"
+            >&nbsp;(&times;{{ formatFloat(maxLayingRateMultiplier(build, config)) }})</span
           >
-            <span class="Value"
-              >{{ formatEIValue(maxHourlyLayingRate(...buildConfig(0))) }}/hr</span
-            >
-            <span class="Bonus"
-              >&nbsp;(&times;{{ formatFloat(maxLayingRateMultiplier(...buildConfig(0))) }})</span
-            >
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+        </artifact-sets-effects-row>
 
-        <tr>
-          <td class="px-4 py-1.5 text-sm text-left">
-            <effect-with-note
-              :note-list="notes"
-              :number="footnoteNumber++"
-              :show-footnote="showFootnotes"
-              >Max shipping capacity</effect-with-note
-            >
-          </td>
-          <td
-            v-if="buildValidities[0]"
-            class="px-4 py-1.5 text-base text-right whitespace-nowrap Bonus"
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
+          effect-id="max-shipping-capacity"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Value"
+            >{{ formatEIValue(maxHourlyShippingCapacity(build, config)) }}/hr</span
           >
-            <span class="Value"
-              >{{ formatEIValue(maxHourlyShippingCapacity(...buildConfig(0))) }}/hr</span
-            >
-            <span class="Bonus"
-              >&nbsp;(&times;{{ formatFloat(shippingCapacityMultiplier(...buildConfig(0))) }})</span
-            >
-          </td>
-          <td v-else class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
-            &mdash;
-          </td>
-        </tr>
+          <span class="Bonus"
+            >&nbsp;(&times;{{ formatFloat(shippingCapacityMultiplier(build, config)) }})</span
+          >
+        </artifact-sets-effects-row>
       </tbody>
     </table>
   </div>
@@ -430,150 +297,117 @@
 
   <div v-if="showFootnotes" class="mt-2">
     <ol class="list-decimal list-inside">
-      <li v-for="(note, index) in notes" :key="index" class="Note text-xs">
-        <span class="text-gray-50">{{ note[0] }}:</span>
-        {{ note[1] }}
+      <li v-for="(effect, index) in effects" :key="index" class="Note text-xs">
+        <span class="text-gray-50">{{ effect.name }}:</span>
+        {{ effect.note }}
       </li>
     </ol>
   </div>
 </template>
 
-<script>
-import EffectWithNote from './EffectWithNote.vue';
-import { Builds } from '@/lib/models';
+<script lang="ts">
+import { computed, defineComponent, toRefs } from 'vue';
+
+import { earningBonusToFarmerRole, formatEIValue, iconURL } from 'lib';
 import {
+  boostDurationMultiplier,
+  Build,
+  Builds,
+  Config,
   earningBonus,
   earningBonusMultiplier,
   earningsMultiplier,
   earningsWithMaxRunningChickenBonusMultiplier,
-  maxRunningChickenBonus,
-  maxRunningChickenBonusMultiplier,
-  soulEggsGainMultiplier,
-  soulEggsGainWithEmptyHabsStartMultiplier,
-  boostDurationMultiplier,
-  researchPriceDiscount,
-  maxHabSpace,
+  formatFloat,
   habSpaceMultiplier,
-  maxInternalHatcheryRatePerMinPerHab,
   internalHatcheryRateMultiplier,
   layingRateMultiplier,
-  maxLayingRateMultiplier,
+  maxHabSpace,
   maxHourlyLayingRate,
-  shippingCapacityMultiplier,
   maxHourlyShippingCapacity,
-} from '@/lib/effects/effects';
-import { earningBonusToFarmerRole } from '@/lib/role';
-import { formatEIValue, formatEIPercentage, formatFloat } from '@/lib/utils/utils';
+  maxInternalHatcheryRatePerMinPerHab,
+  maxLayingRateMultiplier,
+  maxRunningChickenBonus,
+  maxRunningChickenBonusMultiplier,
+  researchPriceDiscount,
+  shippingCapacityMultiplier,
+  soulEggsGainMultiplier,
+  soulEggsGainWithEmptyHabsStartMultiplier,
+} from '@/lib';
+import { effects } from '@/effects';
+import ArtifactSetsEffectsRow from '@/components/ArtifactSetsEffectsRow.vue';
 
-export default {
+export default defineComponent({
   components: {
-    EffectWithNote,
+    ArtifactSetsEffectsRow,
   },
-
   props: {
     builds: {
       type: Builds,
       required: true,
     },
-    showFootnotes: Boolean,
-  },
-
-  data() {
-    return {
-      notes: [
-        ['EB', 'Earning bonus, as shown on the prestige screen.'],
-        [
-          'Role',
-          'This is the role (rank) corresponding to the earning bonus, as used in the Egg, Inc. Discord.',
-        ],
-        [
-          'Earnings',
-          'Aggregate effect on bock earning rate from earning bonus increase, egg value increase, and egg laying rate increase (not considering shipping-limited scenarios). Running chicken bonus is not taken into account here; see “Earnings w/ max RCB” instead. Indirect bonus from boosted chicken population growth is not included.',
-        ],
-        ['Max RCB', 'Max running chicken bonus.'],
-        [
-          'Earnings w/ max RCB',
-          'Increase in bock earning rate assuming the respective max running chicken bonus is attained with and without artifacts.',
-        ],
-        [
-          'SE gain',
-          'Soul egg earning rate multiplier from bock earning rate bonus (with max RCB) and soul egg collection rate bonus. The late game dampening exponent (0.21) is used; may not be accurate for early game players. Indirect bonus from boosted chicken population growth is not included; see “SE gain w/ empty habs start” instead.',
-        ],
-        [
-          'SE gain w/ empty habs start',
-          'Same as “SE gain” except for taking into account the indirect earnings bonus from faster chicken population growth from the chalice, life stones, and a monocle-boosted tachyon prism (if any). Assumes the tachyon prism is activated at zero population, and population never hits the hab space cap; otherwise, the actual effect is between this stat and “SE gain”.',
-        ],
-        [
-          'Boost duration',
-          'Affects the duration of any boost activated while this artifact set is equipped. Artifact changes after activation have no effect on the duration.',
-        ],
-        [
-          'Research discount',
-          'Only applies to common research. Compounds with research sale events: e.g. 60% discount compounded with a 65% research sale results in an aggregate 1−(1−60%)×(1−65%) = 86% discount.',
-        ],
-        ['Max hab space', 'Hab space from four chicken universe habs.'],
-        [
-          'Max IHR',
-          'Internal hatchery rate as shown on the stats page, without taking internal hatchery calm into account.',
-        ],
-        [
-          'Egg laying rate',
-          'Per-chicken multiplier from egg laying rate bonuses. Tachyon deflector bonus included.',
-        ],
-        [
-          'Max egg laying rate',
-          'Total hourly egg laying rate with full habs. Tachyon deflector bonus included.',
-        ],
-        ['Max shipping capacity', 'Actual egg shipping rate is capped at this value.'],
-      ],
-    };
-  },
-
-  computed: {
-    buildValidities() {
-      return this.builds.builds.map(build => !build.hasDuplicates());
+    showFootnotes: {
+      type: Boolean,
+      default: false,
     },
   },
+  setup(props) {
+    const { builds } = toRefs(props);
 
-  methods: {
-    earningBonus,
-    earningBonusMultiplier,
-    earningBonusToFarmerRole,
-    earningsMultiplier,
-    earningsWithMaxRunningChickenBonusMultiplier,
-    maxRunningChickenBonus,
-    maxRunningChickenBonusMultiplier,
-    soulEggsGainMultiplier,
-    soulEggsGainWithEmptyHabsStartMultiplier,
-    boostDurationMultiplier,
-    researchPriceDiscount,
-    maxHabSpace,
-    habSpaceMultiplier,
-    maxInternalHatcheryRatePerMinPerHab,
-    internalHatcheryRateMultiplier,
-    layingRateMultiplier,
-    maxLayingRateMultiplier,
-    maxHourlyLayingRate,
-    shippingCapacityMultiplier,
-    maxHourlyShippingCapacity,
+    const buildValidities = computed(() =>
+      builds.value.builds.map(build => !build.hasDuplicates())
+    );
+    const buildConfigs = computed(() => {
+      const config = builds.value.config;
+      return builds.value.builds.map((build): [Build, Config] => [build, config]);
+    });
 
-    formatEIValue,
-    formatEIPercentage,
-    formatFloat,
-
-    buildConfig(i) {
-      return [this.builds.builds[i], this.builds.config];
-    },
-
-    daysToDiamondTrophyAtMaxIHR(i) {
+    const daysToDiamondTrophyAtMaxIHR = (build: Build, config: Config): number => {
       const rate =
         4 /* 4 habs */ *
         3 /* internal hatchery calm */ *
-        maxInternalHatcheryRatePerMinPerHab(...this.buildConfig(0));
+        maxInternalHatcheryRatePerMinPerHab(build, config);
       return 1e10 / (rate * 60 * 24);
-    },
+    };
+
+    return {
+      buildValidities,
+      buildConfigs,
+      effects,
+
+      earningBonus,
+      earningBonusMultiplier,
+      earningBonusToFarmerRole,
+      earningsMultiplier,
+      earningsWithMaxRunningChickenBonusMultiplier,
+      maxRunningChickenBonus,
+      maxRunningChickenBonusMultiplier,
+      soulEggsGainMultiplier,
+      soulEggsGainWithEmptyHabsStartMultiplier,
+      boostDurationMultiplier,
+      researchPriceDiscount,
+      maxHabSpace,
+      habSpaceMultiplier,
+      maxInternalHatcheryRatePerMinPerHab,
+      internalHatcheryRateMultiplier,
+      layingRateMultiplier,
+      maxLayingRateMultiplier,
+      maxHourlyLayingRate,
+      shippingCapacityMultiplier,
+      maxHourlyShippingCapacity,
+      daysToDiamondTrophyAtMaxIHR,
+
+      iconURL,
+      formatEIValue,
+      formatEIPercentage,
+      formatFloat,
+    };
   },
-};
+});
+
+function formatEIPercentage(x: number): string {
+  return formatEIValue(x * 100) + '%';
+}
 </script>
 
 <style scoped>

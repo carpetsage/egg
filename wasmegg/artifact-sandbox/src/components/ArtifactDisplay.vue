@@ -5,23 +5,16 @@
       class="h-full w-full"
       src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACAAQAAAADrRVxmAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAB3RJTUUH5QIPDA4JRrsP6QAAAAJ0Uk5TAAB2k804AAAAAmJLR0QAAd2KE6QAAAAYSURBVBgZYxgFo2AUjIJRMApGwSigMwAACIAAATZwqqYAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjEtMDItMTVUMTI6MTQ6MDkrMDA6MDAyUXzCAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIxLTAyLTE1VDEyOjE0OjA5KzAwOjAwQwzEfgAAAABJRU5ErkJggg=="
     />
-    <template v-if="!artifact.isEmpty()">
-      <img
-        class="absolute top-0 left-0 h-full w-full z-10"
-        :src="iconURL(`egginc/${artifact.icon_filename}`)"
-      />
+    <template v-if="artifact.nonEmpty()">
+      <img class="absolute top-0 left-0 h-full w-full z-10" :src="iconURL(artifact.iconPath)" />
       <template v-for="(stone, index) in artifact.activeStones.slice().reverse()" :key="index">
-        <img
-          v-if="stone !== null"
-          class="Stone z-20"
-          :src="iconURL(`egginc/${stone.icon_filename}`, 128)"
-        />
+        <img v-if="stone !== null" class="Stone z-20" :src="iconURL(stone.iconPath, 128)" />
       </template>
       <img
-        v-if="artifact.afx_rarity > 0"
+        v-if="artifact.afxRarity > 0"
         class="GlowingEffect absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
         :class="artifact.rarity"
-        :src="glowBackgroundImage(artifact.afx_id, artifact.rarity)"
+        :src="glowBackgroundImage(artifact.afxId, artifact.rarity)"
       />
       <img
         v-if="config.isEnlightenment && !artifact.isEffectiveOnEnlightenment()"
@@ -32,10 +25,14 @@
   </div>
 </template>
 
-<script>
-import { Artifact, Config } from '@/lib/models';
+<script lang="ts">
+import { defineComponent } from 'vue';
 
-export default {
+import { iconURL } from 'lib';
+import { Artifact, Config } from '@/lib';
+import { ArtifactSpec } from '@/lib/proto';
+
+export default defineComponent({
   props: {
     artifact: {
       type: Artifact,
@@ -46,17 +43,20 @@ export default {
       required: true,
     },
   },
-
-  methods: {
-    glowBackgroundImage(afxId, rarity) {
+  setup() {
+    const glowBackgroundImage = (afxId: ArtifactSpec.Name, rarity: string) => {
       const serial = (afxId % 21) + 1;
-      return this.iconURL(
+      return iconURL(
         `egginc-extras/glow/${rarity.toLowerCase()}-${serial.toString().padStart(2, '0')}.png`,
         256
       );
-    },
+    };
+    return {
+      glowBackgroundImage,
+      iconURL,
+    };
   },
-};
+});
 </script>
 
 <style scoped>
