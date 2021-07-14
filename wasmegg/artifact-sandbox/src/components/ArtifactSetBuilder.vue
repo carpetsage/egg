@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref, toRefs, watch } from 'vue';
 
 import { Build } from '@/lib';
 import ArtifactPicker from '@/components/ArtifactPicker.vue';
@@ -45,41 +45,46 @@ export default defineComponent({
     ArtifactPicker,
     ConfirmationDialog,
   },
-
   props: {
     build: {
       type: Build,
       required: true,
     },
   },
-
-  emits: ['update:build'],
-
-  data() {
-    return {
-      // Force children to rerender after resets with a key.
-      key: 0,
-      buildProps: this.build.buildProps(),
-      showResetConfirmation: false,
-    };
+  emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    'update:build': (payload: Build) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
+  setup(props, { emit }) {
+    const { build } = toRefs(props);
 
-  watch: {
-    buildProps: {
-      handler() {
-        this.$emit('update:build', Build.fromBuildProps(this.buildProps));
+    // key is used to force a rerender upon reset.
+    const key = ref(0);
+    const buildProps = ref(build.value.buildProps());
+    const showResetConfirmation = ref(false);
+
+    watch(
+      buildProps,
+      () => {
+        emit('update:build', Build.fromBuildProps(buildProps.value));
       },
-      deep: true,
-    },
-  },
+      { deep: true }
+    );
 
-  methods: {
-    reset() {
+    const reset = () => {
       const emptyBuild = Build.newEmptyBuild();
-      this.buildProps = emptyBuild.buildProps();
-      this.key = 1 - this.key;
-      this.$emit('update:build', emptyBuild);
-    },
+      buildProps.value = emptyBuild.buildProps();
+      key.value = 1 - key.value;
+      emit('update:build', emptyBuild);
+    };
+
+    return {
+      key,
+      buildProps,
+      showResetConfirmation,
+      reset,
+    };
   },
 });
 </script>
