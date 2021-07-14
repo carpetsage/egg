@@ -1,5 +1,5 @@
 <template>
-  <div class="Artifact relative h-full w-full bg-dark-20">
+  <div class="Artifact isolate relative h-full w-full bg-dark-20">
     <!-- transparent 128x128 image to ensure a background with appropriate size is always there -->
     <img
       class="h-full w-full"
