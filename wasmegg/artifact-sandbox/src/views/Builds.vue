@@ -5,17 +5,12 @@
     >
       <div class="w-full px-4 py-4 max-w-4xl mx-auto xl:mx-0">
         <div class="text-center text-sm text-green-200 mb-2">
-          <div class="max-w-lg mx-auto mb-2 px-2 py-1 bg-green-700 rounded">
-            You are invited to participate in the public beta of a new tool which automatically
-            recommends optimal prestige loadouts based on your stats, progress and inventory:
-            <br />
-            <a href="https://ei.tcl.sh/smart-assistant-beta" target="_blank" class="underline"
-              >ei.tcl.sh/smart-assistant-beta</a
-            >
-          </div>
+          <a href="/smart-assistant/" target="_blank" class="bg-green-700 px-1">Smart assistant</a>
+          can
+          <span class="underline">automatically recommend optimal prestige loadouts</span> taylored
+          for you. Highly recommended!<br />
           You can also preload your stats and any active artifact loadout without manual entry using
-          <a href="/rockets-tracker/" target="_blank" class="text-green-400 hover:text-green-500"
-            >Rockets tracker</a
+          <a href="/rockets-tracker/" target="_blank" class="bg-green-700 px-1">Rockets tracker</a
           >.<br />
           Check the &ldquo;artifact loadouts&rdquo; section there.
         </div>
