@@ -5,12 +5,21 @@
     >
       <div class="w-full px-4 py-4 max-w-4xl mx-auto xl:mx-0">
         <div class="text-center text-sm text-green-200 mb-2">
-          <a href="/smart-assistant/" target="_blank" class="bg-green-700 px-1">Smart assistant</a>
+          <a
+            href="/smart-assistant/"
+            target="_blank"
+            class="bg-green-700 hover:text-green-300 px-1 underline"
+            >Smart assistant</a
+          >
           can
           <span class="underline">automatically recommend optimal prestige loadouts</span> taylored
           for you. Highly recommended!<br />
           You can also preload your stats and any active artifact loadout without manual entry using
-          <a href="/rockets-tracker/" target="_blank" class="bg-green-700 px-1">Rockets tracker</a
+          <a
+            href="/rockets-tracker/"
+            target="_blank"
+            class="bg-green-700 hover:text-green-300 px-1 underline"
+            >Rockets tracker</a
           >.<br />
           Check the &ldquo;artifact loadouts&rdquo; section there.
         </div>
