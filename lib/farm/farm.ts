@@ -94,7 +94,18 @@ export class Farm {
           const itemId = slot.itemId!;
           const item = itemIdToArtifact.get(itemId);
           if (!item) {
-            throw new Error(`artifact item with id ${itemId} not found in inventory`);
+            throw new Error(
+              `artifact item with id ${itemId} not found in inventory;
+              you're supposed to have an item with inventory id ${itemId} equipped,
+              but the inventory item is gone, which is a known bug in the game
+              likely triggered by the game creating an inconsistent backup in the
+              middle of an inventory-altering operation like crafting or consuming;
+              the only way to fix this issue is to force another server sync with
+              a consistent backup, e.g. by force closing the app and reopening;
+              note that the server may continue to serve an outdated backup for
+              an unspecified amount of time even after a forced sync, and you'll
+              have to be patient.`
+            );
           }
           return item;
         });
