@@ -320,8 +320,8 @@
               legendaries you possess.
             </template>
             <template v-else-if="randIndex % 5 === 2">
-              The Holy Order of Zero Legendaries has sarificed three high-legendary-count
-              individuals in dark rituals over the past week. Take care!
+              The Holy Order of Zero Legendaries has sacrificed three high-legendary-count
+              individuals in dark rituals over the past week. Watch your back!
             </template>
             <template v-else-if="randIndex % 5 === 3">
               The Gini coefficient of legendaries inequality has reached an all time high of 95%.
