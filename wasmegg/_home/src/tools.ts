@@ -6,6 +6,7 @@ import pastContractsIconUrl from '@/icons/past-contracts.svg';
 import lootSimulatorIconUrl from '@/icons/loot-simulator.svg';
 import enlightenmentIconUrl from '@/icons/enlightenment.svg';
 import smartAssistantIconUrl from '@/icons/smart-assistant.svg';
+import ebebIconUrl from '@/icons/ebeb.svg';
 
 const now = Date.now();
 
@@ -182,6 +183,16 @@ export const tools = [
     title: 'EggContractor',
     description:
       'Contract monitoring web app & CLI client, with multi-account aggregation, offline time tracking, and more',
+  }),
+
+  new Tool({
+    id: 'ebeb',
+    url: 'https://ebeb.netlify.app/',
+    title: 'Earning Bonus Enhancing Bootcamp',
+    iconUrl: ebebIconUrl,
+    description: 'The shortest path to fame and fortune (terms and conditions may apply)',
+    // Tue Jul 20 14:57:17 UTC 2021
+    newUntil: 1626793037000,
   }),
 ];
 

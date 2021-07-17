@@ -105,6 +105,7 @@
 
   <h2>Advanced</h2>
   <ul>
+    <li><tool-description id="ebeb" @visit="onvisit" /></li>
     <li>
       <span class="bg-green-100">
         <base-link href="https://ei.tcl.sh/tips" :everfresh="true" @click="onrick"
