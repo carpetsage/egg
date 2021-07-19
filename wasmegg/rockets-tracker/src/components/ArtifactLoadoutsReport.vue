@@ -1,5 +1,5 @@
 <template>
-  <div v-if="farms.length > 0" class="-mt-2">
+  <div v-if="farms.length > 0" class="-mt-2 mx-4 xl:mx-0">
     <div class="text-center text-xs mb-2">
       You can hover over or click on an artifact to reveal names and effects.
     </div>
@@ -37,6 +37,24 @@
         />
         <div v-else class="text-center text-sm text-gray-700">
           No artifact equipped on this farm.
+        </div>
+        <div v-if="farm.isHomeFarm" class="mt-1 text-center text-xs text-green-700">
+          You can get recommendations for optimal prestige loadouts from
+          <a
+            href="/smart-assistant/"
+            target="_blank"
+            class="text-green-700 hover:text-green-900 underline"
+            >Smart assistant</a
+          >.<template v-if="farm.isEnlightenmentFarm"
+            ><br />
+            If you're aiming for an enlightenment trophy, check
+            <a
+              href="/enlightenment/"
+              target="_blank"
+              class="text-green-700 hover:text-green-900 underline"
+              >Enlightenment companion</a
+            >.</template
+          >
         </div>
       </div>
     </div>

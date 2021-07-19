@@ -116,6 +116,18 @@ export class Farm {
     }
   }
 
+  get type(): ei.FarmType {
+    return this.farm.farmType!;
+  }
+
+  get isHomeFarm(): boolean {
+    return this.type === ei.FarmType.HOME;
+  }
+
+  get isContractFarm(): boolean {
+    return this.type === ei.FarmType.CONTRACT;
+  }
+
   researches<R extends Research>(relevantResearches: R[]): (R & { level: number })[] {
     const common = this.farm.commonResearch || [];
     const epic = this.progress.epicResearch || [];
@@ -143,6 +155,10 @@ export class Farm {
 
   get egg(): ei.Egg {
     return this.farm.eggType!;
+  }
+
+  get isEnlightenmentFarm(): boolean {
+    return this.egg === ei.Egg.ENLIGHTENMENT;
   }
 
   get numChickens(): number {
