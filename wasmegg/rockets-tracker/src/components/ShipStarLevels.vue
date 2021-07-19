@@ -41,6 +41,7 @@
     till next level
 
     <template #content>
+      <span class="text-blue-300">To unlock the next level:</span><br />
       <span class="text-green-300">{{ ship.shortMissionsToNextLevel }}</span> short missions
       (&GreaterEqual;<span class="text-green-300">{{
         formatDuration(ship.shortMissionsTimeToNextLevel, true)
@@ -64,6 +65,7 @@
     till max
 
     <template #content>
+      <span class="text-blue-300">To unlock all levels:</span><br />
       <span class="text-green-300">{{ ship.shortMissionsToMaxLevel }}</span> short missions
       (&GreaterEqual;<span class="text-green-300">{{
         formatDuration(ship.shortMissionsTimeToMaxLevel, true)
