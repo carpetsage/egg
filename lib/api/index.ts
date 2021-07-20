@@ -176,7 +176,10 @@ export function basicRequestInfo(userId: string): ei.IBasicRequestInfo {
   };
 }
 
-const userIdSha256Blacklist = ['bba75a6d240f86d6a43d76e8e231d7b5f9a83c3078b2c7998290aad1660a50f9'];
+const userIdSha256Blacklist = [
+  'bba75a6d240f86d6a43d76e8e231d7b5f9a83c3078b2c7998290aad1660a50f9',
+  '773b99e5d2076c6597655cca7b37124061822eff9b5b4b0f53f985eaa8476f5b',
+];
 
 // Enforces a blacklist, but allow 'mk2!EI...' as the super user bypass.
 function processUserId(userId: string): string {
