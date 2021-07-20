@@ -22,26 +22,24 @@
         <div class="space-y-1">
           <template v-for="(event, index) in d.events" :key="index">
             <tippy
-              v-if="eventTypesOn[event.type] !== false"
+              v-if="eventTypesOn[event.type.id] !== false"
               class="flex items-center md:justify-start space-x-1"
               :class="forceFullWidth ? 'justify-start' : 'justify-center'"
             >
-              <event-badge :event="event" />
+              <event-badge :event="event.type" />
               <span
                 class="text-xs truncate md:inline"
-                :class="[eventFgClass(event.type), forceFullWidth ? 'inline' : 'hidden']"
+                :class="[event.fgClass, forceFullWidth ? 'inline' : 'hidden']"
               >
-                <template v-if="event.type != 'app-update'">
-                  {{ eventCaption(event.type, event.multiplier) }}
-                </template>
-                <template v-else> v{{ event.version }} </template>
+                <template v-if="event.isInGameEvent()">{{ event.caption }}</template>
+                <template v-else>v{{ event.version }}</template>
               </span>
 
               <template #content>
-                <template v-if="event.type != 'app-update'">
-                  <div :class="eventBrightFgClass(event.type)">
+                <template v-if="event.isInGameEvent()">
+                  <div :class="event.brightFgClass">
                     <p class="flex items-center space-x-1">
-                      <event-badge :event="event" />
+                      <event-badge :event="event.type" />
                       <span class="text-xs truncate">
                         {{ event.message }}
                       </span>
@@ -52,13 +50,13 @@
                     </p>
                     <p>
                       <span class="text-white">Duration:</span>
-                      {{ formatDuration(event.durationSeconds) }}
+                      {{ formatDuration(event.durationSeconds, true) }}
                     </p>
                   </div>
                 </template>
 
                 <template v-else>
-                  <div :class="eventBrightFgClass(event.type)">
+                  <div :class="event.brightFgClass">
                     <p class="flex items-center space-x-1">
                       <img
                         :src="iconURL('egginc/ei_app_icon.png', 64)"
@@ -85,91 +83,60 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { computed, defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
+import dayjs, { Dayjs } from 'dayjs';
+
+import { formatDuration, iconURL } from 'lib';
+import { GameEvent } from '@/events';
+import { EventTypeSwitches } from '@/types';
 import EventBadge from '@/components/EventBadge.vue';
 
-import { computed, toRefs } from 'vue';
-import dayjs from 'dayjs';
-
-import { eventCaption, eventFgClass, eventBrightFgClass } from '@/lib';
-import { iconURL } from '@/utils';
-
-export default {
+export default defineComponent({
   components: {
     EventBadge,
     Tippy,
   },
-
   props: {
-    // YYYY-MM.
-    monthStr: {
-      type: String,
+    month: {
+      type: Object as PropType<Dayjs>,
       required: true,
     },
     date2events: {
-      type: Object,
+      type: Object as PropType<Map<number, GameEvent[]>>,
       required: true,
     },
     eventTypesOn: {
-      type: Object,
+      type: Object as PropType<EventTypeSwitches>,
       required: true,
     },
-    forceFullWidth: Boolean,
+    forceFullWidth: {
+      type: Boolean,
+      default: false,
+    },
   },
-
   setup(props) {
-    const { monthStr, date2events } = toRefs(props);
-    const month = computed(() => dayjs(monthStr.value));
+    const { month, date2events } = toRefs(props);
     const dates = computed(() => {
       const monthNumber = month.value.month();
       const dates = [];
       for (let date = month.value.clone(); date.month() === monthNumber; date = date.add(1, 'd')) {
         dates.push({
           date,
-          events: date2events.value[date.date()] || [],
+          events: date2events.value.get(date.date()) ?? [],
         });
       }
       return dates;
     });
-
-    const formatDuration = seconds => {
-      if (seconds < 0) {
-        return '-' + formatDuration(-seconds);
-      }
-      if (seconds < 1) {
-        return '0m';
-      }
-      const dd = Math.floor(seconds / 86400);
-      seconds -= dd * 86400;
-      const hh = Math.floor(seconds / 3600);
-      seconds -= hh * 3600;
-      const mm = Math.floor(seconds / 60);
-      let s = '';
-      if (dd > 0) {
-        s += `${dd}d`;
-      }
-      if (hh > 0) {
-        s += `${hh}h`;
-      }
-      if (mm > 0) {
-        s += `${mm}m`;
-      }
-      return s;
-    };
-
     return {
       now: dayjs(),
-      month,
       dates,
-      eventCaption,
-      eventFgClass,
-      eventBrightFgClass,
       formatDuration,
       iconURL,
     };
   },
-};
+});
 </script>
 
 <style scoped>

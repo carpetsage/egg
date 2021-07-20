@@ -9,6 +9,7 @@
     "wasmegg/_home",
     "wasmegg/artifact-sandbox",
     "wasmegg/enlightenment",
+    "wasmegg/events",
     "wasmegg/mission-list",
     "wasmegg/past-contracts",
     "wasmegg/proto-explorer",

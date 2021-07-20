@@ -1,11 +1,7 @@
 <template>
-  <template v-if="event.type !== 'app-update'">
-    <div class="h-4 w-6.5 rounded-full" :class="eventBgClass(event.type)">
-      <img
-        v-if="eventIcon(event.type)"
-        class="h-4 w-full object-contain"
-        :src="iconURL(eventIcon(event.type), 64)"
-      />
+  <template v-if="event.id !== 'app-update'">
+    <div class="h-4 w-6.5 rounded-full" :class="event.bgClass">
+      <img class="h-4 w-full object-contain" :src="iconURL(event.icon, 64)" />
     </div>
   </template>
   <template v-else>
@@ -21,24 +17,23 @@
   </template>
 </template>
 
-<script>
-import { eventIcon, eventBgClass } from '@/lib';
-import { iconURL } from '@/utils';
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
 
-export default {
+import { iconURL } from 'lib';
+import { EventType } from '@/events';
+
+export default defineComponent({
   props: {
     event: {
-      type: Object,
+      type: Object as PropType<EventType>,
       required: true,
     },
   },
-
   setup() {
     return {
-      eventIcon,
-      eventBgClass,
       iconURL,
     };
   },
-};
+});
 </script>

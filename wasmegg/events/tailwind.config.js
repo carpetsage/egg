@@ -1,14 +1,11 @@
 const colors = require('tailwindcss/colors');
 
 module.exports = {
-  purge: ['src/*.html', 'src/**/*.js', 'src/**/*.vue'],
-  darkMode: false,
+  mode: 'jit',
+  purge: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   theme: {
     extend: {
-      colors: {
-        ...colors,
-        'light-blue': colors.lightBlue,
-      },
+      colors,
       screens: {
         '2col': '1512px',
         '3col': '2280px',

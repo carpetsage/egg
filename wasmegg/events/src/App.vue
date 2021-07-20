@@ -6,16 +6,15 @@
           <div class="flex items-center h-5">
             <input
               id="useUtcDates"
+              v-model="useUtcDates"
               name="useUtcDates"
               type="checkbox"
               class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-              v-model="useUtcDates"
             />
           </div>
           <div class="ml-2 flex items-center space-x-1">
             <label for="useUtcDates" class="text-sm text-gray-600">Use UTC dates</label>
-            <info
-              class="cursor-help"
+            <base-info
               v-tippy="{
                 content: `Events are marked on the calendar by their respective starting dates.
                   If this option is checked, the date is calculated under UTC, which basically
@@ -25,6 +24,7 @@
                   Uncheck to use local timezone instead. Note that you can always hover/click
                   on an event to reveal the exact starting time in local timezone.`,
               }"
+              class="cursor-help"
             />
           </div>
         </div>
@@ -33,18 +33,17 @@
           <div class="flex items-center h-5">
             <input
               id="forceFullWidth"
+              v-model="forceFullWidth"
               name="forceFullWidth"
               type="checkbox"
               class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-              v-model="forceFullWidth"
             />
           </div>
           <div class="ml-2 flex items-center space-x-1">
             <label for="forceFullWidth" class="text-sm text-gray-600">
               Display boost multipliers
             </label>
-            <info
-              class="cursor-help"
+            <base-info
               v-tippy="{
                 content: `Display boost multipliers in addition to event labels directly in the
                   calendar. Due to screen width restrictions, checking this option comes with
@@ -52,6 +51,7 @@
                   turn this on, you can always click on an event label to reveal more details,
                   including the multiplier.`,
               }"
+              class="cursor-help"
             />
           </div>
         </div>
@@ -60,21 +60,21 @@
           <div class="flex items-center h-5">
             <input
               id="forceSingleColumn"
+              v-model="forceSingleColumn"
               name="forceSingleColumn"
               type="checkbox"
               class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-              v-model="forceSingleColumn"
             />
           </div>
           <div class="ml-2 flex items-center space-x-1">
             <label for="forceSingleColumn" class="text-sm text-gray-600">
               Single column view
             </label>
-            <info
-              class="cursor-help"
+            <base-info
               v-tippy="{
                 content: `When checked, show only one month per row.`,
               }"
+              class="cursor-help"
             />
           </div>
         </div>
@@ -82,21 +82,23 @@
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      <div v-for="[type, name] in eventTypes" :key="type" class="relative flex items-start">
+      <div v-for="eventType in eventTypes" :key="eventType.id" class="relative flex items-start">
         <div class="flex items-center h-5">
           <input
-            :id="`show-${type}`"
-            :name="`show-${type}`"
+            :id="`show-${eventType.id}`"
+            v-model="eventTypesOn[eventType.id]"
+            :name="`show-${eventType.id}`"
             type="checkbox"
             class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-            v-model="eventTypesOn[type]"
-            @change="persistEventTypeOn(type, $event.target.checked)"
+            @change="persistEventTypeOn(eventType.id)"
           />
         </div>
         <div class="ml-2">
-          <label :for="`show-${type}`" class="flex items-center space-x-1">
-            <event-badge :event="{ type }" />
-            <span class="text-sm text-gray-600">{{ capitalize(name.toLowerCase()) }}</span>
+          <label :for="`show-${eventType.id}`" class="flex items-center space-x-1">
+            <event-badge :event="eventType" />
+            <span class="text-sm text-gray-600">{{
+              capitalize(eventType.name.toLowerCase())
+            }}</span>
           </label>
         </div>
       </div>
@@ -139,29 +141,30 @@
         forceSingleColumn ? 'Calendar--single-column' : null,
       ]"
     >
-      <template v-for="[month, date2events] in months" :key="month">
+      <template v-for="{ month, date2events } in months" :key="month">
         <calendar-month
-          :monthStr="month"
+          :month="month"
           :date2events="date2events"
-          :eventTypesOn="eventTypesOn"
-          :forceFullWidth="forceFullWidth"
+          :event-types-on="eventTypesOn"
+          :force-full-width="forceFullWidth"
         />
       </template>
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import BaseInfo from 'ui/components/BaseInfo.vue';
 import CalendarMonth from '@/components/CalendarMonth.vue';
 import EventBadge from '@/components/EventBadge.vue';
-import Info from '@/components/Info.vue';
 
-import { computed, ref, watch } from 'vue';
-import dayjs from 'dayjs';
+import { computed, defineComponent, ref, watch } from 'vue';
+import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
-import { events, eventTypes } from '@/lib';
-import { getLocalStorage, setLocalStorage } from '@/utils';
+import { getLocalStorage, setLocalStorage } from 'lib';
+import { events, eventTypes, GameEvent } from '@/events';
+import { EventTypeId, EventTypeSwitches } from '@/types';
 
 dayjs.extend(utc);
 
@@ -169,23 +172,39 @@ const USE_UTC_DATES_LOCALSTORAGE_KEY = 'useUtcDates';
 const FORCE_FULL_WIDTH_LOCALSTORAGE_KEY = 'forceFullWidth';
 const FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY = 'forceSingleColumn';
 
-const eventTypeOnLocalStorageKey = eventType => `show-${eventType}`;
-
-const getEventTypesOn = () => {
-  const eventTypesOn = {};
-  for (const ev of eventTypes) {
-    eventTypesOn[ev[0]] = getLocalStorage(eventTypeOnLocalStorageKey(ev[0])) !== 'false';
+const eventTypeOnLocalStorageKey = (id: EventTypeId) => `show-${id}`;
+const getEventTypesOn = (): EventTypeSwitches => {
+  const eventTypesOn: EventTypeSwitches = {
+    'app-update': false,
+    'epic-research-sale': false,
+    'piggy-boost': false,
+    'piggy-cap-boost': false,
+    'prestige-boost': false,
+    'earnings-boost': false,
+    'gift-boost': false,
+    'drone-boost': false,
+    'research-sale': false,
+    'hab-sale': false,
+    'vehicle-sale': false,
+    'boost-sale': false,
+    'boost-duration': false,
+    'crafting-sale': false,
+    'mission-fuel': false,
+    'mission-capacity': false,
+    'mission-duration': false,
+  };
+  for (const type of eventTypes) {
+    eventTypesOn[type.id] = getLocalStorage(eventTypeOnLocalStorageKey(type.id)) !== 'false';
   }
   return eventTypesOn;
 };
 
-export default {
+export default defineComponent({
   components: {
+    BaseInfo,
     CalendarMonth,
     EventBadge,
-    Info,
   },
-
   setup() {
     const useUtcDates = ref(getLocalStorage(USE_UTC_DATES_LOCALSTORAGE_KEY) !== 'false');
     watch(useUtcDates, () => setLocalStorage(USE_UTC_DATES_LOCALSTORAGE_KEY, useUtcDates.value));
@@ -197,49 +216,50 @@ export default {
     );
 
     const eventTypesOn = ref(getEventTypesOn());
-    const persistEventTypeOn = (type, on) => setLocalStorage(eventTypeOnLocalStorageKey(type), on);
+    const persistEventTypeOn = (id: EventTypeId) =>
+      setLocalStorage(eventTypeOnLocalStorageKey(id), eventTypesOn.value[id]);
     const turnOnAllEventTypes = () => {
-      for (const ev of eventTypes) {
-        eventTypesOn.value[ev[0]] = true;
-        persistEventTypeOn(ev[0], true);
+      for (const type of eventTypes) {
+        eventTypesOn.value[type.id] = true;
+        persistEventTypeOn(type.id);
       }
     };
     const turnOffAllEventTypes = () => {
-      for (const ev of eventTypes) {
-        eventTypesOn.value[ev[0]] = false;
-        persistEventTypeOn(ev[0], false);
+      for (const type of eventTypes) {
+        eventTypesOn.value[type.id] = false;
+        persistEventTypeOn(type.id);
       }
     };
 
     const months = computed(() => {
       const months = [];
-      let currentMonth;
-      let date2events;
+      let currentMonth: Dayjs | undefined;
+      let date2events = new Map<number, GameEvent[]>();
       for (const event of events) {
-        let startTime = dayjs(event.startTimestamp * 1000);
-        if (useUtcDates.value) {
-          startTime = startTime.utc();
-        }
-        const month = startTime.format('YYYY-MM');
+        const startTime = useUtcDates.value ? event.startTime.utc() : event.startTime;
+        const month = startTime.startOf('month');
         const date = startTime.date();
-        if (month !== currentMonth) {
-          if (currentMonth) {
-            months.push([currentMonth, date2events]);
+        if (currentMonth === undefined || !month.isSame(currentMonth)) {
+          if (currentMonth !== undefined) {
+            months.push({
+              month: currentMonth,
+              date2events,
+            });
           }
           currentMonth = month;
-          date2events = {};
+          date2events = new Map();
         }
-        if (!(date in date2events)) {
-          date2events[date] = [];
+        if (date2events.has(date)) {
+          date2events.get(date)!.push(event);
+        } else {
+          date2events.set(date, [event]);
         }
-        date2events[date].push({
-          ...event,
-          startTime,
-          durationSeconds: (event.endTimestamp || event.startTimestamp) - event.startTimestamp,
-        });
       }
-      if (events.length > 0) {
-        months.push([currentMonth, date2events]);
+      if (currentMonth != undefined) {
+        months.push({
+          month: currentMonth,
+          date2events,
+        });
       }
       return months.reverse();
     });
@@ -254,10 +274,10 @@ export default {
       turnOnAllEventTypes,
       turnOffAllEventTypes,
       months,
-      capitalize: s => s.charAt(0).toUpperCase() + s.slice(1),
+      capitalize: (s: string): string => s.charAt(0).toUpperCase() + s.slice(1),
     };
   },
-};
+});
 </script>
 
 <style scoped>
