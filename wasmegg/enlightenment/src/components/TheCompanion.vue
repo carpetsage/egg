@@ -455,14 +455,14 @@ export default defineComponent({
     const bestPriceMultiplier = researchPriceMultiplierFromArtifacts(bestPossibleCubeSet);
     const cashTargets = [
       { multiplier: 1, description: 'No research sale\nno artifacts' },
-      { multiplier: 0.35, description: '65% research sale\n no artifacts' },
+      { multiplier: 0.3, description: '70% research sale\n no artifacts' },
     ];
     if (currentPriceMultiplier < 1) {
       cashTargets.push(
         { multiplier: currentPriceMultiplier, description: 'No research sale\ncurrent artifacts' },
         {
-          multiplier: currentPriceMultiplier * 0.35,
-          description: '65% research sale\ncurrent artifacts',
+          multiplier: currentPriceMultiplier * 0.3,
+          description: '70% research sale\ncurrent artifacts',
         }
       );
     }
@@ -471,8 +471,8 @@ export default defineComponent({
       cashTargets.push(
         { multiplier: bestPriceMultiplier, description: 'No research sale\nbest cube possible' },
         {
-          multiplier: bestPriceMultiplier * 0.35,
-          description: '65% research sale\nbest cube possible',
+          multiplier: bestPriceMultiplier * 0.3,
+          description: '70% research sale\nbest cube possible',
         }
       );
     }
