@@ -23,7 +23,7 @@
             </base-click-to-copy>
             <contract-league-label :league="league" class="relative -top-px mr-1" />
             <span
-              v-if="contract.maxCoopSize && leagueStatus.secondsRemaining > 0"
+              v-if="contract.maxCoopSize && !leagueStatus.hasEnded"
               class="px-2.5 py-0.5 rounded-full text-xs font-medium text-white whitespace-nowrap relative -top-px"
               :class="openings > 0 ? 'bg-green-600' : 'bg-gray-400 dark:bg-gray-500'"
             >

@@ -82,6 +82,13 @@ export class ContractLeagueStatus {
         : ContractCompletionStatus.IsNotOnTrackToFinish;
   }
 
+  get hasEnded(): boolean {
+    return (
+      this.completionStatus === ContractCompletionStatus.HasCompleted ||
+      this.completionStatus === ContractCompletionStatus.HasNoTimeLeft
+    );
+  }
+
   expectedTimeToCompleteGoal(goal: ei.Contract.IGoal): number {
     const target = goal.targetAmount!;
     if (this.eggsLaid >= target) {
