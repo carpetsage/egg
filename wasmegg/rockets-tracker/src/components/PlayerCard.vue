@@ -373,6 +373,10 @@
               <span class="text-xs ml-0.5">/</span>
             </div>
           </template>
+          <div v-else-if="zeroLegendaryUnworthyNickname" class="mt-2 text-xs text-gray-500">
+            No {{ zeroLegendaryUnworthyNickname }}, you haven't sent enough exthens.<br />
+            You aren't poop-worthy.
+          </div>
         </div>
 
         <div v-if="!collapsed" class="py-2">
@@ -398,6 +402,7 @@ import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { sha256 } from 'js-sha256';
 
 import {
   earningBonusToFarmerRole,
@@ -433,6 +438,9 @@ const LEGENDARIES_JEALOUSY_THRESHOLD = 3;
 // 157-capacity exthens.
 const ZERO_LEGENDARY_EXTHEN_COUNT_SHAME_TRESHOLD = 50;
 const ZERO_LEGENDARY_EXTHEN_TOTAL_DROP_SHAME_TRESHOLD = 6000;
+const ZERO_LEGENDARY_UNWORTHY_USER_NICKNAMES = new Map([
+  ['6fd149f054b097366d63e7e5d322ffa30359d00c0991d04afd4a04fa0cca12b3', 'Kirby'],
+]);
 
 export default defineComponent({
   components: {
@@ -544,6 +552,15 @@ export default defineComponent({
         completedExtendedHenerpriseTotalDropCount.value >=
           ZERO_LEGENDARY_EXTHEN_TOTAL_DROP_SHAME_TRESHOLD
     );
+    // Certain ZLC players have been longing the poop badge
+    // (zeroLegendaryShaming), but they are not worthy, yet.
+    // zeroLegendaryUnworthyNickname is their nickname if they qualify, or
+    // undefined otherwise.
+    const zeroLegendaryUnworthyNickname = computed(() =>
+      inventory.value.legendaryCount === 0 && !zeroLegendaryShaming.value
+        ? ZERO_LEGENDARY_UNWORTHY_USER_NICKNAMES.get(sha256(backup.value.eiUserId ?? ''))
+        : undefined
+    );
     const randIndex = Math.floor(Math.random() * 10000);
     return {
       collapsed,
@@ -575,6 +592,7 @@ export default defineComponent({
       lifetimeBoosts,
       hasTooManyLegendaries,
       zeroLegendaryShaming,
+      zeroLegendaryUnworthyNickname,
       completedExtendedHenerpriseCount,
       completedExtendedHenerpriseTotalDropCount,
       randIndex,
