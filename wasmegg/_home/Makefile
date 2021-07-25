@@ -1,4 +1,4 @@
-.PHONY: all init build dist clean dev serve
+.PHONY: all init build dist clean dev serve commit-donors
 
 all: clean
 	$(MAKE) dist
@@ -16,6 +16,10 @@ clean:
 
 dev:
 	yarn dev
+
+commit-donors:
+	git add src/donors.ts
+	git commit -m 'wasmegg/_home: update donors'
 
 serve:
 	yarn serve
