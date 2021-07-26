@@ -128,7 +128,7 @@
           >
         </template>
       </div>
-      <div v-if="hasStones">Stones may be arbitrarily rearranged.</div>
+      <div v-if="hasStones" class="text-purple-500 font-medium">Stones may be arbitrarily rearranged.</div>
     </div>
     <div class="mt-1 text-center text-xs text-gray-500">
       Hover over / click on each artifact to show details
