@@ -141,9 +141,12 @@ export const tools = [
     title: 'Smart assistant',
     iconUrl: smartAssistantIconUrl,
     description:
-      'Smart, personalized artifact loadout generator \u2014 effortlessly optimize your prestige loadout',
+      'Smart, personalized artifact loadout generator \u2014 effortlessly optimize your prestige loadout; full-fledged earning bonus planner',
     // Tue Aug 10 16:38:57 UTC 2021
     newUntil: 1628613537000,
+    // Mon Aug  2 13:52:46 UTC 2021
+    updateUntil: 1627912366000,
+    whatsNew: 'Added earning bonus planner.',
   }),
 
   new Tool({
