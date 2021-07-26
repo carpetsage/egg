@@ -1,11 +1,15 @@
 <template>
-  <input
-    :id="id"
-    v-model.number="value"
-    :name="id"
-    type="number"
-    :class="[baseClass, invalid ? invalidClass : validClass]"
-  />
+  <slot :value="value" :invalid="invalid" :update-value="updateValue">
+    <input
+      :id="id"
+      v-model.number="value"
+      :name="id"
+      type="number"
+      :min="min"
+      :max="max"
+      :class="[baseClass, invalid ? invalidClass : validClass]"
+    />
+  </slot>
 </template>
 
 <script lang="ts">
@@ -52,6 +56,11 @@ export default defineComponent({
   setup(props, { emit }) {
     const { modelValue, max, min } = toRefs(props);
     const value = ref(modelValue.value);
+    // updateValue is solely meant for the scoped slot, since two-way binding of
+    // input isn't allowed there. Accepts an Event on an input[type=number].
+    const updateValue = (event: Event) => {
+      value.value = parseFloat((event.target as HTMLInputElement).value.trim());
+    };
     const invalid = computed(() => {
       const v = value.value;
       if (!Number.isInteger(v)) {
@@ -76,6 +85,7 @@ export default defineComponent({
     });
     return {
       value,
+      updateValue,
       invalid,
     };
   },

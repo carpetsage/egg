@@ -1,11 +1,14 @@
 <template>
-  <input
-    :id="id"
-    v-model.trim="input"
-    :name="id"
-    type="text"
-    :class="[baseClass, invalid ? invalidClass : validClass]"
-  />
+  <slot :input="input" :invalid="invalid" :update-input="updateInput" :update-value="updateValue">
+    <input
+      :id="id"
+      v-model.trim="input"
+      :name="id"
+      type="text"
+      spellcheck="false"
+      :class="[baseClass, invalid ? invalidClass : validClass]"
+    />
+  </slot>
 </template>
 
 <script lang="ts">
@@ -25,6 +28,12 @@ export default defineComponent({
     value: {
       type: Number,
       required: true,
+    },
+    // If lazy is true, only update the value through the updateValue callback.
+    // Useful for only accepting the value change when input loses focus.
+    lazy: {
+      type: Boolean,
+      default: false,
     },
     baseClass: {
       type: String,
@@ -48,8 +57,13 @@ export default defineComponent({
     /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props, { emit }) {
-    const { raw } = toRefs(props);
+    const { raw, lazy } = toRefs(props);
     const input = ref(raw.value.trim());
+    // updateInput is solely meant for the scoped slot, since two-way binding of
+    // input isn't allowed there. Accepts an Event on an input[type=text].
+    const updateInput = (event: Event) => {
+      input.value = (event.target as HTMLInputElement).value.trim();
+    };
     const parsed = computed(() => parseValueWithUnit(input.value, false));
     const invalid = computed(() => parsed.value === null);
     watch(raw, () => {
@@ -60,11 +74,20 @@ export default defineComponent({
         return;
       }
       emit('update:raw', input.value);
-      emit('update:value', parsed.value);
+      if (!lazy.value) {
+        emit('update:value', parsed.value);
+      }
     });
+    const updateValue = () => {
+      if (parsed.value !== null) {
+        emit('update:value', parsed.value);
+      }
+    };
     return {
       input,
       invalid,
+      updateInput,
+      updateValue,
     };
   },
 });

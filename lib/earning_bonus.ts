@@ -5,7 +5,7 @@ export function getNumSoulEggs(backup: ei.IBackup): number {
   return backup.game?.soulEggsD || 0;
 }
 
-export function getNakedEarningBonus(backup: ei.IBackup): number {
+export function getSoulFoodLevel(backup: ei.IBackup): number {
   const epicResearches = backup.game?.epicResearch || [];
   let soulFoodLevel = 0;
   for (const r of epicResearches) {
@@ -13,14 +13,23 @@ export function getNakedEarningBonus(backup: ei.IBackup): number {
       soulFoodLevel = r.level!;
     }
   }
-  const soulEggBonus = 0.1 + soulFoodLevel * 0.01;
+  return soulFoodLevel;
+}
+
+export function getProphecyBonusLevel(backup: ei.IBackup): number {
+  const epicResearches = backup.game?.epicResearch || [];
   let prophecyBonusLevel = 0;
   for (const r of epicResearches) {
     if (r.id === 'prophecy_bonus') {
       prophecyBonusLevel = r.level!;
     }
   }
-  const prophecyEggBonus = 0.05 + prophecyBonusLevel * 0.01;
+  return prophecyBonusLevel;
+}
+
+export function getNakedEarningBonus(backup: ei.IBackup): number {
+  const soulEggBonus = 0.1 + getSoulFoodLevel(backup) * 0.01;
+  const prophecyEggBonus = 0.05 + getProphecyBonusLevel(backup) * 0.01;
   return (
     getNumSoulEggs(backup) * soulEggBonus * (1 + prophecyEggBonus) ** getNumProphecyEggs(backup)
   );
@@ -88,68 +97,75 @@ export function getNakedEarningBonus(backup: ei.IBackup): number {
 // pbpaste | perl -lape 's/\/\/ /{name:"/; s/: /",color:"/; s/$/"},/' | pbcopy
 
 export type FarmerRole = {
+  oom: number;
   name: string;
   color: string;
 };
 
 const roles: FarmerRole[] = [
-  { name: 'Farmer', color: '#ca6500' },
-  { name: 'Farmer II', color: '#c68100' },
-  { name: 'Farmer III', color: '#c49c00' },
-  { name: 'Kilofarmer', color: '#c2b900' },
-  { name: 'Kilofarmer II', color: '#afc300' },
-  { name: 'Kilofarmer III', color: '#93c400' },
-  { name: 'Megafarmer', color: '#75c800' },
-  { name: 'Megafarmer II', color: '#59cd00' },
-  { name: 'Megafarmer III', color: '#3cd300' },
-  { name: 'Gigafarmer', color: '#1dda00' },
-  { name: 'Gigafarmer II', color: '#00e204' },
-  { name: 'Gigafarmer III', color: '#00eb27' },
-  { name: 'Terafarmer', color: '#00f44e' },
-  { name: 'Terafarmer II', color: '#00fe77' },
-  { name: 'Terafarmer III', color: '#0cfca0' },
-  { name: 'Petafarmer', color: '#1af7c4' },
-  { name: 'Petafarmer II', color: '#27f4e3' },
-  { name: 'Petafarmer III', color: '#33e0f0' },
-  { name: 'Exafarmer', color: '#3dc4ee' },
-  { name: 'Exafarmer II', color: '#46acec' },
-  { name: 'Exafarmer III', color: '#4c96ea' },
-  { name: 'Zettafarmer', color: '#5181e9' },
-  { name: 'Zettafarmer II', color: '#546de8' },
-  { name: 'Zettafarmer III', color: '#5557e8' },
-  { name: 'Yottafarmer', color: '#6854e8' },
-  { name: 'Yottafarmer II', color: '#7c51e9' },
-  { name: 'Yottafarmer III', color: '#914dea' },
-  { name: 'Xennafarmer', color: '#a746eb' },
-  { name: 'Xennafarmer II', color: '#c13dee' },
-  { name: 'Xennafarmer III', color: '#dd33f0' },
-  { name: 'Weccafarmer', color: '#f327e9' },
-  { name: 'Weccafarmer II', color: '#f71bcb' },
-  { name: 'Weccafarmer III', color: '#fb0da8' },
-  { name: 'Vendafarmer', color: '#fe007f' },
-  { name: 'Vendafarmer II', color: '#f71bcb' },
-  { name: 'Vendafarmer III', color: '#e132f1' },
-  { name: 'Uadafarmer', color: '#ac44ec' },
-  { name: 'Uadafarmer II', color: '#8150e9' },
-  { name: 'Uadafarmer III', color: '#5a55e8' },
-  { name: 'Treidafarmer', color: '#527ae9' },
-  { name: 'Treidafarmer II', color: '#48a4eb' },
-  { name: 'Treidafarmer III', color: '#38d3ef' },
-  { name: 'Quadafarmer', color: '#21f5d5' },
-  { name: 'Quadafarmer II', color: '#07fd93' },
-  { name: 'Quadafarmer III', color: '#00f141' },
-  { name: 'Pendafarmer', color: '#08df00' },
-  { name: 'Pendafarmer II', color: '#43d100' },
-  { name: 'Pendafarmer III', color: '#7bc700' },
-  { name: 'Exedafarmer', color: '#b2c200' },
-  { name: 'Exedafarmer II', color: '#c49c00' },
-  { name: 'Exedafarmer III', color: '#ca6500' },
-  { name: 'Infinifarmer', color: '#546e7a' },
+  { oom: 0, name: 'Farmer', color: '#ca6500' },
+  { oom: 1, name: 'Farmer II', color: '#c68100' },
+  { oom: 2, name: 'Farmer III', color: '#c49c00' },
+  { oom: 3, name: 'Kilofarmer', color: '#c2b900' },
+  { oom: 4, name: 'Kilofarmer II', color: '#afc300' },
+  { oom: 5, name: 'Kilofarmer III', color: '#93c400' },
+  { oom: 6, name: 'Megafarmer', color: '#75c800' },
+  { oom: 7, name: 'Megafarmer II', color: '#59cd00' },
+  { oom: 8, name: 'Megafarmer III', color: '#3cd300' },
+  { oom: 9, name: 'Gigafarmer', color: '#1dda00' },
+  { oom: 10, name: 'Gigafarmer II', color: '#00e204' },
+  { oom: 11, name: 'Gigafarmer III', color: '#00eb27' },
+  { oom: 12, name: 'Terafarmer', color: '#00f44e' },
+  { oom: 13, name: 'Terafarmer II', color: '#00fe77' },
+  { oom: 14, name: 'Terafarmer III', color: '#0cfca0' },
+  { oom: 15, name: 'Petafarmer', color: '#1af7c4' },
+  { oom: 16, name: 'Petafarmer II', color: '#27f4e3' },
+  { oom: 17, name: 'Petafarmer III', color: '#33e0f0' },
+  { oom: 18, name: 'Exafarmer', color: '#3dc4ee' },
+  { oom: 19, name: 'Exafarmer II', color: '#46acec' },
+  { oom: 20, name: 'Exafarmer III', color: '#4c96ea' },
+  { oom: 21, name: 'Zettafarmer', color: '#5181e9' },
+  { oom: 22, name: 'Zettafarmer II', color: '#546de8' },
+  { oom: 23, name: 'Zettafarmer III', color: '#5557e8' },
+  { oom: 24, name: 'Yottafarmer', color: '#6854e8' },
+  { oom: 25, name: 'Yottafarmer II', color: '#7c51e9' },
+  { oom: 26, name: 'Yottafarmer III', color: '#914dea' },
+  { oom: 27, name: 'Xennafarmer', color: '#a746eb' },
+  { oom: 28, name: 'Xennafarmer II', color: '#c13dee' },
+  { oom: 29, name: 'Xennafarmer III', color: '#dd33f0' },
+  { oom: 30, name: 'Weccafarmer', color: '#f327e9' },
+  { oom: 31, name: 'Weccafarmer II', color: '#f71bcb' },
+  { oom: 32, name: 'Weccafarmer III', color: '#fb0da8' },
+  { oom: 33, name: 'Vendafarmer', color: '#fe007f' },
+  { oom: 34, name: 'Vendafarmer II', color: '#f71bcb' },
+  { oom: 35, name: 'Vendafarmer III', color: '#e132f1' },
+  { oom: 36, name: 'Uadafarmer', color: '#ac44ec' },
+  { oom: 37, name: 'Uadafarmer II', color: '#8150e9' },
+  { oom: 38, name: 'Uadafarmer III', color: '#5a55e8' },
+  { oom: 39, name: 'Treidafarmer', color: '#527ae9' },
+  { oom: 40, name: 'Treidafarmer II', color: '#48a4eb' },
+  { oom: 41, name: 'Treidafarmer III', color: '#38d3ef' },
+  { oom: 42, name: 'Quadafarmer', color: '#21f5d5' },
+  { oom: 43, name: 'Quadafarmer II', color: '#07fd93' },
+  { oom: 44, name: 'Quadafarmer III', color: '#00f141' },
+  { oom: 45, name: 'Pendafarmer', color: '#08df00' },
+  { oom: 46, name: 'Pendafarmer II', color: '#43d100' },
+  { oom: 47, name: 'Pendafarmer III', color: '#7bc700' },
+  { oom: 48, name: 'Exedafarmer', color: '#b2c200' },
+  { oom: 49, name: 'Exedafarmer II', color: '#c49c00' },
+  { oom: 50, name: 'Exedafarmer III', color: '#ca6500' },
+  { oom: 51, name: 'Infinifarmer', color: '#546e7a' },
 ];
 
 export function soulPowerToFarmerRole(soulPower: number): FarmerRole {
-  const rank = Math.floor(Math.max(soulPower, 0));
-  return rank < roles.length ? roles[rank] : roles[roles.length - 1];
+  const oom = Math.floor(Math.max(soulPower, 0));
+  // For Infinifarmer, set oom to match the soulPower.
+  return oom < roles.length
+    ? roles[oom]
+    : {
+        ...roles[roles.length - 1],
+        oom,
+      };
 }
 
 export function earningBonusToFarmerRole(earningBonus: number): FarmerRole {

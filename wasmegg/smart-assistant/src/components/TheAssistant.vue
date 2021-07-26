@@ -203,6 +203,8 @@
       </div>
     </div>
   </div>
+
+  <earning-bonus-planner :backup="backup" />
 </template>
 
 <script lang="ts">
@@ -225,11 +227,13 @@ import {
 import { PrestigeStrategy, suggestArtifactSet } from '@/lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import ArtifactGallery from '@/components/ArtifactGallery.vue';
+import EarningBonusPlanner from '@/components/EarningBonusPlanner.vue';
 
 export default defineComponent({
   components: {
     ArtifactGallery,
     BaseInfo,
+    EarningBonusPlanner,
   },
   props: {
     playerId: {
