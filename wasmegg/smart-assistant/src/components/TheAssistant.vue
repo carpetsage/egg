@@ -96,6 +96,7 @@
           tachyon prism and boost beacon while leaving a little hab space for running chicken bonus,
           then run a single 10min set of 50x bird feed and 500x soul beacon to reap soul eggs.
         </p>
+        <discord-strategy-link />
       </div>
       <artifact-gallery
         :strategy="PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD"
@@ -148,6 +149,7 @@
           exactly one prestige session, which is good for mid-game players for whom multi-prestige
           is not yet superior.
         </p>
+        <discord-strategy-link :plural="true" />
       </div>
       <artifact-gallery
         :strategy="PrestigeStrategy.PRO_PERMIT_MULTI"
@@ -181,6 +183,7 @@
           beacons to reap soul eggs. This strategy is simple and stress-free, but not as
           GE-efficient.
         </p>
+        <discord-strategy-link />
       </div>
       <artifact-gallery
         :strategy="PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD"
@@ -228,12 +231,14 @@ import {
 import { PrestigeStrategy, suggestArtifactSet } from '@/lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import ArtifactGallery from '@/components/ArtifactGallery.vue';
+import DiscordStrategyLink from '@/components/DiscordStrategyLink.vue';
 import EarningBonusPlanner from '@/components/EarningBonusPlanner.vue';
 
 export default defineComponent({
   components: {
     ArtifactGallery,
     BaseInfo,
+    DiscordStrategyLink,
     EarningBonusPlanner,
   },
   props: {
