@@ -144,8 +144,9 @@
           known strategy for high EB players.
         </p>
         <p>
-          <strong>All-in-one single-prestige</strong> is a similar GE-efficient strategy good for
-          mid-game players for whom multi-prestige is not yet superior.
+          <strong>All-in-one single-prestige</strong> is a strategy using the same set of boosts in
+          exactly one prestige session, which is good for mid-game players for whom multi-prestige
+          is not yet superior.
         </p>
       </div>
       <artifact-gallery
