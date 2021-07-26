@@ -375,7 +375,8 @@
           </template>
           <div v-else-if="zeroLegendaryUnworthyNickname" class="mt-2 text-xs text-gray-500">
             No {{ zeroLegendaryUnworthyNickname }}, you haven't sent enough exthens.<br />
-            You aren't poop-worthy.
+            You aren't poop-worthy.<br />
+            Keep <s>defecating</s> launching.
           </div>
         </div>
 
