@@ -332,7 +332,9 @@
               players with pitchforks at your doorstep.
             </template>
           </div>
-          <template v-else-if="zeroLegendaryShaming">
+          <template
+            v-else-if="zeroLegendaryShaming && !zeroLegendaryUnconditionallyUnworthyNickname"
+          >
             <div class="mt-2 text-xs text-yellow-800 truncate">
               {{ completedExtendedHenerpriseCount }} extended Henerprises,
               {{ completedExtendedHenerpriseTotalDropCount }} drops,
@@ -373,6 +375,14 @@
               <span class="text-xs ml-0.5">/</span>
             </div>
           </template>
+          <div
+            v-else-if="zeroLegendaryUnconditionallyUnworthyNickname"
+            class="mt-2 text-xs text-gray-500"
+          >
+            Howdy {{ zeroLegendaryUnconditionallyUnworthyNickname }}, I heard you prefer not being
+            poop-worthy. So I'm happy to inform you that you're not.<br />
+            Keep <s>defecating</s> launching.
+          </div>
           <div v-else-if="zeroLegendaryUnworthyNickname" class="mt-2 text-xs text-gray-500">
             No {{ zeroLegendaryUnworthyNickname }}, you haven't sent enough exthens.<br />
             You aren't poop-worthy.<br />
@@ -439,7 +449,8 @@ const LEGENDARIES_JEALOUSY_THRESHOLD = 3;
 // 157-capacity exthens.
 const ZERO_LEGENDARY_EXTHEN_COUNT_SHAME_TRESHOLD = 50;
 const ZERO_LEGENDARY_EXTHEN_TOTAL_DROP_SHAME_TRESHOLD = 6000;
-const ZERO_LEGENDARY_UNWORTHY_USER_NICKNAMES = new Map([
+const ZERO_LEGENDARY_UNWORTHY_USER_NICKNAMES = new Map<string, string>([]);
+const ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES = new Map<string, string>([
   ['6fd149f054b097366d63e7e5d322ffa30359d00c0991d04afd4a04fa0cca12b3', 'Kirby'],
 ]);
 
@@ -562,6 +573,15 @@ export default defineComponent({
         ? ZERO_LEGENDARY_UNWORTHY_USER_NICKNAMES.get(sha256(backup.value.eiUserId ?? ''))
         : undefined
     );
+    // And, crazy as it may sound, some enjoy the personalized message more!
+    // Give it to them unconditionally.
+    const zeroLegendaryUnconditionallyUnworthyNickname = computed(() =>
+      inventory.value.legendaryCount === 0
+        ? ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES.get(
+            sha256(backup.value.eiUserId ?? '')
+          )
+        : undefined
+    );
     const randIndex = Math.floor(Math.random() * 10000);
     return {
       collapsed,
@@ -594,6 +614,7 @@ export default defineComponent({
       hasTooManyLegendaries,
       zeroLegendaryShaming,
       zeroLegendaryUnworthyNickname,
+      zeroLegendaryUnconditionallyUnworthyNickname,
       completedExtendedHenerpriseCount,
       completedExtendedHenerpriseTotalDropCount,
       randIndex,
