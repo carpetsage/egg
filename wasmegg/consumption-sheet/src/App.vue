@@ -57,6 +57,19 @@
           <expand-icon class="inline h-4" />.
         </p>
         <p>
+          For stone-yielding artifacts,
+          <span class="text-lime-500"
+            >the f.c. stat is the expected gold yield (subject to sampling limitations) from
+            <span class="underline">fully consuming</span> the item, i.e., further consuming the
+            resulting stones and fragments down to golden eggs.</span
+          >
+          For uncommon artifacts,
+          <span class="text-teal-500"
+            >the dm. stat is the gold yield from <span class="underline">demoting</span> the item to
+            common</span
+          >.
+        </p>
+        <p>
           Note that due to the limited sample size, certain expectation values may be highly
           inaccurate, certain byproducts may have been missed altogether, and certain
           nondeterministic items may have been marked as deterministic.
@@ -96,12 +109,12 @@
 
                 <ul v-if="family.type === 'Artifact'" class="space-y-1">
                   <li v-for="rarity in tier.rarities" :key="rarity.item.afx_rarity">
-                    <consumption-outcome :outcome="rarity" />
+                    <consumption-outcome :outcome="rarity" :is-artifact="true" />
                   </li>
                 </ul>
 
                 <div v-else class="flex items-center">
-                  <consumption-outcome :outcome="tier.rarities[0]" :hide-rarity="true" />
+                  <consumption-outcome :outcome="tier.rarities[0]" :is-artifact="false" />
                 </div>
               </div>
             </li>

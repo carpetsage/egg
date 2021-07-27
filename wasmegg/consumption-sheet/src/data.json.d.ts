@@ -31,7 +31,9 @@ export type ConsumptionOutcome = {
   deterministic: boolean;
   gold: number;
   expected_byproducts: ExpectedByproduct[];
+  expected_gold: number;
   sample_byproducts: Byproduct[][];
+  demotion_gold: number | null;
 };
 
 export type ExpectedByproduct = Item & {

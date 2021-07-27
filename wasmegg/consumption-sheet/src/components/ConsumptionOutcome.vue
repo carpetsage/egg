@@ -1,14 +1,45 @@
 <template>
-  <div
-    v-if="!hideRarity"
-    class="flex items-center space-x-1 text-xs mb-0.5"
-    :class="rarityFgClass(outcome.item.afx_rarity)"
-  >
-    <span>{{ outcome.item.rarity }}</span>
-    <span v-if="!outcome.deterministic">
-      <nondeterministic-icon class="inline" />
-    </span>
-  </div>
+  <template v-if="isArtifact">
+    <div
+      class="flex items-center space-x-1 text-xs mb-0.5"
+      :class="rarityFgClass(outcome.item.afx_rarity)"
+    >
+      <span>{{ outcome.item.rarity }}</span>
+      <span v-if="!outcome.deterministic">
+        <nondeterministic-icon class="inline" />
+      </span>
+    </div>
+
+    <div v-if="outcome.gold === 0" class="text-xs text-lime-500">
+      <span
+        v-tippy="{
+          content:
+            'expected gold yield from fully consuming the item (recursively, down to golden eggs)',
+        }"
+        class="text-lime-500"
+      >
+        f.c.
+        <img
+          class="h-3.5 w-3.5 inline relative -top-px -ml-0.5 -mr-1"
+          :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
+        />
+        {{ formatFloat(outcome.expected_gold, { digits: 1, trim: true })
+        }}<template v-if="outcome.item.afx_rarity > 0">;</template>
+      </span>
+      <span
+        v-if="outcome.demotion_gold !== null"
+        v-tippy="{ content: 'gold yield from demoting to common' }"
+        class="text-teal-500"
+      >
+        dm.
+        <img
+          class="h-3.5 w-3.5 inline relative -top-px -ml-0.5 -mr-1"
+          :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
+        />
+        {{ formatFloat(outcome.demotion_gold, { digits: 0 }) }}
+      </span>
+    </div>
+  </template>
 
   <div v-if="outcome.gold > 0" class="flex">
     <span class="inline-flex items-center space-x-1 text-xs text-gray-500">
@@ -33,7 +64,7 @@
         </a>
         <!-- Facilitate copying as text -->
         <span class="sr-only">{{ byproduct.name }}</span>
-        <span class="w-9">&times;{{ byproduct.expected_count }}</span>
+        <span class="w-9">&times;{{ formatFloat(byproduct.expected_count, { digits: 2 }) }}</span>
 
         <!-- Expand/collapse button -->
         <span
@@ -83,7 +114,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref } from 'vue';
 
-import { ei, iconURL } from 'lib';
+import { ei, iconURL, trimTrailingZeros } from 'lib';
 import { ConsumptionOutcome } from '@/data.json';
 import CollapseIcon from '@/components/CollapseIcon.vue';
 import ExpandIcon from '@/components/ExpandIcon.vue';
@@ -102,9 +133,9 @@ export default defineComponent({
       type: Object as PropType<ConsumptionOutcome>,
       required: true,
     },
-    hideRarity: {
+    isArtifact: {
       type: Boolean,
-      default: false,
+      required: true,
     },
   },
   setup() {
@@ -112,6 +143,7 @@ export default defineComponent({
     return {
       showSamples,
       rarityFgClass,
+      formatFloat,
       iconURL,
     };
   },
@@ -128,5 +160,14 @@ function rarityFgClass(rarity: Rarity): string {
     case Rarity.LEGENDARY:
       return 'text-yellow-500';
   }
+}
+
+function formatFloat(x: number, opts?: { digits?: number; trim?: boolean }): string {
+  const { digits = 0, trim = true } = opts ?? {};
+  const s = x.toLocaleString('en-US', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+  return digits > 0 && trim ? trimTrailingZeros(s) : s;
 }
 </script>

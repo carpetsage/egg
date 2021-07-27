@@ -19,8 +19,10 @@ type ConsumptionOutcome struct {
 	Item               Item                `json:"item"`
 	Deterministic      bool                `json:"deterministic"`
 	Gold               float64             `json:"gold"`
+	ExpectedGold       float64             `json:"expected_gold"`
 	ExpectedByproducts []ExpectedByproduct `json:"expected_byproducts"`
 	SampleByproducts   [][]Byproduct       `json:"sample_byproducts"`
+	DemotionGold       *float64            `json:"demotion_gold"`
 }
 
 type Item struct {

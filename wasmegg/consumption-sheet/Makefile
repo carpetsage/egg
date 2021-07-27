@@ -15,7 +15,7 @@ dist: build
 	../_tools/build.py dist --additional assets
 
 clean:
-	@$(RM) -r dist
+	@$(RM) -r dist src/data.json
 
 dev:
 	yarn dev
