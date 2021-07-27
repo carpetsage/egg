@@ -162,6 +162,10 @@ export const tools = [
     id: 'consumption-sheet',
     title: 'Consumption sheet',
     description: 'Artifact consumption outcomes',
+    // Fri Jul 30 12:32:29 UTC 2021
+    updateUntil: 1627648349000,
+    whatsNew:
+      'Added expected gold yield of fully consuming artifacts, and gold yield of demoting uncommon artifacts.',
   }),
   new Tool({
     id: 'loot-analysis',
