@@ -1,6 +1,6 @@
 type FixedLengthArray<T, L extends number> = [T, ...T[]] & { length: L };
 
-export const donors: FixedLengthArray<string, 61> = [
+export const donors: FixedLengthArray<string, 62> = [
   'Dr. Tuen',
   'zomg#3195',
   'WhaiFuji',
@@ -9,6 +9,7 @@ export const donors: FixedLengthArray<string, 61> = [
   'stephanigilliam',
   'PretentiousLuck',
   'Szute',
+  'lainsan',
   'lewisc5',
   'DhrMekmek',
   'CW_Mikey',
