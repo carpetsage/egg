@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 max-w-10xl w-full mx-auto px-4 my-4">
+  <div class="flex-1 max-w-10xl w-full mx-auto px-4">
     <section id="index" class="mt-4 mb-6 hide-in-screenshot-mode">
       <h2 class="my-2">Index</h2>
 
@@ -51,21 +51,10 @@
           The following dataset contains the outcomes of consuming each item (different rarities are
           condisered distinct) 100 times. The consumption outcome of an individual item is
           considered deterministic if all trial runs produced the exact same rewards; otherwise, the
-          item is marked as nondeterministic
-          <svg class="inline h-3" viewBox="0 0 640 512">
-            <path
-              fill="currentColor"
-              d="M592 192H473.26c12.69 29.59 7.12 65.2-17 89.32L320 417.58V464c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48V240c0-26.51-21.49-48-48-48zM480 376c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm-46.37-186.7L258.7 14.37c-19.16-19.16-50.23-19.16-69.39 0L14.37 189.3c-19.16 19.16-19.16 50.23 0 69.39L189.3 433.63c19.16 19.16 50.23 19.16 69.39 0L433.63 258.7c19.16-19.17 19.16-50.24 0-69.4zM96 248c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm128 128c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm0-128c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm0-128c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm128 128c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24z"
-            /></svg
-          >, and the displayed number of each byproduct is the expectation value computed from all
-          trial runs. The exact output from each trial run can be viewed by clicking on the "expand"
-          button
-          <svg viewBox="0 0 192 512" class="inline h-4 text-green-500">
-            <path
-              fill="currentColor"
-              d="M192 127.338v257.324c0 17.818-21.543 26.741-34.142 14.142L29.196 270.142c-7.81-7.81-7.81-20.474 0-28.284l128.662-128.662c12.599-12.6 34.142-3.676 34.142 14.142z"
-            /></svg
-          >.
+          item is marked as nondeterministic <nondeterministic-icon class="inline" />, and the
+          displayed number of each byproduct is the expectation value computed from all trial runs.
+          The exact output from each trial run can be viewed by clicking on the "expand" button
+          <expand-icon class="inline h-4" />.
         </p>
         <p>
           Note that due to the limited sample size, certain expectation values may be highly
@@ -79,8 +68,8 @@
       >
         <div
           v-for="family in data.families"
-          :key="family.id"
           :id="family.id"
+          :key="family.id"
           class="-mx-4 sm:mx-0 bg-gray-50 overflow-hidden sm:rounded-lg sm:shadow-md ScrollTarget"
           :class="family.type"
         >
@@ -101,7 +90,7 @@
               :class="family.type === 'Artifact' ? 'py-2' : null"
             >
               <div :id="tier.id" class="flex space-x-2 ScrollTarget">
-                <div class="flex-shrink-0" v-tippy="{ content: tier.name }">
+                <div v-tippy="{ content: tier.name }" class="flex-shrink-0">
                   <img class="h-10 w-10" :src="iconURL(`egginc/${tier.icon_filename}`, 128)" />
                 </div>
 
@@ -112,7 +101,7 @@
                 </ul>
 
                 <div v-else class="flex items-center">
-                  <consumption-outcome :outcome="tier.rarities[0]" :hideRarity="true" />
+                  <consumption-outcome :outcome="tier.rarities[0]" :hide-rarity="true" />
                 </div>
               </div>
             </li>
@@ -165,7 +154,7 @@
             <ul class="py-2 divide-y">
               <li v-for="tier in family.tiers" :key="tier.id" class="px-4 py-2">
                 <div :id="`${tier.id}-sources`" class="flex space-x-2 ScrollTarget">
-                  <div class="flex-shrink-0" v-tippy="{ content: tier.name }">
+                  <div v-tippy="{ content: tier.name }" class="flex-shrink-0">
                     <img class="h-10 w-10" :src="iconURL(`egginc/${tier.icon_filename}`, 128)" />
                   </div>
 
@@ -180,20 +169,30 @@
   </div>
 </template>
 
-<script>
-import ConsumptionOutcome from './ConsumptionOutcome.vue';
-import Sources from './Sources.vue';
+<script lang="ts">
+import { defineComponent } from 'vue';
 
-export default {
+import { iconURL } from 'lib';
+import data from './data.json';
+import ConsumptionOutcome from '@/components/ConsumptionOutcome.vue';
+import ExpandIcon from '@/components/ExpandIcon.vue';
+import NondeterministicIcon from '@/components/NondeterministicIcon.vue';
+import Sources from '@/components/Sources.vue';
+
+export default defineComponent({
   components: {
     ConsumptionOutcome,
+    ExpandIcon,
+    NondeterministicIcon,
     Sources,
   },
-
-  props: {
-    data: Object,
+  setup() {
+    return {
+      data,
+      iconURL,
+    };
   },
-};
+});
 </script>
 
 <style scoped>

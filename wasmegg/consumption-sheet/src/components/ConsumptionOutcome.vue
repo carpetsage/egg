@@ -6,12 +6,7 @@
   >
     <span>{{ outcome.item.rarity }}</span>
     <span v-if="!outcome.deterministic">
-      <svg class="inline h-3" viewBox="0 0 640 512">
-        <path
-          fill="currentColor"
-          d="M592 192H473.26c12.69 29.59 7.12 65.2-17 89.32L320 417.58V464c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48V240c0-26.51-21.49-48-48-48zM480 376c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm-46.37-186.7L258.7 14.37c-19.16-19.16-50.23-19.16-69.39 0L14.37 189.3c-19.16 19.16-19.16 50.23 0 69.39L189.3 433.63c19.16 19.16 50.23 19.16 69.39 0L433.63 258.7c19.16-19.17 19.16-50.24 0-69.4zM96 248c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm128 128c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm0-128c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm0-128c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24zm128 128c-13.25 0-24-10.75-24-24 0-13.26 10.75-24 24-24s24 10.74 24 24c0 13.25-10.75 24-24 24z"
-        />
-      </svg>
+      <nondeterministic-icon class="inline" />
     </span>
   </div>
 
@@ -31,9 +26,9 @@
       >
         <a :href="`#${byproduct.id}-sources`" class="h-6 w-6 -m-1 mr-0">
           <img
+            v-tippy="{ content: `${byproduct.name} (T${byproduct.tier_number})` }"
             class="h-6 w-6"
             :src="iconURL(`egginc/${byproduct.icon_filename}`, 64)"
-            v-tippy="{ content: `${byproduct.name} (T${byproduct.tier_number})` }"
           />
         </a>
         <!-- Facilitate copying as text -->
@@ -43,22 +38,12 @@
         <!-- Expand/collapse button -->
         <span
           v-if="index === outcome.expected_byproducts.length - 1 && !outcome.deterministic"
-          @click="showSamples = !showSamples"
-          class="h-4 select-none cursor-pointer text-green-500 hide-in-screenshot-mode"
           v-tippy="{ content: 'Expand/collapse sample runs' }"
+          class="h-4 ml-1.5 select-none cursor-pointer hide-in-screenshot-mode"
+          @click="showSamples = !showSamples"
         >
-          <svg v-if="showSamples" viewBox="0 0 320 512" class="h-4 ml-1.5">
-            <path
-              fill="currentColor"
-              d="M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z"
-            />
-          </svg>
-          <svg v-else viewBox="0 0 192 512" class="h-4 ml-1.5">
-            <path
-              fill="currentColor"
-              d="M192 127.338v257.324c0 17.818-21.543 26.741-34.142 14.142L29.196 270.142c-7.81-7.81-7.81-20.474 0-28.284l128.662-128.662c12.599-12.6 34.142-3.676 34.142 14.142z"
-            />
-          </svg>
+          <collapse-icon v-if="showSamples" />
+          <expand-icon v-else />
         </span>
       </span>
     </div>
@@ -79,11 +64,11 @@
         >
           <a :href="`#${byproduct.id}-sources`" class="h-6 w-6 -m-1 mr-0">
             <img
-              class="h-6 w-6"
-              :src="iconURL(`egginc/${byproduct.icon_filename}`, 64)"
               v-tippy="{
                 content: `${byproduct.name} (T${byproduct.tier_number})`,
               }"
+              class="h-6 w-6"
+              :src="iconURL(`egginc/${byproduct.icon_filename}`, 64)"
             />
           </a>
           <!-- Facilitate copying as text -->
@@ -95,32 +80,53 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, PropType, ref } from 'vue';
+
+import { ei, iconURL } from 'lib';
+import { ConsumptionOutcome } from '@/data.json';
+import CollapseIcon from '@/components/CollapseIcon.vue';
+import ExpandIcon from '@/components/ExpandIcon.vue';
+import NondeterministicIcon from '@/components/NondeterministicIcon.vue';
+
+import Rarity = ei.ArtifactSpec.Rarity;
+
+export default defineComponent({
+  components: {
+    CollapseIcon,
+    ExpandIcon,
+    NondeterministicIcon,
+  },
   props: {
-    outcome: Object,
-    hideRarity: Boolean,
-  },
-
-  data() {
-    return {
-      showSamples: false,
-    };
-  },
-
-  methods: {
-    rarityFgClass(rarity) {
-      switch (rarity) {
-        case 1:
-          return 'text-blue-500';
-        case 2:
-          return 'text-purple-500';
-        case 3:
-          return 'text-yellow-500';
-        default:
-          return 'text-gray-500';
-      }
+    outcome: {
+      type: Object as PropType<ConsumptionOutcome>,
+      required: true,
+    },
+    hideRarity: {
+      type: Boolean,
+      default: false,
     },
   },
-};
+  setup() {
+    const showSamples = ref(false);
+    return {
+      showSamples,
+      rarityFgClass,
+      iconURL,
+    };
+  },
+});
+
+function rarityFgClass(rarity: Rarity): string {
+  switch (rarity) {
+    case Rarity.COMMON:
+      return 'text-gray-500';
+    case Rarity.RARE:
+      return 'text-blue-500';
+    case Rarity.EPIC:
+      return 'text-purple-500';
+    case Rarity.LEGENDARY:
+      return 'text-yellow-500';
+  }
+}
 </script>

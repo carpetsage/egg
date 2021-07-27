@@ -8,6 +8,7 @@
     "eicoop",
     "wasmegg/_home",
     "wasmegg/artifact-sandbox",
+    "wasmegg/consumption-sheet",
     "wasmegg/enlightenment",
     "wasmegg/events",
     "wasmegg/mission-list",

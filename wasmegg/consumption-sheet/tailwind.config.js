@@ -1,6 +1,6 @@
 module.exports = {
-  purge: ['src/*.html', 'src/**/*.vue'],
-  darkMode: false,
+  mode: 'jit',
+  purge: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   theme: {
     extend: {
       screens: {
@@ -9,11 +9,6 @@ module.exports = {
       maxWidth: {
         '10xl': '104rem',
       },
-    },
-  },
-  variants: {
-    extend: {
-      opacity: ['disabled'],
     },
   },
   plugins: [require('@tailwindcss/forms')],
