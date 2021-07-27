@@ -11,7 +11,7 @@
         v-model="conf.prophecyEggs"
         :min="0"
         :max="9999"
-        class="pl-10 pt-2.5 pb-2"
+        base-class="pl-10 pt-2.5 pb-2"
       />
     </div>
 
@@ -23,7 +23,7 @@
         id="soul_eggs"
         v-model:raw="conf.soulEggsInput"
         v-model:value="conf.soulEggs"
-        class="pl-10 pt-2.5 pb-2"
+        base-class="pl-10 pt-2.5 pb-2"
       />
     </div>
 
@@ -54,8 +54,7 @@
             v-model="conf.epicMultiplier"
             :min="0"
             :max="100"
-            class="pl-2.5 pt-1 pb-0.5"
-            :style="{ width: '5rem' }"
+            base-class="w-20 pl-2.5 pt-1 pb-0.5"
           />
           <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">
             / 100
@@ -74,8 +73,7 @@
             v-model="conf.soulFood"
             :min="0"
             :max="140"
-            class="pl-2.5 pt-1 pb-0.5"
-            :style="{ width: '5rem' }"
+            base-class="w-20 pl-2.5 pt-1 pb-0.5"
           />
           <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">
             / 140
@@ -94,8 +92,7 @@
             v-model="conf.prophecyBonus"
             :min="0"
             :max="5"
-            class="pl-2.5 pt-1 pb-0.5"
-            :style="{ width: '5rem' }"
+            base-class="w-20 pl-2.5 pt-1 pb-0.5"
           />
           <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">
             / 5
@@ -174,7 +171,7 @@
               id="tachyon_deflector_percentage"
               :min="0"
               :model-value="round(conf.tachyonDeflectorBonus * 100)"
-              class="pl-10 pr-4 pt-2.5 pb-2"
+              base-class="pl-10 pr-4 pt-2.5 pb-2"
               @update:modelValue="value => (conf.tachyonDeflectorBonus = value / 100)"
             />
             <div class="absolute inset-y-0.5 right-0 pr-2 pt-2.5 pb-2 sm:text-sm text-gray-200">
