@@ -33,6 +33,17 @@
     index of my public tools for Egg, Inc.
   </p>
 
+  <p
+    ref="nytDiscordServerMessageRef"
+    class="mt-2"
+    :class="nytDiscordServerMessageSeen ? null : 'bg-green-100'"
+  >
+    You may join my
+    <base-link href="https://ei.tcl.sh/discord">focused Discord server</base-link> to follow
+    development updates, report issues, and discuss suggestions. See the
+    <base-router-link :to="{ name: 'contact' }">Contact</base-router-link> page for details.
+  </p>
+
   <ul>
     <li>
       <base-router-link
@@ -52,6 +63,7 @@
     <li>
       <base-router-link :to="{ name: 'privacy' }">Privacy policy</base-router-link>
     </li>
+    <li><base-router-link :to="{ name: 'contact' }">Contact</base-router-link></li>
     <li><base-link href="https://github.com/fanaticscripter/Egg">Source code</base-link></li>
   </ul>
 
@@ -135,7 +147,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onMounted, Ref, ref } from 'vue';
 
 import {
   getDonationPageVisited,
@@ -152,6 +164,7 @@ import ToolDescription from '@/components/ToolDescription.vue';
 import V120Badge from '@/components/V120Badge.vue';
 import WhatsNew from '@/components/WhatsNew.vue';
 
+const NYT_DISCORD_SERVER_MESSAGE_SEEN_AT_LOCALSTORAGE_KEY = 'nytDiscordServerMessageSeen';
 const EASTER_EGG_DAY = 7;
 const EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY = 'easterEggShownAt';
 
@@ -166,6 +179,33 @@ export default defineComponent({
     WhatsNew,
   },
   setup() {
+    const nytDiscordServerMessageSeen =
+      getLocalStorageNoPrefix(NYT_DISCORD_SERVER_MESSAGE_SEEN_AT_LOCALSTORAGE_KEY) !== undefined;
+    const nytDiscordServerMessageRef: Ref<HTMLElement | null> = ref(null);
+    onMounted(() => {
+      if (nytDiscordServerMessageSeen) {
+        return;
+      }
+      // Only set the message to seen if when intersects with the viewport (so
+      // that the highlight is reserved for later for people refreshing the page
+      // while scrolled down).
+      const setSeen = () =>
+        setLocalStorageNoPrefix(NYT_DISCORD_SERVER_MESSAGE_SEEN_AT_LOCALSTORAGE_KEY, Date.now());
+      if ('IntersectionObserver' in window && nytDiscordServerMessageRef.value) {
+        const observer = new IntersectionObserver(entries => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              setSeen();
+              observer.unobserve(entry.target);
+            }
+          }
+        });
+        observer.observe(nytDiscordServerMessageRef.value);
+      } else {
+        setSeen();
+      }
+    });
+
     const donationPageVisited = getDonationPageVisited();
 
     const daysVisitedStreak = ref(0);
@@ -226,6 +266,8 @@ export default defineComponent({
     };
 
     return {
+      nytDiscordServerMessageSeen,
+      nytDiscordServerMessageRef,
       donationPageVisited,
       daysVisitedStreak,
       EASTER_EGG_DAY,

@@ -48,7 +48,7 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 p {
   @apply my-4;
 }

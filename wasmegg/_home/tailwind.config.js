@@ -1,3 +1,4 @@
+const colors = require('tailwindcss/colors');
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
@@ -16,6 +17,10 @@ module.exports = {
       h1: ['19px', '28px'],
     },
     extend: {
+      colors: {
+        purple: colors.purple,
+        fuchsia: colors.fuchsia,
+      },
       gridTemplateColumns: {
         'max-1': 'max-content',
         'max-2': 'repeat(2, max-content)',

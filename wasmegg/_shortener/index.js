@@ -175,7 +175,9 @@ async function handleRequest(request) {
   const url = new URL(request.url);
   const code = url.pathname.replace(/^\/(.*?)\/?$/, '$1');
   let redirectURL = baseRedirectURL + '/';
-  if (code === 'sandbox') {
+  if (code === 'discord') {
+    redirectURL = 'https://discord.gg/e3bNQeaC8k';
+  } else if (code === 'sandbox') {
     redirectURL = 'https://wasmegg.netlify.app/artifact-sandbox/';
   } else if (code === 'config-changelog') {
     redirectURL =
