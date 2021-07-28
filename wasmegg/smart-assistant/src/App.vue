@@ -15,12 +15,19 @@
     </base-error-boundary>
 
     <template v-else>
-      <div class="text-sm mt-4 mx-4 xl:mx-0">
-        This tool automatically recommends optimal artifact setups for various prestiging strategies
-        based on what artifacts you have. Use in conjuction with
-        <a href="/artifact-sandbox/" target="_blank" class="text-blue-500 hover:text-blue-600"
-          >Artifact sandbox</a
-        >, where you can explore any artifact setup without acquiring the constituents.
+      <div class="text-sm mt-4 mx-4 xl:mx-0 space-y-2">
+        <p>
+          This tool automatically recommends optimal artifact setups for various prestiging
+          strategies based on what artifacts you have. Use in conjuction with
+          <a href="/artifact-sandbox/" target="_blank" class="text-blue-500 hover:text-blue-600"
+            >Artifact sandbox</a
+          >, where you can explore any artifact setup without acquiring the constituents.
+        </p>
+        <p>
+          Also included is an earning bonus planner where you can check the soul eggs and prophecy
+          eggs needed to progress to any earning bonus target, with support for artifact effects and
+          epic research preview.
+        </p>
       </div>
     </template>
   </div>
