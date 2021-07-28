@@ -81,11 +81,11 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 
-import BaseErrorBoundary from './components/BaseErrorBoundary.vue';
-import BaseLoading from './components/BaseLoading.vue';
+import { ModuleWorkerNotSupportedError } from '@/errors';
+import { getLocalStorage, setLocalStorage } from '@/storage';
+import BaseLoading from 'ui/components/BaseLoading.vue';
+import BaseErrorBoundary from '@/components/BaseErrorBoundary.vue';
 import SimulatorContainer from '@/components/SimulatorContainer.vue';
-import { ModuleWorkerNotSupportedError } from './errors';
-import { getLocalStorage, setLocalStorage } from './storage';
 
 const SHOW_INTRODUCTION_KEY = 'showIntroduction';
 

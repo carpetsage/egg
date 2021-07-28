@@ -1,35 +1,15 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { getLocalStorage, setLocalStorage } from 'lib';
 import { itemIds, missionIds } from './data';
 import { ItemSelectSpec, MissionSelectSpec } from './types';
+
+export { getLocalStorage, setLocalStorage } from 'lib';
 
 const MISSIONS_KEY = 'missions';
 const TARGETS_KEY = 'targets';
 const TOTAL_TRIALS_KEY = 'totalTrials';
 const SEED_KEY = 'seed';
-
-export function getLocalStorage(key: string, prefix?: string): string | undefined {
-  if (prefix === undefined) {
-    prefix = `${window.location.pathname}_`;
-  }
-  try {
-    return localStorage[prefix + key];
-  } catch (err) {
-    console.error(err);
-    return undefined;
-  }
-}
-
-export function setLocalStorage(key: string, val: any, prefix?: string) {
-  if (prefix === undefined) {
-    prefix = `${window.location.pathname}_`;
-  }
-  try {
-    localStorage[prefix + key] = val;
-  } catch (err) {
-    console.error(err);
-  }
-}
 
 function isMissionSelectSpecArray(x: unknown): x is MissionSelectSpec[] {
   if (!Array.isArray(x)) {
@@ -66,7 +46,7 @@ export function getMissions(): MissionSelectSpec[] {
   return defaultMissions;
 }
 
-export function setMissions(m: MissionSelectSpec[]) {
+export function setMissions(m: MissionSelectSpec[]): void {
   setLocalStorage(MISSIONS_KEY, JSON.stringify(m));
 }
 
@@ -105,7 +85,7 @@ export function getTargets(): ItemSelectSpec[] {
   return defaultItems;
 }
 
-export function setTargets(t: ItemSelectSpec[]) {
+export function setTargets(t: ItemSelectSpec[]): void {
   setLocalStorage(TARGETS_KEY, JSON.stringify(t));
 }
 
@@ -113,7 +93,7 @@ export function getTotalTrials(): number {
   return parseInt(getLocalStorage(TOTAL_TRIALS_KEY) || '') || 100_000;
 }
 
-export function setTotalTrials(n: number) {
+export function setTotalTrials(n: number): void {
   setLocalStorage(TOTAL_TRIALS_KEY, n);
 }
 
@@ -121,6 +101,6 @@ export function getSeed(): string {
   return getLocalStorage(SEED_KEY) || '';
 }
 
-export function setSeed(s: string) {
+export function setSeed(s: string): void {
   setLocalStorage(SEED_KEY, s);
 }

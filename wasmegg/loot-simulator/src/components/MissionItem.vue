@@ -11,9 +11,9 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
+import { iconURL } from 'lib';
 import { missionIdToMission } from '@/data';
 import { MissionId } from '@/types';
-import { iconURL } from '@/utils';
 
 export default defineComponent({
   props: {
@@ -22,8 +22,8 @@ export default defineComponent({
       required: true,
     },
     count: {
-      type: Number,
-      required: false,
+      type: Number as PropType<number | undefined>,
+      default: undefined,
     },
   },
   setup(props) {

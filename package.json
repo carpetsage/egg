@@ -11,6 +11,7 @@
     "wasmegg/consumption-sheet",
     "wasmegg/enlightenment",
     "wasmegg/events",
+    "wasmegg/loot-simulator",
     "wasmegg/mission-list",
     "wasmegg/past-contracts",
     "wasmegg/proto-explorer",

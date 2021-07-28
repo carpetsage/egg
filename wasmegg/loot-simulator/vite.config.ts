@@ -1,15 +1,19 @@
-import path from "path";
+import path from 'path';
 
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "/loot-simulator/",
+  base: '/loot-simulator/',
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'),
+      ui: path.resolve(__dirname, '../../ui'),
     },
   },
   plugins: [vue()],
+  build: {
+    chunkSizeWarningLimit: 1000,
+  },
 });

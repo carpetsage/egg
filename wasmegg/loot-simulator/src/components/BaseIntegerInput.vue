@@ -1,7 +1,7 @@
 <template>
   <input
-    type="number"
     v-model.number="value"
+    type="number"
     class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md focus:outline-none"
     :class="
       invalid
@@ -21,16 +21,18 @@ export default defineComponent({
       required: true,
     },
     max: {
-      type: Number as PropType<Number | undefined>,
+      type: Number as PropType<number | undefined>,
       default: undefined,
     },
     min: {
-      type: Number as PropType<Number | undefined>,
+      type: Number as PropType<number | undefined>,
       default: undefined,
     },
   },
   emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     'update:modelValue': (payload: number) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props, { emit }) {
     const { modelValue, max, min } = toRefs(props);

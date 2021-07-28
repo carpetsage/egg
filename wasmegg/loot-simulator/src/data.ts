@@ -76,7 +76,7 @@ function search<T>(index: lunr.Index, userQuery: string, refToItem: (ref: string
     .sort((result1, result2) => result2.score - result1.score);
   // Deduplicate and keep the highest score entry of each result.
   const matchRefs = new Set(matches.map(result => result.ref));
-  return [...matchRefs.entries()].map(([ref, _]) => refToItem(ref));
+  return [...matchRefs.entries()].map(([ref]) => refToItem(ref));
 }
 
 export function searchItems(userQuery: string): Item[] {

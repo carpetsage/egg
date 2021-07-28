@@ -1,5 +1,6 @@
 // Adapted from https://github.com/davidbau/seedrandom/pull/70/files#diff-093ad82a25aee498b11febf1cdcb6546e4d223ffcb49ed69cc275ac27ce0ccce
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module 'seedrandom' {
   const seedrandom: Seedrandom;
   export default seedrandom;

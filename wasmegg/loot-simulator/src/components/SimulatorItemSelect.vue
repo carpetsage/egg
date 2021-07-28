@@ -28,11 +28,11 @@
         </div>
         <input
           ref="selectButton"
+          v-model="searchFilter"
           type="text"
           class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-11 pr-10 sm:text-sm border-gray-300 rounded-md"
           spellcheck="false"
           placeholder="Select artifact (type to filter)"
-          v-model="searchFilter"
           @focus="openDropdown"
           @blur="closeDropdown"
           @keydown="handleKeydown"
@@ -56,8 +56,8 @@
       </div>
 
       <ul
-        ref="dropdownList"
         v-show="open"
+        ref="dropdownList"
         class="absolute mt-1 w-full bg-white shadow-lg rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm z-10"
         :style="{ maxHeight: '21.5rem' }"
         tabindex="-1"
@@ -130,7 +130,7 @@
         class="h-full pl-7 min-w-0"
         :style="{ maxWidth: '6rem' }"
         placeholder="count"
-        :modelValue="modelValue.count"
+        :model-value="modelValue.count"
         :min="1"
         @update:modelValue="updateCount"
       />
@@ -157,8 +157,8 @@
 import { computed, defineComponent, nextTick, PropType, Ref, ref, toRefs } from 'vue';
 import scrollIntoView from 'scroll-into-view-if-needed';
 
+import { iconURL } from 'lib';
 import { itemIdToItem, items, searchItems } from '@/data';
-import { iconURL } from '@/utils';
 import { Item, ItemId, ItemSelectSpec } from '@/types';
 import BaseIntegerInput from '@/components/BaseIntegerInput.vue';
 
@@ -173,8 +173,10 @@ export default defineComponent({
     },
   },
   emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     'update:modelValue': (payload: ItemSelectSpec) => true,
     delete: () => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props, { emit }) {
     const { modelValue } = toRefs(props);
@@ -256,7 +258,7 @@ export default defineComponent({
     };
     const handleKeydown = (event: KeyboardEvent) => {
       switch (event.key) {
-        case 'Enter':
+        case 'Enter': {
           event.preventDefault();
           // Do nothing if there are no matching entries.
           if (filteredItems.value.length === 0) {
@@ -273,8 +275,9 @@ export default defineComponent({
             selectButton.value?.blur();
           });
           return;
+        }
         case 'ArrowDown':
-        case 'ArrowUp':
+        case 'ArrowUp': {
           event.preventDefault();
           // Do nothing if there are no matching entries.
           if (filteredItems.value.length === 0) {
@@ -293,6 +296,7 @@ export default defineComponent({
           active.value = entries[newIndex];
           scrollDropdownListEntryIntoViewIfNeeded(newIndex);
           return;
+        }
       }
     };
 

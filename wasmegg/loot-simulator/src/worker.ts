@@ -26,14 +26,16 @@ const recipes = indices.map(i => {
 function shuffle<T>(arr: T[], rng: prng.Prng) {
   let index = arr.length;
   while (index > 1) {
-    let randomIndex = Math.floor(rng() * index);
+    const randomIndex = Math.floor(rng() * index);
     index--;
     [arr[index], arr[randomIndex]] = [arr[randomIndex], arr[index]];
   }
 }
 
 const exposed: SimulationWorkerInterface = {
-  ping() {},
+  ping() {
+    return;
+  },
 
   async runSimulations(missions, targets, totalTrials, report, seed, signal?) {
     // Note: for performance reasons, all code in the hot path is inlined

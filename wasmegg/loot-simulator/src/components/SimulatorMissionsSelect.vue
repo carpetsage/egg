@@ -3,7 +3,7 @@
     <simulator-mission-select
       v-for="(entry, index) in modelValue"
       :key="entry.rowid"
-      :modelValue="entry"
+      :model-value="entry"
       @update:modelValue="updateMission(index, $event)"
       @delete="() => deleteMission(index)"
     />
@@ -47,7 +47,9 @@ export default defineComponent({
     },
   },
   emits: {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     'update:modelValue': (payload: MissionSelectSpec[]) => true,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props, { emit }) {
     const { modelValue } = toRefs(props);

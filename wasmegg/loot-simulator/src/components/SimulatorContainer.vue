@@ -33,9 +33,9 @@
           <div class="mt-1.5">
             <base-integer-input
               id="total_trials"
+              v-model="totalTrials"
               name="total_trials"
               class="max-w-sm"
-              v-model="totalTrials"
               :min="1"
             />
           </div>
@@ -49,14 +49,14 @@
           <label class="flex items-center gap-1 text-sm font-medium text-gray-700">
             Missions to simulate
           </label>
-          <simulator-missions-select class="mt-1.5" v-model="missions" />
+          <simulator-missions-select v-model="missions" class="mt-1.5" />
         </div>
 
         <div class="mt-4">
           <label class="flex items-center gap-1 text-sm font-medium text-gray-700">
             Target items
           </label>
-          <simulator-items-select class="mt-1.5" v-model="targets" />
+          <simulator-items-select v-model="targets" class="mt-1.5" />
         </div>
 
         <div class="mt-4">
@@ -70,13 +70,13 @@
           </label>
           <div class="mt-1.5">
             <input
+              id="seed"
+              v-model.trim="seed"
               type="text"
               name="seed"
-              id="seed"
               class="max-w-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
               spellcheck="false"
               placeholder="Leave empty to auto-seed"
-              v-model.trim="seed"
             />
           </div>
           <p class="mt-1 text-xs text-gray-500">
