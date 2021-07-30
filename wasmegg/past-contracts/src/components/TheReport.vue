@@ -138,6 +138,38 @@
     </div>
   </div>
 
+  <div class="mb-2">
+    <button
+      class="flex items-center text-sm text-gray-600 underline space-x-1"
+      @click="downloadAsCSV"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5 text-gray-500 relative -ml-1"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      Download table as CSV
+    </button>
+    <p class="text-xs text-gray-600 mt-1">
+      Note: If you're using the CSV download option for the purpose of tracking leggacy contract
+      availability for a coop group, you might want to check out my specialized tool for that exact
+      purpose:
+      <a
+        href="https://github.com/fanaticscripter/EggOrganizer"
+        target="_blank"
+        class="underline hover:text-gray-700"
+        >EggOrganizer</a
+      >.
+    </p>
+  </div>
+
   <div class="flex flex-col">
     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
       <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
@@ -210,20 +242,10 @@
                     <template v-else>&nbsp;</template>
                   </td>
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
-                    {{ contract.attempted ? contract.numCompletedGoals : '-' }}/{{
-                      contract.numAvailableGoals
-                    }}
+                    {{ contractGoalsSpec(contract) }}
                   </td>
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
-                    <template v-if="contract.indexOfPEGoal !== null">
-                      <template v-if="contract.hasLeagues">
-                        {{ contract.league === 1 ? 'std' : 'elt' }}
-                      </template>
-                      #{{ contract.indexOfPEGoal + 1 }}
-                      <template v-if="contract.numAvailablePEs > 1">
-                        ({{ contract.numAvailablePEs }})
-                      </template>
-                    </template>
+                    {{ contractPESpec(contract) }}
                   </td>
                 </tr>
               </template>
@@ -277,6 +299,7 @@
 <script lang="ts">
 import { computed, defineComponent, ref, watch } from 'vue';
 import dayjs from 'dayjs';
+import csvStringify from 'csv-stringify/lib/browser/sync';
 
 import {
   eggIconPath,
@@ -374,6 +397,63 @@ export default defineComponent({
           )}/`
         : contractLink(contract);
 
+    const contractGoalsSpec = (contract: UserContract) =>
+      `${contract.attempted ? contract.numCompletedGoals : '-'}/${contract.numAvailableGoals}`;
+    const contractPESpec = (contract: UserContract) => {
+      if (contract.indexOfPEGoal === null) {
+        return '';
+      }
+      let spec = '';
+      if (contract.hasLeagues) {
+        spec += contract.league === 1 ? 'std ' : 'elt ';
+      }
+      spec += `${contract.indexOfPEGoal + 1}`;
+      if (contract.numAvailablePEs > 1) {
+        spec += ` ${contract.numAvailablePEs}`;
+      }
+      return spec;
+    };
+
+    const downloadAsCSV = () => {
+      const csvBody = csvStringify(
+        [
+          ['ID', 'Name', 'Date', 'Code', 'Goals', 'PE', 'Attempted', 'PE collected', 'Completed'],
+        ].concat(
+          contracts.map(contract => [
+            contract.id,
+            contract.name,
+            epochSecondsToFormattedDate(contract.timestamp),
+            contract.coopCode ?? '',
+            contractGoalsSpec(contract),
+            contractPESpec(contract),
+            csvbool(contract.attempted),
+            csvbool(
+              contract.indexOfPEGoal !== null && contract.numCompletedGoals > contract.indexOfPEGoal
+            ),
+            csvbool(contract.numCompletedGoals >= contract.numAvailableGoals),
+          ])
+        )
+      );
+      const blob = new Blob([csvBody], { type: 'text/csv' });
+      const blobURL = URL.createObjectURL(blob);
+      // The naive approach of window.open(blobURL, "_blank") doesn't work on iOS Safari.
+      // Use the suggestion in https://dev.to/nombrekeff/download-file-from-blob-21ho,
+      // create a link and trigger a click.
+      const link = document.createElement('a');
+      link.href = blobURL;
+      link.download = 'past-contracts.csv';
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        })
+      );
+      document.body.removeChild(link);
+    };
+
     return {
       prophecyEggsProgress,
       contracts,
@@ -386,6 +466,9 @@ export default defineComponent({
       epochSecondsToFormattedDate,
       contractLink,
       coopLink,
+      contractGoalsSpec,
+      contractPESpec,
+      downloadAsCSV,
       iconURL,
       eggIconPath,
     };
@@ -394,5 +477,9 @@ export default defineComponent({
 
 function epochSecondsToFormattedDate(t: number): string {
   return dayjs(t * 1000).format('YYYY-MM-DD');
+}
+
+function csvbool(x: boolean): 'true' | 'false' {
+  return x ? 'true' : 'false';
 }
 </script>
