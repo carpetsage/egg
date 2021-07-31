@@ -56,14 +56,20 @@ export function eggLayingRateResearches(farm: Farm): EggLayingRateResearchInstan
   return farm.researches(eggLayingRateRelevantResearches);
 }
 
-export function layableEggsPerSecond(
+export function layableEggsPerChickenPerSecond(
   farm: Farm,
   researches: EggLayingRateResearchInstance[]
 ): number {
   return (
-    farm.numChickens *
     baseEggLayingRate *
     researches.reduce((effect, r) => effect * (1 + r.perLevel * r.level), 1) *
     farm.artifactSet.eggLayingRateMultiplier
   );
+}
+
+export function layableEggsPerSecond(
+  farm: Farm,
+  researches: EggLayingRateResearchInstance[]
+): number {
+  return farm.numChickens * layableEggsPerChickenPerSecond(farm, researches);
 }

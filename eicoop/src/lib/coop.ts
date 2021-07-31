@@ -153,6 +153,7 @@ export class Contributor {
   // on lower app versions.
   tokensSpent: number | null;
   hourlyLayingRateUncapped: number | null;
+  projectedHourlyLayingRateUncappedAtFullHabs: number | null;
   hourlyShippingCapacity: number | null;
   farmPopulation: number | null;
   farmCapacity: number | null;
@@ -179,6 +180,7 @@ export class Contributor {
 
     this.tokensSpent = isValue(contributor.boostTokensSpent) ? contributor.boostTokensSpent : null;
     this.hourlyLayingRateUncapped = null;
+    this.projectedHourlyLayingRateUncappedAtFullHabs = null;
     this.hourlyShippingCapacity = null;
     this.farmPopulation = null;
     this.farmCapacity = null;
@@ -187,6 +189,10 @@ export class Contributor {
     if (params) {
       if (isValue(params.elr) && isValue(params.farmPopulation)) {
         this.hourlyLayingRateUncapped = params.elr * params.farmPopulation * 3600;
+        if (isValue(params.farmCapacity)) {
+          this.projectedHourlyLayingRateUncappedAtFullHabs =
+            params.elr * params.farmCapacity * 3600;
+        }
       }
       if (isValue(params.sr)) {
         this.hourlyShippingCapacity = params.sr * 3600;

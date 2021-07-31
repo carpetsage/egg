@@ -27,6 +27,7 @@ export class SoloStatus {
   tokens: number;
   tokensSpent: number;
   hourlyLayingRateUncapped: number;
+  projectedHourlyLayingRateUncappedAtFullHabs: number;
   hourlyShippingCapacity: number;
   farmPopulation: number;
   farmCapacity: number;
@@ -76,6 +77,8 @@ export class SoloStatus {
     this.tokens = farm.tokensInStock;
     this.tokensSpent = farm.tokensSpent;
     this.hourlyLayingRateUncapped = farm.layableEggsPerHour;
+    this.projectedHourlyLayingRateUncappedAtFullHabs =
+      farm.layableEggsPerChickenPerHour * farm.habSpace;
     this.hourlyShippingCapacity = farm.shippableEggsPerHour;
     this.farmPopulation = farm.numChickens;
     this.farmCapacity = farm.habSpace;

@@ -32,6 +32,7 @@ import {
 import {
   eggLayingRateResearches,
   EggLayingRateResearchInstance,
+  layableEggsPerChickenPerSecond,
   layableEggsPerSecond,
 } from './laying_rate';
 import {
@@ -273,6 +274,16 @@ export class Farm {
   @Memoize()
   get eggLayingRateResearches(): EggLayingRateResearchInstance[] {
     return eggLayingRateResearches(this);
+  }
+
+  @Memoize()
+  get layableEggsPerChickenPerSecond(): number {
+    return layableEggsPerChickenPerSecond(this, this.eggLayingRateResearches);
+  }
+
+  @Memoize()
+  get layableEggsPerChickenPerHour(): number {
+    return this.layableEggsPerChickenPerSecond * 3600;
   }
 
   @Memoize()

@@ -172,7 +172,21 @@
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           <template v-if="contributor.hourlyLayingRateUncapped !== null">
-            {{ formatEIValue(contributor.hourlyLayingRateUncapped) }}
+            <span
+              v-tippy="{
+                content:
+                  contributor.farmPopulation !== contributor.farmCapacity
+                    ? `Without further upgrades, when currently available hab space is filled,
+                      laying rate will reach <span class='text-blue-300'>${
+                        contributor.projectedHourlyLayingRateUncappedAtFullHabs !== null
+                          ? formatEIValue(contributor.projectedHourlyLayingRateUncappedAtFullHabs)
+                          : '-'
+                      }/hr</span>.`
+                    : 'Habs full, laying rate cannot be improved through population growth at the moment.',
+                allowHTML: true,
+              }"
+              >{{ formatEIValue(contributor.hourlyLayingRateUncapped) }}</span
+            >
             <img
               v-if="
                 contributor.hourlyShippingCapacity !== null &&
@@ -182,7 +196,7 @@
                 content:
                   'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
               }"
-              class="inline h-4 w-4 relative -top-px cursor-help"
+              class="inline h-4 w-4 relative -top-px cursor-help ml-0.5"
               :src="iconURL('egginc-extras/icon_warning.png', 64)"
             />
           </template>
