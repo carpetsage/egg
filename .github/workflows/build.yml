@@ -106,7 +106,7 @@ jobs:
         run: |
           "$(yarn global bin)/netlify" deploy
         env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/master'
       - name: Deploy
