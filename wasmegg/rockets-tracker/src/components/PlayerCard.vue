@@ -388,6 +388,22 @@
             You aren't poop-worthy.<br />
             Keep <s>defecating</s> launching.
           </div>
+
+          <a
+            href="https://legendary-study.netlify.app/"
+            target="_blank"
+            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
+          >
+            <span class="underline">How you fare against other players</span>
+            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
+              <path
+                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
+              />
+            </svg>
+          </a>
         </div>
 
         <div v-if="!collapsed" class="py-2">
