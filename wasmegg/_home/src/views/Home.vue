@@ -92,6 +92,7 @@
     <li><tool-description id="consumption-sheet" @visit="onvisit" /></li>
     <li><tool-description id="loot-analysis" @visit="onvisit" /><v120-badge /></li>
     <li><tool-description id="events" @visit="onvisit" /></li>
+    <li><tool-description id="legendary-study" @visit="onvisit" /></li>
   </ul>
 
   <h3>Developer tools</h3>

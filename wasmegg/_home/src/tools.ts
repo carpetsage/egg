@@ -177,6 +177,14 @@ export const tools = [
     title: 'Events calendar',
     description: 'Filterable calendar of (not so) special events',
   }),
+  new Tool({
+    id: 'legendary-study',
+    url: 'https://legendary-study.netlify.app/',
+    title: 'Legendary study report',
+    description: 'See how you fare against other Egg, Inc. players in the legendary artifact department',
+    // Fri Aug  6 17:33:54 UTC 2021
+    newUntil: 1628271234000,
+  }),
 
   new Tool({
     id: 'researches',
