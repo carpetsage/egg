@@ -52,6 +52,10 @@
                       <span class="text-white">Duration:</span>
                       {{ formatDuration(event.durationSeconds, true) }}
                     </p>
+                    <p v-if="devmode">
+                      <span class="text-white">ID:</span>
+                      {{ event.id }}
+                    </p>
                   </div>
                 </template>
 
@@ -88,7 +92,7 @@ import { computed, defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 import dayjs, { Dayjs } from 'dayjs';
 
-import { formatDuration, iconURL } from 'lib';
+import { formatDuration, getDevModeOn, iconURL } from 'lib';
 import { GameEvent } from '@/events';
 import { EventTypeSwitches } from '@/types';
 import EventBadge from '@/components/EventBadge.vue';
@@ -129,11 +133,13 @@ export default defineComponent({
       }
       return dates;
     });
+    const devmode = getDevModeOn();
     return {
       now: dayjs(),
       dates,
       formatDuration,
       iconURL,
+      devmode,
     };
   },
 });
