@@ -6,6 +6,7 @@ import Home from '@/views/Home.vue';
 import Contact from '@/views/Contact.vue';
 import Donate from '@/views/Donate.vue';
 import PrivacyPolicy from '@/views/PrivacyPolicy.vue';
+import DevMode from '@/views/DevMode.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -48,6 +49,14 @@ const router = createRouter({
       component: PrivacyPolicy,
       meta: {
         title: 'Privacy policy',
+      },
+    },
+    {
+      name: 'devmode',
+      path: '/devmode',
+      component: DevMode,
+      meta: {
+        title: 'Dev mode',
       },
     },
     {
