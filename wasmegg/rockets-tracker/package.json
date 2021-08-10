@@ -20,7 +20,7 @@
     "protobufjs": "^6.11.2",
     "safari-14-idb-fix": "^1.0.3",
     "uuid": "^8.3.2",
-    "vue": "^3.0.5",
+    "vue": "^3.2.1",
     "vue-tippy": "^6.0.0-alpha.28"
   },
   "devDependencies": {
@@ -31,7 +31,7 @@
     "postcss": "^8.2.10",
     "tailwindcss": "^2.2.4",
     "typescript": "^4.1.3",
-    "vite": "^2.3.8",
+    "vite": "^2.4.4",
     "vue-tsc": "^0.0.24"
   }
 }
