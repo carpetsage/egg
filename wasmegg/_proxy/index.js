@@ -95,7 +95,6 @@ function isAllowedOrigin(origin) {
 
 addEventListener('fetch', event => {
   const request = event.request;
-  const url = new URL(request.url);
   if (request.method === 'OPTIONS') {
     event.respondWith(handleOptions(request));
   } else if (request.method === 'GET' || request.method === 'HEAD' || request.method === 'POST') {
