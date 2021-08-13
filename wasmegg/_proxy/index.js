@@ -29,6 +29,7 @@ async function handleRequest(request) {
   let proxiedOrigin = new URL(proxiedURL).origin;
   if (
     proxiedOrigin !== 'http://www.auxbrain.com' &&
+    proxiedOrigin !== 'https://www.auxbrain.com' &&
     proxiedOrigin !== 'http://afx-2-dot-auxbrainhome.appspot.com' &&
     proxiedOrigin !== 'https://afx-2-dot-auxbrainhome.appspot.com'
   ) {

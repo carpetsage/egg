@@ -13,7 +13,7 @@ export * from './version';
 const API_ROOT =
   import.meta.env.DEV && import.meta.env.VITE_APP_MOCK
     ? '/api'
-    : 'https://wasmegg.zw.workers.dev/?url=https://afx-2-dot-auxbrainhome.appspot.com';
+    : 'https://wasmegg.zw.workers.dev/?url=https://www.auxbrain.com';
 const TIMEOUT = 5000;
 
 /**

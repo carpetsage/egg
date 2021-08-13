@@ -1,5 +1,10 @@
 [
   {
+    "versionDisplay": "1.21.2",
+    "releaseNotes": "- minor improvements and bug fixes",
+    "releaseDate": "2021-08-12"
+  },
+  {
     "versionDisplay": "1.21",
     "releaseNotes": "- Mission Control FUEL TANK! - Base level is FREE\n- All Players get 3 mission slots even without Pro Permit\n- Ships gain experience and level with each launch to increase capacity and quality\n- Mission Epic Research for reduced duration and increased capacity\n- Intelligent Crafting",
     "releaseDate": "2021-06-15"
