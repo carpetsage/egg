@@ -36,7 +36,7 @@
 
       <div class="divide-y divide-gray-200">
         <div class="py-2">
-          <div class="flex items-center justify-center space-x-1 mx-4">
+          <div class="flex items-center justify-center space-x-1 mx-6">
             <img
               :src="iconURL(hasProPermit ? 'egginc/pro_permit.png' : 'egginc/free_permit.png', 128)"
               class="h-4 flex-shrink-0"
@@ -48,6 +48,21 @@
               :src="iconURL('egginc/icon_trophy_diamond.png', 128)"
               class="h-4 w-4 flex-shrink-0"
             />
+
+            <span
+              v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB"
+              v-tippy="{ content: 'Zero Legendary Club' }"
+              class="inline-flex items-center px-1 rounded text-xs font-medium bg-blue-400 text-white shadow-inner"
+            >
+              ZLC
+            </span>
+            <span
+              v-else-if="artifactClub === ArtifactClub.STAFF_LEGENDARIES_CLUB"
+              v-tippy="{ content: 'Staff Legendaries Club' }"
+              class="inline-flex items-center px-1 rounded text-xs font-medium bg-red-400 text-white shadow-inner"
+            >
+              SLC
+            </span>
           </div>
 
           <div class="mt-1">
@@ -458,6 +473,18 @@ import Status = ei.MissionInfo.Status;
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 
+enum ArtifactClub {
+  ZERO_LEGENDARY_CLUB,
+  STAFF_LEGENDARIES_CLUB,
+}
+
+const STAFF_USER_ID_HASHES = [
+  '6fd149f054b097366d63e7e5d322ffa30359d00c0991d04afd4a04fa0cca12b3',
+  'f27a030bcbbd017afb5429e7bff341f3589c5bf035d41ad82063b8edac481d50',
+  '465d0ffcc5a6c98ec57cf69a7c8a6d1e8af40c6fa6cac3ef83ea9cee5cf516f4',
+  '326118cdebe0e22870389a70ff99e746a55e3ad52bf9f2a3d8ea888fc354e7f0',
+];
+
 const LEGENDARIES_JEALOUSY_THRESHOLD = 3;
 // Prior to 1.21, 381 legendaries dropped from 40920 exthens each with 56
 // capacity, averaging to every 1 in ~6000. The 50 has no particular reason,
@@ -506,8 +533,18 @@ export default defineComponent({
 
     const progress = computed(() => backup.value.game!);
     const artifactsDB = computed(() => backup.value.artifactsDb!);
+    const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
     const nickname = computed(() => backup.value.userName!);
     const hasProPermit = computed(() => progress.value.permitLevel === 1);
+    const artifactClub = computed((): ArtifactClub | null => {
+      if (inventory.value.legendaryCount === 0) {
+        return ArtifactClub.ZERO_LEGENDARY_CLUB;
+      }
+      if (STAFF_USER_ID_HASHES.includes(userIdHash.value)) {
+        return ArtifactClub.STAFF_LEGENDARIES_CLUB;
+      }
+      return null;
+    });
     const prophecyEggsProgress = computed(() => getProphecyEggsProgress(backup.value));
     const hasEnlightenmentDiamondTrophy = computed(() => {
       const eggs = prophecyEggsProgress.value.fromTrophies.eggs;
@@ -586,16 +623,14 @@ export default defineComponent({
     // undefined otherwise.
     const zeroLegendaryUnworthyNickname = computed(() =>
       inventory.value.legendaryCount === 0 && !zeroLegendaryShaming.value
-        ? ZERO_LEGENDARY_UNWORTHY_USER_NICKNAMES.get(sha256(backup.value.eiUserId ?? ''))
+        ? ZERO_LEGENDARY_UNWORTHY_USER_NICKNAMES.get(userIdHash.value)
         : undefined
     );
     // And, crazy as it may sound, some enjoy the personalized message more!
     // Give it to them unconditionally.
     const zeroLegendaryUnconditionallyUnworthyNickname = computed(() =>
       inventory.value.legendaryCount === 0
-        ? ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES.get(
-            sha256(backup.value.eiUserId ?? '')
-          )
+        ? ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES.get(userIdHash.value)
         : undefined
     );
     const randIndex = Math.floor(Math.random() * 10000);
@@ -606,6 +641,7 @@ export default defineComponent({
       lastRefreshedRelative,
       nickname,
       hasProPermit,
+      artifactClub,
       prophecyEggsProgress,
       hasEnlightenmentDiamondTrophy,
       prophecyEggs,
@@ -638,6 +674,7 @@ export default defineComponent({
       formatEIValue,
       iconURL,
       badgeURL,
+      ArtifactClub,
     };
   },
 });
