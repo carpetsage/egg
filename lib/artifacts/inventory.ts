@@ -98,6 +98,10 @@ export class Inventory {
     return sum(this.items.map(item => item.haveLegendary));
   }
 
+  get distinctLegendaryCount(): number {
+    return sum(this.items.map(item => (item.haveLegendary > 0 ? 1 : 0)));
+  }
+
   get sunkCost(): number {
     return sum(this.items.map(item => item.sunkCost));
   }

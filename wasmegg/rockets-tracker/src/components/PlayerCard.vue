@@ -57,6 +57,13 @@
               ZLC
             </span>
             <span
+              v-else-if="artifactClub === ArtifactClub.ALL_LEGENDARIES_CLUB"
+              v-tippy="{ content: 'All Legendaries Club' }"
+              class="inline-flex items-center px-1 rounded text-xs font-medium bg-yellow-400 text-white shadow-inner"
+            >
+              ALC
+            </span>
+            <span
               v-else-if="artifactClub === ArtifactClub.STAFF_LEGENDARIES_CLUB"
               v-tippy="{ content: 'Staff Legendaries Club' }"
               class="inline-flex items-center px-1 rounded text-xs font-medium bg-red-400 text-white shadow-inner"
@@ -475,6 +482,7 @@ const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 
 enum ArtifactClub {
   ZERO_LEGENDARY_CLUB,
+  ALL_LEGENDARIES_CLUB,
   STAFF_LEGENDARIES_CLUB,
 }
 
@@ -540,6 +548,9 @@ export default defineComponent({
     const artifactClub = computed((): ArtifactClub | null => {
       if (inventory.value.legendaryCount === 0) {
         return ArtifactClub.ZERO_LEGENDARY_CLUB;
+      }
+      if (inventory.value.distinctLegendaryCount >= 21) {
+        return ArtifactClub.ALL_LEGENDARIES_CLUB;
       }
       if (STAFF_USER_ID_HASHES.includes(userIdHash.value)) {
         return ArtifactClub.STAFF_LEGENDARIES_CLUB;
