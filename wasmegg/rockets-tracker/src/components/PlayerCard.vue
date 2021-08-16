@@ -58,7 +58,10 @@
             </span>
             <span
               v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB_100"
-              v-tippy="{ content: 'Zero Legendary Club 100' }"
+              v-tippy="{
+                content: `Zero Legendary Club <span class='brightness-0 invert'>&#x1f4af;</span>`,
+                allowHTML: true,
+              }"
               class="inline-flex items-center px-1 rounded text-xs font-medium bg-blue-400 text-white shadow-inner"
             >
               ZLC100
