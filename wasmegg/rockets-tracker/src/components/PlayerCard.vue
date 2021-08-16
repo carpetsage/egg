@@ -57,6 +57,13 @@
               ZLC
             </span>
             <span
+              v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB_100"
+              v-tippy="{ content: 'Zero Legendary Club 100' }"
+              class="inline-flex items-center px-1 rounded text-xs font-medium bg-blue-400 text-white shadow-inner"
+            >
+              ZLC100
+            </span>
+            <span
               v-else-if="artifactClub === ArtifactClub.ALL_LEGENDARIES_CLUB"
               v-tippy="{ content: 'All Legendaries Club' }"
               class="inline-flex items-center px-1 rounded text-xs font-medium bg-yellow-400 text-white shadow-inner"
@@ -482,6 +489,7 @@ const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 
 enum ArtifactClub {
   ZERO_LEGENDARY_CLUB,
+  ZERO_LEGENDARY_CLUB_100,
   ALL_LEGENDARIES_CLUB,
   STAFF_LEGENDARIES_CLUB,
 }
@@ -547,7 +555,11 @@ export default defineComponent({
     const hasProPermit = computed(() => progress.value.permitLevel === 1);
     const artifactClub = computed((): ArtifactClub | null => {
       if (inventory.value.legendaryCount === 0) {
-        return ArtifactClub.ZERO_LEGENDARY_CLUB;
+        if (completedExtendedHenerpriseCount.value >= 100) {
+          return ArtifactClub.ZERO_LEGENDARY_CLUB_100;
+        } else {
+          return ArtifactClub.ZERO_LEGENDARY_CLUB;
+        }
       }
       if (inventory.value.distinctLegendaryCount >= 21) {
         return ArtifactClub.ALL_LEGENDARIES_CLUB;
