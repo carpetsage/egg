@@ -505,7 +505,7 @@ const STAFF_USER_ID_HASHES = [
   'f362dc823605c69029688fe63899cd383239f68f39042675e332d1af992ab89e',
 ];
 
-const LEGENDARIES_JEALOUSY_THRESHOLD = 3;
+const LEGENDARIES_JEALOUSY_THRESHOLD = 4;
 // Prior to 1.21, 381 legendaries dropped from 40920 exthens each with 56
 // capacity, averaging to every 1 in ~6000. The 50 has no particular reason,
 // just don't want to show this too soon for late comers who only know
