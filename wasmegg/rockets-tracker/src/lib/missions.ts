@@ -92,7 +92,7 @@ export class ShipStatistics {
     }
     return {
       maxLevel,
-      level,
+      level: maxLevel,
       launchPointsToNextLevel: null,
       fractionalProgressToNextLevel: null,
       launchPointsToMaxLevel,
