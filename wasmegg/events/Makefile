@@ -12,7 +12,7 @@ dist: build
 	../_tools/build.py dist --additional assets
 
 update-events-data:
-	curl -o src/events.json https://egginc-events-api.zw.workers.dev/
+	curl -f -o src/events.json https://egginc-events-api.zw.workers.dev/
 
 clean:
 	@$(RM) -r dist
