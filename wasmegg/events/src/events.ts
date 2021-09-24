@@ -134,13 +134,11 @@ export class EventType {
       case 'crafting-sale':
         return 'egginc/icon_afx_craft.png';
       case 'mission-fuel':
-        return 'egginc/icon_afx_mission.png';
+        return 'egginc/icon_afx_mission_fuel.png';
       case 'mission-capacity':
-        // No icon for now.
-        return '';
+        return 'egginc/icon_afx_chest_2.png';
       case 'mission-duration':
-        // No icon for now.
-        return '';
+        return 'egginc/icon_afx_mission_duration.png';
     }
   }
 }
@@ -240,6 +238,7 @@ export class InGameEvent extends _GameEvent {
       case 'drone-boost':
       case 'boost-duration':
       case 'mission-fuel':
+      case 'mission-capacity':
         return `${this.multiplier}x`;
       case 'epic-research-sale':
       case 'research-sale':
@@ -248,14 +247,12 @@ export class InGameEvent extends _GameEvent {
       case 'boost-sale':
       case 'crafting-sale':
         return `${Math.round((1 - this.multiplier) * 100)}% OFF`;
+      case 'mission-duration':
+        return `-${Math.round((1 - this.multiplier) * 100)}%`;
       case 'piggy-boost':
         return `+${this.multiplier}`;
       case 'piggy-cap-boost':
         return 'NO CAP';
-      // Unknown events for now
-      case 'mission-capacity':
-      case 'mission-duration':
-        return '';
     }
   }
 }
