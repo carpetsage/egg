@@ -731,7 +731,8 @@ export function suggestArtifactSet(
     result.artifactSet,
     strategy
   );
-  if (contenderMultiplier - setMultiplier >= 1e-6) {
+  const multiplierDiff = Math.abs(contenderMultiplier - setMultiplier);
+  if (multiplierDiff >= 1e-6 && multiplierDiff / setMultiplier >= 1e-9) {
     throw new ImpossibleError(
       `recommended artifact set effect multiplier different from two calculation methods, ${contenderMultiplier} !== ${setMultiplier}: ${winner}`
     );
