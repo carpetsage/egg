@@ -36,7 +36,12 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 
-import { getLocalStorage, setLocalStorage } from 'lib';
+import {
+  getLocalStorage,
+  getSiteWideSavedPlayerID,
+  setLocalStorage,
+  setSiteWideSavedPlayerID,
+} from 'lib';
 import BaseErrorBoundary from 'ui/components/BaseErrorBoundary.vue';
 import BaseLoading from 'ui/components/BaseLoading.vue';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
@@ -55,6 +60,7 @@ export default defineComponent({
     const playerIdPreload =
       new URLSearchParams(window.location.search).get('playerId') ||
       getLocalStorage(PLAYER_ID_LOCALSTORAGE_KEY) ||
+      getSiteWideSavedPlayerID() ||
       '';
     const playerId = ref('');
     const refreshId = ref(Date.now());
@@ -62,6 +68,7 @@ export default defineComponent({
       playerId.value = id;
       refreshId.value = Date.now();
       setLocalStorage(PLAYER_ID_LOCALSTORAGE_KEY, id);
+      setSiteWideSavedPlayerID(id);
     };
     return {
       playerIdPreload,
