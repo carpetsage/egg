@@ -41,19 +41,12 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 
-import {
-  getLocalStorage,
-  getSiteWideSavedPlayerID,
-  setLocalStorage,
-  setSiteWideSavedPlayerID,
-} from 'lib';
+import { getSavedPlayerID, savePlayerID } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import BaseErrorBoundary from 'ui/components/BaseErrorBoundary.vue';
 import BaseLoading from 'ui/components/BaseLoading.vue';
 import TheCompanion from '@/components/TheCompanion.vue';
 import TheCalculatorWrapper from '@/components/TheCalculatorWrapper.vue';
-
-const PLAYER_ID_LOCALSTORAGE_KEY = 'playerId';
 
 export default defineComponent({
   components: {
@@ -65,17 +58,13 @@ export default defineComponent({
   },
   setup() {
     const playerIdPreload =
-      new URLSearchParams(window.location.search).get('playerId') ||
-      getLocalStorage(PLAYER_ID_LOCALSTORAGE_KEY) ||
-      getSiteWideSavedPlayerID() ||
-      '';
+      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '';
     const playerId = ref('');
     const refreshId = ref(Date.now());
     const submitPlayerId = (id: string) => {
       playerId.value = id;
       refreshId.value = Date.now();
-      setLocalStorage(PLAYER_ID_LOCALSTORAGE_KEY, id);
-      setSiteWideSavedPlayerID(id);
+      savePlayerID(id);
     };
     return {
       playerIdPreload,
