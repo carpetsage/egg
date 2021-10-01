@@ -1,5 +1,10 @@
 [
   {
+    "versionDisplay": "1.22.1",
+    "releaseNotes": "- Minor improvements and bug fixes",
+    "releaseDate": "2021-10-01"
+  },
+  {
     "versionDisplay": "1.22",
     "releaseNotes": "- Install size reduction\n- Multi-Consume, press and hold consume for 2 seconds for more consume options\n- Small improvements and bug fixes\n",
     "releaseDate": "2021-09-22"
