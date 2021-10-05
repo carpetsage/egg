@@ -32,16 +32,15 @@ jobs:
       - name: Install netlify cli
         run: |
           yarn global add netlify-cli
-      - name: Preview
+      - name: Deploy to commit-specific URL
         run: |
-          "$(yarn global bin)/netlify" deploy --alias "${GITHUB_REF##*/}"
+          "$(yarn global bin)/netlify" deploy --alias "$GITHUB_SHA"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref != 'refs/heads/master'
-      - name: Preview
+      - name: Deploy to branch-specific URL
         run: |
-          "$(yarn global bin)/netlify" deploy
+          "$(yarn global bin)/netlify" deploy --alias "${GITHUB_REF##*/}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -99,16 +98,15 @@ jobs:
       - name: Install netlify cli
         run: |
           yarn global add netlify-cli
-      - name: Preview
+      - name: Deploy to commit-specific URL
         run: |
-          "$(yarn global bin)/netlify" deploy --alias "${GITHUB_REF##*/}"
+          "$(yarn global bin)/netlify" deploy --alias "$GITHUB_SHA"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref != 'refs/heads/master'
-      - name: Preview
+      - name: Deploy to branch-specific URL
         run: |
-          "$(yarn global bin)/netlify" deploy
+          "$(yarn global bin)/netlify" deploy --alias "${GITHUB_REF##*/}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
