@@ -37,7 +37,6 @@ type Source struct {
 	eiafx.CoreTier
 	AfxRarity     api.ArtifactSpec_Rarity `json:"afx_rarity"`
 	Rarity        string                  `json:"rarity"`
-	Deterministic bool                    `json:"deterministic"`
 	ExpectedYield float64                 `json:"expected_yield"`
 }
 
@@ -57,6 +56,7 @@ func main() {
 		for _, t := range f.Tiers {
 			at := &AppTier{
 				CoreTier: t.CoreTier,
+				Sources:  make([]Source, 0),
 			}
 			for _, c := range consumption.Outcomes {
 				if c.Item.AfxId == t.AfxId && c.Item.AfxLevel == t.AfxLevel {
@@ -88,7 +88,6 @@ func main() {
 									CoreTier:      t.CoreTier,
 									AfxRarity:     c.Item.AfxRarity,
 									Rarity:        c.Item.Rarity,
-									Deterministic: c.Deterministic,
 									ExpectedYield: bp.ExpectedCount,
 								})
 								break LocateTarget

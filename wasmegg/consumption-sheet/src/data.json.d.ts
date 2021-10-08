@@ -28,11 +28,9 @@ export type Source = TierCore & {
 // From wasmegg/_common/consumption/consumption.go
 export type ConsumptionOutcome = {
   item: Item;
-  deterministic: boolean;
-  gold: number;
-  expected_byproducts: ExpectedByproduct[];
   expected_gold: number;
-  sample_byproducts: Byproduct[][];
+  expected_byproducts: ExpectedByproduct[] | null;
+  expected_full_consumption_gold: number;
   demotion_gold: number | null;
 };
 

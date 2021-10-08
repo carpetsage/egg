@@ -22,7 +22,7 @@
         ></span>
       </span>
       <span class="sr-only">{{ source.name }}</span>
-      <span class="w-9">{{ source.expected_yield }}&times;</span>
+      <span class="w-9">{{ formatFloat(source.expected_yield, { digits: 2 }) }}&times;</span>
     </span>
   </div>
 </template>
@@ -31,6 +31,7 @@
 import { defineComponent, PropType } from 'vue';
 
 import { ei, iconURL } from 'lib';
+import { formatFloat } from '@/utils';
 import { Source } from '@/data.json';
 
 import Rarity = ei.ArtifactSpec.Rarity;
@@ -45,6 +46,7 @@ export default defineComponent({
   setup() {
     return {
       rarityBgClass,
+      formatFloat,
       iconURL,
     };
   },

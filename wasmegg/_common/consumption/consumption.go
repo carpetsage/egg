@@ -16,13 +16,11 @@ var _consumptionDataJSON []byte
 var Outcomes []ConsumptionOutcome
 
 type ConsumptionOutcome struct {
-	Item               Item                `json:"item"`
-	Deterministic      bool                `json:"deterministic"`
-	Gold               float64             `json:"gold"`
-	ExpectedGold       float64             `json:"expected_gold"`
-	ExpectedByproducts []ExpectedByproduct `json:"expected_byproducts"`
-	SampleByproducts   [][]Byproduct       `json:"sample_byproducts"`
-	DemotionGold       *float64            `json:"demotion_gold"`
+	Item                        Item                `json:"item"`
+	ExpectedGold                float64             `json:"expected_gold"`
+	ExpectedByproducts          []ExpectedByproduct `json:"expected_byproducts"`
+	ExpectedFullConsumptionGold float64             `json:"expected_full_consumption_gold"`
+	DemotionGold                *float64            `json:"demotion_gold"`
 }
 
 type Item struct {
@@ -72,11 +70,5 @@ func (c *ConsumptionOutcome) Complete() {
 	for i, bp := range c.ExpectedByproducts {
 		bp.Item.Complete()
 		c.ExpectedByproducts[i] = bp
-	}
-	for _, sample := range c.SampleByproducts {
-		for i, bp := range sample {
-			bp.Item.Complete()
-			sample[i] = bp
-		}
 	}
 }

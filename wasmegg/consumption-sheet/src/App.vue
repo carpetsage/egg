@@ -1,5 +1,7 @@
 <template>
   <div class="flex-1 max-w-10xl w-full mx-auto px-4">
+    <div class="text-center text-gray-700 text-xs my-2">Last updated Oct 8, 2021, ~15:00 UTC</div>
+
     <section id="index" class="mt-4 mb-6 hide-in-screenshot-mode">
       <h2 class="my-2">Index</h2>
 
@@ -48,13 +50,11 @@
 
       <div class="text-xs text-gray-500 space-y-1">
         <p>
-          The following dataset contains the outcomes of consuming each item (different rarities are
-          condisered distinct) 100 times. The consumption outcome of an individual item is
-          considered deterministic if all trial runs produced the exact same rewards; otherwise, the
-          item is marked as nondeterministic <nondeterministic-icon class="inline" />, and the
-          displayed number of each byproduct is the expectation value computed from all trial runs.
-          The exact output from each trial run can be viewed by clicking on the "expand" button
-          <expand-icon class="inline h-4" />.
+          The following dataset contains the expected outcomes from consuming each item (different
+          rarities are condisered distinct) thousands to tens of thousands of times. Note that due
+          to the limited sample size and nontransparency of the server black box that determines
+          consumption outcomes, certain expectation values may be highly inaccurate, and certain
+          byproducts may have been missed altogether.
         </p>
         <p>
           For stone-yielding artifacts,
@@ -70,9 +70,18 @@
           >.
         </p>
         <p>
-          Note that due to the limited sample size, certain expectation values may be highly
-          inaccurate, certain byproducts may have been missed altogether, and certain
-          nondeterministic items may have been marked as deterministic.
+          Currently,
+          <span class="text-red-500">consumption outcomes for uncommon items are missing</span> due
+          to hardening of Egg, Inc. server. Data for some commonly-consumed rare items might be
+          re-introduced in the future.
+        </p>
+        <p>
+          Also,
+          <span class="text-red-500"
+            >consumption outcomes may be updated by the developer at any time</span
+          >
+          (not tied to app updates). Each resampling is very time-consuming. This data sheet
+          represents the author's best effort to keep up.
         </p>
       </div>
 
@@ -188,15 +197,11 @@ import { defineComponent } from 'vue';
 import { iconURL } from 'lib';
 import data from './data.json';
 import ConsumptionOutcome from '@/components/ConsumptionOutcome.vue';
-import ExpandIcon from '@/components/ExpandIcon.vue';
-import NondeterministicIcon from '@/components/NondeterministicIcon.vue';
 import Sources from '@/components/Sources.vue';
 
 export default defineComponent({
   components: {
     ConsumptionOutcome,
-    ExpandIcon,
-    NondeterministicIcon,
     Sources,
   },
   setup() {
