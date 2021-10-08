@@ -146,12 +146,7 @@
           <span class="inline-block relative top-0.5 h-3 w-3 rounded bg-rare"></span> for rare,
           <span class="inline-block relative top-0.5 h-3 w-3 rounded bg-epic"></span> for epic, and
           <span class="inline-block relative top-0.5 h-3 w-3 rounded bg-legendary"></span> for
-          legendary. Nondeterministic items are marked with a dot in the corner:
-          <span class="inline-block relative top-0.5 h-3 w-3 rounded bg-legendary">
-            <span
-              class="absolute -top-0.5 -right-0.5 block h-1.5 w-1.5 rounded-full ring-1 ring-white bg-green-400"
-            ></span> </span
-          >.
+          legendary.
         </p>
       </div>
 

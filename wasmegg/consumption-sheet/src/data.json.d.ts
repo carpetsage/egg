@@ -21,7 +21,6 @@ export type Tier = TierCore & {
 
 export type Source = TierCore & {
   afx_rarity: Rarity;
-  deterministic: boolean;
   expected_yield: number;
 };
 

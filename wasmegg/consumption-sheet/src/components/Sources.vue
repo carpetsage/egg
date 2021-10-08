@@ -16,10 +16,6 @@
             :src="iconURL(`egginc/${source.icon_filename}`, 64)"
           />
         </a>
-        <span
-          v-if="!source.deterministic"
-          class="absolute -top-0.5 -right-0.5 block h-2 w-2 rounded-full ring-2 ring-white bg-green-400"
-        ></span>
       </span>
       <span class="sr-only">{{ source.name }}</span>
       <span class="w-9">{{ formatFloat(source.expected_yield, { digits: 2 }) }}&times;</span>
