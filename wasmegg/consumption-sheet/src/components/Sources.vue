@@ -61,21 +61,3 @@ function rarityBgClass(rarity: Rarity): string {
   }
 }
 </script>
-
-<style scoped>
-.bg-common {
-  background-color: #b3b3b3; /* #404040 in app */
-}
-
-.bg-rare {
-  background-color: #6fdbff; /* #a0ffff in app */
-}
-
-.bg-epic {
-  background-color: #ff66ff; /* #ff33ff in app */
-}
-
-.bg-legendary {
-  background-color: #ffdf33; /* #ffff33 in app */
-}
-</style>
