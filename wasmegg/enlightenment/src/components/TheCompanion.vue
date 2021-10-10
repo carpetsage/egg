@@ -188,7 +188,7 @@
           values with an Aurelian brooch or a Mercury's lens (drone reward is proportional to farm
           value) or a Vial of Martian dust / terra stones (drone reward is proportional to the
           square root of active running chicken bonus, so increasing max RCB helps to a small
-          extend); or increase their frequency with a Neodymium medallion. Farming drones during a
+          extent); or increase their frequency with a Neodymium medallion. Farming drones during a
           Generous Drones event is also immensely helpful.
         </p>
         <p class="text-xs text-gray-500 my-1">
