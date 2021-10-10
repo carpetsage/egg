@@ -37,7 +37,7 @@
       </p>
     </div>
     <div class="text-blue-600 hover:text-blue-700 cursor-pointer" @click="toggleIntroduction">
-      <template v-if="showIntroduction">Collpase this introduction</template>
+      <template v-if="showIntroduction">Collapse this introduction</template>
       <template v-else>Show introduction</template>
     </div>
   </div>
