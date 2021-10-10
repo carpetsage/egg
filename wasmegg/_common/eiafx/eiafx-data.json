@@ -8523,10 +8523,10 @@
           "afx_type": 3,
           "type": "Stone ingredient",
           "icon_filename": "afx_terra_stone_1.png",
-          "quality": 4,
+          "quality": 4.2,
           "craftable": false,
           "base_crafting_prices": [
-            1226.6999999999998
+            1572.5
           ],
           "has_rarities": false,
           "possible_afx_rarities": null,
@@ -8798,10 +8798,10 @@
           "afx_type": 3,
           "type": "Stone ingredient",
           "icon_filename": "afx_soul_stone_1.png",
-          "quality": 4.5,
+          "quality": 3.9,
           "craftable": false,
           "base_crafting_prices": [
-            2205.1999999999994
+            1074.8000000000004
           ],
           "has_rarities": false,
           "possible_afx_rarities": null,
@@ -9060,10 +9060,10 @@
           "afx_type": 3,
           "type": "Stone ingredient",
           "icon_filename": "afx_dilithium_stone_1.png",
-          "quality": 5,
+          "quality": 4.1,
           "craftable": false,
           "base_crafting_prices": [
-            3603.7
+            1392.3999999999992
           ],
           "has_rarities": false,
           "possible_afx_rarities": null,
@@ -9335,10 +9335,10 @@
           "afx_type": 3,
           "type": "Stone ingredient",
           "icon_filename": "afx_quantum_stone_1.png",
-          "quality": 5,
+          "quality": 3.8,
           "craftable": false,
           "base_crafting_prices": [
-            3603.7
+            936.0999999999996
           ],
           "has_rarities": false,
           "possible_afx_rarities": null,
@@ -9597,10 +9597,10 @@
           "afx_type": 3,
           "type": "Stone ingredient",
           "icon_filename": "afx_life_stone_1.png",
-          "quality": 5,
+          "quality": 4.3,
           "craftable": false,
           "base_crafting_prices": [
-            3603.7
+            1767.5999999999995
           ],
           "has_rarities": false,
           "possible_afx_rarities": null,
@@ -10170,7 +10170,7 @@
         39,
         48
       ],
-      "effect": "Increases egg of prophecy egg bonus when set",
+      "effect": "Increases egg of prophecy bonus when set",
       "effect_target": "Egg of Prophecy bonus",
       "tiers": [
         {
@@ -10195,10 +10195,10 @@
           "afx_type": 3,
           "type": "Stone ingredient",
           "icon_filename": "afx_prophecy_stone_1.png",
-          "quality": 6.5,
+          "quality": 6.2,
           "craftable": false,
           "base_crafting_prices": [
-            11069.199999999999
+            9122.5
           ],
           "has_rarities": false,
           "possible_afx_rarities": null,
@@ -10248,7 +10248,7 @@
               "effect_target": "Egg of Prophecy bonus",
               "effect_size": "+0.05%",
               "effect_delta": 0.0005,
-              "family_effect": "Increases egg of prophecy egg bonus when set",
+              "family_effect": "Increases egg of prophecy bonus when set",
               "slots": null
             }
           ],
@@ -10318,7 +10318,7 @@
               "effect_target": "Egg of Prophecy bonus",
               "effect_size": "+0.1%",
               "effect_delta": 0.001,
-              "family_effect": "Increases egg of prophecy egg bonus when set",
+              "family_effect": "Increases egg of prophecy bonus when set",
               "slots": null
             }
           ],
@@ -10388,7 +10388,7 @@
               "effect_target": "Egg of Prophecy bonus",
               "effect_size": "+0.15%",
               "effect_delta": 0.0015,
-              "family_effect": "Increases egg of prophecy egg bonus when set",
+              "family_effect": "Increases egg of prophecy bonus when set",
               "slots": null
             }
           ],
