@@ -49,37 +49,42 @@
               class="h-4 w-4 flex-shrink-0"
             />
 
-            <span
+            <img
               v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB"
               v-tippy="{ content: 'Zero Legendary Club' }"
-              class="inline-flex items-center px-1 rounded text-xs font-medium bg-blue-400 text-white shadow-inner"
-            >
-              ZLC
-            </span>
-            <span
+              class="h-4"
+              :src="badgeZLC"
+            />
+            <img
               v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB_100"
               v-tippy="{
                 content: `Zero Legendary Club <span class='brightness-0 invert'>&#x1f4af;</span>`,
                 allowHTML: true,
               }"
-              class="inline-flex items-center px-1 rounded text-xs font-medium bg-blue-400 text-white shadow-inner"
-            >
-              ZLC100
-            </span>
-            <span
+              class="h-4"
+              :src="badgeZLC100"
+            />
+            <img
+              v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB_7STAR"
+              v-tippy="{
+                content: `Zero Legendary Club 7&#x2605;<br/>(you have been put on a performance improvement plan)`,
+                allowHTML: true,
+              }"
+              class="h-4"
+              :src="badgeZLC7star"
+            />
+            <img
               v-else-if="artifactClub === ArtifactClub.ALL_LEGENDARIES_CLUB"
               v-tippy="{ content: 'All Legendaries Club' }"
-              class="inline-flex items-center px-1 rounded text-xs font-medium bg-yellow-400 text-white shadow-inner"
-            >
-              ALC
-            </span>
-            <span
+              class="h-4"
+              :src="badgeALC"
+            />
+            <img
               v-else-if="artifactClub === ArtifactClub.STAFF_LEGENDARIES_CLUB"
               v-tippy="{ content: 'Staff Legendaries Club' }"
-              class="inline-flex items-center px-1 rounded text-xs font-medium bg-red-400 text-white shadow-inner"
-            >
-              SLC
-            </span>
+              class="h-4"
+              :src="badgeSLC"
+            />
           </div>
 
           <div class="mt-1">
@@ -477,8 +482,8 @@ import {
   TrophyLevel,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-import { getLaunchedMissions } from '@/lib';
-import { badgeURL } from '@/badges';
+import { getLaunchedMissions, getMissionStatistics } from '@/lib';
+import { badgeURL, badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star } from '@/badges';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -493,6 +498,7 @@ const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 enum ArtifactClub {
   ZERO_LEGENDARY_CLUB,
   ZERO_LEGENDARY_CLUB_100,
+  ZERO_LEGENDARY_CLUB_7STAR,
   ALL_LEGENDARIES_CLUB,
   STAFF_LEGENDARIES_CLUB,
 }
@@ -559,7 +565,15 @@ export default defineComponent({
     const artifactClub = computed((): ArtifactClub | null => {
       if (inventory.value.legendaryCount === 0) {
         if (completedExtendedHenerpriseCount.value >= 100) {
-          return ArtifactClub.ZERO_LEGENDARY_CLUB_100;
+          const stats = getMissionStatistics(artifactsDB.value, progress.value);
+          // The last ship must be Henerprise since we know at least 100
+          // extended Henerprises have been completed.
+          const henerpriseStats = stats.ships[stats.ships.length - 1];
+          if (henerpriseStats.currentLevel >= 7) {
+            return ArtifactClub.ZERO_LEGENDARY_CLUB_7STAR;
+          } else {
+            return ArtifactClub.ZERO_LEGENDARY_CLUB_100;
+          }
         } else {
           return ArtifactClub.ZERO_LEGENDARY_CLUB;
         }
@@ -701,6 +715,11 @@ export default defineComponent({
       formatEIValue,
       iconURL,
       badgeURL,
+      badgeALC,
+      badgeSLC,
+      badgeZLC,
+      badgeZLC100,
+      badgeZLC7star,
       ArtifactClub,
     };
   },
