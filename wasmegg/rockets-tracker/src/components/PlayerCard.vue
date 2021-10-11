@@ -316,7 +316,7 @@
                     v-if="tier.haveEpic > 1"
                     class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
                   >
-                    <img :src="badgeURL(tier.haveEpic)" class="h-3 w-3" />
+                    <img :src="numberBadgeURL(tier.haveEpic)" class="h-3 w-3" />
                   </div>
                 </div>
               </template>
@@ -341,7 +341,7 @@
                     v-if="tier.haveLegendary > 1"
                     class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
                   >
-                    <img :src="badgeURL(tier.haveLegendary)" class="h-3 w-3" />
+                    <img :src="numberBadgeURL(tier.haveLegendary)" class="h-3 w-3" />
                   </div>
                 </div>
               </template>
@@ -483,7 +483,7 @@ import {
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getLaunchedMissions, getMissionStatistics } from '@/lib';
-import { badgeURL, badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star } from '@/badges';
+import { numberBadgeURL, badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star } from '@/badges';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -714,7 +714,7 @@ export default defineComponent({
       fmt,
       formatEIValue,
       iconURL,
-      badgeURL,
+      numberBadgeURL,
       badgeALC,
       badgeSLC,
       badgeZLC,

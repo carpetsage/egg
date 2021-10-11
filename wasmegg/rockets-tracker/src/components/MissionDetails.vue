@@ -55,7 +55,7 @@
               v-if="item.count > 1"
               class="absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
             >
-              <img :src="badgeURL(item.count)" class="h-3 w-3" />
+              <img :src="numberBadgeURL(item.count)" class="h-3 w-3" />
             </div>
 
             <template #content>
@@ -164,7 +164,7 @@ import BaseLoading from 'ui/components/BaseLoading.vue';
 import MissionStarLevels from '@/components/MissionStarLevels.vue';
 
 import Type = ei.ArtifactSpec.Type;
-import { badgeURL } from '@/badges';
+import { numberBadgeURL } from '@/badges';
 import dayjs from 'dayjs';
 
 export default defineComponent({
@@ -301,7 +301,7 @@ export default defineComponent({
       artifactRarityFgClass,
       artifactRarityBgClass,
       iconURL,
-      badgeURL,
+      numberBadgeURL,
       showDev,
       copyUserId,
       copyMissionId,

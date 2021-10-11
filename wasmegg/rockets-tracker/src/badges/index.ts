@@ -37,7 +37,7 @@ import badgeZLC100 from './badge-zlc100.svg';
 import badgeZLC7star from './badge-zlc7star.svg';
 export { badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star };
 
-export function badgeURL(x: number): string {
+export function numberBadgeURL(x: number): string {
   switch (x) {
     case 1:
       return badge1;
