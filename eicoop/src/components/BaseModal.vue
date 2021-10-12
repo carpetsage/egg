@@ -29,7 +29,8 @@
         >
 
         <TransitionChild
-          as="template"
+          as="div"
+          class="inline-block align-bottom sm:my-8 sm:align-middle sm:max-w-sm sm:w-full"
           enter="ease-out duration-300"
           enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           enter-to="opacity-100 translate-y-0 sm:scale-100"
@@ -43,7 +44,7 @@
         >
           <div
             v-if="shouldShow"
-            class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6"
+            class="bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 sm:p-6 text-left overflow-hidden shadow-xl transform transition-all"
           >
             <slot></slot>
           </div>
