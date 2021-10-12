@@ -20,6 +20,8 @@
     "wasmegg/smart-assistant"
   ],
   "dependencies": {
+    "@headlessui/vue": "^1.4.1",
+    "@heroicons/vue": "^1.0.4",
     "vue": "^3.2.1"
   },
   "devDependencies": {

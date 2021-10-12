@@ -9,7 +9,6 @@
     "lint": "eslint --ext .js,.ts,.vue src"
   },
   "dependencies": {
-    "@headlessui/vue": "^1.4.0",
     "copy-text-to-clipboard": "^3.0.1",
     "dayjs": "^1.10.4",
     "hotkeys-js": "^3.8.7",
