@@ -2,8 +2,8 @@
   <base-modal
     :should-show="shouldShow"
     :hide="hide"
-    :initial-focus="coopCodeInputRef"
     @before-enter="ensureDefaultContractId"
+    @after-enter="focusCoopCodeInput"
   >
     <div>
       <form class="space-y-4" @submit="submit">
@@ -187,6 +187,15 @@ export default defineComponent({
     // Ref to coop code input in order to focus on it when the modal is shown.
     const coopCodeInputRef = ref(null as HTMLElement | null);
 
+    // Ideally we should just use the initial-focus property on base-modal,
+    // which is functionality provided by headlessui/Dialog. In reality, this
+    // feature is seriously broken and simply locks the focus, making it
+    // impossible to use the other input:
+    // https://github.com/tailwindlabs/headlessui/issues/542
+    const focusCoopCodeInput = () => {
+      coopCodeInputRef.value?.focus();
+    };
+
     return {
       shouldShow,
       hide,
@@ -198,6 +207,7 @@ export default defineComponent({
       submit,
       coopCodeInputRef,
       ensureDefaultContractId,
+      focusCoopCodeInput,
       selectedContract: ref(''),
     };
   },
