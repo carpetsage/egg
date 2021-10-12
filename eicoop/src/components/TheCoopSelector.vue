@@ -208,7 +208,6 @@ export default defineComponent({
       coopCodeInputRef,
       ensureDefaultContractId,
       focusCoopCodeInput,
-      selectedContract: ref(''),
     };
   },
 });
