@@ -243,7 +243,7 @@ export default defineComponent({
         } catch (err) {
           console.error(err);
           loading.value = false;
-          error.value = err;
+          error.value = err instanceof Error ? err : new Error(`${err}`);
           return;
         }
         if (userId.value === uid && missionId.value === mid) {

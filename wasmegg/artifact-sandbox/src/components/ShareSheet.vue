@@ -273,7 +273,7 @@ export default defineComponent({
         }, 'image/png');
       } catch (e) {
         generateImageErrored.value = true;
-        generateImageError.value = e.stack;
+        generateImageError.value = e instanceof Error && e.stack ? e.stack : `${e}`;
         console.error('error generating image');
         console.error(e);
       }

@@ -42,13 +42,13 @@
           <ListboxOption
             v-for="(book, index) in books"
             :key="index"
-            v-slot="{ active, selected }"
+            v-slot="{ active: isActive, selected: isSelected }"
             as="template"
             :value="book"
           >
             <li
               :class="[
-                active ? 'text-white bg-blue-500' : 'text-gray-900',
+                isActive ? 'text-white bg-blue-500' : 'text-gray-900',
                 'cursor-default select-none relative py-0.5 pl-3 pr-9',
               ]"
             >
@@ -61,13 +61,13 @@
                 <ban-icon
                   v-else
                   class="flex-shrink-0 h-6 w-6 p-1 rounded-full"
-                  :class="active ? 'text-white' : 'text-gray-500'"
+                  :class="isActive ? 'text-white' : 'text-gray-500'"
                 />
                 <span
                   class="ml-1.5 block truncate"
                   :class="[
-                    selected ? 'font-semibold' : 'font-normal',
-                    active ? 'text-white' : artifactRarityFgClass(book?.afxRarity ?? 0),
+                    isSelected ? 'font-semibold' : 'font-normal',
+                    isActive ? 'text-white' : artifactRarityFgClass(book?.afxRarity ?? 0),
                   ]"
                 >
                   <template v-if="book">T{{ book.tierNumber }}, {{ book.rarity }}</template>
@@ -76,7 +76,7 @@
                 <span
                   v-if="book"
                   :class="
-                    active
+                    isActive
                       ? 'text-white'
                       : ownedBookIds.includes(book.id)
                       ? 'text-green-500'
@@ -88,9 +88,9 @@
               </div>
 
               <span
-                v-if="selected"
+                v-if="isSelected"
                 :class="[
-                  active ? 'text-white' : 'text-blue-600',
+                  isActive ? 'text-white' : 'text-blue-600',
                   'absolute inset-y-0 right-0 flex items-center pr-4',
                 ]"
               >

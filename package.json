@@ -20,10 +20,10 @@
     "wasmegg/smart-assistant"
   ],
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.24.0",
-    "@typescript-eslint/parser": "^4.24.0",
-    "eslint": "^7.27.0",
-    "eslint-plugin-vue": "^7.9.0",
-    "typescript": "^4.1.3"
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "eslint": "^8.0.1",
+    "eslint-plugin-vue": "^7.19.1",
+    "typescript": "^4.4.4"
   }
 }

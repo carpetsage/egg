@@ -472,4 +472,8 @@ export default defineComponent({
 ::v-deep(.Column__Header--center .p-column-header-content) {
   @apply justify-center;
 }
+
+::v-deep(.p-datatable-row-expansion table) {
+  @apply min-w-0;
+}
 </style>

@@ -157,7 +157,7 @@ async function checkContractListUpdate(updateFoundCallback: () => void) {
     const response = await fetch(hashURL, { signal: controller.signal });
     hash = (await response.text()).trim();
   } catch (err) {
-    if (err.name === 'AbortError') {
+    if (err instanceof Error && err.name === 'AbortError') {
       console.error(`${hashURL}: timeout`);
     } else {
       console.error(`${hashURL}: ${err}`);

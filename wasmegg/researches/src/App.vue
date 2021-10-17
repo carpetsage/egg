@@ -118,7 +118,7 @@ export default defineComponent({
       try {
         result = executeQuery(query.value);
       } catch (err) {
-        error = err;
+        error = err instanceof Error ? err : new Error(`${err}`);
       }
       return {
         result,

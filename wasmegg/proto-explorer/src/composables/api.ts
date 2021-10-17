@@ -43,7 +43,7 @@ export function useAPIClient(
     try {
       response = await request(endpoint, encodedRequestPayload.value);
     } catch (e) {
-      err = e;
+      err = e instanceof Error ? e : new Error(`${e}`);
     }
 
     if (requestId === thisRequestId) {

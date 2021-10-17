@@ -32,19 +32,19 @@
             <ListboxOption
               v-for="(target, index) in [...targets, null]"
               :key="index"
-              v-slot="{ active, selected }"
+              v-slot="{ active: isActive, selected: isSelected }"
               as="template"
               :value="target"
             >
               <li
                 :class="[
-                  active ? 'text-white bg-blue-600' : 'text-gray-900',
+                  isActive ? 'text-white bg-blue-600' : 'text-gray-900',
                   'cursor-default select-none relative py-0.5 pl-3 pr-9',
                 ]"
               >
-                <span :class="selected ? 'font-semibold' : 'font-normal'">
+                <span :class="isSelected ? 'font-semibold' : 'font-normal'">
                   <template v-if="target">
-                    <span :style="active ? {} : { color: target.color }">{{ target.name }}</span>
+                    <span :style="isActive ? {} : { color: target.color }">{{ target.name }}</span>
                     <span>,</span>
                     <span class="ml-1.5"
                       >{{ formatEIValue(10 ** (target.oom + 2), { trim: true }) }}%</span
@@ -54,9 +54,9 @@
                 </span>
 
                 <span
-                  v-if="selected"
+                  v-if="isSelected"
                   class="absolute inset-y-0 right-0 flex items-center pr-4"
-                  :class="active ? 'text-white' : 'text-blue-600'"
+                  :class="isActive ? 'text-white' : 'text-blue-600'"
                 >
                   <CheckIcon class="h-5 w-5" aria-hidden="true" />
                 </span>

@@ -1,4 +1,5 @@
 lib/proto/index.js
 lib/proto/index.d.ts
+lib/sandbox/schema.d.ts
 postcss.config.js
 tailwind.config.js

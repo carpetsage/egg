@@ -61,7 +61,7 @@ export default defineComponent({
         backup.value = userBackup;
         recordUserDashboardFeatureUsage();
       } catch (err) {
-        error.value = err;
+        error.value = err instanceof Error ? err : new Error(`${err}`);
       }
       loading.value = false;
     };

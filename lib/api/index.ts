@@ -43,7 +43,7 @@ export async function request(endpoint: string, encodedPayload: string): Promise
     }
     return text;
   } catch (e) {
-    if (e.name === 'AbortError') {
+    if (e instanceof Error && e.name === 'AbortError') {
       throw new Error(`POST ${url} data=${encodedPayload}: timeout after ${TIMEOUT}ms.`);
     } else {
       throw new Error(`POST ${url} data=${encodedPayload}: ${e}`);

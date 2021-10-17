@@ -86,7 +86,7 @@ export default defineComponent({
         emit('success', status);
         coopStatus.value = status;
       } catch (err) {
-        error.value = err;
+        error.value = err instanceof Error ? err : new Error(`${err}`);
       }
       loading.value = false;
     };
