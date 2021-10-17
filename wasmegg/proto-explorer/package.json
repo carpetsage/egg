@@ -9,6 +9,8 @@
     "lint": "eslint --ext .js,.ts,.vue src"
   },
   "dependencies": {
+    "@headlessui/vue": "^1.4.1",
+    "@heroicons/vue": "^1.0.4",
     "ace-builds": "^1.4.12",
     "copy-text-to-clipboard": "^3.0.1",
     "lib": ">=0.1.0",

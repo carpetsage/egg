@@ -9,6 +9,8 @@
     "lint": "eslint --ext .js,.ts,.vue src"
   },
   "dependencies": {
+    "@headlessui/vue": "^1.4.1",
+    "@heroicons/vue": "^1.0.4",
     "csv-stringify": "^5.6.2",
     "dayjs": "^1.10.4",
     "lib": ">=0.1.0",
