@@ -1,5 +1,11 @@
 <template>
-  <main class="mx-auto px-2 xl:px-8 pb-4" :style="{ maxWidth: '120rem' }">
+  <the-nav-bar active-entry-id="mission-list" width-classes="max-w-main px-4 xl:px-8" />
+
+  <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
+    Mission list
+  </h1>
+
+  <main class="max-w-main mx-auto px-4 xl:px-8 pb-4">
     <div class="rounded-md bg-green-100 px-4 py-2 mb-4 shadow">
       <p class="text-sm text-green-800">
         You can track your own missions and artifacts progress (and a lot more) effortlessly with
@@ -85,7 +91,7 @@
     </div>
 
     <div class="flex flex-col">
-      <div class="-my-2 overflow-x-auto xl:-mx-4">
+      <div class="-my-2 overflow-x-auto lg:-mx-4">
         <div class="py-2 align-middle inline-block min-w-full lg:px-4">
           <div class="shadow overflow-hidden border-b border-gray-200">
             <table class="min-w-full divide-y-3 divide-gray-200 tabular-nums">
@@ -169,12 +175,14 @@ import {
   isShipsConfig,
   setLocalStorage,
 } from 'lib';
+import TheNavBar from 'ui/components/NavBar.vue';
 import ShipInfo from '@/components/ShipInfo.vue';
 
 const CONFIG_LOCALSTORAGE_KEY = 'config';
 
 export default defineComponent({
   components: {
+    TheNavBar,
     ShipInfo,
   },
   setup() {

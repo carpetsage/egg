@@ -13,7 +13,8 @@
     "hotkeys-js": "^3.8.3",
     "mitt": "^2.1.0",
     "sql.js": "^1.5.0",
-    "vue": "^3.2.1"
+    "vue": "^3.2.1",
+    "vue-tippy": "^6.0.0-alpha.28"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.3.2",

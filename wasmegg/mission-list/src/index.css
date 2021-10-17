@@ -3,8 +3,8 @@
 @import 'tailwindcss/utilities';
 
 @import 'ui/styles/base';
+@import 'ui/styles/app-loading';
 @import 'ui/styles/tippy';
-@import 'ui/styles/other-tools-ribbon';
 
 /* Disable spin button for number input */
 input[type='number']::-webkit-outer-spin-button,

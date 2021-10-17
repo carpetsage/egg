@@ -8,6 +8,21 @@
               <img src="/logo-small.svg" class="h-6" />
             </router-link>
           </div>
+
+          <button
+            type="button"
+            class="block text-gray-300 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-gray-300 ml-1.5 relative"
+            @click="openSidewideNav"
+          >
+            <span class="sr-only">Open sidebar</span>
+            <MenuIcon
+              v-tippy="{ content: 'Related links', touch: false }"
+              class="h-4 w-4 flex-shrink-0"
+              aria-hidden="true"
+            />
+            <base-ping v-if="!sitewideNavUsed" size-classes="h-1.5 w-1.5" />
+          </button>
+
           <svg
             v-if="devmode"
             v-tippy="{
@@ -15,7 +30,7 @@
                 'Developer mode enabled! Click to disable temporarily (re-enabled upon refresh).',
             }"
             viewBox="0 0 512 512"
-            class="h-2.5 w-2.5 text-gray-200 cursor-pointer"
+            class="h-2.5 w-2.5 text-gray-200 cursor-pointer ml-3 flex-shrink-0"
             fill="currentColor"
             @click="disableDevmodeTemporarily"
           >
@@ -45,27 +60,6 @@
 
               <the-recently-viewed-dropdown />
 
-              <a
-                v-tippy="{ content: 'Other tools' }"
-                href="https://wasmegg.netlify.app/"
-                target="_blank"
-                class="block h-4 w-4"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  class="h-4 w-4 text-gray-200 cursor-pointer select-none"
-                >
-                  <path
-                    d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
-                  />
-                  <path
-                    d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-                  />
-                </svg>
-              </a>
-
               <the-theme-switcher />
             </div>
           </div>
@@ -73,20 +67,35 @@
       </div>
     </div>
   </nav>
+
+  <nav-bar-sidebar
+    v-model:open="sitewideNavOpen"
+    active-entry-id="eicoop"
+    :use-absolute-urls="true"
+    :use-cool-gray="true"
+  />
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue';
+import { computed, defineComponent, ref } from 'vue';
 import { useStore } from 'vuex';
+import { MenuIcon } from '@heroicons/vue/solid';
 
+import { getLocalStorageNoPrefix, setLocalStorageNoPrefix } from 'lib';
 import { key } from '@/store';
-import { iconURL } from '@/utils';
+import BasePing from 'ui/components/BasePing.vue';
+import NavBarSidebar from 'ui/components/NavBarSidebar.vue';
 import CoopSelectorShow from './CoopSelectorShow.vue';
 import TheThemeSwitcher from './TheThemeSwitcher.vue';
 import TheRecentlyViewedDropdown from './TheRecentlyViewedDropdown.vue';
 
+const SITEWIDE_NAV_FIRST_USED_LOCALSTORAGE_KEY = 'sitewideNavFirstUsed';
+
 export default defineComponent({
   components: {
+    MenuIcon,
+    BasePing,
+    NavBarSidebar,
     CoopSelectorShow,
     TheRecentlyViewedDropdown,
     TheThemeSwitcher,
@@ -99,12 +108,25 @@ export default defineComponent({
   },
   setup() {
     const store = useStore(key);
+    const sitewideNavOpen = ref(false);
+    const sitewideNavUsed = ref(
+      getLocalStorageNoPrefix(SITEWIDE_NAV_FIRST_USED_LOCALSTORAGE_KEY) !== undefined
+    );
+    const openSidewideNav = () => {
+      sitewideNavOpen.value = true;
+      if (!sitewideNavUsed.value) {
+        sitewideNavUsed.value = true;
+        setLocalStorageNoPrefix(SITEWIDE_NAV_FIRST_USED_LOCALSTORAGE_KEY, Date.now());
+      }
+    };
     const devmode = computed(() => store.state.devmode.on);
     const disableDevmodeTemporarily = () => store.dispatch('devmode/disableTemporarily');
     return {
+      sitewideNavOpen,
+      sitewideNavUsed,
+      openSidewideNav,
       devmode,
       disableDevmodeTemporarily,
-      iconURL,
     };
   },
 });

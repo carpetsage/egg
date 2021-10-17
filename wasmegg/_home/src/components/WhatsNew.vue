@@ -57,7 +57,7 @@
 import { defineComponent, ref } from 'vue';
 
 import { getLocalStorage, setLocalStorage } from 'lib';
-import { majorUpdateTools, newTools, updateSignature, updateTools } from '@/tools';
+import { majorUpdateTools, newTools, updateSignature, updateTools } from 'lib/tools';
 import ToolLink from '@/components/ToolLink.vue';
 
 const WHATS_NEW_DISMISSED_SIGNATURE_LOCALSTORAGE_KEY = 'whatsNewDismissedSignature';

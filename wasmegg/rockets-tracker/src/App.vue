@@ -1,4 +1,10 @@
 <template>
+  <the-nav-bar active-entry-id="rockets-tracker" />
+
+  <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
+    Rockets tracker
+  </h1>
+
   <div class="max-w-5xl w-full pb-6 mx-auto">
     <the-player-id-form :player-id-preload="playerIdPreload" :submit="submitPlayerId" />
 
@@ -33,6 +39,7 @@ import { getSavedPlayerID, savePlayerID } from 'lib';
 
 import BaseErrorBoundary from 'ui/components/BaseErrorBoundary.vue';
 import BaseLoading from 'ui/components/BaseLoading.vue';
+import TheNavBar from 'ui/components/NavBar.vue';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import LegendariesStudyOptInForm from '@/components/LegendariesStudyOptInForm.vue';
 import TheReport from '@/components/TheReport.vue';
@@ -42,6 +49,7 @@ export default defineComponent({
     BaseErrorBoundary,
     BaseLoading,
     LegendariesStudyOptInForm,
+    TheNavBar,
     ThePlayerIdForm,
     TheReport,
   },

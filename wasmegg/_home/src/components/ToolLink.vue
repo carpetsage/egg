@@ -23,7 +23,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 
-import { Tool } from '@/tools';
+import { Tool } from 'lib/tools';
 import BaseLink from '@/components/BaseLink.vue';
 
 export default defineComponent({

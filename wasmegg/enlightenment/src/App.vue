@@ -1,5 +1,11 @@
 <template>
+  <the-nav-bar active-entry-id="enlightenment" />
+
   <div class="max-w-5xl w-full px-4 pb-4 xl:px-0 mx-auto">
+    <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
+      Enlightenment companion
+    </h1>
+
     <the-player-id-form :player-id-preload="playerIdPreload" :submit="submitPlayerId" />
 
     <!-- Use a key to recreate on data loading -->
@@ -42,6 +48,7 @@
 import { defineComponent, ref } from 'vue';
 
 import { getSavedPlayerID, savePlayerID } from 'lib';
+import TheNavBar from 'ui/components/NavBar.vue';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import BaseErrorBoundary from 'ui/components/BaseErrorBoundary.vue';
 import BaseLoading from 'ui/components/BaseLoading.vue';
@@ -50,6 +57,7 @@ import TheCalculatorWrapper from '@/components/TheCalculatorWrapper.vue';
 
 export default defineComponent({
   components: {
+    TheNavBar,
     BaseErrorBoundary,
     BaseLoading,
     ThePlayerIdForm,

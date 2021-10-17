@@ -1,5 +1,11 @@
 <template>
+  <the-nav-bar active-entry-id="consumption-sheet" width-classes="max-w-10xl px-4" />
+
   <div class="flex-1 max-w-10xl w-full mx-auto px-4">
+    <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
+      Consumption sheet
+    </h1>
+
     <div class="text-center text-gray-700 text-xs my-2">Last updated Oct 8, 2021, ~15:00 UTC</div>
 
     <section id="index" class="mt-4 mb-6 hide-in-screenshot-mode">
@@ -191,11 +197,13 @@ import { defineComponent } from 'vue';
 
 import { iconURL } from 'lib';
 import data from './data.json';
+import TheNavBar from 'ui/components/NavBar.vue';
 import ConsumptionOutcome from '@/components/ConsumptionOutcome.vue';
 import Sources from '@/components/Sources.vue';
 
 export default defineComponent({
   components: {
+    TheNavBar,
     ConsumptionOutcome,
     Sources,
   },

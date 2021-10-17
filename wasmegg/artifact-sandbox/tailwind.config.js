@@ -3,7 +3,7 @@ const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
   mode: 'jit',
-  purge: ['src/*.html', 'src/**/*.vue'],
+  purge: ['src/*.html', 'src/**/*.vue', '../../ui/**/*.vue'],
   darkMode: false,
   theme: {
     // Increase font size by 5% across the board since Always Together is a

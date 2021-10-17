@@ -1,12 +1,4 @@
-import eicoopIconUrl from '@/icons/eicoop.svg';
-import artifactExplorerIconUrl from '@/icons/artifact-explorer.svg';
-import artifactSandboxIconUrl from '@/icons/artifact-sandbox.svg';
-import rocketsTrackerIconUrl from '@/icons/rockets-tracker.svg';
-import pastContractsIconUrl from '@/icons/past-contracts.svg';
-import lootSimulatorIconUrl from '@/icons/loot-simulator.svg';
-import enlightenmentIconUrl from '@/icons/enlightenment.svg';
-import smartAssistantIconUrl from '@/icons/smart-assistant.svg';
-import ebebIconUrl from '@/icons/ebeb.svg';
+import { iconURL } from '../utils';
 
 const now = Date.now();
 
@@ -83,7 +75,7 @@ export const tools = [
     id: 'eicoop',
     url: 'https://eicoop.netlify.app/',
     title: 'CoopTracker',
-    iconUrl: eicoopIconUrl,
+    iconUrl: iconURL('wasmegg/eicoop.svg'),
     description: 'Coop tracker and contract master list',
     displayIconOnly: true,
     iconCssClasses: 'h-6 -ml-0.5 -mr-1 -top-0.5',
@@ -96,19 +88,19 @@ export const tools = [
   new Tool({
     id: 'artifact-explorer',
     title: 'Artifact explorer',
-    iconUrl: artifactExplorerIconUrl,
+    iconUrl: iconURL('wasmegg/artifact-explorer.svg'),
     description: 'Explorer for everything artifacts',
   }),
   new Tool({
     id: 'artifact-sandbox',
     title: 'Artifact sandbox',
-    iconUrl: artifactSandboxIconUrl,
+    iconUrl: iconURL('wasmegg/artifact-sandbox.svg'),
     description: 'Sandbox for experimenting, optimizing, and sharing artifact builds',
   }),
   new Tool({
     id: 'rockets-tracker',
     title: 'Rockets tracker',
-    iconUrl: rocketsTrackerIconUrl,
+    iconUrl: iconURL('wasmegg/rockets-tracker.svg'),
     description:
       'Tracker for active rocket missions, historical mission statistics, progress on artifact collection, etc.',
     // Sat Jul  3 08:49:18 UTC 2021
@@ -119,7 +111,7 @@ export const tools = [
   new Tool({
     id: 'past-contracts',
     title: 'Past contracts viewer',
-    iconUrl: pastContractsIconUrl,
+    iconUrl: iconURL('wasmegg/past-contracts.svg'),
     description: 'Past contracts and prophecy egg completion tracker',
     // Tue Jun  8 12:33:17 UTC 2021
     majorUpdateUntil: 1623155597000,
@@ -127,19 +119,19 @@ export const tools = [
   new Tool({
     id: 'loot-simulator',
     title: 'Loot simulator',
-    iconUrl: lootSimulatorIconUrl,
+    iconUrl: iconURL('wasmegg/loot-simulator.svg'),
     description: 'Simulator for mission loot drops',
   }),
   new Tool({
     id: 'enlightenment',
     title: 'Enlightenment companion',
-    iconUrl: enlightenmentIconUrl,
+    iconUrl: iconURL('wasmegg/enlightenment.svg'),
     description: 'Informational companion on your journey to the Enlightenment Diamond Trophy',
   }),
   new Tool({
     id: 'smart-assistant',
     title: 'Smart assistant',
-    iconUrl: smartAssistantIconUrl,
+    iconUrl: iconURL('wasmegg/smart-assistant.svg'),
     description:
       'Smart, personalized artifact loadout generator \u2014 effortlessly optimize your prestige loadout; full-fledged earning bonus planner',
     // Tue Aug 10 16:38:57 UTC 2021
@@ -181,7 +173,8 @@ export const tools = [
     id: 'legendary-study',
     url: 'https://legendary-study.netlify.app/',
     title: 'Legendary study report',
-    description: 'See how you fare against other Egg, Inc. players in the legendary artifact department',
+    description:
+      'See how you fare against other Egg, Inc. players in the legendary artifact department',
     // Fri Aug  6 17:33:54 UTC 2021
     newUntil: 1628271234000,
   }),
@@ -204,7 +197,7 @@ export const tools = [
     id: 'ebeb',
     url: 'https://ebeb.netlify.app/',
     title: 'Earning Bonus Enhancing Bootcamp',
-    iconUrl: ebebIconUrl,
+    iconUrl: iconURL('wasmegg/ebeb.svg'),
     description: 'The shortest path to fame and fortune (terms and conditions may apply)',
     // Tue Jul 20 14:57:17 UTC 2021
     newUntil: 1626793037000,

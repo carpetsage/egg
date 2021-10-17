@@ -1,7 +1,13 @@
 <template>
-  <div class="max-w-5xl w-full px-4 pb-4 xl:px-0 mx-auto">
-    <the-player-id-form :player-id-preload="playerIdPreload" :submit="submitPlayerId" />
+  <the-nav-bar active-entry-id="smart-assistant" />
 
+  <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
+    Smart assistant
+  </h1>
+
+  <the-player-id-form :player-id-preload="playerIdPreload" :submit="submitPlayerId" />
+
+  <div class="max-w-5xl w-full px-4 pb-4 xl:px-0 mx-auto">
     <!-- Use a key to recreate on data loading -->
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
       <suspense>
@@ -15,7 +21,7 @@
     </base-error-boundary>
 
     <template v-else>
-      <div class="text-sm mt-4 mx-4 xl:mx-0 space-y-2">
+      <div class="text-sm space-y-2">
         <p>
           This tool automatically recommends optimal artifact setups for various prestiging
           strategies based on what artifacts you have. Use in conjuction with
@@ -39,11 +45,13 @@ import { defineComponent, ref } from 'vue';
 import { getSavedPlayerID, savePlayerID } from 'lib';
 import BaseErrorBoundary from 'ui/components/BaseErrorBoundary.vue';
 import BaseLoading from 'ui/components/BaseLoading.vue';
+import TheNavBar from 'ui/components/NavBar.vue';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import TheAssistant from '@/components/TheAssistant.vue';
 
 export default defineComponent({
   components: {
+    TheNavBar,
     BaseErrorBoundary,
     BaseLoading,
     ThePlayerIdForm,

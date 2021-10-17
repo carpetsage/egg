@@ -6,6 +6,9 @@ module.exports = {
       divideWidth: {
         3: '3px',
       },
+      maxWidth: {
+        main: '120rem',
+      },
     },
   },
   plugins: [require('@tailwindcss/forms')],

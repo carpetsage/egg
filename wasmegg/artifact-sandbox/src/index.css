@@ -3,8 +3,8 @@
 @import 'tailwindcss/utilities';
 
 @import 'ui/styles/base';
+@import 'ui/styles/app-loading';
 @import 'ui/styles/tippy';
-@import 'ui/styles/other-tools-ribbon';
 
 @font-face {
   font-family: 'Always Together';
@@ -21,10 +21,6 @@ body {
   font-variant-ligatures: none;
 }
 
-.other-tools-ribbon::after {
-  @apply font-default;
-}
-
 /* Disable spin button for number input */
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {
@@ -34,4 +30,14 @@ input[type='number']::-webkit-inner-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield;
+}
+
+/* Disable small caps when using the default font (Always Together) since
+the small caps characters are ridiculously thin. */
+.small-caps {
+  font-variant-caps: normal !important;
+}
+
+body.font-default .small-caps {
+  font-variant-caps: small-caps !important;
 }

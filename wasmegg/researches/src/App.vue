@@ -1,4 +1,10 @@
 <template>
+  <the-nav-bar :center-icons="true" />
+
+  <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
+    Structured data for <span class="whitespace-nowrap">Egg, Inc. researches</span>
+  </h1>
+
   <a
     :href="researchedJsonUrl"
     download="researches.json"
@@ -76,6 +82,7 @@ import hotkeys from 'hotkeys-js';
 import mitt from 'mitt';
 
 import { executeQuery, researches, schema } from '@/data';
+import TheNavBar from 'ui/components/NavBar.vue';
 import AceEditor from '@/components/AceEditor.vue';
 import { isApplePlatform } from './utils';
 
@@ -87,6 +94,7 @@ SELECT id, name, levels AS maxLevel, per_level AS perLevel, effect_type = 'multi
 export default defineComponent({
   name: 'App',
   components: {
+    TheNavBar,
     AceEditor,
   },
   setup() {

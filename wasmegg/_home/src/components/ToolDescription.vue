@@ -19,7 +19,7 @@
 <script lang="ts">
 import { computed, defineComponent, toRefs } from 'vue';
 
-import { idToTool, Tool } from '@/tools';
+import { idToTool, Tool } from 'lib/tools';
 import ToolLink from '@/components/ToolLink.vue';
 
 export default defineComponent({
