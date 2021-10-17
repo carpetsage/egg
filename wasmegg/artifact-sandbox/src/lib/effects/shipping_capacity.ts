@@ -13,8 +13,7 @@ export function maxHourlyShippingCapacity(build: Build, config: Config): number 
   return baseMaxHourlyShippingCapacity(config) * shippingCapacityMultiplier(build, config);
 }
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-function baseMaxHourlyShippingCapacity(config: Config): number {
+function baseMaxHourlyShippingCapacity(_config: Config): number {
   // Hyperloop train base shipping rate: 50,000,000/min
   // Affected by the following researches:
   // {id, perLevel, maxLevels}
@@ -47,4 +46,3 @@ function baseMaxHourlyShippingCapacity(config: Config): number {
     60
   );
 }
-/* eslint-enable @typescript-eslint/no-unused-vars */

@@ -10,9 +10,7 @@ export function habSpaceMultiplier(build: Build, config: Config): number {
   return multiplicativeEffect(build, config, [ArtifactSpec.Name.ORNATE_GUSSET]);
 }
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-export function baseMaxHabSpace(config: Config): number {
+export function baseMaxHabSpace(_config: Config): number {
   // Assume max common research.
   return 1.134e10;
 }
-/* eslint-enable @typescript-eslint/no-unused-vars */

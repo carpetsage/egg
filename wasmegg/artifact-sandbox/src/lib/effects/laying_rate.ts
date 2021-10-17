@@ -25,8 +25,7 @@ export function maxHourlyLayingRate(build: Build, config: Config): number {
   );
 }
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-function baseMaxHourlyLayingRatePerChicken(config: Config): number {
+function baseMaxHourlyLayingRatePerChicken(_config: Config): number {
   // Base rate: 1 egg per 30 seconds
   // Affected by the following researches:
   // {id, perLevel, maxLevels}
@@ -49,4 +48,3 @@ function baseMaxHourlyLayingRatePerChicken(config: Config): number {
     3600
   );
 }
-/* eslint-enable @typescript-eslint/no-unused-vars */

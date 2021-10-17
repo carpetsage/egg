@@ -204,9 +204,7 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:config': (payload: Config) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:config': (_payload: Config) => true,
   },
   setup(props, { emit }) {
     const { config } = toRefs(props);

@@ -74,9 +74,7 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:stoneCounts': (payload: StoneCounts) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:stoneCounts': (_payload: StoneCounts) => true,
   },
   setup(props, { emit }) {
     const { stones, stoneCounts } = toRefs(props);

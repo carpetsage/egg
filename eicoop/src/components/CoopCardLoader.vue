@@ -60,11 +60,9 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    success(payload: CoopStatus) {
+    success(_payload: CoopStatus) {
       return true;
     },
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props, { emit }) {
     const store = useStore(key);

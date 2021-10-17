@@ -126,11 +126,9 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:shipLevel': (level: number) => {
+    'update:shipLevel': (_level: number) => {
       return true;
     },
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props) {
     const { shipType, config } = toRefs(props);

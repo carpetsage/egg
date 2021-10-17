@@ -15,9 +15,7 @@ export function internalHatcheryRateMultiplier(build: Build, config: Config): nu
   ]);
 }
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-export function baseMaxInternalHatcheryRatePerMinPerHab(config: Config): number {
+export function baseMaxInternalHatcheryRatePerMinPerHab(_config: Config): number {
   // Assume max common and epic research.
   return 7440;
 }
-/* eslint-enable @typescript-eslint/no-unused-vars */

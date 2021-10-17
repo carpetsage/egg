@@ -39,10 +39,8 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:raw': (payload: string) => true,
-    'update:value': (payload: number) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:raw': (_payload: string) => true,
+    'update:value': (_payload: number) => true,
   },
 });
 </script>

@@ -184,10 +184,8 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:show': (payload: boolean) => true,
-    'update:showFootnotes': (payload: boolean) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:show': (_payload: boolean) => true,
+    'update:showFootnotes': (_payload: boolean) => true,
   },
   setup(props, { emit }) {
     const router = useRouter();

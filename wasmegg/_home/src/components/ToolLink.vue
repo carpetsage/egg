@@ -37,9 +37,7 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    visit: (tool: Tool) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    visit: (_tool: Tool) => true,
   },
 });
 </script>

@@ -47,9 +47,7 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:modelValue': (payload: MissionSelectSpec[]) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:modelValue': (_payload: MissionSelectSpec[]) => true,
   },
   setup(props, { emit }) {
     const { modelValue } = toRefs(props);

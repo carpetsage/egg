@@ -146,9 +146,7 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:selectedBook': (payload: Book | null) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:selectedBook': (_payload: Book | null) => true,
   },
   setup(props, { emit }) {
     const { selectedBook } = toRefs(props);

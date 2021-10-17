@@ -18,6 +18,7 @@ module.exports = {
     'no-constant-condition': ['error', { checkLoops: false }],
     'no-undef': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     'vue/html-closing-bracket-newline': 'off',
     'vue/html-indent': 'off',
     'vue/html-self-closing': [

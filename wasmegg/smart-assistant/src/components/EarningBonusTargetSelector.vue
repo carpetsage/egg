@@ -146,9 +146,7 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:selectedTarget': (payload: FarmerRole) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:selectedTarget': (_payload: FarmerRole) => true,
   },
   setup(props, { emit }) {
     const { targets, selectedTarget } = toRefs(props);

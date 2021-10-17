@@ -67,9 +67,7 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:modelValue': (value: string) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:modelValue': (_value: string) => true,
   },
   setup(props, { emit }) {
     const { modelValue, lang, readonly, foldAtIndentation, commands, eventBus } = toRefs(props);

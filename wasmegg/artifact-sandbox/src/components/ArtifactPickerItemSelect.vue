@@ -186,9 +186,7 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:modelValue': (itemId: string) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:modelValue': (_itemId: string) => true,
   },
   // Note that we do NOT react to type change.
   /* eslint-disable vue/no-setup-props-destructure */

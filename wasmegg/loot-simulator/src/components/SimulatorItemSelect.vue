@@ -173,10 +173,8 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:modelValue': (payload: ItemSelectSpec) => true,
+    'update:modelValue': (_payload: ItemSelectSpec) => true,
     delete: () => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props, { emit }) {
     const { modelValue } = toRefs(props);

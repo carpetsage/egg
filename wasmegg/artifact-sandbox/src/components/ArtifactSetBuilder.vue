@@ -52,9 +52,7 @@ export default defineComponent({
     },
   },
   emits: {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:build': (payload: Build) => true,
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+    'update:build': (_payload: Build) => true,
   },
   setup(props, { emit }) {
     const { build } = toRefs(props);
