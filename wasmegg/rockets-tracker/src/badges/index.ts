@@ -35,7 +35,8 @@ import badgeSLC from './badge-slc.svg';
 import badgeZLC from './badge-zlc.svg';
 import badgeZLC100 from './badge-zlc100.svg';
 import badgeZLC7star from './badge-zlc7star.svg';
-export { badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star };
+import badgeASC from './badge-asc.svg';
+export { badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star, badgeASC };
 
 export function numberBadgeURL(x: number): string {
   switch (x) {

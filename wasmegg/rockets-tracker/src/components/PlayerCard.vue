@@ -85,6 +85,13 @@
               class="h-4"
               :src="badgeSLC"
             />
+
+            <img
+              v-if="shipClub === ShipClub.ALL_STAR_CLUB"
+              v-tippy="{ content: 'All Star Club' }"
+              class="h-4"
+              :src="badgeASC"
+            />
           </div>
 
           <div class="mt-1">
@@ -483,7 +490,15 @@ import {
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getLaunchedMissions, getMissionStatistics } from '@/lib';
-import { numberBadgeURL, badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star } from '@/badges';
+import {
+  numberBadgeURL,
+  badgeALC,
+  badgeSLC,
+  badgeZLC,
+  badgeZLC100,
+  badgeZLC7star,
+  badgeASC,
+} from '@/badges';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -510,6 +525,10 @@ const STAFF_USER_ID_HASHES = [
   '326118cdebe0e22870389a70ff99e746a55e3ad52bf9f2a3d8ea888fc354e7f0',
   'f362dc823605c69029688fe63899cd383239f68f39042675e332d1af992ab89e',
 ];
+
+enum ShipClub {
+  ALL_STAR_CLUB,
+}
 
 const LEGENDARIES_JEALOUSY_THRESHOLD = 5;
 // Prior to 1.21, 381 legendaries dropped from 40920 exthens each with 56
@@ -562,14 +581,15 @@ export default defineComponent({
     const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
     const nickname = computed(() => backup.value.userName!);
     const hasProPermit = computed(() => progress.value.permitLevel === 1);
+    const missionStats = computed(() => getMissionStatistics(artifactsDB.value, progress.value));
     const artifactClub = computed((): ArtifactClub | null => {
       if (inventory.value.legendaryCount === 0) {
         if (completedExtendedHenerpriseCount.value >= 100) {
-          const stats = getMissionStatistics(artifactsDB.value, progress.value);
+          const stats = missionStats.value;
           // The last ship must be Henerprise since we know at least 100
           // extended Henerprises have been completed.
           const henerpriseStats = stats.ships[stats.ships.length - 1];
-          if (henerpriseStats.currentLevel >= 7) {
+          if (henerpriseStats.currentLevel >= henerpriseStats.maxLevel) {
             return ArtifactClub.ZERO_LEGENDARY_CLUB_7STAR;
           } else {
             return ArtifactClub.ZERO_LEGENDARY_CLUB_100;
@@ -583,6 +603,24 @@ export default defineComponent({
       }
       if (STAFF_USER_ID_HASHES.includes(userIdHash.value)) {
         return ArtifactClub.STAFF_LEGENDARIES_CLUB;
+      }
+      return null;
+    });
+    const shipClub = computed((): ShipClub | null => {
+      const stats = missionStats.value;
+      let allMissionsMaxed = true;
+      if (stats.ships[stats.ships.length - 1].shipType !== Spaceship.HENERPRISE) {
+        allMissionsMaxed = false;
+      } else {
+        for (const ship of stats.ships) {
+          if (ship.currentLevel < ship.maxLevel) {
+            allMissionsMaxed = false;
+            break;
+          }
+        }
+      }
+      if (allMissionsMaxed) {
+        return ShipClub.ALL_STAR_CLUB;
       }
       return null;
     });
@@ -683,6 +721,7 @@ export default defineComponent({
       nickname,
       hasProPermit,
       artifactClub,
+      shipClub,
       prophecyEggsProgress,
       hasEnlightenmentDiamondTrophy,
       prophecyEggs,
@@ -720,7 +759,9 @@ export default defineComponent({
       badgeZLC,
       badgeZLC100,
       badgeZLC7star,
+      badgeASC,
       ArtifactClub,
+      ShipClub,
     };
   },
 });
