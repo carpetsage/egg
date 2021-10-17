@@ -5,8 +5,6 @@ go 1.16
 require (
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/fanaticscripter/EggContractor v0.0.0-20211008154657-ce7a4ed33158
-	github.com/labstack/echo/v4 v4.6.1 // indirect
-	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/net v0.0.0-20211007125505-59d4e928ea9d // indirect
