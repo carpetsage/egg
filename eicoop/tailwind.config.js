@@ -79,6 +79,12 @@ module.exports = {
         xxs: '16rem',
         ultrawide: '90rem',
       },
+      height: {
+        4.5: '1.125rem',
+      },
+      width: {
+        4.5: '1.125rem',
+      },
     },
   },
   plugins: [

@@ -17,10 +17,10 @@
             <span class="sr-only">Open sidebar</span>
             <MenuIcon
               v-tippy="{ content: 'Related links', touch: false }"
-              class="h-4 w-4 flex-shrink-0"
+              class="h-5 w-5 flex-shrink-0"
               aria-hidden="true"
             />
-            <base-ping v-if="!sitewideNavUsed" size-classes="h-1.5 w-1.5" />
+            <base-ping v-if="!sitewideNavUsed" />
           </button>
 
           <svg
@@ -30,7 +30,7 @@
                 'Developer mode enabled! Click to disable temporarily (re-enabled upon refresh).',
             }"
             viewBox="0 0 512 512"
-            class="h-2.5 w-2.5 text-gray-200 cursor-pointer ml-3 flex-shrink-0"
+            class="h-3 w-3 flex-shrink-0 text-gray-200 cursor-pointer ml-3"
             fill="currentColor"
             @click="disableDevmodeTemporarily"
           >
@@ -47,7 +47,7 @@
                   v-tippy="{ content: 'Coop selector (hotkey: c)' }"
                   viewBox="0 0 20 20"
                   fill="currentColor"
-                  class="relative top-px h-4 w-4 text-gray-200 cursor-pointer select-none focus:outline-none"
+                  class="relative top-px h-4.5 w-4.5 flex-shrink-0 text-gray-200 cursor-pointer select-none focus:outline-none"
                   @click="scope.show"
                 >
                   <path
