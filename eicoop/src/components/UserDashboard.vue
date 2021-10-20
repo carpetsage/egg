@@ -184,6 +184,7 @@
       :contract-id="params.contractId"
       :coop-code="params.coopCode"
       :known-contract="params.contract"
+      :known-league="params.league"
       :refresh-key="coopRefreshKey"
     />
   </template>
@@ -194,6 +195,7 @@ import { computed, defineComponent, inject, PropType, ref, toRefs, watch } from 
 import { useStore } from 'vuex';
 
 import {
+  ContractLeague,
   earningBonusToFarmerRole,
   ei,
   formatEIValue,
@@ -262,6 +264,7 @@ export default defineComponent({
         contractId: coop.contract!.identifier!,
         coopCode: coop.coopIdentifier!,
         contract: coop.contract!,
+        league: coop.league! as ContractLeague,
       }))
     );
     const soloStatuses = computed(() =>

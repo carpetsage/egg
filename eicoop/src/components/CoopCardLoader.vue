@@ -24,7 +24,7 @@
 <script lang="ts">
 import { defineComponent, PropType, provide, Ref, ref, toRefs, watch } from 'vue';
 
-import { CoopStatus, ei, requestCoopStatus } from '@/lib';
+import { ContractLeague, CoopStatus, ei, requestCoopStatus } from '@/lib';
 import { key } from '@/store';
 import { refreshCallbackKey } from '@/symbols';
 import BaseLoading from '@/components/BaseLoading.vue';
@@ -53,6 +53,10 @@ export default defineComponent({
       type: Object as PropType<ei.IContract | undefined>,
       default: undefined,
     },
+    knownLeague: {
+      type: Number as PropType<ContractLeague | undefined>,
+      default: undefined,
+    },
     // Supply a refreshKey to force a refresh.
     refreshKey: {
       type: Number,
@@ -66,7 +70,7 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const store = useStore(key);
-    const { contractId, coopCode, knownContract, refreshKey } = toRefs(props);
+    const { contractId, coopCode, knownContract, knownLeague, refreshKey } = toRefs(props);
 
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);
@@ -81,6 +85,7 @@ export default defineComponent({
         await status.resolveContract({
           store: store.state.contracts.list,
           knownContract: knownContract.value || coopStatus.value?.contract || undefined,
+          knownLeague: knownLeague.value ?? (coopStatus.value?.league || undefined),
         });
         store.commit('contracts/addContract', status.contract!);
         emit('success', status);

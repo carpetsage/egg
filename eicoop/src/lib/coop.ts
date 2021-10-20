@@ -59,14 +59,20 @@ export class CoopStatus {
   async resolveContract({
     store,
     knownContract,
+    knownLeague,
   }: {
     store: SortedContractList;
     knownContract?: ei.IContract;
+    knownLeague?: ContractLeague;
   }): Promise<void> {
     const contract = knownContract || store.get(this.contractId, this.expirationTime.unix());
     if (contract) {
       this.contract = contract;
-      await this.resolveLeague();
+      if (knownLeague !== undefined) {
+        this.league = knownLeague;
+      } else {
+        await this.resolveLeague();
+      }
     } else {
       if (this.contributors.length === 0) {
         throw new Error(
