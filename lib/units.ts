@@ -72,10 +72,11 @@ export function parseValueWithUnit(s: string, unitRequired = true): number | nul
   return parseFloat(value) * 10 ** symbol2oom.get(unit)!;
 }
 
+// precision overrides decimals.
 // When scientific on, the value is formatted as HTML.
 export function formatEIValue(
   x: number,
-  options?: { trim?: boolean; decimals?: number; scientific?: boolean }
+  options?: { trim?: boolean; decimals?: number; precision?: number; scientific?: boolean }
 ): string {
   const trim = options?.trim === undefined ? false : options?.trim;
   const decimals = options?.decimals === undefined ? 3 : options?.decimals;
@@ -105,7 +106,14 @@ export function formatEIValue(
     oomFloor = maxOom;
   }
   const principal = x / 10 ** oomFloor;
-  let numpart = principal < 1e21 ? principal.toFixed(decimals) : principal.toPrecision(4);
+  const precision =
+    options?.precision && Math.max(options?.precision, principal.toFixed(0).toString().length);
+  let numpart =
+    principal < 1e21
+      ? precision !== undefined
+        ? principal.toPrecision(precision)
+        : principal.toFixed(decimals)
+      : principal.toPrecision(4);
   if (trim) {
     numpart = trimTrailingZeros(numpart);
   }

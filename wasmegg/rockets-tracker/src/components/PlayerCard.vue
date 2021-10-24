@@ -278,6 +278,23 @@
                 class="inline ml-0.5"
               />
             </dd>
+
+            <dt
+              v-tippy="{ content: 'Inventory consumption value' }"
+              class="text-right text-sm font-medium whitespace-nowrap"
+            >
+              Inv. consum. value
+            </dt>
+            <dd class="flex items-center text-sm text-gray-900">
+              {{ fmtApprox(inventoryConsumptionValue) }}
+              <base-info
+                v-tippy="{
+                  content: `The inventory consumption value is an approximation of the expected number of GE that can be earned from fully (recursively) consuming everything in the inventory. <span class='text-blue-300'>You can view detailed consumption outcomes in “Consumption sheet” on this site.</span> Note that consumption data is determined empirically and provided on a best-effort basis; they may subject to server-side changes and thus become inaccurate at any time. Due to difficulty sampling consumption data of uncommon items, the calculation assumes you <span class='text-green-300'>demote them first</span>, with <span class='text-green-300'>demotion gold counting towards the total</span>.`,
+                  allowHTML: true,
+                }"
+                class="inline ml-0.5"
+              />
+            </dd>
           </div>
         </div>
 
@@ -485,6 +502,7 @@ import {
   getProphecyEggsProgress,
   iconURL,
   Inventory,
+  inventoryExpectedFullConsumptionGold,
   setLocalStorage,
   TrophyLevel,
 } from 'lib';
@@ -663,6 +681,9 @@ export default defineComponent({
       return dayjs().diff(firstMissionLaunchedAt, 'days');
     });
     const inventoryScore = computed(() => Math.floor(backup.value.artifacts?.inventoryScore || 0));
+    const inventoryConsumptionValue = computed(() =>
+      inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
+    );
     const lifetimeDrones = computed(() => backup.value.stats?.droneTakedowns || 0);
     const lifetimeEliteDrones = computed(() => backup.value.stats?.droneTakedownsElite || 0);
     const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
@@ -740,6 +761,7 @@ export default defineComponent({
       numMissions,
       daysSinceFirstMission,
       inventoryScore,
+      inventoryConsumptionValue,
       lifetimeDrones,
       lifetimeEliteDrones,
       lifetimeBoosts,
@@ -751,6 +773,7 @@ export default defineComponent({
       completedExtendedHenerpriseTotalDropCount,
       randIndex,
       fmt,
+      fmtApprox,
       formatEIValue,
       iconURL,
       numberBadgeURL,
@@ -768,6 +791,10 @@ export default defineComponent({
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
+}
+
+function fmtApprox(n: number): string {
+  return n === 0 ? '0' : `~${formatEIValue(n, { precision: 2 })}`;
 }
 
 function piggyLevelBonus(level: number): number {
