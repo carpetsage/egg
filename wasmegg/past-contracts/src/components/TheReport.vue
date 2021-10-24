@@ -407,9 +407,9 @@ export default defineComponent({
       if (contract.hasLeagues) {
         spec += contract.league === 1 ? 'std ' : 'elt ';
       }
-      spec += `${contract.indexOfPEGoal + 1}`;
+      spec += `#${contract.indexOfPEGoal + 1}`;
       if (contract.numAvailablePEs > 1) {
-        spec += ` ${contract.numAvailablePEs}`;
+        spec += ` (${contract.numAvailablePEs})`;
       }
       return spec;
     };
