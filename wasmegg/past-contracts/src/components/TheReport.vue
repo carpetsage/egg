@@ -221,6 +221,12 @@
                         class="inline h-4 w-4 mr-0.5 -my-1"
                       />
                       {{ contract.name }}
+                      <span
+                        v-if="!contract.isCoop"
+                        class="relative top-px ml-1 px-1.5 rounded-full text-xs bg-blue-100 text-blue-800"
+                      >
+                        Solo
+                      </span>
                     </a>
                   </td>
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm tabular-nums">
