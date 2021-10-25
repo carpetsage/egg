@@ -1,6 +1,6 @@
 <template>
   <div
-    class="rounded-md bg-green-100 text-green-800 text-sm w-max max-w-full px-4 py-2 mx-auto my-4 shadow"
+    class="rounded-md bg-green-100 text-green-800 text-sm w-max max-w-full px-4 py-2 mx-auto mb-4 shadow"
   >
     You can track all your active contracts on your
     <a :href="`https://eicoop.netlify.app/u/${playerId}`" class="underline" target="_blank"
