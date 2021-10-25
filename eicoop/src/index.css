@@ -30,3 +30,8 @@ html.themed * {
 .ProgressBar--striped {
   background: repeating-linear-gradient(135deg, #8bedc4, #8bedc4 3px, #a7f3d0 3px, #a7f3d0 6px);
 }
+
+/* Disable color transition delay in the sitewide nav sidebar. */
+#sitewide-nav * {
+  @apply transition-none;
+}

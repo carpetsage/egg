@@ -25,6 +25,7 @@
         leave-to="-translate-x-full"
       >
         <div
+          id="sitewide-nav"
           class="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4"
           :class="useCoolGray ? 'bg-cool-gray-800' : 'bg-gray-800'"
         >
