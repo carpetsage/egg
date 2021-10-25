@@ -69,27 +69,31 @@
   </nav>
 
   <nav-bar-sidebar
-    v-model:open="sitewideNavOpen"
+    :open="sitewideNavOpen"
     active-entry-id="eicoop"
     :use-absolute-urls="true"
     :use-cool-gray="true"
+    @update:open="
+      open => {
+        if (!open) {
+          closeSidewideNav();
+        }
+      }
+    "
   />
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue';
+import { computed, defineComponent } from 'vue';
 import { useStore } from 'vuex';
 import { MenuIcon } from '@heroicons/vue/solid';
 
-import { getLocalStorageNoPrefix, setLocalStorageNoPrefix } from 'lib';
 import { key } from '@/store';
 import BasePing from 'ui/components/BasePing.vue';
 import NavBarSidebar from 'ui/components/NavBarSidebar.vue';
 import CoopSelectorShow from './CoopSelectorShow.vue';
 import TheThemeSwitcher from './TheThemeSwitcher.vue';
 import TheRecentlyViewedDropdown from './TheRecentlyViewedDropdown.vue';
-
-const SITEWIDE_NAV_FIRST_USED_LOCALSTORAGE_KEY = 'sitewideNavFirstUsed';
 
 export default defineComponent({
   components: {
@@ -108,23 +112,17 @@ export default defineComponent({
   },
   setup() {
     const store = useStore(key);
-    const sitewideNavOpen = ref(false);
-    const sitewideNavUsed = ref(
-      getLocalStorageNoPrefix(SITEWIDE_NAV_FIRST_USED_LOCALSTORAGE_KEY) !== undefined
-    );
-    const openSidewideNav = () => {
-      sitewideNavOpen.value = true;
-      if (!sitewideNavUsed.value) {
-        sitewideNavUsed.value = true;
-        setLocalStorageNoPrefix(SITEWIDE_NAV_FIRST_USED_LOCALSTORAGE_KEY, Date.now());
-      }
-    };
+    const sitewideNavOpen = computed(() => store.state.sitewideNav.open);
+    const sitewideNavUsed = computed(() => store.state.sitewideNav.used);
+    const openSidewideNav = () => store.dispatch('sitewideNav/open');
+    const closeSidewideNav = () => store.dispatch('sitewideNav/close');
     const devmode = computed(() => store.state.devmode.on);
     const disableDevmodeTemporarily = () => store.dispatch('devmode/disableTemporarily');
     return {
       sitewideNavOpen,
       sitewideNavUsed,
       openSidewideNav,
+      closeSidewideNav,
       devmode,
       disableDevmodeTemporarily,
     };

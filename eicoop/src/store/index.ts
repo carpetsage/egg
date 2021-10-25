@@ -7,6 +7,7 @@ import coopSelector from './modules/coopSelector';
 import devmode from './modules/devmode';
 import history from './modules/history';
 import notifications from './modules/notifications';
+import sitewideNav from './modules/sitewideNav';
 import theme from './modules/theme';
 
 export type { HistoryCoopEntry } from './modules/history';
@@ -20,6 +21,7 @@ export const store = createStore<RootState>({
     devmode,
     history,
     notifications,
+    sitewideNav,
     theme,
   },
   strict: import.meta.env.DEV,
