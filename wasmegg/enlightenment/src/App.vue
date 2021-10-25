@@ -6,7 +6,7 @@
       Enlightenment companion
     </h1>
 
-    <the-player-id-form :player-id-preload="playerIdPreload" :submit="submitPlayerId" />
+    <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
     <!-- Use a key to recreate on data loading -->
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
@@ -65,9 +65,9 @@ export default defineComponent({
     TheCalculatorWrapper,
   },
   setup() {
-    const playerIdPreload =
-      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '';
-    const playerId = ref('');
+    const playerId = ref(
+      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || ''
+    );
     const refreshId = ref(Date.now());
     const submitPlayerId = (id: string) => {
       playerId.value = id;
@@ -75,7 +75,6 @@ export default defineComponent({
       savePlayerID(id);
     };
     return {
-      playerIdPreload,
       playerId,
       refreshId,
       submitPlayerId,

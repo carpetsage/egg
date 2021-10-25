@@ -1,13 +1,13 @@
 <template>
   <form
     class="mx-4 sm:mx-auto sm:max-w-xs sm:w-full mt-2 mb-4 space-y-1"
-    @submit.prevent="submit(playerId)"
+    @submit.prevent="$emit('submit', input)"
   >
     <div>
       <label for="email" class="sr-only">Player ID</label>
       <input
         id="playerId"
-        v-model.trim="playerId"
+        v-model.trim="input"
         type="text"
         name="playerId"
         class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, ref, toRefs } from 'vue';
+import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 
 import BaseInfo from './BaseInfo.vue';
 
@@ -49,23 +49,23 @@ export default defineComponent({
     BaseInfo,
   },
   props: {
-    playerIdPreload: {
+    playerId: {
       type: String,
       default: '',
     },
-    submit: {
-      type: Function as PropType<(playerId: string) => void>,
-      required: true,
-    },
+  },
+  emits: {
+    submit: (_playerId: string) => true,
   },
   setup(props) {
-    const { playerIdPreload } = toRefs(props);
-    const playerId = ref(playerIdPreload.value);
-    const submittable = computed(() => {
-      return playerId.value !== '';
+    const { playerId } = toRefs(props);
+    const input = ref(playerId.value);
+    watch(playerId, () => {
+      input.value = playerId.value;
     });
+    const submittable = computed(() => input.value !== '');
     return {
-      playerId,
+      input,
       submittable,
     };
   },

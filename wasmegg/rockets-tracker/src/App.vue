@@ -6,7 +6,7 @@
   </h1>
 
   <div class="max-w-5xl w-full pb-6 mx-auto">
-    <the-player-id-form :player-id-preload="playerIdPreload" :submit="submitPlayerId" />
+    <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
     <legendaries-study-opt-in-form :event-bus="eventBus" class="mx-4 xl:mx-0 my-4" />
 
@@ -54,9 +54,9 @@ export default defineComponent({
     TheReport,
   },
   setup() {
-    const playerIdPreload =
-      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '';
-    const playerId = ref('');
+    const playerId = ref(
+      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || ''
+    );
     const refreshId = ref(Date.now());
     const submitPlayerId = (id: string) => {
       playerId.value = id;
@@ -65,7 +65,6 @@ export default defineComponent({
     };
     const eventBus = mitt();
     return {
-      playerIdPreload,
       playerId,
       refreshId,
       eventBus,

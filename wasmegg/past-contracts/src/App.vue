@@ -5,7 +5,7 @@
     Past contracts viewer
   </h1>
 
-  <the-player-id-form :player-id-preload="playerIdPreload" :submit="submitPlayerId" />
+  <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
   <div class="max-w-5xl w-full px-4 pb-4 xl:px-0 mx-auto">
     <!-- Use a key to recreate on data loading -->
@@ -48,9 +48,9 @@ export default defineComponent({
     TheReport,
   },
   setup() {
-    const playerIdPreload =
-      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '';
-    const playerId = ref('');
+    const playerId = ref(
+      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || ''
+    );
     const refreshId = ref(Date.now());
     const submitPlayerId = (id: string) => {
       playerId.value = id;
@@ -58,7 +58,6 @@ export default defineComponent({
       savePlayerID(id);
     };
     return {
-      playerIdPreload,
       playerId,
       refreshId,
       submitPlayerId,
