@@ -105,6 +105,21 @@
                   :class="useCoolGray ? 'border-cool-gray-600' : 'border-gray-600'"
                 />
               </template>
+              <div
+                class="flex items-center px-2 py-1.5 text-sm rounded-md"
+                :class="useCoolGray ? 'text-cool-gray-100' : 'text-gray-100'"
+              >
+                <identification-icon
+                  class="flex-shrink-0 h-4 w-4 mr-2"
+                  :class="useCoolGray ? 'text-cool-gray-300' : 'text-gray-300'"
+                />
+                Copyright &copy; 2021&nbsp;<a
+                  href="https://wasmegg.netlify.app/"
+                  class="text-blue-400 hover:text-blue-500"
+                  target="_blank"
+                  >@mk2</a
+                >
+              </div>
             </nav>
           </div>
         </div>
@@ -125,6 +140,7 @@ import {
   CollectionIcon,
   EmojiHappyIcon,
   HomeIcon,
+  IdentificationIcon,
   ViewGridIcon,
   XIcon,
 } from '@heroicons/vue/solid';
@@ -194,6 +210,8 @@ const entries: ({
     url: 'https://eiadhoc.netlify.app/',
     icon: ViewGridIcon,
   },
+
+  null,
 ];
 
 export default defineComponent({
@@ -203,6 +221,7 @@ export default defineComponent({
     TransitionChild,
     TransitionRoot,
     ArrowLeftIcon,
+    IdentificationIcon,
     XIcon,
   },
   props: {
