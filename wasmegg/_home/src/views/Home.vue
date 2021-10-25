@@ -104,6 +104,12 @@
     source repo to find them.
   </p>
 
+  <h2>Miscellaneous small tools</h2>
+  <p>
+    You can find more small tools at
+    <base-link href="https://eiadhoc.netlify.app/">eiadhoc.netlify.app</base-link>.
+  </p>
+
   <h2>Self-hosted tools</h2>
   <ul>
     <li><tool-description id="EggContractor" @visit="onvisit" /></li>
