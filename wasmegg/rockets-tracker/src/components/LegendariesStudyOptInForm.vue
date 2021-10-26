@@ -15,10 +15,10 @@
         uniqueness, but your ID cannot be recovered from it); (2) a list of legendary artifact IDs
         reflecting what you possess, e.g.
         <code>["demeters-necklace-4", "tungsten-ankh-4"]</code>, or just <code>[]</code> if you are
-        a member of the Zero Legendaries Club. The hash of your ID is submitted in order to prevent
-        counting a single user multiple times. Submitted data is used strictly for this study and
-        not correlated with anything else (and I do not have anything else on you anyway, see this
-        site's
+        a member of the Zero Legendaries Club; (3) the number of Extended Henerprise missions you
+        have completed. The hash of your ID is submitted in order to prevent counting a single user
+        multiple times. Submitted data is used strictly for this study and not correlated with
+        anything else (and I do not have anything else on you anyway, see this site's
         <a href="https://wasmegg.netlify.app/#/privacy" target="_blank" class="underline"
           >Privacy Policy</a
         >). For each ID, only the latest data point is recorded; no profile will be constructed out

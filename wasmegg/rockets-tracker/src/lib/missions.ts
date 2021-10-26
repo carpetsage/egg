@@ -18,6 +18,7 @@ import {
 
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
+import Status = ei.MissionInfo.Status;
 
 export class Statistics {
   config: ShipsConfig;
@@ -253,6 +254,15 @@ export function getLaunchedMissions(artifactsDB: ei.IArtifactsDB): ei.IMissionIn
     .concat(artifactsDB.missionInfos || [])
     .filter(m => m.status! >= ei.MissionInfo.Status.EXPLORING)
     .sort((m1, m2) => m1.startTimeDerived! - m2.startTimeDerived!);
+}
+
+export function getCompletedExtendedHenerprises(artifactsDB: ei.IArtifactsDB): ei.IMissionInfo[] {
+  return getLaunchedMissions(artifactsDB).filter(
+    mission =>
+      mission.ship === Spaceship.HENERPRISE &&
+      mission.durationType === DurationType.EPIC &&
+      (mission.status === Status.COMPLETE || mission.status === Status.ARCHIVED)
+  );
 }
 
 export function getMissionStatistics(

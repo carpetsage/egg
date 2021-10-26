@@ -507,7 +507,7 @@ import {
   TrophyLevel,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-import { getLaunchedMissions, getMissionStatistics } from '@/lib';
+import { getCompletedExtendedHenerprises, getLaunchedMissions, getMissionStatistics } from '@/lib';
 import {
   numberBadgeURL,
   badgeALC,
@@ -523,8 +523,6 @@ dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
 
 import Spaceship = ei.MissionInfo.Spaceship;
-import DurationType = ei.MissionInfo.DurationType;
-import Status = ei.MissionInfo.Status;
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 
@@ -697,12 +695,7 @@ export default defineComponent({
       return count >= LEGENDARIES_JEALOUSY_THRESHOLD;
     });
     const completedExtendedHenerprises = computed(() =>
-      launchedMissions.value.filter(
-        mission =>
-          mission.ship === Spaceship.HENERPRISE &&
-          mission.durationType === DurationType.EPIC &&
-          (mission.status === Status.COMPLETE || mission.status === Status.ARCHIVED)
-      )
+      getCompletedExtendedHenerprises(artifactsDB.value)
     );
     const completedExtendedHenerpriseCount = computed(
       () => completedExtendedHenerprises.value.length

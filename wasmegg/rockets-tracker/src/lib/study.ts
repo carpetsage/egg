@@ -1,6 +1,7 @@
 import { sha256 } from 'js-sha256';
 
 import { ei, getLocalStorage, Inventory, setLocalStorage } from 'lib';
+import { getCompletedExtendedHenerprises } from './missions';
 
 const LEGENDARIES_STUDY_OPT_IN_LOCALSTORAGE_KEY = 'reportLegendaries';
 const REPORT_LEGENDARIES_API_URL = import.meta.env.DEV
@@ -35,6 +36,7 @@ export async function reportLegendaries(backup: ei.IBackup): Promise<void> {
       }
     }
   }
+  const completedExthenCount = getCompletedExtendedHenerprises(backup.artifactsDb!).length;
   const controller = new AbortController();
   setTimeout(() => controller.abort(), 5000);
   try {
@@ -47,6 +49,7 @@ export async function reportLegendaries(backup: ei.IBackup): Promise<void> {
       body: new URLSearchParams({
         user_id_hash: userIdHash,
         legendaries: JSON.stringify(legendaryIds),
+        exthens: `${completedExthenCount}`,
       }),
       signal: controller.signal,
     });
