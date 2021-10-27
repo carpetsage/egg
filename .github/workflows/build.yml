@@ -95,6 +95,8 @@ jobs:
       - name: Build
         run: |
           make -j2
+        env:
+          EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
       - name: Install netlify cli
         run: |
           yarn global add netlify-cli

@@ -92,6 +92,38 @@
               class="h-4"
               :src="badgeASC"
             />
+
+            <img
+              v-if="isZLCRecordHolder"
+              v-tippy="{
+                content: `
+                <div class='flex items-center space-x-2'>
+                <img src='${encodeURI(
+                  medalZLCRecord
+                )}' class='inline h-8 w-8 p-0.5 bg-gray-100 rounded flex-shrink-0' />
+                <span>ZLC World Record (${zlcExthenRecord}) holder.</span>
+                </div>`,
+                allowHTML: true,
+              }"
+              class="h-4"
+              :src="medalZLCRecord"
+            />
+            <img
+              v-if="isZLCRecordCloseFollower"
+              v-tippy="{
+                content: `
+                <div class='flex items-center space-x-2'>
+                <img src='${encodeURI(
+                  medalZLCRecordGrayscale
+                )}' class='inline h-8 w-8 p-0.5 bg-gray-100 rounded flex-shrink-0' />
+                <span>ZLC World Record (${zlcExthenRecord}) close follower.
+                Your medal will light up when you hold the record.</span>
+                </div>`,
+                allowHTML: true,
+              }"
+              class="h-4"
+              :src="medalZLCRecordGrayscale"
+            />
           </div>
 
           <div class="mt-1">
@@ -435,6 +467,28 @@
               </svg>
               <span class="text-xs ml-0.5">/</span>
             </div>
+            <div
+              v-if="isZLCRecordHolder"
+              class="mt-1 flex items-center justify-center text-xs text-yellow-800 truncate"
+            >
+              Congrats on setting the world record!
+              <img :src="medalZLCRecord" class="inline h-4 w-4 ml-0.5" />
+            </div>
+            <div
+              v-if="isZLCRecordCloseFollower"
+              class="mt-1 flex items-center justify-center text-xs text-yellow-800 truncate"
+            >
+              {{ zlcExthenRecord - completedExtendedHenerpriseCount }} short of the current
+              record&nbsp;
+              <img :src="medalZLCRecord" class="inline h-4 w-4 mr-0.5" />
+              <a
+                href="https://legendary-study.netlify.app/"
+                target="_blank"
+                class="hover:text-yellow-900"
+              >
+                {{ zlcExthenRecord }}
+              </a>
+            </div>
           </template>
           <div
             v-else-if="zeroLegendaryUnconditionallyUnworthyNickname"
@@ -507,7 +561,14 @@ import {
   TrophyLevel,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-import { getCompletedExtendedHenerprises, getLaunchedMissions, getMissionStatistics } from '@/lib';
+import {
+  getCompletedExtendedHenerprises,
+  getLaunchedMissions,
+  getLegendariesStudyPreference,
+  getMissionStatistics,
+  LEGENDARIES_JEALOUSY_THRESHOLD,
+  ZLC_EXTHEN_RECORD,
+} from '@/lib';
 import {
   numberBadgeURL,
   badgeALC,
@@ -516,6 +577,8 @@ import {
   badgeZLC100,
   badgeZLC7star,
   badgeASC,
+  medalZLCRecord,
+  medalZLCRecordGrayscale,
 } from '@/badges';
 
 dayjs.extend(advancedFormat);
@@ -546,7 +609,6 @@ enum ShipClub {
   ALL_STAR_CLUB,
 }
 
-const LEGENDARIES_JEALOUSY_THRESHOLD = 5;
 // Prior to 1.21, 381 legendaries dropped from 40920 exthens each with 56
 // capacity, averaging to every 1 in ~6000. The 50 has no particular reason,
 // just don't want to show this too soon for late comers who only know
@@ -703,6 +765,19 @@ export default defineComponent({
     const completedExtendedHenerpriseTotalDropCount = computed(() =>
       completedExtendedHenerprises.value.reduce((sum, mission) => sum + (mission.capacity ?? 0), 0)
     );
+    const isInLegendaryStudy = getLegendariesStudyPreference() === true;
+    const isZLCRecordHolder = computed(
+      () => isInLegendaryStudy && completedExtendedHenerpriseCount.value >= ZLC_EXTHEN_RECORD
+    );
+    const isZLCRecordCloseFollower = computed(
+      () =>
+        isInLegendaryStudy &&
+        completedExtendedHenerpriseCount.value < ZLC_EXTHEN_RECORD &&
+        completedExtendedHenerpriseCount.value >= ZLC_EXTHEN_RECORD - 30
+    );
+    const zlcExthenRecord = computed(() =>
+      isZLCRecordHolder.value ? completedExtendedHenerpriseCount.value : ZLC_EXTHEN_RECORD
+    );
     const zeroLegendaryShaming = computed(
       () =>
         inventory.value.legendaryCount === 0 &&
@@ -764,6 +839,9 @@ export default defineComponent({
       zeroLegendaryUnconditionallyUnworthyNickname,
       completedExtendedHenerpriseCount,
       completedExtendedHenerpriseTotalDropCount,
+      isZLCRecordHolder,
+      isZLCRecordCloseFollower,
+      zlcExthenRecord,
       randIndex,
       fmt,
       fmtApprox,
@@ -776,6 +854,8 @@ export default defineComponent({
       badgeZLC100,
       badgeZLC7star,
       badgeASC,
+      medalZLCRecord,
+      medalZLCRecordGrayscale,
       ArtifactClub,
       ShipClub,
     };
