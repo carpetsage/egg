@@ -767,11 +767,15 @@ export default defineComponent({
     );
     const isInLegendaryStudy = getLegendariesStudyPreference() === true;
     const isZLCRecordHolder = computed(
-      () => isInLegendaryStudy && completedExtendedHenerpriseCount.value >= ZLC_EXTHEN_RECORD
+      () =>
+        isInLegendaryStudy &&
+        inventory.value.legendaryCount === 0 &&
+        completedExtendedHenerpriseCount.value >= ZLC_EXTHEN_RECORD
     );
     const isZLCRecordCloseFollower = computed(
       () =>
         isInLegendaryStudy &&
+        inventory.value.legendaryCount === 0 &&
         completedExtendedHenerpriseCount.value < ZLC_EXTHEN_RECORD &&
         completedExtendedHenerpriseCount.value >= ZLC_EXTHEN_RECORD - 30
     );
