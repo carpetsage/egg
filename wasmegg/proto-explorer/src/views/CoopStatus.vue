@@ -69,7 +69,7 @@ export default defineComponent({
       const uid = userId.value || randomEiUserId();
       return {
         contractIdentifier: contractId.value,
-        coopIdentifier: coopCode.value,
+        coopIdentifier: coopCode.value.toLowerCase(),
         userId: uid,
         clientVersion: CLIENT_VERSION,
         rinfo: basicRequestInfo(uid),
