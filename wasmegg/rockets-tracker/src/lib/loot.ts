@@ -117,7 +117,11 @@ export class LootItem {
   }
 
   get effect(): Effect | null {
-    const effects = this.tierProps.effects;
-    return effects && effects.length > this.afxRarity ? effects[this.afxRarity] : null;
+    for (const effect of this.tierProps.effects ?? []) {
+      if (effect.afx_rarity === this.afxRarity) {
+        return effect;
+      }
+    }
+    return null;
   }
 }
