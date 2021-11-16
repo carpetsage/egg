@@ -28,7 +28,7 @@
       <li>
         Items with a green dot in the corner can be crafted from your current possessions. How many
         is shown to the right. Intermediate crafting and demoting are both allowed here. For
-        instance, if you have 3 common, 1 rare and 1 epic T3 necklaces and 11 T2 gold meteorites,
+        instance, if you have 4 common, 1 rare and 1 epic T3 necklaces and 11 T2 gold meteorites,
         these satisfy the 6 T3 necklaces and 1 T3 gold meteorite required for a T4 necklace, which
         is considered craftable.
       </li>
