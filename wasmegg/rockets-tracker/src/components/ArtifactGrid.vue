@@ -116,6 +116,10 @@
                           >{{ tier.haveLegendary }} Legendary</span
                         >
                       </div>
+                      <div v-if="tier.isStone" class="delimited text-xs text-gray-400">
+                        <span>{{ tier.slotted }} slotted</span>
+                        <span>{{ tier.have - tier.slotted }} free</span>
+                      </div>
                       <div
                         v-tippy="{
                           content:

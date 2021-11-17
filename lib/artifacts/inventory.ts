@@ -45,6 +45,7 @@ export class Inventory {
       this.add(artifact.spec!, count);
       for (const stone of artifact.stones || []) {
         this.add(stone, count);
+        this.getItem(stone).slotted += count;
       }
       if (artifact.stones && artifact.stones.length > 0) {
         this.stoned.push(Artifact.fromCompleteArtifact(artifact));
@@ -164,6 +165,7 @@ export class InventoryItem {
   discovered = false;
   haveRarity: [number, number, number, number] = [0, 0, 0, 0];
   crafted = 0;
+  slotted = 0; // Only applicable to stones -- # of this stone currently bound in artifact slots
   protected afxTier: AfxTier;
 
   constructor(afxId: Name, afxLevel: Level) {
@@ -186,6 +188,22 @@ export class InventoryItem {
 
   get type(): Type {
     return this.afxTier.afx_type;
+  }
+
+  get isArtifact(): boolean {
+    return this.type === Type.ARTIFACT;
+  }
+
+  get isStone(): boolean {
+    return this.type === Type.STONE;
+  }
+
+  get isStoneFragment(): boolean {
+    return this.type === Type.STONE_INGREDIENT;
+  }
+
+  get isIngredient(): boolean {
+    return this.type === Type.INGREDIENT;
   }
 
   get tierNumber(): number {
