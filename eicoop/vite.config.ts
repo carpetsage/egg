@@ -24,4 +24,7 @@ export default ({ command }: ConfigEnv): UserConfigExport => ({
   build: {
     chunkSizeWarningLimit: 2000,
   },
+  server: {
+    host: true,
+  },
 });
