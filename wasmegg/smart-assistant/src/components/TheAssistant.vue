@@ -360,6 +360,9 @@ function loadItemsToExclude(): ItemSelectSpec[] {
     console.error(`${EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY} is invalid: ${s}`);
     return defaultList;
   }
+  if (ids.length === 0) {
+    return defaultList;
+  }
   return ids.map(id => ({ id, rowid: uuidv4() }));
 }
 
