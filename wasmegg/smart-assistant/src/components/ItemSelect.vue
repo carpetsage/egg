@@ -1,11 +1,8 @@
 <!-- Adapted from loot-simulator/src/components/SimulatorItemSelect.vue -->
 
 <template>
-  <div class="flex flex-wrap items-center gap-2">
-    <div
-      class="flex-grow relative max-w-sm"
-      :style="{ minWidth: 'min(calc(100vw - 2rem), 20rem)' }"
-    >
+  <div class="flex items-center gap-2">
+    <div class="flex-grow relative max-w-sm">
       <div class="relative rounded-md shadow-sm">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <img
