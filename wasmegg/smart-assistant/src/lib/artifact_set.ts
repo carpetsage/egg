@@ -1,7 +1,7 @@
 import { Artifact, ArtifactSet, Farm, Inventory, Item } from 'lib';
 
 import { Contender, PrestigeStrategy } from './recommendation';
-import { ImpossibleError } from './utils';
+import { ImpossibleError, notNull } from './utils';
 
 export enum ArtifactAssemblyStatus {
   MISSING_CONSTITUENTS,
@@ -219,10 +219,6 @@ function extractItem(items: Item[], wantedItem: Item): Item | null {
     }
   }
   return null;
-}
-
-function notNull<T>(x: T | null): x is T {
-  return x !== null;
 }
 
 export function artifactSetVirtualEarningsMultiplier(

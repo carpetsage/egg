@@ -20,10 +20,16 @@ const itemIdToRecipe = new Map<ItemId, Recipe | null>(
 export class Inventory {
   store: Map<Name, Map<Level, InventoryItem>>;
   stoned: Artifact[];
+  excludedIds: string[];
 
-  constructor(db: ei.IArtifactsDB) {
+  // Items matching an ID in excludedIds are excluded, as if there are none in
+  // the inventory. Stones slotted in an excluded artifact also vanish. However,
+  // excluding a stone that is slotted in an unexcluded artifact is considered
+  // undefined behavior (still showing up in `stoned`), thus should be avoided.
+  constructor(db: ei.IArtifactsDB, opts?: { excludedIds?: string[] }) {
     this.store = new Map();
     this.stoned = [];
+    this.excludedIds = opts?.excludedIds ?? [];
     // Initialize with all possible items.
     for (const tier of data.artifact_families.map(f => f.tiers).flat()) {
       let family = this.store.get(tier.afx_id);
@@ -42,7 +48,10 @@ export class Inventory {
     for (const item of db.inventoryItems || []) {
       const artifact = item.artifact!;
       const count = item.quantity!;
-      this.add(artifact.spec!, count);
+      if (!this.add(artifact.spec!, count)) {
+        // Item excluded.
+        continue;
+      }
       for (const stone of artifact.stones || []) {
         this.add(stone, count);
         this.getItem(stone).slotted += count;
@@ -61,8 +70,15 @@ export class Inventory {
     return item;
   }
 
-  add(spec: ei.IArtifactSpec, count: number): void {
-    this.getItem(spec).add(spec.rarity!, count);
+  // Returns whether the item is added (i.e. false iff the item is excluded).
+  add(spec: ei.IArtifactSpec, count: number): boolean {
+    const item = this.getItem(spec);
+    const itemId = item.isArtifact ? `${item.id}:${Rarity[spec.rarity!].toLowerCase()}` : item.id;
+    if (this.excludedIds.includes(itemId)) {
+      return false;
+    }
+    item.add(spec.rarity!, count);
+    return true;
   }
 
   get items(): InventoryItem[] {

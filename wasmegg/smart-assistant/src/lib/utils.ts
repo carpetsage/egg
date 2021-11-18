@@ -11,3 +11,7 @@ export function range(n: number): number[] {
 export function newArray<T>(length: number, initializer: (i: number) => T): T[] {
   return range(length).map(i => initializer(i));
 }
+
+export function notNull<T>(x: T | null): x is T {
+  return x !== null;
+}

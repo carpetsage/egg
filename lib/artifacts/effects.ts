@@ -1,9 +1,10 @@
 import { ei } from '../proto';
-import { getArtifactTierProps } from './data';
+import data, { getArtifactTierProps } from './data';
 
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;
 import Rarity = ei.ArtifactSpec.Rarity;
+import Type = ei.ArtifactSpec.Type;
 
 export interface Item {
   key: string; // Unique identifier
@@ -11,9 +12,11 @@ export interface Item {
   afxId: Name;
   afxLevel: Level;
   afxRarity: Rarity;
+  afxType: Type;
   name: string;
   rarity: string;
   tierNumber: number;
+  display: string;
   effectTarget: string;
   effectSize: string;
   effectDelta: number;
@@ -24,6 +27,23 @@ export interface Item {
 }
 
 export type Stone = Item;
+
+// All artifacts and stones.
+export const allUsableItems = (() => {
+  const items = [];
+  for (const tier of data.artifact_families.map(f => f.tiers).flat()) {
+    if (tier.afx_type === Type.ARTIFACT) {
+      for (const effect of tier.effects!) {
+        items.push(
+          newItem({ name: tier.afx_id, level: tier.afx_level, rarity: effect.afx_rarity })
+        );
+      }
+    } else if (tier.afx_type === Type.STONE) {
+      items.push(newItem({ name: tier.afx_id, level: tier.afx_level, rarity: Rarity.COMMON }));
+    }
+  }
+  return items;
+})();
 
 export class Artifact implements Item {
   host: Item;
@@ -70,6 +90,10 @@ export class Artifact implements Item {
     return this.host.afxRarity;
   }
 
+  get afxType(): Type {
+    return Type.ARTIFACT;
+  }
+
   get name(): string {
     return this.host.name;
   }
@@ -80,6 +104,10 @@ export class Artifact implements Item {
 
   get tierNumber(): number {
     return this.host.tierNumber;
+  }
+
+  get display(): string {
+    return this.host.display;
   }
 
   get effectTarget(): string {
@@ -231,15 +259,20 @@ export function newItem(spec: ei.IArtifactSpec): Item {
       return {
         key: `${afxId}:${afxLevel}:${afxRarity}`,
         id:
-          tier.family.afx_type === ei.ArtifactSpec.Type.ARTIFACT
+          tier.afx_type === Type.ARTIFACT
             ? `${tier.id}:${Rarity[afxRarity].toLowerCase()}`
             : tier.id,
         afxId,
         afxLevel,
         afxRarity,
+        afxType: tier.afx_type,
         name: tier.name,
         rarity: effect.rarity,
         tierNumber: tier.tier_number,
+        display:
+          tier.family.afx_type === Type.ARTIFACT
+            ? `${tier.name} (T${tier.tier_number}), ${effect.rarity}`
+            : `${tier.name} (T${tier.tier_number})`,
         effectTarget: effect.effect_target,
         effectSize: effect.effect_size,
         effectDelta: effect.effect_delta,

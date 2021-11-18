@@ -85,6 +85,21 @@
     <artifact-gallery :artifact-set="currentlyEquipped" :farm="homeFarm" />
   </div>
 
+  <div class="my-6 bg-blue-100 p-4 rounded-lg shadow-inner">
+    <div class="text-center text-sm font-medium mb-2">
+      Artifacts to exclude from recommendations
+    </div>
+    <div class="text-xs mb-3 space-y-1">
+      <p>
+        You may want to exclude certain artifacts from recommendations, e.g. because you are already
+        using a 3-slot legendary as a dilithium stone holder. Configure the exclusions here. All
+        instances of a selected item will be excluded, and if the excluded artifact(s) have slotted
+        stones, those will be excluded as well. Your unbound stones are not affected.
+      </p>
+    </div>
+    <items-select v-model="itemsToExclude" />
+  </div>
+
   <div v-if="!hasProPermit" class="mb-4">
     <div v-if="suggestedForStandardPermitSinglePreload">
       <div class="text-center text-sm font-medium mb-2">
@@ -212,7 +227,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { computed, defineComponent, ref, watch } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   ArtifactSet,
@@ -220,11 +236,13 @@ import {
   ei,
   Farm,
   formatEIValue,
+  getLocalStorage,
   getNakedEarningBonus,
   getNumProphecyEggs,
   getNumSoulEggs,
   iconURL,
   requestFirstContact,
+  setLocalStorage,
   UserBackupEmptyError,
 } from 'lib';
 
@@ -233,6 +251,11 @@ import BaseInfo from 'ui/components/BaseInfo.vue';
 import ArtifactGallery from '@/components/ArtifactGallery.vue';
 import DiscordStrategyLink from '@/components/DiscordStrategyLink.vue';
 import EarningBonusPlanner from '@/components/EarningBonusPlanner.vue';
+import ItemsSelect from '@/components/ItemsSelect.vue';
+import { isListOfItemIds, ItemSelectSpec } from '@/lib/select';
+import { notNull } from '@/lib/utils';
+
+const EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY = 'excludedItemIds';
 
 export default defineComponent({
   components: {
@@ -240,6 +263,7 @@ export default defineComponent({
     BaseInfo,
     DiscordStrategyLink,
     EarningBonusPlanner,
+    ItemsSelect,
   },
   props: {
     playerId: {
@@ -250,6 +274,14 @@ export default defineComponent({
   // This async component does not respond to playerId changes.
   /* eslint-disable vue/no-setup-props-destructure */
   async setup({ playerId }) {
+    const itemsToExclude = ref<ItemSelectSpec[]>(loadItemsToExclude());
+    const itemIdsToExclude = computed(() =>
+      itemsToExclude.value.map(entry => entry.id).filter(notNull)
+    );
+    watch(itemIdsToExclude, val => {
+      setLocalStorage(EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY, JSON.stringify(val));
+    });
+
     const data: ei.IEggIncFirstContactResponse = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
       throw new UserBackupEmptyError(playerId);
@@ -270,16 +302,22 @@ export default defineComponent({
     const homeFarm = new Farm(backup, backup.farms[0]);
     const homeFarmIsEnlightenment = homeFarm.egg === ei.Egg.ENLIGHTENMENT;
     const currentlyEquipped = homeFarm.artifactSet;
-    const suggestedForStandardPermitSinglePreload = hasProPermit
-      ? null
-      : suggestArtifactSet(backup, PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD);
-    const suggestedForProPermitMulti = suggestArtifactSet(
-      backup,
-      PrestigeStrategy.PRO_PERMIT_MULTI
+    const suggestedForStandardPermitSinglePreload = computed(() =>
+      hasProPermit
+        ? null
+        : suggestArtifactSet(backup, PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD, {
+            excludedIds: itemIdsToExclude.value,
+          })
     );
-    const suggestedForProPermitSinglePreload = suggestArtifactSet(
-      backup,
-      PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD
+    const suggestedForProPermitMulti = computed(() =>
+      suggestArtifactSet(backup, PrestigeStrategy.PRO_PERMIT_MULTI, {
+        excludedIds: itemIdsToExclude.value,
+      })
+    );
+    const suggestedForProPermitSinglePreload = computed(() =>
+      suggestArtifactSet(backup, PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD, {
+        excludedIds: itemIdsToExclude.value,
+      })
     );
 
     return {
@@ -293,6 +331,7 @@ export default defineComponent({
       homeFarm,
       homeFarmIsEnlightenment,
       currentlyEquipped,
+      itemsToExclude,
       suggestedForStandardPermitSinglePreload,
       suggestedForProPermitMulti,
       suggestedForProPermitSinglePreload,
@@ -303,6 +342,26 @@ export default defineComponent({
     };
   },
 });
+
+function loadItemsToExclude(): ItemSelectSpec[] {
+  const defaultList = [{ id: null, rowid: uuidv4() }];
+  const s = getLocalStorage(EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY);
+  if (!s) {
+    return defaultList;
+  }
+  let ids: unknown;
+  try {
+    ids = JSON.parse(s);
+  } catch (err) {
+    console.error(`failed to parse ${EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY}: ${s}: ${err}`);
+    return defaultList;
+  }
+  if (!isListOfItemIds(ids)) {
+    console.error(`${EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY} is invalid: ${s}`);
+    return defaultList;
+  }
+  return ids.map(id => ({ id, rowid: uuidv4() }));
+}
 
 function hasGusset(set: ArtifactSet): boolean {
   return set.artifacts.some(artifact => artifact.afxId === ei.ArtifactSpec.Name.ORNATE_GUSSET);

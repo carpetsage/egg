@@ -417,7 +417,8 @@ function addStonesToContenders(
 
 export function suggestArtifactSet(
   backup: ei.IBackup,
-  strategy: PrestigeStrategy
+  strategy: PrestigeStrategy,
+  opts?: { excludedIds?: string[] }
 ): { artifactSet: ArtifactSet; assemblyStatuses: ArtifactAssemblyStatusNonMissing[] } {
   let artifactSlots: number;
   switch (strategy) {
@@ -458,7 +459,9 @@ export function suggestArtifactSet(
   const homeFarm = new Farm(backup, backup.farms![0]);
   const numProphecyEggs = getNumProphecyEggs(backup);
 
-  const inventory = new Inventory(backup.artifactsDb!);
+  const inventory = new Inventory(backup.artifactsDb!, {
+    excludedIds: opts?.excludedIds,
+  });
   const families = new Map(inventory.catalog.map(family => [family.afxId, family]));
 
   const bestFeathers = contendersInArtifactFamily(
