@@ -7,7 +7,7 @@ updater:
 
 commit:
 	git add .
-	git commit -m 'contracts: update data/contracts.json'
+	git commit -m 'contracts: update data/contracts.json' .
 
 clean:
 	@$(RM) updater
