@@ -19,7 +19,7 @@ dev:
 
 commit-donors:
 	git add src/donors.ts
-	git commit -m 'wasmegg/_home: update donors'
+	git commit -m 'wasmegg/_home: update donors' src/donors.ts
 
 serve:
 	yarn serve
