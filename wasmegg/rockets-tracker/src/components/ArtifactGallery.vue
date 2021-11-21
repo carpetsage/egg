@@ -1,10 +1,16 @@
 <template>
-  <div class="grid grid-cols-max-2 sm:grid-cols-max-4 justify-center">
+  <div
+    class="grid justify-center"
+    :class="mini ? 'grid-cols-max-4' : 'grid-cols-max-2 sm:grid-cols-max-4'"
+  >
     <div v-for="(artifact, artifactIndex) in artifactSet.artifacts" :key="artifactIndex">
       <tippy
         tag="div"
-        class="h-32 w-32 mx-2 my-2 relative rounded-full isolate"
-        :class="artifactRarityBgClass(artifact.afxRarity) || 'bg-gray-200'"
+        class="relative rounded-full isolate"
+        :class="[
+          mini ? 'h-16 w-16 mx-1 my-1' : 'h-32 w-32 mx-2 my-2',
+          artifactRarityBgClass(artifact.afxRarity) || 'bg-gray-200',
+        ]"
       >
         <img
           class="absolute top-0 left-0 h-full w-full z-10"
@@ -68,6 +74,12 @@ export default defineComponent({
     artifactSet: {
       type: Object as PropType<ArtifactSet>,
       required: true,
+    },
+    // If mini is true, the gallery is at half size.
+    // Used in the slotted stones tooltip.
+    mini: {
+      type: Boolean,
+      default: false,
     },
   },
   setup() {

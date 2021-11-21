@@ -77,12 +77,7 @@
 
                     <div v-if="spoilers || tier.discovered">
                       <div class="text-xs text-gray-500">
-                        <tippy
-                          tag="a"
-                          :href="artifactExplorerLink(tier)"
-                          target="_blank"
-                          class="text-gray-500 hover:text-gray-600"
-                        >
+                        <tippy tag="span" target="_blank" class="text-gray-500 hover:text-gray-600">
                           {{ tier.tierName }}
                           <template v-if="tier.props.recipe" #content>
                             <p>Crafting recipe:</p>
@@ -116,8 +111,20 @@
                           >{{ tier.haveLegendary }} Legendary</span
                         >
                       </div>
-                      <div v-if="tier.isStone" class="delimited text-xs text-gray-400">
-                        <span>{{ tier.slotted }} slotted</span>
+                      <div
+                        v-if="tier.isStone && tier.have > 0"
+                        class="delimited text-xs text-gray-400"
+                      >
+                        <tippy v-if="tier.slotted > 0" tag="span" class="text-purple-400"
+                          ><span class="underline">{{ tier.slotted }} slotted</span
+                          ><template #content>
+                            <artifact-gallery
+                              :artifact-set="
+                                new ArtifactSet(inventory.artifactsWithStone(tier), false)
+                              "
+                              :mini="true" /></template
+                        ></tippy>
+                        <span v-else>0 slotted</span>
                         <span>{{ tier.have - tier.slotted }} free</span>
                       </div>
                       <div
@@ -159,9 +166,10 @@
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { ei, iconURL, Inventory, InventoryFamily, InventoryItem } from 'lib';
+import { ArtifactSet, ei, iconURL, Inventory, InventoryFamily, InventoryItem } from 'lib';
 import { artifactRarityFgClass } from '@/utils';
 import ArtifactRecipe from '@/components/ArtifactRecipe.vue';
+import ArtifactGallery from './ArtifactGallery.vue';
 
 type ItemId = string;
 
@@ -169,6 +177,7 @@ export default defineComponent({
   components: {
     Tippy,
     ArtifactRecipe,
+    ArtifactGallery,
   },
   props: {
     inventory: {
@@ -204,6 +213,7 @@ export default defineComponent({
       Rarity: ei.ArtifactSpec.Rarity,
       artifactRarityFgClass,
       craftableCount,
+      ArtifactSet,
       iconURL,
     };
   },

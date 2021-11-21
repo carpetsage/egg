@@ -24,6 +24,7 @@ export interface Item {
   quality: number;
   baseCraftingPrice: number;
   iconPath: string;
+  sortKey: number;
 }
 
 export type Stone = Item;
@@ -136,6 +137,10 @@ export class Artifact implements Item {
 
   get iconPath(): string {
     return this.host.iconPath;
+  }
+
+  get sortKey(): number {
+    return this.host.sortKey;
   }
 
   get clarityEffect(): number {
@@ -280,6 +285,7 @@ export function newItem(spec: ei.IArtifactSpec): Item {
         quality: tier.quality,
         baseCraftingPrice: tier.base_crafting_prices[i],
         iconPath: `egginc/${tier.icon_filename}`,
+        sortKey: (tier.family.sort_key << 8) + (tier.tier_number << 4) + effect.afx_rarity,
       };
     }
   }
@@ -318,4 +324,19 @@ function gatherRelevantEffects(
     }
   }
   return deltas;
+}
+
+export function cmpArtifacts(a1: Artifact, a2: Artifact): number {
+  if (a1.sortKey !== a2.sortKey) {
+    return a1.sortKey - a2.sortKey;
+  }
+  const n = Math.max(a1.stones.length, a2.stones.length);
+  for (let i = 0; i < n; i++) {
+    const k1 = a1.stones[i]?.sortKey ?? 0;
+    const k2 = a2.stones[i]?.sortKey ?? 0;
+    if (k1 !== k2) {
+      return k1 - k2;
+    }
+  }
+  return 0;
 }

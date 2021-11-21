@@ -1,7 +1,7 @@
 import { ei } from '../proto';
 import data, { AfxFamily, AfxTier, getArtifactFamilyProps, getArtifactTierProps } from './data';
 import { CraftingPriceParams, Recipe } from './data.json';
-import { Artifact } from './effects';
+import { Artifact, cmpArtifacts } from './effects';
 
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;
@@ -60,6 +60,7 @@ export class Inventory {
         this.stoned.push(Artifact.fromCompleteArtifact(artifact));
       }
     }
+    this.stoned.sort((a1, a2) => -cmpArtifacts(a1, a2));
   }
 
   getItem(spec: ei.IArtifactSpec): InventoryItem {
@@ -172,6 +173,10 @@ export class Inventory {
       craftable++;
     }
     return craftable;
+  }
+
+  artifactsWithStone(stone: InventoryItem): Artifact[] {
+    return this.stoned.filter(artifact => artifact.stones.some(slotted => slotted.id === stone.id));
   }
 }
 
