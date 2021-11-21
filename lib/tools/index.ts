@@ -103,10 +103,10 @@ export const tools = [
     iconUrl: iconURL('wasmegg/rockets-tracker.svg'),
     description:
       'Tracker for active rocket missions, historical mission statistics, progress on artifact collection, etc.',
-    // Sat Jul  3 08:49:18 UTC 2021
-    updateUntil: 1625302158000,
+    // Wed Nov 24 18:54:42 UTC 2021
+    updateUntil: 1637780082000,
     whatsNew:
-      'List of artifacts returned by any completed mission is now viewable by clicking on the mission entry in the Launch log.',
+      'In the "Artifacting progress" section, for each stone, the number of slotted copies and free copies are now displayed, and you can hover over / click on "<N> slotted" to reveal where the slotted stones are.',
   }),
   new Tool({
     id: 'past-contracts',
