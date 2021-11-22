@@ -98,6 +98,14 @@ export class MissionType {
     this.durationType = durationType;
   }
 
+  get missionTypeId(): string {
+    return `${this.shipName} ${this.durationTypeName}`.toLowerCase().replaceAll(' ', '-');
+  }
+
+  get name(): string {
+    return `${this.shipName}, ${this.durationTypeName}`;
+  }
+
   get shipName(): string {
     return spaceshipName(this.shipType);
   }
@@ -154,6 +162,21 @@ export class MissionType {
   boostedDurationDisplay(config: ShipsConfig): string {
     return formatDuration(this.boostedDurationSeconds(config), true);
   }
+}
+
+export const allMissionTypes = spaceshipList
+  .map(ship => missionDurationTypeList.map(durationType => new MissionType(ship, durationType)))
+  .flat()
+  // No tutorial mission for any ship other than Chicken One.
+  .filter(m => m.shipType === Spaceship.CHICKEN_ONE || m.durationType !== DurationType.TUTORIAL);
+const idToMissionType = new Map(allMissionTypes.map(m => [m.missionTypeId, m]));
+
+export function getMissionTypeFromId(missionTypeId: string) {
+  const mission = idToMissionType.get(missionTypeId);
+  if (mission === undefined) {
+    throw new Error(`there's no mission with id ${missionTypeId}`);
+  }
+  return mission;
 }
 
 export class Mission extends MissionType {

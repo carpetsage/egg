@@ -2,7 +2,9 @@
   <template v-if="plainText">
     {{ artifact.name }}
     <template v-if="showTier"> (T{{ artifact.tier_number }}) </template>
-    <template v-if="artifact.afxRarity > 0"> , {{ artifact.rarity }} </template>
+    <template v-if="isArtifactLike(artifact) && artifact.afx_rarity > 0">
+      , {{ artifact.rarity }}
+    </template>
   </template>
 
   <template v-else>
@@ -12,27 +14,34 @@
     >
       <div class="flex">
         <div
-          class="flex items-center"
           v-tippy="{
-            content: `<img data-src='${iconURL(artifact.iconPath, 256)}' class='h-32 w-32'>`,
+            content: `<img data-src='${iconURL(
+              'egginc/' + artifact.icon_filename,
+              256
+            )}' class='h-32 w-32'>`,
             allowHTML: true,
           }"
+          class="flex items-center"
         >
           <div class="flex-shrink-0 h-4 w-4">
-            <img class="h-4 w-4" :src="iconURL(artifact.iconPath, 32)" />
+            <img class="h-4 w-4" :src="iconURL('egginc/' + artifact.icon_filename, 32)" />
           </div>
           <div
-            class="ml-1 text-sm"
+            class="ml-1 flex text-sm"
             :class="[
-              rarityFgClass(artifact.afxRarity),
-              noAvailabilityMarker ? null : availabilityClass,
+              isArtifactLike(artifact) ? rarityFgClass500(artifact.afx_rarity) : null,
+              artifact.available_from_missions || noAvailabilityMarker
+                ? null
+                : 'text-red-900 dagger',
             ]"
           >
-            <span>{{ artifact.name }}</span>
+            <span :class="limitWidth ? 'xs:max-w-xxxs inline-block truncate' : 'truncate'">{{
+              artifact.name
+            }}</span>
             <template v-if="showTier">
-              <span> (T{{ artifact.tier_number }})</span>
+              <span>&nbsp;(T{{ artifact.tier_number }})</span>
             </template>
-            <template v-if="artifact.afxRarity > 0">
+            <template v-if="isArtifactLike(artifact) && artifact.afx_rarity > 0">
               <span>, {{ artifact.rarity }}</span>
             </template>
           </div>
@@ -42,53 +51,54 @@
   </template>
 </template>
 
-<script>
-import { iconURL } from '@/utils';
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
 
-export default {
+import { rarityFgClass500 } from '@/utils';
+
+import { iconURL } from 'lib';
+import { AfxTier } from 'lib/artifacts/data';
+import { ArtifactLike } from '@/lib';
+
+export default defineComponent({
   props: {
-    artifact: Object,
-    showTier: Boolean,
-    plainText: Boolean,
-    noLink: Boolean,
-    noAvailabilityMarker: Boolean,
-  },
-
-  computed: {
-    availabilityClass() {
-      return !this.artifact.available_from_missions
-        ? 'text-red-900 dagger'
-        : this.artifact.notDroppableInPractice
-        ? 'text-red-900 Dagger'
-        : '';
+    artifact: {
+      type: Object as PropType<AfxTier | ArtifactLike>,
+      required: true,
+    },
+    showTier: {
+      type: Boolean,
+      default: false,
+    },
+    plainText: {
+      type: Boolean,
+      default: false,
+    },
+    noLink: {
+      type: Boolean,
+      default: false,
+    },
+    noAvailabilityMarker: {
+      type: Boolean,
+      default: false,
+    },
+    // For mission view loot grid, where there's an extreme shortage of
+    // horizontal space.
+    limitWidth: {
+      type: Boolean,
+      default: false,
     },
   },
-
-  methods: {
-    iconURL,
-
-    rarityFgClass(rarity) {
-      switch (rarity) {
-        case 1:
-          return 'text-blue-500';
-        case 2:
-          return 'text-purple-500';
-        case 3:
-          return 'text-yellow-500';
-        default:
-          return '';
-      }
-    },
+  setup() {
+    return {
+      iconURL,
+      rarityFgClass500,
+      isArtifactLike,
+    };
   },
-};
+});
+
+function isArtifactLike(x: AfxTier | ArtifactLike): x is ArtifactLike {
+  return (x as ArtifactLike).afx_rarity !== undefined;
+}
 </script>
-
-<style scoped>
-.dagger:after {
-  content: '\2020';
-}
-
-.Dagger:after {
-  content: '\2021';
-}
-</style>

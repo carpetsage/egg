@@ -2,90 +2,38 @@
   <div>
     <div class="mt-4 mb-2 text-sm font-medium text-gray-700">Visual artifacts picker</div>
     <div class="my-2 text-sm text-gray-700">Artifacts</div>
-    <artifact-grid-section :families="sectionArtifacts" />
+    <artifact-grid-section :families="artifactFamilies" />
     <div class="my-2 text-sm text-gray-700">Stones &amp; fragments</div>
-    <artifact-grid-section :families="sectionStones" />
+    <artifact-grid-section :families="stoneFamilies" />
     <div class="my-2 text-sm text-gray-700">Ingredients</div>
-    <artifact-grid-section :families="sectionIngredients" />
+    <artifact-grid-section :families="ingredientFamilies" />
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
+
 import ArtifactGridSection from '@/components/ArtifactGridSection.vue';
 
-import { stringCmp } from '@/utils';
+import { ei } from 'lib';
+import data from 'lib/artifacts/data';
 
-export default {
+import Type = ei.ArtifactSpec.Type;
+
+const artifactFamilies = data.artifact_families.filter(f => f.afx_type === Type.ARTIFACT);
+const stoneFamilies = data.artifact_families.filter(f => f.afx_type === Type.STONE);
+const ingredientFamilies = data.artifact_families.filter(f => f.afx_type === Type.INGREDIENT);
+
+export default defineComponent({
   components: {
     ArtifactGridSection,
   },
-
-  props: {
-    artifacts: Array,
+  setup() {
+    return {
+      artifactFamilies,
+      stoneFamilies,
+      ingredientFamilies,
+    };
   },
-
-  computed: {
-    sections() {
-      const items = this.artifacts
-        .filter(artifact => artifact.afxRarity === 0)
-        .sort((artifact1, artifact2) => stringCmp(artifact1.sortKey, artifact2.sortKey));
-      const families = [];
-      let family = {};
-      let tiers = [];
-      for (const item of items) {
-        if (item.family.id !== family.id) {
-          if (tiers.length > 0) {
-            family.tiers = tiers;
-            families.push(family);
-            tiers = [];
-          }
-          family = item.family;
-        }
-        tiers.push(item);
-      }
-      if (tiers.length > 0) {
-        family.tiers = tiers;
-        families.push(family);
-        tiers = [];
-      }
-
-      const artifacts = [];
-      const stones = [];
-      const ingredients = [];
-      for (const family of families) {
-        switch (family.type) {
-          case 'Artifact':
-            artifacts.push(family);
-            break;
-          case 'Stone':
-            stones.push(family);
-            break;
-          case 'Ingredient':
-            ingredients.push(family);
-            break;
-        }
-      }
-      return {
-        artifacts,
-        stones,
-        ingredients,
-      };
-    },
-
-    sectionArtifacts() {
-      const { artifacts } = this.sections;
-      return artifacts;
-    },
-
-    sectionStones() {
-      const { stones } = this.sections;
-      return stones;
-    },
-
-    sectionIngredients() {
-      const { ingredients } = this.sections;
-      return ingredients;
-    },
-  },
-};
+});
 </script>

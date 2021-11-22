@@ -11,9 +11,9 @@
             >
               <div
                 class="flex items-center justify-center cursor-pointer"
-                @click="toggleSort($options.SORT_BY.ITEM)"
+                @click="toggleSort(SortBy.Item)"
               >
-                Item<sort-arrow :direction="sortButtonDirection($options.SORT_BY.ITEM)" />
+                Item<sort-arrow :direction="sortButtonDirection(SortBy.Item)" />
               </div>
             </th>
 
@@ -24,9 +24,9 @@
             >
               <div
                 class="flex items-center justify-center cursor-pointer"
-                @click="toggleSort($options.SORT_BY.TIER)"
+                @click="toggleSort(SortBy.Tier)"
               >
-                Tier<sort-arrow :direction="sortButtonDirection($options.SORT_BY.TIER)" />
+                Tier<sort-arrow :direction="sortButtonDirection(SortBy.Tier)" />
               </div>
             </th>
 
@@ -37,11 +37,9 @@
             >
               <div
                 class="flex items-center justify-center cursor-pointer"
-                @click="toggleSort($options.SORT_BY.QUALITY)"
+                @click="toggleSort(SortBy.Quality)"
               >
-                Base quality<sort-arrow
-                  :direction="sortButtonDirection($options.SORT_BY.QUALITY)"
-                />
+                Base quality<sort-arrow :direction="sortButtonDirection(SortBy.Quality)" />
               </div>
             </th>
 
@@ -52,40 +50,40 @@
             >
               <div
                 class="flex items-center justify-center cursor-pointer"
-                @click="toggleSort($options.SORT_BY.ODDS_MULTIPLIER)"
+                @click="toggleSort(SortBy.OddsMultiplier)"
               >
                 Odds multiplier<sort-arrow
-                  :direction="sortButtonDirection($options.SORT_BY.ODDS_MULTIPLIER)"
+                  :direction="sortButtonDirection(SortBy.OddsMultiplier)"
                 />
               </div>
             </th>
 
             <th
               v-for="ship in ships"
-              :key="ship.name"
-              scope="col"
-              colspan="3"
-              class="sticky top-0 px-4 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50"
+              :key="ship.ship"
               v-tippy="{
                 content: `
                   <div>
-                    <img src='${iconURL(ship.iconPath, 256)}' class='h-16 w-16 mx-auto'>
-                    <div class='text-center'>${ship.name}<div>
+                    <img data-src='${iconURL(shipIconPath(ship), 256)}' class='h-16 w-16 mx-auto'>
+                    <div class='text-center'>${shipName(ship)}<div>
                   </div>`,
                 allowHTML: true,
               }"
+              scope="col"
+              colspan="3"
+              class="sticky top-0 px-4 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50"
             >
-              {{ ship.abbrevName }}
+              {{ shipAbbrevName(ship) }}
             </th>
 
             <th
               scope="col"
               rowspan="2"
               class="sticky top-0 px-4 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50"
-              @click="toggleSort($options.SORT_BY.VALUE)"
+              @click="toggleSort(SortBy.Value)"
             >
               <div class="flex items-center justify-center cursor-pointer">
-                Value<sort-arrow :direction="sortButtonDirection($options.SORT_BY.VALUE)" />
+                Value<sort-arrow :direction="sortButtonDirection(SortBy.Value)" />
               </div>
             </th>
 
@@ -93,12 +91,10 @@
               scope="col"
               colspan="4"
               class="sticky top-0 px-4 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50 cursor-pointer"
-              @click="toggleSort($options.SORT_BY.CRAFTING_PRICE)"
+              @click="toggleSort(SortBy.CraftingPrice)"
             >
               <div class="flex items-center justify-center">
-                Crafting price<sort-arrow
-                  :direction="sortButtonDirection($options.SORT_BY.CRAFTING_PRICE)"
-                />
+                Crafting price<sort-arrow :direction="sortButtonDirection(SortBy.CraftingPrice)" />
               </div>
             </th>
           </tr>
@@ -106,16 +102,18 @@
           <tr class="divide-x">
             <th
               v-for="mission in missions"
-              :key="mission.id"
-              class="sticky top-6 px-2 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 cursor-pointer"
+              :key="mission.missionTypeId"
               v-tippy="{
                 content:
-                  `${mission.display}, ` +
-                  `${mission.minQuality.toFixed(1)} - ${mission.maxQuality.toFixed(1)}`,
+                  `${mission.name}, ` +
+                  `${mission.params.minQuality.toFixed(1)} - ${mission.params.maxQuality.toFixed(
+                    1
+                  )}`,
               }"
+              class="sticky top-6 px-2 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 cursor-pointer"
             >
-              <router-link :to="{ name: 'mission', params: { missionId: mission.id } }">
-                {{ mission.abbrevType }}
+              <router-link :to="{ name: 'mission', params: { missionId: mission.missionTypeId } }">
+                {{ missionAbbrevType(mission) }}
               </router-link>
             </th>
 
@@ -143,8 +141,13 @@
             </th>
           </tr>
         </thead>
+
         <tbody class="divide-y">
-          <tr v-for="artifact in sortedArtifacts" :key="artifact.sortKey" class="divide-x">
+          <tr
+            v-for="artifact in sortedArtifacts"
+            :key="`${artifact.id}:${artifact.rarity}`"
+            class="divide-x"
+          >
             <td class="sm:sticky left-0 px-4 py-1 whitespace-nowrap text-sm text-gray-500 bg-white">
               <artifact-name :artifact="artifact" />
             </td>
@@ -154,33 +157,34 @@
             </td>
 
             <td class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500">
-              {{ artifact.quality }}
+              {{ artifact.params.baseQuality }}
             </td>
 
             <td class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500">
-              {{ formatSmallFloat(artifact.params.odds_multiplier) }}
+              {{ formatSmallFloat(artifact.params.oddsMultiplier) }}
             </td>
 
-            <template v-for="mission in missions" :key="mission.id">
+            <template v-for="(mission, i) in missions" :key="i">
               <td
                 v-if="
-                  artifact.quality >= mission.minQuality && artifact.quality <= mission.maxQuality
+                  artifact.params.baseQuality >= mission.params.minQuality &&
+                  artifact.params.baseQuality <= mission.params.maxQuality
                 "
-                class="px-2 py-1 whitespace-nowrap text-center text-sm text-gray-500 bg-green-300"
                 v-tippy="{
-                  content: `${mission.display}<br>${artifact.name}, ${artifact.rarity}`,
+                  content: `${mission.name}<br>${artifact.name}, ${artifact.rarity}`,
                   allowHTML: true,
                 }"
+                class="px-2 py-1 whitespace-nowrap text-center text-sm text-gray-500 bg-green-300"
               >
                 &check;
               </td>
               <td
                 v-else
-                class="px-2 py-1 whitespace-nowrap text-center text-sm bg-gray-300"
                 v-tippy="{
-                  content: `${mission.display}<br>${artifact.name}, ${artifact.rarity}`,
+                  content: `${mission.name}<br>${artifact.name}, ${artifact.rarity}`,
                   allowHTML: true,
                 }"
+                class="px-2 py-1 whitespace-nowrap text-center text-sm bg-gray-300"
               ></td>
             </template>
 
@@ -192,28 +196,28 @@
               class="px-4 py-1 whitespace-nowrap text-center text-sm"
               :class="[craftable(artifact) ? 'text-gray-500' : 'text-gray-300']"
             >
-              {{ artifact.params.crafting_price.toFixed(2) }}
+              {{ artifact.params.craftingPrice.toFixed(2) }}
             </td>
 
             <td
               class="px-4 py-1 whitespace-nowrap text-center text-sm"
               :class="[craftable(artifact) ? 'text-gray-500' : 'text-gray-300']"
             >
-              {{ artifact.params.crafting_price_low.toFixed(2) }}
+              {{ artifact.params.craftingPriceLow.toFixed(2) }}
             </td>
 
             <td
               class="px-4 py-1 whitespace-nowrap text-center text-sm"
               :class="[craftable(artifact) ? 'text-gray-500' : 'text-gray-300']"
             >
-              {{ artifact.params.crafting_price_domain }}
+              {{ artifact.params.craftingPriceDomain }}
             </td>
 
             <td
               class="px-4 py-1 whitespace-nowrap text-center text-sm"
               :class="[craftable(artifact) ? 'text-gray-500' : 'text-gray-300']"
             >
-              {{ artifact.params.crafting_price_curve }}
+              {{ artifact.params.craftingPriceCurve }}
             </td>
           </tr>
         </tbody>
@@ -222,109 +226,177 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { computed, defineComponent, ref } from 'vue';
+
+import {
+  ei,
+  getArtifactTierProps,
+  iconURL,
+  MissionType,
+  spaceshipIconPath,
+  spaceshipName,
+} from 'lib';
+import Spaceship = ei.MissionInfo.Spaceship;
+import DurationType = ei.MissionInfo.DurationType;
+import Name = ei.ArtifactSpec.Name;
+import Level = ei.ArtifactSpec.Level;
+import Rarity = ei.ArtifactSpec.Rarity;
+import eiafxConfig, { SpaceshipParameters } from 'lib/eiafx-config.json';
+import { cmpArtifacts, missions, newArtifact } from '@/lib';
+import { SortDirection } from '@/types';
+
 import ArtifactName from '@/components/ArtifactName.vue';
 import SortArrow from '@/components/SortArrow.vue';
 
-import { iconURL, stringCmp } from '@/utils';
+const ships = eiafxConfig.missionParameters;
+// TODO: move to lib/artifacts
+const artifacts = eiafxConfig.artifactParameters.map(params => ({
+  ...newArtifact(
+    getArtifactTierProps(Name[params.spec.name], Level[params.spec.level]),
+    Rarity[params.spec.rarity]
+  ),
+  params,
+}));
 
-const SORT_BY = {
-  ITEM: 'item',
-  TIER: 'tier',
-  QUALITY: 'quality',
-  ODDS_MULTIPLIER: 'odds_multiplier',
-  VALUE: 'value',
-  CRAFTING_PRICE: 'crafting_price',
-};
+enum SortBy {
+  Item,
+  Tier,
+  Quality,
+  OddsMultiplier,
+  Value,
+  CraftingPrice,
+}
 
-export default {
+export default defineComponent({
   components: {
     ArtifactName,
     SortArrow,
   },
-
-  props: {
-    ships: Array,
-    missions: Array,
-    artifacts: Array,
-  },
-
-  data() {
-    return {
-      sortBy: SORT_BY.QUALITY,
-      sortAscending: true,
-    };
-  },
-
-  SORT_BY,
-
-  computed: {
-    sortedArtifacts() {
-      if (!this.artifacts) {
-        return this.artifacts;
+  setup() {
+    const sortBy = ref(SortBy.Quality);
+    const sortAscending = ref(true);
+    const toggleSort = (criterion: SortBy) => {
+      if (sortBy.value === criterion) {
+        sortAscending.value = !sortAscending.value;
+      } else {
+        sortBy.value = criterion;
+        sortAscending.value = true;
       }
-      return [...this.artifacts].sort((a1, a2) => {
+    };
+    const sortButtonDirection = (criterion: SortBy): SortDirection => {
+      if (sortBy.value === criterion) {
+        return sortAscending.value ? SortDirection.Ascending : SortDirection.Descending;
+      }
+      return SortDirection.Unsorted;
+    };
+    const sortedArtifacts = computed(() =>
+      [...artifacts].sort((a1, a2) => {
         let cmp = 0;
-        switch (this.sortBy) {
-          case SORT_BY.ITEM:
-            cmp = stringCmp(a1.sortKey, a2.sortKey);
+        switch (sortBy.value) {
+          case SortBy.Item:
+            cmp = cmpArtifacts(a1, a2);
             break;
-          case SORT_BY.TIER:
+          case SortBy.Tier:
             cmp = a1.tier_number - a2.tier_number;
             break;
-          case SORT_BY.ODDS_MULTIPLIER:
-            cmp = a1.params.odds_multiplier - a2.params.odds_multiplier;
+          case SortBy.Quality:
             break;
-          case SORT_BY.VALUE:
+          case SortBy.OddsMultiplier:
+            cmp = a1.params.oddsMultiplier - a2.params.oddsMultiplier;
+            break;
+          case SortBy.Value:
             cmp = a1.params.value - a2.params.value;
             break;
-          case SORT_BY.CRAFTING_PRICE:
-            cmp = a1.params.crafting_price - a2.params.crafting_price;
+          case SortBy.CraftingPrice:
+            cmp = a1.params.craftingPrice - a2.params.craftingPrice;
             break;
+          default: {
+            const unreachable: never = sortBy.value;
+            throw new Error(`unhandled sortBy: ${unreachable}`);
+          }
         }
-        // QUALITY as secondary condition.
+        // Quality is always used as tie breaker.
         if (cmp === 0) {
-          cmp = a1.params.base_quality - a2.params.base_quality;
+          cmp = a1.params.baseQuality - a2.params.baseQuality;
         }
-        return this.sortAscending ? cmp : -cmp;
-      });
-    },
+        return sortAscending.value ? cmp : -cmp;
+      })
+    );
+    const craftable = (artifact: typeof artifacts[number]) =>
+      artifact.craftable && artifact.afx_rarity === Rarity.COMMON;
+    return {
+      ships,
+      missions,
+      sortedArtifacts,
+      SortBy,
+      sortButtonDirection,
+      toggleSort,
+      craftable,
+      shipName,
+      shipAbbrevName,
+      shipIconPath,
+      missionAbbrevType,
+      iconURL,
+      formatSmallFloat,
+    };
   },
+});
 
-  methods: {
-    iconURL,
+function shipName(ship: SpaceshipParameters): string {
+  return spaceshipName(Spaceship[ship.ship]);
+}
 
-    sortButtonDirection(criterion) {
-      if (this.sortBy === criterion) {
-        return this.sortAscending ? 1 : -1;
-      }
-      return 0;
-    },
+function shipAbbrevName(ship: SpaceshipParameters): string {
+  switch (Spaceship[ship.ship]) {
+    case Spaceship.CHICKEN_ONE:
+      return 'C1';
+    case Spaceship.CHICKEN_NINE:
+      return 'C9';
+    case Spaceship.CHICKEN_HEAVY:
+      return 'CH';
+    case Spaceship.BCR:
+      return 'BCR';
+    case Spaceship.MILLENIUM_CHICKEN:
+      return 'QC';
+    case Spaceship.CORELLIHEN_CORVETTE:
+      return 'CHC';
+    case Spaceship.GALEGGTICA:
+      return 'G';
+    case Spaceship.CHICKFIANT:
+      return 'D';
+    case Spaceship.VOYEGGER:
+      return 'V';
+    case Spaceship.HENERPRISE:
+      return 'H';
+  }
+}
 
-    toggleSort(criterion) {
-      if (this.sortBy === criterion) {
-        this.sortAscending = !this.sortAscending;
-      } else {
-        this.sortBy = criterion;
-        this.sortAscending = true;
-      }
-    },
+function shipIconPath(ship: SpaceshipParameters): string {
+  return spaceshipIconPath(Spaceship[ship.ship]);
+}
 
-    craftable(artifact) {
-      return artifact.tier_number > 1 && artifact.afxRarity === 0;
-    },
+function missionAbbrevType(mission: MissionType): string {
+  switch (mission.durationType) {
+    case DurationType.SHORT:
+      return 'SH';
+    case DurationType.LONG:
+      return 'ST';
+    case DurationType.EPIC:
+      return 'EX';
+  }
+  return '';
+}
 
-    formatSmallFloat(x) {
-      if (x === 0) {
-        return '0';
-      }
-      if (x >= 1) {
-        let s = x.toFixed(2);
-        return s.replace(/\.?0+$/, '');
-      }
-      let s = x.toPrecision(2);
-      return s.replace(/0+$/, '');
-    },
-  },
-};
+function formatSmallFloat(x: number): string {
+  if (x === 0) {
+    return '0';
+  }
+  if (x >= 1) {
+    let s = x.toFixed(2);
+    return s.replace(/\.?0+$/, '');
+  }
+  let s = x.toPrecision(2);
+  return s.replace(/0+$/, '');
+}
 </script>

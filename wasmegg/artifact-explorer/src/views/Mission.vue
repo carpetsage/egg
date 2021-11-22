@@ -1,196 +1,163 @@
 <template>
-  <div
-    id="mission-card"
-    class="-mx-4 sm:mx-0 bg-gray-50 overflow-hidden sm:rounded-lg sm:shadow-md"
-  >
+  <div class="-mx-4 sm:mx-0 bg-gray-50 overflow-hidden sm:rounded-lg sm:shadow-md">
     <div class="bg-gray-100 px-4 py-4 border-b border-gray-200 sm:px-6">
       <div class="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
-        <div class="ml-4 mt-2 flex items-center space-x-1">
-          <mission-name :mission="mission" noLink="true" />
-          <div class="text-sm">({{ mission.durationDisplay }})</div>
+        <div class="ml-4 mt-2 flex flex-wrap items-center space-x-1">
+          <mission-name :mission="mission" :no-link="true" />
+          <div
+            v-tippy="{
+              content:
+                `FTL Drive Upgrades: <span class='text-green-200'>${config.epicResearchFTLLevel}/25</span><br>` +
+                `Zero-g Quantum Containment: <span class='text-green-200'>${config.epicResearchZerogLevel}/10</span>`,
+              allowHTML: true,
+            }"
+            class="inline-flex items-center text-sm"
+          >
+            ({{ configuredLevel }}<star-icon class="h-4 w-4 text-yellow-400" />,
+            {{ mission.boostedCapacity(config) }} capacity,
+            {{ mission.boostedDurationDisplay(config) }})
+          </div>
         </div>
         <div class="ml-4 mt-2 flex-shrink-0">
-          <share :id="mission.id" :domElementId="'mission-card'" />
+          <share :id="mission.missionTypeId" />
         </div>
       </div>
     </div>
 
     <div class="px-4 py-4 sm:px-6 space-y-2">
+      <config-prompt />
       <loot-data-credit />
 
-      <div class="text-xs text-red-600 space-y-1">
-        <p>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="inline relative -top-px h-4 w-4"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+      <div>
+        <div class="flex sm:hidden items-center space-x-1.5">
+          <select
+            class="block focus:ring-green-500 focus:border-green-500 border-gray-300 rounded-md py-1"
+            :value="selectedLevel"
+            @input="selectLevel"
           >
-            <path
-              fill-rule="evenodd"
-              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Drop rate data have not been updated to post-1.21 (when star levels and capacity epic
-          research were introduced, and drop rates for certain items significantly changed) yet.
-          Absolute values are of limited value at the moment, but most relative comparisons are
-          still valid.
-        </p>
+            <option v-for="levelLoot in loot.levels" :key="levelLoot.level">
+              {{ levelLoot.level }}
+            </option>
+          </select>
+          <star-icon class="h-5 w-5 text-yellow-400" />
+        </div>
+        <div class="hidden sm:block">
+          <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-2">
+              <div
+                v-for="levelLoot in loot.levels"
+                :key="levelLoot.level"
+                :class="[
+                  levelLoot.level === selectedLevel
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 cursor-pointer',
+                  'group inline-flex items-center py-1 px-1 border-b-2 font-medium text-sm',
+                ]"
+                @click="selectedLevel = levelLoot.level"
+              >
+                {{ levelLoot.level }}<star-icon class="h-4 w-4 text-yellow-400" />
+              </div>
+            </nav>
+          </div>
+        </div>
       </div>
 
-      <div class="flex items-center">
-        <label for="artifact-sort-by" class="text-xs font-medium text-gray-500 uppercase"
-          >Sort by</label
-        >
-        <select
-          id="artifact-sort-by"
-          name="artifact-sort-by"
-          class="ml-2 pl-2 pr-8 py-1 text-xs text-gray-500 bg-gray-50 border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md"
-          v-model="sortBy"
-        >
-          <option :value="$options.SORT_BY.QUALITY">Quality</option>
-          <option :value="$options.SORT_BY.FAMILY">Family</option>
-          <option :value="$options.SORT_BY.NAME">Name</option>
-          <option :value="$options.SORT_BY.DROP_RATE">Drop rate</option>
-        </select>
-      </div>
+      <p v-if="tooLittleDataForSelectedLevel" class="text-xs text-gray-500">
+        Too little data has been collected for this level; highly inaccurate drop rate estimates are
+        not shown. Please consider
+        <a
+          href="https://ei.mikit.app/contribute_data"
+          target="_blank"
+          class="text-gray-500 hover:text-gray-700 underline"
+          >contributing yours</a
+        >.
+      </p>
 
       <ul class="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
         <li
-          v-for="artifact in possibleArtifacts"
-          :key="artifact.sortKey"
-          class="flex flex-row items-start flex-wrap"
+          v-for="itemLoot in selectedLevelLoot.items"
+          :key="itemLoot.itemId"
+          class="flex flex-wrap items-start text-sm"
         >
-          <artifact-name class="mr-1" :artifact="artifact" :showTier="true" />
-          <tippy>
-            <span
-              class="flex flex-row items-center text-sm"
-              :class="artifact.notEnoughData ? 'text-gray-500' : null"
-              >({{ artifact.itemsPerMission.toPrecision(artifact.precision)
-              }}<sup v-if="artifact.notEnoughData" class="-top-0.5">?</sup>/<img
-                class="h-4 w-4"
-                :src="iconURL(mission.shipIconPath, 32)"
-              />, {{ artifact.itemsPerDay.toPrecision(artifact.precision)
-              }}<sup v-if="artifact.notEnoughData" class="-top-0.5">?</sup>/d)</span
-            >
-
-            <template #content>
-              <p>Received {{ artifact.itemCount }} from {{ artifact.missionCount }} missions.</p>
-              <p v-if="artifact.notEnoughData">Not enough data, rate likely far from accurate.</p>
-            </template>
-          </tippy>
+          <artifact-name
+            class="w-full xs:w-auto xs:mr-1.5"
+            :artifact="getArtifactTierPropsFromId(itemLoot.itemId)"
+            :show-tier="true"
+            :limit-width="true"
+          />
+          <drop-rate
+            class="text-green-700 ml-5 xs:ml-auto"
+            :mission="mission"
+            :level="selectedLevel"
+            :total-drops="selectedLevelLoot.totalDrops"
+            :item-drops="itemLoot.counts"
+            :hide-when-not-enough="true"
+          />
         </li>
       </ul>
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { computed, defineComponent, ref, toRefs, watch } from 'vue';
+import { StarIcon } from '@heroicons/vue/solid';
+
+import { getArtifactTierPropsFromId, getMissionTypeFromId } from 'lib';
+import { getMissionLootData, missionDataNotEnough } from '@/lib';
+import { config } from '@/store';
 import ArtifactName from '@/components/ArtifactName.vue';
+import ConfigPrompt from '@/components/ConfigPrompt.vue';
+import DropRate from '@/components/DropRate.vue';
 import LootDataCredit from '@/components/LootDataCredit.vue';
 import MissionName from '@/components/MissionName.vue';
 import Share from '@/components/Share.vue';
 
-import { getLocalStorage, setLocalStorage, iconURL, stringCmp } from '@/utils';
-
-const SORT_BY_LOCALSTORAGE_KEY = 'artifactSortBy';
-const SORT_BY = {
-  QUALITY: 'quality',
-  FAMILY: 'family',
-  NAME: 'name',
-  DROP_RATE: 'dropRate',
-};
-
-export default {
+export default defineComponent({
   components: {
     ArtifactName,
+    ConfigPrompt,
+    DropRate,
     LootDataCredit,
     MissionName,
     Share,
+    StarIcon,
   },
-
   props: {
-    missionId: String,
-    missions: Array,
-    artifacts: Array,
-    lootTable: Object,
+    missionId: {
+      type: String,
+      required: true,
+    },
   },
-
-  data() {
+  setup(props) {
+    const { missionId } = toRefs(props);
+    const mission = computed(() => getMissionTypeFromId(missionId.value));
+    const configuredLevel = computed(() => config.value.shipLevels[mission.value.shipType]);
+    const selectedLevel = ref(configuredLevel.value);
+    watch(configuredLevel, (current, prev) => {
+      if (selectedLevel.value === prev) {
+        selectedLevel.value = current;
+      }
+    });
+    const loot = computed(() => getMissionLootData(missionId.value));
+    const selectedLevelLoot = computed(() => loot.value.levels[selectedLevel.value]);
+    const tooLittleDataForSelectedLevel = computed(() =>
+      missionDataNotEnough(mission.value, selectedLevelLoot.value.totalDrops)
+    );
+    const selectLevel = (event: Event) => {
+      selectedLevel.value = parseInt((event.target! as HTMLSelectElement).value);
+    };
     return {
-      sortBy: getLocalStorage(SORT_BY_LOCALSTORAGE_KEY) || SORT_BY.QUALITY,
+      mission,
+      configuredLevel,
+      selectedLevel,
+      loot,
+      selectedLevelLoot,
+      tooLittleDataForSelectedLevel,
+      selectLevel,
+      config,
+      getArtifactTierPropsFromId,
     };
   },
-
-  SORT_BY,
-
-  computed: {
-    mission() {
-      for (const mission of this.missions) {
-        if (mission.id === this.missionId) {
-          return {
-            ...mission,
-            loot: this.lootTable[mission.id],
-          };
-        }
-      }
-      return undefined;
-    },
-
-    possibleArtifacts() {
-      if (!this.mission) {
-        return [];
-      }
-      return this.artifacts
-        .filter(
-          artifact =>
-            this.mission.minQuality <= artifact.quality &&
-            artifact.quality <= this.mission.maxQuality
-        )
-        .sort((artifact1, artifact2) => {
-          switch (this.sortBy) {
-            case SORT_BY.FAMILY:
-              return stringCmp(artifact1.sortKey, artifact2.sortKey);
-            case SORT_BY.NAME:
-              return stringCmp(artifact1.name, artifact2.name);
-            case SORT_BY.DROP_RATE:
-              return (
-                this.mission.loot.items[artifact2.id].rarities[artifact2.afxRarity] -
-                this.mission.loot.items[artifact1.id].rarities[artifact1.afxRarity]
-              );
-            default:
-              return artifact1.quality - artifact2.quality;
-          }
-        })
-        .map(artifact => {
-          const missionCount = this.mission.loot.missionCount;
-          const itemCount = this.mission.loot.items[artifact.id].rarities[artifact.afxRarity];
-          const itemsPerMission = missionCount === 0 ? 0 : itemCount / missionCount;
-          const itemsPerDay = (itemsPerMission * 3600 * 24) / this.mission.durationSeconds;
-          const precision = Math.min(itemCount.toString().length, 3);
-          const notEnoughData = itemCount < 20;
-          return {
-            ...artifact,
-            missionCount,
-            itemCount,
-            itemsPerMission,
-            itemsPerDay,
-            precision,
-            notEnoughData,
-          };
-        });
-    },
-  },
-
-  watch: {
-    sortBy() {
-      setLocalStorage(SORT_BY_LOCALSTORAGE_KEY, this.sortBy);
-    },
-  },
-
-  methods: {
-    iconURL,
-  },
-};
+});
 </script>

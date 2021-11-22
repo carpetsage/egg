@@ -5,37 +5,33 @@
         <div class="w-full flex items-center justify-between px-6 py-4 space-x-4">
           <div class="flex-1 truncate">
             <div class="flex items-center space-x-3">
-              <h3 class="text-gray-900 text-sm font-medium truncate" :title="effect(family)">
+              <h3 class="text-gray-900 text-sm font-medium truncate">
                 {{ family.name }}
               </h3>
             </div>
-            <p class="mt-1 text-gray-500 text-xs truncate" :title="effect(family)">
-              {{ effect(family) }}
+            <p class="mt-1 text-gray-500 text-xs truncate">
+              {{ family.effect }}
             </p>
             <div class="mt-2 space-y-1.5">
               <template v-for="tier in family.tiers" :key="tier.tier_number">
                 <router-link :to="{ name: 'artifact', params: { artifactId: tier.id } }">
                   <div class="flex">
                     <div
-                      class="flex items-center space-x-2"
                       v-tippy="{
                         content: `<img data-src='${iconURL(
-                          tier.iconPath,
+                          'egginc/' + tier.icon_filename,
                           256
                         )}' class='h-32 w-32'>`,
                         allowHTML: true,
                       }"
+                      class="flex items-center space-x-2"
                     >
-                      <img class="h-12 w-12" :src="iconURL(tier.iconPath, 128)" />
+                      <img class="h-12 w-12" :src="iconURL('egginc/' + tier.icon_filename, 128)" />
                       <div>
                         <div
                           class="text-xs"
                           :class="
-                            !tier.available_from_missions
-                              ? 'text-red-900 dagger'
-                              : tier.notDroppableInPractice
-                              ? 'text-red-900 Dagger'
-                              : 'text-gray-500'
+                            !tier.available_from_missions ? 'text-red-900 dagger' : 'text-gray-500'
                           "
                         >
                           {{ tier.tier_name }}
@@ -50,11 +46,11 @@
                             <template v-if="index !== 0">, </template>
                             <span
                               class="inline-flex items-center space-x-px"
-                              :class="rarityFgClass(rarity.afx_rarity)"
+                              :class="rarityFgClass400(rarity.afx_rarity)"
                             >
                               <span>{{ rarity.effect_size }}</span>
                               <!-- One dot for each slot -->
-                              <template v-if="rarity.slots > 0">
+                              <template v-if="rarity.slots">
                                 <svg
                                   viewBox="0 0 10 30"
                                   xmlns="http://www.w3.org/2000/svg"
@@ -93,46 +89,25 @@
   </ul>
 </template>
 
-<script>
-import { iconURL } from '@/utils';
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
 
-export default {
+import { iconURL } from 'lib';
+import { AfxFamily } from 'lib/artifacts/data';
+import { rarityFgClass400 } from '@/utils';
+
+export default defineComponent({
   props: {
-    families: Array,
-  },
-
-  methods: {
-    iconURL,
-
-    effect(family) {
-      // Get family effect from the last tier. The first tier's effects may be
-      // null (stone fragment).
-      const tier = family.tiers[family.tiers.length - 1];
-      return tier.has_effects ? tier.effects[0].family_effect : '';
-    },
-
-    rarityFgClass(rarity) {
-      switch (rarity) {
-        case 1:
-          return 'text-blue-400';
-        case 2:
-          return 'text-purple-400';
-        case 3:
-          return 'text-yellow-400';
-        default:
-          return '';
-      }
+    families: {
+      type: Array as PropType<AfxFamily[]>,
+      required: true,
     },
   },
-};
+  setup() {
+    return {
+      iconURL,
+      rarityFgClass400,
+    };
+  },
+});
 </script>
-
-<style scoped>
-.dagger:after {
-  content: '\2020';
-}
-
-.Dagger:after {
-  content: '\2021';
-}
-</style>

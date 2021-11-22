@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="rounded-md bg-blue-50 p-4 my-4">
+  <div v-if="show" class="rounded-md bg-blue-50 p-4">
     <div class="flex">
       <div class="flex-shrink-0">
         <svg
@@ -29,13 +29,13 @@
           <div class="-mx-2 -my-1.5 flex">
             <button
               class="bg-blue-50 px-2 py-1.5 rounded-md text-sm font-medium text-blue-800 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-50 focus:ring-blue-600"
-              @click="giveConsent()"
+              @click="giveConsent"
             >
               Get out of the way already!
             </button>
             <button
               class="ml-3 bg-blue-50 px-2 py-1.5 rounded-md text-sm font-medium text-blue-800 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-50 focus:ring-blue-600"
-              @click="unmountApp()"
+              @click="reject"
             >
               Nope
             </button>
@@ -46,31 +46,30 @@
   </div>
 </template>
 
-<script>
-import { render } from 'vue';
+<script lang="ts">
+import { defineComponent, ref, render } from 'vue';
 
-import { getLocalStorage, setLocalStorage } from '@/utils';
+import { getLocalStorage, setLocalStorage } from 'lib';
 
 const SPOILER_ALERT_CONSENT_LOCALSTORAGE_KEY = 'spoilerAlertConsent';
 
-export default {
-  data() {
+export default defineComponent({
+  setup() {
+    const show = ref(getLocalStorage(SPOILER_ALERT_CONSENT_LOCALSTORAGE_KEY) === undefined);
+    const giveConsent = () => {
+      setLocalStorage(SPOILER_ALERT_CONSENT_LOCALSTORAGE_KEY, Date.now());
+      show.value = false;
+    };
+    const reject = () => {
+      const app = document.getElementById('app')!;
+      render(null, app);
+      app.innerHTML = `<div class="text-center py-6">Enjoy your spoiler-free experience.</div>`;
+    };
     return {
-      show: getLocalStorage(SPOILER_ALERT_CONSENT_LOCALSTORAGE_KEY) !== 'true',
+      show,
+      giveConsent,
+      reject,
     };
   },
-
-  methods: {
-    giveConsent() {
-      setLocalStorage(SPOILER_ALERT_CONSENT_LOCALSTORAGE_KEY, true);
-      this.show = false;
-    },
-
-    unmountApp() {
-      const app = document.getElementById('app');
-      render(null, app);
-      app.innerHTML = `<div class="text-center">Enjoy your spoiler-free experience.</div>`;
-    },
-  },
-};
+});
 </script>
