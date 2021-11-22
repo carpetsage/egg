@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/fanaticscripter/Egg/wasmegg/_common/eiafx"
-	"github.com/fanaticscripter/Egg/wasmegg/_common/loot"
+	loot "github.com/fanaticscripter/Egg/wasmegg/_common/loot_legacy"
 	"github.com/fanaticscripter/EggContractor/api"
 )
 
