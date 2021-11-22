@@ -5,8 +5,11 @@ all: clean
 
 init:
 
-build:
+build: data
 	yarn build
+
+data:
+	go run .
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static
@@ -19,5 +22,3 @@ dev:
 
 serve:
 	yarn serve
-
-# TODO: go run .
