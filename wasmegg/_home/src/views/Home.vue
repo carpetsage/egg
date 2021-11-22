@@ -73,11 +73,7 @@
   <h2>Tools hosted at this domain</h2>
   <h3>Interactive apps</h3>
   <ul>
-    <li>
-      <tool-description id="artifact-explorer" @visit="onvisit" /><v120-badge
-        :partially-done="true"
-      />
-    </li>
+    <li><tool-description id="artifact-explorer" @visit="onvisit" /></li>
     <li><tool-description id="artifact-sandbox" @visit="onvisit" /></li>
     <li><tool-description id="rockets-tracker" @visit="onvisit" /></li>
     <li><tool-description id="past-contracts" @visit="onvisit" /></li>

@@ -90,6 +90,10 @@ export const tools = [
     title: 'Artifact explorer',
     iconUrl: iconURL('wasmegg/artifact-explorer.svg'),
     description: 'Explorer for everything artifacts',
+    // Mon Dec  6 17:31:50 UTC 2021
+    majorUpdateUntil: 1638811910000,
+    whatsNew:
+      'Rewritten for post-v1.21, with up-to-date loot data and complete support for ship levels and mission-related epic researches.',
   }),
   new Tool({
     id: 'artifact-sandbox',
