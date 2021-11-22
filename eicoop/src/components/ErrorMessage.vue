@@ -42,8 +42,10 @@
     </button>
 
     <div class="text-center break-words text-sm text-gray-700 dark:text-gray-200">
-      If you believe this is a bug, contact @mk2 on
-      <a href="https://discord.gg/egginc" target="_blank" class="text-blue-500">Discord</a>.
+      If you believe this is a bug,
+      <a href="https://wasmegg.netlify.app/#/contact" target="_blank" class="text-blue-500"
+        >contact @mk2</a
+      >.
     </div>
   </div>
 </template>
