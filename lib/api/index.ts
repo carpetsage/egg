@@ -45,6 +45,11 @@ export async function request(endpoint: string, encodedPayload: string): Promise
   } catch (e) {
     if (e instanceof Error && e.name === 'AbortError') {
       throw new Error(`POST ${url} data=${encodedPayload}: timeout after ${TIMEOUT}ms.`);
+    } else if (e instanceof TypeError) {
+      throw new TypeError(
+        `POST ${url} data=${encodedPayload}: ${e} ` +
+          `(please check any ad/content blocking solution you might be using, e.g. uBlock, Brave, Pi-hole, NextDNS, etc.)`
+      );
     } else {
       throw new Error(`POST ${url} data=${encodedPayload}: ${e}`);
     }
