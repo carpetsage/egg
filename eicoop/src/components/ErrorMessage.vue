@@ -9,7 +9,7 @@
         />
       </svg>
       <base-click-to-copy
-        class="text-sm"
+        class="text-sm break-all sm:break-normal"
         color-classes="active:text-red-400 dark:active:text-red-600"
         :text="devmode ? error.stack || error.toString() : encodedError"
       >
