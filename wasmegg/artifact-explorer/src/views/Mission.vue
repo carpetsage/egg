@@ -31,7 +31,7 @@
       <div>
         <div class="flex sm:hidden items-center space-x-1.5">
           <select
-            class="block focus:ring-green-500 focus:border-green-500 border-gray-300 rounded-md py-1"
+            class="block focus:ring-green-500 focus:border-green-500 border-gray-300 rounded-md py-0.5 text-sm"
             :value="selectedLevel"
             @input="selectLevel"
           >
