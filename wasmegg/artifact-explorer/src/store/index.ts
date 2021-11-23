@@ -50,6 +50,18 @@ export function persistConfig() {
   setLocalStorage(CONFIG_LOCALSTORAGE_KEY, JSON.stringify(config.value));
 }
 
+export function configWithCustomShipLevel(
+  ship: ei.MissionInfo.Spaceship,
+  level: number
+): ShipsConfig {
+  const shipLevels = { ...config.value.shipLevels };
+  shipLevels[ship] = level;
+  return {
+    ...config.value,
+    shipLevels,
+  };
+}
+
 export function openConfigModal(): void {
   configModalOpen.value = true;
 }

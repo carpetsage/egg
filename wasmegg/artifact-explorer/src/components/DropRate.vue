@@ -74,9 +74,9 @@ import { Tippy } from 'vue-tippy';
 
 import { ei, iconURL, MissionType } from 'lib';
 import Rarity = ei.ArtifactSpec.Rarity;
-import { config } from '@/store';
+import { configWithCustomShipLevel } from '@/store';
 import { missionDataNotEnough } from '@/lib';
-import { capitalize, rarityFgClass400, sum } from '@/utils';
+import { capitalize, formatToPrecision, rarityFgClass400, sum, ts } from '@/utils';
 
 export default defineComponent({
   components: {
@@ -114,14 +114,9 @@ export default defineComponent({
   },
   setup(props) {
     const { mission, level, totalDrops, itemDrops } = toRefs(props);
-    const customConfig = computed(() => {
-      const shipLevels = { ...config.value.shipLevels };
-      shipLevels[mission.value.shipType] = level.value;
-      return {
-        ...config.value,
-        shipLevels,
-      };
-    });
+    const customConfig = computed(() =>
+      configWithCustomShipLevel(mission.value.shipType, level.value)
+    );
     const tooLittleMissionData = computed(() =>
       missionDataNotEnough(mission.value, totalDrops.value)
     );
@@ -167,25 +162,4 @@ export default defineComponent({
     };
   },
 });
-
-// Format with thousand separator
-function ts(x: number): string {
-  return x.toLocaleString('en-US');
-}
-
-function formatToPrecision(x: number, precision: number): string {
-  if (!isFinite(x)) {
-    return '';
-  }
-  const s = x.toPrecision(precision);
-  // If the formatted string is a decimal without exponent, or one with a
-  // negative exponent, return as is.
-  if (s.match(/^\d+\.\d+$/) || s.includes('e-')) {
-    return s;
-  }
-  // If the formatted string is an integer, or has a positive exponent,
-  // convert it to non-scientific notation, and add a ~ in front to mark it
-  // as an approximate.
-  return '~' + parseFloat(s).toFixed();
-}
 </script>

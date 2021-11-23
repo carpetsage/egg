@@ -1,6 +1,12 @@
-import { ei, getArtifactTierPropsFromId, getMissionTypeFromId, MissionType } from 'lib';
+import {
+  ei,
+  getArtifactTierPropsFromId,
+  getMissionTypeFromId,
+  itemExpectedFullConsumptionGold,
+  MissionType,
+} from 'lib';
 
-import lootdata, { MissionLootStore } from './loot.json';
+import lootdata, { MissionLevelLootStore, MissionLootStore } from './loot.json';
 
 export { lootdata };
 
@@ -11,6 +17,21 @@ export function getMissionLootData(missionId: string): MissionLootStore {
     }
   }
   throw new Error(`there's no mission with id ${missionId}`);
+}
+
+export function getMissionLevelLootAverageConsumptionValue(loot: MissionLevelLootStore): number {
+  if (loot.totalDrops === 0) {
+    return 0;
+  }
+  let total = 0;
+  for (const item of loot.items) {
+    item.counts.forEach((count, afxRarity) => {
+      if (count > 0) {
+        total += count * itemExpectedFullConsumptionGold(item.afxId, item.afxLevel, afxRarity);
+      }
+    });
+  }
+  return total / loot.totalDrops;
 }
 
 type ItemLootStore = {

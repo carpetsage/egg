@@ -112,6 +112,57 @@
           />
         </li>
       </ul>
+
+      <hr />
+
+      <p class="text-sm">
+        Expected full consumption value from mission loot:
+        <base-info
+          v-tippy="{
+            content: `<span class='text-blue-300'>Full consumption value</span> is the number of golden eggs (GE) obtained from recursively consuming all loot items, that is, for artifacts yielding stones and fragments, the resulting items are further broken down into GE. Uncommon items are demoted first before consumption.`,
+            allowHTML: true,
+          }"
+          class="inline"
+        />
+        <br />
+        <span class="inline-flex items-center text-yellow-500 whitespace-nowrap"
+          >{{ formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip, precision) }}/<img
+            class="h-4 w-4 ml-px"
+            :src="iconURL(mission.shipIconPath, 32)" /></span
+        >,
+        <span class="whitespace-nowrap">
+          <span class="text-yellow-500"
+            >{{
+              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay, precision)
+            }}/d</span
+          >
+          (1 mission slot)</span
+        >,
+        <span class="whitespace-nowrap">
+          <span class="text-yellow-500"
+            >{{
+              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay * 3, precision)
+            }}/d</span
+          >
+          (3 mission slots)</span
+        >.
+        <br />
+        <a
+          href="https://wasmegg.netlify.app/consumption-sheet/"
+          target="_blank"
+          class="inline-flex items-center border-dashed border-b border-gray-700 text-sm whitespace-nowrap leading-tight space-x-0.5"
+        >
+          <span>Detailed consumption data</span>
+          <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+            <path
+              d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+            />
+            <path
+              d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
+            />
+          </svg>
+        </a>
+      </p>
     </div>
   </div>
 </template>
@@ -126,11 +177,18 @@ import {
   getArtifactTierPropsFromId,
   getLocalStorage,
   getMissionTypeFromId,
+  iconURL,
   setLocalStorage,
 } from 'lib';
-import { cmpArtifactTiers, getMissionLootData, missionDataNotEnough } from '@/lib';
-import { config } from '@/store';
-import { sum } from '@/utils';
+import {
+  cmpArtifactTiers,
+  getMissionLevelLootAverageConsumptionValue,
+  getMissionLootData,
+  missionDataNotEnough,
+} from '@/lib';
+import { config, configWithCustomShipLevel } from '@/store';
+import { formatToPrecision, sum } from '@/utils';
+import BaseInfo from 'ui/components/BaseInfo.vue';
 import ArtifactName from '@/components/ArtifactName.vue';
 import ConfigPrompt from '@/components/ConfigPrompt.vue';
 import DropRate from '@/components/DropRate.vue';
@@ -166,6 +224,7 @@ const artifactItemIds = allPossibleTiers
 export default defineComponent({
   components: {
     ArtifactName,
+    BaseInfo,
     ConfigPrompt,
     DropRate,
     LootDataCredit,
@@ -182,25 +241,28 @@ export default defineComponent({
   setup(props) {
     const { missionId } = toRefs(props);
     const mission = computed(() => getMissionTypeFromId(missionId.value));
+
     const configuredLevel = computed(() => config.value.shipLevels[mission.value.shipType]);
     const selectedLevel = ref(configuredLevel.value);
+    const selectLevel = (event: Event) => {
+      selectedLevel.value = parseInt((event.target! as HTMLSelectElement).value);
+    };
     watch(configuredLevel, (current, prev) => {
       if (selectedLevel.value === prev) {
         selectedLevel.value = current;
       }
     });
+
     const sortBy = ref(loadItemsSortBy());
     watch(sortBy, () => {
       setLocalStorage(MISSION_ITEMS_SORT_BY_LOCALSTORAGE_KEY, sortBy.value);
     });
+
     const loot = computed(() => getMissionLootData(missionId.value));
     const selectedLevelLoot = computed(() => loot.value.levels[selectedLevel.value]);
     const tooLittleDataForSelectedLevel = computed(() =>
       missionDataNotEnough(mission.value, selectedLevelLoot.value.totalDrops)
     );
-    const selectLevel = (event: Event) => {
-      selectedLevel.value = parseInt((event.target! as HTMLSelectElement).value);
-    };
     const sortedItemsLoot = computed(() =>
       [...selectedLevelLoot.value.items].sort((i1, i2) => {
         const item1 = getArtifactTierPropsFromId(i1.itemId);
@@ -221,6 +283,41 @@ export default defineComponent({
         return cmpArtifactTiers(item1, item2);
       })
     );
+
+    const configWithSelectedLevel = computed(() =>
+      configWithCustomShipLevel(mission.value.shipType, selectedLevel.value)
+    );
+    const selectedLevelCapacity = computed(() =>
+      mission.value.boostedCapacity(configWithSelectedLevel.value)
+    );
+    const selectedLevelDurationDays = computed(
+      () => mission.value.boostedDurationSeconds(configWithSelectedLevel.value) / 86400
+    );
+    const selectedLevelExpectedFullConsumptionValuePerShip = computed(
+      () =>
+        getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value) *
+        selectedLevelCapacity.value
+    );
+    const selectedLevelExpectedFullConsumptionValuePerDay = computed(
+      () => selectedLevelExpectedFullConsumptionValuePerShip.value / selectedLevelDurationDays.value
+    );
+    // It's hard to decide the precision here. We have the sum of a (for
+    // simplicity, let's assume) normally distributed sample and we want to know
+    // the error of the mean... Maybe it's possible to determine, but I'm pretty
+    // bad at statistics so I don't know. So instead I use a random heuristics:
+    // 2-19 samples, 2 significant figures; 20-199 samples, 3 siginificant
+    // figures; etc. The number of samples is the number of base-capacity
+    // shiploads.
+    //
+    // We also limit the precision to integer for the per-ship value.
+    const precision = computed(() => {
+      const perShip = Math.round(selectedLevelExpectedFullConsumptionValuePerShip.value);
+      const nSamples = Math.round(
+        selectedLevelLoot.value.totalDrops / mission.value.defaultCapacity
+      );
+      return Math.min(`${perShip}`.length, `${nSamples * 5}`.length);
+    });
+
     return {
       mission,
       configuredLevel,
@@ -230,11 +327,16 @@ export default defineComponent({
       loot,
       selectedLevelLoot,
       tooLittleDataForSelectedLevel,
+      selectedLevelExpectedFullConsumptionValuePerShip,
+      selectedLevelExpectedFullConsumptionValuePerDay,
+      precision,
       selectLevel,
       sortedItemsLoot,
       config,
       getArtifactTierPropsFromId,
       artifactItemIds,
+      formatToPrecision,
+      iconURL,
     };
   },
 });

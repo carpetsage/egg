@@ -52,3 +52,24 @@ export function capitalize(s: string): string {
 export function sum(arr: number[]): number {
   return arr.reduce((s, x) => s + x);
 }
+
+// Format with thousand separator
+export function ts(x: number): string {
+  return x.toLocaleString('en-US');
+}
+
+export function formatToPrecision(x: number, precision: number): string {
+  if (!isFinite(x)) {
+    return '';
+  }
+  const s = x.toPrecision(precision);
+  // If the formatted string is a decimal without exponent, or one with a
+  // negative exponent, return as is.
+  if (s.match(/^\d+\.\d+$/) || s.includes('e-')) {
+    return s;
+  }
+  // If the formatted string is an integer, or has a positive exponent,
+  // convert it to non-scientific notation, and add a ~ in front to mark it
+  // as an approximate.
+  return '~' + parseFloat(s).toFixed();
+}
