@@ -74,7 +74,7 @@ import { ei, iconURL, MissionType } from 'lib';
 import Rarity = ei.ArtifactSpec.Rarity;
 import { config } from '@/store';
 import { missionDataNotEnough } from '@/lib';
-import { capitalize, rarityFgClass400 } from '@/utils';
+import { capitalize, rarityFgClass400, sum } from '@/utils';
 
 export default defineComponent({
   components: {
@@ -123,7 +123,7 @@ export default defineComponent({
     const missionDurationDays = computed(
       () => mission.value.boostedDurationSeconds(customConfig.value) / 86400
     );
-    const itemTotalDrops = computed(() => itemDrops.value.reduce((s, x) => s + x));
+    const itemTotalDrops = computed(() => sum(itemDrops.value));
     const tooLittleItemData = computed(() => itemTotalDrops.value < 20);
     const expectedDropsPerMission = computed(() =>
       totalDrops.value > 0 ? (itemTotalDrops.value / totalDrops.value) * missionCapacity.value : 0

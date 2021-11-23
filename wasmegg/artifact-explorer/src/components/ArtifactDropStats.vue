@@ -44,6 +44,7 @@ import { StarIcon } from '@heroicons/vue/solid';
 import { getLocalStorage, getMissionTypeFromId, MissionType } from 'lib';
 import { getTierLootData, missionDataNotEnough } from '@/lib';
 import { config } from '@/store';
+import { sum } from '@/utils';
 import ConfigPrompt from '@/components/ConfigPrompt.vue';
 import DropRate from '@/components/DropRate.vue';
 import LootDataCredit from '@/components/LootDataCredit.vue';
@@ -87,7 +88,7 @@ export default defineComponent({
           };
           const missionCapacity = mission.boostedCapacity(customConfig);
           const missionDurationDays = mission.boostedDurationSeconds(customConfig) / 86400;
-          const itemTotalDrops = levelLoot.counts.reduce((s, x) => s + x);
+          const itemTotalDrops = sum(levelLoot.counts);
           const expectedDropsPerMission =
             totalDrops > 0 ? (itemTotalDrops / totalDrops) * missionCapacity : 0;
           const expectedDropsPerDay = expectedDropsPerMission / missionDurationDays;
