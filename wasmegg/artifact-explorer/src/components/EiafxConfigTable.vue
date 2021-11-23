@@ -60,7 +60,7 @@
 
             <th
               v-for="ship in ships"
-              :key="ship.ship"
+              :key="ship"
               v-tippy="{
                 content: `
                   <div>
@@ -231,33 +231,20 @@ import { computed, defineComponent, ref } from 'vue';
 
 import {
   ei,
-  getArtifactTierProps,
   iconURL,
   MissionType,
-  spaceshipIconPath,
-  spaceshipName,
+  spaceshipIconPath as shipIconPath,
+  spaceshipList as ships,
+  spaceshipName as shipName,
 } from 'lib';
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
-import Name = ei.ArtifactSpec.Name;
-import Level = ei.ArtifactSpec.Level;
 import Rarity = ei.ArtifactSpec.Rarity;
-import eiafxConfig, { SpaceshipParameters } from 'lib/eiafx-config.json';
-import { cmpArtifacts, missions, newArtifact } from '@/lib';
+import { artifacts, cmpArtifacts, missions } from '@/lib';
 import { SortDirection } from '@/types';
 
 import ArtifactName from '@/components/ArtifactName.vue';
 import SortArrow from '@/components/SortArrow.vue';
-
-const ships = eiafxConfig.missionParameters;
-// TODO: move to lib/artifacts
-const artifacts = eiafxConfig.artifactParameters.map(params => ({
-  ...newArtifact(
-    getArtifactTierProps(Name[params.spec.name], Level[params.spec.level]),
-    Rarity[params.spec.rarity]
-  ),
-  params,
-}));
 
 enum SortBy {
   Item,
@@ -343,12 +330,8 @@ export default defineComponent({
   },
 });
 
-function shipName(ship: SpaceshipParameters): string {
-  return spaceshipName(Spaceship[ship.ship]);
-}
-
-function shipAbbrevName(ship: SpaceshipParameters): string {
-  switch (Spaceship[ship.ship]) {
+function shipAbbrevName(ship: Spaceship): string {
+  switch (ship) {
     case Spaceship.CHICKEN_ONE:
       return 'C1';
     case Spaceship.CHICKEN_NINE:
@@ -370,10 +353,6 @@ function shipAbbrevName(ship: SpaceshipParameters): string {
     case Spaceship.HENERPRISE:
       return 'H';
   }
-}
-
-function shipIconPath(ship: SpaceshipParameters): string {
-  return spaceshipIconPath(Spaceship[ship.ship]);
 }
 
 function missionAbbrevType(mission: MissionType): string {
