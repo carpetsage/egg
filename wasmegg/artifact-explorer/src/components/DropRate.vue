@@ -44,22 +44,24 @@
         }}</span>
         days.<br />
 
-        <hr class="my-1 border-gray-400" />
+        <template v-if="isArtifact">
+          <hr class="my-1 border-gray-400" />
 
-        <template v-for="entry in uncommonStats" :key="entry.afxRarity">
-          <span :class="rarityFgClass400(entry.afxRarity)">{{ entry.rarity }}</span
-          >: {{ entry.drops }}/{{ itemTotalDrops
-          }}<template v-if="entry.drops >= 10"
-            >, 1 per
-            <span class="text-green-300">{{
-              formatToPrecision(entry.daysPerDrop, entry.precision)
-            }}</span>
-            days (<span class="text-green-300">{{
-              formatToPrecision(entry.daysPerDrop / 3, entry.precision)
-            }}</span>
-            days with 3 slots)</template
-          >
-          <br />
+          <template v-for="entry in uncommonStats" :key="entry.afxRarity">
+            <span :class="rarityFgClass400(entry.afxRarity)">{{ entry.rarity }}</span
+            >: {{ entry.drops }}/{{ itemTotalDrops
+            }}<template v-if="entry.drops >= 10"
+              >, 1 per
+              <span class="text-green-300">{{
+                formatToPrecision(entry.daysPerDrop, entry.precision)
+              }}</span>
+              days (<span class="text-green-300">{{
+                formatToPrecision(entry.daysPerDrop / 3, entry.precision)
+              }}</span>
+              days with 3 slots)</template
+            >
+            <br />
+          </template>
         </template>
       </template>
     </template>
@@ -95,6 +97,10 @@ export default defineComponent({
     },
     itemDrops: {
       type: Object as PropType<[number, number, number, number]>,
+      required: true,
+    },
+    isArtifact: {
+      type: Boolean,
       required: true,
     },
     highlight: {

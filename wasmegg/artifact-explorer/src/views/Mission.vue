@@ -107,6 +107,7 @@
             :level="selectedLevel"
             :total-drops="selectedLevelLoot.totalDrops"
             :item-drops="itemLoot.counts"
+            :is-artifact="artifactItemIds.includes(itemLoot.itemId)"
             :hide-when-not-enough="true"
           />
         </li>
@@ -120,6 +121,8 @@ import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 import { StarIcon } from '@heroicons/vue/solid';
 
 import {
+  allPossibleTiers,
+  ei,
   getArtifactTierPropsFromId,
   getLocalStorage,
   getMissionTypeFromId,
@@ -127,13 +130,13 @@ import {
 } from 'lib';
 import { cmpArtifactTiers, getMissionLootData, missionDataNotEnough } from '@/lib';
 import { config } from '@/store';
+import { sum } from '@/utils';
 import ArtifactName from '@/components/ArtifactName.vue';
 import ConfigPrompt from '@/components/ConfigPrompt.vue';
 import DropRate from '@/components/DropRate.vue';
 import LootDataCredit from '@/components/LootDataCredit.vue';
 import MissionName from '@/components/MissionName.vue';
 import Share from '@/components/Share.vue';
-import { sum } from '@/utils';
 
 enum ItemsSortBy {
   Family = 'family',
@@ -154,6 +157,11 @@ function loadItemsSortBy(): ItemsSortBy {
   }
   return s;
 }
+
+// List of item ids of artifacts only, excluding stones and ingredients.
+const artifactItemIds = allPossibleTiers
+  .filter(t => t.afx_type === ei.ArtifactSpec.Type.ARTIFACT)
+  .map(t => t.id);
 
 export default defineComponent({
   components: {
@@ -226,6 +234,7 @@ export default defineComponent({
       sortedItemsLoot,
       config,
       getArtifactTierPropsFromId,
+      artifactItemIds,
     };
   },
 });

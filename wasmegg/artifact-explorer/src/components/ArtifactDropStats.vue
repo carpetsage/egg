@@ -27,6 +27,7 @@
               :level="levelLoot.level"
               :total-drops="levelLoot.totalDrops"
               :item-drops="levelLoot.counts"
+              :is-artifact="isArtifact"
               :highlight="levelIsSelected(m.mission, levelLoot.level)"
             />
           </li>
@@ -41,7 +42,13 @@
 import { computed, defineComponent, ref, toRefs } from 'vue';
 import { StarIcon } from '@heroicons/vue/solid';
 
-import { getLocalStorage, getMissionTypeFromId, MissionType } from 'lib';
+import {
+  ei,
+  getArtifactTierPropsFromId,
+  getLocalStorage,
+  getMissionTypeFromId,
+  MissionType,
+} from 'lib';
 import { getTierLootData, missionDataNotEnough } from '@/lib';
 import { config } from '@/store';
 import { sum } from '@/utils';
@@ -68,6 +75,9 @@ export default defineComponent({
   },
   setup(props) {
     const { artifactId } = toRefs(props);
+    const isArtifact = computed(
+      () => getArtifactTierPropsFromId(artifactId.value).afx_type === ei.ArtifactSpec.Type.ARTIFACT
+    );
     const expand = ref(getLocalStorage(COLLAPSE_ARTIFACT_DROP_RATES_LOCALSTORAGE_KEY) !== 'true');
     const loot = computed(() => getTierLootData(artifactId.value));
     const missions = computed(() =>
@@ -121,6 +131,7 @@ export default defineComponent({
     const levelIsSelected = (mission: MissionType, level: number) =>
       config.value.shipLevels[mission.shipType] === level;
     return {
+      isArtifact,
       expand,
       loot,
       getMissionTypeFromId,
