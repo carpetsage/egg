@@ -13,9 +13,9 @@
             }"
             class="inline-flex items-center text-sm"
           >
-            ({{ configuredLevel }}<star-icon class="h-4 w-4 text-yellow-400" />,
-            {{ mission.boostedCapacity(config) }} capacity,
-            {{ mission.boostedDurationDisplay(config) }})
+            ({{ selectedLevel }}<star-icon class="h-4 w-4 text-yellow-400" />,
+            {{ mission.boostedCapacity(configWithSelectedLevel) }} capacity,
+            {{ mission.boostedDurationDisplay(configWithSelectedLevel) }})
           </div>
         </div>
         <div class="ml-4 mt-2 flex-shrink-0">
@@ -320,8 +320,8 @@ export default defineComponent({
 
     return {
       mission,
-      configuredLevel,
       selectedLevel,
+      configWithSelectedLevel,
       ItemsSortBy,
       sortBy,
       loot,
