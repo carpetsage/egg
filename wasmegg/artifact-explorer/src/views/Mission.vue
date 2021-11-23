@@ -62,6 +62,22 @@
         </div>
       </div>
 
+      <div class="flex rounded-md">
+        <span
+          class="inline-flex items-center text-xs px-2 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-500"
+        >
+          Sort by
+        </span>
+        <select
+          v-model="sortBy"
+          class="text-xs pr-8 py-1 rounded-none rounded-r-md text-gray-500 bg-white border-gray-300 focus:outline-none focus:ring-0 focus:ring-gray-300 focus:border-gray-300"
+        >
+          <option :value="ItemsSortBy.Family">Family</option>
+          <option :value="ItemsSortBy.Quality">Quality</option>
+          <option :value="ItemsSortBy.DropRate">Drop rate</option>
+        </select>
+      </div>
+
       <p v-if="tooLittleDataForSelectedLevel" class="text-xs text-gray-500">
         Too little data has been collected for this level; highly inaccurate drop rate estimates are
         not shown. Please consider
@@ -75,7 +91,7 @@
 
       <ul class="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
         <li
-          v-for="itemLoot in selectedLevelLoot.items"
+          v-for="itemLoot in sortedItemsLoot"
           :key="itemLoot.itemId"
           class="flex flex-wrap items-start text-sm"
         >
@@ -103,8 +119,13 @@
 import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 import { StarIcon } from '@heroicons/vue/solid';
 
-import { getArtifactTierPropsFromId, getMissionTypeFromId } from 'lib';
-import { getMissionLootData, missionDataNotEnough } from '@/lib';
+import {
+  getArtifactTierPropsFromId,
+  getLocalStorage,
+  getMissionTypeFromId,
+  setLocalStorage,
+} from 'lib';
+import { cmpArtifactTiers, getMissionLootData, missionDataNotEnough } from '@/lib';
 import { config } from '@/store';
 import ArtifactName from '@/components/ArtifactName.vue';
 import ConfigPrompt from '@/components/ConfigPrompt.vue';
@@ -112,6 +133,27 @@ import DropRate from '@/components/DropRate.vue';
 import LootDataCredit from '@/components/LootDataCredit.vue';
 import MissionName from '@/components/MissionName.vue';
 import Share from '@/components/Share.vue';
+import { sum } from '@/utils';
+
+enum ItemsSortBy {
+  Family = 'family',
+  Quality = 'quality',
+  DropRate = 'dropRate',
+}
+
+const MISSION_ITEMS_SORT_BY_LOCALSTORAGE_KEY = 'missionItemsSortBy';
+
+function isItemsSortyBy(s: string): s is ItemsSortBy {
+  return Object.values(ItemsSortBy).includes(s as ItemsSortBy);
+}
+
+function loadItemsSortBy(): ItemsSortBy {
+  const s = getLocalStorage(MISSION_ITEMS_SORT_BY_LOCALSTORAGE_KEY);
+  if (!s || !isItemsSortyBy(s)) {
+    return ItemsSortBy.Family;
+  }
+  return s;
+}
 
 export default defineComponent({
   components: {
@@ -139,6 +181,10 @@ export default defineComponent({
         selectedLevel.value = current;
       }
     });
+    const sortBy = ref(loadItemsSortBy());
+    watch(sortBy, () => {
+      setLocalStorage(MISSION_ITEMS_SORT_BY_LOCALSTORAGE_KEY, sortBy.value);
+    });
     const loot = computed(() => getMissionLootData(missionId.value));
     const selectedLevelLoot = computed(() => loot.value.levels[selectedLevel.value]);
     const tooLittleDataForSelectedLevel = computed(() =>
@@ -147,14 +193,37 @@ export default defineComponent({
     const selectLevel = (event: Event) => {
       selectedLevel.value = parseInt((event.target! as HTMLSelectElement).value);
     };
+    const sortedItemsLoot = computed(() =>
+      [...selectedLevelLoot.value.items].sort((i1, i2) => {
+        const item1 = getArtifactTierPropsFromId(i1.itemId);
+        const item2 = getArtifactTierPropsFromId(i2.itemId);
+        let cmp = 0;
+        switch (sortBy.value) {
+          case ItemsSortBy.Quality:
+            cmp = item1.quality - item2.quality;
+            break;
+          case ItemsSortBy.DropRate:
+            // Higher drop rates first.
+            cmp = sum(i2.counts) - sum(i1.counts);
+            break;
+        }
+        if (cmp !== 0) {
+          return cmp;
+        }
+        return cmpArtifactTiers(item1, item2);
+      })
+    );
     return {
       mission,
       configuredLevel,
       selectedLevel,
+      ItemsSortBy,
+      sortBy,
       loot,
       selectedLevelLoot,
       tooLittleDataForSelectedLevel,
       selectLevel,
+      sortedItemsLoot,
       config,
       getArtifactTierPropsFromId,
     };
