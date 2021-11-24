@@ -296,8 +296,10 @@
             <dt class="text-right text-sm font-medium whitespace-nowrap">Rockets launched</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numMissions) }}</dd>
 
-            <dt class="text-right text-sm font-medium whitespace-nowrap">Days since 1st ship</dt>
-            <dd class="text-left text-sm text-gray-900">{{ fmt(daysSinceFirstMission) }}</dd>
+            <template v-if="daysSinceFirstMission >= 0">
+              <dt class="text-right text-sm font-medium whitespace-nowrap">Days since 1st ship</dt>
+              <dd class="text-left text-sm text-gray-900">{{ fmt(daysSinceFirstMission) }}</dd>
+            </template>
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Inventory score</dt>
             <dd class="flex items-center text-sm text-gray-900">
@@ -687,7 +689,10 @@ export default defineComponent({
     const shipClub = computed((): ShipClub | null => {
       const stats = missionStats.value;
       let allMissionsMaxed = true;
-      if (stats.ships[stats.ships.length - 1].shipType !== Spaceship.HENERPRISE) {
+      if (
+        stats.ships.length === 0 ||
+        stats.ships[stats.ships.length - 1].shipType !== Spaceship.HENERPRISE
+      ) {
         allMissionsMaxed = false;
       } else {
         for (const ship of stats.ships) {
