@@ -16,14 +16,19 @@ export type ItemSelectSpec = {
   rowid: string;
 };
 
-const itemsSearchIndex = lunr(function () {
-  this.ref('id');
-  this.field('display');
-  this.field('tier_name');
-  for (const item of excludableItems) {
-    this.add(item);
-  }
-});
+function buildSearchIndex<T extends object>(
+  entries: T[],
+  ref: keyof T & string,
+  fields: (keyof T & string)[]
+): lunr.Index {
+  return lunr(function () {
+    this.ref(ref);
+    fields.forEach(field => this.field(field));
+    entries.forEach(entry => this.add(entry));
+  });
+}
+
+const itemsSearchIndex = buildSearchIndex(excludableItems, 'id', ['display']);
 
 // These words or prefix of words aren't indexed, and would cause zero matches
 // if otherwise queried as required.
