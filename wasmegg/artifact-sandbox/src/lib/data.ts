@@ -47,21 +47,20 @@ export function stoneFromAfxIdLevel(
   return null;
 }
 
-const artifactsSearchIndex = lunr(function () {
-  this.ref('id');
-  this.field('display');
-  for (const artifact of artifacts) {
-    this.add(artifact);
-  }
-});
+function buildSearchIndex<T extends object>(
+  entries: T[],
+  ref: keyof T & string,
+  fields: (keyof T & string)[]
+): lunr.Index {
+  return lunr(function () {
+    this.ref(ref);
+    fields.forEach(field => this.field(field));
+    entries.forEach(entry => this.add(entry));
+  });
+}
 
-const stonesSearchIndex = lunr(function () {
-  this.ref('id');
-  this.field('display');
-  for (const stone of stones) {
-    this.add(stone);
-  }
-});
+const artifactsSearchIndex = buildSearchIndex(artifacts, 'id', ['display']);
+const stonesSearchIndex = buildSearchIndex(stones, 'id', ['display']);
 
 // Searching functionality is copied from data.ts of loot-simulator.
 

@@ -16,21 +16,21 @@ export const missionIds = missions.map(mission => mission.missionTypeId);
 export const missionIdToMission = new Map(
   missions.map(mission => [mission.missionTypeId, mission])
 );
-const artifactsSearchIndex = lunr(function () {
-  this.ref('id');
-  this.field('display');
-  for (const artifact of artifacts) {
-    this.add(artifact);
-  }
-});
 
-const missionsSearchIndex = lunr(function () {
-  this.ref('missionTypeId');
-  this.field('name');
-  for (const mission of missions) {
-    this.add(mission);
-  }
-});
+function buildSearchIndex<T extends object>(
+  entries: T[],
+  ref: keyof T & string,
+  fields: (keyof T & string)[]
+): lunr.Index {
+  return lunr(function () {
+    this.ref(ref);
+    fields.forEach(field => this.field(field));
+    entries.forEach(entry => this.add(entry));
+  });
+}
+
+const artifactsSearchIndex = buildSearchIndex(artifacts, 'id', ['display']);
+const missionsSearchIndex = buildSearchIndex(missions, 'missionTypeId', ['name']);
 
 // These words or prefix of words aren't indexed, and would cause zero matches
 // if otherwise queried as required.
