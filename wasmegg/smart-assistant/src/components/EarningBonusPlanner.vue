@@ -43,7 +43,7 @@
           :min="currentSoulFoodLevel"
           :max="maxSoulFoodLevel"
         >
-          <template #default="{ value, invalid, updateValue }">
+          <template #default="{ input, invalid, updateInput }">
             <div
               class="relative sm:max-w-xs border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-1 mt-4"
               :class="
@@ -57,13 +57,13 @@
                 >Soul food level</label
               >
               <input
-                :value="value"
+                :value="input"
                 type="number"
                 :min="currentSoulFoodLevel"
                 :max="maxSoulFoodLevel"
                 class="block w-full border-0 p-0 focus:ring-0 sm:text-sm pr-10"
                 :class="invalid ? 'text-red-700' : 'text-gray-900'"
-                @input="updateValue"
+                @input="updateInput"
               />
               <div
                 class="absolute right-0 top-0 bottom-0 px-3 py-2 sm:text-sm bg-gray-50 text-gray-500 rounded-r-md border-l border-gray-300 tabular-nums"
@@ -92,7 +92,7 @@
           :min="currentProphecyBonusLevel"
           :max="maxProphecyBonusLevel"
         >
-          <template #default="{ value, invalid, updateValue }">
+          <template #default="{ input, invalid, updateInput }">
             <div
               class="relative sm:max-w-xs border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-1 mt-4"
               :class="
@@ -106,13 +106,13 @@
                 >Prophecy bonus level</label
               >
               <input
-                :value="value"
+                :value="input"
                 type="number"
                 :min="currentProphecyBonusLevel"
                 :max="maxProphecyBonusLevel"
                 class="block w-full border-0 p-0 focus:ring-0 sm:text-sm pr-10"
                 :class="invalid ? 'text-red-700' : 'text-gray-900'"
-                @input="updateValue"
+                @input="updateInput"
               />
               <div
                 class="absolute right-0 top-0 bottom-0 px-3 py-2 sm:text-sm bg-gray-50 text-gray-500 rounded-r-md border-l border-gray-300 tabular-nums"

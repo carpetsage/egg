@@ -1,6 +1,6 @@
 <template>
   <slot :input="input" :invalid="invalid" :update-input="updateInput" :update-value="updateValue">
-    <input
+    <base-input
       :id="id"
       v-model.trim="input"
       :name="id"
@@ -15,7 +15,12 @@
 import { parseValueWithUnit } from 'lib';
 import { computed, defineComponent, PropType, ref, toRefs, watch } from 'vue';
 
+import BaseInput from 'ui/components/BaseInput.vue';
+
 export default defineComponent({
+  components: {
+    BaseInput,
+  },
   props: {
     id: {
       type: String as PropType<string | undefined>,

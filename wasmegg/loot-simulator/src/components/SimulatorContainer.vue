@@ -69,7 +69,7 @@
             PRNG seed
           </label>
           <div class="mt-1.5">
-            <input
+            <base-input
               id="seed"
               v-model.trim="seed"
               type="text"
@@ -187,6 +187,7 @@ import {
   SimulationProgress,
   SimulationWorkerInterface,
 } from '@/types';
+import BaseInput from 'ui/components/BaseInput.vue';
 import SimulatorMissionsSelect from '@/components/SimulatorMissionsSelect.vue';
 import SimulatorItemsSelect from '@/components/SimulatorItemsSelect.vue';
 import SimulatorProgressBar from '@/components/SimulatorProgressBar.vue';
@@ -249,6 +250,7 @@ function randomSeed(): string {
 
 export default defineComponent({
   components: {
+    BaseInput,
     SimulatorMissionsSelect,
     SimulatorItemsSelect,
     SimulatorProgressBar,

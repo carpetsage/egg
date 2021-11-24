@@ -26,7 +26,7 @@
             />
           </svg>
         </div>
-        <input
+        <base-input
           ref="selectButton"
           v-model="searchFilter"
           type="text"
@@ -160,10 +160,12 @@ import scrollIntoView from 'scroll-into-view-if-needed';
 import { iconURL } from 'lib';
 import { itemIdToItem, items, searchItems } from '@/data';
 import { Item, ItemId, ItemSelectSpec } from '@/types';
+import BaseInput from 'ui/components/BaseInput.vue';
 import BaseIntegerInput from '@/components/BaseIntegerInput.vue';
 
 export default defineComponent({
   components: {
+    BaseInput,
     BaseIntegerInput,
   },
   props: {

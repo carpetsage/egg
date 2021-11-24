@@ -5,7 +5,7 @@
   >
     <div>
       <label for="email" class="sr-only">Player ID</label>
-      <input
+      <base-input
         id="playerId"
         v-model.trim="input"
         type="text"
@@ -43,10 +43,12 @@
 import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 
 import BaseInfo from './BaseInfo.vue';
+import BaseInput from 'ui/components/BaseInput.vue';
 
 export default defineComponent({
   components: {
     BaseInfo,
+    BaseInput,
   },
   props: {
     playerId: {

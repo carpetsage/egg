@@ -1,3 +1,4 @@
+<!-- TODO: This component is outdated and should be replaced by ui/components/BaseIntegerInput.vue. -->
 <template>
   <input
     v-model.number="value"

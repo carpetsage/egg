@@ -16,7 +16,7 @@
 
           <div>
             <div class="mt-1">
-              <input
+              <base-input
                 id="contract_id_manual"
                 v-model.trim="manuallyEnteredContractId"
                 name="contract_id_manual"
@@ -43,7 +43,7 @@
 
         <div>
           <div class="mt-1">
-            <input
+            <base-input
               id="coop_code"
               ref="coopCodeInputRef"
               v-model.trim="coopCode"
@@ -81,12 +81,14 @@ import hotkeys from 'hotkeys-js';
 import { Contract } from '@/lib';
 import { key } from '@/store';
 import BaseInfo from 'ui/components/BaseInfo.vue';
+import BaseInput from 'ui/components/BaseInput.vue';
 import BaseModal from '@/components/BaseModal.vue';
 import CoopSelectorContractSelect from '@/components/CoopSelectorContractSelect.vue';
 
 export default defineComponent({
   components: {
     BaseInfo,
+    BaseInput,
     BaseModal,
     CoopSelectorContractSelect,
   },

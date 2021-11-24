@@ -1,8 +1,8 @@
 <template>
-  <slot :value="value" :invalid="invalid" :update-value="updateValue">
-    <input
+  <slot :value="value" :input="input" :invalid="invalid" :update-input="updateInput">
+    <base-input
       :id="id"
-      v-model.number="value"
+      v-model.trim="input"
       :name="id"
       type="number"
       :min="min"
@@ -15,7 +15,12 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, toRefs, watch } from 'vue';
 
+import BaseInput from 'ui/components/BaseInput.vue';
+
 export default defineComponent({
+  components: {
+    BaseInput,
+  },
   props: {
     id: {
       type: String as PropType<string | undefined>,
@@ -54,16 +59,18 @@ export default defineComponent({
   setup(props, { emit }) {
     const { modelValue, max, min } = toRefs(props);
     const value = ref(modelValue.value);
-    // updateValue is solely meant for the scoped slot, since two-way binding of
+    const input = ref(modelValue.value.toString());
+    // updateInput is solely meant for the scoped slot, since two-way binding of
     // input isn't allowed there. Accepts an Event on an input[type=number].
-    const updateValue = (event: Event) => {
-      value.value = parseFloat((event.target as HTMLInputElement).value.trim());
+    const updateInput = (event: Event) => {
+      input.value = (event.target as HTMLInputElement).value.trim();
     };
     const invalid = computed(() => {
-      const v = value.value;
-      if (!Number.isInteger(v)) {
+      const s = input.value.trim();
+      if (!s.match(/^-?\d+$/)) {
         return true;
       }
+      const v = parseInt(input.value);
       if (max.value !== undefined && v > max.value) {
         return true;
       }
@@ -73,17 +80,19 @@ export default defineComponent({
       return false;
     });
     watch(modelValue, () => {
-      value.value = modelValue.value;
+      input.value = modelValue.value.toString();
     });
-    watch(value, () => {
+    watch(input, () => {
       if (invalid.value) {
         return;
       }
+      value.value = parseInt(input.value);
       emit('update:modelValue', value.value);
     });
     return {
       value,
-      updateValue,
+      input,
+      updateInput,
       invalid,
     };
   },

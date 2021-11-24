@@ -28,7 +28,7 @@
           submit();
         "
       >
-        <input
+        <base-input
           id="user_id"
           v-model="userId"
           name="user_id"
@@ -74,12 +74,14 @@ import { useRouter } from 'vue-router';
 
 import { checkIfShouldOnboardUserDashboardFeature, getLocalStorage, setLocalStorage } from '@/lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
+import BaseInput from 'ui/components/BaseInput.vue';
 
 const USER_ID_LOCALSTORAGE_KEY = 'userId';
 
 export default defineComponent({
   components: {
     BaseInfo,
+    BaseInput,
   },
   setup() {
     const router = useRouter();

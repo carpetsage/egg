@@ -50,7 +50,7 @@
               />
             </svg>
           </div>
-          <input
+          <base-input
             v-model.trim="filters.global.value"
             type="text"
             class="block min-w-0 px-2 py-1 w-full pl-8 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 rounded-md"
@@ -347,6 +347,7 @@ import dayjs from 'dayjs';
 import { Contract, eggIconPath, formatDuration, formatEIValue } from '@/lib';
 import { key } from '@/store';
 import { eggTooltip, iconURL } from '@/utils';
+import BaseInput from 'ui/components/BaseInput.vue';
 import ContractListExpansion from './ContractListExpansion.vue';
 
 export default defineComponent({
@@ -354,6 +355,7 @@ export default defineComponent({
     DataTable,
     Column,
     ContractListExpansion,
+    BaseInput,
   },
   props: {
     contracts: {
@@ -385,7 +387,7 @@ export default defineComponent({
 
     const filters = ref({
       global: {
-        value: new URLSearchParams(window.location.search).get('q'),
+        value: new URLSearchParams(window.location.search).get('q') ?? '',
         matchMode: FilterMatchMode.CONTAINS,
       },
       type: {

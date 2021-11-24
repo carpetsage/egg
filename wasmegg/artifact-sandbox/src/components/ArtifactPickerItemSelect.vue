@@ -25,7 +25,7 @@
             />
           </svg>
         </div>
-        <input
+        <base-input
           ref="selectButton"
           v-model="searchFilter"
           type="text"
@@ -168,8 +168,12 @@ import {
   stoneIdToStone,
   stones,
 } from '@/lib';
+import BaseInput from 'ui/components/BaseInput.vue';
 
 export default defineComponent({
+  components: {
+    BaseInput,
+  },
   props: {
     // modelValue is the item ID.
     modelValue: {

@@ -16,7 +16,7 @@
           />
           <question-mark-circle-icon v-else class="flex-shrink-0 h-6 w-6 p-px text-gray-400" />
         </div>
-        <input
+        <base-input
           ref="selectButton"
           v-model="searchFilter"
           type="text"
@@ -97,6 +97,7 @@ import scrollIntoView from 'scroll-into-view-if-needed';
 
 import { AfxTier, iconURL } from 'lib';
 import { artifactIdToArtifact, artifacts, searchArtifacts } from '@/lib/filter';
+import BaseInput from 'ui/components/BaseInput.vue';
 
 export default defineComponent({
   components: {
@@ -104,6 +105,7 @@ export default defineComponent({
     ExclamationCircleIcon,
     QuestionMarkCircleIcon,
     SelectorIcon,
+    BaseInput,
   },
   props: {
     modelValue: {
