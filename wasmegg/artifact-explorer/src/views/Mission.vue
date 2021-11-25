@@ -113,56 +113,58 @@
         </li>
       </ul>
 
-      <hr />
+      <template v-if="selectedLevelExpectedFullConsumptionValuePerShip > 0">
+        <hr />
 
-      <p class="text-sm">
-        Expected full consumption value from mission loot:
-        <base-info
-          v-tippy="{
-            content: `<span class='text-blue-300'>Full consumption value</span> is the number of golden eggs (GE) obtained from recursively consuming all loot items, that is, for artifacts yielding stones and fragments, the resulting items are further broken down into GE. Uncommon items are demoted first before consumption.`,
-            allowHTML: true,
-          }"
-          class="inline"
-        />
-        <br />
-        <span class="inline-flex items-center text-yellow-500 whitespace-nowrap"
-          >{{ formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip, precision) }}/<img
-            class="h-4 w-4 ml-px"
-            :src="iconURL(mission.shipIconPath, 32)" /></span
-        >,
-        <span class="whitespace-nowrap">
-          <span class="text-yellow-500"
+        <p class="text-sm">
+          Expected full consumption value from mission loot:
+          <base-info
+            v-tippy="{
+              content: `<span class='text-blue-300'>Full consumption value</span> is the number of golden eggs (GE) obtained from recursively consuming all loot items, that is, for artifacts yielding stones and fragments, the resulting items are further broken down into GE. Uncommon items are demoted first before consumption.`,
+              allowHTML: true,
+            }"
+            class="inline"
+          />
+          <br />
+          <span class="inline-flex items-center text-yellow-500 whitespace-nowrap"
             >{{
-              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay, precision)
-            }}/d</span
+              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip, precision)
+            }}/<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" /></span
+          >,
+          <span class="whitespace-nowrap">
+            <span class="text-yellow-500"
+              >{{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay, precision)
+              }}/d</span
+            >
+            (1 mission slot)</span
+          >,
+          <span class="whitespace-nowrap">
+            <span class="text-yellow-500"
+              >{{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay * 3, precision)
+              }}/d</span
+            >
+            (3 mission slots)</span
+          >.
+          <br />
+          <a
+            href="https://wasmegg.netlify.app/consumption-sheet/"
+            target="_blank"
+            class="inline-flex items-center border-dashed border-b border-gray-700 text-sm whitespace-nowrap leading-tight space-x-0.5"
           >
-          (1 mission slot)</span
-        >,
-        <span class="whitespace-nowrap">
-          <span class="text-yellow-500"
-            >{{
-              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay * 3, precision)
-            }}/d</span
-          >
-          (3 mission slots)</span
-        >.
-        <br />
-        <a
-          href="https://wasmegg.netlify.app/consumption-sheet/"
-          target="_blank"
-          class="inline-flex items-center border-dashed border-b border-gray-700 text-sm whitespace-nowrap leading-tight space-x-0.5"
-        >
-          <span>Detailed consumption data</span>
-          <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
-            <path
-              d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
-            />
-            <path
-              d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-            />
-          </svg>
-        </a>
-      </p>
+            <span>Detailed consumption data</span>
+            <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+              <path
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
+              <path
+                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
+              />
+            </svg>
+          </a>
+        </p>
+      </template>
     </div>
   </div>
 </template>
