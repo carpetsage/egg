@@ -5,7 +5,14 @@
     Inventory visualizer
   </h1>
 
-  <div v-if="!assetsLoaded" class="app-loading">Loading requisite assets...</div>
+  <div v-if="!assetsLoaded && assetLoadingError === null" class="app-loading">
+    Loading requisite assets...
+  </div>
+
+  <div v-else-if="assetLoadingError !== null">
+    <p class="max-w-lg mx-auto text-center text-base text-red-500 mt-4">{{ assetLoadingError }}</p>
+    <p class="max-w-lg mx-auto text-center text-base">Maybe try refreshing the page.</p>
+  </div>
 
   <div v-else class="max-w-5xl w-full px-4 pb-6 xl:px-0 mx-auto">
     <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
