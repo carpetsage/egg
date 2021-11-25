@@ -121,10 +121,12 @@ export const tools = [
     majorUpdateUntil: 1623155597000,
   }),
   new Tool({
-    id: 'loot-simulator',
-    title: 'Loot simulator',
-    iconUrl: iconURL('wasmegg/loot-simulator.svg'),
-    description: 'Simulator for mission loot drops',
+    id: 'inventory-visualizer',
+    title: 'Inventory visualizer',
+    iconUrl: iconURL('wasmegg/inventory-visualizer.svg'),
+    description: 'The easiest way to share your entire Egg, Inc. artifact inventory',
+    // Thu Dec  9 17:50:20 UTC 2021
+    newUntil: 1639072220000,
   }),
   new Tool({
     id: 'enlightenment',
@@ -187,6 +189,13 @@ export const tools = [
     id: 'researches',
     title: 'Researches',
     description: 'Structured data of common and epic researches, customizable by SQL',
+  }),
+
+  new Tool({
+    id: 'loot-simulator',
+    title: 'Loot simulator',
+    iconUrl: iconURL('wasmegg/loot-simulator.svg'),
+    description: 'Simulator for mission loot drops',
   }),
 
   new Tool({

@@ -191,7 +191,7 @@ const entries: ({
   idToTool.get('artifact-sandbox')!,
   idToTool.get('rockets-tracker')!,
   idToTool.get('past-contracts')!,
-  idToTool.get('loot-simulator')!,
+  idToTool.get('inventory-visualizer')!,
   idToTool.get('enlightenment')!,
   idToTool.get('smart-assistant')!,
 
