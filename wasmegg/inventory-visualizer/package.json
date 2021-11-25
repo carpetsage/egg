@@ -1,0 +1,33 @@
+{
+  "name": "inventory-visualizer",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "serve": "vite preview",
+    "lint": "eslint --ext .js,.ts,.vue src"
+  },
+  "dependencies": {
+    "@headlessui/vue": "^1.4.1",
+    "@heroicons/vue": "^1.0.4",
+    "fontfaceobserver": "^2.1.0",
+    "lib": ">=0.1.0",
+    "localforage": "^1.10.0",
+    "safari-14-idb-fix": "^3.0.0",
+    "vue": "^3.2.20",
+    "vue-tippy": "^6.0.0-alpha.35"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.3.4",
+    "@types/fontfaceobserver": "^2.1.0",
+    "@vitejs/plugin-vue": "^1.9.3",
+    "@vue/compiler-sfc": "^3.2.20",
+    "autoprefixer": "^10.3.7",
+    "postcss": "^8.3.9",
+    "tailwindcss": "^2.2.17",
+    "typescript": "^4.4.4",
+    "vite": "^2.6.7",
+    "vue-tsc": "^0.28.6"
+  }
+}

@@ -29,7 +29,14 @@ export function setLocalStorageNoPrefix(key: string, val: unknown): void {
   setLocalStorage(key, val, '');
 }
 
-export function iconURL(relpath: string, size: number | string = 'orig'): string {
+export function iconURL(
+  relpath: string,
+  size: number | string = 'orig',
+  extension?: 'png' | 'svg' | 'webp'
+): string {
+  if (extension) {
+    relpath = relpath.replace(/\.[a-z]+$/, `.${extension}`);
+  }
   return `https://eggincassets.tcl.sh/${size}/${relpath}`;
 }
 
