@@ -45,9 +45,9 @@
           <a
             :href="imageURL"
             download="inventory.png"
-            class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-0 focus:ring-offset-0 focus:ring-green-500"
+            class="inline-flex items-center py-2 px-4 border border-transparent text-sm font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
-            Download image
+            Download Image
           </a>
         </div>
         <p class="max-w-lg mx-auto text-center text-xs text-gray-500">
