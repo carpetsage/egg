@@ -34,6 +34,13 @@
         <p class="max-w-lg mx-auto text-center text-sm text-gray-500">Maybe try another browser?</p>
       </template>
       <div v-else class="space-y-2">
+        <p v-if="blockedByFirefoxPrivacyResistFingerprinting" class="text-xs text-red-500">
+          Oops! Canvas to image functionality might have been sabotaged by your browser! Ignore this
+          if the image looks normal. Otherwise, if you're using Firefox, you might have the
+          <code>privacy.resistFingerprinting</code> setting turned on. Please check your browser
+          address bar and look for a picture icon which you can click and grant "Extract canvas
+          data" permission to this site. Reload after granting the permission.
+        </p>
         <div class="flex items-center justify-center">
           <a
             :href="imageURL"
@@ -92,17 +99,21 @@ const loading = ref(false);
 const imageURL = ref('');
 const width = ref(0);
 const height = ref(0);
+const blockedByFirefoxPrivacyResistFingerprinting = ref(false);
 const error = ref<Error | null>(null);
 
 const regenerate = async () => {
   loading.value = true;
   imageURL.value = '';
+  blockedByFirefoxPrivacyResistFingerprinting.value = true;
   error.value = null;
   try {
     const result = await drawInventory(canvasRef.value!, grid.value);
     imageURL.value = result.url;
     width.value = result.width;
     height.value = result.height;
+    blockedByFirefoxPrivacyResistFingerprinting.value =
+      result.blockedByFirefoxPrivacyResistFingerprinting;
     if (await imageIsEmpty(imageURL.value)) {
       error.value = new Error('unknown error occurred, generated canvas is empty');
     }

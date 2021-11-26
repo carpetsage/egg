@@ -18,7 +18,12 @@ const FONT_SIZE = 27;
 export async function drawInventory(
   el: HTMLCanvasElement,
   grid: InventoryGrid
-): Promise<{ url: string; width: number; height: number }> {
+): Promise<{
+  url: string;
+  width: number;
+  height: number;
+  blockedByFirefoxPrivacyResistFingerprinting: boolean;
+}> {
   // This scaling factor can be adjusted in case the canvas exceeds browser
   // limits (e.g. on Safari, a canvas cannot take up more than 16777216=16M
   // pixels).
@@ -138,10 +143,36 @@ export async function drawInventory(
     }
   }
 
+  // Detect Firefox privay.resistFingerprinting. When this mode is turned on and
+  // "blocked ... from extracting canvas data because no user input was
+  // detected" happens, the image data we end up getting would be a repetitive
+  // pattern with a very limited set of RGBA colors (usually 8 in my testing).
+  // The color palette is randomized.
+  //
+  // This heuristic should be effective since all artifact icons have at least
+  // hundreds of different RGBA colors. Quick Python script to dump the number
+  // of colors:
+  //
+  //   import sys
+  //   import PIL.Image
+  //
+  //   for path in sys.argv[1:]:
+  //       print(len(set(PIL.Image.open(path).getdata())))
+  const sample = ctx.getImageData(
+    0,
+    0,
+    (GRID_SQUARE_SIZE + GRID_SQUARE_GAP) * scale,
+    (GRID_SQUARE_SIZE + GRID_SQUARE_GAP) * scale
+  );
+  const pixels = new Uint32Array(sample.data.buffer);
+  const numColors = new Set(pixels).size;
+  const blockedByFirefoxPrivacyResistFingerprinting = numColors < 10;
+
   return {
     url: await getObjectURLForCanvas(el),
     width: targetWidth,
     height: targetHeight,
+    blockedByFirefoxPrivacyResistFingerprinting,
   };
 }
 
