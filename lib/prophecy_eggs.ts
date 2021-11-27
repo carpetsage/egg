@@ -55,12 +55,33 @@ export function getProphecyEggsProgress(
   backup: ei.IBackup,
   params?: ProphecyEggsProgressFromContractsParams
 ): ProphecyEggsProgressAggregate {
+  const completed = backup.game!.eggsOfProphecy!;
   const fromContracts = getProphecyEggsProgressFromContracts(backup, params);
   const fromTrophies = getProphecyEggsProgressFromTrophies(backup);
   const fromDailyGifts = getProphecyEggsProgressFromDailyGifts(backup);
+  // Sometimes when a player has started a half-finished legacy contract, and
+  // they have completed a goal that wasn't a PE goal the last time but has
+  // turned into a PE goal this time, the PE reward should be reimbursed, but
+  // the PE count may not update immediately. It may update at some random
+  // point. In this case, to best avoid confusion, we use the reported total
+  // backup.game.eggsOfProphecy, and deduce the number of contract PEs from
+  // that.
+  //
+  // See the following bug report:
+  // https://discord.com/channels/869885242801029150/869945876313944074/914077000824659979
+  // https://discord.com/channels/@me/849156772999462922/914078132309467196
+  const fromContractsCompleted = completed - fromTrophies.completed - fromDailyGifts.completed;
+  if (fromContractsCompleted !== fromContracts.completed) {
+    console.warn(
+      `Discrepancy detected: ` +
+        `${fromContracts.completed} PEs from contracts according to contract archive, ` +
+        `${fromContractsCompleted} PEs from contracts according to backup.game.eggsOfProphecy`
+    );
+    fromContracts.completed = fromContractsCompleted;
+  }
   return {
     available: fromContracts.available + fromTrophies.available + fromDailyGifts.available,
-    completed: fromContracts.completed + fromTrophies.completed + fromDailyGifts.completed,
+    completed,
     fromContracts,
     fromTrophies,
     fromDailyGifts,
