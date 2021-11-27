@@ -18,6 +18,18 @@
     <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
+      <div
+        class="w-max max-w-full px-3 py-2 text-center text-xs text-green-800 bg-green-50 rounded-md shadow-sm mx-auto my-4"
+      >
+        Get detailed mission and inventory stats at
+        <a
+          :href="`/rockets-tracker/?playerId=${playerId}`"
+          target="_blank"
+          class="text-green-700 hover:text-green-900 underline"
+          >Rockets tracker</a
+        >.
+      </div>
+
       <suspense>
         <template #default>
           <player-data :player-id="playerId" />
