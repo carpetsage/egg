@@ -38,7 +38,10 @@
         <div v-else class="text-center text-sm text-gray-700">
           No artifact equipped on this farm.
         </div>
-        <div v-if="farm.isHomeFarm" class="mt-1 text-center text-xs text-green-700">
+        <div
+          v-if="farm.isHomeFarm"
+          class="w-max max-w-full px-3 py-2 text-center text-xs text-green-800 bg-green-50 rounded-md shadow-sm mx-auto mt-1"
+        >
           You can get recommendations for optimal prestige loadouts from
           <a
             href="/smart-assistant/"

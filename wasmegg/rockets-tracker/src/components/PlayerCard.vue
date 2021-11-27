@@ -334,6 +334,26 @@
 
         <div v-if="!collapsed" class="py-2">
           <div class="text-sm font-medium">Inventory items</div>
+
+          <a
+            :href="`/inventory-visualizer/?playerId=${userId}`"
+            target="_blank"
+            class="flex items-center justify-center space-x-0.5 text-xs"
+            :class="
+              true ? 'text-green-500 hover:text-green-600' : 'text-gray-500 hover:text-gray-600'
+            "
+          >
+            <span class="underline">Visualize and share your inventory</span>
+            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
+              <path
+                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
+              />
+            </svg>
+          </a>
+
           <dl
             class="grid gap-x-4 justify-center mt-1"
             :style="{ gridTemplateColumns: 'repeat(4, min-content)' }"
@@ -658,6 +678,7 @@ export default defineComponent({
 
     const progress = computed(() => backup.value.game!);
     const artifactsDB = computed(() => backup.value.artifactsDb!);
+    const userId = computed(() => backup.value.eiUserId ?? '');
     const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
     const nickname = computed(() => backup.value.userName!);
     const hasProPermit = computed(() => progress.value.permitLevel === 1);
@@ -816,6 +837,7 @@ export default defineComponent({
       toggleCollapse,
       lastRefreshed,
       lastRefreshedRelative,
+      userId,
       nickname,
       hasProPermit,
       artifactClub,

@@ -1,6 +1,18 @@
 <template>
   <div class="mx-4 xl:mx-0">
-    <div class="flex justify-center -mt-2 mb-2">
+    <div
+      class="w-max max-w-full px-3 py-2 text-center text-xs text-green-800 bg-green-50 rounded-md shadow-sm mx-auto -mt-2 mb-2"
+    >
+      Visualize and share your inventory with
+      <a
+        :href="`/inventory-visualizer/?playerId=${playerId}`"
+        target="_blank"
+        class="text-green-700 hover:text-green-900 underline"
+        >Inventory visualizer</a
+      >.
+    </div>
+
+    <div class="flex justify-center mb-2">
       <div class="relative flex items-start">
         <div class="flex items-center h-5">
           <input
@@ -62,6 +74,10 @@ export default defineComponent({
     ArtifactGrid,
   },
   props: {
+    playerId: {
+      type: String,
+      required: true,
+    },
     inventory: {
       type: Object as PropType<Inventory>,
       required: true,
