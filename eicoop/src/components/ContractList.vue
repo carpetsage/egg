@@ -70,9 +70,10 @@
       :bodyStyle="{ minWidth: '2.25rem' }"
     >
       <template #body="{ data: contract }">
-        <img
+        <base-icon
           v-tippy="{ content: contractEggTooltip(contract) }"
-          :src="eggIconURL(contract)"
+          :icon-rel-path="contractEggIconPath(contract)"
+          :size="64"
           class="block -ml-0.5 h-4 w-4"
         />
       </template>
@@ -107,10 +108,11 @@
             v-if="contract.type === 'Original' && contract.prophecyEggs > 0"
             class="flex items-center ml-1"
           >
-            <img
+            <base-icon
               v-for="index in contract.prophecyEggs"
               :key="index"
-              :src="iconURL('egginc/egg_of_prophecy.png')"
+              icon-rel-path="egginc/egg_of_prophecy.png"
+              :size="64"
               class="h-4 w-4"
             />
           </div>
@@ -346,8 +348,9 @@ import dayjs from 'dayjs';
 
 import { Contract, eggIconPath, formatDuration, formatEIValue } from '@/lib';
 import { key } from '@/store';
-import { eggTooltip, iconURL } from '@/utils';
+import { eggTooltip } from '@/utils';
 import BaseInput from 'ui/components/BaseInput.vue';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 import ContractListExpansion from './ContractListExpansion.vue';
 
 export default defineComponent({
@@ -356,6 +359,7 @@ export default defineComponent({
     Column,
     ContractListExpansion,
     BaseInput,
+    BaseIcon,
   },
   props: {
     contracts: {
@@ -414,7 +418,7 @@ export default defineComponent({
 
     const selectContractAndShowCoopSelector = (contractId: string) =>
       store.dispatch('coopSelector/selectContractAndShow', contractId);
-    const eggIconURL = (contract: Contract) => iconURL(eggIconPath(contract.egg!), 64);
+    const contractEggIconPath = (contract: Contract) => eggIconPath(contract.egg!);
     const contractEggTooltip = (contract: Contract) => eggTooltip(contract.egg!);
     const isAvailable = (contract: Contract, now: number) => contract.expirationTime! > now / 1000;
     const durationUntilExpiration = (contract: Contract, now: number) =>
@@ -450,8 +454,7 @@ export default defineComponent({
       selectContractAndShowCoopSelector,
       isAvailable,
       durationUntilExpiration,
-      iconURL,
-      eggIconURL,
+      contractEggIconPath,
       contractEggTooltip,
       formatEIValue,
       formatDate,

@@ -4,9 +4,10 @@
       <div class="relative -ml-4 -mt-2 sm:flex items-start justify-between">
         <div class="flex-grow ml-4 mt-2">
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
-            <img
-              class="inline relative -top-px -left-1 h-6 w-6"
-              :src="iconURL(eggIconPath(egg), 64)"
+            <base-icon
+              :icon-rel-path="eggIconPath(egg)"
+              :size="64"
+              class="inline-block align-middle relative -top-px -left-1 h-6 w-6"
             />
             <template v-if="contract">
               <span>{{ contract.name }}</span>
@@ -36,7 +37,11 @@
               {{ coopCode }}
             </span>
             <template v-if="contract?.minutesPerToken">
-              <img :src="iconURL('egginc/b_icon_token.png', 64)" class="h-5 w-5 ml-1.5" />
+              <base-icon
+                icon-rel-path="egginc/b_icon_token.png"
+                :size="64"
+                class="block h-5 w-5 ml-1.5"
+              />
               <span class="pl-px text-sm text-gray-700 dark:text-gray-300 truncate">
                 {{ contract?.minutesPerToken }}m
               </span>
@@ -70,10 +75,13 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { iconURL } from '@/utils';
 import { eggIconPath, ei } from '@/lib';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 
 export default defineComponent({
+  components: {
+    BaseIcon,
+  },
   props: {
     contractId: {
       type: String,
@@ -96,7 +104,6 @@ export default defineComponent({
     });
     return {
       egg,
-      iconURL,
       eggIconPath,
     };
   },

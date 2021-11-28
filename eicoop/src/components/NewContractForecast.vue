@@ -7,7 +7,11 @@
       class="px-4 sm:px-6 py-3 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-sm font-medium"
     >
       Next original
-      <img :src="iconURL('egginc/egg_of_prophecy.png')" class="inline h-4 w-4 relative -top-px" />
+      <base-icon
+        icon-rel-path="egginc/egg_of_prophecy.png"
+        :size="64"
+        class="inline-block align-middle h-4 w-4 relative -top-px"
+      />
       contract forecast
     </div>
     <div class="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3">
@@ -44,11 +48,14 @@ dayjs.extend(timezone);
 dayjs.extend(utc);
 
 import { key } from '@/store';
-import { iconURL } from '@/lib';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 
 const PROPHECY_EGG_CONTRACT_INTERVAL_WEEKS = 3;
 
 export default defineComponent({
+  components: {
+    BaseIcon,
+  },
   setup() {
     const store = useStore(key);
     const latestOriginalProphecyEggContract = computed(
@@ -70,7 +77,6 @@ export default defineComponent({
       const predictedOfferingTime = nextOfferingWeek.add(8, 'hours');
       return predictedOfferingTime.local();
     });
-
     const now = ref(dayjs());
     const refreshIntervalId = setInterval(() => {
       now.value = dayjs();
@@ -101,11 +107,9 @@ export default defineComponent({
       }
       return 'overdue';
     });
-
     return {
       nextOriginalProphecyEggContractPredictedTime,
       relativeTimeToNextOriginalProphecyEggContract,
-      iconURL,
     };
   },
 });

@@ -14,7 +14,11 @@
       {{ entry.coopCode }}
     </router-link>
     <span class="text-gray-500 dark:text-gray-400">&nbsp;@</span>
-    <img :src="iconURL(eggIconPath(entry.contractEgg), 64)" class="flex-shrink-0 h-4 w-4 mx-1" />
+    <base-icon
+      :icon-rel-path="eggIconPath(entry.contractEgg)"
+      :size="64"
+      class="flex-shrink-0 h-4 w-4 mx-1"
+    />
     <span
       class="truncate no-unnecessary-truncate cursor-pointer"
       :class="colorClasses"
@@ -30,10 +34,13 @@ import { defineComponent, PropType } from 'vue';
 import { useStore } from 'vuex';
 
 import { HistoryCoopEntry, key } from '@/store';
-import { iconURL } from '@/utils';
 import { eggIconPath } from '@/lib';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 
 export default defineComponent({
+  components: {
+    BaseIcon,
+  },
   props: {
     entry: {
       type: Object as PropType<HistoryCoopEntry>,
@@ -51,7 +58,6 @@ export default defineComponent({
       store.dispatch('coopSelector/selectContractAndShow', contractId);
     return {
       selectContractAndShowCoopSelector,
-      iconURL,
       eggIconPath,
     };
   },

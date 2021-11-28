@@ -33,9 +33,10 @@
             :style="{ minWidth: '6rem' }"
           >
             <span class="flex items-center space-x-1">
-              <img
+              <base-icon
                 v-tippy="{ content: rewardName(goal) }"
-                :src="iconURL(rewardIconPath(goal), 64)"
+                :icon-rel-path="rewardIconPath(goal)"
+                :size="64"
                 class="h-5 w-5"
               />
               <span class="text-sm text-gray-500 dark:text-gray-200">
@@ -74,9 +75,12 @@ import { computed, defineComponent, PropType, toRefs } from 'vue';
 
 import { rewardAmountDisplay, rewardIconPath, rewardName } from 'lib';
 import { Contract, ei, formatEIValue } from '@/lib';
-import { iconURL } from '@/utils';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 
 export default defineComponent({
+  components: {
+    BaseIcon,
+  },
   props: {
     contract: {
       type: Object as PropType<Contract>,
@@ -117,7 +121,6 @@ export default defineComponent({
       rewardIconPath,
       rewardName,
       rewardAmountDisplay,
-      iconURL,
     };
   },
 });

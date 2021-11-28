@@ -1,8 +1,9 @@
 <template>
   <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg mb-4">
     <div class="px-4 sm:px-6 py-3 flex items-center space-x-1 bg-gray-50 dark:bg-gray-700">
-      <img
-        :src="iconURL(hasProPermit ? 'egginc/pro_permit.png' : 'egginc/free_permit.png', 128)"
+      <base-icon
+        :icon-rel-path="hasProPermit ? 'egginc/pro_permit.png' : 'egginc/free_permit.png'"
+        :size="128"
         class="h-4 flex-shrink-0 -ml-0.5"
       />
       <span class="text-base font-serif text-gray-900 dark:text-gray-100">
@@ -20,14 +21,19 @@
           </dt>
           <dd class="flex flex-wrap items-center">
             <span class="flex items-center whitespace-nowrap mr-1">
-              <img
-                :src="iconURL('egginc/egg_of_prophecy.png', 64)"
-                class="inline h-4 w-4 -ml-0.5"
+              <base-icon
+                icon-rel-path="egginc/egg_of_prophecy.png"
+                :size="64"
+                class="inline-block align-middle h-4 w-4 -ml-0.5"
               />
               <span class="text-sm text-yellow-500">{{ prophecyEggs }}</span>
             </span>
             <span class="flex items-center whitespace-nowrap">
-              <img :src="iconURL('egginc/egg_soul.png', 64)" class="inline h-4 w-4" />
+              <base-icon
+                icon-rel-path="egginc/egg_soul.png"
+                :size="64"
+                class="inline-block align-middle h-4 w-4"
+              />
               <span class="text-sm text-purple-500">{{ formatEIValue(soulEggs) }}</span>
             </span>
           </dd>
@@ -50,7 +56,7 @@
           </dt>
           <dd class="flex items-center text-sm text-gray-900 dark:text-gray-100">
             {{ trophies }}/95,
-            <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-4 w-4" />
+            <base-icon icon-rel-path="egginc/egg_of_prophecy.png" :size="64" class="h-4 w-4" />
             <span class="text-yellow-500">
               {{ prophecyEggsProgress.fromTrophies.completed }}/{{
                 prophecyEggsProgress.fromTrophies.available
@@ -63,7 +69,7 @@
           </dt>
           <dd class="flex items-center text-sm text-gray-900 dark:text-gray-100">
             M{{ dailyGifts.onMonth }}D{{ dailyGifts.onDay }},
-            <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-4 w-4" />
+            <base-icon icon-rel-path="egginc/egg_of_prophecy.png" :size="64" class="h-4 w-4" />
             <span class="text-yellow-500">
               {{ prophecyEggsProgress.fromDailyGifts.completed }}/{{
                 prophecyEggsProgress.fromDailyGifts.available
@@ -75,7 +81,11 @@
             Contracts
           </dt>
           <dd class="flex items-center text-sm text-gray-900 dark:text-gray-100">
-            <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-4 w-4 -ml-0.5" />
+            <base-icon
+              icon-rel-path="egginc/egg_of_prophecy.png"
+              :size="64"
+              class="h-4 w-4 -ml-0.5"
+            />
             <span class="text-yellow-500">
               {{ prophecyEggsProgress.fromContracts.completed }}
             </span>
@@ -205,7 +215,6 @@ import {
   getUserActiveCoopContracts,
   getUserActiveSoloContracts,
   getUserBackupTime,
-  iconURL,
   SoloStatus,
 } from '@/lib';
 import { key } from '@/store';
@@ -213,6 +222,7 @@ import { refreshCallbackKey } from '@/symbols';
 import { renderNonempty } from '@/utils';
 import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 import CoopCardLoader from '@/components/CoopCardLoader.vue';
 import NewContractForecast from '@/components/NewContractForecast.vue';
 import SoloCard from '@/components/SoloCard.vue';
@@ -221,6 +231,7 @@ export default defineComponent({
   components: {
     AutoRefreshedRelativeTime,
     BaseInfo,
+    BaseIcon,
     CoopCardLoader,
     NewContractForecast,
     SoloCard,
@@ -297,7 +308,6 @@ export default defineComponent({
       soloStatuses,
       renderNonempty,
       formatEIValue,
-      iconURL,
       triggerRefresh,
     };
   },

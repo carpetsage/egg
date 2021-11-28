@@ -7,10 +7,11 @@
       <div class="relative -ml-4 -mt-2 sm:flex items-start justify-between">
         <div class="flex-grow ml-4 mt-2">
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
-            <img
+            <base-icon
               v-tippy="{ content: eggTooltip(egg) }"
-              class="inline relative -top-px -left-1 h-6 w-6"
-              :src="iconURL(eggIconPath(egg), 64)"
+              :icon-rel-path="eggIconPath(egg)"
+              :size="64"
+              class="inline-block align-middle relative -top-px -left-1 h-6 w-6"
             />
             <base-click-to-copy
               :text="status.contractId"
@@ -39,7 +40,11 @@
               {{ status.userName }}
             </span>
             <template v-if="contract.minutesPerToken">
-              <img :src="iconURL('egginc/b_icon_token.png', 64)" class="h-5 w-5 ml-1.5" />
+              <base-icon
+                icon-rel-path="egginc/b_icon_token.png"
+                :size="64"
+                class="block h-5 w-5 ml-1.5"
+              />
               <span class="pl-px text-sm text-gray-700 dark:text-gray-300 truncate">
                 {{ contract.minutesPerToken }}m
               </span>
@@ -154,9 +159,10 @@
         v-if="effectiveMinutesSinceRefresh > status.farm.siloMinutes"
         class="text-xs text-yellow-500 mb-2"
       >
-        <img
-          class="inline h-4 w-4 relative -top-px -ml-px"
-          :src="iconURL('egginc-extras/icon_warning.png', 64)"
+        <base-icon
+          icon-rel-path="egginc-extras/icon_warning.png"
+          :size="64"
+          class="inline-block align-middle h-4 w-4 relative -top-px -ml-px"
         />
         Your silos ({{ formatDuration(status.farm.siloMinutes * 60, true) }} max) may have run out!
         The following estimates assume you were able to refresh silos in time.
@@ -203,7 +209,11 @@
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Tokens in stock</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 flex items-center">
-            <img :src="iconURL('egginc/b_icon_token.png', 64)" class="h-4 w-4 mr-0.5" />
+            <base-icon
+              icon-rel-path="egginc/b_icon_token.png"
+              :size="64"
+              class="block h-4 w-4 mr-0.5"
+            />
             {{ formatWithThousandSeparators(tokensInStockByNow) }}
             <template v-if="minutesFromNowUntilNextToken !== null">
               (next in {{ formatWithThousandSeparators(minutesFromNowUntilNextToken) }}m)
@@ -239,9 +249,10 @@
                         <span
                           class="flex flex-shrink-0 flex-row items-center justify-center space-x-px"
                         >
-                          <img
-                            :src="iconURL(column.iconPath, 64)"
-                            class="h-4 w-4"
+                          <base-icon
+                            :icon-rel-path="column.iconPath"
+                            :size="64"
+                            class="block h-4 w-4"
                             :style="{ minWidth: '1rem' }"
                           />
                           <span v-if="column.suffix" class="text-gray-500 dark:text-gray-200">{{
@@ -324,7 +335,7 @@
                     >
                       {{ formatEIValue(status.hourlyLayingRateUncapped) }}</span
                     >
-                    <img
+                    <base-icon
                       v-if="
                         status.hourlyShippingCapacity !== null &&
                         status.hourlyLayingRateUncapped > status.hourlyShippingCapacity
@@ -333,8 +344,9 @@
                         content:
                           'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
                       }"
-                      class="inline h-4 w-4 relative -top-px cursor-help ml-0.5"
-                      :src="iconURL('egginc-extras/icon_warning.png', 64)"
+                      icon-rel-path="egginc-extras/icon_warning.png"
+                      :size="64"
+                      class="inline-block align-middle h-4 w-4 relative -top-px cursor-help ml-0.5"
                     />
                   </td>
                   <td
@@ -393,10 +405,11 @@ import { Tippy } from 'vue-tippy';
 import { eggIconPath, formatEIValue, formatDuration, SoloStatus } from '@/lib';
 import { completionStatusFgColorClass, completionStatusBgColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
-import { eggTooltip, formatWithThousandSeparators, iconURL, renderNonempty } from '@/utils';
+import { eggTooltip, formatWithThousandSeparators, renderNonempty } from '@/utils';
 import { useAutoRefreshedRelativeTime } from '@/composables/relative_time';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue';
 import ContractStatusLabel from '@/components/ContractStatusLabel.vue';
 import ContractProgressBar from '@/components/ContractProgressBar.vue';
@@ -408,6 +421,7 @@ export default defineComponent({
     ContractProgressBar,
     BaseClickToCopy,
     BaseInfo,
+    BaseIcon,
     Tippy,
   },
   props: {
@@ -536,7 +550,6 @@ export default defineComponent({
       completionStatusBgColorClass,
       eggIconPath,
       eggTooltip,
-      iconURL,
       max: Math.max,
       renderNonempty,
       formatWithThousandSeparators,

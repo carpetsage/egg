@@ -36,17 +36,18 @@
     <template v-for="(goal, index) in leagueStatus.goals" :key="index">
       <div>
         <tippy
-          tag="img"
-          class="h-8 absolute top-0 transform -translate-x-1/2"
+          tag="div"
+          class="h-8 w-8 absolute top-0 transform -translate-x-1/2"
           :style="{ left: percentage(target(goal), leagueStatus.finalTarget) }"
-          :src="iconURL(rewardIconPath(goal), 64)"
         >
+          <base-icon :icon-rel-path="rewardIconPath(goal)" :size="64" class="block h-8 w-8" />
           <template #content>
             <p class="mb-1">
               {{ rewardName(goal) }}
-              <img
-                :src="iconURL(rewardIconPath(goal), 64)"
-                class="inline h-4 w-4 relative -top-px"
+              <base-icon
+                :icon-rel-path="rewardIconPath(goal)"
+                :size="64"
+                class="ml-px inline-block h-4 w-4 align-middle relative -top-px"
               />
               <span class="font-medium">{{ rewardAmountDisplay(goal) }}</span>
             </p>
@@ -92,7 +93,7 @@ import {
   rewardName,
   trimTrailingZeros,
 } from '@/lib';
-import { iconURL } from '@/utils';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 
 function percentage(x: number, y: number, decimals = 3): string {
   return `${trimTrailingZeros((Math.min(x / y, 1) * 100).toFixed(decimals))}%`;
@@ -101,6 +102,7 @@ function percentage(x: number, y: number, decimals = 3): string {
 export default defineComponent({
   components: {
     Tippy,
+    BaseIcon,
   },
   props: {
     eggsLaid: {
@@ -128,7 +130,6 @@ export default defineComponent({
       rewardAmountDisplay,
       formatDuration,
       formatEIValue,
-      iconURL,
       // target does a non-null assertion on targetAmount to avoid typing problem in the template.
       target: (goal: ei.Contract.IGoal) => goal.targetAmount!,
     };

@@ -7,10 +7,11 @@
       <div class="relative -ml-4 -mt-2 sm:flex items-start justify-between">
         <div class="flex-grow ml-4 mt-2">
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
-            <img
+            <base-icon
               v-tippy="{ content: eggTooltip(egg) }"
-              class="inline relative -top-px -left-1 h-6 w-6"
-              :src="iconURL(eggIconPath(egg), 64)"
+              :icon-rel-path="eggIconPath(egg)"
+              :size="64"
+              class="inline-block align-middle relative -top-px -left-1 h-6 w-6"
             />
             <base-click-to-copy
               :text="status.contractId"
@@ -46,7 +47,11 @@
               :style="{ maxWidth: 'min(20rem, 50vw)' }"
             />
             <template v-if="contract.minutesPerToken">
-              <img :src="iconURL('egginc/b_icon_token.png', 64)" class="h-5 w-5 ml-1.5" />
+              <base-icon
+                icon-rel-path="egginc/b_icon_token.png"
+                :size="64"
+                class="block h-5 w-5 ml-1.5"
+              />
               <span class="pl-px text-sm text-gray-700 dark:text-gray-300 truncate">
                 {{ contract.minutesPerToken }}m
               </span>
@@ -232,7 +237,8 @@ import { Tippy } from 'vue-tippy';
 import { CoopStatus, eggIconPath, formatEIValue, formatDuration } from '@/lib';
 import { completionStatusFgColorClass, completionStatusBgColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
-import { eggTooltip, iconURL } from '@/utils';
+import { eggTooltip } from '@/utils';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue';
 import ContractStatusLabel from '@/components/ContractStatusLabel.vue';
 import CoopCardShareSheet from '@/components/CoopCardShareSheet.vue';
@@ -243,6 +249,7 @@ import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vu
 
 export default defineComponent({
   components: {
+    BaseIcon,
     ContractLeagueLabel,
     ContractStatusLabel,
     CoopCardShareSheet,
@@ -283,7 +290,6 @@ export default defineComponent({
       completionStatusBgColorClass,
       eggIconPath,
       eggTooltip,
-      iconURL,
       max: Math.max,
     };
   },

@@ -19,9 +19,10 @@
                   <span v-if="column.prefix" class="text-gray-500 dark:text-gray-200">{{
                     column.prefix
                   }}</span>
-                  <img
-                    :src="iconURL(column.iconPath, 64)"
-                    class="h-4 w-4"
+                  <base-icon
+                    :icon-rel-path="column.iconPath"
+                    :size="64"
+                    class="block h-4 w-4"
                     :style="{ minWidth: '1rem' }"
                   />
                   <span v-if="column.suffix" class="text-gray-500 dark:text-gray-200">{{
@@ -95,12 +96,13 @@
             />
           </svg>
           <!-- Time cheat -->
-          <img
+          <base-icon
             v-if="contributor.isTimeCheating"
             v-tippy="{
               content: 'This player is suspected of time cheating and can be kicked by anyone.',
             }"
-            :src="iconURL('egginc-extras/icon_time_cheat.png', 64)"
+            icon-rel-path="egginc-extras/icon_time_cheat.png"
+            :size="64"
             class="h-4 w-4 flex-shrink-0 cursor-help"
             :style="{ filter: 'brightness(0.5) sepia(1) saturate(10000%)' }"
           />
@@ -187,7 +189,7 @@
               }"
               >{{ formatEIValue(contributor.hourlyLayingRateUncapped) }}</span
             >
-            <img
+            <base-icon
               v-if="
                 contributor.hourlyShippingCapacity !== null &&
                 contributor.hourlyLayingRateUncapped > contributor.hourlyShippingCapacity
@@ -196,8 +198,9 @@
                 content:
                   'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
               }"
-              class="inline h-4 w-4 relative -top-px cursor-help ml-0.5"
-              :src="iconURL('egginc-extras/icon_warning.png', 64)"
+              icon-rel-path="egginc-extras/icon_warning.png"
+              :size="64"
+              class="inline-block h-4 w-4 align-middle relative -top-px cursor-help ml-0.5"
             />
           </template>
           <template v-else>&ndash;</template>
@@ -250,12 +253,12 @@ import { CoopStatus, eggIconPath, ei, formatEIValue } from '@/lib';
 import {
   getSessionStorage,
   setSessionStorage,
-  iconURL,
   formatWithThousandSeparators,
   renderNonempty,
 } from '@/utils';
 import { devmodeKey } from '@/symbols';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
+import BaseIcon from 'ui/components/BaseIcon.vue';
 
 const requiredColumnIds = [
   'name',
@@ -292,6 +295,7 @@ type ColumnSpec = {
 export default defineComponent({
   components: {
     BaseClickToCopy,
+    BaseIcon,
   },
   props: {
     egg: {
@@ -463,7 +467,6 @@ export default defineComponent({
       sortedContributors,
       formatEIValue,
       formatWithThousandSeparators,
-      iconURL,
       renderNonempty,
     };
   },
