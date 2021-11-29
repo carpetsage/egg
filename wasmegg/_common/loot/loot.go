@@ -96,7 +96,6 @@ func LoadData() error {
 }
 
 func transformData() error {
-	// TODO: add items that should be droppable but aren't represented.
 	missions := []MissionLootStore{}
 	for shipName, sourceShipLoot := range SourceData {
 		ship, err := shipName.ToEnum()
