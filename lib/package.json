@@ -7,6 +7,7 @@
   "dependencies": {
     "dayjs": "^1.10.4",
     "js-sha256": "^0.9.0",
+    "lunr": "^2.3.9",
     "protobufjs": "^6.11.2",
     "typescript-memoize": "^1.0.1"
   },
@@ -14,6 +15,7 @@
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-modules-commonjs": "^7.14.0",
     "@types/jest": "^26.0.23",
+    "@types/lunr": "^2.3.4",
     "babel-jest": "^27.0.1",
     "jest": "^27.0.1",
     "ts-jest": "^27.0.1"
