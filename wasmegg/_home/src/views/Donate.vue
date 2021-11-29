@@ -27,6 +27,11 @@
     (or if you would rather stay anonymous)!
   </p>
 
+  <p class="text-red-900">
+    Sometimes the list of supporters is updated a few days to a few weeks late after your donation.
+    I apologize in advance.
+  </p>
+
   <p>
     Feel free to contact <span class="font-medium">mk2#4590</span> on the
     <base-link href="https://discord.gg/egginc">Egg, Inc. Discord server</base-link>.
