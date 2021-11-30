@@ -133,7 +133,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, RenderFunction } from 'vue';
+import { defineComponent, DefineComponent, RenderFunction } from 'vue';
 import { Dialog, DialogOverlay, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import {
   ArrowLeftIcon,
@@ -155,7 +155,7 @@ const entries: ({
   title: string;
   url: string;
   description?: string;
-  icon?: RenderFunction;
+  icon?: DefineComponent | RenderFunction;
   iconUrl?: string;
 } | null)[] = [
   {
