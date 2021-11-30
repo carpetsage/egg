@@ -1,93 +1,24 @@
-<!-- Classes Select__input and Select__dropdown can be used to override styles. -->
-<template>
-  <div ref="dropdownRef" class="relative max-w-sm">
-    <div class="relative rounded-md shadow-sm">
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <base-icon
-          v-if="selected && searchFilter === getItemDisplay(selected)"
-          :icon-rel-path="getItemIconPath(selected)"
-          :size="64"
-          class="flex-shrink-0 h-6 w-6"
-        />
-        <question-mark-circle-icon v-else class="flex-shrink-0 h-6 w-6 p-px text-gray-400" />
-      </div>
-      <input
-        ref="selectButtonRef"
-        :value="searchFilter"
-        type="text"
-        class="Select__input bg-gray-50 focus:ring-blue-500 focus:border-blue-500 block w-full pl-11 pr-10 sm:text-sm border-gray-300 rounded-md"
-        :class="
-          selected && searchFilter === getItemDisplay(selected) ? itemColorClass(selected) : null
-        "
-        spellcheck="false"
-        :placeholder="placeholder"
-        @input="searchFilter = ($event.target as HTMLInputElement).value"
-        @focus="openDropdown"
-        @keydown="handleKeydown"
-      />
-      <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-        <selector-icon class="h-5 w-5 text-gray-400" />
-      </div>
-      <div
-        v-if="allowClearing && selected"
-        class="absolute inset-y-0 right-7 flex items-center cursor-pointer"
-        @click="clearItem"
-      >
-        <x-icon class="h-4 w-4 text-gray-400" />
-      </div>
-    </div>
-
-    <ul
-      v-show="open"
-      ref="dropdownListRef"
-      class="Select__dropdown absolute mt-1 w-full bg-white text-gray-900 shadow-lg rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm z-10"
-      :style="{ maxHeight: '21.5rem' }"
-      tabindex="-1"
-    >
-      <li
-        v-for="item in filteredItems"
-        :key="getItemId(item)"
-        class="cursor-default select-none relative py-0.5 pl-3 pr-9"
-        :class="isSameItem(item, active) ? 'text-white bg-blue-600' : itemColorClass(item)"
-        @mousedown="selectItem(item)"
-        @mouseenter="activateItem(item)"
-        @mouseleave="deactivateItem()"
-      >
-        <div class="flex items-center">
-          <base-icon
-            :icon-rel-path="getItemIconPath(item)"
-            :size="64"
-            class="flex-shrink-0 h-6 w-6"
-          />
-          <span
-            class="ml-2 block truncate"
-            :class="isSameItem(item, selected) ? 'font-semibold' : 'font-normal'"
-          >
-            {{ getItemDisplay(item) }}
-          </span>
-        </div>
-
-        <span
-          v-if="isSameItem(item, selected)"
-          class="absolute inset-y-0 right-0 flex items-center pr-4"
-          :class="isSameItem(item, active) ? 'text-white' : 'text-blue-600'"
-        >
-          <check-icon class="h-5 w-5" />
-        </span>
-      </li>
-      <div v-if="filteredItems.length === 0" class="py-0.5 pl-3 pr-9">
-        <div class="flex items-center">
-          <exclamation-circle-icon class="flex-shrink-0 h-6 w-6 p-px text-gray-400" />
-          <span class="ml-2 block truncate">No match</span>
-        </div>
-      </div>
-    </ul>
-  </div>
-</template>
-
-<script lang="ts">
+<script lang="tsx">
 // Generically typed component pattern lifted from:
 // https://logaretm.com/blog/generically-typed-vue-components/
+// https://codesandbox.io/s/generic-vue-components-3etcc
+
+// Unfortunately, <template> doesn't work with this pattern; in development mode
+// everything's fine, but in production mode, the render function compiled from
+// the template is simply missing; see
+// https://1f91b36168d7f0e48c0c697006b826515f4e5b6b--wasmegg.netlify.app/artifact-sandbox
+// for the catastrophic result (component with no render function and therefore
+// renders to <!---->).
+//
+// As such we resort to defining the render function directly in defineComponent
+// with JSX. This is not ideal since (1) another plugin required
+// (@vitejs/plugin-vue-jsx); (2) mixed codebase; (3) volar/eslint is not exactly
+// happen with the JSX for some reason.
+//
+// Note that the codesandbox example using @vue/cli-service does work even in
+// production. Why it doesn't work with vite is beyond me. I'll need to consult
+// with an expert. If the problem is resolved, revert to the
+// 1f91b36168d7f0e48c0c697006b826515f4e5b6b version.
 
 import {
   computed,
@@ -351,6 +282,112 @@ class BaseSelectFilterableFactory<T = unknown> {
           handleKeydown,
           iconURL,
         };
+      },
+      render() {
+        return (
+          <div ref="dropdownRef" class="relative max-w-sm">
+            <div class="relative rounded-md shadow-sm">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                {this.selected && this.searchFilter === this.getItemDisplay(this.selected) ? (
+                  <BaseIcon
+                    iconRelPath={this.getItemIconPath(this.selected)}
+                    size={64}
+                    class="flex-shrink-0 h-6 w-6"
+                  />
+                ) : (
+                  <QuestionMarkCircleIcon class="flex-shrink-0 h-6 w-6 p-px text-gray-400" />
+                )}
+              </div>
+              <input
+                ref="selectButtonRef"
+                value={this.searchFilter}
+                type="text"
+                class={[
+                  'Select__input bg-gray-50 focus:ring-blue-500 focus:border-blue-500 block w-full pl-11 pr-10 sm:text-sm border-gray-300 rounded-md',
+                  this.selected && this.searchFilter === this.getItemDisplay(this.selected)
+                    ? this.itemColorClass(this.selected)
+                    : null,
+                ]}
+                spellcheck="false"
+                placeholder={this.placeholder}
+                onInput={event => {
+                  this.searchFilter = (event.target as HTMLInputElement).value;
+                }}
+                onFocus={this.openDropdown}
+                onKeydown={this.handleKeydown}
+              />
+              <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                <SelectorIcon class="h-5 w-5 text-gray-400" />
+              </div>
+              {this.allowClearing && this.selected && (
+                <div
+                  class="absolute inset-y-0 right-7 flex items-center cursor-pointer"
+                  onClick={this.clearItem}
+                >
+                  <x-icon class="h-4 w-4 text-gray-400" />
+                </div>
+              )}
+            </div>
+
+            <ul
+              v-show={this.open}
+              ref="dropdownListRef"
+              class="Select__dropdown absolute mt-1 w-full bg-white text-gray-900 shadow-lg rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm z-10"
+              style={{ maxHeight: '21.5rem' }}
+              tabindex="-1"
+            >
+              {this.filteredItems.map(item => (
+                <li
+                  key={this.getItemId(item)}
+                  class={[
+                    'cursor-default select-none relative py-0.5 pl-3 pr-9',
+                    this.isSameItem(item, this.active)
+                      ? 'text-white bg-blue-600'
+                      : this.itemColorClass(item),
+                  ]}
+                  onMousedown={() => this.selectItem(item)}
+                  onMouseenter={() => this.activateItem(item)}
+                  onMouseleave={this.deactivateItem}
+                >
+                  <div class="flex items-center">
+                    <BaseIcon
+                      iconRelPath={this.getItemIconPath(item)}
+                      size={64}
+                      class="flex-shrink-0 h-6 w-6"
+                    />
+                    <span
+                      class={[
+                        'ml-2 block truncate',
+                        this.isSameItem(item, this.selected) ? 'font-semibold' : 'font-normal',
+                      ]}
+                    >
+                      {this.getItemDisplay(item)}
+                    </span>
+                  </div>
+
+                  {this.isSameItem(item, this.selected) && (
+                    <span
+                      class={[
+                        'absolute inset-y-0 right-0 flex items-center pr-4',
+                        this.isSameItem(item, this.active) ? 'text-white' : 'text-blue-600',
+                      ]}
+                    >
+                      <CheckIcon class="h-5 w-5" />
+                    </span>
+                  )}
+                </li>
+              ))}
+              {this.filteredItems.length === 0 && (
+                <div class="py-0.5 pl-3 pr-9">
+                  <div class="flex items-center">
+                    <ExclamationCircleIcon class="flex-shrink-0 h-6 w-6 p-px text-gray-400" />
+                    <span class="ml-2 block truncate">No match</span>
+                  </div>
+                </div>
+              )}
+            </ul>
+          </div>
+        );
       },
     });
   }
