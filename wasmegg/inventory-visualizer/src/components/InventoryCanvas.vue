@@ -3,7 +3,7 @@
     <p class="max-w-lg mx-auto text-center">Looks like you don't have any artifact :(</p>
   </template>
   <template v-else>
-    <div class="flex justify-center mb-3">
+    <div class="flex justify-center mb-3" :class="loading ? 'opacity-50' : null">
       <div class="space-y-0.5">
         <div class="relative flex items-start">
           <div class="flex items-center h-5">
@@ -13,6 +13,7 @@
               name="rarerItemsFirst"
               type="checkbox"
               class="focus:ring-0 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+              :disabled="loading"
             />
           </div>
           <div class="ml-2 text-sm">
