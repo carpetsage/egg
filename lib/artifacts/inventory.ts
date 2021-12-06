@@ -124,6 +124,8 @@ export class Inventory {
     return sum(this.items.map(item => item.sunkCost));
   }
 
+  // countCraftable takes demotion of uncommon items into account. This makes it
+  // different from the in-game view of whether an item is craftable.
   countCraftable(targetItem: InventoryItem): number {
     const counter = new Map<ItemId, number>();
     for (const f of this.store.values()) {
@@ -173,6 +175,74 @@ export class Inventory {
       craftable++;
     }
     return craftable;
+  }
+
+  // nextRecursiveCraft, unlike countCraftable, does not take into account
+  // demoting uncommon items. The game certainly doesn't perform automatic
+  // demotion when doing "smart crafts". Taking demotion into account makes cost
+  // estimates very complicated due to edge cases where there are different
+  // demotion paths possible.
+  //
+  // As a result, if countCraftable(item) > 0 but nextRecursiveCraft(item)
+  // returns { craftable: false, cost: 0 }, it means demotion of certain
+  // uncommon items is required to craft this up.
+  nextRecursiveCraft(targetItem: InventoryItem): { craftable: boolean; cost: number } {
+    const counter = new Map<ItemId, number>();
+    for (const f of this.store.values()) {
+      for (const item of f.values()) {
+        counter.set(item.id, item.haveCommon);
+      }
+    }
+    const previousCrafts = new Map<ItemId, number>();
+    for (const f of this.store.values()) {
+      for (const item of f.values()) {
+        previousCrafts.set(item.id, item.crafted);
+      }
+    }
+    const targetId = targetItem.id;
+    counter.set(targetId, 0);
+    const ingredients = new Map<ItemId, number>([[targetId, 1]]);
+    let totalCost = 0;
+    while (true) {
+      const nextIngredient = ingredients.entries().next();
+      if (nextIngredient.done) {
+        // All ingredients accounted for.
+        break;
+      }
+      const [ingredientId, numNeeded] = nextIngredient.value;
+      ingredients.delete(ingredientId);
+      const numPossessed = counter.get(ingredientId)!;
+      if (numPossessed >= numNeeded) {
+        // We have enough of the ingredient.
+        counter.set(ingredientId, numPossessed - numNeeded);
+        continue;
+      }
+      // We don't have enough, need to further break down.
+      counter.set(ingredientId, 0);
+      const deficit = numNeeded - numPossessed;
+      const recipe = itemIdToRecipe.get(ingredientId);
+      if (!recipe) {
+        // Primitive ingredient deficit. Bail.
+        ingredients.set(ingredientId, deficit);
+        break;
+      }
+      totalCost += multiCraftCost(
+        recipe.crafting_price,
+        previousCrafts.get(ingredientId)!,
+        deficit
+      );
+      for (const subingredient of recipe.ingredients) {
+        ingredients.set(
+          subingredient.id,
+          (ingredients.get(subingredient.id) || 0) + deficit * subingredient.count
+        );
+      }
+    }
+    if (ingredients.size > 0) {
+      // Some ingredients are not present.
+      return { craftable: false, cost: 0 };
+    }
+    return { craftable: true, cost: totalCost };
   }
 
   artifactsWithStone(stone: InventoryItem): Artifact[] {
@@ -363,6 +433,14 @@ function singleCraftCost(params: CraftingPriceParams, previousCrafts: number): n
         (params.base - params.low) * Math.min(1, previousCrafts / params.domain) ** params.curve
     )
   );
+}
+
+function multiCraftCost(params: CraftingPriceParams, previousCrafts: number, crafts: number) {
+  let total = 0;
+  for (let i = previousCrafts; i < previousCrafts + crafts; i++) {
+    total += singleCraftCost(params, i);
+  }
+  return total;
 }
 
 function sum(arr: number[]): number {

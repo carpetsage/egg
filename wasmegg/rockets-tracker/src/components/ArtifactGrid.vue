@@ -127,21 +127,45 @@
                         <span v-else>0 slotted</span>
                         <span>{{ tier.have - tier.slotted }} free</span>
                       </div>
-                      <div
-                        v-tippy="{
-                          content:
-                            `You spent an estimated ${tier.sunkCost.toLocaleString('en-US')} ` +
-                            `golden eggs on crafting this item. The next craft is going to cost ` +
-                            `${tier.nextCraftCost.toLocaleString('en-US')} GE.`,
-                        }"
-                        class="delimited text-xs text-gray-400"
-                      >
+                      <tippy tag="div" class="delimited text-xs text-gray-400">
                         <span v-if="tier.crafted > 0">Crafted {{ tier.crafted }}</span>
                         <span v-if="craftableCount(tier) > 0" class="text-green-500">
                           <template v-if="tier.crafted > 0">can</template>
                           <template v-else>Can</template> craft {{ craftableCount(tier) }}
                         </span>
-                      </div>
+
+                        <template #content>
+                          You spent an estimated
+                          <span class="text-yellow-300">{{ ts(tier.sunkCost) }}</span>
+                          golden eggs on crafting this item.
+
+                          <template v-if="craftableCount(tier) === 0"
+                            >The next craft is going to cost
+                            <span class="text-blue-300">{{ ts(tier.nextCraftCost) }}</span>
+                            GE, but you don't have enough materials at the moment.
+                          </template>
+                          <template v-else-if="!nextRecursiveCraftable(tier)">
+                            The next craft is going to cost
+                            <span class="text-blue-300">{{ ts(tier.nextCraftCost) }}</span>
+                            GE (not including the cost of intermediate crafting); you'll have to do
+                            some demotion before having enough materials to craft.
+                          </template>
+                          <template v-else-if="nextRecursiveCraftCost(tier) > tier.nextCraftCost">
+                            The next craft is going to cost
+                            <span class="text-blue-300">{{ ts(tier.nextCraftCost) }}</span>
+                            GE, or
+                            <span class="text-blue-300">{{
+                              ts(nextRecursiveCraftCost(tier))
+                            }}</span>
+                            GE if the cost of recursive crafting of materials is included.
+                          </template>
+                          <template v-else>
+                            The next craft is going to cost
+                            <span class="text-blue-300">{{ ts(tier.nextCraftCost) }}</span>
+                            GE.
+                          </template>
+                        </template>
+                      </tippy>
                     </div>
 
                     <div
@@ -208,19 +232,42 @@ export default defineComponent({
     const craftableCount = (item: InventoryItem) => {
       return craftableCounts.value.get(item.id) || 0;
     };
+    const nextRecursiveCrafts = computed(() => {
+      const counts = new Map<ItemId, { craftable: boolean; cost: number }>();
+      for (const family of families.value as InventoryFamily[]) {
+        for (const tier of family.tiers) {
+          counts.set(tier.id, inventory.value.nextRecursiveCraft(tier));
+        }
+      }
+      return counts;
+    });
+    const nextRecursiveCraftable = (item: InventoryItem) => {
+      return nextRecursiveCrafts.value.get(item.id)?.craftable ?? false;
+    };
+    const nextRecursiveCraftCost = (item: InventoryItem) => {
+      return nextRecursiveCrafts.value.get(item.id)?.cost ?? 0;
+    };
     return {
       artifactExplorerLink,
       Rarity: ei.ArtifactSpec.Rarity,
       artifactRarityFgClass,
       craftableCount,
+      nextRecursiveCraftable,
+      nextRecursiveCraftCost,
       ArtifactSet,
       iconURL,
+      ts,
     };
   },
 });
 
 function artifactExplorerLink(item: InventoryItem) {
   return `/artifact-explorer/#/artifact/${item.id}/`;
+}
+
+// To string with thousand separators.
+function ts(x: number): string {
+  return x.toLocaleString('en-US');
 }
 </script>
 
