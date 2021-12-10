@@ -16,7 +16,7 @@ update-loot-data:
 clean: $(clean-targets)
 
 $(init-targets): init-%:
-	$(MAKE) -C $(patsubst init-%,%,$@) init
+	ets -s -f '[$@ %H:%M:%S]' $(MAKE) -C $(patsubst init-%,%,$@) init
 
 $(targets): %:
 	ets -s -f '[$@ %H:%M:%S]' $(MAKE) -C $@
