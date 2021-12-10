@@ -1,0 +1,49 @@
+name: update-contracts
+on:
+  push:
+  pull_request_target:
+  workflow_dispatch:
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17'
+      - name: Cache updater
+        uses: actions/cache@v2
+        with:
+          path: contracts/updater
+          key: contracts/updater-${{ runner.os }}-${{ hashFiles('go.sum') }}
+      - name: Build updater
+        run: |
+          [ -e updater ] || make updater
+      - name: Update contracts
+        run: |
+          ./updater
+        env:
+          EI_USERID: ${{ secrets.EI_USERID }}
+      - name: Commit, push changes, and possibly trigger new build
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'actions@github.com'
+          git add data/contracts.json
+          git diff --cached --quiet || {
+            git commit -m ' contracts: update data/contracts.json (from GitHub Actions)'
+            git push
+            # Use a separate personal access token since the token included doesn't seem to trigger
+            # anything, although the response (HTTP 204) looks all right.
+            curl -fsS -D- \
+              -X POST \
+              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
+              -H 'Accept: application/vnd.github.v3+json' \
+              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build.yml/dispatches \
+              -d '{"ref": "'${GITHUB_REF##*/}'"}'
+          }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
