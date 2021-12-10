@@ -4,7 +4,6 @@ all: clean
 	$(MAKE) dist
 
 init:
-	yarn install
 
 build:
 	yarn build
