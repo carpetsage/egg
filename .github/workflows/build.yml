@@ -32,23 +32,23 @@ jobs:
         run: make
       - name: Install netlify cli
         run: |
-          yarn global add netlify-cli
+          npm install -g netlify-cli
       - name: Deploy to commit-specific URL
         run: |
-          "$(yarn global bin)/netlify" deploy --alias "$GITHUB_SHA"
+          netlify deploy --alias "$GITHUB_SHA"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       - name: Deploy to branch-specific URL
         run: |
-          "$(yarn global bin)/netlify" deploy --alias "${GITHUB_REF##*/}"
+          netlify deploy --alias "${GITHUB_REF##*/}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/master'
       - name: Deploy
         run: |
-          "$(yarn global bin)/netlify" deploy --prod
+          netlify deploy --prod
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -101,23 +101,23 @@ jobs:
           EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
       - name: Install netlify cli
         run: |
-          yarn global add netlify-cli
+          npm install -g netlify-cli
       - name: Deploy to commit-specific URL
         run: |
-          "$(yarn global bin)/netlify" deploy --alias "$GITHUB_SHA"
+          netlify deploy --alias "$GITHUB_SHA"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       - name: Deploy to branch-specific URL
         run: |
-          "$(yarn global bin)/netlify" deploy --alias "${GITHUB_REF##*/}"
+          netlify deploy --alias "${GITHUB_REF##*/}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/master'
       - name: Deploy
         run: |
-          "$(yarn global bin)/netlify" deploy --prod
+          netlify deploy --prod
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
