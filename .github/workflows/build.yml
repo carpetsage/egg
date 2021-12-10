@@ -19,6 +19,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '16'
+          cache: 'yarn'
       - name: Build lib
         working-directory: lib
         run: |
@@ -80,6 +81,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '16'
+          cache: 'yarn'
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
