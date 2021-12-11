@@ -199,6 +199,16 @@ export const tools = [
   }),
 
   new Tool({
+    id: 'EggLedger',
+    url: 'https://github.com/fanaticscripter/EggLedger#readme',
+    title: 'EggLedger',
+    iconUrl: iconURL('wasmegg/EggLedger.png'),
+    description: 'Spaceship mission data exporter, supplementing rockets tracker',
+    // Sat Dec 25 14:42:31 UTC 2021
+    newUntil: 1640443351000,
+  }),
+
+  new Tool({
     id: 'EggContractor',
     url: 'https://github.com/fanaticscripter/EggContractor',
     title: 'EggContractor',

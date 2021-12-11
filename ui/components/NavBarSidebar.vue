@@ -213,6 +213,10 @@ const entries: ({
   },
 
   null,
+
+  idToTool.get('EggLedger')!,
+
+  null,
 ];
 
 export default defineComponent({
