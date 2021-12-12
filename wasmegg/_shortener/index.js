@@ -186,6 +186,8 @@ async function handleRequest(request) {
     redirectURL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
   } else if (code === 'smart-assistant-beta') {
     redirectURL = 'https://wasmegg.netlify.app/smart-assistant/';
+  } else if (code === 'ledger') {
+    redirectURL = 'https://github.com/fanaticscripter/EggLedger#readme';
   } else if (artifactIds.includes(code)) {
     redirectURL = baseRedirectURL + `/#/artifact/${code}`;
   } else if (missionIds.includes(code)) {
