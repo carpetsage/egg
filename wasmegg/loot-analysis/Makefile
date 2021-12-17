@@ -1,9 +1,13 @@
 MAKEFLAGS += -j4
 
-.PHONY: all init dist html webpack postcss data update-loot-data clean serve
+.PHONY: all init dist fastbuild html webpack postcss data update-loot-data clean serve
 
 all: clean
 	$(MAKE) dist
+
+fastbuild: clean
+	rsync -avP dist.frozen/ dist/
+	../_tools/build.py dist
 
 init:
 	yarn install

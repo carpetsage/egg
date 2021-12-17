@@ -1,7 +1,10 @@
-.PHONY: all clean
+.PHONY: all fastbuild clean
 
 all: public/contractListHash
 	yarn build
+
+fastbuild: public/contractListHash
+	yarn fastbuild
 
 public/contractListHash:
 	jq -cjM '[.[].id]' ../contracts/data/contracts.json | \

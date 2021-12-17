@@ -1,4 +1,4 @@
-.PHONY: all init build dist clean dev serve
+.PHONY: all init build dist fastbuild clean dev serve
 
 all: clean
 	$(MAKE) dist
@@ -13,6 +13,10 @@ doc:
 	protoc --doc_out=html,index.html:./public/doc --proto_path ../../protobuf ../../protobuf/*.proto
 
 dist: build
+	../_tools/build.py dist --additional assets --additional static --additional doc
+
+fastbuild: doc
+	yarn fastbuild
 	../_tools/build.py dist --additional assets --additional static --additional doc
 
 clean:

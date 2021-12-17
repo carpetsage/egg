@@ -1,4 +1,4 @@
-.PHONY: all init build dist clean dev serve commit-donors
+.PHONY: all init build dist fastbuild clean dev serve commit-donors
 
 all: clean
 	$(MAKE) dist
@@ -9,6 +9,10 @@ build:
 	yarn build
 
 dist: build
+	../_tools/build.py dist --additional assets --additional static
+
+fastbuild: clean
+	yarn fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
 clean:

@@ -8,7 +8,8 @@ on:
     # Scheduled after https://github.com/ei-labo/cold-api/blob/f46659b12592200621a2f27adb031e9ed0b87cbf/.github/workflows/build.yml#L5-L6.
     - cron: '30 3 * * *'
 jobs:
-  eicoop:
+  # No TS type checking for faster deployment.
+  eicoop-fastbuild:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -29,7 +30,7 @@ jobs:
         run: |
           yarn
       - name: Build site
-        run: make
+        run: make fastbuild
       - name: Install netlify cli
         run: |
           npm install -g netlify-cli
@@ -54,7 +55,102 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref == 'refs/heads/master'
 
-  wasmegg:
+  # With TS type checking.
+  eicoop-fullbuild:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: eicoop
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'yarn'
+      - name: Build lib
+        working-directory: lib
+        run: |
+          make init
+          make
+      - name: Install dependencies
+        run: |
+          yarn
+      - name: Build site
+        run: make
+
+  # No TS type checking for faster deployment.
+  wasmegg-fastbuild:
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: wasmegg
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up protoc
+        run: |
+          sudo apt-get install -y --no-install-recommends protobuf-compiler
+          # Install protoc-gen-doc
+          basename=protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
+          wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.4.1/$basename.tar.gz
+          tar xf $basename.tar.gz
+          echo "$PWD/$basename" >> $GITHUB_PATH
+      - name: Set up ets
+        run: |
+          wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
+          sudo dpkg -i ets_0.2.1_linux_amd64.deb
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17'
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'yarn'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Build lib
+        working-directory: lib
+        run: |
+          make init
+          make
+      - name: Initialize dependencies
+        run: |
+          make init -j1
+      - name: Build
+        run: |
+          make -j2 fastbuild
+        env:
+          EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
+      - name: Install netlify cli
+        run: |
+          npm install -g netlify-cli
+      - name: Deploy to commit-specific URL
+        run: |
+          netlify deploy --alias "$GITHUB_SHA"
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      - name: Deploy to branch-specific URL
+        run: |
+          netlify deploy --alias "${GITHUB_REF##*/}"
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        if: github.ref != 'refs/heads/master'
+      - name: Deploy
+        run: |
+          netlify deploy --prod
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        if: github.ref == 'refs/heads/master'
+
+  # With TS type checking.
+  wasmegg-fullbuild:
     runs-on: ubuntu-20.04
     defaults:
       run:
@@ -99,26 +195,3 @@ jobs:
           make -j2
         env:
           EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
-      - name: Install netlify cli
-        run: |
-          npm install -g netlify-cli
-      - name: Deploy to commit-specific URL
-        run: |
-          netlify deploy --alias "$GITHUB_SHA"
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      - name: Deploy to branch-specific URL
-        run: |
-          netlify deploy --alias "${GITHUB_REF##*/}"
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref != 'refs/heads/master'
-      - name: Deploy
-        run: |
-          netlify deploy --prod
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref == 'refs/heads/master'

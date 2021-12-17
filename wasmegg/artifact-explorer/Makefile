@@ -1,4 +1,4 @@
-.PHONY: all init build dist clean dev serve
+.PHONY: all init build data dist fastbuild clean dev serve
 
 all: clean
 	$(MAKE) dist
@@ -12,6 +12,11 @@ data:
 	go run .
 
 dist: build
+	../_tools/build.py dist --additional assets --additional static
+
+fastbuild: clean
+	$(MAKE) data
+	yarn fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
 clean:

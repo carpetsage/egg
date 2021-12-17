@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
+    "fastbuild": "vite build",
     "serve": "vite preview",
     "lint": "eslint --ext .js,.ts,.vue src"
   },

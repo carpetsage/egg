@@ -1,4 +1,4 @@
-.PHONY: all init build dist clean dev serve
+.PHONY: all init build dist fastbuild clean dev serve
 
 all: clean
 	$(MAKE) dist
@@ -13,6 +13,11 @@ dist: build
 
 src/lib/data.json:
 	go run .
+
+fastbuild: clean
+	$(MAKE) src/lib/data.json
+	yarn fastbuild
+	../_tools/build.py dist --additional assets --additional static
 
 clean:
 	@$(RM) -r dist src/lib/data.json

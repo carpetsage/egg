@@ -1,4 +1,4 @@
-.PHONY: all init build dist clean dev serve
+.PHONY: all init build dist fastbuild clean dev serve
 
 all: clean
 	$(MAKE) dist
@@ -14,6 +14,10 @@ src/lib/study_stats.ts:
 	go run tools/study_stats/main.go
 
 dist: build
+	../_tools/build.py dist --additional assets --additional static
+
+fastbuild: src/lib/study_stats.ts
+	yarn fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
 clean:
