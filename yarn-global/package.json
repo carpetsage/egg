@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "devDependencies": {
+    "netlify-cli": "^8.1.8"
+  }
+}
