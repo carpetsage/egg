@@ -2,7 +2,7 @@
   <the-nav-bar active-entry-id="events" width-classes="max-w-4xl px-4 lg:px-0" />
 
   <div class="max-w-4xl px-4 lg:px-0 mx-auto my-4 space-y-2">
-    <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
+    <h1 class="mx-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
       Events calendar
     </h1>
 
