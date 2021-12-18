@@ -513,7 +513,6 @@ export default defineComponent({
       {
         id: 'hourlyShippingCapacity',
         name: 'Max shipping / hr',
-        tooltip: 'Egg laying rate from all chickens, not capped by shipping capacity',
       },
       {
         id: 'farmPopulation',
