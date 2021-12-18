@@ -36,6 +36,13 @@ jobs:
           mkdir -p "$(yarn global dir)"
           cp ../yarn-global/* "$(yarn global dir)"
           yarn global add netlify-cli
+      - name: Deploy
+        run: |
+          netlify deploy --prod
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        if: github.ref == 'refs/heads/master'
       - name: Deploy to commit-specific URL
         run: |
           netlify deploy --alias "$GITHUB_SHA"
@@ -49,13 +56,6 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/master'
-      - name: Deploy
-        run: |
-          netlify deploy --prod
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref == 'refs/heads/master'
 
   # With TS type checking.
   eicoop-fullbuild:
@@ -132,6 +132,13 @@ jobs:
           mkdir -p "$(yarn global dir)"
           cp ../yarn-global/* "$(yarn global dir)"
           yarn global add netlify-cli
+      - name: Deploy
+        run: |
+          netlify deploy --prod
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        if: github.ref == 'refs/heads/master'
       - name: Deploy to commit-specific URL
         run: |
           netlify deploy --alias "$GITHUB_SHA"
@@ -145,13 +152,6 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/master'
-      - name: Deploy
-        run: |
-          netlify deploy --prod
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref == 'refs/heads/master'
 
   # With TS type checking.
   wasmegg-fullbuild:
