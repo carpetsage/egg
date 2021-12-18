@@ -29,9 +29,6 @@ jobs:
         run: |
           make init
           make
-      - name: Install dependencies
-        run: |
-          yarn
       - name: Build site
         run: make fastbuild
       - name: Install netlify cli
@@ -78,9 +75,6 @@ jobs:
         run: |
           make init
           make
-      - name: Install dependencies
-        run: |
-          yarn
       - name: Build site
         run: make
 
