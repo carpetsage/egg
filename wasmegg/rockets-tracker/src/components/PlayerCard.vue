@@ -625,6 +625,7 @@ const STAFF_USER_ID_HASHES = [
   '465d0ffcc5a6c98ec57cf69a7c8a6d1e8af40c6fa6cac3ef83ea9cee5cf516f4',
   '326118cdebe0e22870389a70ff99e746a55e3ad52bf9f2a3d8ea888fc354e7f0',
   'f362dc823605c69029688fe63899cd383239f68f39042675e332d1af992ab89e',
+  '0d8a0cf5a97a22bbef1ec189e0aeec07ca0e8fd4cfacf8f40c46cf92f3898f12',
 ];
 
 enum ShipClub {
