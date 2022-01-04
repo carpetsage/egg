@@ -4,7 +4,7 @@
       <base-icon
         :icon-rel-path="hasProPermit ? 'egginc/pro_permit.png' : 'egginc/free_permit.png'"
         :size="128"
-        class="h-4 flex-shrink-0 -ml-0.5"
+        class="h-4 w-6 flex-shrink-0 -ml-0.5"
       />
       <span class="text-base font-serif text-gray-900 dark:text-gray-100">
         {{ renderNonempty(nickname) }}
