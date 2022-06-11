@@ -66,15 +66,16 @@ export async function requestFirstContact(userId: string): Promise<ei.IEggIncFir
   const requestPayload: ei.IEggIncFirstContactRequest = {
     rinfo: basicRequestInfo(''),
     eiUserId: userId,
+    deviceId: 'wasmegg', // This is actually bot_name for /ei/bot_first_contact, operating on an honor system.
     clientVersion: CLIENT_VERSION,
     platform: PLATFORM,
   };
   const encodedRequestPayload = encodeMessage(ei.EggIncFirstContactRequest, requestPayload);
-  const encodedResponsePayload = await request('/ei/first_contact', encodedRequestPayload);
+  const encodedResponsePayload = await request('/ei/bot_first_contact', encodedRequestPayload);
   return decodeMessage(
     ei.EggIncFirstContactResponse,
     encodedResponsePayload,
-    true
+    false
   ) as ei.IEggIncFirstContactResponse;
 }
 
