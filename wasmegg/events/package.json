@@ -19,13 +19,13 @@
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.3.4",
-    "@vitejs/plugin-vue": "^1.9.3",
+    "@vitejs/plugin-vue": "^2.3.3",
     "@vue/compiler-sfc": "^3.2.20",
     "autoprefixer": "^10.3.7",
     "postcss": "^8.3.9",
     "tailwindcss": "^2.2.17",
     "typescript": "^4.4.4",
-    "vite": "^2.6.7",
+    "vite": "^2.9.12",
     "vue-tsc": "^0.28.6"
   }
 }
