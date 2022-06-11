@@ -9,7 +9,7 @@ export * from './fundraising';
 export * from './goatcounter';
 export * from './missions';
 export * from './prophecy_eggs';
-export { ei, aux } from './proto';
+export { ei } from './proto';
 export * from './rewards';
 export * from './sandbox';
 export * from './search';
