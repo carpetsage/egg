@@ -1,93 +1,153 @@
 [
   {
+    "versionDisplay": "1.22.9",
+    "releaseNotes": "- Updated app rating to reflect ad content",
+    "releaseDate": "2022-04-16",
+    "releaseTimestamp": "2022-04-16T15:33:29Z"
+  },
+  {
+    "versionDisplay": "1.22.8",
+    "releaseNotes": "- hopefully addresses instability on iOS 15.4",
+    "releaseDate": "2022-03-27",
+    "releaseTimestamp": "2022-03-27T19:11:36Z"
+  },
+  {
+    "versionDisplay": "1.22.7",
+    "releaseNotes": "- hopefully addresses instability on iOS 15.4",
+    "releaseDate": "2022-03-24",
+    "releaseTimestamp": "2022-03-24T18:38:31Z"
+  },
+  {
+    "versionDisplay": "1.22.6",
+    "releaseNotes": "- Small improvements & bug fixes",
+    "releaseDate": "2022-03-23",
+    "releaseTimestamp": "2022-03-23T02:37:03Z"
+  },
+  {
+    "versionDisplay": "1.22.5",
+    "releaseNotes": "- Leggacy iOS Crash Fix\n- Number format bug fix",
+    "releaseDate": "2022-01-18",
+    "releaseTimestamp": "2022-01-18T15:16:11Z"
+  },
+  {
+    "versionDisplay": "1.22.4",
+    "releaseNotes": "- Legacy iOS crash fix\n- Prestige SE display improvement",
+    "releaseDate": "2022-01-17",
+    "releaseTimestamp": "2022-01-17T15:13:13Z"
+  },
+  {
+    "versionDisplay": "1.22.3",
+    "releaseNotes": "- small improvements and bug fixes",
+    "releaseDate": "2022-01-14",
+    "releaseTimestamp": "2022-01-14T19:38:33Z"
+  },
+  {
     "versionDisplay": "1.22.2",
     "releaseNotes": "- small improvements and bug fixes",
-    "releaseDate": "2021-10-07"
+    "releaseDate": "2021-10-07",
+    "releaseTimestamp": "2021-10-07T01:03:02Z"
   },
   {
     "versionDisplay": "1.22.1",
     "releaseNotes": "- Minor improvements and bug fixes",
-    "releaseDate": "2021-10-01"
+    "releaseDate": "2021-10-01",
+    "releaseTimestamp": "2021-10-01T01:26:16Z"
   },
   {
     "versionDisplay": "1.22",
     "releaseNotes": "- Install size reduction\n- Multi-Consume, press and hold consume for 2 seconds for more consume options\n- Small improvements and bug fixes\n",
-    "releaseDate": "2021-09-22"
+    "releaseDate": "2021-09-22",
+    "releaseTimestamp": "2021-09-22T01:36:12Z"
   },
   {
     "versionDisplay": "1.21.2",
     "releaseNotes": "- minor improvements and bug fixes",
-    "releaseDate": "2021-08-12"
+    "releaseDate": "2021-08-12",
+    "releaseTimestamp": "2021-08-12T22:15:23Z"
   },
   {
     "versionDisplay": "1.21",
     "releaseNotes": "- Mission Control FUEL TANK! - Base level is FREE\n- All Players get 3 mission slots even without Pro Permit\n- Ships gain experience and level with each launch to increase capacity and quality\n- Mission Epic Research for reduced duration and increased capacity\n- Intelligent Crafting",
-    "releaseDate": "2021-06-15"
+    "releaseDate": "2021-06-15",
+    "releaseTimestamp": "2021-06-15T17:26:21Z"
   },
   {
     "versionDisplay": "1.20.10",
     "releaseNotes": "- Small improvements and bug fixes",
-    "releaseDate": "2021-05-25"
+    "releaseDate": "2021-05-25",
+    "releaseTimestamp": "2021-05-25T13:54:57Z"
   },
   {
     "versionDisplay": "1.20.9",
     "releaseNotes": "- New Contracts UI and more\n* contains some bug fixes",
-    "releaseDate": "2021-05-02"
+    "releaseDate": "2021-05-02",
+    "releaseTimestamp": "2021-05-02T23:07:02Z"
   },
   {
     "versionDisplay": "1.20.8",
     "releaseNotes": "- New Contracts UI and features",
-    "releaseDate": "2021-04-30"
+    "releaseDate": "2021-04-30",
+    "releaseTimestamp": "2021-04-30T15:30:33Z"
   },
   {
     "versionDisplay": "1.20.7",
     "releaseNotes": "- Small improvements and bug fixes",
-    "releaseDate": "2021-03-15"
+    "releaseDate": "2021-03-15",
+    "releaseTimestamp": "2021-03-15T03:57:54Z"
   },
   {
     "versionDisplay": "1.20.6",
     "releaseNotes": "- Small improvements and bug fixes",
-    "releaseDate": "2021-03-11"
+    "releaseDate": "2021-03-11",
+    "releaseTimestamp": "2021-03-11T02:48:31Z"
   },
   {
     "versionDisplay": "1.20.5",
     "releaseNotes": "- Many small/medium improvements and bug fixes\n- Increased rewards for random gifts and video gifts\n- Slightly reduced rewards for some trophies and daily gifts",
-    "releaseDate": "2021-03-01"
+    "releaseDate": "2021-03-01",
+    "releaseTimestamp": "2021-03-01T18:03:16Z"
   },
   {
     "versionDisplay": "1.20.4",
     "releaseNotes": "- Large increases to rewards for challenges, trophies, and daily gifts\n- Bug fixes",
-    "releaseDate": "2021-02-16"
+    "releaseDate": "2021-02-16",
+    "releaseTimestamp": "2021-02-16T16:21:35Z"
   },
   {
     "versionDisplay": "1.20.3",
     "releaseNotes": "- Stability improvements and bug fixes",
-    "releaseDate": "2021-02-05"
+    "releaseDate": "2021-02-05",
+    "releaseTimestamp": "2021-02-05T18:32:09Z"
   },
   {
     "versionDisplay": "1.20.2",
     "releaseNotes": "- Stability improvements and bug fixes",
-    "releaseDate": "2021-01-29"
+    "releaseDate": "2021-01-29",
+    "releaseTimestamp": "2021-01-29T16:01:43Z"
   },
   {
     "versionDisplay": "1.20.1",
     "releaseNotes": "ARTIFACTS IS HERE!\nAt long last, the largest update ever to Egg, Inc!\nCommission deep space exploration missions to uncover over 100 artifacts from long lost civilizations around the galaxy\nEXPORE. CRAFT. CUSTOMIZE.\nUnlock the secrets of the universe.",
-    "releaseDate": "2021-01-21"
+    "releaseDate": "2021-01-21",
+    "releaseTimestamp": "2021-01-21T14:28:54Z"
   },
   {
     "versionDisplay": "1.20",
     "releaseNotes": "ARTIFACTS IS HERE!\nAt long last, the largest update ever to Egg, Inc!\nCommission deep space exploration missions to uncover over 100 artifacts from long lost civilizations around the galaxy\nEXPORE. CRAFT. CUSTOMIZE.\nUnlock the secrets of the universe.",
-    "releaseDate": "2021-01-20"
+    "releaseDate": "2021-01-20",
+    "releaseTimestamp": "2021-01-20T16:37:16Z"
   },
   {
     "versionDisplay": "1.12.13",
     "releaseNotes": "- Addresses ad bugs",
-    "releaseDate": "2020-11-11"
+    "releaseDate": "2020-11-11",
+    "releaseTimestamp": "2020-11-11T14:48:53Z"
   },
   {
     "versionDisplay": "1.12.12",
     "releaseNotes": "- iPhone 12 display bug fix",
-    "releaseDate": "2020-10-27"
+    "releaseDate": "2020-10-27",
+    "releaseTimestamp": "2020-10-27T18:01:10Z"
   },
   {
     "versionDisplay": "1.12.11",
