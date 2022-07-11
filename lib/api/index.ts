@@ -89,7 +89,8 @@ export async function requestCoopStatus(
   contractId: string,
   coopCode: string
 ): Promise<ei.IContractCoopStatusResponse> {
-  const userId = '';
+  // A valid userId is now required. From a volunteer.
+  const userId = atob('RUk1NDc5OTE2NjQyNzYyNzUy');
   const requestPayload: ei.IContractCoopStatusRequest = {
     rinfo: basicRequestInfo(userId),
     contractIdentifier: contractId,
