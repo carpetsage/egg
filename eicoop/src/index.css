@@ -35,3 +35,9 @@ html.themed * {
 #sitewide-nav * {
   @apply transition-none;
 }
+
+@font-face {
+  font-family: 'Always Together';
+  src: url('/Always Together.woff2');
+  font-display: block;
+}

@@ -29,3 +29,9 @@
 .bg-legendary {
   background: radial-gradient(#fffe41, #fffe41, #eeab42);
 }
+
+@font-face {
+  font-family: 'Always Together';
+  src: url('/static/Always Together.woff2');
+  font-display: block;
+}

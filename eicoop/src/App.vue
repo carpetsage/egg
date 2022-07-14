@@ -6,6 +6,7 @@
   <the-footer />
   <the-coop-selector />
   <the-notification-tray />
+  <egg-day />
 </template>
 
 <script lang="ts">
@@ -18,6 +19,7 @@ import TheNavBar from '@/components/TheNavBar.vue';
 import TheFooter from '@/components/TheFooter.vue';
 import TheCoopSelector from '@/components/TheCoopSelector.vue';
 import TheNotificationTray from '@/components/TheNotificationTray.vue';
+import EggDay from 'ui/components/EggDay.vue';
 
 export default defineComponent({
   name: 'App',
@@ -26,6 +28,7 @@ export default defineComponent({
     TheFooter,
     TheCoopSelector,
     TheNotificationTray,
+    EggDay,
   },
   setup() {
     const store = useStore(key);
