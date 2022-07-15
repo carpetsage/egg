@@ -1,6 +1,14 @@
 import { ei } from 'lib';
 
-const enumNames = ['Egg', 'FarmType', 'GoalType', 'RewardType'] as const;
+const enumNames = [
+  'AdNetwork',
+  'DeviceFormFactor',
+  'Egg',
+  'FarmType',
+  'GoalType',
+  'Platform',
+  'RewardType',
+] as const;
 export type MessageName = Exclude<keyof typeof ei, typeof enumNames[number]>;
 
 const messages: Record<string, MessageName[]> = {
