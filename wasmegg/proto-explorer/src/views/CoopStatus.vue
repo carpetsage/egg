@@ -24,7 +24,7 @@
         v-model.trim="userId"
         name="user_id"
         label="User ID"
-        placeholder="Optional, random by default"
+        placeholder="Optional, a valid one by default"
       />
       <request-button :form-valid="formValid" />
     </template>
@@ -35,7 +35,6 @@
 import { computed, defineComponent, ref } from 'vue';
 
 import { basicRequestInfo, CLIENT_VERSION, ei, getLocalStorage, setLocalStorage } from 'lib';
-import { randomEiUserId } from '@/lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import ParameterInput from '@/components/ParameterInput.vue';
 import RequestButton from '@/components/RequestButton.vue';
@@ -66,7 +65,7 @@ export default defineComponent({
     };
 
     const getRequestPayloadObject = (): ContractCoopStatusRequestPayload => {
-      const uid = userId.value || randomEiUserId();
+      const uid = userId.value || atob('RUk1NDc5OTE2NjQyNzYyNzUy');
       return {
         contractIdentifier: contractId.value,
         coopIdentifier: coopCode.value.toLowerCase(),
