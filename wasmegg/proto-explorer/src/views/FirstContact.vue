@@ -1,8 +1,9 @@
 <template>
   <api-requester
-    api-endpoint="/ei/first_contact"
+    api-endpoint="/ei/bot_first_contact"
     request-message="EggIncFirstContactRequest"
     response-message="EggIncFirstContactResponse"
+    :response-authenticated="false"
     :persist-form-data="persistFormData"
     :get-request-payload-object="getRequestPayloadObject"
   >
@@ -74,7 +75,7 @@ export default defineComponent({
       clientVersion: CLIENT_VERSION,
       platform: PLATFORM,
       eiUserId: userId.value,
-      deviceId: deviceId.value || null,
+      deviceId: deviceId.value || 'wasmegg',
       gameServicesId: gameServicesId.value || null,
       rinfo: basicRequestInfo(userId.value),
     });
