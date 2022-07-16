@@ -19,7 +19,7 @@
     "lib": ">=0.1.0",
     "localforage": "^1.9.0",
     "mitt": "^2.1.0",
-    "protobufjs": "^6.11.2",
+    "protobufjs": "^7.0.0",
     "safari-14-idb-fix": "^1.0.3",
     "uuid": "^8.3.2",
     "vue": "^3.2.20",
