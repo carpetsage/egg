@@ -29,8 +29,6 @@
       </div>
     </template>
   </div>
-
-  <egg-day />
 </template>
 
 <script lang="ts">
@@ -45,7 +43,6 @@ import TheNavBar from 'ui/components/NavBar.vue';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import LegendariesStudyOptInForm from '@/components/LegendariesStudyOptInForm.vue';
 import TheReport from '@/components/TheReport.vue';
-import EggDay from 'ui/components/EggDay.vue';
 
 export default defineComponent({
   components: {
@@ -55,7 +52,6 @@ export default defineComponent({
     TheNavBar,
     ThePlayerIdForm,
     TheReport,
-    EggDay,
   },
   setup() {
     const playerId = ref(

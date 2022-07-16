@@ -8,6 +8,3 @@
 
 /logo*
   cache-control: public,max-age=86400,immutable
-
-/*.otf
-  cache-control: public,max-age=2592000,immutable
