@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '18'
           cache: 'yarn'
           cache-dependency-path: |
             yarn.lock
@@ -71,7 +71,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '18'
           cache: 'yarn'
       - name: Do other preparations
         run: |
@@ -107,11 +107,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: '^1.17'
+          go-version: '^1.18'
       - name: Set up Node
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '18'
           cache: 'yarn'
           cache-dependency-path: |
             yarn.lock
@@ -185,11 +185,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: '^1.17'
+          go-version: '^1.18'
       - name: Set up Node
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '18'
           cache: 'yarn'
       - name: Set up Python
         uses: actions/setup-python@v2
