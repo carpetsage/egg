@@ -2,8 +2,7 @@ MAKEFLAGS += -j4
 
 .PHONY: all init dist fastbuild html webpack postcss data update-loot-data clean serve
 
-all: clean
-	$(MAKE) dist
+all: fastbuild
 
 fastbuild: clean
 	rsync -avP dist.frozen/ dist/
