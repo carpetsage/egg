@@ -1386,7 +1386,23 @@ message ShellSpec {
 
   optional ShellPiece primary_piece = 12;
   message ShellPiece {
-    optional AssetType asset_type = 1;
+    // Auto-extracted protobuf has `optional AssetType asset_type = 1` here.
+    // However, protobufjs fails to decode actual /ei/get_config payloads with a
+    // "invalid wire type 4" error unless optional is changed to repeated here.
+    // The spec seems to say that optional should be compatible with repeated
+    // here. Not sure if protobufjs is breaking the spec here.
+    //
+    // From https://developers.google.com/protocol-buffers/docs/proto:
+    //
+    // > For string, bytes, and message fields, optional is compatible with
+    // > repeated. Given serialized data of a repeated field as input, clients
+    // > that expect this field to be optional will take the last input value if
+    // > it's a primitive type field or merge all input elements if it's a
+    // > message type field. Note that this is not generally safe for numeric
+    // > types, including bools and enums. Repeated fields of numeric types can
+    // > be serialized in the packed format, which will not be parsed correctly
+    // > when an optional field is expected.
+    repeated AssetType asset_type = 1;
     optional DLCItem dlc = 2;
   }
 
