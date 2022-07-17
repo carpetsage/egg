@@ -8,10 +8,12 @@ clean-targets = $(addprefix clean-,$(targets))
 .PHONY: all init clean $(targets) $(init-targets) $(clean-targets) update-loot-data
 
 all: $(targets)
+	netlify-headers-expander dist
 
 init: $(init-targets) update-loot-data
 
 fastbuild: $(fastbuild-targets)
+	netlify-headers-expander dist
 
 update-loot-data:
 	curl -o _common/loot/mission_reward_count.json https://api.ei.mikit.app/mission_reward_count.json

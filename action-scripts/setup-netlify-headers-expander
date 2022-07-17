@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+mkdir netlify-headers-expander && cd netlify-headers-expander
+wget https://github.com/zmwangx/netlify-headers-expander/releases/download/v1.0.0/netlify-headers-expander_1.0.0_linux_amd64.tar.gz
+tar xf netlify-headers-expander_1.0.0_linux_amd64.tar.gz
+echo "$PWD" >> $GITHUB_PATH

@@ -1,8 +1,10 @@
+# no-expand
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   X-XSS-Protection: 1; mode=block
 
+# exclude-directories
 /assets/*
   cache-control: public,max-age=2592000,immutable
 
@@ -12,9 +14,7 @@
 /*/app.*.js
   cache-control: public,max-age=2592000,immutable
 
-/*/app.*.wasm
-  cache-control: public,max-age=2592000,immutable
-
+# exclude-directories
 /*/assets/*
   cache-control: public,max-age=2592000,immutable
 

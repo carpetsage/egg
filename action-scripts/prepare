@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+here=$(dirname "${BASH_SOURCE[0]}")
+"$here/setup-netlify-headers-expander"

@@ -24,6 +24,9 @@ jobs:
           cache-dependency-path: |
             yarn.lock
             yarn-global/yarn.lock
+      - name: Do other preparations
+        run: |
+          ../action-scripts/prepare
       - name: Build lib
         working-directory: lib
         run: |
@@ -70,6 +73,9 @@ jobs:
         with:
           node-version: '16'
           cache: 'yarn'
+      - name: Do other preparations
+        run: |
+          ../action-scripts/prepare
       - name: Build lib
         working-directory: lib
         run: |
@@ -114,6 +120,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+      - name: Do other preparations
+        run: |
+          ../action-scripts/prepare
       - name: Build lib
         working-directory: lib
         run: |
@@ -186,6 +195,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+      - name: Do other preparations
+        run: |
+          ../action-scripts/prepare
       - name: Build lib
         working-directory: lib
         run: |
