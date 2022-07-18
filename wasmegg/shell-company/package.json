@@ -1,0 +1,30 @@
+{
+  "name": "shell-company",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "fastbuild": "vite build",
+    "serve": "vite preview",
+    "lint": "eslint --ext .js,.ts,.vue src"
+  },
+  "dependencies": {
+    "lib": ">=0.1.0",
+    "@headlessui/vue": "^1.4.1",
+    "@heroicons/vue": "^1.0.4",
+    "vue": "^3.2.20",
+    "vue-tippy": "^6.0.0-alpha.35"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.3.4",
+    "@vitejs/plugin-vue": "^2.3.3",
+    "@vue/compiler-sfc": "^3.2.20",
+    "autoprefixer": "^10.3.7",
+    "postcss": "^8.3.9",
+    "tailwindcss": "^2.2.19",
+    "typescript": "^4.4.4",
+    "vite": "^2.9.12",
+    "vue-tsc": "^0.28.6"
+  }
+}

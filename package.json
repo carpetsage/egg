@@ -19,7 +19,8 @@
     "wasmegg/proto-explorer",
     "wasmegg/researches",
     "wasmegg/rockets-tracker",
-    "wasmegg/smart-assistant"
+    "wasmegg/smart-assistant",
+    "wasmegg/shell-company"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.0.0",
