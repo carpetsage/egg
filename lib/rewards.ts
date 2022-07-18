@@ -51,16 +51,16 @@ export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
       return `egginc/b_icon_${r.rewardSubType!}.png`;
     case ei.RewardType.ARTIFACT_CASE:
       return `egginc/icon_afx_chest_3.png`;
+    case ei.RewardType.SHELL_SCRIPT:
+      return `egginc/icon_shell_script_colored.png`;
     // We haven't seen a single-artifact reward yet, so I'd rather not guess
     // what rewardSubType would be, so unknown it is.
     //
-    // TODO: I haven't updated (or even looked at) the assets yet so CHICKEN and
-    // SHELL_SCRIPT will be unknown for now.
+    // Similarly, not sure what CHICKEN reward is, for now.
     case ei.RewardType.ARTIFACT:
     case ei.RewardType.CASH:
     case ei.RewardType.BOOST_TOKEN:
     case ei.RewardType.CHICKEN:
-    case ei.RewardType.SHELL_SCRIPT:
     case ei.RewardType.UNKNOWN_REWARD:
       return 'egginc/icon_help.png';
   }
@@ -150,7 +150,7 @@ export function rewardName(r: ei.IReward | ei.Contract.IGoal): string {
     case ei.RewardType.CHICKEN:
       return 'Chicken';
     case ei.RewardType.SHELL_SCRIPT:
-      return 'Shell';
+      return 'Tickets';
     case ei.RewardType.UNKNOWN_REWARD:
       return 'Unknown';
   }
