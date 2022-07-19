@@ -246,8 +246,8 @@
   </table>
 </template>
 
-<script lang="ts">
-import { PropType, computed, defineComponent, ref, toRefs, inject, Ref } from 'vue';
+<script setup lang="ts">
+import { computed, ref, toRefs, inject, Ref } from 'vue';
 
 import { CoopStatus, eggIconPath, ei, formatEIValue } from '@/lib';
 import {
@@ -292,182 +292,153 @@ type ColumnSpec = {
   tooltip?: string;
 };
 
-export default defineComponent({
-  components: {
-    BaseClickToCopy,
-    BaseIcon,
-  },
-  props: {
-    egg: {
-      type: Number as PropType<ei.Egg>,
-      required: true,
-    },
-    coopStatus: {
-      type: Object as PropType<CoopStatus>,
-      required: true,
-    },
-  },
-  setup(props) {
-    const { egg, coopStatus } = toRefs(props);
-    const devmode = inject(devmodeKey);
+const props = defineProps<{ egg: ei.Egg; coopStatus: CoopStatus }>();
 
-    const showOptionalColumn = computed(
-      () =>
-        Object.fromEntries(
-          optionalColumnIds.map(col => [
-            col,
-            coopStatus.value.contributors.some(contributor => contributor[col] !== null),
-          ])
-        ) as Record<OptionalColumnId, boolean>
-    );
-    const columns: Ref<ColumnSpec[]> = computed(() => {
-      const cols: ColumnSpec[] = [
-        {
-          id: 'name',
-          name: 'Player',
-        },
-        {
-          id: 'eggsLaid',
-          name: 'Shipped',
-        },
-        {
-          id: 'eggsPerHour',
-          name: 'Rate/hr',
-          iconPath: eggIconPath(egg.value),
-          suffix: '/ hr',
-        },
-        {
-          id: 'earningBonusPercentage',
-          name: 'EB%',
-        },
-        {
-          id: 'role',
-          name: 'Role',
-        },
-        {
-          id: 'tokens',
-          name: 'Tokens',
-          iconPath: 'egginc/b_icon_token.png',
-          tooltip: 'Tokens left',
-        },
-        {
-          id: 'earningsBoost',
-          name: 'SiaB',
-          iconPath: 'egginc/afx_ship_in_a_bottle_4.png',
-          tooltip: 'Earnings boost percentage from Ship in a Bottle equipped by each contributor',
-        },
-        {
-          id: 'eggLayingRateBoost',
-          name: 'TD',
-          iconPath: 'egginc/afx_tachyon_deflector_4.png',
-          tooltip:
-            'Egg laying rate boost percentage from Tachyon Deflector equipped by each contributor',
-        },
-      ];
-      if (showOptionalColumn.value.tokensSpent) {
-        cols.push({
-          id: 'tokensSpent',
-          name: 'Tokens spent',
-          iconPath: 'egginc/b_icon_token.png',
-          suffix: ' \u{00a0}spent',
-          tooltip: 'Tokens spent',
-        });
-      }
-      if (showOptionalColumn.value.hourlyLayingRateUncapped) {
-        cols.push({
-          id: 'hourlyLayingRateUncapped',
-          name: 'Laying / hr',
-          tooltip: 'Egg laying rate from all chickens, not capped by shipping capacity',
-        });
-      }
-      if (showOptionalColumn.value.hourlyShippingCapacity) {
-        cols.push({
-          id: 'hourlyShippingCapacity',
-          name: 'Max shipping / hr',
-        });
-      }
-      if (showOptionalColumn.value.farmPopulation) {
-        cols.push({
-          id: 'farmPopulation',
-          name: 'Population',
-        });
-      }
-      if (showOptionalColumn.value.farmCapacity) {
-        cols.push({
-          id: 'farmCapacity',
-          name: 'Hab space',
-        });
-      }
-      if (showOptionalColumn.value.internalHatcheryRatePerMinPerHab) {
-        cols.push({
-          id: 'internalHatcheryRatePerMinPerHab',
-          name: 'IHR / min / hab',
-          tooltip: 'Internal hatchery rate, including boost effect if any',
-        });
-      }
-      return cols;
+const { egg, coopStatus } = toRefs(props);
+const devmode = inject(devmodeKey);
+
+const showOptionalColumn = computed(
+  () =>
+    Object.fromEntries(
+      optionalColumnIds.map(col => [
+        col,
+        coopStatus.value.contributors.some(contributor => contributor[col] !== null),
+      ])
+    ) as Record<OptionalColumnId, boolean>
+);
+const columns: Ref<ColumnSpec[]> = computed(() => {
+  const cols: ColumnSpec[] = [
+    {
+      id: 'name',
+      name: 'Player',
+    },
+    {
+      id: 'eggsLaid',
+      name: 'Shipped',
+    },
+    {
+      id: 'eggsPerHour',
+      name: 'Rate/hr',
+      iconPath: eggIconPath(egg.value),
+      suffix: '/ hr',
+    },
+    {
+      id: 'earningBonusPercentage',
+      name: 'EB%',
+    },
+    {
+      id: 'role',
+      name: 'Role',
+    },
+    {
+      id: 'tokens',
+      name: 'Tokens',
+      iconPath: 'egginc/b_icon_token.png',
+      tooltip: 'Tokens left',
+    },
+    {
+      id: 'earningsBoost',
+      name: 'SiaB',
+      iconPath: 'egginc/afx_ship_in_a_bottle_4.png',
+      tooltip: 'Earnings boost percentage from Ship in a Bottle equipped by each contributor',
+    },
+    {
+      id: 'eggLayingRateBoost',
+      name: 'TD',
+      iconPath: 'egginc/afx_tachyon_deflector_4.png',
+      tooltip:
+        'Egg laying rate boost percentage from Tachyon Deflector equipped by each contributor',
+    },
+  ];
+  if (showOptionalColumn.value.tokensSpent) {
+    cols.push({
+      id: 'tokensSpent',
+      name: 'Tokens spent',
+      iconPath: 'egginc/b_icon_token.png',
+      suffix: ' \u{00a0}spent',
+      tooltip: 'Tokens spent',
     });
+  }
+  if (showOptionalColumn.value.hourlyLayingRateUncapped) {
+    cols.push({
+      id: 'hourlyLayingRateUncapped',
+      name: 'Laying / hr',
+      tooltip: 'Egg laying rate from all chickens, not capped by shipping capacity',
+    });
+  }
+  if (showOptionalColumn.value.hourlyShippingCapacity) {
+    cols.push({
+      id: 'hourlyShippingCapacity',
+      name: 'Max shipping / hr',
+    });
+  }
+  if (showOptionalColumn.value.farmPopulation) {
+    cols.push({
+      id: 'farmPopulation',
+      name: 'Population',
+    });
+  }
+  if (showOptionalColumn.value.farmCapacity) {
+    cols.push({
+      id: 'farmCapacity',
+      name: 'Hab space',
+    });
+  }
+  if (showOptionalColumn.value.internalHatcheryRatePerMinPerHab) {
+    cols.push({
+      id: 'internalHatcheryRatePerMinPerHab',
+      name: 'IHR / min / hab',
+      tooltip: 'Internal hatchery rate, including boost effect if any',
+    });
+  }
+  return cols;
+});
 
-    const columnIds: Ref<string[]> = computed(() => columns.value.map(col => col.id));
-    const defaultSortBy: ColumnId = 'eggsLaid';
-    const sortBySessionStorageKey = computed(
-      () => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortBy`
-    );
-    const sortAscendingSessionStorageKey = computed(
-      () => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortAscending`
-    );
-    let initialSortBy = getSessionStorage(sortBySessionStorageKey.value);
-    if (initialSortBy === undefined || !columnIds.value.includes(initialSortBy)) {
-      initialSortBy = defaultSortBy;
+const columnIds: Ref<string[]> = computed(() => columns.value.map(col => col.id));
+const defaultSortBy: ColumnId = 'eggsLaid';
+const sortBySessionStorageKey = computed(
+  () => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortBy`
+);
+const sortAscendingSessionStorageKey = computed(
+  () => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortAscending`
+);
+let initialSortBy = getSessionStorage(sortBySessionStorageKey.value);
+if (initialSortBy === undefined || !columnIds.value.includes(initialSortBy)) {
+  initialSortBy = defaultSortBy;
+}
+const sortBy = ref(initialSortBy as ColumnId);
+const initialSortAscending = getSessionStorage(sortAscendingSessionStorageKey.value) === 'true';
+const sortAscending = ref(initialSortAscending);
+const setSortBy = (by: ColumnId) => {
+  if (!columnIds.value.includes(by)) {
+    by = defaultSortBy;
+  }
+  if (sortBy.value === by) {
+    sortAscending.value = !sortAscending.value;
+  } else {
+    sortBy.value = by;
+    sortAscending.value = by === 'name';
+  }
+  setSessionStorage(sortBySessionStorageKey.value, by);
+  setSessionStorage(sortAscendingSessionStorageKey.value, sortAscending.value);
+};
+
+const sortedContributors = computed(() => {
+  const sorted = [...coopStatus.value.contributors].sort((c1, c2) => {
+    let cmp: number;
+    switch (sortBy.value) {
+      case 'name':
+        cmp = c1.name.localeCompare(c2.name);
+        break;
+      case 'role':
+        cmp = c1.earningBonusPercentage - c2.earningBonusPercentage;
+        break;
+      default:
+        cmp = (c1[sortBy.value] || 0) - (c2[sortBy.value] || 0);
     }
-    const sortBy = ref(initialSortBy as ColumnId);
-    const initialSortAscending = getSessionStorage(sortAscendingSessionStorageKey.value) === 'true';
-    const sortAscending = ref(initialSortAscending);
-    const setSortBy = (by: ColumnId) => {
-      if (!columnIds.value.includes(by)) {
-        by = defaultSortBy;
-      }
-      if (sortBy.value === by) {
-        sortAscending.value = !sortAscending.value;
-      } else {
-        sortBy.value = by;
-        sortAscending.value = by === 'name';
-      }
-      setSessionStorage(sortBySessionStorageKey.value, by);
-      setSessionStorage(sortAscendingSessionStorageKey.value, sortAscending.value);
-    };
-
-    const sortedContributors = computed(() => {
-      const sorted = [...coopStatus.value.contributors].sort((c1, c2) => {
-        let cmp: number;
-        switch (sortBy.value) {
-          case 'name':
-            cmp = c1.name.localeCompare(c2.name);
-            break;
-          case 'role':
-            cmp = c1.earningBonusPercentage - c2.earningBonusPercentage;
-            break;
-          default:
-            cmp = (c1[sortBy.value] || 0) - (c2[sortBy.value] || 0);
-        }
-        // Use eggsLaid as tiebreaker.
-        return cmp !== 0 ? cmp : c1.eggsLaid - c2.eggsLaid;
-      });
-      return sortAscending.value ? sorted : sorted.reverse();
-    });
-
-    return {
-      devmode,
-      columns,
-      showOptionalColumn,
-      sortBy,
-      sortAscending,
-      setSortBy,
-      sortedContributors,
-      formatEIValue,
-      formatWithThousandSeparators,
-      renderNonempty,
-    };
-  },
+    // Use eggsLaid as tiebreaker.
+    return cmp !== 0 ? cmp : c1.eggsLaid - c2.eggsLaid;
+  });
+  return sortAscending.value ? sorted : sorted.reverse();
 });
 </script>
