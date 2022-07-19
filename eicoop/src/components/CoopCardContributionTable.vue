@@ -34,7 +34,11 @@
                 <span class="text-gray-500 dark:text-gray-200">{{ column.name }}</span>
               </template>
 
-              <svg viewBox="0 0 320 512" class="flex-shrink-0 h-3 text-gray-400">
+              <svg
+                v-if="column.id !== 'artifacts'"
+                viewBox="0 0 320 512"
+                class="flex-shrink-0 h-3 text-gray-400"
+              >
                 <path
                   v-if="!(sortBy === column.id && !sortAscending)"
                   fill="currentColor"
@@ -123,6 +127,16 @@
               clip-rule="evenodd"
             />
           </svg>
+        </td>
+        <td
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <coop-card-contribution-table-artifact-gallery
+            v-if="contributor.farmShared"
+            :artifact-set="(contributor.artifacts as ArtifactSet)"
+            class="mx-auto"
+          />
+          <template v-else>Private</template>
         </td>
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
@@ -249,7 +263,7 @@
 <script setup lang="ts">
 import { computed, ref, toRefs, inject, Ref } from 'vue';
 
-import { CoopStatus, eggIconPath, ei, formatEIValue } from '@/lib';
+import { ArtifactSet, CoopStatus, eggIconPath, ei, formatEIValue } from '@/lib';
 import {
   getSessionStorage,
   setSessionStorage,
@@ -259,9 +273,11 @@ import {
 import { devmodeKey } from '@/symbols';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 import BaseIcon from 'ui/components/BaseIcon.vue';
+import CoopCardContributionTableArtifactGallery from '@/components/CoopCardContributionTableArtifactGallery.vue';
 
 const requiredColumnIds = [
   'name',
+  'artifacts',
   'eggsLaid',
   'eggsPerHour',
   'earningBonusPercentage',
@@ -311,6 +327,10 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
     {
       id: 'name',
       name: 'Player',
+    },
+    {
+      id: 'artifacts',
+      name: 'Artifacts',
     },
     {
       id: 'eggsLaid',
@@ -432,6 +452,9 @@ const sortedContributors = computed(() => {
         break;
       case 'role':
         cmp = c1.earningBonusPercentage - c2.earningBonusPercentage;
+        break;
+      case 'artifacts':
+        cmp = (c1.farmShared ? 0 : 1) - (c2.farmShared ? 0 : 1);
         break;
       default:
         cmp = (c1[sortBy.value] || 0) - (c2[sortBy.value] || 0);

@@ -1,6 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 
-import { ei, FarmerRole, requestQueryCoop, soulPowerToFarmerRole } from 'lib';
+import { ArtifactSet, ei, FarmerRole, requestQueryCoop, soulPowerToFarmerRole } from 'lib';
 import { ContractLeague, getContractFromPlayerSave, ContractLeagueStatus } from './contract';
 import { SortedContractList } from './contractList';
 
@@ -164,6 +164,9 @@ export class Contributor {
   farmPopulation: number | null;
   farmCapacity: number | null;
   internalHatcheryRatePerMinPerHab: number | null;
+  // New in v1.23
+  farmShared: boolean;
+  artifacts: ArtifactSet;
 
   constructor(contributor: ei.ContractCoopStatusResponse.IContributionInfo) {
     this.id = contributor.userId!;
@@ -213,6 +216,9 @@ export class Contributor {
         this.internalHatcheryRatePerMinPerHab = params.ihr * 60;
       }
     }
+
+    this.farmShared = !!contributor.farmInfo;
+    this.artifacts = new ArtifactSet(contributor.farmInfo?.equippedArtifacts ?? [], false);
   }
 }
 
