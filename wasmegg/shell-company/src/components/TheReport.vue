@@ -664,6 +664,18 @@ for (const objectConfig of config.dlcCatalog?.shellObjects ?? []) {
     spec: objectConfig,
   });
 }
+objects.sort((o1, o2) => {
+  if ((o1.spec.requiredEop ?? 0) !== (o2.spec.requiredEop ?? 0)) {
+    return (o1.spec.requiredEop ?? 0) - (o2.spec.requiredEop ?? 0);
+  }
+  if ((o1.spec.requiredSoulEggs ?? 0) !== (o2.spec.requiredSoulEggs ?? 0)) {
+    return (o1.spec.requiredSoulEggs ?? 0) - (o2.spec.requiredSoulEggs ?? 0);
+  }
+  if (o1.price !== o2.price) {
+    return o1.price - o2.price;
+  }
+  return 0;
+});
 const chickens = objects.filter((o: ShellObject): o is Chicken => o.type === AssetType.CHICKEN);
 const hats = objects.filter((o: ShellObject): o is Hat => o.type === AssetType.HAT);
 
