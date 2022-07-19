@@ -8,6 +8,36 @@
         />
         <span class="font-serif truncate">{{ nickname }}</span>
       </div>
+      <div class="mt-0.5 mb-1.5">
+        <div class="text-xs">
+          Last synced to server:
+          <span v-tippy="{ content: lastRefreshed.format('LLL') }" class="whitespace-nowrap">
+            {{ lastRefreshedRelative }}
+          </span>
+        </div>
+        <div class="flex">
+          <div
+            v-tippy="{
+              content: `
+              <p>The game, while active, saves to Egg, Inc.&rsquo;s server every couple of minutes if network condition allows.
+              Other than soon after a fresh launch of the game, such server syncs are unpredictable from the user&rsquo;s point of view.
+              <span class='text-blue-300'>You can force close then reopen the app to reasonably reliably trigger a sync</span>
+              (search for &ldquo;iOS force close app&rdquo; or &ldquo;Android force close app&rdquo; if you need help).</p>
+
+              <p>However, even after an app-initiated sync, it may take an unpredicatible amount of time
+              (usually within a minute or so) for the game&rsquo;s server to serve the updated save through its API,
+              which is then picked up by this tool. There is no solution other than clicking &ldquo;Load Player Data&rdquo;
+              periodically until the fresh save shows up. Please do not refresh too fast, which is not helpful.</p>`,
+              allowHTML: true,
+            }"
+            class="flex items-center space-x-1"
+          >
+            <span class="text-xs text-gray-500">Why is my save out of date?</span>
+            <base-info />
+          </div>
+          <div class="flex-0"></div>
+        </div>
+      </div>
       <div class="flex items-center">
         <span class="mr-1">Current balance:</span>
         <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
@@ -154,7 +184,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import relativeTime from 'dayjs/plugin/relativeTime';
 
 import {
   ei,
@@ -166,7 +199,12 @@ import {
   UserBackupEmptyError,
 } from 'lib';
 
+import BaseInfo from 'ui/components/BaseInfo.vue';
+
 import AssetType = ei.ShellSpec.AssetType;
+
+dayjs.extend(localizedFormat);
+dayjs.extend(relativeTime);
 
 type ShellSet = {
   id: string;
@@ -220,6 +258,19 @@ watch(showUnowned, () => {
   setLocalStorage(SHOW_UNOWNED_LOCALSTORAGE_KEY, showUnowned.value);
 });
 
+const lastRefreshed = ref(dayjs());
+const now = ref(dayjs());
+const lastRefreshedRelative = computed(() => now.value && lastRefreshed.value.fromNow());
+let refreshIntervalId: ReturnType<typeof setInterval> | undefined;
+onMounted(() => {
+  refreshIntervalId = setInterval(() => {
+    now.value = dayjs(); // Force recomputation of lastRefreshedRelative
+  }, 10000);
+});
+onBeforeUnmount(() => {
+  clearInterval(refreshIntervalId);
+});
+
 // This async component does not respond to playerId changes.
 const save = await requestFirstContact(props.playerId);
 if (!save.backup || !save.backup.game) {
@@ -238,6 +289,7 @@ const hasProPermit = save.backup.game.permitLevel === 1;
 const ticketsEarned = save.backup.game.shellScriptsEarned ?? 0;
 const ticketsSpent = save.backup.game.shellScriptsSpent ?? 0;
 const ticketsBalance = ticketsEarned - ticketsSpent;
+lastRefreshed.value = dayjs(Math.min(save.backup.settings!.lastBackupTime! * 1000, Date.now()));
 
 const ownedShellIds = new Set<string>();
 const ownedShellSetIds = new Set<string>();
