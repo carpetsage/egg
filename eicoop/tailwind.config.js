@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {
       screens: {
-        ultrawide: '1440px',
+        ultrawide: '1680px',
       },
       colors: {
         green: {
@@ -77,7 +77,7 @@ module.exports = {
       },
       maxWidth: {
         xxs: '16rem',
-        ultrawide: '90rem',
+        ultrawide: '105rem',
       },
       height: {
         4.5: '1.125rem',
