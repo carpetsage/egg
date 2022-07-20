@@ -132,10 +132,16 @@
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           <coop-card-contribution-table-artifact-gallery
-            v-if="contributor.farmShared"
+            v-if="contributor.farmShared && contributor.artifacts.artifacts.length > 0"
             :artifact-set="(contributor.artifacts as ArtifactSet)"
             class="mx-auto"
           />
+          <span
+            v-else-if="contributor.farmShared"
+            v-tippy="{ content: 'Farm is shared but no artifact is equipped.' }"
+            class="hover:cursor-help"
+            >&ndash;</span
+          >
           <template v-else>Private</template>
         </td>
         <td
