@@ -1,6 +1,6 @@
 <template>
   <div class="relative h-[16px] w-[73px]">
-    <div class="absolute top-0 left-0 flex justify-center space-x-3 scale-[25%] origin-top-left">
+    <div class="absolute top-0 left-0 flex justify-center space-x-3 scale-[.25] origin-top-left">
       <div v-for="(artifact, artifactIndex) in artifactSet.artifacts" :key="artifactIndex">
         <tippy
           tag="div"
