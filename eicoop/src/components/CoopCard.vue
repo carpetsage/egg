@@ -147,7 +147,13 @@
               </template>
             </template>
             <template v-else>
-              <span v-tippy="{ content: 'The creator has left.' }" class="cursor-help"
+              <span
+                v-tippy="{
+                  content: status.cannotDetermineCreator
+                    ? 'Due to changes to the Egg, Inc. API, it is no longer possible to determine the creator.'
+                    : 'The creator has left.',
+                }"
+                class="cursor-help"
                 >&ndash;</span
               >
             </template>

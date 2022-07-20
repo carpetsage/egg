@@ -21,6 +21,9 @@ export class CoopStatus {
   totalEggLayingRateBoost: number;
   contributors: Contributor[];
   creator: Contributor | null;
+  // Since shortly before the release v1.23, contributorIds are encrypted, but
+  // creatorId is not, making it impossible to determine the creator.
+  cannotDetermineCreator: boolean;
   league: ContractLeague | null;
   goals: ei.Contract.IGoal[] | null;
   leagueStatus: ContractLeagueStatus | null;
@@ -44,10 +47,17 @@ export class CoopStatus {
       0
     );
     this.creator = null;
+    this.cannotDetermineCreator = false;
     for (const contributor of this.contributors) {
       if (contributor.id === cs.creatorId) {
         this.creator = contributor;
       }
+    }
+    if (this.creator === null && cs.creatorId) {
+      // Heuristics for encrypted ID.
+      const isEncrypted = (id: string) => !id.startsWith('EI') || id.length >= 30;
+      this.cannotDetermineCreator =
+        !isEncrypted(cs.creatorId) && this.contributors.some(c => isEncrypted(c.id));
     }
     this.league = null;
     this.goals = null;
