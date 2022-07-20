@@ -90,7 +90,7 @@ export class EventType {
       case 'mission-duration':
         return 'pink';
       case 'shell-sale':
-        return 'red';
+        return 'rose';
     }
   }
 
@@ -315,6 +315,7 @@ export const eventTypes = allEventTypes.filter(type => existingEventTypes.has(ty
   'text-purple-500',
   'text-fuchsia-500',
   'text-pink-500',
+  'text-rose-500',
 
   'text-gray-300',
   'text-red-300',
@@ -333,6 +334,7 @@ export const eventTypes = allEventTypes.filter(type => existingEventTypes.has(ty
   'text-purple-300',
   'text-fuchsia-300',
   'text-pink-300',
+  'text-rose-300',
 
   'bg-gray-500',
   'bg-red-500',
@@ -351,4 +353,5 @@ export const eventTypes = allEventTypes.filter(type => existingEventTypes.has(ty
   'bg-purple-500',
   'bg-fuchsia-500',
   'bg-pink-500',
+  'bg-rose-500',
 ];
