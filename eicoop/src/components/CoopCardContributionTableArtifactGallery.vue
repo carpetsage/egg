@@ -9,7 +9,7 @@
         >
           <img
             class="absolute top-0 left-0 h-full w-full z-10"
-            :src="iconURL(artifact.iconPath, 256)"
+            :src="iconURL(artifact.iconPath, 128)"
           />
           <img
             v-for="(stone, stoneIndex) in artifact.stones.slice().reverse()"
