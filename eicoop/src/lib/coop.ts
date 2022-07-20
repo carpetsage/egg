@@ -167,6 +167,7 @@ export class Contributor {
   // New in v1.23
   farmShared: boolean;
   artifacts: ArtifactSet;
+  boosts: ei.Backup.IActiveBoost[];
 
   constructor(contributor: ei.ContractCoopStatusResponse.IContributionInfo) {
     this.id = contributor.userId!;
@@ -219,6 +220,9 @@ export class Contributor {
 
     this.farmShared = !!contributor.farmInfo;
     this.artifacts = new ArtifactSet(contributor.farmInfo?.equippedArtifacts ?? [], false);
+    this.boosts = (contributor.farmInfo?.activeBoosts ?? []).filter(
+      boost => !!boost.boostId && (boost.timeRemaining ?? 0) > 0
+    );
   }
 }
 

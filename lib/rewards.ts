@@ -66,7 +66,7 @@ export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
   }
 }
 
-const epicResearchIdToName: { [key: string]: string } = {
+export const epicResearchIdToName: { [key: string]: string } = {
   hold_to_hatch: 'Hold to Hatch',
   epic_hatchery: 'Epic Hatchery',
   epic_internal_incubators: 'Epic Int. Hatcheries',
@@ -89,7 +89,7 @@ const epicResearchIdToName: { [key: string]: string } = {
   hold_to_research: 'Hold to Research',
 };
 
-const boostIdToName: { [key: string]: string } = {
+export const boostIdToName: { [key: string]: string } = {
   jimbos_blue: "Jimbo's excellent bird feed (2x 1hr)",
   jimbos_blue_big: "Jimbo's excellent bird feed (2x 8hr)",
   jimbos_purple: "Jimbo's premium bird feed (10x 30min)",

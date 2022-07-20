@@ -5,8 +5,11 @@
         <template v-for="column in columns" :key="column.id">
           <th
             scope="col"
-            class="px-4 py-2 text-xs font-medium whitespace-nowrap cursor-pointer select-none"
-            :class="column.id === 'name' ? 'text-left' : 'text-center'"
+            class="px-4 py-2 text-xs font-medium whitespace-nowrap select-none"
+            :class="[
+              column.id === 'name' ? 'text-left' : 'text-center',
+              column.id !== 'artifacts' && column.id !== 'boosts' ? 'cursor-pointer' : '',
+            ]"
             @click="setSortBy(column.id)"
           >
             <span
@@ -35,7 +38,7 @@
               </template>
 
               <svg
-                v-if="column.id !== 'artifacts'"
+                v-if="column.id !== 'artifacts' && column.id !== 'boosts'"
                 viewBox="0 0 320 512"
                 class="flex-shrink-0 h-3 text-gray-400"
               >
@@ -182,6 +185,31 @@
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
+          <div
+            v-if="contributor.farmShared && contributor.boosts.length > 0"
+            class="flex items-center justify-center"
+          >
+            <base-icon
+              v-for="(boost, i) of contributor.boosts"
+              :key="i"
+              v-tippy="{ content: `${boostIdToName[boost.boostId ?? ''] ?? '?'}` }"
+              :icon-rel-path="`egginc/b_icon_${boost.boostId}.png`"
+              class="flex-0 h-4 w-4"
+            />
+          </div>
+          <span
+            v-else-if="contributor.farmShared"
+            v-tippy="{
+              content: 'Farm is shared but no boost was active when the player last checked in.',
+            }"
+            class="hover:cursor-help"
+            >&ndash;</span
+          >
+          <template v-else>Private</template>
+        </td>
+        <td
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
           {{ (contributor.earningsBoost * 100).toFixed(0) }}%
         </td>
         <td
@@ -269,7 +297,7 @@
 <script setup lang="ts">
 import { computed, ref, toRefs, inject, Ref } from 'vue';
 
-import { ArtifactSet, CoopStatus, eggIconPath, ei, formatEIValue } from '@/lib';
+import { ArtifactSet, CoopStatus, boostIdToName, eggIconPath, ei, formatEIValue } from '@/lib';
 import {
   getSessionStorage,
   setSessionStorage,
@@ -288,6 +316,7 @@ const requiredColumnIds = [
   'eggsPerHour',
   'earningBonusPercentage',
   'tokens',
+  'boosts',
   'earningsBoost',
   'role',
   'eggLayingRateBoost',
@@ -374,6 +403,10 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
   }
   cols.push(
     {
+      id: 'boosts',
+      name: 'Boosts',
+    },
+    {
       id: 'earningsBoost',
       name: 'SiaB',
       iconPath: 'egginc/afx_ship_in_a_bottle_4.png',
@@ -438,6 +471,9 @@ const sortBy = ref(initialSortBy as ColumnId);
 const initialSortAscending = getSessionStorage(sortAscendingSessionStorageKey.value) === 'true';
 const sortAscending = ref(initialSortAscending);
 const setSortBy = (by: ColumnId) => {
+  if (by === 'artifacts' || by === 'boosts') {
+    return;
+  }
   if (!columnIds.value.includes(by)) {
     by = defaultSortBy;
   }
@@ -462,7 +498,8 @@ const sortedContributors = computed(() => {
         cmp = c1.earningBonusPercentage - c2.earningBonusPercentage;
         break;
       case 'artifacts':
-        cmp = (c1.farmShared ? 0 : 1) - (c2.farmShared ? 0 : 1);
+      case 'boosts':
+        cmp = 0;
         break;
       default:
         cmp = (c1[sortBy.value] || 0) - (c2[sortBy.value] || 0);
