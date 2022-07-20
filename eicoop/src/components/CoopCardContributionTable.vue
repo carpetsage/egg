@@ -165,6 +165,15 @@
           {{ formatWithThousandSeparators(contributor.tokens) }}
         </td>
         <td
+          v-if="showOptionalColumn.tokensSpent"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <template v-if="contributor.tokensSpent !== null">
+            {{ formatWithThousandSeparators(contributor.tokensSpent) }}
+          </template>
+          <template v-else>&ndash;</template>
+        </td>
+        <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           {{ (contributor.earningsBoost * 100).toFixed(0) }}%
@@ -173,15 +182,6 @@
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           {{ (contributor.eggLayingRateBoost * 100).toFixed(0) }}%
-        </td>
-        <td
-          v-if="showOptionalColumn.tokensSpent"
-          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
-        >
-          <template v-if="contributor.tokensSpent !== null">
-            {{ formatWithThousandSeparators(contributor.tokensSpent) }}
-          </template>
-          <template v-else>&ndash;</template>
         </td>
         <td
           v-if="showOptionalColumn.hourlyLayingRateUncapped"
@@ -356,6 +356,17 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
       iconPath: 'egginc/b_icon_token.png',
       tooltip: 'Tokens left',
     },
+  ];
+  if (showOptionalColumn.value.tokensSpent) {
+    cols.push({
+      id: 'tokensSpent',
+      name: 'Tokens spent',
+      iconPath: 'egginc/b_icon_token.png',
+      suffix: ' \u{00a0}spent',
+      tooltip: 'Tokens spent',
+    });
+  }
+  cols.push(
     {
       id: 'earningsBoost',
       name: 'SiaB',
@@ -368,17 +379,8 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
       iconPath: 'egginc/afx_tachyon_deflector_4.png',
       tooltip:
         'Egg laying rate boost percentage from Tachyon Deflector equipped by each contributor',
-    },
-  ];
-  if (showOptionalColumn.value.tokensSpent) {
-    cols.push({
-      id: 'tokensSpent',
-      name: 'Tokens spent',
-      iconPath: 'egginc/b_icon_token.png',
-      suffix: ' \u{00a0}spent',
-      tooltip: 'Tokens spent',
-    });
-  }
+    }
+  );
   if (showOptionalColumn.value.hourlyLayingRateUncapped) {
     cols.push({
       id: 'hourlyLayingRateUncapped',
