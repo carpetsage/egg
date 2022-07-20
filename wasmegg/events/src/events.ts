@@ -48,6 +48,8 @@ export class EventType {
         return 'MISSION CAPACITY BOOST';
       case 'mission-duration':
         return 'MISSION DURATION CUT';
+      case 'shell-sale':
+        return 'SHELL SALE';
     }
   }
 
@@ -87,6 +89,8 @@ export class EventType {
         return 'fuchsia';
       case 'mission-duration':
         return 'pink';
+      case 'shell-sale':
+        return 'red';
     }
   }
 
@@ -139,6 +143,8 @@ export class EventType {
         return 'egginc/icon_afx_chest_2.png';
       case 'mission-duration':
         return 'egginc/icon_afx_mission_duration.png';
+      case 'shell-sale':
+        return 'egginc/icon_shells_v2.png';
     }
   }
 }
@@ -161,6 +167,7 @@ const allEventTypes = (<EventTypeId[]>[
   'mission-fuel',
   'mission-capacity',
   'mission-duration',
+  'shell-sale',
 ]).map(id => new EventType(id));
 
 class _GameEvent {
@@ -246,6 +253,7 @@ export class InGameEvent extends _GameEvent {
       case 'vehicle-sale':
       case 'boost-sale':
       case 'crafting-sale':
+      case 'shell-sale':
         return `${Math.round((1 - this.multiplier) * 100)}% OFF`;
       case 'mission-duration':
         return `-${Math.round((1 - this.multiplier) * 100)}%`;

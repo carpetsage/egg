@@ -15,7 +15,8 @@ export type EventTypeId =
   | 'crafting-sale'
   | 'mission-fuel'
   | 'mission-capacity'
-  | 'mission-duration';
+  | 'mission-duration'
+  | 'shell-sale';
 
 export type InGameEventTypeId = Exclude<EventTypeId, 'app-update'>;
 

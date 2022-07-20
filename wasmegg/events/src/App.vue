@@ -199,6 +199,7 @@ const getEventTypesOn = (): EventTypeSwitches => {
     'mission-fuel': false,
     'mission-capacity': false,
     'mission-duration': false,
+    'shell-sale': false,
   };
   for (const type of eventTypes) {
     eventTypesOn[type.id] = getLocalStorage(eventTypeOnLocalStorageKey(type.id)) !== 'false';
