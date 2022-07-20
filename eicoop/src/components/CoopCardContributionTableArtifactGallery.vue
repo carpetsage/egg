@@ -7,15 +7,17 @@
           class="relative h-16 w-16 rounded-full isolate"
           :class="artifactRarityBgClass(artifact.afxRarity)"
         >
-          <img
+          <base-icon
+            :icon-rel-path="artifact.iconPath"
+            :size="128"
             class="absolute top-0 left-0 h-full w-full z-10"
-            :src="iconURL(artifact.iconPath, 128)"
           />
-          <img
+          <base-icon
             v-for="(stone, stoneIndex) in artifact.stones.slice().reverse()"
             :key="stoneIndex"
+            :icon-rel-path="stone.iconPath"
+            :size="64"
             class="stone z-20"
-            :src="iconURL(stone.iconPath, 128)"
           />
 
           <template #content>
@@ -24,21 +26,27 @@
                 class="relative h-16 w-16 mx-auto rounded-full isolate"
                 :class="artifactRarityBgClass(artifact.afxRarity)"
               >
-                <img
+                <base-icon
+                  :icon-rel-path="artifact.iconPath"
+                  :size="128"
                   class="absolute top-0 left-0 h-full w-full z-10"
-                  :src="iconURL(artifact.iconPath, 256)"
                 />
-                <img
+                <base-icon
                   v-for="(stone, stoneIndex) in artifact.stones.slice().reverse()"
                   :key="stoneIndex"
+                  :icon-rel-path="stone.iconPath"
+                  :size="64"
                   class="stone z-20"
-                  :src="iconURL(stone.iconPath, 128)"
                 />
               </div>
 
               <div>
                 <div class="font-medium">
-                  <img :src="iconURL(artifact.iconPath)" class="inline h-4 w-4 relative -top-px" />
+                  <base-icon
+                    :icon-rel-path="artifact.iconPath"
+                    :size="128"
+                    class="inline-block align-middle h-4 w-4 relative -top-px"
+                  />
                   {{ artifact.name }} (T{{ artifact.tierNumber }})
                   <span
                     v-if="artifact.afxRarity > 0"
@@ -55,7 +63,11 @@
 
               <div v-for="(stone, stoneIndex) in artifact.stones" :key="stoneIndex">
                 <div>
-                  <img :src="iconURL(stone.iconPath)" class="inline h-4 w-4 relative -top-px" />
+                  <base-icon
+                    :icon-rel-path="stone.iconPath"
+                    :size="64"
+                    class="inline-block align-middle h-4 w-4 relative -top-px"
+                  />
                   {{ stone.name }} (T{{ stone.tierNumber }})
                 </div>
                 <div>
@@ -74,7 +86,9 @@
 <script setup lang="ts">
 import { Tippy } from 'vue-tippy';
 
-import { ArtifactSet, ei, iconURL } from 'lib';
+import { ArtifactSet, ei } from 'lib';
+
+import BaseIcon from 'ui/components/BaseIcon.vue';
 
 defineProps<{ artifactSet: ArtifactSet }>();
 
@@ -130,7 +144,7 @@ function artifactRarityBgClass(afxRarity: ei.ArtifactSpec.Rarity): string {
   background: radial-gradient(#fffe41, #fffe41, #eeab42);
 }
 
-img.stone {
+::v-deep(picture.stone) {
   position: absolute;
   bottom: 7%;
   height: 17%;
@@ -139,15 +153,15 @@ img.stone {
     drop-shadow(-1px 0 0 white);
 }
 
-img.stone:nth-child(2) {
+::v-deep(picture.stone:nth-child(2)) {
   right: 7%;
 }
 
-img.stone:nth-child(3) {
+::v-deep(picture.stone:nth-child(3)) {
   right: 24%;
 }
 
-img.stone:nth-child(4) {
+::v-deep(img.stone:nth-child(4)) {
   right: 41%;
 }
 </style>
