@@ -1,6 +1,13 @@
 import { ei } from './proto';
 import { formatEIValue } from './units';
 
+export function boostIconPath(id: string): string {
+  if (id.endsWith('_v2')) {
+    id = id.slice(0, -3);
+  }
+  return `egginc/b_icon_${id}.png`;
+}
+
 export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
   switch (r.rewardType!) {
     case ei.RewardType.GOLD:
@@ -48,7 +55,7 @@ export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
     case ei.RewardType.PIGGY_LEVEL_BUMP:
       return 'egginc-extras/icon_piggy_level_up.png';
     case ei.RewardType.BOOST:
-      return `egginc/b_icon_${r.rewardSubType!}.png`;
+      return boostIconPath(r.rewardSubType!);
     case ei.RewardType.ARTIFACT_CASE:
       return `egginc/icon_afx_chest_3.png`;
     case ei.RewardType.SHELL_SCRIPT:
@@ -118,6 +125,13 @@ export const boostIdToName: { [key: string]: string } = {
   quantum_bulb: 'Quantum warming bulb',
 };
 
+export function boostName(id: string): string {
+  if (id.endsWith('_v2')) {
+    id = id.slice(0, -3);
+  }
+  return boostIdToName[id] ?? id;
+}
+
 export function rewardName(r: ei.IReward | ei.Contract.IGoal): string {
   switch (r.rewardType!) {
     case ei.RewardType.GOLD:
@@ -136,8 +150,7 @@ export function rewardName(r: ei.IReward | ei.Contract.IGoal): string {
     case ei.RewardType.PIGGY_LEVEL_BUMP:
       return 'Piggy level';
     case ei.RewardType.BOOST: {
-      const id = r.rewardSubType!;
-      return boostIdToName[id] || id;
+      return boostName(r.rewardSubType!);
     }
     case ei.RewardType.ARTIFACT_CASE:
       return 'Artifact case';

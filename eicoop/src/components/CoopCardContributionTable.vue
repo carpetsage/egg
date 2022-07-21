@@ -192,8 +192,8 @@
             <base-icon
               v-for="(boost, i) of contributor.boosts"
               :key="i"
-              v-tippy="{ content: `${boostIdToName[boost.boostId ?? ''] ?? '?'}` }"
-              :icon-rel-path="`egginc/b_icon_${boost.boostId}.png`"
+              v-tippy="{ content: `${boost.boostId ? boostName(boost.boostId) : '?'}` }"
+              :icon-rel-path="boost.boostId ? boostIconPath(boost.boostId) : 'egginc/icon_help.png'"
               class="flex-0 h-4 w-4"
             />
           </div>
@@ -297,7 +297,15 @@
 <script setup lang="ts">
 import { computed, ref, toRefs, inject, Ref } from 'vue';
 
-import { ArtifactSet, CoopStatus, boostIdToName, eggIconPath, ei, formatEIValue } from '@/lib';
+import {
+  ArtifactSet,
+  CoopStatus,
+  boostIconPath,
+  boostName,
+  eggIconPath,
+  ei,
+  formatEIValue,
+} from '@/lib';
 import {
   getSessionStorage,
   setSessionStorage,
