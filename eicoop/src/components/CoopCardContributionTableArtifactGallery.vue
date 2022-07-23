@@ -163,7 +163,7 @@ function artifactRarityBgClass(afxRarity: ei.ArtifactSpec.Rarity): string {
   right: 24%;
 }
 
-::v-deep(img.stone:nth-child(4)) {
+::v-deep(picture.stone:nth-child(4)) {
   right: 41%;
 }
 </style>
