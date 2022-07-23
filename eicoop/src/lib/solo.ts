@@ -1,6 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 
-import { ei, Farm, FarmerRole } from 'lib';
+import { ArtifactSet, ei, Farm, FarmerRole } from 'lib';
 import { ContractLeague, ContractLeagueStatus } from './contract';
 
 export class SoloStatus {
@@ -32,6 +32,8 @@ export class SoloStatus {
   farmPopulation: number;
   farmCapacity: number;
   internalHatcheryRatePerMinPerHab: number;
+  artifacts: ArtifactSet;
+  boosts: ei.Backup.IActiveBoost[];
 
   awayInternalHatcheryRatePerMinPerHab: number;
   internalHatcheryRateBoostMultiplier: number;
@@ -83,6 +85,10 @@ export class SoloStatus {
     this.farmPopulation = farm.numChickens;
     this.farmCapacity = farm.habSpace;
     this.internalHatcheryRatePerMinPerHab = farm.internalHatcheryChickensPerMinutePerHab.active;
+    this.artifacts = farm.artifactSet;
+    this.boosts = (farm.farm.activeBoosts ?? []).filter(
+      boost => !!boost.boostId && (boost.timeRemaining ?? 0) > 0
+    );
     this.awayInternalHatcheryRatePerMinPerHab = farm.internalHatcheryChickensPerMinutePerHab.away;
     this.internalHatcheryRateBoostMultiplier = farm.internalHatcheryRateBoostMultiplier;
   }

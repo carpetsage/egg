@@ -290,6 +290,21 @@
                   <td
                     class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
                   >
+                    <coop-card-contribution-table-artifact-gallery
+                      v-if="status.artifacts.artifacts.length > 0"
+                      :artifact-set="status.artifacts"
+                      class="mx-auto"
+                    />
+                    <span
+                      v-else
+                      v-tippy="{ content: 'No artifact is equipped.' }"
+                      class="hover:cursor-help"
+                      >&ndash;</span
+                    >
+                  </td>
+                  <td
+                    class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+                  >
                     {{ formatEIValue(status.eggsLaid) }}
                   </td>
                   <td
@@ -317,6 +332,29 @@
                     class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
                   >
                     {{ formatWithThousandSeparators(status.tokensSpent) }}
+                  </td>
+                  <td
+                    class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+                  >
+                    <div v-if="status.boosts.length > 0" class="flex items-center justify-center">
+                      <base-icon
+                        v-for="(boost, i) of status.boosts"
+                        :key="i"
+                        v-tippy="{ content: `${boost.boostId ? boostName(boost.boostId) : '?'}` }"
+                        :icon-rel-path="
+                          boost.boostId ? boostIconPath(boost.boostId) : 'egginc/icon_help.png'
+                        "
+                        class="flex-0 h-4 w-4"
+                      />
+                    </div>
+                    <span
+                      v-else
+                      v-tippy="{
+                        content: 'No active boost.',
+                      }"
+                      class="hover:cursor-help"
+                      >&ndash;</span
+                    >
                   </td>
                   <td
                     class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
@@ -402,7 +440,14 @@
 import { computed, inject, ref, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { eggIconPath, formatEIValue, formatDuration, SoloStatus } from '@/lib';
+import {
+  boostName,
+  boostIconPath,
+  eggIconPath,
+  formatEIValue,
+  formatDuration,
+  SoloStatus,
+} from '@/lib';
 import { completionStatusFgColorClass, completionStatusBgColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
 import { eggTooltip, formatWithThousandSeparators, renderNonempty } from '@/utils';
@@ -413,6 +458,7 @@ import BaseIcon from 'ui/components/BaseIcon.vue';
 import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue';
 import ContractStatusLabel from '@/components/ContractStatusLabel.vue';
 import ContractProgressBar from '@/components/ContractProgressBar.vue';
+import CoopCardContributionTableArtifactGallery from '@/components/CoopCardContributionTableArtifactGallery.vue';
 
 const props = defineProps<{ status: SoloStatus }>();
 const { status } = toRefs(props);
@@ -457,6 +503,10 @@ const columns = [
     name: 'Player',
   },
   {
+    id: 'artifacts',
+    name: 'Artifacts',
+  },
+  {
     id: 'eggsLaid',
     name: 'Shipped',
   },
@@ -486,6 +536,10 @@ const columns = [
     iconPath: 'egginc/b_icon_token.png',
     suffix: ' \u{00a0}spent',
     tooltip: 'Tokens spent',
+  },
+  {
+    id: 'boosts',
+    name: 'Boosts',
   },
   {
     id: 'hourlyLayingRateUncapped',
