@@ -114,7 +114,7 @@
             }}</span>
             expected /
             <tippy class="text-gray-900 dark:text-gray-100">
-              {{ formatDuration(max(leagueStatus.secondsRemaining, 0)) }} remaining
+              {{ formatDuration(Math.max(leagueStatus.secondsRemaining, 0)) }} remaining
               <template #content>
                 {{ leagueStatus.secondsRemaining > 0 ? 'Expires' : 'Expired' }} at
                 {{ status.expirationTime.format('YYYY-MM-DD HH:mm') }}
@@ -198,7 +198,7 @@
             }}</span>
             expected /
             <tippy class="text-gray-900 dark:text-gray-100">
-              {{ formatDuration(max(estimatedLeagueStatus.secondsRemaining, 0)) }} remaining
+              {{ formatDuration(Math.max(estimatedLeagueStatus.secondsRemaining, 0)) }} remaining
               <template #content>
                 {{ estimatedLeagueStatus.secondsRemaining > 0 ? 'Expires' : 'Expired' }} at
                 {{ status.expirationTime.format('YYYY-MM-DD HH:mm') }}
@@ -398,8 +398,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, inject, PropType, ref, toRefs } from 'vue';
+<script setup lang="ts">
+import { computed, inject, ref, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
 import { eggIconPath, formatEIValue, formatDuration, SoloStatus } from '@/lib';
@@ -414,145 +414,100 @@ import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue';
 import ContractStatusLabel from '@/components/ContractStatusLabel.vue';
 import ContractProgressBar from '@/components/ContractProgressBar.vue';
 
-export default defineComponent({
-  components: {
-    ContractLeagueLabel,
-    ContractStatusLabel,
-    ContractProgressBar,
-    BaseClickToCopy,
-    BaseInfo,
-    BaseIcon,
-    Tippy,
-  },
-  props: {
-    status: {
-      type: Object as PropType<SoloStatus>,
-      required: true,
-    },
-  },
-  setup(props) {
-    const devmode = inject(devmodeKey);
-    const { status } = toRefs(props);
+const props = defineProps<{ status: SoloStatus }>();
+const { status } = toRefs(props);
+const devmode = inject(devmodeKey);
 
-    const contract = computed(() => status.value.contract);
-    const egg = computed(() => contract.value.egg!);
-    const league = computed(() => status.value.league!);
+const contract = computed(() => status.value.contract);
+const egg = computed(() => contract.value.egg!);
+const league = computed(() => status.value.league!);
 
-    const refreshTime = computed(() => status.value.refreshTime);
-    const estimatesBeingRefreshed = ref(false);
-    const {
-      now,
-      relativeTime: relativeRefreshTime,
-      referenceTimeFormatted: refreshTimeFormatted,
-    } = useAutoRefreshedRelativeTime(refreshTime, {
-      refreshIntervalMs: 15000,
-      refreshHook: now => {
-        if (now.isBefore(status.value.expirationTime)) {
-          estimatesBeingRefreshed.value = true;
-          setTimeout(() => (estimatesBeingRefreshed.value = false), 1000);
-        }
-      },
-    });
-    const effectiveMinutesSinceRefresh = computed(() => {
-      const until = now.value.isBefore(status.value.expirationTime)
-        ? now.value
-        : status.value.expirationTime;
-      return until.diff(refreshTime.value, 'minutes', true);
-    });
-
-    const leagueStatus = computed(() => now.value && status.value.confirmedLeagueStatusNow);
-    const estimatedLeagueStatus = computed(
-      () => now.value && status.value.estimatedLeagueStatusNow
-    );
-    const tokensInStockByNow = computed(() => now.value && status.value.farm.tokensInStockByNow);
-    const minutesFromNowUntilNextToken = computed(
-      () => now.value && status.value.farm.minutesFromNowUntilNextToken
-    );
-
-    const columns = [
-      {
-        id: 'name',
-        name: 'Player',
-      },
-      {
-        id: 'eggsLaid',
-        name: 'Shipped',
-      },
-      {
-        id: 'eggsPerHour',
-        name: 'Rate/hr',
-        iconPath: eggIconPath(egg.value),
-        suffix: '/ hr',
-      },
-      {
-        id: 'earningBonusPercentage',
-        name: 'EB%',
-      },
-      {
-        id: 'role',
-        name: 'Role',
-      },
-      {
-        id: 'tokens',
-        name: 'Tokens',
-        iconPath: 'egginc/b_icon_token.png',
-        tooltip: 'Tokens left',
-      },
-      {
-        id: 'tokensSpent',
-        name: 'Tokens spent',
-        iconPath: 'egginc/b_icon_token.png',
-        suffix: ' \u{00a0}spent',
-        tooltip: 'Tokens spent',
-      },
-      {
-        id: 'hourlyLayingRateUncapped',
-        name: 'Laying / hr',
-        tooltip: 'Egg laying rate from all chickens, not capped by shipping capacity',
-      },
-      {
-        id: 'hourlyShippingCapacity',
-        name: 'Max shipping / hr',
-      },
-      {
-        id: 'farmPopulation',
-        name: 'Population',
-      },
-      {
-        id: 'farmCapacity',
-        name: 'Hab space',
-      },
-      {
-        id: 'internalHatcheryRatePerMinPerHab',
-        name: 'IHR / min / hab',
-        tooltip: 'Internal hatchery rate, including boost effect if any',
-      },
-    ];
-
-    return {
-      devmode,
-      contract,
-      egg,
-      league,
-      leagueStatus,
-      estimatedLeagueStatus,
-      tokensInStockByNow,
-      minutesFromNowUntilNextToken,
-      relativeRefreshTime,
-      refreshTimeFormatted,
-      effectiveMinutesSinceRefresh,
-      estimatesBeingRefreshed,
-      columns,
-      formatEIValue,
-      formatDuration,
-      completionStatusFgColorClass,
-      completionStatusBgColorClass,
-      eggIconPath,
-      eggTooltip,
-      max: Math.max,
-      renderNonempty,
-      formatWithThousandSeparators,
-    };
+const refreshTime = computed(() => status.value.refreshTime);
+const estimatesBeingRefreshed = ref(false);
+const {
+  now,
+  relativeTime: relativeRefreshTime,
+  referenceTimeFormatted: refreshTimeFormatted,
+} = useAutoRefreshedRelativeTime(refreshTime, {
+  refreshIntervalMs: 15000,
+  refreshHook: now => {
+    if (now.isBefore(status.value.expirationTime)) {
+      estimatesBeingRefreshed.value = true;
+      setTimeout(() => (estimatesBeingRefreshed.value = false), 1000);
+    }
   },
 });
+const effectiveMinutesSinceRefresh = computed(() => {
+  const until = now.value.isBefore(status.value.expirationTime)
+    ? now.value
+    : status.value.expirationTime;
+  return until.diff(refreshTime.value, 'minutes', true);
+});
+
+const leagueStatus = computed(() => now.value && status.value.confirmedLeagueStatusNow);
+const estimatedLeagueStatus = computed(() => now.value && status.value.estimatedLeagueStatusNow);
+const tokensInStockByNow = computed(() => now.value && status.value.farm.tokensInStockByNow);
+const minutesFromNowUntilNextToken = computed(
+  () => now.value && status.value.farm.minutesFromNowUntilNextToken
+);
+
+const columns = [
+  {
+    id: 'name',
+    name: 'Player',
+  },
+  {
+    id: 'eggsLaid',
+    name: 'Shipped',
+  },
+  {
+    id: 'eggsPerHour',
+    name: 'Rate/hr',
+    iconPath: eggIconPath(egg.value),
+    suffix: '/ hr',
+  },
+  {
+    id: 'earningBonusPercentage',
+    name: 'EB%',
+  },
+  {
+    id: 'role',
+    name: 'Role',
+  },
+  {
+    id: 'tokens',
+    name: 'Tokens',
+    iconPath: 'egginc/b_icon_token.png',
+    tooltip: 'Tokens left',
+  },
+  {
+    id: 'tokensSpent',
+    name: 'Tokens spent',
+    iconPath: 'egginc/b_icon_token.png',
+    suffix: ' \u{00a0}spent',
+    tooltip: 'Tokens spent',
+  },
+  {
+    id: 'hourlyLayingRateUncapped',
+    name: 'Laying / hr',
+    tooltip: 'Egg laying rate from all chickens, not capped by shipping capacity',
+  },
+  {
+    id: 'hourlyShippingCapacity',
+    name: 'Max shipping / hr',
+  },
+  {
+    id: 'farmPopulation',
+    name: 'Population',
+  },
+  {
+    id: 'farmCapacity',
+    name: 'Hab space',
+  },
+  {
+    id: 'internalHatcheryRatePerMinPerHab',
+    name: 'IHR / min / hab',
+    tooltip: 'Internal hatchery rate, including boost effect if any',
+  },
+];
 </script>
