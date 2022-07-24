@@ -22,7 +22,8 @@
 
     <template v-else>
       <div class="text-sm mt-4 mx-4 xl:mx-0">
-        This tool tells you what shells are available and which ones of those you already own.
+        This tool produces a personal and always-up-to-date catalog of all cosmetic items (shell
+        sets, shells, chickens and hats) with ownership and pricing info.
       </div>
     </template>
   </div>
