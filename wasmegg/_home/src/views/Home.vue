@@ -80,6 +80,7 @@
     <li><tool-description id="inventory-visualizer" @visit="onvisit" /></li>
     <li><tool-description id="enlightenment" @visit="onvisit" /></li>
     <li><tool-description id="smart-assistant" @visit="onvisit" /></li>
+    <li><tool-description id="shell-company" @visit="onvisit" /></li>
   </ul>
 
   <h3>Data sheets</h3>

@@ -146,6 +146,15 @@ export const tools = [
     updateUntil: 1627912366000,
     whatsNew: 'Added earning bonus planner.',
   }),
+  new Tool({
+    id: 'shell-company',
+    title: 'Shell company',
+    iconUrl: iconURL('wasmegg/shell-company.png'),
+    description:
+      'Personal and always-up-to-date catalog of all cosmetic items (shell sets, shells, chickens and hats) with ownership and pricing info',
+    // Sun Aug 14 02:14:16 UTC 2022
+    newUntil: 1660443245000,
+  }),
 
   new Tool({
     id: 'mission-list',

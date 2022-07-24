@@ -194,6 +194,7 @@ const entries: ({
   idToTool.get('inventory-visualizer')!,
   idToTool.get('enlightenment')!,
   idToTool.get('smart-assistant')!,
+  idToTool.get('shell-company')!,
 
   null,
 
