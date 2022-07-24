@@ -44,7 +44,7 @@
     <li>
       <base-router-link
         :to="{ name: 'donate' }"
-        class="relative text-green-500 hover:text-green-600 visited:text-green-500 visited:hover:text-green-600"
+        class="relative text-green-500 hover:text-green-600 visited:text-green-500 hover:visited:text-green-600"
         :class="{ 'bg-green-50': !donationPageVisited }"
       >
         Donate to help cover hosting costs
@@ -144,7 +144,7 @@
     support my tools by visiting the
     <base-router-link
       :to="{ name: 'donate' }"
-      class="relative text-green-500 hover:text-green-600 visited:text-green-500 visited:hover:text-green-600"
+      class="relative text-green-500 hover:text-green-600 visited:text-green-500 hover:visited:text-green-600"
       >Donate</base-router-link
     >
     page.
