@@ -545,6 +545,59 @@
 
         <div v-if="!collapsed" class="py-2">
           <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
+            <div class="text-right text-sm font-medium whitespace-nowrap">Lifetime earned</div>
+            <div class="flex items-center text-left text-sm text-gray-900">
+              <img
+                :src="iconURL('egginc/icon_shell_script_colored.png', 64)"
+                class="flex-shrink-0 h-4 w-4 -ml-0.5"
+              />
+              <span class="truncate">
+                {{ fmt(lifetimeTicketsEarned) }}
+              </span>
+            </div>
+
+            <div class="text-right text-sm font-medium whitespace-nowrap">Lifetime spent</div>
+            <div class="flex items-center text-left text-sm text-gray-900">
+              <img
+                :src="iconURL('egginc/icon_shell_script_colored.png', 64)"
+                class="flex-shrink-0 h-4 w-4 -ml-0.5"
+              />
+              <span class="truncate">
+                {{ fmt(lifetimeTicketsSpent) }}
+              </span>
+            </div>
+
+            <div class="text-right text-sm font-medium whitespace-nowrap">Current balance</div>
+            <div class="flex items-center text-left text-sm text-gray-900">
+              <img
+                :src="iconURL('egginc/icon_shell_script_colored.png', 64)"
+                class="flex-shrink-0 h-4 w-4 -ml-0.5"
+              />
+              <span class="truncate">
+                {{ fmt(currentTicketsBalance) }}
+              </span>
+            </div>
+          </div>
+
+          <a
+            :href="`https://wasmegg.netlify.app/shell-company/?playerId=${userId}`"
+            target="_blank"
+            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
+          >
+            <span class="underline">Your shells and available shells</span>
+            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
+              <path
+                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
+              />
+            </svg>
+          </a>
+        </div>
+
+        <div v-if="!collapsed" class="py-2">
+          <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
             <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime drones</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(lifetimeDrones) }}</dd>
 
@@ -756,6 +809,11 @@ const daysSinceFirstMission = computed(() => {
 const inventoryScore = computed(() => Math.floor(backup.value.artifacts?.inventoryScore || 0));
 const inventoryConsumptionValue = computed(() =>
   inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
+);
+const lifetimeTicketsEarned = computed(() => progress.value.shellScriptsEarned || 0);
+const lifetimeTicketsSpent = computed(() => progress.value.shellScriptsSpent || 0);
+const currentTicketsBalance = computed(
+  () => lifetimeTicketsEarned.value - lifetimeTicketsSpent.value
 );
 const lifetimeDrones = computed(() => backup.value.stats?.droneTakedowns || 0);
 const lifetimeEliteDrones = computed(() => backup.value.stats?.droneTakedownsElite || 0);
