@@ -234,6 +234,13 @@ export const tools = [
     // Tue Jul 20 14:57:17 UTC 2021
     newUntil: 1626793037000,
   }),
+  new Tool({
+    id: 'fuckify',
+    url: 'https://fuckify.vercel.app/',
+    title: 'Fuckify Your Screenshot',
+    iconUrl: iconURL('wasmegg/fuckify.svg'),
+    description: 'Most stylish watermarking tool ever was or ever will be',
+  }),
 ];
 
 export const idToTool = new Map<string, Tool>(tools.map(t => [t.id, t]));
