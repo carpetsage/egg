@@ -19,6 +19,7 @@ export class CoopStatus {
   projectedEggsLaid: number;
   totalEarningsBoost: number;
   totalEggLayingRateBoost: number;
+  highestEarningBonusPercentage: number;
   contributors: Contributor[];
   creator: Contributor | null;
   // Since shortly before the release v1.23, contributorIds are encrypted, but
@@ -37,6 +38,13 @@ export class CoopStatus {
     this.isPublic = cs.public!;
     this.eggsLaid = cs.totalAmount!;
     this.contributors = (cs.contributors || []).map(c => new Contributor(c));
+    this.highestEarningBonusPercentage = Math.max(
+      ...this.contributors.map(c => c.earningBonusPercentage)
+    );
+    for (const contributor of this.contributors) {
+      contributor.soulMirrorMultiplier =
+        (100 + this.highestEarningBonusPercentage) / (100 + contributor.earningBonusPercentage);
+    }
     this.eggsPerHour = this.contributors.reduce((sum, c) => sum + c.eggsPerHour, 0);
     this.secondsRemaining = cs.secondsRemaining!;
     this.projectedEggsLaid =
@@ -158,6 +166,7 @@ export class Contributor {
   eggsLaid: number;
   eggsPerHour: number;
   earningBonusPercentage: number;
+  soulMirrorMultiplier = 1;
   farmerRole: FarmerRole;
   tokens: number;
   isActive: boolean;

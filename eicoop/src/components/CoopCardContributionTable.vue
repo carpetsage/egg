@@ -158,6 +158,15 @@
           {{ formatEIValue(contributor.eggsPerHour) }}
         </td>
         <td
+          v-tippy="{
+            content: `Soul mirror multiplier: <span class='text-blue-300'>${formatEIValue(
+              contributor.soulMirrorMultiplier,
+              {
+                trim: true,
+              }
+            )}</span>`,
+            allowHTML: true,
+          }"
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           {{ formatEIValue(contributor.earningBonusPercentage) }}
