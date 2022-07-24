@@ -560,8 +560,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, PropType, ref, toRefs } from 'vue';
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref, toRefs } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -603,11 +603,11 @@ import {
   medalZLCRecordGrayscale,
 } from '@/badges';
 
+import Spaceship = ei.MissionInfo.Spaceship;
+
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
-
-import Spaceship = ei.MissionInfo.Spaceship;
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 
@@ -643,256 +643,180 @@ const ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES = new Map<string, s
   ['6fd149f054b097366d63e7e5d322ffa30359d00c0991d04afd4a04fa0cca12b3', 'Kirby'],
 ]);
 
-export default defineComponent({
-  components: {
-    BaseInfo,
-  },
-  props: {
-    backup: {
-      type: Object as PropType<ei.IBackup>,
-      required: true,
-    },
-    inventory: {
-      type: Object as PropType<Inventory>,
-      required: true,
-    },
-  },
-  setup(props) {
-    const { backup, inventory } = toRefs(props);
+const props = defineProps<{ backup: ei.IBackup; inventory: Inventory }>();
+const { backup, inventory } = toRefs(props);
 
-    const collapsed = ref(getLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY) === 'true');
-    const toggleCollapse = () => {
-      collapsed.value = !collapsed.value;
-      setLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY, collapsed.value);
-    };
+const collapsed = ref(getLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY) === 'true');
+const toggleCollapse = () => {
+  collapsed.value = !collapsed.value;
+  setLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY, collapsed.value);
+};
 
-    const lastRefreshedTimestamp = computed(() => backup.value.settings!.lastBackupTime! * 1000);
-    const lastRefreshed = computed(() => dayjs(Math.min(lastRefreshedTimestamp.value, Date.now())));
-    const now = ref(dayjs());
-    const lastRefreshedRelative = computed(() => now.value && lastRefreshed.value.fromNow());
-    const refreshIntervalId = setInterval(() => {
-      now.value = dayjs(); // Force recomputation of lastRefreshedRelative
-    }, 10000);
-    onBeforeUnmount(() => {
-      clearInterval(refreshIntervalId);
-    });
-
-    const progress = computed(() => backup.value.game!);
-    const artifactsDB = computed(() => backup.value.artifactsDb!);
-    const userId = computed(() => backup.value.eiUserId ?? '');
-    const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
-    const nickname = computed(() => backup.value.userName!);
-    const hasProPermit = computed(() => progress.value.permitLevel === 1);
-    const missionStats = computed(() => getMissionStatistics(artifactsDB.value, progress.value));
-    const artifactClub = computed((): ArtifactClub | null => {
-      if (inventory.value.legendaryCount === 0) {
-        if (completedExtendedHenerpriseCount.value >= 100) {
-          const stats = missionStats.value;
-          // The last ship must be Henerprise since we know at least 100
-          // extended Henerprises have been completed.
-          const henerpriseStats = stats.ships[stats.ships.length - 1];
-          if (henerpriseStats.currentLevel >= henerpriseStats.maxLevel) {
-            return ArtifactClub.ZERO_LEGENDARY_CLUB_7STAR;
-          } else {
-            return ArtifactClub.ZERO_LEGENDARY_CLUB_100;
-          }
-        } else {
-          return ArtifactClub.ZERO_LEGENDARY_CLUB;
-        }
-      }
-      if (inventory.value.distinctLegendaryCount >= 21) {
-        return ArtifactClub.ALL_LEGENDARIES_CLUB;
-      }
-      if (STAFF_USER_ID_HASHES.includes(userIdHash.value)) {
-        return ArtifactClub.STAFF_LEGENDARIES_CLUB;
-      }
-      return null;
-    });
-    const shipClub = computed((): ShipClub | null => {
-      const stats = missionStats.value;
-      let allMissionsMaxed = true;
-      if (
-        stats.ships.length === 0 ||
-        stats.ships[stats.ships.length - 1].shipType !== Spaceship.HENERPRISE
-      ) {
-        allMissionsMaxed = false;
-      } else {
-        for (const ship of stats.ships) {
-          if (ship.currentLevel < ship.maxLevel) {
-            allMissionsMaxed = false;
-            break;
-          }
-        }
-      }
-      if (allMissionsMaxed) {
-        return ShipClub.ALL_STAR_CLUB;
-      }
-      return null;
-    });
-    const prophecyEggsProgress = computed(() => getProphecyEggsProgress(backup.value));
-    const hasEnlightenmentDiamondTrophy = computed(() => {
-      const eggs = prophecyEggsProgress.value.fromTrophies.eggs;
-      for (const egg of eggs) {
-        if (egg.egg === ei.Egg.ENLIGHTENMENT) {
-          return egg.level >= TrophyLevel.Diamond;
-        }
-      }
-      return false;
-    });
-    const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
-    const soulEggs = computed(() => getNumSoulEggs(backup.value));
-    const earningBonus = computed(() => getNakedEarningBonus(backup.value));
-    const role = computed(() => earningBonusToFarmerRole(earningBonus.value));
-    const trophies = computed(() =>
-      prophecyEggsProgress.value.fromTrophies.eggs.reduce((sum, egg) => sum + egg.level, 0)
-    );
-    const dailyGifts = computed(() => prophecyEggsProgress.value.fromDailyGifts);
-    const lifetimeGoldenEggsEarned = computed(() => progress.value.goldenEggsEarned || 0);
-    const lifetimeGoldenEggsSpent = computed(() => progress.value.goldenEggsSpent || 0);
-    const goldenEggsSpentOnCrafting = computed(() => inventory.value.sunkCost);
-    const currentGoldenEggsBalance = computed(
-      () => lifetimeGoldenEggsEarned.value - lifetimeGoldenEggsSpent.value
-    );
-    const piggyLevel = computed(() => 1 + (backup.value.stats?.numPiggyBreaks || 0));
-    const piggyGoldenEggs = computed(() =>
-      Math.floor((progress.value.piggyBank || 0) * (1 + piggyLevelBonus(piggyLevel.value)))
-    );
-    const numPrestiges = computed(() => backup.value.stats?.numPrestiges || 0);
-    const launchedMissions = computed(() => getLaunchedMissions(artifactsDB.value));
-    const numMissions = computed(() => launchedMissions.value.length);
-    const daysSinceFirstMission = computed(() => {
-      if (numMissions.value === 0) {
-        return -1;
-      }
-      const firstMissionLaunchedAt = dayjs(launchedMissions.value[0].startTimeDerived! * 1000);
-      return dayjs().diff(firstMissionLaunchedAt, 'days');
-    });
-    const inventoryScore = computed(() => Math.floor(backup.value.artifacts?.inventoryScore || 0));
-    const inventoryConsumptionValue = computed(() =>
-      inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
-    );
-    const lifetimeDrones = computed(() => backup.value.stats?.droneTakedowns || 0);
-    const lifetimeEliteDrones = computed(() => backup.value.stats?.droneTakedownsElite || 0);
-    const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
-    const hasTooManyLegendaries = computed(() => {
-      let count = 0;
-      for (const family of inventory.value.catalog) {
-        for (const tier of family.tiers) {
-          count += tier.haveLegendary;
-        }
-      }
-      return count >= LEGENDARIES_JEALOUSY_THRESHOLD;
-    });
-    const completedExtendedHenerprises = computed(() =>
-      getCompletedExtendedHenerprises(artifactsDB.value)
-    );
-    const completedExtendedHenerpriseCount = computed(
-      () => completedExtendedHenerprises.value.length
-    );
-    const completedExtendedHenerpriseTotalDropCount = computed(() =>
-      completedExtendedHenerprises.value.reduce((sum, mission) => sum + (mission.capacity ?? 0), 0)
-    );
-    const isInLegendaryStudy = getLegendariesStudyPreference() === true;
-    const isZLCRecordHolder = computed(
-      () =>
-        isInLegendaryStudy &&
-        inventory.value.legendaryCount === 0 &&
-        completedExtendedHenerpriseCount.value >= ZLC_EXTHEN_RECORD
-    );
-    const isZLCRecordCloseFollower = computed(
-      () =>
-        isInLegendaryStudy &&
-        inventory.value.legendaryCount === 0 &&
-        completedExtendedHenerpriseCount.value < ZLC_EXTHEN_RECORD &&
-        completedExtendedHenerpriseCount.value >= ZLC_EXTHEN_RECORD - 30
-    );
-    const zlcExthenRecord = computed(() =>
-      isZLCRecordHolder.value ? completedExtendedHenerpriseCount.value : ZLC_EXTHEN_RECORD
-    );
-    const zeroLegendaryShaming = computed(
-      () =>
-        inventory.value.legendaryCount === 0 &&
-        completedExtendedHenerpriseCount.value >= ZERO_LEGENDARY_EXTHEN_COUNT_SHAME_TRESHOLD &&
-        completedExtendedHenerpriseTotalDropCount.value >=
-          ZERO_LEGENDARY_EXTHEN_TOTAL_DROP_SHAME_TRESHOLD
-    );
-    // Certain ZLC players have been longing the poop badge
-    // (zeroLegendaryShaming), but they are not worthy, yet.
-    // zeroLegendaryUnworthyNickname is their nickname if they qualify, or
-    // undefined otherwise.
-    const zeroLegendaryUnworthyNickname = computed(() =>
-      inventory.value.legendaryCount === 0 && !zeroLegendaryShaming.value
-        ? ZERO_LEGENDARY_UNWORTHY_USER_NICKNAMES.get(userIdHash.value)
-        : undefined
-    );
-    // And, crazy as it may sound, some enjoy the personalized message more!
-    // Give it to them unconditionally.
-    const zeroLegendaryUnconditionallyUnworthyNickname = computed(() =>
-      inventory.value.legendaryCount === 0
-        ? ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES.get(userIdHash.value)
-        : undefined
-    );
-    const randIndex = Math.floor(Math.random() * 10000);
-    return {
-      collapsed,
-      toggleCollapse,
-      lastRefreshed,
-      lastRefreshedRelative,
-      userId,
-      nickname,
-      hasProPermit,
-      artifactClub,
-      shipClub,
-      prophecyEggsProgress,
-      hasEnlightenmentDiamondTrophy,
-      prophecyEggs,
-      soulEggs,
-      earningBonus,
-      role,
-      trophies,
-      dailyGifts,
-      lifetimeGoldenEggsEarned,
-      lifetimeGoldenEggsSpent,
-      goldenEggsSpentOnCrafting,
-      currentGoldenEggsBalance,
-      piggyLevel,
-      piggyGoldenEggs,
-      numPrestiges,
-      numMissions,
-      daysSinceFirstMission,
-      inventoryScore,
-      inventoryConsumptionValue,
-      lifetimeDrones,
-      lifetimeEliteDrones,
-      lifetimeBoosts,
-      hasTooManyLegendaries,
-      zeroLegendaryShaming,
-      zeroLegendaryUnworthyNickname,
-      zeroLegendaryUnconditionallyUnworthyNickname,
-      completedExtendedHenerpriseCount,
-      completedExtendedHenerpriseTotalDropCount,
-      isZLCRecordHolder,
-      isZLCRecordCloseFollower,
-      zlcExthenRecord,
-      randIndex,
-      fmt,
-      fmtApprox,
-      formatEIValue,
-      iconURL,
-      numberBadgeURL,
-      badgeALC,
-      badgeSLC,
-      badgeZLC,
-      badgeZLC100,
-      badgeZLC7star,
-      badgeASC,
-      medalZLCRecord,
-      medalZLCRecordGrayscale,
-      ArtifactClub,
-      ShipClub,
-    };
-  },
+const lastRefreshedTimestamp = computed(() => backup.value.settings!.lastBackupTime! * 1000);
+const lastRefreshed = computed(() => dayjs(Math.min(lastRefreshedTimestamp.value, Date.now())));
+const now = ref(dayjs());
+const lastRefreshedRelative = computed(() => now.value && lastRefreshed.value.fromNow());
+const refreshIntervalId = setInterval(() => {
+  now.value = dayjs(); // Force recomputation of lastRefreshedRelative
+}, 10000);
+onBeforeUnmount(() => {
+  clearInterval(refreshIntervalId);
 });
+
+const progress = computed(() => backup.value.game!);
+const artifactsDB = computed(() => backup.value.artifactsDb!);
+const userId = computed(() => backup.value.eiUserId ?? '');
+const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
+const nickname = computed(() => backup.value.userName!);
+const hasProPermit = computed(() => progress.value.permitLevel === 1);
+const missionStats = computed(() => getMissionStatistics(artifactsDB.value, progress.value));
+const artifactClub = computed((): ArtifactClub | null => {
+  if (inventory.value.legendaryCount === 0) {
+    if (completedExtendedHenerpriseCount.value >= 100) {
+      const stats = missionStats.value;
+      // The last ship must be Henerprise since we know at least 100
+      // extended Henerprises have been completed.
+      const henerpriseStats = stats.ships[stats.ships.length - 1];
+      if (henerpriseStats.currentLevel >= henerpriseStats.maxLevel) {
+        return ArtifactClub.ZERO_LEGENDARY_CLUB_7STAR;
+      } else {
+        return ArtifactClub.ZERO_LEGENDARY_CLUB_100;
+      }
+    } else {
+      return ArtifactClub.ZERO_LEGENDARY_CLUB;
+    }
+  }
+  if (inventory.value.distinctLegendaryCount >= 21) {
+    return ArtifactClub.ALL_LEGENDARIES_CLUB;
+  }
+  if (STAFF_USER_ID_HASHES.includes(userIdHash.value)) {
+    return ArtifactClub.STAFF_LEGENDARIES_CLUB;
+  }
+  return null;
+});
+const shipClub = computed((): ShipClub | null => {
+  const stats = missionStats.value;
+  let allMissionsMaxed = true;
+  if (
+    stats.ships.length === 0 ||
+    stats.ships[stats.ships.length - 1].shipType !== Spaceship.HENERPRISE
+  ) {
+    allMissionsMaxed = false;
+  } else {
+    for (const ship of stats.ships) {
+      if (ship.currentLevel < ship.maxLevel) {
+        allMissionsMaxed = false;
+        break;
+      }
+    }
+  }
+  if (allMissionsMaxed) {
+    return ShipClub.ALL_STAR_CLUB;
+  }
+  return null;
+});
+const prophecyEggsProgress = computed(() => getProphecyEggsProgress(backup.value));
+const hasEnlightenmentDiamondTrophy = computed(() => {
+  const eggs = prophecyEggsProgress.value.fromTrophies.eggs;
+  for (const egg of eggs) {
+    if (egg.egg === ei.Egg.ENLIGHTENMENT) {
+      return egg.level >= TrophyLevel.Diamond;
+    }
+  }
+  return false;
+});
+const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
+const soulEggs = computed(() => getNumSoulEggs(backup.value));
+const earningBonus = computed(() => getNakedEarningBonus(backup.value));
+const role = computed(() => earningBonusToFarmerRole(earningBonus.value));
+const trophies = computed(() =>
+  prophecyEggsProgress.value.fromTrophies.eggs.reduce((sum, egg) => sum + egg.level, 0)
+);
+const dailyGifts = computed(() => prophecyEggsProgress.value.fromDailyGifts);
+const lifetimeGoldenEggsEarned = computed(() => progress.value.goldenEggsEarned || 0);
+const lifetimeGoldenEggsSpent = computed(() => progress.value.goldenEggsSpent || 0);
+const goldenEggsSpentOnCrafting = computed(() => inventory.value.sunkCost);
+const currentGoldenEggsBalance = computed(
+  () => lifetimeGoldenEggsEarned.value - lifetimeGoldenEggsSpent.value
+);
+const piggyLevel = computed(() => 1 + (backup.value.stats?.numPiggyBreaks || 0));
+const piggyGoldenEggs = computed(() =>
+  Math.floor((progress.value.piggyBank || 0) * (1 + piggyLevelBonus(piggyLevel.value)))
+);
+const numPrestiges = computed(() => backup.value.stats?.numPrestiges || 0);
+const launchedMissions = computed(() => getLaunchedMissions(artifactsDB.value));
+const numMissions = computed(() => launchedMissions.value.length);
+const daysSinceFirstMission = computed(() => {
+  if (numMissions.value === 0) {
+    return -1;
+  }
+  const firstMissionLaunchedAt = dayjs(launchedMissions.value[0].startTimeDerived! * 1000);
+  return dayjs().diff(firstMissionLaunchedAt, 'days');
+});
+const inventoryScore = computed(() => Math.floor(backup.value.artifacts?.inventoryScore || 0));
+const inventoryConsumptionValue = computed(() =>
+  inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
+);
+const lifetimeDrones = computed(() => backup.value.stats?.droneTakedowns || 0);
+const lifetimeEliteDrones = computed(() => backup.value.stats?.droneTakedownsElite || 0);
+const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
+const hasTooManyLegendaries = computed(() => {
+  let count = 0;
+  for (const family of inventory.value.catalog) {
+    for (const tier of family.tiers) {
+      count += tier.haveLegendary;
+    }
+  }
+  return count >= LEGENDARIES_JEALOUSY_THRESHOLD;
+});
+const completedExtendedHenerprises = computed(() =>
+  getCompletedExtendedHenerprises(artifactsDB.value)
+);
+const completedExtendedHenerpriseCount = computed(() => completedExtendedHenerprises.value.length);
+const completedExtendedHenerpriseTotalDropCount = computed(() =>
+  completedExtendedHenerprises.value.reduce((sum, mission) => sum + (mission.capacity ?? 0), 0)
+);
+const isInLegendaryStudy = getLegendariesStudyPreference() === true;
+const isZLCRecordHolder = computed(
+  () =>
+    isInLegendaryStudy &&
+    inventory.value.legendaryCount === 0 &&
+    completedExtendedHenerpriseCount.value >= ZLC_EXTHEN_RECORD
+);
+const isZLCRecordCloseFollower = computed(
+  () =>
+    isInLegendaryStudy &&
+    inventory.value.legendaryCount === 0 &&
+    completedExtendedHenerpriseCount.value < ZLC_EXTHEN_RECORD &&
+    completedExtendedHenerpriseCount.value >= ZLC_EXTHEN_RECORD - 30
+);
+const zlcExthenRecord = computed(() =>
+  isZLCRecordHolder.value ? completedExtendedHenerpriseCount.value : ZLC_EXTHEN_RECORD
+);
+const zeroLegendaryShaming = computed(
+  () =>
+    inventory.value.legendaryCount === 0 &&
+    completedExtendedHenerpriseCount.value >= ZERO_LEGENDARY_EXTHEN_COUNT_SHAME_TRESHOLD &&
+    completedExtendedHenerpriseTotalDropCount.value >=
+      ZERO_LEGENDARY_EXTHEN_TOTAL_DROP_SHAME_TRESHOLD
+);
+// Certain ZLC players have been longing the poop badge
+// (zeroLegendaryShaming), but they are not worthy, yet.
+// zeroLegendaryUnworthyNickname is their nickname if they qualify, or
+// undefined otherwise.
+const zeroLegendaryUnworthyNickname = computed(() =>
+  inventory.value.legendaryCount === 0 && !zeroLegendaryShaming.value
+    ? ZERO_LEGENDARY_UNWORTHY_USER_NICKNAMES.get(userIdHash.value)
+    : undefined
+);
+// And, crazy as it may sound, some enjoy the personalized message more!
+// Give it to them unconditionally.
+const zeroLegendaryUnconditionallyUnworthyNickname = computed(() =>
+  inventory.value.legendaryCount === 0
+    ? ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES.get(userIdHash.value)
+    : undefined
+);
+const randIndex = Math.floor(Math.random() * 10000);
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
