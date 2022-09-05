@@ -114,7 +114,7 @@ func loadContracts() ([]entry, error) {
 func getActiveContracts() ([]*api.ContractProperties, error) {
 	resp, err := api.RequestPeriodicals(&api.GetPeriodicalsRequestPayload{
 		UserId:               eiUserId,
-		CurrentClientVersion: api.ClientVersion,
+		CurrentClientVersion: 999,
 		Rinfo: &api.BasicRequestInfo{
 			EiUserId:      eiUserId,
 			ClientVersion: api.ClientVersion,
