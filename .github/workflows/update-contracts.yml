@@ -19,7 +19,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: contracts/updater
-          key: contracts/updater-${{ runner.os }}-${{ hashFiles('go.sum') }}
+          key: contracts/updater-${{ runner.os }}-${{ hashFiles('go.sum', 'contracts/*.go') }}
       - name: Build updater
         run: |
           [ -e updater ] || make updater
