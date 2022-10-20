@@ -23,3 +23,6 @@
 
 /*/static/*.png
   cache-control: public,max-age=2592000,immutable
+
+/api/*
+  Access-Control-Allow-Origin = "*"

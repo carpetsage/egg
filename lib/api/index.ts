@@ -12,8 +12,8 @@ export * from './version';
 
 const API_ROOT =
   import.meta.env.DEV && import.meta.env.VITE_APP_MOCK
-    ? '/api'
-    : 'https://wasmegg.zw.workers.dev/?url=https://www.auxbrain.com';
+    ? 'https://www.auxbrain.com'
+    : '/api';
 const TIMEOUT = 5000;
 
 // A valid userId donated by a volunteer.
