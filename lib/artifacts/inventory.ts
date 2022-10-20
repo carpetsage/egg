@@ -39,11 +39,9 @@ export class Inventory {
       }
       family.set(tier.afx_level, new InventoryItem(tier.afx_id, tier.afx_level));
     }
-    for (const item of db.discoveredArtifacts || []) {
-      this.getItem(item).discovered = true;
-    }
-    for (const item of db.craftingCounts || []) {
+    for (const item of db.artifactStatus || []) {
       this.getItem(item.spec!).crafted = item.count!;
+      this.getItem(item.spec!).discovered = (item.recipeDiscovered! || item.discovered!);
     }
     for (const item of db.inventoryItems || []) {
       const artifact = item.artifact!;

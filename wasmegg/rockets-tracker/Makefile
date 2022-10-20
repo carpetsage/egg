@@ -11,7 +11,7 @@ build: src/lib/study_stats.ts
 # The EIAPI_TOKEN environment variable has to be set. Use the -fake flag to
 # generate with preset values without querying the API.
 src/lib/study_stats.ts:
-	go run tools/study_stats/main.go
+	go run tools/study_stats/main.go -fake
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static
