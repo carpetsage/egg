@@ -81,13 +81,14 @@ function handleOptions(request) {
 }
 
 function accessControlAllowOriginHeader(origin) {
-  return isAllowedOrigin(origin) ? origin : 'https://wasmegg.netlify.app';
+  return isAllowedOrigin(origin) ? origin : 'https://wasmegg-carpet.netlify.app';
 }
 
 function isAllowedOrigin(origin) {
   return (
-    origin?.match(/^https:\/\/([\w-]+--)?wasmegg.netlify.app$/) ||
-    origin?.match(/^https:\/\/([\w-]+--)?eicoop.netlify.app$/) ||
+    origin?.match(/^https:\/\/([\w-]+--)?wasmegg-carpet.netlify.app$/) ||
+    origin?.match(/^https:\/\/([\w-]+--)?eicoop-carpet.netlify.app$/) ||
+    origin?.match(/^https:\/\/([\w-]+--)?eicowop.netlify.app$/) ||
     origin?.match(/^http:\/\/localhost(:\d+)?$/) ||
     origin?.match(/^http:\/\/127\.0\.0\.1(:\d+)?$/) ||
     origin?.match(/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/)
