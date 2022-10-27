@@ -41,7 +41,7 @@ export class Tool {
     whatsNew?: string;
   }) {
     this.id = id;
-    this.url = url || `/${this.id}/`;
+    this.url = url || `https://wasmegg.netlify.app/${this.id}/`;
     this.title = title;
     this.iconUrl = iconUrl || '';
     this.description = description;
@@ -73,7 +73,7 @@ export class Tool {
 export const tools = [
   new Tool({
     id: 'eicoop',
-    url: 'https://eicoop.netlify.app/',
+    url: 'https://eicoop-carpet.netlify.app/',
     title: 'CoopTracker',
     iconUrl: iconURL('wasmegg/eicoop.svg'),
     description: 'Coop tracker and contract master list',
@@ -88,12 +88,13 @@ export const tools = [
   new Tool({
     id: 'artifact-explorer',
     title: 'Artifact explorer',
+    url: '/artifact-explorer/',
     iconUrl: iconURL('wasmegg/artifact-explorer.svg'),
     description: 'Explorer for everything artifacts',
-    // Mon Dec  6 17:31:50 UTC 2021
-    majorUpdateUntil: 1638811910000,
+    // forever
+    updateUntil: 2638811910000,
     whatsNew:
-      'Rewritten for post-v1.21, with up-to-date loot data and complete support for ship levels and mission-related epic researches.',
+      'Updated for new levels of FTL Epic Research.',
   }),
   new Tool({
     id: 'artifact-sandbox',
@@ -104,13 +105,14 @@ export const tools = [
   new Tool({
     id: 'rockets-tracker',
     title: 'Rockets tracker',
+    url: '/rockets-tracker/',
     iconUrl: iconURL('wasmegg/rockets-tracker.svg'),
     description:
       'Tracker for active rocket missions, historical mission statistics, progress on artifact collection, etc.',
-    // Wed Nov 24 18:54:42 UTC 2021
-    updateUntil: 1637780082000,
+    // forever
+    updateUntil: 2637780082000,
     whatsNew:
-      'In the "Artifacting progress" section, for each stone, the number of slotted copies and free copies are now displayed, and you can hover over / click on "<N> slotted" to reveal where the slotted stones are.',
+      'Fixed crafting expense and crafting count.',
   }),
   new Tool({
     id: 'past-contracts',
@@ -158,12 +160,13 @@ export const tools = [
 
   new Tool({
     id: 'mission-list',
+    url: '/mission-list/',
     title: 'Mission list',
-    // Thu Jun 24 15:35:02 UTC 2021
-    majorUpdateUntil: 1624548902000,
+    // forever
+    updateUntil: 2624548902000,
     description: 'Spaceship & mission parameters list',
     whatsNew:
-      'Rewritten for v1.21. Now you can interactively configure relevant epic researches and individual ship levels, and view corresponding mission duration, capacity, etc.',
+      'Updated for new levels of FTL Epic Research.',
   }),
   new Tool({
     id: 'consumption-sheet',
