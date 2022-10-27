@@ -29,12 +29,12 @@
             name="epic_research_ftl"
             type="number"
             min="0"
-            max="25"
+            max="40"
             class="block w-full sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-0.5"
             :class="epicResearchFTLLevelInputValid ? 'border-gray-300' : 'border-red-500'"
             style="width: 4.5rem"
           />
-          <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">/ 25</div>
+          <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">/ 40</div>
         </div>
 
         <div class="col-span-2 text-xs mb-2">
@@ -211,7 +211,7 @@ export default defineComponent({
       () =>
         Number.isInteger(epicResearchFTLLevelInput.value) &&
         epicResearchFTLLevelInput.value >= 0 &&
-        epicResearchFTLLevelInput.value <= 25
+        epicResearchFTLLevelInput.value <= 40
     );
     const epicResearchZerogLevelInputValid = computed(
       () =>
