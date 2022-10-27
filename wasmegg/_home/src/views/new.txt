@@ -1,0 +1,23 @@
+<template>
+  <h1 class="mb-4 text-center text-h1 leading-6 font-medium text-gray-900">
+    <span class="whitespace-nowrap">@CarpetSage's fork of @mk2's public utilities</span>{{ ' ' }}
+    <span class="whitespace-nowrap">for Egg, Inc.</span>
+  </h1>
+
+  <p>
+    I am <span class="font-medium">CarpetSage#0010</span> on the
+    <base-link href="https://discord.gg/egginc">Egg, Inc. Discord server</base-link>. This is the
+    index of my fork of <span class="font-medium">mk2#4590's</span> public tools for Egg, Inc.
+  </p>
+
+  <whats-new class="my-4" />
+
+  <h2>Tools Updated by Carpet</h2>
+  <ul>
+    <li><tool-description id="artifact-explorer" /></li>
+    <li><tool-description id="rockets-tracker" /></li>
+    <li><tool-description id="mission-list" /></li>
+  </ul>
+
+  <h2>Other Tools are hosted on <base-link href="https://wasmegg.netlify.app">mk2's site</base-link></h2>
+</template>

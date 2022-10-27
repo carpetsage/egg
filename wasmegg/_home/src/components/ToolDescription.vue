@@ -1,14 +1,12 @@
 <template>
-  <span :class="tool.isHighlight ? 'bg-green-100' : null">
-    <tool-link :tool="tool" @visit="$emit('visit', $event)" />
-    <template v-if="tool.isHighlight">
-      <sup class="text-xs font-medium uppercase text-green-600 ml-1">
-        <template v-if="tool.isNew">New</template>
-        <template v-else-if="tool.isMajorUpdate">Major update</template>
-        <template v-else-if="tool.isUpdate">Update</template>
-      </sup>
-    </template>
-  </span>
+  <tool-link :tool="tool" @visit="$emit('visit', $event)" />
+  <template v-if="tool.is">
+    <sup class="text-xs font-medium uppercase text-green-600 ml-1">
+      <template v-if="tool.isNew">New</template>
+      <template v-else-if="tool.isMajorUpdate">Major update</template>
+      <template v-else-if="tool.isUpdate">Update</template>
+    </sup>
+  </template>
   <template v-if="tool.description"> &mdash; {{ tool.description }}</template>
   <template v-if="tool.isHighlight && tool.whatsNew">
     <br />

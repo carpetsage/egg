@@ -2,7 +2,7 @@
   <div
     v-if="
       !dismissedByUser &&
-      (newTools.length > 0 || majorUpdateTools.length > 0 || updateTools.length > 0)
+      (newTools.length > 0 || majorUpdateTools.length > 0 || updateTools.length > 10)
     "
     class="relative py-2 bg-green-100 rounded-lg shadow-inner"
   >
@@ -22,6 +22,7 @@
       </ul>
     </template>
 
+    <!--
     <template v-if="updateTools.length > 0">
       <h2 class="px-5 font-medium">
         <template v-if="majorUpdateTools.length > 0">Other updates</template>
@@ -31,6 +32,7 @@
         <li v-for="tool in updateTools" :key="tool.id"><tool-link :tool="tool" /></li>
       </ul>
     </template>
+    -->
 
     <button
       type="button"
