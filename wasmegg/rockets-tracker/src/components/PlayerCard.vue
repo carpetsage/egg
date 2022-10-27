@@ -354,7 +354,7 @@
           <div class="text-sm font-medium">Inventory items</div>
 
           <a
-            :href="`/inventory-visualizer/?playerId=${userId}`"
+            :href="`https://wasmegg.netlify.app/inventory-visualizer/?playerId=${userId}`"
             target="_blank"
             class="flex items-center justify-center space-x-0.5 text-xs"
             :class="
