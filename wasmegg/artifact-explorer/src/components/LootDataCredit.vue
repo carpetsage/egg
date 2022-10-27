@@ -16,7 +16,7 @@
         href="https://wasmegg.netlify.app/loot-analysis/"
         target="_blank"
         class="text-gray-500 hover:text-gray-700 underline"
-        >/loot-analysis/</a
+        >https://wasmegg.netlify.app/loot-analysis/</a
       >.
     </p>
   </div>

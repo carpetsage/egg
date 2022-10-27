@@ -50,12 +50,12 @@
                   id="epic_research_ftl"
                   base-class="block w-number-input sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-1 border-gray-300"
                   :min="0"
-                  :max="25"
+                  :max="40"
                   :model-value="config.epicResearchFTLLevel"
                   @update:model-value="setEpicResearchFTLLevel"
                 />
                 <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">
-                  / 25
+                  / 40
                 </div>
               </div>
             </div>
