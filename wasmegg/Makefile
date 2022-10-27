@@ -1,6 +1,6 @@
-MAKEFLAGS ?= -j4
+MAKEFLAGS ?= -j9
 
-targets = _home artifact-explorer artifact-sandbox consumption-sheet enlightenment events inventory-visualizer loot-analysis loot-simulator mission-list past-contracts proto-explorer researches rockets-tracker shell-company smart-assistant
+targets = _home artifact-explorer events mission-list proto-explorer rockets-tracker past-contracts
 init-targets = $(addprefix init-,$(targets))
 fastbuild-targets = $(addprefix fastbuild-,$(targets))
 clean-targets = $(addprefix clean-,$(targets))
