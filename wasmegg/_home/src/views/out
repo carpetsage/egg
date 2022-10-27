@@ -1,0 +1,255 @@
+diff --git a/wasmegg/_home/src/views/Home.vue b/wasmegg/_home/src/views/Home.vue
+index 0d9068c..2ccb375 100644
+--- a/wasmegg/_home/src/views/Home.vue
++++ b/wasmegg/_home/src/views/Home.vue
+@@ -1,6 +1,6 @@
+ <template>
+   <h1 class="mb-4 text-center text-h1 leading-6 font-medium text-gray-900">
+-    <span class="whitespace-nowrap">@mk2's public utilities</span>{{ ' ' }}
++    <span class="whitespace-nowrap">@CarpetSage's fork of @mk2's public utilities</span>{{ ' ' }}
+     <span class="whitespace-nowrap">for Egg, Inc.</span>
+   </h1>
+ 
+@@ -28,238 +28,22 @@
+   </div>
+ 
+   <p>
+-    I am <span class="font-medium">mk2#4590</span> on the
++    I am <span class="font-medium">CarpetSage#0010</span> on the
+     <base-link href="https://discord.gg/egginc">Egg, Inc. Discord server</base-link>. This is the
+-    index of my public tools for Egg, Inc.
++    index of my fork of <span class="font-medium">mk2#4590's</span> public tools for Egg, Inc.
+   </p>
+ 
+-  <p class="mt-2">
+-    You may join my
+-    <base-link href="https://ei.tcl.sh/discord">focused Discord server</base-link> to follow
+-    development updates, report issues, and discuss suggestions. See the
+-    <base-router-link :to="{ name: 'contact' }">Contact</base-router-link> page for details.
+-  </p>
+-
+-  <ul>
+-    <li>
+-      <base-router-link
+-        :to="{ name: 'donate' }"
+-        class="relative text-green-500 hover:text-green-600 visited:text-green-500 hover:visited:text-green-600"
+-        :class="{ 'bg-green-50': !donationPageVisited }"
+-      >
+-        Donate to help cover hosting costs
+-        <span v-if="!donationPageVisited" class="absolute top-0.5 -right-3 flex h-2 w-2">
+-          <span
+-            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
+-          ></span>
+-          <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+-        </span>
+-      </base-router-link>
+-    </li>
+-    <li>
+-      <base-router-link :to="{ name: 'privacy' }">Privacy policy</base-router-link>
+-    </li>
+-    <li><base-router-link :to="{ name: 'contact' }">Contact</base-router-link></li>
+-    <li><base-link href="https://github.com/fanaticscripter/Egg">Source code</base-link></li>
+-  </ul>
+-
+   <whats-new class="my-4" />
+ 
+-  <h2>Tools hosted at independent domains</h2>
++  <h2>Tools Updated by Carpet</h2>
+   <ul>
+     <li><tool-description id="eicoop" @visit="onvisit" /></li>
+-  </ul>
+-
+-  <h2>Tools hosted at this domain</h2>
+-  <h3>Interactive apps</h3>
+-  <ul>
+     <li><tool-description id="artifact-explorer" @visit="onvisit" /></li>
+-    <li><tool-description id="artifact-sandbox" @visit="onvisit" /></li>
+     <li><tool-description id="rockets-tracker" @visit="onvisit" /></li>
+-    <li><tool-description id="past-contracts" @visit="onvisit" /></li>
+-    <li><tool-description id="inventory-visualizer" @visit="onvisit" /></li>
+-    <li><tool-description id="enlightenment" @visit="onvisit" /></li>
+-    <li><tool-description id="smart-assistant" @visit="onvisit" /></li>
+-    <li><tool-description id="shell-company" @visit="onvisit" /></li>
+-  </ul>
+-
+-  <h3>Data sheets</h3>
+-  <ul>
+     <li><tool-description id="mission-list" @visit="onvisit" /></li>
+-    <li><tool-description id="consumption-sheet" @visit="onvisit" /></li>
+-    <li><tool-description id="loot-analysis" @visit="onvisit" /><v120-badge /></li>
+-    <li><tool-description id="events" @visit="onvisit" /></li>
+-    <li><tool-description id="legendary-study" @visit="onvisit" /></li>
+-  </ul>
+-
+-  <h3>Developer tools</h3>
+-  <ul>
+-    <li><tool-description id="researches" @visit="onvisit" /></li>
+   </ul>
+-  <p>
+-    Certain tools are not advertised here due to concerns. If you are interested, poke around the
+-    source repo to find them.
+-  </p>
+-
+-  <h2>Miscellaneous small tools</h2>
+-  <p>
+-    You can find more small tools at
+-    <base-link href="https://eiadhoc.netlify.app/">eiadhoc.netlify.app</base-link>.
+-  </p>
+-
+-  <h2>Desktop applications</h2>
+-  <ul>
+-    <li><tool-description id="EggLedger" @visit="onvisit" /></li>
+-  </ul>
+-
+-  <h2>Self-hosted tools</h2>
+-  <ul>
+-    <li><tool-description id="EggContractor" @visit="onvisit" /></li>
+-  </ul>
+-
+-  <h2>Guides</h2>
+-  <ul>
+-    <li>
+-      <base-link href="https://howtofarm.netlify.app/">How to farm materials</base-link>
+-    </li>
+-  </ul>
+-
+-  <h2>Advanced</h2>
+-  <ul>
+-    <li><tool-description id="ebeb" @visit="onvisit" /></li>
+-    <li><tool-description id="fuckify" @visit="onvisit" /></li>
+-    <li>
+-      <span class="bg-green-100">
+-        <base-link href="https://ei.tcl.sh/tips" :everfresh="true" @click="onrick"
+-          >Advanced strategies for seasoned players</base-link
+-        >
+-        <sup class="text-xs font-medium uppercase text-green-600 ml-1">Secret</sup>
+-      </span>
+-      &mdash; Strategies so next-level, they will blow your effing mind. You're advised to stay
+-      away. Not for the faint-hearted.
+-    </li>
+-  </ul>
+-
+-  <h2>Supporters</h2>
+-  <p>
+-    Hosting costs come from donations of the awesome individuals listed below. Find out how you can
+-    support my tools by visiting the
+-    <base-router-link
+-      :to="{ name: 'donate' }"
+-      class="relative text-green-500 hover:text-green-600 visited:text-green-500 hover:visited:text-green-600"
+-      >Donate</base-router-link
+-    >
+-    page.
+-  </p>
+-  <donor-list />
+-
+-  <easter-egg v-if="showEasterEgg" :refresh-key="easterEggRefreshKey" />
+-</template>
+-
+-<script lang="ts">
+-import { defineComponent, ref } from 'vue';
+-
+-import {
+-  getDonationPageVisited,
+-  getLocalStorageNoPrefix,
+-  goatcounter,
+-  recordVisit,
+-  setLocalStorageNoPrefix,
+-} from 'lib';
+-import BaseLink from '@/components/BaseLink.vue';
+-import BaseRouterLink from '@/components/BaseRouterLink.vue';
+-import DonorList from '@/components/DonorList.vue';
+-import EasterEgg from '@/components/EasterEgg.vue';
+-import ToolDescription from '@/components/ToolDescription.vue';
+-import V120Badge from '@/components/V120Badge.vue';
+-import WhatsNew from '@/components/WhatsNew.vue';
+-
+-const EASTER_EGG_DAY = 7;
+-const EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY = 'easterEggShownAt';
+-
+-export default defineComponent({
+-  components: {
+-    BaseLink,
+-    BaseRouterLink,
+-    DonorList,
+-    EasterEgg,
+-    ToolDescription,
+-    V120Badge,
+-    WhatsNew,
+-  },
+-  setup() {
+-    const donationPageVisited = getDonationPageVisited();
+-
+-    const daysVisitedStreak = ref(0);
+-    const showEasterEgg = ref(false);
+-    const easterEggRefreshKey = ref(0);
+-    const { daysVisitedStreak: currentDaysVisitedStreak } = recordVisit();
+-    daysVisitedStreak.value = currentDaysVisitedStreak;
+-    const triggerEasterEgg = () => {
+-      showEasterEgg.value = true;
+-      easterEggRefreshKey.value = Date.now();
+-    };
+-    const triggerEasterEggAndDisableInTheFuture = () => {
+-      triggerEasterEgg();
+-      const easterEggShownForTheFirstTime =
+-        getLocalStorageNoPrefix(EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY) === undefined;
+-      setLocalStorageNoPrefix(EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY, Date.now());
+-      if (easterEggShownForTheFirstTime) {
+-        goatcounter?.count({
+-          path: 'https://wasmegg.netlify.app/#/',
+-          title: 'Easter egg (visit streak)',
+-          event: true,
+-        });
+-      }
+-    };
+-
+-    if (
+-      currentDaysVisitedStreak === EASTER_EGG_DAY &&
+-      getLocalStorageNoPrefix(EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY) === undefined
+-    ) {
+-      triggerEasterEggAndDisableInTheFuture();
+-    } else {
+-      showEasterEgg.value = false;
+-    }
+-
+-    // Record visit on clicking a tool link, because some users may leave the
+-    // page open for a long time without a refresh.
+-    const onvisit = () => {
+-      const { daysVisitedStreak: currentDaysVisitedStreak } = recordVisit();
+-      daysVisitedStreak.value = currentDaysVisitedStreak;
+-      if (
+-        currentDaysVisitedStreak === EASTER_EGG_DAY &&
+-        getLocalStorageNoPrefix(EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY) === undefined
+-      ) {
+-        // Do not call the DisableInTheFuture version here because the user may
+-        // miss it as the new tool is opened.
+-        triggerEasterEgg();
+-      } else {
+-        showEasterEgg.value = false;
+-      }
+-    };
+-
+-    const onrick = () => {
+-      goatcounter?.count({
+-        path: 'ei.tcl.sh/tips',
+-        title: 'Rickrolled',
+-        event: true,
+-      });
+-    };
+ 
+-    return {
+-      donationPageVisited,
+-      daysVisitedStreak,
+-      EASTER_EGG_DAY,
+-      showEasterEgg,
+-      easterEggRefreshKey,
+-      triggerEasterEggAndDisableInTheFuture,
+-      onvisit,
+-      onrick,
+-    };
+-  },
+-});
+-</script>
++  <h2>Other Tools are hosted on <base-link href="https://wasmegg.netlify.app">mk2's site</base-link></h2>
+ 
+ <style lang="postcss" scoped>
+ h2 {
