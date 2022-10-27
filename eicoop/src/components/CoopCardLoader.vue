@@ -79,7 +79,11 @@ export default defineComponent({
       loading.value = true;
       error.value = undefined;
       try {
+        //const initStatus = new CoopStatus(
+        //  await requestCoopStatus(contractId.value, coopCode.value.toLowerCase())
+        //);
         const status = new CoopStatus(
+          //await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), initStatus.creatorId)
           await requestCoopStatus(contractId.value, coopCode.value.toLowerCase())
         );
         await status.resolveContract({
