@@ -18,7 +18,7 @@
           FTL Drive Upgrades
         </div>
         <div class="flex items-center text-xs text-green-500 tabular-nums">
-          {{ missionStats.config.epicResearchFTLLevel }} / 25
+          {{ missionStats.config.epicResearchFTLLevel }} / 40
         </div>
 
         <div
@@ -41,7 +41,7 @@
       </div>
       <div
         v-if="
-          missionStats.config.epicResearchFTLLevel < 25 ||
+          missionStats.config.epicResearchFTLLevel < 40 ||
           missionStats.config.epicResearchZerogLevel < 10
         "
         class="text-xs mt-2"
