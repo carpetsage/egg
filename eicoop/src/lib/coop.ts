@@ -10,6 +10,7 @@ const COOP_LEAGUE_DEFINITELY_ELITE_EB = 1e16;
 
 export class CoopStatus {
   contractId: string;
+  creatorId: string;
   contract: ei.IContract | null;
   coopCode: string;
   isPublic: boolean;
@@ -37,6 +38,7 @@ export class CoopStatus {
     this.coopCode = cs.coopIdentifier!;
     this.isPublic = cs.public!;
     this.eggsLaid = cs.totalAmount!;
+    this.creatorId = cs.creatorId!;
     this.contributors = (cs.contributors || []).map(c => new Contributor(c));
     this.highestEarningBonusPercentage = Math.max(
       ...this.contributors.map(c => c.earningBonusPercentage)
@@ -97,10 +99,10 @@ export class CoopStatus {
           `No contributors found in ${this.contractId}:${this.coopCode}, cannot resolve contract info.`
         );
       }
-      const userId = this.contributors[0].id;
+      const userId = this.creatorId;
       const result = await getContractFromPlayerSave(userId, this.contractId);
       if (!result) {
-        throw new Error(`Contract ${this.contractId} not found in user ${userId}'s save.`);
+        throw new Error(`Contract ${this.contractId} not found in user's save.`);
       }
       this.contract = result.contract;
       this.league = result.league;
