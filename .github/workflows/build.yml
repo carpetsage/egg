@@ -9,11 +9,11 @@ on:
     - cron: '30 3 * * *'
 jobs:
   # No TS type checking for faster deployment.
-  eicoop-fastbuild:
+  eicowop-fastbuild:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: eicoop
+        working-directory: eicowop
     steps:
       - uses: actions/checkout@v3
       - name: Set up Node
@@ -61,11 +61,11 @@ jobs:
         if: github.ref != 'refs/heads/main'
 
   # With TS type checking.
-  eicoop-fullbuild:
+  eicowop-fullbuild:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: eicoop
+        working-directory: eicowop
     steps:
       - uses: actions/checkout@v3
       - name: Set up Node
@@ -86,7 +86,7 @@ jobs:
 
   # No TS type checking for faster deployment.
   wasmegg-fastbuild:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: wasmegg
@@ -164,7 +164,7 @@ jobs:
 
   # With TS type checking.
   wasmegg-fullbuild:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: wasmegg
@@ -174,8 +174,8 @@ jobs:
         run: |
           sudo apt-get install -y --no-install-recommends protobuf-compiler
           # Install protoc-gen-doc
-          basename=protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
-          wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.4.1/$basename.tar.gz
+          basename=protoc-gen-doc_1.5.1_linux_amd64
+          wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.5.1/$basename.tar.gz
           tar xf $basename.tar.gz
           echo "$PWD/$basename" >> $GITHUB_PATH
       - name: Set up ets
@@ -211,3 +211,55 @@ jobs:
           make -j2
         env:
           EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
+
+  # No TS type checking for faster deployment.
+  eicoop-fastbuild:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: eicoop
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'yarn'
+          cache-dependency-path: |
+            yarn.lock
+            yarn-global/yarn.lock
+      - name: Do other preparations
+        run: |
+          ../action-scripts/prepare
+      - name: Build lib
+        working-directory: lib
+        run: |
+          make init
+          make
+      - name: Build site
+        run: make fastbuild
+      - name: Install netlify cli
+        run: |
+          mkdir -p "$(yarn global dir)"
+          cp ../yarn-global/* "$(yarn global dir)"
+          yarn global add netlify-cli
+      - name: Deploy
+        run: |
+          netlify deploy --prod
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        if: github.ref == 'refs/heads/main'
+      - name: Deploy to commit-specific URL
+        run: |
+          netlify deploy --alias "$GITHUB_SHA"
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      - name: Deploy to branch-specific URL
+        run: |
+          netlify deploy --alias "${GITHUB_REF##*/}"
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        if: github.ref != 'refs/heads/main'
