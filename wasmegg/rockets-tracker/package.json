@@ -21,7 +21,7 @@
     "mitt": "^2.1.0",
     "protobufjs": "^7.0.0",
     "safari-14-idb-fix": "^1.0.3",
-    "uuid": "^8.3.2",
+    "uuid": "^9.0.0",
     "vue": "^3.2.20",
     "vue-tippy": "^6.0.0-alpha.35"
   },
