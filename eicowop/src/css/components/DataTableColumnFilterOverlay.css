@@ -1,0 +1,9 @@
+/* The overlay is appended to the body, hence cannot be scoped. */
+
+.p-column-filter-overlay {
+  @apply p-3 bg-white dark:bg-gray-700 border border-white dark:border-gray-600 rounded-md shadow space-y-2;
+}
+
+.p-column-filter-overlay .p-column-filter-buttonbar button {
+  @apply px-2 py-1 border border-transparent shadow-sm text-xs leading-4 rounded-md text-white bg-blue-500 hover:bg-blue-600 focus:outline-none;
+}
