@@ -43,22 +43,22 @@ jobs:
         run: |
           netlify deploy --prod
         env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main'
       - name: Deploy to commit-specific URL
         run: |
           netlify deploy --alias "$GITHUB_SHA"
         env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       - name: Deploy to branch-specific URL
         run: |
           netlify deploy --alias "${GITHUB_REF##*/}"
         env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/main'
 
   # With TS type checking.
   eicoop-fullbuild:
@@ -147,7 +147,7 @@ jobs:
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main'
       - name: Deploy to commit-specific URL
         run: |
           netlify deploy --alias "$GITHUB_SHA"
@@ -160,7 +160,7 @@ jobs:
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/main'
 
   # With TS type checking.
   wasmegg-fullbuild:
