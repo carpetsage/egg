@@ -1,0 +1,37 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import 'ui/styles/base';
+@import 'ui/styles/app-loading';
+@import 'ui/styles/tippy';
+
+@import './css/components/DataTableColumnFilterOverlay.css';
+
+* {
+  @apply transition-colors duration-0 ease-in;
+}
+
+/*
+Enable color animation effect only after theming has finished (signaled by the
+addition of the 'theme' class to html). This way, we don't get a prolonged
+transition when the theme is first applied.
+*/
+html.themed * {
+  @apply duration-500;
+}
+
+:root {
+  --color-gray-200: #e4e4e7;
+  --color-gray-500: #71717a;
+}
+
+/* #8bedc4 is the blending of #6ee7b7 (green-300) and #a7f3d0 (green-200). */
+.ProgressBar--striped {
+  background: repeating-linear-gradient(135deg, #8bedc4, #8bedc4 3px, #a7f3d0 3px, #a7f3d0 6px);
+}
+
+/* Disable color transition delay in the sitewide nav sidebar. */
+#sitewide-nav * {
+  @apply transition-none;
+}
