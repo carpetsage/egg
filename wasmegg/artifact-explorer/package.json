@@ -13,6 +13,7 @@
     "@headlessui/vue": "^1.4.1",
     "@heroicons/vue": "^1.0.4",
     "lib": ">=0.1.0",
+    "scroll-into-view-if-needed": "^2.2.29",
     "vue": "^3.2.20",
     "vue-router": "^4.0.12",
     "vue-tippy": "^6.0.0-alpha.35"
