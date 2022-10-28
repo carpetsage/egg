@@ -177,7 +177,7 @@ jobs:
           basename=protoc-gen-doc_1.5.1_linux_amd64
           wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.5.1/$basename.tar.gz
           tar xf $basename.tar.gz
-          echo "$PWD/$basename" >> $GITHUB_PATH
+          echo "$PWD/protoc-gen-doc" >> $GITHUB_PATH
       - name: Set up ets
         run: |
           wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
