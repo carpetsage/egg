@@ -1,6 +1,6 @@
 <template>
   <tool-link :tool="tool" @visit="$emit('visit', $event)" />
-  <template v-if="tool.is">
+  <template v-if="tool.isHighlight">
     <sup class="text-xs font-medium uppercase text-green-600 ml-1">
       <template v-if="tool.isNew">New</template>
       <template v-else-if="tool.isMajorUpdate">Major update</template>
