@@ -1,12 +1,14 @@
 name: build
 on:
   push:
+    paths-ignore:
+      - '.github/*'
   pull_request_target:
   workflow_dispatch:
   schedule:
     # Regenerate every day to incorporate updated mission outcome data.
     # Scheduled after https://github.com/ei-labo/cold-api/blob/f46659b12592200621a2f27adb031e9ed0b87cbf/.github/workflows/build.yml#L5-L6.
-    - cron: '30 3 * * *'
+    - cron: '30 4 * * *'
 jobs:
   # No TS type checking for faster deployment.
   eicowop-fastbuild:
