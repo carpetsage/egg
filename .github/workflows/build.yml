@@ -1,8 +1,8 @@
 name: build
 on:
   push:
-    paths-ignore:
-      - '.github/*'
+    paths:
+      - '!.github/workflows/*'
   pull_request_target:
   workflow_dispatch:
   schedule:
