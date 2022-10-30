@@ -25,7 +25,7 @@
         >
       </p>
       <p class="text-gray-500 dark:text-gray-400 text-xs">
-        New prophecy egg contracts appear every 4 weeks.
+        New prophecy egg contracts appear every month.
       </p>
     </div>
   </div>
@@ -50,7 +50,7 @@ dayjs.extend(utc);
 import { key } from '@/store';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 
-const PROPHECY_EGG_CONTRACT_INTERVAL_WEEKS = 4;
+const PROPHECY_EGG_CONTRACT_INTERVAL_MONTHS = 1;
 
 export default defineComponent({
   components: {
@@ -68,13 +68,13 @@ export default defineComponent({
       const latestOfferingTime = dayjs(
         latestOriginalProphecyEggContract.value?.offeringTime * 1000
       ).tz('America/Los_Angeles');
-      const nextOfferingWeek = latestOfferingTime
+      const nextOfferingTime = latestOfferingTime
         .startOf('isoWeek')
-        .add(PROPHECY_EGG_CONTRACT_INTERVAL_WEEKS, 'weeks');
+        .add(PROPHECY_EGG_CONTRACT_INTERVAL_MONTHS, 'months');
       // Original contracts appear on Mondays, around 8am.
       // https://discord.com/channels/455380663013736479/455385744274620416/856408733013245954
       // https://media.discordapp.net/attachments/455385744274620416/856411451375222814/unknown.png
-      const predictedOfferingTime = nextOfferingWeek.add(8, 'hours');
+      const predictedOfferingTime = nextOfferingTime.add(8, 'hours');
       return predictedOfferingTime.local();
     });
     const now = ref(dayjs());
