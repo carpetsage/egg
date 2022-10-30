@@ -4,7 +4,7 @@ on:
   pull_request_target:
   workflow_dispatch:
   schedule:
-    - cron: '*/20 * * * *'
+    - cron: '8 * * * *'
 jobs:
   update:
     runs-on: ubuntu-latest
