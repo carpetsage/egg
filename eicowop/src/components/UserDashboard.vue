@@ -145,14 +145,14 @@
         <p
           v-for="[href, description] in [
             [
-              `https://wasmegg.netlify.app/past-contracts/?playerId=${userId}`,
+              `https://wasmegg-carpet.netlify.app/past-contracts-eicowop/?playerId=${userId}`,
               'Details of your completed, failed, and missed contracts',
             ],
             [
-              `https://wasmegg.netlify.app/rockets-tracker/?playerId=${userId}`,
+              `https://wasmegg-carpet.netlify.app/rockets-tracker/?playerId=${userId}`,
               'Details of your artifact missions and inventory',
             ],
-            ['https://wasmegg.netlify.app/', 'More tools'],
+            ['https://wasmegg-carpet.netlify.app/', 'More tools'],
           ]"
           :key="href"
           class="text-xs leading-5"
