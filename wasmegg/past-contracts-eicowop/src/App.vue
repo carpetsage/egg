@@ -1,5 +1,5 @@
 <template>
-  <the-nav-bar active-entry-id="past-contracts" />
+  <the-nav-bar active-entry-id="past-contracts-eicowop" />
 
   <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
     Past contracts viewer
