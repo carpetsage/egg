@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/past-contracts/',
+  base: '/past-contracts-eicowop/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -14,7 +14,7 @@ export default defineConfig({
   },
   plugins: [vue()],
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1400,
   },
   server: {
     host: true,
