@@ -17,9 +17,12 @@ jobs:
           python-version: '3.10'
       - name: Set up Node
         uses: actions/setup-node@v3
+      - name: Pip stuff
+        run: |
+          pip3 install requests protobuf
       - name: Update Gist
         run: |
           ./update-config.sh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GIST_UPDATER_TOKEN }}
           GIST_ID: ${{ secrets.EGG_CONFIG_GIST_ID }}
