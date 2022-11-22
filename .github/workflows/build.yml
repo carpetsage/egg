@@ -1,6 +1,9 @@
 name: build
 on:
   push:
+    paths-ignore:
+      - '.github/**'
+      - 'update-egg-config-gist/**'
   pull_request_target:
   workflow_dispatch:
   schedule:
