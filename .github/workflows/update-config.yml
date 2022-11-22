@@ -1,5 +1,6 @@
 name: update-config-gist
 on:
+  workflow_dispatch:
   schedule:
     - cron: '8 22 * * *'
 jobs:
