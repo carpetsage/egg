@@ -1,4 +1,4 @@
-# Egg, Inc Helper Tools by @mk2
+# Egg, Inc Helper Tools by @mk2, forked by @CarpetSage
 
 Warning: This project is open source but NOT open contribution. If you have ideas, please [discuss with me first](https://wasmegg.netlify.app/#/contact).
 
