@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-node@v3
       - name: Pip stuff
         run: |
-          pip3 install requests
+          pip3 install requests protobuf
       - name: Update Gist
         run: |
           ./update-config.sh
