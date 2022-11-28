@@ -2,7 +2,7 @@ name: update-config-gist
 on:
   workflow_dispatch:
   schedule:
-    - cron: '8 22 * * *'
+    - cron: '22 6,18 * * *'
 jobs:
   update:
     runs-on: ubuntu-latest
