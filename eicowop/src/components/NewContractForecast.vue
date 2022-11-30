@@ -77,7 +77,7 @@ export default defineComponent({
       // Original contracts appear on Mondays, around 8am.
       // https://discord.com/channels/455380663013736479/455385744274620416/856408733013245954
       // https://media.discordapp.net/attachments/455385744274620416/856411451375222814/unknown.png
-      const predictedOfferingTime = nextOfferingTime.add(8, 'hours');
+      const predictedOfferingTime = nextOfferingTime
       return predictedOfferingTime.local();
     });
     const now = ref(dayjs());
