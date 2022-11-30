@@ -1,0 +1,29 @@
+name: update-config-gist
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '22 6,18 * * *'
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: update-egg-config-gist
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with: 
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Pip stuff
+        run: |
+          pip install -r requirements.txt
+      - name: Update Gist
+        run: |
+          ./update-config.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIST_UPDATER_TOKEN }}
+          GIST_ID: ${{ secrets.EGG_CONFIG_GIST_ID }}
