@@ -70,11 +70,10 @@ export default defineComponent({
         latestOriginalProphecyEggContract.value?.offeringTime * 1000
       ).tz('America/Los_Angeles');
       const nextOfferingTimeInit = latestOfferingTime
-        .startOf('isoWeek')
         .add(PROPHECY_EGG_CONTRACT_INTERVAL_MONTHS, 'months');
-      const nextOfferingTime = nextOfferingTimeInit.isoWeekday() === 1 
-        ? nextOfferingTimeInit 
-        : nextOfferingTimeInit.add(7,'days').isoWeekday(1)
+      const nextOfferingTime = nextOfferingTimeInit.day() > nextOfferingTimeInit.date() 
+        ? nextOfferingTimeInit.day(8) 
+        : nextOfferingTimeInit.day(1)
       // Original contracts appear on Mondays, around 8am.
       // https://discord.com/channels/455380663013736479/455385744274620416/856408733013245954
       // https://media.discordapp.net/attachments/455385744274620416/856411451375222814/unknown.png
