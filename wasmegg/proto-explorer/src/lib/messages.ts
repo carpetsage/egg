@@ -5,6 +5,7 @@ const enumNames = [
   'DeviceFormFactor',
   'Egg',
   'FarmType',
+  'GameDimension',
   'GoalType',
   'Platform',
   'RewardType',

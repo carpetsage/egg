@@ -437,6 +437,12 @@ message Reward {
   optional double reward_amount = 3;
 }
 
+message GameModifier {
+  optional GameDimension dimension = 1;
+  optional double value_modifier = 2;
+  optional string description = 3;
+}
+
 message Contract {
   optional string identifier = 1;
   optional string name = 9;
@@ -458,6 +464,13 @@ message Contract {
     repeated Goal goals = 1;
   }
 
+  repeated GradeSpec grade_specs = 20;
+  message GradeSpec {
+    optional PlayerGrade grade = 1;
+    repeated Goal goals = 2;
+    repeated GameModifier modifiers = 3;
+  }
+
   optional bool coop_allowed = 4;
   optional uint32 max_coop_size = 5;
   optional uint32 max_boosts = 12;
@@ -470,6 +483,21 @@ message Contract {
   optional uint32 min_client_version = 14;
   optional bool leggacy = 19;
   optional bool debug = 11;
+  optional string key = 21;
+
+  enum PlayerGrade {
+    GRADE_UNSET = 0;
+    GRADE_C = 1;
+    GRADE_B = 2;
+    GRADE_A = 3;
+    GRADE_AA = 4;
+    GRADE_AAA = 5;
+  }
+}
+
+message ContractPlayerInfo {
+  optional Contract.PlayerGrade grade = 1;
+  optional double total_cxp = 2;
 }
 
 message BasicRequestInfo {
@@ -481,6 +509,40 @@ message BasicRequestInfo {
   optional string country = 6;
   optional string language = 7;
   optional bool debug = 8;
+}
+
+message ContractSimConfig {
+  repeated ContractGradeSimConfig grade_configs = 1;
+  message ContractGradeSimConfig {
+    optional Contract.PlayerGrade grade = 1;
+
+    repeated GoalParams goal_params = 2;
+    message GoalParams {
+      optional double target_se = 1;
+      optional double cps_mult = 2;
+      optional double earnings_mult = 3;
+    }
+  }
+}
+
+message ContractSimPoll {
+  optional uint32 client_version = 1;
+}
+
+message ContractSimPollResponse {
+  optional Contract contract_to_simulate = 1;
+  optional ContractSimConfig sim_config = 2;
+}
+
+message ContractSimResultUpdate {
+  optional string contract_id = 1;
+
+  repeated GoalInfo goal_infos = 2;
+  message GoalInfo {
+    optional Contract.PlayerGrade grade = 1;
+    optional uint32 goal_index = 2;
+    optional double projected_eggs_laid = 3;
+  }
 }
 
 message ContractsRequest {
@@ -615,6 +677,7 @@ message LocalContract {
   optional uint32 num_goals_achieved = 14;
   optional uint32 boosts_used = 12;
   optional uint32 league = 15;
+  optional Contract.PlayerGrade grade = 18;
   optional double last_nag_time = 16;
 }
 
@@ -895,6 +958,7 @@ message LiveConfig {
     optional uint32 shells_max_free_chicken_configs = 8;
     optional uint32 shells_intro_alert_threshold = 9;
     optional double contracts_expert_league_min_soul_power = 10;
+    optional double new_player_event_duration = 11;
   }
 }
 
@@ -925,6 +989,7 @@ message PeriodicalsResponse {
   repeated ServerGift gifts = 4;
   optional LiveConfig live_config = 5;
   optional MailDB mail_bag = 6;
+  optional ContractPlayerInfo contract_player_info = 7;
 }
 
 message GetPeriodicalsRequest {
@@ -1408,7 +1473,7 @@ message ShellSpec {
 
   optional ShellPiece primary_piece = 12;
   message ShellPiece {
-    repeated AssetType asset_type = 1;
+    optional AssetType asset_type = 1;
     optional DLCItem dlc = 2;
   }
 
@@ -1420,6 +1485,7 @@ message ShellSpec {
   optional uint32 price = 4;
   optional uint32 required_eop = 5;
   optional double required_soul_eggs = 6;
+  optional string required_parent_shell = 20;
   optional bool is_new = 14;
   optional bool expires = 15;
   optional double seconds_until_available = 17;
@@ -1534,6 +1600,7 @@ message ShellSetSpec {
   optional double discount = 17;
   optional uint32 required_eop = 4;
   optional double required_soul_eggs = 5;
+  optional string required_parent_set = 20;
   optional bool is_new = 9;
   optional bool expires = 10;
   optional double seconds_until_available = 18;
@@ -1772,6 +1839,11 @@ enum RewardType {
   UNKNOWN_REWARD = 100;
 }
 
+enum GameDimension {
+  EARNINGS = 1;
+  AWAY_EARNINGS = 3;
+}
+
 enum Platform {
   IOS = 1;
   DROID = 2;
@@ -1802,4 +1874,23 @@ message ABBEntry {
 
 message ABBIndex {
   repeated ABBEntry entries = 1;
+}
+
+
+/* Optionals for !? */
+
+message EggIncFirstContactResponseData {
+  optional EggIncFirstContactResponse data = 1;
+}
+
+message ContractCoopStatusResponseData {
+  optional ContractCoopStatusResponse data = 1;
+}
+
+message PeriodicalsResponseData {
+  optional PeriodicalsResponse data = 1;
+}
+
+message CompleteMissionResponseData {
+  optional CompleteMissionResponse data = 1;
 }
