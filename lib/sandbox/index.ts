@@ -17,6 +17,7 @@ import {
 
 type FarmToSandboxConfigOverride = {
   isEnlightenment?: boolean;
+  proPermit?: boolean;
   artifactSet?: ArtifactSet;
   birdFeedActive?: boolean;
   tachyonPrismActive?: boolean;
