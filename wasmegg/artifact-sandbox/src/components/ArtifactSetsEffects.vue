@@ -389,6 +389,7 @@ export default defineComponent({
       earningBonusMultiplier,
       earningBonusToFarmerRole,
       earningsMultiplier,
+      awayEarningsMultiplier,
       earningsWithMaxRunningChickenBonusMultiplier,
       maxRunningChickenBonus,
       maxRunningChickenBonusMultiplier,
