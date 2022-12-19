@@ -2,8 +2,7 @@ import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 import { boostMultiplier } from './boosts';
-import { earningsWithMaxRunningChickenBonusMultiplier } from './earnings';
-import { awayEarningsMultiplier } from './earnings';
+import { awayEarningsMultiplier, earningsWithMaxRunningChickenBonusMultiplier } from './earnings';
 
 export function soulEggsGainMultiplier(build: Build, config: Config): number {
   return Math.pow(virtualEarningsMultiplier(build, config), 0.21);
@@ -43,7 +42,7 @@ export function soulEggsGainWithEmptyHabsStartMultiplierAway(build: Build, confi
 
 function virtualEarningsMultiplierAway(build: Build, config: Config): number {
   return (
-    awayearningsMultiplier(build, config) *
+    awayEarningsMultiplier(build, config) *
     multiplicativeEffect(build, config, [ArtifactSpec.Name.PHOENIX_FEATHER]) *
     (config.soulBeaconActive ? boostMultiplier(build, config) : 1)
   );
