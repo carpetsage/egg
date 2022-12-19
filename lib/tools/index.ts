@@ -101,6 +101,10 @@ export const tools = [
     title: 'Artifact sandbox',
     iconUrl: iconURL('wasmegg/artifact-sandbox.svg'),
     description: 'Sandbox for experimenting, optimizing, and sharing artifact builds',
+    // forever
+    updateUntil: 2638811910000,
+    whatsNew:
+      'Added away earnings field.',
   }),
   new Tool({
     id: 'rockets-tracker',
