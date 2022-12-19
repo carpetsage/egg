@@ -38,6 +38,17 @@
       <label for="is_enlightenment" class="ml-2 block text-sm">Enlightenment farm</label>
     </div>
 
+    <div class="mt-2 flex items-center justify-center">
+      <input
+        id="has_proPermit"
+        v-model="conf.proPermit"
+        name="has_proPermit"
+        type="checkbox"
+        class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-dark-30 rounded"
+      />
+      <label for="has_proPermit" class="ml-2 block text-sm">Pro Permit</label>
+    </div>
+
     <div class="mt-4 flex justify-center">
       <div class="space-y-1">
         <h4 class="text-center text-sm uppercase">Epic research</h4>

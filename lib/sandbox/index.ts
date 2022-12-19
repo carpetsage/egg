@@ -53,6 +53,7 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
     tachyonPrismActive: override?.tachyonPrismActive ?? true,
     soulBeaconActive: override?.soulBeaconActive ?? true,
     boostBeaconActive: override?.boostBeaconActive ?? true,
+    proPermit: override?.proPermit ?? true,
   };
   const artifacts = (override?.artifactSet ?? farm.artifactSet).artifacts.map(
     artifactToSandboxArtifact
@@ -96,5 +97,5 @@ export function farmToSandboxURL(farm: Farm, override?: FarmToSandboxConfigOverr
   const relURL = `/artifact-sandbox/#/b/${encodeURIComponent(encoded)}`;
   // Use the canonical deployed URL during development since there wouldn't be a
   // sandbox instance served from the same origin durating development.
-  return import.meta.env.PROD ? relURL : 'https://wasmegg.netlify.app' + relURL;
+  return import.meta.env.PROD ? relURL : 'https://wasmegg-carpet.netlify.app' + relURL;
 }

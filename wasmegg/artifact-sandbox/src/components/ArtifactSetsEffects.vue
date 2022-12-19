@@ -327,6 +327,7 @@ import {
   earningBonusMultiplier,
   earningsMultiplier,
   earningsWithMaxRunningChickenBonusMultiplier,
+  awayEarningsMultiplier,
   formatFloat,
   habSpaceMultiplier,
   internalHatcheryRateMultiplier,
