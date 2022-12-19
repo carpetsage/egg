@@ -39,7 +39,7 @@ export const effects = [
   },
   {
     id: 'se-gain-away',
-    name: 'SE gain',
+    name: 'Away SE gain',
     note:
       'Same as “SE gain” except for taking into account afk earnings boosts and ignoring RCB'
   },
