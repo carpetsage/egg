@@ -194,6 +194,32 @@
 
         <artifact-sets-effects-row
           v-slot="{ build, config }"
+          effect-id="se-gain-away"
+          :show-footnote="showFootnotes"
+          :dagger="true"
+          :builds="builds"
+        >
+          <span class="Bonus">&times;{{ formatFloat(soulEggsGainMultiplierAway(build, config)) }}</span>
+        </artifact-sets-effects-row>
+
+        <artifact-sets-effects-row
+          effect-id="se-gain-empty-habs-away"
+          :show-footnote="showFootnotes"
+          :dagger="true"
+          :builds="builds"
+        >
+          <template #name>Away SE gain w/<br />empty habs start</template>
+          <template #default="{ build, config }">
+            <span class="Bonus"
+              >&times;{{
+                formatFloat(soulEggsGainWithEmptyHabsStartMultiplierAway(build, config))
+              }}</span
+            >
+          </template>
+        </artifact-sets-effects-row>
+
+        <artifact-sets-effects-row
+          v-slot="{ build, config }"
           effect-id="boost-duration"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -343,6 +369,8 @@ import {
   shippingCapacityMultiplier,
   soulEggsGainMultiplier,
   soulEggsGainWithEmptyHabsStartMultiplier,
+  soulEggsGainMultiplierAway,
+  soulEggsGainWithEmptyHabsStartMultiplierAway,
 } from '@/lib';
 import { effects } from '@/effects';
 import ArtifactSetsEffectsRow from '@/components/ArtifactSetsEffectsRow.vue';
@@ -395,6 +423,8 @@ export default defineComponent({
       maxRunningChickenBonusMultiplier,
       soulEggsGainMultiplier,
       soulEggsGainWithEmptyHabsStartMultiplier,
+      soulEggsGainMultiplierAway,
+      soulEggsGainWithEmptyHabsStartMultiplierAway,
       boostDurationMultiplier,
       researchPriceDiscount,
       maxHabSpace,

@@ -38,6 +38,18 @@ export const effects = [
       'Same as “SE gain” except for taking into account the indirect earnings bonus from faster chicken population growth from the chalice, life stones, and a monocle-boosted tachyon prism (if any). Assumes the tachyon prism is activated at zero population, and population never hits the hab space cap; otherwise, the actual effect is between this stat and “SE gain”.',
   },
   {
+    id: 'se-gain-away',
+    name: 'SE gain',
+    note:
+      'Same as “SE gain” except for taking into account afk earnings boosts and ignoring RCB'
+  },
+  {
+    id: 'se-gain-empty-habs-away',
+    name: 'Away SE gain w/ empty habs start',
+    note:
+      'Same as “SE gain w/ empty habs start” except for taking into account afk earnings boosts and ignoring RCB'
+  },
+  {
     id: 'boost-duration',
     name: 'Boost duration',
     note:
