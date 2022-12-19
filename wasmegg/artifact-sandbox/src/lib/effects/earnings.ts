@@ -28,8 +28,8 @@ export function awayEarningsMultiplier(build: Build, config: Config): number {
   return (
     earningsMultiplier(build, config) *
     multiplicativeEffect(build, config, [
-      ei.ArtifactSpec.Name.LUNAR_TOTEM,
-      ei.ArtifactSpec.Name.LUNAR_STONE,
+      ArtifactSpec.Name.LUNAR_TOTEM,
+      ArtifactSpec.Name.LUNAR_STONE,
     ]) * (config.proPermit ? 1 : 0.5)
   );
 }
