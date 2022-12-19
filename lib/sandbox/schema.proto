@@ -37,6 +37,7 @@ message Config {
   bool tachyon_prism_active = 11;
   bool soul_beacon_active = 12;
   bool boost_beacon_active = 13;
+  bool pro_permit = 15;
 
   double tachyon_deflector_bonus = 14;
 }
