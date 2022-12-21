@@ -4,7 +4,7 @@ import { multiplicativeEffect } from './common';
 import { boostMultiplier } from './boosts';
 import { earningBonusMultiplier } from './earning_bonus';
 import { layingRateMultiplier } from './laying_rate';
-import { maxRunningChickenBonusMultiplier } from './rcb';
+import { baseMaxRunnningChickenBonus, maxRunningChickenBonusMultiplier } from './rcb';
 
 export function earningsMultiplier(build: Build, config: Config): number {
   return (
@@ -30,6 +30,6 @@ export function awayEarningsMultiplier(build: Build, config: Config): number {
     multiplicativeEffect(build, config, [
       ArtifactSpec.Name.LUNAR_TOTEM,
       ArtifactSpec.Name.LUNAR_STONE,
-    ]) * (config.proPermit ? 1 : 0.5)
+    ]) * (config.proPermit ? 1 : 0.5) / baseMaxRunningChickenBonus(config)
   );
 }
