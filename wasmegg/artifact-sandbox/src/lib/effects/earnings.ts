@@ -4,7 +4,7 @@ import { multiplicativeEffect } from './common';
 import { boostMultiplier } from './boosts';
 import { earningBonusMultiplier } from './earning_bonus';
 import { layingRateMultiplier } from './laying_rate';
-import { baseMaxRunnningChickenBonus, maxRunningChickenBonusMultiplier } from './rcb';
+import { baseMaxRunningChickenBonus, maxRunningChickenBonusMultiplier } from './rcb';
 
 export function earningsMultiplier(build: Build, config: Config): number {
   return (
