@@ -15,6 +15,7 @@
   <h2>Tools Updated by Carpet</h2>
   <ul>
     <li><tool-description id="artifact-explorer" /></li>
+    <li><tool-description id="artifact-sandbox" /></li>
     <li><tool-description id="rockets-tracker" /></li>
     <li><tool-description id="mission-list" /></li>
   </ul>
