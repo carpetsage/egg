@@ -387,7 +387,7 @@ export class Config {
     this.tachyonPrismActive = false;
     this.soulBeaconActive = false;
     this.boostBeaconActive = false;
-    this.proPermit = false;
+    this.proPermit = true;
     this.tachyonDeflectorBonus = 0;
   }
 
@@ -412,7 +412,7 @@ export class Config {
     self.tachyonPrismActive = config?.tachyonPrismActive ?? false;
     self.soulBeaconActive = config?.soulBeaconActive ?? false;
     self.boostBeaconActive = config?.boostBeaconActive ?? false;
-    self.proPermit = config?.proPermit ?? false;
+    self.proPermit = config?.proPermit ?? true;
     self.tachyonDeflectorBonus = config?.tachyonDeflectorBonus ?? 0;
     return self;
   }
