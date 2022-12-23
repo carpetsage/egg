@@ -99,6 +99,7 @@ export const tools = [
   new Tool({
     id: 'artifact-sandbox',
     title: 'Artifact sandbox',
+    url: '/artifact-sandbox/',
     iconUrl: iconURL('wasmegg/artifact-sandbox.svg'),
     description: 'Sandbox for experimenting, optimizing, and sharing artifact builds',
     // forever
