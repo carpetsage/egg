@@ -625,7 +625,7 @@
             <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime boosts</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(lifetimeBoosts) }}</dd>
 
-            <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime video doublers</dt>
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Video doublers</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(lifetimeVidDoubler) }}</dd>
           </div>
         </div>
