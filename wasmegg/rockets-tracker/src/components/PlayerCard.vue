@@ -624,6 +624,9 @@
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime boosts</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(lifetimeBoosts) }}</dd>
+
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime video doublers</dt>
+            <dd class="text-left text-sm text-gray-900">{{ fmt(lifetimeVidDoubler) }}</dd>
           </div>
         </div>
       </div>
@@ -836,6 +839,7 @@ const currentTicketsBalance = computed(
 const lifetimeDrones = computed(() => backup.value.stats?.droneTakedowns || 0);
 const lifetimeEliteDrones = computed(() => backup.value.stats?.droneTakedownsElite || 0);
 const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
+const lifetimeVidDoubler = computed(() => backup.value.stats?.videoDoublerUses || 0);
 const hasTooManyLegendaries = computed(() => {
   let count = 0;
   for (const family of inventory.value.catalog) {
