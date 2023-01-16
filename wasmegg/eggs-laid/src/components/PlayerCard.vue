@@ -121,7 +121,7 @@ const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
 const lifetimeVidDoubler = computed(() => backup.value.stats?.videoDoublerUses || 0);
 const randIndex = Math.floor(Math.random() * 10000);
 
-const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Waterballoon", "Firework", "Easter", "Chocolate"];
+const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Chocolate", "Easter", "Waterballoon", "Firework", "Pumpkin"];
 
 
 function eggsLaid(c: UserContract[]): number {
@@ -129,16 +129,11 @@ function eggsLaid(c: UserContract[]): number {
 }
 
 const contracts = getUserContractList(backup);
-//const contract_eggs = contracts.map(c => c.egg);
-["WATERBALLOON", "FIREWORK", "EASTER", "CHOCOLATE"].forEach(egg => {
+const contract_eggs = contracts.map(c => c.egg);
+console.log(contract_eggs);
+[ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON, ei.Egg.FIREWORK, ei.Egg.PUMPKIN].forEach(egg => {
   eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
 });
-
-//CHOCOLATE=100
-//EASTER=101
-//WATERBALLOON=102 
-//FIREWORK=103
-//PUMPKIN=104
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
