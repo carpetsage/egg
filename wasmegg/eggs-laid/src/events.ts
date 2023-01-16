@@ -1,0 +1,1 @@
+export const REPORT_LEGENDARIES = Symbol('REPORT_LEGENDARIES');
