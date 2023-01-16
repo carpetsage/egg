@@ -80,7 +80,6 @@ import {
   setLocalStorage,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-import { getUserContractList, UserContract } from '@/contracts';
 
 
 dayjs.extend(advancedFormat);
@@ -89,7 +88,7 @@ dayjs.extend(relativeTime);
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 
-const props = defineProps<{ backup: ei.IBackup }>();
+const props = defineProps<{ backup: ei.IBackup, eggTotals: number[] }>();
 const { backup } = toRefs(props);
 
 const collapsed = ref(getLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY) === 'true');
@@ -125,17 +124,8 @@ function eggsLaid(uc: UserContract[]): number {
   return uc.map(c => c.contribution).reduce((partialSum, contrib) => partialSum + contrib);
 }
 
-const contracts = getUserContractList(backup);
 console.log(contracts.filter(c => c.egg == 100));
 
-const eggTotals = computed(() => {
-  const totals = backup.value.stats?.eggTotals || [];
-  [100, 101, 102, 103, 104, 105].forEach(egg => {
-    totals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
-  });
-  return totals
-});
-console.log(eggTotals);
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');

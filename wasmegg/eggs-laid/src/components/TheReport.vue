@@ -1,5 +1,5 @@
 <template>
-  <player-card :backup="backup" />
+  <player-card :backup="backup" :eggTotals="eggTotals" />
 </template>
 
 <script lang="ts">
@@ -7,6 +7,7 @@ import { computed, defineComponent, PropType } from 'vue';
 import { Emitter } from 'mitt';
 
 import {requestFirstContact, UserBackupEmptyError } from 'lib';
+import {getUserContractList, UserContract } from '@/contracts';
 import PlayerCard from '@/components/PlayerCard.vue';
 
 export default defineComponent({
@@ -35,9 +36,18 @@ export default defineComponent({
     if (!backup.settings) {
       throw new Error(`${playerId}: settings not found in backup`);
     }
+    const contracts = getUserContractList(backup);
+    const eggTotals: number[] = () => {
+      const totals = backup.value.stats?.eggTotals || [];
+      [100, 101, 102, 103, 104, 105].forEach(egg => {
+        totals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
+      });
+      return totals
+    };
     return {
       backup,
-      progress
+      progress,
+      contractEggTotals
     };
   },
 });
