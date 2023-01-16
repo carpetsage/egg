@@ -88,7 +88,7 @@ dayjs.extend(relativeTime);
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 
-const props = defineProps<{ backup: ei.IBackup, eggTotals: number[] }>();
+const props = defineProps<{ backup: ei.IBackup }>();
 const { backup } = toRefs(props);
 
 const collapsed = ref(getLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY) === 'true');
@@ -120,12 +120,17 @@ const randIndex = Math.floor(Math.random() * 10000);
 
 const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Chocolate", "Easter", "Waterballoon", "Firework", "Pumpkin"];
 
+
+const contracts = getUserContractList(backup.value);
+const eggTotals: number[] = backup.value.stats?.eggTotals || [];
+[100, 101, 102, 103, 104, 105].forEach(egg => {
+  eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
+});
+console.log(contracts.filter(c => c.egg == 100));
+
 function eggsLaid(uc: UserContract[]): number {
   return uc.map(c => c.contribution).reduce((partialSum, contrib) => partialSum + contrib);
 }
-
-console.log(contracts.filter(c => c.egg == 100));
-
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
