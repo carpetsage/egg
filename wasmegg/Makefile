@@ -1,6 +1,6 @@
 MAKEFLAGS ?= -j9
 
-targets = _home artifact-explorer artifact-sandbox events mission-list proto-explorer rockets-tracker past-contracts past-contracts-eicowop eggs-laid
+targets = _home eggs-laid artifact-explorer artifact-sandbox events mission-list proto-explorer rockets-tracker past-contracts past-contracts-eicowop
 init-targets = $(addprefix init-,$(targets))
 fastbuild-targets = $(addprefix fastbuild-,$(targets))
 clean-targets = $(addprefix clean-,$(targets))
