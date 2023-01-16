@@ -22,7 +22,8 @@
     "wasmegg/researches",
     "wasmegg/rockets-tracker",
     "wasmegg/smart-assistant",
-    "wasmegg/shell-company"
+    "wasmegg/shell-company",
+    "wasmegg/eggs-laid"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.41.0",

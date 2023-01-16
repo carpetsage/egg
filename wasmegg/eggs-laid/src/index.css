@@ -1,0 +1,31 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import 'ui/styles/base';
+@import 'ui/styles/app-loading';
+@import 'ui/styles/tippy';
+
+.text-rare {
+  @apply text-blue-500;
+}
+
+.text-epic {
+  @apply text-purple-500;
+}
+
+.text-legendary {
+  @apply text-yellow-500;
+}
+
+.bg-rare {
+  background: radial-gradient(#b3ffff, #b3ffff, #6ab6ff);
+}
+
+.bg-epic {
+  background: radial-gradient(#ff40ff, #ff40ff, #c03fe2);
+}
+
+.bg-legendary {
+  background: radial-gradient(#fffe41, #fffe41, #eeab42);
+}
