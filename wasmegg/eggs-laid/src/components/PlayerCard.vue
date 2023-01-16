@@ -80,7 +80,7 @@ import {
   setLocalStorage,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-
+import {getUserContractList, UserContract } from '@/contracts';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -121,7 +121,7 @@ const randIndex = Math.floor(Math.random() * 10000);
 const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Chocolate", "Easter", "Waterballoon", "Firework", "Pumpkin"];
 
 
-const contracts = getUserContractList(backup.value);
+const contracts: UserContract[] = getUserContractList(backup.value);
 const eggTotals: number[] = backup.value.stats?.eggTotals || [];
 [100, 101, 102, 103, 104, 105].forEach(egg => {
   eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
