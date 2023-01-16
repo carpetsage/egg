@@ -37,7 +37,7 @@ export default defineComponent({
       throw new Error(`${playerId}: settings not found in backup`);
     }
     const contracts = getUserContractList(backup);
-    const eggTotals: number[] = backup.value.stats?.eggTotals || [];
+    const eggTotals: number[] = backup.stats?.eggTotals || [];
     [100, 101, 102, 103, 104, 105].forEach(egg => {
       eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
     });
