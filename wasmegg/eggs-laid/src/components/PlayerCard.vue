@@ -130,12 +130,11 @@ function eggsLaid(uc: UserContract[]): number {
 const contracts = getUserContractList(backup);
 console.log(contracts.filter(c => c.egg == 100));
 
-const eggTotals = [...defaultEggTotals];
+const eggTotals = defaultEggTotals.map(x => x);
 console.log(eggTotals);
 [100, 101, 102, 103, 104, 105].forEach(egg => {
   eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
 });
-console.log(eggTotals);
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
