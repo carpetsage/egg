@@ -72,6 +72,10 @@
             <div v-if="!collapsed" class="py-2">
               <div class="text-sm font-medium">Eggs Laid</div>
                 <dl>
+                  <dl
+                    class="grid gap-x-4 justify-center mt-1"
+                    :style="{ gridTemplateColumns: '33% auto' }"
+                   >
                   <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
                     <div>
                       <dt class="text-xs font-medium text-gray-900">Egg {{index}} </dt>
