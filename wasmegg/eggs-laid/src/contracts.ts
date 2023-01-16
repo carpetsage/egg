@@ -14,7 +14,7 @@ export interface UserContract {
   id: string;
   name: string;
   egg: ei.Egg;
-  contribution: number;
+  contribution: number | null;
   isCoop: boolean;
   coopCode: string | null;
   hasLeagues: boolean;
