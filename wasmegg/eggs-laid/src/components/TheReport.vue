@@ -37,17 +37,15 @@ export default defineComponent({
       throw new Error(`${playerId}: settings not found in backup`);
     }
     const contracts = getUserContractList(backup);
-    const eggTotals: number[] = () => {
-      const totals = backup.value.stats?.eggTotals || [];
-      [100, 101, 102, 103, 104, 105].forEach(egg => {
-        totals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
-      });
-      return totals
-    };
+    const eggTotals: number[] = backup.value.stats?.eggTotals || [];
+    [100, 101, 102, 103, 104, 105].forEach(egg => {
+      eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
+    });
+
     return {
       backup,
       progress,
-      contractEggTotals
+      eggTotals
     };
   },
 });
