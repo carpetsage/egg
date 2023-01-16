@@ -80,6 +80,7 @@ import {
   setLocalStorage,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
+import { getUserContractList, UserContract } from '@/contracts';
 
 
 dayjs.extend(advancedFormat);
@@ -120,7 +121,24 @@ const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
 const lifetimeVidDoubler = computed(() => backup.value.stats?.videoDoublerUses || 0);
 const randIndex = Math.floor(Math.random() * 10000);
 
-const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment"];
+const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Waterballoon", "Firework", "Easter", "Chocolate"];
+
+
+function eggsLaid(c: UserContract[]): number {
+  return c.reduce((partialSum, contract) => partialSum + contract.contribution);
+}
+
+const contracts = getUserContractList(backup);
+//const contract_eggs = contracts.map(c => c.egg);
+["WATERBALLOON", "FIREWORK", "EASTER", "CHOCOLATE"].foreach(egg =>
+  eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
+);
+
+//CHOCOLATE=100
+//EASTER=101
+//WATERBALLOON=102 
+//FIREWORK=103
+//PUMPKIN=104
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
