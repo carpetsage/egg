@@ -95,7 +95,7 @@ function newUserContract(
   const name = props.name!;
   const egg = props.egg!;
   const isCoop = !!props.maxCoopSize && props.maxCoopSize > 1;
-  const contribution = isCoop ? contract.coopLastUploadedContribution : contract.lastAmountWhenRewardGiven || 0;
+  const contribution = (isCoop ? contract.coopLastUploadedContribution : contract.lastAmountWhenRewardGiven) || 0;
   const coopCode = contract.coopIdentifier || null;
   const league: ContractLeague = contract.league || 0;
   let hasLeagues = false;
