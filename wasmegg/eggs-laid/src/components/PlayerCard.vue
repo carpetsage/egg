@@ -88,7 +88,6 @@ dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
-const defaultEggTotals = computed(() => backup.value.stats?.eggTotals || [] );
 
 const props = defineProps<{ backup: ei.IBackup }>();
 const { backup } = toRefs(props);
@@ -111,7 +110,6 @@ onBeforeUnmount(() => {
 });
 
 const progress = computed(() => backup.value.game!);
-const artifactsDB = computed(() => backup.value.artifactsDb!);
 const userId = computed(() => backup.value.eiUserId ?? '');
 const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
 const nickname = computed(() => backup.value.userName!);
@@ -130,11 +128,14 @@ function eggsLaid(uc: UserContract[]): number {
 const contracts = getUserContractList(backup);
 console.log(contracts.filter(c => c.egg == 100));
 
-const eggTotals = defaultEggTotals.map(x => x);
-console.log(eggTotals);
-[100, 101, 102, 103, 104, 105].forEach(egg => {
-  eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
+const eggTotals = computed(() => {
+  const totals = backup.value.stats?.eggTotals || [] 
+  [100, 101, 102, 103, 104, 105].forEach(egg => {
+    totals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
+  });
+  return totals
 });
+console.log(eggTotals);
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
