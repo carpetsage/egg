@@ -49,10 +49,10 @@
 
 
             <div v-if="!collapsed" class="py-2">
-              <div class="text-sm font-medium">Eggs Laid</div>
+              <div class="text-lg font-medium">Eggs Laid</div>
               <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
-                <div class="justify-center">
-                  <p> Egg {{eggs[index]}} - {{fmtApprox(eggTotal)}} </p>
+                <div class="text-left">
+                  <p> {{eggs[index]}} - {{fmtApprox(eggTotal)}} </p>
                 </div>
               </template>
             </div>
@@ -120,7 +120,7 @@ const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
 const lifetimeVidDoubler = computed(() => backup.value.stats?.videoDoublerUses || 0);
 const randIndex = Math.floor(Math.random() * 10000);
 
-const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment"];
+const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment"];
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
