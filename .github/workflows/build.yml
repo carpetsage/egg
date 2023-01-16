@@ -49,12 +49,6 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref == 'refs/heads/main'
-      - name: Deploy to commit-specific URL
-        run: |
-          netlify deploy --alias "$GITHUB_SHA"
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       - name: Deploy to branch-specific URL
         run: |
           netlify deploy --alias "${GITHUB_REF##*/}"
@@ -62,6 +56,12 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/main'
+      - name: Deploy to commit-specific URL
+        run: |
+          netlify deploy --alias "$GITHUB_SHA"
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
   # With TS type checking.
   eicowop-fullbuild:
@@ -151,12 +151,6 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref == 'refs/heads/main'
-      - name: Deploy to commit-specific URL
-        run: |
-          netlify deploy --alias "$GITHUB_SHA"
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       - name: Deploy to branch-specific URL
         run: |
           netlify deploy --alias "${GITHUB_REF##*/}"
@@ -164,6 +158,12 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/main'
+      - name: Deploy to commit-specific URL
+        run: |
+          netlify deploy --alias "$GITHUB_SHA"
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
   # With TS type checking.
   wasmegg-fullbuild:
