@@ -71,14 +71,12 @@
 
             <div v-if="!collapsed" class="py-2">
               <div class="text-sm font-medium">Eggs Laid</div>
-              <template v-for="eggTotal in eggTotals" :key="eggTotal.id">
+              <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
 
-                <dl
-                    class="gap-x-4 justify-center mt-1"
-                    >
+                <dl>
                     <div>
-                      <dt class="text-xs font-medium text-gray-900">Egg</dt>
-                      <dd class="text-sm text-gray-900">{{ fmt(eggTotal) }}</dd>
+                      <dt class="text-xs font-medium text-gray-900">Egg {{index}} </dt>
+                      <dd class="text-sm text-gray-900">{{ fmtApprox(eggTotal) }}</dd>
                     </div>
                 </dl>
               </template>
@@ -152,7 +150,7 @@ function fmt(n: number): string {
 }
 
 function fmtApprox(n: number): string {
-  return n === 0 ? '0' : `~${formatEIValue(n, { precision: 2 })}`;
+  return n === 0 ? '0' : `~${formatEIValue(n, { precision: 4 })}`;
 }
 
 </script>

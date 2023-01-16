@@ -6,6 +6,7 @@
   </h1>
 
   <div class="max-w-5xl w-full pb-6 mx-auto">
+    <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
     <!-- Use a key to recreate on data loading -->
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
