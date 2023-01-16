@@ -14,11 +14,11 @@ export interface UserContract {
   id: string;
   name: string;
   egg: ei.Egg;
+  contribution: number;
   isCoop: boolean;
   coopCode: string | null;
   hasLeagues: boolean;
   attempted: boolean;
-  contribution: number;
   league: ContractLeague;
   goals: ei.Contract.IGoal[];
   numAvailableGoals: number;
@@ -127,6 +127,7 @@ function newUserContract(
     id,
     name,
     egg,
+    contribution,
     isCoop,
     coopCode,
     hasLeagues,
