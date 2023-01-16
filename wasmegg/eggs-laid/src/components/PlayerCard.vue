@@ -123,12 +123,11 @@ const randIndex = Math.floor(Math.random() * 10000);
 
 const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Chocolate", "Easter", "Waterballoon", "Firework", "Pumpkin"];
 
-function eggsLaid(c: UserContract[]): number {
-  return c.reduce((partialSum, contract) => partialSum + contract.contribution);
+function eggsLaid(uc: UserContract[]): number {
+  return uc.map(c => c.contribution).reduce((partialSum, contrib) => partialSum + contrib);
 }
 
 const contracts = getUserContractList(backup);
-const contract_eggs = contracts.map(c => c.egg);
 console.log(contracts.filter(c => c.egg == 100));
 
 const eggTotals = [...defaultEggTotals];
