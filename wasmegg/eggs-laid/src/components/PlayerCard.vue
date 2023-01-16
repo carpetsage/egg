@@ -37,8 +37,6 @@
         <div class="divide-y divide-gray-200">
           <div class="py-2">
             <div class="flex items-center justify-center space-x-1 mx-6">
-              <span class="font-serif truncate">{{ nickname }}</span>
-
               <div class="mt-1">
                 <div class="text-xs">
                   Last synced to server:
@@ -46,36 +44,17 @@
                     {{ lastRefreshedRelative }}
                   </span>
                 </div>
-                <div
-                    v-tippy="{
-                              content: `
-                              <p>The game, while active, saves to Egg, Inc.&rsquo;s server every couple of minutes if network condition allows.
-                              Other than soon after a fresh launch of the game, such server syncs are unpredictable from the user&rsquo;s point of view.
-                              <span class='text-blue-300'>You can force close then reopen the app to reasonably reliably trigger a sync</span>
-                              (search for &ldquo;iOS force close app&rdquo; or &ldquo;Android force close app&rdquo; if you need help).</p>
-
-                              <p>However, even after an app-initiated sync, it may take an unpredicatible amount of time
-                              (usually within a minute or so) for the game&rsquo;s server to serve the updated save through its API,
-                              which is then picked up by this tool. There is no solution other than clicking &ldquo;Load Player Data&rdquo;
-                              periodically until the fresh save shows up. Please do not refresh too fast, which is not helpful.</p>`,
-                              allowHTML: true,
-                              }"
-                                    class="flex items-center justify-center space-x-1"
-                                    >
-                                    <span class="text-xs text-gray-500">Why is my save out of date?</span>
-                                    <base-info />
-                </div>
               </div>
             </div>
 
 
             <div v-if="!collapsed" class="py-2">
               <div class="text-sm font-medium">Eggs Laid</div>
-                  <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
-                    <div class="justify-center">
-                      <p> Egg {{index}} - {{fmtApprox(eggTotal)}} </p>
-                    </div>
-                  </template>
+              <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
+                <div class="justify-center">
+                  <p> Egg {{eggs[index]}} - {{fmtApprox(eggTotal)}} </p>
+                </div>
+              </template>
             </div>
 
           </div>
@@ -141,12 +120,14 @@ const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
 const lifetimeVidDoubler = computed(() => backup.value.stats?.videoDoublerUses || 0);
 const randIndex = Math.floor(Math.random() * 10000);
 
+const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment"];
+
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
 }
 
 function fmtApprox(n: number): string {
-  return n === 0 ? '0' : `~${formatEIValue(n, { decimals: 3 })}`;
+  return n === 0 ? '0' : `${formatEIValue(n, { decimals: 3 })}`;
 }
 
 </script>
