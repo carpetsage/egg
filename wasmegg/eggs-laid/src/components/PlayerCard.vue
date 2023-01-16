@@ -71,18 +71,17 @@
 
             <div v-if="!collapsed" class="py-2">
               <div class="text-sm font-medium">Eggs Laid</div>
-                <dl>
-                  <dl
-                    class="grid gap-x-4 justify-center mt-1"
-                    :style="{ gridTemplateColumns: '33% auto' }"
-                   >
+              <dl
+                class="grid gap-x-4 justify-center mt-1"
+                :style="{ gridTemplateColumns: '33% auto' }"
+              >
                   <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
                     <div>
-                      <dt class="text-xs font-medium text-gray-900">Egg {{index}} </dt>
-                      <dd class="text-sm text-gray-900">{{ fmtApprox(eggTotal) }}</dd>
+                      <dt class="text-xs font-medium text-gray-900" :style="{grid column: 1}">Egg {{index}}</dt>
+                      <dd class="text-sm text-gray-900" :style="{grid column: 2}">{{ fmtApprox(eggTotal) }}</dd>
                     </div>
                   </template>
-                </dl>
+              </dl>
             </div>
 
           </div>
@@ -92,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, toRefs } from 'vue';
+  import { computed, onBeforeUnmount, ref, toRefs } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
