@@ -129,12 +129,14 @@ function eggsLaid(c: UserContract[]): number {
 
 const contracts = getUserContractList(backup);
 const contract_eggs = contracts.map(c => c.egg);
+console.log(contracts.filter(c => c.egg == 100));
 
-const eggTotals = [];
-[ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON, ei.Egg.FIREWORK, ei.Egg.PUMPKIN].forEach(egg => {
+const eggTotals = [...defaultEggTotals];
+console.log(eggTotals);
+[100, 101, 102, 103, 104, 105].forEach(egg => {
   eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
 });
-eggTotals.concat(defaultEggTotals);
+console.log(eggTotals);
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
