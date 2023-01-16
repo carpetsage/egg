@@ -11,7 +11,7 @@ build:
 dist: build
 	../_tools/build.py dist --additional assets --additional static
 
-fastbuild: src/lib/study_stats.ts
+fastbuild:
 	yarn fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
