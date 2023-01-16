@@ -131,7 +131,7 @@ console.log("uwu");
 console.log(contracts.map(c => c.contribution));
 
 function eggsLaid(uc: UserContract[]): number {
-  contribs = uc.map(c => c.contribution);
+  const contribs = uc.map(c => c.contribution);
   console.log(contribs);
   return contribs.reduce((partialSum, contrib) => partialSum + contrib);
 }
