@@ -80,14 +80,13 @@ import {
   setLocalStorage,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-
+import {getUserContractList, UserContract } from '@/contracts';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
-const eggTotals = computed(() => backup.value.stats?.eggTotals || [] );
 
 const props = defineProps<{ backup: ei.IBackup }>();
 const { backup } = toRefs(props);
@@ -110,7 +109,6 @@ onBeforeUnmount(() => {
 });
 
 const progress = computed(() => backup.value.game!);
-const artifactsDB = computed(() => backup.value.artifactsDb!);
 const userId = computed(() => backup.value.eiUserId ?? '');
 const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
 const nickname = computed(() => backup.value.userName!);
@@ -120,7 +118,23 @@ const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
 const lifetimeVidDoubler = computed(() => backup.value.stats?.videoDoublerUses || 0);
 const randIndex = Math.floor(Math.random() * 10000);
 
-const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment"];
+const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Chocolate", "Easter", "Waterballoon", "Firework", "Pumpkin"];
+
+
+const contracts: UserContract[] = getUserContractList(backup.value);
+const eggTotals: number[] = backup.value.stats?.eggTotals || [];
+[100, 101, 102, 103, 104].forEach(egg => {
+  eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)) || 0);
+});
+console.log(contracts.filter(c => c.egg == 102));
+console.log("uwu");
+console.log(contracts.map(c => c.contribution));
+
+function eggsLaid(uc: UserContract[]): number {
+  const contribs = uc.map(c => c.contribution!);
+  console.log(contribs);
+  return contribs.reduce((partialSum, contrib) => partialSum + contrib, 0);
+}
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');

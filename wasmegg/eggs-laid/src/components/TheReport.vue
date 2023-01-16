@@ -36,8 +36,7 @@ export default defineComponent({
       throw new Error(`${playerId}: settings not found in backup`);
     }
     return {
-      backup,
-      progress
+      backup
     };
   },
 });
