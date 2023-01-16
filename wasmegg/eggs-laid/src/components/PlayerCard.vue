@@ -130,7 +130,7 @@ function eggsLaid(c: UserContract[]): number {
 
 const contracts = getUserContractList(backup);
 //const contract_eggs = contracts.map(c => c.egg);
-["WATERBALLOON", "FIREWORK", "EASTER", "CHOCOLATE"].foreach(egg => {
+["WATERBALLOON", "FIREWORK", "EASTER", "CHOCOLATE"].forEach(egg => {
   eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
 });
 
