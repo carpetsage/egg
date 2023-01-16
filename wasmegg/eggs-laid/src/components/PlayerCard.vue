@@ -129,7 +129,7 @@ const contracts = getUserContractList(backup);
 console.log(contracts.filter(c => c.egg == 100));
 
 const eggTotals = computed(() => {
-  const totals = backup.value.stats?.eggTotals || [] 
+  const totals = backup.value.stats?.eggTotals || [];
   [100, 101, 102, 103, 104, 105].forEach(egg => {
     totals.push(eggsLaid(contracts.filter(c => c.egg == egg)));
   });
