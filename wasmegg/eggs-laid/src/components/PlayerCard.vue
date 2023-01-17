@@ -49,14 +49,15 @@
 
 
             <div v-if="!collapsed" class="py-2">
-              <div class="text-lg font-medium">Eggs Laid</div>
+              <div class="text-lg font-medium">
+                Eggs Laid
+              </div>
               <pre class="text-left">
-              <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
-                  {{eggs[index]}} - {{fmtApprox(eggTotal)}} </pre>
-              </template>
+                <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
+                  {{eggs[index]}} - {{fmtApprox(eggTotal)}}
+                </template>
               </pre>
             </div>
-
           </div>
         </div>
     </div>
