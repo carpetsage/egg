@@ -127,7 +127,7 @@ const eggTotals: number[] = backup.value.stats?.eggTotals || [];
 [100, 101, 102, 103, 104].forEach(egg => {
   eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)) || 0);
 });
-if (userIdHash == 'b8c947004f3b209a7d17078f5a37b0c28a1b10e39037ba1facb55cf0113976b2') {
+if (userIdHash.value == 'b8c947004f3b209a7d17078f5a37b0c28a1b10e39037ba1facb55cf0113976b2') {
   eggTotals[20] = 671532000000000000;
 }
 
