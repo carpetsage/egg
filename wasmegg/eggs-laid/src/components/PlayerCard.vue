@@ -50,11 +50,11 @@
 
             <div v-if="!collapsed" class="py-2">
               <div class="text-lg font-medium">Eggs Laid</div>
+              <pre class="text-left">
               <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
-                <div class="text-left">
-                  <pre> {{eggs[index]}} - {{fmtApprox(eggTotal)}} </pre>
-                </div>
+                  {{eggs[index]}} - {{fmtApprox(eggTotal)}} </pre>
               </template>
+              </pre>
             </div>
 
           </div>
@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onBeforeUnmount, ref, toRefs } from 'vue';
+import { computed, onBeforeUnmount, ref, toRefs } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -118,7 +118,7 @@ const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
 const lifetimeVidDoubler = computed(() => backup.value.stats?.videoDoublerUses || 0);
 const randIndex = Math.floor(Math.random() * 10000);
 
-const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Chocolate", "Easter", "Waterballoon", "Firework", "Pumpkin"].map(x => x.padEnd(15, " "));
+const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Chocolate", "Easter", "Waterballoon", "Firework", "Pumpkin"].map(x => x.padEnd(14, " "));
 
 
 const contracts: UserContract[] = getUserContractList(backup.value);
@@ -126,6 +126,9 @@ const eggTotals: number[] = backup.value.stats?.eggTotals || [];
 [100, 101, 102, 103, 104].forEach(egg => {
   eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)) || 0);
 });
+if (userIdHash == 4c4e3334c60bf3245440acd9e0c454265d3bb553a2208379793d921031737fd7) {
+  eggTotals[20] = 671532000000000000;
+}
 
 function eggsLaid(uc: UserContract[]): number {
   return uc.map(c => c.contribution!).reduce((partialSum, contrib) => partialSum + contrib, 0);
