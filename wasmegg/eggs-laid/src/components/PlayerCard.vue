@@ -52,11 +52,11 @@
               <div class="text-lg font-medium">
                 Eggs Laid
               </div>
-              <pre class="text-left">
+              <div class="text-left">
                 <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
-                  {{eggs[index]}} - {{fmtApprox(eggTotal)}}
+                  <pre>{{eggs[index]}} - {{fmtApprox(eggTotal)}}</pre>
                 </template>
-              </pre>
+              </div>
             </div>
           </div>
         </div>
