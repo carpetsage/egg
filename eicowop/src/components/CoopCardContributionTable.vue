@@ -153,6 +153,7 @@
         >
           <template v-if="contributor.soulEggs !== null">
           {{ formatEIValue(contributor.soulEggs) }}
+          </template>
           <template v-else>Private</template>
         </td>
           // PE COLUMN
@@ -161,6 +162,7 @@
         >
           <template v-if="contributor.prophecyEggs !== null">
           contributor.prophecyEggs
+          </template>
           <template v-else>Private</template>
         </td>
         <td
