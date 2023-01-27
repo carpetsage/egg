@@ -147,10 +147,21 @@
           >
           <template v-else>Private</template>
         </td>
+          // SE COLUMN
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
-          {{ formatEIValue(contributor.eggsLaid) }}
+          <template v-if="contributor.soulEggs !== null">
+          {{ formatEIValue(contributor.soulEggs) }}
+          <template v-else>Private</template>
+        </td>
+          // PE COLUMN
+        <td
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <template v-if="contributor.prophecyEggs !== null">
+          contributor.prophecyEggs
+          <template v-else>Private</template>
         </td>
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
@@ -383,6 +394,14 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
     {
       id: 'artifacts',
       name: 'Artifacts',
+    },
+    {
+      id: 'soulEggs',
+      name: 'SE',
+    },
+    {
+      id: 'prophecyEggs',
+      name: 'PE',
     },
     {
       id: 'eggsLaid',
