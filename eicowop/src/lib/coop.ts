@@ -171,6 +171,8 @@ export class Contributor {
   soulMirrorMultiplier = 1;
   farmerRole: FarmerRole;
   tokens: number;
+  soulEggs: number | null;
+  prophecyEggs: number | null;
   isActive: boolean;
   isTimeCheating: boolean;
   isLeeching: boolean; // New in v1.20.8
@@ -244,6 +246,8 @@ export class Contributor {
     this.boosts = (contributor.farmInfo?.activeBoosts ?? []).filter(
       boost => !!boost.boostId && (boost.timeRemaining ?? 0) > 0
     );
+    this.soulEggs = contributor.farmInfo?.soulEggs || null;
+    this.prophecyEggs = contributor.farmInfo?.eggsOfProphecy || null; 
   }
 }
 
