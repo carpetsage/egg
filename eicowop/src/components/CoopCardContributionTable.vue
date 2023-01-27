@@ -147,7 +147,6 @@
           >
           <template v-else>Private</template>
         </td>
-          // SE COLUMN
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
@@ -156,12 +155,11 @@
           </template>
           <template v-else>Private</template>
         </td>
-          // PE COLUMN
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
           <template v-if="contributor.prophecyEggs !== null">
-          contributor.prophecyEggs
+            {{ contributor.prophecyEggs }}
           </template>
           <template v-else>Private</template>
         </td>
