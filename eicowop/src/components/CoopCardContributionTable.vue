@@ -340,6 +340,9 @@ import CoopCardContributionTableArtifactGallery from '@/components/CoopCardContr
 const requiredColumnIds = [
   'name',
   'artifacts',
+  'soulEggs',
+  'prophecyEggs',
+  'artifacts',
   'eggsLaid',
   'eggsPerHour',
   'earningBonusPercentage',

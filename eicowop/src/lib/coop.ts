@@ -246,8 +246,8 @@ export class Contributor {
     this.boosts = (contributor.farmInfo?.activeBoosts ?? []).filter(
       boost => !!boost.boostId && (boost.timeRemaining ?? 0) > 0
     );
-    this.soulEggs = contributor.farmInfo?.soulEggs;
-    this.prophecyEggs = contributor.farmInfo?.eggsOfProphecy;
+    this.soulEggs = contributor.farmInfo?.soulEggs || null;
+    this.prophecyEggs = contributor.farmInfo?.eggsOfProphecy || null; 
   }
 }
 
