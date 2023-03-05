@@ -319,6 +319,9 @@
               <dd class="text-left text-sm text-gray-900">{{ fmt(daysSinceFirstMission) }}</dd>
             </template>
 
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Crafting XP</dt>
+            <dd class="text-left text-sm text-gray-900">{{ fmt(craftingXp) }}</dd>
+
             <dt class="text-right text-sm font-medium whitespace-nowrap">Inventory score</dt>
             <dd class="flex items-center text-sm text-gray-900">
               {{ fmt(inventoryScore) }}
@@ -828,6 +831,7 @@ const daysSinceFirstMission = computed(() => {
   return dayjs().diff(firstMissionLaunchedAt, 'days');
 });
 const inventoryScore = computed(() => Math.floor(backup.value.artifacts?.inventoryScore || 0));
+const craftingXp = computed(() => Math.floor(backup.value.artifacts?.craftingXp || 0));
 const inventoryConsumptionValue = computed(() =>
   inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
 );
