@@ -319,9 +319,6 @@
               <dd class="text-left text-sm text-gray-900">{{ fmt(daysSinceFirstMission) }}</dd>
             </template>
 
-            <dt class="text-right text-sm font-medium whitespace-nowrap">Crafting XP</dt>
-            <dd class="text-left text-sm text-gray-900">{{ fmt(craftingXp) }}</dd>
-
             <dt class="text-right text-sm font-medium whitespace-nowrap">Inventory score</dt>
             <dd class="flex items-center text-sm text-gray-900">
               {{ fmt(inventoryScore) }}
@@ -350,6 +347,8 @@
                 class="inline ml-0.5"
               />
             </dd>
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Crafting XP</dt>
+            <dd class="text-left text-sm text-gray-900">{{ fmt(craftingXp) }}</dd>
           </div>
         </div>
 
