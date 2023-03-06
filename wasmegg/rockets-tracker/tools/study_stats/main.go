@@ -28,7 +28,7 @@ type stat struct {
 }
 
 var _preset = stat{
-	LegendariesJealousyThreshold: 29,
+	LegendariesJealousyThreshold: 30,
 	ZLCExthenRecord:              222,
 }
 
