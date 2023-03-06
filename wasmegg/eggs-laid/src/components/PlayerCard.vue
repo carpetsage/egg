@@ -56,7 +56,7 @@
                 <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
                   <pre>{{eggs[index]}} - {{fmtApprox(eggTotal)}}</pre>
                 </template>
-                <pre>{{"Total".padEnd(14, " ")}} - {{fmtApprox(eggTotals.reduce((a,b)=>a+b))}</pre>
+                <pre>{{"Total".padEnd(14, " ")}} - {{fmtApprox(eggTotals.reduce((a,b)=>a+b))}}</pre>
               </div>
             </div>
           </div>
