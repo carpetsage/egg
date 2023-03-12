@@ -30,13 +30,14 @@ import badge29 from './badge-29.svg';
 import badge30 from './badge-30.svg';
 import badgeMore from './badge-more.svg';
 
+import badgeNAH from './badge-nah.svg';
 import badgeALC from './badge-alc.svg';
 import badgeSLC from './badge-slc.svg';
 import badgeZLC from './badge-zlc.svg';
 import badgeZLC100 from './badge-zlc100.svg';
 import badgeZLC7star from './badge-zlc7star.svg';
 import badgeASC from './badge-asc.svg';
-export { badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star, badgeASC };
+export { badgeNAH, badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star, badgeASC };
 
 import medalZLCRecord from './medal-zlc-record.svg';
 import medalZLCRecordGrayscale from './medal-zlc-record-grayscale.svg';
