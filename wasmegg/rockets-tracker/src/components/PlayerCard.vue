@@ -48,6 +48,12 @@
               :src="iconURL('egginc/icon_trophy_diamond.png', 128)"
               class="h-4 w-4 flex-shrink-0"
             />
+            <img
+              v-if="hasNAH"
+              v-tippy="{ content: 'Proud owner of the Nobel Prize in Animal Husbandry®' }"
+              :src="badgeNAH"
+              class="h-4 w-4 flex-shrink-0"
+            />
 
             <img
               v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB"
@@ -669,6 +675,7 @@ import {
 } from '@/lib';
 import {
   numberBadgeURL,
+  badgeNAH,
   badgeALC,
   badgeSLC,
   badgeZLC,
@@ -696,6 +703,7 @@ enum ArtifactClub {
 }
 
 const STAFF_USER_ID_HASHES = [
+  '3b947e3425cf372ac0b2c6963776338c110bd63c7edcda3a7cf3aa5f72f2e913',
   '6fd149f054b097366d63e7e5d322ffa30359d00c0991d04afd4a04fa0cca12b3',
   'f27a030bcbbd017afb5429e7bff341f3589c5bf035d41ad82063b8edac481d50',
   '465d0ffcc5a6c98ec57cf69a7c8a6d1e8af40c6fa6cac3ef83ea9cee5cf516f4',
@@ -792,6 +800,15 @@ const shipClub = computed((): ShipClub | null => {
   return null;
 });
 const prophecyEggsProgress = computed(() => getProphecyEggsProgress(backup.value));
+const hasNAH = computed(() => {
+  const farmsize = progress.value.maxFarmSizeReached;
+  // subtract 1 for array indexing
+  const enlight = ei.Egg.ENLIGHTENMENT - 1;
+  if (farmsize[enlight] === 19845000000) {
+    return true;
+  }
+  return false;
+});
 const hasEnlightenmentDiamondTrophy = computed(() => {
   const eggs = prophecyEggsProgress.value.fromTrophies.eggs;
   for (const egg of eggs) {
