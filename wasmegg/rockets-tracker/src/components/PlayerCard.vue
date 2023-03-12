@@ -801,7 +801,7 @@ const shipClub = computed((): ShipClub | null => {
 });
 const prophecyEggsProgress = computed(() => getProphecyEggsProgress(backup.value));
 const hasNAH = computed(() => {
-  const farmsize = progress.value.maxFarmSizeReached;
+  const farmsize = progress.value.maxFarmSizeReached!;
   // subtract 1 for array indexing
   const enlight = ei.Egg.ENLIGHTENMENT - 1;
   if (farmsize[enlight] === 19845000000) {
