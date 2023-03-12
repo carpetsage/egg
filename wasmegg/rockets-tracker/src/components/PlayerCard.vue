@@ -52,7 +52,7 @@
               v-if="hasNAH"
               v-tippy="{ content: 'Proud owner of the Nobel Prize in Animal Husbandry®' }"
               :src="badgeNAH"
-              class="h-4 w-4 flex-shrink-0"
+              class="h-4"
             />
 
             <img
