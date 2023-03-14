@@ -143,7 +143,7 @@
       :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
-        {{ contract.expirationTime + contract.lengthSeconds < Date.now() ? "Yes" : "No" }}
+        {{ contract.expirationTime + contract.lengthSeconds < Date.now() / 1000 ? "Yes" : "No" }}
       </template>
     </Column>
     <Column
