@@ -15,6 +15,7 @@ export const rawContractList = contractProtos.map(
 
 export interface Contract extends ei.IContract {
   id: string;
+  endDate: number;
   uniqueKey: string;
   type: ContractType;
   numLeggacies: number;
