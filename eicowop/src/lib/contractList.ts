@@ -128,7 +128,7 @@ function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
 }
 
 function getEndDate(contract: ei.IContract) {
-  contract.expirationTime + contract.lengthSeconds
+  contract.expirationTime! + contract.lengthSeconds!
 }
 function getProphecyEggsCount(contract: ei.IContract) {
   let count = 0;
