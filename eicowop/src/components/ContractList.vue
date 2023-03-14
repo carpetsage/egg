@@ -139,11 +139,22 @@
       field="endDate"
       header="Removable"
       :sortable="true"
+      :headerClass="columnHeaderClasses"
+      :bodyClass="columnBodyClasses"
+    >
+      <template #body="{ data: contract }">
+        {{ contract.expirationTime + contract.lengthSeconds < Date.now() / 1000 ? "Yes" : "No" }}
+      </template>
+    </Column>
+    <Column
+      field="endDate"
+      header="Removal Date"
+      :sortable="true"
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
-        {{ contract.expirationTime + contract.lengthSeconds < Date.now() / 1000 ? "Yes" : "No" }}
+        {{ formatDate(contract.expirationTime + contract.lengthSeconds) }}
       </template>
     </Column>
     <Column
