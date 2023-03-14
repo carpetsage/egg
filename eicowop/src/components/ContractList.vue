@@ -8,7 +8,7 @@
     :value="contracts"
     responsiveLayout="scroll"
     dataKey="uniqueKey"
-    sortField="isremovable"
+    sortField="endDate"
     :sortOrder="-1"
     removableSort
     :paginator="true"
@@ -136,7 +136,7 @@
       </template>
     </Column>
     <Column
-      field="isremovable"
+      field="endDate"
       header="Removable"
       :sortable="true"
       :headerClass="columnHeaderClassesCentered"

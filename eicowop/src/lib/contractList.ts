@@ -101,6 +101,7 @@ function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
       ...c,
       id: c.identifier!,
       uniqueKey: `${c.identifier}-${c.expirationTime}`,
+      endDate: getEndDate(c),
       type: 'Original',
       numLeggacies: 0,
       offeringTime: 0,
@@ -126,6 +127,9 @@ function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
   return list.sort((c1, c2) => c1.offeringTime - c2.offeringTime);
 }
 
+function getEndDate(contract: ei.IContract) {
+  contract.expirationTime + contract.lengthSeconds
+}
 function getProphecyEggsCount(contract: ei.IContract) {
   let count = 0;
   for (const goal of contract.goals!) {
