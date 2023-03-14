@@ -8,7 +8,7 @@
     :value="contracts"
     responsiveLayout="scroll"
     dataKey="uniqueKey"
-    sortField="offeringTime"
+    sortField="isremovable"
     :sortOrder="-1"
     removableSort
     :paginator="true"
@@ -136,21 +136,14 @@
       </template>
     </Column>
     <Column
-      field="removableTime"
+      field="isremovable"
       header="Removable"
       :sortable="true"
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
-        <span
-          v-tippy="{
-            content: formatDateTime(contract.expirationTime + contract.lengthSeconds),
-          }"
-          :class="columnColorClasses"
-        >
-          {{ formatDate(contract.expirationTime + contract.lengthSeconds) }}
-        </span>
+        {{ contract.expirationTime + contract.lengthSeconds < Date.now() ? "Yes" : "No" }}
       </template>
     </Column>
     <Column
