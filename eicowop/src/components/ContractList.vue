@@ -136,6 +136,24 @@
       </template>
     </Column>
     <Column
+      field="removableTime"
+      header="Removable"
+      :sortable="true"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
+    >
+      <template #body="{ data: contract }">
+        <span
+          v-tippy="{
+            content: formatDateTime(contract.expirationTime + contract.lengthSeconds),
+          }"
+          :class="columnColorClasses"
+        >
+          {{ formatDate(contract.expirationTime + contract.lengthSeconds) }}
+        </span>
+      </template>
+    </Column>
+    <Column
       field="type"
       header="Type"
       :sortable="true"
