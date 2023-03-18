@@ -40,6 +40,7 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
   const epicMultiplierResearch =
     farm.maxRunningChickenBonusResearches[farm.maxRunningChickenBonusResearches.length - 1];
   const missingEpicMultiplier = epicMultiplierResearch.maxLevel - epicMultiplierResearch.level;
+  const missingRCB = 0;
   const config: IConfig = {
     prophecyEggs: getNumProphecyEggs(backup),
     soulEggs: getNumSoulEggs(backup),
