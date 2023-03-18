@@ -20,5 +20,5 @@ export function maxRunningChickenBonus(build: Build, config: Config): number {
 
 export function baseMaxRunningChickenBonus(config: Config): number {
   // Assume max common research.
-  return 340 + config.epicMultiplier * 2;
+  return config.RCB;
 }

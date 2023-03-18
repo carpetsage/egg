@@ -51,26 +51,23 @@
 
     <div class="mt-4 flex justify-center">
       <div class="space-y-1">
-        <h4 class="text-center text-sm uppercase">Epic research</h4>
+        <h4 class="text-center text-sm uppercase">Configuration</h4>
         <div class="relative flex items-center justify-end">
-          <label for="epic_multiplier" class="flex items-center text-sm whitespace-nowrap mr-2">
-            <img
-              :src="iconURL('egginc/r_icon_epic_multiplier.png', 64)"
-              class="h-8 w-8 relative -top-px mr-px"
-            />
-            Epic multiplier
+          <label for="RCB" class="flex items-center text-sm whitespace-nowrap mr-2">
+            Max Base RCB
           </label>
           <integer-input
-            id="epic_multiplier"
-            v-model="conf.epicMultiplier"
+            id="RCB"
+            v-model="conf.RCB"
             :min="0"
-            :max="100"
+            :max="540"
             base-class="w-20 pl-2.5 pt-1 pb-0.5"
           />
           <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">
-            / 100
+            / 540
           </div>
         </div>
+        <h4 class="text-center text-sm uppercase">Epic research</h4>
         <div class="relative flex items-center justify-end">
           <label for="soul_food" class="flex items-center text-sm whitespace-nowrap mr-2">
             <img

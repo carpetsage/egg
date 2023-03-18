@@ -75,8 +75,7 @@ export class Build {
   static fromProto(build: proto.IBuild): Build {
     return new Build(build.artifacts?.map(Artifact.fromProto) ?? []);
   }
-
-  buildProps(): BuildProps {
+buildProps(): BuildProps {
     return this.artifacts.map(a => a.buildProps());
   }
 
@@ -358,7 +357,7 @@ export class Stone {
 
 const maxSoulFood = 140;
 const maxProphecyBonus = 5;
-const maxEpicMultiplier = 100;
+const maxRCB = 540;
 
 export class Config {
   prophecyEggs: number;
@@ -367,7 +366,7 @@ export class Config {
   isEnlightenment: boolean;
   soulFood: number;
   prophecyBonus: number;
-  epicMultiplier: number;
+  RCB: number;
   birdFeedActive: boolean;
   tachyonPrismActive: boolean;
   soulBeaconActive: boolean;
@@ -382,7 +381,7 @@ export class Config {
     this.isEnlightenment = false;
     this.soulFood = maxSoulFood;
     this.prophecyBonus = maxProphecyBonus;
-    this.epicMultiplier = maxEpicMultiplier;
+    this.RCB = maxRCB;
     this.birdFeedActive = false;
     this.tachyonPrismActive = false;
     this.soulBeaconActive = false;
@@ -407,7 +406,7 @@ export class Config {
     self.isEnlightenment = config?.isEnlightenment ?? false;
     self.soulFood = maxSoulFood - (config?.missingSoulFood ?? 0);
     self.prophecyBonus = maxProphecyBonus - (config?.missingProphecyBonus ?? 0);
-    self.epicMultiplier = maxEpicMultiplier - (config?.missingEpicMultiplier ?? 0);
+    self.RCB = maxRCB - (config?.missingRCB ?? 0);
     self.birdFeedActive = config?.birdFeedActive ?? false;
     self.tachyonPrismActive = config?.tachyonPrismActive ?? false;
     self.soulBeaconActive = config?.soulBeaconActive ?? false;
@@ -425,7 +424,7 @@ export class Config {
       isEnlightenment: this.isEnlightenment,
       missingSoulFood: maxSoulFood - this.soulFood,
       missingProphecyBonus: maxProphecyBonus - this.prophecyBonus,
-      missingEpicMultiplier: maxEpicMultiplier - this.epicMultiplier,
+      missingRCB: maxRCB - this.RCB,
       birdFeedActive: this.birdFeedActive,
       tachyonPrismActive: this.tachyonPrismActive,
       soulBeaconActive: this.soulBeaconActive,
@@ -439,7 +438,7 @@ export class Config {
     return (
       this.soulFood === maxSoulFood &&
       this.prophecyBonus === maxProphecyBonus &&
-      this.epicMultiplier === maxEpicMultiplier
+      this.RCB === maxRCB
     );
   }
 
