@@ -40,7 +40,6 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
   const epicMultiplierResearch =
     farm.maxRunningChickenBonusResearches[farm.maxRunningChickenBonusResearches.length - 1];
   const missingEpicMultiplier = epicMultiplierResearch.maxLevel - epicMultiplierResearch.level;
-  const missingRCB = 0;
   const config: IConfig = {
     prophecyEggs: getNumProphecyEggs(backup),
     soulEggs: getNumSoulEggs(backup),
@@ -48,7 +47,6 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
     isEnlightenment: override?.isEnlightenment ?? farm.egg === ei.Egg.ENLIGHTENMENT,
 
     missingSoulFood,
-    missingRCB,
     missingProphecyBonus,
     missingEpicMultiplier,
 
