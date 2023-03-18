@@ -105,7 +105,7 @@ export const tools = [
     // forever
     updateUntil: 2638811910000,
     whatsNew:
-      'Added away earnings field.',
+      'Added Max Base RCB field.',
   }),
   new Tool({
     id: 'rockets-tracker',
