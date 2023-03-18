@@ -47,6 +47,7 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
     isEnlightenment: override?.isEnlightenment ?? farm.egg === ei.Egg.ENLIGHTENMENT,
 
     missingSoulFood,
+    missingRCB,
     missingProphecyBonus,
     missingEpicMultiplier,
 
