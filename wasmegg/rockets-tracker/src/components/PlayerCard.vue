@@ -703,6 +703,7 @@ enum ArtifactClub {
 }
 
 const STAFF_USER_ID_HASHES = [
+  'b8dc041be7ea07faf6ccc2fd893fe5b93c54449deea5b657830eec00a460a7c3',
   '755a2eceb8015df87a43b1ba6a9c82ccfdf4e73d6432e89c16a428070f9bf367',
   '41dffdd80439e6e00433e0eb1592ae7a539d8b74cefde51b14bd45428f042cfb',
   '5416c47fb4bad9315d64a11c6311d899d639b68b59de64b3ed1fdff3fd9033ec',
