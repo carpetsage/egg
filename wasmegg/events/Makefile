@@ -3,7 +3,7 @@
 all: clean
 	$(MAKE) dist
 
-init: update-events-data
+init:
 
 build:
 	yarn build
@@ -14,9 +14,6 @@ dist: build
 fastbuild: clean
 	yarn fastbuild
 	../_tools/build.py dist --additional assets
-
-update-events-data:
-	python ../../events/updateEvents.py
 
 clean:
 	@$(RM) -r dist
