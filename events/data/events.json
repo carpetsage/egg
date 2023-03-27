@@ -8,6 +8,14 @@
     "type": "mission-capacity"
   },
   {
+    "endTimestamp": 1679932800.0,
+    "id": "event-3-26",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1679842800.0,
+    "type": "crafting-sale"
+  },
+  {
     "endTimestamp": 1679929200.0,
     "id": "event-3-25-2",
     "message": "4x PIGGY GROWTH!!",
