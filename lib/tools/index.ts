@@ -125,7 +125,7 @@ export const tools = [
     url: '/eggs-laid/',
     iconUrl: iconURL('wasmegg/rockets-tracker.svg'),
     description:
-      'Lists total eggs laid for all eggs'
+      'Lists total eggs laid for all eggs',
     // forever
     updateUntil: 2637780082000,
     whatsNew:
