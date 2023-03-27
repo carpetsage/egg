@@ -16,7 +16,7 @@ fastbuild: clean
 	../_tools/build.py dist --additional assets
 
 update-events-data:
-	curl -f -o src/events.json https://egginc-events-api.zw.workers.dev/
+	python ../../events/updateEvents.py
 
 clean:
 	@$(RM) -r dist
