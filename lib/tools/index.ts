@@ -120,6 +120,18 @@ export const tools = [
       'Fixed crafting expense and crafting count.',
   }),
   new Tool({
+    id: 'eggs-laid',
+    title: 'Eggs laid',
+    url: '/eggs-laid/',
+    iconUrl: iconURL('wasmegg/rockets-tracker.svg'),
+    description:
+      'Lists total eggs laid for all eggs'
+    // forever
+    updateUntil: 2637780082000,
+    whatsNew:
+      'Fixed crafting expense and crafting count.',
+  }),
+  new Tool({
     id: 'past-contracts',
     title: 'Past contracts viewer',
     iconUrl: iconURL('wasmegg/past-contracts.svg'),
@@ -191,6 +203,9 @@ export const tools = [
     id: 'events',
     title: 'Events calendar',
     description: 'Filterable calendar of (not so) special events',
+    updateUntil: 2638811910000,
+    whatsNew:
+      'It works again.',
   }),
   new Tool({
     id: 'legendary-study',

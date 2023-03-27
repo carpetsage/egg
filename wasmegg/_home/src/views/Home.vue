@@ -18,6 +18,12 @@
     <li><tool-description id="artifact-sandbox" /></li>
     <li><tool-description id="rockets-tracker" /></li>
     <li><tool-description id="mission-list" /></li>
+    <li><tool-description id="events" /></li>
+    <li><tool-description id="eicoop" /></li>
+  </ul>
+  <h2>Misc Tool Created by Carpet</h2>
+  <ul>
+    <li><tool-description id="eggs-laid" /></li>
   </ul>
 
   <h2>Other Tools are hosted on <base-link href="https://wasmegg.netlify.app">mk2's site</base-link></h2>

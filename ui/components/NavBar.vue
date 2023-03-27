@@ -6,7 +6,7 @@
     >
       <!-- Home icon -->
       <a
-        :href="useAbsoluteUrls ? 'https://wasmegg.netlify.app/' : '/'"
+        :href="useAbsoluteUrls ? 'https://wasmegg-carpet.netlify.app/' : '/'"
         class="block focus:outline-none focus:ring-1 focus:ring-inset"
         :class="
           useCoolGray
