@@ -3,7 +3,7 @@
     class="rounded-md bg-green-100 text-green-800 text-sm w-max max-w-full px-4 py-2 mx-auto mb-4 shadow"
   >
     You can track all your active contracts on your
-    <a :href="`https://eicoop.netlify.app/u/${playerId}`" class="underline" target="_blank"
+    <a :href="`https://eicoop-carpet.netlify.app/u/${playerId}`" class="underline" target="_blank"
       >personal dashboard</a
     >.
   </div>
@@ -290,7 +290,7 @@
       <li>
         Clicking on a contract ID or name takes you to the contract on
         <a
-          href="https://eicoop.netlify.app/"
+          href="https://eicoop-carpet.netlify.app/"
           target="_blank"
           class="text-blue-500 hover:text-blue-600"
           >CoopTracker</a
@@ -395,10 +395,10 @@ export default defineComponent({
     );
 
     const contractLink = (contract: UserContract) =>
-      `https://eicoop.netlify.app/?q=${encodeURIComponent(contract.id)}`;
+      `https://eicoop-carpet.netlify.app/?q=${encodeURIComponent(contract.id)}`;
     const coopLink = (contract: UserContract) =>
       contract.coopCode
-        ? `https://eicoop.netlify.app/${encodeURIComponent(contract.id)}/${encodeURIComponent(
+        ? `https://eicoop-carpet.netlify.app/${encodeURIComponent(contract.id)}/${encodeURIComponent(
             contract.coopCode
           )}/`
         : contractLink(contract);
