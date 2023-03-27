@@ -41,7 +41,7 @@ export class Tool {
     whatsNew?: string;
   }) {
     this.id = id;
-    this.url = url || `https://wasmegg.netlify.app/${this.id}/`;
+    this.url = url || `https://wasmegg-carpet.netlify.app/${this.id}/`;
     this.title = title;
     this.iconUrl = iconUrl || '';
     this.description = description;
