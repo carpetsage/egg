@@ -19,7 +19,7 @@ jobs:
           python-version: '3.x'
       - name: Update events
         run: |
-          python ./getCurrentEvents.py
+          python ./updateEvents.py
         env:
           EI_USERID: ${{ secrets.EI_USERID }}
       - name: Commit, push changes, and possibly trigger new build
