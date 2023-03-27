@@ -1,4 +1,4 @@
-name: update-contracts
+name: update-events
 on:
   push:
   pull_request_target:
