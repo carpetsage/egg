@@ -1,5 +1,13 @@
 [
   {
+    "endTimestamp": 1680019200.0,
+    "id": "event-3-27",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1679932800.0,
+    "type": "earnings-boost"
+  },
+  {
     "endTimestamp": 1680015600.0,
     "id": "event-3-26-2",
     "message": "2x MISSION CAPACITY!!!",
