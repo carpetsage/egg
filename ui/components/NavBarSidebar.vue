@@ -264,7 +264,7 @@ export default defineComponent({
 });
 
 function toAbsoluteUrl(url: string): string {
-  return new URL(url, 'https://wasmegg.netlify.app/').toString();
+  return new URL(url, 'https://wasmegg-carpet.netlify.app/').toString();
 }
 </script>
 
