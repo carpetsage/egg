@@ -1,9 +1,11 @@
-name: build
+name: build-eicoops
 on:
   push:
     paths-ignore:
       - '.github/**'
       - 'update-egg-config-gist/**'
+      - 'wasmegg/**'
+      - 'events/**'
   pull_request_target:
   workflow_dispatch:
   schedule:
@@ -87,133 +89,6 @@ jobs:
       - name: Build site
         run: make
 
-  # No TS type checking for faster deployment.
-  wasmegg-fastbuild:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: wasmegg
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up protoc
-        run: |
-          sudo apt-get install -y --no-install-recommends protobuf-compiler
-          # Install protoc-gen-doc
-          basename=protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
-          wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.4.1/$basename.tar.gz
-          tar xf $basename.tar.gz
-          echo "$PWD/$basename" >> $GITHUB_PATH
-      - name: Set up ets
-        run: |
-          wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
-          sudo dpkg -i ets_0.2.1_linux_amd64.deb
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: '^1.18'
-      - name: Set up Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'yarn'
-          cache-dependency-path: |
-            yarn.lock
-            yarn-global/yarn.lock
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-      - name: Do other preparations
-        run: |
-          ../action-scripts/prepare
-      - name: Build lib
-        working-directory: lib
-        run: |
-          make init
-          make
-      - name: Initialize dependencies
-        run: |
-          make init -j1
-      - name: Build
-        run: |
-          make -j2 fastbuild
-        env:
-          EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
-      - name: Install netlify cli
-        run: |
-          mkdir -p "$(yarn global dir)"
-          cp ../yarn-global/* "$(yarn global dir)"
-          yarn global add netlify-cli
-      - name: Deploy
-        run: |
-          netlify deploy --prod
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref == 'refs/heads/main'
-      - name: Deploy to branch-specific URL
-        run: |
-          netlify deploy --alias "${GITHUB_REF##*/}"
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref != 'refs/heads/main'
-      - name: Deploy to commit-specific URL
-        run: |
-          netlify deploy --alias "$GITHUB_SHA"
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-
-  # With TS type checking.
-  wasmegg-fullbuild:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: wasmegg
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up protoc
-        run: |
-          sudo apt-get install -y --no-install-recommends protobuf-compiler
-          # Install protoc-gen-doc
-          basename=protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
-          wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.4.1/$basename.tar.gz
-          tar xf $basename.tar.gz
-          echo "$PWD/$basename" >> $GITHUB_PATH
-      - name: Set up ets
-        run: |
-          wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
-          sudo dpkg -i ets_0.2.1_linux_amd64.deb
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: '^1.18'
-      - name: Set up Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'yarn'
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-      - name: Do other preparations
-        run: |
-          ../action-scripts/prepare
-      - name: Build lib
-        working-directory: lib
-        run: |
-          make init
-          make
-      - name: Initialize dependencies
-        run: |
-          make init -j1
-      - name: Build
-        run: |
-          make -j2
-        env:
-          EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
 
   # No TS type checking for faster deployment.
   eicoop-fastbuild:
@@ -266,3 +141,27 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/main'
+
+  # With TS type checking.
+  eicoop-fullbuild:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: eicoop
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'yarn'
+      - name: Do other preparations
+        run: |
+          ../action-scripts/prepare
+      - name: Build lib
+        working-directory: lib
+        run: |
+          make init
+          make
+      - name: Build site
+        run: make
