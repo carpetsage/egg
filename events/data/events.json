@@ -1,5 +1,13 @@
 [
   {
+    "endTimestamp": 1680105600.0,
+    "id": "event-3-28",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1680019200.0,
+    "type": "vehicle-sale"
+  },
+  {
     "endTimestamp": 1680019200.0,
     "id": "event-3-27",
     "message": "2x EARNINGS!",
