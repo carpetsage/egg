@@ -1,5 +1,13 @@
 [
   {
+    "endTimestamp": 1680192000.0,
+    "id": "event-3-29",
+    "message": "75% OFF HEN HOUSES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1680105600.0,
+    "type": "hab-sale"
+  },
+  {
     "endTimestamp": 1680105600.0,
     "id": "event-3-28",
     "message": "75% OFF VEHICLES!",
