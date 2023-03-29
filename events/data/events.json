@@ -1,6 +1,14 @@
 [
   {
     "endTimestamp": 1680192000.0,
+    "id": "event-3-29-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1680105600.0,
+    "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1680192000.0,
     "id": "event-3-29",
     "message": "75% OFF HEN HOUSES!",
     "multiplier": 0.25,
