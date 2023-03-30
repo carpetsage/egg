@@ -1,13 +1,13 @@
+import sys
 import requests
 import time
 import json
 from typing import List
 from more_itertools import unique_everseen
 import base64
+# local imports
 import ei
-# local file with shared defaults
 import defaults
-# local file with shared utils
 import utils
 
 
@@ -17,10 +17,11 @@ def main():
     message = utils.extractPayload(periodicals_response.content)
 
     periodicals = ei.PeriodicalsResponse().parse(message)
-
-    # munge api data with stored contracts/events and update stored lists
-    #updateContracts(periodicals.contracts.contracts, defaults.contract_file)
-    updateEvents(periodicals.events.events, defaults.event_file)
+    
+    if "events" in sys.argv:
+      updateEvents(periodicals.events.events, defaults.event_file)
+    if "contracts" in sys.argv:
+      updateContracts(periodicals.contracts.contracts, defaults.contract_file)
 
 
 # periodicals: python dict form of a periodicalsresponse
