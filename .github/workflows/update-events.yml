@@ -4,13 +4,16 @@ on:
   pull_request_target:
   workflow_dispatch:
   schedule:
-    - cron: '0 14,15,16,23 * * *'
+    # weekday events normally start at 16 utc
+    - cron: '0 16-18,23 * * 1-5'
+    # weekend events normally start at 15 utc
+    - cron: '0 15-17,23 * * 0,6'
 jobs:
   update:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: events
+        working-directory: periodicals
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -23,7 +26,7 @@ jobs:
           pip install -r requirements.txt
       - name: Update events
         run: |
-          python ./updateEvents.py
+          python ./updatePeriodicals.py events
         env:
           EI_USERID: ${{ secrets.EI_USERID }}
       - name: Commit, push changes, and possibly trigger new build
