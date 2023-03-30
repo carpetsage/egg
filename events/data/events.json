@@ -1,5 +1,13 @@
 [
   {
+    "endTimestamp": 1680278400.0,
+    "id": "event-3-30",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1680192000.0,
+    "type": "drone-boost"
+  },
+  {
     "endTimestamp": 1680192000.0,
     "id": "event-3-29-2",
     "message": "4x PIGGY GROWTH!!",
