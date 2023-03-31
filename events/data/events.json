@@ -1,5 +1,13 @@
 [
   {
+    "endTimestamp": 1680364800.0,
+    "id": "event-3-31",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1680278400.0,
+    "type": "research-sale"
+  },
+  {
     "endTimestamp": 1680278400.0,
     "id": "event-3-30",
     "message": "4x DRONE REWARDS!",
