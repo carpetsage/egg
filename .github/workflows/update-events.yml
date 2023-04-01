@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
   schedule:
     # weekday events normally start at 16 utc
-    - cron: '0 16-18,23 * * 1-5'
+    - cron: '5 16-18,23 * * 1-5'
     # weekend events normally start at 15 utc
-    - cron: '0 15-17,23 * * 0,6'
+    - cron: '5 15-17,23 * * 0,6'
 jobs:
   update:
     runs-on: ubuntu-latest
