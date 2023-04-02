@@ -201,6 +201,7 @@ export const tools = [
   }),
   new Tool({
     id: 'events',
+    url: '/events/',
     title: 'Events calendar',
     description: 'Filterable calendar of (not so) special events',
     updateUntil: 2638811910000,
