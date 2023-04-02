@@ -19,9 +19,9 @@ def main():
     periodicals = ei.PeriodicalsResponse().parse(message)
     
     if "events" in sys.argv:
-      updateEvents(periodicals.events.events, defaults.event_file)
+        updateEvents(periodicals.events.events, defaults.event_file)
     if "contracts" in sys.argv:
-      updateContracts(periodicals.contracts.contracts, defaults.contract_file)
+        updateContracts(periodicals.contracts.contracts, defaults.contract_file)
 
 
 # periodicals: python dict form of a periodicalsresponse
@@ -31,7 +31,7 @@ def getEvents(events: List["ei.EggIncEvent"], file: str) -> List["Event"]:
 
     # create array of current events
     active = sorted([Event(event) for event in events],
-                    key=lambda x: (x['startTimestamp'], x['type']),
+                    key=lambda x: (x['startTimestamp'], x['id']),
                     )
 
     # read past events into object
@@ -103,7 +103,6 @@ def requestPeriodicals():
     periodicals_request.rinfo.platform         = defaults.platform
     periodicals_request.rinfo.version          = defaults.version
 
-    print(periodicals_request.to_json())
     data = { 'data' : utils.encode(periodicals_request) }
 
     return requests.post(defaults.url, data = data)

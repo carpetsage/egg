@@ -1,4 +1,3 @@
-
 [
   {
     "endTimestamp": 1609607284.8757882,
@@ -7569,20 +7568,19 @@
     "type": "research-sale"
   },
   {
-    "endTimestamp": 1680534000.0,
-    "id": "event-4-1-2",
-    "message": "4x PIGGY GROWTH!!",
-    "multiplier": 4.0,
-    "startTimestamp": 1680361200.0,
-    "type": "piggy-boost"
-  },
-  {
     "endTimestamp": 1680447600.0,
     "id": "event-4-1",
     "message": "DOUBLE PRESTIGE!",
     "multiplier": 2.0,
     "startTimestamp": 1680361200.0,
     "type": "prestige-boost"
+  },
+  {
+    "endTimestamp": 1680534000.0,
+    "id": "event-4-1-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1680361200.0,
+    "type": "piggy-boost"
   }
 ]
-
