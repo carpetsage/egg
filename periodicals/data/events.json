@@ -7590,5 +7590,13 @@
     "multiplier": 0.65,
     "startTimestamp": 1680447600.0,
     "type": "epic-research-sale"
+  },
+  {
+    "endTimestamp": 1680624000.0,
+    "id": "event-4-3",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1680537600.0,
+    "type": "earnings-boost"
   }
 ]
