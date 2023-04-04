@@ -7598,5 +7598,13 @@
     "multiplier": 2.0,
     "startTimestamp": 1680537600.0,
     "type": "earnings-boost"
+  },
+  {
+    "endTimestamp": 1680710400.0,
+    "id": "event-4-4",
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1680624000.0,
+    "type": "gift-boost"
   }
 ]
