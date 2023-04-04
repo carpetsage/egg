@@ -38,6 +38,7 @@ export function getNakedEarningBonus(backup: ei.IBackup): number {
 // Implements farmer roles from the Egg, Inc. Discord.
 //
 // !?gethexcodes all
+
 //
 // pbpaste | perl -lape 's/\/\/ /{name:"/; s/: /",color:"/; s/$/"},/' | pbcopy
 
@@ -88,17 +89,17 @@ const roles: FarmerRole[] = [
   { oom: 37, name: 'Uadafarmer II',          color: '#fc0a9c'},
   { oom: 38, name: 'Uadafarmer III',         color: '#ff007d'},
   { oom: 39, name: 'Treidafarmer',           color: '#f7005d'},
-  { oom: 40, name: 'Treidafarmer II',        color: '#f327e9'},
-  { oom: 41, name: 'Treidafarmer III',       color: '#a746eb'},
-  { oom: 42, name: 'Quadafarmer',            color: '#6854e8'},
-  { oom: 43, name: 'Quadafarmer II',         color: '#5181e9'},
-  { oom: 44, name: 'Quadafarmer III',        color: '#3dc4ee'},
-  { oom: 45, name: 'Pendafarmer',            color: '#1af7c4'},
-  { oom: 46, name: 'Pendafarmer II',         color: '#00f44e'},
-  { oom: 47, name: 'Pendafarmer III',        color: '#1dda00'},
-  { oom: 48, name: 'Exedafarmer',            color: '#75c800'},
-  { oom: 49, name: 'Exedafarmer II',         color: '#c2b900'},
-  { oom: 50, name: 'Exedafarmer III',        color: '#ca6500'},
+  { oom: 40, name: 'Treidafarmer II',        color: '#f61fd2'},
+  { oom: 41, name: 'Treidafarmer III',       color: '#9c4aea'},
+  { oom: 42, name: 'Quadafarmer',            color: '#5559e8'},
+  { oom: 43, name: 'Quadafarmer II',         color: '#4a9deb'},
+  { oom: 44, name: 'Quadafarmer III',        color: '#2df0f2'},
+  { oom: 45, name: 'Pendafarmer',            color: '#00f759'},
+  { oom: 46, name: 'Pendafarmer II',         color: '#7ec700'},
+  { oom: 47, name: 'Pendafarmer III',        color: '#c2bf00'},
+  { oom: 48, name: 'Exedafarmer',            color: '#c3a000'},
+  { oom: 49, name: 'Exedafarmer II',         color: '#c87200'},
+  { oom: 50, name: 'Exedafarmer III',        color: '#d43500'},
   { oom: 51, name: 'Infinifarmer',           color: '#546e7a'},
 ];
 
