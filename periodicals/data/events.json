@@ -7606,5 +7606,21 @@
     "multiplier": 2.0,
     "startTimestamp": 1680624000.0,
     "type": "gift-boost"
+  },
+  {
+    "endTimestamp": 1680796800.0,
+    "id": "event-4-5",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1680710400.0,
+    "type": "boost-duration"
+  },
+  {
+    "endTimestamp": 1680796800.0,
+    "id": "event-4-5-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1680710400.0,
+    "type": "piggy-boost"
   }
 ]
