@@ -127,9 +127,6 @@ export const tools = [
     description:
       'Lists total eggs laid for all eggs',
     // forever
-    updateUntil: 2637780082000,
-    whatsNew:
-      'Fixed crafting expense and crafting count.',
   }),
   new Tool({
     id: 'past-contracts',
