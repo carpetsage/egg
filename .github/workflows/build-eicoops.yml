@@ -8,7 +8,7 @@ on:
       - 'events/**'
   pull_request_target:
   workflow_dispatch:
-  schedule:
+ #schedule:
     # Regenerate every day to incorporate updated mission outcome data.
     # Scheduled after https://github.com/ei-labo/cold-api/blob/f46659b12592200621a2f27adb031e9ed0b87cbf/.github/workflows/build.yml#L5-L6.
     # - cron: '30 4 * * *'
