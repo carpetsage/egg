@@ -7654,5 +7654,13 @@
     "multiplier": 4.0,
     "startTimestamp": 1680966000.0,
     "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1681142400.0,
+    "id": "event-4-9",
+    "message": "25% OFF BOOSTS!",
+    "multiplier": 0.75,
+    "startTimestamp": 1681052400.0,
+    "type": "boost-sale"
   }
 ]
