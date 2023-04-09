@@ -57,6 +57,10 @@ export default defineComponent({
       type: Number as PropType<ContractLeague | undefined>,
       default: undefined,
     },
+    knownGrade: {
+      type: Number as PropType<ei.Contract.PlayerGrade | undefined>,
+      default: undefined,
+    },
     // Supply a refreshKey to force a refresh.
     refreshKey: {
       type: Number,
@@ -70,7 +74,8 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const store = useStore(key);
-    const { contractId, coopCode, knownContract, knownLeague, refreshKey } = toRefs(props);
+    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey } =
+      toRefs(props);
 
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);
@@ -90,6 +95,7 @@ export default defineComponent({
           store: store.state.contracts.list,
           knownContract: knownContract.value || coopStatus.value?.contract || undefined,
           knownLeague: knownLeague.value ?? (coopStatus.value?.league || undefined),
+          knownGrade: knownGrade.value ?? (coopStatus.value?.grade || undefined),
         });
         store.commit('contracts/addContract', status.contract!);
         emit('success', status);

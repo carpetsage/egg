@@ -1,16 +1,24 @@
 import dayjs, { Dayjs } from 'dayjs';
 
-import { ArtifactSet, ei, FarmerRole, requestQueryCoop, soulPowerToFarmerRole } from 'lib';
+import { ArtifactSet, ei, FarmerRole, requestPeriodicals, requestFirstContact, requestQueryCoop, soulPowerToFarmerRole } from 'lib';
 import { ContractLeague, getContractFromPlayerSave, ContractLeagueStatus } from './contract';
 import { SortedContractList } from './contractList';
 
+// League constants
 const COOP_LEAGUE_DIVIDER_EB = 1e13; // 10T%
 const COOP_LEAGUE_DEFINITELY_STANDARD_EB = 1e12;
 const COOP_LEAGUE_DEFINITELY_ELITE_EB = 1e16;
 
+// Grade Constants
+// Min EB for each grade
+const GRADES_EB = [0, 1e5, 1e7, 1e9, 1e11, 1e13 ]
+// peta3. may need adjustment once update has been out
+const COOP_GRADE_PROBABLY_AAA_EB = 1e19;
+
 export class CoopStatus {
   contractId: string;
   creatorId: string;
+  creatorName: string | null;
   contract: ei.IContract | null;
   coopCode: string;
   isPublic: boolean;
@@ -27,6 +35,7 @@ export class CoopStatus {
   // creatorId is not, making it impossible to determine the creator.
   cannotDetermineCreator: boolean;
   league: ContractLeague | null;
+  grade: ei.Contract.PlayerGrade | null;
   goals: ei.Contract.IGoal[] | null;
   leagueStatus: ContractLeagueStatus | null;
   refreshTime: Dayjs;
@@ -39,6 +48,7 @@ export class CoopStatus {
     this.isPublic = cs.public!;
     this.eggsLaid = cs.totalAmount!;
     this.creatorId = cs.creatorId!;
+    this.creatorName = null;
     this.contributors = (cs.contributors || []).map(c => new Contributor(c));
     this.highestEarningBonusPercentage = Math.max(
       ...this.contributors.map(c => c.earningBonusPercentage)
@@ -69,6 +79,7 @@ export class CoopStatus {
       this.cannotDetermineCreator =
         !isEncrypted(cs.creatorId) && this.contributors.some(c => isEncrypted(c.id));
     }
+    this.grade = null;
     this.league = null;
     this.goals = null;
     this.leagueStatus = null;
@@ -80,19 +91,23 @@ export class CoopStatus {
     store,
     knownContract,
     knownLeague,
+    knownGrade,
   }: {
     store: SortedContractList;
     knownContract?: ei.IContract;
     knownLeague?: ContractLeague;
+    knownGrade?: ei.Contract.PlayerGrade;
   }): Promise<void> {
     const contract = knownContract || store.get(this.contractId, this.expirationTime.unix());
     if (contract) {
       this.contract = contract;
-      if (knownLeague !== undefined) {
-        this.league = knownLeague;
-      } else {
-        await this.resolveLeague();
-      }
+
+      // set league if there is no grade config
+      this.league = contract.gradeSpecs?.length ? null : await this.resolveLeague(knownLeague);
+
+      // set grade if there is grade config
+      this.grade = contract.gradeSpecs?.length ? await this.resolveGrade(knownGrade) : ei.Contract.PlayerGrade.GRADE_UNSET;
+
     } else {
       if (this.contributors.length === 0) {
         throw new Error(
@@ -106,7 +121,20 @@ export class CoopStatus {
       }
       this.contract = result.contract;
       this.league = result.league;
+      this.grade = result.grade;
+      this.creatorName = result.creatorName;
     }
+
+    if (this.contract.gradeSpecs?.length && this.grade) {
+      this.goals = this.contract.gradeSpecs[this.grade as number].goals!;
+    }
+    else if (this.contract.goalSets) {
+      this.goals = this.contract.goalSets[this.league as number].goals!;
+    }
+    else {
+      this.goals = this.contract.goals!;
+    }
+      
     this.goals = this.contract.goalSets
       ? this.contract.goalSets[this.league as number].goals!
       : this.contract.goals!;
@@ -118,7 +146,90 @@ export class CoopStatus {
     );
   }
 
-  async resolveLeague(): Promise<ContractLeague> {
+  async resolveGrade(knownGrade? : ei.Contract.PlayerGrade): Promise<ei.Contract.PlayerGrade> {
+    if (knownGrade !== undefined ) {
+      this.grade = knownGrade;
+      return this.grade;
+    }
+    if (this.contributors.length === 0 || !this.cannotDetermineCreator || this.expirationTime < dayjs(1682899200)) {
+      // Ghost coop, don't care. OR
+      // if ids are unencrypted it's definitely older than grades OR
+      // contracts before May 01 2023 have no grade
+      this.grade = ei.Contract.PlayerGrade.GRADE_UNSET;
+      return this.grade;
+    }
+
+    // Heuristics.
+    let b = 0;
+    let a = 0;
+    let aa = 0;
+    let aaa = 0;
+    let aaaa = 0;
+    // count up the number of people in each grade eb range and take a guess at contract grade from that
+    for (const contributor of this.contributors.reverse()) {
+      const eb = contributor.earningBonusPercentage;
+      // if any player in the coop has less than b grade cutoff eb it must be a c grade coop
+      if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_B]) {
+        this.grade = ei.Contract.PlayerGrade.GRADE_C;
+        return this.grade;
+      }
+      else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_A]) {
+        b++;
+      }
+      else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_AA]) {
+        a++;
+      }
+      else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_AAA]) {
+        aa++;
+      } 
+      else {
+        aaa++;
+        if ( eb > COOP_GRADE_PROBABLY_AAA_EB) { aaaa++; }
+      }
+    }
+
+    const eb_counts = [0, 0, b, a, aa, aaa];
+    const heuristicGrade: ei.Contract.PlayerGrade = eb_counts.indexOf(Math.max(...eb_counts))
+
+    // if we make it this far it *should* be a post-grade contract, be not empty and not c grade
+    try {
+      // checking periodicals is faster than checking backup but less reliable
+      // if the contract is still active and it matches our guess it's hopefully correct
+      // Probably? less movement in AAA
+      if (this.secondsRemaining > 0 || (aaaa > 0 && heuristicGrade === ei.Contract.PlayerGrade.GRADE_AAA)) {
+        const periodicals = await requestPeriodicals(this.creatorId);
+        const grade = periodicals.contractPlayerInfo?.grade;
+        if(grade === heuristicGrade) {
+          this.grade = grade
+          return this.grade
+        }
+      }
+
+      // Query coop creator's backup to try to find coop grade
+      const creatorBackup = await requestFirstContact(this.creatorId);
+      const contracts = [ ...(creatorBackup.backup?.contracts?.archive ?? []) , ...(creatorBackup.backup?.contracts?.contracts ?? [])]
+      const grade = contracts.find(contract => contract.contract?.identifier === this.contractId && contract.coopIdentifier === this.coopCode)?.grade
+      // if we already pulled their backup might as well set the creator name
+      this.creatorName = creatorBackup.backup?.userName ?? null;
+      if (!grade) {
+        throw new Error(`Could not determine Contract Grade from player save`)
+      }
+      this.grade = grade;
+      return this.grade;
+    } catch (e) {
+      console.error(`failed to determine coop grade ${this.contractId}:${this.coopCode}: ${e}`);
+      this.grade = heuristicGrade;
+      return this.grade;
+    }
+  }
+  
+  async resolveLeague(knownLeague?: ContractLeague): Promise<ContractLeague> {
+
+    if (knownLeague !== undefined) {
+      this.league =  knownLeague;
+      return this.league;
+    }
+
     if (this.contributors.length === 0) {
       // Ghost coop, don't care.
       this.league = ContractLeague.Elite;

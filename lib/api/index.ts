@@ -77,6 +77,22 @@ export async function requestConfig(userId?: string): Promise<ei.IConfigResponse
 }
 
 /**
+ * @param [userId]
+ * @returns
+ * @throws
+ */
+export async function requestPeriodicals(userId?: string): Promise<ei.IPeriodicalsResponse> {
+  // A valid userId is required for a complete response.
+  userId = userId ?? defaultUserId;
+  const requestPayload: ei.IGetPeriodicalsRequest = {
+    rinfo: basicRequestInfo(userId),
+  };
+  const encodedRequestPayload = encodeMessage(ei.GetPeriodicalsRequest, requestPayload);
+  const encodedResponsePayload = await request('/ei/get_periodicals', encodedRequestPayload);
+  return decodeMessage(ei.PeriodicalsResponse, encodedResponsePayload, true) as ei.IPeriodicalsResponse;
+}
+
+/**
  * @param userId
  * @returns
  * @throws
