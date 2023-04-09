@@ -1,16 +1,9 @@
 <template>
   <div class="relative">
     <coop-card v-if="coopStatus" :status="coopStatus" />
-    <coop-card-skeleton
-      v-else
-      :contract-id="contractId"
-      :coop-code="coopCode"
-      :contract="knownContract"
-    />
-    <div
-      v-if="loading || error"
-      class="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 bg-opacity-80 dark:bg-opacity-80"
-    >
+    <coop-card-skeleton v-else :contract-id="contractId" :coop-code="coopCode" :contract="knownContract" />
+    <div v-if="loading || error"
+      class="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 bg-opacity-80 dark:bg-opacity-80">
       <div class="h-full py-4 flex items-center justify-center">
         <base-loading v-if="loading" />
         <div v-else-if="error" class="max-h-full overflow-y-scroll">
@@ -74,8 +67,7 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const store = useStore(key);
-    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey } =
-      toRefs(props);
+    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey } = toRefs(props);
 
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);
@@ -94,8 +86,8 @@ export default defineComponent({
         await status.resolveContract({
           store: store.state.contracts.list,
           knownContract: knownContract.value || coopStatus.value?.contract || undefined,
-          knownLeague: knownLeague.value ?? (coopStatus.value?.league || undefined),
-          knownGrade: knownGrade.value ?? (coopStatus.value?.grade || undefined),
+          knownLeague: knownLeague.value || coopStatus.value?.league || undefined,
+          knownGrade: knownGrade.value || coopStatus.value?.grade || undefined,
         });
         store.commit('contracts/addContract', status.contract!);
         emit('success', status);

@@ -205,8 +205,8 @@ import { completionStatusFgColorClass, completionStatusBgColorClass } from '@/st
 import { devmodeKey } from '@/symbols';
 import { eggTooltip } from '@/utils';
 import BaseIcon from 'ui/components/BaseIcon.vue';
-import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue.js';
-import ContractGradeLabel from '@/components/ContractGradeLabel.vue.js';
+import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue';
+import ContractGradeLabel from '@/components/ContractGradeLabel.vue';
 import ContractStatusLabel from '@/components/ContractStatusLabel.vue';
 import CoopCardShareSheet from '@/components/CoopCardShareSheet.vue';
 import ContractProgressBar from '@/components/ContractProgressBar.vue';
