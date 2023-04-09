@@ -195,7 +195,7 @@
       :coop-code="params.coopCode"
       :known-contract="params.contract"
       :known-league="params.league"
-      :known-grade=="params.grade"
+      :known-grade="params.grade"
       :refresh-key="coopRefreshKey"
     />
   </template>
@@ -277,8 +277,8 @@ export default defineComponent({
         coopCode: coop.coopIdentifier!,
         contract: coop.contract!,
         // this can probably be null now?
-        league: coop.league as ContractLeague,
-        grade: coop.grade,
+        league: coop.league as ContractLeague ?? undefined,
+        grade: coop.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET,
       }))
     );
     const soloStatuses = computed(() =>
