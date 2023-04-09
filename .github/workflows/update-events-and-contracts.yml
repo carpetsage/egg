@@ -1,6 +1,9 @@
 name: update-events-and-contracts
 on:
   push:
+    paths:
+      - 'periodicals/*'
+      - '.github/**'
   pull_request_target:
   workflow_dispatch:
   #schedule:
