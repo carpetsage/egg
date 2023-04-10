@@ -103,7 +103,7 @@ function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
       uniqueKey: `${c.identifier}-${c.expirationTime}`,
       type: 'Original',
       numLeggacies: 0,
-      offeringTime: 0,
+      offeringTime: c.startTime ?? 0,
       prophecyEggs: getProphecyEggsCount(c),
       eliteGoal: getEliteGoal(c),
       standardGoal: getStandardGoal(c),
@@ -112,11 +112,11 @@ function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
   for (const contract of list) {
     if (count.has(contract.id)) {
       contract.type = 'Leggacy';
-      contract.offeringTime = contract.expirationTime! - LEGGACY_CONTRACT_VALID_DURATION;
+      contract.offeringTime ||= contract.expirationTime! - LEGGACY_CONTRACT_VALID_DURATION;
       count.set(contract.id, count.get(contract.id)! + 1);
     } else {
       contract.type = 'Original';
-      contract.offeringTime = contract.expirationTime! - ORIGINAL_CONTRACT_VALID_DURATION;
+      contract.offeringTime ||= contract.expirationTime! - ORIGINAL_CONTRACT_VALID_DURATION;
       count.set(contract.id, 1);
     }
   }
