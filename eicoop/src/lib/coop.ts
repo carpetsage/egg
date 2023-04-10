@@ -102,11 +102,11 @@ export class CoopStatus {
     if (contract) {
       this.contract = contract;
 
-      // set league if there is no grade config
-      this.league = contract.gradeSpecs?.length ? null : await this.resolveLeague(knownLeague);
-
       // set grade if there is grade config
       this.grade = contract.gradeSpecs?.length ? await this.resolveGrade(knownGrade) : ei.Contract.PlayerGrade.GRADE_UNSET;
+
+      // set league if we didn't set grade
+      this.league = this.grade ? null : await this.resolveLeague(knownLeague);
 
     } else {
       if (this.contributors.length === 0) {
@@ -151,7 +151,7 @@ export class CoopStatus {
       this.grade = knownGrade;
       return this.grade;
     }
-    if (this.contributors.length === 0 || !this.cannotDetermineCreator || this.expirationTime < dayjs(1682899200)) {
+    if (this.contributors.length === 0 || !this.cannotDetermineCreator || this.expirationTime <  dayjs("2023-05-01 00:00Z")) {
       // Ghost coop, don't care. OR
       // if ids are unencrypted it's definitely older than grades OR
       // contracts before May 01 2023 have no grade

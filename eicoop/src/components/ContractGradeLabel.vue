@@ -1,29 +1,24 @@
 <template>
-  <span class="px-2.5 py-0.5 rounded-full text-xs font-medium text-white" :class="gradeColor(grade)">
-    {{ grade === grade ? String(ContractGrade) : 'Unkown' }}
+  <span class="px-2.5 py-0.5 rounded-full text-xs font-medium text-white" :class="gradeColor[grade]">
+    {{ grade !== PlayerGrade.GRADE_UNSET ? PlayerGrade[grade] : 'Unknown' }}
   </span>
 </template>
 
 <script lang="ts">
 import { ei } from 'lib'
 import { defineComponent, PropType } from 'vue';
+import { Contract } from '../lib/contractList';
 
-export function gradeColor(grade: ei.Contract.PlayerGrade): string {
-  switch (grade) {
-    case ei.Contract.PlayerGrade.GRADE_AAA:
-      return 'bg-purple-600'
-    case ei.Contract.PlayerGrade.GRADE_AA:
-      return 'bg-green-600'
-    case ei.Contract.PlayerGrade.GRADE_A:
-      return 'bg-blue-600'
-    case ei.Contract.PlayerGrade.GRADE_B:
-      return 'bg-green-600'
-    case ei.Contract.PlayerGrade.GRADE_C:
-      return 'bg-purple-600'
-    default:
-      return 'bg-purple-600'
-  }
-}
+// colors for grades in order none,c,b,a,aa,aaa
+const gradeColor = [
+ 'bg-pink-600',
+ 'bg-orange-600',
+ 'bg-green-600',
+ 'bg-blue-600',
+ 'bg-purple-600',
+ 'bg-pink-600',
+]
+
 export default defineComponent({
   props: {
     grade: {
@@ -33,7 +28,7 @@ export default defineComponent({
   },
   setup() {
     return {
-      ContractGrade: ei.Contract.PlayerGrade,
+      PlayerGrade: ei.Contract.PlayerGrade,
       gradeColor,
     };
   },

@@ -13,11 +13,9 @@
               </template>
             </base-click-to-copy>
             <template v-if="grade">
-              {{ "grade" }}
               <contract-grade-label :grade="grade" class="relative -top-px mr-1" />
             </template>
-            <template v-else-if="league">
-              {{ "league" }}
+            <template v-else-if="league !== null">
               <contract-league-label :league="league" class="relative -top-px mr-1" />
             </template>
             <span v-if="contract.maxCoopSize && !leagueStatus.hasEnded"
