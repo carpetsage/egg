@@ -276,7 +276,6 @@ export default defineComponent({
         contractId: coop.contract!.identifier!,
         coopCode: coop.coopIdentifier!,
         contract: coop.contract!,
-        // this can probably be null now?
         league: coop.league as ContractLeague ?? undefined,
         grade: coop.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET,
       }))

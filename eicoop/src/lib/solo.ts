@@ -15,6 +15,7 @@ export class SoloStatus {
   secondsRemaining: number;
   projectedEggsLaid: number;
   league: ContractLeague;
+  grade: ei.Contract.PlayerGrade;
   goals: ei.Contract.IGoal[];
   refreshTime: Dayjs;
   expirationTime: Dayjs;
@@ -68,9 +69,19 @@ export class SoloStatus {
     );
     this.projectedEggsLaid = this.eggsLaid + this.eggsPerHour * hoursLeftAtRefresh;
     this.league = contract.league || 0;
-    this.goals = this.contract.goalSets
-      ? this.contract.goalSets[this.league as number].goals!
-      : this.contract.goals!;
+    this.grade = contract.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET;
+
+    // goal is in one of three places
+    if (this.contract.gradeSpecs?.length && this.grade) {
+      // TODO: assumes gradeSpecs[] only has c through aaa, not GRADE_UNSET -> aaa
+      this.goals = this.contract.gradeSpecs[this.grade as number - 1].goals!;
+    }
+    else if (this.contract.goalSets) {
+      this.goals = this.contract.goalSets[this.league as number].goals!;
+    }
+    else {
+      this.goals = this.contract.goals!;
+    }
 
     this.userId = backup.eiUserId!;
     this.userName = backup.userName!;

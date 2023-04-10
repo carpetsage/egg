@@ -22,7 +22,12 @@
                 Copy contract ID &lsquo;{{ status.contractId }}&rsquo; to clipboard
               </template>
             </base-click-to-copy>
-            <contract-league-label :league="league" class="relative -top-px" />
+            <template v-if="grade">
+              <contract-grade-label :grade="grade" class="relative -top-px" />
+            </template>
+            <template v-else-if="league !== null">
+              <contract-league-label :league="league" class="relative -top-px" />
+            </template>
           </h2>
           <div class="flex items-center">
             <span class="flex items-center justify-center relative h-6 w-6 -left-1">
@@ -455,7 +460,7 @@ import { useAutoRefreshedRelativeTime } from '@/composables/relative_time';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseIcon from 'ui/components/BaseIcon.vue';
-import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue';
+import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue.js';
 import ContractStatusLabel from '@/components/ContractStatusLabel.vue';
 import ContractProgressBar from '@/components/ContractProgressBar.vue';
 import CoopCardContributionTableArtifactGallery from '@/components/CoopCardContributionTableArtifactGallery.vue';
@@ -467,6 +472,8 @@ const devmode = inject(devmodeKey);
 const contract = computed(() => status.value.contract);
 const egg = computed(() => contract.value.egg!);
 const league = computed(() => status.value.league!);
+const grade = computed(() => status.value.grade);
+
 
 const refreshTime = computed(() => status.value.refreshTime);
 const estimatesBeingRefreshed = ref(false);
