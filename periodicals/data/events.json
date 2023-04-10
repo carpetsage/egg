@@ -7662,5 +7662,13 @@
     "multiplier": 0.75,
     "startTimestamp": 1681052400.0,
     "type": "boost-sale"
+  },
+  {
+    "endTimestamp": 1681228800.0,
+    "id": "event-4-10",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1681142400.0,
+    "type": "earnings-boost"
   }
 ]
