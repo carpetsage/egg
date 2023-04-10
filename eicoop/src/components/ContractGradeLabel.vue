@@ -7,7 +7,6 @@
 <script lang="ts">
 import { ei } from 'lib'
 import { defineComponent, PropType } from 'vue';
-import { Contract } from '../lib/contractList';
 
 // colors for grades in order none,c,b,a,aa,aaa
 const gradeColor = [
