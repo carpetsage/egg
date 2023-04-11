@@ -164,6 +164,7 @@ let runId = 0;
 
 export default defineComponent({
   components: {
+    // eslint-disable-next-line vue/no-reserved-component-names
     Dialog,
     DialogOverlay,
     TransitionChild,
