@@ -12,7 +12,7 @@
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
       <suspense>
         <template #default>
-          <the-report :player-id="playerId" :event-bus="eventBus" />
+          <the-report :player-id="playerId" />
         </template>
         <template #fallback>
           <base-loading />
@@ -31,7 +31,6 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import mitt from 'mitt';
 
 import { getSavedPlayerID, savePlayerID } from 'lib';
 
@@ -59,11 +58,9 @@ export default defineComponent({
       refreshId.value = Date.now();
       savePlayerID(id);
     };
-    const eventBus = mitt();
     return {
       playerId,
       refreshId,
-      eventBus,
       submitPlayerId,
     };
   },

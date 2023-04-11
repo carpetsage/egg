@@ -4,7 +4,6 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from 'vue';
-import { Emitter } from 'mitt';
 
 import {requestFirstContact, UserBackupEmptyError } from 'lib';
 import PlayerCard from '@/components/PlayerCard.vue';
