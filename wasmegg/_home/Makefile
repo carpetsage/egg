@@ -6,13 +6,13 @@ all: clean
 init:
 
 build:
-	yarn build
+	pnpm build
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static
 
 fastbuild: clean
-	yarn fastbuild
+	pnpm fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
 clean:
