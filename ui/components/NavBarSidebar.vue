@@ -133,7 +133,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, DefineComponent, RenderFunction } from 'vue';
+import { defineComponent, FunctionalComponent, HTMLAttributes, VNodeProps, DefineComponent } from 'vue';
 import { Dialog, DialogOverlay, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import {
   ArrowLeftIcon,
@@ -144,7 +144,7 @@ import {
   IdentificationIcon,
   ViewGridIcon,
   XIcon,
-} from '@heroicons/vue/solid';
+} from '@heroicons/vue/solid'
 
 import { iconURL } from 'lib';
 import { idToTool } from 'lib/tools';
@@ -155,7 +155,7 @@ const entries: ({
   title: string;
   url: string;
   description?: string;
-  icon?: DefineComponent | RenderFunction;
+  icon?: FunctionalComponent<HTMLAttributes & VNodeProps> | DefineComponent;
   iconUrl?: string;
 } | null)[] = [
   {
