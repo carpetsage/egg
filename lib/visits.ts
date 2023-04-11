@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { getLocalStorageNoPrefix, setLocalStorageNoPrefix } from 'lib';
+import { getLocalStorageNoPrefix, setLocalStorageNoPrefix } from './utils';
 
 const FIRST_RECORDED_VISIT_LOCALSTORAGE_KEY = 'firstRecordedVisit';
 const LAST_RECORDED_VISIT_LOCALSTORAGE_KEY = 'lastRecordedVisit';
