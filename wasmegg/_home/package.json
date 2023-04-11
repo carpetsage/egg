@@ -10,7 +10,8 @@
     "lint": "eslint --ext .js,.ts,.vue src"
   },
   "dependencies": {
-    "lib": ">=0.1.0",
+    "lib": "workspace:^",
+    "ui": "workspace:^",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6",
     "vue-tippy": "^6.0.0"
