@@ -159,7 +159,7 @@
     </button>
     <p class="text-xs text-gray-600 mt-1">
       Note: If you're using the CSV download option for the purpose of tracking leggacy contract
-      availability for a coop group, you might want to check out my specialized tool for that exact
+      availability for a coop group, you might want to check out mk2's specialized tool for that exact
       purpose:
       <a
         href="https://github.com/fanaticscripter/EggOrganizer"
