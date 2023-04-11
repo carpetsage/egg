@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.12",
-    "@heroicons/vue": "^1.0.4",
-    "lib": ">=0.1.0",
+    "@heroicons/vue": "^1.0.6",
+    "lib": "workspace:^",
+    "tippy.js": "^6.3.7",
+    "ui": "workspace:^",
     "vue": "^3.2.47",
     "vue-tippy": "^6.0.0"
   },
