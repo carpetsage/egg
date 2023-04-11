@@ -1,13 +1,19 @@
 name: build-wasmegg
 on:
   push:
-    paths-ignore:
-      - '.github/**'
-      - 'update-egg-config-gist/**'
-      - 'eicoop/**'
-      - 'eicowop/**'
-      - 'contracts/**'
-  pull_request_target:
+    paths:
+      - 'wasmegg/**'
+      - 'ui/**'
+      - 'lib/**'
+      - 'periodicals/*'
+      - 'periodicals/data/events.json'
+  pull_request:
+    types: [ opened, edited, reopened]
+    paths:
+      - "lib/**"
+      - "ui/**"
+      - "wasmegg/**"
+      - "periodicals/*"
   workflow_dispatch:
  #schedule:
     # Regenerate every day to incorporate updated mission outcome data.
