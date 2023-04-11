@@ -14,11 +14,11 @@ on:
     # - cron: '30 4 * * *'
 jobs:
   # No TS type checking for faster deployment.
-  eicowop-fastbuild:
+  eicoop2-fastbuild:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: eicowop
+        working-directory: eicoop2
     steps:
       - uses: actions/checkout@v3
       - name: Set up Node
@@ -48,29 +48,29 @@ jobs:
         run: |
           netlify deploy --prod
         env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP2_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref == 'refs/heads/main'
       - name: Deploy to branch-specific URL
         run: |
           netlify deploy --alias "${GITHUB_REF##*/}"
         env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP2_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/main'
       - name: Deploy to commit-specific URL
         run: |
           netlify deploy --alias "$GITHUB_SHA"
         env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOWOP_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP2_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
   # With TS type checking.
-  eicowop-fullbuild:
+  eicoop2-fullbuild:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: eicowop
+        working-directory: eicoop2
     steps:
       - uses: actions/checkout@v3
       - name: Set up Node
