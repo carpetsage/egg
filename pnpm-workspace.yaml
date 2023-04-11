@@ -1,5 +1,6 @@
 packages:
   - "lib"
+  - "ui"
   - "eicoop"
   - "eicoop2"
   - "wasmegg/_home"
