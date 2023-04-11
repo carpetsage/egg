@@ -263,7 +263,7 @@ export default defineComponent({
         }
 
         canvas.toBlob(blob => {
-          if (currentRunId !== runId) {
+          if (currentRunId !== runId || !blob) {
             return;
           }
           if (canvas.width !== 0) {

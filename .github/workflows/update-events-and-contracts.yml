@@ -1,7 +1,10 @@
 name: update-events-and-contracts
 on:
   push:
-  pull_request_target:
+  pull_request:
+    types: [ opened, edited, reopened]
+    paths: 
+      - "periodicals/*"
   workflow_dispatch:
   #schedule:
     # replaced with cloudflare worker triggering this

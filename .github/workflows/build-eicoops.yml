@@ -1,12 +1,20 @@
 name: build-eicoops
 on:
   push:
-    paths-ignore:
-      - '.github/**'
-      - 'update-egg-config-gist/**'
-      - 'wasmegg/**'
-      - 'events/**'
-  pull_request_target:
+    paths: 
+      - "lib/**"
+      - "ui/**"
+      - "eicoop/**"
+      - "eicoop2/**"
+      - "periodicals/*"
+  pull_request:
+    types: [ opened, edited, reopened]
+    paths: 
+      - "lib/**"
+      - "ui/**"
+      - "eicoop/**"
+      - "eicoop2/**"
+      - "periodicals/*"
   workflow_dispatch:
  #schedule:
     # Regenerate every day to incorporate updated mission outcome data.

@@ -305,7 +305,7 @@
 <script lang="ts">
 import { computed, defineComponent, ref, watch } from 'vue';
 import dayjs from 'dayjs';
-import csvStringify from 'csv-stringify/lib/browser/sync';
+import { stringify as csvStringify } from 'csv-stringify/browser/esm/sync';
 
 import {
   eggIconPath,
