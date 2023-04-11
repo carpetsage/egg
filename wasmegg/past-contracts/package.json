@@ -13,7 +13,7 @@
     "@headlessui/vue": "^1.4.1",
     "@heroicons/vue": "^1.0.4",
     "csv-stringify": "^5.6.2",
-    "dayjs": "^1.10.4",
+    "dayjs": "^1.11.7",
     "lib": ">=0.1.0",
     "vue": "^3.2.20",
     "vue-tippy": "^6.0.0-alpha.35"
