@@ -134,6 +134,7 @@ export default defineComponent({
 });
 </script>
 
+
 <style lang="postcss" scoped>
 h2 {
   @apply font-medium text-h2 my-2;
