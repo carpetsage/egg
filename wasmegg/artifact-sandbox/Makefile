@@ -6,7 +6,7 @@ all: clean
 init:
 
 build: src/lib/data.json
-	yarn build
+	pnpm build
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static
@@ -16,14 +16,14 @@ src/lib/data.json:
 
 fastbuild: clean
 	$(MAKE) src/lib/data.json
-	yarn fastbuild
+	pnpm fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
 clean:
 	@$(RM) -r dist src/lib/data.json
 
 dev:
-	yarn dev
+	pnpm dev
 
 serve:
-	yarn serve
+	pnpm serve
