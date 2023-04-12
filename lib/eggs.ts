@@ -1,4 +1,4 @@
-import { ei } from 'lib';
+import { ei } from './proto';
 
 export function eggName(egg: ei.Egg): string {
   const symbol = ei.Egg[egg];

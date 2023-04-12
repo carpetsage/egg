@@ -29,14 +29,18 @@ jobs:
         working-directory: eicoop2
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Node
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: "^8.1.1"
+      - name: Set Up Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'pnpm'
           cache-dependency-path: |
-            yarn.lock
-            yarn-global/yarn.lock
+            pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
@@ -49,9 +53,8 @@ jobs:
         run: make fastbuild
       - name: Install netlify cli
         run: |
-          mkdir -p "$(yarn global dir)"
-          cp ../yarn-global/* "$(yarn global dir)"
-          yarn global add netlify-cli
+          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+          pnpm add --global netlify-cli
       - name: Deploy
         run: |
           netlify deploy --prod
@@ -81,11 +84,18 @@ jobs:
         working-directory: eicoop2
     steps:
       - uses: actions/checkout@v3
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'pnpm'
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
@@ -106,14 +116,18 @@ jobs:
         working-directory: eicoop
     steps:
       - uses: actions/checkout@v3
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'pnpm'
           cache-dependency-path: |
-            yarn.lock
-            yarn-global/yarn.lock
+            pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml.lock
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
@@ -126,9 +140,8 @@ jobs:
         run: make fastbuild
       - name: Install netlify cli
         run: |
-          mkdir -p "$(yarn global dir)"
-          cp ../yarn-global/* "$(yarn global dir)"
-          yarn global add netlify-cli
+          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+          pnpm add --global netlify-cli
       - name: Deploy
         run: |
           netlify deploy --prod
@@ -158,11 +171,18 @@ jobs:
         working-directory: eicoop
     steps:
       - uses: actions/checkout@v3
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'pnpm'
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml.lock
       - name: Do other preparations
         run: |
           ../action-scripts/prepare

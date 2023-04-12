@@ -1,4 +1,4 @@
-import { ei } from 'lib';
+import { ei } from './proto';
 import { eggName } from './eggs';
 
 export enum TrophyLevel {

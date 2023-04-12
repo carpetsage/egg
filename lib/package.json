@@ -9,7 +9,9 @@
     "js-sha256": "^0.9.0",
     "lunr": "^2.3.9",
     "protobufjs": "^7.2.3",
-    "typescript-memoize": "^1.1.1"
+    "typescript-memoize": "^1.1.1",
+    "long": "^5.2.1",
+    "vue": "^3.2.47"
   },
   "devDependencies": {
     "@babel/core": "^7.21.4",
