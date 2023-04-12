@@ -1,14 +1,6 @@
 {
   "name": "eggs-laid",
   "version": "0.0.0",
-  "license": "MIT",
-  "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
-    "fastbuild": "vite build",
-    "serve": "vite preview",
-    "lint": "eslint --ext .js,.ts,.vue src"
-  },
   "dependencies": {
     "@headlessui/vue": "^1.7.12",
     "@heroicons/vue": "^1.0.6",
@@ -33,5 +25,13 @@
     "typescript": "^5.0.4",
     "vite": "^4.2.1",
     "vue-tsc": "^1.2.0"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "vue-tsc --noEmit && vite build",
+    "dev": "vite",
+    "fastbuild": "vite build",
+    "lint": "eslint --ext .js,.ts,.vue src",
+    "serve": "vite preview"
   }
 }
