@@ -2,6 +2,6 @@
 
 If you're trying to learn to develop against the private Egg, Inc. API, look into [`protobuf/ei.proto`](protobuf/ei.proto) and [`lib/api`](lib/api) first.
 
-If you want to contribute reach pleasee reach out to me on discord first (@CarpetSage#0100). I am open to pull requests
+If you want to contribute reach please reach out to me on discord first (@CarpetSage#0100). I am open to pull requests
 
 If you want to build this yourself I suggest looking at the various Makefiles and the github build yamls in .github/workflows
