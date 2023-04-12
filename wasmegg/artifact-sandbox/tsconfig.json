@@ -22,6 +22,6 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "../../lib/heroicons.d.ts"
+    "../../ui/heroicons.d.ts"
   ]
 }

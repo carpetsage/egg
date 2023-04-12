@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import requests
+import os
 import ei_pb2
 import base64
 from google.protobuf.json_format import MessageToJson
@@ -12,7 +13,7 @@ def extract_payload(resp: requests.Response) -> bytes:
     res = zlib.decompress(auth_msg.message)
     return res
 
-user_id = 'EI4834105282002944'
+user_id = os.getenv('EI_USERID')
 
 config_request = ei_pb2.ConfigRequest()
 config_request.rinfo.ei_user_id = user_id

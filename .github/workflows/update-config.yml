@@ -27,3 +27,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GIST_UPDATER_TOKEN }}
           GIST_ID: ${{ secrets.EGG_CONFIG_GIST_ID }}
+          EI_USERID: ${{ secrets.EI_USERID }}
