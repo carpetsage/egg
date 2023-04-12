@@ -29,7 +29,10 @@ jobs:
         working-directory: eicoop2
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Node
+      - name: Install pnpm
+        with:
+          version: "^8.1.1"
+      - name: Set Up Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
@@ -80,6 +83,9 @@ jobs:
         working-directory: eicoop2
     steps:
       - uses: actions/checkout@v3
+      - name: Install pnpm
+        with:
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
@@ -108,6 +114,9 @@ jobs:
         working-directory: eicoop
     steps:
       - uses: actions/checkout@v3
+      - name: Install pnpm
+        with:
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
@@ -159,6 +168,9 @@ jobs:
         working-directory: eicoop
     steps:
       - uses: actions/checkout@v3
+      - name: Install pnpm
+        with:
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:

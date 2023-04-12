@@ -40,10 +40,9 @@ jobs:
         run: |
           wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
           sudo dpkg -i ets_0.2.1_linux_amd64.deb
-      - name: Set up Go
-        uses: actions/setup-go@v3
+      - name: Install pnpm
         with:
-          go-version: '^1.18'
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
@@ -117,10 +116,12 @@ jobs:
         run: |
           wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
           sudo dpkg -i ets_0.2.1_linux_amd64.deb
-      - name: Set up Go
-        uses: actions/setup-go@v3
+      - name: Install pnpm
         with:
-          go-version: '^1.18'
+          version: "^8.1.1"
+      - name: Install pnpm
+        with:
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
