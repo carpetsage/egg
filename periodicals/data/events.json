@@ -7678,5 +7678,21 @@
     "multiplier": 0.25,
     "startTimestamp": 1681228800.0,
     "type": "hab-sale"
+  },
+  {
+    "endTimestamp": 1681401600.0,
+    "id": "event-4-12",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1681315200.0,
+    "type": "drone-boost"
+  },
+  {
+    "endTimestamp": 1681401600.0,
+    "id": "event-4-12-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1681315200.0,
+    "type": "piggy-boost"
   }
 ]
