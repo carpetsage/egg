@@ -41,6 +41,7 @@ jobs:
           wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
           sudo dpkg -i ets_0.2.1_linux_amd64.deb
       - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: "^8.1.1"
       - name: Set up Node
@@ -117,9 +118,7 @@ jobs:
           wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
           sudo dpkg -i ets_0.2.1_linux_amd64.deb
       - name: Install pnpm
-        with:
-          version: "^8.1.1"
-      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: "^8.1.1"
       - name: Set up Node
