@@ -48,10 +48,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'pnpm'
           cache-dependency-path: |
-            yarn.lock
-            yarn-global/yarn.lock
+            pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -74,9 +74,8 @@ jobs:
           EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
       - name: Install netlify cli
         run: |
-          mkdir -p "$(yarn global dir)"
-          cp ../yarn-global/* "$(yarn global dir)"
-          yarn global add netlify-cli
+          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+          pnpm add --global netlify-cli
       - name: Deploy
         run: |
           netlify deploy --prod
@@ -126,7 +125,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'pnpm'
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
