@@ -445,8 +445,8 @@ const addToPriceOfCanonicalShell = (
 // first, e.g. "ei_depot_1_black_white" appears before "ei_depot_2_black_white",
 // "ei_depot_3_black_white", etc.
 shellConfigs.sort((s1, s2) => {
-  const type1 = s1.primaryPiece?.assetType?.[0] ?? 0;
-  const type2 = s2.primaryPiece?.assetType?.[0] ?? 0;
+  const type1 = s1.primaryPiece?.assetType ?? 0;
+  const type2 = s2.primaryPiece?.assetType ?? 0;
   return type1 - type2;
 });
 for (const shellConfig of shellConfigs) {
@@ -465,8 +465,8 @@ for (const shellConfig of shellConfigs) {
   if (name === '?') {
     console.warn(`shell ${id} has no name`);
   }
-  const type = shellConfig.primaryPiece?.assetType?.[0];
-  if (type === undefined) {
+  const type = shellConfig.primaryPiece?.assetType;
+  if (type == null) {
     console.warn(`no asset type for shell ${id}`);
     continue;
   }
