@@ -148,7 +148,7 @@ export const tools = [
   }),
   new Tool({
     id: 'enlightenment',
-    title: '/enlightenment',
+    url: '/enlightenment/',
     title: 'Enlightenment companion',
     iconUrl: iconURL('wasmegg/enlightenment.svg'),
     description: 'Informational companion on your journey to the Enlightenment Diamond Trophy',
@@ -244,7 +244,7 @@ export const tools = [
     iconUrl: iconURL('wasmegg/EggLedger.png'),
     description: 'Spaceship mission data exporter, supplementing rockets tracker - forked and fixed by @synthparadox#7576',
     // Sat Jun 17 16:21 UTC 2023
-    newUntil: '1686975703',
+    newUntil: 1686975703,
     whatsNew:
       'Fixed issue with Chrome'
   }),
