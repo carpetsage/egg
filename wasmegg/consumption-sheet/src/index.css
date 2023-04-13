@@ -1,0 +1,23 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import 'ui/styles/base';
+@import 'ui/styles/app-loading';
+@import 'ui/styles/tippy';
+
+.bg-common {
+  background-color: #b3b3b3; /* #404040 in app */
+}
+
+.bg-rare {
+  background-color: #6fdbff; /* #a0ffff in app */
+}
+
+.bg-epic {
+  background-color: #ff66ff; /* #ff33ff in app */
+}
+
+.bg-legendary {
+  background-color: #ffdf33; /* #ffff33 in app */
+}
