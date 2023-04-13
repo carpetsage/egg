@@ -1657,7 +1657,7 @@ message ShellObjectSpec {
   repeated double metadata = 7;
   optional bool no_hats = 13;
 
-  optional ChickenAnimation chicken_animation = 16;
+  repeated ChickenAnimation chicken_animation = 16;
   enum ChickenAnimation {
     STANDARD_RUN = 0;
     SLOWMO = 7;
@@ -1707,7 +1707,7 @@ message ShellDB {
 
   repeated ShellElementStatus shell_element_inventory = 5;
   message ShellElementStatus {
-    optional FarmElement element = 1;
+    repeated FarmElement element = 1;
     optional string set_identifier = 2;
   }
 
