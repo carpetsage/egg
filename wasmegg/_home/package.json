@@ -1,14 +1,6 @@
 {
   "name": "home",
   "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
-    "fastbuild": "vite build",
-    "serve": "vite preview",
-    "lint": "eslint --ext .js,.ts,.vue src"
-  },
   "dependencies": {
     "lib": "workspace:^",
     "ui": "workspace:^",
@@ -26,5 +18,13 @@
     "typescript": "^5.0.4",
     "vite": "^4.2.1",
     "vue-tsc": "^1.2.0"
+  },
+  "private": true,
+  "scripts": {
+    "build": "vue-tsc --noEmit && vite build",
+    "dev": "vite",
+    "fastbuild": "vite build",
+    "lint": "eslint --ext .js,.ts,.vue src",
+    "serve": "vite preview"
   }
 }

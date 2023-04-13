@@ -1,17 +1,13 @@
 {
   "name": "lib",
   "version": "0.1.0",
-  "main": "index.ts",
-  "license": "MIT",
-  "sideEffects": false,
   "dependencies": {
     "dayjs": "^1.11.7",
     "js-sha256": "^0.9.0",
+    "long": "^5.2.1",
     "lunr": "^2.3.9",
     "protobufjs": "^7.2.3",
-    "typescript-memoize": "^1.1.1",
-    "long": "^5.2.1",
-    "vue": "^3.2.47"
+    "typescript-memoize": "^1.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.21.4",
@@ -23,7 +19,10 @@
     "protobufjs-cli": "^1.1.1",
     "ts-jest": "^29.1.0"
   },
+  "license": "MIT",
+  "main": "index.ts",
   "scripts": {
     "test": "jest"
-  }
+  },
+  "sideEffects": false
 }
