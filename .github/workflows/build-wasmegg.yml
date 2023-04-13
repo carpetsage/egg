@@ -7,6 +7,7 @@ on:
       - 'lib/**'
       - 'periodicals/*'
       - 'periodicals/data/events.json'
+      - 'protobuf/ei.proto'
   pull_request:
     types: [ opened, edited, reopened]
     paths:
