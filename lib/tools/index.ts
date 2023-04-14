@@ -123,7 +123,6 @@ export const tools = [
     id: 'eggs-laid',
     title: 'Eggs laid',
     url: '/eggs-laid/',
-    iconUrl: iconURL('wasmegg/rockets-tracker.svg'),
     description:
       'Lists total eggs laid for all eggs',
     // forever
