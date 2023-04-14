@@ -117,8 +117,8 @@ importers:
   eicoop2:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
@@ -324,8 +324,8 @@ importers:
   wasmegg/artifact-explorer:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
@@ -388,8 +388,8 @@ importers:
   wasmegg/artifact-sandbox:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
@@ -452,11 +452,63 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(typescript@5.0.4)
 
+  wasmegg/consumption-sheet:
+    dependencies:
+      '@headlessui/vue':
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
+      '@heroicons/vue':
+        specifier: ^1.0.6
+        version: 1.0.6(vue@3.2.47)
+      lib:
+        specifier: workspace:^
+        version: link:../../lib
+      tippy.js:
+        specifier: ^6.3.7
+        version: 6.3.7
+      ui:
+        specifier: workspace:^
+        version: link:../../ui
+      vue:
+        specifier: ^3.2.47
+        version: 3.2.47
+      vue-tippy:
+        specifier: ^6.0.0
+        version: 6.0.0(vue@3.2.47)
+    devDependencies:
+      '@tailwindcss/forms':
+        specifier: ^0.3.4
+        version: 0.3.4(tailwindcss@2.2.19)
+      '@vitejs/plugin-vue':
+        specifier: ^4.1.0
+        version: 4.1.0(vite@4.2.1)(vue@3.2.47)
+      '@vue/compiler-sfc':
+        specifier: ^3.2.47
+        version: 3.2.47
+      autoprefixer:
+        specifier: ^10.4.14
+        version: 10.4.14(postcss@8.4.21)
+      postcss:
+        specifier: ^8.4.21
+        version: 8.4.21
+      tailwindcss:
+        specifier: ^2.2.19
+        version: 2.2.19(autoprefixer@10.4.14)(postcss@8.4.21)
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      vite:
+        specifier: ^4.2.1
+        version: 4.2.1(@types/node@18.15.11)
+      vue-tsc:
+        specifier: ^1.2.0
+        version: 1.2.0(typescript@5.0.4)
+
   wasmegg/eggs-laid:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
@@ -519,11 +571,78 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(typescript@5.0.4)
 
+  wasmegg/enlightenment:
+    dependencies:
+      '@headlessui/vue':
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
+      '@heroicons/vue':
+        specifier: ^1.0.6
+        version: 1.0.6(vue@3.2.47)
+      '@vue/runtime-core':
+        specifier: ^3.2.47
+        version: 3.2.47
+      dayjs:
+        specifier: ^1.11.7
+        version: 1.11.7
+      js-sha256:
+        specifier: ^0.9.0
+        version: 0.9.0
+      lib:
+        specifier: workspace:^
+        version: link:../../lib
+      tippy.js:
+        specifier: ^6.3.7
+        version: 6.3.7
+      ui:
+        specifier: workspace:^
+        version: link:../../ui
+      vue:
+        specifier: ^3.2.47
+        version: 3.2.47
+      vue-tippy:
+        specifier: ^6.0.0
+        version: 6.0.0(vue@3.2.47)
+    devDependencies:
+      '@tailwindcss/forms':
+        specifier: ^0.3.4
+        version: 0.3.4(tailwindcss@2.2.19)
+      '@types/uuid':
+        specifier: ^9.0.1
+        version: 9.0.1
+      '@vitejs/plugin-vue':
+        specifier: ^4.1.0
+        version: 4.1.0(vite@4.2.1)(vue@3.2.47)
+      '@vue/compiler-sfc':
+        specifier: ^3.2.47
+        version: 3.2.47
+      autoprefixer:
+        specifier: ^10.4.14
+        version: 10.4.14(postcss@8.4.21)
+      postcss:
+        specifier: ^8.4.21
+        version: 8.4.21
+      protobufjs:
+        specifier: ^7.2.3
+        version: 7.2.3
+      tailwindcss:
+        specifier: ^2.2.19
+        version: 2.2.19(autoprefixer@10.4.14)(postcss@8.4.21)
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      vite:
+        specifier: ^4.2.1
+        version: 4.2.1(@types/node@18.15.11)
+      vue-tsc:
+        specifier: ^1.2.0
+        version: 1.2.0(typescript@5.0.4)
+
   wasmegg/events:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
@@ -574,11 +693,148 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(typescript@5.0.4)
 
+  wasmegg/inventory-visualizer:
+    dependencies:
+      '@headlessui/vue':
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
+      '@heroicons/vue':
+        specifier: ^1.0.6
+        version: 1.0.6(vue@3.2.47)
+      fontfaceobserver:
+        specifier: ^2.3.0
+        version: 2.3.0
+      lib:
+        specifier: workspace:^
+        version: link:../../lib
+      localforage:
+        specifier: ^1.10.0
+        version: 1.10.0
+      safari-14-idb-fix:
+        specifier: ^3.0.0
+        version: 3.0.0
+      tippy.js:
+        specifier: ^6.3.7
+        version: 6.3.7
+      ui:
+        specifier: workspace:^
+        version: link:../../ui
+      vue:
+        specifier: ^3.2.47
+        version: 3.2.47
+      vue-tippy:
+        specifier: ^6.0.0
+        version: 6.0.0(vue@3.2.47)
+    devDependencies:
+      '@tailwindcss/forms':
+        specifier: ^0.3.4
+        version: 0.3.4(tailwindcss@2.2.19)
+      '@types/fontfaceobserver':
+        specifier: ^2.1.0
+        version: 2.1.0
+      '@vitejs/plugin-vue':
+        specifier: ^4.1.0
+        version: 4.1.0(vite@4.2.1)(vue@3.2.47)
+      '@vue/compiler-sfc':
+        specifier: ^3.2.47
+        version: 3.2.47
+      autoprefixer:
+        specifier: ^10.4.14
+        version: 10.4.14(postcss@8.4.21)
+      postcss:
+        specifier: ^8.4.21
+        version: 8.4.21
+      tailwindcss:
+        specifier: ^2.2.19
+        version: 2.2.19(autoprefixer@10.4.14)(postcss@8.4.21)
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      vite:
+        specifier: ^4.2.1
+        version: 4.2.1(@types/node@18.15.11)
+      vue-tsc:
+        specifier: ^1.2.0
+        version: 1.2.0(typescript@5.0.4)
+
+  wasmegg/loot-simulator:
+    dependencies:
+      '@headlessui/vue':
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
+      '@heroicons/vue':
+        specifier: ^1.0.6
+        version: 1.0.6(vue@3.2.47)
+      comlink:
+        specifier: ^4.4.1
+        version: 4.4.1
+      lib:
+        specifier: workspace:^
+        version: link:../../lib
+      lunr:
+        specifier: ^2.3.9
+        version: 2.3.9
+      scroll-into-view-if-needed:
+        specifier: ^3.0.10
+        version: 3.0.10
+      seedrandom:
+        specifier: ^3.0.5
+        version: 3.0.5
+      tippy.js:
+        specifier: ^6.3.7
+        version: 6.3.7
+      ui:
+        specifier: workspace:^
+        version: link:../../ui
+      uuid:
+        specifier: ^9.0.0
+        version: 9.0.0
+      vue:
+        specifier: ^3.2.47
+        version: 3.2.47
+      vue-tippy:
+        specifier: ^6.0.0
+        version: 6.0.0(vue@3.2.47)
+    devDependencies:
+      '@tailwindcss/forms':
+        specifier: ^0.3.4
+        version: 0.3.4(tailwindcss@2.2.19)
+      '@types/lunr':
+        specifier: ^2.3.4
+        version: 2.3.4
+      '@types/uuid':
+        specifier: ^9.0.1
+        version: 9.0.1
+      '@vitejs/plugin-vue':
+        specifier: ^4.1.0
+        version: 4.1.0(vite@4.2.1)(vue@3.2.47)
+      '@vue/compiler-sfc':
+        specifier: ^3.2.47
+        version: 3.2.47
+      autoprefixer:
+        specifier: ^10.4.14
+        version: 10.4.14(postcss@8.4.21)
+      postcss:
+        specifier: ^8.4.21
+        version: 8.4.21
+      tailwindcss:
+        specifier: ^2.2.19
+        version: 2.2.19(autoprefixer@10.4.14)(postcss@8.4.21)
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      vite:
+        specifier: ^4.2.1
+        version: 4.2.1(@types/node@18.15.11)
+      vue-tsc:
+        specifier: ^1.2.0
+        version: 1.2.0(typescript@5.0.4)
+
   wasmegg/mission-list:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
@@ -632,8 +888,8 @@ importers:
   wasmegg/past-contracts:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
@@ -690,8 +946,8 @@ importers:
   wasmegg/past-contracts-eicoop2:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
@@ -748,14 +1004,14 @@ importers:
   wasmegg/proto-explorer:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
       ace-builds:
-        specifier: ^1.16.0
-        version: 1.16.0
+        specifier: ^1.17.0
+        version: 1.17.0
       copy-text-to-clipboard:
         specifier: ^3.1.0
         version: 3.1.0
@@ -809,11 +1065,72 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(typescript@5.0.4)
 
+  wasmegg/researches:
+    dependencies:
+      '@headlessui/vue':
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
+      '@heroicons/vue':
+        specifier: ^1.0.6
+        version: 1.0.6(vue@3.2.47)
+      ace-builds:
+        specifier: ^1.17.0
+        version: 1.17.0
+      hotkeys-js:
+        specifier: ^3.10.2
+        version: 3.10.2
+      mitt:
+        specifier: ^3.0.0
+        version: 3.0.0
+      sql.js:
+        specifier: ^1.8.0
+        version: 1.8.0
+      tippy.js:
+        specifier: ^6.3.7
+        version: 6.3.7
+      vue:
+        specifier: ^3.2.47
+        version: 3.2.47
+      vue-tippy:
+        specifier: ^6.0.0
+        version: 6.0.0(vue@3.2.47)
+    devDependencies:
+      '@tailwindcss/forms':
+        specifier: ^0.3.4
+        version: 0.3.4(tailwindcss@2.2.19)
+      '@types/sql.js':
+        specifier: ^1.4.4
+        version: 1.4.4
+      '@vitejs/plugin-vue':
+        specifier: ^4.1.0
+        version: 4.1.0(vite@4.2.1)(vue@3.2.47)
+      '@vue/compiler-sfc':
+        specifier: ^3.2.47
+        version: 3.2.47
+      autoprefixer:
+        specifier: ^10.4.14
+        version: 10.4.14(postcss@8.4.21)
+      postcss:
+        specifier: ^8.4.21
+        version: 8.4.21
+      tailwindcss:
+        specifier: ^2.2.19
+        version: 2.2.19(autoprefixer@10.4.14)(postcss@8.4.21)
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      vite:
+        specifier: ^4.2.1
+        version: 4.2.1(@types/node@18.15.11)
+      vue-tsc:
+        specifier: ^1.2.0
+        version: 1.2.0(typescript@5.0.4)
+
   wasmegg/rockets-tracker:
     dependencies:
       '@headlessui/vue':
-        specifier: ^1.7.12
-        version: 1.7.12(vue@3.2.47)
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
       '@heroicons/vue':
         specifier: ^1.0.6
         version: 1.0.6(vue@3.2.47)
@@ -872,6 +1189,125 @@ importers:
       '@vitejs/plugin-vue':
         specifier: ^4.1.0
         version: 4.1.0(vite@4.2.1)(vue@3.2.47)
+      '@vue/compiler-sfc':
+        specifier: ^3.2.47
+        version: 3.2.47
+      autoprefixer:
+        specifier: ^10.4.14
+        version: 10.4.14(postcss@8.4.21)
+      postcss:
+        specifier: ^8.4.21
+        version: 8.4.21
+      tailwindcss:
+        specifier: ^2.2.19
+        version: 2.2.19(autoprefixer@10.4.14)(postcss@8.4.21)
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      vite:
+        specifier: ^4.2.1
+        version: 4.2.1(@types/node@18.15.11)
+      vue-tsc:
+        specifier: ^1.2.0
+        version: 1.2.0(typescript@5.0.4)
+
+  wasmegg/shell-company:
+    dependencies:
+      '@headlessui/vue':
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
+      '@heroicons/vue':
+        specifier: ^1.0.6
+        version: 1.0.6(vue@3.2.47)
+      dayjs:
+        specifier: ^1.11.7
+        version: 1.11.7
+      lib:
+        specifier: workspace:^
+        version: link:../../lib
+      tippy.js:
+        specifier: ^6.3.7
+        version: 6.3.7
+      ui:
+        specifier: workspace:^
+        version: link:../../ui
+      vue:
+        specifier: ^3.2.47
+        version: 3.2.47
+      vue-tippy:
+        specifier: ^6.0.0
+        version: 6.0.0(vue@3.2.47)
+    devDependencies:
+      '@tailwindcss/forms':
+        specifier: ^0.3.4
+        version: 0.3.4(tailwindcss@2.2.19)
+      '@vitejs/plugin-vue':
+        specifier: ^4.1.0
+        version: 4.1.0(vite@4.2.1)(vue@3.2.47)
+      '@vue/compiler-sfc':
+        specifier: ^3.2.47
+        version: 3.2.47
+      autoprefixer:
+        specifier: ^10.4.14
+        version: 10.4.14(postcss@8.4.21)
+      postcss:
+        specifier: ^8.4.21
+        version: 8.4.21
+      tailwindcss:
+        specifier: ^2.2.19
+        version: 2.2.19(autoprefixer@10.4.14)(postcss@8.4.21)
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      vite:
+        specifier: ^4.2.1
+        version: 4.2.1(@types/node@18.15.11)
+      vue-tsc:
+        specifier: ^1.2.0
+        version: 1.2.0(typescript@5.0.4)
+
+  wasmegg/smart-assistant:
+    dependencies:
+      '@headlessui/vue':
+        specifier: ^1.7.13
+        version: 1.7.13(vue@3.2.47)
+      '@heroicons/vue':
+        specifier: ^1.0.6
+        version: 1.0.6(vue@3.2.47)
+      lib:
+        specifier: workspace:^
+        version: link:../../lib
+      scroll-into-view-if-needed:
+        specifier: ^3.0.10
+        version: 3.0.10
+      tippy.js:
+        specifier: ^6.3.7
+        version: 6.3.7
+      ui:
+        specifier: workspace:^
+        version: link:../../ui
+      uuid:
+        specifier: ^9.0.0
+        version: 9.0.0
+      vue:
+        specifier: ^3.2.47
+        version: 3.2.47
+      vue-tippy:
+        specifier: ^6.0.0
+        version: 6.0.0(vue@3.2.47)
+    devDependencies:
+      '@tailwindcss/forms':
+        specifier: ^0.3.4
+        version: 0.3.4(tailwindcss@2.2.19)
+      '@types/uuid':
+        specifier: ^9.0.1
+        version: 9.0.1
+      '@vitejs/plugin-vue':
+        specifier: ^4.1.0
+        version: 4.1.0(vite@4.2.1)(vue@3.2.47)
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^3.0.1
+        version: 3.0.1(vite@4.2.1)(vue@3.2.47)
       '@vue/compiler-sfc':
         specifier: ^3.2.47
         version: 3.2.47
@@ -3088,8 +3524,16 @@ packages:
       '@types/node': 18.15.11
     dev: true
 
+  /@types/emscripten@1.39.6:
+    resolution: {integrity: sha512-H90aoynNhhkQP6DRweEjJp5vfUVdIj7tdPLsu7pq89vODD/lcugKfZOsfgwpvM6XUewEp2N5dCg1Uf3Qe55Dcg==}
+    dev: true
+
   /@types/estree@0.0.39:
     resolution: {integrity: sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==}
+    dev: true
+
+  /@types/fontfaceobserver@2.1.0:
+    resolution: {integrity: sha512-Vqf183RAiFdIjUi4asKqogf2HIfLDnxn+dQo9GCpnsU5QrrsLMA2bkJU1dHRudQlizLybWD61Csd1zAgUQ3JKQ==}
     dev: true
 
   /@types/glob@7.2.0:
@@ -3223,6 +3667,13 @@ packages:
 
   /@types/semver@7.3.13:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
+    dev: true
+
+  /@types/sql.js@1.4.4:
+    resolution: {integrity: sha512-6EWU2wfiBtzgTy18WQoXZAGTreBjhZcBCfD8CDvyI1Nj0a4KNDDt41IYeAZ40cRUdfqWHb7VGx7t6nK0yBOI5A==}
+    dependencies:
+      '@types/emscripten': 1.39.6
+      '@types/node': 18.15.11
     dev: true
 
   /@types/stack-utils@2.0.1:
@@ -3602,8 +4053,8 @@ packages:
       negotiator: 0.6.3
     dev: true
 
-  /ace-builds@1.16.0:
-    resolution: {integrity: sha512-EriMhoxdfhh0zKm7icSt8EXekODAOVsYh9fpnlru9ALwf0Iw7J7bpuqLjhi3QRxvVKR7P0teQdJwTvjVMcYHuw==}
+  /ace-builds@1.17.0:
+    resolution: {integrity: sha512-pu5Rc7Y2Q7WEa8QQvMODxUEJX7GmGko/I8sKkv2lrMvMnHr6hZIIL1NX+Lxc6y3PLRsBJLgi+XTO+4SJItuZpg==}
     dev: false
 
   /acorn-jsx@5.3.2(acorn@8.8.2):
@@ -4006,7 +4457,7 @@ packages:
       postcss: ^8.1.0
     dependencies:
       browserslist: 4.21.5
-      caniuse-lite: 1.0.30001477
+      caniuse-lite: 1.0.30001478
       fraction.js: 4.2.0
       normalize-range: 0.1.2
       picocolors: 1.0.0
@@ -4278,7 +4729,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001478
-      electron-to-chromium: 1.4.360
+      electron-to-chromium: 1.4.361
       node-releases: 2.0.10
       update-browserslist-db: 1.0.10(browserslist@4.21.5)
     dev: true
@@ -4464,10 +4915,6 @@ packages:
   /camelcase@7.0.1:
     resolution: {integrity: sha512-xlx1yCK2Oc1APsPXDL2LdlNP6+uu8OCDdhOBSVT279M/S+y75O30C2VuD8T2ogdePBBl7PfPF4504tnLgX3zfw==}
     engines: {node: '>=14.16'}
-    dev: true
-
-  /caniuse-lite@1.0.30001477:
-    resolution: {integrity: sha512-lZim4iUHhGcy5p+Ri/G7m84hJwncj+Kz7S5aD4hoQfslKZJgt0tHc/hafVbqHC5bbhHb+mrW2JOUHkI5KH7toQ==}
     dev: true
 
   /caniuse-lite@1.0.30001478:
@@ -4760,6 +5207,10 @@ packages:
     dependencies:
       delayed-stream: 1.0.0
     dev: true
+
+  /comlink@4.4.1:
+    resolution: {integrity: sha512-+1dlx0aY5Jo1vHy/tSsIGpSkN4tS9rZSW8FIhG0JH/crs9wwweswIo/POr451r7bZww3hFbPAKnTpimzL/mm4Q==}
+    dev: false
 
   /commander@10.0.0:
     resolution: {integrity: sha512-zS5PnTI22FIRM6ylNW8G4Ap0IEOyk62fhLSD0+uHRT9McRCLGpkVNvao4bjimpK/GShynyQkFFxHhwMcETmduA==}
@@ -5543,8 +5994,8 @@ packages:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
     dev: true
 
-  /electron-to-chromium@1.4.360:
-    resolution: {integrity: sha512-EP/jdF15S+l3iSSzgUpUqeazvkbVFXNuVxwwLMVUSie3lUeH1HH70gKe0IS7TASB/0h5QPG2bLMzv2jelSztIQ==}
+  /electron-to-chromium@1.4.361:
+    resolution: {integrity: sha512-VocVwjPp05HUXzf3xmL0boRn5b0iyqC7amtDww84Jb1QJNPBc7F69gJyEeXRoriLBC4a5pSyckdllrXAg4mmRA==}
     dev: true
 
   /elegant-spinner@1.0.1:
@@ -5751,8 +6202,8 @@ packages:
       estraverse: 4.3.0
     dev: true
 
-  /eslint-scope@7.1.1:
-    resolution: {integrity: sha512-QKQM/UXpIiHcLqJ5AOyIW7XZmzjkzQXYE54n1++wb0u9V/abW3l9uQnxX8Z5Xd18xyKIMTUAyQ0k1e8pz6LUrw==}
+  /eslint-scope@7.2.0:
+    resolution: {integrity: sha512-DYj5deGlHBfMt15J7rdtyKNq/Nqlv5KfU4iodrQ019XESsRnwXH9KAE0y3cwtUHDo2ob7CypAnCqefh6vioWRw==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
       esrecurse: 4.3.0
@@ -5782,7 +6233,7 @@ packages:
       debug: 4.3.4(supports-color@9.3.1)
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
-      eslint-scope: 7.1.1
+      eslint-scope: 7.2.0
       eslint-visitor-keys: 3.4.0
       espree: 9.5.1
       esquery: 1.5.0
@@ -6429,6 +6880,10 @@ packages:
     dependencies:
       debug: 4.3.4(supports-color@9.3.1)
     dev: true
+
+  /fontfaceobserver@2.3.0:
+    resolution: {integrity: sha512-6FPvD/IVyT4ZlNe7Wcn5Fb/4ChigpucKYSvD6a+0iMoLn2inpo711eyIcKjmDtE5XNcgAkSH9uN/nfAeZzHEfg==}
+    dev: false
 
   /for-in@1.0.2:
     resolution: {integrity: sha512-7EwmXrOjyL+ChxMhmG5lnW9MPt1aIeZEwKhQzoBUdTV0N3zuwWDZYVJatDvZ2OyzPUvdIAZDsCetk3coyMfcnQ==}
@@ -9295,7 +9750,7 @@ packages:
     resolution: {integrity: sha512-fe5rFjPqkWQb4CLfsOf10fZAJvImfLpcVx+Nqbozaj6PBoAEjyEK1HZGCGvQNyre2HdL1HnZG6mxBf2UHSzr/w==}
     engines: {node: '>=12'}
     dependencies:
-      '@babel/parser': 7.21.4
+      '@babel/parser': 7.16.8
     dev: true
 
   /node-stream-zip@1.15.0:
@@ -10773,6 +11228,10 @@ packages:
     resolution: {integrity: sha512-6aU+Rwsezw7VR8/nyvKTx8QpWH9FrcYiXXlqC4z5d5XQBDRqtbfsRjnwGyqbi3gddNtWHuEk9OANUotL26qKUw==}
     dev: true
 
+  /seedrandom@3.0.5:
+    resolution: {integrity: sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==}
+    dev: false
+
   /seek-bzip@1.0.6:
     resolution: {integrity: sha512-e1QtP3YL5tWww8uKaOCQ18UxIT2laNBXHjV/S2WYCiK4udiv8lkG89KRIoCjUagnAmCBurjF4zEVX2ByBbnCjQ==}
     hasBin: true
@@ -11079,6 +11538,10 @@ packages:
   /sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
     dev: true
+
+  /sql.js@1.8.0:
+    resolution: {integrity: sha512-3HD8pSkZL+5YvYUI8nlvNILs61ALqq34xgmF+BHpqxe68yZIJ1H+sIVIODvni25+CcxHUxDyrTJUL0lE/m7afw==}
+    dev: false
 
   /stack-generator@2.0.10:
     resolution: {integrity: sha512-mwnua/hkqM6pF4k8SnmZ2zfETsRUpWXREfA/goT8SLCV4iOFa4bzOX2nDipWAZFPTjLvQB82f5yaodMVhK0yJQ==}
@@ -12098,7 +12561,7 @@ packages:
     dependencies:
       debug: 4.3.4(supports-color@9.3.1)
       eslint: 8.38.0
-      eslint-scope: 7.1.1
+      eslint-scope: 7.2.0
       eslint-visitor-keys: 3.4.0
       espree: 9.5.1
       esquery: 1.5.0

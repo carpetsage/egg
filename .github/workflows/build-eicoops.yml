@@ -7,6 +7,7 @@ on:
       - "eicoop/**"
       - "eicoop2/**"
       - "periodicals/*"
+      - 'protobuf/ei.proto'
   pull_request:
     types: [ opened, edited, reopened]
     paths: 

@@ -15,6 +15,7 @@ const API_ROOT =
     ? '/api'
     : 'https://egg-forwarder.carpet.workers.dev/?url=https://www.auxbrain.com';
 
+const CONFIG_GIST_URL = 'https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/56f870a3d6eb0c2ad280446bc8721fe9eb0ab42d/config.json'
 const TIMEOUT = 5000;
 
 // A valid userId donated by a volunteer.
@@ -61,19 +62,21 @@ export async function request(endpoint: string, encodedPayload: string): Promise
 }
 
 /**
+ * Pulls ConfigResponse json from gist - proto for ConfigResponse is broken in some
+ * way I don't understand and have spent too long trying to fix
  * @param [userId]
  * @returns
  * @throws
  */
 export async function requestConfig(userId?: string): Promise<ei.IConfigResponse> {
-  // A valid userId is required for a complete response.
-  userId = userId ?? defaultUserId;
-  const requestPayload: ei.IConfigRequest = {
-    rinfo: basicRequestInfo(userId),
-  };
-  const encodedRequestPayload = encodeMessage(ei.ConfigRequest, requestPayload);
-  const encodedResponsePayload = await request('/ei/get_config', encodedRequestPayload);
-  return decodeMessage(ei.ConfigResponse, encodedResponsePayload, true) as ei.IConfigResponse;
+  try {
+    const resp = await fetch(CONFIG_GIST_URL);
+    const text = await resp.text();
+    const config = JSON.parse(text);
+    return ei.ConfigResponse.fromObject(config) as ei.ConfigResponse;
+  } catch (e) {
+    throw new Error(`Error fetching config from: ${CONFIG_GIST_URL} : ${e}`);
+  }
 }
 
 /**

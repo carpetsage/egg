@@ -2,9 +2,9 @@
   "name": "proto-explorer",
   "version": "0.0.0",
   "dependencies": {
-    "@headlessui/vue": "^1.7.12",
+    "@headlessui/vue": "^1.7.13",
     "@heroicons/vue": "^1.0.6",
-    "ace-builds": "^1.16.0",
+    "ace-builds": "^1.17.0",
     "copy-text-to-clipboard": "^3.1.0",
     "lib": "workspace:^",
     "protobufjs": "^7.2.3",
