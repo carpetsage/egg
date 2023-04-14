@@ -51,15 +51,14 @@
     <li><tool-description id="enlightenment" @visit="onvisit" /></li>
     <li><tool-description id="smart-assistant" @visit="onvisit" /></li>
     <li><tool-description id="shell-company" @visit="onvisit" /></li>
+    <li><tool-description id="eggs-laid" @visit="onvisit" /></li>
   </ul>
 
   <h3>Data sheets</h3>
   <ul>
     <li><tool-description id="mission-list" @visit="onvisit" /></li>
     <li><tool-description id="consumption-sheet" @visit="onvisit" /></li>
-    <li><tool-description id="loot-analysis" @visit="onvisit" /><v120-badge /></li>
     <li><tool-description id="events" @visit="onvisit" /></li>
-    <li><tool-description id="legendary-study" @visit="onvisit" /></li>
   </ul>
 
   <h3>Developer tools</h3>
@@ -113,8 +112,6 @@
   <h2>Other Links</h2>
   <ul>
     <li>
-    </li>
-    <li>
       <base-router-link :to="{ name: 'privacy' }">Privacy policy</base-router-link>
     </li>
     <li><base-router-link :to="{ name: 'contact' }">Contact</base-router-link></li>
@@ -141,7 +138,7 @@ import V120Badge from '@/components/V120Badge.vue';
 import WhatsNew from '@/components/WhatsNew.vue';
 
 const EASTER_EGG_DAY = 7;
-const EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY = 'easterEggShownAt';
+const EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY = 'c_easterEggShownAt';
 
 export default defineComponent({
   components: {

@@ -170,12 +170,6 @@ const entries: ({
     url: '/#/contact',
     icon: ChatAlt2Icon,
   },
-  {
-    id: 'donate',
-    title: 'Donate',
-    url: '/#/donate',
-    icon: EmojiHappyIcon,
-  },
 
   null,
 
@@ -200,9 +194,8 @@ const entries: ({
 
   idToTool.get('mission-list')!,
   idToTool.get('consumption-sheet')!,
-  idToTool.get('loot-analysis')!,
   idToTool.get('events')!,
-  idToTool.get('legendary-study')!,
+  idToTool.get('eggs-laid)!,
 
   null,
 
