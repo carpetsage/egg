@@ -189,13 +189,13 @@ const entries: ({
   idToTool.get('enlightenment')!,
   idToTool.get('smart-assistant')!,
   idToTool.get('shell-company')!,
+  idToTool.get('eggs-laid')!,
 
   null,
 
   idToTool.get('mission-list')!,
   idToTool.get('consumption-sheet')!,
   idToTool.get('events')!,
-  idToTool.get('eggs-laid)!,
 
   null,
 
