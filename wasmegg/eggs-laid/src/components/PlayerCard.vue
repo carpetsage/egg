@@ -19,10 +19,10 @@
                 Eggs Laid
               </div>
               <div class="text-left">
-                <template v-for="(eggTotal,index) in eggTotals" :key="eggTotal.id">
-                  <pre>{{eggs[index]}} - {{fmtApprox(eggTotal)}}</pre>
+                <template v-for="(eggTotal) in eggTotals" :key="eggTotal[0]">
+                  <pre>{{ eggTotal[0].padEnd(14, " ") }} - {{ fmtApprox(eggTotal[1]) }}</pre>
                 </template>
-                <pre>{{"Total".padEnd(14, " ")}} - {{fmtApprox(eggTotals.reduce((a,b)=>a+b))}}</pre>
+                <pre>{{ "Total".padEnd(14, " ") }} - {{ fmtApprox([...eggTotals.values()].reduce((a,b)=>a+b)) }}</pre>
               </div>
           </div>
         </div>
@@ -36,9 +36,9 @@ import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { sha256 } from 'js-sha256';
 
 import {
+  eggName,
   ei,
   formatEIValue,
 } from 'lib';
@@ -64,27 +64,24 @@ onBeforeUnmount(() => {
   clearInterval(refreshIntervalId);
 });
 
-const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
-
-const eggs = ["Edible", "Superfood", "Medical", "Rocket Fuel", "Super Material", "Fusion", "Quantum", "Immortality", "Tachyon", "Graviton", "Dilithium", "Prodigy", "Terraform", "Antimatter", "Dark Matter", "AI", "Nebula", "Universe", "Enlightenment", "Chocolate", "Easter", "Waterballoon", "Firework", "Pumpkin"].map(x => x.padEnd(14, " "));
 
 
 const contracts: UserContract[] = getUserContractList(backup.value);
-const eggTotals: number[] = backup.value.stats?.eggTotals || [];
-[100, 101, 102, 103, 104].forEach(egg => {
-  eggTotals.push(eggsLaid(contracts.filter(c => c.egg == egg)) || 0);
+const contractEggs = [ ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON, ei.Egg.FIREWORK, ei.Egg.PUMPKIN ]
+
+let eggTotals = new Map<string , number>(
+  backup.value.stats?.eggTotals?.map((eggTotal, index) =>
+  [ eggName(index + 1 as ei.Egg), eggTotal ]
+  ));
+
+contractEggs.forEach(egg => {
+  eggTotals.set(eggName(egg), eggsLaid(contracts.filter(c => c.egg == egg)) || 0);
 });
-if (userIdHash.value == 'b8c947004f3b209a7d17078f5a37b0c28a1b10e39037ba1facb55cf0113976b2') {
-  eggTotals[20] = 671532000000000000;
-}
 
 function eggsLaid(uc: UserContract[]): number {
   return uc.map(c => c.contribution!).reduce((partialSum, contrib) => partialSum + contrib, 0);
 }
 
-function fmt(n: number): string {
-  return n.toLocaleString('en-US');
-}
 
 function fmtApprox(n: number): string {
   return n === 0 ? '0' : `${formatEIValue(n, { decimals: 3 })}`;
