@@ -86,7 +86,7 @@ router.afterEach((to, from, failure) => {
       if (to.name === 'donate') {
         setTimeout(() => {
           goatcounter?.count({
-            path: 'https://wasmegg.netlify.app/#/donate',
+            path: 'https://wasmegg-carpet.netlify.app/#/donate',
             title: 'Visited donation page',
             event: true,
           });
@@ -94,7 +94,7 @@ router.afterEach((to, from, failure) => {
       } else if (to.name === 'contact') {
         setTimeout(() => {
           goatcounter?.count({
-            path: 'https://wasmegg.netlify.app/#/contact',
+            path: 'https://wasmegg-carpet.netlify.app/#/contact',
             title: 'Visited contact page',
             event: true,
           });

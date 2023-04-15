@@ -13,10 +13,10 @@
     <p>
       Rigorous statistical analysis of drop rate data can be found at
       <a
-        href="https://wasmegg.netlify.app/loot-analysis/"
+        href="https://wasmegg-carpet.netlify.app/loot-analysis/"
         target="_blank"
         class="text-gray-500 hover:text-gray-700 underline"
-        >https://wasmegg.netlify.app/loot-analysis/</a
+        >https://wasmegg-carpet.netlify.app/loot-analysis/</a
       >.
     </p>
   </div>

@@ -115,7 +115,7 @@
                   :class="useCoolGray ? 'text-cool-gray-300' : 'text-gray-300'"
                 />
                 Copyright &copy; 2021&nbsp;<a
-                  href="https://wasmegg.netlify.app/"
+                  href="https://wasmegg-carpet.netlify.app/"
                   class="text-blue-400 hover:text-blue-500"
                   target="_blank"
                   >@mk2</a

@@ -10,7 +10,7 @@ interface EggValueResearchInstance extends ResearchInstance {
   compoundMultiplicatively?: boolean;
 }
 
-// https://wasmegg.netlify.app/researches/
+// https://wasmegg-carpet.netlify.app/researches/
 // SELECT id, name, levels AS maxLevel, per_level AS perLevel, iif(levels_compound = 'multiplicative', true, NULL) AS compoundMultiplicatively FROM research WHERE categories LIKE '%egg_value%' ORDER BY serial_id;
 const availableEggValueResearches: EggValueResearch[] = [
   {

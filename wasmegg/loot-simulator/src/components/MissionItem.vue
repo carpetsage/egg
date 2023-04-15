@@ -30,7 +30,7 @@ export default defineComponent({
     const { id } = toRefs(props);
     const mission = computed(() => missionIdToMission.get(id.value)!);
     const missionURL = computed(
-      () => `https://wasmegg.netlify.app/artifact-explorer/#/mission/${id.value}/`
+      () => `https://wasmegg-carpet.netlify.app/artifact-explorer/#/mission/${id.value}/`
     );
     const missionIconURL = computed(() => iconURL(mission.value.iconPath, 64));
     return {

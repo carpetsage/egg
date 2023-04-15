@@ -36,7 +36,7 @@ export default defineComponent({
     const { id } = toRefs(props);
     const item = computed(() => itemIdToItem.get(id.value)!);
     const itemURL = computed(
-      () => `https://wasmegg.netlify.app/artifact-explorer/#/artifact/${id.value}/`
+      () => `https://wasmegg-carpet.netlify.app/artifact-explorer/#/artifact/${id.value}/`
     );
     const itemIconURL = computed(() => iconURL(item.value.iconPath, 64));
     return {

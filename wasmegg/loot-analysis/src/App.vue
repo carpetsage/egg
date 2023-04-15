@@ -25,7 +25,7 @@
         internal parameter for each item. You can find the odds multipliers in the config table at
         the bottom of the
         <a
-          href="https://wasmegg.netlify.app/artifact-explorer/"
+          href="https://wasmegg-carpet.netlify.app/artifact-explorer/"
           target="_blank"
           class="text-blue-500 hover:text-blue-700"
           >artifact explorer</a
