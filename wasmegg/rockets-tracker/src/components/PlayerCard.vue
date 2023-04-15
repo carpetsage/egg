@@ -217,7 +217,7 @@
             <dt class="text-right text-sm font-medium whitespace-nowrap">Contracts</dt>
             <dd class="flex items-center text-left text-sm text-gray-900">
               <a
-                :href="`https://wasmegg.netlify.app/past-contracts/?playerId=${userId}`"
+                :href="`https://wasmegg-carpet.netlify.app/past-contracts/?playerId=${userId}`"
                 target="_blank"
                 class="flex items-center"
               >
@@ -362,7 +362,7 @@
           <div class="text-sm font-medium">Inventory items</div>
 
           <a
-            :href="`https://wasmegg.netlify.app/inventory-visualizer/?playerId=${userId}`"
+            :href="`https://wasmegg-carpet.netlify.app/inventory-visualizer/?playerId=${userId}`"
             target="_blank"
             class="flex items-center justify-center space-x-0.5 text-xs"
             :class="
@@ -606,7 +606,7 @@
           </div>
 
           <a
-            :href="`https://wasmegg.netlify.app/shell-company/?playerId=${userId}`"
+            :href="`https://wasmegg-carpet.netlify.app/shell-company/?playerId=${userId}`"
             target="_blank"
             class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
           >
@@ -663,6 +663,7 @@ import {
   inventoryExpectedFullConsumptionGold,
   setLocalStorage,
   TrophyLevel,
+  getArtifactTierProps,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import {
@@ -851,7 +852,17 @@ const daysSinceFirstMission = computed(() => {
   const firstMissionLaunchedAt = dayjs(launchedMissions.value[0].startTimeDerived! * 1000);
   return dayjs().diff(firstMissionLaunchedAt, 'days');
 });
-const inventoryScore = computed(() => Math.floor(backup.value.artifacts?.inventoryScore || 0));
+// there is somehow ??? a bug with this not updating on reload
+//const inventoryScore = computed(() => Math.floor(backup.value.artifacts?.inventoryScore || 1));
+const inventoryScore = computed(() => {
+  const scores = backup.value.artifactsDb?.inventoryItems?.map(arti => 
+    arti.artifact?.spec ?
+      getArtifactTierProps(arti.artifact.spec.name!, arti.artifact.spec.level!).quality * (arti.quantity ?? 0):
+    0
+  ) ?? [0];
+  return Math.floor(scores.reduce((sum, artiscore) => sum + artiscore) || 1 );
+}
+)
 const craftingXp = computed(() => Math.floor(backup.value.artifacts?.craftingXp || 0));
 const inventoryConsumptionValue = computed(() =>
   inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
