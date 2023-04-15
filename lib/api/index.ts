@@ -15,7 +15,7 @@ const API_ROOT =
     ? '/api'
     : 'https://egg-forwarder.carpet.workers.dev/?url=https://www.auxbrain.com';
 
-const CONFIG_GIST_URL = 'https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/56f870a3d6eb0c2ad280446bc8721fe9eb0ab42d/config.json'
+const CONFIG_GIST_URL = 'https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/config.json'
 const TIMEOUT = 5000;
 
 // A valid userId donated by a volunteer.
