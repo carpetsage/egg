@@ -75,14 +75,16 @@ export default defineComponent({
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);
     const error: Ref<Error | undefined> = ref(undefined);
-    const refreshCoopStatus = async (eid? :string) => {
+    const refreshCoopStatus = async () => {
       loading.value = true;
       error.value = undefined;
       try {
-        // requestCoopStatus will run twice the first to get creator name, otherwise just once
-        const querytwice = (eid === undefined);
+        //const initStatus = new CoopStatus(
+        //  await requestCoopStatus(contractId.value, coopCode.value.toLowerCase())
+        //);
         const status = new CoopStatus(
-          await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), eid, querytwice)
+          //await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), initStatus.creatorId)
+          await requestCoopStatus(contractId.value, coopCode.value.toLowerCase())
         );
         await status.resolveContract({
           store: store.state.contracts.list,
@@ -99,14 +101,14 @@ export default defineComponent({
     };
     refreshCoopStatus();
     provide(refreshCallbackKey, () => {
-      refreshCoopStatus(coopStatus.value?.creatorId);
+      refreshCoopStatus();
     });
     watch([contractId, coopCode], () => {
       coopStatus.value = undefined;
       refreshCoopStatus();
     });
     watch(refreshKey, () => {
-      refreshCoopStatus(coopStatus.value?.creatorId);
+      refreshCoopStatus();
     });
 
     return {
