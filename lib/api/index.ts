@@ -112,7 +112,8 @@ export async function requestFirstContact(userId: string): Promise<ei.IEggIncFir
 export async function requestCoopStatus(
   contractId: string,
   coopCode: string,
-  userId?: string
+  userId?: string,
+  useCreatorId = false
 ): Promise<ei.IContractCoopStatusResponse> {
   // A valid userId is now required.
   userId = userId ?? defaultUserId;
@@ -130,6 +131,9 @@ export async function requestCoopStatus(
     encodedResponsePayload,
     true
   ) as ei.IContractCoopStatusResponse;
+  if (useCreatorId && status.creatorId) {
+    return requestCoopStatus(contractId, coopCode, status.creatorId)
+  }
   if (!status.localTimestamp) {
     status.localTimestamp = Date.now() / 1000;
   }
