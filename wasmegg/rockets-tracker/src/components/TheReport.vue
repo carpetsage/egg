@@ -74,7 +74,7 @@ export default defineComponent({
       required: true,
     },
     eventBus: {
-      type: Object as PropType<Emitter>,
+      type: Object as PropType<Emitter<Record<typeof REPORT_LEGENDARIES, unknown>>>,
       required: true,
     },
   },

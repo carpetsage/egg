@@ -123,7 +123,6 @@ export const tools = [
     id: 'eggs-laid',
     title: 'Eggs laid',
     url: '/eggs-laid/',
-    iconUrl: iconURL('wasmegg/rockets-tracker.svg'),
     description:
       'Lists total eggs laid for all eggs',
     // forever
@@ -131,6 +130,7 @@ export const tools = [
   new Tool({
     id: 'past-contracts',
     title: 'Past contracts viewer',
+    url: '/past-contracts/',
     iconUrl: iconURL('wasmegg/past-contracts.svg'),
     description: 'Past contracts and prophecy egg completion tracker',
     // Tue Jun  8 12:33:17 UTC 2021
@@ -139,6 +139,7 @@ export const tools = [
   new Tool({
     id: 'inventory-visualizer',
     title: 'Inventory visualizer',
+    url: '/inventory-visualizer/',
     iconUrl: iconURL('wasmegg/inventory-visualizer.svg'),
     description: 'The easiest way to share your entire Egg, Inc. artifact inventory',
     // Thu Dec  9 17:50:20 UTC 2021
@@ -146,12 +147,14 @@ export const tools = [
   }),
   new Tool({
     id: 'enlightenment',
+    url: '/enlightenment/',
     title: 'Enlightenment companion',
     iconUrl: iconURL('wasmegg/enlightenment.svg'),
     description: 'Informational companion on your journey to the Enlightenment Diamond Trophy',
   }),
   new Tool({
     id: 'smart-assistant',
+    url: '/smart-assistant/',
     title: 'Smart assistant',
     iconUrl: iconURL('wasmegg/smart-assistant.svg'),
     description:
@@ -164,6 +167,7 @@ export const tools = [
   }),
   new Tool({
     id: 'shell-company',
+    url: '/shell-company/',
     title: 'Shell company',
     iconUrl: iconURL('wasmegg/shell-company.png'),
     description:
@@ -184,6 +188,7 @@ export const tools = [
   }),
   new Tool({
     id: 'consumption-sheet',
+    url: '/consumption-sheet/',
     title: 'Consumption sheet',
     description: 'Artifact consumption outcomes',
     // Fri Jul 30 12:32:29 UTC 2021
@@ -193,6 +198,7 @@ export const tools = [
   }),
   new Tool({
     id: 'loot-analysis',
+    url: '/loot-analysis/',
     title: 'Loot analysis',
     description: 'Statistical analysis of mission rewards data through interactive plots',
   }),
@@ -217,12 +223,14 @@ export const tools = [
 
   new Tool({
     id: 'researches',
+    url: '/researches/',
     title: 'Researches',
     description: 'Structured data of common and epic researches, customizable by SQL',
   }),
 
   new Tool({
     id: 'loot-simulator',
+    url: '/loot-simulator/',
     title: 'Loot simulator',
     iconUrl: iconURL('wasmegg/loot-simulator.svg'),
     description: 'Simulator for mission loot drops',
@@ -230,12 +238,14 @@ export const tools = [
 
   new Tool({
     id: 'EggLedger',
-    url: 'https://github.com/fanaticscripter/EggLedger#readme',
+    url: 'https://github.com/synthparadox/EggLedger#readme',
     title: 'EggLedger',
     iconUrl: iconURL('wasmegg/EggLedger.png'),
-    description: 'Spaceship mission data exporter, supplementing rockets tracker',
-    // Sat Dec 25 14:42:31 UTC 2021
-    newUntil: 1640443351000,
+    description: 'Spaceship mission data exporter, supplementing rockets tracker - forked and fixed by @synthparadox#7576',
+    // Sat Jun 17 16:21 UTC 2023
+    newUntil: 1686975703,
+    whatsNew:
+      'Fixed issue with Chrome'
   }),
 
   new Tool({
@@ -244,6 +254,7 @@ export const tools = [
     title: 'EggContractor',
     description:
       'Contract monitoring web app & CLI client, with multi-account aggregation, offline time tracking, and more',
+    newUntil: 1686716503,
   }),
 
   new Tool({

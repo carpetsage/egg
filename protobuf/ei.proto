@@ -1489,7 +1489,7 @@ message ShellSpec {
     // > types, including bools and enums. Repeated fields of numeric types can
     // > be serialized in the packed format, which will not be parsed correctly
     // > when an optional field is expected.
-    repeated AssetType asset_type = 1;
+    optional AssetType asset_type = 1;
     optional DLCItem dlc = 2;
   }
 
@@ -1657,7 +1657,7 @@ message ShellObjectSpec {
   repeated double metadata = 7;
   optional bool no_hats = 13;
 
-  optional ChickenAnimation chicken_animation = 16;
+  repeated ChickenAnimation chicken_animation = 16;
   enum ChickenAnimation {
     STANDARD_RUN = 0;
     SLOWMO = 7;
@@ -1707,7 +1707,7 @@ message ShellDB {
 
   repeated ShellElementStatus shell_element_inventory = 5;
   message ShellElementStatus {
-    optional FarmElement element = 1;
+    repeated FarmElement element = 1;
     optional string set_identifier = 2;
   }
 

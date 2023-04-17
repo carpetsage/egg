@@ -115,7 +115,7 @@
                   :class="useCoolGray ? 'text-cool-gray-300' : 'text-gray-300'"
                 />
                 Copyright &copy; 2021&nbsp;<a
-                  href="https://wasmegg.netlify.app/"
+                  href="https://wasmegg-carpet.netlify.app/"
                   class="text-blue-400 hover:text-blue-500"
                   target="_blank"
                   >@mk2</a
@@ -133,7 +133,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, DefineComponent, RenderFunction } from 'vue';
+import { defineComponent, FunctionalComponent, HTMLAttributes, VNodeProps, DefineComponent } from 'vue';
 import { Dialog, DialogOverlay, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import {
   ArrowLeftIcon,
@@ -144,7 +144,7 @@ import {
   IdentificationIcon,
   ViewGridIcon,
   XIcon,
-} from '@heroicons/vue/solid';
+} from '@heroicons/vue/solid'
 
 import { iconURL } from 'lib';
 import { idToTool } from 'lib/tools';
@@ -155,7 +155,7 @@ const entries: ({
   title: string;
   url: string;
   description?: string;
-  icon?: DefineComponent | RenderFunction;
+  icon?: FunctionalComponent<HTMLAttributes & VNodeProps> | DefineComponent;
   iconUrl?: string;
 } | null)[] = [
   {
@@ -169,12 +169,6 @@ const entries: ({
     title: 'Contact',
     url: '/#/contact',
     icon: ChatAlt2Icon,
-  },
-  {
-    id: 'donate',
-    title: 'Donate',
-    url: '/#/donate',
-    icon: EmojiHappyIcon,
   },
 
   null,
@@ -195,14 +189,13 @@ const entries: ({
   idToTool.get('enlightenment')!,
   idToTool.get('smart-assistant')!,
   idToTool.get('shell-company')!,
+  idToTool.get('eggs-laid')!,
 
   null,
 
   idToTool.get('mission-list')!,
   idToTool.get('consumption-sheet')!,
-  idToTool.get('loot-analysis')!,
   idToTool.get('events')!,
-  idToTool.get('legendary-study')!,
 
   null,
 
@@ -222,6 +215,7 @@ const entries: ({
 
 export default defineComponent({
   components: {
+    // eslint-disable-next-line vue/no-reserved-component-names
     Dialog,
     DialogOverlay,
     TransitionChild,

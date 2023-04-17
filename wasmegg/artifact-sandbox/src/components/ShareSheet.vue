@@ -164,6 +164,7 @@ let runId = 0;
 
 export default defineComponent({
   components: {
+    // eslint-disable-next-line vue/no-reserved-component-names
     Dialog,
     DialogOverlay,
     TransitionChild,
@@ -263,7 +264,7 @@ export default defineComponent({
         }
 
         canvas.toBlob(blob => {
-          if (currentRunId !== runId) {
+          if (currentRunId !== runId || !blob) {
             return;
           }
           if (canvas.width !== 0) {

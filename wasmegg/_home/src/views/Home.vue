@@ -4,6 +4,29 @@
     <span class="whitespace-nowrap">for Egg, Inc.</span>
   </h1>
 
+  <div v-if="daysVisitedStreak >= EASTER_EGG_DAY" class="my-2 text-center">
+    <div class="w-max mx-auto bg-yellow-500 text-sm text-white px-2 py-1 rounded-md">
+      <svg
+        class="inline h-4 w-4 text-red-500 relative -top-px -left-px"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      You've been visiting for {{ daysVisitedStreak }} days straight!
+      <template v-if="showEasterEgg">
+        <br />
+        <span class="cursor-pointer underline" @click="triggerEasterEggAndDisableInTheFuture">
+          Here's an Easter egg for you!
+        </span>
+      </template>
+    </div>
+  </div>
+
   <p>
     I am <span class="font-medium">CarpetSage#0010</span> on the
     <base-link href="https://discord.gg/egginc">Egg, Inc. Discord server</base-link>. This is the
@@ -12,28 +35,96 @@
 
   <whats-new class="my-4" />
 
-  <h2>Tools Updated by Carpet</h2>
+  <h2>Tools hosted at independent domains</h2>
   <ul>
-    <li><tool-description id="artifact-explorer" /></li>
-    <li><tool-description id="artifact-sandbox" /></li>
-    <li><tool-description id="rockets-tracker" /></li>
-    <li><tool-description id="mission-list" /></li>
-    <li><tool-description id="events" /></li>
-    <li><tool-description id="eicoop" /></li>
-  </ul>
-  <h2>Misc Tool Created by Carpet</h2>
-  <ul>
-    <li><tool-description id="eggs-laid" /></li>
+    <li><tool-description id="eicoop" @visit="onvisit" /></li>
   </ul>
 
-  <h2>Other Tools are hosted on <base-link href="https://wasmegg.netlify.app">mk2's site</base-link></h2>
+  <h2>Tools hosted at this domain</h2>
+  <h3>Interactive apps</h3>
+  <ul>
+    <li><tool-description id="artifact-explorer" @visit="onvisit" /></li>
+    <li><tool-description id="artifact-sandbox" @visit="onvisit" /></li>
+    <li><tool-description id="rockets-tracker" @visit="onvisit" /></li>
+    <li><tool-description id="past-contracts" @visit="onvisit" /></li>
+    <li><tool-description id="inventory-visualizer" @visit="onvisit" /></li>
+    <li><tool-description id="enlightenment" @visit="onvisit" /></li>
+    <li><tool-description id="smart-assistant" @visit="onvisit" /></li>
+    <li><tool-description id="shell-company" @visit="onvisit" /></li>
+    <li><tool-description id="eggs-laid" @visit="onvisit" /></li>
+  </ul>
+
+  <h3>Data sheets</h3>
+  <ul>
+    <li><tool-description id="mission-list" @visit="onvisit" /></li>
+    <li><tool-description id="consumption-sheet" @visit="onvisit" /></li>
+    <li><tool-description id="events" @visit="onvisit" /></li>
+  </ul>
+
+  <h3>Developer tools</h3>
+  <ul>
+    <li><tool-description id="researches" @visit="onvisit" /></li>
+  </ul>
+  <p>
+    Certain tools are not advertised here due to concerns. If you are interested, poke around the
+    source repo to find them.
+  </p>
+
+  <h2>Miscellaneous small tools</h2>
+  <p>
+    You can find more small tools at
+    <base-link href="https://eiadhoc.netlify.app/">eiadhoc.netlify.app</base-link>.
+  </p>
+
+  <h2>Desktop applications</h2>
+  <ul>
+    <li><tool-description id="EggLedger" @visit="onvisit" /></li>
+  </ul>
+
+  <h2>Self-hosted tools</h2>
+  <ul>
+    <li><tool-description id="EggContractor" @visit="onvisit" /></li>
+  </ul>
+
+  <h2>Guides</h2>
+  <ul>
+    <li>
+      <base-link href="https://howtofarm.netlify.app/">How to farm materials</base-link>
+    </li>
+  </ul>
+
+  <h2>Advanced</h2>
+  <ul>
+    <li><tool-description id="ebeb" @visit="onvisit" /></li>
+    <li><tool-description id="fuckify" @visit="onvisit" /></li>
+    <li>
+      <span class="bg-green-100">
+        <base-link href="https://ei.tcl.sh/tips" :everfresh="true" @click="onrick"
+          >Advanced strategies for seasoned players</base-link
+        >
+        <sup class="text-xs font-medium uppercase text-green-600 ml-1">Secret</sup>
+      </span>
+      &mdash; Strategies so next-level, they will blow your effing mind. You're advised to stay
+      away. Not for the faint-hearted.
+    </li>
+  </ul>
+
+  <h2>Other Links</h2>
+  <ul>
+    <li>
+      <base-router-link :to="{ name: 'privacy' }">Privacy policy</base-router-link>
+    </li>
+    <li><base-router-link :to="{ name: 'contact' }">Contact</base-router-link></li>
+    <li><base-link href="https://github.com/carpetsage/egg">Source code</base-link></li>
+  </ul>
+
+  <easter-egg v-if="showEasterEgg" :refresh-key="easterEggRefreshKey" />
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 
 import {
-  getDonationPageVisited,
   getLocalStorageNoPrefix,
   goatcounter,
   recordVisit,
@@ -41,27 +132,24 @@ import {
 } from 'lib';
 import BaseLink from '@/components/BaseLink.vue';
 import BaseRouterLink from '@/components/BaseRouterLink.vue';
-import DonorList from '@/components/DonorList.vue';
 import EasterEgg from '@/components/EasterEgg.vue';
 import ToolDescription from '@/components/ToolDescription.vue';
 import V120Badge from '@/components/V120Badge.vue';
 import WhatsNew from '@/components/WhatsNew.vue';
 
 const EASTER_EGG_DAY = 7;
-const EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY = 'easterEggShownAt';
+const EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY = 'c_easterEggShownAt';
 
 export default defineComponent({
   components: {
     BaseLink,
     BaseRouterLink,
-    DonorList,
     EasterEgg,
     ToolDescription,
     V120Badge,
     WhatsNew,
   },
   setup() {
-    const donationPageVisited = getDonationPageVisited();
 
     const daysVisitedStreak = ref(0);
     const showEasterEgg = ref(false);
@@ -79,7 +167,7 @@ export default defineComponent({
       setLocalStorageNoPrefix(EASTER_EGG_SHOWN_AT_LOCALSTORAGE_KEY, Date.now());
       if (easterEggShownForTheFirstTime) {
         goatcounter?.count({
-          path: 'https://wasmegg.netlify.app/#/',
+          path: 'https://wasmegg-carpet.netlify.app/#/',
           title: 'Easter egg (visit streak)',
           event: true,
         });
@@ -121,7 +209,6 @@ export default defineComponent({
     };
 
     return {
-      donationPageVisited,
       daysVisitedStreak,
       EASTER_EGG_DAY,
       showEasterEgg,
@@ -133,7 +220,6 @@ export default defineComponent({
   },
 });
 </script>
-
 
 <style lang="postcss" scoped>
 h2 {

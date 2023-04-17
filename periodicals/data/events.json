@@ -7678,5 +7678,69 @@
     "multiplier": 0.25,
     "startTimestamp": 1681228800.0,
     "type": "hab-sale"
+  },
+  {
+    "endTimestamp": 1681401600.0,
+    "id": "event-4-12",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1681315200.0,
+    "type": "drone-boost"
+  },
+  {
+    "endTimestamp": 1681401600.0,
+    "id": "event-4-12-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1681315200.0,
+    "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1681488000.0,
+    "id": "event-4-13",
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1681401600.0,
+    "type": "gift-boost"
+  },
+  {
+    "endTimestamp": 1681574400.0,
+    "id": "event-4-14",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1681488000.0,
+    "type": "research-sale"
+  },
+  {
+    "endTimestamp": 1681657200.0,
+    "id": "event-4-15",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2.0,
+    "startTimestamp": 1681570800.0,
+    "type": "prestige-boost"
+  },
+  {
+    "endTimestamp": 1681743600.0,
+    "id": "event-4-15-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1681570800.0,
+    "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1681747200.0,
+    "id": "event-4-16",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1681657200.0,
+    "type": "epic-research-sale"
+  },
+  {
+    "endTimestamp": 1681833600.0,
+    "id": "event-4-17",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1681747200.0,
+    "type": "earnings-boost"
   }
 ]

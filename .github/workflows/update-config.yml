@@ -2,7 +2,7 @@ name: update-config-gist
 on:
   workflow_dispatch:
   schedule:
-    - cron: '22 6,18 * * *'
+    - cron: '22 */3 * * *'
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -27,3 +27,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GIST_UPDATER_TOKEN }}
           GIST_ID: ${{ secrets.EGG_CONFIG_GIST_ID }}
+          EI_USERID: ${{ secrets.EI_USERID }}

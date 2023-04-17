@@ -10,21 +10,23 @@
     "lint": "eslint --ext .js,.ts,.vue src"
   },
   "dependencies": {
-    "lib": ">=0.1.0",
-    "@headlessui/vue": "^1.4.1",
-    "@heroicons/vue": "^1.0.4",
-    "vue": "^3.2.20",
-    "vue-tippy": "^6.0.0-alpha.35"
+    "@headlessui/vue": "^1.7.13",
+    "@heroicons/vue": "^1.0.6",
+    "lib": "workspace:^",
+    "tippy.js": "^6.3.7",
+    "ui": "workspace:^",
+    "vue": "^3.2.47",
+    "vue-tippy": "^6.0.0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.3.4",
-    "@vitejs/plugin-vue": "^3.0.0",
-    "@vue/compiler-sfc": "^3.2.20",
-    "autoprefixer": "^10.3.7",
-    "postcss": "^8.3.9",
+    "@vitejs/plugin-vue": "^4.1.0",
+    "@vue/compiler-sfc": "^3.2.47",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.21",
     "tailwindcss": "^2.2.19",
-    "typescript": "^4.4.4",
-    "vite": "^3.0.0",
-    "vue-tsc": "^0.28.6"
+    "typescript": "^5.0.4",
+    "vite": "^4.2.1",
+    "vue-tsc": "^1.2.0"
   }
 }

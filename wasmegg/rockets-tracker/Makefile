@@ -6,7 +6,7 @@ all: clean
 init:
 
 build: src/lib/study_stats.ts
-	yarn build
+	pnpm build
 
 # The EIAPI_TOKEN environment variable has to be set. Use the -fake flag to
 # generate with preset values without querying the API.
@@ -17,14 +17,14 @@ dist: build
 	../_tools/build.py dist --additional assets --additional static
 
 fastbuild: src/lib/study_stats.ts
-	yarn fastbuild
+	pnpm fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
 clean:
 	@$(RM) -r dist src/lib/study_stats.ts
 
 dev:
-	yarn dev
+	pnpm dev
 
 serve:
-	yarn serve
+	pnpm serve

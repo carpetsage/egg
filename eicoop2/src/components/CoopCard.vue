@@ -143,7 +143,7 @@
             <a :href="'https://wasmegg-carpet.netlify.app/rockets-tracker/?playerId=' + status.creatorId" class="text-blue-600 hover:text-blue-700 underline" :class="'visited:text-purple-600'" >
             Rockets Tracker
             </a></p>
-            <a :href="'https://wasmegg-carpet.netlify.app/past-contracts-eicowop/?playerId=' + status.creatorId" class="text-blue-600 hover:text-blue-700 underline" :class="'visited:text-purple-600'" >
+            <a :href="'https://wasmegg-carpet.netlify.app/past-contracts-eicoop2/?playerId=' + status.creatorId" class="text-blue-600 hover:text-blue-700 underline" :class="'visited:text-purple-600'" >
             Past Contracts
             </a>
           </dd>

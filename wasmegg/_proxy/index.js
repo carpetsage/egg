@@ -15,7 +15,7 @@ async function handleRequest(request) {
     <meta name="robots" content="noindex">
   </head>
   <body>
-    <p>This is a supporting domain to <a href="https://wasmegg.netlify.app/">wasmegg.netlify.app</a>.</p>
+    <p>This is a supporting domain to <a href="https://wasmegg-carpet.netlify.app/">wasmegg-carpet.netlify.app</a>.</p>
   </body>
 </html>`,
       {

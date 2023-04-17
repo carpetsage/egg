@@ -1,3 +1,6 @@
 # Local Netlify folder
 .netlify
+dist
 node_modules
+*.orig
+__pycache__

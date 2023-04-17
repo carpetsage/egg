@@ -1,13 +1,20 @@
 name: build-wasmegg
 on:
   push:
-    paths-ignore:
-      - '.github/**'
-      - 'update-egg-config-gist/**'
-      - 'eicoop/**'
-      - 'eicowop/**'
-      - 'contracts/**'
-  pull_request_target:
+    paths:
+      - 'wasmegg/**'
+      - 'ui/**'
+      - 'lib/**'
+      - 'periodicals/*'
+      - 'periodicals/data/events.json'
+      - 'protobuf/ei.proto'
+  pull_request:
+    types: [ opened, edited, reopened]
+    paths:
+      - "lib/**"
+      - "ui/**"
+      - "wasmegg/**"
+      - "periodicals/*"
   workflow_dispatch:
  #schedule:
     # Regenerate every day to incorporate updated mission outcome data.
@@ -38,14 +45,18 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: '^1.18'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'pnpm'
           cache-dependency-path: |
-            yarn.lock
-            yarn-global/yarn.lock
+            pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -68,9 +79,8 @@ jobs:
           EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
       - name: Install netlify cli
         run: |
-          mkdir -p "$(yarn global dir)"
-          cp ../yarn-global/* "$(yarn global dir)"
-          yarn global add netlify-cli
+          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+          pnpm add --global netlify-cli
       - name: Deploy
         run: |
           netlify deploy --prod
@@ -116,11 +126,18 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: '^1.18'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: "^8.1.1"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'pnpm'
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml
       - name: Set up Python
         uses: actions/setup-python@v4
         with:

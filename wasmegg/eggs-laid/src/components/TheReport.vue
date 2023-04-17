@@ -4,7 +4,6 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from 'vue';
-import { Emitter } from 'mitt';
 
 import {requestFirstContact, UserBackupEmptyError } from 'lib';
 import PlayerCard from '@/components/PlayerCard.vue';
@@ -17,15 +16,11 @@ export default defineComponent({
     playerId: {
       type: String,
       required: true,
-    },
-    eventBus: {
-      type: Object as PropType<Emitter>,
-      required: true,
-    },
+    }
   },
   // This async component does not respond to playerId changes.
   /* eslint-disable vue/no-setup-props-destructure */
-  async setup({ playerId, eventBus }) {
+  async setup({ playerId }) {
     const data = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
       throw new UserBackupEmptyError(playerId);

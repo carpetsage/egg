@@ -145,7 +145,7 @@
         <p
           v-for="[href, description] in [
             [
-              `https://wasmegg-carpet.netlify.app/past-contracts-eicowop/?playerId=${userId}`,
+              `https://wasmegg-carpet.netlify.app/past-contracts-eicoop2/?playerId=${userId}`,
               'Details of your completed, failed, and missed contracts',
             ],
             [

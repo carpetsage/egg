@@ -6,24 +6,24 @@ all: clean
 init:
 
 build:
-	yarn build
+	pnpm build
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static
 
 fastbuild: clean
-	yarn fastbuild
+	pnpm fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
 clean:
 	@$(RM) -r dist
 
 dev:
-	yarn dev
+	pnpm dev
 
 commit-donors:
 	git add src/donors.ts
 	git commit -m 'wasmegg/_home: update donors' src/donors.ts
 
 serve:
-	yarn serve
+	pnpm serve
