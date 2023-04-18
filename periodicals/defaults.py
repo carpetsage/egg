@@ -1,4 +1,4 @@
-import os 
+import os
 import ei
 
 current_client_version = 999
@@ -9,7 +9,7 @@ platform = "IOS"
 event_file = "data/events.json"
 contract_file = "data/contracts.json"
 # Get egg id from environment variable
-user_id = os.environ.get('EI_USERID')
+user_id = os.environ.get('EI_USERID') or ""
 url = 'https://www.auxbrain.com/ei/get_periodicals'
 
 def rinfo() -> "ei.BasicRequestInfo":
