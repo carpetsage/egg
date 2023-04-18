@@ -17,7 +17,7 @@ def main():
     message = utils.extractPayload(periodicals_response.content)
 
     periodicals = ei.PeriodicalsResponse().parse(message)
-    
+
     if "events" in sys.argv:
         updateEvents(periodicals.events.events, defaults.event_file)
     if "contracts" in sys.argv:
@@ -37,8 +37,8 @@ def getEvents(events: List["ei.EggIncEvent"], file: str) -> List["Event"]:
     # read past events into object
     with open(file, 'r', encoding="utf-8") as f:
         past = json.load(f)
-    
-    # write all events back to file for wasmegg/events to use
+
+    # list of all events in order
     return [ event for event in past if not listContainsEvent(active, event) ] + active
 
 def listContainsEvent(eventList: List["Event"], event: "Event") -> bool:
@@ -49,15 +49,15 @@ def listContainsEvent(eventList: List["Event"], event: "Event") -> bool:
     return False
 
 # get events and persist to file
-def updateEvents(periodicals:dict, file: str):
+def updateEvents(activeEvents:list[ei.EggIncEvent], file: str):
 
-    events = getEvents(periodicals, file)
+    events = getEvents(activeEvents, file)
 
     with open(file, 'w', encoding="utf-8") as f:
         json.dump(events, f, sort_keys=True, indent=2)
 
 # get list of all contracts from active contracts and past contract list
-def getContracts(active: List["ei.Contract"], file: str) -> List[dict]: 
+def getContracts(active: list["ei.Contract"], file: str) -> List["ContractStore"]:
     # remove first-contract from list
     active = [c for c in active if c.identifier != 'first-contract']
 
@@ -79,17 +79,17 @@ def getContracts(active: List["ei.Contract"], file: str) -> List[dict]:
     # dedupe recent contract list, always replacing saved data with live api data
     contracts = sorted(
             unique_everseen(active + recent,
-                            key = lambda x: x.identifier), 
+                            key = lambda x: x.identifier),
             key=lambda x: x .start_time)
 
     # return list of all contracts in { id: contract id, proto: b64 contract proto } form
     return [ ContractStore(contract) for contract in old + contracts ]
 
-def updateContracts(periodicals: dict, file: str):
-    contracts = getContracts(periodicals, file)
+def updateContracts(contracts: list[ei.Contract], file: str):
+    allContracts = getContracts(contracts, file)
 
     with open(file, 'w', encoding="utf-8") as f:
-        json.dump(contracts, f, sort_keys=True, indent=2)
+        json.dump(allContracts, f, sort_keys=True, indent=2)
 
 
 
