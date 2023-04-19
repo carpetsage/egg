@@ -36,7 +36,7 @@ import { defineComponent, ref } from 'vue';
 import mitt from 'mitt';
 
 import { getSavedPlayerID, savePlayerID } from 'lib';
-
+import LegendariesStudyOptInForm from '@/components/LegendariesStudyOptInForm.vue';
 import BaseErrorBoundary from 'ui/components/BaseErrorBoundary.vue';
 import BaseLoading from 'ui/components/BaseLoading.vue';
 import TheNavBar from 'ui/components/NavBar.vue';
@@ -46,6 +46,7 @@ import TheReport from '@/components/TheReport.vue';
 export default defineComponent({
   components: {
     BaseErrorBoundary,
+    LegendariesStudyOptInForm,
     BaseLoading,
     TheNavBar,
     ThePlayerIdForm,
