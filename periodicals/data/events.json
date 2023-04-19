@@ -7750,5 +7750,21 @@
     "multiplier": 0.25,
     "startTimestamp": 1681833600.0,
     "type": "vehicle-sale"
+  },
+  {
+    "endTimestamp": 1682006400.0,
+    "id": "event-4-19",
+    "message": "75% OFF HEN HOUSES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1681920000.0,
+    "type": "hab-sale"
+  },
+  {
+    "endTimestamp": 1682006400.0,
+    "id": "event-4-19-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1681920000.0,
+    "type": "piggy-boost"
   }
 ]
