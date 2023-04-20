@@ -4,24 +4,14 @@
       <div class="mt-2 text-sm text-green-700">
         <p>
           An anonymous study is under way to understand how many legendary artifacts players tend to
-          possess at this point, and the relative frequency of different legendaries. If you enter the
-          study, a minimum amount of information is automatically submitted when your save is loaded.
+          possess at this point, and the relative frequency of different legendaries.
         </p>
         <p v-if="!showDetails" class="mt-2 underline cursor-pointer" @click="showDetails = true">
           Click here to learn more
         </p>
         <p v-else class="mt-2">
-          If you consent to the study, the only data submitted are (1) the hash of your ID (it ensures
-          uniqueness, but your ID cannot be recovered from it); (2) a list of legendary artifact IDs
-          reflecting what you possess, e.g.
-          <code>["demeters-necklace-4", "tungsten-ankh-4"]</code>, or just <code>[]</code> if you are
-          a member of the Zero Legendaries Club; (3) the number of Extended Henerprise missions you
-          have completed. The hash of your ID is submitted in order to prevent counting a single user
-          multiple times. Submitted data is used strictly for this study and not correlated with
-          anything else (and I do not have anything else on you anyway, see this site's
-          <a href="https://wasmegg.netlify.app/#/privacy" target="_blank" class="underline"
-            >Privacy Policy</a
-          >). For each ID, only the latest data point is recorded; no profile will be constructed out
+          If you consent to the study, your current backup will be stored as an anonymous backup, hashing your EID so that the clean EID cannot be recovered from it. The EID is needed to ensure uniqueness. Submitted data is used strictly for this study and not correlated with
+          anything else. For each EID, only the latest data point is recorded; no profile will be constructed out
           of submitted data.
         </p>
       </div>
@@ -54,7 +44,7 @@
   export default defineComponent({
     props: {
       eventBus: {
-        type: Object as PropType<Emitter>,
+        type: Object as PropType<Emitter<Record<typeof REPORT_LEGENDARIES, unknown>>>,
         required: true,
       },
     },
