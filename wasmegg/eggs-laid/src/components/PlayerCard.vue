@@ -20,9 +20,15 @@
               </div>
               <div class="text-left">
                 <template v-for="(eggTotal) in eggTotals" :key="eggTotal[0]">
-                  <pre>{{ eggTotal[0].padEnd(14, " ") }} - {{ fmtApprox(eggTotal[1]) }}</pre>
+                  <pre>{{ fmtEggTotal(eggTotal) }}</pre>
                 </template>
-                <pre>{{ "Total".padEnd(14, " ") }} - {{ fmtApprox([...eggTotals.values()].reduce((a,b)=>a+b)) }}</pre>
+                <pre>{{ fmtEggTotal(["Total", Total]) }} </pre>
+                <base-click-to-copy
+                    :text="`\`\`\`\n${[...eggTotals].map((eggTotal) => fmtEggTotal(eggTotal)).join('\n')}\n${fmtEggTotal(['Total', Total])}\n\`\`\``"
+                  class="text-blue-800 dark:text-gray-100 mr-0.5 font-bold"
+                >
+                  Click to copy to clipboard for discord
+                </base-click-to-copy>
               </div>
           </div>
         </div>
@@ -43,6 +49,7 @@ import {
   formatEIValue,
 } from 'lib';
 import {getUserContractList, UserContract } from '@/contracts';
+import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -69,7 +76,7 @@ onBeforeUnmount(() => {
 const contracts: UserContract[] = getUserContractList(backup.value);
 const contractEggs = [ ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON, ei.Egg.FIREWORK, ei.Egg.PUMPKIN ]
 
-let eggTotals = new Map<string , number>(
+const eggTotals = new Map<string , number>(
   backup.value.stats?.eggTotals?.map((eggTotal, index) =>
   [ eggName(index + 1 as ei.Egg), eggTotal ]
   ));
@@ -78,10 +85,15 @@ contractEggs.forEach(egg => {
   eggTotals.set(eggName(egg), eggsLaid(contracts.filter(c => c.egg == egg)) || 0);
 });
 
+const Total = [...eggTotals.values()].reduce((sum,eggTotal)=> sum + eggTotal);
+
 function eggsLaid(uc: UserContract[]): number {
   return uc.map(c => c.contribution!).reduce((partialSum, contrib) => partialSum + contrib, 0);
 }
 
+function fmtEggTotal(eggTotal: [string, number]) {
+  return `${eggTotal[0].padEnd(14, " ")} - ${fmtApprox(eggTotal[1])}`
+}
 
 function fmtApprox(n: number): string {
   return n === 0 ? '0' : `${formatEIValue(n, { decimals: 3 })}`;

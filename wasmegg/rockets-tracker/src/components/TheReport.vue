@@ -99,7 +99,6 @@ export default defineComponent({
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
     reportLegendaries(backup);
     eventBus.on(REPORT_LEGENDARIES, () => {
-      console.log('event');
       reportLegendaries(backup);
     });
     return {

@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType } from 'vue';
+import { defineComponent } from 'vue';
 
 import {requestFirstContact, UserBackupEmptyError } from 'lib';
 import PlayerCard from '@/components/PlayerCard.vue';
@@ -26,7 +26,6 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
-    const progress = data.backup.game;
     if (!backup.settings) {
       throw new Error(`${playerId}: settings not found in backup`);
     }
