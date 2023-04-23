@@ -112,11 +112,39 @@
   <h2>Other Links</h2>
   <ul>
     <li>
+      <base-router-link
+        :to="{ name: 'donate' }"
+        class="relative text-green-500 hover:text-green-600 visited:text-green-500 hover:visited:text-green-600"
+        :class="{ 'bg-green-50': !donationPageVisited }"
+      >
+        Donate to help cover hosting costs
+        <span v-if="!donationPageVisited" class="absolute top-0.5 -right-3 flex h-2 w-2">
+          <span
+            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
+          ></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+        </span>
+      </base-router-link>
+    </li>
+    <li>
       <base-router-link :to="{ name: 'privacy' }">Privacy policy</base-router-link>
     </li>
     <li><base-router-link :to="{ name: 'contact' }">Contact</base-router-link></li>
     <li><base-link href="https://github.com/carpetsage/egg">Source code</base-link></li>
   </ul>
+
+  <h2>Supporters</h2>
+  <p>
+    Hosting costs come from donations of the awesome individuals listed below. Find out how you can
+    support my tools by visiting the
+    <base-router-link
+      :to="{ name: 'donate' }"
+      class="relative text-green-500 hover:text-green-600 visited:text-green-500 hover:visited:text-green-600"
+      >Donate</base-router-link
+    >
+    page.
+  </p>
+  <donor-list />
 
   <easter-egg v-if="showEasterEgg" :refresh-key="easterEggRefreshKey" />
 </template>

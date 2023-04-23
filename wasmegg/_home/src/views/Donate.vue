@@ -4,20 +4,20 @@
   <div
     class="p-4 grid grid-cols-max-1 sm:grid-cols-max-2 gap-x-2 gap-y-0.5 items-center justify-center bg-green-50 rounded-lg shadow-inner"
   >
-    <base-link href="https://www.patreon.com/mk2production">
-      <img :src="patreonIconUrl" class="h-5" :style="{ width: '6.08333rem' }" />
+    <base-link href="https://ko-fi.com/carpetsage">
+      <img :src="kofiIconUrl" class="h-8" :style="{ width: '3.94737rem' }" />
     </base-link>
-    <base-link href="https://www.patreon.com/mk2production" class="px-1">
-      patreon.com/mk2production
+    <base-link href="https://ko-fi.com/carpetsage" class="px-1">
+      ko-fi.com/carpetsage
     </base-link>
 
     <div class="h-1 sm:hidden"></div>
 
-    <base-link href="https://www.paypal.com/paypalme/zmwangx">
+    <base-link href="https://www.paypal.com/donate/?hosted_button_id=VVN47LKWKNAN2" class="px-1">
       <img :src="paypalIconUrl" class="h-5" :style="{ width: '3.94737rem' }" />
     </base-link>
-    <base-link href="https://www.paypal.com/paypalme/zmwangx" class="px-1">
-      paypal.me/zmwangx
+    <base-link href="https://www.paypal.com/donate/?hosted_button_id=VVN47LKWKNAN2" class="px-1">
+      paypal.com/donate
     </base-link>
   </div>
 
@@ -33,7 +33,7 @@
   </p>
 
   <p>
-    Feel free to contact <span class="font-medium">mk2#4590</span> on the
+    Feel free to contact <span class="font-medium">CarpetSage#0100</span> on the
     <base-link href="https://discord.gg/egginc">Egg, Inc. Discord server</base-link>.
   </p>
 
@@ -41,27 +41,26 @@
 
   <p>
     My public tools are hosted on <base-link href="https://netlify.com">Netlify</base-link>, which
-    has a reasonably generous free tier. However,
-    <strong>the site is about to outgrow the free tier as traffic steadily increases.</strong> The
-    bandwidth costs (excluding some paid resources I dedicate from another server of mine to
-    partially offset the Netlify bandwidth bill) will be <strong>US$20 per month</strong> plus
-    taxes.
+    has a reasonably generous free tier. The site is <strong>currently not close to outgrowing the frier tier.</strong>
+    However, the site will <strong>eventually</strong> outgrow the free tier as traffic steadily increases. 
+    The bandwidth costs will be <strong>US$20 per month</strong> plus taxes.
   </p>
 
   <p>
     My tools also use
     <base-link href="https://workers.cloudflare.com/">Cloudflare Workers</base-link> for API
-    requests; usage is comfortably within the free tier for now.
+    requests; usage is comfortably within the free tier for now. The paid tier is <strong>US$5 per month</strong> 
+    and provides some interesting options.
   </p>
 
   <p>
-    Developing a broad range of tools is already time consuming, yet I am willing to do it for free
+    Maintaining/Developing a broad range of tools is already time consuming, yet I am willing to do it for free
     and release the source code for everyone to study. However, I do not want to be on the hook for
     hosting bills as well, indefinitely.
   </p>
 
   <p>
-    Therefore, if you like and regularly benefit from my suite of tools,
+    Therefore, if you like and regularly benefit from these tools,
     <strong>please kindly consider chipping in a little to keep the lights on.</strong>
   </p>
 
@@ -72,7 +71,7 @@
 
   <p class="text-gray-500">
     For programmers reading this: you might be thinking, "I can host this for free / on a $5
-    server". Yes, I can too if I put some effort into setting up a deployment pipleline, keeping the
+    server". Yes, I can too if I put some effort into setting up a deployment pipeline, keeping the
     server patched, and dealing with possible downtime once in a while. But I would rather not touch
     the operations side unless necessary. I also would rather not settle for free hosts with
     arbitrary limitations, e.g. on caching headers.
@@ -100,7 +99,7 @@ import BaseLink from '@/components/BaseLink.vue';
 import BaseRouterLink from '@/components/BaseRouterLink.vue';
 import DonorList from '@/components/DonorList.vue';
 
-import patreonIconUrl from '@/brands/patreon.png';
+import kofiIconUrl from '@/brands/ko-fi.svg';
 import paypalIconUrl from '@/brands/paypal.svg';
 
 export default defineComponent({
@@ -112,7 +111,7 @@ export default defineComponent({
   setup() {
     setDonationPageVisited();
     return {
-      patreonIconUrl,
+      kofiIconUrl,
       paypalIconUrl,
     };
   },
