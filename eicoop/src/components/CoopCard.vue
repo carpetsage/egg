@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/first-attribute-linebreak -->
 <template>
   <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg">
     <div class="px-4 py-4 sm:px-6" :class="completionStatusBgColorClass(leagueStatus.completionStatus)">

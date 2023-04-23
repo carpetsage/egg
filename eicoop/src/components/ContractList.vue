@@ -290,29 +290,71 @@
       </template>
     </Column>
     <Column
-      field="eliteGoal"
-      header="Elite goal"
+      field="aaaGoal"
+      header="AAA goal"
       :sortable="true"
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
-        <template v-if="contract.eliteGoal">
-          {{ formatEIValue(contract.eliteGoal, { trim: true }) }}
+        <template v-if="contract.aaaGoal">
+          {{ formatEIValue(contract.aaaGoal, { trim: true }) }}
         </template>
         <template v-else>&ndash;</template>
       </template>
     </Column>
     <Column
-      field="standardGoal"
-      header="Std goal"
+      field="aaGoal"
+      header="AA goal"
       :sortable="true"
       :headerClass="columnHeaderClassesCentered"
       :bodyClass="columnBodyClassesCentered"
     >
       <template #body="{ data: contract }">
-        <template v-if="contract.standardGoal">
-          {{ formatEIValue(contract.standardGoal, { trim: true }) }}
+        <template v-if="contract.aaGoal">
+          {{ formatEIValue(contract.aaGoal, { trim: true }) }}
+        </template>
+        <template v-else>&ndash;</template>
+      </template>
+    </Column>
+    <Column
+      field="aGoal"
+      header="A goal"
+      :sortable="true"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
+    >
+      <template #body="{ data: contract }">
+        <template v-if="contract.aGoal">
+          {{ formatEIValue(contract.aGoal, { trim: true }) }}
+        </template>
+        <template v-else>&ndash;</template>
+      </template>
+    </Column>
+    <Column
+      field="bGoal"
+      header="B goal"
+      :sortable="true"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
+    >
+      <template #body="{ data: contract }">
+        <template v-if="contract.bGoal">
+          {{ formatEIValue(contract.bGoal, { trim: true }) }}
+        </template>
+        <template v-else>&ndash;</template>
+      </template>
+    </Column>
+    <Column
+      field="cGoal"
+      header="C goal"
+      :sortable="true"
+      :headerClass="columnHeaderClassesCentered"
+      :bodyClass="columnBodyClassesCentered"
+    >
+      <template #body="{ data: contract }">
+        <template v-if="contract.cGoal">
+          {{ formatEIValue(contract.cGoal, { trim: true }) }}
         </template>
         <template v-else>&ndash;</template>
       </template>

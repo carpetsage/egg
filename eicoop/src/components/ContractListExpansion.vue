@@ -1,7 +1,17 @@
 <template>
   <table class="my-2" :style="{ width: 'initial' }">
     <thead>
-      <tr v-if="hasLeagues" class="divide-x divide-gray-200 dark:divide-gray-600">
+      <tr v-if="hasGrades" class="divide-x divide-gray-200 dark:divide-gray-600">
+        <template v-for="(grade, index) in ['AAA', 'AA', 'A', 'B', 'C'] as const" :key="index">
+          <th
+            :colspan="2"
+            class="px-3 py-2 whitespace-nowrap text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+          >
+            {{ grade }}
+          </th>
+        </template>
+      </tr>
+      <tr v-else-if="hasLeagues" class="divide-x divide-gray-200 dark:divide-gray-600">
         <th
           :colspan="2"
           class="px-3 py-2 whitespace-nowrap text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
@@ -93,9 +103,15 @@ export default defineComponent({
     const { contract } = toRefs(props);
 
     const hasLeagues = computed(() => !!contract.value.goalSets);
+    const hasGrades = computed(() => !!contract.value.gradeSpecs);
     const lengthHours = computed(() => contract.value.lengthSeconds! / 3600);
     const tiers = computed(() => {
-      if (hasLeagues.value) {
+      if (hasGrades.value) {
+        //TODO: Fix this once I get real data
+        const eliteGoals = contract.value.gradeSpecs![0].goals!;
+        const standardGoals = contract.value.gradeSpecs![1].goals!;
+        return eliteGoals.map((eliteGoal, i) => [eliteGoal, standardGoals[i]]);
+      } else if (hasLeagues.value) {
         const eliteGoals = contract.value.goalSets![0].goals!;
         const standardGoals = contract.value.goalSets![1].goals!;
         return eliteGoals.map((eliteGoal, i) => [eliteGoal, standardGoals[i]]);
@@ -114,6 +130,7 @@ export default defineComponent({
 
     return {
       hasLeagues,
+      hasGrades,
       tiers,
       requiredHourlyRates,
       target,

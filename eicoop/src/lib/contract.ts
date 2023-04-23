@@ -6,6 +6,14 @@ export enum ContractLeague {
   Elite = 0,
   Standard = 1,
 }
+//enum PlayerGrade {
+//    GRADE_UNSET = 0,
+//    GRADE_C = 1,
+//    GRADE_B = 2,
+//    GRADE_A = 3,
+//    GRADE_AA = 4,
+//    GRADE_AAA = 5
+//}
 
 export enum ContractCompletionStatus {
   HasCompleted,
@@ -17,7 +25,7 @@ export enum ContractCompletionStatus {
 export async function getContractFromPlayerSave(
   userId: string,
   contractId: string
-): Promise<{ contract: ei.IContract; league: ContractLeague | null, grade: ei.Contract.PlayerGrade, creatorName: string } | null> {
+): Promise<{ contract: ei.IContract; league?: ContractLeague, grade?: ei.Contract.PlayerGrade, creatorName: string } | null> {
   const firstContact = await requestFirstContact(userId);
   if (!firstContact.backup) {
     throw new Error(`No backup found in /ei/bot_first_contact response for ${userId}.`);
@@ -34,7 +42,7 @@ export async function getContractFromPlayerSave(
     if (contractId === contract.contract!.identifier) {
       return {
         contract: contract.contract!,
-        league: contract.league as ContractLeague,
+        league: contract.league ?? undefined,
         grade: contract.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET,
         creatorName: backup.userName ?? '',
       };

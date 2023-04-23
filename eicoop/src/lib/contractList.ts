@@ -13,6 +13,14 @@ export const rawContractList = contractProtos.map(
   c => decodeMessage(ei.Contract, c.proto) as ei.IContract
 );
 
+type maxGoals = {
+  aaa: number,
+  aa?:  number,
+  a?:   number,
+  b?:   number,
+  c?:   number,
+};
+
 export interface Contract extends ei.IContract {
   id: string;
   uniqueKey: string;
@@ -20,8 +28,11 @@ export interface Contract extends ei.IContract {
   numLeggacies: number;
   offeringTime: number;
   prophecyEggs: number;
-  eliteGoal: number;
-  standardGoal: number;
+  aaaGoal: number,
+  aaGoal?: number,
+  aGoal?:  number,
+  bGoal?:  number,
+  cGoal?:  number,
 }
 
 export class SortedContractList extends Array<Contract> {
@@ -94,10 +105,9 @@ export class SortedContractList extends Array<Contract> {
   }
 }
 
-function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
-  const list: Contract[] = [...rawList]
-    .sort((c1, c2) => c1.expirationTime! - c2.expirationTime!)
-    .map(c => ({
+function toContract(c: ei.IContract): Contract {
+  const goals = getGoals(c);
+  return {
       ...c,
       id: c.identifier!,
       uniqueKey: `${c.identifier}-${c.expirationTime}`,
@@ -105,9 +115,18 @@ function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
       numLeggacies: 0,
       offeringTime: c.startTime ?? 0,
       prophecyEggs: getProphecyEggsCount(c),
-      eliteGoal: getEliteGoal(c),
-      standardGoal: getStandardGoal(c),
-    }));
+      aaaGoal: goals.aaa,
+      aaGoal: goals.aa,
+      aGoal: goals.a,
+      bGoal: goals.b,
+      cGoal: goals.c,
+    }
+}
+
+function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
+  const list: Contract[] = [...rawList]
+    .sort((c1, c2) => c1.expirationTime! - c2.expirationTime!)
+    .map(toContract);
   const count = new Map<string, number>();
   for (const contract of list) {
     if (count.has(contract.id)) {
@@ -136,8 +155,30 @@ function getProphecyEggsCount(contract: ei.IContract) {
   return count;
 }
 
-function getEliteGoal(contract: ei.IContract) {
+function getGoals(contract: ei.IContract): maxGoals {
+  if (contract.gradeSpecs || contract.goalSets) {
+    const goals = getGradeLeageGoals(contract);
+    return { aaa: goals[0], aa: goals[1], a: goals[2], b: goals[3], c: goals[4]};
+  }
   const goals = contract.goals!;
+  return { aaa: goals[goals.length - 1].targetAmount! };
+
+
+}
+// get final goal from some object with a goals[]
+function getGradeLeageGoals(contract: ei.IContract) {
+  const goalsWrapper = contract.gradeSpecs ?? contract.goalSets;
+  return goalsWrapper!.map( (goalWrapper) =>
+    goalWrapper.goals![goalWrapper.goals!.length - 1].targetAmount!
+  );
+}
+
+function getEliteGoal(contract: ei.IContract) {
+  if (!contract.gradeSpecs) {
+    const goals = contract.goals!;
+    return goals[goals.length - 1].targetAmount!;
+  }
+  const goals = contract.gradeSpecs[1].goals!;
   return goals[goals.length - 1].targetAmount!;
 }
 

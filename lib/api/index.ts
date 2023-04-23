@@ -68,7 +68,7 @@ export async function request(endpoint: string, encodedPayload: string): Promise
  * @returns
  * @throws
  */
-export async function requestConfig(userId?: string): Promise<ei.IConfigResponse> {
+export async function requestConfig(_userid?: string): Promise<ei.IConfigResponse> {
   try {
     const resp = await fetch(CONFIG_GIST_URL);
     const text = await resp.text();
