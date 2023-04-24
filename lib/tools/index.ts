@@ -213,12 +213,13 @@ export const tools = [
   }),
   new Tool({
     id: 'legendary-study',
-    url: 'https://legendary-study.netlify.app/',
+    url: '/legendary-study/',
     title: 'Legendary study report',
     description:
       'See how you fare against other Egg, Inc. players in the legendary artifact department',
-    // Fri Aug  6 17:33:54 UTC 2021
-    newUntil: 1628271234000,
+    updateUntil: 2638811910000,
+    whatsNew:
+      'It works again.',
   }),
 
   new Tool({
