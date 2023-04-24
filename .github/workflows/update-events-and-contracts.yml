@@ -31,7 +31,7 @@ jobs:
           pip install -r requirements.txt
       - name: Update events and contracts
         run: |
-          python ./updatePeriodicals.py events contracts
+          python ./updatePeriodicals.py events
         env:
           EI_USERID: ${{ secrets.EI_USERID }}
       - name: Commit, push changes, and possibly trigger new build
