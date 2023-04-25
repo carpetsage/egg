@@ -632,7 +632,7 @@ importers:
         specifier: ^5.0.4
         version: 5.0.4
       vite:
-        specifier: ^4.3.2
+        specifier: ^4.3.1
         version: 4.3.2
       vue-tsc:
         specifier: ^1.5.2
@@ -756,7 +756,6 @@ importers:
       vue-tsc:
         specifier: ^1.5.2
         version: 1.5.2(typescript@5.0.4)
-<<<<<<< HEAD
 
   wasmegg/legendary-study:
     dependencies:
@@ -845,8 +844,6 @@ importers:
       vue-tsc:
         specifier: ^1.5.2
         version: 1.5.2(typescript@5.0.4)
-=======
->>>>>>> main
 
   wasmegg/loot-simulator:
     dependencies:
@@ -13148,5 +13145,3 @@ packages:
   /zod@3.21.4:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
     dev: true
-
-ev: true
