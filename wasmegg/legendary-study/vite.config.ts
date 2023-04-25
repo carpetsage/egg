@@ -15,6 +15,7 @@ export default defineConfig({
   plugins: [vue()],
   build: {
     chunkSizeWarningLimit: 1000,
+    target: 'esnext'
   },
   server: {
     host: true,
