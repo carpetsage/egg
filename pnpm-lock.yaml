@@ -756,6 +756,7 @@ importers:
       vue-tsc:
         specifier: ^1.5.2
         version: 1.5.2(typescript@5.0.4)
+<<<<<<< HEAD
 
   wasmegg/legendary-study:
     dependencies:
@@ -844,6 +845,8 @@ importers:
       vue-tsc:
         specifier: ^1.5.2
         version: 1.5.2(typescript@5.0.4)
+=======
+>>>>>>> main
 
   wasmegg/loot-simulator:
     dependencies:
