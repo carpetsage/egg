@@ -1,6 +1,6 @@
 import {getTimestampsReports,getReportByDate, ReportInterface} from './webserviceManager';
 
-export const reportTimestamps = await getTimestampsReports();
+export const reportTimestamps =  await getTimestampsReports();
 export const reportTimestampsSet = new Set();
 export const latestReportTimestamp = reportTimestamps[0];
 
@@ -36,7 +36,8 @@ function prettifyLegendaryPlayers(rawLegendaryPlayersList:Array<[string,number]>
     let numberLeg:number=+sortedLegendaryPlayersList[el].nLeg;
     let numberPlayers:number=+sortedLegendaryPlayersList[el].nPlayers;
     let percentLeg=Number(((100*(numberPlayers+oldNumberPlayers))/totalPlayers).toFixed(2));
-    returnString+=`- ${numberLeg}: ${numberPlayers} players\t (top ${percentLeg}%)\n`;
+    let customTabs=numberLeg>=10 && numberPlayers>=10 ? "\t" : "\t\t"
+    returnString+=`- ${numberLeg}: ${numberPlayers} players${customTabs}(top ${percentLeg}%)\n`;
     oldNumberPlayers+=numberPlayers;
   }
   return returnString;

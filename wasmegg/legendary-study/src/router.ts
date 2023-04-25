@@ -7,18 +7,18 @@ const router = createRouter({
   routes: [
     {
       name: 'home',
-      path: '/',
+      path: '/legendary-study/',
       component: Report,
     },
     {
       name: 'report',
-      path: '/report/:timestamp(\\d+)/',
+      path: '/legendary-study/report/:timestamp(\\d+)/',
       component: Report,
       props: true,
     },
     {
       name: 'diff',
-      path: '/diff/:timestamp1(\\d+)/:timestamp2(\\d+)/',
+      path: '/legendary-study/diff/:timestamp1(\\d+)/:timestamp2(\\d+)/',
       component: Diff,
       props: true,
     },
