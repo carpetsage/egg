@@ -32,7 +32,7 @@ import { computed, defineComponent, PropType, Ref, ref, toRefs, watch } from 'vu
 import { useRouter } from 'vue-router';
 
 import { latestReportTimestamp } from '@/reports';
-import BaseLoading from '@/components/BaseLoading.vue';
+import BaseLoading from 'ui/components/BaseLoading.vue';
 import ReportSelector from '@/components/ReportSelector.vue';
 import SingleReport from '@/components/SingleReport.vue';
 

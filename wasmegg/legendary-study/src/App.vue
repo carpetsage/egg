@@ -23,8 +23,8 @@
           href="https://wasmegg-carpet.netlify.app/rockets-tracker/"
           target="_blank"
           class="text-blue-500 hover:text-blue-600"
-          >wasmegg.netlify.app/rockets-tracker</a
-        >, in which case an hash of your ID and your current backup will be
+          >wasmegg-carpet.netlify.app/rockets-tracker</a
+        >, in which case a hash of your ID and your current backup will be
         collected.
       </p>
       <p class="text-sm mt-5">

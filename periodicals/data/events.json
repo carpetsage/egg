@@ -7822,5 +7822,29 @@
     "multiplier": 2.0,
     "startTimestamp": 1682352000.0,
     "type": "earnings-boost"
+  },
+  {
+    "endTimestamp": 1682524800.0,
+    "id": "event-4-25",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1682438400.0,
+    "type": "drone-boost"
+  },
+  {
+    "endTimestamp": 1682611200.0,
+    "id": "event-4-26",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1682524800.0,
+    "type": "vehicle-sale"
+  },
+  {
+    "endTimestamp": 1682611200.0,
+    "id": "event-4-26-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1682524800.0,
+    "type": "piggy-boost"
   }
 ]

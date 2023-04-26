@@ -34,7 +34,7 @@
 import { defineComponent, PropType, Ref, ref, toRefs, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
-import BaseLoading from '@/components/BaseLoading.vue';
+import BaseLoading from 'ui/components/BaseLoading.vue';
 import DiffReport from '@/components/DiffReport.vue';
 import ReportSelector from '@/components/ReportSelector.vue';
 
