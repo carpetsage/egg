@@ -54,7 +54,6 @@ export async function getReportByDate(timestamp:number):Promise<ReportInterface>
     if(!result.success){
         throw new Error(`The report returned was not valid`);
     }
-    console.log(result.message)
     return result.message
     } catch (e:any) {
         console.error(e);
