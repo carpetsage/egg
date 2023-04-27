@@ -24,7 +24,7 @@ const router = createRouter({
     },
     {
       path: '/:catchAll(.*)',
-      redirect: '/',
+      redirect: '/legendary-study/',
     },
   ],
   history: createWebHistory(),
