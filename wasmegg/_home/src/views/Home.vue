@@ -154,6 +154,7 @@
 import { defineComponent, ref } from 'vue';
 
 import {
+  getDonationPageVisited,
   getLocalStorageNoPrefix,
   goatcounter,
   recordVisit,
@@ -161,6 +162,7 @@ import {
 } from 'lib';
 import BaseLink from '@/components/BaseLink.vue';
 import BaseRouterLink from '@/components/BaseRouterLink.vue';
+import DonorList from '@/components/DonorList.vue';
 import EasterEgg from '@/components/EasterEgg.vue';
 import ToolDescription from '@/components/ToolDescription.vue';
 import V120Badge from '@/components/V120Badge.vue';
@@ -173,12 +175,14 @@ export default defineComponent({
   components: {
     BaseLink,
     BaseRouterLink,
+    DonorList,
     EasterEgg,
     ToolDescription,
     V120Badge,
     WhatsNew,
   },
   setup() {
+    const donationPageVisited = getDonationPageVisited();
 
     const daysVisitedStreak = ref(0);
     const showEasterEgg = ref(false);
@@ -238,6 +242,7 @@ export default defineComponent({
     };
 
     return {
+      donationPageVisited,
       daysVisitedStreak,
       EASTER_EGG_DAY,
       showEasterEgg,
