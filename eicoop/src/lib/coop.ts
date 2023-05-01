@@ -126,7 +126,7 @@ export class CoopStatus {
       // set grade if there is grade config
       this.grade = contract.gradeSpecs?.length
         ? await this.resolveGrade(knownGrade)
-        : ei.Contract.PlayerGrade.GRADE_UNSET;
+        : null
 
       // set league if we didn't set grade
       this.league = this.grade ? null : await this.resolveLeague(knownLeague);
@@ -150,16 +150,21 @@ export class CoopStatus {
     }
 
     if (this.contract.gradeSpecs?.length && this.grade) {
-      this.goals = this.contract.gradeSpecs[this.grade as number].goals!;
+      this.goals = this.contract.gradeSpecs[this.grade - 1 as number].goals!;
     } else if (this.contract.goalSets) {
       this.goals = this.contract.goalSets[this.league as number].goals!;
     } else {
       this.goals = this.contract.goals!;
     }
 
-    this.goals = this.contract.goalSets
-      ? this.contract.goalSets[this.league as number].goals!
-      : this.contract.goals!;
+    if (this.grade) {
+      this.goals = this.contract.gradeSpecs![this.grade - 1].goals!;
+    } else if (this.contract.goalSets) {
+      this.goals = this.contract.goalSets[this.league as number].goals!
+    } else {
+      this.contract.goals!;
+    }
+
     this.leagueStatus = new ContractLeagueStatus(
       this.eggsLaid,
       this.eggsPerHour,
@@ -186,6 +191,7 @@ export class CoopStatus {
       return this.grade;
     }
 
+    //TODO: This is completely useless, I'm going to have to check backup
     // Heuristics.
     let b = 0;
     let a = 0;
