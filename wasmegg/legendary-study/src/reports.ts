@@ -15,7 +15,7 @@ export async function fetchReport(timestamp: number): Promise<string> {
     const report= await getReportByDate(timestamp) as ReportInterface;
     reportCache.set(timestamp, report);
     return prettifyReport(report);
-  } catch (e: any) {
+  } catch (e:any) {
     console.error(e);
     let msg = e.toString();
     if (e.name === 'AbortError') {
@@ -28,17 +28,17 @@ export async function fetchReport(timestamp: number): Promise<string> {
 function prettifyLegendaryPlayers(rawLegendaryPlayersList:Array<[string,number]>,totalPlayers:number):string{
   let returnString="";
   let oldNumberPlayers=0;//used to calculate the %
-  const sortedLegendaryPlayersList = rawLegendaryPlayersList.map(([key, value]) => ({
+  const sortedLegendaryPlayersList = Object.entries(rawLegendaryPlayersList).map(([key, value]) => ({
     nLeg: Number.parseInt(key),
     nPlayers:value
   })).sort((a, b) => (a.nLeg > b.nLeg ? -1 : 1));
-  for (const el in sortedLegendaryPlayersList) {
-    const numberLeg =+ sortedLegendaryPlayersList[el].nLeg;
-    const numberPlayers =+ sortedLegendaryPlayersList[el].nPlayers;
-    const percentLeg = Number(((100*(numberPlayers+oldNumberPlayers))/totalPlayers).toFixed(2));
-    const customTabs = numberLeg>=10 && numberPlayers>=10 ? "\t" : "\t\t"
-    returnString += `- ${numberLeg}: ${numberPlayers} players${customTabs}(top ${percentLeg}%)\n`;
-    oldNumberPlayers += numberPlayers;
+  for (let el in sortedLegendaryPlayersList) {
+    let numberLeg:number=+sortedLegendaryPlayersList[el].nLeg;
+    let numberPlayers:number=+sortedLegendaryPlayersList[el].nPlayers;
+    let percentLeg=Number(((100*(numberPlayers+oldNumberPlayers))/totalPlayers).toFixed(2));
+    let customTabs=numberLeg>=10 && numberPlayers>=10 ? "\t" : "\t\t"
+    returnString+=`- ${numberLeg}: ${numberPlayers} players${customTabs}(top ${percentLeg}%)\n`;
+    oldNumberPlayers+=numberPlayers;
   }
   return returnString;
 }
@@ -49,17 +49,17 @@ function prettifyLegendarySeen(rawLegendarySeenList:Array<[string,number]>,total
     artName: key,
     nLeg:value
   })).sort((a, b) => (a.nLeg > b.nLeg ? -1 : 1));
-  for (const el in sortedLegendarySeenList) {
-    const artName:string=sortedLegendarySeenList[el].artName.replaceAll("_","-").replaceAll("NORMAL","3").replaceAll("GREATER","4").toLowerCase();
-    const legSeen =+sortedLegendarySeenList[el].nLeg;
-    const percentLeg = Number((totalPlayers/legSeen).toFixed(1));
-    const customTabs = artName.length>19 ? "\t" : artName.length>15 ?"\t\t":"\t\t\t"
-    returnString += `- ${artName}: ${customTabs}${legSeen} (1 per ${percentLeg} players)\n`;
+  for (let el in sortedLegendarySeenList) {
+    let artName:string=sortedLegendarySeenList[el].artName.replaceAll("_","-").replaceAll("NORMAL","3").replaceAll("GREATER","4").toLowerCase();
+    let legSeen:number=+sortedLegendarySeenList[el].nLeg;
+    let percentLeg=Number((totalPlayers/legSeen).toFixed(1));
+    let customTabs=artName.length>19 ? "\t" : artName.length>15 ?"\t\t":"\t\t\t"
+    returnString+=`- ${artName}: ${customTabs}${legSeen} (1 per ${percentLeg} players)\n`;
   }
   return returnString;
 }
 
-export function prettifyReport(rawReport:ReportInterface) {
+export function prettifyReport(rawReport:ReportInterface):string{
   const dateReport=new Date(rawReport.date_insert*1000).toLocaleString();
   const totalPlayers=rawReport.report.number_total_users;
   const zlcAmount=rawReport.report.zlc_record.count_exthens;
@@ -72,3 +72,4 @@ export function prettifyReport(rawReport:ReportInterface) {
   reportText+="\nLegendaries seen:\n"+legendarrySeen;
   return reportText
 }
+
