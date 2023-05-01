@@ -9,7 +9,7 @@ fastbuild: public/contractListHash
 	netlify-headers-expander dist
 
 public/contractListHash:
-	jq -cjM '[.[].id]' ../contracts/data/contracts.json | \
+	jq -cjM '[.[].id]' ../periodicals/data/contracts.json | \
 		python3 -c 'import sys, hashlib; print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())' \
 		>public/contractListHash
 
