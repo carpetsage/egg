@@ -1,11 +1,11 @@
 .PHONY: all fastbuild clean
 
 all: public/contractListHash
-	yarn build
+	pnpm build
 	netlify-headers-expander dist
 
 fastbuild: public/contractListHash
-	yarn fastbuild
+	pnpm fastbuild
 	netlify-headers-expander dist
 
 public/contractListHash:

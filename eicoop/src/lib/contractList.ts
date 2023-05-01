@@ -147,7 +147,8 @@ function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
 
 function getProphecyEggsCount(contract: ei.IContract) {
   let count = 0;
-  for (const goal of contract.goals!) {
+  const goals = contract.gradeSpecs ? contract.gradeSpecs[0].goals! : contract.goals!
+  for (const goal of goals) {
     if (goal.rewardType === ei.RewardType.EGGS_OF_PROPHECY) {
       count += goal.rewardAmount!;
     }
@@ -156,21 +157,23 @@ function getProphecyEggsCount(contract: ei.IContract) {
 }
 
 function getGoals(contract: ei.IContract): maxGoals {
-  if (contract.gradeSpecs || contract.goalSets) {
-    const goals = getGradeLeageGoals(contract);
-    return { aaa: goals[0], aa: goals[1], a: goals[2], b: goals[3], c: goals[4]};
+  if (contract.gradeSpecs) {
+    const goals = getGradeGoals(contract);
+    return { aaa: goals[4], aa: goals[3], a: goals[2], b: goals[1], c: goals[0]};
+  } else if (contract.goalSets) {
+    return { aaa: getEliteGoal(contract), aa: getStandardGoal(contract)}
   }
+
   const goals = contract.goals!;
   return { aaa: goals[goals.length - 1].targetAmount! };
-
-
 }
-// get final goal from some object with a goals[]
-function getGradeLeageGoals(contract: ei.IContract) {
-  const goalsWrapper = contract.gradeSpecs ?? contract.goalSets;
-  return goalsWrapper!.map( (goalWrapper) =>
-    goalWrapper.goals![goalWrapper.goals!.length - 1].targetAmount!
-  );
+
+function getGradeGoals(contract: ei.IContract) {
+  const goals: number[] = []
+  for (const gradeSpec of contract.gradeSpecs!) {
+    goals.push(gradeSpec.goals![gradeSpec.goals!.length - 1].targetAmount!);
+  }
+  return goals;
 }
 
 function getEliteGoal(contract: ei.IContract) {

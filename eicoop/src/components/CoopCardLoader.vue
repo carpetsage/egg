@@ -17,7 +17,7 @@
 <script lang="ts">
 import { defineComponent, PropType, provide, Ref, ref, toRefs, watch } from 'vue';
 
-import { ContractLeague, CoopStatus, ei, requestCoopStatus } from '@/lib';
+import { ContractLeague, CoopStatus, ei, requestCoopStatus, request } from '@/lib';
 import { key } from '@/store';
 import { refreshCallbackKey } from '@/symbols';
 import BaseLoading from '@/components/BaseLoading.vue';

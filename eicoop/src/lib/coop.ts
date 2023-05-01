@@ -144,8 +144,8 @@ export class CoopStatus {
         );
       }
       this.contract = result.contract;
-      this.league = result.league ?? undefined;
-      this.grade = result.grade ?? undefined;
+      this.league = result.league ?? null;
+      this.grade = result.grade ?? null;
       this.creatorName = result.creatorName;
     }
 
