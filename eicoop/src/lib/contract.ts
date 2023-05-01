@@ -25,7 +25,7 @@ export enum ContractCompletionStatus {
 export async function getContractFromPlayerSave(
   userId: string,
   contractId: string
-): Promise<{ contract: ei.IContract; league?: ContractLeague, grade?: ei.Contract.PlayerGrade, creatorName: string } | null> {
+): Promise<{ contract: ei.IContract; league: ContractLeague | null, grade: ei.Contract.PlayerGrade | null, creatorName: string } | null> {
   const firstContact = await requestFirstContact(userId);
   if (!firstContact.backup) {
     throw new Error(`No backup found in /ei/bot_first_contact response for ${userId}.`);
@@ -42,7 +42,7 @@ export async function getContractFromPlayerSave(
     if (contractId === contract.contract!.identifier) {
       return {
         contract: contract.contract!,
-        league: contract.league ?? undefined,
+        league: contract.league ?? null,
         grade: contract.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET,
         creatorName: backup.userName ?? '',
       };

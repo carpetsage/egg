@@ -1,8 +1,20 @@
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from "dayjs";
 
-import { ArtifactSet, ei, FarmerRole, requestPeriodicals, requestFirstContact, requestQueryCoop, soulPowerToFarmerRole } from 'lib';
-import { ContractLeague, getContractFromPlayerSave, ContractLeagueStatus } from './contract';
-import { SortedContractList } from './contractList';
+import {
+  ArtifactSet,
+  ei,
+  FarmerRole,
+  requestFirstContact,
+  requestPeriodicals,
+  requestQueryCoop,
+  soulPowerToFarmerRole,
+} from "lib";
+import {
+  ContractLeague,
+  ContractLeagueStatus,
+  getContractFromPlayerSave,
+} from "./contract";
+import { SortedContractList } from "./contractList";
 
 // League constants
 const COOP_LEAGUE_DIVIDER_EB = 1e13; // 10T%
@@ -11,7 +23,7 @@ const COOP_LEAGUE_DEFINITELY_ELITE_EB = 1e16;
 
 // Grade Constants
 // Min EB for each grade
-const GRADES_EB = [0, 1e5, 1e7, 1e9, 1e11, 1e13 ]
+const GRADES_EB = [0, 1e5, 1e7, 1e9, 1e11, 1e13];
 // peta3. may need adjustment once update has been out
 const COOP_GRADE_PROBABLY_AAA_EB = 1e19;
 
@@ -49,22 +61,29 @@ export class CoopStatus {
     this.eggsLaid = cs.totalAmount!;
     this.creatorId = cs.creatorId!;
     this.creatorName = null;
-    this.contributors = (cs.contributors || []).map(c => new Contributor(c));
+    this.contributors = (cs.contributors || []).map((c) => new Contributor(c));
     this.highestEarningBonusPercentage = Math.max(
-      ...this.contributors.map(c => c.earningBonusPercentage)
+      ...this.contributors.map((c) => c.earningBonusPercentage),
     );
     for (const contributor of this.contributors) {
       contributor.soulMirrorMultiplier =
-        (100 + this.highestEarningBonusPercentage) / (100 + contributor.earningBonusPercentage);
+        (100 + this.highestEarningBonusPercentage) /
+        (100 + contributor.earningBonusPercentage);
     }
-    this.eggsPerHour = this.contributors.reduce((sum, c) => sum + c.eggsPerHour, 0);
+    this.eggsPerHour = this.contributors.reduce(
+      (sum, c) => sum + c.eggsPerHour,
+      0,
+    );
     this.secondsRemaining = cs.secondsRemaining!;
-    this.projectedEggsLaid =
-      this.eggsLaid + (this.eggsPerHour * Math.max(this.secondsRemaining, 0)) / 3600;
-    this.totalEarningsBoost = this.contributors.reduce((sum, c) => sum + c.earningsBoost, 0);
+    this.projectedEggsLaid = this.eggsLaid +
+      (this.eggsPerHour * Math.max(this.secondsRemaining, 0)) / 3600;
+    this.totalEarningsBoost = this.contributors.reduce(
+      (sum, c) => sum + c.earningsBoost,
+      0,
+    );
     this.totalEggLayingRateBoost = this.contributors.reduce(
       (sum, c) => sum + c.eggLayingRateBoost,
-      0
+      0,
     );
     this.creator = null;
     this.cannotDetermineCreator = false;
@@ -75,16 +94,17 @@ export class CoopStatus {
     }
     if (this.creator === null && cs.creatorId) {
       // Heuristics for encrypted ID.
-      const isEncrypted = (id: string) => !id.startsWith('EI') || id.length >= 30;
-      this.cannotDetermineCreator =
-        !isEncrypted(cs.creatorId) && this.contributors.some(c => isEncrypted(c.id));
+      const isEncrypted = (id: string) =>
+        !id.startsWith("EI") || id.length >= 30;
+      this.cannotDetermineCreator = !isEncrypted(cs.creatorId) &&
+        this.contributors.some((c) => isEncrypted(c.id));
     }
     this.grade = null;
     this.league = null;
     this.goals = null;
     this.leagueStatus = null;
     this.refreshTime = dayjs(cs.localTimestamp! * 1000);
-    this.expirationTime = this.refreshTime.add(cs.secondsRemaining!, 'second');
+    this.expirationTime = this.refreshTime.add(cs.secondsRemaining!, "second");
   }
 
   async resolveContract({
@@ -98,43 +118,45 @@ export class CoopStatus {
     knownLeague?: ContractLeague;
     knownGrade?: ei.Contract.PlayerGrade;
   }): Promise<void> {
-    const contract = knownContract || store.get(this.contractId, this.expirationTime.unix());
+    const contract = knownContract ||
+      store.get(this.contractId, this.expirationTime.unix());
     if (contract) {
       this.contract = contract;
 
       // set grade if there is grade config
-      this.grade = contract.gradeSpecs?.length ? await this.resolveGrade(knownGrade) : ei.Contract.PlayerGrade.GRADE_UNSET;
+      this.grade = contract.gradeSpecs?.length
+        ? await this.resolveGrade(knownGrade)
+        : ei.Contract.PlayerGrade.GRADE_UNSET;
 
       // set league if we didn't set grade
       this.league = this.grade ? null : await this.resolveLeague(knownLeague);
-
     } else {
       if (this.contributors.length === 0) {
         throw new Error(
-          `No contributors found in ${this.contractId}:${this.coopCode}, cannot resolve contract info.`
+          `No contributors found in ${this.contractId}:${this.coopCode}, cannot resolve contract info.`,
         );
       }
       const userId = this.creatorId;
       const result = await getContractFromPlayerSave(userId, this.contractId);
       if (!result) {
-        throw new Error(`Contract ${this.contractId} not found in user's save.`);
+        throw new Error(
+          `Contract ${this.contractId} not found in user's save.`,
+        );
       }
       this.contract = result.contract;
-      this.league = result.league;
-      this.grade = result.grade;
+      this.league = result.league ?? undefined;
+      this.grade = result.grade ?? undefined;
       this.creatorName = result.creatorName;
     }
 
     if (this.contract.gradeSpecs?.length && this.grade) {
       this.goals = this.contract.gradeSpecs[this.grade as number].goals!;
-    }
-    else if (this.contract.goalSets) {
+    } else if (this.contract.goalSets) {
       this.goals = this.contract.goalSets[this.league as number].goals!;
-    }
-    else {
+    } else {
       this.goals = this.contract.goals!;
     }
-      
+
     this.goals = this.contract.goalSets
       ? this.contract.goalSets[this.league as number].goals!
       : this.contract.goals!;
@@ -142,16 +164,21 @@ export class CoopStatus {
       this.eggsLaid,
       this.eggsPerHour,
       this.secondsRemaining,
-      this.goals
+      this.goals,
     );
   }
 
-  async resolveGrade(knownGrade? : ei.Contract.PlayerGrade): Promise<ei.Contract.PlayerGrade> {
-    if (knownGrade !== undefined ) {
+  async resolveGrade(
+    knownGrade?: ei.Contract.PlayerGrade,
+  ): Promise<ei.Contract.PlayerGrade> {
+    if (knownGrade !== undefined) {
       this.grade = knownGrade;
       return this.grade;
     }
-    if (this.contributors.length === 0 || !this.cannotDetermineCreator || this.expirationTime <  dayjs("2023-05-01 00:00Z")) {
+    if (
+      this.contributors.length === 0 || !this.cannotDetermineCreator ||
+      this.expirationTime < dayjs("2023-05-01 00:00Z")
+    ) {
       // Ghost coop, don't care. OR
       // if ids are unencrypted it's definitely older than grades OR
       // contracts before May 01 2023 have no grade
@@ -172,61 +199,69 @@ export class CoopStatus {
       if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_B]) {
         this.grade = ei.Contract.PlayerGrade.GRADE_C;
         return this.grade;
-      }
-      else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_A]) {
+      } else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_A]) {
         b++;
-      }
-      else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_AA]) {
+      } else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_AA]) {
         a++;
-      }
-      else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_AAA]) {
+      } else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_AAA]) {
         aa++;
-      } 
-      else {
+      } else {
         aaa++;
-        if ( eb > COOP_GRADE_PROBABLY_AAA_EB) { aaaa++; }
+        if (eb > COOP_GRADE_PROBABLY_AAA_EB) aaaa++;
       }
     }
 
     const eb_counts = [0, 0, b, a, aa, aaa];
-    const heuristicGrade: ei.Contract.PlayerGrade = eb_counts.indexOf(Math.max(...eb_counts))
+    const heuristicGrade: ei.Contract.PlayerGrade = eb_counts.indexOf(
+      Math.max(...eb_counts),
+    );
 
     // if we make it this far it *should* be a post-grade contract, be not empty and not c grade
     try {
       // checking periodicals is faster than checking backup but less reliable
       // if the contract is still active and it matches our guess it's hopefully correct
       // Probably? less movement in AAA
-      if (this.secondsRemaining > 0 || (aaaa > 0 && heuristicGrade === ei.Contract.PlayerGrade.GRADE_AAA)) {
+      if (
+        this.secondsRemaining > 0 ||
+        (aaaa > 0 && heuristicGrade === ei.Contract.PlayerGrade.GRADE_AAA)
+      ) {
         const periodicals = await requestPeriodicals(this.creatorId);
         const grade = periodicals.contractPlayerInfo?.grade;
-        if(grade === heuristicGrade) {
-          this.grade = grade
-          return this.grade
+        if (grade === heuristicGrade) {
+          this.grade = grade;
+          return this.grade;
         }
       }
 
       // Query coop creator's backup to try to find coop grade
       const creatorBackup = await requestFirstContact(this.creatorId);
-      const contracts = [ ...(creatorBackup.backup?.contracts?.archive ?? []) , ...(creatorBackup.backup?.contracts?.contracts ?? [])]
-      const grade = contracts.find(contract => contract.contract?.identifier === this.contractId && contract.coopIdentifier === this.coopCode)?.grade
+      const contracts = [
+        ...(creatorBackup.backup?.contracts?.archive ?? []),
+        ...(creatorBackup.backup?.contracts?.contracts ?? []),
+      ];
+      const grade = contracts.find((contract) =>
+        contract.contract?.identifier === this.contractId &&
+        contract.coopIdentifier === this.coopCode
+      )?.grade;
       // if we already pulled their backup might as well set the creator name
       this.creatorName = creatorBackup.backup?.userName ?? null;
       if (!grade) {
-        throw new Error(`Could not determine Contract Grade from player save`)
+        throw new Error(`Could not determine Contract Grade from player save`);
       }
       this.grade = grade;
       return this.grade;
     } catch (e) {
-      console.error(`failed to determine coop grade ${this.contractId}:${this.coopCode}: ${e}`);
+      console.error(
+        `failed to determine coop grade ${this.contractId}:${this.coopCode}: ${e}`,
+      );
       this.grade = heuristicGrade;
       return this.grade;
     }
   }
-  
-  async resolveLeague(knownLeague?: ContractLeague): Promise<ContractLeague> {
 
+  async resolveLeague(knownLeague?: ContractLeague): Promise<ContractLeague> {
     if (knownLeague !== undefined) {
-      this.league =  knownLeague;
+      this.league = knownLeague;
       return this.league;
     }
 
@@ -255,18 +290,25 @@ export class CoopStatus {
         aboveThresholdCount++;
       }
     }
-    const heuristicLeague =
-      aboveThresholdCount > belowThresholdCount ? ContractLeague.Elite : ContractLeague.Standard;
+    const heuristicLeague = aboveThresholdCount > belowThresholdCount
+      ? ContractLeague.Elite
+      : ContractLeague.Standard;
 
     try {
       // Query /ei/query_coop to see if elite league is the wrong league.
-      const queryCoopResponse = await requestQueryCoop(this.contractId, this.coopCode, 0);
+      const queryCoopResponse = await requestQueryCoop(
+        this.contractId,
+        this.coopCode,
+        0,
+      );
       this.league = queryCoopResponse.differentLeague
         ? ContractLeague.Standard
         : ContractLeague.Elite;
       return this.league;
     } catch (e) {
-      console.error(`failed to query coop ${this.contractId}:${this.coopCode}: ${e}`);
+      console.error(
+        `failed to query coop ${this.contractId}:${this.coopCode}: ${e}`,
+      );
       this.league = heuristicLeague;
       return this.league;
     }
@@ -314,13 +356,19 @@ export class Contributor {
     this.isLeeching = contributor.leech!;
     this.earningsBoost = 0;
     this.eggLayingRateBoost = 0;
-    if (Array.isArray(contributor.buffHistory) && contributor.buffHistory.length > 0) {
-      const currentBuff = contributor.buffHistory[contributor.buffHistory.length - 1];
+    if (
+      Array.isArray(contributor.buffHistory) &&
+      contributor.buffHistory.length > 0
+    ) {
+      const currentBuff =
+        contributor.buffHistory[contributor.buffHistory.length - 1];
       this.earningsBoost = currentBuff.earnings! - 1;
       this.eggLayingRateBoost = currentBuff.eggLayingRate! - 1;
     }
 
-    this.tokensSpent = isValue(contributor.boostTokensSpent) ? contributor.boostTokensSpent : null;
+    this.tokensSpent = isValue(contributor.boostTokensSpent)
+      ? contributor.boostTokensSpent
+      : null;
     this.hourlyLayingRateUncapped = null;
     this.projectedHourlyLayingRateUncappedAtFullHabs = null;
     this.hourlyShippingCapacity = null;
@@ -330,10 +378,11 @@ export class Contributor {
     const params = contributor.productionParams;
     if (params) {
       if (isValue(params.elr) && isValue(params.farmPopulation)) {
-        this.hourlyLayingRateUncapped = params.elr * params.farmPopulation * 3600;
+        this.hourlyLayingRateUncapped = params.elr * params.farmPopulation *
+          3600;
         if (isValue(params.farmCapacity)) {
-          this.projectedHourlyLayingRateUncappedAtFullHabs =
-            params.elr * params.farmCapacity * 3600;
+          this.projectedHourlyLayingRateUncappedAtFullHabs = params.elr *
+            params.farmCapacity * 3600;
         }
       }
       if (isValue(params.sr)) {
@@ -351,9 +400,12 @@ export class Contributor {
     }
 
     this.farmShared = !!contributor.farmInfo;
-    this.artifacts = new ArtifactSet(contributor.farmInfo?.equippedArtifacts ?? [], false);
+    this.artifacts = new ArtifactSet(
+      contributor.farmInfo?.equippedArtifacts ?? [],
+      false,
+    );
     this.boosts = (contributor.farmInfo?.activeBoosts ?? []).filter(
-      boost => !!boost.boostId && (boost.timeRemaining ?? 0) > 0
+      (boost) => !!boost.boostId && (boost.timeRemaining ?? 0) > 0,
     );
   }
 }
