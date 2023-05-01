@@ -135,7 +135,7 @@ message Backup {
         optional bool tank_filling_enabled = 14;
         optional uint32 tank_level = 15;
         repeated double tank_fuels = 16;
-        optional MissionInfo.Spaceship last_fueled_ship = 9;
+        optional ei.MissionInfo.Spaceship last_fueled_ship = 9;
         optional double inventory_score = 10;
         optional double crafting_xp = 17;
         optional bool enabled = 11;
