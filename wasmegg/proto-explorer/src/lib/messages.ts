@@ -9,6 +9,7 @@ const enumNames = [
   'GoalType',
   'Platform',
   'RewardType',
+  'LeaderboardScope',
 ] as const;
 export type MessageName = Exclude<keyof typeof ei, typeof enumNames[number]>;
 
@@ -61,7 +62,7 @@ const messages: Record<string, MessageName[]> = {
 const seen = ([] as MessageName[]).concat(
   messages.commonlyInspected,
   messages.otherArtifactRequestResponse,
-  messages.otherCoopRequestResponse
+  messages.otherCoopRequestResponse,
 );
 for (const name in ei) {
   // Make sure we only pick up capitalized names just in case some lower case
@@ -100,5 +101,5 @@ export const validMessageNames = ([] as MessageName[]).concat(
   messages.commonlyInspected,
   messages.otherArtifactRequestResponse,
   messages.otherCoopRequestResponse,
-  messages.other
+  messages.other,
 );
