@@ -24,6 +24,7 @@ on:
 jobs:
   # No TS type checking for faster deployment.
   eicoop2-fastbuild:
+    if: github.ref != "refs/heads/main"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -79,6 +80,7 @@ jobs:
 
   # With TS type checking.
   eicoop2-fullbuild:
+    if: github.ref != "refs/heads/main"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -111,6 +113,7 @@ jobs:
 
   # No TS type checking for faster deployment.
   eicoop-fastbuild:
+    if: github.ref != "refs/heads/main"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -166,6 +169,7 @@ jobs:
 
   # With TS type checking.
   eicoop-fullbuild:
+    if: github.ref != "refs/heads/main"
     runs-on: ubuntu-latest
     defaults:
       run:
