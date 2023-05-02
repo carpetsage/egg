@@ -571,6 +571,46 @@
 
         <div v-if="!collapsed" class="py-2">
           <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
+            <div class="text-right text-sm font-medium whitespace-nowrap">Total Contract XP</div>
+            <div class="flex items-center text-left text-sm text-gray-900">
+              <span class="truncate">
+                {{ fmt(totalCxp) }}
+              </span>
+            </div>
+
+            <div class="text-right text-sm font-medium whitespace-nowrap">Season Contract XP</div>
+            <div class="flex items-center text-left text-sm text-gray-900">
+              <span class="truncate">
+                {{ fmt(seasonCxp) }}
+              </span>
+            </div>
+            <div class="text-right text-sm font-medium whitespace-nowrap">Current Grade</div>
+            <div class="flex items-center text-left text-sm text-gray-900">
+              <span class="truncate">
+                {{ playerGrade }}
+              </span>
+            </div>
+          </div>
+
+          <a
+            :href="`https://eicoop-carpet.netlify.app/u/${userId}`"
+            target="_blank"
+            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
+          >
+            <span class="underline">Your contract dashboard</span>
+            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
+              <path
+                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
+              />
+            </svg>
+          </a>
+        </div>
+
+        <div v-if="!collapsed" class="py-2">
+          <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
             <div class="text-right text-sm font-medium whitespace-nowrap">Lifetime earned</div>
             <div class="flex items-center text-left text-sm text-gray-900">
               <img
@@ -855,7 +895,7 @@ const daysSinceFirstMission = computed(() => {
 // there is somehow ??? a bug with this not updating on reload
 //const inventoryScore = computed(() => Math.floor(backup.value.artifacts?.inventoryScore || 1));
 const inventoryScore = computed(() => {
-  const scores = backup.value.artifactsDb?.inventoryItems?.map(arti => 
+  const scores = backup.value.artifactsDb?.inventoryItems?.map(arti =>
     arti.artifact?.spec ?
       getArtifactTierProps(arti.artifact.spec.name!, arti.artifact.spec.level!).quality * (arti.quantity ?? 0):
     0
@@ -867,6 +907,9 @@ const craftingXp = computed(() => Math.floor(backup.value.artifacts?.craftingXp 
 const inventoryConsumptionValue = computed(() =>
   inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
 );
+const seasonCxp   = computed(() => backup.value.contracts?.lastCpi?.seasonCxp || 0);
+const totalCxp    = computed(() => backup.value.contracts?.lastCpi?.totalCxp || 0 );
+const playerGrade = computed(() => gradeName[backup.value.contracts?.lastCpi?.grade || 0]);
 const lifetimeTicketsEarned = computed(() => progress.value.shellScriptsEarned || 0);
 const lifetimeTicketsSpent = computed(() => progress.value.shellScriptsSpent || 0);
 const currentTicketsBalance = computed(
@@ -933,6 +976,7 @@ const zeroLegendaryUnconditionallyUnworthyNickname = computed(() =>
     : undefined
 );
 const randIndex = Math.floor(Math.random() * 10000);
+const gradeName = ["None", "C", "B", "A", "AA", "AAA"];
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');
