@@ -590,16 +590,30 @@
                 {{ playerGrade }}
               </span>
             </div>
-            <div class="text-right text-sm font-medium whitespace-nowrap">Next Grade Progress</div>
-            <div class="flex items-center text-left text-sm text-gray-900">
-              <span class="truncate">
-                {{ gradeProgress }}%
-              </span>
+            <div style="display: none;">
+              <div class="text-right text-sm font-medium whitespace-nowrap">Next Grade Progress</div>
+              <div class="flex items-center text-left text-sm text-gray-900">
+                <span class="truncate">
+                  {{ Math.round(gradeProgress) }}%
+                </span>
+              </div>
+              <div class="text-right text-sm font-medium whitespace-nowrap">GradeEval Time</div>
+              <div class="flex items-center text-left text-sm text-gray-900">
+                <span class="truncate">
+                  {{ lastEvalTime }}
+                </span>
+              </div>
+              <div class="text-right text-sm font-medium whitespace-nowrap">GradeEval Version</div>
+              <div class="flex items-center text-left text-sm text-gray-900">
+                <span class="truncate">
+                  {{ lastEvalVersion }}
+                </span>
+              </div>
             </div>
           </div>
 
           <a
-            :href="`https://eicoop-carpet.netlify.app/u/${userId}`"
+            :href="`https://wasmegg-carpet.netlify.app/past-contract/?playerId=${userId}`"
             target="_blank"
             class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
           >
@@ -915,8 +929,10 @@ const inventoryConsumptionValue = computed(() =>
 );
 // Contract Stuff
 const contractProgress = computed(() => backup.value.contracts?.lastCpi);
-const seasonCxp   = computed(() => contractProgress.value?.seasonCxp || 0);
-const totalCxp    = computed(() => contractProgress.value?.totalCxp || 0 );
+const lastEvalTime = computed(() => contractProgress.value?.lastEvaluationTime || 0);
+const lastEvalVersion = computed(() => contractProgress.value?.lastEvaluationVersion || "unknown");
+const seasonCxp = computed(() => contractProgress.value?.seasonCxp || 0);
+const totalCxp  = computed(() => contractProgress.value?.totalCxp || 0 );
 const playerGrade = computed(() => gradeName[contractProgress.value?.grade || 0]);
 const gradeProgress = computed(() => (contractProgress.value?.gradeProgress || 0) * 100);
 
