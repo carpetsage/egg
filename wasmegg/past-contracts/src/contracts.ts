@@ -97,8 +97,9 @@ function newUserContract(
   const coopCode = contract.coopIdentifier || null;
   const league: ContractLeague = contract.league || 0;
   let hasLeagues = false;
-  let goals = props.goals;
-  if (props.goalSets && props.goalSets.length > league) {
+  const hasGrades = Boolean(contract.grade);
+  let goals = contract.grade? props.gradeSpecs![contract.grade - 1].goals : props.goals;
+  if (!contract.grade && props.goalSets && props.goalSets.length > league) {
     hasLeagues = true;
     goals = props.goalSets[league].goals;
   }
@@ -128,6 +129,7 @@ function newUserContract(
     isCoop,
     coopCode,
     hasLeagues,
+    hasGrades,
     attempted,
     league,
     goals,
