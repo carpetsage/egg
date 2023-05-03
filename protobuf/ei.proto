@@ -567,6 +567,7 @@ message ContractEvaluation {
     optional double other_bonuses = 14;
     optional bool counted_in_season = 20;
     optional string season_id = 21;
+    optional uint32 time_cheats = 27;
     
     repeated PoorBehavior issues = 19;
     enum PoorBehavior {
@@ -576,6 +577,7 @@ message ContractEvaluation {
         DISHONORABLY_DISCHARGED = 3;
         POOR_TEAMWORK = 4;
         ABANDONED_COOP = 5;
+        TIME_CHEAT = 6;
     }
     
     repeated string notes = 12;
@@ -609,6 +611,7 @@ message CoopCompletionSnapshot {
     repeated ContributorSnapshot contributors = 1;
     message ContributorSnapshot {
         optional double contribution = 1;
+        optional double last_contribution_time = 6;
         optional double soul_power = 2;
         optional string user_id = 3;
         optional uint32 tokens = 4;
