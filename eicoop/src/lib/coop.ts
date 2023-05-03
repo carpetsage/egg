@@ -15,6 +15,7 @@ import {
   getContractFromPlayerSave,
 } from "./contract";
 import { SortedContractList } from "./contractList";
+import { request } from '@/lib';
 
 // League constants
 const COOP_LEAGUE_DIVIDER_EB = 1e13; // 10T%
@@ -191,13 +192,6 @@ export class CoopStatus {
       return this.grade;
     }
 
-    //TODO: This is completely useless, I'm going to have to check backup
-    // Heuristics.
-    let b = 0;
-    let a = 0;
-    let aa = 0;
-    let aaa = 0;
-    let aaaa = 0;
     // count up the number of people in each grade eb range and take a guess at contract grade from that
     for (const contributor of this.contributors.reverse()) {
       const eb = contributor.earningBonusPercentage;
@@ -205,54 +199,48 @@ export class CoopStatus {
       if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_B]) {
         this.grade = ei.Contract.PlayerGrade.GRADE_C;
         return this.grade;
-      } else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_A]) {
-        b++;
-      } else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_AA]) {
-        a++;
-      } else if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_AAA]) {
-        aa++;
-      } else {
-        aaa++;
-        if (eb > COOP_GRADE_PROBABLY_AAA_EB) aaaa++;
       }
     }
 
-    const eb_counts = [0, 0, b, a, aa, aaa];
-    const heuristicGrade: ei.Contract.PlayerGrade = eb_counts.indexOf(
-      Math.max(...eb_counts),
-    );
-
-    // if we make it this far it *should* be a post-grade contract, be not empty and not c grade
+    // if we make it this far it *should* be a post-grade contract and not be empty
     try {
       // checking periodicals is faster than checking backup but less reliable
       // if the contract is still active and it matches our guess it's hopefully correct
       // Probably? less movement in AAA
-      if (
-        this.secondsRemaining > 0 ||
-        (aaaa > 0 && heuristicGrade === ei.Contract.PlayerGrade.GRADE_AAA)
-      ) {
-        const periodicals = await requestPeriodicals(this.creatorId);
-        const grade = periodicals.contractPlayerInfo?.grade;
-        if (grade === heuristicGrade) {
-          this.grade = grade;
+      const backup = await requestFirstContact(this.creatorId);
+      const contractsinfo = backup.backup?.contracts;
+      // if we already pulled their backup might as well set the creator name
+      this.creatorName = backup.backup?.userName ?? null;
+      // active coop
+      if (this.secondsRemaining > 0) {
+        const contractGrade = contractsinfo?.contracts?.find(c => c.contract?.identifier == this.contractId)?.grade ??
+                              contractsinfo?.lastCpi?.grade;
+        if (contractGrade) {
+          this.grade = contractGrade;
+          return this.grade;
+        } else {
+          // this might happen for deleted accounts? Should really do some ugly querycoop checks here but lazy
+          this.grade = ei.Contract.PlayerGrade.GRADE_AA;
           return this.grade;
         }
       }
+      // completed/failed/expired coop
 
-      // Query coop creator's backup to try to find coop grade
-      const creatorBackup = await requestFirstContact(this.creatorId);
+      // pull all current and past contracts from creator's backup
       const contracts = [
-        ...(creatorBackup.backup?.contracts?.archive ?? []),
-        ...(creatorBackup.backup?.contracts?.contracts ?? []),
+        ...(backup.backup?.contracts?.archive ?? []),
+        ...(backup.backup?.contracts?.contracts ?? []),
       ];
-      const grade = contracts.find((contract) =>
-        contract.contract?.identifier === this.contractId &&
-        contract.coopIdentifier === this.coopCode
+
+      let grade = contracts.find(c =>
+        c.contract?.identifier === this.contractId && c.coopIdentifier === this.coopCode
       )?.grade;
-      // if we already pulled their backup might as well set the creator name
-      this.creatorName = creatorBackup.backup?.userName ?? null;
+
+      //contract wasn't in their backup so we have to do some ugly querycoop shit
       if (!grade) {
-        throw new Error(`Could not determine Contract Grade from player save`);
+        const responses = await Promise.all(this.queryAllGrades());
+        // index of requests + 2 is the grade. If not found index = -1, so +2 = C which we want
+        grade = responses.findIndex(q => q.differentGrade === false) + 2;
       }
       this.grade = grade;
       return this.grade;
@@ -260,9 +248,19 @@ export class CoopStatus {
       console.error(
         `failed to determine coop grade ${this.contractId}:${this.coopCode}: ${e}`,
       );
-      this.grade = heuristicGrade;
+      // fall back on C grade
+      this.grade = ei.Contract.PlayerGrade.GRADE_C;
       return this.grade;
     }
+  }
+
+  // create query coop request for every grade
+  queryAllGrades() {
+    const requests: Promise<ei.IQueryCoopResponse>[] = [];
+    for (const grade of [2,3,4,5]) {
+      requests.push(requestQueryCoop(this.contractId, this.coopCode, undefined, grade))
+    }
+    return requests;
   }
 
   async resolveLeague(knownLeague?: ContractLeague): Promise<ContractLeague> {
@@ -306,6 +304,7 @@ export class CoopStatus {
         this.contractId,
         this.coopCode,
         0,
+        undefined,
       );
       this.league = queryCoopResponse.differentLeague
         ? ContractLeague.Standard

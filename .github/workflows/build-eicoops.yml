@@ -5,7 +5,6 @@ on:
       - "lib/**"
       - "ui/**"
       - "eicoop/**"
-      - "eicoop2/**"
       - "periodicals/*"
       - 'protobuf/ei.proto'
   pull_request:
@@ -14,7 +13,6 @@ on:
       - "lib/**"
       - "ui/**"
       - "eicoop/**"
-      - "eicoop2/**"
       - "periodicals/*"
   workflow_dispatch:
  #schedule:
@@ -23,97 +21,7 @@ on:
     # - cron: '30 4 * * *'
 jobs:
   # No TS type checking for faster deployment.
-  eicoop2-fastbuild:
-    if: github.ref != "refs/heads/main"
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: eicoop2
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: "^8.1.1"
-      - name: Set Up Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'pnpm'
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            pnpm-global/pnpm-lock.yaml
-      - name: Do other preparations
-        run: |
-          ../action-scripts/prepare
-      - name: Build lib
-        working-directory: lib
-        run: |
-          make init
-          make
-      - name: Build site
-        run: make fastbuild
-      - name: Install netlify cli
-        run: |
-          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
-          pnpm add --global netlify-cli
-      - name: Deploy
-        run: |
-          netlify deploy --prod
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP2_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref == 'refs/heads/main'
-      - name: Deploy to branch-specific URL
-        run: |
-          netlify deploy --alias "${GITHUB_REF##*/}"
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP2_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref != 'refs/heads/main'
-      - name: Deploy to commit-specific URL
-        run: |
-          netlify deploy --alias "$GITHUB_SHA"
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP2_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-
-  # With TS type checking.
-  eicoop2-fullbuild:
-    if: github.ref != "refs/heads/main"
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: eicoop2
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: "^8.1.1"
-      - name: Set up Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'pnpm'
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            pnpm-global/pnpm-lock.yaml
-      - name: Do other preparations
-        run: |
-          ../action-scripts/prepare
-      - name: Build lib
-        working-directory: lib
-        run: |
-          make init
-          make
-      - name: Build site
-        run: make
-
-
-  # No TS type checking for faster deployment.
   eicoop-fastbuild:
-    if: github.ref != "refs/heads/main"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -169,7 +77,6 @@ jobs:
 
   # With TS type checking.
   eicoop-fullbuild:
-    if: github.ref != "refs/heads/main"
     runs-on: ubuntu-latest
     defaults:
       run:

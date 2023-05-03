@@ -571,14 +571,14 @@
 
         <div v-if="!collapsed" class="py-2">
           <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
-            <div class="text-right text-sm font-medium whitespace-nowrap">Total Contract XP</div>
+            <div class="text-right text-sm font-medium whitespace-nowrap">Total Contract Score</div>
             <div class="flex items-center text-left text-sm text-gray-900">
               <span class="truncate">
                 {{ fmt(totalCxp) }}
               </span>
             </div>
 
-            <div class="text-right text-sm font-medium whitespace-nowrap">Season Contract XP</div>
+            <div class="text-right text-sm font-medium whitespace-nowrap">Season Contract Score</div>
             <div class="flex items-center text-left text-sm text-gray-900">
               <span class="truncate">
                 {{ fmt(seasonCxp) }}
@@ -590,10 +590,30 @@
                 {{ playerGrade }}
               </span>
             </div>
+            <div style="display: none;">
+              <div class="text-right text-sm font-medium whitespace-nowrap">Next Grade Progress</div>
+              <div class="flex items-center text-left text-sm text-gray-900">
+                <span class="truncate">
+                  {{ Math.round(gradeProgress) }}%
+                </span>
+              </div>
+              <div class="text-right text-sm font-medium whitespace-nowrap">GradeEval Time</div>
+              <div class="flex items-center text-left text-sm text-gray-900">
+                <span class="truncate">
+                  {{ lastEvalTime }}
+                </span>
+              </div>
+              <div class="text-right text-sm font-medium whitespace-nowrap">GradeEval Version</div>
+              <div class="flex items-center text-left text-sm text-gray-900">
+                <span class="truncate">
+                  {{ lastEvalVersion }}
+                </span>
+              </div>
+            </div>
           </div>
 
           <a
-            :href="`https://eicoop-carpet.netlify.app/u/${userId}`"
+            :href="`https://wasmegg-carpet.netlify.app/past-contract/?playerId=${userId}`"
             target="_blank"
             class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
           >
@@ -907,9 +927,15 @@ const craftingXp = computed(() => Math.floor(backup.value.artifacts?.craftingXp 
 const inventoryConsumptionValue = computed(() =>
   inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
 );
-const seasonCxp   = computed(() => backup.value.contracts?.lastCpi?.seasonCxp || 0);
-const totalCxp    = computed(() => backup.value.contracts?.lastCpi?.totalCxp || 0 );
-const playerGrade = computed(() => gradeName[backup.value.contracts?.lastCpi?.grade || 0]);
+// Contract Stuff
+const contractProgress = computed(() => backup.value.contracts?.lastCpi);
+const lastEvalTime = computed(() => contractProgress.value?.lastEvaluationTime || 0);
+const lastEvalVersion = computed(() => contractProgress.value?.lastEvaluationVersion || "unknown");
+const seasonCxp = computed(() => contractProgress.value?.seasonCxp || 0);
+const totalCxp  = computed(() => contractProgress.value?.totalCxp || 0 );
+const playerGrade = computed(() => gradeName[contractProgress.value?.grade || 0]);
+const gradeProgress = computed(() => (contractProgress.value?.gradeProgress || 0) * 100);
+
 const lifetimeTicketsEarned = computed(() => progress.value.shellScriptsEarned || 0);
 const lifetimeTicketsSpent = computed(() => progress.value.shellScriptsSpent || 0);
 const currentTicketsBalance = computed(

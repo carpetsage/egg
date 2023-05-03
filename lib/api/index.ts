@@ -160,19 +160,22 @@ export async function requestCoopStatus(
  * @param contractId
  * @param coopCode
  * @param league - 0 for elite, 1 for standard.
+ * @param grade - 0 for undefined, 1-5 for c,b,a,aa,aaa
  * @returns
  * @throws
  */
 export async function requestQueryCoop(
   contractId: string,
   coopCode: string,
-  league: number
+  league: number | undefined,
+  grade: number | undefined,
 ): Promise<ei.IQueryCoopResponse> {
   const requestPayload: ei.IQueryCoopRequest = {
     rinfo: basicRequestInfo(''),
     contractIdentifier: contractId,
     coopIdentifier: coopCode,
-    league,
+    league: league,
+    grade: grade,
     clientVersion: CLIENT_VERSION,
   };
   const encodedRequestPayload = encodeMessage(ei.QueryCoopRequest, requestPayload);
