@@ -80,9 +80,9 @@ export const tools = [
     displayIconOnly: true,
     iconCssClasses: 'h-6 -ml-0.5 -mr-1 -top-0.5',
     // Fri Jun 25 07:57:36 UTC 2021
-    majorUpdateUntil: 1624607856000,
+    majorUpdateUntil: 2624607856000,
     whatsNew:
-      'Personal dashboard where you can check the status of all your active contracts, including solos and not-yet-joined-coops.',
+      'Works again post contract v2 update',
   }),
 
   new Tool({
@@ -92,7 +92,7 @@ export const tools = [
     iconUrl: iconURL('wasmegg/artifact-explorer.svg'),
     description: 'Explorer for everything artifacts',
     // forever
-    updateUntil: 2638811910000,
+    updateUntil: 1638811910000,
     whatsNew:
       'Updated for new levels of FTL Epic Research.',
   }),
@@ -103,7 +103,7 @@ export const tools = [
     iconUrl: iconURL('wasmegg/artifact-sandbox.svg'),
     description: 'Sandbox for experimenting, optimizing, and sharing artifact builds',
     // forever
-    updateUntil: 2638811910000,
+    updateUntil: 1638811910000,
     whatsNew:
       'Added Max Base RCB field.',
   }),
@@ -115,7 +115,7 @@ export const tools = [
     description:
       'Tracker for active rocket missions, historical mission statistics, progress on artifact collection, etc.',
     // forever
-    updateUntil: 2637780082000,
+    updateUntil: 1637780082000,
     whatsNew:
       'Fixed crafting expense and crafting count.',
   }),
@@ -181,7 +181,7 @@ export const tools = [
     url: '/mission-list/',
     title: 'Mission list',
     // forever
-    updateUntil: 2624548902000,
+    updateUntil: 1624548902000,
     description: 'Spaceship & mission parameters list',
     whatsNew:
       'Updated for new levels of FTL Epic Research.',
@@ -207,7 +207,7 @@ export const tools = [
     url: '/events/',
     title: 'Events calendar',
     description: 'Filterable calendar of (not so) special events',
-    updateUntil: 2638811910000,
+    updateUntil: 1638811910000,
     whatsNew:
       'It works again.',
   }),
@@ -217,7 +217,7 @@ export const tools = [
     title: 'Legendary study report',
     description:
       'See how you fare against other Egg, Inc. players in the legendary artifact department',
-    updateUntil: 2638811910000,
+    updateUntil: 1638811910000,
     whatsNew:
       'It works again.',
   }),
