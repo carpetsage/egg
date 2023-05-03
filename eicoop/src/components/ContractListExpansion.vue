@@ -104,13 +104,18 @@ export default defineComponent({
 
     const hasLeagues = computed(() => !!contract.value.goalSets);
     const hasGrades = computed(() => !!contract.value.gradeSpecs);
-    const lengthHours = computed(() => contract.value.lengthSeconds! / 3600);
+    const lengthHours = computed(() => {
+      if (hasGrades.value) {
+        return contract.value.gradeSpecs!.map(gradespec => gradespec.lengthSeconds! / 3600).reverse()
+      }
+      const length = contract.value.lengthSeconds! / 3600;
+      return [length, length]
+    });
     const tiers = computed(() => {
       if (hasGrades.value) {
         //TODO: Fix this once I get real data
-        const eliteGoals = contract.value.gradeSpecs![0].goals!;
-        const standardGoals = contract.value.gradeSpecs![1].goals!;
-        return eliteGoals.map((eliteGoal, i) => [eliteGoal, standardGoals[i]]);
+        const allGoals = contract.value.gradeSpecs!.map(g => g.goals!);
+        return allGoals[0].map((cGoal, i) => [allGoals[4][i], allGoals[3][i], allGoals[2][i], allGoals[1][i], cGoal])
       } else if (hasLeagues.value) {
         const eliteGoals = contract.value.goalSets![0].goals!;
         const standardGoals = contract.value.goalSets![1].goals!;
@@ -122,7 +127,7 @@ export default defineComponent({
     });
     const requiredHourlyRates = computed(() => {
       return tiers.value[tiers.value.length - 1].map(
-        goal => goal.targetAmount! / lengthHours.value
+        (goal, i) => goal.targetAmount! / lengthHours.value[i]
       );
     });
 
