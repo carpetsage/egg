@@ -150,20 +150,12 @@ export class CoopStatus {
       this.creatorName = result.creatorName;
     }
 
-    if (this.contract.gradeSpecs?.length && this.grade) {
-      this.goals = this.contract.gradeSpecs[this.grade - 1 as number].goals!;
-    } else if (this.contract.goalSets) {
-      this.goals = this.contract.goalSets[this.league as number].goals!;
-    } else {
-      this.goals = this.contract.goals!;
-    }
-
     if (this.grade) {
       this.goals = this.contract.gradeSpecs![this.grade - 1].goals!;
     } else if (this.contract.goalSets) {
       this.goals = this.contract.goalSets[this.league as number].goals!
     } else {
-      this.contract.goals!;
+      this.goals = this.contract.goals!;
     }
 
     this.leagueStatus = new ContractLeagueStatus(
@@ -182,20 +174,17 @@ export class CoopStatus {
       return this.grade;
     }
     if (
-      this.contributors.length === 0 || !this.cannotDetermineCreator ||
-      this.expirationTime < dayjs("2023-05-01 00:00Z")
+      this.contributors.length === 0 || this.expirationTime < dayjs("2023-05-01 00:00Z")
     ) {
       // Ghost coop, don't care. OR
-      // if ids are unencrypted it's definitely older than grades OR
       // contracts before May 01 2023 have no grade
       this.grade = ei.Contract.PlayerGrade.GRADE_UNSET;
       return this.grade;
     }
 
-    // count up the number of people in each grade eb range and take a guess at contract grade from that
+    // loop through contributors. If anybody is below b grade eb the coop is c grade
     for (const contributor of this.contributors.reverse()) {
       const eb = contributor.earningBonusPercentage;
-      // if any player in the coop has less than b grade cutoff eb it must be a c grade coop
       if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_B]) {
         this.grade = ei.Contract.PlayerGrade.GRADE_C;
         return this.grade;
@@ -204,9 +193,6 @@ export class CoopStatus {
 
     // if we make it this far it *should* be a post-grade contract and not be empty
     try {
-      // checking periodicals is faster than checking backup but less reliable
-      // if the contract is still active and it matches our guess it's hopefully correct
-      // Probably? less movement in AAA
       const backup = await requestFirstContact(this.creatorId);
       const contractsinfo = backup.backup?.contracts;
       // if we already pulled their backup might as well set the creator name
@@ -219,8 +205,8 @@ export class CoopStatus {
           this.grade = contractGrade;
           return this.grade;
         } else {
-          // this might happen for deleted accounts? Should really do some ugly querycoop checks here but lazy
-          this.grade = ei.Contract.PlayerGrade.GRADE_AA;
+          // do a bunch of query coops to find the right grade
+          this.grade = await this.gradeFromQueryCoop();
           return this.grade;
         }
       }
@@ -232,18 +218,11 @@ export class CoopStatus {
         ...(backup.backup?.contracts?.contracts ?? []),
       ];
 
-      let grade = contracts.find(c =>
+      this.grade = contracts.find(c =>
         c.contract?.identifier === this.contractId && c.coopIdentifier === this.coopCode
-      )?.grade;
-
-      //contract wasn't in their backup so we have to do some ugly querycoop shit
-      if (!grade) {
-        const responses = await Promise.all(this.queryAllGrades());
-        // index of requests + 2 is the grade. If not found index = -1, so +2 = C which we want
-        grade = responses.findIndex(q => q.differentGrade === false) + 2;
-      }
-      this.grade = grade;
+      )?.grade ?? await this.gradeFromQueryCoop();
       return this.grade;
+
     } catch (e) {
       console.error(
         `failed to determine coop grade ${this.contractId}:${this.coopCode}: ${e}`,
@@ -255,12 +234,14 @@ export class CoopStatus {
   }
 
   // create query coop request for every grade
-  queryAllGrades() {
+  async gradeFromQueryCoop(): Promise<ei.Contract.PlayerGrade> {
     const requests: Promise<ei.IQueryCoopResponse>[] = [];
     for (const grade of [2,3,4,5]) {
       requests.push(requestQueryCoop(this.contractId, this.coopCode, undefined, grade))
     }
-    return requests;
+    const responses = await Promise.all(requests);
+    // index of requests + 2 is the grade. If not found index = -1, so +2 = C which we want
+    return responses.findIndex(q => q.differentGrade === false) + 2;
   }
 
   async resolveLeague(knownLeague?: ContractLeague): Promise<ContractLeague> {
