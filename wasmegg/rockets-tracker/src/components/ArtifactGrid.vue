@@ -196,6 +196,7 @@ import ArtifactRecipe from '@/components/ArtifactRecipe.vue';
 import ArtifactGallery from './ArtifactGallery.vue';
 
 type ItemId = string;
+const TOOMUCHSHIT = 9000000;
 
 export default defineComponent({
   components: {
@@ -224,6 +225,7 @@ export default defineComponent({
       // Type casting because somehow InventoryFamily loses protected props during toRefs.
       for (const family of families.value as InventoryFamily[]) {
         for (const tier of family.tiers) {
+          if (tier.have > TOOMUCHSHIT) { break; }
           counts.set(tier.id, inventory.value.countCraftable(tier));
         }
       }
@@ -236,6 +238,7 @@ export default defineComponent({
       const counts = new Map<ItemId, { craftable: boolean; cost: number }>();
       for (const family of families.value as InventoryFamily[]) {
         for (const tier of family.tiers) {
+          if (tier.have > TOOMUCHSHIT) { break; }
           counts.set(tier.id, inventory.value.nextRecursiveCraft(tier));
         }
       }

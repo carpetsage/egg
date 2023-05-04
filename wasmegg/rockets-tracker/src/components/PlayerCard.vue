@@ -915,6 +915,10 @@ const daysSinceFirstMission = computed(() => {
 // there is somehow ??? a bug with this not updating on reload
 //const inventoryScore = computed(() => Math.floor(backup.value.artifacts?.inventoryScore || 1));
 const inventoryScore = computed(() => {
+  //dont calculate if they have over 9m of anything
+  const tooManyItems = backup.value.artifactsDb?.inventoryItems?.find(item => (item.quantity ?? 0) > 9000000);
+  if (tooManyItems) { return Math.floor(backup.value.artifacts?.inventoryScore || 1); }
+
   const scores = backup.value.artifactsDb?.inventoryItems?.map(arti =>
     arti.artifact?.spec ?
       getArtifactTierProps(arti.artifact.spec.name!, arti.artifact.spec.level!).quality * (arti.quantity ?? 0):
