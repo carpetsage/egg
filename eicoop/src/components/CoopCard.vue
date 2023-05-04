@@ -14,7 +14,7 @@
               </template>
             </base-click-to-copy>
             <template v-if="grade">
-              <contract-grade-label :grade="grade" class="relative -top-px mr-1" />
+              <contract-grade-label :grade="grade" class="inline-block relative -top-px h-7 mr-1" />
             </template>
             <template v-else-if="league !== null">
               <contract-league-label :league="league" class="relative -top-px mr-1" />

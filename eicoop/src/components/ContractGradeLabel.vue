@@ -1,7 +1,5 @@
 <template>
-  <span class="px-2.5 py-0.5 rounded-full text-xs font-medium text-white" :class="gradeColor[grade]">
-    {{ grade !== PlayerGrade.GRADE_UNSET ? PlayerGrade[grade] : 'Unknown' }}
-  </span>
+  <img :src="gradeIcons[grade]" class="h-6" />
 </template>
 
 <script lang="ts">
@@ -9,13 +7,13 @@ import { ei } from 'lib'
 import { defineComponent, PropType } from 'vue';
 
 // colors for grades in order none,c,b,a,aa,aaa
-const gradeColor = [
- 'bg-pink-600',
- 'bg-orange-600',
- 'bg-green-600',
- 'bg-blue-600',
- 'bg-purple-600',
- 'bg-pink-600',
+const gradeIcons = [
+ "/contract_grade_c.png",
+ "/contract_grade_c.png",
+ "/contract_grade_b.png",
+ "/contract_grade_a.png",
+ "/contract_grade_aa.png",
+ "/contract_grade_aaa.png",
 ]
 
 export default defineComponent({
@@ -28,7 +26,7 @@ export default defineComponent({
   setup() {
     return {
       PlayerGrade: ei.Contract.PlayerGrade,
-      gradeColor,
+      gradeIcons,
     };
   },
 });
