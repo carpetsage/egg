@@ -55,6 +55,12 @@ def getContracts(active: list["ei.Contract"], file: str) -> list["ContractStore"
     # remove first-contract from list
     active = [c for c in active if c.identifier != 'first-contract']
 
+    # save some space and remove goals/goalsets from contracts with grade_specs
+    for c in active:
+        if c.grade_specs:
+            c.goal_sets = []
+            c.goals = []
+
     # read past events into list
     with open(file, 'r', encoding="utf-8") as f:
         past_contract_protos = json.load(f)
