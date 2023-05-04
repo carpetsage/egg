@@ -132,6 +132,7 @@ class ContractEvaluationPoorBehavior(betterproto.Enum):
     DISHONORABLY_DISCHARGED = 3
     POOR_TEAMWORK = 4
     ABANDONED_COOP = 5
+    TIME_CHEAT = 6
 
 
 class ContractEvaluationStatus(betterproto.Enum):
@@ -400,7 +401,7 @@ class ShellObjectSpecChickenAnimation(betterproto.Enum):
     SIDEWAYS_LEAN = 8
 
 
-class ShellDbFarmElement(betterproto.Enum):
+class ShellDBFarmElement(betterproto.Enum):
     HEN_HOUSE = 1
     SILO = 2
     MAILBOX = 3
@@ -439,7 +440,7 @@ class UserSubscriptionInfoStatus(betterproto.Enum):
     PAUSE_HOLD = 5
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class Backup(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     ei_user_id: str = betterproto.string_field(18)
@@ -461,14 +462,14 @@ class Backup(betterproto.Message):
     mission: "BackupMission" = betterproto.message_field(9)
     misc: "BackupMisc" = betterproto.message_field(10)
     contracts: "MyContracts" = betterproto.message_field(13)
-    artifacts_db: "ArtifactsDb" = betterproto.message_field(15)
-    shell_db: "ShellDb" = betterproto.message_field(24)
+    artifacts_db: "ArtifactsDB" = betterproto.message_field(15)
+    shell_db: "ShellDB" = betterproto.message_field(24)
     read_mail_ids: List[str] = betterproto.string_field(23)
     checksum: int = betterproto.uint64_field(100)
     signature: str = betterproto.string_field(101)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupSettings(betterproto.Message):
     sfx: bool = betterproto.bool_field(1)
     music: bool = betterproto.bool_field(2)
@@ -497,7 +498,7 @@ class BackupSettings(betterproto.Message):
     last_backup_time: float = betterproto.double_field(24)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupTutorial(betterproto.Message):
     intro_shown: bool = betterproto.bool_field(1)
     click_tutorial_shown: bool = betterproto.bool_field(2)
@@ -512,9 +513,9 @@ class BackupTutorial(betterproto.Message):
     tutorial_shown: List[bool] = betterproto.bool_field(11)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupStats(betterproto.Message):
-    egg_totals_old: List[int] = betterproto.uint64_field(1)
+    egg_totals__o_l_d: List[int] = betterproto.uint64_field(1)
     egg_totals: List[float] = betterproto.double_field(8)
     unlimited_chickens_uses: int = betterproto.uint64_field(7)
     refill_uses: int = betterproto.uint64_field(2)
@@ -534,7 +535,7 @@ class BackupStats(betterproto.Message):
     lost_piggy_increments: int = betterproto.uint64_field(18)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupGame(betterproto.Message):
     current_farm: int = betterproto.uint32_field(22)
     max_egg_reached: "Egg" = betterproto.enum_field(1)
@@ -577,7 +578,7 @@ class BackupGame(betterproto.Message):
     new_player_event_end_time: float = betterproto.double_field(37)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupArtifacts(betterproto.Message):
     infusing: bool = betterproto.bool_field(1)
     item_being_infused: "ArtifactInventoryItem" = betterproto.message_field(2)
@@ -595,17 +596,17 @@ class BackupArtifacts(betterproto.Message):
     crafting_xp: float = betterproto.double_field(17)
     enabled: bool = betterproto.bool_field(11)
     intro_shown: bool = betterproto.bool_field(12)
-    infusing_enabled_deprecated: bool = betterproto.bool_field(8)
+    infusing_enabled__d_e_p_r_e_c_a_t_e_d: bool = betterproto.bool_field(8)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupShells(betterproto.Message):
     intro_alert: bool = betterproto.bool_field(1)
     contracts_intro_alert: bool = betterproto.bool_field(2)
     num_new: List[int] = betterproto.int32_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupSimulation(betterproto.Message):
     egg_type: "Egg" = betterproto.enum_field(1)
     farm_type: "FarmType" = betterproto.enum_field(19)
@@ -640,7 +641,7 @@ class BackupSimulation(betterproto.Message):
     gametime_until_next_boost_token: float = betterproto.double_field(29)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupMission(betterproto.Message):
     current_mission: str = betterproto.string_field(1)
     reference_value: float = betterproto.double_field(2)
@@ -648,14 +649,16 @@ class BackupMission(betterproto.Message):
     missions: List["BackupMissionInfo"] = betterproto.message_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupMisc(betterproto.Message):
     chicken_btn_pref_big: bool = betterproto.bool_field(1)
     free_hatchery_refill_given: bool = betterproto.bool_field(2)
     last_share_farm_value: float = betterproto.double_field(3)
     last_share_swarm_farm_value: float = betterproto.double_field(4)
     last_share_swarm_size: float = betterproto.double_field(5)
-    last_prestige_alert_soul_eggs_deprecated: int = betterproto.uint64_field(10)
+    last_prestige_alert_soul_eggs__d_e_p_r_e_c_a_t_e_d: int = betterproto.uint64_field(
+        10
+    )
     friend_rank: int = betterproto.uint64_field(6)
     friend_rank_pop: int = betterproto.uint64_field(7)
     global_rank: int = betterproto.uint64_field(8)
@@ -674,45 +677,45 @@ class BackupMisc(betterproto.Message):
     backup_reminder_alert: bool = betterproto.bool_field(19)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupResearchItem(betterproto.Message):
     id: str = betterproto.string_field(1)
     level: int = betterproto.uint32_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupNewsHeadline(betterproto.Message):
     id: str = betterproto.string_field(1)
     read: bool = betterproto.bool_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupAchievementInfo(betterproto.Message):
     id: str = betterproto.string_field(1)
     achieved: bool = betterproto.bool_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupActiveBoost(betterproto.Message):
     boost_id: str = betterproto.string_field(1)
     time_remaining: float = betterproto.double_field(2)
     reference_value: float = betterproto.double_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupOwnedBoost(betterproto.Message):
     boost_id: str = betterproto.string_field(1)
     count: int = betterproto.uint32_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BackupMissionInfo(betterproto.Message):
     id: str = betterproto.string_field(1)
     completed: bool = betterproto.bool_field(2)
     reference_value: float = betterproto.double_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class EggIncFirstContactRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(8)
     ei_user_id: str = betterproto.string_field(4)
@@ -724,7 +727,7 @@ class EggIncFirstContactRequest(betterproto.Message):
     platform: "Platform" = betterproto.enum_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class EggIncFirstContactResponse(betterproto.Message):
     ei_user_id: str = betterproto.string_field(2)
     ids_transferred: List[str] = betterproto.string_field(3)
@@ -733,18 +736,18 @@ class EggIncFirstContactResponse(betterproto.Message):
     backup: "Backup" = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class EggIncAdConfig(betterproto.Message):
     network_priority: List["AdNetwork"] = betterproto.enum_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class DailyGiftInfo(betterproto.Message):
     current_day: int = betterproto.uint32_field(1)
     seconds_to_next_day: float = betterproto.double_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class SalesInfoRequest(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     piggy_full: bool = betterproto.bool_field(2)
@@ -755,20 +758,20 @@ class SalesInfoRequest(betterproto.Message):
     current_client_version: int = betterproto.uint32_field(10)
 
 
-@dataclass(eq=False, repr=False)
-class IapSaleEntry(betterproto.Message):
+@dataclass
+class IAPSaleEntry(betterproto.Message):
     product_id: str = betterproto.string_field(1)
     seconds_remaining: float = betterproto.double_field(2)
     discount_string: str = betterproto.string_field(3)
     sale_id: str = betterproto.string_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class SalesInfo(betterproto.Message):
-    sales: List["IapSaleEntry"] = betterproto.message_field(1)
+    sales: List["IAPSaleEntry"] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class EggIncEvent(betterproto.Message):
     identifier: str = betterproto.string_field(1)
     seconds_remaining: float = betterproto.double_field(2)
@@ -780,12 +783,12 @@ class EggIncEvent(betterproto.Message):
     cc_only: bool = betterproto.bool_field(8)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class EggIncCurrentEvents(betterproto.Message):
     events: List["EggIncEvent"] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class DeviceInfo(betterproto.Message):
     device_id: str = betterproto.string_field(1)
     advertising_id: str = betterproto.string_field(13)
@@ -802,7 +805,7 @@ class DeviceInfo(betterproto.Message):
     screen_height: int = betterproto.uint32_field(12)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class AppInfo(betterproto.Message):
     version_str: str = betterproto.string_field(1)
     sessions: int = betterproto.uint32_field(2)
@@ -835,17 +838,17 @@ class AppInfo(betterproto.Message):
     long_warp_uses: int = betterproto.uint64_field(17)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ActionKeyValuePair(betterproto.Message):
     key: str = betterproto.string_field(1)
     value: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class GenericAction(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     advertising_id: str = betterproto.string_field(7)
-    approx_time_dep: float = betterproto.float_field(2)
+    approx_time__d_e_p: float = betterproto.float_field(2)
     approx_time: float = betterproto.double_field(8)
     action_name: str = betterproto.string_field(3)
     data: List["ActionKeyValuePair"] = betterproto.message_field(4)
@@ -853,13 +856,13 @@ class GenericAction(betterproto.Message):
     device: "DeviceInfo" = betterproto.message_field(6)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class GenericActionBatchRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(1)
     actions: List["GenericAction"] = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class VerifyPurchaseRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(6)
     sku: str = betterproto.string_field(1)
@@ -871,13 +874,13 @@ class VerifyPurchaseRequest(betterproto.Message):
     log: "GenericAction" = betterproto.message_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class VerifyPurchaseResponse(betterproto.Message):
     verified: bool = betterproto.bool_field(1)
     message: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CurrencyFlowLog(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     approx_time: float = betterproto.double_field(2)
@@ -891,27 +894,27 @@ class CurrencyFlowLog(betterproto.Message):
     gold_spent: int = betterproto.uint64_field(10)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CurrencyFlowBatchRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(2)
     logs: List["CurrencyFlowLog"] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class Reward(betterproto.Message):
     reward_type: "RewardType" = betterproto.enum_field(1)
     reward_sub_type: str = betterproto.string_field(2)
     reward_amount: float = betterproto.double_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class GameModifier(betterproto.Message):
     dimension: "GameModifierGameDimension" = betterproto.enum_field(1)
     value: float = betterproto.double_field(2)
     description: str = betterproto.string_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class Contract(betterproto.Message):
     identifier: str = betterproto.string_field(1)
     name: str = betterproto.string_field(9)
@@ -937,7 +940,7 @@ class Contract(betterproto.Message):
     key: str = betterproto.string_field(21)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractGoal(betterproto.Message):
     type: "GoalType" = betterproto.enum_field(1)
     target_amount: float = betterproto.double_field(2)
@@ -947,12 +950,12 @@ class ContractGoal(betterproto.Message):
     target_soul_eggs: float = betterproto.double_field(6)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractGoalSet(betterproto.Message):
     goals: List["ContractGoal"] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractGradeSpec(betterproto.Message):
     grade: "ContractPlayerGrade" = betterproto.enum_field(1)
     goals: List["ContractGoal"] = betterproto.message_field(2)
@@ -960,7 +963,7 @@ class ContractGradeSpec(betterproto.Message):
     length_seconds: float = betterproto.double_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractPlayerInfo(betterproto.Message):
     grade: "ContractPlayerGrade" = betterproto.enum_field(1)
     total_cxp: float = betterproto.double_field(2)
@@ -978,7 +981,7 @@ class ContractPlayerInfo(betterproto.Message):
     unread_evaluations: List["ContractEvaluation"] = betterproto.message_field(6)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractEvaluation(betterproto.Message):
     contract_identifier: str = betterproto.string_field(40)
     coop_identifier: str = betterproto.string_field(41)
@@ -1006,6 +1009,7 @@ class ContractEvaluation(betterproto.Message):
     other_bonuses: float = betterproto.double_field(14)
     counted_in_season: bool = betterproto.bool_field(20)
     season_id: str = betterproto.string_field(21)
+    time_cheats: int = betterproto.uint32_field(27)
     issues: List["ContractEvaluationPoorBehavior"] = betterproto.enum_field(19)
     notes: List[str] = betterproto.string_field(12)
     version: str = betterproto.string_field(50)
@@ -1013,41 +1017,42 @@ class ContractEvaluation(betterproto.Message):
     status: "ContractEvaluationStatus" = betterproto.enum_field(52)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractCitation(betterproto.Message):
     issue: "ContractEvaluationPoorBehavior" = betterproto.enum_field(1)
     timestamp: float = betterproto.double_field(2)
     grade: "ContractPlayerGrade" = betterproto.enum_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractEvaluationBatch(betterproto.Message):
     evals: List["ContractEvaluationBatchPair"] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractEvaluationBatchPair(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     cev: "ContractEvaluation" = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CoopCompletionSnapshot(betterproto.Message):
     contributors: List[
         "CoopCompletionSnapshotContributorSnapshot"
     ] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CoopCompletionSnapshotContributorSnapshot(betterproto.Message):
     contribution: float = betterproto.double_field(1)
+    last_contribution_time: float = betterproto.double_field(6)
     soul_power: float = betterproto.double_field(2)
     user_id: str = betterproto.string_field(3)
     tokens: int = betterproto.uint32_field(4)
     tokens_spent: int = betterproto.uint32_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class BasicRequestInfo(betterproto.Message):
     ei_user_id: str = betterproto.string_field(1)
     client_version: int = betterproto.uint32_field(2)
@@ -1059,14 +1064,14 @@ class BasicRequestInfo(betterproto.Message):
     debug: bool = betterproto.bool_field(8)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractSimConfig(betterproto.Message):
     grade_configs: List[
         "ContractSimConfigContractGradeSimConfig"
     ] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractSimConfigContractGradeSimConfig(betterproto.Message):
     grade: "ContractPlayerGrade" = betterproto.enum_field(1)
     goal_params: List[
@@ -1074,7 +1079,7 @@ class ContractSimConfigContractGradeSimConfig(betterproto.Message):
     ] = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractSimConfigContractGradeSimConfigGoalParams(betterproto.Message):
     target_se: float = betterproto.double_field(1)
     cps_mult: float = betterproto.double_field(2)
@@ -1082,38 +1087,38 @@ class ContractSimConfigContractGradeSimConfigGoalParams(betterproto.Message):
     time_efficacy: float = betterproto.double_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractSimPoll(betterproto.Message):
     client_version: int = betterproto.uint32_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractSimPollResponse(betterproto.Message):
     contract_to_simulate: "Contract" = betterproto.message_field(1)
     sim_config: "ContractSimConfig" = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractSimResultUpdate(betterproto.Message):
     contract_id: str = betterproto.string_field(1)
     goal_infos: List["ContractSimResultUpdateGoalInfo"] = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractSimResultUpdateGoalInfo(betterproto.Message):
     grade: "ContractPlayerGrade" = betterproto.enum_field(1)
     goal_index: int = betterproto.uint32_field(2)
     projected_eggs_laid: float = betterproto.double_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractsRequest(betterproto.Message):
     soul_eggs: float = betterproto.double_field(1)
     client_version: int = betterproto.uint32_field(5)
     user_id: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractsResponse(betterproto.Message):
     contracts: List["Contract"] = betterproto.message_field(1)
     warning_message: str = betterproto.string_field(4)
@@ -1121,7 +1126,7 @@ class ContractsResponse(betterproto.Message):
     max_eop: int = betterproto.uint32_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractCoopStatusRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(5)
     contract_identifier: str = betterproto.string_field(1)
@@ -1130,7 +1135,7 @@ class ContractCoopStatusRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class FarmProductionParams(betterproto.Message):
     farm_population: float = betterproto.double_field(1)
     farm_capacity: float = betterproto.double_field(2)
@@ -1140,7 +1145,7 @@ class FarmProductionParams(betterproto.Message):
     delivered: float = betterproto.double_field(6)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class PlayerFarmInfo(betterproto.Message):
     client_version: int = betterproto.uint32_field(20)
     soul_eggs: float = betterproto.double_field(1)
@@ -1162,11 +1167,11 @@ class PlayerFarmInfo(betterproto.Message):
     boost_tokens_on_hand: int = betterproto.uint32_field(16)
     equipped_artifacts: List["CompleteArtifact"] = betterproto.message_field(17)
     artifact_inventory_score: int = betterproto.uint64_field(18)
-    farm_appearance: "ShellDbFarmConfiguration" = betterproto.message_field(19)
+    farm_appearance: "ShellDBFarmConfiguration" = betterproto.message_field(19)
     timestamp: float = betterproto.double_field(22)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractCoopStatusResponse(betterproto.Message):
     contract_identifier: str = betterproto.string_field(1)
     total_amount: float = betterproto.double_field(2)
@@ -1187,7 +1192,7 @@ class ContractCoopStatusResponse(betterproto.Message):
     local_timestamp: float = betterproto.double_field(12)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractCoopStatusResponseContributionInfo(betterproto.Message):
     uuid: str = betterproto.string_field(21)
     user_id: str = betterproto.string_field(1)
@@ -1212,21 +1217,21 @@ class ContractCoopStatusResponseContributionInfo(betterproto.Message):
     chicken_run_cooldown: float = betterproto.double_field(20)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractCoopStatusResponseCoopGift(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     user_name: str = betterproto.string_field(3)
     amount: int = betterproto.uint32_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractCoopStatusResponseChickenRun(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     user_name: str = betterproto.string_field(3)
     amount: int = betterproto.uint64_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LocalContract(betterproto.Message):
     contract: "Contract" = betterproto.message_field(1)
     coop_identifier: str = betterproto.string_field(2)
@@ -1251,7 +1256,7 @@ class LocalContract(betterproto.Message):
     reported_uuids: List[str] = betterproto.string_field(21)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class MyContracts(betterproto.Message):
     contract_ids_seen: List[str] = betterproto.string_field(3)
     contracts: List["LocalContract"] = betterproto.message_field(1)
@@ -1265,7 +1270,7 @@ class MyContracts(betterproto.Message):
     show_advanced_evaluations: bool = betterproto.bool_field(8)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class QueryCoopRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(5)
     contract_identifier: str = betterproto.string_field(1)
@@ -1275,7 +1280,7 @@ class QueryCoopRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class QueryCoopResponse(betterproto.Message):
     exists: bool = betterproto.bool_field(1)
     full: bool = betterproto.bool_field(2)
@@ -1286,7 +1291,7 @@ class QueryCoopResponse(betterproto.Message):
     banned: bool = betterproto.bool_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CreateCoopRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(10)
     contract_identifier: str = betterproto.string_field(1)
@@ -1304,13 +1309,13 @@ class CreateCoopRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(7)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CreateCoopResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     message: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class JoinCoopRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(10)
     contract_identifier: str = betterproto.string_field(1)
@@ -1326,7 +1331,7 @@ class JoinCoopRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(7)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class JoinCoopResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     message: str = betterproto.string_field(2)
@@ -1340,7 +1345,7 @@ class JoinCoopResponse(betterproto.Message):
     can_start: bool = betterproto.bool_field(10)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class AutoJoinCoopRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(9)
     contract_identifier: str = betterproto.string_field(1)
@@ -1355,7 +1360,7 @@ class AutoJoinCoopRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(7)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class UpdateCoopPermissionsRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(6)
     contract_identifier: str = betterproto.string_field(1)
@@ -1365,13 +1370,13 @@ class UpdateCoopPermissionsRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class UpdateCoopPermissionsResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     message: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LeaveCoopRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(8)
     contract_identifier: str = betterproto.string_field(1)
@@ -1380,7 +1385,7 @@ class LeaveCoopRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(7)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class GiftPlayerCoopRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(8)
     contract_identifier: str = betterproto.string_field(1)
@@ -1392,7 +1397,7 @@ class GiftPlayerCoopRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(7)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class SendChickenRunCoopRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(8)
     contract_identifier: str = betterproto.string_field(1)
@@ -1404,7 +1409,7 @@ class SendChickenRunCoopRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(7)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ReportPlayerCoopRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(1)
     contract_identifier: str = betterproto.string_field(2)
@@ -1413,7 +1418,7 @@ class ReportPlayerCoopRequest(betterproto.Message):
     reason: "ReportPlayerCoopRequestReason" = betterproto.enum_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class KickPlayerCoopRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(8)
     contract_identifier: str = betterproto.string_field(1)
@@ -1424,7 +1429,7 @@ class KickPlayerCoopRequest(betterproto.Message):
     client_version: int = betterproto.uint32_field(7)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractCoopStatusUpdateRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(12)
     user_id: str = betterproto.string_field(1)
@@ -1444,37 +1449,37 @@ class ContractCoopStatusUpdateRequest(betterproto.Message):
     earnings_buff: float = betterproto.double_field(11)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractCoopStatusUpdateResponse(betterproto.Message):
     finalized: bool = betterproto.bool_field(1)
     exists: bool = betterproto.bool_field(2)
     status: "ContractCoopStatusResponseMemberStatus" = betterproto.enum_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CoopBuffState(betterproto.Message):
     egg_laying_rate: float = betterproto.double_field(1)
     earnings: float = betterproto.double_field(2)
     server_timestamp: float = betterproto.double_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CoopBuffHistory(betterproto.Message):
     history: List["CoopBuffState"] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CoopChickenRunEntry(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     server_timestamp: float = betterproto.double_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CoopLastChickenRunTimes(betterproto.Message):
     entries: List["CoopChickenRunEntry"] = betterproto.message_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LeaderboardAnalysis(betterproto.Message):
     chunks: List["LeaderboardAnalysisChunk"] = betterproto.message_field(1)
     count: int = betterproto.uint32_field(2)
@@ -1482,7 +1487,7 @@ class LeaderboardAnalysis(betterproto.Message):
     low_score: float = betterproto.double_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LeaderboardAnalysisChunk(betterproto.Message):
     start_index: int = betterproto.uint32_field(1)
     end_index: int = betterproto.uint32_field(2)
@@ -1492,26 +1497,26 @@ class LeaderboardAnalysisChunk(betterproto.Message):
     end_cursor: str = betterproto.string_field(6)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LeaderboardInfo(betterproto.Message):
     seasons: List["LeaderboardInfoSeason"] = betterproto.message_field(1)
     all_time_scope: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LeaderboardInfoSeason(betterproto.Message):
     scope: str = betterproto.string_field(1)
     name: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LeaderboardRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(1)
     scope: str = betterproto.string_field(2)
     grade: "ContractPlayerGrade" = betterproto.enum_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LeaderboardResponse(betterproto.Message):
     scope: str = betterproto.string_field(1)
     grade: "ContractPlayerGrade" = betterproto.enum_field(2)
@@ -1521,19 +1526,19 @@ class LeaderboardResponse(betterproto.Message):
     score: float = betterproto.double_field(6)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LeaderboardResponseEntry(betterproto.Message):
     rank: int = betterproto.uint32_field(1)
     alias: str = betterproto.string_field(2)
     score: float = betterproto.double_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractsArchive(betterproto.Message):
     archive: List["LocalContract"] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ContractAction(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     action_name: str = betterproto.string_field(2)
@@ -1556,7 +1561,7 @@ class ContractAction(betterproto.Message):
     cc_only: bool = betterproto.bool_field(19)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class UserDataInfoRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(4)
     user_id: str = betterproto.string_field(1)
@@ -1564,14 +1569,14 @@ class UserDataInfoRequest(betterproto.Message):
     backup_checksum: int = betterproto.uint64_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class UserDataInfoResponse(betterproto.Message):
     backup_checksum: int = betterproto.uint64_field(1)
     backup_total_cash: float = betterproto.double_field(2)
     coop_memberships: List[str] = betterproto.string_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ClearAllUserDataRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(4)
     user_id: str = betterproto.string_field(1)
@@ -1579,7 +1584,7 @@ class ClearAllUserDataRequest(betterproto.Message):
     backup_checksum: int = betterproto.uint64_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ServerGift(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     reward_type: "RewardType" = betterproto.enum_field(3)
@@ -1587,7 +1592,7 @@ class ServerGift(betterproto.Message):
     reward_amount: float = betterproto.double_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LiveConfig(betterproto.Message):
     config_id: str = betterproto.string_field(1)
     boosts_config: "LiveConfigBoostsConfig" = betterproto.message_field(2)
@@ -1595,7 +1600,7 @@ class LiveConfig(betterproto.Message):
     misc_config: "LiveConfigMiscConfig" = betterproto.message_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LiveConfigBoostsConfig(betterproto.Message):
     item_configs: List["LiveConfigBoostsConfigItemConfig"] = betterproto.message_field(
         1
@@ -1603,7 +1608,7 @@ class LiveConfigBoostsConfig(betterproto.Message):
     cash_boost_cooloff_time: float = betterproto.double_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LiveConfigBoostsConfigItemConfig(betterproto.Message):
     boost_id: str = betterproto.string_field(1)
     price: int = betterproto.uint32_field(2)
@@ -1611,7 +1616,7 @@ class LiveConfigBoostsConfigItemConfig(betterproto.Message):
     se_required: float = betterproto.double_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LiveConfigGiftConfig(betterproto.Message):
     gift_configs: List[
         "LiveConfigGiftConfigGiftValueConfig"
@@ -1637,7 +1642,7 @@ class LiveConfigGiftConfig(betterproto.Message):
     package_reset_on_idle: bool = betterproto.bool_field(13)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LiveConfigGiftConfigGiftValueConfig(betterproto.Message):
     gift_id: str = betterproto.string_field(1)
     amount: float = betterproto.double_field(4)
@@ -1647,14 +1652,14 @@ class LiveConfigGiftConfigGiftValueConfig(betterproto.Message):
     video_max: float = betterproto.double_field(6)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LiveConfigGiftConfigGiftMuConfig(betterproto.Message):
     min_spent: float = betterproto.double_field(1)
     max_spent: float = betterproto.double_field(2)
     overall_mult: float = betterproto.double_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LiveConfigMiscConfig(betterproto.Message):
     ask_to_track: bool = betterproto.bool_field(1)
     ask_to_track_min_soul_eggs: float = betterproto.double_field(2)
@@ -1671,7 +1676,7 @@ class LiveConfigMiscConfig(betterproto.Message):
     contracts_beta: bool = betterproto.bool_field(13)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class InGameMail(betterproto.Message):
     id: str = betterproto.string_field(1)
     title: str = betterproto.string_field(2)
@@ -1688,12 +1693,12 @@ class InGameMail(betterproto.Message):
     gold_tip: float = betterproto.double_field(6)
 
 
-@dataclass(eq=False, repr=False)
-class MailDb(betterproto.Message):
+@dataclass
+class MailDB(betterproto.Message):
     mail: List["InGameMail"] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class PeriodicalsResponse(betterproto.Message):
     sales: "SalesInfo" = betterproto.message_field(1)
     events: "EggIncCurrentEvents" = betterproto.message_field(2)
@@ -1701,11 +1706,11 @@ class PeriodicalsResponse(betterproto.Message):
     evaluations: List["ContractEvaluation"] = betterproto.message_field(8)
     gifts: List["ServerGift"] = betterproto.message_field(4)
     live_config: "LiveConfig" = betterproto.message_field(5)
-    mail_bag: "MailDb" = betterproto.message_field(6)
+    mail_bag: "MailDB" = betterproto.message_field(6)
     contract_player_info: "ContractPlayerInfo" = betterproto.message_field(7)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class GetPeriodicalsRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(12)
     user_id: str = betterproto.string_field(1)
@@ -1723,7 +1728,7 @@ class GetPeriodicalsRequest(betterproto.Message):
     debug: bool = betterproto.bool_field(11)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ConfigRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(1)
     soul_eggs: float = betterproto.double_field(2)
@@ -1731,14 +1736,14 @@ class ConfigRequest(betterproto.Message):
     fuel_tank_unlocked: bool = betterproto.bool_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ConfigResponse(betterproto.Message):
     live_config: "LiveConfig" = betterproto.message_field(1)
-    mail_bag: "MailDb" = betterproto.message_field(2)
-    dlc_catalog: "DlcCatalog" = betterproto.message_field(3)
+    mail_bag: "MailDB" = betterproto.message_field(2)
+    dlc_catalog: "DLCCatalog" = betterproto.message_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class AdAttributionRawData(betterproto.Message):
     device_ad_id: str = betterproto.string_field(1)
     user_id: str = betterproto.string_field(4)
@@ -1746,7 +1751,7 @@ class AdAttributionRawData(betterproto.Message):
     json_data: str = betterproto.string_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class AdAttributionRow(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     ad_id: str = betterproto.string_field(2)
@@ -1759,7 +1764,7 @@ class AdAttributionRow(betterproto.Message):
     approx_time: float = betterproto.float_field(9)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class AdAttributionInfo(betterproto.Message):
     device_ad_id: str = betterproto.string_field(1)
     network_name: str = betterproto.string_field(2)
@@ -1781,7 +1786,7 @@ class AdAttributionInfo(betterproto.Message):
     creativeset_id: str = betterproto.string_field(18)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactsClientInfo(betterproto.Message):
     mission_capacity_mult: float = betterproto.double_field(1)
     mission_duration_mult: float = betterproto.double_field(2)
@@ -1789,14 +1794,14 @@ class ArtifactsClientInfo(betterproto.Message):
     launch_counts: List["ArtifactsClientInfoLaunchCount"] = betterproto.message_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactsClientInfoLaunchCount(betterproto.Message):
     ship: "MissionInfoSpaceship" = betterproto.enum_field(1)
     num_launches: int = betterproto.uint32_field(2)
     launch_points: float = betterproto.double_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class MissionInfo(betterproto.Message):
     ship: "MissionInfoSpaceship" = betterproto.enum_field(1)
     status: "MissionInfoStatus" = betterproto.enum_field(2)
@@ -1812,13 +1817,13 @@ class MissionInfo(betterproto.Message):
     identifier: str = betterproto.string_field(7)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class MissionInfoFuel(betterproto.Message):
     egg: "Egg" = betterproto.enum_field(1)
     amount: float = betterproto.double_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactSpec(betterproto.Message):
     name: "ArtifactSpecName" = betterproto.enum_field(1)
     level: "ArtifactSpecLevel" = betterproto.enum_field(2)
@@ -1826,13 +1831,13 @@ class ArtifactSpec(betterproto.Message):
     egg: "Egg" = betterproto.enum_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CompleteArtifact(betterproto.Message):
     spec: "ArtifactSpec" = betterproto.message_field(1)
     stones: List["ArtifactSpec"] = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactInventoryItem(betterproto.Message):
     item_id: int = betterproto.uint64_field(1)
     artifact: "CompleteArtifact" = betterproto.message_field(2)
@@ -1840,19 +1845,19 @@ class ArtifactInventoryItem(betterproto.Message):
     server_id: str = betterproto.string_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class InventorySlot(betterproto.Message):
     occupied: bool = betterproto.bool_field(1)
     item_id: int = betterproto.uint32_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactsConfigurationRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(2)
     client_version: int = betterproto.uint32_field(1)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactsConfigurationResponse(betterproto.Message):
     mission_parameters: List[
         "ArtifactsConfigurationResponseMissionParameters"
@@ -1865,17 +1870,17 @@ class ArtifactsConfigurationResponse(betterproto.Message):
     ] = betterproto.message_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactsConfigurationResponseMissionParameters(betterproto.Message):
     ship: "MissionInfoSpaceship" = betterproto.enum_field(1)
     durations: List[
         "ArtifactsConfigurationResponseMissionParametersDuration"
     ] = betterproto.message_field(3)
     level_mission_requirements: List[int] = betterproto.uint32_field(4)
-    capacity_deprecated: int = betterproto.uint32_field(2)
+    capacity__d_e_p_r_e_c_a_t_e_d: int = betterproto.uint32_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactsConfigurationResponseMissionParametersDuration(betterproto.Message):
     duration_type: "MissionInfoDurationType" = betterproto.enum_field(1)
     seconds: float = betterproto.double_field(2)
@@ -1887,7 +1892,7 @@ class ArtifactsConfigurationResponseMissionParametersDuration(betterproto.Messag
     level_quality_bump: float = betterproto.float_field(8)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactsConfigurationResponseArtifactParameters(betterproto.Message):
     spec: "ArtifactSpec" = betterproto.message_field(1)
     base_quality: float = betterproto.double_field(2)
@@ -1900,13 +1905,13 @@ class ArtifactsConfigurationResponseArtifactParameters(betterproto.Message):
     crafting_xp: int = betterproto.uint64_field(9)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ArtifactsConfigurationResponseCraftingLevelInfo(betterproto.Message):
     xp_required: float = betterproto.double_field(1)
     rarity_mult: float = betterproto.float_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class MissionRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(4)
     client_version: int = betterproto.uint32_field(1)
@@ -1915,13 +1920,13 @@ class MissionRequest(betterproto.Message):
     client_info: "ArtifactsClientInfo" = betterproto.message_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class MissionResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     info: "MissionInfo" = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CompleteMissionResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     info: "MissionInfo" = betterproto.message_field(2)
@@ -1932,13 +1937,13 @@ class CompleteMissionResponse(betterproto.Message):
     ei_user_id: str = betterproto.string_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CompleteMissionResponseSecureArtifactSpec(betterproto.Message):
     spec: "ArtifactSpec" = betterproto.message_field(1)
     server_id: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CollectContractArtifactRewardsRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(1)
     contract_identifier: str = betterproto.string_field(2)
@@ -1948,7 +1953,7 @@ class CollectContractArtifactRewardsRequest(betterproto.Message):
     best_ship: "MissionInfoSpaceship" = betterproto.enum_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CraftArtifactRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(5)
     ei_user_id: str = betterproto.string_field(1)
@@ -1960,7 +1965,7 @@ class CraftArtifactRequest(betterproto.Message):
     ingredients: List["ArtifactInventoryItem"] = betterproto.message_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CraftArtifactResponse(betterproto.Message):
     item_id: int = betterproto.uint64_field(1)
     ei_user_id: str = betterproto.string_field(5)
@@ -1968,7 +1973,7 @@ class CraftArtifactResponse(betterproto.Message):
     server_id: str = betterproto.string_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ConsumeArtifactRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(4)
     ei_user_id: str = betterproto.string_field(3)
@@ -1980,7 +1985,7 @@ class ConsumeArtifactRequest(betterproto.Message):
     quantity: int = betterproto.uint32_field(6)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ConsumeArtifactResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     original_item_id: int = betterproto.uint64_field(2)
@@ -1990,7 +1995,7 @@ class ConsumeArtifactResponse(betterproto.Message):
     ei_user_id: str = betterproto.string_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class AuthenticateArtifactResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     original_item_id: int = betterproto.uint64_field(2)
@@ -1999,7 +2004,7 @@ class AuthenticateArtifactResponse(betterproto.Message):
     ei_user_id: str = betterproto.string_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class SetArtifactRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(1)
     artifact: "ArtifactInventoryItem" = betterproto.message_field(2)
@@ -2007,51 +2012,53 @@ class SetArtifactRequest(betterproto.Message):
     gold_price_paid: float = betterproto.double_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class SetArtifactResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     original_item_id: int = betterproto.uint64_field(2)
     ei_user_id: str = betterproto.string_field(5)
 
 
-@dataclass(eq=False, repr=False)
-class ArtifactsDb(betterproto.Message):
+@dataclass
+class ArtifactsDB(betterproto.Message):
     inventory_items: List["ArtifactInventoryItem"] = betterproto.message_field(1)
     item_sequence: int = betterproto.uint64_field(2)
     inventory_slots: List["InventorySlot"] = betterproto.message_field(3)
-    active_artifacts: List["ArtifactsDbActiveArtifactSlot"] = betterproto.message_field(
+    active_artifacts: List["ArtifactsDBActiveArtifactSlot"] = betterproto.message_field(
         7
     )
     active_artifact_sets: List[
-        "ArtifactsDbActiveArtifactSet"
+        "ArtifactsDBActiveArtifactSet"
     ] = betterproto.message_field(11)
-    artifact_status: List["ArtifactsDbCraftableArtifact"] = betterproto.message_field(
+    artifact_status: List["ArtifactsDBCraftableArtifact"] = betterproto.message_field(
         12
     )
     mission_infos: List["MissionInfo"] = betterproto.message_field(4)
     mission_archive: List["MissionInfo"] = betterproto.message_field(5)
-    discovered_artifacts_deprecated: List["ArtifactSpec"] = betterproto.message_field(8)
-    craftable_artifacts_deprecated: List[
-        "ArtifactsDbCraftableArtifact"
+    discovered_artifacts__d_e_p_r_e_c_a_t_e_d: List[
+        "ArtifactSpec"
+    ] = betterproto.message_field(8)
+    craftable_artifacts__d_e_p_r_e_c_a_t_e_d: List[
+        "ArtifactsDBCraftableArtifact"
     ] = betterproto.message_field(9)
-    crafting_counts_deprecated: List[
-        "ArtifactsDbCraftableArtifact"
+    crafting_counts__d_e_p_r_e_c_a_t_e_d: List[
+        "ArtifactsDBCraftableArtifact"
     ] = betterproto.message_field(10)
 
 
-@dataclass(eq=False, repr=False)
-class ArtifactsDbActiveArtifactSlot(betterproto.Message):
+@dataclass
+class ArtifactsDBActiveArtifactSlot(betterproto.Message):
     occupied: bool = betterproto.bool_field(1)
     item_id: int = betterproto.uint64_field(2)
 
 
-@dataclass(eq=False, repr=False)
-class ArtifactsDbActiveArtifactSet(betterproto.Message):
-    slots: List["ArtifactsDbActiveArtifactSlot"] = betterproto.message_field(1)
+@dataclass
+class ArtifactsDBActiveArtifactSet(betterproto.Message):
+    slots: List["ArtifactsDBActiveArtifactSlot"] = betterproto.message_field(1)
 
 
-@dataclass(eq=False, repr=False)
-class ArtifactsDbCraftableArtifact(betterproto.Message):
+@dataclass
+class ArtifactsDBCraftableArtifact(betterproto.Message):
     spec: "ArtifactSpec" = betterproto.message_field(1)
     discovered: bool = betterproto.bool_field(6)
     craftable: bool = betterproto.bool_field(4)
@@ -2060,7 +2067,7 @@ class ArtifactsDbCraftableArtifact(betterproto.Message):
     count: int = betterproto.uint32_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class AuthenticatedMessage(betterproto.Message):
     message: bytes = betterproto.bytes_field(1)
     version: int = betterproto.uint32_field(3)
@@ -2069,37 +2076,37 @@ class AuthenticatedMessage(betterproto.Message):
     original_size: int = betterproto.uint32_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LogCompleteMissionPayload(betterproto.Message):
     req: "MissionRequest" = betterproto.message_field(1)
     res: "CompleteMissionResponse" = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LogCraftArtifactPayload(betterproto.Message):
     req: "CraftArtifactRequest" = betterproto.message_field(1)
     res: "CraftArtifactResponse" = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LogConsumeArtifactPayload(betterproto.Message):
     req: "ConsumeArtifactRequest" = betterproto.message_field(1)
     res: "ConsumeArtifactResponse" = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class LogSetArtifactPayload(betterproto.Message):
     req: "SetArtifactRequest" = betterproto.message_field(1)
     res: "SetArtifactResponse" = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class AccountTransferPayload(betterproto.Message):
     from_id: str = betterproto.string_field(1)
     to_ei_user_id: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class SaveBackupResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     error_code: int = betterproto.uint32_field(2)
@@ -2107,19 +2114,19 @@ class SaveBackupResponse(betterproto.Message):
     existing_backup: "Backup" = betterproto.message_field(4)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class CleanAccountRequest(betterproto.Message):
     ei_user_id_to_keep: str = betterproto.string_field(1)
     game_services_id: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
-class ReturnEdtPayload(betterproto.Message):
+@dataclass
+class ReturnEDTPayload(betterproto.Message):
     ei_user_id: str = betterproto.string_field(1)
 
 
-@dataclass(eq=False, repr=False)
-class DlcItem(betterproto.Message):
+@dataclass
+class DLCItem(betterproto.Message):
     name: str = betterproto.string_field(1)
     directory: str = betterproto.string_field(2)
     ext: str = betterproto.string_field(3)
@@ -2129,12 +2136,12 @@ class DlcItem(betterproto.Message):
     checksum: str = betterproto.string_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ShellSpec(betterproto.Message):
     identifier: str = betterproto.string_field(1)
     primary_piece: "ShellSpecShellPiece" = betterproto.message_field(12)
     pieces: List["ShellSpecShellPiece"] = betterproto.message_field(11)
-    alt_assets: List["DlcItem"] = betterproto.message_field(18)
+    alt_assets: List["DLCItem"] = betterproto.message_field(18)
     name: str = betterproto.string_field(3)
     set_identifier: str = betterproto.string_field(13)
     modified_geometry: bool = betterproto.bool_field(19)
@@ -2149,18 +2156,18 @@ class ShellSpec(betterproto.Message):
     default_appearance: bool = betterproto.bool_field(8)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ShellSpecShellPiece(betterproto.Message):
     asset_type: "ShellSpecAssetType" = betterproto.enum_field(1)
-    dlc: "DlcItem" = betterproto.message_field(2)
+    dlc: "DLCItem" = betterproto.message_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ShellSetSpec(betterproto.Message):
     identifier: str = betterproto.string_field(1)
     name: str = betterproto.string_field(2)
     price: int = betterproto.uint32_field(3)
-    price_mult_deprecated: float = betterproto.double_field(8)
+    price_mult__d_e_p_r_e_c_a_t_e_d: float = betterproto.double_field(8)
     discount: float = betterproto.double_field(17)
     required_eop: int = betterproto.uint32_field(4)
     required_soul_eggs: float = betterproto.double_field(5)
@@ -2174,12 +2181,12 @@ class ShellSetSpec(betterproto.Message):
     element_set: bool = betterproto.bool_field(7)
     hex_base_color: str = betterproto.string_field(16)
     variations: List["ShellSetSpecVariationSpec"] = betterproto.message_field(15)
-    icon: "DlcItem" = betterproto.message_field(19)
+    icon: "DLCItem" = betterproto.message_field(19)
     default_appearance: bool = betterproto.bool_field(6)
     custom_appearance: bool = betterproto.bool_field(12)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ShellSetSpecVariationSpec(betterproto.Message):
     identifier: str = betterproto.string_field(1)
     hex_color: str = betterproto.string_field(2)
@@ -2189,7 +2196,7 @@ class ShellSetSpecVariationSpec(betterproto.Message):
     custom_appearance: bool = betterproto.bool_field(5)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ShellObjectSpec(betterproto.Message):
     identifier: str = betterproto.string_field(1)
     name: str = betterproto.string_field(2)
@@ -2207,28 +2214,28 @@ class ShellObjectSpec(betterproto.Message):
     no_hats: bool = betterproto.bool_field(13)
     chicken_animation: "ShellObjectSpecChickenAnimation" = betterproto.enum_field(16)
     sort_priority: int = betterproto.int32_field(17)
-    pieces: List["ShellObjectSpecLodPiece"] = betterproto.message_field(8)
+    pieces: List["ShellObjectSpecLODPiece"] = betterproto.message_field(8)
     default_appearance: bool = betterproto.bool_field(9)
 
 
-@dataclass(eq=False, repr=False)
-class ShellObjectSpecLodPiece(betterproto.Message):
-    dlc: "DlcItem" = betterproto.message_field(1)
+@dataclass
+class ShellObjectSpecLODPiece(betterproto.Message):
+    dlc: "DLCItem" = betterproto.message_field(1)
     lod: int = betterproto.uint32_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ShellGroupSpec(betterproto.Message):
     identifier: str = betterproto.string_field(1)
     name: str = betterproto.string_field(2)
     asset_type: "ShellSpecAssetType" = betterproto.enum_field(5)
     member_ids: List[str] = betterproto.string_field(3)
-    price_mult_deprecated: float = betterproto.double_field(4)
+    price_mult__d_e_p_r_e_c_a_t_e_d: float = betterproto.double_field(4)
 
 
-@dataclass(eq=False, repr=False)
-class DlcCatalog(betterproto.Message):
-    items: List["DlcItem"] = betterproto.message_field(1)
+@dataclass
+class DLCCatalog(betterproto.Message):
+    items: List["DLCItem"] = betterproto.message_field(1)
     shells: List["ShellSpec"] = betterproto.message_field(2)
     shell_sets: List["ShellSetSpec"] = betterproto.message_field(3)
     decorators: List["ShellSetSpec"] = betterproto.message_field(6)
@@ -2236,94 +2243,94 @@ class DlcCatalog(betterproto.Message):
     shell_groups: List["ShellGroupSpec"] = betterproto.message_field(5)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDb(betterproto.Message):
-    shell_inventory: List["ShellDbShellStatus"] = betterproto.message_field(1)
+@dataclass
+class ShellDB(betterproto.Message):
+    shell_inventory: List["ShellDBShellStatus"] = betterproto.message_field(1)
     shell_element_inventory: List[
-        "ShellDbShellElementStatus"
+        "ShellDBShellElementStatus"
     ] = betterproto.message_field(5)
     shell_variation_inventory: List[
-        "ShellDbShellSetVariationStatus"
+        "ShellDBShellSetVariationStatus"
     ] = betterproto.message_field(8)
-    shell_set_inventory: List["ShellDbShellStatus"] = betterproto.message_field(2)
-    shell_object_inventory: List["ShellDbShellStatus"] = betterproto.message_field(4)
-    farm_configs: List["ShellDbFarmConfiguration"] = betterproto.message_field(3)
-    saved_configs: List["ShellDbSavedFarmConfiguration"] = betterproto.message_field(9)
+    shell_set_inventory: List["ShellDBShellStatus"] = betterproto.message_field(2)
+    shell_object_inventory: List["ShellDBShellStatus"] = betterproto.message_field(4)
+    farm_configs: List["ShellDBFarmConfiguration"] = betterproto.message_field(3)
+    saved_configs: List["ShellDBSavedFarmConfiguration"] = betterproto.message_field(9)
     new_shells_downloaded: List[str] = betterproto.string_field(6)
     new_shells_seen: List[str] = betterproto.string_field(7)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDbShellStatus(betterproto.Message):
+@dataclass
+class ShellDBShellStatus(betterproto.Message):
     identifier: str = betterproto.string_field(1)
     owned: bool = betterproto.bool_field(2)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDbShellElementStatus(betterproto.Message):
-    element: "ShellDbFarmElement" = betterproto.enum_field(1)
+@dataclass
+class ShellDBShellElementStatus(betterproto.Message):
+    element: "ShellDBFarmElement" = betterproto.enum_field(1)
     set_identifier: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDbShellSetVariationStatus(betterproto.Message):
+@dataclass
+class ShellDBShellSetVariationStatus(betterproto.Message):
     set_identifier: str = betterproto.string_field(1)
     owned_variations: List[str] = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDbFarmConfiguration(betterproto.Message):
-    shell_configs: List["ShellDbShellConfiguration"] = betterproto.message_field(1)
-    shell_set_configs: List["ShellDbShellSetConfiguration"] = betterproto.message_field(
+@dataclass
+class ShellDBFarmConfiguration(betterproto.Message):
+    shell_configs: List["ShellDBShellConfiguration"] = betterproto.message_field(1)
+    shell_set_configs: List["ShellDBShellSetConfiguration"] = betterproto.message_field(
         2
     )
     configure_chickens_by_group: bool = betterproto.bool_field(7)
-    group_configs: List["ShellDbShellGroupConfiguration"] = betterproto.message_field(8)
-    chicken_configs: List["ShellDbChickenConfig"] = betterproto.message_field(9)
+    group_configs: List["ShellDBShellGroupConfiguration"] = betterproto.message_field(8)
+    chicken_configs: List["ShellDBChickenConfig"] = betterproto.message_field(9)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDbSavedFarmConfiguration(betterproto.Message):
+@dataclass
+class ShellDBSavedFarmConfiguration(betterproto.Message):
     name: str = betterproto.string_field(1)
-    config: "ShellDbFarmConfiguration" = betterproto.message_field(2)
+    config: "ShellDBFarmConfiguration" = betterproto.message_field(2)
     client_save_time: float = betterproto.double_field(3)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDbShellConfiguration(betterproto.Message):
+@dataclass
+class ShellDBShellConfiguration(betterproto.Message):
     asset_type: "ShellSpecAssetType" = betterproto.enum_field(1)
     index: int = betterproto.uint32_field(2)
     shell_identifier: str = betterproto.string_field(3)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDbShellSetConfiguration(betterproto.Message):
-    element: "ShellDbFarmElement" = betterproto.enum_field(1)
+@dataclass
+class ShellDBShellSetConfiguration(betterproto.Message):
+    element: "ShellDBFarmElement" = betterproto.enum_field(1)
     index: int = betterproto.uint32_field(2)
     shell_set_identifier: str = betterproto.string_field(3)
     variation_identifier: str = betterproto.string_field(4)
     decorator_identifier: str = betterproto.string_field(5)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDbShellGroupConfiguration(betterproto.Message):
+@dataclass
+class ShellDBShellGroupConfiguration(betterproto.Message):
     asset_type: "ShellSpecAssetType" = betterproto.enum_field(1)
     group_identifier: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
-class ShellDbChickenConfig(betterproto.Message):
+@dataclass
+class ShellDBChickenConfig(betterproto.Message):
     chicken_identifier: str = betterproto.string_field(1)
     hat_identifier: str = betterproto.string_field(2)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class ShellsActionLog(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(8)
     user_id: str = betterproto.string_field(1)
     action: str = betterproto.string_field(2)
     sub_id: str = betterproto.string_field(3)
-    farm_element: "ShellDbFarmElement" = betterproto.enum_field(9)
+    farm_element: "ShellDBFarmElement" = betterproto.enum_field(9)
     cost: int = betterproto.uint32_field(4)
     approx_time: float = betterproto.double_field(5)
     version: str = betterproto.string_field(6)
@@ -2333,7 +2340,7 @@ class ShellsActionLog(betterproto.Message):
     gold_spent: int = betterproto.uint64_field(12)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class UserVerificationAnalysis(betterproto.Message):
     overall_status: "UserVerificationAnalysisStatus" = betterproto.enum_field(1)
     start_time: float = betterproto.double_field(2)
@@ -2369,7 +2376,7 @@ class UserVerificationAnalysis(betterproto.Message):
     verification_override_value: bool = betterproto.bool_field(32)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class UserSubscriptionInfo(betterproto.Message):
     subscription_level: "UserSubscriptionInfoLevel" = betterproto.enum_field(13)
     next_subscription_level: "UserSubscriptionInfoLevel" = betterproto.enum_field(15)
@@ -2389,14 +2396,14 @@ class UserSubscriptionInfo(betterproto.Message):
     past_user_ids: List[str] = betterproto.string_field(11)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class UserSubscriptionInfoHistoryEntry(betterproto.Message):
     timestamp: float = betterproto.double_field(1)
     message_id: str = betterproto.string_field(2)
     message: str = betterproto.string_field(3)
 
 
-@dataclass(eq=False, repr=False)
+@dataclass
 class SubscriptionChangeHintRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(3)
     original_transaction_id: str = betterproto.string_field(1)
