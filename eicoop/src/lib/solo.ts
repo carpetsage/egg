@@ -106,7 +106,7 @@ export class SoloStatus {
 
   get confirmedLeagueStatusNow(): ContractLeagueStatus {
     const secondsRemaining = this.expirationTime.diff(dayjs(), 'seconds', true);
-    return new ContractLeagueStatus(this.eggsLaid, this.eggsPerHour, secondsRemaining, this.goals);
+    return new ContractLeagueStatus(this.eggsLaid, this.eggsPerHour, secondsRemaining, this.goals, "");
   }
 
   get estimatedLeagueStatusNow(): ContractLeagueStatus {
@@ -123,7 +123,8 @@ export class SoloStatus {
       estimatedEggsLaid,
       this.eggsPerHour,
       secondsRemaining,
-      this.goals
+      this.goals,
+      ""
     );
   }
 }
