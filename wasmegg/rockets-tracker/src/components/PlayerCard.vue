@@ -613,7 +613,7 @@
           </div>
 
           <a
-            :href="`https://wasmegg-carpet.netlify.app/past-contract/?playerId=${userId}`"
+            :href="`https://eicoop-carpet.netlify.app/u/${userId}`"
             target="_blank"
             class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
           >
