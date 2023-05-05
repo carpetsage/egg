@@ -61,7 +61,7 @@ export function getUserContractList(backup: ei.IBackup): UserContract[] {
     backup.contracts?.archive || []
   );
   const attemptedContracts = localContracts
-    .map(c => newUserContract(c, true))
+    .map(c => newUserContract(c, true, undefined, c.grade))
     .sort((c1, c2) => c1.timestamp - c2.timestamp);
 
   const contractIds = new Set(attemptedContracts.map(c => c.id));
@@ -70,7 +70,7 @@ export function getUserContractList(backup: ei.IBackup): UserContract[] {
   // pick up latest incarnations of unattempted contracts.
   for (const contract of [...rawContractList].reverse()) {
     if (!contractIds.has(contract.identifier!)) {
-      unattemptedContracts.push(newUnattemptedUserContract(contract));
+      unattemptedContracts.push(newUnattemptedUserContract(contract, backup.contracts?.lastCpi?.grade));
       contractIds.add(contract.identifier!);
     }
   }
@@ -81,7 +81,8 @@ export function getUserContractList(backup: ei.IBackup): UserContract[] {
 function newUserContract(
   contract: ei.ILocalContract,
   attempted: boolean,
-  offeringTimestamp?: number
+  offeringTimestamp?: number,
+  playerGrade?: ei.Contract.PlayerGrade | null
 ): UserContract {
   const timestamp = attempted ? contract.timeAccepted! : offeringTimestamp;
   if (!timestamp) {
@@ -98,9 +99,10 @@ function newUserContract(
   const coopCode = contract.coopIdentifier || null;
   const league: ContractLeague = contract.league || 0;
   let hasLeagues = false;
-  const hasGrades = Boolean(contract.grade);
-  let goals = contract.grade? props.gradeSpecs![contract.grade - 1].goals : props.goals;
-  if (!contract.grade && props.goalSets && props.goalSets.length > league) {
+  const hasGrades = Boolean(contract.contract?.gradeSpecs);
+  // Backup does NOT accurately display grade of past coops but try anyway. Fallback to C goals
+  let goals = hasGrades ? props.gradeSpecs![(playerGrade ?? 1) - 1].goals : props.goals;
+  if (!hasGrades && props.goalSets && props.goalSets.length > league) {
     hasLeagues = true;
     goals = props.goalSets[league].goals;
   }
@@ -144,12 +146,13 @@ function newUserContract(
   };
 }
 
-function newUnattemptedUserContract(props: ContractProps): UserContract {
+function newUnattemptedUserContract(props: ContractProps, grade?: ei.Contract.PlayerGrade | null): UserContract {
   return newUserContract(
     {
       contract: props,
     },
     false,
-    props.offeringTimestamp
+    props.offeringTimestamp,
+    grade
   );
 }
