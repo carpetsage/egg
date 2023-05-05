@@ -1,6 +1,6 @@
 .PHONY: all init
 
-all: init ei.py
+all: init ei_pb2.py
 
 init:
 	pip install -r requirements.txt

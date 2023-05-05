@@ -5,8 +5,8 @@ import {
   ei,
   FarmerRole,
   requestFirstContact,
-  requestPeriodicals,
   requestQueryCoop,
+  requestJoinCoop,
   soulPowerToFarmerRole,
 } from "lib";
 import {
@@ -15,7 +15,6 @@ import {
   getContractFromPlayerSave,
 } from "./contract";
 import { SortedContractList } from "./contractList";
-import { request } from '@/lib';
 
 // League constants
 const COOP_LEAGUE_DIVIDER_EB = 1e13; // 10T%
@@ -25,8 +24,6 @@ const COOP_LEAGUE_DEFINITELY_ELITE_EB = 1e16;
 // Grade Constants
 // Min EB for each grade
 const GRADES_EB = [0, 1e5, 1e7, 1e9, 1e11, 1e13];
-// peta3. may need adjustment once update has been out
-const COOP_GRADE_PROBABLY_AAA_EB = 1e19;
 
 export class CoopStatus {
   contractId: string;
@@ -53,8 +50,12 @@ export class CoopStatus {
   leagueStatus: ContractLeagueStatus | null;
   refreshTime: Dayjs;
   expirationTime: Dayjs;
+  eggsLaidOfflineAdjusted: number;
+  expectedTimeToCompleteOfflineAdjusted: number | null;
+  status: string;
 
   constructor(cs: ei.IContractCoopStatusResponse) {
+    this.status = "ACTIVE";
     this.contractId = cs.contractIdentifier!;
     this.contract = null;
     this.coopCode = cs.coopIdentifier!;
@@ -106,6 +107,11 @@ export class CoopStatus {
     this.leagueStatus = null;
     this.refreshTime = dayjs(cs.localTimestamp! * 1000);
     this.expirationTime = this.refreshTime.add(cs.secondsRemaining!, "second");
+    this.eggsLaidOfflineAdjusted = this.eggsLaid;
+    for (const contributor of this.contributors) {
+      this.eggsLaidOfflineAdjusted += contributor.offlineEggs;
+    }
+    this.expectedTimeToCompleteOfflineAdjusted = null;
   }
 
   async resolveContract({
@@ -150,12 +156,16 @@ export class CoopStatus {
       this.creatorName = result.creatorName;
     }
 
-    if (this.grade) {
-      this.goals = this.contract.gradeSpecs![this.grade - 1].goals!;
+    if (this.contract.gradeSpecs) {
+      this.goals = this.contract.gradeSpecs[this.grade! - 1].goals!;
     } else if (this.contract.goalSets) {
       this.goals = this.contract.goalSets[this.league as number].goals!
     } else {
       this.goals = this.contract.goals!;
+    }
+    // If people redo contracts they disapper from this history and make completed contracts look unfinished
+    if (this.status === "COMPLETE" && this.eggsLaid < this.goals[this.goals.length - 1].targetAmount!) {
+      this.eggsLaid = this.goals[this.goals.length - 1].targetAmount!
     }
 
     this.leagueStatus = new ContractLeagueStatus(
@@ -163,6 +173,7 @@ export class CoopStatus {
       this.eggsPerHour,
       this.secondsRemaining,
       this.goals,
+      this.status,
     );
   }
 
@@ -173,46 +184,49 @@ export class CoopStatus {
       this.grade = knownGrade;
       return this.grade;
     }
-    if (
-      this.contributors.length === 0 || this.expirationTime < dayjs("2023-05-01 00:00Z")
-    ) {
-      // Ghost coop, don't care. OR
-      // contracts before May 01 2023 have no grade
-      this.grade = ei.Contract.PlayerGrade.GRADE_UNSET;
+    // empty coop / before grades / member guaranteed to be in C
+    if (this.contributors.length === 0 || this.expirationTime < dayjs("2023-05-01 00:00Z") ||
+        this.contributors.find(c => c.earningBonusPercentage < GRADES_EB[ei.Contract.PlayerGrade.GRADE_B])) {
+      this.grade = ei.Contract.PlayerGrade.GRADE_C;
       return this.grade;
     }
 
-    // loop through contributors. If anybody is below b grade eb the coop is c grade
-    for (const contributor of this.contributors.reverse()) {
-      const eb = contributor.earningBonusPercentage;
-      if (eb < GRADES_EB[ei.Contract.PlayerGrade.GRADE_B]) {
-        this.grade = ei.Contract.PlayerGrade.GRADE_C;
-        return this.grade;
-      }
-    }
-
-    // if we make it this far it *should* be a post-grade contract and not be empty
-    try {
-      const backup = await requestFirstContact(this.creatorId);
-      const contractsinfo = backup.backup?.contracts;
-      // if we already pulled their backup might as well set the creator name
-      this.creatorName = backup.backup?.userName ?? null;
-      // active coop
-      if (this.secondsRemaining > 0) {
-        const contractGrade = contractsinfo?.contracts?.find(c => c.contract?.identifier == this.contractId)?.grade ??
-                              contractsinfo?.lastCpi?.grade;
+    // active coop.
+    if (this.secondsRemaining > 0) {
+      try {
+        // Try to get info from coop creator's backup
+        const backup = await requestFirstContact(this.creatorId);
+        const contractsinfo = backup.backup?.contracts;
+        // if we already pulled their backup might as well set the creator name
+        this.creatorName = backup.backup?.userName ?? null;
+        // try to pull grade from creator's backup
+        const contractGrade = contractsinfo?.contracts?.find(c =>
+          c.contract?.identifier ==
+            this.contractId && c.coopIdentifier === this.coopCode)?.grade
+            ?? contractsinfo?.lastCpi?.grade;
         if (contractGrade) {
           this.grade = contractGrade;
           return this.grade;
-        } else {
-          // do a bunch of query coops to find the right grade
-          this.grade = await this.gradeFromQueryCoop();
-          return this.grade;
         }
+      } catch (e) {
+        console.error(`failed to determine grade, falling back to AAA: ${e}`,);
       }
-      // completed/failed/expired coop
+      // query coop doesn't really work so we just have to guess here. This should be pretty rare
+      this.grade = ei.Contract.PlayerGrade.GRADE_AAA;
+      return this.grade;
+    }
+    // completed/failed/expired coop
 
-      // pull all current and past contracts from creator's backup
+    // join request on completed coops is safe
+    const statusgrade = await this.resolveWithJoinRequest();
+    if (statusgrade) {
+      [this.status,this.grade] = statusgrade;
+      if (this.status !== "UNKNOWN") { return this.grade; }
+    }
+
+    // if join fails go backup digging and if all else fails just guess C
+    try {
+      const backup = await requestFirstContact(this.creatorId);
       const contracts = [
         ...(backup.backup?.contracts?.archive ?? []),
         ...(backup.backup?.contracts?.contracts ?? []),
@@ -220,28 +234,27 @@ export class CoopStatus {
 
       this.grade = contracts.find(c =>
         c.contract?.identifier === this.contractId && c.coopIdentifier === this.coopCode
-      )?.grade ?? await this.gradeFromQueryCoop();
+        )?.grade ?? ei.Contract.PlayerGrade.GRADE_AAA;
       return this.grade;
-
     } catch (e) {
-      console.error(
-        `failed to determine coop grade ${this.contractId}:${this.coopCode}: ${e}`,
-      );
-      // fall back on C grade
-      this.grade = ei.Contract.PlayerGrade.GRADE_C;
-      return this.grade;
+        console.error(`failed to determine grade, falling back to AAA: ${e}`,);
     }
+    // If all else fails just go with AAA
+    this.grade = ei.Contract.PlayerGrade.GRADE_AAA;
+    return this.grade;
   }
 
-  // create query coop request for every grade
-  async gradeFromQueryCoop(): Promise<ei.Contract.PlayerGrade> {
-    const requests: Promise<ei.IQueryCoopResponse>[] = [];
-    for (const grade of [2,3,4,5]) {
-      requests.push(requestQueryCoop(this.contractId, this.coopCode, undefined, grade))
+  async resolveWithJoinRequest() {
+    try {
+      const joinResponse = await requestJoinCoop(this.contractId, this.coopCode, undefined);
+      if(joinResponse.grade) {
+        const coopStatus = ei.ContractCoopStatusResponse.Status[joinResponse.status!];
+        return [coopStatus, joinResponse.grade] as const;
+      }
+    } catch (e) {
+      console.error( `failed to query coop ${this.contractId}:${this.coopCode}: ${e}`,);
+      return ["UNKNOWN", ei.Contract.PlayerGrade.GRADE_AAA] as const;
     }
-    const responses = await Promise.all(requests);
-    // index of requests + 2 is the grade. If not found index = -1, so +2 = C which we want
-    return responses.findIndex(q => q.differentGrade === false) + 2;
   }
 
   async resolveLeague(knownLeague?: ContractLeague): Promise<ContractLeague> {
@@ -286,6 +299,7 @@ export class CoopStatus {
         this.coopCode,
         0,
         undefined,
+        undefined,
       );
       this.league = queryCoopResponse.differentLeague
         ? ContractLeague.Standard
@@ -328,6 +342,10 @@ export class Contributor {
   farmShared: boolean;
   artifacts: ArtifactSet;
   boosts: ei.Backup.IActiveBoost[];
+  // New in v1.24
+  offlineSeconds: number;
+  offlineTimeStr: string;
+  offlineEggs: number;
 
   constructor(contributor: ei.ContractCoopStatusResponse.IContributionInfo) {
     this.id = contributor.userId!;
@@ -393,9 +411,31 @@ export class Contributor {
     this.boosts = (contributor.farmInfo?.activeBoosts ?? []).filter(
       (boost) => !!boost.boostId && (boost.timeRemaining ?? 0) > 0,
     );
+
+    this.offlineSeconds = -(contributor.farmInfo?.timestamp ?? 0);
+    this.offlineTimeStr = formatSecondsHM(this.offlineSeconds);
+    const offlineHours = Math.min(this.offlineSeconds / 3600, 30);
+    this.offlineEggs = this.eggsPerHour * offlineHours;
   }
 }
 
 function isValue<T>(x: T | null | undefined): x is T {
   return x !== null && x !== undefined;
+}
+
+function formatSecondsHM(seconds: number): string {
+  if (seconds === 0) {
+    return 'Unknown';
+  }
+  if (seconds < 0) {
+    return formatSecondsHM(-seconds);
+  }
+  const h = Math.floor(seconds / 3600);
+  seconds = seconds - h * 3600;
+  const m = Math.floor(seconds / 60);
+  if (h > 0) {
+    return `${h}h ${m}m`;
+  } else {
+    return `${m}m`;
+  }
 }

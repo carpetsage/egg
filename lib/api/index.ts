@@ -19,7 +19,7 @@ const CONFIG_GIST_URL = 'https://gist.githubusercontent.com/carpetsage/373992bc6
 const TIMEOUT = 5000;
 
 // A valid userId donated by a volunteer.
-const defaultUserId = atob('RUk1NDc5OTE2NjQyNzYyNzUy');
+const defaultUserId = atob('RUk2MjkxOTQwOTY4MjM1MDA4Cg==');
 
 /**
  * Makes an API request.
@@ -59,6 +59,30 @@ export async function request(endpoint: string, encodedPayload: string): Promise
       throw new Error(`POST ${url} data=${encodedPayload}: ${e}`);
     }
   }
+}
+
+export async function requestJoinCoop(
+  contractId: string,
+  coopCode: string,
+  userId: string | undefined,
+): Promise<ei.IJoinCoopResponse> {
+  userId = userId ?? defaultUserId;
+  const requestPayload: ei.IJoinCoopRequest = {
+    rinfo: basicRequestInfo(userId),
+    contractIdentifier: contractId,
+    coopIdentifier: coopCode,
+    userId: userId,
+    //secondsRemaining: secondsRemaining,
+    clientVersion: CLIENT_VERSION,
+  };
+  const encodedRequestPayload = encodeMessage(ei.JoinCoopRequest, requestPayload);
+  const encodedResponsePayload = await request('/ei/join_coop', encodedRequestPayload);
+  console.log(encodedResponsePayload);
+  return decodeMessage(
+    ei.JoinCoopResponse,
+    encodedResponsePayload,
+    false
+  ) as ei.IJoinCoopResponse;
 }
 
 /**
@@ -142,6 +166,7 @@ export async function requestCoopStatus(
   };
   const encodedRequestPayload = encodeMessage(ei.ContractCoopStatusRequest, requestPayload);
   const encodedResponsePayload = await request('/ei/coop_status', encodedRequestPayload);
+  console.log(`status: ${encodedResponsePayload}`);
   const status = decodeMessage(
     ei.ContractCoopStatusResponse,
     encodedResponsePayload,
@@ -155,7 +180,6 @@ export async function requestCoopStatus(
   }
   return status;
 }
-
 /**
  * @param contractId
  * @param coopCode
@@ -169,13 +193,14 @@ export async function requestQueryCoop(
   coopCode: string,
   league: number | undefined,
   grade: number | undefined,
+  userId: string | undefined,
 ): Promise<ei.IQueryCoopResponse> {
+  userId = userId ?? defaultUserId;
+  userId = "EI5833911117807616";
   const requestPayload: ei.IQueryCoopRequest = {
-    rinfo: basicRequestInfo(''),
+    rinfo: basicRequestInfo(userId),
     contractIdentifier: contractId,
     coopIdentifier: coopCode,
-    league: league,
-    grade: grade,
     clientVersion: CLIENT_VERSION,
   };
   const encodedRequestPayload = encodeMessage(ei.QueryCoopRequest, requestPayload);

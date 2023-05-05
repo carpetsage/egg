@@ -66,14 +66,15 @@ export class ContractLeagueStatus {
     eggsLaid: number,
     eggsPerHour: number,
     secondsRemaining: number,
-    goals: ei.Contract.IGoal[]
+    goals: ei.Contract.IGoal[],
+    status: string
   ) {
     this.eggsLaid = eggsLaid;
     this.eggsPerHour = eggsPerHour;
     this.secondsRemaining = secondsRemaining;
     this.goals = goals;
     this.finalTarget = goals[goals.length - 1].targetAmount!;
-    if (eggsLaid >= this.finalTarget) {
+    if (eggsLaid >= this.finalTarget || status === "COMPLETE") {
       this.completionStatus = ContractCompletionStatus.HasCompleted;
       this.expectedTimeToComplete = 0;
       this.requiredEggsPerHour = 0;

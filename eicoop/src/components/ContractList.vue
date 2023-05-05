@@ -110,7 +110,7 @@
           >
             <base-icon
               v-for="index in contract.prophecyEggs"
-              :key="index"
+              :key="Number(index)"
               icon-rel-path="egginc/egg_of_prophecy.png"
               :size="64"
               class="h-4 w-4"

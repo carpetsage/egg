@@ -28,7 +28,7 @@
     </thead>
     <tbody>
       <tr v-for="(tier, tierIndex) in tiers" :key="tierIndex">
-        <template v-for="(goal, league) in tier" :key="league">
+        <template v-for="(goal, column) in tier" :key="column">
           <td
             class="pl-3 pr-2 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
             :style="{ minWidth: '4rem' }"
@@ -38,7 +38,7 @@
           <td
             class="pl-2 pr-3 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
             :class="
-              hasLeagues && league === 0 ? 'border-r border-gray-200 dark:border-gray-600' : null
+              (hasLeagues && column === 0 || hasGrades && column < 4 ) ? 'border-r border-gray-200 dark:border-gray-600' : null
             "
             :style="{ minWidth: '6rem' }"
           >
@@ -59,7 +59,7 @@
 
       <tr>
         <td
-          :colspan="hasLeagues ? 4 : 2"
+          :colspan="hasGrades ? 10 : hasLeagues ? 4 : 2"
           class="px-3 py-2 whitespace-nowrap text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
         >
           Required rate
@@ -113,8 +113,8 @@ export default defineComponent({
     });
     const tiers = computed(() => {
       if (hasGrades.value) {
-        //TODO: Fix this once I get real data
         const allGoals = contract.value.gradeSpecs!.map(g => g.goals!);
+        // create array of goals in convenient format for display
         return allGoals[0].map((cGoal, i) => [allGoals[4][i], allGoals[3][i], allGoals[2][i], allGoals[1][i], cGoal])
       } else if (hasLeagues.value) {
         const eliteGoals = contract.value.goalSets![0].goals!;
