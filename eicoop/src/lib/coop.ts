@@ -163,7 +163,7 @@ export class CoopStatus {
     } else {
       this.goals = this.contract.goals!;
     }
-    // If people redo contracts they disapper from this history and make completed contracts look unfinished
+    // If people redo contracts they disappear from this history and make completed contracts look unfinished
     if (this.status === "COMPLETE" && this.eggsLaid < this.goals[this.goals.length - 1].targetAmount!) {
       this.eggsLaid = this.goals[this.goals.length - 1].targetAmount!
     }
