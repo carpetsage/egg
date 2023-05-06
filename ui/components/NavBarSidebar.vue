@@ -144,7 +144,7 @@ import {
   IdentificationIcon,
   ViewGridIcon,
   XIcon,
-} from '@heroicons/vue/solid'
+} from '@heroicons/vue/solid';
 
 import { iconURL } from 'lib';
 import { idToTool } from 'lib/tools';
@@ -169,6 +169,12 @@ const entries: ({
     title: 'Contact',
     url: '/#/contact',
     icon: ChatAlt2Icon,
+  },
+  {
+    id: 'donate',
+    title: 'Donate',
+    url: '/#/donate',
+    icon: EmojiHappyIcon,
   },
 
   null,
