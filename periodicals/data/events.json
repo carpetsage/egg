@@ -7934,5 +7934,21 @@
     "multiplier": 0.3,
     "startTimestamp": 1683302400.0,
     "type": "research-sale"
+  },
+  {
+    "endTimestamp": 1683475200.0,
+    "id": "event-5-6",
+    "message": "TRIPLE PRESTIGE!!!",
+    "multiplier": 3.0,
+    "startTimestamp": 1683388800.0,
+    "type": "prestige-boost"
+  },
+  {
+    "endTimestamp": 1683561600.0,
+    "id": "event-5-6-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1683388800.0,
+    "type": "piggy-boost"
   }
 ]
