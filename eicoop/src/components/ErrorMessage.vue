@@ -44,7 +44,7 @@
     <div class="text-center break-words text-sm text-gray-700 dark:text-gray-200">
       If you believe this is a bug,
       <a href="https://wasmegg-carpet.netlify.app/#/contact" target="_blank" class="text-blue-500"
-        >contact @mk2</a
+        >contact @carpetsage</a
       >.
     </div>
   </div>
