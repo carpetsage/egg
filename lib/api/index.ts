@@ -25,7 +25,7 @@ const CONFIG_GIST_URL =
 const TIMEOUT = 5000;
 
 // A valid userId donated by a volunteer.
-const defaultUserId = atob("RUk2MjkxOTQwOTY4MjM1MDA4Cg==");
+const defaultUserId = atob("RUk2MjkxOTQwOTY4MjM1MDA4");
 
 /**
  * Makes an API request.
