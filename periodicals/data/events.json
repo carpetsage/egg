@@ -7966,5 +7966,13 @@
     "multiplier": 2.0,
     "startTimestamp": 1683475200.0,
     "type": "mission-capacity"
+  },
+  {
+    "endTimestamp": 1683648000.0,
+    "id": "event-5-8",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1683561600.0,
+    "type": "earnings-boost"
   }
 ]
