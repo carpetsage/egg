@@ -60,6 +60,10 @@ export default defineComponent({
       type: Number,
       default: 0,
     },
+    userId: {
+      type: String as PropType<string | undefined>,
+      default: undefined
+    }
   },
   emits: {
     success(_payload: CoopStatus) {
@@ -68,17 +72,20 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const store = useStore(key);
-    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey } = toRefs(props);
+    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey, userId } = toRefs(props);
 
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);
     const error: Ref<Error | undefined> = ref(undefined);
-    const refreshCoopStatus = async (userId?: string) => {
+    const refreshCoopStatus = async () => {
       loading.value = true;
       error.value = undefined;
       try {
+        if (!userId.value?.startsWith("EI") || userId.value?.length != 19) {
+          userId.value = undefined;
+        }
         const status = new CoopStatus(
-          await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), userId)
+          await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), userId.value)
         );
         await status.resolveContract({
           store: store.state.contracts.list,
@@ -96,14 +103,14 @@ export default defineComponent({
     };
     refreshCoopStatus();
     provide(refreshCallbackKey, () => {
-      refreshCoopStatus(coopStatus.value?.creatorId);
+      refreshCoopStatus();
     });
     watch([contractId, coopCode], () => {
       coopStatus.value = undefined;
       refreshCoopStatus();
     });
     watch(refreshKey, () => {
-      refreshCoopStatus(coopStatus.value?.creatorId);
+      refreshCoopStatus();
     });
 
     return {

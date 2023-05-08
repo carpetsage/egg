@@ -197,6 +197,7 @@
       :known-league="params.league"
       :known-grade="params.grade"
       :refresh-key="coopRefreshKey"
+      :user-id="userId"
     />
   </template>
 </template>
