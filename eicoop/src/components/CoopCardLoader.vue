@@ -63,6 +63,10 @@ export default defineComponent({
     userId: {
       type: String as PropType<string | undefined>,
       default: undefined
+    },
+    gradearg: {
+      type: String as PropType<string | undefined>,
+      default: undefined
     }
   },
   emits: {
@@ -72,7 +76,7 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const store = useStore(key);
-    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey, userId } = toRefs(props);
+    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey, userId, gradearg } = toRefs(props);
 
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);
@@ -80,18 +84,27 @@ export default defineComponent({
     const refreshCoopStatus = async () => {
       loading.value = true;
       error.value = undefined;
+      let grade = knownGrade.value;
+      let validId = userId.value;
+
+      if (gradearg.value && /^(a|aa|aaa|b|c)$/.test(gradearg.value.toLowerCase())) {
+        grade = ei.Contract.PlayerGrade[`GRADE_${gradearg.value.toUpperCase()}` as keyof typeof ei.Contract.PlayerGrade];
+      } else if (Number(gradearg.value) > 0 && Number(gradearg.value) <= 5) {
+        grade = Number(gradearg.value);
+      }
+
       try {
         if (!userId.value?.startsWith("EI") || userId.value?.length != 19) {
-          userId.value = undefined;
+          validId = undefined;
         }
         const status = new CoopStatus(
-          await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), userId.value)
+          await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), validId)
         );
         await status.resolveContract({
           store: store.state.contracts.list,
           knownContract: knownContract.value || coopStatus.value?.contract || undefined,
           knownLeague: knownLeague.value || coopStatus.value?.league || undefined,
-          knownGrade: knownGrade.value || coopStatus.value?.grade || undefined,
+          knownGrade: grade || coopStatus.value?.grade || undefined,
         });
         store.commit('contracts/addContract', status.contract!);
         emit('success', status);

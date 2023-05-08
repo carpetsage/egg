@@ -25,7 +25,7 @@ const router = createRouter({
     },
     {
       name: 'coop',
-      path: '/:contractId/:coopCode/',
+      path: '/:contractId/:coopCode/:grade?',
       component: Coop,
       props: true,
       meta: {

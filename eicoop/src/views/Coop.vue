@@ -1,6 +1,6 @@
 <template>
   <main class="flex-1 max-w-ultrawide w-full mx-auto mt-2 ultrawide:px-4">
-    <coop-card-loader :contract-id="contractId" :coop-code="coopCode" @success="onSuccess" />
+    <coop-card-loader :contract-id="contractId" :coop-code="coopCode" :gradearg="grade" @success="onSuccess" />
     <frequently-asked-questions />
   </main>
 </template>
@@ -28,6 +28,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    grade: {
+      type: String,
+      default: "",
+    }
   },
   setup() {
     const store = useStore(key);
