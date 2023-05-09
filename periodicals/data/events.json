@@ -7974,5 +7974,13 @@
     "multiplier": 2.0,
     "startTimestamp": 1683561600.0,
     "type": "earnings-boost"
+  },
+  {
+    "endTimestamp": 1683734400.0,
+    "id": "event-5-9",
+    "message": "75% OFF HEN HOUSES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1683648000.0,
+    "type": "hab-sale"
   }
 ]
