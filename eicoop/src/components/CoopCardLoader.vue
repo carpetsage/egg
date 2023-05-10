@@ -17,7 +17,7 @@
 <script lang="ts">
 import { defineComponent, PropType, provide, Ref, ref, toRefs, watch } from 'vue';
 
-import { ContractLeague, CoopStatus, ei, requestCoopStatus, request } from '@/lib';
+import { ContractLeague, CoopStatus, ei, requestCoopStatus } from '@/lib';
 import { key } from '@/store';
 import { refreshCallbackKey } from '@/symbols';
 import BaseLoading from '@/components/BaseLoading.vue';
@@ -25,7 +25,6 @@ import CoopCard from '@/components/CoopCard.vue';
 import CoopCardSkeleton from '@/components/CoopCardSkeleton.vue';
 import ErrorMessage from '@/components/ErrorMessage.vue';
 import { useStore } from 'vuex';
-import { Contract } from '../lib/contractList';
 
 export default defineComponent({
   components: {
@@ -81,6 +80,30 @@ export default defineComponent({
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);
     const error: Ref<Error | undefined> = ref(undefined);
+
+    const refreshCoopGoals = async (status: CoopStatus) => {
+      loading.value = true;
+      let grade = knownGrade.value;
+
+      if (gradearg.value && /^(a|aa|aaa|b|c)$/.test(gradearg.value.toLowerCase())) {
+        grade = ei.Contract.PlayerGrade[`GRADE_${gradearg.value.toUpperCase()}` as keyof typeof ei.Contract.PlayerGrade];
+      } else if (Number(gradearg.value) > 0 && Number(gradearg.value) <= 5) {
+        grade = Number(gradearg.value);
+      }
+      try {
+        await status.resolveContract({
+          store: store.state.contracts.list,
+          knownContract: knownContract.value || coopStatus.value?.contract || undefined,
+          knownGrade: grade || coopStatus.value?.grade || undefined,
+        });
+        emit('success', status);
+        coopStatus.value = status;
+      } catch (err) {
+        error.value = err instanceof Error ? err : new Error(`${err}`);
+      }
+      loading.value = false;
+    }
+
     const refreshCoopStatus = async () => {
       loading.value = true;
       error.value = undefined;
@@ -124,6 +147,10 @@ export default defineComponent({
     });
     watch(refreshKey, () => {
       refreshCoopStatus();
+    });
+    watch(gradearg, () => {
+      if(!coopStatus.value) { refreshCoopStatus(); }
+      else { refreshCoopGoals(coopStatus.value); }
     });
 
     return {

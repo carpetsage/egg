@@ -14,6 +14,7 @@ export interface HistoryCoopEntry {
   contractName: string;
   contractEgg: ei.Egg;
   coopCode: string;
+  grade?: string,
 }
 
 export interface State {

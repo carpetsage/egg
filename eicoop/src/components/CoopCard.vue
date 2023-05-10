@@ -59,7 +59,7 @@
               </template>
             </svg>
             <!-- share button -->
-            <coop-card-share-sheet class="ml-1.5" :contract-id="status.contractId" :coop-code="status.coopCode" />
+            <coop-card-share-sheet class="ml-1.5" :contract-id="status.contractId" :coop-code="status.coopCode" :grade="grades[grade - 1]" />
           </div>
         </div>
 
@@ -180,6 +180,21 @@
           </dd>
         </div>
       </dl>
+      <template v-if="grade">
+        <div class="text-lg font-medium text-gray-600 dark:text-gray-300">
+          <span v-tippy="{
+            content: 'Due to changes to the Egg, Inc. API, it is no longer possible to determine the grade. Please select the appropriate grade yourself'
+          }" class="cursor-help">
+          Set the Contract Grade
+          </span>
+        </div>
+          <template v-for="(g,i) in grades" :key="i">
+            <router-link :to="{ name: 'coop', params: { contractId: status.contractId, coopCode: status.coopCode, grade: g.split('_')[1] } }">
+            <img :src="`/contract_${g.toLowerCase()}.png`" class="h-9 inline-block" />
+            </router-link>
+          </template>
+      </template>
+
 
       <contract-progress-bar :eggs-laid="status.eggsLaid" :projected-eggs-laid="status.projectedEggsLaid"
         :league-status="leagueStatus" />
@@ -198,7 +213,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, inject, PropType, toRefs } from 'vue';
+import { computed, defineComponent, inject, PropType, toRefs, } from 'vue';
 import { Tippy } from 'vue-tippy';
 
 import { CoopStatus, eggIconPath, formatEIValue, formatDuration } from '@/lib';
@@ -214,6 +229,7 @@ import ContractProgressBar from '@/components/ContractProgressBar.vue';
 import CoopCardContributionTable from '@/components/CoopCardContributionTable.vue';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vue';
+
 
 export default defineComponent({
   components: {
@@ -238,10 +254,11 @@ export default defineComponent({
     const devmode = inject(devmodeKey);
     const { status } = toRefs(props);
 
+    const grades = computed(() => ["GRADE_C", "GRADE_B", "GRADE_A", "GRADE_AA", "GRADE_AAA"] as const);
     const contract = computed(() => status.value.contract!);
     const egg = computed(() => contract.value.egg!);
     const league = computed(() => status.value.league);
-    const grade = computed(() => status.value.grade);
+    const grade = computed(() => status.value.grade || 5);
     const leagueStatus = computed(() => status.value.leagueStatus!);
     const openings = computed(() =>
       Math.max((contract.value.maxCoopSize || 0) - status.value.contributors.length, 0)
@@ -262,6 +279,7 @@ export default defineComponent({
       eggIconPath,
       eggTooltip,
       max: Math.max,
+      grades,
     };
   },
 });

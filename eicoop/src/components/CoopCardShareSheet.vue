@@ -59,7 +59,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, toRefs } from 'vue';
+import { computed, defineComponent, toRefs, PropType } from 'vue';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { useRouter } from 'vue-router';
 import copyTextToClipboard from 'copy-text-to-clipboard';
@@ -80,9 +80,13 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    grade: {
+      type: String,
+      default: 'GRADE_AAA',
+    }
   },
   setup(props) {
-    const { contractId, coopCode } = toRefs(props);
+    const { contractId, coopCode, grade } = toRefs(props);
     const router = useRouter();
     const url = computed(
       () =>
@@ -91,6 +95,7 @@ export default defineComponent({
           params: {
             contractId: contractId.value,
             coopCode: coopCode.value,
+            grade: grade.value.split("_")[1].toLowerCase(),
           },
         }).href
     );

@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, toRefs } from 'vue';
 import { useStore } from 'vuex';
 
 import { CoopStatus } from '@/lib';
@@ -33,14 +33,16 @@ export default defineComponent({
       default: "",
     }
   },
-  setup() {
+  setup(props) {
     const store = useStore(key);
+    const { grade } = toRefs(props);
     const onSuccess = (coopStatus: CoopStatus) => {
       const entry: HistoryCoopEntry = {
         contractId: coopStatus.contractId,
         contractName: coopStatus.contract!.name!,
         contractEgg: coopStatus.contract!.egg!,
         coopCode: coopStatus.coopCode,
+        grade: grade.value,
       };
       store.dispatch('history/addCoop', entry);
     };
