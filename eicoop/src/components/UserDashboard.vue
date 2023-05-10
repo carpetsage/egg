@@ -198,6 +198,7 @@
       :known-grade="params.grade"
       :refresh-key="coopRefreshKey"
       :user-id="userId"
+      :from-dashboard="true"
     />
   </template>
 </template>

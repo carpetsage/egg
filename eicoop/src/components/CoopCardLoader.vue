@@ -1,6 +1,6 @@
 <template>
   <div class="relative">
-    <coop-card v-if="coopStatus" :status="coopStatus" />
+    <coop-card v-if="coopStatus" :status="coopStatus" :fromDashboard="fromDashboard"/>
     <coop-card-skeleton v-else :contract-id="contractId" :coop-code="coopCode" :contract="knownContract" />
     <div v-if="loading || error"
       class="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 bg-opacity-80 dark:bg-opacity-80">
@@ -66,6 +66,10 @@ export default defineComponent({
     gradearg: {
       type: String as PropType<string | undefined>,
       default: undefined
+    },
+    fromDashboard: {
+      type: Boolean,
+      default: false
     }
   },
   emits: {
@@ -75,7 +79,7 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const store = useStore(key);
-    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey, userId, gradearg } = toRefs(props);
+    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey, userId, gradearg, fromDashboard } = toRefs(props);
 
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);

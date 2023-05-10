@@ -180,7 +180,7 @@
           </dd>
         </div>
       </dl>
-      <template v-if="grade">
+      <template v-if="grade && !fromDashboard">
         <div class="text-lg font-medium text-gray-600 dark:text-gray-300">
           <span v-tippy="{
             content: 'Due to changes to the Egg, Inc. API, it is no longer possible to determine the grade. Please select the appropriate grade yourself'
@@ -249,10 +249,14 @@ export default defineComponent({
       type: Object as PropType<CoopStatus>,
       required: true,
     },
+    fromDashboard: {
+      type: Boolean,
+      default: false
+    }
   },
   setup(props) {
     const devmode = inject(devmodeKey);
-    const { status } = toRefs(props);
+    const { status, fromDashboard } = toRefs(props);
 
     const grades = computed(() => ["GRADE_C", "GRADE_B", "GRADE_A", "GRADE_AA", "GRADE_AAA"] as const);
     const contract = computed(() => status.value.contract!);
