@@ -219,6 +219,9 @@ importers:
       lunr:
         specifier: ^2.3.9
         version: 2.3.9
+      pako:
+        specifier: 2.0.4
+        version: 2.0.4
       protobufjs:
         specifier: ^7.2.3
         version: 7.2.3
@@ -238,6 +241,9 @@ importers:
       '@types/lunr':
         specifier: ^2.3.4
         version: 2.3.4
+      '@types/pako':
+        specifier: ^2.0.0
+        version: 2.0.0
       babel-jest:
         specifier: ^29.5.0
         version: 29.5.0(@babel/core@7.21.8)
@@ -3656,6 +3662,10 @@ packages:
 
   /@types/normalize-package-data@2.4.1:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
+    dev: true
+
+  /@types/pako@2.0.0:
+    resolution: {integrity: sha512-10+iaz93qR5WYxTo+PMifD5TSxiOtdRaxBf7INGGXMQgTCu8Z/7GYWYFUOS3q/G0nE5boj1r4FEB+WSy7s5gbA==}
     dev: true
 
   /@types/parse-json@4.0.0:
@@ -10308,6 +10318,10 @@ packages:
       registry-url: 6.0.1
       semver: 7.5.0
     dev: true
+
+  /pako@2.0.4:
+    resolution: {integrity: sha512-v8tweI900AUkZN6heMU/4Uy4cXRc2AYNRggVmTR+dEncawDJgCdLMximOVA2p4qO57WMynangsfGRb5WD6L1Bg==}
+    dev: false
 
   /parallel-transform@1.2.0:
     resolution: {integrity: sha512-P2vSmIu38uIlvdcU7fDkyrxj33gTUy/ABO5ZUbGowxNCopBq/OoD42bP4UmMrJoPyk4Uqf0mu3mtWBhHCZD8yg==}

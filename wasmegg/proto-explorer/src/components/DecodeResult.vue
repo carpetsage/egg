@@ -76,7 +76,7 @@ import * as $protobuf from 'protobufjs/minimal';
 
 config.setModuleUrl('ace/mode/json_worker', AceWorkerJsonInline);
 
-import { decodeMessage, ei, formatEIValue } from 'lib';
+import { decodeMessage, ei, formatEIValue, uint8ArrayToBinaryString } from 'lib';
 import CopyButton from '@/components/CopyButton.vue';
 import { MessageName } from '@/lib';
 
@@ -182,24 +182,9 @@ function decode(
   encoded: string,
   authenticated: boolean
 ): { payload?: Record<string, unknown>; code?: string; error?: string } {
-  if (authenticated) {
-    const wrapperResult = decode('AuthenticatedMessage', encoded, false);
-    if (wrapperResult.error !== undefined) {
-      return {
-        error: wrapperResult.error,
-      };
-    }
-    const wrapperPayload = wrapperResult.payload as { message?: string; code?: string };
-    const innerResult = decode(messageName, wrapperPayload.message || '', false);
-    return {
-      ...innerResult,
-      code: wrapperPayload.code,
-    };
-  }
-
   try {
     return {
-      payload: decodeMessage(ei[messageName], encoded, false, { toJSON: true }),
+      payload: decodeMessage(ei[messageName], encoded, authenticated, { toJSON: true }),
     };
   } catch (e) {
     if (e instanceof $protobuf.util.ProtocolError) {

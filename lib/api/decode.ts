@@ -1,4 +1,5 @@
 import { ei } from '../proto';
+import pako from 'pako';
 import { ProtobufType } from './types';
 import { uint8ArrayToBinaryString, binaryStringToUint8Array } from './utils';
 
@@ -31,8 +32,10 @@ export function decodeMessage(
     if (wrapperPayload.message === null || wrapperPayload.message === undefined) {
       throw new Error('No message found behind wrap.');
     }
-    return decodeMessage(message, wrapperPayload.message, false);
+    const m = wrapperPayload.compressed ? pako.inflate(wrapperPayload.message) : wrapperPayload.message;
+    return decodeMessage(message, m, false);
   }
+
 
   let binary;
   try {
@@ -50,6 +53,7 @@ export function decodeMessage(
   } catch (e) {
     throw new Error(`Error decoding input as base64: ${e}`);
   }
+  const str = binaryStringToUint8Array(binary);
   const decoded = message.decode(binaryStringToUint8Array(binary));
   return options?.toJSON ? decoded.toJSON() : message.toObject(decoded);
 }
