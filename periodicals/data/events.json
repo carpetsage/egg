@@ -8006,5 +8006,13 @@
     "multiplier": 2.0,
     "startTimestamp": 1683820800.0,
     "type": "gift-boost"
+  },
+  {
+    "endTimestamp": 1683993600.0,
+    "id": "event-5-12",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1683907200.0,
+    "type": "research-sale"
   }
 ]
