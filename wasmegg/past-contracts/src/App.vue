@@ -7,7 +7,7 @@
 
   <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
-  <div class="max-w-5xl w-full px-4 pb-4 xl:px-0 mx-auto">
+  <div class="max-w-7xl w-full px-4 pb-4 xl:px-0 mx-auto">
     <!-- Use a key to recreate on data loading -->
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
       <suspense>

@@ -138,38 +138,6 @@
     </div>
   </div>
 
-  <div class="mb-2">
-    <button
-      class="flex items-center text-sm text-gray-600 underline space-x-1"
-      @click="downloadAsCSV"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5 text-gray-500 relative -ml-1"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fill-rule="evenodd"
-          d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z"
-          clip-rule="evenodd"
-        />
-      </svg>
-      Download table as CSV
-    </button>
-    <p class="text-xs text-gray-600 mt-1">
-      Note: If you're using the CSV download option for the purpose of tracking leggacy contract
-      availability for a coop group, you might want to check out mk2's specialized tool for that exact
-      purpose:
-      <a
-        href="https://github.com/fanaticscripter/EggOrganizer"
-        target="_blank"
-        class="underline hover:text-gray-700"
-        >EggOrganizer</a
-      >.
-    </p>
-  </div>
-
   <div class="flex flex-col">
     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
       <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
@@ -193,6 +161,12 @@
               </th>
               <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
                 PE
+              </th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+                Score
+              </th>
+              <th v-if="username==='abubu0524'" scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+                Tokens Recieved
               </th>
             </thead>
             <tbody>
@@ -253,6 +227,12 @@
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
                     {{ contractPESpec(contract) }}
                   </td>
+                  <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
+                    {{ contract.score || "" }}
+                  </td>
+                  <td v-if="username==='abubu0524'" class="px-6 py-1 whitespace-nowrap text-center text-sm">
+                    {{ contract.tokens || "" }}
+                  </td>
                 </tr>
               </template>
             </tbody>
@@ -309,9 +289,11 @@ import { stringify as csvStringify } from 'csv-stringify/browser/esm/sync';
 
 import {
   eggIconPath,
+  ei,
   getLocalStorage,
   getProphecyEggsProgress,
   iconURL,
+  requestContractsArchive,
   requestFirstContact,
   setLocalStorage,
   UserBackupEmptyError,
@@ -319,6 +301,7 @@ import {
 import { getUserContractList, UserContract } from '@/contracts';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import TheReportProphecyEggs from '@/components/TheReportProphecyEggs.vue';
+import PlayerCard from '@/components/PlayerCard.vue';
 
 const HIDE_UNATTEMPTED_LOCALSTORAGE_KEY = 'hideUnattempted';
 const HIDE_COMPLETED_LOCALSTORAGE_KEY = 'hideCompleted';
@@ -339,12 +322,14 @@ export default defineComponent({
   /* eslint-disable vue/no-setup-props-destructure */
   async setup({ playerId }) {
     const data = await requestFirstContact(playerId);
+    const contractsArchive = await requestContractsArchive(playerId);
     if (!data.backup || !data.backup.game) {
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
 
-    const contracts = getUserContractList(backup);
+    const username = backup.userName || "";
+    const contracts = getUserContractList(backup, contractsArchive);
     const contractsWithPE = contracts.filter(c => c.numAvailablePEs > 0);
     const contractsCompleted = contracts.filter(c => c.numCompletedGoals === c.numAvailableGoals);
     const contractFgClass = (contract: UserContract, hover = false): string => {
@@ -410,7 +395,9 @@ export default defineComponent({
         return '';
       }
       let spec = '';
-      if (contract.hasLeagues) {
+      if (contract.hasGrades) {
+        spec += contract.grade > 0 ? `${ei.Contract.PlayerGrade[contract.grade].split("_")[1]} ` : '';
+      } else if (contract.hasLeagues) {
         spec += contract.league === 1 ? 'std ' : 'elt ';
       }
       spec += `#${contract.indexOfPEGoal + 1}`;
@@ -468,6 +455,7 @@ export default defineComponent({
       hideCompleted,
       hideNoPE,
       visibleContracts,
+      username,
       contractFgClass,
       epochSecondsToFormattedDate,
       contractLink,

@@ -22,7 +22,7 @@ const API_ROOT = import.meta.env.DEV && import.meta.env.VITE_APP_MOCK
 
 const CONFIG_GIST_URL =
   "https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/config.json";
-const TIMEOUT = 5000;
+const TIMEOUT = 8000;
 
 // A valid userId donated by a volunteer.
 const defaultUserId = atob("RUk2MjkxOTQwOTY4MjM1MDA4");
@@ -70,6 +70,31 @@ export async function request(
       throw new Error(`POST ${url} data=${encodedPayload}: ${e}`);
     }
   }
+}
+
+/**
+ * @param userId
+ * @returns
+ * @throws
+ */
+export async function requestContractsArchive(
+  userId: string,
+): Promise<ei.IContractsArchive> {
+  userId = processUserId(userId);
+  const requestPayload = basicRequestInfo(userId);
+  const encodedRequestPayload = encodeMessage(
+    ei.BasicRequestInfo,
+    requestPayload,
+  );
+  const encodedResponsePayload = await request(
+    "/ei_ctx/get_contracts_archive",
+    encodedRequestPayload,
+  );
+  return decodeMessage(
+    ei.ContractsArchive,
+    encodedResponsePayload,
+    true,
+  ) as ei.IContractsArchive;
 }
 
 export async function requestJoinCoop(

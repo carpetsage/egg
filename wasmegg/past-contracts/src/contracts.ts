@@ -17,9 +17,11 @@ export interface UserContract {
   isCoop: boolean;
   coopCode: string | null;
   hasGrades: boolean;
+  score: number;
   hasLeagues: boolean;
   attempted: boolean;
   league: ContractLeague;
+  grade: ei.Contract.PlayerGrade;
   goals: ei.Contract.IGoal[];
   numAvailableGoals: number;
   numCompletedGoals: number;
@@ -27,6 +29,7 @@ export interface UserContract {
   numCompletedPEs: number;
   indexOfPEGoal: number | null;
   timestamp: number; // Either accepted timestamp (attempted) or offering timestamp (unattempted)
+  tokens: number;
   props: ContractProps;
 }
 
@@ -56,10 +59,21 @@ export const rawContractList: ContractProps[] = (() => {
   return list.sort((c1, c2) => c1.offeringTimestamp - c2.offeringTimestamp);
 })();
 
-export function getUserContractList(backup: ei.IBackup): UserContract[] {
-  const localContracts: ei.ILocalContract[] = (backup.contracts?.contracts || []).concat(
-    backup.contracts?.archive || []
-  );
+export function getUserContractList(backup: ei.IBackup, archive?: ei.IContractsArchive): UserContract[] {
+  const activeContracts: ei.ILocalContract[] = backup.contracts?.contracts || [];
+  const pastContracts: ei.ILocalContract[] = archive?.archive || backup.contracts?.archive || [];
+  const localContracts: ei.ILocalContract[] = [];
+
+  for (const past of pastContracts) {
+    const match = activeContracts.find(c => c.contract?.identifier === past.contract?.identifier);
+    if (!match) {
+      localContracts.push(past);
+    } else {
+      localContracts.push(match);
+    }
+
+  }
+
   const attemptedContracts = localContracts
     .map(c => newUserContract(c, true, undefined, c.grade))
     .sort((c1, c2) => c1.timestamp - c2.timestamp);
@@ -84,9 +98,9 @@ function newUserContract(
   offeringTimestamp?: number,
   playerGrade?: ei.Contract.PlayerGrade | null
 ): UserContract {
-  const timestamp = attempted ? contract.timeAccepted! : offeringTimestamp;
+  const timestamp = attempted ? contract.timeAccepted || contract.contract?.startTime : offeringTimestamp;
   if (!timestamp) {
-    throw new Error(`the impossible happened: timestamp not provided`);
+    throw new Error(`the impossible happened: timestamp not provided: ${contract.contract?.identifier}`);
   }
   const props: ContractProps = {
     ...contract.contract!,
@@ -99,9 +113,12 @@ function newUserContract(
   const coopCode = contract.coopIdentifier || null;
   const league: ContractLeague = contract.league || 0;
   let hasLeagues = false;
+  // grade stuff
   const hasGrades = Boolean(contract.contract?.gradeSpecs);
-  // Backup does NOT accurately display grade of past coops but try anyway. Fallback to C goals
-  let goals = hasGrades ? props.gradeSpecs![(playerGrade ?? 1) - 1].goals : props.goals;
+  const grade = hasGrades ?
+    contract.evaluation?.grade || playerGrade || ei.Contract.PlayerGrade.GRADE_AAA :
+    ei.Contract.PlayerGrade.GRADE_UNSET;
+  let goals = hasGrades ? props.gradeSpecs![(grade || 1) - 1].goals : props.goals;
   if (!hasGrades && props.goalSets && props.goalSets.length > league) {
     hasLeagues = true;
     goals = props.goalSets[league].goals;
@@ -109,6 +126,8 @@ function newUserContract(
   if (!goals || goals.length === 0) {
     throw new Error(`no goals found for contract ${id}`);
   }
+  const score = contract.evaluation?.cxp ?? 0;
+  const tokens = contract.evaluation?.giftTokensReceived || 0;
   const numAvailableGoals = goals.length;
   const numCompletedGoals = contract.numGoalsAchieved || 0;
   let numAvailablePEs = 0;
@@ -127,12 +146,14 @@ function newUserContract(
   }
   return {
     id,
+    tokens,
     name,
     egg,
     isCoop,
     coopCode,
     hasLeagues,
     hasGrades,
+    score,
     attempted,
     league,
     goals,
@@ -143,6 +164,7 @@ function newUserContract(
     indexOfPEGoal,
     timestamp,
     props,
+    grade
   };
 }
 
