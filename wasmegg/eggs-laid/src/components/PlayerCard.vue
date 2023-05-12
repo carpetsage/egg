@@ -48,7 +48,6 @@ import {
   ei,
   formatEIValue,
 } from 'lib';
-import {getUserContractList, UserContract } from '@/contracts';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 
 dayjs.extend(advancedFormat);
@@ -73,7 +72,7 @@ onBeforeUnmount(() => {
 
 
 
-const contracts: UserContract[] = getUserContractList(backup.value);
+const localContracts = (backup.value.contracts?.archive || []).concat(backup.value.contracts?.contracts || []);
 const contractEggs = [ ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON, ei.Egg.FIREWORK, ei.Egg.PUMPKIN ]
 
 const eggTotals = new Map<string , number>(
@@ -82,13 +81,16 @@ const eggTotals = new Map<string , number>(
   ));
 
 contractEggs.forEach(egg => {
-  eggTotals.set(eggName(egg), eggsLaid(contracts.filter(c => c.egg == egg)) || 0);
+  eggTotals.set(eggName(egg), eggsLaid(localContracts.filter(c => c.contract?.egg == egg)) || 0);
 });
 
 const Total = [...eggTotals.values()].reduce((sum,eggTotal)=> sum + eggTotal);
 
-function eggsLaid(uc: UserContract[]): number {
-  return uc.map(c => c.contribution!).reduce((partialSum, contrib) => partialSum + contrib, 0);
+function contribution(contract: ei.ILocalContract) {
+  return contract.coopLastUploadedContribution ?? contract.lastAmountWhenRewardGiven ?? 0;
+}
+function eggsLaid(contracts: ei.ILocalContract[]): number {
+  return contracts.map(c => contribution(c)).reduce((partialSum, contrib) => partialSum + contrib, 0);
 }
 
 function fmtEggTotal(eggTotal: [string, number]) {
