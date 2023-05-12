@@ -79,7 +79,6 @@ export const tools = [
     description: 'Coop tracker and contract master list',
     displayIconOnly: true,
     iconCssClasses: 'h-6 -ml-0.5 -mr-1 -top-0.5',
-    // Fri Jun 25 07:57:36 UTC 2021
     majorUpdateUntil: 2624607856000,
     whatsNew:
       'Works again post contract v2 update',
@@ -134,7 +133,9 @@ export const tools = [
     iconUrl: iconURL('wasmegg/past-contracts.svg'),
     description: 'Past contracts and prophecy egg completion tracker',
     // Tue Jun  8 12:33:17 UTC 2021
-    majorUpdateUntil: 1623155597000,
+    updateUntil: 2623155597000,
+    whatsNew:
+      'Displays Contract Score',
   }),
   new Tool({
     id: 'inventory-visualizer',
