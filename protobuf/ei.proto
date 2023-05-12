@@ -737,8 +737,10 @@ message ContractCoopStatusResponse {
         optional FarmProductionParams production_params = 15;
         optional PlayerFarmInfo farm_info = 18;
         optional int32 rank_change = 8;
+        optional bool recently_active = 23;
         optional bool active = 4;
         optional bool leech = 16;
+        optional bool finalized = 22;
         optional bool time_cheat_detected = 7;
         optional Platform platform = 5;
         optional string push_id = 9;
@@ -754,8 +756,11 @@ message ContractCoopStatusResponse {
     optional bool public = 10;
     optional string creator_id = 9;
     optional double seconds_remaining = 5;
+    optional double seconds_since_all_goals_achieved = 16;
+    optional bool all_goals_achieved = 14;
     optional bool all_members_reporting = 6;
     optional double grace_period_seconds_remaining = 7;
+    optional bool cleared_for_exit = 15;
     
     repeated CoopGift gifts = 11;
     message CoopGift {
@@ -798,6 +803,7 @@ message LocalContract {
     optional bool cancelled = 4;
     optional bool new = 8;
     optional double coop_shared_end_time = 5;
+    optional double coop_simulation_end_time = 22;
     optional double coop_grace_period_end_time = 9;
     optional bool coop_contribution_finalized = 10;
     optional double coop_last_uploaded_contribution = 11;
@@ -857,6 +863,7 @@ message CreateCoopRequest {
     optional double eop = 11;
     optional uint32 league = 9;
     optional Contract.PlayerGrade grade = 12;
+    optional bool points_replay = 15;
     optional Platform platform = 6;
     optional uint32 client_version = 7;
 }
@@ -876,6 +883,7 @@ message JoinCoopRequest {
     optional double eop = 12;
     optional uint32 league = 9;
     optional Contract.PlayerGrade grade = 13;
+    optional bool points_replay = 14;
     optional Platform platform = 5;
     optional double seconds_remaining = 11;
     optional uint32 client_version = 7;
@@ -903,6 +911,7 @@ message AutoJoinCoopRequest {
     optional double eop = 10;
     optional uint32 league = 8;
     optional Contract.PlayerGrade grade = 12;
+    optional bool points_replay = 14;
     optional double seconds_remaining = 5;
     optional Platform platform = 6;
     optional uint32 client_version = 7;
@@ -2109,6 +2118,11 @@ message SubscriptionChangeHintRequest {
     optional BasicRequestInfo rinfo = 3;
     optional string original_transaction_id = 1;
     optional UserSubscriptionInfo.Level next_subscription_level = 2;
+}
+
+message CXPEvalRolloutInfo {
+    optional string current_id = 1;
+    optional uint32 basis_points = 2;
 }
 
 enum Egg {
