@@ -116,6 +116,10 @@ export default defineComponent({
         title: '/coop_status',
       },
       {
+        name: 'contracts_archive',
+        title: 'ei_ctx/get_contracts_archive',
+      },
+      {
         name: 'afx/config',
         title: 'afx/config',
       },

@@ -8,6 +8,7 @@ import CoopStatus from '@/views/CoopStatus.vue';
 import FirstContact from '@/views/FirstContact.vue';
 import GetConfig from '@/views/GetConfig.vue';
 import GetPeriodicals from '@/views/GetPeriodicals.vue';
+import GetContractsArchive from './views/GetContractsArchive.vue';
 
 const header = {
   header: AppHeader,
@@ -60,6 +61,15 @@ const router = createRouter({
       path: '/coop_status/',
       components: {
         default: CoopStatus,
+        ...header,
+      },
+      props,
+    },
+    {
+      name: 'contracts_archive',
+      path: '/get_contracts_archive/',
+      components: {
+        default: GetContractsArchive,
         ...header,
       },
       props,
