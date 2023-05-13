@@ -3,7 +3,7 @@
     <h1 class="mx-4 my-4 text-center text-lg leading-6 font-medium text-gray-900">
       Proto explorer
     </h1>
-    <div class="max-w-4xl w-full mx-auto px-4 xl:px-0 space-y-2">
+    <div class="max-w-7xl w-full mx-auto px-4 xl:px-0 space-y-2">
       <div class="space-y-1">
         <p class="text-xs text-red-500">
           Be forewarned that this tool puts great power into the hands of even non-technical folk.
