@@ -996,6 +996,9 @@ importers:
       lib:
         specifier: workspace:^
         version: link:../../lib
+      primevue:
+        specifier: ^3.29.0
+        version: 3.29.0(vue@3.3.2)
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
@@ -1036,6 +1039,9 @@ importers:
       vue-tsc:
         specifier: ^1.6.4
         version: 1.6.4(typescript@5.0.4)
+      vuex:
+        specifier: ^4.1.0
+        version: 4.1.0(vue@3.3.2)
 
   wasmegg/past-contracts-eicoop2:
     dependencies:
