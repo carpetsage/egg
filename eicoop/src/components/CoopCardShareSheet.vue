@@ -86,7 +86,7 @@ export default defineComponent({
     }
   },
   setup(props) {
-    const { contractId, coopCode, grade } = toRefs(props);
+    const { contractId, coopCode } = toRefs(props);
     const router = useRouter();
     const url = computed(
       () =>
@@ -95,7 +95,6 @@ export default defineComponent({
           params: {
             contractId: contractId.value,
             coopCode: coopCode.value,
-            grade: grade.value.split("_")[1].toLowerCase(),
           },
         }).href
     );

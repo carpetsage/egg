@@ -180,21 +180,6 @@
           </dd>
         </div>
       </dl>
-      <template v-if="grade && !fromDashboard">
-        <div class="text-lg font-medium text-gray-600 dark:text-gray-300">
-          <span v-tippy="{
-            content: 'Due to changes to the Egg, Inc. API, it is no longer possible to determine the grade. Please select the appropriate grade yourself'
-          }" class="cursor-help">
-          Set the Contract Grade
-          </span>
-        </div>
-          <template v-for="(g,i) in grades" :key="i">
-            <router-link :to="{ name: 'coop', params: { contractId: status.contractId, coopCode: status.coopCode, grade: g.split('_')[1] } }">
-            <img :src="`/contract_${g.toLowerCase()}.png`" class="h-9 inline-block" />
-            </router-link>
-          </template>
-      </template>
-
 
       <contract-progress-bar :eggs-laid="status.eggsLaid" :projected-eggs-laid="status.projectedEggsLaid"
         :league-status="leagueStatus" />
@@ -249,14 +234,10 @@ export default defineComponent({
       type: Object as PropType<CoopStatus>,
       required: true,
     },
-    fromDashboard: {
-      type: Boolean,
-      default: false
-    }
   },
   setup(props) {
     const devmode = inject(devmodeKey);
-    const { status, fromDashboard } = toRefs(props);
+    const { status } = toRefs(props);
 
     const grades = computed(() => ["GRADE_C", "GRADE_B", "GRADE_A", "GRADE_AA", "GRADE_AAA"] as const);
     const contract = computed(() => status.value.contract!);

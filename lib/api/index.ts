@@ -97,32 +97,31 @@ export async function requestContractsArchive(
   ) as ei.IContractsArchive;
 }
 
-export async function requestJoinCoop(
+export async function requestCoopStatusBasic(
   contractId: string,
   coopCode: string,
-  userId: string | undefined,
+  userId?: string,
 ): Promise<ei.IJoinCoopResponse> {
   userId = userId ?? defaultUserId;
-  const requestPayload: ei.IJoinCoopRequest = {
+  const requestPayload: ei.IContractCoopStatusRequest = {
     rinfo: basicRequestInfo(userId),
     contractIdentifier: contractId,
     coopIdentifier: coopCode,
-    userId: userId,
-    //secondsRemaining: secondsRemaining,
+    userId,
     clientVersion: CLIENT_VERSION,
   };
   const encodedRequestPayload = encodeMessage(
-    ei.JoinCoopRequest,
+    ei.ContractCoopStatusRequest,
     requestPayload,
   );
   const encodedResponsePayload = await request(
-    "/ei/join_coop",
+    "/ei/coop_status_basic",
     encodedRequestPayload,
   );
   return decodeMessage(
     ei.JoinCoopResponse,
     encodedResponsePayload,
-    false,
+    true,
   ) as ei.IJoinCoopResponse;
 }
 
@@ -216,7 +215,6 @@ export async function requestCoopStatus(
   contractId: string,
   coopCode: string,
   userId?: string,
-  useCreatorId = false,
 ): Promise<ei.IContractCoopStatusResponse> {
   // A valid userId is now required.
   userId = userId ?? defaultUserId;
@@ -240,9 +238,6 @@ export async function requestCoopStatus(
     encodedResponsePayload,
     true,
   ) as ei.IContractCoopStatusResponse;
-  if (useCreatorId && status.creatorId) {
-    return requestCoopStatus(contractId, coopCode, status.creatorId);
-  }
   if (!status.localTimestamp) {
     status.localTimestamp = Date.now() / 1000;
   }

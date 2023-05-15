@@ -1,6 +1,6 @@
 <template>
   <div class="relative">
-    <coop-card v-if="coopStatus" :status="coopStatus" :fromDashboard="fromDashboard"/>
+    <coop-card v-if="coopStatus" :status="coopStatus" />
     <coop-card-skeleton v-else :contract-id="contractId" :coop-code="coopCode" :contract="knownContract" />
     <div v-if="loading || error"
       class="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 bg-opacity-80 dark:bg-opacity-80">
@@ -63,14 +63,6 @@ export default defineComponent({
       type: String as PropType<string | undefined>,
       default: undefined
     },
-    gradearg: {
-      type: String as PropType<string | undefined>,
-      default: undefined
-    },
-    fromDashboard: {
-      type: Boolean,
-      default: false
-    }
   },
   emits: {
     success(_payload: CoopStatus) {
@@ -79,46 +71,17 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const store = useStore(key);
-    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey, userId, gradearg, fromDashboard } = toRefs(props);
+    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey, userId } = toRefs(props);
 
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);
     const error: Ref<Error | undefined> = ref(undefined);
-
-    const refreshCoopGoals = async (status: CoopStatus) => {
-      loading.value = true;
-      let grade = knownGrade.value;
-
-      if (gradearg.value && /^(a|aa|aaa|b|c)$/.test(gradearg.value.toLowerCase())) {
-        grade = ei.Contract.PlayerGrade[`GRADE_${gradearg.value.toUpperCase()}` as keyof typeof ei.Contract.PlayerGrade];
-      } else if (Number(gradearg.value) > 0 && Number(gradearg.value) <= 5) {
-        grade = Number(gradearg.value);
-      }
-      try {
-        await status.resolveContract({
-          store: store.state.contracts.list,
-          knownContract: knownContract.value || coopStatus.value?.contract || undefined,
-          knownGrade: grade || coopStatus.value?.grade || undefined,
-        });
-        emit('success', status);
-        coopStatus.value = status;
-      } catch (err) {
-        error.value = err instanceof Error ? err : new Error(`${err}`);
-      }
-      loading.value = false;
-    }
 
     const refreshCoopStatus = async () => {
       loading.value = true;
       error.value = undefined;
       let grade = knownGrade.value;
       let validId = userId.value;
-
-      if (gradearg.value && /^(a|aa|aaa|b|c)$/.test(gradearg.value.toLowerCase())) {
-        grade = ei.Contract.PlayerGrade[`GRADE_${gradearg.value.toUpperCase()}` as keyof typeof ei.Contract.PlayerGrade];
-      } else if (Number(gradearg.value) > 0 && Number(gradearg.value) <= 5) {
-        grade = Number(gradearg.value);
-      }
 
       try {
         if (!userId.value?.startsWith("EI") || userId.value?.length != 19) {
@@ -151,10 +114,6 @@ export default defineComponent({
     });
     watch(refreshKey, () => {
       refreshCoopStatus();
-    });
-    watch(gradearg, () => {
-      if(!coopStatus.value) { refreshCoopStatus(); }
-      else { refreshCoopGoals(coopStatus.value); }
     });
 
     return {

@@ -6,8 +6,8 @@ import {
   FarmerRole,
   requestFirstContact,
   requestQueryCoop,
-  requestJoinCoop,
   soulPowerToFarmerRole,
+  requestCoopStatusBasic,
 } from "lib";
 import {
   ContractLeague,
@@ -190,51 +190,16 @@ export class CoopStatus {
       this.grade = ei.Contract.PlayerGrade.GRADE_C;
       return this.grade;
     }
-
-    // active coop.
-    if (this.secondsRemaining > 0) {
-      try {
-        // Try to get info from coop creator's backup
-        const backup = await requestFirstContact(this.creatorId);
-        const contractsinfo = backup.backup?.contracts;
-        // if we already pulled their backup might as well set the creator name
-        this.creatorName = backup.backup?.userName ?? null;
-        // try to pull grade from creator's backup
-        const contractGrade = contractsinfo?.contracts?.find(c =>
-          c.contract?.identifier ==
-            this.contractId && c.coopIdentifier === this.coopCode)?.grade
-            ?? contractsinfo?.lastCpi?.grade;
-        if (contractGrade) {
-          this.grade = contractGrade;
-          return this.grade;
-        }
-      } catch (e) {
-        console.error(`failed to determine grade, falling back to AAA: ${e}`,);
-      }
-      // query coop doesn't really work so we just have to guess here. This should be pretty rare
-      this.grade = ei.Contract.PlayerGrade.GRADE_AAA;
-      return this.grade;
-    }
-    // completed/failed/expired coop
-
-    // join request on completed coops is safe
-    const statusgrade = await this.resolveWithJoinRequest();
-    if (statusgrade) {
-      [this.status,this.grade] = statusgrade;
-      if (this.status !== "UNKNOWN") { return this.grade; }
-    }
-
-    // if join fails go backup digging and if all else fails just guess C
     try {
-      const backup = await requestFirstContact(this.creatorId);
-      const contracts = [
-        ...(backup.backup?.contracts?.archive ?? []),
-        ...(backup.backup?.contracts?.contracts ?? []),
-      ];
-
-      this.grade = contracts.find(c =>
-        c.contract?.identifier === this.contractId && c.coopIdentifier === this.coopCode
-        )?.grade ?? ei.Contract.PlayerGrade.GRADE_AAA;
+      const {grade, status} = await requestCoopStatusBasic(this.contractId,this.coopCode)
+      // grade from response or AAA
+      this.grade = grade ? grade : ei.Contract.PlayerGrade.GRADE_AAA;
+      // status from response or ACTIVE
+      if (this.secondsRemaining > 0) {
+        this.status = status ? ei.ContractCoopStatusResponse.Status[status] : "ACTIVE";
+      } else {
+        this.status = status ? ei.ContractCoopStatusResponse.Status[status] : "COMPLETE";
+      }
       return this.grade;
     } catch (e) {
         console.error(`failed to determine grade, falling back to AAA: ${e}`,);
@@ -244,18 +209,6 @@ export class CoopStatus {
     return this.grade;
   }
 
-  async resolveWithJoinRequest() {
-    try {
-      const joinResponse = await requestJoinCoop(this.contractId, this.coopCode, undefined);
-      if(joinResponse.grade) {
-        const coopStatus = ei.ContractCoopStatusResponse.Status[joinResponse.status!];
-        return [coopStatus, joinResponse.grade] as const;
-      }
-    } catch (e) {
-      console.error( `failed to query coop ${this.contractId}:${this.coopCode}: ${e}`,);
-      return ["UNKNOWN", ei.Contract.PlayerGrade.GRADE_AAA] as const;
-    }
-  }
 
   async resolveLeague(knownLeague?: ContractLeague): Promise<ContractLeague> {
     if (knownLeague !== undefined) {
