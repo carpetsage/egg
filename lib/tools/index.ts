@@ -79,9 +79,10 @@ export const tools = [
     description: 'Coop tracker and contract master list',
     displayIconOnly: true,
     iconCssClasses: 'h-6 -ml-0.5 -mr-1 -top-0.5',
-    majorUpdateUntil: 2624607856000,
+    majorUpdateUntil: 1624607856000,
+    updateUntil: 2638811910000,
     whatsNew:
-      'Works again post contract v2 update',
+      'Grade detection works again',
   }),
 
   new Tool({
