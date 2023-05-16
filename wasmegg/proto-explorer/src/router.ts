@@ -5,6 +5,7 @@ import AfxConfig from '@/views/AfxConfig.vue';
 import AppHeader from '@/views/AppHeader.vue';
 import ArbitraryPayload from '@/views/ArbitraryPayload.vue';
 import CoopStatus from '@/views/CoopStatus.vue';
+import CoopStatusBasic from '@/views/CoopStatusBasic.vue';
 import FirstContact from '@/views/FirstContact.vue';
 import GetConfig from '@/views/GetConfig.vue';
 import GetPeriodicals from '@/views/GetPeriodicals.vue';
@@ -61,6 +62,15 @@ const router = createRouter({
       path: '/coop_status/',
       components: {
         default: CoopStatus,
+        ...header,
+      },
+      props,
+    },
+    {
+      name: 'coop_status_basic',
+      path: '/coop_status_basic/',
+      components: {
+        default: CoopStatusBasic,
         ...header,
       },
       props,

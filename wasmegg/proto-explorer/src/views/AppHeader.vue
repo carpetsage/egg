@@ -3,7 +3,7 @@
     <h1 class="mx-4 my-4 text-center text-lg leading-6 font-medium text-gray-900">
       Proto explorer
     </h1>
-    <div class="max-w-7xl w-full mx-auto px-4 xl:px-0 space-y-2">
+    <div class="max-w-ultrawide w-full mx-auto px-4 xl:px-0 space-y-2">
       <div class="space-y-1">
         <p class="text-xs text-red-500">
           Be forewarned that this tool puts great power into the hands of even non-technical folk.
@@ -104,20 +104,24 @@ export default defineComponent({
         title: '/first_contact',
       },
       {
+        name: 'coop_status',
+        title: '/coop_status',
+      },
+      {
+        name: 'coop_status_basic',
+        title: '/coop_status_basic',
+      },
+      {
+        name: 'contracts_archive',
+        title: 'ei_ctx/get_contracts_archive',
+      },
+      {
         name: 'get_periodicals',
         title: '/get_periodicals',
       },
       {
         name: 'get_config',
         title: '/get_config',
-      },
-      {
-        name: 'coop_status',
-        title: '/coop_status',
-      },
-      {
-        name: 'contracts_archive',
-        title: 'ei_ctx/get_contracts_archive',
       },
       {
         name: 'afx/config',
