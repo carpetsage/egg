@@ -8054,5 +8054,21 @@
     "multiplier": 0.25,
     "startTimestamp": 1684252800.0,
     "type": "vehicle-sale"
+  },
+  {
+    "endTimestamp": 1684425600.0,
+    "id": "event-5-17",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1684339200.0,
+    "type": "boost-duration"
+  },
+  {
+    "endTimestamp": 1684425600.0,
+    "id": "event-5-17-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1684339200.0,
+    "type": "piggy-boost"
   }
 ]
