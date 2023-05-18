@@ -8070,5 +8070,13 @@
     "multiplier": 4.0,
     "startTimestamp": 1684339200.0,
     "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1684512000.0,
+    "id": "event-5-18",
+    "message": "75% OFF HEN HOUSES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1684425600.0,
+    "type": "hab-sale"
   }
 ]
