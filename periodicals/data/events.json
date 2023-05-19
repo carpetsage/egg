@@ -8078,5 +8078,13 @@
     "multiplier": 0.25,
     "startTimestamp": 1684425600.0,
     "type": "hab-sale"
+  },
+  {
+    "endTimestamp": 1684598400.0,
+    "id": "event-5-19",
+    "message": "3x EARNINGS!",
+    "multiplier": 3.0,
+    "startTimestamp": 1684512000.0,
+    "type": "earnings-boost"
   }
 ]
