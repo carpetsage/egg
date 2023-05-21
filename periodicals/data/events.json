@@ -8102,5 +8102,13 @@
     "multiplier": 4.0,
     "startTimestamp": 1684598400.0,
     "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1684771200.0,
+    "id": "event-5-21",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1684684800.0,
+    "type": "crafting-sale"
   }
 ]
