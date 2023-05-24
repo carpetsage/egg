@@ -8126,5 +8126,21 @@
     "multiplier": 4.0,
     "startTimestamp": 1684857600.0,
     "type": "drone-boost"
+  },
+  {
+    "endTimestamp": 1685030400.0,
+    "id": "event-5-24",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1684944000.0,
+    "type": "research-sale"
+  },
+  {
+    "endTimestamp": 1685030400.0,
+    "id": "event-5-24-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1684944000.0,
+    "type": "piggy-boost"
   }
 ]
