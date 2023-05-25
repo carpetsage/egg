@@ -165,6 +165,9 @@
               <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
                 Score
               </th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+                Duration
+              </th>
               <th v-if="username==='abubu0524'" scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
                 Tokens Recieved
               </th>
@@ -229,6 +232,9 @@
                   </td>
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
                     {{ contract.score || "" }}
+                  </td>
+                  <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
+                    {{ contract.duration > 0 ? formatDuration(contract.duration, true) : "" }}
                   </td>
                   <td v-if="username==='abubu0524'" class="px-6 py-1 whitespace-nowrap text-center text-sm">
                     {{ contract.tokens || "" }}
@@ -301,7 +307,7 @@ import {
 import { getUserContractList, UserContract } from '@/contracts';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import TheReportProphecyEggs from '@/components/TheReportProphecyEggs.vue';
-import PlayerCard from '@/components/PlayerCard.vue';
+import { formatDuration } from 'lib';
 
 const HIDE_UNATTEMPTED_LOCALSTORAGE_KEY = 'hideUnattempted';
 const HIDE_COMPLETED_LOCALSTORAGE_KEY = 'hideCompleted';
@@ -456,6 +462,7 @@ export default defineComponent({
       hideNoPE,
       visibleContracts,
       username,
+      formatDuration,
       contractFgClass,
       epochSecondsToFormattedDate,
       contractLink,
