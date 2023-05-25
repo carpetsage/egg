@@ -14,7 +14,6 @@ packages:
   - "wasmegg/loot-simulator"
   - "wasmegg/mission-list"
   - "wasmegg/past-contracts"
-  - "wasmegg/past-contracts-eicoop2"
   - "wasmegg/proto-explorer"
   - "wasmegg/researches"
   - "wasmegg/rockets-tracker"
