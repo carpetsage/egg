@@ -8150,5 +8150,13 @@
     "multiplier": 0.25,
     "startTimestamp": 1685030400.0,
     "type": "vehicle-sale"
+  },
+  {
+    "endTimestamp": 1685203200.0,
+    "id": "event-5-26",
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1685116800.0,
+    "type": "gift-boost"
   }
 ]
