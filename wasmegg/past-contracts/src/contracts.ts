@@ -18,6 +18,7 @@ export interface UserContract {
   coopCode: string | null;
   hasGrades: boolean;
   score: number;
+  teamworkScore: number;
   duration: number;
   hasLeagues: boolean;
   attempted: boolean;
@@ -128,6 +129,7 @@ function newUserContract(
     throw new Error(`no goals found for contract ${id}`);
   }
   const score = contract.evaluation?.cxp ?? 0;
+  const teamworkScore = contract.evaluation?.teamworkScore ?? 0;
   const duration = contract.evaluation?.completionTime ?? 0;
   const tokens = contract.evaluation?.giftTokensReceived || 0;
   const numAvailableGoals = goals.length;
@@ -150,6 +152,7 @@ function newUserContract(
     id,
     tokens,
     name,
+    teamworkScore,
     egg,
     isCoop,
     coopCode,
