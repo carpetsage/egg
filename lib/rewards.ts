@@ -94,6 +94,7 @@ export const epicResearchIdToName: { [key: string]: string } = {
   transportation_lobbyist: 'Transportation Lobbyists',
   prophecy_bonus: 'Prophecy Bonus',
   hold_to_research: 'Hold to Research',
+  afx_mission_time: 'FTL Drive Upgrades',
 };
 
 export const boostIdToName: { [key: string]: string } = {
