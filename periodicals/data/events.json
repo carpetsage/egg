@@ -8214,5 +8214,13 @@
     "multiplier": 4.0,
     "startTimestamp": 1685548800.0,
     "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1685721600.0,
+    "id": "event-6-1",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1685635200.0,
+    "type": "vehicle-sale"
   }
 ]
