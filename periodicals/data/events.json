@@ -8222,5 +8222,13 @@
     "multiplier": 0.25,
     "startTimestamp": 1685635200.0,
     "type": "vehicle-sale"
+  },
+  {
+    "endTimestamp": 1685808000.0,
+    "id": "event-6-2",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1685721600.0,
+    "type": "research-sale"
   }
 ]
