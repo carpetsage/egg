@@ -106,7 +106,7 @@
               v-tippy="{
                 content:
                   `${mission.name}, ` +
-                  `${mission.params.minQuality.toFixed(1)} - ${mission.params.maxQuality.toFixed(
+                  `${mission.params.minQuality.toFixed(1)} - ${mission.maxBoostedMaxQuality().toFixed(
                     1
                   )}`,
               }"
@@ -168,7 +168,7 @@
               <td
                 v-if="
                   artifact.params.baseQuality >= mission.params.minQuality &&
-                  artifact.params.baseQuality <= mission.params.maxQuality
+                  artifact.params.baseQuality <= mission.maxBoostedQuality()
                 "
                 v-tippy="{
                   content: `${mission.name}<br>${artifact.name}, ${artifact.rarity}`,

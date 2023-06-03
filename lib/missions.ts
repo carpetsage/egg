@@ -156,8 +156,17 @@ export class MissionType {
   boostedQuality(config: ShipsConfig): number {
     return this.params.quality + this.params.levelQualityBump * config.shipLevels[this.shipType];
   }
+
   boostedMaxQuality(config: ShipsConfig): number {
-    return this.params.minQuality + this.params.levelQualityBump * config.shipLevels[this.shipType];
+    return this.params.maxQuality + this.params.levelQualityBump * config.shipLevels[this.shipType];
+  }
+
+  maxBoostedQuality(): number {
+    return this.params.quality + this.params.levelQualityBump * this.maxLevel;
+  }
+
+  maxBoostedMaxQuality(): number {
+    return this.params.maxQuality + this.params.levelQualityBump * this.maxLevel;
   }
 
   boostedDurationSeconds(config: ShipsConfig): number {
