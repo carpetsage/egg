@@ -4871,7 +4871,7 @@
             3
           ],
           "has_effects": true,
-          "available_from_missions": false,
+          "available_from_missions": true,
           "effects": [
             {
               "afx_rarity": 0,
@@ -5270,7 +5270,7 @@
             3
           ],
           "has_effects": true,
-          "available_from_missions": false,
+          "available_from_missions": true,
           "effects": [
             {
               "afx_rarity": 0,
@@ -5641,7 +5641,7 @@
             3
           ],
           "has_effects": true,
-          "available_from_missions": false,
+          "available_from_missions": true,
           "effects": [
             {
               "afx_rarity": 0,
@@ -6014,7 +6014,7 @@
             3
           ],
           "has_effects": true,
-          "available_from_missions": false,
+          "available_from_missions": true,
           "effects": [
             {
               "afx_rarity": 0,
@@ -6083,7 +6083,7 @@
               "minimum": 21590
             }
           },
-          "ingredients_available_from_missions": false,
+          "ingredients_available_from_missions": true,
           "hard_dependencies": [
             {
               "id": "quantum-metronome-3",
@@ -6401,7 +6401,7 @@
             3
           ],
           "has_effects": true,
-          "available_from_missions": false,
+          "available_from_missions": true,
           "effects": [
             {
               "afx_rarity": 0,
@@ -6865,7 +6865,7 @@
               "minimum": 122059
             }
           },
-          "ingredients_available_from_missions": false,
+          "ingredients_available_from_missions": true,
           "hard_dependencies": [
             {
               "id": "ship-in-a-bottle-3",
@@ -7250,7 +7250,7 @@
               "minimum": 93470
             }
           },
-          "ingredients_available_from_missions": false,
+          "ingredients_available_from_missions": true,
           "hard_dependencies": [
             {
               "id": "phoenix-feather-3",
@@ -7578,7 +7578,7 @@
             3
           ],
           "has_effects": true,
-          "available_from_missions": false,
+          "available_from_missions": true,
           "effects": [
             {
               "afx_rarity": 0,
@@ -7647,7 +7647,7 @@
               "minimum": 33006
             }
           },
-          "ingredients_available_from_missions": false,
+          "ingredients_available_from_missions": true,
           "hard_dependencies": [
             {
               "id": "phoenix-feather-3",
@@ -8707,7 +8707,7 @@
           "has_rarities": false,
           "possible_afx_rarities": null,
           "has_effects": true,
-          "available_from_missions": false,
+          "available_from_missions": true,
           "effects": [
             {
               "afx_rarity": 0,
@@ -9781,7 +9781,7 @@
           "has_rarities": false,
           "possible_afx_rarities": null,
           "has_effects": true,
-          "available_from_missions": false,
+          "available_from_missions": true,
           "effects": [
             {
               "afx_rarity": 0,
