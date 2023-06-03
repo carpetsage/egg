@@ -168,7 +168,7 @@
               <td
                 v-if="
                   artifact.params.baseQuality >= mission.params.minQuality &&
-                  artifact.params.baseQuality <= mission.maxBoostedQuality()
+                  artifact.params.baseQuality <= mission.maxBoostedMaxQuality()
                 "
                 v-tippy="{
                   content: `${mission.name}<br>${artifact.name}, ${artifact.rarity}`,
