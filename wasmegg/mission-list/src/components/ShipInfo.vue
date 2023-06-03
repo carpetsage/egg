@@ -87,6 +87,12 @@
       <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
         {{ mission.params.levelQualityBump }}
       </td>
+      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm border-l">
+        {{ mission.boostedQuality(config) }}
+      </td>
+      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
+        {{ mission.params.minQuality }} &ndash; {{ mission.boostedMaxQuality(config) }}
+      </td>
     </tr>
   </tbody>
 </template>

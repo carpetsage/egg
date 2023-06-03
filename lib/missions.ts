@@ -153,6 +153,13 @@ export class MissionType {
     );
   }
 
+  boostedQuality(config: ShipsConfig): number {
+    return this.params.quality + this.params.levelQualityBump * config.shipLevels[this.shipType];
+  }
+  boostedMaxQuality(config: ShipsConfig): number {
+    return this.params.minQuality + this.params.levelQualityBump * config.shipLevels[this.shipType];
+  }
+
   boostedDurationSeconds(config: ShipsConfig): number {
     return this.shipType >= Spaceship.MILLENIUM_CHICKEN
       ? this.defaultDurationSeconds * (1 - 0.01 * config.epicResearchFTLLevel)
