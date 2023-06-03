@@ -153,6 +153,30 @@ export class MissionType {
     );
   }
 
+  boostedQuality(config: ShipsConfig): number {
+    return Math.round(
+      (this.params.quality + this.params.levelQualityBump * config.shipLevels[this.shipType]) * 100
+    ) / 100;
+  }
+
+  boostedMaxQuality(config: ShipsConfig): number {
+    return Math.round(
+      (this.params.maxQuality + this.params.levelQualityBump * config.shipLevels[this.shipType]) * 100
+    ) / 100;
+  }
+
+  maxBoostedQuality(): number {
+    return Math.round(
+      (this.params.quality + this.params.levelQualityBump * this.maxLevel) * 100
+    ) / 100;
+  }
+
+  maxBoostedMaxQuality(): number {
+    return Math.round(
+      (this.params.maxQuality + this.params.levelQualityBump * this.maxLevel) * 100
+    ) / 100;
+  }
+
   boostedDurationSeconds(config: ShipsConfig): number {
     return this.shipType >= Spaceship.MILLENIUM_CHICKEN
       ? this.defaultDurationSeconds * (1 - 0.01 * config.epicResearchFTLLevel)

@@ -97,47 +97,42 @@
             <table class="min-w-full divide-y-3 divide-gray-200 tabular-nums">
               <thead class="bg-gray-50 divide-y">
                 <tr class="divide-x">
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Ship
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Sensors
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Level
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Type
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Base Duration
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-blue-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">
                     Duration
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Base Capacity
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Capacity Bump<br />Per Level
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-blue-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">
                     Capacity
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Fuels
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Launches to Advance
                   </th>
-                  <th :rowspan="2" class="px-4 py-2 text-center text-xs font-medium text-blue-500">
+                  <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">
                     Time to Advance
                   </th>
-                  <th :colspan="3" class="px-4 py-2 text-center text-xs font-medium text-gray-500">
-                    Internal Parameters
-                  </th>
-                </tr>
-                <tr class="divide-x">
                   <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 border-l">
                     Base Quality
                   </th>
@@ -146,6 +141,12 @@
                   </th>
                   <th class="px-2 py-2 text-center text-xs font-medium text-gray-500">
                     Quality Bump<br />Per Level
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">
+                    Quality
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">
+                    Quality Range
                   </th>
                 </tr>
               </thead>
