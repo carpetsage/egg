@@ -37,6 +37,9 @@ export function iconURL(
   if (extension) {
     relpath = relpath.replace(/\.[a-z]+$/, `.${extension}`);
   }
+  if (/icon_dilithium_bulb/.test(relpath)) {
+    return 'https://imagedelivery.net/3eHDWErDPIKAYL6ofL-Kwg/f9be3c0a-0bac-483f-b0b2-143356ccd800/public';
+  }
   return `https://eggincassets.tcl.sh/${size}/${relpath}`;
 }
 
