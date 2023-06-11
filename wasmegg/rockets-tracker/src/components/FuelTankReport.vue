@@ -106,6 +106,14 @@ export default defineComponent({
           return 10e12;
         case 3:
           return 100e12;
+        case 4:
+          return 200e12;
+        case 5:
+          return 300e12;
+        case 6:
+          return 400e12;
+        case 7:
+          return 500e12;
         default:
           console.warn(`unknown fuel tank level ${fuelTankLevel.value}`);
           return 100e12;
