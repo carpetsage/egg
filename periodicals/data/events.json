@@ -8326,5 +8326,13 @@
     "multiplier": 4.0,
     "startTimestamp": 1686412800.0,
     "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1686585600.0,
+    "id": "event-6-11",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1686499200.0,
+    "type": "epic-research-sale"
   }
 ]
