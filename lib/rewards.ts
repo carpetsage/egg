@@ -99,22 +99,28 @@ export const epicResearchIdToName: { [key: string]: string } = {
 
 export const boostIdToName: { [key: string]: string } = {
   jimbos_blue: "Jimbo's excellent bird feed (2x 1hr)",
-  jimbos_blue_big: "Jimbo's excellent bird feed (2x 8hr)",
+  jimbos_blue_v2: "Jimbo's excellent bird feed (3x 20min)",
+  jimbos_blue_big: "Jimbo's excellent bird feed (3x 4hr)",
   jimbos_purple: "Jimbo's premium bird feed (10x 30min)",
-  jimbos_purple_big: "Jimbo's premium bird feed (10x 2hr)",
+  jimbos_purple_v2: "Jimbo's premium bird feed (10x 15min)",
+  jimbos_purple_big: "Jimbo's premium bird feed (10x 3hr)",
   jimbos_orange: "Jimbo's best bird feed (50x 10min)",
-  jimbos_orange_big: "Jimbo's best bird feed (50x 1hr)",
+  jimbos_orange_big: "Jimbo's best bird feed (50x 2hr)",
   subsidy_application: 'Subsidy application (+10%)',
   blank_check: 'Blank check (+100%)',
   money_printer: 'Money printer (+500%)',
   tachyon_prism_blue: 'Tachyon prism (10x 30min)',
+  tachyon_prism_blue_v2: 'Tachyon prism (10x 10min)',
   tachyon_prism_blue_big: 'Large tachyon prism (10x 4hr)',
   tachyon_prism_purple: 'Powerful tachyon prism (100x 20min)',
+  tachyon_prism_purple_v2: 'Powerful tachyon prism (100x 10min)',
   tachyon_prism_purple_big: 'Epic tachyon prism (100x 2hr)',
   tachyon_prism_orange: 'Legendary tachyon prism (1000x 10min)',
   tachyon_prism_orange_big: 'Supreme tachyon prism (1000x 1hr)',
   soul_beacon_blue: 'Soul beacon (5x 1hr)',
+  soul_beacon_blue_v2: 'Soul beacon (5x 30min)',
   soul_beacon_purple: 'Epic soul beacon (50x 30min)',
+  soul_beacon_purple_v2: 'Epic soul beacon (50x 20min)',
   soul_beacon_orange: 'Legendary soul beacon (500x 10min)',
   boost_beacon_blue: 'Boost beacon (2x 30min)',
   boost_beacon_purple: 'Epic boost beacon (10x 10min)',
@@ -124,12 +130,10 @@ export const boostIdToName: { [key: string]: string } = {
   soul_mirror_purple: 'Epic soul mirror (1hr)',
   soul_mirror_orange: 'Legendary soul mirror (1d)',
   quantum_bulb: 'Quantum warming bulb',
+  dilithium_bulb: 'Dilithium warming bulb',
 };
 
 export function boostName(id: string): string {
-  if (id.endsWith('_v2')) {
-    id = id.slice(0, -3);
-  }
   return boostIdToName[id] ?? id;
 }
 
