@@ -8342,5 +8342,13 @@
     "multiplier": 2.0,
     "startTimestamp": 1686585600.0,
     "type": "earnings-boost"
+  },
+  {
+    "endTimestamp": 1686758400.0,
+    "id": "event-6-13",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1686672000.0,
+    "type": "vehicle-sale"
   }
 ]
