@@ -116,7 +116,7 @@ export default defineComponent({
           return 500e12;
         default:
           console.warn(`unknown fuel tank level ${fuelTankLevel.value}`);
-          return 100e12;
+          return 500e12;
       }
     });
     const fuels = computed(() => {
