@@ -530,7 +530,7 @@
               record&nbsp;
               <img :src="medalZLCRecord" class="inline h-4 w-4 mr-0.5" />
               <a
-                href="https://legendary-study.netlify.app/"
+                href="https://wasmegg-carpet.netlify.app/legendary-study"
                 target="_blank"
                 class="hover:text-yellow-900"
               >
@@ -553,7 +553,7 @@
           </div>
 
           <a
-            href="https://legendary-study.netlify.app/"
+            href="https://wasmegg-carpet.netlify.app/legendary-study"
             target="_blank"
             class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
           >
