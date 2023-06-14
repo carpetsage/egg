@@ -1,3 +1,4 @@
+import dayjs, { Dayjs } from 'dayjs';
 import { ei, requestFirstContact } from 'lib';
 
 export type ContractType = 'Original' | 'Leggacy';
@@ -98,6 +99,10 @@ export class ContractLeagueStatus {
       this.completionStatus === ContractCompletionStatus.HasCompleted ||
       this.completionStatus === ContractCompletionStatus.HasNoTimeLeft
     );
+  }
+
+  get expectedFinalCompletionDate(): Dayjs {
+    return dayjs().add(this.expectedTimeToComplete, 's');
   }
 
   expectedTimeToCompleteGoal(goal: ei.Contract.IGoal): number {

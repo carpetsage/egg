@@ -114,10 +114,16 @@
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Time to complete</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
-              formatDuration(leagueStatus.expectedTimeToComplete)
-            }}</span>
-            expected /
+            <tippy class="text-gray-900 dark:text-gray-100">
+              <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
+                formatDuration(leagueStatus.expectedTimeToComplete)
+              }}</span>
+              expected
+              <template v-if="leagueStatus.expectedTimeToComplete > 0" #content>
+                Expected to complete at {{ leagueStatus.expectedFinalCompletionDate.format('YYYY-MM-DD HH:mm') }}.<br />
+                This is an estimate based on the current laying rate (see FAQ below)
+              </template>
+            </tippy> /
             <tippy class="text-gray-900 dark:text-gray-100">
               {{ formatDuration(Math.max(leagueStatus.secondsRemaining, 0)) }} remaining
               <template #content>
