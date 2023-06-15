@@ -71,7 +71,7 @@ export function getCraftingLevelFromXp(craftingXp: number): PlayerCraftingLevel 
   let levelBaseXp = 0;
   const numLevels = afxCraftingLevelInfos.length;
 
-  for (let level = 1; level < numLevels; ++level) {
+  for (let level = 1; level <= numLevels; ++level) {
     const { xpRequired, rarityMult } = afxCraftingLevelInfos[level-1];
 
     if (xpRequired == null || rarityMult == null) {
