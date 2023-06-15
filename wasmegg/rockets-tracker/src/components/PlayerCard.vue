@@ -353,7 +353,12 @@
                 class="inline ml-0.5"
               />
             </dd>
-            <dt class="text-right text-sm font-medium whitespace-nowrap">Crafting XP</dt>
+            <dt
+              v-tippy="{ content: fmtCraftingXpRarityMultiplier(craftingLevel) }"
+              class="text-right text-sm font-medium whitespace-nowrap"
+            >
+              Crafting XP, <span class="text-yellow-500">Level {{ craftingLevel.level }}</span>
+            </dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(craftingXp) }}</dd>
           </div>
         </div>
@@ -724,6 +729,8 @@ import {
   setLocalStorage,
   TrophyLevel,
   getArtifactTierProps,
+  getCraftingLevelFromXp,
+  PlayerCraftingLevel,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import {
@@ -928,6 +935,8 @@ const inventoryScore = computed(() => {
 }
 )
 const craftingXp = computed(() => Math.floor(backup.value.artifacts?.craftingXp || 0));
+const craftingLevel = computed(() => getCraftingLevelFromXp(craftingXp.value));
+
 const inventoryConsumptionValue = computed(() =>
   inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
 );
@@ -1027,5 +1036,16 @@ function piggyLevelBonus(level: number): number {
     default:
       return 0.1 * (level + 1);
   }
+}
+
+function fmtCraftingXpRarityMultiplier(craftingLevel: PlayerCraftingLevel): string {
+  const mult = craftingLevel.rarityMult - 1;
+
+  // mimic the way EI shows the increase value on screen
+  const increase = (mult <= 1) ?
+    `${Math.floor(mult * 100)}%` :
+    `${Number(mult.toFixed(2))}x`;
+
+  return `${increase} increase in chance to craft Rare, Epic or Legendary Artifacts`;
 }
 </script>
