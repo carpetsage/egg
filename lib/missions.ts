@@ -9,6 +9,8 @@ import eiafxConfig, { MissionTypeParameters } from './eiafx-config.json';
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
 import Status = ei.MissionInfo.Status;
+import { Family } from './artifacts/data.json';
+import { getArtifactFamilyProps } from './artifacts';
 
 export const spaceshipList = [
   Spaceship.CHICKEN_ONE,
@@ -221,6 +223,16 @@ export class Mission extends MissionType {
 
   get capacity(): number {
     return this.missionInfo.capacity!;
+  }
+
+  get sensorTarget(): Family | null {
+    const targetId = this.missionInfo.targetArtifact;
+    if (targetId != null) {
+      return getArtifactFamilyProps(targetId);
+    }
+    else {
+      return null;
+    }
   }
 
   get status(): Status {

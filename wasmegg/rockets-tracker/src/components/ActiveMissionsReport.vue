@@ -45,7 +45,7 @@
                 {{ mission.durationTypeName }}
               </span>
             </div>
-            <div class="mt-2 text-gray-500 text-xs">Capacity: {{ mission.capacity }}</div>
+            <div class="mt-1 text-gray-500 text-xs">Capacity: {{ mission.capacity }}</div>
             <div class="mt-1 text-gray-500 text-xs">
               Duration:
               <template v-if="mission.durationSeconds !== null">
@@ -53,7 +53,13 @@
               </template>
               <template v-else> &ndash; </template>
             </div>
-            <div class="mt-1 text-gray-700 text-sm font-medium">{{ mission.statusName }}</div>
+            <div class="mt-1 mb-1 text-gray-500 text-xs">
+              Sensor target:
+            </div>
+            <div class="text-center text-xs text-white rounded-full w-max px-1.5 py-0.5 mx-auto bg-gray-400 font-semibold">
+              {{ mission.sensorTarget?.name ?? "None" }}
+            </div>
+            <div class="mt-2 text-gray-700 text-sm font-medium">{{ mission.statusName }}</div>
             <div
               v-if="mission.returnTimestamp !== null"
               v-tippy="{
