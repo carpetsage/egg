@@ -102,19 +102,19 @@ export const afxCraftingLevelInfos: ei.ArtifactsConfigurationResponse.ICraftingL
   },
   {
     "xpRequired": 2500,
-    "rarityMult": 1.0499999523162842
+    "rarityMult": 1.05
   },
   {
     "xpRequired": 5000,
-    "rarityMult": 1.100000023841858
+    "rarityMult": 1.1
   },
   {
     "xpRequired": 10000,
-    "rarityMult": 1.149999976158142
+    "rarityMult": 1.15
   },
   {
     "xpRequired": 25000,
-    "rarityMult": 1.2000000476837158
+    "rarityMult": 1.2
   },
   {
     "xpRequired": 50000,
@@ -122,19 +122,19 @@ export const afxCraftingLevelInfos: ei.ArtifactsConfigurationResponse.ICraftingL
   },
   {
     "xpRequired": 100000,
-    "rarityMult": 1.2999999523162842
+    "rarityMult": 1.3
   },
   {
     "xpRequired": 250000,
-    "rarityMult": 1.350000023841858
+    "rarityMult": 1.35
   },
   {
     "xpRequired": 500000,
-    "rarityMult": 1.399999976158142
+    "rarityMult": 1.4
   },
   {
     "xpRequired": 1000000,
-    "rarityMult": 1.4500000476837158
+    "rarityMult": 1.45
   },
   {
     "xpRequired": 2000000,
@@ -142,19 +142,19 @@ export const afxCraftingLevelInfos: ei.ArtifactsConfigurationResponse.ICraftingL
   },
   {
     "xpRequired": 4000000,
-    "rarityMult": 1.5499999523162842
+    "rarityMult": 1.55
   },
   {
     "xpRequired": 8000000,
-    "rarityMult": 1.600000023841858
+    "rarityMult": 1.6
   },
   {
     "xpRequired": 15000000,
-    "rarityMult": 1.649999976158142
+    "rarityMult": 1.65
   },
   {
     "xpRequired": 20000000,
-    "rarityMult": 1.7000000476837158
+    "rarityMult": 1.7
   },
   {
     "xpRequired": 35000000,
@@ -162,11 +162,11 @@ export const afxCraftingLevelInfos: ei.ArtifactsConfigurationResponse.ICraftingL
   },
   {
     "xpRequired": 60000000,
-    "rarityMult": 1.850000023841858
+    "rarityMult": 1.85
   },
   {
     "xpRequired": 100000000,
-    "rarityMult": 2
+    "rarityMult": 2,
   },
   {
     "xpRequired": 150000000,
