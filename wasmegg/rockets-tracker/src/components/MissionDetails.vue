@@ -25,6 +25,12 @@
           <div>{{ mission.durationDisplay }}</div>
           <div class="text-right font-medium">Capacity:</div>
           <div>{{ mission.capacity }}</div>
+          <template v-if="mission.sensorTarget != null">
+            <div class="text-right font-medium mt-0.5">Sensor target:</div>
+            <div class="text-center text-xs text-white rounded-full w-max px-1.5 py-0.5 mx-auto bg-gray-400 font-semibold">
+              {{ mission.sensorTarget.name }}
+            </div>
+          </template>
         </div>
       </div>
     </div>
