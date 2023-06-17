@@ -158,8 +158,12 @@
               }}</span>
               expected
               <template v-if="leagueStatus.expectedTimeToComplete > 0" #content>
-                Expected to complete at {{ leagueStatus.expectedFinalCompletionDate.format('YYYY-MM-DD HH:mm') }}.<br />
-                This is an estimate based on the current laying rate (see FAQ below)
+                <p>Expected to complete at
+                <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
+                  {{ leagueStatus.expectedFinalCompletionDate.format('YYYY-MM-DD HH:mm') }}
+                </span>.</p>
+                <br />
+                <p>This is an estimate based on the current laying rate (see FAQ below)</p>
               </template>
             </tippy>
             /
@@ -170,6 +174,28 @@
                 {{ status.expirationTime.format('YYYY-MM-DD HH:mm') }}
               </template>
             </tippy>
+          </dd>
+        </div>
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Time to complete, offline adjusted</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+              <tippy class="text-gray-900 dark:text-gray-100">
+                <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
+                  formatDuration(leagueStatus.expectedTimeToCompleteOfflineAdjusted)
+                }}</span>
+                expected
+                <template v-if="leagueStatus.expectedTimeToCompleteOfflineAdjusted > 0" #content>
+                  <p>The expected completion time taking into account offline eggs laid for all members is
+                  <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
+                    {{ leagueStatus.expectedFinalCompletionDateOfflineAdjusted.format('YYYY-MM-DD HH:mm') }}
+                  </span>.</p>
+                  <br />
+                  <p>Assumes that all players will check-in right before completion.</p>
+                </template>
+                <template v-if="!leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0" #content>
+                  <p>The coop should complete after enough members check-in.</p>
+                </template>
+              </tippy>
           </dd>
         </div>
         <div class="sm:col-span-1">

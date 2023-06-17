@@ -51,7 +51,6 @@ export class CoopStatus {
   refreshTime: Dayjs;
   expirationTime: Dayjs;
   eggsLaidOfflineAdjusted: number;
-  expectedTimeToCompleteOfflineAdjusted: number | null;
   status: string;
 
   constructor(cs: ei.IContractCoopStatusResponse) {
@@ -111,7 +110,6 @@ export class CoopStatus {
     for (const contributor of this.contributors) {
       this.eggsLaidOfflineAdjusted += contributor.offlineEggs;
     }
-    this.expectedTimeToCompleteOfflineAdjusted = null;
   }
 
   async resolveContract({
@@ -171,6 +169,7 @@ export class CoopStatus {
     this.leagueStatus = new ContractLeagueStatus(
       this.eggsLaid,
       this.eggsPerHour,
+      this.eggsLaidOfflineAdjusted,
       this.secondsRemaining,
       this.goals,
       this.status,
