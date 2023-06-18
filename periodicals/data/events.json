@@ -8398,5 +8398,21 @@
     "multiplier": 4.0,
     "startTimestamp": 1687017600.0,
     "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1687190400.0,
+    "id": "event-6-18",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1687104000.0,
+    "type": "crafting-sale"
+  },
+  {
+    "endTimestamp": 1687190400.0,
+    "id": "event-6-18-2",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1687104000.0,
+    "type": "mission-fuel"
   }
 ]
