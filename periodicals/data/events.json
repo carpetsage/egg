@@ -8414,5 +8414,13 @@
     "multiplier": 3.0,
     "startTimestamp": 1687104000.0,
     "type": "mission-fuel"
+  },
+  {
+    "endTimestamp": 1687276800.0,
+    "id": "event-6-19",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1687190400.0,
+    "type": "earnings-boost"
   }
 ]
