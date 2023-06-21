@@ -8430,5 +8430,21 @@
     "multiplier": 2.0,
     "startTimestamp": 1687276800.0,
     "type": "gift-boost"
+  },
+  {
+    "endTimestamp": 1687449600.0,
+    "id": "event-6-21",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1687363200.0,
+    "type": "vehicle-sale"
+  },
+  {
+    "endTimestamp": 1687449600.0,
+    "id": "event-6-21-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1687363200.0,
+    "type": "piggy-boost"
   }
 ]
