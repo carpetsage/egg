@@ -1039,11 +1039,11 @@ function piggyLevelBonus(level: number): number {
 }
 
 function fmtCraftingXpRarityMultiplier(craftingLevel: PlayerCraftingLevel): string {
-  const mult = craftingLevel.rarityMult - 1;
+  const mult = craftingLevel.rarityMult;
 
   // mimic the way EI shows the increase value on screen
-  const increase = (mult <= 1) ?
-    `${Math.floor(mult * 100)}%` :
+  const increase = (mult < 2) ?
+    `${Math.floor((mult-1) * 100)}%` :
     `${Number(mult.toFixed(2))}x`;
 
   return `${increase} increase in chance to craft Rare, Epic or Legendary Artifacts`;
