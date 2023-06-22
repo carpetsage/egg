@@ -8446,5 +8446,13 @@
     "multiplier": 4.0,
     "startTimestamp": 1687363200.0,
     "type": "piggy-boost"
+  },
+  {
+    "endTimestamp": 1687536000.0,
+    "id": "event-6-22",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1687449600.0,
+    "type": "boost-duration"
   }
 ]
