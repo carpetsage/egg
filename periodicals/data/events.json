@@ -8454,5 +8454,13 @@
     "multiplier": 2.0,
     "startTimestamp": 1687449600.0,
     "type": "boost-duration"
+  },
+  {
+    "endTimestamp": 1687622400.0,
+    "id": "event-6-23",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1687536000.0,
+    "type": "research-sale"
   }
 ]
