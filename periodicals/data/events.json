@@ -8574,5 +8574,13 @@
     "multiplier": 2.0,
     "startTimestamp": 1688400000.0,
     "type": "earnings-boost"
+  },
+  {
+    "endTimestamp": 1688572800.0,
+    "id": "event-7-4",
+    "message": "4x EARNINGS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1688486400.0,
+    "type": "earnings-boost"
   }
 ]
