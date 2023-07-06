@@ -177,7 +177,14 @@
           </dd>
         </div>
         <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Time to complete, offline adjusted</dt>
+          <dt class="text-sm font-medium text-gray-500 flex flex-row dark:text-gray-400">
+            Time to complete, offline adjusted
+            <base-warning
+              v-if="anyPlayerPrivate && leagueStatus.expectedTimeToCompleteOfflineAdjusted > 0"
+              v-tippy="'This is a conservative estimate due to some players having private farms'"
+              class="mx-0.5 translate-y-0.5"
+            />
+          </dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
               <tippy class="text-gray-900 dark:text-gray-100">
                 <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
@@ -239,6 +246,7 @@ import { completionStatusFgColorClass, completionStatusBgColorClass } from '@/st
 import { devmodeKey } from '@/symbols';
 import { eggTooltip } from '@/utils';
 import BaseIcon from 'ui/components/BaseIcon.vue';
+import BaseWarning from 'ui/components/BaseWarning.vue';
 import ContractLeagueLabel from '@/components/ContractLeagueLabel.vue';
 import ContractGradeLabel from '@/components/ContractGradeLabel.vue';
 import ContractStatusLabel from '@/components/ContractStatusLabel.vue';
@@ -252,6 +260,7 @@ import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vu
 export default defineComponent({
   components: {
     BaseIcon,
+    BaseWarning,
     ContractLeagueLabel,
     ContractGradeLabel,
     ContractStatusLabel,
@@ -278,6 +287,7 @@ export default defineComponent({
     const league = computed(() => status.value.league);
     const grade = computed(() => status.value.grade || 5);
     const leagueStatus = computed(() => status.value.leagueStatus!);
+    const anyPlayerPrivate = computed(() => status.value.contributors.find(c => !c.farmShared) != null);
     const openings = computed(() =>
       Math.max((contract.value.maxCoopSize || 0) - status.value.contributors.length, 0)
     );
@@ -289,6 +299,7 @@ export default defineComponent({
       league,
       grade,
       leagueStatus,
+      anyPlayerPrivate,
       openings,
       formatEIValue,
       formatDuration,

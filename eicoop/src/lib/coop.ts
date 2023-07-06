@@ -364,6 +364,7 @@ export class Contributor {
       (boost) => !!boost.boostId && (boost.timeRemaining ?? 0) > 0,
     );
 
+    // when a player is not sharing the farm, we assume there are no offline eggs (conservative)
     this.offlineSeconds = -(contributor.farmInfo?.timestamp ?? 0);
     this.offlineTimeStr = formatSecondsHM(this.offlineSeconds);
     const offlineHours = Math.min(this.offlineSeconds / 3600, 30);

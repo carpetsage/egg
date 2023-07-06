@@ -22,6 +22,9 @@ module.exports = {
         purple: {
           ...colors.purple,
         },
+        orange: {
+          ...colors.orange
+        },
         'cool-gray': colors.coolGray,
         // Interpolation of gray-700 (#3F3F46) and red-500 (#EF4444).
         'gray-700-red-tint': {
