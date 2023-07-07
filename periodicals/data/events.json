@@ -8606,5 +8606,13 @@
     "multiplier": 0.2,
     "startTimestamp": 1688659200.0,
     "type": "hab-sale"
+  },
+  {
+    "endTimestamp": 1688832000.0,
+    "id": "event-7-7",
+    "message": "77% OFF RESEARCH!",
+    "multiplier": 0.23,
+    "startTimestamp": 1688745600.0,
+    "type": "research-sale"
   }
 ]
