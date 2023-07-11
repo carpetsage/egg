@@ -8646,5 +8646,13 @@
     "multiplier": 2.0,
     "startTimestamp": 1689004800.0,
     "type": "earnings-boost"
+  },
+  {
+    "endTimestamp": 1689177600.0,
+    "id": "event-7-11",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1689091200.0,
+    "type": "drone-boost"
   }
 ]
