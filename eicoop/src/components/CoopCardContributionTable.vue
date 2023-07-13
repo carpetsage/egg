@@ -298,6 +298,12 @@
           </template>
           <template v-else>&ndash;</template>
         </td>
+        <td
+          v-if="showOptionalColumn.offlineTimeStr"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <span class="text-gray-500 dark:text-gray-200 truncate">{{ contributor.offlineTimeStr }}</span>
+        </td>
       </tr>
     </tbody>
   </table>
@@ -346,6 +352,8 @@ const optionalColumnIds = [
   'farmPopulation',
   'farmCapacity',
   'internalHatcheryRatePerMinPerHab',
+  'offlineTimeStr',
+  'offlineEggs',
 ] as const;
 
 type ColumnId = typeof requiredColumnIds[number] | OptionalColumnId;
@@ -469,6 +477,13 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
       tooltip: 'Internal hatchery rate, including boost effect if any',
     });
   }
+  if (showOptionalColumn.value.offlineTimeStr) {
+    cols.push({
+      id: 'offlineTimeStr',
+      name: 'Offline Time',
+      tooltip: 'Time offline',
+    });
+  }
   return cols;
 });
 
@@ -517,6 +532,9 @@ const sortedContributors = computed(() => {
       case 'artifacts':
       case 'boosts':
         cmp = 0;
+        break;
+      case 'offlineTimeStr':
+        cmp = c1.offlineSeconds - c2.offlineSeconds;
         break;
       default:
         cmp = (c1[sortBy.value] || 0) - (c2[sortBy.value] || 0);
