@@ -8710,5 +8710,13 @@
     "multiplier": 7.0,
     "startTimestamp": 1689350400.0,
     "type": "drone-boost"
+  },
+  {
+    "endTimestamp": 1689436800.0,
+    "id": "eday-5",
+    "message": "7x PIGGY GROWTH!!",
+    "multiplier": 7.0,
+    "startTimestamp": 1689350400.0,
+    "type": "piggy-boost"
   }
 ]
