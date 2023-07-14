@@ -8680,7 +8680,7 @@
     "type": "vehicle-sale"
   },
   {
-    "endTimestamp": 1689436800.0,
+    "endTimestamp": 1689444000.0,
     "id": "eday-1",
     "message": "77% OFF RESEARCH!",
     "multiplier": 0.23,
@@ -8688,7 +8688,7 @@
     "type": "research-sale"
   },
   {
-    "endTimestamp": 1689436800.0,
+    "endTimestamp": 1689444000.0,
     "id": "eday-2",
     "message": "SEPT-PRESTIGE!!!!!",
     "multiplier": 7.0,
