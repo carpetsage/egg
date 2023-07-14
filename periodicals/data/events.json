@@ -8678,5 +8678,37 @@
     "multiplier": 0.25,
     "startTimestamp": 1689264000.0,
     "type": "vehicle-sale"
+  },
+  {
+    "endTimestamp": 1689436800.0,
+    "id": "eday-1",
+    "message": "77% OFF RESEARCH!",
+    "multiplier": 0.23,
+    "startTimestamp": 1689350400.0,
+    "type": "research-sale"
+  },
+  {
+    "endTimestamp": 1689436800.0,
+    "id": "eday-2",
+    "message": "SEPT-PRESTIGE!!!!!",
+    "multiplier": 7.0,
+    "startTimestamp": 1689350400.0,
+    "type": "prestige-boost"
+  },
+  {
+    "endTimestamp": 1689436800.0,
+    "id": "eday-3",
+    "message": "7x FUELING!",
+    "multiplier": 7.0,
+    "startTimestamp": 1689350400.0,
+    "type": "mission-fuel"
+  },
+  {
+    "endTimestamp": 1689436800.0,
+    "id": "eday-4",
+    "message": "7x DRONE REWARDS!",
+    "multiplier": 7.0,
+    "startTimestamp": 1689350400.0,
+    "type": "drone-boost"
   }
 ]
