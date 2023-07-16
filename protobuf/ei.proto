@@ -21,6 +21,7 @@ message Backup {
         optional bool low_performance_mode = 4;
         optional bool force_touch_chicken_btn = 9;
         optional bool notifications_queried = 5;
+        optional double last_notification_query_time = 27;
         optional bool notifications_on = 6;
         optional bool notify_daily_gift = 11;
         optional bool low_performance = 10;
@@ -777,6 +778,7 @@ message ContractCoopStatusResponse {
         optional string user_id = 1;
         optional string user_name = 3;
         optional uint32 amount = 2;
+        optional string tracking = 4;
     }
     
     repeated ChickenRun chicken_runs = 13;
@@ -1229,12 +1231,19 @@ message InGameMail {
     optional string message = 3;
     optional string action = 4;
     optional string url = 5;
+    optional UILocation app_link = 14;
+    optional string app_link_extra = 15;
+    optional DLCItem image = 16;
+    optional double image_width = 21;
+    optional double image_height = 22;
     optional uint32 platform = 7;
     repeated string builds = 9;
     optional uint32 min_client_version = 10;
     optional uint32 max_client_version = 12;
     optional double min_soul_eggs = 11;
     optional double min_mystical_bonus = 13;
+    optional UserType user_type = 17;
+    optional uint32 min_piggy_breaks = 20;
     optional double gold_tip = 6;
 }
 
@@ -1273,8 +1282,11 @@ message GetPeriodicalsRequest {
 message ConfigRequest {
     optional BasicRequestInfo rinfo = 1;
     optional double soul_eggs = 2;
-    optional bool artifacts_enabled = 3;
+    optional bool contracts_unlocked = 5;
+    optional bool artifacts_unlocked = 3;
     optional bool fuel_tank_unlocked = 4;
+    optional bool pro_permit = 6;
+    optional bool ultra = 7;
 }
 
 message ConfigResponse {
@@ -1756,6 +1768,7 @@ message ShellSpec {
     optional bool expires = 15;
     optional double seconds_until_available = 17;
     optional double seconds_remaining = 16;
+    optional uint64 popularity = 21;
     optional bool default_appearance = 8;
     
     enum AssetType {
@@ -1871,6 +1884,7 @@ message ShellSetSpec {
     optional bool expires = 10;
     optional double seconds_until_available = 18;
     optional double seconds_remaining = 11;
+    optional uint64 popularity = 21;
     optional bool decorator = 14;
     optional bool modified_geometry = 13;
     optional bool element_set = 7;
@@ -1904,6 +1918,7 @@ message ShellObjectSpec {
     optional bool expires = 11;
     optional double seconds_until_available = 18;
     optional double seconds_remaining = 12;
+    optional uint64 popularity = 19;
     repeated double metadata = 7;
     optional bool no_hats = 13;
     
@@ -2030,6 +2045,16 @@ message ShellDB {
         CHICKEN = 14;
         HAT = 15;
         UNKNOWN = 99;
+    }
+}
+
+message ShellPopularityStats {
+    repeated Entry data = 1;
+    message Entry {
+        optional string id = 1;
+        optional ShellDB.FarmElement element = 2;
+        optional uint64 spent = 3;
+        optional uint64 count = 4;
     }
 }
 
@@ -2196,6 +2221,32 @@ enum RewardType {
     CHICKEN = 13;
     SHELL_SCRIPT = 14;
     UNKNOWN_REWARD = 100;
+}
+
+enum UILocation {
+    NONE = 0;
+    SHOP = 1;
+    BOOST_SHOP = 2;
+    PIGGY = 3;
+    PRO_PERMIT = 4;
+    ULTRA_SHOP = 10;
+    SHELLS = 5;
+    SHELL_SETS = 6;
+    CHICKENS = 7;
+    CHICKEN_HATS = 11;
+    EPIC_RESEARCH = 8;
+    SETTINGS = 9;
+}
+
+enum UserType {
+    ALL_USERS = 0;
+    CONTRACTS_UNLOCKED = 1;
+    ARTIFACTS_UNLOCKED = 3;
+    FUEL_TANK_UNLOCKED = 4;
+    PRO_PERMIT_ACTIVE = 5;
+    ULTRA_ACTIVE = 6;
+    NO_PRO_PERMIT = 7;
+    NO_ULTRA = 8;
 }
 
 enum LeaderboardScope {

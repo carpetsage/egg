@@ -10,6 +10,8 @@ const enumNames = [
   'Platform',
   'RewardType',
   'LeaderboardScope',
+  'UILocation',
+  'UserType'
 ] as const;
 export type MessageName = Exclude<keyof typeof ei, typeof enumNames[number]>;
 
