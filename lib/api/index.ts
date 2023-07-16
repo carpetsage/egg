@@ -22,7 +22,7 @@ const API_ROOT = import.meta.env.DEV && import.meta.env.VITE_APP_MOCK
 
 const CONFIG_GIST_URL =
   "https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/config.json";
-const TIMEOUT = 15000;
+const TIMEOUT = 8000;
 
 // A valid userId donated by a volunteer.
 const defaultUserId = atob("RUk2MjkxOTQwOTY4MjM1MDA4");
