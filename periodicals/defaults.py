@@ -3,8 +3,8 @@ import ei
 
 current_client_version = 999
 client_version = 47
-version = '1.26.1'
-build = '111231'
+version = '1.27.3'
+build = '111247'
 platform = "IOS"
 event_file = "data/events.json"
 contract_file = "data/contracts.json"
