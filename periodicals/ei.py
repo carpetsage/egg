@@ -64,6 +64,32 @@ class RewardType(betterproto.Enum):
     UNKNOWN_REWARD = 100
 
 
+class UILocation(betterproto.Enum):
+    NONE = 0
+    SHOP = 1
+    BOOST_SHOP = 2
+    PIGGY = 3
+    PRO_PERMIT = 4
+    ULTRA_SHOP = 10
+    SHELLS = 5
+    SHELL_SETS = 6
+    CHICKENS = 7
+    CHICKEN_HATS = 11
+    EPIC_RESEARCH = 8
+    SETTINGS = 9
+
+
+class UserType(betterproto.Enum):
+    ALL_USERS = 0
+    CONTRACTS_UNLOCKED = 1
+    ARTIFACTS_UNLOCKED = 3
+    FUEL_TANK_UNLOCKED = 4
+    PRO_PERMIT_ACTIVE = 5
+    ULTRA_ACTIVE = 6
+    NO_PRO_PERMIT = 7
+    NO_ULTRA = 8
+
+
 class LeaderboardScope(betterproto.Enum):
     ALL_TIME = 0
     CURRENT_SEASON = 1
@@ -477,8 +503,13 @@ class BackupSettings(betterproto.Message):
     low_performance_mode: bool = betterproto.bool_field(4)
     force_touch_chicken_btn: bool = betterproto.bool_field(9)
     notifications_queried: bool = betterproto.bool_field(5)
+    last_notification_query_time: float = betterproto.double_field(27)
     notifications_on: bool = betterproto.bool_field(6)
     notify_daily_gift: bool = betterproto.bool_field(11)
+    low_performance: bool = betterproto.bool_field(10)
+    auto_stop_fueling: bool = betterproto.bool_field(25)
+    max_enabled: bool = betterproto.bool_field(26)
+    last_backup_time: float = betterproto.double_field(24)
     coppa_queried: bool = betterproto.bool_field(7)
     coppa_restricted: bool = betterproto.bool_field(8)
     gdpr_consent_queried: bool = betterproto.bool_field(12)
@@ -493,9 +524,6 @@ class BackupSettings(betterproto.Message):
     user_cloud_enabled: bool = betterproto.bool_field(15)
     user_analytics_enabled: bool = betterproto.bool_field(22)
     user_personalized_ads_enabled: bool = betterproto.bool_field(23)
-    low_performance: bool = betterproto.bool_field(10)
-    auto_stop_fueling: bool = betterproto.bool_field(25)
-    last_backup_time: float = betterproto.double_field(24)
 
 
 @dataclass
@@ -675,6 +703,8 @@ class BackupMisc(betterproto.Message):
     boost_token_alert: bool = betterproto.bool_field(17)
     soul_egg_alert: bool = betterproto.bool_field(18)
     backup_reminder_alert: bool = betterproto.bool_field(19)
+    max_button_alert: bool = betterproto.bool_field(23)
+    mission_target_alert: bool = betterproto.bool_field(24)
 
 
 @dataclass
@@ -1003,6 +1033,8 @@ class ContractEvaluation(betterproto.Message):
     chicken_runs_sent: int = betterproto.uint32_field(7)
     gift_tokens_sent: int = betterproto.uint32_field(8)
     gift_tokens_received: int = betterproto.uint32_field(15)
+    gift_token_value_sent: float = betterproto.double_field(28)
+    gift_token_value_received: float = betterproto.double_field(29)
     boost_token_allotment: int = betterproto.uint32_field(16)
     buff_time_value: float = betterproto.double_field(17)
     teamwork_score: float = betterproto.double_field(13)
@@ -1046,6 +1078,7 @@ class CoopCompletionSnapshot(betterproto.Message):
 class CoopCompletionSnapshotContributorSnapshot(betterproto.Message):
     contribution: float = betterproto.double_field(1)
     last_contribution_time: float = betterproto.double_field(6)
+    finalized: bool = betterproto.bool_field(7)
     soul_power: float = betterproto.double_field(2)
     user_id: str = betterproto.string_field(3)
     tokens: int = betterproto.uint32_field(4)
@@ -1083,8 +1116,11 @@ class ContractSimConfigContractGradeSimConfig(betterproto.Message):
 class ContractSimConfigContractGradeSimConfigGoalParams(betterproto.Message):
     target_se: float = betterproto.double_field(1)
     cps_mult: float = betterproto.double_field(2)
+    elr_mult: float = betterproto.double_field(7)
     earnings_mult: float = betterproto.double_field(3)
     time_efficacy: float = betterproto.double_field(4)
+    hab_capacity_mult: float = betterproto.double_field(5)
+    epic_research_budget: float = betterproto.double_field(6)
 
 
 @dataclass
@@ -1176,6 +1212,7 @@ class ContractCoopStatusResponse(betterproto.Message):
     contract_identifier: str = betterproto.string_field(1)
     total_amount: float = betterproto.double_field(2)
     coop_identifier: str = betterproto.string_field(3)
+    grade: "ContractPlayerGrade" = betterproto.enum_field(17)
     contributors: List[
         "ContractCoopStatusResponseContributionInfo"
     ] = betterproto.message_field(4)
@@ -1183,8 +1220,11 @@ class ContractCoopStatusResponse(betterproto.Message):
     public: bool = betterproto.bool_field(10)
     creator_id: str = betterproto.string_field(9)
     seconds_remaining: float = betterproto.double_field(5)
+    seconds_since_all_goals_achieved: float = betterproto.double_field(16)
+    all_goals_achieved: bool = betterproto.bool_field(14)
     all_members_reporting: bool = betterproto.bool_field(6)
     grace_period_seconds_remaining: float = betterproto.double_field(7)
+    cleared_for_exit: bool = betterproto.bool_field(15)
     gifts: List["ContractCoopStatusResponseCoopGift"] = betterproto.message_field(11)
     chicken_runs: List[
         "ContractCoopStatusResponseChickenRun"
@@ -1204,8 +1244,10 @@ class ContractCoopStatusResponseContributionInfo(betterproto.Message):
     production_params: "FarmProductionParams" = betterproto.message_field(15)
     farm_info: "PlayerFarmInfo" = betterproto.message_field(18)
     rank_change: int = betterproto.int32_field(8)
+    recently_active: bool = betterproto.bool_field(23)
     active: bool = betterproto.bool_field(4)
     leech: bool = betterproto.bool_field(16)
+    finalized: bool = betterproto.bool_field(22)
     time_cheat_detected: bool = betterproto.bool_field(7)
     platform: "Platform" = betterproto.enum_field(5)
     push_id: str = betterproto.string_field(9)
@@ -1222,6 +1264,7 @@ class ContractCoopStatusResponseCoopGift(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     user_name: str = betterproto.string_field(3)
     amount: int = betterproto.uint32_field(2)
+    tracking: str = betterproto.string_field(4)
 
 
 @dataclass
@@ -1240,6 +1283,7 @@ class LocalContract(betterproto.Message):
     cancelled: bool = betterproto.bool_field(4)
     new: bool = betterproto.bool_field(8)
     coop_shared_end_time: float = betterproto.double_field(5)
+    coop_simulation_end_time: float = betterproto.double_field(22)
     coop_grace_period_end_time: float = betterproto.double_field(9)
     coop_contribution_finalized: bool = betterproto.bool_field(10)
     coop_last_uploaded_contribution: float = betterproto.double_field(11)
@@ -1298,6 +1342,7 @@ class CreateCoopRequest(betterproto.Message):
     coop_identifier: str = betterproto.string_field(2)
     public: bool = betterproto.bool_field(13)
     cc_only: bool = betterproto.bool_field(14)
+    allow_all_grades: bool = betterproto.bool_field(16)
     seconds_remaining: float = betterproto.double_field(3)
     user_id: str = betterproto.string_field(4)
     user_name: str = betterproto.string_field(5)
@@ -1305,6 +1350,7 @@ class CreateCoopRequest(betterproto.Message):
     eop: float = betterproto.double_field(11)
     league: int = betterproto.uint32_field(9)
     grade: "ContractPlayerGrade" = betterproto.enum_field(12)
+    points_replay: bool = betterproto.bool_field(15)
     platform: "Platform" = betterproto.enum_field(6)
     client_version: int = betterproto.uint32_field(7)
 
@@ -1326,6 +1372,7 @@ class JoinCoopRequest(betterproto.Message):
     eop: float = betterproto.double_field(12)
     league: int = betterproto.uint32_field(9)
     grade: "ContractPlayerGrade" = betterproto.enum_field(13)
+    points_replay: bool = betterproto.bool_field(14)
     platform: "Platform" = betterproto.enum_field(5)
     seconds_remaining: float = betterproto.double_field(11)
     client_version: int = betterproto.uint32_field(7)
@@ -1355,6 +1402,7 @@ class AutoJoinCoopRequest(betterproto.Message):
     eop: float = betterproto.double_field(10)
     league: int = betterproto.uint32_field(8)
     grade: "ContractPlayerGrade" = betterproto.enum_field(12)
+    points_replay: bool = betterproto.bool_field(14)
     seconds_remaining: float = betterproto.double_field(5)
     platform: "Platform" = betterproto.enum_field(6)
     client_version: int = betterproto.uint32_field(7)
@@ -1485,6 +1533,7 @@ class LeaderboardAnalysis(betterproto.Message):
     count: int = betterproto.uint32_field(2)
     high_score: float = betterproto.double_field(3)
     low_score: float = betterproto.double_field(4)
+    cursor: str = betterproto.string_field(5)
 
 
 @dataclass
@@ -1684,12 +1733,19 @@ class InGameMail(betterproto.Message):
     message: str = betterproto.string_field(3)
     action: str = betterproto.string_field(4)
     url: str = betterproto.string_field(5)
+    app_link: "UILocation" = betterproto.enum_field(14)
+    app_link_extra: str = betterproto.string_field(15)
+    image: "DLCItem" = betterproto.message_field(16)
+    image_width: float = betterproto.double_field(21)
+    image_height: float = betterproto.double_field(22)
     platform: int = betterproto.uint32_field(7)
     builds: List[str] = betterproto.string_field(9)
     min_client_version: int = betterproto.uint32_field(10)
     max_client_version: int = betterproto.uint32_field(12)
     min_soul_eggs: float = betterproto.double_field(11)
     min_mystical_bonus: float = betterproto.double_field(13)
+    user_type: "UserType" = betterproto.enum_field(17)
+    min_piggy_breaks: int = betterproto.uint32_field(20)
     gold_tip: float = betterproto.double_field(6)
 
 
@@ -1732,8 +1788,11 @@ class GetPeriodicalsRequest(betterproto.Message):
 class ConfigRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(1)
     soul_eggs: float = betterproto.double_field(2)
-    artifacts_enabled: bool = betterproto.bool_field(3)
+    contracts_unlocked: bool = betterproto.bool_field(5)
+    artifacts_unlocked: bool = betterproto.bool_field(3)
     fuel_tank_unlocked: bool = betterproto.bool_field(4)
+    pro_permit: bool = betterproto.bool_field(6)
+    ultra: bool = betterproto.bool_field(7)
 
 
 @dataclass
@@ -1811,6 +1870,7 @@ class MissionInfo(betterproto.Message):
     duration_seconds: float = betterproto.double_field(5)
     capacity: int = betterproto.uint32_field(9)
     quality_bump: float = betterproto.double_field(11)
+    target_artifact: "ArtifactSpecName" = betterproto.enum_field(13)
     seconds_remaining: float = betterproto.double_field(6)
     start_time_derived: float = betterproto.double_field(8)
     mission_log: str = betterproto.string_field(10)
@@ -2024,12 +2084,15 @@ class ArtifactsDB(betterproto.Message):
     inventory_items: List["ArtifactInventoryItem"] = betterproto.message_field(1)
     item_sequence: int = betterproto.uint64_field(2)
     inventory_slots: List["InventorySlot"] = betterproto.message_field(3)
-    active_artifacts: List["ArtifactsDBActiveArtifactSlot"] = betterproto.message_field(
-        7
-    )
+    active_artifacts__d_e_p_r_e_c_a_t_e_d: List[
+        "ArtifactsDBActiveArtifactSlot"
+    ] = betterproto.message_field(7)
     active_artifact_sets: List[
         "ArtifactsDBActiveArtifactSet"
     ] = betterproto.message_field(11)
+    saved_artifact_sets: List[
+        "ArtifactsDBActiveArtifactSet"
+    ] = betterproto.message_field(13)
     artifact_status: List["ArtifactsDBCraftableArtifact"] = betterproto.message_field(
         12
     )
@@ -2055,6 +2118,7 @@ class ArtifactsDBActiveArtifactSlot(betterproto.Message):
 @dataclass
 class ArtifactsDBActiveArtifactSet(betterproto.Message):
     slots: List["ArtifactsDBActiveArtifactSlot"] = betterproto.message_field(1)
+    uid: int = betterproto.uint32_field(2)
 
 
 @dataclass
@@ -2153,6 +2217,7 @@ class ShellSpec(betterproto.Message):
     expires: bool = betterproto.bool_field(15)
     seconds_until_available: float = betterproto.double_field(17)
     seconds_remaining: float = betterproto.double_field(16)
+    popularity: int = betterproto.uint64_field(21)
     default_appearance: bool = betterproto.bool_field(8)
 
 
@@ -2176,6 +2241,7 @@ class ShellSetSpec(betterproto.Message):
     expires: bool = betterproto.bool_field(10)
     seconds_until_available: float = betterproto.double_field(18)
     seconds_remaining: float = betterproto.double_field(11)
+    popularity: int = betterproto.uint64_field(21)
     decorator: bool = betterproto.bool_field(14)
     modified_geometry: bool = betterproto.bool_field(13)
     element_set: bool = betterproto.bool_field(7)
@@ -2210,6 +2276,7 @@ class ShellObjectSpec(betterproto.Message):
     expires: bool = betterproto.bool_field(11)
     seconds_until_available: float = betterproto.double_field(18)
     seconds_remaining: float = betterproto.double_field(12)
+    popularity: int = betterproto.uint64_field(19)
     metadata: List[float] = betterproto.double_field(7)
     no_hats: bool = betterproto.bool_field(13)
     chicken_animation: "ShellObjectSpecChickenAnimation" = betterproto.enum_field(16)
@@ -2325,6 +2392,19 @@ class ShellDBChickenConfig(betterproto.Message):
 
 
 @dataclass
+class ShellPopularityStats(betterproto.Message):
+    data: List["ShellPopularityStatsEntry"] = betterproto.message_field(1)
+
+
+@dataclass
+class ShellPopularityStatsEntry(betterproto.Message):
+    id: str = betterproto.string_field(1)
+    element: "ShellDBFarmElement" = betterproto.enum_field(2)
+    spent: int = betterproto.uint64_field(3)
+    count: int = betterproto.uint64_field(4)
+
+
+@dataclass
 class ShellsActionLog(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(8)
     user_id: str = betterproto.string_field(1)
@@ -2408,3 +2488,9 @@ class SubscriptionChangeHintRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(3)
     original_transaction_id: str = betterproto.string_field(1)
     next_subscription_level: "UserSubscriptionInfoLevel" = betterproto.enum_field(2)
+
+
+@dataclass
+class CXPEvalRolloutInfo(betterproto.Message):
+    current_id: str = betterproto.string_field(1)
+    basis_points: int = betterproto.uint32_field(2)
