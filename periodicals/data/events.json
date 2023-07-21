@@ -8785,18 +8785,18 @@
   },
   {
     "endTimestamp": 1689955200.0,
-    "id": "ultra-7-20",
-    "message": "2x EARNINGS!",
-    "multiplier": 2.0,
-    "startTimestamp": 1689868800.0,
-    "type": "earnings-boost"
-  },
-  {
-    "endTimestamp": 1689955200.0,
     "id": "event-7-20",
     "message": "75% OFF VEHICLES!",
     "multiplier": 0.25,
     "startTimestamp": 1689868800.0,
     "type": "vehicle-sale"
+  },
+  {
+    "endTimestamp": 1689955200.0,
+    "id": "ultra-7-20",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1689868800.0,
+    "type": "earnings-boost"
   }
 ]
