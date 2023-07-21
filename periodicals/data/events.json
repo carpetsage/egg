@@ -8789,7 +8789,8 @@
     "message": "75% OFF VEHICLES!",
     "multiplier": 0.25,
     "startTimestamp": 1689868800.0,
-    "type": "vehicle-sale"
+    "type": "vehicle-sale",
+    "ultra": false
   },
   {
     "endTimestamp": 1689955200.0,
@@ -8797,7 +8798,8 @@
     "message": "2x EARNINGS!",
     "multiplier": 2.0,
     "startTimestamp": 1689868800.0,
-    "type": "earnings-boost"
+    "type": "earnings-boost",
+    "ultra": true
   },
   {
     "endTimestamp": 1690041600.0,
@@ -8805,6 +8807,7 @@
     "message": "70% OFF RESEARCH!",
     "multiplier": 0.3,
     "startTimestamp": 1689955200.0,
-    "type": "research-sale"
+    "type": "research-sale",
+    "ultra": false
   }
 ]

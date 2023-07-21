@@ -113,7 +113,8 @@ class Event(dict):
         multiplier      = EggIncEvent.multiplier,
         message         = EggIncEvent.subtitle,
         startTimestamp  = EggIncEvent.start_time,
-        endTimestamp    = EggIncEvent.start_time + EggIncEvent.duration)
+        endTimestamp    = EggIncEvent.start_time + EggIncEvent.duration,
+        ultra           = EggIncEvent.cc_only)
 
     def toJson(self):
         return json.dumps(self, default=lambda o: o.__dict__)
