@@ -40,6 +40,9 @@ export function iconURL(
   if (/icon_dilithium_bulb/.test(relpath)) {
     return 'https://imagedelivery.net/3eHDWErDPIKAYL6ofL-Kwg/f9be3c0a-0bac-483f-b0b2-143356ccd800/public';
   }
+  else if (/sub_icon/.test(relpath)) {
+    return 'https://imagedelivery.net/3eHDWErDPIKAYL6ofL-Kwg/3b23e937-69ad-42e4-0034-841d6d494600/public';
+  }
   return `https://eggincassets.tcl.sh/${size}/${relpath}`;
 }
 
