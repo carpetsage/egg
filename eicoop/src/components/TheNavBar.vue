@@ -74,7 +74,7 @@
     :use-absolute-urls="true"
     :use-cool-gray="true"
     @update:open="
-      open => {
+      (open: Boolean) => {
         if (!open) {
           closeSidewideNav();
         }
