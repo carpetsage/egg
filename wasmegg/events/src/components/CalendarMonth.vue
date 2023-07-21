@@ -22,7 +22,7 @@
         <div class="space-y-1">
           <template v-for="(event, index) in d.events" :key="index">
             <tippy
-              v-if="eventTypesOn[event.type.id] !== false"
+              v-if="eventTypesOn[event.type.id] !== false && showEvent(event)"
               class="flex items-center md:justify-start space-x-1"
               :class="forceFullWidth ? 'justify-start' : 'justify-center'"
             >
@@ -51,6 +51,10 @@
                     <p>
                       <span class="text-white">Duration:</span>
                       {{ formatDuration(event.durationSeconds, true) }}
+                    </p>
+                    <p>
+                      <span class="text-white">Ultra:</span>
+                      {{ event.ultra }}
                     </p>
                     <p v-if="devmode">
                       <span class="text-white">ID:</span>
@@ -96,6 +100,7 @@ import { formatDuration, getDevModeOn, iconURL } from 'lib';
 import { GameEvent } from '@/events';
 import { EventTypeSwitches } from '@/types';
 import EventBadge from '@/components/EventBadge.vue';
+import { InGameEvent } from '../events';
 
 export default defineComponent({
   components: {
@@ -119,9 +124,13 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    showUltraEvents: {
+      type: Boolean,
+      default: false,
+    }
   },
   setup(props) {
-    const { month, date2events } = toRefs(props);
+    const { month, date2events, showUltraEvents } = toRefs(props);
     const dates = computed(() => {
       const monthNumber = month.value.month();
       const dates = [];
@@ -133,11 +142,18 @@ export default defineComponent({
       }
       return dates;
     });
+    const showEvent = (event: GameEvent) => {
+      if (event.isInGameEvent() && event.ultra) {
+        return showUltraEvents.value
+      }
+      return true;
+    };
     const devmode = getDevModeOn();
     return {
       now: dayjs(),
       dates,
       formatDuration,
+      showEvent,
       iconURL,
       devmode,
     };

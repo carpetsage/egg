@@ -62,6 +62,28 @@
           </div>
         </div>
 
+        <div class="relative flex items-start">
+          <div class="flex items-center h-5">
+            <input
+              id="showUltraEvents"
+              v-model="showUltraEvents"
+              name="showUltraEvents"
+              type="checkbox"
+              class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+            />
+          </div>
+          <div class="ml-2 flex items-center space-x-1">
+            <label for="showUltraEvents" class="text-sm text-gray-600">Show Ultra Only events</label>
+            <base-info
+              v-tippy="{
+                content: `Ultra Subscribers get exclusive events. If this option is checked,
+                  these events are shown in the calendar with all the normal events.`,
+              }"
+              class="cursor-help"
+            />
+          </div>
+        </div>
+
         <div class="relative hidden 2col:flex items-start">
           <div class="flex items-center h-5">
             <input
@@ -153,6 +175,7 @@
           :date2events="date2events"
           :event-types-on="eventTypesOn"
           :force-full-width="forceFullWidth"
+          :show-ultra-events="showUltraEvents"
         />
       </template>
     </div>
@@ -175,6 +198,7 @@ import { EventTypeId, EventTypeSwitches } from '@/types';
 
 dayjs.extend(utc);
 
+const SHOW_ULTRA_EVENTS_LOCALSTORAGE_KEY = 'showUltraEvents';
 const USE_UTC_DATES_LOCALSTORAGE_KEY = 'useUtcDates';
 const FORCE_FULL_WIDTH_LOCALSTORAGE_KEY = 'forceFullWidth';
 const FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY = 'forceSingleColumn';
@@ -223,6 +247,8 @@ export default defineComponent({
     watch(forceSingleColumn, () =>
       setLocalStorage(FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY, forceSingleColumn.value)
     );
+    const showUltraEvents = ref(getLocalStorage(SHOW_ULTRA_EVENTS_LOCALSTORAGE_KEY) === 'false');
+    watch(showUltraEvents , () => setLocalStorage(SHOW_ULTRA_EVENTS_LOCALSTORAGE_KEY, showUltraEvents.value));
 
     const eventTypesOn = ref(getEventTypesOn());
     const persistEventTypeOn = (id: EventTypeId) =>
@@ -277,6 +303,7 @@ export default defineComponent({
       useUtcDates,
       forceFullWidth,
       forceSingleColumn,
+      showUltraEvents,
       eventTypes,
       eventTypesOn,
       persistEventTypeOn,

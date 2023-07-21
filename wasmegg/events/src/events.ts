@@ -212,6 +212,7 @@ export class InGameEvent extends _GameEvent {
   message: string;
   startTimestamp: number;
   endTimestamp: number;
+  ultra: boolean;
 
   constructor(params: InGameEventParams) {
     super(params.type);
@@ -220,6 +221,7 @@ export class InGameEvent extends _GameEvent {
     this.message = params.message;
     this.startTimestamp = params.startTimestamp;
     this.endTimestamp = params.endTimestamp;
+    this.ultra = params.ultra ?? false;
   }
 
   get startTime(): Dayjs {

@@ -27,6 +27,7 @@ export type InGameEventParams = {
   message: string;
   startTimestamp: number;
   endTimestamp: number;
+  ultra?: boolean;
 };
 
 export type EventTypeSwitches = { [key in EventTypeId]: boolean };
