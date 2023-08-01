@@ -48,8 +48,8 @@ import { Emitter } from 'mitt';
 
 import { Inventory, requestFirstContact, UserBackupEmptyError } from 'lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
-import { reportLegendaries } from '@/lib';
-import { REPORT_LEGENDARIES } from '@/events';
+import { reportLegendaries, reportMissionData } from '@/lib';
+import { REPORT_LEGENDARIES, REPORT_MISSIONDATA } from '@/events';
 import CollapsibleSection from '@/components/CollapsibleSection.vue';
 import PlayerCard from '@/components/PlayerCard.vue';
 import ActiveMissionsReport from '@/components/ActiveMissionsReport.vue';
@@ -74,7 +74,7 @@ export default defineComponent({
       required: true,
     },
     eventBus: {
-      type: Object as PropType<Emitter<Record<typeof REPORT_LEGENDARIES, unknown>>>,
+      type: Object as PropType<Emitter<Record<typeof REPORT_LEGENDARIES | typeof REPORT_MISSIONDATA, unknown>>>,
       required: true,
     },
   },
@@ -100,6 +100,10 @@ export default defineComponent({
     reportLegendaries(backup);
     eventBus.on(REPORT_LEGENDARIES, () => {
       reportLegendaries(backup);
+    });
+    reportMissionData(backup);
+    eventBus.on(REPORT_MISSIONDATA, () => {
+      reportMissionData(backup);
     });
     return {
       backup,

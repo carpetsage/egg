@@ -8,6 +8,7 @@
   <div class="max-w-5xl w-full pb-6 mx-auto">
     <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
+    <mission-drop-data-opt-in-form :event-bus="eventBus" class="mx-4 xl:mx-0 my-4" />
     <legendaries-study-opt-in-form :event-bus="eventBus" class="mx-4 xl:mx-0 my-4" />
 
     <!-- Use a key to recreate on data loading -->
@@ -37,11 +38,14 @@ import mitt from 'mitt';
 
 import { getSavedPlayerID, savePlayerID } from 'lib';
 import LegendariesStudyOptInForm from '@/components/LegendariesStudyOptInForm.vue';
+import MissionDropDataOptInForm from '@/components/MissionDropDataOptInForm.vue';
 import BaseErrorBoundary from 'ui/components/BaseErrorBoundary.vue';
 import BaseLoading from 'ui/components/BaseLoading.vue';
 import TheNavBar from 'ui/components/NavBar.vue';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import TheReport from '@/components/TheReport.vue';
+import { getMissionDataPreference, recordMissionDataPreference } from '@/lib';
+import { REPORT_MISSIONDATA } from './events';
 
 export default defineComponent({
   components: {
@@ -51,10 +55,14 @@ export default defineComponent({
     TheNavBar,
     ThePlayerIdForm,
     TheReport,
-  },
+    MissionDropDataOptInForm
+},
   setup() {
     const playerId = ref(
       new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || ''
+    );
+    const missionDataPref = ref(
+      new URLSearchParams(window.location.search).get('contribute') || ''
     );
     const refreshId = ref(Date.now());
     const submitPlayerId = (id: string) => {
@@ -63,6 +71,17 @@ export default defineComponent({
       savePlayerID(id);
     };
     const eventBus = mitt();
+    const recordData = (pref: string) => {
+      const optin = pref.toLocaleLowerCase() === 'true';
+      // change preference if url parameter is different from localstorage
+      if (optin !== getMissionDataPreference() && pref != '') {
+        recordMissionDataPreference(optin);
+        if (optin) {
+          eventBus.emit(REPORT_MISSIONDATA);
+        }
+      }
+    };
+    recordData(missionDataPref.value);
     return {
       playerId,
       refreshId,
