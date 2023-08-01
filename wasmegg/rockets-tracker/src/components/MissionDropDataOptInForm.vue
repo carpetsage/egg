@@ -3,8 +3,8 @@
       <h3 class="text-sm font-medium text-green-800">Contribute to mission drop data</h3>
       <div class="mt-2 text-sm text-green-700">
         <p>
-          All drop data in artifact sandbox is contributed by anonymous volunteers. 
-          Opt in to have your past mission data automatically contributed to help improve
+          Opt in to contribute your past ship's drops to @mennoo's drop data collection tool
+          All drop rates shown in Artifact Explorer will come from this tool. Opt-in to help improve
           this data.
         </p>
         <p v-if="!showDetails" class="mt-2 underline cursor-pointer" @click="showDetails = true">
