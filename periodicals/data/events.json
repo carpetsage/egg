@@ -8955,12 +8955,48 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1690819200.0,
+    "endTimestamp": 1690905600.0,
     "id": "ultra-7-30",
     "message": "2x MISSION CAPACITY!!!",
     "multiplier": 2.0,
     "startTimestamp": 1690732800.0,
     "type": "mission-capacity",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1690905600.0,
+    "id": "event-7-31",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1690819200.0,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1690992000.0,
+    "id": "event-8-1",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1690905600.0,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1691078400.0,
+    "id": "event-8-2",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1690992000.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1691078400.0,
+    "id": "event-8-2-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1690992000.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
