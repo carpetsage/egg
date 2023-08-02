@@ -9,7 +9,7 @@ build: data
 	pnpm build
 
 data:
-	go run .
+	curl -Ls https://eggincdatacollection.azurewebsites.net/api/GetCarpetData | jq -c > src/lib/loot.json
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static

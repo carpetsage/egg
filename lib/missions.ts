@@ -101,7 +101,7 @@ export class MissionType {
   }
 
   get missionTypeId(): string {
-    return `${this.shipName} ${this.durationTypeName}`.toLowerCase().replaceAll(' ', '-');
+    return `${spaceshipId(this.shipType)}-${this.durationTypeName}`.toLowerCase();
   }
 
   get name(): string {
@@ -351,6 +351,10 @@ export function newMissionTypeMapFromFactory<T>(
     [Spaceship.VOYEGGER]: innerFactory(Spaceship.VOYEGGER),
     [Spaceship.HENERPRISE]: innerFactory(Spaceship.HENERPRISE),
   };
+}
+
+export function spaceshipId(spaceship: Spaceship): string {
+ return Spaceship[spaceship].toLowerCase().replaceAll('_', '-');
 }
 
 export function spaceshipName(spaceship: Spaceship): string {
