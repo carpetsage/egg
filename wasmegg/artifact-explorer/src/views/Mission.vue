@@ -82,7 +82,7 @@
         Too little data has been collected for this level; highly inaccurate drop rate estimates are
         not shown. Please consider
         <a
-          href="https://ei.mikit.app/contribute_data"
+          href="https://replit.com/@menno-egginc/EggIncDataCollection"
           target="_blank"
           class="text-gray-500 hover:text-gray-700 underline"
           >contributing yours</a
