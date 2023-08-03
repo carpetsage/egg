@@ -5,17 +5,16 @@ all: clean
 
 init:
 
-build: data
+build:
 	pnpm build
 
 data:
-	curl -Ls https://eggincdatacollection.azurewebsites.net/api/GetCarpetData | jq -c > src/lib/loot.json
+	./update-loot-data.sh
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static
 
 fastbuild: clean
-	$(MAKE) data
 	pnpm fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
