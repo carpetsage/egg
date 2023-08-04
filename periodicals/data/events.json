@@ -8998,5 +8998,23 @@
     "startTimestamp": 1690992000.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1691164800.0,
+    "id": "event-8-3",
+    "message": "75% OFF HEN HOUSES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1691078400.0,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1691164800.0,
+    "id": "ultra-8-3",
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1691078400.0,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
