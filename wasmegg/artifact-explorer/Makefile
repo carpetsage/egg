@@ -15,7 +15,7 @@ dist: build
 	../_tools/build.py dist --additional assets --additional static
 
 fastbuild: clean
-  $(MAKE) data
+	$(MAKE) data
 	pnpm fastbuild
 	../_tools/build.py dist --additional assets --additional static
 
