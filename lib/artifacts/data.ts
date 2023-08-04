@@ -1,4 +1,5 @@
 import { ei } from '../proto';
+import { iconURL } from '../utils';
 import data, { Family, Tier } from './data.json';
 
 export default data;
@@ -13,6 +14,13 @@ export type PlayerCraftingLevel = { level: number, rarityMult: number };
 export const allPossibleTiers = data.artifact_families.map(f => f.tiers).flat();
 const familyAfxIdToFamily: Map<Name, Family> = new Map(
   data.artifact_families.map(f => [f.afx_id, f])
+);
+
+const itemAfxIdToFile: Map<Name, string> = new Map(
+  data.artifact_families
+    .map(f => f.tiers)
+    .flat()
+    .map(t => [t.afx_id, t.icon_filename])
 );
 const itemAfxIdToFamilyId: Map<Name, Name> = new Map(
   data.artifact_families
@@ -32,6 +40,20 @@ const itemAfxIdToType: Map<Name, Type> = new Map(
     .flat()
     .map(t => [t.afx_id, t.afx_type])
 );
+const itemIdtoName: Map<Name, string> = new Map(
+  data.artifact_families
+    .map(f => f.tiers)
+    .flat()
+    .map(t => [t.afx_id, t.name])
+);
+
+export function getArtifactName(afxId: Name): string {
+  return itemIdtoName.get(afxId)!;
+
+}
+export function getImageUrlFromId(afxId: Name, size?: number): string {
+  return iconURL(`egginc/${itemAfxIdToFile.get(afxId)!}`, size ?? 32);
+}
 
 export function getArtifactFamilyProps(afxId: Name): Family {
   return familyAfxIdToFamily.get(afxId)!;

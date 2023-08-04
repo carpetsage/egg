@@ -6,7 +6,7 @@ import {
   MissionType,
 } from 'lib';
 
-import lootdata, { MissionLevelLootStore, MissionLootStore } from './loot.json';
+import lootdata, { MissionLevelLootStore, MissionTargetLootStore, MissionLootStore } from './loot.json';
 
 export { lootdata };
 
@@ -19,8 +19,9 @@ export function getMissionLootData(missionId: string): MissionLootStore {
   throw new Error(`there's no mission with id ${missionId}`);
 }
 
-export function getMissionLevelLootAverageConsumptionValue(loot: MissionLevelLootStore): number {
-  if (loot.totalDrops === 0) {
+export function getMissionLevelLootAverageConsumptionValue(levelLoot: MissionLevelLootStore, target: ei.ArtifactSpec.Name): number {
+  const loot = levelLoot.targets.find(x => x.targetAfxId == target);
+  if (loot === undefined || loot.totalDrops === 0) {
     return 0;
   }
   let total = 0;
@@ -47,6 +48,7 @@ type ItemMissionLootStore = {
 
 type ItemMissionLevelLootStore = {
   level: number;
+  targetAfxId: ei.ArtifactSpec.Name;
   totalDrops: number;
   counts: [number, number, number, number];
 };
@@ -69,17 +71,20 @@ export function getTierLootData(itemId: string): ItemLootStore {
     let dropped = false;
     for (const levelLoot of missionLoot.levels) {
       let counts: [number, number, number, number] | undefined;
-      for (const itemLoot of levelLoot.items) {
-        if (itemLoot.itemId === itemId) {
-          counts = itemLoot.counts;
-          break;
+      for (const targetLoot of levelLoot.targets) {
+        for (const itemLoot of targetLoot.items) {
+          if (itemLoot.itemId === itemId) {
+            counts = itemLoot.counts;
+            break;
+          }
         }
+        store.levels.push({
+          level: levelLoot.level,
+          targetAfxId: targetLoot.targetAfxId,
+          totalDrops: targetLoot.totalDrops,
+          counts: counts ?? [0, 0, 0, 0],
+        });
       }
-      store.levels.push({
-        level: levelLoot.level,
-        totalDrops: levelLoot.totalDrops,
-        counts: counts ?? [0, 0, 0, 0],
-      });
       if (counts && counts.some(x => x > 0)) {
         dropped = true;
       }

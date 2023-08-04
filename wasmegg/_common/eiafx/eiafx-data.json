@@ -216,7 +216,7 @@
                 "count": 7
               },
               {
-                "id": "gusset-1",
+                "id": "ornate-gusset-1",
                 "afx_id": 8,
                 "afx_level": 0,
                 "name": "Plain gusset",
@@ -1070,7 +1070,7 @@
       ]
     },
     {
-      "id": "vial-of-martian-dust",
+      "id": "vial-martian-dust",
       "afx_id": 7,
       "name": "Vial of Martian dust",
       "afx_type": 0,
@@ -1084,7 +1084,7 @@
       "tiers": [
         {
           "family": {
-            "id": "vial-of-martian-dust",
+            "id": "vial-martian-dust",
             "afx_id": 7,
             "name": "Vial of Martian dust",
             "afx_type": 0,
@@ -1094,7 +1094,7 @@
               7
             ]
           },
-          "id": "vial-of-martian-dust-1",
+          "id": "vial-martian-dust-1",
           "afx_id": 7,
           "afx_level": 0,
           "name": "Tiny vial of Martian dust",
@@ -1132,7 +1132,7 @@
         },
         {
           "family": {
-            "id": "vial-of-martian-dust",
+            "id": "vial-martian-dust",
             "afx_id": 7,
             "name": "Vial of Martian dust",
             "afx_type": 0,
@@ -1142,7 +1142,7 @@
               7
             ]
           },
-          "id": "vial-of-martian-dust-2",
+          "id": "vial-martian-dust-2",
           "afx_id": 7,
           "afx_level": 1,
           "name": "Vial of Martian dust",
@@ -1189,7 +1189,7 @@
           "recipe": {
             "ingredients": [
               {
-                "id": "vial-of-martian-dust-1",
+                "id": "vial-martian-dust-1",
                 "afx_id": 7,
                 "afx_level": 0,
                 "name": "Tiny vial of Martian dust",
@@ -1215,7 +1215,7 @@
         },
         {
           "family": {
-            "id": "vial-of-martian-dust",
+            "id": "vial-martian-dust",
             "afx_id": 7,
             "name": "Vial of Martian dust",
             "afx_type": 0,
@@ -1225,7 +1225,7 @@
               7
             ]
           },
-          "id": "vial-of-martian-dust-3",
+          "id": "vial-martian-dust-3",
           "afx_id": 7,
           "afx_level": 2,
           "name": "Hermetic vial of Martian dust",
@@ -1272,7 +1272,7 @@
           "recipe": {
             "ingredients": [
               {
-                "id": "vial-of-martian-dust-2",
+                "id": "vial-martian-dust-2",
                 "afx_id": 7,
                 "afx_level": 1,
                 "name": "Vial of Martian dust",
@@ -1310,7 +1310,7 @@
         },
         {
           "family": {
-            "id": "vial-of-martian-dust",
+            "id": "vial-martian-dust",
             "afx_id": 7,
             "name": "Vial of Martian dust",
             "afx_type": 0,
@@ -1320,7 +1320,7 @@
               7
             ]
           },
-          "id": "vial-of-martian-dust-4",
+          "id": "vial-martian-dust-4",
           "afx_id": 7,
           "afx_level": 3,
           "name": "Prime vial of Martian dust",
@@ -1379,7 +1379,7 @@
           "recipe": {
             "ingredients": [
               {
-                "id": "vial-of-martian-dust-3",
+                "id": "vial-martian-dust-3",
                 "afx_id": 7,
                 "afx_level": 2,
                 "name": "Hermetic vial of Martian dust",
@@ -2138,7 +2138,7 @@
       ]
     },
     {
-      "id": "gusset",
+      "id": "ornate-gusset",
       "afx_id": 8,
       "name": "Gusset",
       "afx_type": 0,
@@ -2152,7 +2152,7 @@
       "tiers": [
         {
           "family": {
-            "id": "gusset",
+            "id": "ornate-gusset",
             "afx_id": 8,
             "name": "Gusset",
             "afx_type": 0,
@@ -2162,7 +2162,7 @@
               8
             ]
           },
-          "id": "gusset-1",
+          "id": "ornate-gusset-1",
           "afx_id": 8,
           "afx_level": 0,
           "name": "Plain gusset",
@@ -2210,7 +2210,7 @@
               8
             ]
           },
-          "id": "gusset-2",
+          "id": "ornate-gusset-2",
           "afx_id": 8,
           "afx_level": 1,
           "name": "Ornate gusset",
@@ -2257,7 +2257,7 @@
           "recipe": {
             "ingredients": [
               {
-                "id": "gusset-1",
+                "id": "ornate-gusset-1",
                 "afx_id": 8,
                 "afx_level": 0,
                 "name": "Plain gusset",
@@ -2293,7 +2293,7 @@
               8
             ]
           },
-          "id": "gusset-3",
+          "id": "ornate-gusset-3",
           "afx_id": 8,
           "afx_level": 2,
           "name": "Distegguished gusset",
@@ -2340,7 +2340,7 @@
           "recipe": {
             "ingredients": [
               {
-                "id": "gusset-2",
+                "id": "ornate-gusset-2",
                 "afx_id": 8,
                 "afx_level": 1,
                 "name": "Ornate gusset",
@@ -2388,7 +2388,7 @@
               8
             ]
           },
-          "id": "gusset-4",
+          "id": "ornate-gusset-4",
           "afx_id": 8,
           "afx_level": 3,
           "name": "Jeweled gusset",
@@ -2447,7 +2447,7 @@
           "recipe": {
             "ingredients": [
               {
-                "id": "gusset-3",
+                "id": "ornate-gusset-3",
                 "afx_id": 8,
                 "afx_level": 2,
                 "name": "Distegguished gusset",
@@ -3661,7 +3661,7 @@
                 "count": 5
               },
               {
-                "id": "gusset-1",
+                "id": "ornate-gusset-1",
                 "afx_id": 8,
                 "afx_level": 0,
                 "name": "Plain gusset",

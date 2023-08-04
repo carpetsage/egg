@@ -6,11 +6,67 @@ import { formatDuration } from './time';
 import { formatEIValue } from './units';
 import eiafxConfig, { MissionTypeParameters } from './eiafx-config.json';
 
+import Artifact = ei.ArtifactSpec.Name;
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
 import Status = ei.MissionInfo.Status;
 import { Family } from './artifacts/data.json';
 import { getArtifactFamilyProps } from './artifacts';
+
+// Real artifacts only
+export type Target = Exclude<Artifact, 
+  Artifact.ALIEN_WOOD | Artifact.EXTRATERRESTRIAL_ALUMINUM | Artifact.ANCIENT_TUNGSTEN | Artifact.SPACE_ROCKS |
+  Artifact.CENTAURIAN_STEEL | Artifact.CELESTIAL_BRONZE | Artifact.ERIDANI_FEATHER | Artifact.DRONE_PARTS |
+  Artifact.LALANDE_HIDE>
+
+// Default to not targeting anything
+export const targetDefaults: Record<Target,boolean> = {
+  [Artifact.AURELIAN_BROOCH]: false,
+  [Artifact.BEAK_OF_MIDAS]: false,
+  [Artifact.BOOK_OF_BASAN]: false,
+  [Artifact.CARVED_RAINSTICK]: false,
+  [Artifact.DEMETERS_NECKLACE]: false,
+  [Artifact.DILITHIUM_MONOCLE]: false,
+  [Artifact.INTERSTELLAR_COMPASS]: false,
+  [Artifact.LIGHT_OF_EGGENDIL]: false,
+  [Artifact.LUNAR_TOTEM]: false,
+  [Artifact.MERCURYS_LENS]: false,
+  [Artifact.NEODYMIUM_MEDALLION]: false,
+  [Artifact.ORNATE_GUSSET]: false,
+  [Artifact.PHOENIX_FEATHER]: false,
+  [Artifact.PUZZLE_CUBE]: false,
+  [Artifact.SHIP_IN_A_BOTTLE]: false,
+  [Artifact.QUANTUM_METRONOME]: false,
+  [Artifact.TACHYON_DEFLECTOR]: false,
+  [Artifact.THE_CHALICE]: false,
+  [Artifact.TITANIUM_ACTUATOR]: false,
+  [Artifact.TUNGSTEN_ANKH]: false,
+  [Artifact.VIAL_MARTIAN_DUST]: false,
+  [Artifact.GOLD_METEORITE]: false,
+  [Artifact.SOLAR_TITANIUM]: false,
+  [Artifact.TAU_CETI_GEODE]: false,
+  [Artifact.CLARITY_STONE]: false,
+  [Artifact.DILITHIUM_STONE]: false,
+  [Artifact.LIFE_STONE]: false,
+  [Artifact.LUNAR_STONE]: false,
+  [Artifact.PROPHECY_STONE]: false,
+  [Artifact.QUANTUM_STONE]: false,
+  [Artifact.SHELL_STONE]: false,
+  [Artifact.SOUL_STONE]: false,
+  [Artifact.TACHYON_STONE]: false,
+  [Artifact.TERRA_STONE]: false,
+  [Artifact.CLARITY_STONE_FRAGMENT]: false,
+  [Artifact.DILITHIUM_STONE_FRAGMENT]: false,
+  [Artifact.LIFE_STONE_FRAGMENT]: false,
+  [Artifact.LUNAR_STONE_FRAGMENT]: false,
+  [Artifact.PROPHECY_STONE_FRAGMENT]: false,
+  [Artifact.QUANTUM_STONE_FRAGMENT]: false,
+  [Artifact.SHELL_STONE_FRAGMENT]: false,
+  [Artifact.SOUL_STONE_FRAGMENT]: false,
+  [Artifact.TACHYON_STONE_FRAGMENT]: false,
+  [Artifact.TERRA_STONE_FRAGMENT]: false,
+  [Artifact.UNKNOWN]: true,
+};
 
 export const spaceshipList = [
   Spaceship.CHICKEN_ONE,
@@ -36,6 +92,7 @@ export interface ShipsConfig {
   epicResearchFTLLevel: number;
   epicResearchZerogLevel: number;
   shipLevels: Record<Spaceship, number>;
+  targets: Record<Target, boolean>;
 }
 
 export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
@@ -66,6 +123,7 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
       [Spaceship.VOYEGGER]: 0,
       [Spaceship.HENERPRISE]: 0,
     },
+    targets: targetDefaults,
   };
 }
 
@@ -88,6 +146,13 @@ export function isShipsConfig(x: unknown): x is ShipsConfig {
       return false;
     }
   }
+  const shipTarget = (x as ShipsConfig).targets as unknown;
+  if (typeof shipTarget !== 'object' || shipTarget === null) {
+    return false;
+  }
+  if ((shipTarget as Record<Target, boolean>)[0] === undefined) {
+    return false;
+  }
   return true;
 }
 
@@ -101,7 +166,7 @@ export class MissionType {
   }
 
   get missionTypeId(): string {
-    return `${this.shipName} ${this.durationTypeName}`.toLowerCase().replaceAll(' ', '-');
+    return `${spaceshipId(this.shipType)}-${this.durationTypeName}`.toLowerCase();
   }
 
   get name(): string {
@@ -351,6 +416,10 @@ export function newMissionTypeMapFromFactory<T>(
     [Spaceship.VOYEGGER]: innerFactory(Spaceship.VOYEGGER),
     [Spaceship.HENERPRISE]: innerFactory(Spaceship.HENERPRISE),
   };
+}
+
+export function spaceshipId(spaceship: Spaceship): string {
+ return Spaceship[spaceship].toLowerCase().replaceAll('_', '-');
 }
 
 export function spaceshipName(spaceship: Spaceship): string {
@@ -683,4 +752,5 @@ export const perfectShipsConfig: ShipsConfig = {
     [Spaceship.VOYEGGER]: shipMaxLevel(Spaceship.VOYEGGER),
     [Spaceship.HENERPRISE]: shipMaxLevel(Spaceship.HENERPRISE),
   },
+  targets: targetDefaults,
 };

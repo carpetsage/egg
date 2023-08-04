@@ -9,7 +9,7 @@ build: data
 	pnpm build
 
 data:
-	go run .
+	./update-loot-data.sh
 
 dist: build
 	../_tools/build.py dist --additional assets --additional static

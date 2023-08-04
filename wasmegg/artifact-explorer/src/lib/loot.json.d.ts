@@ -15,7 +15,12 @@ export type MissionLootStore = {
 
 export type MissionLevelLootStore = {
   level: number;
+  targets: MissionTargetLootStore[];
+}
+
+export type MissionTargetLootStore = {
   totalDrops: number;
+  targetAfxId: ei.ArtifactSpec.Name;
   items: ArtifactTierLootStore[];
 };
 

@@ -82,7 +82,7 @@
         Too little data has been collected for this level; highly inaccurate drop rate estimates are
         not shown. Please consider
         <a
-          href="https://ei.mikit.app/contribute_data"
+          href="https://replit.com/@menno-egginc/EggIncDataCollection"
           target="_blank"
           class="text-gray-500 hover:text-gray-700 underline"
           >contributing yours</a
@@ -105,7 +105,7 @@
             class="text-green-700 ml-5 xs:ml-auto"
             :mission="mission"
             :level="selectedLevel"
-            :total-drops="selectedLevelLoot.totalDrops"
+            :total-drops="selectedLevelTargetLoot.totalDrops"
             :item-drops="itemLoot.counts"
             :is-artifact="artifactItemIds.includes(itemLoot.itemId)"
             :hide-when-not-enough="true"
@@ -243,9 +243,11 @@ export default defineComponent({
   setup(props) {
     const { missionId } = toRefs(props);
     const mission = computed(() => getMissionTypeFromId(missionId.value));
+    
 
     const configuredLevel = computed(() => config.value.shipLevels[mission.value.shipType]);
     const selectedLevel = ref(configuredLevel.value);
+    const forceLevel = (level: number) => { selectedLevel.value = level};
     const selectLevel = (event: Event) => {
       selectedLevel.value = parseInt((event.target! as HTMLSelectElement).value);
     };
@@ -261,12 +263,23 @@ export default defineComponent({
     });
 
     const loot = computed(() => getMissionLootData(missionId.value));
-    const selectedLevelLoot = computed(() => loot.value.levels[selectedLevel.value]);
+    const selectedLevelLoot = computed(() => loot.value.levels.at(selectedLevel.value) ?? loot.value.levels[0]);
+    if (loot.value.levels.at(selectedLevel.value) === undefined) {
+      forceLevel(0);
+    }
+
+    // hardcode no target for now
+    const target = ei.ArtifactSpec.Name.UNKNOWN;
+    const selectedLevelTargetLoot = computed(() =>
+      selectedLevelLoot.value.targets.find(x => x.targetAfxId === target) ??
+      selectedLevelLoot.value.targets[selectedLevelLoot.value.targets.length - 1]
+    );
+
     const tooLittleDataForSelectedLevel = computed(() =>
-      missionDataNotEnough(mission.value, selectedLevelLoot.value.totalDrops)
+      missionDataNotEnough(mission.value, selectedLevelTargetLoot.value.totalDrops)
     );
     const sortedItemsLoot = computed(() =>
-      [...selectedLevelLoot.value.items].sort((i1, i2) => {
+      [...selectedLevelTargetLoot.value.items].sort((i1, i2) => {
         const item1 = getArtifactTierPropsFromId(i1.itemId);
         const item2 = getArtifactTierPropsFromId(i2.itemId);
         let cmp = 0;
@@ -297,7 +310,7 @@ export default defineComponent({
     );
     const selectedLevelExpectedFullConsumptionValuePerShip = computed(
       () =>
-        getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value) *
+        getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, target) *
         selectedLevelCapacity.value
     );
     const selectedLevelExpectedFullConsumptionValuePerDay = computed(
@@ -315,7 +328,7 @@ export default defineComponent({
     const precision = computed(() => {
       const perShip = Math.round(selectedLevelExpectedFullConsumptionValuePerShip.value);
       const nSamples = Math.round(
-        selectedLevelLoot.value.totalDrops / mission.value.defaultCapacity
+        selectedLevelTargetLoot.value.totalDrops / mission.value.defaultCapacity
       );
       return Math.min(`${perShip}`.length, `${nSamples * 5}`.length);
     });
@@ -328,6 +341,8 @@ export default defineComponent({
       sortBy,
       loot,
       selectedLevelLoot,
+      target,
+      selectedLevelTargetLoot,
       tooLittleDataForSelectedLevel,
       selectedLevelExpectedFullConsumptionValuePerShip,
       selectedLevelExpectedFullConsumptionValuePerDay,

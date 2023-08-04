@@ -16,12 +16,21 @@
           <mission-name :mission="m.mission" />
         </div>
         <ul class="grid grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-3 mt-1">
-          <li v-for="levelLoot in m.loot.levels" :key="levelLoot.level" class="text-sm">
+          <li v-for="levelLoot in m.loot.levels.filter(x => x.targetAfxId === 10000)" :key="levelLoot.level" class="text-sm">
+            <!--
+              Should *always* show drop rate for target matching this artifact
+                Find target which matches this artifact (relatively easy for not-fragments)
+              
+            -->
             <span
               class="inline-flex items-center tabular-nums"
               :class="levelIsSelected(m.mission, levelLoot.level) ? 'text-green-700' : null"
-              >{{ levelLoot.level }}<star-icon class="h-4 w-4 text-yellow-400" />:</span
-            >&nbsp;
+              >{{ levelLoot.level }}<star-icon class="h-4 w-4 text-yellow-400" />
+  
+            <div v-if="levelLoot.targetAfxId !== 10000" class="inline-flex items-center tabular-nums h-4 w-4">
+              <img class="h-4 w-4" :src="id2url(levelLoot.targetAfxId)" />
+            </div>
+            :</span>&nbsp;
             <drop-rate
               :mission="m.mission"
               :level="levelLoot.level"
@@ -48,6 +57,8 @@ import {
   getLocalStorage,
   getMissionTypeFromId,
   MissionType,
+  Target,
+  getImageUrlFromId as id2url,
 } from 'lib';
 import { getTierLootData, missionDataNotEnough } from '@/lib';
 import { config } from '@/store';
@@ -128,15 +139,20 @@ export default defineComponent({
         return m1.mission.durationType - m2.mission.durationType;
       })
     );
+    const targetIsSelected = (artifact: Target) =>
+      config.value.targets[artifact];
     const levelIsSelected = (mission: MissionType, level: number) =>
       config.value.shipLevels[mission.shipType] === level;
     return {
+      ei,
       isArtifact,
       expand,
       loot,
+      id2url,
       getMissionTypeFromId,
       sortedMissions,
       levelIsSelected,
+      targetIsSelected,
     };
   },
 });
