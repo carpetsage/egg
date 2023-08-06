@@ -1,5 +1,3 @@
-import dayjs, { Dayjs } from 'dayjs';
-
 import { eggIconPath, eggName } from './eggs';
 import { ei } from './proto';
 import { formatDuration } from './time';
@@ -54,7 +52,7 @@ const targetDefaults: Record<Artifact,boolean> = {
   [Artifact.SOLAR_TITANIUM]: false, [Artifact.TACHYON_STONE_FRAGMENT]: false, [Artifact.DILITHIUM_STONE_FRAGMENT]: false,
   [Artifact.SHELL_STONE_FRAGMENT]: false, [Artifact.LUNAR_STONE_FRAGMENT]: false, [Artifact.SOUL_STONE_FRAGMENT]: false,
   [Artifact.PROPHECY_STONE_FRAGMENT]: false, [Artifact.QUANTUM_STONE_FRAGMENT]: false, [Artifact.TERRA_STONE_FRAGMENT]: false,
-  [Artifact.LIFE_STONE_FRAGMENT]: false, [Artifact.CLARITY_STONE_FRAGMENT]: false, [Artifact.UNKNOWN]: false,
+  [Artifact.LIFE_STONE_FRAGMENT]: false, [Artifact.CLARITY_STONE_FRAGMENT]: false, [Artifact.UNKNOWN]: true,
   //Artifacts in code but not in game
   [Artifact.EXTRATERRESTRIAL_ALUMINUM]: false, [Artifact.ANCIENT_TUNGSTEN]: false, [Artifact.SPACE_ROCKS]: false, [Artifact.ALIEN_WOOD]: false, [Artifact.CENTAURIAN_STEEL]: false, [Artifact.ERIDANI_FEATHER]: false, [Artifact.DRONE_PARTS]: false, [Artifact.CELESTIAL_BRONZE]: false, [Artifact.LALANDE_HIDE]: false
 };
