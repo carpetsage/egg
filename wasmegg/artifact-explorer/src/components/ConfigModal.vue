@@ -119,6 +119,30 @@
                 </div>
               </template>
             </div>
+            <!-- Target Selection for Artifact Page -->
+            <div>
+              <div class="text-sm font-medium text-gray-700">Ship Targets</div>
+              <div class="text-sm text-gray-500">(Targets shown in Artifact view)</div>
+              <template v-for="target in targets" :key="target">
+                <div class="flex items-center space-x-0.5">
+                  <input
+                    :id="`target_${target}`"
+                    v-model="config.targets[target]"
+                    :name="`target_${target}`"
+                    type="checkbox"
+                    class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                  />&nbsp;
+                  <label :for="`target_${target}`" class="text-sm text-gray-600">
+                    <template v-if="Number(target) !== 10000">
+                      <img class="inline-flex h-6 w-6" :src="id2url(Number(target),32)" :alt="ei.ArtifactSpec.Name[target]" />
+                      {{ getTargetName(target) }}
+                    </template>
+                    <template v-else>Untargeted</template>
+                  </label>
+                </div>
+
+              </template>
+            </div>
           </div>
         </TransitionChild>
       </div>
@@ -138,7 +162,7 @@ import {
 import { XIcon } from '@heroicons/vue/solid';
 
 import BaseIntegerInput from 'ui/components/BaseIntegerInput.vue';
-import { shipMaxLevel, spaceshipList, spaceshipName } from 'lib';
+import { ei, getTargetName, getImageUrlFromId as id2url, shipMaxLevel, spaceshipList, spaceshipName, targets } from 'lib';
 import {
   closeConfigModal,
   config,
@@ -163,12 +187,16 @@ export default defineComponent({
       configModalOpen,
       closeConfigModal,
       config,
+      ei,
+      id2url,
+      getTargetName,
       spaceshipList,
       spaceshipName,
       shipMaxLevel,
       setEpicResearchFTLLevel,
       setEpicResearchZerogLevel,
       setShipLevel,
+      targets,
     };
   },
 });

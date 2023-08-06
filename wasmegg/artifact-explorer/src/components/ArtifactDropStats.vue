@@ -12,35 +12,28 @@
       <loot-data-credit />
 
       <div v-for="m in sortedMissions" :key="m.missionId">
-        <div>
-          <mission-name :mission="m.mission" />
+        <!-- Show target drop rate if user selected it or if target matches artifact -->
+        <div :hidden="!(config.targets[m.loot.targetAfxId] || afxMatchesTarget(afxId, m.loot.targetAfxId))">
+          <div>
+            <mission-name :mission="m.mission" :target="m.loot.targetAfxId" />
+          </div>
+          <ul class="grid grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-3 mt-1">
+            <li v-for="levelLoot in m.loot.levels" :key="levelLoot.level" class="text-sm">
+              <span
+                class="inline-flex items-center tabular-nums"
+                :class="levelIsSelected(m.mission, levelLoot.level) ? 'text-green-700' : null"
+                >{{ levelLoot.level }}<star-icon class="h-4 w-4 text-yellow-400" />:</span>&nbsp;
+              <drop-rate
+                :mission="m.mission"
+                :level="levelLoot.level"
+                :total-drops="levelLoot.totalDrops"
+                :item-drops="levelLoot.counts"
+                :is-artifact="isArtifact"
+                :highlight="levelIsSelected(m.mission, levelLoot.level)"
+              />
+            </li>
+          </ul>
         </div>
-        <ul class="grid grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-3 mt-1">
-          <li v-for="levelLoot in m.loot.levels.filter(x => x.targetAfxId === 10000)" :key="levelLoot.level" class="text-sm">
-            <!--
-              Should *always* show drop rate for target matching this artifact
-                Find target which matches this artifact (relatively easy for not-fragments)
-              
-            -->
-            <span
-              class="inline-flex items-center tabular-nums"
-              :class="levelIsSelected(m.mission, levelLoot.level) ? 'text-green-700' : null"
-              >{{ levelLoot.level }}<star-icon class="h-4 w-4 text-yellow-400" />
-  
-            <div v-if="levelLoot.targetAfxId !== 10000" class="inline-flex items-center tabular-nums h-4 w-4">
-              <img class="h-4 w-4" :src="id2url(levelLoot.targetAfxId)" />
-            </div>
-            :</span>&nbsp;
-            <drop-rate
-              :mission="m.mission"
-              :level="levelLoot.level"
-              :total-drops="levelLoot.totalDrops"
-              :item-drops="levelLoot.counts"
-              :is-artifact="isArtifact"
-              :highlight="levelIsSelected(m.mission, levelLoot.level)"
-            />
-          </li>
-        </ul>
       </div>
     </template>
   </template>
@@ -59,6 +52,7 @@ import {
   MissionType,
   Target,
   getImageUrlFromId as id2url,
+afxMatchesTarget,
 } from 'lib';
 import { getTierLootData, missionDataNotEnough } from '@/lib';
 import { config } from '@/store';
@@ -89,6 +83,9 @@ export default defineComponent({
     const isArtifact = computed(
       () => getArtifactTierPropsFromId(artifactId.value).afx_type === ei.ArtifactSpec.Type.ARTIFACT
     );
+    const afxId = computed(
+      () => getArtifactTierPropsFromId(artifactId.value).afx_id
+    )
     const expand = ref(getLocalStorage(COLLAPSE_ARTIFACT_DROP_RATES_LOCALSTORAGE_KEY) !== 'true');
     const loot = computed(() => getTierLootData(artifactId.value));
     const missions = computed(() =>
@@ -139,13 +136,16 @@ export default defineComponent({
         return m1.mission.durationType - m2.mission.durationType;
       })
     );
-    const targetIsSelected = (artifact: Target) =>
-      config.value.targets[artifact];
+    const targetIsSelected = (artifact: ei.ArtifactSpec.Name) =>
+      config.value.targets[artifact as Target];
     const levelIsSelected = (mission: MissionType, level: number) =>
       config.value.shipLevels[mission.shipType] === level;
     return {
       ei,
+      config,
       isArtifact,
+      afxMatchesTarget,
+      afxId,
       expand,
       loot,
       id2url,

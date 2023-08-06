@@ -20,52 +20,43 @@ export type Target = Exclude<Artifact,
   Artifact.LALANDE_HIDE>
 
 // Default to not targeting anything
-export const targetDefaults: Record<Target,boolean> = {
-  [Artifact.AURELIAN_BROOCH]: false,
-  [Artifact.BEAK_OF_MIDAS]: false,
-  [Artifact.BOOK_OF_BASAN]: false,
-  [Artifact.CARVED_RAINSTICK]: false,
-  [Artifact.DEMETERS_NECKLACE]: false,
-  [Artifact.DILITHIUM_MONOCLE]: false,
-  [Artifact.INTERSTELLAR_COMPASS]: false,
-  [Artifact.LIGHT_OF_EGGENDIL]: false,
-  [Artifact.LUNAR_TOTEM]: false,
-  [Artifact.MERCURYS_LENS]: false,
-  [Artifact.NEODYMIUM_MEDALLION]: false,
-  [Artifact.ORNATE_GUSSET]: false,
-  [Artifact.PHOENIX_FEATHER]: false,
-  [Artifact.PUZZLE_CUBE]: false,
-  [Artifact.SHIP_IN_A_BOTTLE]: false,
-  [Artifact.QUANTUM_METRONOME]: false,
-  [Artifact.TACHYON_DEFLECTOR]: false,
-  [Artifact.THE_CHALICE]: false,
-  [Artifact.TITANIUM_ACTUATOR]: false,
-  [Artifact.TUNGSTEN_ANKH]: false,
-  [Artifact.VIAL_MARTIAN_DUST]: false,
-  [Artifact.GOLD_METEORITE]: false,
-  [Artifact.SOLAR_TITANIUM]: false,
-  [Artifact.TAU_CETI_GEODE]: false,
-  [Artifact.CLARITY_STONE]: false,
-  [Artifact.DILITHIUM_STONE]: false,
-  [Artifact.LIFE_STONE]: false,
-  [Artifact.LUNAR_STONE]: false,
-  [Artifact.PROPHECY_STONE]: false,
-  [Artifact.QUANTUM_STONE]: false,
-  [Artifact.SHELL_STONE]: false,
-  [Artifact.SOUL_STONE]: false,
-  [Artifact.TACHYON_STONE]: false,
-  [Artifact.TERRA_STONE]: false,
-  [Artifact.CLARITY_STONE_FRAGMENT]: false,
-  [Artifact.DILITHIUM_STONE_FRAGMENT]: false,
-  [Artifact.LIFE_STONE_FRAGMENT]: false,
-  [Artifact.LUNAR_STONE_FRAGMENT]: false,
-  [Artifact.PROPHECY_STONE_FRAGMENT]: false,
-  [Artifact.QUANTUM_STONE_FRAGMENT]: false,
-  [Artifact.SHELL_STONE_FRAGMENT]: false,
-  [Artifact.SOUL_STONE_FRAGMENT]: false,
-  [Artifact.TACHYON_STONE_FRAGMENT]: false,
-  [Artifact.TERRA_STONE_FRAGMENT]: false,
-  [Artifact.UNKNOWN]: true,
+export const targets = [
+  Artifact.PUZZLE_CUBE, Artifact.LUNAR_TOTEM, Artifact.DEMETERS_NECKLACE,
+  Artifact.VIAL_MARTIAN_DUST, Artifact.AURELIAN_BROOCH, Artifact.TUNGSTEN_ANKH,
+  Artifact.ORNATE_GUSSET, Artifact.NEODYMIUM_MEDALLION, Artifact.MERCURYS_LENS,
+  Artifact.BEAK_OF_MIDAS, Artifact.CARVED_RAINSTICK, Artifact.INTERSTELLAR_COMPASS,
+  Artifact.THE_CHALICE, Artifact.PHOENIX_FEATHER, Artifact.QUANTUM_METRONOME,
+  Artifact.DILITHIUM_MONOCLE, Artifact.TITANIUM_ACTUATOR, Artifact.SHIP_IN_A_BOTTLE,
+  Artifact.TACHYON_DEFLECTOR, Artifact.BOOK_OF_BASAN, Artifact.LIGHT_OF_EGGENDIL,
+  Artifact.GOLD_METEORITE, Artifact.TAU_CETI_GEODE, Artifact.SOLAR_TITANIUM,
+  Artifact.CLARITY_STONE, Artifact.DILITHIUM_STONE, Artifact.LIFE_STONE,
+  Artifact.LUNAR_STONE, Artifact.PROPHECY_STONE, Artifact.QUANTUM_STONE,
+  Artifact.SHELL_STONE, Artifact.SOUL_STONE, Artifact.TACHYON_STONE,
+  Artifact.TERRA_STONE, Artifact.CLARITY_STONE_FRAGMENT, Artifact.DILITHIUM_STONE_FRAGMENT,
+  Artifact.LIFE_STONE_FRAGMENT, Artifact.LUNAR_STONE_FRAGMENT, Artifact.PROPHECY_STONE_FRAGMENT,
+  Artifact.QUANTUM_STONE_FRAGMENT, Artifact.SHELL_STONE_FRAGMENT, Artifact.SOUL_STONE_FRAGMENT,
+  Artifact.TACHYON_STONE_FRAGMENT, Artifact.TERRA_STONE_FRAGMENT, Artifact.UNKNOWN,
+];
+
+// Default selection state for targets. 
+const targetDefaults: Record<Artifact,boolean> = {
+  [Artifact.LUNAR_TOTEM]: false, [Artifact.NEODYMIUM_MEDALLION]: false, [Artifact.BEAK_OF_MIDAS]: false,
+  [Artifact.LIGHT_OF_EGGENDIL]: false, [Artifact.DEMETERS_NECKLACE]: false, [Artifact.VIAL_MARTIAN_DUST]: false,
+  [Artifact.ORNATE_GUSSET]: false, [Artifact.THE_CHALICE]: false, [Artifact.BOOK_OF_BASAN]: false,
+  [Artifact.PHOENIX_FEATHER]: false, [Artifact.TUNGSTEN_ANKH]: false, [Artifact.AURELIAN_BROOCH]: false,
+  [Artifact.CARVED_RAINSTICK]: false, [Artifact.PUZZLE_CUBE]: false, [Artifact.QUANTUM_METRONOME]: false,
+  [Artifact.SHIP_IN_A_BOTTLE]: false, [Artifact.TACHYON_DEFLECTOR]: false, [Artifact.INTERSTELLAR_COMPASS]: false,
+  [Artifact.DILITHIUM_MONOCLE]: false, [Artifact.TITANIUM_ACTUATOR]: false, [Artifact.MERCURYS_LENS]: false,
+  [Artifact.TACHYON_STONE]: false, [Artifact.DILITHIUM_STONE]: false, [Artifact.SHELL_STONE]: false,
+  [Artifact.LUNAR_STONE]: false, [Artifact.SOUL_STONE]: false, [Artifact.PROPHECY_STONE]: false,
+  [Artifact.QUANTUM_STONE]: false, [Artifact.TERRA_STONE]: false, [Artifact.LIFE_STONE]: false,
+  [Artifact.CLARITY_STONE]: false, [Artifact.GOLD_METEORITE]: false, [Artifact.TAU_CETI_GEODE]: false,
+  [Artifact.SOLAR_TITANIUM]: false, [Artifact.TACHYON_STONE_FRAGMENT]: false, [Artifact.DILITHIUM_STONE_FRAGMENT]: false,
+  [Artifact.SHELL_STONE_FRAGMENT]: false, [Artifact.LUNAR_STONE_FRAGMENT]: false, [Artifact.SOUL_STONE_FRAGMENT]: false,
+  [Artifact.PROPHECY_STONE_FRAGMENT]: false, [Artifact.QUANTUM_STONE_FRAGMENT]: false, [Artifact.TERRA_STONE_FRAGMENT]: false,
+  [Artifact.LIFE_STONE_FRAGMENT]: false, [Artifact.CLARITY_STONE_FRAGMENT]: false, [Artifact.UNKNOWN]: false,
+  //Artifacts in code but not in game
+  [Artifact.EXTRATERRESTRIAL_ALUMINUM]: false, [Artifact.ANCIENT_TUNGSTEN]: false, [Artifact.SPACE_ROCKS]: false, [Artifact.ALIEN_WOOD]: false, [Artifact.CENTAURIAN_STEEL]: false, [Artifact.ERIDANI_FEATHER]: false, [Artifact.DRONE_PARTS]: false, [Artifact.CELESTIAL_BRONZE]: false, [Artifact.LALANDE_HIDE]: false
 };
 
 export const spaceshipList = [
@@ -92,7 +83,7 @@ export interface ShipsConfig {
   epicResearchFTLLevel: number;
   epicResearchZerogLevel: number;
   shipLevels: Record<Spaceship, number>;
-  targets: Record<Target, boolean>;
+  targets: Record<Artifact, boolean>;
 }
 
 export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
@@ -150,9 +141,11 @@ export function isShipsConfig(x: unknown): x is ShipsConfig {
   if (typeof shipTarget !== 'object' || shipTarget === null) {
     return false;
   }
-  if ((shipTarget as Record<Target, boolean>)[0] === undefined) {
-    return false;
-  }
+  try {
+    if ((shipTarget as Record<Target, boolean>)[0] === undefined) {
+      return false;
+    }
+  } catch (TypeError) { return false; }
   return true;
 }
 
