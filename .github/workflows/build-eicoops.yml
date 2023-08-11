@@ -56,7 +56,7 @@ jobs:
           pnpm add --global netlify-cli
       - name: Deploy to commit-specific URL
         run: |
-          netlify deploy --alias "$GITHUB_SHA"
+          netlify deploy --alias "$GITHUB_SHA" -d /home/runner/work/egg/egg/eicoop/dist
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
