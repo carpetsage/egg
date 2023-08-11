@@ -183,9 +183,8 @@ export class CoopStatus {
       this.grade = knownGrade;
       return this.grade;
     }
-    // empty coop / before grades / member guaranteed to be in C
-    if (this.contributors.length === 0 || this.expirationTime < dayjs("2023-05-01 00:00Z") ||
-        this.contributors.find(c => c.earningBonusPercentage < GRADES_EB[ei.Contract.PlayerGrade.GRADE_B])) {
+    // empty coop / before grades
+    if (this.contributors.length === 0 || this.expirationTime < dayjs("2023-05-01 00:00Z")) {
       this.grade = ei.Contract.PlayerGrade.GRADE_C;
       return this.grade;
     }
