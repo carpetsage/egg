@@ -7,7 +7,7 @@
     "long": "^5.2.3",
     "lunr": "^2.3.9",
     "pako": "2.1.0",
-    "protobufjs": "^7.2.3",
+    "protobufjs": "^7.2.4",
     "typescript-memoize": "^1.1.1"
   },
   "devDependencies": {
