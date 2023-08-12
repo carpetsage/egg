@@ -9,7 +9,7 @@ import {
 
 import lootdata, { MissionLevelLootStore, MissionTargetLootStore, MissionLootStore } from './loot.json';
 
-export { lootdata };
+export { lootdata , ItemMissionLootStore };
 
 export function getMissionLootData(missionId: string): MissionLootStore {
   for (const missionLoot of lootdata.missions) {
@@ -63,7 +63,8 @@ export function getTierLootData(itemId: string): ItemLootStore {
     const mission = getMissionTypeFromId(missionLoot.missionId);
     const withinRange =
       mission.params.minQuality <= item.quality && item.quality <= mission.params.maxQuality;
-    for (const target of targets) {
+    const validTargets = mission.isFTL ? targets : [ei.ArtifactSpec.Name.UNKNOWN];
+    for (const target of validTargets) {
       const store: ItemMissionLootStore = {
         targetAfxId: target,
         afxShip: missionLoot.afxShip,
