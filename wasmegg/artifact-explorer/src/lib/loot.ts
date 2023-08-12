@@ -103,3 +103,4 @@ export function getTierLootData(itemId: string): ItemLootStore {
 export function missionDataNotEnough(mission: MissionType, totalDrops: number) {
   return totalDrops / mission.defaultCapacity < 20;
 }
+

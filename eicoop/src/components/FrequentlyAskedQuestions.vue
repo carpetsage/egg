@@ -3,25 +3,6 @@
     <dl class="mt-2 space-y-2">
       <div>
         <dt class="text-green-700 dark:text-green-300">
-          Can you add a column to coop tables to show how long each member has been offline?
-        </dt>
-        <dd class="mt-1 text-gray-900 dark:text-gray-100">
-          Sorry, this is not possible. The game's API does not expose this information anywhere. If
-          you or a friend of yours is technical enough, you can check out my
-          <a
-            href="https://github.com/fanaticscripter/EggContractor/"
-            target="_blank"
-            class="text-gray-500 dark:text-gray-400"
-            >self-hosted solution</a
-          >
-          which calculates offline durations through polling and persistence. I do not offer
-          training or support for the self-hosted solution, so please do not contact me for
-          guidance.
-        </dd>
-      </div>
-
-      <div>
-        <dt class="text-green-700 dark:text-green-300">
           What is the meaning of the various colors and patterns in a progress bar?
         </dt>
         <dd class="mt-1 text-gray-900 dark:text-gray-100">

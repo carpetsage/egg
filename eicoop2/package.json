@@ -26,7 +26,7 @@
     "mockjs": "^1.1.0",
     "postcss": "^8.4.23",
     "postcss-inline-svg": "^6.0.0",
-    "protobufjs": "^7.2.3",
+    "protobufjs": "^7.2.4",
     "tailwindcss": "^2.2.19",
     "typescript": "^5.0.4",
     "vite": "^4.3.5",

@@ -17,7 +17,6 @@
           <mission-name :mission="m.mission" :target="m.loot.targetAfxId" />
         </div>
         <ul class="grid grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-3 mt-1">
-          <!-- <li v-for="levelLoot in m.loot.levels" :key="levelLoot.level" class="text-sm"> -->
           <li v-for="level in m.mission.maxLevel + 1" :key="level" class="text-sm">
             <span
               class="inline-flex items-center tabular-nums"
@@ -62,8 +61,13 @@ import {
   getLocalStorage,
   getMissionTypeFromId,
   MissionType,
+<<<<<<< HEAD
   getImageUrlFromId as id2url,
   afxMatchesTarget,
+=======
+  Target,
+  getImageUrlFromId as id2url,
+>>>>>>> main
 } from 'lib';
 import { ItemMissionLootStore, getTierLootData, missionDataNotEnough } from '@/lib';
 import { config } from '@/store';
@@ -150,7 +154,11 @@ export default defineComponent({
         return m1.mission.durationType - m2.mission.durationType;
       })
     );
+<<<<<<< HEAD
     const targetIsSelected = (artifact: ei.ArtifactSpec.Name) =>
+=======
+    const targetIsSelected = (artifact: Target) =>
+>>>>>>> main
       config.value.targets[artifact];
     const levelIsSelected = (mission: MissionType, level: number) =>
       config.value.shipLevels[mission.shipType] === level;
@@ -162,7 +170,10 @@ export default defineComponent({
     
     return {
       ei,
+<<<<<<< HEAD
       config,
+=======
+>>>>>>> main
       isArtifact,
       afxMatchesTarget,
       afxId,
