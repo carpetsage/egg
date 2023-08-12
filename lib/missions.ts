@@ -156,6 +156,10 @@ export class MissionType {
     this.durationType = durationType;
   }
 
+  get isFTL(): boolean {
+    return this.shipType >= Spaceship.MILLENIUM_CHICKEN
+  }
+
   get missionTypeId(): string {
     return `${spaceshipId(this.shipType)}-${this.durationTypeName}`.toLowerCase();
   }
@@ -488,7 +492,7 @@ export function missionStatusName(status: Status): string {
   }
 }
 
-export function missionDurationTypeName(type: DurationType): string {
+export function missionDurationTypeName(type: DurationType) {
   switch (type) {
     case DurationType.TUTORIAL:
       return 'Tutorial';
