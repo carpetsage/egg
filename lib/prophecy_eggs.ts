@@ -98,7 +98,7 @@ export function getProphecyEggsProgressFromContracts(
   for (const contract of contracts) {
     const props = contract.contract!;
     const league = contract.league || 0;
-    let goals = props.gradeSpecs? props.gradeSpecs![contract.grade! - 1].goals : props.goals;
+    let goals = props.gradeSpecs != null && contract.grade ? props.gradeSpecs[contract.grade - 1].goals : props.goals;
     if (!contract.grade && props.goalSets && props.goalSets.length > league) {
       goals = props.goalSets[league].goals;
     }
