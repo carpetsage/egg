@@ -9162,6 +9162,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1692028800.0,
+    "id": "event-8-13-2",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1691942400.0,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
     "endTimestamp": 1692115200.0,
     "id": "event-8-13",
     "message": "2x MISSION CAPACITY!!!",
@@ -9171,12 +9180,21 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1692028800.0,
-    "id": "event-8-13-2",
-    "message": "30% OFF CRAFTING!",
-    "multiplier": 0.7,
-    "startTimestamp": 1691942400.0,
-    "type": "crafting-sale",
+    "endTimestamp": 1692115200.0,
+    "id": "event-8-14",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1692028800.0,
+    "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1692115200.0,
+    "id": "ultra-8-14",
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1692028800.0,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
