@@ -9196,5 +9196,14 @@
     "startTimestamp": 1692028800.0,
     "type": "gift-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1692201600.0,
+    "id": "event-8-15",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1692115200.0,
+    "type": "boost-duration",
+    "ultra": false
   }
 ]
