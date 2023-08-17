@@ -9232,5 +9232,14 @@
     "startTimestamp": 1692201600.0,
     "type": "mission-fuel",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1692374400.0,
+    "id": "event-8-17",
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1692288000.0,
+    "type": "gift-boost",
+    "ultra": false
   }
 ]
