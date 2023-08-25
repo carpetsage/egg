@@ -9349,5 +9349,23 @@
     "startTimestamp": 1692892800.0,
     "type": "vehicle-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1693065600.0,
+    "id": "event-8-25",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1692979200.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1693065600.0,
+    "id": "ultra-8-25",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1692979200.0,
+    "type": "earnings-boost",
+    "ultra": true
   }
 ]
