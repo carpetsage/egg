@@ -9412,5 +9412,23 @@
     "startTimestamp": 1693238400.0,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1693411200.0,
+    "id": "event-8-29",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1693324800.0,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1693411200.0,
+    "id": "surgery-event",
+    "message": "2x GIFT REWARDS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1693324800.0,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
