@@ -9457,5 +9457,23 @@
     "startTimestamp": 1693497600.0,
     "type": "hab-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1693670400.0,
+    "id": "event-9-1",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1693584000.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1693670400.0,
+    "id": "ultra-9-1",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1693584000.0,
+    "type": "earnings-boost",
+    "ultra": true
   }
 ]
