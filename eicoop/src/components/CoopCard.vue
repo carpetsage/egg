@@ -221,7 +221,10 @@
         </div>
       </dl>
 
-      <contract-progress-bar :eggs-laid="status.eggsLaid" :projected-eggs-laid="status.projectedEggsLaid"
+      <contract-progress-bar
+        :eggs-laid="status.eggsLaid"
+        :eggs-laid-offline-adjusted="status.eggsLaidOfflineAdjusted"
+        :projected-eggs-laid="status.projectedEggsLaid"
         :league-status="leagueStatus" />
     </div>
 

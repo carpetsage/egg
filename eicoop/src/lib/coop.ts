@@ -174,6 +174,10 @@ export class CoopStatus {
       this.goals,
       this.status,
     );
+
+    // After resolving the league status we know what the final target is,
+    // so we adjust our offline eggs to keep it within bounds
+    this.eggsLaidOfflineAdjusted = Math.min(this.eggsLaidOfflineAdjusted, this.leagueStatus.finalTarget);
   }
 
   async resolveGrade(

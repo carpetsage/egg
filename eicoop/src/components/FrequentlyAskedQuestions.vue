@@ -10,11 +10,12 @@
           <span
             class="inline-block h-4 w-4 bg-green-500 border border-gray-300 relative top-0.5"
           ></span>
-          is confirmed production; the solid lighter green bar
+          is confirmed production (already checked-in); the solid lighter green bar
           <span
             class="inline-block h-4 w-4 bg-green-350 border border-gray-300 relative top-0.5"
           ></span>
-          is currently estimated production (not available for coops); the striped bar
+          is currently estimated production taking into account how long each member has been offline
+          (i.e., it would be the confirmed value if everyone checked-in now); the striped bar
           <span
             class="inline-block h-4 w-4 ProgressBar--striped border border-gray-300 relative top-0.5"
           ></span>
