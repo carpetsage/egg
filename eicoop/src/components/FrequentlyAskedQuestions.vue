@@ -21,7 +21,8 @@
           ></span>
           is projected total production before contract expiration. You can hover over or click on
           the progress bar to reveal more details in a tooltip. In general, many UI elements can be
-          hovered over or clicked on to reveal more information.
+          hovered over or clicked on to reveal more information. If you don't see a lighter green bar you may need to
+          disable your Dark Reader or other dark mode browser extension. This site has a dark mode already.
         </dd>
       </div>
 
