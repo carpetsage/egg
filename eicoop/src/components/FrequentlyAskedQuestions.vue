@@ -10,17 +10,19 @@
           <span
             class="inline-block h-4 w-4 bg-green-500 border border-gray-300 relative top-0.5"
           ></span>
-          is confirmed production; the solid lighter green bar
+          is confirmed production (already checked-in); the solid lighter green bar
           <span
             class="inline-block h-4 w-4 bg-green-350 border border-gray-300 relative top-0.5"
           ></span>
-          is currently estimated production (not available for coops); the striped bar
+          is currently estimated production taking into account how long each member has been offline
+          (i.e., it would be the confirmed value if everyone checked-in now); the striped bar
           <span
             class="inline-block h-4 w-4 ProgressBar--striped border border-gray-300 relative top-0.5"
           ></span>
           is projected total production before contract expiration. You can hover over or click on
           the progress bar to reveal more details in a tooltip. In general, many UI elements can be
-          hovered over or clicked on to reveal more information.
+          hovered over or clicked on to reveal more information. If you don't see a lighter green bar you may need to
+          disable your Dark Reader or other dark mode browser extension. This site has a dark mode already.
         </dd>
       </div>
 

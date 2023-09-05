@@ -7,9 +7,9 @@
         :style="{ width: percentage(projectedEggsLaid, leagueStatus.finalTarget) }"
       ></div>
       <div
-        v-if="currentlyEstimatedEggsLaid !== undefined"
+        v-if="eggsLaidOfflineAdjusted !== undefined"
         class="h-full bg-green-350 absolute rounded-full"
-        :style="{ width: percentage(currentlyEstimatedEggsLaid, leagueStatus.finalTarget) }"
+        :style="{ width: percentage(eggsLaidOfflineAdjusted, leagueStatus.finalTarget) }"
       ></div>
       <div
         class="h-full bg-green-500 absolute rounded-full"
@@ -17,20 +17,20 @@
       ></div>
 
       <template #content>
-        confirmed {{ formatEIValue(eggsLaid) }},<br />
+        confirmed: {{ formatEIValue(eggsLaid) }},<br />
         <template
           v-if="
-            currentlyEstimatedEggsLaid &&
-            currentlyEstimatedEggsLaid > eggsLaid &&
+            eggsLaidOfflineAdjusted &&
+            eggsLaidOfflineAdjusted > eggsLaid &&
             eggsLaid < leagueStatus.finalTarget
           "
         >
-          current estimate {{ formatEIValue(currentlyEstimatedEggsLaid) }},<br />
+          current estimate (offline adjusted): {{ formatEIValue(eggsLaidOfflineAdjusted) }},<br />
         </template>
         <template v-if="projectedEggsLaid > eggsLaid && eggsLaid < leagueStatus.finalTarget">
-          projected total {{ formatEIValue(projectedEggsLaid) }},<br />
+          projected total: {{ formatEIValue(projectedEggsLaid) }},<br />
         </template>
-        final target {{ formatEIValue(leagueStatus.finalTarget, { trim: true }) }}
+        final target: {{ formatEIValue(leagueStatus.finalTarget, { trim: true }) }}
       </template>
     </tippy>
     <template v-for="(goal, index) in leagueStatus.goals" :key="index">
@@ -109,7 +109,7 @@ export default defineComponent({
       type: Number,
       required: true,
     },
-    currentlyEstimatedEggsLaid: {
+    eggsLaidOfflineAdjusted: {
       type: Number as PropType<number | undefined>,
       default: undefined,
     },
