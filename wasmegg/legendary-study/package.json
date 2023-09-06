@@ -10,35 +10,35 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "@headlessui/vue": "^1.7.13",
+    "@headlessui/vue": "^1.7.16",
     "@heroicons/vue": "^1.0.6",
-    "@vue/runtime-core": "^3.3.2",
-    "copy-text-to-clipboard": "^3.1.0",
-    "dayjs": "^1.11.7",
+    "@vue/runtime-core": "^3.3.4",
+    "copy-text-to-clipboard": "^3.2.0",
+    "dayjs": "^1.11.9",
     "diff": "^5.1.0",
-    "diff2html": "^3.4.35",
-    "js-sha256": "^0.9.0",
+    "diff2html": "^3.4.42",
+    "js-sha256": "^0.10.1",
     "lib": "workspace:^",
-    "protobufjs": "^7.2.4",
+    "protobufjs": "^7.2.5",
     "safari-14-idb-fix": "^3.0.0",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
-    "vue": "^3.3.2",
-    "vue-router": "^4.2.0",
-    "vue-tippy": "^6.1.2"
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4",
+    "vue-tippy": "^6.3.1"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.3.4",
     "@types/diff": "^5.0.3",
     "@types/hogan.js": "^3.0.1",
-    "@vitejs/plugin-vue": "^4.2.3",
-    "@vitejs/plugin-vue-jsx": "^3.0.1",
-    "@vue/compiler-sfc": "^3.3.2",
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.23",
+    "@vitejs/plugin-vue": "^4.3.4",
+    "@vitejs/plugin-vue-jsx": "^3.0.2",
+    "@vue/compiler-sfc": "^3.3.4",
+    "autoprefixer": "^10.4.15",
+    "postcss": "^8.4.29",
     "tailwindcss": "^2.2.19",
-    "typescript": "^5.0.4",
-    "vite": "^4.3.9",
-    "vue-tsc": "^1.6.4"
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9",
+    "vue-tsc": "^1.8.8"
   }
 }
