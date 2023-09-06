@@ -31,7 +31,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: "^8.6.10"
+          version: "^8.7.4"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
@@ -39,7 +39,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
-            pnpm-global/pnpm-lock.yaml.lock
+            pnpm-global/pnpm-lock.yaml
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
@@ -86,7 +86,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: "^8.6.10"
+          version: "^8.7.4"
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
@@ -94,7 +94,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
-            pnpm-global/pnpm-lock.yaml.lock
+            pnpm-global/pnpm-lock.yaml
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
