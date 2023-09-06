@@ -162,6 +162,13 @@
                 <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
                   {{ leagueStatus.expectedFinalCompletionDate.format('YYYY-MM-DD HH:mm') }}
                 </span>.</p>
+                  <template v-if="grade">
+                    <p>Predicted total time taken for contract completion, offline adjusted:
+                    <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
+                      {{ formatDuration(onlineDuration) }}
+                    </span>
+                    </p>
+                  </template>
                 <br />
                 <p>This is an estimate based on the current laying rate (see FAQ below)</p>
               </template>
@@ -186,23 +193,30 @@
             />
           </dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-              <tippy class="text-gray-900 dark:text-gray-100">
-                <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
-                  formatDuration(leagueStatus.expectedTimeToCompleteOfflineAdjusted)
-                }}</span>
-                expected
-                <template v-if="leagueStatus.expectedTimeToCompleteOfflineAdjusted > 0" #content>
-                  <p>The expected completion time taking into account offline eggs laid for all members is
+            <tippy class="text-gray-900 dark:text-gray-100">
+              <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
+                formatDuration(leagueStatus.expectedTimeToCompleteOfflineAdjusted)
+              }}</span>
+              expected
+              <template v-if="leagueStatus.expectedTimeToCompleteOfflineAdjusted > 0" #content>
+                <p>The expected completion time taking into account offline eggs laid for all members is
+                <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
+                  {{ leagueStatus.expectedFinalCompletionDateOfflineAdjusted.format('YYYY-MM-DD HH:mm') }}
+                </span>.</p>
+                <template v-if="grade">
+                  <p>Predicted total time taken for contract completion, offline adjusted:
                   <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
-                    {{ leagueStatus.expectedFinalCompletionDateOfflineAdjusted.format('YYYY-MM-DD HH:mm') }}
-                  </span>.</p>
-                  <br />
-                  <p>Assumes that all players will check-in right before completion.</p>
+                    {{ formatDuration(offlineDuration) }}
+                  </span>
+                  </p>
                 </template>
-                <template v-if="!leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0" #content>
-                  <p>The coop should complete after enough members check-in.</p>
-                </template>
-              </tippy>
+                <br />
+                <p>Assumes that all players will check-in right before completion.</p>
+              </template>
+              <template v-if="!leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0" #content>
+                <p>The coop should complete after enough members check-in.</p>
+              </template>
+            </tippy>
           </dd>
         </div>
         <div class="sm:col-span-1">
@@ -258,6 +272,8 @@ import ContractProgressBar from '@/components/ContractProgressBar.vue';
 import CoopCardContributionTable from '@/components/CoopCardContributionTable.vue';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vue';
+import dayjs from 'dayjs';
+import { Dayjs } from 'dayjs';
 
 
 export default defineComponent({
@@ -289,11 +305,15 @@ export default defineComponent({
     const egg = computed(() => contract.value.egg!);
     const league = computed(() => status.value.league);
     const grade = computed(() => status.value.grade || 5);
+    const gradeSpec = computed(() => contract.value.gradeSpecs?.[grade.value - 1]);
     const leagueStatus = computed(() => status.value.leagueStatus!);
     const anyPlayerPrivate = computed(() => status.value.contributors.find(c => !c.farmShared) != null);
     const openings = computed(() =>
       Math.max((contract.value.maxCoopSize || 0) - status.value.contributors.length, 0)
     );
+    const startDate = computed(() => Date.now()/1000 + status.value.secondsRemaining - (gradeSpec.value?.lengthSeconds || 0));
+    const onlineDuration = computed(() => leagueStatus.value.expectedFinalCompletionDate.unix() - startDate.value);
+    const offlineDuration = computed(() => leagueStatus.value.expectedFinalCompletionDateOfflineAdjusted.unix() - startDate.value);
 
     return {
       devmode,
@@ -304,6 +324,8 @@ export default defineComponent({
       leagueStatus,
       anyPlayerPrivate,
       openings,
+      offlineDuration,
+      onlineDuration,
       formatEIValue,
       formatDuration,
       completionStatusFgColorClass,
