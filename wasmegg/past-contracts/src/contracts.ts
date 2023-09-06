@@ -66,6 +66,7 @@ export function getUserContractList(backup: ei.IBackup, archive?: ei.IContractsA
   const pastContracts: ei.ILocalContract[] = archive?.archive || backup.contracts?.archive || [];
   const localContracts: ei.ILocalContract[] = [];
 
+  // compare past contracts with active contracts. Only a contract from one source
   for (const past of pastContracts) {
     const match = activeContracts.find(c => c.contract?.identifier === past.contract?.identifier);
     if (!match) {
@@ -73,7 +74,13 @@ export function getUserContractList(backup: ei.IBackup, archive?: ei.IContractsA
     } else {
       localContracts.push(match);
     }
-
+  }
+  // Add any active contracts that don't match past contracts
+  for (const active of activeContracts) {
+    const match = localContracts.find(c => c.contract?.identifier === active.contract?.identifier);
+    if (!match) {
+      localContracts.push(active)
+    }
   }
 
   const attemptedContracts = localContracts
