@@ -1,3 +1,4 @@
+import dayjs, { Dayjs } from 'dayjs';
 import { eggIconPath, eggName } from './eggs';
 import { ei } from './proto';
 import { formatDuration } from './time';
@@ -12,7 +13,7 @@ import { Family } from './artifacts/data.json';
 import { getArtifactFamilyProps } from './artifacts';
 
 // Real artifacts only
-export type Target = Exclude<Artifact, 
+export type Target = Exclude<Artifact,
   Artifact.ALIEN_WOOD | Artifact.EXTRATERRESTRIAL_ALUMINUM | Artifact.ANCIENT_TUNGSTEN | Artifact.SPACE_ROCKS |
   Artifact.CENTAURIAN_STEEL | Artifact.CELESTIAL_BRONZE | Artifact.ERIDANI_FEATHER | Artifact.DRONE_PARTS |
   Artifact.LALANDE_HIDE>
@@ -36,7 +37,7 @@ export const targets = [
   Artifact.TACHYON_STONE_FRAGMENT, Artifact.TERRA_STONE_FRAGMENT, Artifact.UNKNOWN,
 ];
 
-// Default selection state for targets. 
+// Default selection state for targets.
 const targetDefaults: Record<Artifact,boolean> = {
   [Artifact.LUNAR_TOTEM]: false, [Artifact.NEODYMIUM_MEDALLION]: false, [Artifact.BEAK_OF_MIDAS]: false,
   [Artifact.LIGHT_OF_EGGENDIL]: false, [Artifact.DEMETERS_NECKLACE]: false, [Artifact.VIAL_MARTIAN_DUST]: false,
