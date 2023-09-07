@@ -23,9 +23,15 @@
           />
         </div>
         <span class="ml-1 text-sm">{{ mission.name }}
-        <template v-if="target !== undefined">
-          <img v-if="target !== 10000" class="inline-flex h-6 w-6" :src="id2url(Number(target), 32)" :alt="ei.ArtifactSpec.Name[target]" />
-        </template>
+        <span v-if="target !== undefined" class="font-bold">
+          <template v-if="target !== 10000">
+            <img class="inline-flex h-6 w-6" :src="id2url(Number(target), 32)" :alt="ei.ArtifactSpec.Name[target]" />
+            {{ getTargetName(target).split(' ').map(x => x[0].toUpperCase() + x.substring(1).toLowerCase()).join(' ') }} Target
+          </template>
+          <template v-else>
+            &nbsp;No Target
+          </template>
+        </span>
         </span>
       </div>
     </div>
@@ -57,9 +63,9 @@ export default defineComponent({
   setup() {
     return {
       ei,
+      getTargetName,
       iconURL,
       id2url,
-      getTargetName,
       durationBorderClass,
     };
   },

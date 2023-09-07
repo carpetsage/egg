@@ -6,7 +6,7 @@
         href="https://replit.com/@menno-egginc/EggIncDataCollection"
         target="_blank"
         class="text-gray-500 hover:text-gray-700 underline"
-        >Menno's Drop data tool</a
+        >Menno's drop data tool</a
       >. Visit to contribute yours!
     </p>
     <p>Note that per-day drop rates are calculated for a single mission slot.</p>
