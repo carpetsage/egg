@@ -274,7 +274,11 @@ export default defineComponent({
 
     const coops = computed(() => getUserActiveCoopContracts(backup.value));
     const coopParams = computed(() =>
-      coops.value.map(coop => ({
+      [...coops.value]
+      .sort((coopA,coopB) =>
+        (coopB.numGoalsAchieved || 0) - (coopA.numGoalsAchieved || 0)
+      )
+      .map(coop => ({
         contractId: coop.contract!.identifier!,
         coopCode: coop.coopIdentifier!,
         contract: coop.contract!,
