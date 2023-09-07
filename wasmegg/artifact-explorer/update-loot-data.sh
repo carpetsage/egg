@@ -1,6 +1,8 @@
 #!/bin/sh
 echo "Downloading loot.json"
-HTTP_CODE=$(curl -so loot_raw.json --write-out "%{http_code}" https://eggincdatacollection.azurewebsites.net/api/GetCarpetData)
+FULLDATA_URL="https://eggincdatacollection.azurewebsites.net/api/GetCarpetData"
+TRIMMEDATA_URL="https://eggincdatacollection.azurewebsites.net/api/GetCarpetDataTrimmed"
+HTTP_CODE=$(curl -so loot_raw.json --write-out "%{http_code}" ${TRIMMEDATA_URL})
 echo "HTTP $HTTP_CODE"
 if [ -s loot_raw.json ]; then
   echo 'compacting json'

@@ -6,7 +6,7 @@
     @click="openConfigModal"
   >
     <CogIcon class="-ml-0.5 mr-1 h-4 w-4" aria-hidden="true" />
-    Configure mission parameters
+    Configure mission parameters and targets
   </button>
 </template>
 

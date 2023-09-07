@@ -11,40 +11,44 @@
       <config-prompt />
       <loot-data-credit />
 
-      <div v-for="m in sortedMissions" :key="m.missionId">
+      <div v-for="m in sortedMissions" :key="m.missionId + m.loot.targetAfxId">
+        <!-- Show target drop rate if user selected it or if target matches artifact -->
         <div>
-          <mission-name :mission="m.mission" />
+          <mission-name :mission="m.mission" :target="m.loot.targetAfxId" />
         </div>
         <ul class="grid grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-3 mt-1">
-          <li v-for="levelLoot in m.loot.levels.filter(x => x.targetAfxId === 10000)" :key="levelLoot.level" class="text-sm">
-            <!--
-              Should *always* show drop rate for target matching this artifact
-                Find target which matches this artifact (relatively easy for not-fragments)
-              
-            -->
+          <li v-for="level in m.mission.maxLevel + 1" :key="level" class="text-sm">
             <span
               class="inline-flex items-center tabular-nums"
-              :class="levelIsSelected(m.mission, levelLoot.level) ? 'text-green-700' : null"
-              >{{ levelLoot.level }}<star-icon class="h-4 w-4 text-yellow-400" />
-  
-            <div v-if="levelLoot.targetAfxId !== 10000" class="inline-flex items-center tabular-nums h-4 w-4">
-              <img class="h-4 w-4" :src="id2url(levelLoot.targetAfxId)" />
-            </div>
-            :</span>&nbsp;
-            <drop-rate
-              :mission="m.mission"
-              :level="levelLoot.level"
-              :total-drops="levelLoot.totalDrops"
-              :item-drops="levelLoot.counts"
-              :is-artifact="isArtifact"
-              :highlight="levelIsSelected(m.mission, levelLoot.level)"
-            />
+              :class="levelIsSelected(m.mission, level - 1) ? 'text-green-700' : null"
+              >{{ level - 1 }}<star-icon class="h-4 w-4 text-yellow-400" />:</span>&nbsp;
+
+            <template v-if="m.loot.levels.find(x => x.level === level - 1)">
+              <drop-rate
+                :mission="m.mission"
+                :level="level"
+                :total-drops="m.loot.levels.find(x => x.level === level - 1)!.totalDrops"
+                :item-drops="m.loot.levels.find(x => x.level === level - 1)!.counts"
+                :is-artifact="isArtifact"
+                :highlight="levelIsSelected(m.mission, level - 1)"
+              />
+            </template>
+            <template v-else>
+              <span :class="levelIsSelected(m.mission, level - 1) ? 'text-green-700' : 'text-gray-500'">Not enough data</span>
+            </template>
           </li>
         </ul>
       </div>
     </template>
   </template>
-  <div v-else class="text-sm font-medium text-gray-500">Not available from missions :(</div>
+  <div v-else class="text-sm font-medium text-gray-500">
+    <template v-if="getArtifactTierPropsFromId(artifactId).available_from_missions">
+      No drops recorded :(
+    </template>
+    <template v-else>
+      Not available from missions :(
+    </template>
+  </div>
 </template>
 
 <script lang="ts">
@@ -57,10 +61,10 @@ import {
   getLocalStorage,
   getMissionTypeFromId,
   MissionType,
-  Target,
   getImageUrlFromId as id2url,
+  afxMatchesTarget,
 } from 'lib';
-import { getTierLootData, missionDataNotEnough } from '@/lib';
+import { ItemMissionLootStore, getTierLootData, missionDataNotEnough } from '@/lib';
 import { config } from '@/store';
 import { sum } from '@/utils';
 import ConfigPrompt from '@/components/ConfigPrompt.vue';
@@ -89,6 +93,9 @@ export default defineComponent({
     const isArtifact = computed(
       () => getArtifactTierPropsFromId(artifactId.value).afx_type === ei.ArtifactSpec.Type.ARTIFACT
     );
+    const afxId = computed(
+      () => getArtifactTierPropsFromId(artifactId.value).afx_id
+    )
     const expand = ref(getLocalStorage(COLLAPSE_ARTIFACT_DROP_RATES_LOCALSTORAGE_KEY) !== 'true');
     const loot = computed(() => getTierLootData(artifactId.value));
     const missions = computed(() =>
@@ -98,7 +105,8 @@ export default defineComponent({
         let maxExpectedDropsPerDay = 0;
         for (const levelLoot of missionLoot.levels) {
           const totalDrops = levelLoot.totalDrops;
-          if (missionDataNotEnough(mission, totalDrops)) {
+          if (missionDataNotEnough(mission, totalDrops) || mission.durationTypeName == 'Tutorial' ||
+            !(targetIsSelected(missionLoot.targetAfxId) || afxMatchesTarget(afxId.value, missionLoot.targetAfxId))) {
             continue;
           }
           const shipLevels = { ...config.value.shipLevels };
@@ -126,7 +134,9 @@ export default defineComponent({
       })
     );
     const sortedMissions = computed(() =>
-      [...missions.value].sort((m1, m2) => {
+      [...missions.value]
+      .filter(m => showShip(m.mission, afxId.value, m.loot))
+      .sort((m1, m2) => {
         // Missions with better expected drops per day come first.
         let cmp = m2.maxExpectedDropsPerDay - m1.maxExpectedDropsPerDay;
         if (cmp !== 0) {
@@ -139,21 +149,31 @@ export default defineComponent({
         return m1.mission.durationType - m2.mission.durationType;
       })
     );
-    const targetIsSelected = (artifact: Target) =>
+    const targetIsSelected = (artifact: ei.ArtifactSpec.Name) =>
       config.value.targets[artifact];
     const levelIsSelected = (mission: MissionType, level: number) =>
       config.value.shipLevels[mission.shipType] === level;
+    // show if not tutorial ship and (user selected the target or target matches selected arti) and there are any drops of it
+    const showShip = (mission: MissionType, afxId: ei.ArtifactSpec.Name, missionLoot: ItemMissionLootStore) =>
+      mission.durationTypeName != 'Tutorial' &&
+      (targetIsSelected(missionLoot.targetAfxId) || afxMatchesTarget(afxId, missionLoot.targetAfxId)) &&
+      missionLoot.levels.some(x => x.totalDrops > 0);
     return {
       ei,
+      config,
       isArtifact,
+      afxMatchesTarget,
+      afxId,
       expand,
       loot,
       id2url,
       getMissionTypeFromId,
       sortedMissions,
+      getArtifactTierPropsFromId,
       levelIsSelected,
       targetIsSelected,
     };
   },
 });
+
 </script>

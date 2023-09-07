@@ -28,6 +28,12 @@ const itemAfxIdToFamilyId: Map<Name, Name> = new Map(
     .flat()
     .map(t => [t.afx_id, t.family.afx_id])
 );
+const itemAfxIdToFamilyName: Map<Name, string> = new Map(
+  data.artifact_families
+    .map(f => f.tiers)
+    .flat()
+    .map(t => [t.afx_id, t.family.name])
+);
 const itemIdToTier: Map<string, Tier> = new Map(
   data.artifact_families
     .map(f => f.tiers)
@@ -47,9 +53,35 @@ const itemIdtoName: Map<Name, string> = new Map(
     .map(t => [t.afx_id, t.name])
 );
 
+export function afxMatchesTarget(afxId: Name, targetId: Name): boolean {
+  if (targetId === 10000) {
+    return false;
+  }
+  const afxFamily = itemAfxIdToFamilyName.get(afxId)!;
+  const targetFamily = itemAfxIdToFamilyName.get(targetId)!;
+  const afxType = itemAfxIdToType.get(afxId)!;
+  const targetType = itemAfxIdToType.get(targetId)!;
+
+  if (afxType === Type.STONE_INGREDIENT || targetType === Type.STONE_INGREDIENT) {
+    return afxId === targetId;
+  }
+  return afxFamily === targetFamily;
+
+}
+export function getTargetName(afxId: Name): string {
+  if (afxId === 10000) {
+    return "Untargeted";
+  }
+  const familyName = itemAfxIdToFamilyName.get(afxId);
+  const type = itemAfxIdToType.get(afxId)!;
+  if (type === Type.STONE_INGREDIENT) {
+    return itemIdtoName.get(afxId) ?? "Not Found";
+  }
+  return familyName ?? `Not Found 2: ${afxId}`
+}
+
 export function getArtifactName(afxId: Name): string {
   return itemIdtoName.get(afxId)!;
-
 }
 export function getImageUrlFromId(afxId: Name, size?: number): string {
   return iconURL(`egginc/${itemAfxIdToFile.get(afxId)!}`, size ?? 32);

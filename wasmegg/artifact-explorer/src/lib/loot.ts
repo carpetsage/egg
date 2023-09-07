@@ -4,11 +4,13 @@ import {
   getMissionTypeFromId,
   itemExpectedFullConsumptionGold,
   MissionType,
+  targets,
 } from 'lib';
 
-import lootdata, { MissionLevelLootStore, MissionTargetLootStore, MissionLootStore } from './loot.json';
+import { config } from '@/store';
+import lootdata, { MissionLevelLootStore, MissionLootStore } from './loot.json';
 
-export { lootdata };
+export { lootdata , ItemMissionLootStore };
 
 export function getMissionLootData(missionId: string): MissionLootStore {
   for (const missionLoot of lootdata.missions) {
@@ -41,6 +43,7 @@ type ItemLootStore = {
 
 type ItemMissionLootStore = {
   afxShip: ei.MissionInfo.Spaceship;
+  targetAfxId: ei.ArtifactSpec.Name;
   afxDurationType: ei.MissionInfo.DurationType;
   missionId: string;
   levels: ItemMissionLevelLootStore[];
@@ -48,10 +51,10 @@ type ItemMissionLootStore = {
 
 type ItemMissionLevelLootStore = {
   level: number;
-  targetAfxId: ei.ArtifactSpec.Name;
   totalDrops: number;
   counts: [number, number, number, number];
 };
+
 
 export function getTierLootData(itemId: string): ItemLootStore {
   const item = getArtifactTierPropsFromId(itemId);
@@ -61,36 +64,40 @@ export function getTierLootData(itemId: string): ItemLootStore {
   for (const missionLoot of lootdata.missions) {
     const mission = getMissionTypeFromId(missionLoot.missionId);
     const withinRange =
-      mission.params.minQuality <= item.quality && item.quality <= mission.params.maxQuality;
-    const store: ItemMissionLootStore = {
-      afxShip: missionLoot.afxShip,
-      afxDurationType: missionLoot.afxDurationType,
-      missionId: missionLoot.missionId,
-      levels: [],
-    };
-    let dropped = false;
-    for (const levelLoot of missionLoot.levels) {
-      let counts: [number, number, number, number] | undefined;
-      for (const targetLoot of levelLoot.targets) {
-        for (const itemLoot of targetLoot.items) {
-          if (itemLoot.itemId === itemId) {
-            counts = itemLoot.counts;
-            break;
+      mission.params.minQuality <= item.quality && item.quality <= mission.maxBoostedMaxQuality()
+    const validTargets = mission.isFTL ? targets : [ei.ArtifactSpec.Name.UNKNOWN];
+    for (const target of validTargets) {
+      if (!config.value.targets[target] && item.afx_id != target) { continue }
+      const store: ItemMissionLootStore = {
+        targetAfxId: target,
+        afxShip: missionLoot.afxShip,
+        afxDurationType: missionLoot.afxDurationType,
+        missionId: missionLoot.missionId,
+        levels: [],
+      };
+      let dropped = false;
+      for (const levelLoot of missionLoot.levels) {
+        let counts: [number, number, number, number] | undefined;
+        for (const targetLoot of levelLoot.targets.filter(x => x.targetAfxId === target)) {
+          for (const itemLoot of targetLoot.items) {
+            if (itemLoot.itemId === itemId) {
+              counts = itemLoot.counts;
+              break;
+            }
           }
+          store.levels.push({
+            level: levelLoot.level,
+            totalDrops: targetLoot.totalDrops,
+            counts: counts ?? [0, 0, 0, 0],
+          });
         }
-        store.levels.push({
-          level: levelLoot.level,
-          targetAfxId: targetLoot.targetAfxId,
-          totalDrops: targetLoot.totalDrops,
-          counts: counts ?? [0, 0, 0, 0],
-        });
+        if (counts && counts.some(x => x > 0)) {
+          dropped = true;
+        }
       }
-      if (counts && counts.some(x => x > 0)) {
-        dropped = true;
+      if (withinRange || dropped) {
+        result.missions.push(store);
       }
-    }
-    if (withinRange || dropped) {
-      result.missions.push(store);
     }
   }
   return result;
@@ -99,3 +106,4 @@ export function getTierLootData(itemId: string): ItemLootStore {
 export function missionDataNotEnough(mission: MissionType, totalDrops: number) {
   return totalDrops / mission.defaultCapacity < 20;
 }
+
