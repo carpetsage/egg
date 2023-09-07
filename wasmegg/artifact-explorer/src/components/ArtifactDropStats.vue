@@ -11,7 +11,7 @@
       <config-prompt />
       <loot-data-credit />
 
-      <div v-for="m in sortedMissions" :key="m.missionId">
+      <div v-for="m in sortedMissions" :key="m.missionId + m.loot.targetAfxId">
         <!-- Show target drop rate if user selected it or if target matches artifact -->
         <div>
           <mission-name :mission="m.mission" :target="m.loot.targetAfxId" />
@@ -61,13 +61,8 @@ import {
   getLocalStorage,
   getMissionTypeFromId,
   MissionType,
-<<<<<<< HEAD
   getImageUrlFromId as id2url,
   afxMatchesTarget,
-=======
-  Target,
-  getImageUrlFromId as id2url,
->>>>>>> main
 } from 'lib';
 import { ItemMissionLootStore, getTierLootData, missionDataNotEnough } from '@/lib';
 import { config } from '@/store';
@@ -154,11 +149,7 @@ export default defineComponent({
         return m1.mission.durationType - m2.mission.durationType;
       })
     );
-<<<<<<< HEAD
     const targetIsSelected = (artifact: ei.ArtifactSpec.Name) =>
-=======
-    const targetIsSelected = (artifact: Target) =>
->>>>>>> main
       config.value.targets[artifact];
     const levelIsSelected = (mission: MissionType, level: number) =>
       config.value.shipLevels[mission.shipType] === level;
@@ -167,13 +158,9 @@ export default defineComponent({
       mission.durationTypeName != 'Tutorial' &&
       (targetIsSelected(missionLoot.targetAfxId) || afxMatchesTarget(afxId, missionLoot.targetAfxId)) &&
       missionLoot.levels.some(x => x.totalDrops > 0);
-    
     return {
       ei,
-<<<<<<< HEAD
       config,
-=======
->>>>>>> main
       isArtifact,
       afxMatchesTarget,
       afxId,
@@ -188,4 +175,5 @@ export default defineComponent({
     };
   },
 });
+
 </script>
