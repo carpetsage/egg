@@ -14,7 +14,6 @@
   "workspaces": [
     "lib",
     "eicoop",
-    "eicoop2",
     "wasmegg/_home",
     "wasmegg/artifact-explorer",
     "wasmegg/artifact-sandbox",
@@ -25,7 +24,6 @@
     "wasmegg/loot-simulator",
     "wasmegg/mission-list",
     "wasmegg/past-contracts",
-    "wasmegg/past-contracts-eicoop2",
     "wasmegg/proto-explorer",
     "wasmegg/researches",
     "wasmegg/rockets-tracker",
