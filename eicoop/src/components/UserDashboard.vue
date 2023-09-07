@@ -276,7 +276,7 @@ export default defineComponent({
     const coopParams = computed(() =>
       [...coops.value]
       .sort((coopA,coopB) =>
-        (coopB.numGoalsAchieved || 0) - (coopA.numGoalsAchieved || 0)
+        (coopA.numGoalsAchieved || 0) - (coopB.numGoalsAchieved || 0)
       )
       .map(coop => ({
         contractId: coop.contract!.identifier!,
