@@ -34,7 +34,7 @@
       </div>
     </div>
   </template>
-  
+
   <script lang="ts">
   import { defineComponent, PropType, ref, toRefs } from 'vue';
   import { Emitter } from 'mitt';
@@ -46,13 +46,17 @@
         type: Object as PropType<Emitter<Record<typeof REPORT_MISSIONDATA, unknown>>>,
         required: true,
       },
+      playerId: {
+        type: String,
+        required: true,
+      }
     },
     setup(props) {
-      const { eventBus } = toRefs(props);
-      const preferenceOnFile = ref(getMissionDataPreference() !== null);
+      const { eventBus, playerId } = toRefs(props);
+      const preferenceOnFile = ref(getMissionDataPreference(playerId.value) !== null);
       const showDetails = ref(false);
       const record = (optin: boolean) => {
-        recordMissionDataPreference(optin);
+        recordMissionDataPreference(optin, playerId.value);
         preferenceOnFile.value = true;
         if (optin) {
           eventBus.value.emit(REPORT_MISSIONDATA);
@@ -66,7 +70,7 @@
     },
   });
   </script>
-  
+
   <style lang="postcss" scoped>
   .animate-bg-pulse {
     animation: bg-pulse 2s infinite;

@@ -702,6 +702,24 @@
             <dd class="text-left text-sm text-gray-900">{{ fmt(lifetimeVidDoubler) }}</dd>
           </div>
         </div>
+
+        <div v-if="!collapsed" class="py-2">
+          <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Mission Data Opt In:</dt>
+            <dd class="text-left text-sm text-gray-900">{{ getMissionDataPreference(userId) }}</dd>
+
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Last Contributed:</dt>
+            <dd class="text-left text-sm text-gray-900">{{ lastContribution }}</dd>
+
+          <a
+            :href="`https://eicoop-carpet.netlify.app/u/${userId}`"
+            target="_blank"
+            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
+          >
+            <span class="underline">Your contract dashboard</span>
+          </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -733,6 +751,7 @@ import {
   PlayerCraftingLevel,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
+import { getMissionDataPreference, getMissionDataSubmitTime } from '../lib/missiondata';
 import {
   getCompletedExtendedHenerprises,
   getLaunchedMissions,
@@ -1016,6 +1035,10 @@ const zeroLegendaryUnconditionallyUnworthyNickname = computed(() =>
 );
 const randIndex = Math.floor(Math.random() * 10000);
 const gradeName = ["None", "C", "B", "A", "AA", "AAA"];
+const lastContribution = computed(() => {
+  const date = getMissionDataSubmitTime(userId.value);
+  return date > 0 ? dayjs(date).format('MMM DD') : 'Never';
+});
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');

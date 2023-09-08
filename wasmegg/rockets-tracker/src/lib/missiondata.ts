@@ -1,45 +1,48 @@
-import { ei, getLocalStorage, setLocalStorage } from 'lib';
+import { ei, getLocalStorage, getLocalStorageNoPrefix, setLocalStorage, setLocalStorageNoPrefix } from 'lib';
+import { sha256 } from 'js-sha256';
 
 const MISSIONDATA_OPT_IN_LOCALSTORAGE_KEY = 'reportMissionData';
 const LAST_REPORT_TIME_LOCALSTORAGE_KEY = 'lastMissionDataReportTime';
 const REPORT_MISSIONDATA_API_URL = 'https://eggincdatacollection.azurewebsites.net/api/SubmitEid';
 const FUNCTIONKEY = 'YdJDtLIvK1YrbC6RCO2XKm3FoIDH3pzV2jXVyBlI6sGqAzFu_SeZCQ==';
 
-export function getMissionDataPreference(): boolean | null {
-  const recorded = getLocalStorage(MISSIONDATA_OPT_IN_LOCALSTORAGE_KEY);
+function formatKey(key: string, playerId: string) {
+  return `${key}-${sha256(playerId)}`;
+}
+export function getMissionDataPreference(playerId: string): boolean | null {
+  const recorded = getLocalStorageNoPrefix(formatKey(MISSIONDATA_OPT_IN_LOCALSTORAGE_KEY,playerId));
   if (recorded === undefined) {
     return null;
   }
   return recorded === 'true';
 }
 
-export function recordMissionDataPreference(optin: boolean): void {
-  setLocalStorage(MISSIONDATA_OPT_IN_LOCALSTORAGE_KEY, optin);
+export function recordMissionDataPreference(optin: boolean, playerId: string): void {
+  setLocalStorageNoPrefix(formatKey(MISSIONDATA_OPT_IN_LOCALSTORAGE_KEY,playerId), optin);
 }
 
-export function getMissionDataSubmitTime(): number {
-  const time = getLocalStorage(LAST_REPORT_TIME_LOCALSTORAGE_KEY);
+export function getMissionDataSubmitTime(playerId: string): number {
+  const time = getLocalStorageNoPrefix(formatKey(LAST_REPORT_TIME_LOCALSTORAGE_KEY,playerId));
   if (time === undefined || isNaN(Number(time))) {
     return 0;
   }
   return Number(time);
 }
-export function recordMissionDataSubmitTime(): void {
-  setLocalStorage(LAST_REPORT_TIME_LOCALSTORAGE_KEY , Date.now());
+export function recordMissionDataSubmitTime(playerId: string): void {
+  setLocalStorageNoPrefix(formatKey(LAST_REPORT_TIME_LOCALSTORAGE_KEY,playerId) , Date.now());
 }
 
 export async function reportMissionData(backup: ei.IBackup): Promise<void> {
-  const lastSubmit = getMissionDataSubmitTime();
-  console.log(Date.now() - lastSubmit);
+  const playerId = backup.eiUserId!;
+  const lastSubmit = getMissionDataSubmitTime(playerId);
   // only submit if it's been 24+ hours since last time
-  if (getLocalStorage(MISSIONDATA_OPT_IN_LOCALSTORAGE_KEY) !== 'true' || Date.now() - lastSubmit < 86400000) {
+  if (!getMissionDataPreference(playerId) || Date.now() - lastSubmit < 86400000) {
     console.log(Date.now() - lastSubmit);
     return;
   }
 
-  const userId = backup.eiUserId!;
   const controller = new AbortController();
-  setTimeout(() => controller.abort(), 10000);
+  setTimeout(() => controller.abort(), 80000);
   try {
     await fetch(REPORT_MISSIONDATA_API_URL, {
       method: 'POST',
@@ -50,13 +53,11 @@ export async function reportMissionData(backup: ei.IBackup): Promise<void> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        'eid': userId
-      }),
-      signal: controller.signal,
+        'eid': playerId
+      })
     });
-   recordMissionDataSubmitTime();
+   recordMissionDataSubmitTime(playerId);
   } catch (err) {
     console.error(err);
   }
 }
- 

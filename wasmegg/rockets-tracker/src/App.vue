@@ -8,7 +8,7 @@
   <div class="max-w-5xl w-full pb-6 mx-auto">
     <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
-    <mission-drop-data-opt-in-form :event-bus="eventBus" class="mx-4 xl:mx-0 my-4" />
+    <mission-drop-data-opt-in-form :event-bus="eventBus" :player-id="playerId" class="mx-4 xl:mx-0 my-4" />
     <legendaries-study-opt-in-form :event-bus="eventBus" class="mx-4 xl:mx-0 my-4" />
 
     <!-- Use a key to recreate on data loading -->
@@ -36,6 +36,7 @@
 import { defineComponent, ref } from 'vue';
 import mitt from 'mitt';
 
+import { sha256 } from "js-sha256";
 import { getSavedPlayerID, savePlayerID } from 'lib';
 import LegendariesStudyOptInForm from '@/components/LegendariesStudyOptInForm.vue';
 import MissionDropDataOptInForm from '@/components/MissionDropDataOptInForm.vue';
@@ -74,8 +75,8 @@ export default defineComponent({
     const recordData = (pref: string) => {
       const optin = pref.toLocaleLowerCase() === 'true';
       // change preference if url parameter is different from localstorage
-      if (optin !== getMissionDataPreference() && pref != '') {
-        recordMissionDataPreference(optin);
+      if (optin !== getMissionDataPreference(playerId.value) && pref != '') {
+        recordMissionDataPreference(optin,playerId.value);
         if (optin) {
           eventBus.emit(REPORT_MISSIONDATA);
         }
@@ -86,6 +87,7 @@ export default defineComponent({
       playerId,
       refreshId,
       eventBus,
+      sha256,
       submitPlayerId,
     };
   },
