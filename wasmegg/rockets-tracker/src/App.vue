@@ -70,7 +70,6 @@ export default defineComponent({
       refreshId.value = Date.now();
       savePlayerID(id);
       if (missionDataPref.value) {
-        console.log(`pref: ${missionDataPref.value}`);
         recordData(missionDataPref.value);
       }
     };
@@ -83,7 +82,6 @@ export default defineComponent({
         eventBus.emit(REPORT_MISSIONDATA);
       }
     };
-    console.log(`pref: ${missionDataPref.value}`);
     return {
       playerId,
       refreshId,

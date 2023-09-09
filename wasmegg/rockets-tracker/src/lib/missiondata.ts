@@ -69,7 +69,6 @@ export async function reportMissionData(backup: ei.IBackup): Promise<void> {
   const lastSubmit = getMissionDataSubmitTime(playerId);
   // only submit if it's been 24+ hours since last time
   if (!getMissionDataPreference(playerId) || Date.now() - lastSubmit < 86400000) {
-    console.log(Date.now() - lastSubmit);
     return;
   }
 
