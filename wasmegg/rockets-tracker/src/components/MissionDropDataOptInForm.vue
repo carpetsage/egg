@@ -3,8 +3,8 @@
       <h3 class="text-sm font-medium text-green-800">Contribute to mission drop data</h3>
       <div class="mt-2 text-sm text-green-700">
         <p>
-          Opt in to contribute your past ship's drops to @mennoo's drop data collection tool
-          All drop rates shown in Artifact Explorer will come from this tool. Opt-in to help improve
+          Opt in to contribute your past ship's drops to @mennoo's drop data collection tool.<br />
+          All drop rates shown in Artifact Explorer come from data submitted to this tool. Opt-in to help improve
           this data.
         </p>
         <p v-if="!showDetails" class="mt-2 underline cursor-pointer" @click="showDetails = true">
@@ -34,7 +34,7 @@
       </div>
     </div>
   </template>
-  
+
   <script lang="ts">
   import { defineComponent, PropType, ref, toRefs } from 'vue';
   import { Emitter } from 'mitt';
@@ -46,13 +46,17 @@
         type: Object as PropType<Emitter<Record<typeof REPORT_MISSIONDATA, unknown>>>,
         required: true,
       },
+      playerId: {
+        type: String,
+        required: true,
+      }
     },
     setup(props) {
-      const { eventBus } = toRefs(props);
-      const preferenceOnFile = ref(getMissionDataPreference() !== null);
+      const { eventBus, playerId } = toRefs(props);
+      const preferenceOnFile = ref(getMissionDataPreference(playerId.value) !== undefined);
       const showDetails = ref(false);
       const record = (optin: boolean) => {
-        recordMissionDataPreference(optin);
+        recordMissionDataPreference(playerId.value, optin);
         preferenceOnFile.value = true;
         if (optin) {
           eventBus.value.emit(REPORT_MISSIONDATA);
@@ -66,7 +70,7 @@
     },
   });
   </script>
-  
+
   <style lang="postcss" scoped>
   .animate-bg-pulse {
     animation: bg-pulse 2s infinite;
