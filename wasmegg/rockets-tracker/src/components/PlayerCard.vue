@@ -710,8 +710,9 @@
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Last Contributed:</dt>
             <dd class="text-left text-sm text-gray-900">
-              {{ dayjs(contributionTime).fromNow() }}
+              {{ contributionTime > 0 ? dayjs(contributionTime).fromNow() : "Never" }}
               <base-info
+                v-if="contributionTime > 0"
                 v-tippy="{
                   content: `Rockets tracker only submits your data once every 24 hours`,
                 }"
