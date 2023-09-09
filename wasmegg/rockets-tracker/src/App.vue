@@ -8,11 +8,10 @@
   <div class="max-w-5xl w-full pb-6 mx-auto">
     <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
-    <mission-drop-data-opt-in-form :event-bus="eventBus" :player-id="playerId" class="mx-4 xl:mx-0 my-4" />
-    <legendaries-study-opt-in-form :event-bus="eventBus" class="mx-4 xl:mx-0 my-4" />
-
     <!-- Use a key to recreate on data loading -->
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
+      <mission-drop-data-opt-in-form :event-bus="eventBus" :player-id="playerId" class="mx-4 xl:mx-0 my-4" />
+      <legendaries-study-opt-in-form :event-bus="eventBus" class="mx-4 xl:mx-0 my-4" />
       <suspense>
         <template #default>
           <the-report :player-id="playerId" :event-bus="eventBus" />
@@ -70,19 +69,21 @@ export default defineComponent({
       playerId.value = id;
       refreshId.value = Date.now();
       savePlayerID(id);
+      if (missionDataPref.value) {
+        console.log(`pref: ${missionDataPref.value}`);
+        recordData(missionDataPref.value);
+      }
     };
     const eventBus = mitt();
     const recordData = (pref: string) => {
       const optin = pref.toLocaleLowerCase() === 'true';
       // change preference if url parameter is different from localstorage
-      if (optin !== getMissionDataPreference(playerId.value) && pref != '') {
-        recordMissionDataPreference(optin,playerId.value);
-        if (optin) {
-          eventBus.emit(REPORT_MISSIONDATA);
-        }
+      recordMissionDataPreference(playerId.value, optin);
+      if (optin) {
+        eventBus.emit(REPORT_MISSIONDATA);
       }
     };
-    recordData(missionDataPref.value);
+    console.log(`pref: ${missionDataPref.value}`);
     return {
       playerId,
       refreshId,

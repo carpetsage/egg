@@ -706,19 +706,25 @@
         <div v-if="!collapsed" class="py-2">
           <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
             <dt class="text-right text-sm font-medium whitespace-nowrap">Mission Data Opt In:</dt>
-            <dd class="text-left text-sm text-gray-900">{{ getMissionDataPreference(userId) }}</dd>
+            <dd class="text-left text-sm text-gray-900">{{ contributor }}</dd>
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Last Contributed:</dt>
-            <dd class="text-left text-sm text-gray-900">{{ lastContribution }}</dd>
+            <dd class="text-left text-sm text-gray-900">
+              {{ dayjs(contributionTime).fromNow() }}
+              <base-info
+                v-tippy="{
+                  content: `Rockets tracker only submits your data once every 24 hours`,
+                }"
+                class="inline ml-0.5"
+              />
+              </dd>
 
-          <a
-            :href="`https://eicoop-carpet.netlify.app/u/${userId}`"
-            target="_blank"
-            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
-          >
-            <span class="underline">Your contract dashboard</span>
-          </a>
           </div>
+          <button
+            class="items-center justify-center space-x-0.5 text-sm text-gray-500 hover:text-gray-600 mt-1 underline"
+            @click="toggleContribution()">
+            Toggle Mission Data Opt-In
+          </button>
         </div>
       </div>
     </div>
@@ -751,7 +757,7 @@ import {
   PlayerCraftingLevel,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-import { getMissionDataPreference, getMissionDataSubmitTime } from '../lib/missiondata';
+import { getMissionDataPreference, getMissionDataSubmitTime, recordMissionDataPreference } from '../lib/missiondata';
 import {
   getCompletedExtendedHenerprises,
   getLaunchedMissions,
@@ -1035,10 +1041,15 @@ const zeroLegendaryUnconditionallyUnworthyNickname = computed(() =>
 );
 const randIndex = Math.floor(Math.random() * 10000);
 const gradeName = ["None", "C", "B", "A", "AA", "AAA"];
-const lastContribution = computed(() => {
-  const date = getMissionDataSubmitTime(userId.value);
-  return date > 0 ? dayjs(date).format('MMM DD') : 'Never';
-});
+
+// Toggle opt in for menno's data collection
+const optin = ref(getMissionDataPreference(userId.value));
+const contributor = computed(() => optin.value ? "Yes" : "No");
+const toggleContribution = () => {
+  optin.value = !optin.value;
+  recordMissionDataPreference(userId.value,optin.value)
+};
+const contributionTime = ref(getMissionDataSubmitTime(userId.value));
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');

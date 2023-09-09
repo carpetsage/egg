@@ -3,8 +3,8 @@
       <h3 class="text-sm font-medium text-green-800">Contribute to mission drop data</h3>
       <div class="mt-2 text-sm text-green-700">
         <p>
-          Opt in to contribute your past ship's drops to @mennoo's drop data collection tool
-          All drop rates shown in Artifact Explorer will come from this tool. Opt-in to help improve
+          Opt in to contribute your past ship's drops to @mennoo's drop data collection tool.<br />
+          All drop rates shown in Artifact Explorer come from data submitted to this tool. Opt-in to help improve
           this data.
         </p>
         <p v-if="!showDetails" class="mt-2 underline cursor-pointer" @click="showDetails = true">
@@ -53,10 +53,10 @@
     },
     setup(props) {
       const { eventBus, playerId } = toRefs(props);
-      const preferenceOnFile = ref(getMissionDataPreference(playerId.value) !== null);
+      const preferenceOnFile = ref(getMissionDataPreference(playerId.value) !== undefined);
       const showDetails = ref(false);
       const record = (optin: boolean) => {
-        recordMissionDataPreference(optin, playerId.value);
+        recordMissionDataPreference(playerId.value, optin);
         preferenceOnFile.value = true;
         if (optin) {
           eventBus.value.emit(REPORT_MISSIONDATA);
