@@ -69,19 +69,20 @@ export default defineComponent({
       playerId.value = id;
       refreshId.value = Date.now();
       savePlayerID(id);
-      if (missionDataPref.value) {
-        recordData(missionDataPref.value);
-      }
+      recordData(missionDataPref.value);
     };
     const eventBus = mitt();
     const recordData = (pref: string) => {
-      const optin = pref.toLocaleLowerCase() === 'true';
+      const optin = pref.toLowerCase() === 'true';
       // change preference if url parameter is different from localstorage
-      recordMissionDataPreference(playerId.value, optin);
+      if (pref && playerId.value) {
+        recordMissionDataPreference(playerId.value, optin);
+      }
       if (optin) {
         eventBus.emit(REPORT_MISSIONDATA);
       }
     };
+    recordData(missionDataPref.value)
     return {
       playerId,
       refreshId,

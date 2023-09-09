@@ -1049,6 +1049,7 @@ const contributor = computed(() => optin.value ? "Yes" : "No");
 const toggleContribution = () => {
   optin.value = !optin.value;
   recordMissionDataPreference(userId.value,optin.value)
+  contributionTime.value = getMissionDataSubmitTime(userId.value)
 };
 const contributionTime = ref(getMissionDataSubmitTime(userId.value));
 
