@@ -27,7 +27,7 @@
           <div>{{ mission.capacity }}</div>
           <div class="text-right font-medium mt-0.5">Sensor target:</div>
           <div class="text-center text-xs text-white rounded-full w-max px-1.5 py-0.5 mx-auto bg-gray-400 font-semibold">
-            {{ mission.sensorTarget?.name ?? "None" }}
+            {{ mission.sensorTarget || "None"}}
           </div>
         </div>
       </div>

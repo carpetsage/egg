@@ -9,8 +9,7 @@ import Artifact = ei.ArtifactSpec.Name;
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
 import Status = ei.MissionInfo.Status;
-import { Family } from './artifacts/data.json';
-import { getArtifactFamilyProps } from './artifacts';
+import {getImageUrlFromId, getTargetName} from './artifacts';
 
 // Real artifacts only
 export type Target = Exclude<Artifact,
@@ -286,15 +285,25 @@ export class Mission extends MissionType {
     return this.missionInfo.capacity!;
   }
 
-  get sensorTarget(): Family | null {
+  get sensorTarget(): string {
     const targetId = this.missionInfo.targetArtifact;
-    if (targetId != null) {
-      return getArtifactFamilyProps(targetId);
+    if (targetId != null && targetId != 10000) {
+      // Capitalize first letter of every word
+      return getTargetName(targetId)
+        .split(' ')
+        .map(x => x.charAt(0).toUpperCase() + x.slice(1))
+        .join(" ");
     }
-    else {
-      return null;
-    }
+    return '';
   }
+
+  get targetIcon(): string {
+    if (this.missionInfo.targetArtifact) {
+      return getImageUrlFromId(this.missionInfo.targetArtifact, 32);
+    }
+    return '';
+  }
+
 
   get status(): Status {
     return this.missionInfo.status!;

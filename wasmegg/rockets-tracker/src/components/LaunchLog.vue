@@ -46,6 +46,12 @@
                   </svg>
                   <span>)</span>
                 </span>
+                <span v-if="mission.sensorTarget">
+                  <img
+                    class="inline-flex h-6 w-6"
+                    :src="mission.targetIcon"
+                    :alt="mission.sensorTarget" />
+                </span>
               </div>
             </div>
           </div>
@@ -82,7 +88,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, Ref, ref, toRefs, watch } from 'vue';
 
-import { ei, getLocalStorage, Mission, setLocalStorage } from 'lib';
+import { ei, getLocalStorage, Mission, setLocalStorage, iconURL } from 'lib';
 import { getLaunchLog } from '@/lib';
 import { missionDurationTypeFgClass } from '@/utils';
 import BaseModal from '@/components/BaseModal.vue';
@@ -162,6 +168,7 @@ export default defineComponent({
       missionLootModalNextMission,
       missionLootModalOpen,
       missionDurationTypeFgClass,
+      iconURL,
     };
   },
 });

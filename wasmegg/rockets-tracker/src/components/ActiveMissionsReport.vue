@@ -57,7 +57,7 @@
               Sensor target:
             </div>
             <div class="text-center text-xs text-white rounded-full w-max px-1.5 py-0.5 mx-auto bg-gray-400 font-semibold">
-              {{ mission.sensorTarget?.name ?? "None" }}
+              {{ mission.sensorTarget || "None" }}
             </div>
             <div class="mt-2 text-gray-700 text-sm font-medium">{{ mission.statusName }}</div>
             <div
