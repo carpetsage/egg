@@ -759,6 +759,8 @@ import {
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getMissionDataPreference, getMissionDataSubmitTime, recordMissionDataPreference } from '../lib/missiondata';
+import { Emitter } from 'mitt';
+import { REPORT_LEGENDARIES, REPORT_MISSIONDATA } from '../events';
 import {
   getCompletedExtendedHenerprises,
   getLaunchedMissions,
@@ -826,8 +828,12 @@ const ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES = new Map<string, s
   ['6fd149f054b097366d63e7e5d322ffa30359d00c0991d04afd4a04fa0cca12b3', 'Kirby'],
 ]);
 
-const props = defineProps<{ backup: ei.IBackup; inventory: Inventory }>();
-const { backup, inventory } = toRefs(props);
+const props = defineProps<{
+  backup: ei.IBackup;
+  inventory: Inventory;
+  eventBus: Emitter<Record<typeof REPORT_LEGENDARIES | typeof REPORT_MISSIONDATA,unknown>>
+}>();
+const { backup, inventory, eventBus } = toRefs(props);
 
 const collapsed = ref(getLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY) === 'true');
 const toggleCollapse = () => {
@@ -1046,12 +1052,20 @@ const gradeName = ["None", "C", "B", "A", "AA", "AAA"];
 // Toggle opt in for menno's data collection
 const optin = ref(getMissionDataPreference(userId.value));
 const contributor = computed(() => optin.value ? "Yes" : "No");
-const toggleContribution = () => {
-  optin.value = !optin.value;
-  recordMissionDataPreference(userId.value,optin.value)
-  contributionTime.value = getMissionDataSubmitTime(userId.value)
-};
 const contributionTime = ref(getMissionDataSubmitTime(userId.value));
+
+const refreshMissionDataParams = () => {
+  optin.value = getMissionDataPreference(userId.value);
+  contributionTime.value = getMissionDataSubmitTime(userId.value);
+}
+const toggleContribution = () => {
+  recordMissionDataPreference(userId.value,!optin.value);
+  // submit their data if they are now opted in. Does nothing if they're opted out
+  eventBus.value.emit(REPORT_MISSIONDATA);
+};
+eventBus.value.on(REPORT_MISSIONDATA, () => {
+  refreshMissionDataParams();
+});
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US');

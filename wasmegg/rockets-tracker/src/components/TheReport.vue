@@ -1,5 +1,5 @@
 <template>
-  <player-card :backup="backup" :inventory="inventory" />
+  <player-card :backup="backup" :inventory="inventory" :event-bus="eventBus" />
 
   <collapsible-section
     section-title="Active missions"
