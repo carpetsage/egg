@@ -127,10 +127,14 @@ export default defineComponent({
     showUltraEvents: {
       type: Boolean,
       default: false,
+    },
+    showNormalEvents: {
+      type: Boolean,
+      default: false,
     }
   },
   setup(props) {
-    const { month, date2events, showUltraEvents } = toRefs(props);
+    const { month, date2events, showUltraEvents, showNormalEvents } = toRefs(props);
     const dates = computed(() => {
       const monthNumber = month.value.month();
       const dates = [];
@@ -145,6 +149,10 @@ export default defineComponent({
     const showEvent = (event: GameEvent) => {
       if (event.isInGameEvent() && event.ultra) {
         return showUltraEvents.value
+      }
+      if (event.isInGameEvent() && !event.ultra) {
+        console.log(showNormalEvents.value)
+        return showNormalEvents.value
       }
       return true;
     };
