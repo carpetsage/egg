@@ -229,6 +229,7 @@ import BaseIcon from 'ui/components/BaseIcon.vue';
 import CoopCardLoader from '@/components/CoopCardLoader.vue';
 import NewContractForecast from '@/components/NewContractForecast.vue';
 import SoloCard from '@/components/SoloCard.vue';
+import { getUserActiveCoopContractsSorted } from '../lib/userdata';
 
 export default defineComponent({
   components: {
@@ -272,12 +273,9 @@ export default defineComponent({
     );
     const dailyGifts = computed(() => prophecyEggsProgress.value.fromDailyGifts);
 
-    const coops = computed(() => getUserActiveCoopContracts(backup.value));
+    const coops = computed(() => getUserActiveCoopContractsSorted(backup.value));
     const coopParams = computed(() =>
-      [...coops.value]
-      .sort((coopA,coopB) =>
-        (coopA.numGoalsAchieved || 0) - (coopB.numGoalsAchieved || 0)
-      )
+      coops.value
       .map(coop => ({
         contractId: coop.contract!.identifier!,
         coopCode: coop.coopIdentifier!,
