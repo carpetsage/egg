@@ -121,6 +121,27 @@ export function getArtifactTierPropsFromId(id: string): Tier {
   return tier;
 }
 
+// returns a valid crafting level if given a level outside the bounds
+export function validateCraftingLevel(level: number) {
+  if (level >= afxCraftingLevelInfos.length) {
+    return afxCraftingLevelInfos.length;
+  }
+  else if (level <= 0) {
+    return 1;
+  }
+  else {
+    return level;
+  }
+}
+
+export function getXPFromCraftingLevel(level: number) {
+  if (level >= afxCraftingLevelInfos.length) { return 0; }
+  if (level <= 0) { return afxCraftingLevelInfos[0].xpRequired!; }
+
+  const levels = afxCraftingLevelInfos.slice(0,level - 1);
+  return levels.map(x => x.xpRequired!).reduce((sum, levelXp) => sum + levelXp);
+}
+
 export function getCraftingLevelFromXp(craftingXp: number): PlayerCraftingLevel {
   let levelBaseXp = 0;
   const numLevels = afxCraftingLevelInfos.length;
@@ -129,7 +150,8 @@ export function getCraftingLevelFromXp(craftingXp: number): PlayerCraftingLevel 
     const { xpRequired, rarityMult } = afxCraftingLevelInfos[level-1];
 
     if (xpRequired == null || rarityMult == null) {
-      throw new Error(`crafting level ${level} doesn't have valid xpRequired and rarityMult data`)
+      console.error(`crafting level ${level} doesn't have valid xpRequired and rarityMult data`)
+      return { level: 1, rarityMult: 1}
     }
 
     const levelTargetXp = levelBaseXp + xpRequired;
@@ -141,8 +163,7 @@ export function getCraftingLevelFromXp(craftingXp: number): PlayerCraftingLevel 
     levelBaseXp += xpRequired;
   }
 
-  // @ts-ignore will return above
-  return undefined;
+  return { level: 1, rarityMult: 1}
 }
 
 

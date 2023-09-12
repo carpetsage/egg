@@ -359,7 +359,11 @@
             >
               Crafting XP, <span class="text-yellow-500">Level {{ craftingLevel.level }}</span>
             </dt>
-            <dd class="text-left text-sm text-gray-900">{{ fmt(craftingXp) }}</dd>
+            <dd
+              v-tippy="{ content: fmt(nextLevelXP - craftingXp) }"
+              class="text-left text-sm text-gray-900">
+              {{ fmt(craftingXp) }}
+            </dd>
           </div>
         </div>
 
@@ -756,6 +760,7 @@ import {
   getArtifactTierProps,
   getCraftingLevelFromXp,
   PlayerCraftingLevel,
+  getXPFromCraftingLevel,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getMissionDataPreference, getMissionDataSubmitTime, recordMissionDataPreference } from '../lib/missiondata';
@@ -968,6 +973,7 @@ const inventoryScore = computed(() => {
 )
 const craftingXp = computed(() => Math.floor(backup.value.artifacts?.craftingXp || 0));
 const craftingLevel = computed(() => getCraftingLevelFromXp(craftingXp.value));
+const nextLevelXP = computed(() => getXPFromCraftingLevel(craftingLevel.value.level + 1));
 
 const inventoryConsumptionValue = computed(() =>
   inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
