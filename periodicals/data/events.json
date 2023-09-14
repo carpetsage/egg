@@ -9673,5 +9673,23 @@
     "startTimestamp": 1694620800.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1694793600.0,
+    "id": "event-9-14",
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1694707200.0,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1694793600.0,
+    "id": "ultra-9-14",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1694707200.0,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
