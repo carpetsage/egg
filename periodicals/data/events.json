@@ -9745,5 +9745,14 @@
     "startTimestamp": 1695052800.0,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1695225600.0,
+    "id": "event-9-19",
+    "message": "25% OFF BOOSTS!",
+    "multiplier": 0.75,
+    "startTimestamp": 1695139200.0,
+    "type": "boost-sale",
+    "ultra": false
   }
 ]
