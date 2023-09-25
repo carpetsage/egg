@@ -9837,6 +9837,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1695657600.0,
+    "id": "ultra-9-24",
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1695571200.0,
+    "type": "gift-boost",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1695744000.0,
     "id": "event-9-24-2",
     "message": "2x MISSION CAPACITY!!!",
@@ -9846,12 +9855,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1695657600.0,
-    "id": "ultra-9-24",
-    "message": "2x GIFTS!",
-    "multiplier": 2.0,
-    "startTimestamp": 1695571200.0,
-    "type": "gift-boost",
-    "ultra": true
+    "endTimestamp": 1695744000.0,
+    "id": "event-9-25",
+    "message": "3x EARNINGS!",
+    "multiplier": 3.0,
+    "startTimestamp": 1695657600.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
