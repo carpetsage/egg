@@ -9880,5 +9880,23 @@
     "startTimestamp": 1695744000.0,
     "type": "research-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1695916800.0,
+    "id": "event-9-27",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1695830400.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1695916800.0,
+    "id": "event-9-27-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1695830400.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
