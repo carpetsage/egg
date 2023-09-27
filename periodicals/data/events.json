@@ -9884,10 +9884,10 @@
   {
     "endTimestamp": 1695916800.0,
     "id": "event-9-27",
-    "message": "4x DRONE REWARDS!",
-    "multiplier": 4.0,
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
     "startTimestamp": 1695830400.0,
-    "type": "drone-boost",
+    "type": "vehicle-sale",
     "ultra": false
   },
   {
