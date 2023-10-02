@@ -9961,5 +9961,14 @@
     "startTimestamp": 1696176000.0,
     "type": "epic-research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1696348800.0,
+    "id": "event-10-2",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1696262400.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
