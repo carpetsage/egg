@@ -10035,6 +10035,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1696780800.0,
+    "id": "event-10-7",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2.0,
+    "startTimestamp": 1696694400.0,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
     "endTimestamp": 1696867200.0,
     "id": "event-10-07-2",
     "message": "4x PIGGY GROWTH!!",
@@ -10044,12 +10053,21 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1696780800.0,
-    "id": "event-10-7",
-    "message": "DOUBLE PRESTIGE!",
-    "multiplier": 2.0,
-    "startTimestamp": 1696694400.0,
-    "type": "prestige-boost",
+    "endTimestamp": 1696867200.0,
+    "id": "event-10-8",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1696780800.0,
+    "type": "crafting-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1696953600.0,
+    "id": "ultra-10-8",
+    "message": "2x MISSION CAPACITY!!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1696780800.0,
+    "type": "mission-capacity",
+    "ultra": true
   }
 ]
