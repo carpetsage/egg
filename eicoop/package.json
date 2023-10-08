@@ -24,7 +24,7 @@
     "@vue/compiler-sfc": "^3.3.4",
     "autoprefixer": "^10.4.15",
     "mockjs": "^1.1.0",
-    "postcss": "^8.4.29",
+    "postcss": "^8.4.31",
     "postcss-inline-svg": "^6.0.0",
     "protobufjs": "^7.2.5",
     "tailwindcss": "^2.2.19",
