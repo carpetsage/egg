@@ -2,11 +2,11 @@
   "license": "MIT",
   "devDependencies": {
     "@tailwindcss/jit": "^0.1.18",
-    "@vue/compiler-sfc": "^3.3.4",
-    "autoprefixer": "^10.4.15",
+    "@vue/compiler-sfc": "^3.3.6",
+    "autoprefixer": "^10.4.16",
     "css-loader": "^6.8.1",
     "cssnano": "^6.0.1",
-    "postcss": "^8.4.29",
+    "postcss": "^8.4.31",
     "postcss-cli": "^10.1.0",
     "postcss-hash": "^3.0.0",
     "postcss-import": "^15.1.0",
@@ -14,25 +14,25 @@
     "protobufjs": "^7.2.5",
     "style-loader": "^3.3.3",
     "vue-loader": "^17.2.2",
-    "webpack": "^5.88.2",
+    "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
     "webpack-manifest-plugin": "^5.0.0",
-    "webpack-merge": "^5.9.0"
+    "webpack-merge": "^5.10.0"
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.3.4",
     "copy-text-to-clipboard": "^3.2.0",
-    "dayjs": "^1.11.9",
+    "dayjs": "^1.11.10",
     "echarts": "^5.4.3",
     "google-protobuf": "^3.21.2",
     "html2canvas": "^1.4.1",
-    "scroll-into-view-if-needed": "^3.0.10",
+    "scroll-into-view-if-needed": "^3.1.0",
     "tailwindcss": "^2.2.19",
     "terser-webpack-plugin": "^5.3.9",
     "tippy.js": "^6.3.7",
-    "vue": "^3.3.4",
+    "vue": "^3.3.6",
     "vue-echarts": "^6.6.1",
-    "vue-router": "^4.2.4",
+    "vue-router": "^4.2.5",
     "vue-tippy": "^6.3.1"
   }
 }
