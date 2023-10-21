@@ -7,7 +7,7 @@
     "@headlessui/vue": "^1.7.16",
     "@heroicons/vue": "^1.0.6",
     "lib": "workspace:^",
-    "scroll-into-view-if-needed": "^3.0.10",
-    "vue": "^3.3.4"
+    "scroll-into-view-if-needed": "^3.1.0",
+    "vue": "^3.3.6"
   }
 }
