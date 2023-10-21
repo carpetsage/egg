@@ -59,7 +59,7 @@
               </template>
             </svg>
             <!-- share button -->
-            <coop-card-share-sheet class="ml-1.5" :contract-id="status.contractId" :coop-code="status.coopCode" :grade="grades[grade - 1]" />
+            <coop-card-share-sheet class="ml-1.5" :contract-id="status.contractId" :coop-code="status.coopCode" :endTime="leagueStatus.expectedFinalCompletionDateOfflineAdjusted.unix()" />
           </div>
         </div>
 

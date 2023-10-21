@@ -52,6 +52,15 @@
               Copy <code>ecoopad</code> command
             </div>
           </MenuItem>
+          <MenuItem v-slot="{ active }">
+            <div
+              class="block px-4 py-2 text-sm text-gray-900 dark:text-gray-100 !duration-0 cursor-pointer"
+              :class="active ? 'bg-gray-100 dark:bg-gray-700' : null"
+              @click="copyTextToClipboard(endTimeDiscordified)"
+            >
+              Copy end date
+            </div>
+          </MenuItem>
         </div>
       </MenuItems>
     </transition>
@@ -80,13 +89,13 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    grade: {
-      type: String,
-      default: 'GRADE_AAA',
+    endTime: {
+      type: Number,
+      default: 0,
     }
   },
   setup(props) {
-    const { contractId, coopCode } = toRefs(props);
+    const { contractId, coopCode, endTime } = toRefs(props);
     const router = useRouter();
     const url = computed(
       () =>
@@ -100,10 +109,12 @@ export default defineComponent({
     );
     const absoluteUrl = computed(() => new URL(url.value, document.location.href).href);
     const ecoopadCommand = computed(() => `ecoopad ${contractId.value} ${coopCode.value}`);
+    const endTimeDiscordified = `<t:${endTime.value}:F>`;
     return {
       url,
       absoluteUrl,
       ecoopadCommand,
+      endTimeDiscordified,
       copyTextToClipboard,
     };
   },
