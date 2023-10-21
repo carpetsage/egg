@@ -14,7 +14,7 @@
 
     <div class="flex justify-center mb-2">
       <div class="relative flex items-start">
-        <div class="flex items-center h-5">
+        <div class="flex items-left h-5">
           <input
             id="spoilers"
             v-model="spoilers"
@@ -25,6 +25,49 @@
         </div>
         <div class="ml-2 text-sm">
           <label for="spoilers" class="text-gray-600">Show unseen items (SPOILERS)</label>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-center mb-2">
+      <div class="relative flex items-start">
+        <!-- Toggle demoting rares -->
+        <div class="flex items-center h-5">
+          <input
+            id="ignore_rares"
+            v-model="ignore_rares"
+            name="ignore_rares"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="ignore_rares" class="text-gray-600">Don't demote rares</label>
+        </div>
+        <!-- Toggle demoting epics -->
+        <div class="flex items-center h-5 ml-2">
+          <input
+            id="ignore_epics"
+            v-model="ignore_epics"
+            name="ignore_epics"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="ignore_epics" class="text-gray-600">Don't demote epics</label>
+        </div>
+        <!-- Toggle demoting legendaries -->
+        <div class="flex items-center h-5 ml-2">
+          <input
+            id="ignore_leggies"
+            v-model="ignore_leggies"
+            name="ignore_leggies"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="ignore_leggies" class="text-gray-600">Don't demote legendaries</label>
         </div>
       </div>
     </div>
@@ -51,7 +94,7 @@
     </ul>
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Artifacts</h3>
-    <artifact-grid :inventory="inventory" :families="artifacts" :spoilers="spoilers" />
+    <artifact-grid :inventory="inventory" :families="artifacts" :spoilers="spoilers" :ignore-rares="ignore_rares" :ignore-epics="ignore_epics" :ignore-leggies="ignore_leggies" />
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Stones &amp; stone fragments</h3>
     <artifact-grid :inventory="inventory" :families="stones" :spoilers="spoilers" />
@@ -68,6 +111,9 @@ import { ei, getLocalStorage, Inventory, InventoryFamily, setLocalStorage } from
 import ArtifactGrid from '@/components/ArtifactGrid.vue';
 
 const SPOILERS_LOCALSTORAGE_KEY = 'spoilers';
+const IGNORE_RARES_LOCALSTORAGE_KEY = 'ignoreRares';
+const IGNORE_EPICS_LOCALSTORAGE_KEY = 'ignoreEpics';
+const IGNORE_LEGGIES_LOCALSTORAGE_KEY = 'ignoreLeggies';
 
 export default defineComponent({
   components: {
@@ -100,12 +146,27 @@ export default defineComponent({
     watch(spoilers, () => {
       setLocalStorage(SPOILERS_LOCALSTORAGE_KEY, spoilers.value);
     });
+    const ignore_epics = ref(getLocalStorage(IGNORE_EPICS_LOCALSTORAGE_KEY) === 'true');
+    watch(ignore_epics, () => {
+      setLocalStorage(IGNORE_EPICS_LOCALSTORAGE_KEY, ignore_epics.value);
+    });
+    const ignore_leggies = ref(getLocalStorage(IGNORE_LEGGIES_LOCALSTORAGE_KEY) === 'true');
+    watch(ignore_leggies, () => {
+      setLocalStorage(IGNORE_LEGGIES_LOCALSTORAGE_KEY, ignore_leggies.value);
+    });
+    const ignore_rares = ref(getLocalStorage(IGNORE_RARES_LOCALSTORAGE_KEY) === 'true');
+    watch(ignore_rares, () => {
+      setLocalStorage(IGNORE_RARES_LOCALSTORAGE_KEY, ignore_rares.value);
+    });
     return {
       catalog,
       artifacts,
       stones,
       ingredients,
       spoilers,
+      ignore_rares,
+      ignore_epics,
+      ignore_leggies
     };
   },
 });
