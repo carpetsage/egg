@@ -124,11 +124,17 @@ export class Inventory {
 
   // countCraftable takes demotion of uncommon items into account. This makes it
   // different from the in-game view of whether an item is craftable.
-  countCraftable(targetItem: InventoryItem): number {
+  countCraftable(targetItem: InventoryItem, ignoreRare?: boolean, ignoreEpic?: boolean, ignoreLeggies?: boolean, ignoreSlotted?: boolean): number {
     const counter = new Map<ItemId, number>();
     for (const f of this.store.values()) {
       for (const item of f.values()) {
-        counter.set(item.id, item.have);
+        let total = item.have;
+        if (ignoreSlotted) { total -= item.slotted}
+        if (ignoreRare) { total -= item.haveRare; }
+        if (ignoreEpic) { total -= item.haveEpic;}
+        if (ignoreLeggies) { total -= item.haveLegendary;}
+
+        counter.set(item.id, total);
       }
     }
     const targetId = targetItem.id;

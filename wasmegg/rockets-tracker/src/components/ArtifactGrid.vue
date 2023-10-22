@@ -217,16 +217,36 @@ export default defineComponent({
       type: Boolean,
       required: true,
     },
+    ignoreRares: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    ignoreEpics: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    ignoreLeggies: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    ignoreSlottedStones: {
+      type: Boolean,
+      required: false,
+      default: false,
+    }
   },
   setup(props) {
-    const { inventory, families } = toRefs(props);
+    const { inventory, families, ignoreRares, ignoreEpics, ignoreLeggies, ignoreSlottedStones } = toRefs(props);
     const craftableCounts = computed(() => {
       const counts = new Map<ItemId, number>();
       // Type casting because somehow InventoryFamily loses protected props during toRefs.
       for (const family of families.value as InventoryFamily[]) {
         for (const tier of family.tiers) {
           if (tier.have > TOOMUCHSHIT) { break; }
-          counts.set(tier.id, inventory.value.countCraftable(tier));
+          counts.set(tier.id, inventory.value.countCraftable(tier, ignoreRares.value, ignoreEpics.value, ignoreLeggies.value, ignoreSlottedStones.value));
         }
       }
       return counts;
