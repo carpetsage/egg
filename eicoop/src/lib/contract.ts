@@ -53,13 +53,13 @@ export async function getContractFromPlayerSave(
 }
 
 export function getModifiers(gradeSpec: ei.Contract.IGradeSpec) {
-  if (!gradeSpec.modifiers) { return [""] }
+  if (!gradeSpec.modifiers) { return ["None"] }
   return gradeSpec.modifiers.map( modifier => {
     if (modifier.dimension && modifier.value) {
       const name = ei.GameModifier.GameDimension[modifier.dimension]
       return `${titleCase(name)}: ${modifier.value}x`;
     }
-    return "";
+    return "None";
   });
 }
 
