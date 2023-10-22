@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { ei, requestFirstContact } from 'lib';
+import { ei, requestFirstContact, titleCase } from 'lib';
 
 export type ContractType = 'Original' | 'Leggacy';
 
@@ -50,6 +50,17 @@ export async function getContractFromPlayerSave(
     }
   }
   return null;
+}
+
+export function getModifiers(gradeSpec: ei.Contract.IGradeSpec) {
+  if (!gradeSpec.modifiers) { return ["None"] }
+  return gradeSpec.modifiers.map( modifier => {
+    if (modifier.dimension && modifier.value) {
+      const name = ei.GameModifier.GameDimension[modifier.dimension]
+      return `${titleCase(name)}: ${modifier.value}x`;
+    }
+    return "None";
+  });
 }
 
 export class ContractLeagueStatus {

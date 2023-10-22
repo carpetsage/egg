@@ -76,6 +76,29 @@
           {{ formatEIValue(rate) }}/hr
         </td>
       </tr>
+      <template v-if="contract.gradeSpecs?.some(x => x.modifiers)">
+        <tr>
+          <td
+            :colspan="hasGrades ? 10 : hasLeagues ? 4 : 2"
+            class="px-3 py-2 whitespace-nowrap text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+          >
+            Modifier
+          </td>
+        </tr>
+        <tr v-for="(tier, tierIndex) in modifiers" :key="tierIndex">
+          <template v-for="(modifier, column) in tier" :key="column">
+            <td
+              class="pl-2 pr-3 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+              colspan="2"
+              :class="column < 4 ? 'border-r border-gray-200 dark:border-gray-600' : null"
+              :style="{ minWidth: '6rem' }"
+            >
+              {{ modifier }}
+            </td>
+          </template>
+        </tr>
+      </template>
+
     </tbody>
   </table>
 </template>
@@ -83,8 +106,8 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { rewardAmountDisplay, rewardIconPath, rewardName } from 'lib';
-import { Contract, ei, formatEIValue } from '@/lib';
+import { rewardAmountDisplay, rewardIconPath, rewardName, titleCase } from 'lib';
+import { Contract, ei, formatEIValue, getModifiers } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 
 export default defineComponent({
@@ -125,12 +148,18 @@ export default defineComponent({
         return goals.map(goal => [goal]);
       }
     });
+    const modifiers = computed(() => {
+      if (!contract.value.gradeSpecs || !contract.value.gradeSpecs[0].modifiers) {
+        return [];
+      }
+      const allModifiers = contract.value.gradeSpecs.map(g => getModifiers(g));
+      return allModifiers[0].map((modifier, i) => [allModifiers[4][i], allModifiers[3][i], allModifiers[3][i], allModifiers[1][i], modifier]);
+    });
     const requiredHourlyRates = computed(() => {
       return tiers.value[tiers.value.length - 1].map(
         (goal, i) => goal.targetAmount! / lengthHours.value[i]
       );
     });
-
     const target = (goal: Goal) => goal.targetAmount!;
 
     return {
@@ -138,6 +167,7 @@ export default defineComponent({
       hasGrades,
       tiers,
       requiredHourlyRates,
+      modifiers,
       target,
       formatEIValue,
       rewardIconPath,
