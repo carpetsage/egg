@@ -28,6 +28,9 @@
         </div>
       </div>
     </div>
+    <div class="text-center">
+    Don't use as crafting ingredients:
+    </div>
     <div class="flex justify-center mb-2">
       <div class="relative flex items-start">
         <!-- Toggle demoting rares -->
@@ -41,7 +44,7 @@
           />
         </div>
         <div class="ml-2 text-sm">
-          <label for="ignore_rares" class="text-gray-600">Don't demote rares</label>
+          <label for="ignore_rares" class="text-gray-600">Rares</label>
         </div>
         <!-- Toggle demoting epics -->
         <div class="flex items-center h-5 ml-2">
@@ -54,7 +57,7 @@
           />
         </div>
         <div class="ml-2 text-sm">
-          <label for="ignore_epics" class="text-gray-600">Don't demote epics</label>
+          <label for="ignore_epics" class="text-gray-600">Epics</label>
         </div>
         <!-- Toggle demoting legendaries -->
         <div class="flex items-center h-5 ml-2">
@@ -67,7 +70,20 @@
           />
         </div>
         <div class="ml-2 text-sm">
-          <label for="ignore_leggies" class="text-gray-600">Don't demote legendaries</label>
+          <label for="ignore_leggies" class="text-gray-600">Legendaries</label>
+        </div>
+        <!-- Toggle unslotting stones -->
+        <div class="flex items-center h-5 ml-2">
+          <input
+            id="ignore_slotted_stones"
+            v-model="ignore_slotted_stones"
+            name="ignore_slotted_stones"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="ignore_rares" class="text-gray-600">Slotted Stones</label>
         </div>
       </div>
     </div>
@@ -97,7 +113,7 @@
     <artifact-grid :inventory="inventory" :families="artifacts" :spoilers="spoilers" :ignore-rares="ignore_rares" :ignore-epics="ignore_epics" :ignore-leggies="ignore_leggies" />
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Stones &amp; stone fragments</h3>
-    <artifact-grid :inventory="inventory" :families="stones" :spoilers="spoilers" />
+    <artifact-grid :inventory="inventory" :families="stones" :spoilers="spoilers" :ignore-slotted-stones="ignore_slotted_stones" />
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Ingredients</h3>
     <artifact-grid :inventory="inventory" :families="ingredients" :spoilers="spoilers" />
@@ -114,6 +130,7 @@ const SPOILERS_LOCALSTORAGE_KEY = 'spoilers';
 const IGNORE_RARES_LOCALSTORAGE_KEY = 'ignoreRares';
 const IGNORE_EPICS_LOCALSTORAGE_KEY = 'ignoreEpics';
 const IGNORE_LEGGIES_LOCALSTORAGE_KEY = 'ignoreLeggies';
+const IGNORE_SLOTTED_STONES_LOCALSTORAGE_KEY = 'ignoreSlottedStones';
 
 export default defineComponent({
   components: {
@@ -158,6 +175,10 @@ export default defineComponent({
     watch(ignore_rares, () => {
       setLocalStorage(IGNORE_RARES_LOCALSTORAGE_KEY, ignore_rares.value);
     });
+    const ignore_slotted_stones = ref(getLocalStorage(IGNORE_SLOTTED_STONES_LOCALSTORAGE_KEY) === 'true');
+    watch(ignore_slotted_stones, () => {
+      setLocalStorage(IGNORE_SLOTTED_STONES_LOCALSTORAGE_KEY, ignore_slotted_stones.value);
+    });
     return {
       catalog,
       artifacts,
@@ -166,7 +187,8 @@ export default defineComponent({
       spoilers,
       ignore_rares,
       ignore_epics,
-      ignore_leggies
+      ignore_leggies,
+      ignore_slotted_stones
     };
   },
 });
