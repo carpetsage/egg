@@ -10267,5 +10267,32 @@
     "startTimestamp": 1697904000.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1698076800.0,
+    "id": "event-10-22",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1697990400.0,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1698163200.0,
+    "id": "event-10-22-2",
+    "message": "2x MISSION CAPACITY!!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1697990400.0,
+    "type": "mission-capacity",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1698076800.0,
+    "id": "ultra-10-22",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1697990400.0,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
