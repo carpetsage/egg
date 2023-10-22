@@ -83,7 +83,7 @@
           />
         </div>
         <div class="ml-2 text-sm">
-          <label for="ignore_rares" class="text-gray-600">Slotted Stones</label>
+          <label for="ignore_slotted_stones" class="text-gray-600">Slotted Stones</label>
         </div>
       </div>
     </div>
