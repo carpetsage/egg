@@ -89,7 +89,7 @@
 
     <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6 space-y-4">
       <dl class="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div class="sm:col-span-1">
+        <div v-if="!contract.gradeSpecs" class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Created by</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
             <template v-if="status.creator">
@@ -121,6 +121,12 @@
                   : 'The creator has left.',
               }" class="cursor-help">&ndash;</span>
             </template>
+          </dd>
+        </div>
+        <div v-else class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Modifiers</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+            {{ modifiers.join(", ") }}
           </dd>
         </div>
         <div class="sm:col-span-1">
@@ -258,7 +264,7 @@
 import { computed, defineComponent, inject, PropType, toRefs, } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { CoopStatus, eggIconPath, formatEIValue, formatDuration } from '@/lib';
+import { CoopStatus, eggIconPath, formatEIValue, formatDuration, getModifiers } from '@/lib';
 import { completionStatusFgColorClass, completionStatusBgColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
 import { eggTooltip } from '@/utils';
@@ -314,6 +320,7 @@ export default defineComponent({
     const startDate = computed(() => Date.now()/1000 + status.value.secondsRemaining - (gradeSpec.value?.lengthSeconds || 0));
     const onlineDuration = computed(() => leagueStatus.value.expectedFinalCompletionDate.unix() - startDate.value);
     const offlineDuration = computed(() => leagueStatus.value.expectedFinalCompletionDateOfflineAdjusted.unix() - startDate.value);
+    const modifiers = computed(() => gradeSpec.value ? getModifiers(gradeSpec.value) : [""])
 
     return {
       devmode,
@@ -326,6 +333,7 @@ export default defineComponent({
       openings,
       offlineDuration,
       onlineDuration,
+      modifiers,
       formatEIValue,
       formatDuration,
       completionStatusFgColorClass,

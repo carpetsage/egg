@@ -54,3 +54,7 @@ export function trimTrailingZeros(s: string): string {
   }
   return s;
 }
+
+export function titleCase(s: string): string {
+  return s.toLowerCase().split(/_|-| /).map(x => x[0].toUpperCase() + x.substring(1)).join(' ');
+}
