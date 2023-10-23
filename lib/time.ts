@@ -14,8 +14,8 @@ export function formatDuration(seconds: number, trim = false): string {
   if (!isFinite(seconds)) {
     return 'Forever';
   }
-  if (seconds > 31_536_000_000) {
-    return '>1000yr';
+  if (seconds > 3_153_600_000) {
+    return '>100yr';
   }
   const yy = Math.floor(seconds / 31_536_000);
   seconds -= yy * 31536000;
@@ -25,7 +25,7 @@ export function formatDuration(seconds: number, trim = false): string {
   seconds -= hh * 3600;
   const mm = Math.floor(seconds / 60);
   let s = '';
-  if (!trim || yy > 0) {
+  if (yy > 0) {
     s += `${yy}y`;
   }
   if (!trim || dd > 0) {
