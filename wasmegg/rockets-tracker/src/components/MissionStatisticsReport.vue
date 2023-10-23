@@ -131,6 +131,9 @@
                 <th scope="col" class="px-2 py-2 text-center text-xs font-medium text-gray-500">
                   Launch Points
                 </th>
+                <th scope="col" class="px-2 py-2 text-center text-xs font-medium text-gray-500">
+                  Air Time
+                </th>
               </thead>
               <tbody class="divide-y divide-gray-200">
                 <template v-for="ship in [...missionStats.ships].reverse()" :key="ship.shipType">
@@ -192,6 +195,11 @@
                     >
                       {{ formatLaunchPoints(ship.launchPoints) }}
                     </td>
+                    <td
+                      class="px-4 py-1.5 bg-green-50 whitespace-nowrap text-center text-sm text-green-500"
+                    >
+                      {{ formatDuration(getMissionAirTime(artifactsDB.missionArchive, ship.shipType), true) }}
+                    </td>
                   </tr>
                   <template v-for="duration in ship.durations" :key="duration.mission.durationType">
                     <tr class="text-gray-500">
@@ -234,6 +242,9 @@
                       <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
                         {{ formatLaunchPoints(duration.launchPoints) }}
                       </td>
+                      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
+                        {{ formatDuration(getMissionAirTime(artifactsDB.missionArchive, ship.shipType, duration.mission.durationType), true) }}
+                      </td>
                     </tr>
                   </template>
                 </template>
@@ -256,7 +267,7 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import { ei, formatDuration, getLocalStorage, goatcounter, iconURL, setLocalStorage } from 'lib';
-import { getMissionStatistics } from '@/lib';
+import { getMissionAirTime, getMissionStatistics } from '@/lib';
 import { formatLaunchPoints, missionDurationTypeFgClass } from '@/utils';
 import ProgressRing from '@/components/ProgressRing.vue';
 import ShipStarLevels from '@/components/ShipStarLevels.vue';
@@ -328,6 +339,7 @@ export default defineComponent({
       henerpriseMaxedOut,
       congratulationsDismissed,
       onrick,
+      getMissionAirTime,
       onCongratulationsDismiss,
       missionDurationTypeFgClass,
       iconURL,

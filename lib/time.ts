@@ -14,23 +14,31 @@ export function formatDuration(seconds: number, trim = false): string {
   if (!isFinite(seconds)) {
     return 'Forever';
   }
-  if (seconds > 315_360_000) {
-    return '>10yr';
+  if (seconds > 31_536_000_000) {
+    return '>1000yr';
   }
+  const yy = Math.floor(seconds / 31_536_000);
+  seconds -= yy * 31536000;
   const dd = Math.floor(seconds / 86400);
   seconds -= dd * 86400;
   const hh = Math.floor(seconds / 3600);
   seconds -= hh * 3600;
   const mm = Math.floor(seconds / 60);
   let s = '';
+  if (!trim || yy > 0) {
+    s += `${yy}y`;
+  }
   if (!trim || dd > 0) {
     s += `${dd}d`;
   }
-  if (!trim || hh > 0) {
-    s += `${hh}h`;
-  }
-  if (!trim || mm > 0) {
-    s += `${mm}m`;
+  // leave out hours/seconds for durations > 1yr
+  if (!trim || yy < 1) {
+    if (!trim || hh > 0) {
+      s += `${hh}h`;
+    }
+    if (!trim || mm > 0) {
+      s += `${mm}m`;
+    }
   }
   return s;
 }

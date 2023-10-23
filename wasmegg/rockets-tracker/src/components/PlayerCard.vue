@@ -704,6 +704,9 @@
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Video doublers</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(lifetimeVidDoubler) }}</dd>
+
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Airtime of Spaceships</dt>
+            <dd class="text-left text-sm text-gray-900">{{ formatDuration(getMissionAirTime(artifactsDB.missionArchive), true) }}</dd>
           </div>
         </div>
 
@@ -761,6 +764,7 @@ import {
   getCraftingLevelFromXp,
   PlayerCraftingLevel,
   getXPFromCraftingLevel,
+  formatDuration,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getMissionDataPreference, getMissionDataSubmitTime, recordMissionDataPreference } from '../lib/missiondata';
@@ -768,6 +772,7 @@ import { Emitter } from 'mitt';
 import { REPORT_LEGENDARIES, REPORT_MISSIONDATA } from '../events';
 import {
   getCompletedExtendedHenerprises,
+  getMissionAirTime,
   getLaunchedMissions,
   getLegendariesStudyPreference,
   getMissionStatistics,
@@ -996,6 +1001,7 @@ const lifetimeTicketsSpent = computed(() => progress.value.shellScriptsSpent || 
 const currentTicketsBalance = computed(
   () => lifetimeTicketsEarned.value - lifetimeTicketsSpent.value
 );
+
 const lifetimeDrones = computed(() => backup.value.stats?.droneTakedowns || 0);
 const lifetimeEliteDrones = computed(() => backup.value.stats?.droneTakedownsElite || 0);
 const lifetimeBoosts = computed(() => backup.value.stats?.boostsUsed || 0);
@@ -1084,6 +1090,7 @@ function fmt(n: number): string {
 function fmtApprox(n: number): string {
   return n === 0 ? '0' : `~${formatEIValue(n, { precision: 2 })}`;
 }
+
 
 function piggyLevelBonus(level: number): number {
   switch (level) {
