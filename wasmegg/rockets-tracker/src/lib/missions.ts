@@ -362,10 +362,14 @@ export function getLaunchLog(artifactsDB: ei.IArtifactsDB): LaunchLog {
 export function getMissionAirTime(missionArchive?: ei.IMissionInfo[] | null,  ship?: ei.MissionInfo.Spaceship, durationType?: ei.MissionInfo.DurationType) {
   let ships = missionArchive;
   if (ship != undefined) {
-    ships = ships?.filter(m => m.ship ==  ship)
+    ships = ships?.filter(m => m.ship ==  ship);
   }
   if (durationType != undefined) {
-    ships = ships?.filter(m => m.durationType == durationType)
+    ships = ships?.filter(m => m.durationType == durationType);
   }
-  return ships?.map(m => m.durationSeconds ?? 0).reduce((sum, duration) => sum + duration) ?? 0;
+  const airtimes= ships?.map(m => m.durationSeconds ?? 0);
+  if (airtimes && airtimes.length > 0) {
+    return airtimes.reduce((sum, duration) => sum + duration);
+  }
+  return 0;
 }
