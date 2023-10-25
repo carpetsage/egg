@@ -10321,5 +10321,23 @@
     "startTimestamp": 1698163200.0,
     "type": "gift-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1698336000.0,
+    "id": "event-10-25",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1698249600.0,
+    "type": "mission-fuel",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1698336000.0,
+    "id": "event-10-25-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1698249600.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
