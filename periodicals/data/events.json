@@ -10368,6 +10368,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1698512400.0,
+    "id": "ultra-10-28",
+    "message": "UNLIMITED PIGGY!",
+    "multiplier": 1.0,
+    "startTimestamp": 1698508800.0,
+    "type": "piggy-cap-boost",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1698595200.0,
     "id": "event-10-28",
     "message": "DOUBLE PRESTIGE!",
@@ -10384,14 +10393,5 @@
     "startTimestamp": 1698508800.0,
     "type": "piggy-boost",
     "ultra": false
-  },
-  {
-    "endTimestamp": 1698512400.0,
-    "id": "ultra-10-28",
-    "message": "UNLIMITED PIGGY!",
-    "multiplier": 1.0,
-    "startTimestamp": 1698508800.0,
-    "type": "piggy-cap-boost",
-    "ultra": true
   }
 ]
