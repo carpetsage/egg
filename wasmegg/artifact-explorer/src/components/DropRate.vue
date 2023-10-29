@@ -115,7 +115,7 @@ export default defineComponent({
   setup(props) {
     const { mission, level, totalDrops, itemDrops } = toRefs(props);
     const customConfig = computed(() =>
-      configWithCustomShipLevel(mission.value.shipType, level.value)
+      configWithCustomShipLevel(mission.value.shipType, level.value - 1)
     );
     const tooLittleMissionData = computed(() =>
       missionDataNotEnough(mission.value, totalDrops.value)
