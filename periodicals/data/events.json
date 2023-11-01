@@ -10429,5 +10429,23 @@
     "startTimestamp": 1698768000.0,
     "type": "shell-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1698940800.0,
+    "id": "event-11-1",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1698854400.0,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1698940800.0,
+    "id": "event-11-1-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1698854400.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
