@@ -53,7 +53,6 @@
         />
       </p>
       <template v-for="trophy in trophies" :key="trophy.level">
-        {{ console.log(existingTrophyLevel) }}
         <trophy-forecast
           v-if="trophy.level > existingTrophyLevel"
           :trophy-level="trophy.name"
@@ -435,7 +434,6 @@ export default defineComponent({
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
     const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts);
-    console.log(artifacts);
     const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
     const totalHabSpaceSufficient = totalHabSpace >= 1e10;
     const currentWDLevel = farmCurrentWDLevel(farm);
