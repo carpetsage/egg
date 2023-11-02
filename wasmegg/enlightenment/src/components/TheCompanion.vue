@@ -53,6 +53,7 @@
         />
       </p>
       <template v-for="trophy in trophies" :key="trophy.level">
+        {{ console.log(existingTrophyLevel) }}
         <trophy-forecast
           v-if="trophy.level > existingTrophyLevel"
           :trophy-level="trophy.name"
@@ -62,6 +63,24 @@
           :hab-space="totalHabSpace"
           :offline-i-h-r="offlineIHR"
         />
+      </template>
+      <!-- Nobel Prize in Animal Husbandry aka NAH -->
+      <template v-if="existingTrophyLevel == 4 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH">
+        <trophy-forecast
+          trophy-level="Nobel"
+          trophy-name="Nobel Prize in Animal Husbandry&reg;"
+          :last-refreshed-population="lastRefreshedPopulation"
+          :last-refreshed-timestamp="lastRefreshedTimestamp"
+          :target-population="19_845_000_000"
+          :hab-space="totalHabSpace"
+          :offline-i-h-r="offlineIHR"
+        />
+        <p class="text-xs text-gray-500">
+          The Nobel Prize in Animal Husbandry&reg; is conferred by the Royal Mk.II Society of
+          Sciences&reg; on legendary farmers who manage to reach 19,845,000,000 population on their
+          enlightenment farm. A legendary jeweled gusset with three Eggceptional clarity stones and all
+          Wormhole Dampening levels are required for such a feat.
+        </p>
       </template>
 
       <hr class="mt-2" />
@@ -416,15 +435,22 @@ export default defineComponent({
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
     const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts);
+    console.log(artifacts);
     const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
     const totalHabSpaceSufficient = totalHabSpace >= 1e10;
     const currentWDLevel = farmCurrentWDLevel(farm);
     const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(
       nakedGangNickname ? [] : artifacts
     );
+    const bestGusset = bestPossibleGussetForEnlightenment(backup);
     const bestPossibleGusset = nakedGangNickname
       ? null
-      : bestPossibleGussetForEnlightenment(backup);
+      : bestGusset;
+    // check for t4l gusset + 3 t4 clarities
+    const canNAH = computed(
+      () =>
+        bestGusset?.afxRarity === ei.ArtifactSpec.Rarity.LEGENDARY
+    );
     const bestPossibleGussetSet = bestPossibleGusset ? [bestPossibleGusset] : [];
     const minimumRequiredWDLevel = bestPossibleGusset
       ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset])
@@ -557,6 +583,7 @@ export default defineComponent({
       cashTargetPreDiscount,
       cashTargets,
       cashMeans,
+      canNAH,
       betterCubePossible,
       bestPossibleCubeSet,
       internalHatcheryResearches,
