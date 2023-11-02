@@ -449,7 +449,8 @@ export default defineComponent({
     // check for t4l gusset + 3 t4 clarities
     const canNAH = computed(
       () =>
-        bestGusset?.afxRarity === ei.ArtifactSpec.Rarity.LEGENDARY
+        bestGusset?.afxRarity === ei.ArtifactSpec.Rarity.LEGENDARY && 
+        bestGusset.clarityEffect === 3
     );
     const bestPossibleGussetSet = bestPossibleGusset ? [bestPossibleGusset] : [];
     const minimumRequiredWDLevel = bestPossibleGusset
