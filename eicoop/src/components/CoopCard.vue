@@ -169,7 +169,7 @@
                   {{ leagueStatus.expectedFinalCompletionDate.format('YYYY-MM-DD HH:mm') }}
                 </span>.</p>
                   <template v-if="grade">
-                    <p>Predicted total time taken for contract completion, offline adjusted:
+                    <p>Predicted total time taken for contract completion:
                     <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
                       {{ formatDuration(onlineDuration) }}
                     </span>
