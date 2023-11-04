@@ -244,7 +244,7 @@
                     : 'Habs full, laying rate cannot be improved through population growth at the moment.',
                 allowHTML: true,
               }"
-              >{{ formatEIValue(contributor.hourlyLayingRateUncapped) }}</span
+              >{{ formatEIValue(Math.max(contributor.eggsPerHour, contributor.hourlyLayingRateUncapped)) }}</span
             >
             <base-icon
               v-if="
@@ -254,6 +254,18 @@
               v-tippy="{
                 content:
                   'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
+              }"
+              icon-rel-path="egginc-extras/icon_warning.png"
+              :size="64"
+              class="inline-block h-4 w-4 align-middle relative -top-px cursor-help ml-0.5"
+            />
+            <base-icon
+              v-else-if="
+                contributor.eggsPerHour > contributor.hourlyLayingRateUncapped
+              "
+              v-tippy="{
+                content:
+                  'The game sometimes returns obviously wrong information for uncapped laying rate per hour. It has been set to the same as eggs per hour instead.',
               }"
               icon-rel-path="egginc-extras/icon_warning.png"
               :size="64"
