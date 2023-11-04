@@ -2,10 +2,25 @@ syntax = "proto2";
 
 package ei;
 
+
+message Vector3 {
+    optional float x = 1;
+    optional float y = 2;
+    optional float z = 3;
+}
+
+message Vector4 {
+    optional float x = 1;
+    optional float y = 2;
+    optional float z = 3;
+    optional float w = 4;
+}
+
 message Backup {
     optional string user_id = 1;
     optional string ei_user_id = 18;
     optional string game_services_id = 16;
+    optional string push_user_id = 26;
     optional string device_id = 17;
     optional string user_name = 2;
     optional double approx_time = 3;
@@ -27,6 +42,8 @@ message Backup {
         optional bool low_performance = 10;
         optional bool auto_stop_fueling = 25;
         optional bool max_enabled = 26;
+        optional bool hide_cc_status = 28;
+        optional bool contracts_widget_enabled = 29;
         optional double last_backup_time = 24;
         optional bool coppa_queried = 7;
         optional bool coppa_restricted = 8;
@@ -137,6 +154,7 @@ message Backup {
         optional bool tank_filling_enabled = 14;
         optional uint32 tank_level = 15;
         repeated double tank_fuels = 16;
+        repeated double tank_limits = 18;
         optional ei.MissionInfo.Spaceship last_fueled_ship = 9;
         optional double inventory_score = 10;
         optional double crafting_xp = 17;
@@ -229,6 +247,7 @@ message Backup {
     optional ArtifactsDB artifacts_db = 15;
     optional ShellDB shell_db = 24;
     repeated string read_mail_ids = 23;
+    optional MailState mail_state = 27;
     optional uint64 checksum = 100;
     optional string signature = 101;
     
@@ -391,6 +410,7 @@ message ActionKeyValuePair {
 
 message GenericAction {
     optional string user_id = 1;
+    optional bool cc_user = 9;
     optional string advertising_id = 7;
     optional float approx_time_DEP = 2;
     optional double approx_time = 8;
@@ -505,6 +525,7 @@ message Contract {
     optional uint32 min_client_version = 14;
     optional bool leggacy = 19;
     optional bool cc_only = 22;
+    repeated string default_shell_ids = 24;
     optional bool debug = 11;
     optional string key = 21;
     
@@ -684,6 +705,7 @@ message ContractsRequest {
 message ContractsResponse {
     repeated Contract contracts = 1;
     optional string warning_message = 4;
+    optional double total_eop = 5;
     optional double server_time = 2;
     optional uint32 max_eop = 3 [default = 1000];
 }
@@ -731,6 +753,19 @@ message PlayerFarmInfo {
 }
 
 message ContractCoopStatusResponse {
+    optional ResponseStatus response_status = 19;
+    enum ResponseStatus {
+        NO_ERROR = 0;
+        MISSING_USER = 1;
+        MISSING_COOP_ID = 2;
+        MISSING_CONTRACT_ID = 3;
+        MEMBERSHIP_NOT_FOUND = 4;
+        COOP_NOT_FOUND = 5;
+        CONTRACT_NOT_FOUND = 6;
+        INVALID_MEMBERSHIP = 7;
+        NO_HTTP_RESPONSE = 500;
+    }
+    
     optional string contract_identifier = 1;
     optional double total_amount = 2;
     optional string coop_identifier = 3;
@@ -750,6 +785,7 @@ message ContractCoopStatusResponse {
         optional int32 rank_change = 8;
         optional bool recently_active = 23;
         optional bool active = 4;
+        optional bool cc_member = 24;
         optional bool leech = 16;
         optional bool finalized = 22;
         optional bool time_cheat_detected = 7;
@@ -789,6 +825,7 @@ message ContractCoopStatusResponse {
     }
     
     optional double local_timestamp = 12;
+    optional double last_sync = 18;
     
     enum MemberStatus {
         VALID = 0;
@@ -1021,6 +1058,7 @@ message ContractCoopStatusUpdateRequest {
     optional uint32 eop = 15;
     optional uint32 boost_tokens = 9;
     optional uint32 boost_tokens_spent = 13;
+    optional bool hide_cc_status = 17;
     optional FarmProductionParams production_params = 14;
     optional PlayerFarmInfo farm_info = 16;
     optional double egg_laying_rate_buff = 10 [default = 1];
@@ -1217,6 +1255,7 @@ message LiveConfig {
         optional uint32 shells_intro_tickets = 7;
         optional uint32 shells_max_free_chicken_configs = 8;
         optional uint32 shells_intro_alert_threshold = 9;
+        optional uint32 shells_lighting_controls_price = 14 [default = 175];
         optional double contracts_expert_league_min_soul_power = 10;
         optional double new_player_event_duration = 11;
         optional bool contracts_club_available = 12;
@@ -1245,10 +1284,35 @@ message InGameMail {
     optional UserType user_type = 17;
     optional uint32 min_piggy_breaks = 20;
     optional double gold_tip = 6;
+    optional bool tip = 23;
+    optional uint32 priority = 27;
+    optional double min_days_since_last_tip = 24;
+    optional uint32 max_retries = 25;
+    optional double days_until_retry = 26;
+    optional string category = 28;
 }
 
 message MailDB {
     repeated InGameMail mail = 1;
+    optional bytes tips_db_data = 2;
+    optional string tips_checksum = 3;
+}
+
+message TipsDB {
+    repeated InGameMail tips = 1;
+}
+
+message MailState {
+    repeated string read_mail_ids = 1;
+    
+    repeated TipState tips_states = 2;
+    message TipState {
+        optional string id = 1;
+        optional uint32 reads = 2;
+        optional double time_read = 3;
+    }
+    
+    optional string tips_checksum = 3;
 }
 
 message PeriodicalsResponse {
@@ -1257,6 +1321,7 @@ message PeriodicalsResponse {
     optional ContractsResponse contracts = 3;
     repeated ContractEvaluation evaluations = 8;
     repeated ServerGift gifts = 4;
+    repeated CompleteMissionResponse artifact_cases = 9;
     optional LiveConfig live_config = 5;
     optional MailDB mail_bag = 6;
     optional ContractPlayerInfo contract_player_info = 7;
@@ -1287,6 +1352,7 @@ message ConfigRequest {
     optional bool fuel_tank_unlocked = 4;
     optional bool pro_permit = 6;
     optional bool ultra = 7;
+    optional string tips_checksum = 8;
 }
 
 message ConfigResponse {
@@ -1987,11 +2053,14 @@ message ShellDB {
     
     repeated FarmConfiguration farm_configs = 3;
     message FarmConfiguration {
+        repeated FarmElement locked_elements = 10;
         repeated ShellConfiguration shell_configs = 1;
         repeated ShellSetConfiguration shell_set_configs = 2;
         optional bool configure_chickens_by_group = 7;
         repeated ShellGroupConfiguration group_configs = 8;
         repeated ChickenConfig chicken_configs = 9;
+        optional bool lighting_config_enabled = 11;
+        optional LightingConfig lighting_config = 12;
     }
     
     repeated SavedFarmConfiguration saved_configs = 9;
@@ -1999,10 +2068,12 @@ message ShellDB {
         optional string name = 1;
         optional FarmConfiguration config = 2;
         optional double client_save_time = 3;
+        optional string server_id = 4;
     }
     
     repeated string new_shells_downloaded = 6;
     repeated string new_shells_seen = 7;
+    optional bool lighting_controls_unlocked = 10;
     
     message ShellConfiguration {
         optional ShellSpec.AssetType asset_type = 1;
@@ -2026,6 +2097,18 @@ message ShellDB {
     message ChickenConfig {
         optional string chicken_identifier = 1;
         optional string hat_identifier = 2;
+    }
+    
+    message LightingConfig {
+        optional Vector3 light_dir = 1;
+        optional Vector4 light_direct_color = 2;
+        optional float light_direct_intensity = 3;
+        optional Vector4 light_ambient_color = 4;
+        optional float light_ambient_intensity = 5;
+        optional Vector4 fog_color = 6;
+        optional float fog_near = 7;
+        optional float fog_far = 8;
+        optional float fog_density = 9;
     }
     
     enum FarmElement {
@@ -2073,6 +2156,53 @@ message ShellsActionLog {
     optional uint64 gold_spent = 12;
 }
 
+message SubmitShellShowcaseRequest {
+    optional BasicRequestInfo rinfo = 4;
+    optional string local_id = 1;
+    optional string user_id = 2;
+    optional ShellDB.FarmConfiguration farm_config = 3;
+}
+
+message ShellShowcase {
+    repeated ShellShowcaseListingInfo top = 1;
+    repeated ShellShowcaseListingInfo featured = 2;
+    repeated ShellShowcaseListingInfo random = 3;
+}
+
+message ShellShowcaseListingInfo {
+    optional string id = 1;
+    optional string local_id = 12;
+    optional string name = 2;
+    optional string description = 3;
+    
+    optional Status status = 11;
+    enum Status {
+        NONE = 0;
+        SUBMITTED = 1;
+        LIVE = 2;
+        FEATURED = 3;
+    }
+    
+    optional ShellDB.FarmConfiguration farm_config = 4;
+    optional uint32 sales = 5;
+    optional uint64 gross = 6;
+    optional uint64 views = 7;
+    optional uint32 likes = 8;
+    optional uint32 dislikes = 9;
+    optional string share_url = 10;
+}
+
+message ShellShowcaseListingSet {
+    repeated ShellShowcaseListingInfo listings = 1;
+}
+
+message ShellShowcaseAction {
+    optional string action = 1;
+    optional string user_id = 2;
+    optional string id = 3;
+    optional string value = 4;
+}
+
 message UserVerificationAnalysis {
     optional Status overall_status = 1;
     enum Status {
@@ -2099,6 +2229,10 @@ message UserVerificationAnalysis {
     optional double artifacts_collected = 9;
     optional double artifacts_consumed = 10;
     optional double artifacts_in_inventory = 11;
+    optional uint64 rare_artifacts_in_inventory = 33;
+    optional uint64 rare_artifacts_on_server = 34;
+    optional uint64 legendary_artifacts_in_inventory = 35;
+    optional uint64 legendary_artifacts_on_server = 36;
     optional double gold_spent_crafting = 21;
     optional bool excessive_consumes = 24;
     optional bool excessive_inventory = 25;
@@ -2240,6 +2374,7 @@ enum UILocation {
 
 enum UserType {
     ALL_USERS = 0;
+    EGGED_UP = 15;
     CONTRACTS_UNLOCKED = 1;
     ARTIFACTS_UNLOCKED = 3;
     FUEL_TANK_UNLOCKED = 4;
@@ -2247,6 +2382,13 @@ enum UserType {
     ULTRA_ACTIVE = 6;
     NO_PRO_PERMIT = 7;
     NO_ULTRA = 8;
+    CONTRACTS_INACTIVE = 9;
+    CONTRACTS_ACTIVE = 10;
+    PLAYING_CONTRACT = 11;
+    ARTIFACTS_INACTIVE = 12;
+    ARTIFACTS_ACTIVE = 13;
+    PRESTIGE_READY = 14;
+    PIGGY_HESITANT = 16;
 }
 
 enum LeaderboardScope {
