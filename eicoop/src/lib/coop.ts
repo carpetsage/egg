@@ -21,10 +21,6 @@ const COOP_LEAGUE_DIVIDER_EB = 1e13; // 10T%
 const COOP_LEAGUE_DEFINITELY_STANDARD_EB = 1e12;
 const COOP_LEAGUE_DEFINITELY_ELITE_EB = 1e16;
 
-// Grade Constants
-// Min EB for each grade
-const GRADES_EB = [0, 1e5, 1e7, 1e9, 1e11, 1e13];
-
 export class CoopStatus {
   contractId: string;
   creatorId: string;
