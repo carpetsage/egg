@@ -34,7 +34,8 @@ export function formatDurationAuto(seconds: number): string {
   if (seconds < 0) {
     return '-' + formatDurationAuto(-seconds);
   }
-  if (!isFinite(seconds)) {
+  // More than 10 years is forever
+  if (!isFinite(seconds) || seconds > 315_360_000) {
     return 'Forever';
   }
   let unit: string;
