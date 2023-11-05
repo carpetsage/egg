@@ -64,7 +64,7 @@
         />
       </template>
       <!-- Nobel Prize in Animal Husbandry aka NAH -->
-      <template v-if="existingTrophyLevel == 4 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH">
+      <template v-if="existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH">
         <trophy-forecast
           trophy-level="Nobel"
           trophy-name="Nobel Prize in Animal Husbandry&reg;"
@@ -422,6 +422,7 @@ export default defineComponent({
     // Cap existing trophy level at platinum for people doing a legit diamond
     // run after cheating it first.
     const existingTrophyLevel = Math.min(backup.game!.eggMedalLevel![18], 4);
+    const existingTrophyLevelUncapped = backup.game!.eggMedalLevel![18];
 
     refreshIntervalId = setInterval(() => {
       currentTimestamp.value = Date.now();
@@ -558,6 +559,7 @@ export default defineComponent({
       lastRefreshedPopulation,
       trophies,
       existingTrophyLevel,
+      existingTrophyLevelUncapped,
       currentPopulation,
       nakedGangNickname,
       habs,
