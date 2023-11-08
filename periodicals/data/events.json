@@ -10528,5 +10528,32 @@
     "startTimestamp": 1699376400.0,
     "type": "hab-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1699549200.0,
+    "id": "event-11-8",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1699462800.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1699549200.0,
+    "id": "event-11-8-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1699462800.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1699549200.0,
+    "id": "ultra-11-8",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1699462800.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
