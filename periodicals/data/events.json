@@ -10555,5 +10555,14 @@
     "startTimestamp": 1699462800.0,
     "type": "mission-fuel",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1699635600.0,
+    "id": "event-11-9",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1699549200.0,
+    "type": "vehicle-sale",
+    "ultra": false
   }
 ]
