@@ -6,7 +6,8 @@
       I am <span class="font-medium">CarpetSage#0100</span> on Discord.
     </div>
     <div class="text-center text-base leading-snug mt-2">
-      Join <base-link href="https://discord.gg/NUqJMh2Kf8">my server</base-link> to <span class="text-purple-500">follow development updates</span>,
+      Join <base-link href="https://discord.gg/NUqJMh2Kf8">my server</base-link> to <span class="text-purple-500">follow
+        development updates</span>,
       <span class="text-fuchsia-500">report issues</span>, and
       <span class="text-pink-500">discuss suggestions</span>:
     </div>
@@ -58,7 +59,7 @@
   </ul>
 
   <p>
-    Therefore, <base-link href="https://ei.tcl.sh/discord/">my own server</base-link> is the remedy,
+    Therefore, <base-link href="https://discord.gg/NUqJMh2Kf8">my own server</base-link> is the remedy,
     and the scope should be clear from the aforementioned shortcomings of the main Egg, Inc. server.
   </p>
 
