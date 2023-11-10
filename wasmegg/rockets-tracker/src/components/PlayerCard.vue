@@ -324,11 +324,11 @@
             </span>
           </div>
           <div class="text-right text-sm font-medium whitespace-nowrap">
-            Date filled
+            Date Piggy filled
           </div>
           <div class="flex items-center text-left text-sm text-gray-900">
             <span v-tippy="{ content: dayjs.unix(piggyFullDate).fromNow() }">
-            {{ dayjs.unix(piggyFullDate).utc().format('L [UTC]') }}
+            {{ dayjs.unix(piggyFullDate).utc().format('YYYY-MM-DD HH:MM [UTC]') }}
             </span>
           </div>
         </div>
