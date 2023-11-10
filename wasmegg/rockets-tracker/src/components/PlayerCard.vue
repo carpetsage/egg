@@ -327,8 +327,11 @@
             Date Piggy filled
           </div>
           <div class="flex items-center text-left text-sm text-gray-900">
-            <span v-tippy="{ content: dayjs.unix(piggyFullDate).fromNow() }">
-            {{ dayjs.unix(piggyFullDate).utc().format('YYYY-MM-DD HH:MM [UTC]') }}
+            <span v-if="piggyFullDate > 0" v-tippy="{ content: dayjs.unix(piggyFullDate).fromNow() }">
+            {{ dayjs.unix(piggyFullDate).utc().format('YYYY-MM-DD HH:MM') }}
+            </span>
+            <span v-else>
+              Not Full
             </span>
           </div>
         </div>
@@ -978,8 +981,8 @@ const piggyLevel = computed(() => 1 + (backup.value.stats?.numPiggyBreaks || 0))
 const piggyGoldenEggs = computed(() =>
   Math.floor((progress.value.piggyBank || 0) * (1 + piggyLevelBonus(piggyLevel.value)))
 );
-const piggyFullDate = computed(() => backup.value.stats?.timePiggyFilledRealtime || dayjs().unix() )
-const piggyLostIncrements = computed(() => backup.value.stats?.lostPiggyIncrements || 0 )
+const piggyFullDate = computed(() => backup.value.stats?.timePiggyFilledRealtime || 0 );
+const piggyLostIncrements = computed(() => backup.value.stats?.lostPiggyIncrements || 0 );
 const numPrestiges = computed(() => backup.value.stats?.numPrestiges || 0);
 const launchedMissions = computed(() => getLaunchedMissions(artifactsDB.value));
 const numMissions = computed(() => launchedMissions.value.length);
