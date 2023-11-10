@@ -310,6 +310,27 @@
               {{ fmt(piggyGoldenEggs) }}
             </span>
           </div>
+
+          <div class="text-right text-sm font-medium whitespace-nowrap">
+            Lost Piggy Increments
+          </div>
+          <div class="flex items-center text-left text-sm text-gray-900">
+            <img
+              :src="iconURL('egginc-extras/icon_golden_egg.png', 128)"
+              class="flex-shrink-0 h-4 w-4 -ml-0.5"
+            />
+            <span v-tippy="{ content: formatEIValue(piggyLostIncrements) }" class="truncate">
+              {{ fmt(piggyLostIncrements) }}
+            </span>
+          </div>
+          <div class="text-right text-sm font-medium whitespace-nowrap">
+            Date Piggy filled
+          </div>
+          <div class="flex items-center text-left text-sm text-gray-900">
+            <span v-tippy="{ content: dayjs.unix(piggyFullDate).fromNow() }">
+            {{ dayjs.unix(piggyFullDate).utc().format('YYYY-MM-DD HH:MM [UTC]') }}
+            </span>
+          </div>
         </div>
 
         <div v-if="!collapsed" class="py-2">
@@ -745,6 +766,7 @@ import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import utc from 'dayjs/plugin/utc';
 import { sha256 } from 'js-sha256';
 
 import {
@@ -797,6 +819,7 @@ import Spaceship = ei.MissionInfo.Spaceship;
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
 
 const COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY = 'collpasePlayerCard';
 
@@ -955,6 +978,8 @@ const piggyLevel = computed(() => 1 + (backup.value.stats?.numPiggyBreaks || 0))
 const piggyGoldenEggs = computed(() =>
   Math.floor((progress.value.piggyBank || 0) * (1 + piggyLevelBonus(piggyLevel.value)))
 );
+const piggyFullDate = computed(() => backup.value.stats?.timePiggyFilledRealtime || dayjs().unix() )
+const piggyLostIncrements = computed(() => backup.value.stats?.lostPiggyIncrements || 0 )
 const numPrestiges = computed(() => backup.value.stats?.numPrestiges || 0);
 const launchedMissions = computed(() => getLaunchedMissions(artifactsDB.value));
 const numMissions = computed(() => launchedMissions.value.length);
