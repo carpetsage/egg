@@ -290,18 +290,3 @@ export function calculateWDLevelsCost(currentLevel: number, targetLevel: number)
     .slice(currentLevel, targetLevel)
     .reduce((total, cost) => total + cost);
 }
-
-export function calculateMaxFarmCostMissing(farm: ei.Backup.ISimulation): number {
-    const researchWithCosts = farm.commonResearch!.map((item, row) => {
-        const found = fullResearchCostsList.find((element) => item.id == element.id);
-        return { ...item, ...found };
-    });
-
-    let missing = 0;
-    for (const el of researchWithCosts) {
-        if (el.level != el.maxLevel) {
-            missing += el.prices!.slice(el.level ?? 0, el.maxLevel).reduce((total, cost) => total + cost);
-        }
-    }
-    return missing;
-}
