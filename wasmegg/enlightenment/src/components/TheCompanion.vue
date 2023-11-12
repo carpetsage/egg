@@ -33,261 +33,258 @@
       <img :src="enlightenmentEggIconURL" class="inline h-8 w-8" />!
     </p>
     <template v-else>
-      <p class="text-sm">
-        Last save population:
-        <span class="text-green-500 tabular-nums">
-          {{ formatWithThousandSeparators(lastRefreshedPopulation) }}
-        </span>
-      </p>
-      <p class="text-sm">
-        Current population:
-        <span class="text-green-500 tabular-nums mr-0.5">
-          {{ formatWithThousandSeparators(currentPopulation) }}
-        </span>
-        <base-info
-          v-tippy="{
+        <p class="text-sm">
+            Last save population:
+            <span class="text-green-500 tabular-nums">
+                {{ formatWithThousandSeparators(lastRefreshedPopulation) }}
+            </span>
+        </p>
+        <p class="text-sm">
+            Current population:
+            <span class="text-green-500 tabular-nums mr-0.5">
+                {{ formatWithThousandSeparators(currentPopulation) }}
+            </span>
+            <base-info v-tippy="{
             content:
               'The current population is calculated based on the population and offline IHR from the last save. Assuming your IHR did not change since the last save, this number should be slightly ahead of your actual population at the moment, depending on how long you remained active since the last save.',
           }"
-          class="inline relative -top-px"
-        />
-      </p>
-      <template v-for="trophy in trophies" :key="trophy.level">
-        <trophy-forecast
-          v-if="trophy.level > existingTrophyLevel"
-          :trophy-level="trophy.name"
-          :last-refreshed-population="lastRefreshedPopulation"
-          :last-refreshed-timestamp="lastRefreshedTimestamp"
-          :target-population="trophy.targetPopulation"
-          :hab-space="totalHabSpace"
-          :offline-i-h-r="offlineIHR"
-        />
-      </template>
-      <!-- Nobel Prize in Animal Husbandry aka NAH -->
-      <template v-if="existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH">
-        <trophy-forecast
-          trophy-level="Nobel"
-          trophy-name="Nobel Prize in Animal Husbandry&reg;"
-          :last-refreshed-population="lastRefreshedPopulation"
-          :last-refreshed-timestamp="lastRefreshedTimestamp"
-          :target-population="19_845_000_000"
-          :hab-space="totalHabSpace"
-          :offline-i-h-r="offlineIHR"
-        />
-        <p class="text-xs text-gray-500">
-          The Nobel Prize in Animal Husbandry&reg; is conferred by the Royal Mk.II Society of
-          Sciences&reg; on legendary farmers who manage to reach 19,845,000,000 population on their
-          enlightenment farm. A legendary jeweled gusset with three Eggceptional clarity stones and all
-          Wormhole Dampening levels are required for such a feat.
+                       class="inline relative -top-px" />
         </p>
-      </template>
+        <template v-for="trophy in trophies" :key="trophy.level">
+            <trophy-forecast v-if="trophy.level > existingTrophyLevel"
+                             :trophy-level="trophy.name"
+                             :last-refreshed-population="lastRefreshedPopulation"
+                             :last-refreshed-timestamp="lastRefreshedTimestamp"
+                             :target-population="trophy.targetPopulation"
+                             :hab-space="totalHabSpace"
+                             :offline-i-h-r="offlineIHR" />
+        </template>
+        <!-- Nobel Prize in Animal Husbandry aka NAH -->
+        <template v-if="existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH">
+            <trophy-forecast trophy-level="Nobel"
+                             trophy-name="Nobel Prize in Animal Husbandry&reg;"
+                             :last-refreshed-population="lastRefreshedPopulation"
+                             :last-refreshed-timestamp="lastRefreshedTimestamp"
+                             :target-population="19_845_000_000"
+                             :hab-space="totalHabSpace"
+                             :offline-i-h-r="offlineIHR" />
+            <p class="text-xs text-gray-500">
+                The Nobel Prize in Animal Husbandry&reg; is conferred by the Royal Mk.II Society of
+                Sciences&reg; on legendary farmers who manage to reach 19,845,000,000 population on their
+                enlightenment farm. A legendary jeweled gusset with three Eggceptional clarity stones and all
+                Wormhole Dampening levels are required for such a feat.
+            </p>
+        </template>
 
-      <hr class="mt-2" />
+        <hr class="mt-2" />
 
-      <collapsible-section
-        section-title="Habs"
-        :visible="isVisibleSection('habs')"
-        class="my-2 text-sm"
-        @toggle="toggleSectionVisibility('habs')"
-      >
-        <div class="flex my-2 space-x-2">
-          <img
-            v-for="(hab, index) in habs"
-            :key="index"
-            v-tippy="{
+        <collapsible-section section-title="Habs"
+                             :visible="isVisibleSection('habs')"
+                             class="my-2 text-sm"
+                             @toggle="toggleSectionVisibility('habs')">
+            <div class="flex my-2 space-x-2">
+                <img v-for="(hab, index) in habs"
+                     :key="index"
+                     v-tippy="{
               content: `${hab.name}, space: ${formatWithThousandSeparators(habSpaces[index])}`,
             }"
-            :src="iconURL(hab.iconPath, 128)"
-            class="h-16 w-16 bg-gray-50 rounded-lg shadow"
-          />
-        </div>
-        <p>
-          Hab space:
-          <span class="text-green-500">{{ formatWithThousandSeparators(totalHabSpace) }}</span>
-        </p>
-        <unfinished-researches :researches="habSpaceResearches" class="my-1" />
-        <template v-if="!totalHabSpaceSufficient">
-          <p>
-            Required Wormhole Dampening level:
-            <span class="text-blue-500 mr-0.5">{{ requiredWDLevel }}/25</span>
-            <base-info
-              v-tippy="{
+                     :src="iconURL(hab.iconPath, 128)"
+                     class="h-16 w-16 bg-gray-50 rounded-lg shadow" />
+            </div>
+            <p>
+                Hab space:
+                <span class="text-green-500">{{ formatWithThousandSeparators(totalHabSpace) }}</span>
+            </p>
+            <unfinished-researches :researches="habSpaceResearches" class="my-1" />
+            <template v-if="!totalHabSpaceSufficient">
+                <p>
+                    Required Wormhole Dampening level:
+                    <span class="text-blue-500 mr-0.5">{{ requiredWDLevel }}/25</span>
+                    <base-info v-tippy="{
                 content:
                   'Minimum Wormhole Dampening level to reach 10B hab space, assuming all habs are final tier, and all other hab space-related researches have been finished.',
               }"
-              class="inline relative -top-px"
-            />
-          </p>
-          <template v-if="minimumRequiredWDLevel < requiredWDLevel">
+                               class="inline relative -top-px" />
+                </p>
+                <template v-if="minimumRequiredWDLevel < requiredWDLevel">
+                    <p>
+                        Note that the level above assumes your current set of artifacts. The minimum WD level
+                        required is
+                        <span class="text-blue-500 mr-0.5">{{ minimumRequiredWDLevel }}/25</span>, assuming
+                        you equip your most effective gusset as pictured below (stone rearrangement possibly
+                        needed):
+                    </p>
+                    <artifacts-gallery :artifacts="bestPossibleGussetSet" class="mt-2 mb-3" />
+                </template>
+                <template v-if="nakedGangNickname">
+                    <p class="text-yellow-500">
+                        {{ nakedGangNickname }}, you're in the naked gang. Your gussets are ignored. You won't
+                        get any gusset recommendations.
+                    </p>
+                </template>
+            </template>
+        </collapsible-section>
+
+        <hr />
+
+        <collapsible-section section-title="Earnings"
+                             :visible="isVisibleSection('earnings')"
+                             class="my-2 text-sm"
+                             @toggle="toggleSectionVisibility('earnings')">
             <p>
-              Note that the level above assumes your current set of artifacts. The minimum WD level
-              required is
-              <span class="text-blue-500 mr-0.5">{{ minimumRequiredWDLevel }}/25</span>, assuming
-              you equip your most effective gusset as pictured below (stone rearrangement possibly
-              needed):
-            </p>
-            <artifacts-gallery :artifacts="bestPossibleGussetSet" class="mt-2 mb-3" />
-          </template>
-          <template v-if="nakedGangNickname">
-            <p class="text-yellow-500">
-              {{ nakedGangNickname }}, you're in the naked gang. Your gussets are ignored. You won't
-              get any gusset recommendations.
-            </p>
-          </template>
-        </template>
-      </collapsible-section>
-
-      <hr />
-
-      <collapsible-section
-        section-title="Earnings"
-        :visible="isVisibleSection('earnings')"
-        class="my-2 text-sm"
-        @toggle="toggleSectionVisibility('earnings')"
-      >
-        <p>
-          Earning bonus:
-          <base-e-i-value class="text-green-500" :value="earningBonus * 100" suffix="%" />,
-          <span class="whitespace-nowrap" :style="{ color: farmerRole.color }">{{
+                Earning bonus:
+                <base-e-i-value class="text-green-500" :value="earningBonus * 100" suffix="%" />,
+                <span class="whitespace-nowrap" :style="{ color: farmerRole.color }">
+                    {{
             farmerRole.name
-          }}</span>
-        </p>
-        <p>Farm value: <base-e-i-value class="text-green-500" :value="farmValue" /></p>
-        <p>Cash on hand: <base-e-i-value class="text-green-500" :value="cashOnHand" /></p>
-        <p>Egg value: <base-e-i-value class="text-green-500" :value="eggValue" /></p>
-        <p>
-          Earning rate (active, no running chicken, video doubler on):
-          <base-e-i-value
-            class="text-green-500"
-            :value="earningRateOnlineBaseline * 2"
-            suffix="/s"
-          />
-        </p>
-        <p>
-          Earning rate (active, max RCB <span class="text-green-500">{{ maxRCB }}x</span>, video
-          doubler on):
-          <base-e-i-value class="text-green-500" :value="earningRateOnlineMaxRCB * 2" suffix="/s" />
-        </p>
-        <p>
-          Earning rate (offline):
-          <base-e-i-value class="text-green-500" :value="earningRateOffline" suffix="/s" />
-        </p>
-        <p class="mt-1">Drone values at max RCB:</p>
-        <ul>
-          <li>
-            Elite: <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.elite" />
-          </li>
-          <li>
-            Regular tier 1:
-            <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.tier1" /> ({{
+                    }}
+                </span>
+            </p>
+            <p>Farm value: <base-e-i-value class="text-green-500" :value="farmValue" /></p>
+            <p>Cash on hand: <base-e-i-value class="text-green-500" :value="cashOnHand" /></p>
+            <p>Egg value: <base-e-i-value class="text-green-500" :value="eggValue" /></p>
+            <p>
+                Earning rate (active, no running chicken, video doubler on):
+                <base-e-i-value class="text-green-500"
+                                :value="earningRateOnlineBaseline * 2"
+                                suffix="/s" />
+            </p>
+            <p>
+                Earning rate (active, max RCB <span class="text-green-500">{{ maxRCB }}x</span>, video
+                doubler on):
+                <base-e-i-value class="text-green-500" :value="earningRateOnlineMaxRCB * 2" suffix="/s" />
+            </p>
+            <p>
+                Earning rate (offline):
+                <base-e-i-value class="text-green-500" :value="earningRateOffline" suffix="/s" />
+            </p>
+            <p class="mt-1">Drone values at max RCB:</p>
+            <ul>
+                <li>
+                    Elite: <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.elite" />
+                </li>
+                <li>
+                    Regular tier 1:
+                    <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.tier1" /> ({{
               formatPercentage(droneValuesAtMaxRCB.tier1 / droneValuesAtMaxRCB.elite)
-            }}
-            of elite), {{ formatPercentage(droneValuesAtMaxRCB.tier1Prob) }} chance
-          </li>
-          <li>
-            Regular tier 2:
-            <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.tier2" /> ({{
+                    }}
+                    of elite), {{ formatPercentage(droneValuesAtMaxRCB.tier1Prob) }} chance
+                </li>
+                <li>
+                    Regular tier 2:
+                    <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.tier2" /> ({{
               formatPercentage(droneValuesAtMaxRCB.tier2 / droneValuesAtMaxRCB.elite)
-            }}
-            of elite),
-            {{ formatPercentage(droneValuesAtMaxRCB.tier2Prob) }} chance
-          </li>
-          <li>
-            Regular tier 3:
-            <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.tier3" /> ({{
+                    }}
+                    of elite),
+                    {{ formatPercentage(droneValuesAtMaxRCB.tier2Prob) }} chance
+                </li>
+                <li>
+                    Regular tier 3:
+                    <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.tier3" /> ({{
               formatPercentage(droneValuesAtMaxRCB.tier3 / droneValuesAtMaxRCB.elite)
-            }}
-            of elite),
-            {{ formatPercentage(droneValuesAtMaxRCB.tier3Prob) }} chance
-          </li>
-        </ul>
-        <p class="text-xs text-gray-500 my-1">
-          Drone values are based on your current equipped set of artifacts. You may increase their
-          values with an Aurelian brooch or a Mercury's lens (drone reward is proportional to farm
-          value) or a Vial of Martian dust / terra stones (drone reward is proportional to the
-          square root of active running chicken bonus, so increasing max RCB helps to a small
-          extent); or increase their frequency with a Neodymium medallion. Farming drones during a
-          Generous Drones event is also immensely helpful.
-        </p>
-        <p class="text-xs text-gray-500 my-1">
-          Note: Farm value and drone values are calculated based on mikit#7826's research on game
-          version v1.12.13 (pre-artifacts), and drone probabilities were speculative at that time.
-          No in-depth research has been carried out since the artifact update, so values may be
-          inaccurate in certain edge cases.
-        </p>
+                    }}
+                    of elite),
+                    {{ formatPercentage(droneValuesAtMaxRCB.tier3Prob) }} chance
+                </li>
+            </ul>
+            <p class="text-xs text-gray-500 my-1">
+                Drone values are based on your current equipped set of artifacts. You may increase their
+                values with an Aurelian brooch or a Mercury's lens (drone reward is proportional to farm
+                value) or a Vial of Martian dust / terra stones (drone reward is proportional to the
+                square root of active running chicken bonus, so increasing max RCB helps to a small
+                extent); or increase their frequency with a Neodymium medallion. Farming drones during a
+                Generous Drones event is also immensely helpful.
+            </p>
+            <p class="text-xs text-gray-500 my-1">
+                Note: Farm value and drone values are calculated based on mikit#7826's research on game
+                version v1.12.13 (pre-artifacts), and drone probabilities were speculative at that time.
+                No in-depth research has been carried out since the artifact update, so values may be
+                inaccurate in certain edge cases.
+            </p>
 
-        <template v-if="cashTargetPreDiscount > 0">
-          <p>
-            Cash required to reach minimum required Wormhole Dampening level
-            <span class="text-blue-500">{{ minimumRequiredWDLevel }}/25</span>
-            (before discounts):
-            <base-e-i-value class="text-pink-500" :value="cashTargetPreDiscount" />
-          </p>
-          <target-cash-matrix
-            :base-target="cashTargetPreDiscount"
-            :current="cashOnHand"
-            :targets="cashTargets"
-            :means="cashMeans"
-            class="my-2"
-          />
-          <template v-if="betterCubePossible">
-            <p>Your best cube possible is pictured below (stone rearrangement possibly needed):</p>
-            <artifacts-gallery :artifacts="bestPossibleCubeSet" class="mt-2 mb-3" />
-          </template>
-          <div class="text-sm mt-2">
-            <a
-              href="https://docs.google.com/spreadsheets/d/157K4r3Z5wfCNKhUWb34mlxM08DEA1AWamsA20xjQIhw/edit?usp=sharing"
-              target="_blank"
-              class="text-blue-500 hover:text-blue-600"
-              >Sami#2336's spreadsheet</a
-            >
-            may provide more detailed help regarding execution, at the expense of requiring manual
-            input for many parameters.
-          </div>
-        </template>
-      </collapsible-section>
+            <template v-if="cashTargetPreDiscount > 0">
+                <p>
+                    Cash required to reach minimum required Wormhole Dampening level
+                    <span class="text-blue-500">{{ minimumRequiredWDLevel }}/25</span>
+                    (before discounts):
+                    <base-e-i-value class="text-pink-500" :value="cashTargetPreDiscount" />
+                </p>
+                <target-cash-matrix :base-target="cashTargetPreDiscount"
+                                    :current="cashOnHand"
+                                    :targets="cashTargets"
+                                    :means="cashMeans"
+                                    class="my-2" />
+                <template v-if="betterCubePossible">
+                    <p>Your best cube possible is pictured below (stone rearrangement possibly needed):</p>
+                    <artifacts-gallery :artifacts="bestPossibleCubeSet" class="mt-2 mb-3" />
+                </template>
+                <div class="text-sm mt-2">
+                    <a href="https://docs.google.com/spreadsheets/d/157K4r3Z5wfCNKhUWb34mlxM08DEA1AWamsA20xjQIhw/edit?usp=sharing"
+                       target="_blank"
+                       class="text-blue-500 hover:text-blue-600">Sami#2336's spreadsheet</a>
+                    may provide more detailed help regarding execution, at the expense of requiring manual
+                    input for many parameters.
+                </div>
+            </template>
 
-      <hr />
 
-      <collapsible-section
-        section-title="Internal hatchery"
-        :visible="isVisibleSection('internal_hatchery')"
-        class="my-2 text-sm"
-        @toggle="toggleSectionVisibility('internal_hatchery')"
-      >
-        <p class="mt-1">
-          Active IHR:
-          <span class="whitespace-nowrap">
-            <span class="text-green-500">{{ formatWithThousandSeparators(onlineIHR, -1) }}</span>
-            chickens/min
-          </span>
-          <!-- Force a space between the two nowrap spans to prevent the two being treated as a whole. -->
-          {{ ' ' }}
-          <span class="whitespace-nowrap">
-            (<span class="text-green-500">{{
+            <template v-if="cashTargetPreDiscount <= 0">
+                <p>
+                    Cash required to max out the farm
+                    (before discounts):
+                    <base-e-i-value class="text-pink-500" :value="cashTargetACREPreDiscount" />
+                </p>
+                <target-cash-matrix :base-target="cashTargetACREPreDiscount"
+                                    :current="cashOnHand"
+                                    :targets="cashTargets"
+                                    :means="cashMeans"
+                                    class="my-2" />
+                <template v-if="betterCubePossible">
+                    <p>Your best cube possible is pictured below (stone rearrangement possibly needed):</p>
+                    <artifacts-gallery :artifacts="bestPossibleCubeSet" class="mt-2 mb-3" />
+                </template>
+            </template>
+        </collapsible-section>
+
+        <hr />
+
+        <collapsible-section section-title="Internal hatchery"
+                             :visible="isVisibleSection('internal_hatchery')"
+                             class="my-2 text-sm"
+                             @toggle="toggleSectionVisibility('internal_hatchery')">
+            <p class="mt-1">
+                Active IHR:
+                <span class="whitespace-nowrap">
+                    <span class="text-green-500">{{ formatWithThousandSeparators(onlineIHR, -1) }}</span>
+                    chickens/min
+                </span>
+                <!-- Force a space between the two nowrap spans to prevent the two being treated as a whole. -->
+                {{ ' ' }}
+                <span class="whitespace-nowrap">
+                    (<span class="text-green-500">
+                        {{
               formatWithThousandSeparators(onlineIHRPerHab, -1)
-            }}</span>
-            chickens/min/hab)
-          </span>
-        </p>
-        <p>
-          Offline IHR:
-          <span class="text-green-500">{{ formatWithThousandSeparators(offlineIHR, -1) }}</span>
-          chickens/min
-        </p>
-        <unfinished-researches :researches="internalHatcheryResearches" class="my-1" />
-      </collapsible-section>
+                        }}
+                    </span>
+                    chickens/min/hab)
+                </span>
+            </p>
+            <p>
+                Offline IHR:
+                <span class="text-green-500">{{ formatWithThousandSeparators(offlineIHR, -1) }}</span>
+                chickens/min
+            </p>
+            <unfinished-researches :researches="internalHatcheryResearches" class="my-1" />
+        </collapsible-section>
 
-      <hr />
+        <hr />
 
-      <collapsible-section
-        section-title="Artifacts"
-        :visible="isVisibleSection('artifacts')"
-        class="my-2 text-sm"
-        @toggle="toggleSectionVisibility('artifacts')"
-      >
-        <artifacts-gallery :artifacts="artifacts" />
-      </collapsible-section>
+        <collapsible-section section-title="Artifacts"
+                             :visible="isVisibleSection('artifacts')"
+                             class="my-2 text-sm"
+                             @toggle="toggleSectionVisibility('artifacts')">
+            <artifacts-gallery :artifacts="artifacts" />
+        </collapsible-section>
     </template>
   </main>
 </template>
@@ -308,6 +305,7 @@ import {
   calculateDroneValues,
   calculateFarmValue,
   calculateWDLevelsCost,
+  calculateMaxFarmCostMissing,
   earningBonusToFarmerRole,
   ei,
   farmCurrentWDLevel,
@@ -472,9 +470,12 @@ export default defineComponent({
       farmValue,
       rcb: maxRCB,
     });
-    const cashTargetPreDiscount =
-      calculateWDLevelsCost(currentWDLevel, minimumRequiredWDLevel) *
-      researchPriceMultiplierFromResearches(farm, progress);
+      const cashTargetPreDiscount =
+          calculateWDLevelsCost(currentWDLevel, minimumRequiredWDLevel) *
+          researchPriceMultiplierFromResearches(farm, progress);
+      const cashTargetACREPreDiscount =
+          calculateMaxFarmCostMissing(farm) *
+          researchPriceMultiplierFromResearches(farm, progress);
     const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts);
     const bestPossibleCube = bestPossibleCubeForEnlightenment(backup);
     const bestPossibleCubeSet = bestPossibleCube ? [bestPossibleCube] : [];
@@ -582,6 +583,7 @@ export default defineComponent({
       earningRateOffline,
       droneValuesAtMaxRCB,
       cashTargetPreDiscount,
+      cashTargetACREPreDiscount,
       cashTargets,
       cashMeans,
       canNAH,
