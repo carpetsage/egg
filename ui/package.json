@@ -8,6 +8,6 @@
     "@heroicons/vue": "^1.0.6",
     "lib": "workspace:^",
     "scroll-into-view-if-needed": "^3.1.0",
-    "vue": "^3.3.6"
+    "vue": "^3.3.8"
   }
 }
