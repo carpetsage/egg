@@ -227,8 +227,24 @@
                 </div>
             </template>
 
+            <template v-if="cashTargetPreDiscount <= 0 && cashTargetNAHPreDiscount > 0">
+                <p>
+                    Cash required to acquire every Wormhole Dampening level
+                    (before discounts):
+                    <base-e-i-value class="text-pink-500" :value="cashTargetNAHPreDiscount" />
+                </p>
+                <target-cash-matrix :base-target="cashTargetNAHPreDiscount"
+                                    :current="cashOnHand"
+                                    :targets="cashTargets"
+                                    :means="cashMeans"
+                                    class="my-2" />
+                <template v-if="betterCubePossible">
+                    <p>Your best cube possible is pictured below (stone rearrangement possibly needed):</p>
+                    <artifacts-gallery :artifacts="bestPossibleCubeSet" class="mt-2 mb-3" />
+                </template>
+            </template>
 
-            <template v-if="cashTargetPreDiscount <= 0">
+            <template v-if="cashTargetNAHPreDiscount <= 0 && cashTargetACREPreDiscount > 0">
                 <p>
                     Cash required to max out the farm
                     (before discounts):
@@ -473,6 +489,9 @@ export default defineComponent({
       const cashTargetPreDiscount =
           calculateWDLevelsCost(currentWDLevel, minimumRequiredWDLevel) *
           researchPriceMultiplierFromResearches(farm, progress);
+      const cashTargetNAHPreDiscount =
+          calculateWDLevelsCost(currentWDLevel, 100) * //Random number that is > of number of total WD levels
+          researchPriceMultiplierFromResearches(farm, progress);
       const cashTargetACREPreDiscount =
           calculateMaxFarmCostMissing(farm) *
           researchPriceMultiplierFromResearches(farm, progress);
@@ -583,6 +602,7 @@ export default defineComponent({
       earningRateOffline,
       droneValuesAtMaxRCB,
       cashTargetPreDiscount,
+      cashTargetNAHPreDiscount,
       cashTargetACREPreDiscount,
       cashTargets,
       cashMeans,
