@@ -270,8 +270,22 @@
             (before discounts):
             <base-e-i-value class="text-pink-500" :value="cashTargetACREPreDiscount" />
           </p>
+            <div class="relative flex items-start">
+                <div class="flex items-center h-5">
+                    <input
+                      id="target_ts"
+                      v-model="target_ts"
+                      name="target_ts"
+                      type="checkbox"
+                      class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+                    />
+                </div>
+            <div class="ml-2 text-sm">
+                <label for="target_ts" class="text-gray-600">Show required cash for Timeline Splicing only</label>
+            </div>
+          </div>
           <target-cash-matrix
-            :base-target="cashTargetACREPreDiscount"
+            :base-target="target_ts ? cashTargetTSPreDiscount : cashTargetACREPreDiscount"
             :current="cashOnHand"
             :targets="cashTargets"
             :means="cashMeans"
@@ -329,7 +343,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, ref, watch } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -337,7 +351,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
-import { eggIconPath, iconURL, UserBackupEmptyError } from 'lib';
+import { eggIconPath, iconURL, UserBackupEmptyError, getLocalStorage, setLocalStorage } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
   bestPossibleGussetForEnlightenment,
@@ -365,6 +379,7 @@ import {
   researchPriceMultiplierFromArtifacts,
   researchPriceMultiplierFromResearches,
   calculateMaxFarmCostMissing,
+  calculateTSCost
 } from '@/lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { formatPercentage, formatWithThousandSeparators, formatDurationAuto } from '@/utils';
@@ -514,13 +529,20 @@ export default defineComponent({
     });
     const cashTargetPreDiscount =
       calculateWDLevelsCost(currentWDLevel, minimumRequiredWDLevel) *
-      researchPriceMultiplierFromResearches(farm, progress);
+          researchPriceMultiplierFromResearches(farm, progress);
+
     const cashTargetNAHPreDiscount =
       calculateWDLevelsCost(currentWDLevel, 25) *
-      researchPriceMultiplierFromResearches(farm, progress);
+          researchPriceMultiplierFromResearches(farm, progress);
+
     const cashTargetACREPreDiscount =
       calculateMaxFarmCostMissing(farm) *
       researchPriceMultiplierFromResearches(farm, progress);
+
+    const cashTargetTSPreDiscount =
+        calculateTSCost(farm) *
+          researchPriceMultiplierFromResearches(farm, progress);
+
     const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts);
     const bestPossibleCube = bestPossibleCubeForEnlightenment(backup);
     const bestPossibleCubeSet = bestPossibleCube ? [bestPossibleCube] : [];
@@ -592,6 +614,13 @@ export default defineComponent({
 
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 
+    const TARGET_TS_LOCALSTORAGE_KEY = 'targetTs';
+
+    const target_ts = ref(getLocalStorage(TARGET_TS_LOCALSTORAGE_KEY) === 'true');
+      watch(target_ts, () => {
+          setLocalStorage(TARGET_TS_LOCALSTORAGE_KEY, target_ts.value);
+      });
+
     return {
       nickname,
       lastRefreshed,
@@ -645,6 +674,8 @@ export default defineComponent({
       formatWithThousandSeparators,
       formatPercentage,
       iconURL,
+      cashTargetTSPreDiscount,
+      target_ts
     };
   },
 });

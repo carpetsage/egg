@@ -2874,3 +2874,11 @@ export function calculateMaxFarmCostMissing(farm: ei.Backup.ISimulation): number
     }
     return missing;
 }
+export function calculateTSCost(farm: ei.Backup.ISimulation): number {
+    const TSWithCosts = farm.commonResearch!.filter(f => f.id == 'timeline_splicing').map((item, row) => {
+        const found = fullResearchCostsList.find((element) => item.id == element.id);
+        return { ...item, ...found };
+    })[0];
+
+    return TSWithCosts.maxLevel == TSWithCosts.level ? 0 : TSWithCosts.prices![0];
+}
