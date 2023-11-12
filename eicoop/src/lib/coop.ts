@@ -276,6 +276,7 @@ export class Contributor {
   farmerRole: FarmerRole;
   tokens: number;
   isActive: boolean;
+  autojoined: boolean;
   isTimeCheating: boolean;
   isLeeching: boolean; // New in v1.20.8
   earningsBoost: number;
@@ -306,6 +307,7 @@ export class Contributor {
     this.earningBonusPercentage = Math.pow(10, contributor.soulPower!) * 100;
     this.farmerRole = soulPowerToFarmerRole(contributor.soulPower!);
     this.tokens = contributor.boostTokens!;
+    this.autojoined = contributor.autojoined ?? false;
     this.isActive = contributor.active!;
     this.isTimeCheating = contributor.timeCheatDetected!;
     this.isLeeching = contributor.leech!;

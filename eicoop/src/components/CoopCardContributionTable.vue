@@ -316,6 +316,12 @@
         >
           <span class="text-gray-500 dark:text-gray-200 truncate">{{ contributor.offlineTimeStr }}</span>
         </td>
+        <td
+          v-if="showOptionalColumn.offlineEggs"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
+          <span class="text-gray-500 dark:text-gray-200 truncate">{{ formatEIValue(contributor.offlineEggs) }}</span>
+        </td>
       </tr>
     </tbody>
   </table>
@@ -494,6 +500,13 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
       id: 'offlineTimeStr',
       name: 'Offline Time',
       tooltip: 'Time offline',
+    });
+  }
+  if (showOptionalColumn.value.offlineEggs) {
+    cols.push({
+      id: 'offlineEggs',
+      name: 'Offline Eggs',
+      tooltip: 'Eggs laid since last online',
     });
   }
   return cols;
