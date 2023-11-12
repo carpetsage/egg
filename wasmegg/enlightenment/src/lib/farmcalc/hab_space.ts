@@ -2,6 +2,7 @@ import { habSpaceMultiplier } from '../effects';
 import { ei } from 'lib';
 import { Artifact, Research, ResearchInstance } from '../types';
 import { farmResearch, farmResearches } from './common';
+import { fullResearchCostsList } from './research_price';
 
 type HabId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -277,6 +278,7 @@ const wormholeDampeningLevelPrices = [
   1.197e61,
   4.0112e61,
 ];
+
 
 export function calculateWDLevelsCost(currentLevel: number, targetLevel: number): number {
   currentLevel = Math.max(currentLevel, 0);
