@@ -10600,5 +10600,23 @@
     "startTimestamp": 1699722000.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1699894800.0,
+    "id": "event-11-12",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1699808400.0,
+    "type": "epic-research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1699894800.0,
+    "id": "ultra-11-12",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1699808400.0,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
