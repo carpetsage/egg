@@ -264,7 +264,7 @@
           </template>
         </template>
 
-        <template v-else-if="cashTargetNAHPreDiscount <= 0 && cashTargetACREPreDiscount > 0">
+        <template v-else-if="cashTargetNAHPreDiscount <= 0 && cashTargetACREPreDiscount >= 0">
           <p>
             Cash required to max out the farm
             (before discounts):
