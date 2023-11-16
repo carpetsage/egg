@@ -10667,10 +10667,10 @@
   {
     "endTimestamp": 1700240400.0,
     "id": "event-11-16",
-    "message": "75% OFF VEHICLES!",
-    "multiplier": 0.25,
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
     "startTimestamp": 1700154000.0,
-    "type": "vehicle-sale",
-    "ultra": true
+    "type": "gift-boost",
+    "ultra": false
   }
 ]
