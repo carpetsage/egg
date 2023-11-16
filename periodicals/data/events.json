@@ -10672,5 +10672,14 @@
     "startTimestamp": 1700154000.0,
     "type": "gift-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1700240400.0,
+    "id": "ultra-11-16",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1700154000.0,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
