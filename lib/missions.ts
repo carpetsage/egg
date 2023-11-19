@@ -17,7 +17,7 @@ export type Target = Exclude<Artifact,
   Artifact.CENTAURIAN_STEEL | Artifact.CELESTIAL_BRONZE | Artifact.ERIDANI_FEATHER | Artifact.DRONE_PARTS |
   Artifact.LALANDE_HIDE>
 
-// Default to not targeting anything
+// Valid targets
 export const targets = [
   Artifact.PUZZLE_CUBE, Artifact.LUNAR_TOTEM, Artifact.DEMETERS_NECKLACE,
   Artifact.VIAL_MARTIAN_DUST, Artifact.AURELIAN_BROOCH, Artifact.TUNGSTEN_ANKH,
@@ -35,6 +35,18 @@ export const targets = [
   Artifact.QUANTUM_STONE_FRAGMENT, Artifact.SHELL_STONE_FRAGMENT, Artifact.SOUL_STONE_FRAGMENT,
   Artifact.TACHYON_STONE_FRAGMENT, Artifact.TERRA_STONE_FRAGMENT, Artifact.UNKNOWN,
 ];
+
+export const noFragTargets = [ Artifact.PUZZLE_CUBE, Artifact.LUNAR_TOTEM, Artifact.DEMETERS_NECKLACE,
+  Artifact.VIAL_MARTIAN_DUST, Artifact.AURELIAN_BROOCH, Artifact.TUNGSTEN_ANKH,
+  Artifact.ORNATE_GUSSET, Artifact.NEODYMIUM_MEDALLION, Artifact.MERCURYS_LENS,
+  Artifact.BEAK_OF_MIDAS, Artifact.CARVED_RAINSTICK, Artifact.INTERSTELLAR_COMPASS,
+  Artifact.THE_CHALICE, Artifact.PHOENIX_FEATHER, Artifact.QUANTUM_METRONOME,
+  Artifact.DILITHIUM_MONOCLE, Artifact.TITANIUM_ACTUATOR, Artifact.SHIP_IN_A_BOTTLE,
+  Artifact.TACHYON_DEFLECTOR, Artifact.BOOK_OF_BASAN, Artifact.LIGHT_OF_EGGENDIL,
+  Artifact.GOLD_METEORITE, Artifact.TAU_CETI_GEODE, Artifact.SOLAR_TITANIUM,
+  Artifact.CLARITY_STONE, Artifact.DILITHIUM_STONE, Artifact.LIFE_STONE,
+  Artifact.LUNAR_STONE, Artifact.PROPHECY_STONE, Artifact.QUANTUM_STONE,
+  Artifact.SHELL_STONE, Artifact.SOUL_STONE, Artifact.TACHYON_STONE, Artifact.UNKNOWN]
 
 // Default selection state for targets.
 const targetDefaults: Record<Artifact,boolean> = {

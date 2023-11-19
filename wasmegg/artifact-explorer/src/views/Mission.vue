@@ -60,6 +60,39 @@
             </nav>
           </div>
         </div>
+        <div v-if="mission.isFTL" class="flex lg:hidden items-center space-x-1.5">
+          <select
+            class="block focus:ring-green-500 focus:border-green-500 border-gray-300 rounded-md py-0.5 text-sm"
+            :value="titleCase(getTargetName(selectedTarget))"
+            @input="selectTarget"
+          >
+            <option v-for="arti in targets" :key="arti">
+              {{ titleCase(getTargetName(arti)) }}
+            </option>
+          </select>
+        </div>
+        <div v-if="mission.isFTL" class="hidden lg:block">
+          <div class="border-b border-gray-200">
+            <nav class="-mb-px flex">
+              <div
+                v-for="arti in targets"
+                :key="arti"
+                :class="[
+                  arti === selectedTarget
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 cursor-pointer',
+                  'group inline-flex items-center py-1 px-0.5 border-b-2 font-medium text-sm',
+                ]"
+                @click="selectedTarget = arti"
+              >
+                <img v-if="arti != 10000" class="h-6 w-6 min-w-full" :src="id2url(arti,32)" :alt="getTargetName(arti)" />
+                <template v-else>
+                  Untargeted
+                </template>
+              </div>
+            </nav>
+          </div>
+        </div>
       </div>
 
       <div class="flex rounded-md">
@@ -79,14 +112,8 @@
       </div>
 
       <p v-if="tooLittleDataForSelectedLevel" class="text-xs text-gray-500">
-        Too little data has been collected for this level; highly inaccurate drop rate estimates are
-        not shown. Please consider
-        <a
-          href="https://replit.com/@menno-egginc/EggIncDataCollection"
-          target="_blank"
-          class="text-gray-500 hover:text-gray-700 underline"
-          >contributing yours</a
-        >.
+        Too little data has been collected for this level/target combo; highly inaccurate drop rate estimates are
+        not shown. Please consider opting in to contribute yours on rockets tracker
       </p>
 
       <ul class="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
@@ -105,7 +132,7 @@
             class="text-green-700 ml-5 xs:ml-auto"
             :mission="mission"
             :level="selectedLevel"
-            :total-drops="selectedLevelTargetLoot.totalDrops"
+            :total-drops="selectedLevelTargetLoot?.totalDrops ?? 0"
             :item-drops="itemLoot.counts"
             :is-artifact="artifactItemIds.includes(itemLoot.itemId)"
             :hide-when-not-enough="true"
@@ -175,12 +202,17 @@ import { StarIcon } from '@heroicons/vue/solid';
 
 import {
   allPossibleTiers,
+  noFragTargets as targets,
   ei,
   getArtifactTierPropsFromId,
   getLocalStorage,
   getMissionTypeFromId,
   iconURL,
   setLocalStorage,
+  getTargetName,
+  getImageUrlFromId as id2url,
+  getTargetId,
+  titleCase,
 } from 'lib';
 import {
   cmpArtifactTiers,
@@ -256,6 +288,14 @@ export default defineComponent({
         selectedLevel.value = current;
       }
     });
+    const defaultTarget = ei.ArtifactSpec.Name.UNKNOWN;
+    const selectedTarget = ref(defaultTarget);
+    const selectTarget = (event: Event) => {
+      const x = getTargetId((event.target! as HTMLSelectElement).value);
+      selectedTarget.value = x;
+      console.log(x);
+    };
+
 
     const sortBy = ref(loadItemsSortBy());
     watch(sortBy, () => {
@@ -268,17 +308,16 @@ export default defineComponent({
       forceLevel(0);
     }
 
-    // hardcode no target for now
-    const target = ei.ArtifactSpec.Name.UNKNOWN;
     const selectedLevelTargetLoot = computed(() =>
-      selectedLevelLoot.value.targets.find(x => x.targetAfxId === target) ??
-      selectedLevelLoot.value.targets[selectedLevelLoot.value.targets.length - 1]
+      selectedLevelLoot.value.targets.find(x => x.targetAfxId === selectedTarget.value)
     );
 
     const tooLittleDataForSelectedLevel = computed(() =>
-      missionDataNotEnough(mission.value, selectedLevelTargetLoot.value.totalDrops)
+      selectedLevelTargetLoot.value ?
+      missionDataNotEnough(mission.value, selectedLevelTargetLoot.value.totalDrops) : true
     );
     const sortedItemsLoot = computed(() =>
+      selectedLevelTargetLoot.value ? 
       [...selectedLevelTargetLoot.value.items].sort((i1, i2) => {
         const item1 = getArtifactTierPropsFromId(i1.itemId);
         const item2 = getArtifactTierPropsFromId(i2.itemId);
@@ -296,7 +335,8 @@ export default defineComponent({
           return cmp;
         }
         return cmpArtifactTiers(item1, item2);
-      })
+      }) :
+      []
     );
 
     const configWithSelectedLevel = computed(() =>
@@ -310,7 +350,7 @@ export default defineComponent({
     );
     const selectedLevelExpectedFullConsumptionValuePerShip = computed(
       () =>
-        getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, target) *
+        getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, selectedTarget.value) *
         selectedLevelCapacity.value
     );
     const selectedLevelExpectedFullConsumptionValuePerDay = computed(
@@ -328,7 +368,7 @@ export default defineComponent({
     const precision = computed(() => {
       const perShip = Math.round(selectedLevelExpectedFullConsumptionValuePerShip.value);
       const nSamples = Math.round(
-        selectedLevelTargetLoot.value.totalDrops / mission.value.defaultCapacity
+        (selectedLevelTargetLoot.value?.totalDrops ?? 0)/ mission.value.defaultCapacity
       );
       return Math.min(`${perShip}`.length, `${nSamples * 5}`.length);
     });
@@ -341,19 +381,24 @@ export default defineComponent({
       sortBy,
       loot,
       selectedLevelLoot,
-      target,
+      selectTarget,
+      selectedTarget,
       selectedLevelTargetLoot,
       tooLittleDataForSelectedLevel,
       selectedLevelExpectedFullConsumptionValuePerShip,
       selectedLevelExpectedFullConsumptionValuePerDay,
       precision,
       selectLevel,
+      getTargetName,
       sortedItemsLoot,
       config,
       getArtifactTierPropsFromId,
       artifactItemIds,
       formatToPrecision,
+      titleCase,
       iconURL,
+      id2url,
+      targets,
     };
   },
 });
