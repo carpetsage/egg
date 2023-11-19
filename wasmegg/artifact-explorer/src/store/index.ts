@@ -2,7 +2,9 @@ import { ref } from 'vue';
 
 import {
   ei,
+  fixOldShipsConfig,
   getLocalStorage,
+  isOldShipsConfig,
   isShipsConfig,
   perfectShipsConfig,
   setLocalStorage,
@@ -41,7 +43,11 @@ export function loadConfig(): ShipsConfig {
   }
   if (isShipsConfig(storedConfig)) {
     return storedConfig;
-  } else {
+  }
+  else if (isOldShipsConfig(storedConfig)) {
+    return fixOldShipsConfig(storedConfig);
+  }
+  else {
     return perfectShipsConfig;
   }
 }

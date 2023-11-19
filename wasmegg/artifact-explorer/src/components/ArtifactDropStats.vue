@@ -98,8 +98,18 @@ export default defineComponent({
     )
     const expand = ref(getLocalStorage(COLLAPSE_ARTIFACT_DROP_RATES_LOCALSTORAGE_KEY) !== 'true');
     const loot = computed(() => getTierLootData(artifactId.value));
+    const filteredMissions = computed(() => {
+      if (config.value.onlyHenners) {
+        const filtered = loot.value.missions.filter(x => x.afxShip === ei.MissionInfo.Spaceship.HENERPRISE);
+        if (filtered.length > 0) {
+          return filtered;
+        }
+      }
+      return loot.value.missions;
+    }
+    )
     const missions = computed(() =>
-      loot.value.missions.map(missionLoot => {
+      filteredMissions.value.map(missionLoot => {
         const missionId = missionLoot.missionId;
         const mission = getMissionTypeFromId(missionId);
         let maxExpectedDropsPerDay = 0;
