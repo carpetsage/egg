@@ -119,6 +119,21 @@
                 </div>
               </template>
             </div>
+            <!-- Only show henners -->
+            <div>
+                <div class="flex items-center space-x-0.5">
+                  <input
+                    :id="`only_henerprise`"
+                    v-model="config.onlyHenners"
+                    :name="`only_henerprise`"
+                    type="checkbox"
+                    class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                  />&nbsp;
+                  <label class="text-sm text-gray-600">
+                    Only Show Henerprise
+                  </label>
+                </div>
+            </div>
             <!-- Target Selection for Artifact Page -->
             <div>
               <div class="text-sm font-medium text-gray-700">Ship Targets</div>
@@ -162,7 +177,7 @@ import {
 import { XIcon } from '@heroicons/vue/solid';
 
 import BaseIntegerInput from 'ui/components/BaseIntegerInput.vue';
-import { ei, getTargetName, getImageUrlFromId as id2url, shipMaxLevel, spaceshipList, spaceshipName, targets } from 'lib';
+import {ei, iconURL, getTargetName, getImageUrlFromId as id2url, shipMaxLevel, spaceshipIconPath, spaceshipList, spaceshipName, targets } from 'lib';
 import {
   closeConfigModal,
   config,
@@ -189,10 +204,12 @@ export default defineComponent({
       config,
       ei,
       id2url,
+      iconURL,
       getTargetName,
       spaceshipList,
       spaceshipName,
       shipMaxLevel,
+      spaceshipIconPath,
       setEpicResearchFTLLevel,
       setEpicResearchZerogLevel,
       setShipLevel,

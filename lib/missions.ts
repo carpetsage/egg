@@ -81,6 +81,14 @@ export interface ShipsConfig {
   epicResearchFTLLevel: number;
   epicResearchZerogLevel: number;
   shipLevels: Record<Spaceship, number>;
+  onlyHenners: boolean;
+  targets: Record<Artifact, boolean>;
+}
+
+export interface OldShipsConfig {
+  epicResearchFTLLevel: number;
+  epicResearchZerogLevel: number;
+  shipLevels: Record<Spaceship, number>;
   targets: Record<Artifact, boolean>;
 }
 
@@ -100,6 +108,7 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
   return {
     epicResearchFTLLevel,
     epicResearchZerogLevel,
+    onlyHenners: false,
     shipLevels: {
       [Spaceship.CHICKEN_ONE]: 0,
       [Spaceship.CHICKEN_NINE]: 0,
@@ -116,7 +125,25 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
   };
 }
 
+export function fixOldShipsConfig(x: OldShipsConfig): ShipsConfig {
+  const config = (x as ShipsConfig);
+  config.onlyHenners = false;
+  return config;
+}
+
+// check if *any* config value is not set
 export function isShipsConfig(x: unknown): x is ShipsConfig {
+  const validOldConfig = isOldShipsConfig(x);
+
+  if ((x as ShipsConfig).onlyHenners === undefined) {
+    return false;
+  }
+
+  return validOldConfig;
+}
+
+// Check if everything except new config value is set
+export function isOldShipsConfig(x: unknown): x is OldShipsConfig {
   if (typeof x !== 'object' || x === null) {
     return false;
   }
@@ -144,8 +171,11 @@ export function isShipsConfig(x: unknown): x is ShipsConfig {
       return false;
     }
   } catch (TypeError) { return false; }
+
   return true;
 }
+
+
 
 export class MissionType {
   shipType: Spaceship;
