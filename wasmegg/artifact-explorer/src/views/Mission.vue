@@ -293,7 +293,6 @@ export default defineComponent({
     const selectTarget = (event: Event) => {
       const x = getTargetId((event.target! as HTMLSelectElement).value);
       selectedTarget.value = x;
-      console.log(x);
     };
 
 

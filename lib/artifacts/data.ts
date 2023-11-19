@@ -82,9 +82,11 @@ export function getTargetName(afxId: Name): string {
 
 export function getTargetId(afxName: string) {
   for (const id of itemIdtoName.keys()) {
-    if (getTargetName(id) == afxName) {
+    if (getTargetName(id).toLowerCase() == afxName.toLowerCase()) {
       return id;
     }
+    console.log("target" + getTargetName(id))
+    console.log("selected" + afxName)
   }
   return 10000;
 }
