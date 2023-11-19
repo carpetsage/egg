@@ -5,7 +5,7 @@
     </label>
 
     <base-select-filterable
-      :items="missions"
+      :items="config.onlyHenners ? missions.reverse() : missions"
       :get-item-id="mission => mission.missionTypeId"
       :get-item-display="mission => mission.name"
       :get-item-icon-path="mission => mission.shipIconPath"
@@ -28,6 +28,7 @@ import { PropType } from 'vue';
 
 import { missionIdToMission, missions, searchMissions } from '@/lib/filter';
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
+import { config } from '@/store';
 
 const BaseSelectFilterable = GenericBaseSelectFilterable<typeof missions[number]>();
 
