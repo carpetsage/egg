@@ -113,6 +113,7 @@ export default defineComponent({
         const missionId = missionLoot.missionId;
         const mission = getMissionTypeFromId(missionId);
         let maxExpectedDropsPerDay = 0;
+        let selectedExpectedDropsPerDay = 0;
         for (const levelLoot of missionLoot.levels) {
           const totalDrops = levelLoot.totalDrops;
           if (missionDataNotEnough(mission, totalDrops) || mission.durationTypeName == 'Tutorial' ||
@@ -134,12 +135,16 @@ export default defineComponent({
           if (expectedDropsPerDay > maxExpectedDropsPerDay) {
             maxExpectedDropsPerDay = expectedDropsPerDay;
           }
+          if(levelIsSelected(mission, levelLoot.level)) {
+            selectedExpectedDropsPerDay = expectedDropsPerDay;
+          }
         }
         return {
           missionId,
           mission,
           loot: missionLoot,
           maxExpectedDropsPerDay,
+          selectedExpectedDropsPerDay,
         };
       })
     );
@@ -148,7 +153,10 @@ export default defineComponent({
       .filter(m => showShip(m.mission, afxId.value, m.loot))
       .sort((m1, m2) => {
         // Missions with better expected drops per day come first.
-        let cmp = m2.maxExpectedDropsPerDay - m1.maxExpectedDropsPerDay;
+        // Sort by drop rate of selected star levels if there is data, else use max expected drops
+        const m2expected = m2.selectedExpectedDropsPerDay > 0 ? m2.selectedExpectedDropsPerDay : m2.maxExpectedDropsPerDay;
+        const m1expected = m1.selectedExpectedDropsPerDay > 0 ? m1.selectedExpectedDropsPerDay : m1.maxExpectedDropsPerDay;
+        let cmp = m2expected - m1expected;
         if (cmp !== 0) {
           return cmp;
         }
