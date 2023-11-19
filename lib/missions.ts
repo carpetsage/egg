@@ -775,6 +775,7 @@ export function shipLevelLaunchPointThresholds(shipType: Spaceship): number[] {
 export const perfectShipsConfig: ShipsConfig = {
   epicResearchFTLLevel: 40,
   epicResearchZerogLevel: 10,
+  onlyHenners: false,
   shipLevels: {
     [Spaceship.CHICKEN_ONE]: shipMaxLevel(Spaceship.CHICKEN_ONE),
     [Spaceship.CHICKEN_NINE]: shipMaxLevel(Spaceship.CHICKEN_NINE),
