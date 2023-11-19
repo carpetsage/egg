@@ -64,7 +64,7 @@
         />
       </template>
       <!-- Nobel Prize in Animal Husbandry aka NAH -->
-      <template v-if="existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH">
+      <template v-if="showNAH">
         <trophy-forecast
           trophy-level="Nobel"
           trophy-name="Nobel Prize in Animal Husbandry&reg;"
@@ -245,6 +245,56 @@
             input for many parameters.
           </div>
         </template>
+        <template v-else-if="cashTargetPreDiscount <= 0 && cashTargetNAHPreDiscount > 0 && showNAH">
+          <p>
+            Cash required to reach minimum required Wormhole Dampening level
+            <span class="text-blue-500">25/25</span>
+            (before discounts):
+            <base-e-i-value class="text-pink-500" :value="cashTargetNAHPreDiscount" />
+          </p>
+          <target-cash-matrix
+            :base-target="cashTargetNAHPreDiscount"
+            :current="cashOnHand"
+            :targets="cashTargets"
+            :means="cashMeans"
+            class="my-2" />
+          <template v-if="betterCubePossible">
+              <p>Your best cube possible is pictured below (stone rearrangement possibly needed):</p>
+              <artifacts-gallery :artifacts="bestPossibleCubeSet" class="mt-2 mb-3" />
+          </template>
+        </template>
+
+        <template v-else-if="cashTargetNAHPreDiscount <= 0 && cashTargetACREPreDiscount >= 0">
+          <p>
+            Cash required to max out the farm
+            (before discounts):
+            <base-e-i-value class="text-pink-500" :value="cashTargetACREPreDiscount" />
+          </p>
+            <div class="relative flex items-start">
+                <div class="flex items-center h-5">
+                    <input
+                      id="target_ts"
+                      v-model="target_ts"
+                      name="target_ts"
+                      type="checkbox"
+                      class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+                    />
+                </div>
+            <div class="ml-2 text-sm">
+                <label for="target_ts" class="text-gray-600">Show required cash for Timeline Splicing only</label>
+            </div>
+          </div>
+          <target-cash-matrix
+            :base-target="target_ts ? cashTargetTSPreDiscount : cashTargetACREPreDiscount"
+            :current="cashOnHand"
+            :targets="cashTargets"
+            :means="cashMeans"
+            class="my-2" />
+          <template v-if="betterCubePossible">
+            <p>Your best cube possible is pictured below (stone rearrangement possibly needed):</p>
+            <artifacts-gallery :artifacts="bestPossibleCubeSet" class="mt-2 mb-3" />
+          </template>
+        </template>
       </collapsible-section>
 
       <hr />
@@ -293,7 +343,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, ref, watch } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -301,7 +351,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
-import { eggIconPath, iconURL, UserBackupEmptyError } from 'lib';
+import { eggIconPath, iconURL, UserBackupEmptyError, getLocalStorage, setLocalStorage } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
   bestPossibleGussetForEnlightenment,
@@ -328,6 +378,8 @@ import {
   requiredWDLevelForEnlightenmentDiamond,
   researchPriceMultiplierFromArtifacts,
   researchPriceMultiplierFromResearches,
+  calculateMaxFarmCostMissing,
+  calculateTSCost
 } from '@/lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { formatPercentage, formatWithThousandSeparators, formatDurationAuto } from '@/utils';
@@ -448,9 +500,12 @@ export default defineComponent({
     // check for t4l gusset + 3 t4 clarities
     const canNAH = computed(
       () =>
-        bestGusset?.afxRarity === ei.ArtifactSpec.Rarity.LEGENDARY && 
+        bestGusset?.afxRarity === ei.ArtifactSpec.Rarity.LEGENDARY &&
         bestGusset.clarityEffect === 3
     );
+    const showNAH = computed(() =>
+      existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH
+    )
     const bestPossibleGussetSet = bestPossibleGusset ? [bestPossibleGusset] : [];
     const minimumRequiredWDLevel = bestPossibleGusset
       ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset])
@@ -474,7 +529,20 @@ export default defineComponent({
     });
     const cashTargetPreDiscount =
       calculateWDLevelsCost(currentWDLevel, minimumRequiredWDLevel) *
+          researchPriceMultiplierFromResearches(farm, progress);
+
+    const cashTargetNAHPreDiscount =
+      calculateWDLevelsCost(currentWDLevel, 25) *
+          researchPriceMultiplierFromResearches(farm, progress);
+
+    const cashTargetACREPreDiscount =
+      calculateMaxFarmCostMissing(farm) *
       researchPriceMultiplierFromResearches(farm, progress);
+
+    const cashTargetTSPreDiscount =
+        calculateTSCost(farm) *
+          researchPriceMultiplierFromResearches(farm, progress);
+
     const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts);
     const bestPossibleCube = bestPossibleCubeForEnlightenment(backup);
     const bestPossibleCubeSet = bestPossibleCube ? [bestPossibleCube] : [];
@@ -546,6 +614,13 @@ export default defineComponent({
 
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 
+    const TARGET_TS_LOCALSTORAGE_KEY = 'targetTs';
+
+    const target_ts = ref(getLocalStorage(TARGET_TS_LOCALSTORAGE_KEY) === 'true');
+      watch(target_ts, () => {
+          setLocalStorage(TARGET_TS_LOCALSTORAGE_KEY, target_ts.value);
+      });
+
     return {
       nickname,
       lastRefreshed,
@@ -582,9 +657,12 @@ export default defineComponent({
       earningRateOffline,
       droneValuesAtMaxRCB,
       cashTargetPreDiscount,
+      cashTargetNAHPreDiscount,
+      cashTargetACREPreDiscount,
       cashTargets,
       cashMeans,
       canNAH,
+      showNAH,
       betterCubePossible,
       bestPossibleCubeSet,
       internalHatcheryResearches,
@@ -596,6 +674,8 @@ export default defineComponent({
       formatWithThousandSeparators,
       formatPercentage,
       iconURL,
+      cashTargetTSPreDiscount,
+      target_ts
     };
   },
 });

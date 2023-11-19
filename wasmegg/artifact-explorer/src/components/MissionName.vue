@@ -25,7 +25,7 @@
         <span class="ml-1 text-sm">{{ mission.name }}
         <span v-if="target !== undefined" class="font-bold">
           <template v-if="target !== 10000">
-            <img class="inline-flex h-6 w-6" :src="id2url(Number(target), 32)" :alt="ei.ArtifactSpec.Name[target]" />
+            <img class="inline-flex h-6 w-6" :src="id2url(target, 32)" :alt="ei.ArtifactSpec.Name[target]" />
             {{ getTargetName(target).split(' ').map(x => x[0].toUpperCase() + x.substring(1).toLowerCase()).join(' ') }} Target
           </template>
           <template v-else>
@@ -51,7 +51,7 @@ export default defineComponent({
       required: true,
     },
     target: {
-      type: Object as PropType<ei.ArtifactSpec.Name>,
+      type: Number as PropType<ei.ArtifactSpec.Name>,
       required: false,
       default: undefined,
     },

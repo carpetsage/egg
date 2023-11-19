@@ -98,11 +98,22 @@ export default defineComponent({
     )
     const expand = ref(getLocalStorage(COLLAPSE_ARTIFACT_DROP_RATES_LOCALSTORAGE_KEY) !== 'true');
     const loot = computed(() => getTierLootData(artifactId.value));
+    const filteredMissions = computed(() => {
+      if (config.value.onlyHenners) {
+        const filtered = loot.value.missions.filter(x => x.afxShip === ei.MissionInfo.Spaceship.HENERPRISE);
+        if (filtered.length > 0) {
+          return filtered;
+        }
+      }
+      return loot.value.missions;
+    }
+    )
     const missions = computed(() =>
-      loot.value.missions.map(missionLoot => {
+      filteredMissions.value.map(missionLoot => {
         const missionId = missionLoot.missionId;
         const mission = getMissionTypeFromId(missionId);
         let maxExpectedDropsPerDay = 0;
+        let selectedExpectedDropsPerDay = 0;
         for (const levelLoot of missionLoot.levels) {
           const totalDrops = levelLoot.totalDrops;
           if (missionDataNotEnough(mission, totalDrops) || mission.durationTypeName == 'Tutorial' ||
@@ -124,12 +135,16 @@ export default defineComponent({
           if (expectedDropsPerDay > maxExpectedDropsPerDay) {
             maxExpectedDropsPerDay = expectedDropsPerDay;
           }
+          if(levelIsSelected(mission, levelLoot.level)) {
+            selectedExpectedDropsPerDay = expectedDropsPerDay;
+          }
         }
         return {
           missionId,
           mission,
           loot: missionLoot,
           maxExpectedDropsPerDay,
+          selectedExpectedDropsPerDay,
         };
       })
     );
@@ -138,7 +153,10 @@ export default defineComponent({
       .filter(m => showShip(m.mission, afxId.value, m.loot))
       .sort((m1, m2) => {
         // Missions with better expected drops per day come first.
-        let cmp = m2.maxExpectedDropsPerDay - m1.maxExpectedDropsPerDay;
+        // Sort by drop rate of selected star levels if there is data, else use max expected drops
+        const m2expected = m2.selectedExpectedDropsPerDay > 0 ? m2.selectedExpectedDropsPerDay : m2.maxExpectedDropsPerDay;
+        const m1expected = m1.selectedExpectedDropsPerDay > 0 ? m1.selectedExpectedDropsPerDay : m1.maxExpectedDropsPerDay;
+        let cmp = m2expected - m1expected;
         if (cmp !== 0) {
           return cmp;
         }
