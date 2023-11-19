@@ -66,7 +66,7 @@
             :value="titleCase(getTargetName(selectedTarget))"
             @input="selectTarget"
           >
-            <option v-for="arti in targets" :key="arti">
+            <option v-for="arti,index in targets" :key="index">
               {{ titleCase(getTargetName(arti)) }}
             </option>
           </select>

@@ -36,7 +36,7 @@ export const targets = [
   Artifact.TACHYON_STONE_FRAGMENT, Artifact.TERRA_STONE_FRAGMENT, Artifact.UNKNOWN,
 ];
 
-export const noFragTargets = [ Artifact.PUZZLE_CUBE, Artifact.LUNAR_TOTEM, Artifact.DEMETERS_NECKLACE,
+export const noFragTargets = [Artifact.UNKNOWN, Artifact.PUZZLE_CUBE, Artifact.LUNAR_TOTEM, Artifact.DEMETERS_NECKLACE,
   Artifact.VIAL_MARTIAN_DUST, Artifact.AURELIAN_BROOCH, Artifact.TUNGSTEN_ANKH,
   Artifact.ORNATE_GUSSET, Artifact.NEODYMIUM_MEDALLION, Artifact.MERCURYS_LENS,
   Artifact.BEAK_OF_MIDAS, Artifact.CARVED_RAINSTICK, Artifact.INTERSTELLAR_COMPASS,
@@ -46,7 +46,7 @@ export const noFragTargets = [ Artifact.PUZZLE_CUBE, Artifact.LUNAR_TOTEM, Artif
   Artifact.GOLD_METEORITE, Artifact.TAU_CETI_GEODE, Artifact.SOLAR_TITANIUM,
   Artifact.CLARITY_STONE, Artifact.DILITHIUM_STONE, Artifact.LIFE_STONE,
   Artifact.LUNAR_STONE, Artifact.PROPHECY_STONE, Artifact.QUANTUM_STONE,
-  Artifact.SHELL_STONE, Artifact.SOUL_STONE, Artifact.TACHYON_STONE, Artifact.UNKNOWN]
+  Artifact.SHELL_STONE, Artifact.SOUL_STONE, Artifact.TACHYON_STONE]
 
 // Default selection state for targets.
 const targetDefaults: Record<Artifact,boolean> = {
