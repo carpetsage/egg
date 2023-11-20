@@ -65,9 +65,6 @@ func main() {
 			}
 			numRarities := len(at.Rarities)
 			expectedNumRarities := 1
-			if t.HasRarities {
-				expectedNumRarities = len(t.PossibleAfxRarities)
-			}
 			if numRarities != expectedNumRarities {
 				panic(fmt.Sprintf("expected %d rarities, got %d rarities for %+v", expectedNumRarities, numRarities, t))
 			}
@@ -98,13 +95,13 @@ func main() {
 			}
 		}
 	}
-
 	encoded, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		log.Fatalf("error serializing app payload: %s", err)
 	}
 	encoded = append(encoded, '\n')
 	err = ioutil.WriteFile(_appDataFile, encoded, 0o644)
+
 	if err != nil {
 		log.Fatalf("error writing to %s: %s", _appDataFile, err)
 	}

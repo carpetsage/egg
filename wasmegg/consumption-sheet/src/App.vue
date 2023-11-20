@@ -207,7 +207,8 @@ export default defineComponent({
     ConsumptionOutcome,
     Sources,
   },
-  setup() {
+    setup() {
+        console.log(data);
     return {
       data,
       iconURL,
