@@ -10719,6 +10719,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1700499600.0,
+    "id": "ultra-11-19",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1700413200.0,
+    "type": "mission-fuel",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1700586000.0,
     "id": "event-11-19-2",
     "message": "2x MISSION CAPACITY!!!",
@@ -10728,12 +10737,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1700499600.0,
-    "id": "ultra-11-19",
-    "message": "3x FUELING!",
-    "multiplier": 3.0,
-    "startTimestamp": 1700413200.0,
-    "type": "mission-fuel",
-    "ultra": true
+    "endTimestamp": 1700586000.0,
+    "id": "event-11-20",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1700499600.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
