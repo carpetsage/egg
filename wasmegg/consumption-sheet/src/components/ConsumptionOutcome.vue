@@ -8,7 +8,7 @@
     </div>
 
     <div
-      v-if="outcome.expected_gold === 0 || outcome.expected_byproducts !== null"
+      v-if="outcome.raw_rewards.lenght == 0 || outcome.product_rewards !== null"
       class="text-xs text-lime-500"
     >
       <span
@@ -23,10 +23,18 @@
           class="h-3.5 w-3.5 inline relative -top-px -ml-0.5 -mr-1"
           :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
         />{{ ' ' }}
-        <template v-if="outcome.full_consumation.lenght > 0">{{
-          formatFloat(outcome.full_consumation[0].reward_amount, { digits: 1, trim: true })
+        <template v-if="outcome.full_consumation?.filter(f=>f.reward_type==2).length > 0">{{
+          formatFloat(outcome.full_consumation.filter(f=>f.reward_type==2)[0].reward_amount, { digits: 1, trim: true })
         }}</template
-        ><template v-else>?</template><template v-if="outcome.item.afx_rarity > 0">;</template>
+        ><template v-else>0</template><template v-if="outcome.item.afx_rarity > 0">;</template>
+          <img
+          class="h-3.5 w-3.5 inline relative -top-px -ml-0.5 -mr-1"
+          :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)"
+        />{{ ' ' }}
+        <template v-if="outcome.full_consumation?.filter(f=>f.reward_type==6).length > 0">{{
+          formatFloat(outcome.full_consumation.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 1, trim: true })
+        }}</template
+        ><template v-else>0</template><template v-if="outcome.item.afx_rarity > 0">;</template>
       </span>    
     </div>
   </template>
@@ -37,16 +45,27 @@
         v-if="outcome.raw_rewards.lenght > 0"
         class="inline-flex items-center mr-1.5 whitespace-nowrap"
       >
+         <div v-if="outcome.raw_rewards.filter(f=>f.reward_type==2).lenght > 0">
         <img
           class="h-6 w-6 -m-1 mr-0 p-1"
           :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
         />
-        <span v-if="outcome.expected_byproducts !== null" class="w-9"
-          >&times;{{ formatFloat(outcome.expected_gold, { digits: 2 }) }}</span
+        <span v-if="outcome.product_rewards.filter(f=>f.reward_type==2) !== null" class="w-9"
+          >&times;{{ formatFloat(outcome.product_rewards.filter(f=>f.reward_type==2).reward_amount, { digits: 2 }) }}</span
         >
-        <span v-else class="-ml-1">{{ formatFloat(outcome.expected_gold, { digits: 2 }) }}</span>
+        <span v-else class="-ml-1">{{ formatFloat(outcome.product_rewards.filter(f=>f.reward_type==2).reward_amount, { digits: 2 }) }}</span>
+        </div>
+        <div v-if="outcome.raw_rewards.filter(f=>f.reward_type==6).lenght > 0">
+            <img
+              class="h-6 w-6 -m-1 mr-0 p-1"
+              :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
+            />
+            <span v-if="outcome.expected_byproducts !== null" class="w-9"
+              >&times;{{formatFloat(outcome.expected_gold, { digits: 2 }) }}</span
+            >
+            <span v-else class="-ml-1">{{ formatFloat(outcome.expected_gold, { digits: 2 }) }}</span>
+            </div>
       </span>
-
       <span
         v-for="byproduct in outcome.product_rewards"
         :key="byproduct.id"
@@ -88,8 +107,8 @@ export default defineComponent({
       required: true,
     },
   },
-  setup() {
-    const showSamples = ref(false);
+    setup() {
+      const showSamples = ref(false);
     return {
       showSamples,
       rarityFgClass,
