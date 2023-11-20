@@ -16,11 +16,10 @@ var _consumptionDataJSON []byte
 var Outcomes []ConsumptionOutcome
 
 type ConsumptionOutcome struct {
-	Item                        Item                `json:"item"`
-	ExpectedGold                float64             `json:"expected_gold"`
-	ExpectedByproducts          []ExpectedByproduct `json:"expected_byproducts"`
-	ExpectedFullConsumptionGold float64             `json:"expected_full_consumption_gold"`
-	DemotionGold                *float64            `json:"demotion_gold"`
+	Item                        Item					`json:"item"`
+	RawProduct					[]RawProduct			`json:"raw_rewards"`
+	ExpectedByproducts          []ExpectedByproduct		`json:"product_rewards"`
+	ExpectedFullConsumption		[]RawProduct			`json:"full_consumation"`
 }
 
 type Item struct {
@@ -39,9 +38,10 @@ type ExpectedByproduct struct {
 	ExpectedCount float64 `json:"expected_count"`
 }
 
-type Byproduct struct {
-	Item
-	Count int `json:"count"`
+type RawProduct struct {
+	RewardType int			`json:"reward_type"`
+	RewardTypeName string	`json:"reward_type_name"`
+	RewardAmount float64	`json:"reward_amount"`
 }
 
 func LoadData() error {

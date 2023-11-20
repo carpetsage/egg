@@ -1,4562 +1,3748 @@
 [
   {
     "item": {
-      "afx_id": 23,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Ancient puzzle cube",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 2,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 2,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 23,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Puzzle cube",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.5337
-      },
-      {
-        "afx_id": 44,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Dilithium stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.22825
-      }
-    ],
-    "expected_full_consumption_gold": 26.421100000000003,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 23,
-      "afx_level": 1,
-      "afx_rarity": 2,
-      "name": "Puzzle cube",
-      "tier_number": 2,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 15
-  },
-  {
-    "item": {
-      "afx_id": 23,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Mystical puzzle cube",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.3684
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0358
-      },
-      {
-        "afx_id": 44,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Dilithium stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.7263
-      }
-    ],
-    "expected_full_consumption_gold": 74.0184,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 23,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Mystical puzzle cube",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 275
-  },
-  {
-    "item": {
-      "afx_id": 23,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Unsolvable puzzle cube",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.66315
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.1455
-      },
-      {
-        "afx_id": 44,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Dilithium stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.301
-      }
-    ],
-    "expected_full_consumption_gold": 134.26069999999999,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 23,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Unsolvable puzzle cube",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 907
-  },
-  {
-    "item": {
-      "afx_id": 23,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Unsolvable puzzle cube",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 907
-  },
-  {
-    "item": {
-      "afx_id": 23,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Unsolvable puzzle cube",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 907
-  },
-  {
-    "item": {
       "afx_id": 0,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Basic lunar totem",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "LunarTotem",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 2,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 2,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 2
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
       "afx_id": 0,
       "afx_level": 1,
       "afx_rarity": 0,
-      "name": "Lunar totem",
-      "tier_number": 2,
-      "rarity": "Common"
+      "name": "LunarTotem",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
     },
-    "expected_gold": 0,
-    "expected_byproducts": [
+    "raw_rewards": [],
+    "product_rewards": [
       {
+        "expected_count": 2,
         "afx_id": 46,
         "afx_level": 0,
         "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
+        "name": "LunarStoneFragment",
         "rarity": "Common",
-        "expected_count": 1.9312
-      },
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.0344
+        "level": "Inferior",
+        "tier_number": 1
       }
     ],
-    "expected_full_consumption_gold": 13.8576,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 0,
-      "afx_level": 1,
-      "afx_rarity": 1,
-      "name": "Lunar totem",
-      "tier_number": 2,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 11
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 12
+      }
+    ]
   },
   {
     "item": {
       "afx_id": 0,
       "afx_level": 2,
       "afx_rarity": 0,
-      "name": "Powerful lunar totem",
-      "tier_number": 3,
-      "rarity": "Common"
+      "name": "LunarTotem",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
     },
-    "expected_gold": 0,
-    "expected_byproducts": [
+    "raw_rewards": [],
+    "product_rewards": [
       {
+        "expected_count": 5,
         "afx_id": 46,
         "afx_level": 0,
         "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
+        "name": "LunarStoneFragment",
         "rarity": "Common",
-        "expected_count": 4.63925
-      },
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.0958
+        "level": "Inferior",
+        "tier_number": 1
       }
     ],
-    "expected_full_consumption_gold": 34.1583,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 0,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Powerful lunar totem",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 134
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 30
+      }
+    ]
   },
   {
     "item": {
       "afx_id": 0,
       "afx_level": 3,
       "afx_rarity": 0,
-      "name": "Eggceptional lunar totem",
-      "tier_number": 4,
-      "rarity": "Common"
+      "name": "LunarTotem",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
     },
-    "expected_gold": 0,
-    "expected_byproducts": [
+    "raw_rewards": [],
+    "product_rewards": [
       {
+        "expected_count": 5,
         "afx_id": 46,
         "afx_level": 0,
         "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
+        "name": "LunarStoneFragment",
         "rarity": "Common",
-        "expected_count": 6.4664
+        "level": "Inferior",
+        "tier_number": 1
       },
       {
-        "afx_id": 33,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0356
-      },
-      {
+        "expected_count": 1,
         "afx_id": 50,
         "afx_level": 0,
         "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
+        "name": "TerraStoneFragment",
         "rarity": "Common",
-        "expected_count": 0.16
+        "level": "Inferior",
+        "tier_number": 1
       }
     ],
-    "expected_full_consumption_gold": 51.7436,
-    "demotion_gold": null
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 96
+      }
+    ]
   },
   {
     "item": {
-      "afx_id": 0,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Eggceptional lunar totem",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 427
-  },
-  {
-    "item": {
-      "afx_id": 0,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Eggceptional lunar totem",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 427
-  },
-  {
-    "item": {
-      "afx_id": 6,
+      "afx_id": 1,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Simple Demeters necklace",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "TachyonStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
     },
-    "expected_gold": 0.1057,
-    "expected_byproducts": [
+    "raw_rewards": [
       {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.94715
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 73
       }
     ],
-    "expected_full_consumption_gold": 7.6829,
-    "demotion_gold": null
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 6,
+      "afx_id": 1,
       "afx_level": 1,
       "afx_rarity": 0,
-      "name": "Jeweled Demeters necklace",
-      "tier_number": 2,
-      "rarity": "Common"
+      "name": "TachyonStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
     },
-    "expected_gold": 0,
-    "expected_byproducts": [
+    "raw_rewards": [
       {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 370
       }
     ],
-    "expected_full_consumption_gold": 16,
-    "demotion_gold": null
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 6,
-      "afx_level": 1,
-      "afx_rarity": 1,
-      "name": "Jeweled Demeters necklace",
-      "tier_number": 2,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 30
-  },
-  {
-    "item": {
-      "afx_id": 6,
+      "afx_id": 1,
       "afx_level": 2,
       "afx_rarity": 0,
-      "name": "Pristine Demeters necklace",
-      "tier_number": 3,
-      "rarity": "Common"
+      "name": "TachyonStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
     },
-    "expected_gold": 0,
-    "expected_byproducts": [
+    "raw_rewards": [
       {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.9535
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.0155
-      }
-    ],
-    "expected_full_consumption_gold": 33.891,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 6,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Pristine Demeters necklace",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 181
-  },
-  {
-    "item": {
-      "afx_id": 6,
-      "afx_level": 2,
-      "afx_rarity": 2,
-      "name": "Pristine Demeters necklace",
-      "tier_number": 3,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 181
-  },
-  {
-    "item": {
-      "afx_id": 6,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Beggspoke Demeters necklace",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 6.2981
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.12505
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.02555
-      }
-    ],
-    "expected_full_consumption_gold": 61.24295,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 6,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Beggspoke Demeters necklace",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 537
-  },
-  {
-    "item": {
-      "afx_id": 6,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Beggspoke Demeters necklace",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 537
-  },
-  {
-    "item": {
-      "afx_id": 6,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Beggspoke Demeters necklace",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 537
-  },
-  {
-    "item": {
-      "afx_id": 7,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Tiny vial of Martian dust",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 46,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1
-      }
-    ],
-    "expected_full_consumption_gold": 6,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 7,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Vial of Martian dust",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 46,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2.5874
-      },
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.7063
-      }
-    ],
-    "expected_full_consumption_gold": 62.1402,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 7,
-      "afx_level": 1,
-      "afx_rarity": 1,
-      "name": "Vial of Martian dust",
-      "tier_number": 2,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 107
-  },
-  {
-    "item": {
-      "afx_id": 7,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Hermetic vial of Martian dust",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 46,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.76485
-      },
-      {
-        "afx_id": 33,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.01945
-      },
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.35255
-      }
-    ],
-    "expected_full_consumption_gold": 113.16055,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 7,
-      "afx_level": 2,
-      "afx_rarity": 2,
-      "name": "Hermetic vial of Martian dust",
-      "tier_number": 3,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 401
-  },
-  {
-    "item": {
-      "afx_id": 7,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Prime vial of Martian dust",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 46,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.3641
-      },
-      {
-        "afx_id": 33,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.05525
-      },
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2.24385
-      },
-      {
-        "afx_id": 37,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.04475
-      }
-    ],
-    "expected_full_consumption_gold": 193.19895,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 7,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Prime vial of Martian dust",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1193
-  },
-  {
-    "item": {
-      "afx_id": 7,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Prime vial of Martian dust",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1193
-  },
-  {
-    "item": {
-      "afx_id": 21,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Plain Aurelian brooch",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 2,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 2,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 21,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Aurelian brooch",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1
-      }
-    ],
-    "expected_full_consumption_gold": 52,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 21,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Jeweled Aurelian brooch",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2.9679
-      }
-    ],
-    "expected_full_consumption_gold": 154.3308,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 21,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Jeweled Aurelian brooch",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 265
-  },
-  {
-    "item": {
-      "afx_id": 21,
-      "afx_level": 2,
-      "afx_rarity": 2,
-      "name": "Jeweled Aurelian brooch",
-      "tier_number": 3,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 265
-  },
-  {
-    "item": {
-      "afx_id": 21,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Eggceptional Aurelian brooch",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4
-      }
-    ],
-    "expected_full_consumption_gold": 208,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 21,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Eggceptional Aurelian brooch",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 677
-  },
-  {
-    "item": {
-      "afx_id": 21,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Eggceptional Aurelian brooch",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 677
-  },
-  {
-    "item": {
-      "afx_id": 21,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Eggceptional Aurelian brooch",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 677
-  },
-  {
-    "item": {
-      "afx_id": 12,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Crude tungsten ankh",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1
-      }
-    ],
-    "expected_full_consumption_gold": 8,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 12,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Tungsten ankh",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.99695
-      }
-    ],
-    "expected_full_consumption_gold": 31.9756,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 12,
-      "afx_level": 1,
-      "afx_rarity": 1,
-      "name": "Tungsten ankh",
-      "tier_number": 2,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 120
-  },
-  {
-    "item": {
-      "afx_id": 12,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Polished tungsten ankh",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.5685
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0863
-      }
-    ],
-    "expected_full_consumption_gold": 49.4671,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 12,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Polished tungsten ankh",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 389
-  },
-  {
-    "item": {
-      "afx_id": 12,
-      "afx_level": 2,
-      "afx_rarity": 3,
-      "name": "Polished tungsten ankh",
-      "tier_number": 3,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 389
-  },
-  {
-    "item": {
-      "afx_id": 12,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Brilliant tungsten ankh",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 7.988
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.2024
-      }
-    ],
-    "expected_full_consumption_gold": 75.4408,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 12,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Brilliant tungsten ankh",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1025
-  },
-  {
-    "item": {
-      "afx_id": 12,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Brilliant tungsten ankh",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1025
-  },
-  {
-    "item": {
-      "afx_id": 8,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Plain gusset",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0.102,
-    "expected_byproducts": [
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.67495
-      },
-      {
-        "afx_id": 51,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.31825
-      }
-    ],
-    "expected_full_consumption_gold": 66.60794999999999,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 8,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Ornate gusset",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.3376
-      },
-      {
-        "afx_id": 51,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.6624
-      }
-    ],
-    "expected_full_consumption_gold": 133.9872,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 8,
-      "afx_level": 1,
-      "afx_rarity": 2,
-      "name": "Ornate gusset",
-      "tier_number": 2,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 141
-  },
-  {
-    "item": {
-      "afx_id": 8,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Distegguished gusset",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2.0151
-      },
-      {
-        "afx_id": 51,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.9849
-      }
-    ],
-    "expected_full_consumption_gold": 200.9547,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 8,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Distegguished gusset",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 427
-  },
-  {
-    "item": {
-      "afx_id": 8,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Jeweled gusset",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.15115
-      },
-      {
-        "afx_id": 37,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0884
-      },
-      {
-        "afx_id": 51,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.43375
-      },
-      {
-        "afx_id": 38,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0123
-      }
-    ],
-    "expected_full_consumption_gold": 328.63285,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 8,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Jeweled gusset",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1327
-  },
-  {
-    "item": {
-      "afx_id": 8,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Jeweled gusset",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1327
-  },
-  {
-    "item": {
-      "afx_id": 3,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Weak neodymium medallion",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 46,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.7224
-      },
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.1388
-      }
-    ],
-    "expected_full_consumption_gold": 17.552,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 3,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Neodymium medallion",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 46,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.2381
-      },
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.38095
-      }
-    ],
-    "expected_full_consumption_gold": 39.238,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 3,
-      "afx_level": 1,
-      "afx_rarity": 1,
-      "name": "Neodymium medallion",
-      "tier_number": 2,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 120
-  },
-  {
-    "item": {
-      "afx_id": 3,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Precise neodymium medallion",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 46,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4.7052
-      },
-      {
-        "afx_id": 33,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0159
-      },
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.5997
-      }
-    ],
-    "expected_full_consumption_gold": 60.4809,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 3,
-      "afx_level": 2,
-      "afx_rarity": 2,
-      "name": "Precise neodymium medallion",
-      "tier_number": 3,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 296
-  },
-  {
-    "item": {
-      "afx_id": 3,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Eggceptional neodymium medallion",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 46,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 6.84985
-      },
-      {
-        "afx_id": 33,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Lunar stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0599
-      },
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.89095
-      }
-    ],
-    "expected_full_consumption_gold": 91.4418,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 3,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Eggceptional neodymium medallion",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 677
-  },
-  {
-    "item": {
-      "afx_id": 3,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Eggceptional neodymium medallion",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 677
-  },
-  {
-    "item": {
-      "afx_id": 3,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Eggceptional neodymium medallion",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 677
-  },
-  {
-    "item": {
-      "afx_id": 30,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Misaligned Mercury's lens",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2
-      }
-    ],
-    "expected_full_consumption_gold": 16,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 30,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Mercury's lens",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4
-      }
-    ],
-    "expected_full_consumption_gold": 32,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 30,
-      "afx_level": 1,
-      "afx_rarity": 1,
-      "name": "Mercury's lens",
-      "tier_number": 2,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 173
-  },
-  {
-    "item": {
-      "afx_id": 30,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Precise Mercury's lens",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.55475
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.08905
-      }
-    ],
-    "expected_full_consumption_gold": 49.513850000000005,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 30,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Precise Mercury's lens",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 440
-  },
-  {
-    "item": {
-      "afx_id": 30,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Meggnificent Mercury's lens",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 9.5837
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.2775
-      }
-    ],
-    "expected_full_consumption_gold": 92.4871,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 30,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Meggnificent Mercury's lens",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1421
-  },
-  {
-    "item": {
-      "afx_id": 30,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Meggnificent Mercury's lens",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1421
-  },
-  {
-    "item": {
-      "afx_id": 30,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Meggnificent Mercury's lens",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1421
-  },
-  {
-    "item": {
-      "afx_id": 4,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Dull beak of Midas",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.9871
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.00645
-      }
-    ],
-    "expected_full_consumption_gold": 16.8385,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 4,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Beak of Midas",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.9508
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.0164
-      }
-    ],
-    "expected_full_consumption_gold": 34.0008,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 4,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Jeweled beak of Midas",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.5122
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.08445
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.02185
-      }
-    ],
-    "expected_full_consumption_gold": 52.101350000000004,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 4,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Jeweled beak of Midas",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 377
-  },
-  {
-    "item": {
-      "afx_id": 4,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Glistening beak of Midas",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 7.73425
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.19955
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.0318
-      }
-    ],
-    "expected_full_consumption_gold": 77.89115,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 4,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Glistening beak of Midas",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 869
-  },
-  {
-    "item": {
-      "afx_id": 4,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Glistening beak of Midas",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 869
-  },
-  {
-    "item": {
-      "afx_id": 22,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Simple carved rainstick",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2.214
-      },
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.393
-      }
-    ],
-    "expected_full_consumption_gold": 43.650000000000006,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 22,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Carved rainstick",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.36055
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0352
-      },
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.70375
-      }
-    ],
-    "expected_full_consumption_gold": 75.3383,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 22,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Ornate carved rainstick",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4.5952
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.08815
-      },
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.98055
-      }
-    ],
-    "expected_full_consumption_gold": 106.50245000000001,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 22,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Meggnificent carved rainstick",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 6.19
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.17265
-      },
-      {
-        "afx_id": 50,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.34785
-      },
-      {
-        "afx_id": 37,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Terra stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0318
-      }
-    ],
-    "expected_full_consumption_gold": 154.86995000000002,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 22,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Meggnificent carved rainstick",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1350
-  },
-  {
-    "item": {
-      "afx_id": 22,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Meggnificent carved rainstick",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1350
-  },
-  {
-    "item": {
-      "afx_id": 27,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Miscalibrated interstellar compass",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1
-      }
-    ],
-    "expected_full_consumption_gold": 52,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 27,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Interstellar compass",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2
-      }
-    ],
-    "expected_full_consumption_gold": 104,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 27,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Precise interstellar compass",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3
-      }
-    ],
-    "expected_full_consumption_gold": 156,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 27,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Precise interstellar compass",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 509
-  },
-  {
-    "item": {
-      "afx_id": 27,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Clairvoyant interstellar compass",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4.761
-      },
-      {
-        "afx_id": 36,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0478
-      }
-    ],
-    "expected_full_consumption_gold": 259.0918,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 27,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Clairvoyant interstellar compass",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1193
-  },
-  {
-    "item": {
-      "afx_id": 27,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Clairvoyant interstellar compass",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1193
-  },
-  {
-    "item": {
-      "afx_id": 27,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Clairvoyant interstellar compass",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1193
-  },
-  {
-    "item": {
-      "afx_id": 9,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Plain chalice",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 51,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1
-      }
-    ],
-    "expected_full_consumption_gold": 69,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 9,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Polished chalice",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 51,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2
-      }
-    ],
-    "expected_full_consumption_gold": 138,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 9,
-      "afx_level": 1,
-      "afx_rarity": 2,
-      "name": "Polished chalice",
-      "tier_number": 2,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 198
-  },
-  {
-    "item": {
-      "afx_id": 9,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Jeweled chalice",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 51,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3
-      }
-    ],
-    "expected_full_consumption_gold": 207,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 9,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Jeweled chalice",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 440
-  },
-  {
-    "item": {
-      "afx_id": 9,
-      "afx_level": 2,
-      "afx_rarity": 2,
-      "name": "Jeweled chalice",
-      "tier_number": 3,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 440
-  },
-  {
-    "item": {
-      "afx_id": 9,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Eggceptional chalice",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 51,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4.477
-      },
-      {
-        "afx_id": 38,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Life stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.05055
-      }
-    ],
-    "expected_full_consumption_gold": 323.3703,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 9,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Eggceptional chalice",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1193
-  },
-  {
-    "item": {
-      "afx_id": 9,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Eggceptional chalice",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1193
-  },
-  {
-    "item": {
-      "afx_id": 11,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Tattered phoenix feather",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 47,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Soul stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2
-      }
-    ],
-    "expected_full_consumption_gold": 112,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 11,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Phoenix feather",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 47,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Soul stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2.99745
-      }
-    ],
-    "expected_full_consumption_gold": 167.8572,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 11,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Brilliant phoenix feather",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 47,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Soul stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.99935
-      }
-    ],
-    "expected_full_consumption_gold": 223.9636,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 11,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Brilliant phoenix feather",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 613
-  },
-  {
-    "item": {
-      "afx_id": 11,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Blazing phoenix feather",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 47,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Soul stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.45825
-      },
-      {
-        "afx_id": 34,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Soul stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.10835
-      }
-    ],
-    "expected_full_consumption_gold": 327.9821,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 11,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Blazing phoenix feather",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1695
-  },
-  {
-    "item": {
-      "afx_id": 11,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Blazing phoenix feather",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1695
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Misaligned quantum metronome",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2
-      }
-    ],
-    "expected_full_consumption_gold": 104,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Adequate quantum metronome",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3
-      }
-    ],
-    "expected_full_consumption_gold": 156,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 1,
-      "afx_rarity": 1,
-      "name": "Adequate quantum metronome",
-      "tier_number": 2,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 318
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Perfect quantum metronome",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4
-      }
-    ],
-    "expected_full_consumption_gold": 208,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Perfect quantum metronome",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 744
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 2,
-      "afx_rarity": 2,
-      "name": "Perfect quantum metronome",
-      "tier_number": 3,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 744
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Reggference quantum metronome",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 49,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.54
-      },
-      {
-        "afx_id": 36,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Quantum stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.092
-      }
-    ],
-    "expected_full_consumption_gold": 310.252,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Reggference quantum metronome",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1669
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Reggference quantum metronome",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1669
-  },
-  {
-    "item": {
-      "afx_id": 24,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Reggference quantum metronome",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1669
-  },
-  {
-    "item": {
-      "afx_id": 28,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Dilithium monocle",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 44,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Dilithium stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2
-      }
-    ],
-    "expected_full_consumption_gold": 124,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 28,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Precise dilithium monocle",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 44,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Dilithium stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3
-      }
-    ],
-    "expected_full_consumption_gold": 186,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 28,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Eggsacting dilithium monocle",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 44,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Dilithium stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4
-      }
-    ],
-    "expected_full_consumption_gold": 248,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 28,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Flawless dilithium monocle",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 44,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Dilithium stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.8065
-      },
-      {
-        "afx_id": 31,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Dilithium stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.03225
-      }
-    ],
-    "expected_full_consumption_gold": 372.4515,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 28,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Flawless dilithium monocle",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1854
-  },
-  {
-    "item": {
-      "afx_id": 28,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Flawless dilithium monocle",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1854
-  },
-  {
-    "item": {
-      "afx_id": 29,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Inconsistent titanium actuator",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 2,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2.99145
-      }
-    ],
-    "expected_full_consumption_gold": 86.75205,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 29,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Titanium actuator",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 2,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.6876
-      },
-      {
-        "afx_id": 1,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.0781
-      }
-    ],
-    "expected_full_consumption_gold": 112.64170000000001,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 29,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Precise titanium actuator",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 2,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.13055
-      },
-      {
-        "afx_id": 1,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.21735
-      }
-    ],
-    "expected_full_consumption_gold": 164.6525,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 29,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Precise titanium actuator",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 888
-  },
-  {
-    "item": {
-      "afx_id": 29,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Reggference titanium actuator",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 1,
-        "afx_level": 1,
-        "afx_rarity": 0,
-        "name": "Eggsquisite tachyon stone",
-        "tier_number": 3,
-        "rarity": "Common",
-        "expected_count": 0.01605
-      },
-      {
-        "afx_id": 2,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 6.31815
-      },
-      {
-        "afx_id": 1,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.3336
-      }
-    ],
-    "expected_full_consumption_gold": 213.51765,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 29,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Reggference titanium actuator",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1592
-  },
-  {
-    "item": {
-      "afx_id": 29,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Reggference titanium actuator",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1592
-  },
-  {
-    "item": {
-      "afx_id": 25,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Ship in a bottle",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1
-      }
-    ],
-    "expected_full_consumption_gold": 146,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 25,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Detailed ship in a bottle",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2
-      }
-    ],
-    "expected_full_consumption_gold": 292,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 25,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Complex ship in a bottle",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3
-      }
-    ],
-    "expected_full_consumption_gold": 438,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 25,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Complex ship in a bottle",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1045
-  },
-  {
-    "item": {
-      "afx_id": 25,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Eggquisite ship in a bottle",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4
-      }
-    ],
-    "expected_full_consumption_gold": 584,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 25,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Eggquisite ship in a bottle",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1854
-  },
-  {
-    "item": {
-      "afx_id": 25,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Eggquisite ship in a bottle",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1854
-  },
-  {
-    "item": {
-      "afx_id": 25,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Eggquisite ship in a bottle",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1854
-  },
-  {
-    "item": {
-      "afx_id": 26,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Weak tachyon deflector",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 2,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.6761
-      },
-      {
-        "afx_id": 1,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.07895
-      }
-    ],
-    "expected_full_consumption_gold": 112.37025,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 26,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Tachyon deflector",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 2,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 4.39755
-      },
-      {
-        "afx_id": 1,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.1506
-      }
-    ],
-    "expected_full_consumption_gold": 138.52275,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 26,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Robust tachyon deflector",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 2,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.8772
-      },
-      {
-        "afx_id": 1,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.2807
-      }
-    ],
-    "expected_full_consumption_gold": 190.9299,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 26,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Robust tachyon deflector",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1304
-  },
-  {
-    "item": {
-      "afx_id": 26,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Eggceptional tachyon deflector",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 1,
-        "afx_level": 1,
-        "afx_rarity": 0,
-        "name": "Eggsquisite tachyon stone",
-        "tier_number": 3,
-        "rarity": "Common",
-        "expected_count": 0.03425
-      },
-      {
-        "afx_id": 2,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 7.13705
-      },
-      {
-        "afx_id": 1,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Tachyon stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.40555
-      }
-    ],
-    "expected_full_consumption_gold": 249.25210000000004,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 26,
-      "afx_level": 3,
-      "afx_rarity": 1,
-      "name": "Eggceptional tachyon deflector",
-      "tier_number": 4,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 2376
-  },
-  {
-    "item": {
-      "afx_id": 26,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Eggceptional tachyon deflector",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 2376
-  },
-  {
-    "item": {
-      "afx_id": 26,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Eggceptional tachyon deflector",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 2376
-  },
-  {
-    "item": {
-      "afx_id": 10,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Book of Basan",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 5.23625
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.08195
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.118
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1296
       }
     ],
-    "expected_full_consumption_gold": 63.78914999999999,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 10,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Collectors book of Basan",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 6.7349
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.1503
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.1712
-      }
-    ],
-    "expected_full_consumption_gold": 87.44149999999999,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 10,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Fortified book of Basan",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 8.3732
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.25355
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.2462
-      }
-    ],
-    "expected_full_consumption_gold": 117.38315,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 10,
-      "afx_level": 2,
-      "afx_rarity": 2,
-      "name": "Fortified book of Basan",
-      "tier_number": 3,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1373
-  },
-  {
-    "item": {
-      "afx_id": 10,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Gilded book of Basan",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 32,
-        "afx_level": 1,
-        "afx_rarity": 0,
-        "name": "Eggsquisite shell stone",
-        "tier_number": 3,
-        "rarity": "Common",
-        "expected_count": 0.0216
-      },
-      {
-        "afx_id": 45,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 10.2996
-      },
-      {
-        "afx_id": 32,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Shell stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.32945
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.29615
-      }
-    ],
-    "expected_full_consumption_gold": 152.40535,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 10,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Gilded book of Basan",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 2315
-  },
-  {
-    "item": {
-      "afx_id": 10,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Gilded book of Basan",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 2315
-  },
-  {
-    "item": {
-      "afx_id": 5,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Dim light of Eggendil",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 52,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Clarity stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.74765
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.25235
-      }
-    ],
-    "expected_full_consumption_gold": 276.27115,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 5,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Shimmering light of Eggendil",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 52,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Clarity stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 1.7402
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.2598
-      }
-    ],
-    "expected_full_consumption_gold": 276.3382,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 5,
-      "afx_level": 1,
-      "afx_rarity": 1,
-      "name": "Shimmering light of Eggendil",
-      "tier_number": 2,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 744
-  },
-  {
-    "item": {
-      "afx_id": 5,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Glowing light of Eggendil",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 52,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Clarity stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 2.6246
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.3754
-      }
-    ],
-    "expected_full_consumption_gold": 414.3786,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 5,
-      "afx_level": 2,
-      "afx_rarity": 1,
-      "name": "Glowing light of Eggendil",
-      "tier_number": 3,
-      "rarity": "Rare"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 1350
-  },
-  {
-    "item": {
-      "afx_id": 5,
-      "afx_level": 3,
-      "afx_rarity": 0,
-      "name": "Brilliant light of Eggendil",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": [
-      {
-        "afx_id": 52,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Clarity stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 3.39715
-      },
-      {
-        "afx_id": 40,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Clarity stone",
-        "tier_number": 2,
-        "rarity": "Common",
-        "expected_count": 0.03275
-      },
-      {
-        "afx_id": 48,
-        "afx_level": 0,
-        "afx_rarity": 0,
-        "name": "Prophecy stone fragment",
-        "tier_number": 1,
-        "rarity": "Common",
-        "expected_count": 0.47185
-      }
-    ],
-    "expected_full_consumption_gold": 550.5109,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 5,
-      "afx_level": 3,
-      "afx_rarity": 2,
-      "name": "Brilliant light of Eggendil",
-      "tier_number": 4,
-      "rarity": "Epic"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 2107
-  },
-  {
-    "item": {
-      "afx_id": 5,
-      "afx_level": 3,
-      "afx_rarity": 3,
-      "name": "Brilliant light of Eggendil",
-      "tier_number": 4,
-      "rarity": "Legendary"
-    },
-    "expected_gold": 0,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 0,
-    "demotion_gold": 2107
-  },
-  {
-    "item": {
-      "afx_id": 46,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Lunar stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 6,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 6,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 33,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Lunar stone",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 67,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 67,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 33,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Eggsquisite lunar stone",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 310,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 310,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 33,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Meggnificent lunar stone",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 1052,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1052,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 45,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Shell stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 8,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 8,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 32,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Shell stone",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 57,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 57,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 32,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Eggsquisite shell stone",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 370,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 370,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 32,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Flawless shell stone",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 1142,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1142,
-    "demotion_gold": null
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
       "afx_id": 2,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Tachyon stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "TachyonStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 29,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 29,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 29
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 1,
+      "afx_id": 3,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Tachyon stone",
-      "tier_number": 2,
-      "rarity": "Common"
+      "name": "NeodymiumMedallion",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 73,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 73,
-    "demotion_gold": null
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 46,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LunarStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 12
+      }
+    ]
   },
   {
     "item": {
-      "afx_id": 1,
+      "afx_id": 3,
       "afx_level": 1,
       "afx_rarity": 0,
-      "name": "Eggsquisite tachyon stone",
-      "tier_number": 3,
-      "rarity": "Common"
+      "name": "NeodymiumMedallion",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
     },
-    "expected_gold": 370,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 370,
-    "demotion_gold": null
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 46,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LunarStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 1,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 64
+      }
+    ]
   },
   {
     "item": {
-      "afx_id": 1,
+      "afx_id": 3,
       "afx_level": 2,
       "afx_rarity": 0,
-      "name": "Brilliant tachyon stone",
-      "tier_number": 4,
-      "rarity": "Common"
+      "name": "NeodymiumMedallion",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
     },
-    "expected_gold": 1296,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1296,
-    "demotion_gold": null
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 6,
+        "afx_id": 46,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LunarStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 36
+      }
+    ]
   },
   {
     "item": {
-      "afx_id": 50,
+      "afx_id": 3,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "NeodymiumMedallion",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 46,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LunarStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 1,
+        "afx_id": 33,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LunarStone",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 2
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 18
+      },
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 67
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 4,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Terra stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "BeakOfMidas",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 66,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 66,
-    "demotion_gold": null
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 16
+      }
+    ]
   },
   {
     "item": {
-      "afx_id": 37,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Terra stone",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 206,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 206,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 37,
+      "afx_id": 4,
       "afx_level": 1,
       "afx_rarity": 0,
-      "name": "Rich terra stone",
-      "tier_number": 3,
-      "rarity": "Common"
+      "name": "BeakOfMidas",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
     },
-    "expected_gold": 473,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 473,
-    "demotion_gold": null
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 32
+      }
+    ]
   },
   {
     "item": {
-      "afx_id": 37,
+      "afx_id": 4,
       "afx_level": 2,
       "afx_rarity": 0,
-      "name": "Eggceptional terra stone",
-      "tier_number": 4,
-      "rarity": "Common"
+      "name": "BeakOfMidas",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
     },
-    "expected_gold": 1465,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1465,
-    "demotion_gold": null
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 6,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 48
+      }
+    ]
   },
   {
     "item": {
-      "afx_id": 47,
+      "afx_id": 4,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "BeakOfMidas",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 9,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 72
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 5,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Soul stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "LightOfEggendil",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 56,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 56,
-    "demotion_gold": null
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 52,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ClarityStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 274
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 5,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "LightOfEggendil",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 48,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ProphecyStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 1,
+        "afx_id": 52,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ClarityStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 283
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 5,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "LightOfEggendil",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 52,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ClarityStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 411
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 5,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "LightOfEggendil",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 52,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ClarityStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 548
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 6,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "DemetersNecklace",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 8
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 6,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "DemetersNecklace",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 16
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 6,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "DemetersNecklace",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 32
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 6,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "DemetersNecklace",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 1,
+        "afx_id": 32,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStone",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 2
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 16
+      },
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 57
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 7,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "VialMartianDust",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 46,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LunarStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 6
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 7,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "VialMartianDust",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 50,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TerraStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 2,
+        "afx_id": 46,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LunarStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 78
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 7,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "VialMartianDust",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 46,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LunarStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 2,
+        "afx_id": 50,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TerraStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 144
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 7,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "VialMartianDust",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 50,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TerraStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 2,
+        "afx_id": 46,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LunarStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 276
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 8,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "OrnateGusset",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 51,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LifeStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 69
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 8,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "OrnateGusset",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 50,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TerraStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 132
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 8,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "OrnateGusset",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 50,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TerraStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 198
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 8,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "OrnateGusset",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 50,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TerraStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 2,
+        "afx_id": 51,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LifeStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 336
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 9,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "TheChalice",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 51,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LifeStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 69
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 9,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "TheChalice",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 51,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LifeStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 138
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 9,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "TheChalice",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 51,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LifeStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 207
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 9,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "TheChalice",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 5,
+        "afx_id": 51,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "LifeStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 345
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 10,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "BookOfBasan",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 6,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 48
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 10,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "BookOfBasan",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 8,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 64
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 10,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "BookOfBasan",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 10,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 80
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 10,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "BookOfBasan",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 10,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 1,
+        "afx_id": 48,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ProphecyStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 226
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 11,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "PhoenixFeather",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 47,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "SoulStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 112
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 11,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "PhoenixFeather",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 47,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "SoulStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 168
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 11,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "PhoenixFeather",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 47,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "SoulStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 224
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 11,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "PhoenixFeather",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 6,
+        "afx_id": 47,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "SoulStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 336
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 12,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "TungstenAnkh",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 8
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 12,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "TungstenAnkh",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 32
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 12,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "TungstenAnkh",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 6,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 48
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 12,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "TungstenAnkh",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 9,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 72
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 17,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "GoldMeteorite",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 5
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 17,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "GoldMeteorite",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 277
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 17,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "GoldMeteorite",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 955
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 18,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "TauCetiGeode",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 24
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 18,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "TauCetiGeode",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 432
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 18,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "TauCetiGeode",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 1304
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 21,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "AurelianBrooch",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 2
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 21,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "AurelianBrooch",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 52
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 21,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "AurelianBrooch",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 156
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 21,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "AurelianBrooch",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 208
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 22,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "CarvedRainstick",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 24
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 22,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "CarvedRainstick",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 5,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 40
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 22,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "CarvedRainstick",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 5,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 1,
+        "afx_id": 50,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TerraStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 106
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 22,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "CarvedRainstick",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 6,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 2,
+        "afx_id": 50,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TerraStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 180
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 23,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "PuzzleCube",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 2
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 23,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "PuzzleCube",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 16
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 23,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "PuzzleCube",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 1,
+        "afx_id": 44,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "DilithiumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 86
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 23,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "PuzzleCube",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 44,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "DilithiumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 3,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 210
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 24,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "QuantumMetronome",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 104
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 24,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "QuantumMetronome",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 156
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 24,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "QuantumMetronome",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 208
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 24,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "QuantumMetronome",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 1,
+        "afx_id": 36,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStone",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 2
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 52
+      },
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 241
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 25,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "ShipInABottle",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 48,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ProphecyStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 146
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 25,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "ShipInABottle",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 48,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ProphecyStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 292
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 25,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "ShipInABottle",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 48,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ProphecyStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 438
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 25,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "ShipInABottle",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 48,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ProphecyStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 584
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 26,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "TachyonDeflector",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 2,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 116
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 26,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "TachyonDeflector",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 5,
+        "afx_id": 2,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 145
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 26,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "TachyonDeflector",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 1,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStone",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 2
+      },
+      {
+        "expected_count": 3,
+        "afx_id": 2,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 73
+      },
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 87
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 26,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "TachyonDeflector",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 9,
+        "afx_id": 2,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 261
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 27,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "InterstellarCompass",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 1,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 52
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 27,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "InterstellarCompass",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 104
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 27,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "InterstellarCompass",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 156
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 27,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "InterstellarCompass",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 5,
+        "afx_id": 49,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "QuantumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 260
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 28,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "DilithiumMonocle",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 44,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "DilithiumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 124
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 28,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "DilithiumMonocle",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 44,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "DilithiumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 186
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 28,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "DilithiumMonocle",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 44,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "DilithiumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 248
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 28,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "DilithiumMonocle",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 6,
+        "afx_id": 44,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "DilithiumStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 372
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 29,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "TitaniumActuator",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 3,
+        "afx_id": 2,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 87
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 29,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "TitaniumActuator",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 2,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 116
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 29,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "TitaniumActuator",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 6,
+        "afx_id": 2,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 174
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 29,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "TitaniumActuator",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 2,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      },
+      {
+        "expected_count": 1,
+        "afx_id": 1,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "TachyonStone",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 2
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 116
+      },
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 73
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 30,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "MercurysLens",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 2,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 16
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 30,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "MercurysLens",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 4,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 32
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 30,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "MercurysLens",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 6,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 48
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 30,
+      "afx_level": 3,
+      "afx_rarity": 0,
+      "name": "MercurysLens",
+      "rarity": "Common",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [
+      {
+        "expected_count": 11,
+        "afx_id": 45,
+        "afx_level": 0,
+        "afx_rarity": 0,
+        "name": "ShellStoneFragment",
+        "rarity": "Common",
+        "level": "Inferior",
+        "tier_number": 1
+      }
+    ],
+    "full_consumation": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 88
+      }
+    ]
+  },
+  {
+    "item": {
+      "afx_id": 31,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "DilithiumStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 386
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 31,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "DilithiumStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 773
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 31,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "DilithiumStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1796
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 32,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "ShellStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 57
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 32,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "ShellStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 370
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 32,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "ShellStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1142
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 33,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "LunarStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 67
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 33,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "LunarStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 310
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 33,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "LunarStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1052
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
       "afx_id": 34,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Soul stone",
-      "tier_number": 2,
-      "rarity": "Common"
+      "name": "SoulStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
     },
-    "expected_gold": 206,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 206,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 206
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
       "afx_id": 34,
       "afx_level": 1,
       "afx_rarity": 0,
-      "name": "Eggsquisite soul stone",
-      "tier_number": 3,
-      "rarity": "Common"
+      "name": "SoulStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
     },
-    "expected_gold": 626,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 626,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 626
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
       "afx_id": 34,
       "afx_level": 2,
       "afx_rarity": 0,
-      "name": "Radiant soul stone",
-      "tier_number": 4,
-      "rarity": "Common"
+      "name": "SoulStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
     },
-    "expected_gold": 1179,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1179,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1179
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 36,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "QuantumStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 241
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 36,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "QuantumStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 434
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 36,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "QuantumStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1272
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 37,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "TerraStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 206
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 37,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "TerraStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 473
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 37,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "TerraStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1465
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 38,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "LifeStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 286
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 38,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "LifeStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 678
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 38,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "LifeStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1514
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 39,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "ProphecyStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 553
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 39,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "ProphecyStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1134
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 39,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "ProphecyStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1858
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 40,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "ClarityStone",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 495
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 40,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "ClarityStone",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1045
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 40,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "ClarityStone",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 4
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 2,
+        "reward_type_name": "Gold",
+        "reward_amount": 1912
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 43,
+      "afx_level": 0,
+      "afx_rarity": 0,
+      "name": "SolarTitanium",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 37
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 43,
+      "afx_level": 1,
+      "afx_rarity": 0,
+      "name": "SolarTitanium",
+      "rarity": "Common",
+      "level": "Lesser",
+      "tier_number": 2
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 283
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
+  },
+  {
+    "item": {
+      "afx_id": 43,
+      "afx_level": 2,
+      "afx_rarity": 0,
+      "name": "SolarTitanium",
+      "rarity": "Common",
+      "level": "Normal",
+      "tier_number": 3
+    },
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 1053
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
       "afx_id": 44,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Dilithium stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "DilithiumStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 62,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 62,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 62
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 31,
+      "afx_id": 45,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Dilithium stone",
-      "tier_number": 2,
-      "rarity": "Common"
+      "name": "ShellStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 386,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 386,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 8
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 31,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Eggsquisite dilithium stone",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 773,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 773,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 31,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Brilliant dilithium stone",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 1796,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1796,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 49,
+      "afx_id": 46,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Quantum stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "LunarStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 52,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 52,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 6
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 36,
+      "afx_id": 47,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Quantum stone",
-      "tier_number": 2,
-      "rarity": "Common"
+      "name": "SoulStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 241,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 241,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 36,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Phased quantum stone",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 434,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 434,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 36,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Meggnificent quantum stone",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 1272,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1272,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 51,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Life stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 69,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 69,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 38,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Life stone",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 286,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 286,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 38,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Good life stone",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 678,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 678,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 38,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Eggceptional life stone",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 1514,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1514,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 52,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Clarity stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
-    },
-    "expected_gold": 137,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 137,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 40,
-      "afx_level": 0,
-      "afx_rarity": 0,
-      "name": "Clarity stone",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 495,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 495,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 40,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Eggsquisite clarity stone",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 1045,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1045,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 40,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Eggceptional clarity stone",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 1912,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1912,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 56
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
       "afx_id": 48,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Prophecy stone fragment",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "ProphecyStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 146,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 146,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 146
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 39,
+      "afx_id": 49,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Prophecy stone",
-      "tier_number": 2,
-      "rarity": "Common"
+      "name": "QuantumStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 553,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 553,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 52
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 39,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Eggsquisite prophecy stone",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 1134,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1134,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 39,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Radiant prophecy stone",
-      "tier_number": 4,
-      "rarity": "Common"
-    },
-    "expected_gold": 1858,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1858,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 17,
+      "afx_id": 50,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Tiny gold meteorite",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "TerraStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 5,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 5,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 66
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 17,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Enriched gold meteorite",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 277,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 277,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 17,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Solid gold meteorite",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 955,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 955,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 18,
+      "afx_id": 51,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Tau Ceti geode piece",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "LifeStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 24,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 24,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 69
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   },
   {
     "item": {
-      "afx_id": 18,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Glimmering Tau Ceti geode",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 432,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 432,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 18,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Radiant Tau Ceti geode",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 1304,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1304,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 43,
+      "afx_id": 52,
       "afx_level": 0,
       "afx_rarity": 0,
-      "name": "Solar titanium ore",
-      "tier_number": 1,
-      "rarity": "Common"
+      "name": "ClarityStoneFragment",
+      "rarity": "Common",
+      "level": "Inferior",
+      "tier_number": 1
     },
-    "expected_gold": 37,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 37,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 43,
-      "afx_level": 1,
-      "afx_rarity": 0,
-      "name": "Solar titanium bar",
-      "tier_number": 2,
-      "rarity": "Common"
-    },
-    "expected_gold": 283,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 283,
-    "demotion_gold": null
-  },
-  {
-    "item": {
-      "afx_id": 43,
-      "afx_level": 2,
-      "afx_rarity": 0,
-      "name": "Solar titanium geogon",
-      "tier_number": 3,
-      "rarity": "Common"
-    },
-    "expected_gold": 1053,
-    "expected_byproducts": null,
-    "expected_full_consumption_gold": 1053,
-    "demotion_gold": null
+    "raw_rewards": [
+      {
+        "reward_type": 6,
+        "reward_type_name": "PiggyFill",
+        "reward_amount": 137
+      }
+    ],
+    "product_rewards": [],
+    "full_consumation": []
   }
 ]

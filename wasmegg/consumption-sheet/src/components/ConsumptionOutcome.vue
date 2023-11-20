@@ -23,30 +23,18 @@
           class="h-3.5 w-3.5 inline relative -top-px -ml-0.5 -mr-1"
           :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
         />{{ ' ' }}
-        <template v-if="outcome.expected_full_consumption_gold > 0">{{
-          formatFloat(outcome.expected_full_consumption_gold, { digits: 1, trim: true })
+        <template v-if="outcome.full_consumation.lenght > 0">{{
+          formatFloat(outcome.full_consumation[0].reward_amount, { digits: 1, trim: true })
         }}</template
         ><template v-else>?</template><template v-if="outcome.item.afx_rarity > 0">;</template>
-      </span>
-      <span
-        v-if="outcome.demotion_gold !== null"
-        v-tippy="{ content: 'gold yield from demoting to common' }"
-        class="text-teal-500"
-      >
-        dm.
-        <img
-          class="h-3.5 w-3.5 inline relative -top-px -ml-0.5 -mr-1"
-          :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
-        />
-        {{ formatFloat(outcome.demotion_gold, { digits: 0 }) }}
-      </span>
+      </span>    
     </div>
   </template>
 
   <div>
     <div class="flex flex-wrap text-xs text-gray-500 leading-7 tabular-nums">
       <span
-        v-if="outcome.expected_gold > 0"
+        v-if="outcome.raw_rewards.lenght > 0"
         class="inline-flex items-center mr-1.5 whitespace-nowrap"
       >
         <img
@@ -60,7 +48,7 @@
       </span>
 
       <span
-        v-for="byproduct in outcome.expected_byproducts"
+        v-for="byproduct in outcome.product_rewards"
         :key="byproduct.id"
         class="inline-flex items-center mr-1.5 whitespace-nowrap"
       >
