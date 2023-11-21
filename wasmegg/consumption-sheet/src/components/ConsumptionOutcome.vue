@@ -49,13 +49,13 @@
               class="inline-flex items-center mr-1.5 whitespace-nowrap">
             <img class="h-6 w-6 -m-1 mr-0 p-1"
                  :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
-            <span class="-ml-1">{{ formatFloat(outcome.raw_rewards?.filter(f=>f.reward_type==2)[0].reward_amount, { digits: 2 }) }}</span>
+            <span class="-ml-1">{{ formatFloat(outcome.raw_rewards.filter(f=>f.reward_type==2)[0].reward_amount, { digits: 2 }) }}</span>
         </span>
         <span v-if="outcome.raw_rewards?.filter(f=>f.reward_type==6)?.length > 0"
       class="inline-flex items-center mr-1.5 whitespace-nowrap">
     <img class="h-6 w-6 -m-1 mr-0 p-1"
          :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)" />
-    <span class="-ml-1">{{ formatFloat(outcome.raw_rewards?.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 2 }) }}</span>
+    <span class="-ml-1">{{ formatFloat(outcome.raw_rewards.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 2 }) }}</span>
 </span>
       <span
         v-for="byproduct in outcome.product_rewards"
