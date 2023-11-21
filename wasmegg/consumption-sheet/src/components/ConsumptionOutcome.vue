@@ -8,7 +8,7 @@
     </div>
 
     <div
-      v-if="outcome.raw_rewards?.lenght == 0 || outcome.product_rewards !== null"
+      v-if="outcome.raw_rewards?.length == 0 || outcome.product_rewards !== null"
       class="text-xs text-lime-500"
     >
       <span
