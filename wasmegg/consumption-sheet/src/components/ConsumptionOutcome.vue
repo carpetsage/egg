@@ -8,7 +8,7 @@
     </div>
 
     <div
-      v-if="outcome.raw_rewards?.length == 0 || outcome.product_rewards !== null"
+      v-if="outcome.raw_rewards.length == 0 || outcome.product_rewards !== null"
       class="text-xs text-lime-500"
     >
       <span
@@ -18,10 +18,10 @@
         }"
         class="text-lime-500"
       >
-          <template v-if="outcome.full_consumation?.filter(f=>f.reward_type==2).length > 0||outcome.full_consumation?.filter(f=>f.reward_type==6).length > 0">
+          <template v-if="outcome.full_consumation.filter(f=>f.reward_type==2).length > 0||outcome.full_consumation.filter(f=>f.reward_type==6).length > 0">
         f.c.
           </template>
-        <template v-if="outcome.full_consumation?.filter(f=>f.reward_type==2).length > 0">
+        <template v-if="outcome.full_consumation.filter(f=>f.reward_type==2).length > 0">
           <img
           class="h-3.5 w-3.5 inline relative -top-px ml-1 -mr-0.5"
           :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
@@ -45,13 +45,13 @@
 
   <div>
     <div class="flex flex-wrap text-xs text-gray-500 leading-7 tabular-nums">
-        <span v-if="outcome.raw_rewards?.filter(f=>f.reward_type==2)?.length > 0"
+        <span v-if="outcome.raw_rewards.filter(f=>f.reward_type==2).length > 0"
               class="inline-flex items-center mr-1.5 whitespace-nowrap">
             <img class="h-6 w-6 -m-1 mr-0 p-1"
                  :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
             <span class="-ml-1">{{ formatFloat(outcome.raw_rewards.filter(f=>f.reward_type==2)[0].reward_amount, { digits: 2 }) }}</span>
         </span>
-        <span v-if="outcome.raw_rewards?.filter(f=>f.reward_type==6)?.length > 0"
+        <span v-if="outcome.raw_rewards.filter(f=>f.reward_type==6).length > 0"
       class="inline-flex items-center mr-1.5 whitespace-nowrap">
     <img class="h-6 w-6 -m-1 mr-0 p-1"
          :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)" />
