@@ -6,7 +6,7 @@
       Consumption sheet
     </h1>
 
-    <div class="text-center text-gray-700 text-xs my-2">Last updated Oct 8, 2021, ~15:00 UTC</div>
+    <div class="text-center text-gray-700 text-xs my-2">Last updated Nov 20, 2023, ~9:00 UTC</div>
 
     <section id="index" class="mt-4 mb-6 hide-in-screenshot-mode">
       <h2 class="my-2">Index</h2>
@@ -68,12 +68,7 @@
             >the f.c. stat is the expected gold yield (subject to sampling limitations) from
             <span class="underline">fully consuming</span> the item, i.e., further consuming the
             resulting stones and fragments down to golden eggs.</span
-          >
-          For uncommon artifacts,
-          <span class="text-teal-500"
-            >the dm. stat is the gold yield from <span class="underline">demoting</span> the item to
-            common</span
-          >.
+          >  
         </p>
         <p>
           Currently,
