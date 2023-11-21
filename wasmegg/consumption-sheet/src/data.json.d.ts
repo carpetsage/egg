@@ -28,9 +28,9 @@ export type Source = TierCore & {
 
 export type ConsumptionOutcome = {
   item: Item;
-  raw_rewards: RawProduct[] | null;
-  product_rewards: ExpectedByproduct[] | null;
-  full_consumation: RawProduct[] | null;
+  raw_rewards: RawProduct[];
+  product_rewards: ExpectedByproduct[];
+  full_consumation: RawProduct[];
 };
 
 export type ExpectedByproduct = Item & {
