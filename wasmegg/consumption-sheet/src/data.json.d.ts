@@ -30,7 +30,7 @@ export type ConsumptionOutcome = {
   item: Item;
   raw_rewards: RawProduct[] | null;
   product_rewards: ExpectedByproduct[] | null;
-  full_consumption: RawProduct[] | null;
+  full_consumation: RawProduct[] | null;
 };
 
 export type ExpectedByproduct = Item & {
