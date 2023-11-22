@@ -39,24 +39,33 @@
           formatFloat(outcome.full_consumption.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 1, trim: true })
         }}</template
         >
-      </span>    
+      </span>
     </div>
   </template>
 
   <div>
     <div class="flex flex-wrap text-xs text-gray-500 leading-7 tabular-nums">
-        <span v-if="outcome.raw_rewards.filter(f=>f.reward_type==2).length > 0"
-              class="inline-flex items-center mr-1.5 whitespace-nowrap">
-            <img class="h-6 w-6 -m-1 mr-0 p-1"
-                 :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
-            <span class="-ml-1">{{ formatFloat(outcome.raw_rewards.filter(f=>f.reward_type==2)[0].reward_amount, { digits: 2 }) }}</span>
+      <span
+      v-if="outcome.raw_rewards.filter(f=>f.reward_type==2).length > 0"
+      class="inline-flex items-center mr-1.5 whitespace-nowrap"
+      >
+        <img
+        class="h-6 w-6 -m-1 mr-0 p-1"
+        :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
+        />
+        <span class="-ml-1">
+          {{ formatFloat(outcome.raw_rewards.filter(f=>f.reward_type==2)[0].reward_amount, { digits: 2 }) }}
         </span>
-        <span v-if="outcome.raw_rewards.filter(f=>f.reward_type==6).length > 0"
-      class="inline-flex items-center mr-1.5 whitespace-nowrap">
-    <img class="h-6 w-6 -m-1 mr-0 p-1"
-         :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)" />
-    <span class="-ml-1">{{ formatFloat(outcome.raw_rewards.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 2 }) }}</span>
-</span>
+      </span>
+      <span v-if="outcome.raw_rewards.filter(f=>f.reward_type==6).length > 0" class="inline-flex items-center mr-1.5 whitespace-nowrap">
+        <img
+        class="h-6 w-6 -m-1 mr-0 p-1"
+        :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)"
+        />
+        <span class="-ml-1">
+          {{ formatFloat(outcome.raw_rewards.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 2 }) }}
+        </span>
+      </span>
       <span
         v-for="byproduct in outcome.product_rewards"
         :key="byproduct.id"
@@ -72,7 +81,6 @@
         <!-- Facilitate copying as text -->
         <span class="sr-only">{{ byproduct.name }}</span>
         <span class="w-9">&times;{{ formatFloat(byproduct.expected_count, { digits: 2 }) }}</span>
-
       </span>
     </div>
   </div>
@@ -98,8 +106,8 @@ export default defineComponent({
       required: true,
     },
   },
-    setup() {
-      const showSamples = ref(false);
+  setup() {
+    const showSamples = ref(false);
     return {
       showSamples,
       rarityFgClass,

@@ -38,9 +38,9 @@ export type ExpectedByproduct = Item & {
 };
 
 export type RawProduct = {
-reward_type: number;
-reward_type_name: string;
-reward_amount: number;
+  reward_type: number;
+  reward_type_name: string;
+  reward_amount: number;
 }
 
 export type Item = {
