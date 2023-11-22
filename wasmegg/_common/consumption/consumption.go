@@ -19,7 +19,7 @@ type ConsumptionOutcome struct {
 	Item                        Item					`json:"item"`
 	RawProduct					[]RawProduct			`json:"raw_rewards"`
 	ExpectedByproducts          []ExpectedByproduct		`json:"product_rewards"`
-	ExpectedFullConsumption		[]RawProduct			`json:"full_consumation"`
+	ExpectedFullConsumption		[]RawProduct			`json:"full_consumption"`
 }
 
 type Item struct {

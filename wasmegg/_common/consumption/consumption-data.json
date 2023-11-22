@@ -17,7 +17,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -52,7 +52,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -93,7 +93,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -144,7 +144,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -175,7 +175,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -195,7 +195,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -215,7 +215,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -235,7 +235,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -270,7 +270,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -311,7 +311,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -362,7 +362,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -418,7 +418,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -464,7 +464,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -505,7 +505,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -556,7 +556,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -612,7 +612,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -658,7 +658,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -699,7 +699,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -740,7 +740,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -791,7 +791,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 2,
         "reward_type_name": "Gold",
@@ -833,7 +833,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 2,
         "reward_type_name": "Gold",
@@ -869,7 +869,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -910,7 +910,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -961,7 +961,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -997,7 +997,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1038,7 +1038,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1089,7 +1089,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1155,7 +1155,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1207,7 +1207,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 2,
         "reward_type_name": "Gold",
@@ -1253,7 +1253,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1294,7 +1294,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1355,7 +1355,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1391,7 +1391,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1422,7 +1422,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1453,7 +1453,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1494,7 +1494,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1550,7 +1550,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1606,7 +1606,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1662,7 +1662,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1728,7 +1728,7 @@
         "tier_number": 3
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1764,7 +1764,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1795,7 +1795,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1826,7 +1826,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1867,7 +1867,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1903,7 +1903,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1934,7 +1934,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -1975,7 +1975,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2021,7 +2021,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2052,7 +2052,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -2072,7 +2072,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -2092,7 +2092,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -2112,7 +2112,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -2132,7 +2132,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -2152,7 +2152,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -2172,7 +2172,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -2197,7 +2197,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2228,7 +2228,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2259,7 +2259,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2300,7 +2300,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2351,7 +2351,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2407,7 +2407,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2473,7 +2473,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2504,7 +2504,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -2539,7 +2539,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2590,7 +2590,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2646,7 +2646,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2682,7 +2682,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2713,7 +2713,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2744,7 +2744,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2785,7 +2785,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2821,7 +2821,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2852,7 +2852,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2883,7 +2883,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2914,7 +2914,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -2955,7 +2955,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3001,7 +3001,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3047,7 +3047,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3103,7 +3103,7 @@
         "tier_number": 3
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3139,7 +3139,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3170,7 +3170,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3201,7 +3201,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3242,7 +3242,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3278,7 +3278,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3309,7 +3309,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3340,7 +3340,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3381,7 +3381,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3417,7 +3417,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3458,7 +3458,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3504,7 +3504,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3560,7 +3560,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3596,7 +3596,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3627,7 +3627,7 @@
         "tier_number": 1
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3668,7 +3668,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3714,7 +3714,7 @@
         "tier_number": 2
       }
     ],
-    "full_consumation": [
+    "full_consumption": [
       {
         "reward_type": 6,
         "reward_type_name": "PiggyFill",
@@ -3745,7 +3745,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3765,7 +3765,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3785,7 +3785,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3805,7 +3805,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3825,7 +3825,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3845,7 +3845,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3865,7 +3865,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3885,7 +3885,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3905,7 +3905,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3925,7 +3925,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3945,7 +3945,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3965,7 +3965,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -3985,7 +3985,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4005,7 +4005,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4025,7 +4025,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4045,7 +4045,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4065,7 +4065,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4085,7 +4085,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4105,7 +4105,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4125,7 +4125,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4145,7 +4145,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4165,7 +4165,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4185,7 +4185,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4205,7 +4205,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4225,7 +4225,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4245,7 +4245,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4265,7 +4265,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4285,7 +4285,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4305,7 +4305,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4325,7 +4325,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4345,7 +4345,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4365,7 +4365,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4385,7 +4385,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4405,7 +4405,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4425,7 +4425,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4445,7 +4445,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4465,7 +4465,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4485,7 +4485,7 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   },
   {
     "item": {
@@ -4505,6 +4505,6 @@
       }
     ],
     "product_rewards": [],
-    "full_consumation": []
+    "full_consumption": []
   }
 ]
