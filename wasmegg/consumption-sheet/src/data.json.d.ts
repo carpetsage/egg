@@ -25,23 +25,21 @@ export type Source = TierCore & {
 };
 
 // From wasmegg/_common/consumption/consumption.go
-
 export type ConsumptionOutcome = {
   item: Item;
-  raw_rewards: RawProduct[];
-  product_rewards: ExpectedByproduct[];
-  full_consumption: RawProduct[];
+  expected_gold: number;
+  expected_byproducts: ExpectedByproduct[] | null;
+  expected_full_consumption_gold: number;
+  demotion_gold: number | null;
 };
 
 export type ExpectedByproduct = Item & {
   expected_count: number;
 };
 
-export type RawProduct = {
-  reward_type: number;
-  reward_type_name: string;
-  reward_amount: number;
-}
+export type Byproduct = Item & {
+  count: number;
+};
 
 export type Item = {
   afx_id: Name;
