@@ -71,6 +71,17 @@
             >
         </p>
         <p>
+          For piggy fill this does <span class="text-red-500 underline">not</span> include bonuses from piggy level or capped piggy fill granted per consume.
+          That bonus can be calculated as explained in this 
+          <a 
+            href="https://discord.com/channels/455380663013736479/455385659079917569/1158524185316958220"
+            class="text-blue-500 underline"
+            >
+            discord post by @toffepeer1 </a> on the Egg Inc
+            <a href="https://discord.gg/egginc" class="text-blue-500 underline">
+            Discord server</a>
+        </p>
+        <p>
           Currently,
           <span class="text-red-500">consumption outcomes for uncommon items are missing</span> due
           to hardening of Egg, Inc. server. Data for some commonly-consumed rare items might be
