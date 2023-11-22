@@ -18,25 +18,25 @@
         }"
         class="text-lime-500"
       >
-          <template v-if="outcome.full_consumation.filter(f=>f.reward_type==2).length > 0||outcome.full_consumation.filter(f=>f.reward_type==6).length > 0">
+          <template v-if="outcome.full_consumption.filter(f=>f.reward_type==2).length > 0||outcome.full_consumption.filter(f=>f.reward_type==6).length > 0">
         f.c.
           </template>
-        <template v-if="outcome.full_consumation.filter(f=>f.reward_type==2).length > 0">
+        <template v-if="outcome.full_consumption.filter(f=>f.reward_type==2).length > 0">
           <img
           class="h-3.5 w-3.5 inline relative -top-px ml-1 -mr-0.5"
           :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
         />{{ ' ' }}
         {{
-          formatFloat(outcome.full_consumation.filter(f=>f.reward_type==2)[0].reward_amount, { digits: 1, trim: true })
+          formatFloat(outcome.full_consumption.filter(f=>f.reward_type==2)[0].reward_amount, { digits: 1, trim: true })
         }}</template
         >
-          <template v-if="outcome.full_consumation?.filter(f=>f.reward_type==6).length > 0">
+          <template v-if="outcome.full_consumption?.filter(f=>f.reward_type==6).length > 0">
           <img
           class="h-3.5 w-3.5 inline relative -top-px ml-1 -mr-0.5"
           :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)"
         />{{ ' ' }}
         {{
-          formatFloat(outcome.full_consumation.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 1, trim: true })
+          formatFloat(outcome.full_consumption.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 1, trim: true })
         }}</template
         >
       </span>    
