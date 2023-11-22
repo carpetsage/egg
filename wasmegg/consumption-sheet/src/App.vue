@@ -68,7 +68,7 @@
             >the f.c. stat is the expected gold yield (subject to sampling limitations) from
             <span class="underline">fully consuming</span> the item, i.e., further consuming the
             resulting stones and fragments down to golden eggs.</span
-          >  
+            >
         </p>
         <p>
           Currently,
@@ -202,8 +202,7 @@ export default defineComponent({
     ConsumptionOutcome,
     Sources,
   },
-    setup() {
-        console.log(data);
+  setup() {
     return {
       data,
       iconURL,
