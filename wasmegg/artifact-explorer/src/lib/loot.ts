@@ -2,7 +2,7 @@ import {
   ei,
   getArtifactTierPropsFromId,
   getMissionTypeFromId,
-  itemExpectedFullConsumptionGold,
+  itemExpectedFullConsumption,
   MissionType,
   targets,
 } from 'lib';
@@ -21,20 +21,22 @@ export function getMissionLootData(missionId: string): MissionLootStore {
   throw new Error(`there's no mission with id ${missionId}`);
 }
 
-export function getMissionLevelLootAverageConsumptionValue(levelLoot: MissionLevelLootStore, target: ei.ArtifactSpec.Name): number {
-  const loot = levelLoot.targets.find(x => x.targetAfxId == target);
+export function getMissionLevelLootAverageConsumptionValue(levelLoot: MissionLevelLootStore, target: ei.ArtifactSpec.Name): [number,number] {
+    const loot = levelLoot.targets.find(x => x.targetAfxId == target);
   if (loot === undefined || loot.totalDrops === 0) {
-    return 0;
+    return [0,0];
   }
-  let total = 0;
+  let total = [0,0];
   for (const item of loot.items) {
     item.counts.forEach((count, afxRarity) => {
       if (count > 0) {
-        total += count * itemExpectedFullConsumptionGold(item.afxId, item.afxLevel, afxRarity);
+          let consValue = itemExpectedFullConsumption(item.afxId, item.afxLevel, afxRarity);
+          total[0] += count * consValue[0];
+          total[1] += count * consValue[1];
       }
     });
   }
-  return total / loot.totalDrops;
+    return [total[0] / loot.totalDrops, total[1] / loot.totalDrops];
 }
 
 type ItemLootStore = {
