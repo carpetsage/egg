@@ -65,6 +65,9 @@ func main() {
 			}
 			numRarities := len(at.Rarities)
 			expectedNumRarities := 1
+			if t.HasRarities {
+				expectedNumRarities = len(t.PossibleAfxRarities)
+			}
 			if numRarities != expectedNumRarities {
 				panic(fmt.Sprintf("expected %d rarities, got %d rarities for %+v", expectedNumRarities, numRarities, t))
 			}
