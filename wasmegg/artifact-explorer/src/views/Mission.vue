@@ -140,40 +140,68 @@
         </li>
       </ul>
 
-      <template v-if="selectedLevelExpectedFullConsumptionValuePerShip > 0">
+      <template v-if="1==1">
         <hr />
 
         <p class="text-sm">
           Expected full consumption value from mission loot:
           <base-info
             v-tippy="{
-              content: `<span class='text-blue-300'>Full consumption value</span> is the number of golden eggs (GE) obtained from recursively consuming all loot items, that is, for artifacts yielding stones and fragments, the resulting items are further broken down into GE. Uncommon items are demoted first before consumption.`,
+              content: `<span class='text-blue-300'>Full consumption value</span> is the number of golden eggs / piggy fill obtained from recursively consuming all loot items, that is, for artifacts yielding stones and fragments, the resulting items are further broken down into GE/Piggy Fill. Uncommon items are demoted first before consumption.`,
               allowHTML: true,
             }"
             class="inline"
           />
           <br />
+         <span class="inline-flex items-center whitespace-nowrap"
+           >Obtained <img class="h-4 w-4 ml-px" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" /></span
+         >:
           <span class="inline-flex items-center text-yellow-500 whitespace-nowrap"
             >{{
-              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip, precision)
+              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip[0], precision[0])
             }}/<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" /></span
           >,
           <span class="whitespace-nowrap">
-            <span class="text-yellow-500"
-              >{{
-                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay, precision)
-              }}/d</span
-            >
+              <span class="text-yellow-500">
+                  {{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0], precision[0])
+                  }}/d
+              </span>
             (1 mission slot)</span
           >,
           <span class="whitespace-nowrap">
-            <span class="text-yellow-500"
-              >{{
-                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay * 3, precision)
-              }}/d</span
-            >
+              <span class="text-yellow-500">
+                  {{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0] * 3, precision[0])
+                  }}/d
+              </span>
             (3 mission slots)</span
           >.
+          <br />
+          <span class="inline-flex items-center whitespace-nowrap"
+              >Obtained <img class="h-4 w-4 ml-px" :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)" /></span
+            >:
+             <span class="inline-flex items-center text-yellow-500 whitespace-nowrap"
+               >{{
+                 formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip[1], precision[1])
+               }}/<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" /></span
+             >,
+             <span class="whitespace-nowrap">
+                 <span class="text-yellow-500">
+                     {{
+                   formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[1], precision[1])
+                     }}/d
+                 </span>
+               (1 mission slot)</span
+             >,
+             <span class="whitespace-nowrap">
+                 <span class="text-yellow-500">
+                     {{
+                   formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[1] * 3, precision[1])
+                     }}/d
+                 </span>
+               (3 mission slots)</span
+             >.
           <br />
           <a
             href="https://wasmegg-carpet.netlify.app/consumption-sheet/"
@@ -197,7 +225,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, toRefs, watch } from 'vue';
+import { ComputedRef, computed, defineComponent, ref, toRefs, watch } from 'vue';
 import { StarIcon } from '@heroicons/vue/solid';
 
 import {
@@ -347,13 +375,15 @@ export default defineComponent({
     const selectedLevelDurationDays = computed(
       () => mission.value.boostedDurationSeconds(configWithSelectedLevel.value) / 86400
     );
-    const selectedLevelExpectedFullConsumptionValuePerShip = computed(
-      () =>
-        getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, selectedTarget.value) *
-        selectedLevelCapacity.value
+      const selectedLevelExpectedFullConsumptionValuePerShip = computed(
+        ()=>{
+              const consumationValue = computed(() => getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, target));
+              return [consumationValue.value[0] * selectedLevelCapacity.value, consumationValue.value[1] * selectedLevelCapacity.value];          
+        }
     );
     const selectedLevelExpectedFullConsumptionValuePerDay = computed(
-      () => selectedLevelExpectedFullConsumptionValuePerShip.value / selectedLevelDurationDays.value
+        () => [selectedLevelExpectedFullConsumptionValuePerShip.value[0] / selectedLevelDurationDays.value,
+            selectedLevelExpectedFullConsumptionValuePerShip.value[1] / selectedLevelDurationDays.value]
     );
     // It's hard to decide the precision here. We have the sum of a (for
     // simplicity, let's assume) normally distributed sample and we want to know
@@ -365,11 +395,12 @@ export default defineComponent({
     //
     // We also limit the precision to integer for the per-ship value.
     const precision = computed(() => {
-      const perShip = Math.round(selectedLevelExpectedFullConsumptionValuePerShip.value);
+      const perShipGe = Math.round(selectedLevelExpectedFullConsumptionValuePerShip.value[0]);
+      const perShipPiggy = Math.round(selectedLevelExpectedFullConsumptionValuePerShip.value[1]);
       const nSamples = Math.round(
         (selectedLevelTargetLoot.value?.totalDrops ?? 0)/ mission.value.defaultCapacity
       );
-      return Math.min(`${perShip}`.length, `${nSamples * 5}`.length);
+      return [Math.min(`${perShipGe}`.length, `${nSamples * 5}`.length),Math.min(`${perShipPiggy}`.length, `${nSamples * 5}`.length)];
     });
 
     return {
