@@ -367,8 +367,18 @@
             >
               Inv. consum. value
             </dt>
+              <div class="flex items-center text-left text-sm text-gray-900">
+              <img
+                :src="iconURL('egginc-extras/icon_golden_egg.png', 128)"
+                class="flex-shrink-0 h-4 w-4 -ml-0.5"
+              />
             <dd class="flex items-center text-sm text-gray-900">
-              {{ fmtApprox(inventoryConsumptionValue) }}
+              {{ fmtApprox(inventoryConsumptionValue[0]) }}
+              <img
+                :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 128)"
+                class="flex-shrink-0 h-4 w-4 ml-1.5"
+              />
+              {{ fmtApprox(inventoryConsumptionValue[1]) }}
               <base-info
                 v-tippy="{
                   content: `The inventory consumption value is an approximation of the expected number of GE that can be earned from fully (recursively) consuming everything in the inventory. <span class='text-blue-300'>You can view detailed consumption outcomes in “Consumption sheet” on this site.</span> Note that consumption data is determined empirically and provided on a best-effort basis; they may subject to server-side changes and thus become inaccurate at any time. Due to difficulty sampling consumption data of uncommon items, the calculation assumes you <span class='text-green-300'>demote them first</span>, with <span class='text-green-300'>demotion gold counting towards the total</span>.`,
@@ -377,6 +387,7 @@
                 class="inline ml-0.5"
               />
             </dd>
+            </div>
             <dt
               v-tippy="{ content: fmtCraftingXpRarityMultiplier(craftingLevel) }"
               class="text-right text-sm font-medium whitespace-nowrap"
@@ -782,7 +793,7 @@ import {
   getProphecyEggsProgress,
   iconURL,
   Inventory,
-  inventoryExpectedFullConsumptionGold,
+  inventoryExpectedFullConsumption,
   setLocalStorage,
   TrophyLevel,
   getArtifactTierProps,
@@ -1013,8 +1024,9 @@ const craftingLevel = computed(() => getCraftingLevelFromXp(craftingXp.value));
 const nextLevelXP = computed(() => getXPFromCraftingLevel(craftingLevel.value.level + 1));
 
 const inventoryConsumptionValue = computed(() =>
-  inventoryExpectedFullConsumptionGold(inventory.value as Inventory)
+  inventoryExpectedFullConsumption(inventory.value as Inventory)
 );
+
 // Contract Stuff
 const contractProgress = computed(() => backup.value.contracts?.lastCpi);
 const lastEvalTime = computed(() => contractProgress.value?.lastEvaluationTime || 0);

@@ -8,13 +8,13 @@
     </div>
 
     <div
-      v-if="outcome.raw_rewards.length == 0 || outcome.product_rewards !== null"
+      v-if="outcome.product_rewards.length > 0 || outcome.product_rewards !== null"
       class="text-xs text-lime-500"
     >
       <span
         v-tippy="{
           content:
-            'expected gold yield from fully consuming the item (recursively, down to golden eggs/piggy fill)',
+            'expected rewards yield from fully consuming the item (recursively, down to golden eggs/piggy fill)',
         }"
         class="text-lime-500"
       >
@@ -39,6 +39,18 @@
           formatFloat(outcome.full_consumption.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 1, trim: true })
         }}</template
         >
+          <span
+          v-if="outcome.demotion_gold !== null"
+          v-tippy="{ content: 'gold yield from demoting to common' }"
+          class="text-teal-500"
+        >
+          dm.
+          <img
+            class="h-3.5 w-3.5 inline relative -top-px -ml-0.5 -mr-1"
+            :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
+          />
+          {{ formatFloat(outcome.demotion_gold, { digits: 0 }) }}
+        </span>
       </span>
     </div>
   </template>

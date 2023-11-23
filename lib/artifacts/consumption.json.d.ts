@@ -23,8 +23,18 @@ export type Byproduct = Item & {
 
 export type Entry = {
   item: Item;
-  expected_gold: number;
-  expected_byproducts: Byproduct[] | null;
-  expected_full_consumption_gold: number;
-  demotion_gold: number | null;
+    raw_rewards: RawProduct[];
+    product_rewards: ExpectedByproduct[];
+    full_consumption: RawProduct[];
+    demotion_gold: number|null;
 };
+
+export type ExpectedByproduct = Item & {
+    expected_count: number;
+};
+
+export type RawProduct = {
+    reward_type: number;
+    reward_type_name: string;
+    reward_amount: number;
+}
