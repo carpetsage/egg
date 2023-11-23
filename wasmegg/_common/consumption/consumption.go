@@ -20,6 +20,7 @@ type ConsumptionOutcome struct {
 	RawProduct					[]RawProduct			`json:"raw_rewards"`
 	ExpectedByproducts          []ExpectedByproduct		`json:"product_rewards"`
 	ExpectedFullConsumption		[]RawProduct			`json:"full_consumption"`
+	DemotionGold				*float64				`json:"demotion_gold"`
 }
 
 type Item struct {

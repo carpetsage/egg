@@ -31,6 +31,7 @@ export type ConsumptionOutcome = {
   raw_rewards: RawProduct[];
   product_rewards: ExpectedByproduct[];
   full_consumption: RawProduct[];
+  demotion_gold: number | null;
 };
 
 export type ExpectedByproduct = Item & {
