@@ -5,7 +5,7 @@
     </label>
 
     <base-select-filterable
-      :items="missions"
+      :items="missions.toReversed()"
       :get-item-id="mission => mission.missionTypeId"
       :get-item-display="mission => mission.name"
       :get-item-icon-path="mission => mission.shipIconPath"
