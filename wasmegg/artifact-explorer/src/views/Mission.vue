@@ -114,74 +114,79 @@
             class="w-full xs:w-auto xs:mr-1.5" :artifact="getArtifactTierPropsFromId(itemLoot.itemId)"
             :show-tier="true" :limit-width="true" />
           <drop-rate 
-            class="text-green-700 ml-5 xs:ml-auto" :mission="mission" :level="selectedLevel"
-            :total-drops="selectedLevelTargetLoot.totalDrops" :item-drops="itemLoot.counts"
+            class="text-green-700 ml-5 xs:ml-auto" 
+            :mission="mission" 
+            :level="selectedLevel"
+            :total-drops="selectedLevelTargetLoot?.totalDrops ?? 0" 
+            :item-drops="itemLoot.counts"
             :is-artifact="artifactItemIds.includes(itemLoot.itemId)" :hide-when-not-enough="true" />
         </li>
       </ul>
 
-      <hr />
+      <template v-if="!tooLittleDataForSelectedLevel"> 
+        <hr />
 
-      <p class="text-sm">
-        Expected full consumption value from mission loot:
-        <base-info 
-          v-tippy="{
-            content: `<span class='text-blue-300'>Full consumption value</span> is the number of golden eggs / piggy fill obtained from recursively consuming all loot items, that is, for artifacts yielding stones and fragments, the resulting items are further broken down into GE/Piggy Fill. Uncommon items are demoted first before consumption.`,
-            allowHTML: true,
-          }" class="inline" />
-        <br />
-        <!-- Raw GE per ship -->
-        <span class="inline-flex items-center text-yellow-500 whitespace-nowrap">
-          {{ formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip[0], precision[0]) }}
-          <img class="h-4 w-4 ml-px" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
-         /<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" />
-        </span>,
-        <span class="whitespace-nowrap">
-          <span class="text-yellow-500">
-            {{
-              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0], precision[0])
-            }}/d
-          </span>
-          (1 mission slot)</span>,
-        <span class="whitespace-nowrap">
-          <span class="text-yellow-500">
-            {{
-              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0] * 3, precision[0])
-            }}/d
-          </span>
-          (3 mission slots)</span>.
-        <br />
-        <!-- Piggy fill per ship-->
-        <span class="inline-flex items-center text-yellow-500 whitespace-nowrap">
-          {{ formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip[1], precision[1]) }}
-          <img class="h-4 w-4 ml-px" :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)" />
-          /<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" /></span>,
-        <span class="whitespace-nowrap">
-          <span class="text-yellow-500">
-            {{
-              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[1], precision[1])
-            }}/d
-          </span>
-          (1 mission slot)</span>,
-        <span class="whitespace-nowrap">
-          <span class="text-yellow-500">
-            {{
-              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[1] * 3, precision[1])
-            }}/d
-          </span>
-          (3 mission slots)</span>.
-        <br />
-        <a 
-          href="https://wasmegg-carpet.netlify.app/consumption-sheet/" target="_blank"
-          class="inline-flex items-center border-dashed border-b border-gray-700 text-sm whitespace-nowrap leading-tight space-x-0.5">
-          <span>Detailed consumption data</span>
-          <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
-            <path
-              d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-          </svg>
-        </a>
-      </p>
+        <p class="text-sm">
+          Expected full consumption value from mission loot:
+          <base-info 
+            v-tippy="{
+              content: `<span class='text-blue-300'>Full consumption value</span> is the number of golden eggs / piggy fill obtained from recursively consuming all loot items, that is, for artifacts yielding stones and fragments, the resulting items are further broken down into GE/Piggy Fill. Uncommon items are demoted first before consumption.`,
+              allowHTML: true,
+            }" class="inline" />
+          <br />
+          <!-- Raw GE per ship -->
+          <span class="inline-flex items-center text-yellow-500 whitespace-nowrap">
+            {{ formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip[0], precision[0]) }}
+            <img class="h-4 w-4 ml-px" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
+           /<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" />
+          </span>,
+          <span class="whitespace-nowrap">
+            <span class="text-yellow-500">
+              {{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0], precision[0])
+              }}/d
+            </span>
+            (1 mission slot)</span>,
+          <span class="whitespace-nowrap">
+            <span class="text-yellow-500">
+              {{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0] * 3, precision[0])
+              }}/d
+            </span>
+            (3 mission slots)</span>.
+          <br />
+          <!-- Piggy fill per ship-->
+          <span class="inline-flex items-center text-yellow-500 whitespace-nowrap">
+            {{ formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip[1], precision[1]) }}
+            <img class="h-4 w-4 ml-px" :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)" />
+            /<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" /></span>,
+          <span class="whitespace-nowrap">
+            <span class="text-yellow-500">
+              {{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[1], precision[1])
+              }}/d
+            </span>
+            (1 mission slot)</span>,
+          <span class="whitespace-nowrap">
+            <span class="text-yellow-500">
+              {{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[1] * 3, precision[1])
+              }}/d
+            </span>
+            (3 mission slots)</span>.
+          <br />
+          <a 
+            href="https://wasmegg-carpet.netlify.app/consumption-sheet/" target="_blank"
+            class="inline-flex items-center border-dashed border-b border-gray-700 text-sm whitespace-nowrap leading-tight space-x-0.5">
+            <span>Detailed consumption data</span>
+            <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+              <path
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+            </svg>
+          </a>
+        </p>
+      </template>
     </div>
   </div>
 </template>
@@ -339,8 +344,8 @@ export default defineComponent({
     );
     const selectedLevelExpectedFullConsumptionValuePerShip = computed(
       () => {
-        const consumationValue = computed(() => getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, target));
-        return [consumationValue.value[0] * selectedLevelCapacity.value, consumationValue.value[1] * selectedLevelCapacity.value];
+        const consumptionValue = computed(() => getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, selectedTarget.value));
+        return [consumptionValue.value[0] * selectedLevelCapacity.value, consumptionValue.value[1] * selectedLevelCapacity.value];
       }
     );
     const selectedLevelExpectedFullConsumptionValuePerDay = computed(
