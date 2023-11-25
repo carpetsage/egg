@@ -10,7 +10,7 @@ import {
 import { config } from '@/store';
 import lootdata, { MissionLevelLootStore, MissionLootStore } from './loot.json';
 
-export { lootdata , ItemMissionLootStore };
+export { lootdata, ItemMissionLootStore };
 
 export function getMissionLootData(missionId: string): MissionLootStore {
   for (const missionLoot of lootdata.missions) {
@@ -21,22 +21,25 @@ export function getMissionLootData(missionId: string): MissionLootStore {
   throw new Error(`there's no mission with id ${missionId}`);
 }
 
-export function getMissionLevelLootAverageConsumptionValue(levelLoot: MissionLevelLootStore, target: ei.ArtifactSpec.Name): [number,number] {
-    const loot = levelLoot.targets.find(x => x.targetAfxId == target);
+export function getMissionLevelLootAverageConsumptionValue(
+  levelLoot: MissionLevelLootStore,
+  target: ei.ArtifactSpec.Name
+): [number, number] {
+  const loot = levelLoot.targets.find(x => x.targetAfxId == target);
   if (loot === undefined || loot.totalDrops === 0) {
-    return [0,0];
+    return [0, 0];
   }
-  let total = [0,0];
+  const total = [0, 0];
   for (const item of loot.items) {
     item.counts.forEach((count, afxRarity) => {
       if (count > 0) {
-          let consValue = itemExpectedFullConsumption(item.afxId, item.afxLevel, afxRarity);
-          total[0] += count * consValue[0];
-          total[1] += count * consValue[1];
+        const consValue = itemExpectedFullConsumption(item.afxId, item.afxLevel, afxRarity);
+        total[0] += count * consValue[0];
+        total[1] += count * consValue[1];
       }
     });
   }
-    return [total[0] / loot.totalDrops, total[1] / loot.totalDrops];
+  return [total[0] / loot.totalDrops, total[1] / loot.totalDrops];
 }
 
 type ItemLootStore = {
@@ -57,7 +60,6 @@ type ItemMissionLevelLootStore = {
   counts: [number, number, number, number];
 };
 
-
 export function getTierLootData(itemId: string): ItemLootStore {
   const item = getArtifactTierPropsFromId(itemId);
   const result: ItemLootStore = {
@@ -66,10 +68,12 @@ export function getTierLootData(itemId: string): ItemLootStore {
   for (const missionLoot of lootdata.missions) {
     const mission = getMissionTypeFromId(missionLoot.missionId);
     const withinRange =
-      mission.params.minQuality <= item.quality && item.quality <= mission.maxBoostedMaxQuality()
+      mission.params.minQuality <= item.quality && item.quality <= mission.maxBoostedMaxQuality();
     const validTargets = mission.isFTL ? targets : [ei.ArtifactSpec.Name.UNKNOWN];
     for (const target of validTargets) {
-      if (!config.value.targets[target] && item.afx_id != target) { continue }
+      if (!config.value.targets[target] && item.afx_id != target) {
+        continue;
+      }
       const store: ItemMissionLootStore = {
         targetAfxId: target,
         afxShip: missionLoot.afxShip,
@@ -108,4 +112,3 @@ export function getTierLootData(itemId: string): ItemLootStore {
 export function missionDataNotEnough(mission: MissionType, totalDrops: number) {
   return totalDrops / mission.defaultCapacity < 20;
 }
-
