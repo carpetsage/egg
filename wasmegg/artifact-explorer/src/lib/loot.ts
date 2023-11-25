@@ -3,7 +3,6 @@ import {
   getArtifactTierPropsFromId,
   getMissionTypeFromId,
   itemExpectedFullConsumption,
-  itemExpectedFullConsumption,
   MissionType,
   targets,
 } from 'lib';
