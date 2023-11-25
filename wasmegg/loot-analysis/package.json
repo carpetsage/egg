@@ -2,7 +2,7 @@
   "license": "MIT",
   "devDependencies": {
     "@tailwindcss/jit": "^0.1.18",
-    "@vue/compiler-sfc": "^3.3.8",
+    "@vue/compiler-sfc": "^3.3.9",
     "autoprefixer": "^10.4.16",
     "css-loader": "^6.8.1",
     "cssnano": "^6.0.1",
@@ -10,7 +10,7 @@
     "postcss-cli": "^10.1.0",
     "postcss-hash": "^3.0.0",
     "postcss-import": "^15.1.0",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.0",
     "protobufjs": "^7.2.5",
     "style-loader": "^3.3.3",
     "vue-loader": "^17.3.1",
@@ -30,7 +30,7 @@
     "tailwindcss": "^2.2.19",
     "terser-webpack-plugin": "^5.3.9",
     "tippy.js": "^6.3.7",
-    "vue": "^3.3.8",
+    "vue": "^3.3.9",
     "vue-echarts": "^6.6.1",
     "vue-router": "^4.2.5",
     "vue-tippy": "^6.3.1"
