@@ -80,9 +80,21 @@ export function getTargetName(afxId: Name): string {
   return familyName ?? `Not Found 2: ${afxId}`
 }
 
+export function getTargetId(afxName: string) {
+  for (const id of itemIdtoName.keys()) {
+    if (getTargetName(id).toLowerCase() == afxName.toLowerCase()) {
+      return id;
+    }
+    console.log("target" + getTargetName(id))
+    console.log("selected" + afxName)
+  }
+  return 10000;
+}
+
 export function getArtifactName(afxId: Name): string {
   return itemIdtoName.get(afxId)!;
 }
+
 export function getImageUrlFromId(afxId: Name, size?: number): string {
   return iconURL(`egginc/${itemAfxIdToFile.get(afxId)!}`, size ?? 32);
 }

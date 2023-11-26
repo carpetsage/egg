@@ -5,7 +5,7 @@ on:
       - "lib/**"
       - "ui/**"
       - "eicoop/**"
-      - "periodicals/*"
+      - "periodicals/data/contracts.json"
       - 'protobuf/ei.proto'
   pull_request:
     types: [ opened, edited, reopened]

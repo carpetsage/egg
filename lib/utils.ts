@@ -56,5 +56,6 @@ export function trimTrailingZeros(s: string): string {
 }
 
 export function titleCase(s: string): string {
-  return s.toLowerCase().split(/_|-| /).map(x => x[0].toUpperCase() + x.substring(1)).join(' ');
+  const title = s.toLowerCase().split(/_|-| /).map(x => x.length > 3 ? x[0].toUpperCase() + x.substring(1) : x).join(' ');
+  return title[0].toUpperCase() + title.substring(1);
 }

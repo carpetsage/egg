@@ -11,8 +11,7 @@
                 `Zero-g Quantum Containment: <span class='text-green-200'>${config.epicResearchZerogLevel}/10</span>`,
               allowHTML: true,
             }"
-            class="inline-flex items-center text-sm"
-          >
+            class="inline-flex items-center text-sm">
             ({{ selectedLevel }}<star-icon class="h-4 w-4 text-yellow-400" />,
             {{ mission.boostedCapacity(configWithSelectedLevel) }} capacity,
             {{ mission.boostedDurationDisplay(configWithSelectedLevel) }})
@@ -60,18 +59,49 @@
             </nav>
           </div>
         </div>
+        <div v-if="mission.isFTL" class="flex lg:hidden items-center space-x-1.5">
+          <select
+            class="block focus:ring-green-500 focus:border-green-500 border-gray-300 rounded-md py-0.5 text-sm"
+            :value="titleCase(getTargetName(selectedTarget))"
+            @input="selectTarget"
+          >
+            <option v-for="arti,index in targets" :key="index">
+              {{ titleCase(getTargetName(arti)) }}
+            </option>
+          </select>
+        </div>
+        <div v-if="mission.isFTL" class="hidden lg:block">
+          <div class="border-b border-gray-200">
+            <nav class="-mb-px flex">
+              <div
+                v-for="arti in targets"
+                :key="arti"
+                :class="[
+                  arti === selectedTarget
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 cursor-pointer',
+                  'group inline-flex items-center py-1 px-0.5 border-b-2 font-medium text-sm',
+                ]"
+                @click="selectedTarget = arti"
+              >
+                <img v-if="arti != 10000" class="h-6 w-6 min-w-full" :src="id2url(arti,32)" :alt="getTargetName(arti)" />
+                <template v-else>
+                  Untargeted
+                </template>
+              </div>
+            </nav>
+          </div>
+        </div>
       </div>
 
       <div class="flex rounded-md">
         <span
-          class="inline-flex items-center text-xs px-2 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-500"
-        >
+          class="inline-flex items-center text-xs px-2 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-500">
           Sort by
         </span>
         <select
           v-model="sortBy"
-          class="text-xs pr-8 py-1 rounded-none rounded-r-md text-gray-500 bg-white border-gray-300 focus:outline-none focus:ring-0 focus:ring-gray-300 focus:border-gray-300"
-        >
+          class="text-xs pr-8 py-1 rounded-none rounded-r-md text-gray-500 bg-white border-gray-300 focus:outline-none focus:ring-0 focus:ring-gray-300 focus:border-gray-300">
           <option :value="ItemsSortBy.Family">Family</option>
           <option :value="ItemsSortBy.Quality">Quality</option>
           <option :value="ItemsSortBy.DropRate">Drop rate</option>
@@ -79,14 +109,8 @@
       </div>
 
       <p v-if="tooLittleDataForSelectedLevel" class="text-xs text-gray-500">
-        Too little data has been collected for this level; highly inaccurate drop rate estimates are
-        not shown. Please consider
-        <a
-          href="https://replit.com/@menno-egginc/EggIncDataCollection"
-          target="_blank"
-          class="text-gray-500 hover:text-gray-700 underline"
-          >contributing yours</a
-        >.
+        Too little data has been collected for this level/target combo; highly inaccurate drop rate estimates are
+        not shown. Please consider opting in to contribute yours on rockets tracker
       </p>
 
       <ul class="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
@@ -105,7 +129,7 @@
             class="text-green-700 ml-5 xs:ml-auto"
             :mission="mission"
             :level="selectedLevel"
-            :total-drops="selectedLevelTargetLoot.totalDrops"
+            :total-drops="selectedLevelTargetLoot?.totalDrops ?? 0"
             :item-drops="itemLoot.counts"
             :is-artifact="artifactItemIds.includes(itemLoot.itemId)"
             :hide-when-not-enough="true"
@@ -113,40 +137,57 @@
         </li>
       </ul>
 
-      <template v-if="selectedLevelExpectedFullConsumptionValuePerShip > 0">
+      <template v-if="!tooLittleDataForSelectedLevel"> 
         <hr />
 
         <p class="text-sm">
           Expected full consumption value from mission loot:
           <base-info
             v-tippy="{
-              content: `<span class='text-blue-300'>Full consumption value</span> is the number of golden eggs (GE) obtained from recursively consuming all loot items, that is, for artifacts yielding stones and fragments, the resulting items are further broken down into GE. Uncommon items are demoted first before consumption.`,
+              content: `<span class='text-blue-300'>Full consumption value</span> is the number of golden eggs / piggy fill obtained from recursively consuming all loot items, that is, for artifacts yielding stones and fragments, the resulting items are further broken down into GE/Piggy Fill. Uncommon items are demoted first before consumption.`,
               allowHTML: true,
-            }"
-            class="inline"
-          />
+            }" class="inline" />
           <br />
-          <span class="inline-flex items-center text-yellow-500 whitespace-nowrap"
-            >{{
-              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip, precision)
-            }}/<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" /></span
-          >,
+          <!-- Raw GE per ship -->
+          <span class="inline-flex items-center text-yellow-500 whitespace-nowrap">
+            {{ formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip[0], precision[0]) }}
+            <img class="h-4 w-4 ml-px" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
+           /<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" />
+          </span>,
           <span class="whitespace-nowrap">
-            <span class="text-yellow-500"
-              >{{
-                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay, precision)
-              }}/d</span
-            >
-            (1 mission slot)</span
-          >,
+            <span class="text-yellow-500">
+              {{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0], precision[0])
+              }}/d
+            </span>
+            (1 mission slot)</span>,
           <span class="whitespace-nowrap">
-            <span class="text-yellow-500"
-              >{{
-                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay * 3, precision)
-              }}/d</span
-            >
-            (3 mission slots)</span
-          >.
+            <span class="text-yellow-500">
+              {{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0] * 3, precision[0])
+              }}/d
+            </span>
+            (3 mission slots)</span>.
+          <br />
+          <!-- Piggy fill per ship-->
+          <span class="inline-flex items-center text-yellow-500 whitespace-nowrap">
+            {{ formatToPrecision(selectedLevelExpectedFullConsumptionValuePerShip[1], precision[1]) }}
+            <img class="h-4 w-4 ml-px" :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 64)" />
+            /<img class="h-4 w-4 ml-px" :src="iconURL(mission.shipIconPath, 32)" /></span>,
+          <span class="whitespace-nowrap">
+            <span class="text-yellow-500">
+              {{
+                formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[1], precision[1])
+              }}/d
+            </span>
+            (1 mission slot)</span>,
+          <span class="whitespace-nowrap">
+            <span class="text-yellow-500">
+                {{
+              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0] * 3, precision[0])
+                }}/d
+            </span>
+            (3 mission slots)</span>.
           <br />
           <a
             href="https://wasmegg-carpet.netlify.app/consumption-sheet/"
@@ -175,12 +216,17 @@ import { StarIcon } from '@heroicons/vue/solid';
 
 import {
   allPossibleTiers,
+  noFragTargets as targets,
   ei,
   getArtifactTierPropsFromId,
   getLocalStorage,
   getMissionTypeFromId,
   iconURL,
   setLocalStorage,
+  getTargetName,
+  getImageUrlFromId as id2url,
+  getTargetId,
+  titleCase,
 } from 'lib';
 import {
   cmpArtifactTiers,
@@ -247,7 +293,7 @@ export default defineComponent({
 
     const configuredLevel = computed(() => config.value.shipLevels[mission.value.shipType]);
     const selectedLevel = ref(configuredLevel.value);
-    const forceLevel = (level: number) => { selectedLevel.value = level};
+    const forceLevel = (level: number) => { selectedLevel.value = level };
     const selectLevel = (event: Event) => {
       selectedLevel.value = parseInt((event.target! as HTMLSelectElement).value);
     };
@@ -256,6 +302,13 @@ export default defineComponent({
         selectedLevel.value = current;
       }
     });
+    const defaultTarget = ei.ArtifactSpec.Name.UNKNOWN;
+    const selectedTarget = ref(defaultTarget);
+    const selectTarget = (event: Event) => {
+      const x = getTargetId((event.target! as HTMLSelectElement).value);
+      selectedTarget.value = x;
+    };
+
 
     const sortBy = ref(loadItemsSortBy());
     watch(sortBy, () => {
@@ -268,17 +321,16 @@ export default defineComponent({
       forceLevel(0);
     }
 
-    // hardcode no target for now
-    const target = ei.ArtifactSpec.Name.UNKNOWN;
     const selectedLevelTargetLoot = computed(() =>
-      selectedLevelLoot.value.targets.find(x => x.targetAfxId === target) ??
-      selectedLevelLoot.value.targets[selectedLevelLoot.value.targets.length - 1]
+      selectedLevelLoot.value.targets.find(x => x.targetAfxId === selectedTarget.value)
     );
 
     const tooLittleDataForSelectedLevel = computed(() =>
-      missionDataNotEnough(mission.value, selectedLevelTargetLoot.value.totalDrops)
+      selectedLevelTargetLoot.value ?
+      missionDataNotEnough(mission.value, selectedLevelTargetLoot.value.totalDrops) : true
     );
     const sortedItemsLoot = computed(() =>
+      selectedLevelTargetLoot.value ? 
       [...selectedLevelTargetLoot.value.items].sort((i1, i2) => {
         const item1 = getArtifactTierPropsFromId(i1.itemId);
         const item2 = getArtifactTierPropsFromId(i2.itemId);
@@ -296,7 +348,8 @@ export default defineComponent({
           return cmp;
         }
         return cmpArtifactTiers(item1, item2);
-      })
+      }) :
+      []
     );
 
     const configWithSelectedLevel = computed(() =>
@@ -308,13 +361,15 @@ export default defineComponent({
     const selectedLevelDurationDays = computed(
       () => mission.value.boostedDurationSeconds(configWithSelectedLevel.value) / 86400
     );
-    const selectedLevelExpectedFullConsumptionValuePerShip = computed(
-      () =>
-        getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, target) *
-        selectedLevelCapacity.value
+      const selectedLevelExpectedFullConsumptionValuePerShip = computed(
+        ()=>{
+              const consumationValue = computed(() => getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, selectedTarget.value));
+              return [consumationValue.value[0] * selectedLevelCapacity.value, consumationValue.value[1] * selectedLevelCapacity.value];          
+        }
     );
     const selectedLevelExpectedFullConsumptionValuePerDay = computed(
-      () => selectedLevelExpectedFullConsumptionValuePerShip.value / selectedLevelDurationDays.value
+        () => [selectedLevelExpectedFullConsumptionValuePerShip.value[0] / selectedLevelDurationDays.value,
+            selectedLevelExpectedFullConsumptionValuePerShip.value[1] / selectedLevelDurationDays.value]
     );
     // It's hard to decide the precision here. We have the sum of a (for
     // simplicity, let's assume) normally distributed sample and we want to know
@@ -326,11 +381,12 @@ export default defineComponent({
     //
     // We also limit the precision to integer for the per-ship value.
     const precision = computed(() => {
-      const perShip = Math.round(selectedLevelExpectedFullConsumptionValuePerShip.value);
+      const perShipGe = Math.round(selectedLevelExpectedFullConsumptionValuePerShip.value[0]);
+      const perShipPiggy = Math.round(selectedLevelExpectedFullConsumptionValuePerShip.value[1]);
       const nSamples = Math.round(
-        selectedLevelTargetLoot.value.totalDrops / mission.value.defaultCapacity
+        (selectedLevelTargetLoot.value?.totalDrops ?? 0)/ mission.value.defaultCapacity
       );
-      return Math.min(`${perShip}`.length, `${nSamples * 5}`.length);
+      return [Math.min(`${perShipGe}`.length, `${nSamples * 5}`.length),Math.min(`${perShipPiggy}`.length, `${nSamples * 5}`.length)];
     });
 
     return {
@@ -341,19 +397,24 @@ export default defineComponent({
       sortBy,
       loot,
       selectedLevelLoot,
-      target,
+      selectTarget,
+      selectedTarget,
       selectedLevelTargetLoot,
       tooLittleDataForSelectedLevel,
       selectedLevelExpectedFullConsumptionValuePerShip,
       selectedLevelExpectedFullConsumptionValuePerDay,
       precision,
       selectLevel,
+      getTargetName,
       sortedItemsLoot,
       config,
       getArtifactTierPropsFromId,
       artifactItemIds,
       formatToPrecision,
+      titleCase,
       iconURL,
+      id2url,
+      targets,
     };
   },
 });
