@@ -39,6 +39,7 @@
           formatFloat(outcome.full_consumption.filter(f=>f.reward_type==6)[0].reward_amount, { digits: 1, trim: true })
         }}</template
         >
+          </span>
           <span
           v-if="outcome.demotion_gold !== null"
           v-tippy="{ content: 'gold yield from demoting to common' }"
@@ -50,7 +51,7 @@
             :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
           />
           {{ formatFloat(outcome.demotion_gold, { digits: 0 }) }}
-        </span>
+
       </span>
     </div>
   </template>
