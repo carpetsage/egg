@@ -10818,6 +10818,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1701018000.0,
+    "id": "ultra-11-25",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1700931600.0,
+    "type": "drone-boost",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1701104400.0,
     "id": "event-11-25-2",
     "message": "4x PIGGY GROWTH!!",
@@ -10827,12 +10836,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1701018000.0,
-    "id": "ultra-11-25",
-    "message": "4x DRONE REWARDS!",
-    "multiplier": 4.0,
-    "startTimestamp": 1700931600.0,
-    "type": "drone-boost",
-    "ultra": true
+    "endTimestamp": 1701104400.0,
+    "id": "event-11-26",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1701018000.0,
+    "type": "epic-research-sale",
+    "ultra": false
   }
 ]
