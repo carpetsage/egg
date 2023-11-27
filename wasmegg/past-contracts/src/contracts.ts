@@ -127,7 +127,7 @@ function newUserContract(
   const grade = hasGrades ?
     contract.evaluation?.grade || playerGrade || ei.Contract.PlayerGrade.GRADE_AAA :
     ei.Contract.PlayerGrade.GRADE_UNSET;
-  let goals = hasGrades ? props.gradeSpecs![(grade || 1) - 1].goals : props.goals;
+  let goals = props.gradeSpecs?.[(grade || 1) - 1].goals ?? props.goals;
   if (!hasGrades && props.goalSets && props.goalSets.length > league) {
     hasLeagues = true;
     goals = props.goalSets[league].goals;

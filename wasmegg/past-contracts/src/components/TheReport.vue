@@ -135,6 +135,20 @@
           >
         </div>
       </div>
+      <div class="relative flex items-start">
+        <div class="flex items-center h-5">
+          <input
+            id="showTwoGoals"
+            v-model="showTwoGoals"
+            name="showTwoGoals"
+            type="checkbox"
+            class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="showTwoGoals" class="text-gray-600">Show only contracts with 2 goals</label>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -312,6 +326,7 @@ import { formatEIValue, formatDuration } from 'lib';
 const HIDE_UNATTEMPTED_LOCALSTORAGE_KEY = 'hideUnattempted';
 const HIDE_COMPLETED_LOCALSTORAGE_KEY = 'hideCompleted';
 const HIDE_NO_PE_LOCALSTORAGE_KEY = 'hideNoPE';
+const SHOW_TWO_GOALS_LOCALSTORAGE_KEY = 'showTwoGoals';
 
 export default defineComponent({
   components: {
@@ -358,6 +373,8 @@ export default defineComponent({
     const hideUnattempted = ref(getLocalStorage(HIDE_UNATTEMPTED_LOCALSTORAGE_KEY) === 'true');
     const hideCompleted = ref(getLocalStorage(HIDE_COMPLETED_LOCALSTORAGE_KEY) === 'true');
     const hideNoPE = ref(getLocalStorage(HIDE_NO_PE_LOCALSTORAGE_KEY) === 'true');
+    const showTwoGoals = ref(getLocalStorage(SHOW_TWO_GOALS_LOCALSTORAGE_KEY) === 'true');
+
     /* eslint-disable vue/no-watch-after-await */
     watch(hideUnattempted, () => {
       setLocalStorage(HIDE_UNATTEMPTED_LOCALSTORAGE_KEY, hideUnattempted.value);
@@ -367,6 +384,9 @@ export default defineComponent({
     });
     watch(hideNoPE, () => {
       setLocalStorage(HIDE_NO_PE_LOCALSTORAGE_KEY, hideNoPE.value);
+    });
+    watch(showTwoGoals, () => {
+      setLocalStorage(SHOW_TWO_GOALS_LOCALSTORAGE_KEY, showTwoGoals.value);
     });
     /* eslint-enable vue/no-watch-after-await */
 
@@ -379,6 +399,9 @@ export default defineComponent({
           return false;
         }
         if (hideNoPE.value && c.numAvailablePEs === 0) {
+          return false;
+        }
+        if (showTwoGoals.value && c.numAvailableGoals != 2) {
           return false;
         }
         return true;
@@ -460,6 +483,7 @@ export default defineComponent({
       hideUnattempted,
       hideCompleted,
       hideNoPE,
+      showTwoGoals,
       visibleContracts,
       username,
       formatEIValue,
