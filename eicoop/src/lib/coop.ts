@@ -306,7 +306,7 @@ export class Contributor {
     this.eggsPerHour = contributor.contributionRate! * 3600;
     this.earningBonusPercentage = Math.pow(10, contributor.soulPower!) * 100;
     this.farmerRole = soulPowerToFarmerRole(contributor.soulPower!);
-    this.tokens = contributor.boostTokens!;
+    this.tokens = contributor.boostTokens ?? contributor.farmInfo?.boostTokensOnHand ?? 0;
     this.autojoined = contributor.autojoined ?? false;
     this.isActive = contributor.active!;
     this.isTimeCheating = contributor.timeCheatDetected!;
