@@ -10915,5 +10915,14 @@
     "startTimestamp": 1701450000.0,
     "type": "research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1701536400.0,
+    "id": "ultra-12-01",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1701450000.0,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
