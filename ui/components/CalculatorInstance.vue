@@ -17,7 +17,7 @@
     ></textarea>
     <template v-if="result !== null">
       <div class="text-sm">
-        {{ result }}<br />
+        {{ parseFloat(result.toPrecision(4)) }}<br />
         <span class="text-indigo-700">EI notation:</span> <base-e-i-value :value="result" />
       </div>
     </template>
