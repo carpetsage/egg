@@ -4,10 +4,10 @@ import {
   ArtifactSet,
   ei,
   FarmerRole,
-  requestFirstContact,
   requestQueryCoop,
   soulPowerToFarmerRole,
   requestCoopStatusBasic,
+  getLocalStorage,
 } from "lib";
 import {
   ContractLeague,
@@ -137,7 +137,7 @@ export class CoopStatus {
           `No contributors found in ${this.contractId}:${this.coopCode}, cannot resolve contract info.`,
         );
       }
-      const userId = this.creatorId;
+      const userId = getLocalStorage('userId', '/_') || '';
       const result = await getContractFromPlayerSave(userId, this.contractId);
       if (!result) {
         throw new Error(
