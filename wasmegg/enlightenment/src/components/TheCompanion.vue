@@ -28,7 +28,7 @@
         <span class="text-xs text-gray-500">Why is my save out of date?</span>
       </span>
     </p>
-    <p v-if="egg !== enlightenmentEgg" class="text-sm text-red-500 inline-flex items-center">
+    <p v-if="egg == enlightenmentEgg" class="text-sm text-red-500 inline-flex items-center">
       Current egg is <img :src="eggIconURL" class="inline h-8 w-8" />, not
       <img :src="enlightenmentEggIconURL" class="inline h-8 w-8" />!
     </p>
@@ -389,7 +389,7 @@ import ArtifactsGallery from '@/components/ArtifactsGallery.vue';
 import UnfinishedResearches from '@/components/UnfinishedResearches.vue';
 import TargetCashMatrix from '@/components/TargetCashMatrix.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-import BaseEIValue from '@/components/BaseEIValue.vue';
+import BaseEIValue from 'ui/components/BaseEIValue.vue';
 
 // Note that timezone abbreviation may not work due to
 // https://github.com/iamkun/dayjs/issues/1154, in which case the GMT offset is

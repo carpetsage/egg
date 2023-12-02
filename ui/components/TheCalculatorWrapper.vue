@@ -75,7 +75,7 @@
 import { defineComponent, ref } from 'vue';
 import { Dialog, DialogOverlay, TransitionChild, TransitionRoot } from '@headlessui/vue';
 
-import CalculatorInstance from '@/components/CalculatorInstance.vue';
+import CalculatorInstance from 'ui/components/CalculatorInstance.vue';
 
 export default defineComponent({
   components: {

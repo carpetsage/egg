@@ -88,7 +88,7 @@
 import { defineComponent, PropType, toRefs } from 'vue';
 
 import { formatPercentage } from '@/utils';
-import BaseEIValue from '@/components/BaseEIValue.vue';
+import BaseEIValue from 'ui/components/BaseEIValue.vue';
 
 type Target = {
   multiplier: number;

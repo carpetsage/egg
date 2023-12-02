@@ -9,6 +9,7 @@
       <router-view />
     </div>
   </main>
+  <the-calculator-wrapper />
 </template>
 
 <script lang="ts">
@@ -16,11 +17,13 @@ import { defineComponent } from 'vue';
 
 import TheNavBar from 'ui/components/NavBar.vue';
 import FontSwitcher from '@/components/FontSwitcher.vue';
+import TheCalculatorWrapper from 'ui/components/TheCalculatorWrapper.vue';
 
 export default defineComponent({
   components: {
     TheNavBar,
     FontSwitcher,
+    TheCalculatorWrapper,
   },
 });
 </script>
