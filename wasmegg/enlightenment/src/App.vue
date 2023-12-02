@@ -53,7 +53,7 @@ import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import BaseErrorBoundary from 'ui/components/BaseErrorBoundary.vue';
 import BaseLoading from 'ui/components/BaseLoading.vue';
 import TheCompanion from '@/components/TheCompanion.vue';
-import TheCalculatorWrapper from '@/components/TheCalculatorWrapper.vue';
+import TheCalculatorWrapper from 'ui/components/TheCalculatorWrapper.vue';
 
 export default defineComponent({
   components: {

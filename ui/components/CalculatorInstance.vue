@@ -42,8 +42,8 @@
 <script lang="ts">
 import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 
-import { calculateWithOoMUnits, units } from '@/lib';
-import BaseEIValue from '@/components/BaseEIValue.vue';
+import { calculateWithOoMUnits, units } from 'lib';
+import BaseEIValue from 'ui/components/BaseEIValue.vue';
 
 export default defineComponent({
   components: {

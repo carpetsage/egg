@@ -37,6 +37,7 @@
       </div>
     </template>
   </div>
+  <the-calculator-wrapper />
 </template>
 
 <script lang="ts">
@@ -48,6 +49,7 @@ import BaseLoading from 'ui/components/BaseLoading.vue';
 import TheNavBar from 'ui/components/NavBar.vue';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import TheAssistant from '@/components/TheAssistant.vue';
+import TheCalculatorWrapper from 'ui/components/TheCalculatorWrapper.vue';
 
 export default defineComponent({
   components: {
@@ -56,6 +58,7 @@ export default defineComponent({
     BaseLoading,
     ThePlayerIdForm,
     TheAssistant,
+    TheCalculatorWrapper,
   },
   setup() {
     const playerId = ref(

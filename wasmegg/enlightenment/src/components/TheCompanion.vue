@@ -389,7 +389,7 @@ import ArtifactsGallery from '@/components/ArtifactsGallery.vue';
 import UnfinishedResearches from '@/components/UnfinishedResearches.vue';
 import TargetCashMatrix from '@/components/TargetCashMatrix.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-import BaseEIValue from '@/components/BaseEIValue.vue';
+import BaseEIValue from 'ui/components/BaseEIValue.vue';
 
 // Note that timezone abbreviation may not work due to
 // https://github.com/iamkun/dayjs/issues/1154, in which case the GMT offset is

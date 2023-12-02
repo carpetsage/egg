@@ -29,6 +29,7 @@
       </div>
     </template>
   </div>
+  <the-calculator-wrapper />
 </template>
 
 <script lang="ts">
@@ -44,8 +45,9 @@ import BaseLoading from 'ui/components/BaseLoading.vue';
 import TheNavBar from 'ui/components/NavBar.vue';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import TheReport from '@/components/TheReport.vue';
-import { getMissionDataPreference, recordMissionDataPreference } from '@/lib';
+import { recordMissionDataPreference } from '@/lib';
 import { REPORT_MISSIONDATA } from './events';
+import TheCalculatorWrapper from 'ui/components/TheCalculatorWrapper.vue';
 
 export default defineComponent({
   components: {
@@ -55,7 +57,8 @@ export default defineComponent({
     TheNavBar,
     ThePlayerIdForm,
     TheReport,
-    MissionDropDataOptInForm
+    MissionDropDataOptInForm,
+    TheCalculatorWrapper
 },
   setup() {
     const playerId = ref(
