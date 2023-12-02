@@ -504,7 +504,7 @@ export default defineComponent({
         bestGusset.clarityEffect === 3
     );
     const showNAH = computed(() =>
-      existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH
+      existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH.value
     )
     const bestPossibleGussetSet = bestPossibleGusset ? [bestPossibleGusset] : [];
     const minimumRequiredWDLevel = bestPossibleGusset
