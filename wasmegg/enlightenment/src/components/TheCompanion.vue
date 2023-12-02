@@ -28,7 +28,7 @@
         <span class="text-xs text-gray-500">Why is my save out of date?</span>
       </span>
     </p>
-    <p v-if="egg == enlightenmentEgg" class="text-sm text-red-500 inline-flex items-center">
+    <p v-if="egg !== enlightenmentEgg" class="text-sm text-red-500 inline-flex items-center">
       Current egg is <img :src="eggIconURL" class="inline h-8 w-8" />, not
       <img :src="enlightenmentEggIconURL" class="inline h-8 w-8" />!
     </p>

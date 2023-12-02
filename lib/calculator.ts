@@ -1,11 +1,9 @@
+import { parseValueWithUnit, valueWithUnitRegExpGlobal } from "./units";
 
 // Map lower case version of a Math proper to the qualified property (with
 // proper case), e.g. abs => Math.abs, pi => Math.PI.
 //
 // All symbols except Math.E are supported. E unfornately appears in scientific
-
-import { parseValueWithUnit, valueWithUnitRegExpGlobal } from "./units";
-
 // notations all the time.
 const supportedMathSymbols = new Map(
   (Object.getOwnPropertyNames(Math)
