@@ -10969,5 +10969,23 @@
     "startTimestamp": 1701709200.0,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1701882000.0,
+    "id": "event-12-5",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1701795600.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1701882000.0,
+    "id": "ultra-12-5",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1701795600.0,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
