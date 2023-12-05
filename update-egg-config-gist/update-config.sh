@@ -5,4 +5,4 @@ jq -S 'walk(try (del(.secondsRemaining) | del(.secondsUntilAvailable))//.)' conf
 wget https://gist.githubusercontent.com/carpetsage/${GIST_ID}/raw/config.json -O /tmp/gist.json
 jq -S 'walk(try (del(.secondsRemaining) | del(.secondsUntilAvailable))//.)' /tmp/gist.json > giststripped.json
 # push gist if there's a change
-diff configstripped.json /tmp/giststripped.json || node ./push-gist.js
+diff configstripped.json giststripped.json || node ./push-gist.js
