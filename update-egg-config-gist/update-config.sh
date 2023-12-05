@@ -1,7 +1,8 @@
 #!/bin/sh
-./getConfig.py > /tmp/config.json
+./getConfig.py > config.json
 # delete isNew and secondsRemaining fields if they exist
-jq -S 'walk(try (del(.isNew) | del(.secondsRemaining) | del(.secondsUntilAvailable))//.)' /tmp/config.json > config.json
+jq -S 'walk(try (del(.secondsRemaining) | del(.secondsUntilAvailable))//.)' config.json > configstripped.json
 wget https://gist.githubusercontent.com/carpetsage/${GIST_ID}/raw/config.json -O /tmp/gist.json
-# push gist if there's a changes
-diff config.json /tmp/gist.json || node ./push-gist.js
+jq -S 'walk(try (del(.secondsRemaining) | del(.secondsUntilAvailable))//.)' /tmp/gist.json > giststripped.json
+# push gist if there's a change
+diff configstripped.json /tmp/giststripped.json || node ./push-gist.js
