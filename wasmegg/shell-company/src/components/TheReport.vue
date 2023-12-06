@@ -159,7 +159,7 @@
                   knownShellSetIds.includes(shell.setId) ? `set-${shell.setId}` : 'set-unknown'
                 "
               ></div>
-              <div class="truncate mr-1">{{ shell.name }}</div>
+              <div class="truncate mr-1">{{ shell.name }} </div>
               <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
               <div class="flex-0 text-ticket -ml-px">{{ shell.price }}</div>
               <sup v-if="shell.isNew" class="flex-0 text-[.6rem] text-red-600 ml-0.5">NEW!</sup>
@@ -370,7 +370,7 @@ for (const set of config.dlcCatalog?.shellSets ?? []) {
   shellSetNames[id] = name;
   // elementSet is true for a bunch of silo "sets" which are of course not
   // actual sets. Exclude them.
-  if (!set.elementSet) {
+  if (!set.elementSet && ((set.secondsUntilAvailable ?? 0) <= 0)) {
     const discount = set.discount ?? 0;
     const isNew = !!set.isNew;
     shellSets.push({
@@ -506,6 +506,7 @@ for (const shellConfig of shellConfigs) {
   const owned = ownedShellIds.has(id) || (setId !== undefined && ownedShellSetIds.has(setId));
   const isNew = !!shellConfig.isNew;
   const expires = !!shellConfig.expires;
+  const released = (shellConfig.secondsUntilAvailable ?? 0) <= 0;
   const shell: Shell = {
     id,
     name,
@@ -533,7 +534,9 @@ for (const shellConfig of shellConfigs) {
     case AssetType.HYPERLOOP:
     case AssetType.COOP:
     case AssetType.SILO_0_SMALL:
-      shells[type].push(shell);
+      if (released) {
+        shells[type].push(shell);
+      }
       if (setId) {
         setIdAssetTypeToCanonicalShellId.set(`${setId} ${typeStr}`, id);
       }
@@ -741,16 +744,19 @@ for (const objectConfig of config.dlcCatalog?.shellObjects ?? []) {
   const owned = ownedObjectIds.has(id);
   const isNew = !!objectConfig.isNew;
   const expires = !!objectConfig.expires;
-  objects.push({
-    id,
-    name,
-    expires,
-    type,
-    price,
-    owned,
-    isNew,
-    spec: objectConfig,
-  });
+  const released = (objectConfig.secondsUntilAvailable ?? 0) <= 0;
+  if (released) {
+    objects.push({
+      id,
+      name,
+      expires,
+      type,
+      price,
+      owned,
+      isNew,
+      spec: objectConfig,
+    });
+  }
 }
 objects.sort((o1, o2) => {
   if ((o1.spec.requiredEop ?? 0) !== (o2.spec.requiredEop ?? 0)) {
