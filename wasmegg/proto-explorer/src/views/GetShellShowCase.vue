@@ -18,15 +18,13 @@
     import ApiRequester from '@/components/APIRequester.vue';
     import RequestButton from '@/components/RequestButton.vue';
 
-    type ArtifactsConfigurationRequestPayload = Omit<ei.IArtifactsConfigurationRequest, ''>;
-
     export default defineComponent({
         components: {
             ApiRequester,
             RequestButton,
         },
         setup() {
-            const getRequestPayloadObject = (): ArtifactsConfigurationRequestPayload => ({
+            const getRequestPayloadObject = () => ({
                 clientVersion: CLIENT_VERSION,
             });
             return {
