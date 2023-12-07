@@ -17,7 +17,7 @@
     ></textarea>
     <template v-if="result !== null">
       <div class="text-sm">
-        {{ result }}<br />
+        {{ parseFloat(result.toPrecision(4)) }}<br />
         <span class="text-indigo-700">EI notation:</span> <base-e-i-value :value="result" />
       </div>
     </template>
@@ -42,8 +42,8 @@
 <script lang="ts">
 import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 
-import { calculateWithOoMUnits, units } from '@/lib';
-import BaseEIValue from '@/components/BaseEIValue.vue';
+import { calculateWithOoMUnits, units } from 'lib';
+import BaseEIValue from 'ui/components/BaseEIValue.vue';
 
 export default defineComponent({
   components: {

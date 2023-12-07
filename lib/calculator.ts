@@ -1,4 +1,4 @@
-import { parseValueWithUnit, valueWithUnitRegExpGlobal } from 'lib';
+import { parseValueWithUnit, valueWithUnitRegExpGlobal } from "./units";
 
 // Map lower case version of a Math proper to the qualified property (with
 // proper case), e.g. abs => Math.abs, pi => Math.PI.

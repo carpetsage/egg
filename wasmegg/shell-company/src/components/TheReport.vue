@@ -83,6 +83,20 @@
           class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-0 focus:ring-offset-0 hover:cursor-pointer"
         />
         <span>Not owned</span>
+        <input
+          id="show-exclusive"
+          v-model="showExclusive"
+          type="checkbox"
+          class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-0 focus:ring-offset-0 hover:cursor-pointer"
+        />
+        <span>Exclusive</span>
+        <input
+          id="show-nonexclusive"
+          v-model="showNonExclusive"
+          type="checkbox"
+          class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-0 focus:ring-offset-0 hover:cursor-pointer"
+        />
+        <span>Not Exclusive</span>
       </div>
     </div>
 
@@ -97,7 +111,7 @@
         >
           <template v-for="set in shellSets" :key="set.id">
             <div
-              v-if="(showOwned && set.complete) || (showUnowned && !set.complete)"
+              v-if="showShellThingy(set)"
               class="flex text-sm"
               :class="{ 'opacity-40': !set.complete }"
             >
@@ -133,7 +147,7 @@
         <div class="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-y-1 mt-2 empty:mt-0">
           <template v-for="shell in shells[shellType]" :key="shell.id">
             <div
-              v-if="(showOwned && shell.owned) || (showUnowned && !shell.owned)"
+              v-if="showShellThingy(shell)"
               class="flex items-center text-sm"
               :class="{ 'opacity-40': !shell.owned }"
             >
@@ -145,7 +159,7 @@
                   knownShellSetIds.includes(shell.setId) ? `set-${shell.setId}` : 'set-unknown'
                 "
               ></div>
-              <div class="truncate mr-1">{{ shell.name }}</div>
+              <div class="truncate mr-1">{{ shell.name }} </div>
               <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
               <div class="flex-0 text-ticket -ml-px">{{ shell.price }}</div>
               <sup v-if="shell.isNew" class="flex-0 text-[.6rem] text-red-600 ml-0.5">NEW!</sup>
@@ -166,7 +180,7 @@
         <div class="grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-y-1 mt-2 empty:mt-0">
           <template v-for="obj in section.objects" :key="obj.id">
             <div
-              v-if="(showOwned && obj.owned) || (showUnowned && !obj.owned)"
+              v-if="showShellThingy(obj)"
               class="flex items-center text-sm"
               :class="{ 'opacity-40': !obj.owned }"
             >
@@ -209,9 +223,11 @@ dayjs.extend(relativeTime);
 type ShellSet = {
   id: string;
   name: string;
+  expires: boolean;
   totalComponents: number;
   ownedComponents: number;
   complete: boolean;
+  owned: boolean;
   totalPrice: number;
   discount: number;
   priceToComplete: number;
@@ -222,6 +238,7 @@ type ShellSet = {
 type Shell = {
   id: string;
   name: string;
+  expires: boolean;
   isPartOfSet: boolean;
   setId?: string;
   setName?: string;
@@ -234,6 +251,7 @@ type Shell = {
 
 type ShellObject = {
   id: string;
+  expires: boolean;
   name: string;
   type: AssetType.CHICKEN | AssetType.HAT;
   price: number;
@@ -249,13 +267,23 @@ const props = defineProps<{ playerId: string }>();
 
 const SHOW_OWNED_LOCALSTORAGE_KEY = 'showOwned';
 const SHOW_UNOWNED_LOCALSTORAGE_KEY = 'showUnowned';
+const SHOW_EXCLUSIVE_LOCALSTORAGE_KEY = 'showExclusive';
+const SHOW_NONEXCLUSIVE_LOCALSTORAGE_KEY = 'showNonExclusive';
 const showOwned = ref(getLocalStorage(SHOW_OWNED_LOCALSTORAGE_KEY) !== 'false');
 const showUnowned = ref(getLocalStorage(SHOW_UNOWNED_LOCALSTORAGE_KEY) !== 'false');
+const showExclusive = ref(getLocalStorage(SHOW_EXCLUSIVE_LOCALSTORAGE_KEY) !== 'false');
+const showNonExclusive = ref(getLocalStorage(SHOW_NONEXCLUSIVE_LOCALSTORAGE_KEY) !== 'false');
 watch(showOwned, () => {
   setLocalStorage(SHOW_OWNED_LOCALSTORAGE_KEY, showOwned.value);
 });
 watch(showUnowned, () => {
   setLocalStorage(SHOW_UNOWNED_LOCALSTORAGE_KEY, showUnowned.value);
+});
+watch(showExclusive, () => {
+  setLocalStorage(SHOW_EXCLUSIVE_LOCALSTORAGE_KEY, showExclusive.value);
+});
+watch(showNonExclusive, () => {
+  setLocalStorage(SHOW_NONEXCLUSIVE_LOCALSTORAGE_KEY, showNonExclusive.value);
 });
 
 const lastRefreshed = ref(dayjs());
@@ -338,18 +366,21 @@ for (const set of config.dlcCatalog?.shellSets ?? []) {
     console.warn(`shell set ${id} has no name`);
     continue;
   }
+  const expires = set.expires ?? false;
   shellSetNames[id] = name;
   // elementSet is true for a bunch of silo "sets" which are of course not
   // actual sets. Exclude them.
-  if (!set.elementSet) {
+  if (!set.elementSet && ((set.secondsUntilAvailable ?? 0) <= 0)) {
     const discount = set.discount ?? 0;
     const isNew = !!set.isNew;
     shellSets.push({
       id,
       name,
+      expires,
       totalComponents: 0,
       ownedComponents: 0,
       complete: false,
+      owned: false,
       totalPrice: 0,
       discount,
       priceToComplete: 0,
@@ -474,9 +505,12 @@ for (const shellConfig of shellConfigs) {
   const price = shellConfig.price ?? 0;
   const owned = ownedShellIds.has(id) || (setId !== undefined && ownedShellSetIds.has(setId));
   const isNew = !!shellConfig.isNew;
+  const expires = !!shellConfig.expires;
+  const released = (shellConfig.secondsUntilAvailable ?? 0) <= 0;
   const shell: Shell = {
     id,
     name,
+    expires,
     isPartOfSet,
     setId,
     setName,
@@ -500,7 +534,9 @@ for (const shellConfig of shellConfigs) {
     case AssetType.HYPERLOOP:
     case AssetType.COOP:
     case AssetType.SILO_0_SMALL:
-      shells[type].push(shell);
+      if (released) {
+        shells[type].push(shell);
+      }
       if (setId) {
         setIdAssetTypeToCanonicalShellId.set(`${setId} ${typeStr}`, id);
       }
@@ -622,6 +658,7 @@ for (const shellType of shellTypes) {
 }
 for (const set of shellSets) {
   set.complete = set.ownedComponents === set.totalComponents;
+  set.owned = set.complete;
   set.priceToComplete = Math.round(set.priceToComplete * (1 - set.discount));
 }
 
@@ -706,15 +743,20 @@ for (const objectConfig of config.dlcCatalog?.shellObjects ?? []) {
   const price = objectConfig.price ?? 0;
   const owned = ownedObjectIds.has(id);
   const isNew = !!objectConfig.isNew;
-  objects.push({
-    id,
-    name,
-    type,
-    price,
-    owned,
-    isNew,
-    spec: objectConfig,
-  });
+  const expires = !!objectConfig.expires;
+  const released = (objectConfig.secondsUntilAvailable ?? 0) <= 0;
+  if (released) {
+    objects.push({
+      id,
+      name,
+      expires,
+      type,
+      price,
+      owned,
+      isNew,
+      spec: objectConfig,
+    });
+  }
 }
 objects.sort((o1, o2) => {
   if ((o1.spec.requiredEop ?? 0) !== (o2.spec.requiredEop ?? 0)) {
@@ -746,6 +788,11 @@ const costToPurchaseEverything =
   sum(shellSets.map(set => set.priceToComplete)) +
   sum(shellsFlat.filter(s => !s.owned && !s.isPartOfSet).map(s => s.price)) +
   sum(objects.filter(o => !o.owned).map(o => o.price));
+
+const showShellThingy = (shellThingy: Shell | ShellObject | ShellSet): boolean => {
+  return ((showOwned.value && shellThingy.owned) || (showUnowned.value && !shellThingy.owned)) && 
+     ((showExclusive.value  && shellThingy.expires) || (showNonExclusive.value && !shellThingy.expires))
+}
 </script>
 
 <style scoped lang="postcss">

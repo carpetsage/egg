@@ -9,8 +9,8 @@
 </template>
 
 <script lang="ts">
-import { formatEIValue } from '@/lib';
-import { defineComponent } from '@vue/runtime-core';
+import { formatEIValue } from 'lib';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   props: {

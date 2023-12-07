@@ -4,10 +4,10 @@ import {
   ArtifactSet,
   ei,
   FarmerRole,
-  requestFirstContact,
   requestQueryCoop,
   soulPowerToFarmerRole,
   requestCoopStatusBasic,
+  getLocalStorage,
 } from "lib";
 import {
   ContractLeague,
@@ -137,7 +137,7 @@ export class CoopStatus {
           `No contributors found in ${this.contractId}:${this.coopCode}, cannot resolve contract info.`,
         );
       }
-      const userId = this.creatorId;
+      const userId = getLocalStorage('userId', '/_') || '';
       const result = await getContractFromPlayerSave(userId, this.contractId);
       if (!result) {
         throw new Error(
@@ -306,7 +306,7 @@ export class Contributor {
     this.eggsPerHour = contributor.contributionRate! * 3600;
     this.earningBonusPercentage = Math.pow(10, contributor.soulPower!) * 100;
     this.farmerRole = soulPowerToFarmerRole(contributor.soulPower!);
-    this.tokens = contributor.boostTokens!;
+    this.tokens = contributor.boostTokens ?? contributor.farmInfo?.boostTokensOnHand ?? 0;
     this.autojoined = contributor.autojoined ?? false;
     this.isActive = contributor.active!;
     this.isTimeCheating = contributor.timeCheatDetected!;
