@@ -131,6 +131,10 @@ export default defineComponent({
         name: 'afx/complete_mission',
         title: 'afx/complete_mission',
       },
+      {
+        name: 'shell_showcase',
+        title: '/get_shell_showcase',
+      },
     ];
     const selectedRoute = ref(route.value);
 

@@ -97,6 +97,54 @@ export async function requestContractsArchive(
   ) as ei.IContractsArchive;
 }
 
+export async function requestShellShowcase(
+  userId?: string,
+): Promise<ei.IShellShowcaseListingSet> {
+  userId = userId ?? defaultUserId;
+  const requestPayload = basicRequestInfo(userId);
+  const encodedRequestPayload = encodeMessage(
+    ei.BasicRequestInfo,
+    requestPayload,
+  );
+  const encodedResponsePayload = await request(
+    "/ei/get_shell_showcase",
+    encodedRequestPayload,
+  );
+  return decodeMessage(
+    ei.ShellShowcaseListingSet,
+    encodedResponsePayload,
+    false,
+  ) as ei.IShellShowcaseListingSet;
+}
+
+export async function joinCoopRequest(
+  contractId: string,
+  coopCode: string,
+  userId?: string,
+): Promise<ei.IJoinCoopResponse> {
+  userId = userId ?? defaultUserId;
+  const requestPayload: ei.IJoinCoopRequest = {
+    rinfo: basicRequestInfo(userId),
+    contractIdentifier: contractId,
+    coopIdentifier: coopCode,
+    userId,
+    clientVersion: CLIENT_VERSION,
+  };
+  const encodedRequestPayload = encodeMessage(
+    ei.ContractCoopStatusRequest,
+    requestPayload,
+  );
+  const encodedResponsePayload = await request(
+    "/ei/coop_status_basic",
+    encodedRequestPayload,
+  );
+  return decodeMessage(
+    ei.JoinCoopResponse,
+    encodedResponsePayload,
+    true,
+  ) as ei.IJoinCoopResponse;
+}
+
 export async function requestCoopStatusBasic(
   contractId: string,
   coopCode: string,
@@ -256,15 +304,14 @@ export async function requestQueryCoop(
   coopCode: string,
   league: number | undefined,
   grade: number | undefined,
-  userId: string | undefined,
+  userId?: string,
 ): Promise<ei.IQueryCoopResponse> {
   userId = userId ?? defaultUserId;
-  userId = "EI5833911117807616";
   const requestPayload: ei.IQueryCoopRequest = {
-    rinfo: basicRequestInfo(userId),
+    rinfo: basicRequestInfo('EI4724220121841664'),
     contractIdentifier: contractId,
     coopIdentifier: coopCode,
-    clientVersion: CLIENT_VERSION,
+    grade: ei.Contract.PlayerGrade.GRADE_A,
   };
   const encodedRequestPayload = encodeMessage(
     ei.QueryCoopRequest,
