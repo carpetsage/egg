@@ -56,5 +56,5 @@ export function decodeMessage(
     throw new Error(`Error decoding input as base64: ${e}`);
   }
   const decoded = message.decode(binaryStringToUint8Array(binary));
-  return options?.toJSON ? decoded.toJSON() : message.toObject(decoded, {enums: String});
+  return options?.toJSON ? decoded.toJSON() : message.toObject(decoded);
 }
