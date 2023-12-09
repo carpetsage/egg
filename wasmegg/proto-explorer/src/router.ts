@@ -10,6 +10,7 @@ import FirstContact from '@/views/FirstContact.vue';
 import GetConfig from '@/views/GetConfig.vue';
 import GetPeriodicals from '@/views/GetPeriodicals.vue';
 import GetContractsArchive from './views/GetContractsArchive.vue';
+import GetShellShowCase from './views/GetShellShowCase.vue';
 
 const header = {
   header: AppHeader,
@@ -99,6 +100,15 @@ const router = createRouter({
       components: {
         default: AfxCompleteMission,
         ...header,
+      },
+      props,
+    },
+    {
+      name: 'get_shell_showcase',
+      path: '/get_shell_showcase/',
+      components: {
+          default: GetShellShowCase,
+          ...header,
       },
       props,
     },
