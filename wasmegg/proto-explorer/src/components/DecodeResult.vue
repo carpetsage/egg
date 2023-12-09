@@ -103,6 +103,7 @@ export default defineComponent({
   setup(props) {
     const { messageName, authenticated, encodedPayload } = toRefs(props);
     const eiValue = ref('');
+    $protobuf.util.toJSONOptions = { enums: String }
 
     const decodeResult = computed(() => {
       if (!messageName.value || !encodedPayload.value) {

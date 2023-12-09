@@ -1,5 +1,6 @@
 import { ei } from '../proto';
 import pako from 'pako';
+import * as $protobuf from 'protobufjs/minimal';
 import { ProtobufType } from './types';
 import { uint8ArrayToBinaryString, binaryStringToUint8Array } from './utils';
 
@@ -23,6 +24,7 @@ export function decodeMessage(
     toJSON: boolean;
   }
 ): Record<string, unknown> {
+  $protobuf.util.toJSONOptions = {enums: String}
   if (authenticated) {
     const wrapperPayload = decodeMessage(
       ei.AuthenticatedMessage,
@@ -53,7 +55,6 @@ export function decodeMessage(
   } catch (e) {
     throw new Error(`Error decoding input as base64: ${e}`);
   }
-  const str = binaryStringToUint8Array(binary);
   const decoded = message.decode(binaryStringToUint8Array(binary));
-  return options?.toJSON ? decoded.toJSON() : message.toObject(decoded);
+  return options?.toJSON ? decoded.toJSON() : message.toObject(decoded, {enums: String});
 }
