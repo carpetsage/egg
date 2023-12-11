@@ -11068,5 +11068,23 @@
     "startTimestamp": 1702227600.0,
     "type": "epic-research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1702400400.0,
+    "id": "event-12-11",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1702314000.0,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1702400400.0,
+    "id": "ultra-12-11",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1702314000.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
