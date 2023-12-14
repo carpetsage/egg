@@ -11122,5 +11122,14 @@
     "startTimestamp": 1702486800.0,
     "type": "boost-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1702659600.0,
+    "id": "event-12-14",
+    "message": "2x GIFTS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1702573200.0,
+    "type": "gift-boost",
+    "ultra": false
   }
 ]
