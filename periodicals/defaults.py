@@ -2,9 +2,9 @@ import os
 import ei
 
 current_client_version = 999
-client_version = 53
-version = '1.27.5'
-build = '111249'
+client_version = 62
+version = '1.29.2'
+build = '111279'
 platform = "IOS"
 event_file = "data/events.json"
 contract_file = "data/contracts.json"
