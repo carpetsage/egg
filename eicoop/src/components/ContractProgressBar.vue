@@ -56,6 +56,7 @@
               v-if="eggsLaid < target(goal)"
               >, expected in
               {{ formatDuration(leagueStatus.expectedTimeToCompleteGoal(goal)) }}
+              (offline adjusted: {{ formatDuration(leagueStatus.expectedTimeToCompleteGoalOfflineAdjusted(goal)) }})
             </template>
           </template>
         </tippy>

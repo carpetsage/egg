@@ -65,6 +65,7 @@ export function getModifiers(gradeSpec: ei.Contract.IGradeSpec) {
 
 export class ContractLeagueStatus {
   eggsLaid: number;
+  eggsLaidOfflineAdjusted: number;
   eggsPerHour: number;
   secondsRemaining: number;
   completionStatus: ContractCompletionStatus;
@@ -84,19 +85,19 @@ export class ContractLeagueStatus {
     status: string
   ) {
     this.eggsLaid = eggsLaid;
+    this.eggsLaidOfflineAdjusted = eggsLaidOfflineAdjusted;
     this.eggsPerHour = eggsPerHour;
     this.secondsRemaining = secondsRemaining;
     this.goals = goals;
     this.finalTarget = goals[goals.length - 1].targetAmount!;
+    this.expectedTimeToComplete = expectedTimeToTarget(eggsLaid, eggsPerHour, this.finalTarget);
+    this.expectedTimeToCompleteOfflineAdjusted = expectedTimeToTarget(eggsLaidOfflineAdjusted, eggsPerHour, this.finalTarget);
+
     if (eggsLaid >= this.finalTarget || status === "COMPLETE") {
       this.completionStatus = ContractCompletionStatus.HasCompleted;
-      this.expectedTimeToComplete = 0;
-      this.expectedTimeToCompleteOfflineAdjusted = 0;
       this.requiredEggsPerHour = 0;
       return;
     }
-    this.expectedTimeToComplete = ((this.finalTarget - eggsLaid) / eggsPerHour) * 3600;
-    this.expectedTimeToCompleteOfflineAdjusted = Math.max(((this.finalTarget - eggsLaidOfflineAdjusted) / eggsPerHour) * 3600, 0); 
 
     if (secondsRemaining <= 0) {
       this.completionStatus = ContractCompletionStatus.HasNoTimeLeft;
@@ -126,10 +127,22 @@ export class ContractLeagueStatus {
   }
 
   expectedTimeToCompleteGoal(goal: ei.Contract.IGoal): number {
-    const target = goal.targetAmount!;
-    if (this.eggsLaid >= target) {
-      return 0;
-    }
-    return ((target - this.eggsLaid) / this.eggsPerHour) * 3600;
+    return expectedTimeToTarget(
+      this.eggsLaid, this.eggsPerHour, goal.targetAmount!
+    );
   }
+
+  expectedTimeToCompleteGoalOfflineAdjusted(goal: ei.Contract.IGoal): number {
+    return expectedTimeToTarget(
+      this.eggsLaidOfflineAdjusted, this.eggsPerHour, goal.targetAmount!
+    );
+  }
+
+}
+
+function expectedTimeToTarget(eggsLaid: number, eggsPerHour: number, target: number): number {
+  if (eggsLaid >= target) {
+    return 0;
+  }
+  return ((target - eggsLaid) / eggsPerHour) * 3600;
 }
