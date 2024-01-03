@@ -52,11 +52,16 @@
               <span class="font-medium">{{ rewardAmountDisplay(goal) }}</span>
             </p>
             {{ formatEIValue(target(goal), { trim: true }) }},
-            {{ percentage(eggsLaid, target(goal), 1) }} completed<template
-              v-if="eggsLaid < target(goal)"
-              >, expected in
-              {{ formatDuration(leagueStatus.expectedTimeToCompleteGoal(goal)) }}
-              (offline adjusted: {{ formatDuration(leagueStatus.expectedTimeToCompleteGoalOfflineAdjusted(goal)) }})
+            {{ percentage(eggsLaid, target(goal), 1) }} completed
+            <template v-if="eggsLaid < target(goal)">
+              <br />Expected in:
+              <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
+                {{ formatDuration(leagueStatus.expectedTimeToCompleteGoal(goal)) }}
+              </span>
+              <br />Offline adjusted:
+              <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
+                {{ formatDuration(leagueStatus.expectedTimeToCompleteGoalOfflineAdjusted(goal)) }}
+              </span>
             </template>
           </template>
         </tippy>
@@ -95,6 +100,7 @@ import {
   trimTrailingZeros,
 } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
+import { completionStatusFgColorClass } from '@/styles';
 
 function percentage(x: number, y: number, decimals = 3): string {
   return `${trimTrailingZeros((Math.min(x / y, 1) * 100).toFixed(decimals))}%`;
@@ -131,6 +137,7 @@ export default defineComponent({
       rewardAmountDisplay,
       formatDuration,
       formatEIValue,
+      completionStatusFgColorClass,
       // target does a non-null assertion on targetAmount to avoid typing problem in the template.
       target: (goal: ei.Contract.IGoal) => goal.targetAmount!,
     };
