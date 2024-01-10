@@ -128,7 +128,7 @@
           <drop-rate
             class="text-green-700 ml-5 xs:ml-auto"
             :mission="mission"
-            :level="selectedLevel"
+            :level="selectedLevel + 1"
             :total-drops="selectedLevelTargetLoot?.totalDrops ?? 0"
             :item-drops="itemLoot.counts"
             :is-artifact="artifactItemIds.includes(itemLoot.itemId)"
