@@ -11698,5 +11698,23 @@
     "startTimestamp": 1705597200.0,
     "type": "gift-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1705770000.0,
+    "id": "event-1-19",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1705683600.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1705770000.0,
+    "id": "ultra-1-19",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1705683600.0,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
