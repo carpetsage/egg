@@ -345,13 +345,33 @@ for (const s of save.backup.shellDb?.shellSetInventory ?? []) {
 }
 
 const knownShellSetIds = [
-  'black_white',
-  'blueorange',
-  'craftsman',
-  'future_white',
-  'new_order',
-  'pink',
   'woodyellow',
+  'pink',
+  'purple',
+  'doylestown',
+  'yolk',
+  'red_white_blue',
+  'seafoam',
+  'pride',
+  'quicksand',
+  'squash',
+  'stretch',
+  'craftsman',
+  'blueorange',
+  'future_white',
+  'starstruck',
+  'black_white',
+  'plastic',
+  'new_order',
+  'paperclip',
+  'neon',
+  'glitch',
+  'cheese',
+  'shrunken'
+  'amore',
+  'voxel',
+  'firehall',
+  'mushroom_village',
 ];
 const shellSets: ShellSet[] = [];
 const shellSetNames: Record<string, string> = {};
@@ -796,17 +816,163 @@ const showShellThingy = (shellThingy: Shell | ShellObject | ShellSet): boolean =
 </script>
 
 <style scoped lang="postcss">
-.set-black_white {
-  @apply border border-gray-300;
-  background: linear-gradient(to right, black 0%, black 50%, white 50%, white 100%);
+
+.set-woodyellow {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to right,
+    #645343 0%,
+    #645343 50%,
+    #e6c14c 50%,
+    #e6c14c 100%
+  );
 }
 
-.set-blueorange {
-  background: linear-gradient(to right, #5ccbf9 0%, #5ccbf9 50%, #f09837 50%, #f09837 100%);
+.set-pink {
+  @apply border-[0.5px] border-[#cacacc];
+  background: #f3b1f9;
+}
+
+.set-purple {
+  @apply border-[0.5px] border-[#cacacc];
+  background: #9552c5;
+}
+
+.set-doylestown {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to right,
+    #ff5765 0%,
+    #ff5765 33.33%,
+    #6b9c98 33.33%,
+    #6b9c98 66.67%,
+    #fff576 66.67%,
+    #fff576 100%
+  );
+}
+
+.set-yolk {
+  @apply border-[0.5px] border-[#cacacc];
+  background: radial-gradient(
+    ellipse at center,
+    #fffc05 0%,
+    #fffc05 35%,
+    #ffffff 35%,
+    #ffffff 100%
+  );
+}
+
+.set-red_white_blue {
+  @apply border-[0.5px] border-[#cacacc];
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 270deg,
+    #0a3161 270deg
+  ),
+  repeating-linear-gradient(
+    to bottom,
+    #b31942 0%,
+    #b31942 7.6%,
+    #ffffff 7.7%,
+    #ffffff 16%
+  );
+}
+
+.set-seafoam {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to right,
+    #d3f2db 0%,
+    #d3f2db 33.33%,
+    #ffffff 33.33%,
+    #ffffff 66.67%,
+    #ebab8a 66.67%,
+    #ebab8a 100%
+  );
+}
+
+.set-pride {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to right,
+    #ff340b 0%,
+    #ff340b 16.67%,
+    #ff9301 16.67%,
+    #ff9301 33.34%,
+    #ffeb00 33.34%,
+    #ffeb00 50.01%,
+    #6cdb00 50.01%,
+    #6cdb00 66.67%,
+    #0186ff 66.67%,
+    #0186ff 83.34%,
+    #9b50e7 83.34%,
+    #9b50e7 100%
+  );
+}
+
+.set-quicksand {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to bottom,
+    #b0e756 0%,
+    #b0e756 20%,
+    #685b33 20%,
+    #685b33 55%,
+    #4f3c1a 55%,
+    #4f3c1a 100%
+  );
+}
+
+.set-squash {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    135deg,
+    #000000 25%,
+    transparent 25%
+  ) -7px 0/ 14px 14px,
+  linear-gradient(
+    225deg,
+    #777777 24%,
+    transparent 25%
+  ) -7px 0/ 14px 14px,
+  linear-gradient(
+    315deg,
+    #000000 25.5%,
+    transparent 25%
+  ) 0px 0/ 14px 14px,
+  linear-gradient(
+    45deg,
+    #777777 25%,
+    #ffffff 25%
+  ) 0 0/ 14px 14px;
+}
+
+.set-stretch {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    45deg,
+    #000000 25%,
+    transparent 25%
+  ) 0 -7px/ 14px 14px,
+  linear-gradient(
+    135deg,
+    #777777 24%,
+    transparent 25%
+  ) 0 -7px/ 14px 14px,
+  linear-gradient(
+    225deg,
+    #000000 25.5%,
+    transparent 25%
+  ) 0px 0/ 14px 14px,
+  linear-gradient(
+    315deg,
+    #777777 25%,
+    #ffffff 25%
+  ) 0 0/ 14px 14px;
 }
 
 .set-craftsman {
-  @apply border-[0.5px] border-gray-300;
+  @apply border-[0.5px] border-[#cacacc];
   background: linear-gradient(
     to right,
     #aa857f 0%,
@@ -815,17 +981,74 @@ const showShellThingy = (shellThingy: Shell | ShellObject | ShellSet): boolean =
     #f8cf7f 50%,
     #fcf8ef 50%,
     #fcf8ef 75%,
-    #a2b097 50%,
-    #a2b097 75%
+    #a2b097 75%,
+    #a2b097 100%
+  );
+}
+
+.set-blueorange {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to right,
+    #5ccbf9 0%,
+    #5ccbf9 50%,
+    #f09837 50%,
+    #f09837 100%
   );
 }
 
 .set-future_white {
-  @apply border border-[#cacacc];
-  background: linear-gradient(to right, #cacacc 0%, #cacacc 50%, white 50%, white 100%);
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to right,
+    #cacacc 0%,
+    #cacacc 50%,
+    white 50%,
+    white 100%
+  );
+}
+  
+.set-starstruck {
+  @apply border-[0.5px] border-[#cacacc];
+  background-image: radial-gradient(
+    #fff 1.25px,
+    transparent 1.25px
+  ), radial-gradient(
+    #fff 1.25px,
+    transparent 1.25px
+  );
+  background-size: 15px 15px;
+  background-position: -2px -1px, 7.5px 7.5px;
+  background-color: #000000
+  ;
+}
+
+.set-black_white {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to right,
+    black 0%,
+    black 50%,
+    white 50%,
+    white 100%
+  );
+}
+
+.set-plastic {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to right,
+    #ff0000 0%,
+    #ff0000 33.33%,
+    #00ff00 33.33%,
+    #00ff00 66.67%,
+    #0000ff 66.67%,
+    #0000ff 100%
+  );
 }
 
 .set-new_order {
+  @apply border-[0.5px] border-[#cacacc];
   background: linear-gradient(
     to right,
     #2f2f31 0%,
@@ -837,12 +1060,156 @@ const showShellThingy = (shellThingy: Shell | ShellObject | ShellSet): boolean =
   );
 }
 
-.set-pink {
-  background: #f3b1f9;
+.set-paperclip {
+    @apply border-[o.5px] border-[#cacacc];
+    background:  conic-gradient(
+      at 62.5% 12.5%,
+      #777777 25%,
+      #0000 0) calc(10px/-8) calc(10px/2),
+    conic-gradient(
+      at 62.5% 12.5%,
+      #777777 25%,
+      #0000 0) calc(-3*10px/8) calc(10px/4),
+    conic-gradient(
+      at 87.5% 62.5%,
+      #777777 25%,
+      #0000 0) calc(3*10px/8) calc(10px/4),
+    conic-gradient(
+      at 87.5% 62.5%,
+      #777777 25%,
+      #0000 0) calc(10px/-8) 0,
+    conic-gradient(
+      at 25% 12.5%,
+      #777777 25%,
+      #0000 0) 0 calc(10px/-4),
+    conic-gradient(
+      at 25% 12.5%,
+      #777777 25%,
+      #0000 0) calc(10px/-4) 0,
+    conic-gradient(
+      at 87.5% 87.5%,
+      #777777 25%,
+      #0000 0) calc(10px/8) 0
+      #ffffff;
+  background-size: 10px 10px
+  ;
 }
 
-.set-woodyellow {
-  background: linear-gradient(to right, #645343 0%, #645343 50%, #e6c14c 50%, #e6c14c 100%);
+.set-neon {
+    @apply border-[o.5px] border-[#cacacc];
+    background:  conic-gradient(
+      at 62.5% 12.5%,
+      #ff10f0 25%,
+      #0000 0) calc(10px/-8) calc(10px/2),
+    conic-gradient(
+      at 62.5% 12.5%,
+      #ff10f0 25%,
+      #0000 0) calc(-3*10px/8) calc(10px/4),
+    conic-gradient(
+      at 87.5% 62.5%,
+      #ff10f0 25%,
+      #0000 0) calc(3*10px/8) calc(10px/4),
+    conic-gradient(
+      at 87.5% 62.5%,
+      #ff10f0 25%,
+      #0000 0) calc(10px/-8) 0,
+    conic-gradient(
+      at 25% 12.5%,
+      #ff10f0 25%,
+      #0000 0) 0 calc(10px/-4),
+    conic-gradient(
+      at 25% 12.5%,
+      #ff10f0 25%,
+      #0000 0) calc(10px/-4) 0,
+    conic-gradient(
+      at 87.5% 87.5%,
+      #ff10f0 25%,
+      #0000 0) calc(10px/8) 0
+      #ffffff;
+  background-size: 10px 10px
+  ;
+}
+
+.set-glitch {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    to right,
+    #8cfffb 0%,
+    #8cfffb 33.33%,
+    #c4ff0e 33.33%,
+    #c4ff0e 66.67%,
+    #ff528a 66.67%,
+    #ff528a 100%
+  );
+}
+
+.set-cheese {
+  @apply border-[0.5px] border-[#cacacc];
+  background-image: radial-gradient(
+    #ffc000 5px,
+    transparent 5px
+  ), radial-gradient(
+    #ffc000 2px,
+    transparent 2px
+  );
+  background-position: -2px -1px, 7px 7px;
+  background-color: #ffe000
+  ;
+}
+
+.set-shrunken {
+    @apply border-[0.5px] border-[#cacacc];
+    background: #d3d3d3;
+}
+
+.set-shrunken::after {
+  content: '-';
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-800;
+}
+
+.set-amore {
+    @apply border-[0.5px] border-[#cacacc];
+    background: #eb3a5b;
+}
+
+.set-amore::after {
+  content: '♥';
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-800;
+}
+
+.set-shrunken {
+  @apply border-[0.5px] border-[#cacacc];
+  background: repeating-conic-gradient(
+    #000000 0%,
+    #000000 25%,
+    #ffffff 25%,
+    #ffffff 50%
+  );
+}
+
+.set-firehall {
+  @apply border-[0.5px] border-[#cacacc];
+  background: linear-gradient(
+    137deg,
+    #ffffff 0%,
+    #ffffff 50%,
+    #ee0000 50%,
+    #ee0000 100%
+  );
+}
+
+.set-mushroom_village {
+  @apply border-[0.5px] border-[#cacacc];
+  background-image: radial-gradient(
+    #fffbc7 5px,
+    transparent 5px
+  ), radial-gradient(
+    #fffbc7 2px,
+    transparent 2px
+  );
+  background-position: 5px 6px, -4px -7px;
+  background-color: #d2301d
+  ;
 }
 
 .set-unknown {
