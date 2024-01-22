@@ -11752,5 +11752,14 @@
     "startTimestamp": 1705856400.0,
     "type": "boost-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1706029200.0,
+    "id": "event-1-22",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1705942800.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
