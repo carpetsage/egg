@@ -11761,5 +11761,23 @@
     "startTimestamp": 1705942800.0,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1706115600.0,
+    "id": "event-1-23",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1706029200.0,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1706115600.0,
+    "id": "ultra-1-23",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1706029200.0,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
