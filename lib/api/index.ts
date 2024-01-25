@@ -21,7 +21,7 @@ const API_ROOT = import.meta.env.DEV && import.meta.env.VITE_APP_MOCK
   : "https://egg-forwarder.carpet.workers.dev/?url=https://ctx-dot-auxbrainhome.appspot.com";
 
 const CONFIG_GIST_URL =
-  "https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/config.json";
+  "https://gist.githubusercontent.com/carpetsage/e6f1feee3546520a2d6baff2c9e872cd/raw/cf1ad6edfa32020d26fa9097cf90238f94cc08e2/testconfig.json";
 const TIMEOUT = 8000;
 
 // A valid userId donated by a volunteer.
@@ -308,7 +308,7 @@ export async function requestQueryCoop(
 ): Promise<ei.IQueryCoopResponse> {
   userId = userId ?? defaultUserId;
   const requestPayload: ei.IQueryCoopRequest = {
-    rinfo: basicRequestInfo('EI4724220121841664'),
+    rinfo: basicRequestInfo(userId),
     contractIdentifier: contractId,
     coopIdentifier: coopCode,
     grade: ei.Contract.PlayerGrade.GRADE_A,
