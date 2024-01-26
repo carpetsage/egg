@@ -21,7 +21,7 @@ const API_ROOT = import.meta.env.DEV && import.meta.env.VITE_APP_MOCK
   : "https://egg-forwarder.carpet.workers.dev/?url=https://ctx-dot-auxbrainhome.appspot.com";
 
 const CONFIG_GIST_URL =
-  "https://gist.githubusercontent.com/carpetsage/e6f1feee3546520a2d6baff2c9e872cd/raw/cf1ad6edfa32020d26fa9097cf90238f94cc08e2/testconfig.json";
+  "https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/config.json";
 const TIMEOUT = 8000;
 
 // A valid userId donated by a volunteer.
@@ -64,7 +64,7 @@ export async function request(
     } else if (e instanceof TypeError) {
       throw new TypeError(
         `POST ${url} data=${encodedPayload}: ${e} ` +
-        `(please check any ad/content blocking solution you might be using, e.g. uBlock, Brave, Pi-hole, NextDNS, etc.)`,
+          `(please check any ad/content blocking solution you might be using, e.g. uBlock, Brave, Pi-hole, NextDNS, etc.)`,
       );
     } else {
       throw new Error(`POST ${url} data=${encodedPayload}: ${e}`);
