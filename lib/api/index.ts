@@ -64,7 +64,7 @@ export async function request(
     } else if (e instanceof TypeError) {
       throw new TypeError(
         `POST ${url} data=${encodedPayload}: ${e} ` +
-        `(please check any ad/content blocking solution you might be using, e.g. uBlock, Brave, Pi-hole, NextDNS, etc.)`,
+          `(please check any ad/content blocking solution you might be using, e.g. uBlock, Brave, Pi-hole, NextDNS, etc.)`,
       );
     } else {
       throw new Error(`POST ${url} data=${encodedPayload}: ${e}`);
@@ -308,7 +308,7 @@ export async function requestQueryCoop(
 ): Promise<ei.IQueryCoopResponse> {
   userId = userId ?? defaultUserId;
   const requestPayload: ei.IQueryCoopRequest = {
-    rinfo: basicRequestInfo('EI4724220121841664'),
+    rinfo: basicRequestInfo(userId),
     contractIdentifier: contractId,
     coopIdentifier: coopCode,
     grade: ei.Contract.PlayerGrade.GRADE_A,
