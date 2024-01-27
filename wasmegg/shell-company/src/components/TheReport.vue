@@ -1162,19 +1162,9 @@ const showShellThingy = (shellThingy: Shell | ShellObject | ShellSet): boolean =
     background: #d3d3d3;
 }
 
-.set-shrunken::after {
-  content: '-';
-  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-800;
-}
-
 .set-amore {
     @apply border-[0.5px] border-[#cacacc];
     background: #eb3a5b;
-}
-
-.set-amore::after {
-  content: '♥';
-  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-800;
 }
 
 .set-shrunken {
