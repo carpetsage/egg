@@ -367,7 +367,7 @@ const knownShellSetIds = [
   'neon',
   'glitch',
   'cheese',
-  'shrunken'
+  'shrunken',
   'amore',
   'voxel',
   'firehall',
