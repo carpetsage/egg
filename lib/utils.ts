@@ -44,12 +44,7 @@ export function iconURL(
   if (extension) {
     relpath = relpath.replace(/\.[a-z]+$/, `.${extension}`);
   }
-  if (/icon_dilithium_bulb/.test(relpath)) {
-    return `https://imagedelivery.net/3eHDWErDPIKAYL6ofL-Kwg/${size}/egginc/b_icon_dilithium_bulb.png/public`;
-  } else if (/sub_icon/.test(relpath)) {
-    return `https://imagedelivery.net/3eHDWErDPIKAYL6ofL-Kwg/${size}/egginc/sub_icon.png/public`;
-  }
-  return `https://eggincassets.tcl.sh/${size}/${relpath}`;
+  return `https://imagedelivery.net/3eHDWErDPIKAYL6ofL-Kwg/${size}/${relpath}/public`;
 }
 
 // Trim trailing zeros, and possibly the decimal point.
