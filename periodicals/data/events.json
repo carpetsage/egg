@@ -11986,5 +11986,23 @@
     "startTimestamp": 1707152400.0,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1707325200.0,
+    "id": "event-2-6",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1707238800.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1707325200.0,
+    "id": "ultra-2-6",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1707238800.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
