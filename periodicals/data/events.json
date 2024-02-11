@@ -12060,6 +12060,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1707670800.0,
+    "id": "ultra-2-10",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1707584400.0,
+    "type": "drone-boost",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1707757200.0,
     "id": "event-2-10-2",
     "message": "4x PIGGY GROWTH!!",
@@ -12069,12 +12078,21 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1707670800.0,
-    "id": "ultra-2-10",
-    "message": "4x DRONE REWARDS!",
-    "multiplier": 4.0,
-    "startTimestamp": 1707584400.0,
-    "type": "drone-boost",
-    "ultra": true
+    "endTimestamp": 1707843600.0,
+    "id": "event-2-11",
+    "message": "2x MISSION CAPACITY!!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1707670800.0,
+    "type": "mission-capacity",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1707757200.0,
+    "id": "event-2-11-2",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1707670800.0,
+    "type": "crafting-sale",
+    "ultra": false
   }
 ]
