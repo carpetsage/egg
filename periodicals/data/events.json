@@ -12121,5 +12121,32 @@
     "startTimestamp": 1707843600.0,
     "type": "drone-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1708016400.0,
+    "id": "event-2-14",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1707930000.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1708016400.0,
+    "id": "event-2-14-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1707930000.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1708016400.0,
+    "id": "ultra-2-14",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1707930000.0,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
