@@ -99,6 +99,24 @@
         </tr>
       </template>
 
+      <template v-if="contract?.description != ''">
+        <tr>&nbsp</tr> <!-- I hate table spacing -->
+        <tr>
+          <td :colspan="hasGrades ? 10 : hasLeagues ? 4 : 2"
+            class="px-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+          >
+            Description
+          </td>
+        </tr>
+        <tr>
+          <td
+          class="pr-3 pl-3 py-1 whitespace-pre-line text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums" 
+          :colspan="hasGrades ? 10 : hasLeagues ? 4 : 2">
+            {{ formatDescription(contract.description) }}
+          </td>
+        </tr>
+      </template>
+
     </tbody>
   </table>
 </template>
@@ -161,6 +179,9 @@ export default defineComponent({
       );
     });
     const target = (goal: Goal) => goal.targetAmount!;
+    const formatDescription = (description: string) => {
+      return description.replaceAll(".", ".\n").replace(/\(\d{4}\) /g, "");
+    };
 
     return {
       hasLeagues,
@@ -173,6 +194,7 @@ export default defineComponent({
       rewardIconPath,
       rewardName,
       rewardAmountDisplay,
+      formatDescription,
     };
   },
 });

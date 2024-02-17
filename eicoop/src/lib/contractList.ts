@@ -33,6 +33,7 @@ export interface Contract extends ei.IContract {
   aGoal?:  number,
   bGoal?:  number,
   cGoal?:  number,
+  description: string,
 }
 
 export class SortedContractList extends Array<Contract> {
@@ -120,6 +121,7 @@ function toContract(c: ei.IContract): Contract {
       aGoal: goals.a,
       bGoal: goals.b,
       cGoal: goals.c,
+      description: c.description ?? '',
     }
 }
 
