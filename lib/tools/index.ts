@@ -241,7 +241,7 @@ export const tools = [
 
   new Tool({
     id: 'EggLedger',
-    url: 'https://github.com/synthparadox/EggLedger#readme',
+    url: 'https://github.com/DavidArthurCole/EggLedger#readme',
     title: 'EggLedger',
     iconUrl: iconURL('wasmegg/EggLedger.png'),
     description: 'Spaceship mission data exporter, supplementing rockets tracker - forked and fixed by @synthparadox#7576',

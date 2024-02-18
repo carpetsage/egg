@@ -187,7 +187,7 @@ async function handleRequest(request) {
   } else if (code === 'smart-assistant-beta') {
     redirectURL = 'https://wasmegg-carpet.netlify.app/smart-assistant/';
   } else if (code === 'ledger') {
-    redirectURL = 'https://github.com/synthparadox/EggLedger#readme';
+    redirectURL = 'https://github.com/DavidArthurCole/EggLedger#readme';
   } else if (artifactIds.includes(code)) {
     redirectURL = baseRedirectURL + `/#/artifact/${code}`;
   } else if (missionIds.includes(code)) {
