@@ -107,7 +107,7 @@
           >
             <base-icon
               v-tippy="{ content: `You must be subscribed to Egg Inc Ultra to see this contract in game` }"
-              icon-rel-path="egginc/sub_icon.png"
+              :icon-rel-path="'sub_icon'"
               :size="64"
               class="block -ml-0.5 h-4 w-4"
             />
