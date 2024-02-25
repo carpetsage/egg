@@ -38,7 +38,7 @@
     :visible="isVisibleSection('artifacting-progress')"
     @toggle="toggleSectionVisibility('artifacting-progress')"
   >
-    <artifacting-progress-report :player-id="playerId" :inventory="inventory" />
+    <artifacting-progress-report :player-id="playerId" :inventory="inventory" :backup="backup" />
   </collapsible-section>
 </template>
 

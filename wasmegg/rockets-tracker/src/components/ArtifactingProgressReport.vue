@@ -110,13 +110,13 @@
     </ul>
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Artifacts</h3>
-    <artifact-grid :inventory="inventory" :families="artifacts" :spoilers="spoilers" :ignore-rares="ignore_rares" :ignore-epics="ignore_epics" :ignore-leggies="ignore_leggies" />
+    <artifact-grid :inventory="inventory" :families="artifacts" :spoilers="spoilers" :backup="backup" :ignore-rares="ignore_rares" :ignore-epics="ignore_epics" :ignore-leggies="ignore_leggies" />
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Stones &amp; stone fragments</h3>
-    <artifact-grid :inventory="inventory" :families="stones" :spoilers="spoilers" :ignore-slotted-stones="ignore_slotted_stones" />
+    <artifact-grid :inventory="inventory" :families="stones" :spoilers="spoilers" :backup="backup" :ignore-slotted-stones="ignore_slotted_stones" />
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Ingredients</h3>
-    <artifact-grid :inventory="inventory" :families="ingredients" :spoilers="spoilers" />
+    <artifact-grid :inventory="inventory" :families="ingredients" :spoilers="spoilers" :backup="backup" />
   </div>
 </template>
 
@@ -143,6 +143,10 @@ export default defineComponent({
     },
     inventory: {
       type: Object as PropType<Inventory>,
+      required: true,
+    },
+    backup: {
+      type: Object as PropType<ei.IBackup>,
       required: true,
     },
   },

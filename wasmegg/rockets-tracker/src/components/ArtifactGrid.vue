@@ -138,7 +138,37 @@
                           You spent an estimated
                           <span class="text-yellow-300">{{ ts(tier.sunkCost) }}</span>
                           golden eggs on crafting this item.
-
+                          
+                          <template v-if="tier.isArtifact == true">
+                            The next craft has a 
+                            {{ts(nextCraftRarityChance(tier,craftingLevel.rarityMult,0,tier.crafted))}}%
+                            <template v-if="tier.isArtifact == true && tier.possibleRarity(1) == true">
+                              /
+                              <span class="text-blue-300">{{ts(nextCraftRarityChance(tier,craftingLevel.rarityMult,1,tier.crafted))}}%</span>
+                            </template>
+                            <template v-if="tier.isArtifact == true && tier.possibleRarity(2) == true">
+                              /
+                              <span class="text-purple-300">{{ts(nextCraftRarityChance(tier,craftingLevel.rarityMult,2,tier.crafted))}}%</span>
+                            </template>
+                            <template v-if="tier.isArtifact == true && tier.possibleRarity(3) == true">
+                              /
+                              <span class="text-yellow-300">{{ts(nextCraftRarityChance(tier,craftingLevel.rarityMult,3,tier.crafted))}}%</span>
+                            </template>
+                            chance of being Common
+                            <template v-if="tier.isArtifact == true && tier.possibleRarity(1) == true">
+                              /
+                              <span class="text-blue-300"> Rare </span>
+                            </template>
+                            <template v-if="tier.isArtifact == true && tier.possibleRarity(2) == true">
+                              /
+                              <span class="text-purple-300"> Epic </span>
+                            </template>
+                            <template v-if="tier.isArtifact == true && tier.possibleRarity(3) == true">
+                              /
+                              <span class="text-yellow-300"> Legendary</span>
+                            </template>.
+                          </template>
+                          
                           <template v-if="craftableCount(tier) === 0"
                             >The next craft is going to cost
                             <span class="text-blue-300">{{ ts(tier.nextCraftCost) }}</span>
@@ -190,13 +220,18 @@
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { ArtifactSet, ei, iconURL, Inventory, InventoryFamily, InventoryItem } from 'lib';
+import { ArtifactSet, ei, iconURL, Inventory, InventoryFamily, InventoryItem,  getCraftingLevelFromXp,
+  PlayerCraftingLevel,
+  getXPFromCraftingLevel } from 'lib';
 import { artifactRarityFgClass } from '@/utils';
 import ArtifactRecipe from '@/components/ArtifactRecipe.vue';
 import ArtifactGallery from './ArtifactGallery.vue';
 
 type ItemId = string;
 const TOOMUCHSHIT = 9000000;
+
+
+
 
 export default defineComponent({
   components: {
@@ -215,6 +250,10 @@ export default defineComponent({
     },
     spoilers: {
       type: Boolean,
+      required: true,
+    },
+    backup: {
+      type: Object as PropType<ei.IBackup>,
       required: true,
     },
     ignoreRares: {
@@ -239,7 +278,7 @@ export default defineComponent({
     }
   },
   setup(props) {
-    const { inventory, families, ignoreRares, ignoreEpics, ignoreLeggies, ignoreSlottedStones } = toRefs(props);
+    const { inventory, families, backup, ignoreRares, ignoreEpics, ignoreLeggies, ignoreSlottedStones } = toRefs(props);
     const craftableCounts = computed(() => {
       const counts = new Map<ItemId, number>();
       // Type casting because somehow InventoryFamily loses protected props during toRefs.
@@ -270,6 +309,23 @@ export default defineComponent({
     const nextRecursiveCraftCost = (item: InventoryItem) => {
       return nextRecursiveCrafts.value.get(item.id)?.cost ?? 0;
     };
+    const nextCraftRarityChance = (item : InventoryItem, craft_multiplier : number, rarity : number, crafted_count : number) => {
+      let craft_chance = 100.0; //For Common: Initialize with 100% chance
+      if (rarity > 0) {	
+      	craft_chance = item.craftChance(craft_multiplier,rarity,crafted_count); //Rare or better
+      }
+      for (let i = rarity+1; i < 4; i++){
+      	if (item.possibleRarity(i) == true) {
+          craft_chance = craft_chance - item.craftChance(craft_multiplier,i,crafted_count); //Subtract resulting chance of next higher existing rarity and return. Look at Auxbrain's medium post about craft chances.
+      	  return craft_chance;
+      	}
+      }
+      return craft_chance;
+    }
+    
+    const craftingXp = computed(() => Math.floor(backup.value.artifacts?.craftingXp || 0));
+    const craftingLevel = computed(() => getCraftingLevelFromXp(craftingXp.value));
+    
     return {
       artifactExplorerLink,
       Rarity: ei.ArtifactSpec.Rarity,
@@ -277,7 +333,9 @@ export default defineComponent({
       craftableCount,
       nextRecursiveCraftable,
       nextRecursiveCraftCost,
+      nextCraftRarityChance,
       ArtifactSet,
+      craftingLevel,
       iconURL,
       ts,
     };
@@ -292,6 +350,8 @@ function artifactExplorerLink(item: InventoryItem) {
 function ts(x: number): string {
   return x.toLocaleString('en-US');
 }
+
+
 </script>
 
 <style scoped>

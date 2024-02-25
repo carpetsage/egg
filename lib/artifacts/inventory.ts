@@ -1,3 +1,4 @@
+import { computed } from 'vue';
 import { ei } from '../proto';
 import data, { AfxFamily, AfxTier, getArtifactFamilyProps, getArtifactTierProps } from './data';
 import { CraftingPriceParams, Recipe } from './data.json';
@@ -336,7 +337,7 @@ export class InventoryItem {
   get haveLegendary(): number {
     return this.haveRarity[Rarity.LEGENDARY];
   }
-
+  
   get sunkCost(): number {
     const params = this.afxTier.recipe?.crafting_price;
     if (!params) {
@@ -356,7 +357,37 @@ export class InventoryItem {
     }
     return singleCraftCost(params, this.crafted);
   }
-
+  
+ possibleRarity(rarity : number): boolean {
+  	if (this.afxTier.possible_afx_rarities != null) {
+  	  	for (let i = 0; i < this.afxTier.possible_afx_rarities.length; i++) {
+  	  		if (this.afxTier.possible_afx_rarities[i] == rarity){
+				return true;
+			}    		
+  	  	} 
+    	}
+  	return false;
+  }
+ 
+ craftChance(craft_level_mult : number, rarity : Rarity, previous_crafts : number) : number {
+	if (!this.afxTier.effects) { //if no effects: It's a stone, this shouldn't even have been called.
+      		return 0;
+    	}
+    	for (const effect of this.afxTier.effects) {
+      		if (rarity === effect.afx_rarity) {
+      			if (effect.odds_multiplier != null){
+        			const base_rate = this.afxTier.odds_multiplier/effect.odds_multiplier;
+        			const final_rate = Math.max(10.0,base_rate/craft_level_mult);
+        			const amount_mu = Math.min(1.0,previous_crafts/400.0);
+        			return Math.min(10,100*((1/final_rate)**(1-0.3*amount_mu)));
+        		}
+      		}
+    	}
+    	throw new Error(
+      		`the impossible happened: invalid rarity ${rarity} for ${this.afxId}:${this.afxLevel}`
+    			);
+ }
+  
   stoneSlotCount(rarity: Rarity): number {
     if (!this.afxTier.effects) {
       return 0;
