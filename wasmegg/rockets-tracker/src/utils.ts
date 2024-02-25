@@ -41,6 +41,19 @@ export function artifactRarityFgClass(afxRarity: ei.ArtifactSpec.Rarity): string
   }
 }
 
+export function artifactRarityFgClassBright(afxRarity: ei.ArtifactSpec.Rarity): string {
+  switch (afxRarity) {
+    case ei.ArtifactSpec.Rarity.COMMON:
+      return '';
+    case ei.ArtifactSpec.Rarity.RARE:
+      return 'text-blue-300';
+    case ei.ArtifactSpec.Rarity.EPIC:
+      return 'text-purple-300';
+    case ei.ArtifactSpec.Rarity.LEGENDARY:
+      return 'text-yellow-300';
+  }
+}
+
 export function artifactRarityBgClass(afxRarity: ei.ArtifactSpec.Rarity): string {
   switch (afxRarity) {
     case ei.ArtifactSpec.Rarity.COMMON:

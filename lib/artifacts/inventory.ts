@@ -357,6 +357,30 @@ export class InventoryItem {
     return singleCraftCost(params, this.crafted);
   }
 
+  get possibleRarities(): Rarity[] | null {
+    return this.afxTier.possible_afx_rarities;
+  }
+
+  possibleRarity(rarity: Rarity): boolean {
+    return this.afxTier.possible_afx_rarities?.includes(rarity) ?? false;
+  }
+
+  craftChance(craft_level_mult: number, rarity: Rarity, previous_crafts: number): number {
+    //if no effects: It's a stone, this shouldn't even have been called.
+    if (!this.afxTier.effects) {
+       return 0;
+    }
+    for (const effect of this.afxTier.effects) {
+      if (rarity === effect.afx_rarity) {
+        const base_rate = this.afxTier.odds_multiplier/effect.odds_multiplier;
+        const final_rate = Math.max(10.0, base_rate/craft_level_mult);
+        const amount_mu = Math.min(1.0, previous_crafts/400.0);
+        return Math.min(10, 100*((1/final_rate)**(1-0.3*amount_mu)));
+       }
+    }
+    throw new Error(`the impossible happened: invalid rarity ${rarity} for ${this.afxId}:${this.afxLevel}`);
+  }
+
   stoneSlotCount(rarity: Rarity): number {
     if (!this.afxTier.effects) {
       return 0;
@@ -380,9 +404,7 @@ export class InventoryItem {
         return effect.effect_delta || 0;
       }
     }
-    throw new Error(
-      `the impossible happened: invalid rarity ${rarity} for ${this.afxId}:${this.afxLevel}`
-    );
+    throw new Error(`the impossible happened: invalid rarity ${rarity} for ${this.afxId}:${this.afxLevel}`);
   }
 }
 

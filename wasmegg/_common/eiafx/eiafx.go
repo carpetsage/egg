@@ -55,6 +55,7 @@ type Tier struct {
 
 	IngredientsAvailableFromMissions bool         `json:"ingredients_available_from_missions"`
 	HardDependencies                 []Ingredient `json:"hard_dependencies"`
+	OddsMultiplier                   float64      `json:"odds_multiplier"`
 }
 
 type CoreTier struct {
@@ -75,14 +76,15 @@ type ItemIdentifiers struct {
 
 type Effect struct {
 	AfxRarity    api.ArtifactSpec_Rarity `json:"afx_rarity"`
-	Rarity       string                  `json:"rarity"`
-	Effect       string                  `json:"effect"`
-	EffectTarget string                  `json:"effect_target"`
-	EffectSize   string                  `json:"effect_size"`
-	EffectDelta  float64                 `json:"effect_delta"`
-	FamilyEffect string                  `json:"family_effect"`
+	Rarity         string                  `json:"rarity"`
+	Effect         string                  `json:"effect"`
+	EffectTarget   string                  `json:"effect_target"`
+	EffectSize     string                  `json:"effect_size"`
+	EffectDelta    float64                 `json:"effect_delta"`
+	FamilyEffect   string                  `json:"family_effect"`
 	// May be null (for stones).
-	Slots *uint32 `json:"slots"`
+	Slots *uint32                          `json:"slots"`
+	OddsMultiplier float64                 `json:"odds_multiplier"`
 }
 
 type Recipe struct {

@@ -104,6 +104,8 @@ export interface TierCore {
   afx_id: Name;
   afx_level: Level;
   name: string;
+
+  odds_multiplier: number;
   /**
    * Positive tier number in the 4-tier structure of artifacts and stones (including fragments as tier 1), or 3-tier structure of ingredients.
    */
@@ -136,6 +138,7 @@ export interface Effect {
    * Matches family's effect.
    */
   family_effect: string;
+  odds_multiplier: number;
   /**
    * Number of slots; null if the family isn't supposed to have slots.
    */
