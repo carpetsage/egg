@@ -12238,5 +12238,77 @@
     "startTimestamp": 1708448400.0,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1708621200.0,
+    "id": "event-2-21",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1708534800.0,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1708621200.0,
+    "id": "event-2-21-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1708534800.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1708707600.0,
+    "id": "event-2-22",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1708621200.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1708707600.0,
+    "id": "ultra-2-22",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1708621200.0,
+    "type": "earnings-boost",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1708794000.0,
+    "id": "event-2-23",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1708707600.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1708880400.0,
+    "id": "event-2-24",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2.0,
+    "startTimestamp": 1708794000.0,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1708966800.0,
+    "id": "event-2-24-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1708794000.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1708880400.0,
+    "id": "ultra-2-24",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1708794000.0,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
