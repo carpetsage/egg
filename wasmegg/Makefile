@@ -1,6 +1,6 @@
 MAKEFLAGS ?= -j9
 
-targets = _home consumption-sheet enlightenment events inventory-visualizer mission-list past-contracts proto-explorer researches rockets-tracker shell-company smart-assistant eggs-laid legendary-study
+targets = _home enlightenment events inventory-visualizer mission-list past-contracts proto-explorer researches rockets-tracker shell-company smart-assistant eggs-laid legendary-study
 init-targets = $(addprefix init-,$(targets))
 fastbuild-targets = $(addprefix fastbuild-,$(targets))
 clean-targets = $(addprefix clean-,$(targets))
