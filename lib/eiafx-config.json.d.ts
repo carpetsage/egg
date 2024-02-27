@@ -3,6 +3,7 @@ import { ei } from './proto';
 declare const data: {
   missionParameters: SpaceshipParameters[];
   artifactParameters: ArtifactParameters[];
+  craftingLevelInfos: CraftingLevelInfo[];
 };
 
 export default data;
@@ -37,4 +38,10 @@ export interface ArtifactParameters {
   craftingPriceLow: number;
   craftingPriceDomain: number;
   craftingPriceCurve: number;
+  craftingXp: number;
+}
+
+export interface CraftingLevelInfo {
+  xpRequired: number;
+  rarityMult: number;
 }
