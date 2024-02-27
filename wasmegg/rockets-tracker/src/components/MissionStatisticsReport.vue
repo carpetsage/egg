@@ -70,12 +70,12 @@
     </div>
 
     <div
-      v-if="henerpriseMaxedOut && !congratulationsDismissed"
+      v-if="lastShipMaxedOut && !congratulationsDismissed"
       class="mx-4 xl:mx-0 rounded-md bg-green-50 shadow px-3 py-3 mt-2 mb-3"
     >
       <div class="flex">
         <p class="text-xs font-medium text-green-800">
-          &#x1f389; Woah, congratulations on maxing out Henerprise! Would you rise up to the
+          &#x1f389; Woah, congratulations on maxing out {{ finalShip }}! Would you rise up to the
           <a href="https://ei.tcl.sh/tips" target="_blank" class="underline" @click="onrick"
             >next big challenge</a
           >?
@@ -271,6 +271,7 @@ import { getMissionAirTime, getMissionStatistics } from '@/lib';
 import { formatLaunchPoints, missionDurationTypeFgClass } from '@/utils';
 import ProgressRing from '@/components/ProgressRing.vue';
 import ShipStarLevels from '@/components/ShipStarLevels.vue';
+import { shipMaxLevel, allMissionTypes } from '../../../../lib/missions';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -296,6 +297,9 @@ export default defineComponent({
   setup(props) {
     const { artifactsDB, progress } = toRefs(props);
     const missionStats = computed(() => getMissionStatistics(artifactsDB.value, progress.value));
+    // last ship in game
+    const finalShip = allMissionTypes[allMissionTypes.length -1].shipName;
+    // last ship unlocked by user
     const lastShip = computed(() => {
       const ships = missionStats.value.ships;
       return ships.length > 0 ? ships[ships.length - 1] : null;
@@ -308,11 +312,11 @@ export default defineComponent({
       () => lastShip.value?.requiredRemainingLaunchesToUnlockNextShip || 0
     );
 
-    const henerpriseMaxedOut = computed(
+    const lastShipMaxedOut = computed(
       () =>
         lastShip.value !== null &&
-        lastShip.value.shipType === ei.MissionInfo.Spaceship.HENERPRISE &&
-        lastShip.value.currentLevel >= 7
+        lastShip.value.shipType >= ei.MissionInfo.Spaceship.HENERPRISE &&
+        lastShip.value.currentLevel >= shipMaxLevel(lastShip.value.shipType)
     );
     const congratulationsDismissed = ref(
       getLocalStorage(CONGRATULATIONS_DISMISSED_LOCALSTORAGE_KEY) !== undefined
@@ -334,9 +338,10 @@ export default defineComponent({
     return {
       missionStats,
       allShipsUnlocked,
+      finalShip,
       lastShip,
       requiredRemainingLaunchesToUnlockNextShip,
-      henerpriseMaxedOut,
+      lastShipMaxedOut,
       congratulationsDismissed,
       onrick,
       getMissionAirTime,
