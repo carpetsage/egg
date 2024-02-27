@@ -419,6 +419,51 @@
         80,
         100
       ]
+    },
+    {
+      "ship": "UNKNOWN",
+      "durations": [
+        {
+          "durationType": "SHORT",
+          "seconds": 172800,
+          "quality": 6.7,
+          "minQuality": 3.2,
+          "maxQuality": 9.5,
+          "capacity": 60,
+          "levelCapacityBump": 7,
+          "levelQualityBump": 0.31
+        },
+        {
+          "durationType": "LONG",
+          "seconds": 259200,
+          "quality": 7.4,
+          "minQuality": 4,
+          "maxQuality": 11.5,
+          "capacity": 78,
+          "levelCapacityBump": 8,
+          "levelQualityBump": 0.31
+        },
+        {
+          "durationType": "EPIC",
+          "seconds": 345600,
+          "quality": 8.1,
+          "minQuality": 4,
+          "maxQuality": 14,
+          "capacity": 86,
+          "levelCapacityBump": 10,
+          "levelQualityBump": 0.31
+        }
+      ],
+      "levelMissionRequirements": [
+        20,
+        40,
+        80,
+        120,
+        160,
+        200,
+        300,
+        500
+      ]
     }
   ],
   "artifactParameters": [
