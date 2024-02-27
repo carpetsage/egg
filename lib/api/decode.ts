@@ -22,7 +22,8 @@ export function decodeMessage(
     // more human readable, but is harder to work with programatically. Most
     // notably, enums and 64-bit integer values are encoded as strings.
     toJSON: boolean;
-  }
+    stringEnums?: boolean;
+  },
 ): Record<string, unknown> {
   $protobuf.util.toJSONOptions = {enums: String}
   if (authenticated) {
@@ -35,7 +36,7 @@ export function decodeMessage(
       throw new Error('No message found behind wrap.');
     }
     const m = wrapperPayload.compressed ? pako.inflate(wrapperPayload.message) : wrapperPayload.message;
-    return decodeMessage(message, m, false);
+    return decodeMessage(message, m, false, options);
   }
 
 
@@ -56,5 +57,8 @@ export function decodeMessage(
     throw new Error(`Error decoding input as base64: ${e}`);
   }
   const decoded = message.decode(binaryStringToUint8Array(binary));
-  return options?.toJSON ? decoded.toJSON() : message.toObject(decoded);
+  if (options?.stringEnums) {
+    return message.toObject(decoded, {enums: String});
+  }
+  return options?.toJSON ? decoded.toJSON() : message.toObject(decoded) ;
 }

@@ -184,8 +184,11 @@ function decode(
   authenticated: boolean
 ): { payload?: Record<string, unknown>; code?: string; error?: string } {
   try {
+    const payload = decodeMessage(ei[messageName], encoded, authenticated, { toJSON: false, stringEnums: true });
+    // Round decimals to 2 places
+    const rounded = JSON.parse(JSON.stringify(payload, (_,val) => { return typeof val === 'number' ? Number(val.toFixed(3)) : val }))
     return {
-      payload: decodeMessage(ei[messageName], encoded, authenticated, { toJSON: true }),
+      payload: rounded,
     };
   } catch (e) {
     if (e instanceof $protobuf.util.ProtocolError) {
