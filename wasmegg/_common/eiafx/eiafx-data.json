@@ -641,7 +641,8 @@
           "possible_afx_rarities": [
             0,
             1,
-            2
+            2,
+	    3
           ],
           "has_effects": true,
           "available_from_missions": true,
@@ -677,7 +678,18 @@
               "effect_delta": 9,
               "family_effect": "Increases away earnings",
               "slots": 2,
-              "odds_multiplier": 0.0036000000000000003
+              "odds_multiplier": 0.0036
+            },
+            {
+              "afx_rarity": 2,
+              "rarity": "Legendary",
+              "effect": "+900% away earnings",
+              "effect_target": "away earnings",
+              "effect_size": "+900%",
+              "effect_delta": 9,
+              "family_effect": "Increases away earnings",
+              "slots": 2,
+              "odds_multiplier": 0.001
             }
           ],
           "recipe": {
