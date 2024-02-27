@@ -15,9 +15,10 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-import { CLIENT_VERSION, ei } from 'lib';
+import { ei } from 'lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import RequestButton from '@/components/RequestButton.vue';
+import { basicRequestInfo } from '../../../../lib/api/index';
 
 type ArtifactsConfigurationRequestPayload = Omit<ei.IArtifactsConfigurationRequest, ''>;
 
@@ -28,7 +29,7 @@ export default defineComponent({
   },
   setup() {
     const getRequestPayloadObject = (): ArtifactsConfigurationRequestPayload => ({
-      clientVersion: CLIENT_VERSION,
+      rinfo: basicRequestInfo(atob('RUk2MjkxOTQwOTY4MjM1MDA4')),
     });
     return {
       getRequestPayloadObject,
