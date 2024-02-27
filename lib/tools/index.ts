@@ -199,12 +199,6 @@ export const tools = [
       'Added expected gold yield of fully consuming artifacts, and gold yield of demoting uncommon artifacts.',
   }),
   new Tool({
-    id: 'loot-analysis',
-    url: '/loot-analysis/',
-    title: 'Loot analysis',
-    description: 'Statistical analysis of mission rewards data through interactive plots',
-  }),
-  new Tool({
     id: 'events',
     url: '/events/',
     title: 'Events calendar',
@@ -229,14 +223,6 @@ export const tools = [
     url: '/researches/',
     title: 'Researches',
     description: 'Structured data of common and epic researches, customizable by SQL',
-  }),
-
-  new Tool({
-    id: 'loot-simulator',
-    url: '/loot-simulator/',
-    title: 'Loot simulator',
-    iconUrl: iconURL('wasmegg/loot-simulator.svg'),
-    description: 'Simulator for mission loot drops',
   }),
 
   new Tool({
