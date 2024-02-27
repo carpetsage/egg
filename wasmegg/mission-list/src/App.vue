@@ -101,9 +101,6 @@
                     Ship
                   </th>
                   <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
-                    Sensors
-                  </th>
-                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
                     Level
                   </th>
                   <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
@@ -132,6 +129,18 @@
                   </th>
                   <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">
                     Time to Advance
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                    Launches to Next Star
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">
+                    Time to Next Star
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                    Launches to Max Stars
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">
+                    Time to Max Stars
                   </th>
                   <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 border-l">
                     Base Quality

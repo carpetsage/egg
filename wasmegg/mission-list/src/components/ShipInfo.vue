@@ -1,7 +1,7 @@
 <template>
   <tbody class="divide-y divide-gray-200">
     <tr
-      v-for="(mission, index) in missionTypes"
+      v-for="(mission, index) in missionTypes.filter(x => x.shipType >= 9)"
       :key="mission.durationType"
       class="text-gray-500 divide-x"
     >
@@ -15,13 +15,6 @@
           :src="iconURL(mission.shipIconPath, 128)"
         />
         <span class="pl-20">{{ mission.shipName }}</span>
-      </td>
-      <td
-        v-if="index === 0"
-        :rowspan="missionTypes.length"
-        class="px-4 py-1.5 whitespace-nowrap text-center text-sm"
-      >
-        {{ sensor }}
       </td>
       <td
         v-if="index === 0"
@@ -78,6 +71,32 @@
         <template v-if="timeToAdvance !== null">{{ formatDuration(timeToAdvance, true) }}</template>
         <template v-else>&ndash;</template>
       </td>
+      <td
+        class="px-4 py-1.5 whitespace-nowrap text-center text-sm"
+      >
+      <template v-if="config.shipLevels[mission.shipType] != mission.maxLevel">
+        {{ launchesToStar(mission, config.shipLevels[mission.shipType]) }}
+      </template>
+      </td>
+      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm text-blue-500">
+      <template v-if="config.shipLevels[mission.shipType] != mission.maxLevel">
+        {{ formatDuration(timeToStar(mission, config)) }}
+      </template>
+      <template v-else>&ndash;</template>
+      </td>
+      <td
+        class="px-4 py-1.5 whitespace-nowrap text-center text-sm"
+      >
+      <template v-if="config.shipLevels[mission.shipType] != mission.maxLevel">
+        {{ launchesToStar(mission, config.shipLevels[mission.shipType], mission.maxLevel) }}
+      </template>
+      </td>
+      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm text-blue-500">
+      <template v-if="config.shipLevels[mission.shipType] != mission.maxLevel">
+        {{ formatDuration(timeToStar(mission, config, mission.maxLevel)) }}
+      </template>
+      <template v-else>&ndash;</template>
+      </td>
       <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
         {{ mission.params.quality }}
       </td>
@@ -87,10 +106,10 @@
       <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
         {{ mission.params.levelQualityBump }}
       </td>
-      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm border-l">
+      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm border-l text-blue-500">
         {{ mission.boostedQuality(config) }}
       </td>
-      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
+      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm text-blue-500">
         {{ mission.params.minQuality }} &ndash; {{ mission.boostedMaxQuality(config) }}
       </td>
     </tr>
@@ -161,11 +180,31 @@ export default defineComponent({
       sensor,
       launchesToUnlockNextShip,
       timeToAdvance,
+      launchesToStar,
+      timeToStar,
       iconURL,
       formatDuration,
     };
   },
 });
+function launchesToStar(mission: MissionType, stars: number, target = stars + 1) {
+  const points = stars < mission.maxLevel ?
+    mission.levelLaunchPointThresholds[target] - mission.levelLaunchPointThresholds[stars] : 0
+  switch (mission.durationType) {
+    case DurationType.TUTORIAL:
+    case DurationType.SHORT:
+      return points;
+    case DurationType.LONG:
+      return Math.ceil(points/1.4);
+    case DurationType.EPIC:
+      return Math.ceil(points/1.8);
+  }
+}
+function timeToStar(mission: MissionType, config: ShipsConfig, target = config.shipLevels[mission.shipType] + 1) {
+  const launches = launchesToStar(mission, config.shipLevels[mission.shipType], target);
+  return mission.boostedDurationSeconds(config) * Math.ceil(launches / 3)
+}
+
 
 function shipSensor(spaceship: Spaceship): string {
   switch (spaceship) {
