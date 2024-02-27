@@ -681,7 +681,7 @@
               "odds_multiplier": 0.0036
             },
             {
-              "afx_rarity": 2,
+              "afx_rarity": 3,
               "rarity": "Legendary",
               "effect": "+900% away earnings",
               "effect_target": "away earnings",
