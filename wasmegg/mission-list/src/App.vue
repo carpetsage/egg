@@ -5,7 +5,7 @@
     Mission list
   </h1>
 
-  <main class="max-w-main mx-auto px-4 xl:px-8 pb-4">
+  <main class="max-w-full mx-auto px-4 xl:px-8 pb-4">
     <div class="rounded-md bg-green-100 px-4 py-2 mb-4 shadow">
       <p class="text-sm text-green-800">
         You can track your own missions and artifacts progress (and a lot more) effortlessly with
