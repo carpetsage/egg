@@ -80,6 +80,7 @@ export const spaceshipList = [
   Spaceship.CHICKFIANT,
   Spaceship.VOYEGGER,
   Spaceship.HENERPRISE,
+  Spaceship.UNKNOWN,
 ];
 
 export const missionDurationTypeList = [
@@ -132,6 +133,7 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
       [Spaceship.CHICKFIANT]: 0,
       [Spaceship.VOYEGGER]: 0,
       [Spaceship.HENERPRISE]: 0,
+      [Spaceship.UNKNOWN]: 0,
     },
     targets: targetDefaults,
   };
@@ -462,6 +464,7 @@ export function newMissionTypeMapFromFactory<T>(
     [Spaceship.CHICKFIANT]: innerFactory(Spaceship.CHICKFIANT),
     [Spaceship.VOYEGGER]: innerFactory(Spaceship.VOYEGGER),
     [Spaceship.HENERPRISE]: innerFactory(Spaceship.HENERPRISE),
+    [Spaceship.UNKNOWN]: innerFactory(Spaceship.UNKNOWN),
   };
 }
 
@@ -722,6 +725,18 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
       new MissionFuel(ei.Egg.DARK_MATTER, 3e12),
     ],
   },
+  [Spaceship.UNKNOWN]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [
+      new MissionFuel(ei.Egg.UNKNOWN, 0),
+    ],
+    [DurationType.LONG]: [
+      new MissionFuel(ei.Egg.UNKNOWN, 0),
+    ],
+    [DurationType.EPIC]: [
+      new MissionFuel(ei.Egg.UNKNOWN, 0),
+    ],
+  },
 };
 
 export function requiredTotalLaunchesToUnlockNextShip(shipType: Spaceship): number {
@@ -746,6 +761,8 @@ export function requiredTotalLaunchesToUnlockNextShip(shipType: Spaceship): numb
       return 30;
     case Spaceship.HENERPRISE:
       return Infinity;
+    case Spaceship.UNKNOWN:
+      return Infinity;
   }
 }
 
@@ -761,6 +778,7 @@ const shipLevelRequirements: Record<Spaceship, number[]> = (() => {
     [Spaceship.CHICKFIANT]: [],
     [Spaceship.VOYEGGER]: [],
     [Spaceship.HENERPRISE]: [],
+    [Spaceship.UNKNOWN]: [],
   };
   for (const mp of eiafxConfig.missionParameters) {
     const ship = Spaceship[mp.ship];
@@ -799,6 +817,7 @@ export const perfectShipsConfig: ShipsConfig = {
     [Spaceship.CHICKFIANT]: shipMaxLevel(Spaceship.CHICKFIANT),
     [Spaceship.VOYEGGER]: shipMaxLevel(Spaceship.VOYEGGER),
     [Spaceship.HENERPRISE]: shipMaxLevel(Spaceship.HENERPRISE),
+    [Spaceship.UNKNOWN]: shipMaxLevel(Spaceship.UNKNOWN),
   },
   targets: targetDefaults,
 };
