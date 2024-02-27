@@ -27,7 +27,7 @@ message Backup {
     optional uint32 version = 21 [default = 0];
     optional bool force_offer_backup = 20;
     optional bool force_backup = 22;
-    
+
     optional Settings settings = 4;
     message Settings {
         optional bool sfx = 1;
@@ -60,7 +60,7 @@ message Backup {
         optional bool user_analytics_enabled = 22 [default = true];
         optional bool user_personalized_ads_enabled = 23 [default = true];
     }
-    
+
     optional Tutorial tutorial = 5;
     message Tutorial {
         optional bool intro_shown = 1;
@@ -75,7 +75,7 @@ message Backup {
         optional bool switch_farm_shown = 10;
         repeated bool tutorial_shown = 11;
     }
-    
+
     optional Stats stats = 6;
     message Stats {
         repeated uint64 egg_totals_OLD = 1;
@@ -97,7 +97,7 @@ message Backup {
         optional double time_piggy_full_gametime = 17;
         optional uint64 lost_piggy_increments = 18;
     }
-    
+
     optional Game game = 7;
     message Game {
         optional uint32 current_farm = 22 [default = 0];
@@ -140,7 +140,7 @@ message Backup {
         optional bool force_elite_contracts = 36;
         optional double new_player_event_end_time = 37;
     }
-    
+
     optional Artifacts artifacts = 14;
     message Artifacts {
         optional bool infusing = 1;
@@ -162,14 +162,14 @@ message Backup {
         optional bool intro_shown = 12;
         optional bool infusing_enabled_DEPRECATED = 8 [default = true];
     }
-    
+
     optional Shells shells = 25;
     message Shells {
         optional bool intro_alert = 1;
         optional bool contracts_intro_alert = 2;
         repeated int32 num_new = 3;
     }
-    
+
     optional Simulation sim = 8;
     message Simulation {
         optional Egg egg_type = 1;
@@ -204,9 +204,9 @@ message Backup {
         optional uint32 unclaimed_boost_tokens = 27;
         optional double gametime_until_next_boost_token = 29;
     }
-    
+
     repeated Simulation farms = 12;
-    
+
     optional Mission mission = 9;
     message Mission {
         optional string current_mission = 1;
@@ -214,7 +214,7 @@ message Backup {
         repeated string current_missions = 4;
         repeated MissionInfo missions = 3;
     }
-    
+
     optional Misc misc = 10;
     message Misc {
         optional bool chicken_btn_pref_big = 1;
@@ -242,7 +242,7 @@ message Backup {
         optional bool max_button_alert = 23;
         optional bool mission_target_alert = 24;
     }
-    
+
     optional MyContracts contracts = 13;
     optional ArtifactsDB artifacts_db = 15;
     optional ShellDB shell_db = 24;
@@ -250,33 +250,33 @@ message Backup {
     optional MailState mail_state = 27;
     optional uint64 checksum = 100;
     optional string signature = 101;
-    
+
     message ResearchItem {
         optional string id = 1;
         optional uint32 level = 2;
     }
-    
+
     message NewsHeadline {
         optional string id = 1;
         optional bool read = 2;
     }
-    
+
     message AchievementInfo {
         optional string id = 1;
         optional bool achieved = 2;
     }
-    
+
     message ActiveBoost {
         optional string boost_id = 1;
         optional double time_remaining = 2;
         optional double reference_value = 3;
     }
-    
+
     message OwnedBoost {
         optional string boost_id = 1;
         optional uint32 count = 2;
     }
-    
+
     message MissionInfo {
         optional string id = 1;
         optional bool completed = 2;
@@ -301,7 +301,7 @@ message EggIncFirstContactResponse {
     optional uint32 error_code = 4 [default = 0];
     optional string error_message = 5;
     optional Backup backup = 1;
-    
+
     enum ErrorCodes {
         NO_ERROR = 0;
         EXISTING_USER_W_GAMER_ID = 1;
@@ -478,7 +478,7 @@ message GameModifier {
         HAB_COST = 8;
         RESEARCH_COST = 9;
     }
-    
+
     optional double value = 2;
     optional string description = 3;
 }
@@ -488,7 +488,7 @@ message Contract {
     optional string name = 9;
     optional string description = 10;
     optional Egg egg = 2;
-    
+
     repeated Goal goals = 3;
     message Goal {
         optional GoalType type = 1;
@@ -498,12 +498,12 @@ message Contract {
         optional double reward_amount = 5;
         optional double target_soul_eggs = 6;
     }
-    
+
     repeated GoalSet goal_sets = 16;
     message GoalSet {
         repeated Goal goals = 1;
     }
-    
+
     repeated GradeSpec grade_specs = 20;
     message GradeSpec {
         optional PlayerGrade grade = 1;
@@ -511,7 +511,7 @@ message Contract {
         repeated GameModifier modifiers = 3;
         optional double length_seconds = 4;
     }
-    
+
     optional string season_id = 23;
     optional bool coop_allowed = 4;
     optional uint32 max_coop_size = 5;
@@ -528,7 +528,7 @@ message Contract {
     repeated string default_shell_ids = 24;
     optional bool debug = 11;
     optional string key = 21;
-    
+
     enum PlayerGrade {
         GRADE_UNSET = 0;
         GRADE_C = 1;
@@ -550,7 +550,7 @@ message ContractPlayerInfo {
     optional double grade_progress = 12;
     repeated ContractEvaluation.PoorBehavior issues = 11;
     optional double issue_score = 14;
-    
+
     optional Status status = 3;
     enum Status {
         UNKNOWN = 0;
@@ -559,7 +559,7 @@ message ContractPlayerInfo {
         INCOMPLETE = 4;
         COMPLETE = 3;
     }
-    
+
     optional double last_evaluation_time = 4;
     optional string last_evaluation_version = 5;
     repeated ContractEvaluation unread_evaluations = 6;
@@ -595,7 +595,7 @@ message ContractEvaluation {
     optional bool counted_in_season = 20;
     optional string season_id = 21;
     optional uint32 time_cheats = 27;
-    
+
     repeated PoorBehavior issues = 19;
     enum PoorBehavior {
         NONE = 0;
@@ -606,11 +606,11 @@ message ContractEvaluation {
         ABANDONED_COOP = 5;
         TIME_CHEAT = 6;
     }
-    
+
     repeated string notes = 12;
     optional string version = 50;
     optional double evaluation_start_time = 51;
-    
+
     optional Status status = 52;
     enum Status {
         UNKNOWN = 0;
@@ -662,7 +662,7 @@ message ContractSimConfig {
     repeated ContractGradeSimConfig grade_configs = 1;
     message ContractGradeSimConfig {
         optional Contract.PlayerGrade grade = 1;
-        
+
         repeated GoalParams goal_params = 2;
         message GoalParams {
             optional double target_se = 1;
@@ -687,7 +687,7 @@ message ContractSimPollResponse {
 
 message ContractSimResultUpdate {
     optional string contract_id = 1;
-    
+
     repeated GoalInfo goal_infos = 2;
     message GoalInfo {
         optional Contract.PlayerGrade grade = 1;
@@ -765,12 +765,12 @@ message ContractCoopStatusResponse {
         INVALID_MEMBERSHIP = 7;
         NO_HTTP_RESPONSE = 500;
     }
-    
+
     optional string contract_identifier = 1;
     optional double total_amount = 2;
     optional string coop_identifier = 3;
     optional Contract.PlayerGrade grade = 17;
-    
+
     repeated ContributionInfo contributors = 4;
     message ContributionInfo {
         optional string uuid = 21;
@@ -798,7 +798,7 @@ message ContractCoopStatusResponse {
         repeated CoopBuffState buff_history = 13;
         optional double chicken_run_cooldown = 20;
     }
-    
+
     optional bool auto_generated = 8;
     optional bool public = 10;
     optional string creator_id = 9;
@@ -808,7 +808,7 @@ message ContractCoopStatusResponse {
     optional bool all_members_reporting = 6;
     optional double grace_period_seconds_remaining = 7;
     optional bool cleared_for_exit = 15;
-    
+
     repeated CoopGift gifts = 11;
     message CoopGift {
         optional string user_id = 1;
@@ -816,17 +816,17 @@ message ContractCoopStatusResponse {
         optional uint32 amount = 2;
         optional string tracking = 4;
     }
-    
+
     repeated ChickenRun chicken_runs = 13;
     message ChickenRun {
         optional string user_id = 1;
         optional string user_name = 3;
         optional uint64 amount = 2;
     }
-    
+
     optional double local_timestamp = 12;
     optional double last_sync = 18;
-    
+
     enum MemberStatus {
         VALID = 0;
         KICKED_INACTIVE = 1;
@@ -834,7 +834,7 @@ message ContractCoopStatusResponse {
         KICKED_CHEATS = 3;
         KICKED_LEECH = 4;
     }
-    
+
     enum Status {
         UNKNOWN = 0;
         LOBBY = 1;
@@ -1016,7 +1016,7 @@ message ReportPlayerCoopRequest {
     optional string contract_identifier = 2;
     optional string coop_identifier = 3;
     optional string user_id = 4;
-    
+
     optional Reason reason = 5;
     enum Reason {
         UNKNOWN = 0;
@@ -1032,7 +1032,7 @@ message KickPlayerCoopRequest {
     optional string coop_identifier = 2;
     optional string player_identifier = 3;
     optional string requesting_user_id = 4;
-    
+
     optional Reason reason = 9;
     enum Reason {
         INVALID = 0;
@@ -1041,7 +1041,7 @@ message KickPlayerCoopRequest {
         LEECH = 3;
         PRIVATE = 4;
     }
-    
+
     optional uint32 client_version = 7;
 }
 
@@ -1100,7 +1100,7 @@ message LeaderboardAnalysis {
         optional string start_cursor = 5;
         optional string end_cursor = 6;
     }
-    
+
     optional uint32 count = 2;
     optional double high_score = 3;
     optional double low_score = 4;
@@ -1113,7 +1113,7 @@ message LeaderboardInfo {
         optional string scope = 1;
         optional string name = 2;
     }
-    
+
     optional string all_time_scope = 2;
 }
 
@@ -1126,14 +1126,14 @@ message LeaderboardRequest {
 message LeaderboardResponse {
     optional string scope = 1;
     optional Contract.PlayerGrade grade = 2;
-    
+
     repeated Entry top_entries = 3;
     message Entry {
         optional uint32 rank = 1;
         optional string alias = 2;
         optional double score = 3;
     }
-    
+
     optional uint32 count = 4;
     optional uint32 rank = 5;
     optional double score = 6;
@@ -1194,7 +1194,7 @@ message ServerGift {
 
 message LiveConfig {
     optional string config_id = 1;
-    
+
     optional BoostsConfig boosts_config = 2;
     message BoostsConfig {
         repeated ItemConfig item_configs = 1;
@@ -1204,10 +1204,10 @@ message LiveConfig {
             optional uint32 token_price = 3;
             optional double se_required = 4;
         }
-        
+
         optional double cash_boost_cooloff_time = 2;
     }
-    
+
     optional GiftConfig gift_config = 3;
     message GiftConfig {
         repeated GiftValueConfig gift_configs = 9;
@@ -1219,18 +1219,18 @@ message LiveConfig {
             optional double video_min = 5;
             optional double video_max = 6;
         }
-        
+
         optional double gift_mu_min_spent = 10;
         optional double gift_mu_max_spent = 11;
         optional double gift_mu_overall_mult = 12;
-        
+
         optional GiftMuConfig random_gift_mu_config = 15;
         message GiftMuConfig {
             optional double min_spent = 1;
             optional double max_spent = 2;
             optional double overall_mult = 3;
         }
-        
+
         optional GiftMuConfig video_gift_mu_config = 16;
         optional double package_interval = 1;
         optional double video_offer_interval = 2;
@@ -1243,7 +1243,7 @@ message LiveConfig {
         optional double package_interval_piggy_extra_full = 8;
         optional bool package_reset_on_idle = 13;
     }
-    
+
     optional MiscConfig misc_config = 4;
     message MiscConfig {
         optional bool ask_to_track = 1;
@@ -1304,14 +1304,14 @@ message TipsDB {
 
 message MailState {
     repeated string read_mail_ids = 1;
-    
+
     repeated TipState tips_states = 2;
     message TipState {
         optional string id = 1;
         optional uint32 reads = 2;
         optional double time_read = 3;
     }
-    
+
     optional string tips_checksum = 3;
 }
 
@@ -1411,7 +1411,7 @@ message ArtifactsClientInfo {
     optional double mission_capacity_mult = 1;
     optional double mission_duration_mult = 2;
     optional double mission_ftl_duration_mult = 4;
-    
+
     repeated LaunchCount launch_counts = 3;
     message LaunchCount {
         optional MissionInfo.Spaceship ship = 1;
@@ -1433,8 +1433,9 @@ message MissionInfo {
         CHICKFIANT = 7;
         VOYEGGER = 8;
         HENERPRISE = 9;
+        UNKNOWN = 10;
     }
-    
+
     optional Status status = 2;
     enum Status {
         FUELING = 0;
@@ -1445,7 +1446,7 @@ message MissionInfo {
         COMPLETE = 20;
         ARCHIVED = 25;
     }
-    
+
     optional DurationType duration_type = 3;
     enum DurationType {
         SHORT = 0;
@@ -1453,13 +1454,13 @@ message MissionInfo {
         EPIC = 2;
         TUTORIAL = 3;
     }
-    
+
     repeated Fuel fuel = 4;
     message Fuel {
         optional Egg egg = 1;
         optional double amount = 2;
     }
-    
+
     optional uint32 level = 12;
     optional double duration_seconds = 5;
     optional uint32 capacity = 9;
@@ -1529,7 +1530,7 @@ message ArtifactSpec {
         CLARITY_STONE_FRAGMENT = 52;
         UNKNOWN = 10000;
     }
-    
+
     optional Level level = 2;
     enum Level {
         INFERIOR = 0;
@@ -1538,7 +1539,7 @@ message ArtifactSpec {
         GREATER = 3;
         SUPERIOR = 4;
     }
-    
+
     optional Rarity rarity = 3;
     enum Rarity {
         COMMON = 0;
@@ -1546,9 +1547,9 @@ message ArtifactSpec {
         EPIC = 2;
         LEGENDARY = 3;
     }
-    
+
     optional Egg egg = 4;
-    
+
     enum Type {
         ARTIFACT = 0;
         STONE = 1;
@@ -1583,7 +1584,7 @@ message ArtifactsConfigurationResponse {
     repeated MissionParameters mission_parameters = 1;
     message MissionParameters {
         optional MissionInfo.Spaceship ship = 1;
-        
+
         repeated Duration durations = 3;
         message Duration {
             optional MissionInfo.DurationType duration_type = 1;
@@ -1595,11 +1596,11 @@ message ArtifactsConfigurationResponse {
             optional uint32 level_capacity_bump = 7;
             optional float level_quality_bump = 8;
         }
-        
+
         repeated uint32 level_mission_requirements = 4;
         optional uint32 capacity_DEPRECATED = 2;
     }
-    
+
     repeated ArtifactParameters artifact_parameters = 2;
     message ArtifactParameters {
         optional ArtifactSpec spec = 1;
@@ -1612,7 +1613,7 @@ message ArtifactsConfigurationResponse {
         optional double crafting_price_curve = 8;
         optional uint64 crafting_xp = 9;
     }
-    
+
     repeated CraftingLevelInfo crafting_level_infos = 3;
     message CraftingLevelInfo {
         optional double xp_required = 1;
@@ -1636,13 +1637,13 @@ message MissionResponse {
 message CompleteMissionResponse {
     optional bool success = 1;
     optional MissionInfo info = 2;
-    
+
     repeated SecureArtifactSpec artifacts = 3;
     message SecureArtifactSpec {
         optional ArtifactSpec spec = 1;
         optional string server_id = 2;
     }
-    
+
     repeated Reward other_rewards = 4;
     optional string ei_user_id = 5;
 }
@@ -1719,21 +1720,21 @@ message ArtifactsDB {
     repeated ArtifactInventoryItem inventory_items = 1;
     optional uint64 item_sequence = 2;
     repeated InventorySlot inventory_slots = 3;
-    
+
     repeated ActiveArtifactSlot active_artifacts_DEPRECATED = 7;
     message ActiveArtifactSlot {
         optional bool occupied = 1;
         optional uint64 item_id = 2;
     }
-    
+
     repeated ActiveArtifactSet active_artifact_sets = 11;
     message ActiveArtifactSet {
         repeated ActiveArtifactSlot slots = 1;
         optional uint32 uid = 2;
     }
-    
+
     repeated ActiveArtifactSet saved_artifact_sets = 13;
-    
+
     repeated CraftableArtifact artifact_status = 12;
     message CraftableArtifact {
         optional ArtifactSpec spec = 1;
@@ -1743,7 +1744,7 @@ message ArtifactsDB {
         optional bool seen = 2;
         optional uint32 count = 3;
     }
-    
+
     repeated MissionInfo mission_infos = 4;
     repeated MissionInfo mission_archive = 5;
     repeated ArtifactSpec discovered_artifacts_DEPRECATED = 8;
@@ -1790,7 +1791,7 @@ message SaveBackupResponse {
     optional uint32 error_code = 2;
     optional string message = 3;
     optional Backup existing_backup = 4;
-    
+
     enum ErrorCodes {
         NO_ERROR = 0;
         USER_NOT_FOUND = 1;
@@ -1821,13 +1822,13 @@ message DLCItem {
 
 message ShellSpec {
     optional string identifier = 1;
-    
+
     optional ShellPiece primary_piece = 12;
     message ShellPiece {
         optional AssetType asset_type = 1;
         optional DLCItem dlc = 2;
     }
-    
+
     repeated ShellPiece pieces = 11;
     repeated DLCItem alt_assets = 18;
     optional string name = 3;
@@ -1843,7 +1844,7 @@ message ShellSpec {
     optional double seconds_remaining = 16;
     optional uint64 popularity = 21;
     optional bool default_appearance = 8;
-    
+
     enum AssetType {
         COOP = 1;
         SHACK = 2;
@@ -1962,7 +1963,7 @@ message ShellSetSpec {
     optional bool modified_geometry = 13;
     optional bool element_set = 7;
     optional string hex_base_color = 16;
-    
+
     repeated VariationSpec variations = 15;
     message VariationSpec {
         optional string identifier = 1;
@@ -1972,7 +1973,7 @@ message ShellSetSpec {
         optional bool default_appearance = 4;
         optional bool custom_appearance = 5;
     }
-    
+
     optional DLCItem icon = 19;
     optional bool default_appearance = 6;
     optional bool custom_appearance = 12;
@@ -1994,7 +1995,7 @@ message ShellObjectSpec {
     optional uint64 popularity = 19;
     repeated double metadata = 7;
     optional bool no_hats = 13;
-    
+
     optional ChickenAnimation chicken_animation = 16;
     enum ChickenAnimation {
         STANDARD_RUN = 0;
@@ -2007,15 +2008,15 @@ message ShellObjectSpec {
         SIDEWAYS_SMOOTH = 4;
         SIDEWAYS_LEAN = 8;
     }
-    
+
     optional int32 sort_priority = 17;
-    
+
     repeated LODPiece pieces = 8;
     message LODPiece {
         optional DLCItem dlc = 1;
         optional uint32 lod = 2;
     }
-    
+
     optional bool default_appearance = 9;
 }
 
@@ -2042,22 +2043,22 @@ message ShellDB {
         optional string identifier = 1;
         optional bool owned = 2;
     }
-    
+
     repeated ShellElementStatus shell_element_inventory = 5;
     message ShellElementStatus {
         optional FarmElement element = 1;
         optional string set_identifier = 2;
     }
-    
+
     repeated ShellSetVariationStatus shell_variation_inventory = 8;
     message ShellSetVariationStatus {
         optional string set_identifier = 1;
         repeated string owned_variations = 2;
     }
-    
+
     repeated ShellStatus shell_set_inventory = 2;
     repeated ShellStatus shell_object_inventory = 4;
-    
+
     repeated FarmConfiguration farm_configs = 3;
     message FarmConfiguration {
         repeated FarmElement locked_elements = 10;
@@ -2069,7 +2070,7 @@ message ShellDB {
         optional bool lighting_config_enabled = 11;
         optional LightingConfig lighting_config = 12;
     }
-    
+
     repeated SavedFarmConfiguration saved_configs = 9;
     message SavedFarmConfiguration {
         optional string id = 1;
@@ -2079,17 +2080,17 @@ message ShellDB {
         optional string display_name = 5;
         optional bool purchased = 6;
     }
-    
+
     repeated string new_shells_downloaded = 6;
     repeated string new_shells_seen = 7;
     optional bool lighting_controls_unlocked = 10;
-    
+
     message ShellConfiguration {
         optional ShellSpec.AssetType asset_type = 1;
         optional uint32 index = 2;
         optional string shell_identifier = 3;
     }
-    
+
     message ShellSetConfiguration {
         optional FarmElement element = 1;
         optional uint32 index = 2;
@@ -2097,17 +2098,17 @@ message ShellDB {
         optional string variation_identifier = 4;
         optional string decorator_identifier = 5;
     }
-    
+
     message ShellGroupConfiguration {
         optional ShellSpec.AssetType asset_type = 1;
         optional string group_identifier = 2;
     }
-    
+
     message ChickenConfig {
         optional string chicken_identifier = 1;
         optional string hat_identifier = 2;
     }
-    
+
     message LightingConfig {
         optional Vector3 light_dir = 1;
         optional Vector4 light_direct_color = 2;
@@ -2119,7 +2120,7 @@ message ShellDB {
         optional float fog_far = 8;
         optional float fog_density = 9;
     }
-    
+
     enum FarmElement {
         HEN_HOUSE = 1;
         SILO = 2;
@@ -2185,7 +2186,7 @@ message ShellShowcaseListingInfo {
     optional string name = 2;
     optional string description = 3;
     optional string creator_name = 14;
-    
+
     optional Status status = 11;
     enum Status {
         NONE = 0;
@@ -2194,7 +2195,7 @@ message ShellShowcaseListingInfo {
         FEATURED = 3;
         INVALID = 4;
     }
-    
+
     optional ShellDB.FarmConfiguration farm_config = 4;
     optional uint32 sales = 5;
     optional uint64 gross = 6;
@@ -2227,7 +2228,7 @@ message UserVerificationAnalysis {
         PROCESSING = 1;
         COMPLETE = 2;
     }
-    
+
     optional double start_time = 2;
     optional double completion_time = 3;
     optional double num_prestiges = 14;
@@ -2271,7 +2272,7 @@ message UserSubscriptionInfo {
         STANDARD = 0;
         PRO = 1;
     }
-    
+
     optional Level next_subscription_level = 15;
     optional bool lock_next_subscription_level = 18;
     optional Platform platform = 10;
@@ -2280,7 +2281,7 @@ message UserSubscriptionInfo {
     optional bool acknowledged = 17;
     optional double first_subscribed = 2;
     optional double period_end = 4;
-    
+
     optional Status status = 5;
     enum Status {
         UNKNOWN = 0;
@@ -2290,19 +2291,19 @@ message UserSubscriptionInfo {
         GRACE_PERIOD = 4;
         PAUSE_HOLD = 5;
     }
-    
+
     optional string store_status = 14;
     optional bool auto_renew = 6;
     optional bool sandbox = 19;
     optional double last_updated = 7;
-    
+
     repeated HistoryEntry history = 9;
     message HistoryEntry {
         optional double timestamp = 1;
         optional string message_id = 2;
         optional string message = 3;
     }
-    
+
     repeated string past_user_ids = 11;
 }
 
