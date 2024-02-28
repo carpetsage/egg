@@ -12355,5 +12355,32 @@
     "startTimestamp": 1709053200.0,
     "type": "hab-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1709226000.0,
+    "id": "event-2-28",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1709139600.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1709226000.0,
+    "id": "event-2-28-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1709139600.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1709226000.0,
+    "id": "ultra-2-28",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1709139600.0,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
