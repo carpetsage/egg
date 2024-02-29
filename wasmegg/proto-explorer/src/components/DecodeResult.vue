@@ -186,7 +186,7 @@ function decode(
   try {
     const payload = decodeMessage(ei[messageName], encoded, authenticated, { toJSON: false, stringEnums: true });
     // Round decimals to 2 places
-    const rounded = JSON.parse(JSON.stringify(payload, (_,val) => { return typeof val === 'number' ? Number(val.toFixed(3)) : val }))
+    const rounded = JSON.parse(JSON.stringify(payload, (_,val) => { return typeof val === 'number' ? Number(val.toFixed(6)) : val }))
     return {
       payload: rounded,
     };

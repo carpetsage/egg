@@ -635,13 +635,15 @@
           "base_crafting_prices": [
             28986.362701660517,
             118146.71134350491,
-            173728.14778686856
+            173728.14778686856,
+            699243.860053
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
             0,
             1,
-            2
+            2,
+	    3
           ],
           "has_effects": true,
           "available_from_missions": true,
@@ -677,7 +679,18 @@
               "effect_delta": 9,
               "family_effect": "Increases away earnings",
               "slots": 2,
-              "odds_multiplier": 0.0036000000000000003
+              "odds_multiplier": 0.0036
+            },
+            {
+              "afx_rarity": 3,
+              "rarity": "Legendary",
+              "effect": "+???% away earnings",
+              "effect_target": "away earnings",
+              "effect_size": "+???%",
+              "effect_delta": 9,
+              "family_effect": "Increases away earnings",
+              "slots": 2,
+              "odds_multiplier": 0.001
             }
           ],
           "recipe": {
