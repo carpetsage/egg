@@ -3,7 +3,7 @@
     <template v-for="family in families" :key="family.name">
       <li class="col-span-1 bg-gray-50 rounded-lg shadow divide-y divide-gray-200">
         <div class="w-full flex items-center justify-between px-6 py-4 space-x-4">
-          <div class="flex-1 truncate">
+          <div class="flex-1">
             <div class="flex items-center space-x-3">
               <h3 class="text-gray-900 text-sm font-medium truncate">
                 {{ family.name }}
