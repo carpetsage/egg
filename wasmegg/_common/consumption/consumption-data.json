@@ -229,6 +229,21 @@
   },
   {
     "item": {
+      "afx_id": 0,
+      "afx_level": 3,
+      "afx_rarity": 3,
+      "name": "LunarTotem",
+      "rarity": "Legendary",
+      "level": "Greater",
+      "tier_number": 4
+    },
+    "raw_rewards": [],
+    "product_rewards": [],
+    "full_consumption": [],
+    "demotion_gold": 427
+  },
+  {
+    "item": {
       "afx_id": 3,
       "afx_level": 0,
       "afx_rarity": 0,
