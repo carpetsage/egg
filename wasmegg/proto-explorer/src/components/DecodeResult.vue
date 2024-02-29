@@ -76,9 +76,10 @@ import * as $protobuf from 'protobufjs/minimal';
 
 config.setModuleUrl('ace/mode/json_worker', AceWorkerJsonInline);
 
-import { decodeMessage, ei, formatEIValue, uint8ArrayToBinaryString } from 'lib';
+import { decodeMessage, ei, formatEIValue } from 'lib';
 import CopyButton from '@/components/CopyButton.vue';
 import { MessageName } from '@/lib';
+import { updateData } from '../../../../lib/artifacts/data';
 
 export default defineComponent({
   components: {
@@ -98,10 +99,14 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    eiafxdataFormat: {
+      type: Boolean,
+      default: false,
+    }
   },
 
   setup(props) {
-    const { messageName, authenticated, encodedPayload } = toRefs(props);
+    const { messageName, authenticated, encodedPayload, eiafxdataFormat } = toRefs(props);
     const eiValue = ref('');
     $protobuf.util.toJSONOptions = { enums: String }
 
@@ -109,7 +114,7 @@ export default defineComponent({
       if (!messageName.value || !encodedPayload.value) {
         return {};
       }
-      const result = decode(messageName.value, encodedPayload.value, authenticated.value);
+      const result = decode(messageName.value, encodedPayload.value, authenticated.value, eiafxdataFormat.value);
       // If decoding failed, see if we can decode as authenticated instead.
       if (result.error !== undefined && !authenticated.value) {
         const resultAsAuthenticated = decode(messageName.value, encodedPayload.value, true);
@@ -181,12 +186,18 @@ export default defineComponent({
 function decode(
   messageName: MessageName,
   encoded: string,
-  authenticated: boolean
+  authenticated: boolean,
+  eiafxdata?: boolean,
 ): { payload?: Record<string, unknown>; code?: string; error?: string } {
   try {
     const payload = decodeMessage(ei[messageName], encoded, authenticated, { toJSON: false, stringEnums: true });
     // Round decimals to 2 places
     const rounded = JSON.parse(JSON.stringify(payload, (_,val) => { return typeof val === 'number' ? Number(val.toFixed(6)) : val }))
+    if (eiafxdata) {
+     return {
+      payload: JSON.parse(JSON.stringify(updateData(rounded)))
+     }
+    }
     return {
       payload: rounded,
     };

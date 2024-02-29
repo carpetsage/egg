@@ -56,6 +56,7 @@
         :message-name="responseMessage"
         :authenticated="responseAuthenticated"
         :encoded-payload="encodedResponsePayload || ''"
+        :eiafxdata-format="eiafxdataFormat"
       />
     </div>
   </div>
@@ -101,6 +102,10 @@ export default defineComponent({
     getRequestPayloadObject: {
       type: Function as PropType<() => Record<string, unknown>>,
       required: true,
+    },
+    eiafxdataFormat: {
+      type: Boolean,
+      default: false,
     },
   },
 

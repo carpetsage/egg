@@ -1,7 +1,7 @@
 import { ei } from '../proto';
 import { iconURL } from '../utils';
-import data, { Family, Tier } from './data.json';
-import config from '../eiafx-config.json';
+import data, {Family, Tier } from './data.json';
+import config, { ArtifactParameters, CraftingLevelInfo, SpaceshipParameters } from '../eiafx-config.json';
 
 export default data;
 export type { Family as AfxFamily, Tier as AfxTier, Recipe, Effect } from './data.json';
@@ -11,6 +11,11 @@ import Level = ei.ArtifactSpec.Level;
 import Type = ei.ArtifactSpec.Type;
 
 export type PlayerCraftingLevel = { level: number, rarityMult: number };
+type configType = {
+  missionParameters: SpaceshipParameters[],
+  artifactParameters: ArtifactParameters[],
+  craftingLevelInfos: CraftingLevelInfo[],
+}
 
 export const allPossibleTiers = data.artifact_families.map(f => f.tiers).flat();
 export const afxCraftingLevelInfos = config.craftingLevelInfos;
@@ -42,6 +47,12 @@ const itemIdToTier: Map<string, Tier> = new Map(
     .map(f => f.tiers)
     .flat()
     .map(t => [t.id, t])
+);
+const itemAfxIdToTier: Map<Name, Tier> = new Map(
+  data.artifact_families
+    .map(f => f.tiers)
+    .flat()
+    .map(t => [t.afx_id, t])
 );
 const itemAfxIdToType: Map<Name, Type> = new Map(
   data.artifact_families
@@ -180,3 +191,52 @@ export function getCraftingLevelFromXp(craftingXp: number): PlayerCraftingLevel 
 
   return { level: 1, rarityMult: 1}
 }
+
+export function updateData(newconfig: configType) {
+  const newdata = data;
+  for ( const fam of newdata.artifact_families) {
+    for ( let tier of fam.tiers) {
+      const artis = newconfig.artifactParameters.filter(x => (tier.afx_id == Name[x.spec.name] && tier.afx_level == Level[x.spec.level]));
+      console.log(artis.length);
+      tier = artifactsToTier(artis, tier);
+
+    }
+  }
+  return newdata;
+}
+
+function artifactsToTier(artis: ArtifactParameters[], tier: Tier): Tier {
+  const arti = artis[0];
+  if (tier.effects != null) {
+    for (let i = 0; i < artis.length; i++) {
+      if (i < tier.effects?.length) {
+        tier.effects[i].odds_multiplier = artis[i].oddsMultiplier
+      }
+      else if (i > 0) {
+        tier.effects[i] = {
+          ...tier.effects[i-1],
+          odds_multiplier: artis[i].oddsMultiplier,
+        }
+      }
+    }
+  }
+  if (tier.recipe) {
+    tier.recipe.crafting_price = {
+      base: arti.craftingPrice,
+      low: arti.craftingPriceLow,
+      domain: arti.craftingPriceDomain,
+      curve: arti.craftingPriceCurve,
+      initial: Math.floor(arti.craftingPrice),
+      minimum: Math.floor(arti.craftingPriceLow)
+    }
+  }
+  console.log(tier.base_crafting_prices, artis.map(x => x.craftingPrice));
+  tier.available_from_missions = arti.baseQuality < 16.48;
+  tier.base_crafting_prices = artis.map(x => x.craftingPrice);
+  tier.craftable = ei.ArtifactSpec.Level[arti.spec.level] != 0;
+  tier.possible_afx_rarities = artis.map(x => ei.ArtifactSpec.Rarity[x.spec.rarity]);
+  tier.odds_multiplier = arti.oddsMultiplier;
+  tier.quality = arti.baseQuality;
+
+  return tier;
+ }
