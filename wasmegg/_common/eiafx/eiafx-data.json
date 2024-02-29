@@ -38,7 +38,7 @@
           "quality": 0.5,
           "craftable": false,
           "base_crafting_prices": [
-            10.884288412526262
+            10.884288
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -88,8 +88,8 @@
           "quality": 2.6,
           "craftable": true,
           "base_crafting_prices": [
-            90.58078159145558,
-            410.0305232591817
+            90.580782,
+            410.030523
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -119,7 +119,7 @@
               "effect_delta": -0.15,
               "family_effect": "Lowers research costs",
               "slots": 2,
-              "odds_multiplier": 0.011250000000000001
+              "odds_multiplier": 0.01125
             }
           ],
           "recipe": {
@@ -138,8 +138,8 @@
               }
             ],
             "crafting_price": {
-              "base": 90.58078159145558,
-              "low": 9.058078159145557,
+              "base": 90.580782,
+              "low": 9.058078,
               "domain": 300,
               "curve": 0.2,
               "initial": 90,
@@ -174,8 +174,8 @@
           "quality": 6.8,
           "craftable": true,
           "base_crafting_prices": [
-            14672.71777625263,
-            45216.73929332794
+            14672.717776,
+            45216.739293
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -205,7 +205,7 @@
               "effect_delta": -0.22,
               "family_effect": "Lowers research costs",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -236,8 +236,8 @@
               }
             ],
             "crafting_price": {
-              "base": 14672.71777625263,
-              "low": 1467.271777625263,
+              "base": 14672.717776,
+              "low": 1467.271778,
               "domain": 300,
               "curve": 0.2,
               "initial": 14672,
@@ -272,10 +272,10 @@
           "quality": 11.1,
           "craftable": true,
           "base_crafting_prices": [
-            110353.42219619015,
-            435279.79379024333,
-            536924.6231000856,
-            684100.5232600003
+            110353.422196,
+            435279.79379,
+            536924.6231,
+            684100.52326
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -296,7 +296,7 @@
               "effect_delta": -0.5,
               "family_effect": "Lowers research costs",
               "slots": 0,
-              "odds_multiplier": 0.7200000000000001
+              "odds_multiplier": 0.72
             },
             {
               "afx_rarity": 1,
@@ -307,7 +307,7 @@
               "effect_delta": -0.53,
               "family_effect": "Lowers research costs",
               "slots": 1,
-              "odds_multiplier": 0.014400000000000001
+              "odds_multiplier": 0.0144
             },
             {
               "afx_rarity": 2,
@@ -318,7 +318,7 @@
               "effect_delta": -0.55,
               "family_effect": "Lowers research costs",
               "slots": 2,
-              "odds_multiplier": 0.004235294117647059
+              "odds_multiplier": 0.004235
             },
             {
               "afx_rarity": 3,
@@ -360,8 +360,8 @@
               }
             ],
             "crafting_price": {
-              "base": 110353.42219619015,
-              "low": 11035.342219619015,
+              "base": 110353.422196,
+              "low": 11035.34222,
               "domain": 300,
               "curve": 0.2,
               "initial": 110353,
@@ -370,7 +370,7 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.7200000000000001
+          "odds_multiplier": 0.72
         }
       ]
     },
@@ -411,7 +411,7 @@
           "quality": 0.7,
           "craftable": false,
           "base_crafting_prices": [
-            10.884288412526262
+            10.884288
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -458,11 +458,11 @@
           "afx_type": 0,
           "type": "Artifact",
           "icon_filename": "afx_lunar_totem_2.png",
-          "quality": 2.4,
+          "quality": 3.4,
           "craftable": true,
           "base_crafting_prices": [
-            47.913865687063435,
-            164.57493587807534
+            553.063621,
+            2224.071895
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -511,12 +511,12 @@
               }
             ],
             "crafting_price": {
-              "base": 47.913865687063435,
-              "low": 4.7913865687063435,
+              "base": 553.063621,
+              "low": 55.306362,
               "domain": 300,
               "curve": 0.2,
-              "initial": 47,
-              "minimum": 4
+              "initial": 553,
+              "minimum": 55
             }
           },
           "ingredients_available_from_missions": true,
@@ -544,11 +544,11 @@
           "afx_type": 0,
           "type": "Artifact",
           "icon_filename": "afx_lunar_totem_3.png",
-          "quality": 5.2,
+          "quality": 6.5,
           "craftable": true,
           "base_crafting_prices": [
-            4749.2332108829305,
-            17593.435333745667
+            12234.403015,
+            45364.805374
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -578,7 +578,7 @@
               "effect_delta": 4,
               "family_effect": "Increases away earnings",
               "slots": 1,
-              "odds_multiplier": 0.045000000000000005
+              "odds_multiplier": 0.045
             }
           ],
           "recipe": {
@@ -597,12 +597,12 @@
               }
             ],
             "crafting_price": {
-              "base": 4749.2332108829305,
-              "low": 474.92332108829305,
+              "base": 12234.403015,
+              "low": 1223.440301,
               "domain": 300,
               "curve": 0.2,
-              "initial": 4749,
-              "minimum": 474
+              "initial": 12234,
+              "minimum": 1223
             }
           },
           "ingredients_available_from_missions": true,
@@ -630,12 +630,12 @@
           "afx_type": 0,
           "type": "Artifact",
           "icon_filename": "afx_lunar_totem_4.png",
-          "quality": 8.1,
+          "quality": 11.1,
           "craftable": true,
           "base_crafting_prices": [
-            28986.362701660517,
-            118146.71134350491,
-            173728.14778686856,
+            91819.475854,
+            374317.488459,
+            550423.185354,
             699243.860053
           ],
           "has_rarities": true,
@@ -643,7 +643,7 @@
             0,
             1,
             2,
-	    3
+            3
           ],
           "has_effects": true,
           "available_from_missions": true,
@@ -690,7 +690,7 @@
               "effect_delta": 9,
               "family_effect": "Increases away earnings",
               "slots": 2,
-              "odds_multiplier": 0.001
+              "odds_multiplier": 0.0006
             }
           ],
           "recipe": {
@@ -721,12 +721,12 @@
               }
             ],
             "crafting_price": {
-              "base": 28986.362701660517,
-              "low": 2898.636270166052,
+              "base": 91819.475854,
+              "low": 9181.947585,
               "domain": 300,
               "curve": 0.2,
-              "initial": 28986,
-              "minimum": 2898
+              "initial": 91819,
+              "minimum": 9181
             }
           },
           "ingredients_available_from_missions": true,
@@ -772,7 +772,7 @@
           "quality": 1.2,
           "craftable": false,
           "base_crafting_prices": [
-            10.884288412526262
+            10.884288
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -822,8 +822,8 @@
           "quality": 3.2,
           "craftable": true,
           "base_crafting_prices": [
-            383.0591740345165,
-            1530.9632903454944
+            383.059174,
+            1530.96329
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -872,8 +872,8 @@
               }
             ],
             "crafting_price": {
-              "base": 383.0591740345165,
-              "low": 38.30591740345165,
+              "base": 383.059174,
+              "low": 38.305917,
               "domain": 300,
               "curve": 0.2,
               "initial": 383,
@@ -908,9 +908,9 @@
           "quality": 5.8,
           "craftable": true,
           "base_crafting_prices": [
-            7628.255209965302,
-            28275.141612526757,
-            39367.54864881382
+            7628.25521,
+            28275.141613,
+            39367.548649
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -941,7 +941,7 @@
               "effect_delta": 0.6,
               "family_effect": "Increases egg value",
               "slots": 1,
-              "odds_multiplier": 0.045000000000000005
+              "odds_multiplier": 0.045
             },
             {
               "afx_rarity": 2,
@@ -952,7 +952,7 @@
               "effect_delta": 0.75,
               "family_effect": "Increases egg value",
               "slots": 2,
-              "odds_multiplier": 0.009000000000000001
+              "odds_multiplier": 0.009
             }
           ],
           "recipe": {
@@ -983,8 +983,8 @@
               }
             ],
             "crafting_price": {
-              "base": 7628.255209965302,
-              "low": 762.8255209965303,
+              "base": 7628.25521,
+              "low": 762.825521,
               "domain": 300,
               "curve": 0.2,
               "initial": 7628,
@@ -1019,10 +1019,10 @@
           "quality": 8.9,
           "craftable": true,
           "base_crafting_prices": [
-            41267.36017482524,
-            178954.0480237371,
-            225713.175270233,
-            299097.9444117777
+            41267.360175,
+            178954.048024,
+            225713.17527,
+            299097.944412
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1054,7 +1054,7 @@
               "effect_delta": 1.25,
               "family_effect": "Increases egg value",
               "slots": 1,
-              "odds_multiplier": 0.022500000000000003
+              "odds_multiplier": 0.0225
             },
             {
               "afx_rarity": 2,
@@ -1065,7 +1065,7 @@
               "effect_delta": 1.5,
               "family_effect": "Increases egg value",
               "slots": 2,
-              "odds_multiplier": 0.0064285714285714285
+              "odds_multiplier": 0.006429
             },
             {
               "afx_rarity": 3,
@@ -1076,7 +1076,7 @@
               "effect_delta": 2,
               "family_effect": "Increases egg value",
               "slots": 3,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -1107,8 +1107,8 @@
               }
             ],
             "crafting_price": {
-              "base": 41267.36017482524,
-              "low": 4126.736017482524,
+              "base": 41267.360175,
+              "low": 4126.736017,
               "domain": 300,
               "curve": 0.2,
               "initial": 41267,
@@ -1158,7 +1158,7 @@
           "quality": 1.75,
           "craftable": false,
           "base_crafting_prices": [
-            10.884288412526262
+            10.884288
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1208,8 +1208,8 @@
           "quality": 4.8,
           "craftable": true,
           "base_crafting_prices": [
-            3302.9795121962293,
-            10162.610762734788
+            3302.979512,
+            10162.610763
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1239,7 +1239,7 @@
               "effect_delta": 60,
               "family_effect": "Increases max running chicken bonus",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -1258,8 +1258,8 @@
               }
             ],
             "crafting_price": {
-              "base": 3302.9795121962293,
-              "low": 330.297951219623,
+              "base": 3302.979512,
+              "low": 330.297951,
               "domain": 300,
               "curve": 0.2,
               "initial": 3302,
@@ -1294,8 +1294,8 @@
           "quality": 7.9,
           "craftable": true,
           "base_crafting_prices": [
-            26353.836097569845,
-            136107.93610618685
+            26353.836098,
+            136107.936106
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1325,7 +1325,7 @@
               "effect_delta": 150,
               "family_effect": "Increases max running chicken bonus",
               "slots": 1,
-              "odds_multiplier": 0.009000000000000001
+              "odds_multiplier": 0.009
             }
           ],
           "recipe": {
@@ -1356,8 +1356,8 @@
               }
             ],
             "crafting_price": {
-              "base": 26353.836097569845,
-              "low": 2635.3836097569847,
+              "base": 26353.836098,
+              "low": 2635.38361,
               "domain": 300,
               "curve": 0.2,
               "initial": 26353,
@@ -1392,9 +1392,9 @@
           "quality": 12.5,
           "craftable": true,
           "base_crafting_prices": [
-            139253.5905900352,
-            603946.1620801127,
-            1009431.81238975
+            139253.59059,
+            603946.16208,
+            1009431.81239
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1425,7 +1425,7 @@
               "effect_delta": 300,
               "family_effect": "Increases max running chicken bonus",
               "slots": 1,
-              "odds_multiplier": 0.022500000000000003
+              "odds_multiplier": 0.0225
             },
             {
               "afx_rarity": 3,
@@ -1436,7 +1436,7 @@
               "effect_delta": 500,
               "family_effect": "Increases max running chicken bonus",
               "slots": 2,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -1467,8 +1467,8 @@
               }
             ],
             "crafting_price": {
-              "base": 139253.5905900352,
-              "low": 13925.35905900352,
+              "base": 139253.59059,
+              "low": 13925.359059,
               "domain": 300,
               "curve": 0.2,
               "initial": 139253,
@@ -1518,7 +1518,7 @@
           "quality": 1.9,
           "craftable": false,
           "base_crafting_prices": [
-            10.884288412526262
+            10.884288
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1568,7 +1568,7 @@
           "quality": 3.9,
           "craftable": true,
           "base_crafting_prices": [
-            1186.987877072454
+            1186.987877
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1605,8 +1605,8 @@
               }
             ],
             "crafting_price": {
-              "base": 1186.987877072454,
-              "low": 118.6987877072454,
+              "base": 1186.987877,
+              "low": 118.698788,
               "domain": 300,
               "curve": 0.2,
               "initial": 1186,
@@ -1641,9 +1641,9 @@
           "quality": 6.7,
           "craftable": true,
           "base_crafting_prices": [
-            13827.006445722829,
-            42609.3201081484,
-            71391.63377057397
+            13827.006446,
+            42609.320108,
+            71391.633771
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1674,7 +1674,7 @@
               "effect_delta": 0.6,
               "family_effect": "Increases drone rewards",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             },
             {
               "afx_rarity": 2,
@@ -1685,7 +1685,7 @@
               "effect_delta": 0.7,
               "family_effect": "Increases drone rewards",
               "slots": 2,
-              "odds_multiplier": 0.009000000000000001
+              "odds_multiplier": 0.009
             }
           ],
           "recipe": {
@@ -1716,8 +1716,8 @@
               }
             ],
             "crafting_price": {
-              "base": 13827.006445722829,
-              "low": 1382.700644572283,
+              "base": 13827.006446,
+              "low": 1382.700645,
               "domain": 300,
               "curve": 0.2,
               "initial": 13827,
@@ -1752,10 +1752,10 @@
           "quality": 9.8,
           "craftable": true,
           "base_crafting_prices": [
-            58753.38978017112,
-            254795.56837754766,
-            334728.4079595657,
-            425859.8271019259
+            58753.38978,
+            254795.568378,
+            334728.40796,
+            425859.827102
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1787,7 +1787,7 @@
               "effect_delta": 1.25,
               "family_effect": "Increases drone rewards",
               "slots": 1,
-              "odds_multiplier": 0.022500000000000003
+              "odds_multiplier": 0.0225
             },
             {
               "afx_rarity": 2,
@@ -1809,7 +1809,7 @@
               "effect_delta": 2,
               "family_effect": "Increases drone rewards",
               "slots": 3,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -1840,8 +1840,8 @@
               }
             ],
             "crafting_price": {
-              "base": 58753.38978017112,
-              "low": 5875.338978017113,
+              "base": 58753.38978,
+              "low": 5875.338978,
               "domain": 300,
               "curve": 0.2,
               "initial": 58753,
@@ -1891,7 +1891,7 @@
           "quality": 2,
           "craftable": false,
           "base_crafting_prices": [
-            12.984473392276133
+            12.984473
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1941,8 +1941,8 @@
           "quality": 5,
           "craftable": true,
           "base_crafting_prices": [
-            3982.3340851195303,
-            15550.008136948381
+            3982.334085,
+            15550.008137
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -1972,7 +1972,7 @@
               "effect_delta": 0.28,
               "family_effect": "Increases egg value",
               "slots": 1,
-              "odds_multiplier": 0.036000000000000004
+              "odds_multiplier": 0.036
             }
           ],
           "recipe": {
@@ -1991,8 +1991,8 @@
               }
             ],
             "crafting_price": {
-              "base": 3982.3340851195303,
-              "low": 398.23340851195303,
+              "base": 3982.334085,
+              "low": 398.233409,
               "domain": 300,
               "curve": 0.2,
               "initial": 3982,
@@ -2027,9 +2027,9 @@
           "quality": 7.8,
           "craftable": true,
           "base_crafting_prices": [
-            25099.583520452903,
-            77363.89021974104,
-            181892.5036183173
+            25099.58352,
+            77363.89022,
+            181892.503618
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2060,7 +2060,7 @@
               "effect_delta": 0.75,
               "family_effect": "Increases egg value",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             },
             {
               "afx_rarity": 3,
@@ -2071,7 +2071,7 @@
               "effect_delta": 1,
               "family_effect": "Increases egg value",
               "slots": 3,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -2102,8 +2102,8 @@
               }
             ],
             "crafting_price": {
-              "base": 25099.583520452903,
-              "low": 2509.9583520452907,
+              "base": 25099.58352,
+              "low": 2509.958352,
               "domain": 300,
               "curve": 0.2,
               "initial": 25099,
@@ -2138,9 +2138,9 @@
           "quality": 11.7,
           "craftable": true,
           "base_crafting_prices": [
-            110546.05156578263,
-            479433.9969771763,
-            801321.5794639963
+            110546.051566,
+            479433.996977,
+            801321.579464
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2171,7 +2171,7 @@
               "effect_delta": 1.25,
               "family_effect": "Increases egg value",
               "slots": 1,
-              "odds_multiplier": 0.022500000000000003
+              "odds_multiplier": 0.0225
             },
             {
               "afx_rarity": 3,
@@ -2182,7 +2182,7 @@
               "effect_delta": 1.5,
               "family_effect": "Increases egg value",
               "slots": 3,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -2213,8 +2213,8 @@
               }
             ],
             "crafting_price": {
-              "base": 110546.05156578263,
-              "low": 11054.605156578264,
+              "base": 110546.051566,
+              "low": 11054.605157,
               "domain": 300,
               "curve": 0.2,
               "initial": 110546,
@@ -2264,7 +2264,7 @@
           "quality": 2.5,
           "craftable": false,
           "base_crafting_prices": [
-            66.59445840168073
+            66.594458
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2314,8 +2314,8 @@
           "quality": 5.3,
           "craftable": true,
           "base_crafting_prices": [
-            5167.170021853153,
-            26653.052041599185
+            5167.170022,
+            26653.052042
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2345,7 +2345,7 @@
               "effect_delta": 0.12,
               "family_effect": "Increases hen house capacity",
               "slots": 2,
-              "odds_multiplier": 0.009000000000000001
+              "odds_multiplier": 0.009
             }
           ],
           "recipe": {
@@ -2364,8 +2364,8 @@
               }
             ],
             "crafting_price": {
-              "base": 5167.170021853153,
-              "low": 516.7170021853153,
+              "base": 5167.170022,
+              "low": 516.717002,
               "domain": 300,
               "curve": 0.2,
               "initial": 5167,
@@ -2400,8 +2400,8 @@
           "quality": 8.1,
           "craftable": true,
           "base_crafting_prices": [
-            28986.362701660517,
-            89347.24936344361
+            28986.362702,
+            89347.249363
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2431,7 +2431,7 @@
               "effect_delta": 0.16,
               "family_effect": "Increases hen house capacity",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -2462,8 +2462,8 @@
               }
             ],
             "crafting_price": {
-              "base": 28986.362701660517,
-              "low": 2898.636270166052,
+              "base": 28986.362702,
+              "low": 2898.63627,
               "domain": 300,
               "curve": 0.2,
               "initial": 28986,
@@ -2498,9 +2498,9 @@
           "quality": 13.1,
           "craftable": true,
           "base_crafting_prices": [
-            163774.02398097588,
-            906121.6895966304,
-            1187188.3626854073
+            163774.023981,
+            906121.689597,
+            1187188.362685
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2542,7 +2542,7 @@
               "effect_delta": 0.25,
               "family_effect": "Increases hen house capacity",
               "slots": 3,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -2573,8 +2573,8 @@
               }
             ],
             "crafting_price": {
-              "base": 163774.02398097588,
-              "low": 16377.402398097589,
+              "base": 163774.023981,
+              "low": 16377.402398,
               "domain": 300,
               "curve": 0.2,
               "initial": 163774,
@@ -2624,7 +2624,7 @@
           "quality": 3,
           "craftable": false,
           "base_crafting_prices": [
-            252.84770529002446
+            252.847705
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2674,8 +2674,8 @@
           "quality": 5,
           "craftable": true,
           "base_crafting_prices": [
-            3982.3340851195303,
-            12912.343112462666
+            3982.334085,
+            12912.343112
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2724,8 +2724,8 @@
               }
             ],
             "crafting_price": {
-              "base": 3982.3340851195303,
-              "low": 398.23340851195303,
+              "base": 3982.334085,
+              "low": 398.233409,
               "domain": 300,
               "curve": 0.2,
               "initial": 3982,
@@ -2760,8 +2760,8 @@
           "quality": 7,
           "craftable": true,
           "base_crafting_prices": [
-            16466.27574895902,
-            91063.11081687585
+            16466.275749,
+            91063.110817
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2822,8 +2822,8 @@
               }
             ],
             "crafting_price": {
-              "base": 16466.27574895902,
-              "low": 1646.627574895902,
+              "base": 16466.275749,
+              "low": 1646.627575,
               "domain": 300,
               "curve": 0.2,
               "initial": 16466,
@@ -2858,10 +2858,10 @@
           "quality": 9.8,
           "craftable": true,
           "base_crafting_prices": [
-            58753.38978017112,
-            254795.56837754766,
-            340327.69773973676,
-            425859.8271019259
+            58753.38978,
+            254795.568378,
+            340327.69774,
+            425859.827102
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -2893,7 +2893,7 @@
               "effect_delta": 1.1,
               "family_effect": "Increases drone frequency",
               "slots": 1,
-              "odds_multiplier": 0.022500000000000003
+              "odds_multiplier": 0.0225
             },
             {
               "afx_rarity": 2,
@@ -2904,7 +2904,7 @@
               "effect_delta": 1.2,
               "family_effect": "Increases drone frequency",
               "slots": 2,
-              "odds_multiplier": 0.0045000000000000005
+              "odds_multiplier": 0.0045
             },
             {
               "afx_rarity": 3,
@@ -2915,7 +2915,7 @@
               "effect_delta": 1.3,
               "family_effect": "Increases drone frequency",
               "slots": 3,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -2946,8 +2946,8 @@
               }
             ],
             "crafting_price": {
-              "base": 58753.38978017112,
-              "low": 5875.338978017113,
+              "base": 58753.38978,
+              "low": 5875.338978,
               "domain": 300,
               "curve": 0.2,
               "initial": 58753,
@@ -2997,7 +2997,7 @@
           "quality": 3.3,
           "craftable": false,
           "base_crafting_prices": [
-            462.7556672134456
+            462.755667
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3047,8 +3047,8 @@
           "quality": 5.7,
           "craftable": true,
           "base_crafting_prices": [
-            7084.307300210088,
-            21820.85189537198
+            7084.3073,
+            21820.851895
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3078,7 +3078,7 @@
               "effect_delta": 0.22,
               "family_effect": "Increases farm value",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -3097,8 +3097,8 @@
               }
             ],
             "crafting_price": {
-              "base": 7084.307300210088,
-              "low": 708.4307300210089,
+              "base": 7084.3073,
+              "low": 708.43073,
               "domain": 300,
               "curve": 0.2,
               "initial": 7084,
@@ -3133,8 +3133,8 @@
           "quality": 8.2,
           "craftable": true,
           "base_crafting_prices": [
-            30365.963161253043,
-            93600.70627760199
+            30365.963161,
+            93600.706278
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3164,7 +3164,7 @@
               "effect_delta": 0.55,
               "family_effect": "Increases farm value",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -3195,8 +3195,8 @@
               }
             ],
             "crafting_price": {
-              "base": 30365.963161253043,
-              "low": 3036.5963161253044,
+              "base": 30365.963161,
+              "low": 3036.596316,
               "domain": 300,
               "curve": 0.2,
               "initial": 30365,
@@ -3231,10 +3231,10 @@
           "quality": 13.5,
           "craftable": true,
           "base_crafting_prices": [
-            295510.5697132079,
-            901605.2684383809,
-            1202704.2671929123,
-            1430476.8668668661
+            295510.569713,
+            901605.268438,
+            1202704.267193,
+            1430476.866867
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3266,7 +3266,7 @@
               "effect_delta": 1.25,
               "family_effect": "Increases farm value",
               "slots": 1,
-              "odds_multiplier": 0.011250000000000001
+              "odds_multiplier": 0.01125
             },
             {
               "afx_rarity": 2,
@@ -3277,7 +3277,7 @@
               "effect_delta": 1.5,
               "family_effect": "Increases farm value",
               "slots": 2,
-              "odds_multiplier": 0.0018000000000000002
+              "odds_multiplier": 0.0018
             },
             {
               "afx_rarity": 3,
@@ -3288,7 +3288,7 @@
               "effect_delta": 2,
               "family_effect": "Increases farm value",
               "slots": 2,
-              "odds_multiplier": 0.00045000000000000004
+              "odds_multiplier": 0.00045
             }
           ],
           "recipe": {
@@ -3319,8 +3319,8 @@
               }
             ],
             "crafting_price": {
-              "base": 295510.5697132079,
-              "low": 29551.05697132079,
+              "base": 295510.569713,
+              "low": 29551.056971,
               "domain": 300,
               "curve": 0.2,
               "initial": 295510,
@@ -3370,7 +3370,7 @@
           "quality": 3.5,
           "craftable": false,
           "base_crafting_prices": [
-            654.6462527316444
+            654.646253
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3420,7 +3420,7 @@
           "quality": 5.5,
           "craftable": true,
           "base_crafting_prices": [
-            6075.3342215176235
+            6075.334222
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3457,8 +3457,8 @@
               }
             ],
             "crafting_price": {
-              "base": 6075.3342215176235,
-              "low": 607.5334221517624,
+              "base": 6075.334222,
+              "low": 607.533422,
               "domain": 300,
               "curve": 0.2,
               "initial": 6075,
@@ -3493,8 +3493,8 @@
           "quality": 7.7,
           "craftable": true,
           "base_crafting_prices": [
-            23885.78713820905,
-            75680.32503065384
+            23885.787138,
+            75680.325031
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3524,7 +3524,7 @@
               "effect_delta": 2,
               "family_effect": "Increases gold reward chance",
               "slots": 1,
-              "odds_multiplier": 0.08181818181818182
+              "odds_multiplier": 0.081818
             }
           ],
           "recipe": {
@@ -3555,8 +3555,8 @@
               }
             ],
             "crafting_price": {
-              "base": 23885.78713820905,
-              "low": 2388.578713820905,
+              "base": 23885.787138,
+              "low": 2388.578714,
               "domain": 300,
               "curve": 0.2,
               "initial": 23885,
@@ -3591,9 +3591,9 @@
           "quality": 10.9,
           "craftable": true,
           "base_crafting_prices": [
-            86083.09692165616,
-            390707.63392673945,
-            655554.7925999137
+            86083.096922,
+            390707.633927,
+            655554.7926
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3624,7 +3624,7 @@
               "effect_delta": 10,
               "family_effect": "Increases gold reward chance",
               "slots": 1,
-              "odds_multiplier": 0.018000000000000002
+              "odds_multiplier": 0.018
             },
             {
               "afx_rarity": 3,
@@ -3666,8 +3666,8 @@
               }
             ],
             "crafting_price": {
-              "base": 86083.09692165616,
-              "low": 8608.309692165616,
+              "base": 86083.096922,
+              "low": 8608.309692,
               "domain": 300,
               "curve": 0.2,
               "initial": 86083,
@@ -3717,7 +3717,7 @@
           "quality": 4.2,
           "craftable": false,
           "base_crafting_prices": [
-            1737.1258057153536
+            1737.125806
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3767,7 +3767,7 @@
           "quality": 6.2,
           "craftable": true,
           "base_crafting_prices": [
-            10082.597698931942
+            10082.597699
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3816,8 +3816,8 @@
               }
             ],
             "crafting_price": {
-              "base": 10082.597698931942,
-              "low": 1008.2597698931943,
+              "base": 10082.597699,
+              "low": 1008.25977,
               "domain": 300,
               "curve": 0.2,
               "initial": 10082,
@@ -3852,7 +3852,7 @@
           "quality": 8.8,
           "craftable": true,
           "base_crafting_prices": [
-            39572.06875196083
+            39572.068752
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3901,8 +3901,8 @@
               }
             ],
             "crafting_price": {
-              "base": 39572.06875196083,
-              "low": 3957.2068751960833,
+              "base": 39572.068752,
+              "low": 3957.206875,
               "domain": 300,
               "curve": 0.2,
               "initial": 39572,
@@ -3937,9 +3937,9 @@
           "quality": 13.2,
           "craftable": true,
           "base_crafting_prices": [
-            168121.51742510966,
-            949212.2622199913,
-            1218704.7484173055
+            168121.517425,
+            949212.26222,
+            1218704.748417
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -3970,7 +3970,7 @@
               "effect_delta": 9,
               "family_effect": "Increases chance of cash rewards from gifts and drones",
               "slots": 1,
-              "odds_multiplier": 0.005294117647058823
+              "odds_multiplier": 0.005294
             },
             {
               "afx_rarity": 3,
@@ -3981,7 +3981,7 @@
               "effect_delta": 0,
               "family_effect": "Increases chance of cash rewards from gifts and drones",
               "slots": 2,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -4012,8 +4012,8 @@
               }
             ],
             "crafting_price": {
-              "base": 168121.51742510966,
-              "low": 16812.151742510967,
+              "base": 168121.517425,
+              "low": 16812.151743,
               "domain": 300,
               "curve": 0.2,
               "initial": 168121,
@@ -4063,7 +4063,7 @@
           "quality": 4.32,
           "craftable": false,
           "base_crafting_prices": [
-            1997.9608216045747
+            1997.960822
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4113,7 +4113,7 @@
           "quality": 6.1,
           "craftable": true,
           "base_crafting_prices": [
-            9425.903016579625
+            9425.903017
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4150,8 +4150,8 @@
               }
             ],
             "crafting_price": {
-              "base": 9425.903016579625,
-              "low": 942.5903016579625,
+              "base": 9425.903017,
+              "low": 942.590302,
               "domain": 300,
               "curve": 0.2,
               "initial": 9425,
@@ -4186,8 +4186,8 @@
           "quality": 8.7,
           "craftable": true,
           "base_crafting_prices": [
-            37923.86568706343,
-            116902.53437675915
+            37923.865687,
+            116902.534377
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4217,7 +4217,7 @@
               "effect_delta": 0.22,
               "family_effect": "Increases egg shipping rate",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -4248,8 +4248,8 @@
               }
             ],
             "crafting_price": {
-              "base": 37923.86568706343,
-              "low": 3792.386568706343,
+              "base": 37923.865687,
+              "low": 3792.386569,
               "domain": 300,
               "curve": 0.2,
               "initial": 37923,
@@ -4284,10 +4284,10 @@
           "quality": 12.5,
           "craftable": true,
           "base_crafting_prices": [
-            226570.17270178822,
-            691262.7441918658,
-            894005.5693466844,
-            1096748.394501503
+            226570.172702,
+            691262.744192,
+            894005.569347,
+            1096748.394502
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4319,7 +4319,7 @@
               "effect_delta": 0.35,
               "family_effect": "Increases egg shipping rate",
               "slots": 1,
-              "odds_multiplier": 0.011250000000000001
+              "odds_multiplier": 0.01125
             },
             {
               "afx_rarity": 2,
@@ -4330,7 +4330,7 @@
               "effect_delta": 0.4,
               "family_effect": "Increases egg shipping rate",
               "slots": 2,
-              "odds_multiplier": 0.0022500000000000003
+              "odds_multiplier": 0.00225
             },
             {
               "afx_rarity": 3,
@@ -4341,7 +4341,7 @@
               "effect_delta": 0.5,
               "family_effect": "Increases egg shipping rate",
               "slots": 2,
-              "odds_multiplier": 0.00045000000000000004
+              "odds_multiplier": 0.00045
             }
           ],
           "recipe": {
@@ -4372,8 +4372,8 @@
               }
             ],
             "crafting_price": {
-              "base": 226570.17270178822,
-              "low": 22657.017270178825,
+              "base": 226570.172702,
+              "low": 22657.01727,
               "domain": 300,
               "curve": 0.2,
               "initial": 226570,
@@ -4423,7 +4423,7 @@
           "quality": 4.5,
           "craftable": false,
           "base_crafting_prices": [
-            2436.48740397206
+            2436.487404
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4473,8 +4473,8 @@
           "quality": 6,
           "craftable": true,
           "base_crafting_prices": [
-            8798.389851840679,
-            43638.569016142304
+            8798.389852,
+            43638.569016
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4504,7 +4504,7 @@
               "effect_delta": 0.15,
               "family_effect": "Improves internal hatcheries",
               "slots": 2,
-              "odds_multiplier": 0.011250000000000001
+              "odds_multiplier": 0.01125
             }
           ],
           "recipe": {
@@ -4535,8 +4535,8 @@
               }
             ],
             "crafting_price": {
-              "base": 8798.389851840679,
-              "low": 879.838985184068,
+              "base": 8798.389852,
+              "low": 879.838985,
               "domain": 300,
               "curve": 0.2,
               "initial": 8798,
@@ -4571,9 +4571,9 @@
           "quality": 8.2,
           "craftable": true,
           "base_crafting_prices": [
-            30365.963161253043,
-            93600.70627760199,
-            156835.44939395096
+            30365.963161,
+            93600.706278,
+            156835.449394
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4604,7 +4604,7 @@
               "effect_delta": 0.23,
               "family_effect": "Improves internal hatcheries",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             },
             {
               "afx_rarity": 2,
@@ -4615,7 +4615,7 @@
               "effect_delta": 0.25,
               "family_effect": "Improves internal hatcheries",
               "slots": 2,
-              "odds_multiplier": 0.009000000000000001
+              "odds_multiplier": 0.009
             }
           ],
           "recipe": {
@@ -4646,8 +4646,8 @@
               }
             ],
             "crafting_price": {
-              "base": 30365.963161253043,
-              "low": 3036.5963161253044,
+              "base": 30365.963161,
+              "low": 3036.596316,
               "domain": 300,
               "curve": 0.2,
               "initial": 30365,
@@ -4682,9 +4682,9 @@
           "quality": 12.5,
           "craftable": true,
           "base_crafting_prices": [
-            139253.5905900352,
-            770449.3313496936,
-            1009431.81238975
+            139253.59059,
+            770449.33135,
+            1009431.81239
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4726,7 +4726,7 @@
               "effect_delta": 0.4,
               "family_effect": "Improves internal hatcheries",
               "slots": 3,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -4757,8 +4757,8 @@
               }
             ],
             "crafting_price": {
-              "base": 139253.5905900352,
-              "low": 13925.35905900352,
+              "base": 139253.59059,
+              "low": 13925.359059,
               "domain": 300,
               "curve": 0.2,
               "initial": 139253,
@@ -4808,7 +4808,7 @@
           "quality": 5,
           "craftable": false,
           "base_crafting_prices": [
-            3982.3340851195303
+            3982.334085
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4858,7 +4858,7 @@
           "quality": 7,
           "craftable": true,
           "base_crafting_prices": [
-            16466.27574895902
+            16466.275749
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4907,8 +4907,8 @@
               }
             ],
             "crafting_price": {
-              "base": 16466.27574895902,
-              "low": 1646.627574895902,
+              "base": 16466.275749,
+              "low": 1646.627575,
               "domain": 300,
               "curve": 0.2,
               "initial": 16466,
@@ -4943,8 +4943,8 @@
           "quality": 9.4,
           "craftable": true,
           "base_crafting_prices": [
-            50473.35522948144,
-            155593.96325546651
+            50473.355229,
+            155593.963255
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -4974,7 +4974,7 @@
               "effect_delta": 5,
               "family_effect": "Increases soul egg collection rate",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -5005,8 +5005,8 @@
               }
             ],
             "crafting_price": {
-              "base": 50473.35522948144,
-              "low": 5047.335522948145,
+              "base": 50473.355229,
+              "low": 5047.335523,
               "domain": 300,
               "curve": 0.2,
               "initial": 50473,
@@ -5041,9 +5041,9 @@
           "quality": 14.6,
           "craftable": true,
           "base_crafting_prices": [
-            237296.52599969838,
-            1029184.2206469376,
-            1720176.7532079872
+            237296.526,
+            1029184.220647,
+            1720176.753208
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -5074,7 +5074,7 @@
               "effect_delta": 11,
               "family_effect": "Increases soul egg collection rate",
               "slots": 1,
-              "odds_multiplier": 0.022500000000000003
+              "odds_multiplier": 0.0225
             },
             {
               "afx_rarity": 3,
@@ -5085,7 +5085,7 @@
               "effect_delta": 14,
               "family_effect": "Increases soul egg collection rate",
               "slots": 2,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -5116,8 +5116,8 @@
               }
             ],
             "crafting_price": {
-              "base": 237296.52599969838,
-              "low": 23729.65259996984,
+              "base": 237296.526,
+              "low": 23729.6526,
               "domain": 300,
               "curve": 0.2,
               "initial": 237296,
@@ -5192,7 +5192,7 @@
           "quality": 5.3,
           "craftable": false,
           "base_crafting_prices": [
-            5167.170021853153
+            5167.170022
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -5242,8 +5242,8 @@
           "quality": 7.2,
           "craftable": true,
           "base_crafting_prices": [
-            18400.435579257086,
-            63455.62080009511
+            18400.435579,
+            63455.6208
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -5304,8 +5304,8 @@
               }
             ],
             "crafting_price": {
-              "base": 18400.435579257086,
-              "low": 1840.0435579257087,
+              "base": 18400.435579,
+              "low": 1840.043558,
               "domain": 300,
               "curve": 0.2,
               "initial": 18400,
@@ -5340,9 +5340,9 @@
           "quality": 10.2,
           "craftable": true,
           "base_crafting_prices": [
-            67892.95266783626,
-            209300.4596913331,
-            337004.163369746
+            67892.952668,
+            209300.459691,
+            337004.16337
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -5373,7 +5373,7 @@
               "effect_delta": 0.17,
               "family_effect": "Increases egg laying rate",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             },
             {
               "afx_rarity": 2,
@@ -5384,7 +5384,7 @@
               "effect_delta": 0.2,
               "family_effect": "Increases egg laying rate",
               "slots": 2,
-              "odds_multiplier": 0.011250000000000001
+              "odds_multiplier": 0.01125
             }
           ],
           "recipe": {
@@ -5415,8 +5415,8 @@
               }
             ],
             "crafting_price": {
-              "base": 67892.95266783626,
-              "low": 6789.295266783626,
+              "base": 67892.952668,
+              "low": 6789.295267,
               "domain": 300,
               "curve": 0.2,
               "initial": 67892,
@@ -5451,10 +5451,10 @@
           "quality": 14.5,
           "craftable": true,
           "base_crafting_prices": [
-            306621.05881638423,
-            1039891.8413708396,
-            1370962.1505129095,
-            1755282.3386991795
+            306621.058816,
+            1039891.841371,
+            1370962.150513,
+            1755282.338699
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -5486,7 +5486,7 @@
               "effect_delta": 0.27,
               "family_effect": "Increases egg laying rate",
               "slots": 1,
-              "odds_multiplier": 0.01909090909090909
+              "odds_multiplier": 0.019091
             },
             {
               "afx_rarity": 2,
@@ -5497,7 +5497,7 @@
               "effect_delta": 0.3,
               "family_effect": "Increases egg laying rate",
               "slots": 2,
-              "odds_multiplier": 0.0039375
+              "odds_multiplier": 0.003938
             },
             {
               "afx_rarity": 3,
@@ -5539,8 +5539,8 @@
               }
             ],
             "crafting_price": {
-              "base": 306621.05881638423,
-              "low": 30662.105881638425,
+              "base": 306621.058816,
+              "low": 30662.105882,
               "domain": 300,
               "curve": 0.2,
               "initial": 306621,
@@ -5615,7 +5615,7 @@
           "quality": 5.45,
           "craftable": false,
           "base_crafting_prices": [
-            5839.0495942893185
+            5839.049594
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -5665,7 +5665,7 @@
           "quality": 7.75,
           "craftable": true,
           "base_crafting_prices": [
-            24487.66975599118
+            24487.669756
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -5714,8 +5714,8 @@
               }
             ],
             "crafting_price": {
-              "base": 24487.66975599118,
-              "low": 2448.7669755991183,
+              "base": 24487.669756,
+              "low": 2448.766976,
               "domain": 300,
               "curve": 0.2,
               "initial": 24487,
@@ -5750,7 +5750,7 @@
           "quality": 10.7,
           "craftable": true,
           "base_crafting_prices": [
-            80590.78159145554
+            80590.781591
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -5799,8 +5799,8 @@
               }
             ],
             "crafting_price": {
-              "base": 80590.78159145554,
-              "low": 8059.078159145554,
+              "base": 80590.781591,
+              "low": 8059.078159,
               "domain": 300,
               "curve": 0.2,
               "initial": 80590,
@@ -5835,9 +5835,9 @@
           "quality": 15.2,
           "craftable": true,
           "base_crafting_prices": [
-            271970.13787116244,
-            1504774.31904237,
-            1971536.97732373
+            271970.137871,
+            1504774.319042,
+            1971536.977324
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -5879,7 +5879,7 @@
               "effect_delta": 0.3,
               "family_effect": "Increases boost effectiveness",
               "slots": 3,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -5910,8 +5910,8 @@
               }
             ],
             "crafting_price": {
-              "base": 271970.13787116244,
-              "low": 27197.013787116244,
+              "base": 271970.137871,
+              "low": 27197.013787,
               "domain": 300,
               "curve": 0.2,
               "initial": 271970,
@@ -5986,7 +5986,7 @@
           "quality": 5.5,
           "craftable": false,
           "base_crafting_prices": [
-            6075.3342215176235
+            6075.334222
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6036,7 +6036,7 @@
           "quality": 7.9,
           "craftable": true,
           "base_crafting_prices": [
-            26353.836097569845
+            26353.836098
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6085,8 +6085,8 @@
               }
             ],
             "crafting_price": {
-              "base": 26353.836097569845,
-              "low": 2635.3836097569847,
+              "base": 26353.836098,
+              "low": 2635.38361,
               "domain": 300,
               "curve": 0.2,
               "initial": 26353,
@@ -6121,8 +6121,8 @@
           "quality": 11,
           "craftable": true,
           "base_crafting_prices": [
-            88920.44682929825,
-            274130.49059383944
+            88920.446829,
+            274130.490594
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6152,7 +6152,7 @@
               "effect_delta": 7,
               "family_effect": "Increases hold to hatch rate",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -6183,8 +6183,8 @@
               }
             ],
             "crafting_price": {
-              "base": 88920.44682929825,
-              "low": 8892.044682929825,
+              "base": 88920.446829,
+              "low": 8892.044683,
               "domain": 300,
               "curve": 0.2,
               "initial": 88920,
@@ -6219,9 +6219,9 @@
           "quality": 14.2,
           "craftable": true,
           "base_crafting_prices": [
-            215900.7257144192,
-            1250728.3363683326,
-            1565071.678640618
+            215900.725714,
+            1250728.336368,
+            1565071.678641
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6252,7 +6252,7 @@
               "effect_delta": 12,
               "family_effect": "Increases hold to hatch rate",
               "slots": 1,
-              "odds_multiplier": 0.0045000000000000005
+              "odds_multiplier": 0.0045
             },
             {
               "afx_rarity": 3,
@@ -6263,7 +6263,7 @@
               "effect_delta": 15,
               "family_effect": "Increases hold to hatch rate",
               "slots": 2,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -6294,8 +6294,8 @@
               }
             ],
             "crafting_price": {
-              "base": 215900.7257144192,
-              "low": 21590.072571441924,
+              "base": 215900.725714,
+              "low": 21590.072571,
               "domain": 300,
               "curve": 0.2,
               "initial": 215900,
@@ -6382,7 +6382,7 @@
           "quality": 6.2,
           "craftable": false,
           "base_crafting_prices": [
-            10082.597698931942
+            10082.597699
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6432,7 +6432,7 @@
           "quality": 8.6,
           "craftable": true,
           "base_crafting_prices": [
-            36322.08776382367
+            36322.087764
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6481,8 +6481,8 @@
               }
             ],
             "crafting_price": {
-              "base": 36322.08776382367,
-              "low": 3632.2087763823674,
+              "base": 36322.087764,
+              "low": 3632.208776,
               "domain": 300,
               "curve": 0.2,
               "initial": 36322,
@@ -6517,8 +6517,8 @@
           "quality": 11.8,
           "craftable": true,
           "base_crafting_prices": [
-            113895.40446427745,
-            351130.97685396334
+            113895.404464,
+            351130.976854
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6548,7 +6548,7 @@
               "effect_delta": 0.6,
               "family_effect": "Increases co-op mates earnings",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -6579,8 +6579,8 @@
               }
             ],
             "crafting_price": {
-              "base": 113895.40446427745,
-              "low": 11389.540446427745,
+              "base": 113895.404464,
+              "low": 11389.540446,
               "domain": 300,
               "curve": 0.2,
               "initial": 113895,
@@ -6615,10 +6615,10 @@
           "quality": 15.2,
           "craftable": true,
           "base_crafting_prices": [
-            442510.33730818,
-            1575554.896943225,
-            1916635.2958172602,
-            2186935.1167904404
+            442510.337308,
+            1575554.896943,
+            1916635.295817,
+            2186935.11679
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6650,7 +6650,7 @@
               "effect_delta": 0.8,
               "family_effect": "Increases co-op mates earnings",
               "slots": 1,
-              "odds_multiplier": 0.0045000000000000005
+              "odds_multiplier": 0.0045
             },
             {
               "afx_rarity": 2,
@@ -6661,7 +6661,7 @@
               "effect_delta": 0.9,
               "family_effect": "Increases co-op mates earnings",
               "slots": 2,
-              "odds_multiplier": 0.0011250000000000001
+              "odds_multiplier": 0.001125
             },
             {
               "afx_rarity": 3,
@@ -6703,8 +6703,8 @@
               }
             ],
             "crafting_price": {
-              "base": 442510.33730818,
-              "low": 44251.033730818,
+              "base": 442510.337308,
+              "low": 44251.033731,
               "domain": 300,
               "curve": 0.2,
               "initial": 442510,
@@ -6779,7 +6779,7 @@
           "quality": 7.25,
           "craftable": false,
           "base_crafting_prices": [
-            25004.06272054376
+            25004.062721
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6829,7 +6829,7 @@
           "quality": 9.25,
           "craftable": true,
           "base_crafting_prices": [
-            77412.17339000841
+            77412.17339
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6878,8 +6878,8 @@
               }
             ],
             "crafting_price": {
-              "base": 77412.17339000841,
-              "low": 7741.217339000841,
+              "base": 77412.17339,
+              "low": 7741.217339,
               "domain": 300,
               "curve": 0.2,
               "initial": 77412,
@@ -6914,8 +6914,8 @@
           "quality": 13,
           "craftable": true,
           "base_crafting_prices": [
-            259516.13593495343,
-            591755.4482275364
+            259516.135935,
+            591755.448228
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -6945,7 +6945,7 @@
               "effect_delta": 0.13,
               "family_effect": "Increases co-op mates egg laying rate",
               "slots": 1,
-              "odds_multiplier": 0.045000000000000005
+              "odds_multiplier": 0.045
             }
           ],
           "recipe": {
@@ -6976,8 +6976,8 @@
               }
             ],
             "crafting_price": {
-              "base": 259516.13593495343,
-              "low": 25951.613593495345,
+              "base": 259516.135935,
+              "low": 25951.613593,
               "domain": 300,
               "curve": 0.2,
               "initial": 259516,
@@ -7012,10 +7012,10 @@
           "quality": 17,
           "craftable": true,
           "base_crafting_prices": [
-            1220591.9609198547,
-            2935268.9922836637,
-            3446401.703852121,
-            3759957.573244698
+            1220591.96092,
+            2935268.992284,
+            3446401.703852,
+            3759957.573245
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -7036,7 +7036,7 @@
               "effect_delta": 0.15,
               "family_effect": "Increases co-op mates egg laying rate",
               "slots": 0,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             },
             {
               "afx_rarity": 1,
@@ -7069,7 +7069,7 @@
               "effect_delta": 0.2,
               "family_effect": "Increases co-op mates egg laying rate",
               "slots": 2,
-              "odds_multiplier": 7.500000000000001e-05
+              "odds_multiplier": 0.000075
             }
           ],
           "recipe": {
@@ -7100,8 +7100,8 @@
               }
             ],
             "crafting_price": {
-              "base": 1220591.9609198547,
-              "low": 122059.19609198548,
+              "base": 1220591.96092,
+              "low": 122059.196092,
               "domain": 300,
               "curve": 0.2,
               "initial": 1220591,
@@ -7147,7 +7147,7 @@
               "count": 8
             }
           ],
-          "odds_multiplier": 0.09000000000000001
+          "odds_multiplier": 0.09
         }
       ]
     },
@@ -7188,7 +7188,7 @@
           "quality": 8,
           "craftable": false,
           "base_crafting_prices": [
-            27649.208085869246
+            27649.208086
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -7238,7 +7238,7 @@
           "quality": 10.3,
           "craftable": true,
           "base_crafting_prices": [
-            114405.16112254915
+            114405.161123
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -7287,8 +7287,8 @@
               }
             ],
             "crafting_price": {
-              "base": 114405.16112254915,
-              "low": 11440.516112254916,
+              "base": 114405.161123,
+              "low": 11440.516112,
               "domain": 300,
               "curve": 0.2,
               "initial": 114405,
@@ -7323,8 +7323,8 @@
           "quality": 13.3,
           "craftable": true,
           "base_crafting_prices": [
-            360472.9141829376,
-            1079292.0864457446
+            360472.914183,
+            1079292.086446
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -7385,8 +7385,8 @@
               }
             ],
             "crafting_price": {
-              "base": 360472.9141829376,
-              "low": 36047.29141829376,
+              "base": 360472.914183,
+              "low": 36047.291418,
               "domain": 300,
               "curve": 0.2,
               "initial": 360472,
@@ -7421,9 +7421,9 @@
           "quality": 16.8,
           "craftable": true,
           "base_crafting_prices": [
-            934701.7962797529,
-            2659838.975924153,
-            3313008.090832436
+            934701.79628,
+            2659838.975924,
+            3313008.090832
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -7443,7 +7443,7 @@
               "effect_delta": 0.01,
               "family_effect": "Increases effect of Eggs of Prophecy",
               "slots": 0,
-              "odds_multiplier": 0.18000000000000002
+              "odds_multiplier": 0.18
             },
             {
               "afx_rarity": 2,
@@ -7454,7 +7454,7 @@
               "effect_delta": 0.011,
               "family_effect": "Increases effect of Eggs of Prophecy",
               "slots": 1,
-              "odds_multiplier": 0.0012000000000000001
+              "odds_multiplier": 0.0012
             },
             {
               "afx_rarity": 3,
@@ -7496,8 +7496,8 @@
               }
             ],
             "crafting_price": {
-              "base": 934701.7962797529,
-              "low": 93470.17962797529,
+              "base": 934701.79628,
+              "low": 93470.179628,
               "domain": 300,
               "curve": 0.2,
               "initial": 934701,
@@ -7543,7 +7543,7 @@
               "count": 10
             }
           ],
-          "odds_multiplier": 0.18000000000000002
+          "odds_multiplier": 0.18
         }
       ]
     },
@@ -7584,7 +7584,7 @@
           "quality": 8.2,
           "craftable": false,
           "base_crafting_prices": [
-            30365.963161253043
+            30365.963161
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -7634,8 +7634,8 @@
           "quality": 10.2,
           "craftable": true,
           "base_crafting_prices": [
-            67892.95266783626,
-            234201.08564302573
+            67892.952668,
+            234201.085643
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -7696,8 +7696,8 @@
               }
             ],
             "crafting_price": {
-              "base": 67892.95266783626,
-              "low": 6789.295266783626,
+              "base": 67892.952668,
+              "low": 6789.295267,
               "domain": 300,
               "curve": 0.2,
               "initial": 67892,
@@ -7732,8 +7732,8 @@
           "quality": 13.2,
           "craftable": true,
           "base_crafting_prices": [
-            168121.51742510966,
-            518315.9277558416
+            168121.517425,
+            518315.927756
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -7763,7 +7763,7 @@
               "effect_delta": 14,
               "family_effect": "Increases enlightenment egg value",
               "slots": 1,
-              "odds_multiplier": 0.09000000000000001
+              "odds_multiplier": 0.09
             }
           ],
           "recipe": {
@@ -7794,8 +7794,8 @@
               }
             ],
             "crafting_price": {
-              "base": 168121.51742510966,
-              "low": 16812.151742510967,
+              "base": 168121.517425,
+              "low": 16812.151743,
               "domain": 300,
               "curve": 0.2,
               "initial": 168121,
@@ -7830,9 +7830,9 @@
           "quality": 16.1,
           "craftable": true,
           "base_crafting_prices": [
-            330068.88139860204,
-            1705165.3306623492,
-            2392713.5552942227
+            330068.881399,
+            1705165.330662,
+            2392713.555294
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -7863,7 +7863,7 @@
               "effect_delta": 149,
               "family_effect": "Increases enlightenment egg value",
               "slots": 2,
-              "odds_multiplier": 0.009000000000000001
+              "odds_multiplier": 0.009
             },
             {
               "afx_rarity": 3,
@@ -7874,7 +7874,7 @@
               "effect_delta": 249,
               "family_effect": "Increases enlightenment egg value",
               "slots": 3,
-              "odds_multiplier": 0.0009000000000000001
+              "odds_multiplier": 0.0009
             }
           ],
           "recipe": {
@@ -7905,8 +7905,8 @@
               }
             ],
             "crafting_price": {
-              "base": 330068.88139860204,
-              "low": 33006.8881398602,
+              "base": 330068.881399,
+              "low": 33006.88814,
               "domain": 300,
               "curve": 0.2,
               "initial": 330068,
@@ -7992,13 +7992,15 @@
           "afx_type": 3,
           "type": "Stone ingredient",
           "icon_filename": "afx_lunar_stone_1.png",
-          "quality": 1.7,
+          "quality": 1.9,
           "craftable": false,
           "base_crafting_prices": [
             10.8
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -8029,13 +8031,15 @@
           "afx_type": 1,
           "type": "Stone",
           "icon_filename": "afx_lunar_stone_2.png",
-          "quality": 3.15,
-          "craftable": true,
+          "quality": 3.5,
+          "craftable": false,
           "base_crafting_prices": [
-            406.73373916515897
+            774.42705
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8067,12 +8071,12 @@
               }
             ],
             "crafting_price": {
-              "base": 406.73373916515897,
-              "low": 40.6733739165159,
+              "base": 774.42705,
+              "low": 77.442705,
               "domain": 300,
               "curve": 0.2,
-              "initial": 406,
-              "minimum": 40
+              "initial": 774,
+              "minimum": 77
             }
           },
           "ingredients_available_from_missions": true,
@@ -8101,13 +8105,15 @@
           "afx_type": 1,
           "type": "Stone",
           "icon_filename": "afx_lunar_stone_3.png",
-          "quality": 6.25,
+          "quality": 7.25,
           "craftable": true,
           "base_crafting_prices": [
-            12447.66175556308
+            22587.588767
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8139,12 +8145,12 @@
               }
             ],
             "crafting_price": {
-              "base": 12447.66175556308,
-              "low": 1244.766175556308,
+              "base": 22587.588767,
+              "low": 2258.758877,
               "domain": 300,
               "curve": 0.2,
-              "initial": 12447,
-              "minimum": 1244
+              "initial": 22587,
+              "minimum": 2258
             }
           },
           "ingredients_available_from_missions": true,
@@ -8173,13 +8179,15 @@
           "afx_type": 1,
           "type": "Stone",
           "icon_filename": "afx_lunar_stone_4.png",
-          "quality": 12.25,
+          "quality": 13.25,
           "craftable": true,
           "base_crafting_prices": [
-            155125.2824260733
+            203548.775835
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8211,12 +8219,12 @@
               }
             ],
             "crafting_price": {
-              "base": 155125.2824260733,
-              "low": 15512.528242607332,
+              "base": 203548.775835,
+              "low": 20354.877584,
               "domain": 300,
               "curve": 0.2,
-              "initial": 155125,
-              "minimum": 15512
+              "initial": 203548,
+              "minimum": 20354
             }
           },
           "ingredients_available_from_missions": true,
@@ -8264,10 +8272,12 @@
           "quality": 2,
           "craftable": false,
           "base_crafting_prices": [
-            12.700000000000001
+            12.7
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -8299,12 +8309,14 @@
           "type": "Stone",
           "icon_filename": "afx_shell_stone_2.png",
           "quality": 2.95,
-          "craftable": true,
+          "craftable": false,
           "base_crafting_prices": [
-            262.01446039016
+            262.01446
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8336,8 +8348,8 @@
               }
             ],
             "crafting_price": {
-              "base": 262.01446039016,
-              "low": 26.201446039016005,
+              "base": 262.01446,
+              "low": 26.201446,
               "domain": 300,
               "curve": 0.2,
               "initial": 262,
@@ -8373,10 +8385,12 @@
           "quality": 6.85,
           "craftable": true,
           "base_crafting_prices": [
-            18048.11950456052
+            18048.119505
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8408,8 +8422,8 @@
               }
             ],
             "crafting_price": {
-              "base": 18048.11950456052,
-              "low": 1804.811950456052,
+              "base": 18048.119505,
+              "low": 1804.81195,
               "domain": 300,
               "curve": 0.2,
               "initial": 18048,
@@ -8445,10 +8459,12 @@
           "quality": 12.85,
           "craftable": true,
           "base_crafting_prices": [
-            183125.19330979357
+            183125.19331
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8492,8 +8508,8 @@
               }
             ],
             "crafting_price": {
-              "base": 183125.19330979357,
-              "low": 18312.519330979358,
+              "base": 183125.19331,
+              "low": 18312.519331,
               "domain": 300,
               "curve": 0.2,
               "initial": 183125,
@@ -8545,10 +8561,12 @@
           "quality": 3,
           "craftable": false,
           "base_crafting_prices": [
-            229.70000000000002
+            229.7
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -8580,12 +8598,14 @@
           "type": "Stone",
           "icon_filename": "afx_tachyon_stone_2.png",
           "quality": 3.25,
-          "craftable": true,
+          "craftable": false,
           "base_crafting_prices": [
-            495.9365625269282
+            495.936563
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8617,8 +8637,8 @@
               }
             ],
             "crafting_price": {
-              "base": 495.9365625269282,
-              "low": 49.593656252692824,
+              "base": 495.936563,
+              "low": 49.593656,
               "domain": 300,
               "curve": 0.2,
               "initial": 495,
@@ -8654,10 +8674,12 @@
           "quality": 6.85,
           "craftable": true,
           "base_crafting_prices": [
-            18048.11950456052
+            18048.119505
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8689,8 +8711,8 @@
               }
             ],
             "crafting_price": {
-              "base": 18048.11950456052,
-              "low": 1804.811950456052,
+              "base": 18048.119505,
+              "low": 1804.81195,
               "domain": 300,
               "curve": 0.2,
               "initial": 18048,
@@ -8726,10 +8748,12 @@
           "quality": 13.85,
           "craftable": true,
           "base_crafting_prices": [
-            236946.43179478962
+            236946.431795
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8761,8 +8785,8 @@
               }
             ],
             "crafting_price": {
-              "base": 236946.43179478962,
-              "low": 23694.643179478964,
+              "base": 236946.431795,
+              "low": 23694.643179,
               "domain": 300,
               "curve": 0.2,
               "initial": 236946,
@@ -8817,7 +8841,9 @@
             1572.5
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -8849,12 +8875,14 @@
           "type": "Stone",
           "icon_filename": "afx_terra_stone_2.png",
           "quality": 5.1,
-          "craftable": true,
+          "craftable": false,
           "base_crafting_prices": [
-            5196.192179801517
+            5196.19218
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8886,8 +8914,8 @@
               }
             ],
             "crafting_price": {
-              "base": 5196.192179801517,
-              "low": 519.6192179801518,
+              "base": 5196.19218,
+              "low": 519.619218,
               "domain": 300,
               "curve": 0.2,
               "initial": 5196,
@@ -8923,10 +8951,12 @@
           "quality": 7.8,
           "craftable": true,
           "base_crafting_prices": [
-            29988.96267971526
+            29988.96268
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -8958,8 +8988,8 @@
               }
             ],
             "crafting_price": {
-              "base": 29988.96267971526,
-              "low": 2998.896267971526,
+              "base": 29988.96268,
+              "low": 2998.896268,
               "domain": 300,
               "curve": 0.2,
               "initial": 29988,
@@ -8995,10 +9025,12 @@
           "quality": 14.9,
           "craftable": true,
           "base_crafting_prices": [
-            303837.60124653333
+            303837.601247
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9030,8 +9062,8 @@
               }
             ],
             "crafting_price": {
-              "base": 303837.60124653333,
-              "low": 30383.760124653334,
+              "base": 303837.601247,
+              "low": 30383.760125,
               "domain": 300,
               "curve": 0.2,
               "initial": 303837,
@@ -9096,10 +9128,12 @@
           "quality": 3.9,
           "craftable": false,
           "base_crafting_prices": [
-            1074.8000000000004
+            1074.8
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -9131,12 +9165,14 @@
           "type": "Stone",
           "icon_filename": "afx_soul_stone_2.png",
           "quality": 5.1,
-          "craftable": true,
+          "craftable": false,
           "base_crafting_prices": [
-            5196.192179801517
+            5196.19218
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9168,8 +9204,8 @@
               }
             ],
             "crafting_price": {
-              "base": 5196.192179801517,
-              "low": 519.6192179801518,
+              "base": 5196.19218,
+              "low": 519.619218,
               "domain": 300,
               "curve": 0.2,
               "initial": 5196,
@@ -9205,10 +9241,12 @@
           "quality": 9.1,
           "craftable": true,
           "base_crafting_prices": [
-            64770.66459274569
+            64770.664593
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9240,8 +9278,8 @@
               }
             ],
             "crafting_price": {
-              "base": 64770.66459274569,
-              "low": 6477.06645927457,
+              "base": 64770.664593,
+              "low": 6477.066459,
               "domain": 300,
               "curve": 0.2,
               "initial": 64770,
@@ -9277,10 +9315,12 @@
           "quality": 13.1,
           "craftable": true,
           "base_crafting_prices": [
-            250022.00660314143
+            250022.006603
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9293,7 +9333,7 @@
               "effect_delta": 0.25,
               "family_effect": "Increases soul egg bonus when set",
               "slots": null,
-              "odds_multiplier": 0.04000000000000001
+              "odds_multiplier": 0.04
             }
           ],
           "recipe": {
@@ -9312,8 +9352,8 @@
               }
             ],
             "crafting_price": {
-              "base": 250022.00660314143,
-              "low": 25002.200660314145,
+              "base": 250022.006603,
+              "low": 25002.20066,
               "domain": 300,
               "curve": 0.2,
               "initial": 250022,
@@ -9322,7 +9362,7 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.04000000000000001
+          "odds_multiplier": 0.04
         }
       ]
     },
@@ -9365,10 +9405,12 @@
           "quality": 4.1,
           "craftable": false,
           "base_crafting_prices": [
-            1392.3999999999992
+            1392.4
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -9400,12 +9442,14 @@
           "type": "Stone",
           "icon_filename": "afx_dilithium_stone_2.png",
           "quality": 7,
-          "craftable": true,
+          "craftable": false,
           "base_crafting_prices": [
-            19671.158435586985
+            19671.158436
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9437,8 +9481,8 @@
               }
             ],
             "crafting_price": {
-              "base": 19671.158435586985,
-              "low": 1967.1158435586985,
+              "base": 19671.158436,
+              "low": 1967.115844,
               "domain": 300,
               "curve": 0.2,
               "initial": 19671,
@@ -9474,10 +9518,12 @@
           "quality": 10.25,
           "craftable": true,
           "base_crafting_prices": [
-            82572.11155212428
+            82572.111552
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9509,8 +9555,8 @@
               }
             ],
             "crafting_price": {
-              "base": 82572.11155212428,
-              "low": 8257.211155212428,
+              "base": 82572.111552,
+              "low": 8257.211155,
               "domain": 300,
               "curve": 0.2,
               "initial": 82572,
@@ -9546,10 +9592,12 @@
           "quality": 16.85,
           "craftable": true,
           "base_crafting_prices": [
-            459362.6577260761
+            459362.657726
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": false,
           "effects": [
@@ -9581,8 +9629,8 @@
               }
             ],
             "crafting_price": {
-              "base": 459362.6577260761,
-              "low": 45936.265772607614,
+              "base": 459362.657726,
+              "low": 45936.265773,
               "domain": 300,
               "curve": 0.2,
               "initial": 459362,
@@ -9647,10 +9695,12 @@
           "quality": 3.8,
           "craftable": false,
           "base_crafting_prices": [
-            936.0999999999996
+            936.1
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -9682,12 +9732,14 @@
           "type": "Stone",
           "icon_filename": "afx_quantum_stone_2.png",
           "quality": 5.5,
-          "craftable": true,
+          "craftable": false,
           "base_crafting_prices": [
-            7252.77796891077
+            7252.777969
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9719,8 +9771,8 @@
               }
             ],
             "crafting_price": {
-              "base": 7252.77796891077,
-              "low": 725.2777968910771,
+              "base": 7252.777969,
+              "low": 725.277797,
               "domain": 300,
               "curve": 0.2,
               "initial": 7252,
@@ -9756,10 +9808,12 @@
           "quality": 7.45,
           "craftable": true,
           "base_crafting_prices": [
-            25118.0955165366
+            25118.095517
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9791,8 +9845,8 @@
               }
             ],
             "crafting_price": {
-              "base": 25118.0955165366,
-              "low": 2511.80955165366,
+              "base": 25118.095517,
+              "low": 2511.809552,
               "domain": 300,
               "curve": 0.2,
               "initial": 25118,
@@ -9828,10 +9882,12 @@
           "quality": 13.7,
           "craftable": true,
           "base_crafting_prices": [
-            228278.68162774845
+            228278.681628
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9863,8 +9919,8 @@
               }
             ],
             "crafting_price": {
-              "base": 228278.68162774845,
-              "low": 22827.868162774845,
+              "base": 228278.681628,
+              "low": 22827.868163,
               "domain": 300,
               "curve": 0.2,
               "initial": 228278,
@@ -9916,10 +9972,12 @@
           "quality": 4.3,
           "craftable": false,
           "base_crafting_prices": [
-            1767.5999999999995
+            1767.6
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -9951,12 +10009,14 @@
           "type": "Stone",
           "icon_filename": "afx_life_stone_2.png",
           "quality": 6,
-          "craftable": true,
+          "craftable": false,
           "base_crafting_prices": [
-            10507.145319547104
+            10507.14532
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -9988,8 +10048,8 @@
               }
             ],
             "crafting_price": {
-              "base": 10507.145319547104,
-              "low": 1050.7145319547105,
+              "base": 10507.14532,
+              "low": 1050.714532,
               "domain": 300,
               "curve": 0.2,
               "initial": 10507,
@@ -10025,10 +10085,12 @@
           "quality": 9.52,
           "craftable": true,
           "base_crafting_prices": [
-            63177.402251645064
+            63177.402252
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -10060,8 +10122,8 @@
               }
             ],
             "crafting_price": {
-              "base": 63177.402251645064,
-              "low": 6317.740225164507,
+              "base": 63177.402252,
+              "low": 6317.740225,
               "domain": 300,
               "curve": 0.2,
               "initial": 63177,
@@ -10097,10 +10159,12 @@
           "quality": 15.2,
           "craftable": true,
           "base_crafting_prices": [
-            325027.91192700906
+            325027.911927
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -10132,8 +10196,8 @@
               }
             ],
             "crafting_price": {
-              "base": 325027.91192700906,
-              "low": 32502.791192700908,
+              "base": 325027.911927,
+              "low": 32502.791193,
               "domain": 300,
               "curve": 0.2,
               "initial": 325027,
@@ -10198,10 +10262,12 @@
           "quality": 6,
           "craftable": false,
           "base_crafting_prices": [
-            7960.699999999999
+            7960.7
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -10233,12 +10299,14 @@
           "type": "Stone",
           "icon_filename": "afx_clarity_stone_2.png",
           "quality": 8,
-          "craftable": true,
+          "craftable": false,
           "base_crafting_prices": [
-            36603.47977819721
+            36603.479778
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -10251,7 +10319,7 @@
               "effect_delta": 0.25,
               "family_effect": "Enables effect of host artifact on enlightenment egg farm",
               "slots": null,
-              "odds_multiplier": 0.06999999999999999
+              "odds_multiplier": 0.07
             }
           ],
           "recipe": {
@@ -10270,8 +10338,8 @@
               }
             ],
             "crafting_price": {
-              "base": 36603.47977819721,
-              "low": 3660.347977819721,
+              "base": 36603.479778,
+              "low": 3660.347978,
               "domain": 300,
               "curve": 0.2,
               "initial": 36603,
@@ -10280,7 +10348,7 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.06999999999999999
+          "odds_multiplier": 0.07
         },
         {
           "family": {
@@ -10307,10 +10375,12 @@
           "quality": 12.2,
           "craftable": true,
           "base_crafting_prices": [
-            185026.38292691755
+            185026.382927
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -10354,8 +10424,8 @@
               }
             ],
             "crafting_price": {
-              "base": 185026.38292691755,
-              "low": 18502.638292691754,
+              "base": 185026.382927,
+              "low": 18502.638293,
               "domain": 300,
               "curve": 0.2,
               "initial": 185026,
@@ -10391,10 +10461,12 @@
           "quality": 17.5,
           "craftable": true,
           "base_crafting_prices": [
-            774986.0513834521
+            774986.051383
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": false,
           "effects": [
@@ -10407,7 +10479,7 @@
               "effect_delta": 1,
               "family_effect": "Enables effect of host artifact on enlightenment egg farm",
               "slots": null,
-              "odds_multiplier": 0.020000000000000004
+              "odds_multiplier": 0.02
             }
           ],
           "recipe": {
@@ -10438,8 +10510,8 @@
               }
             ],
             "crafting_price": {
-              "base": 774986.0513834521,
-              "low": 77498.60513834521,
+              "base": 774986.051383,
+              "low": 77498.605138,
               "domain": 300,
               "curve": 0.2,
               "initial": 774986,
@@ -10485,7 +10557,7 @@
               "count": 24
             }
           ],
-          "odds_multiplier": 0.020000000000000004
+          "odds_multiplier": 0.02
         }
       ]
     },
@@ -10531,7 +10603,9 @@
             9122.5
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -10563,12 +10637,14 @@
           "type": "Stone",
           "icon_filename": "afx_prophecy_stone_2.png",
           "quality": 8.5,
-          "craftable": true,
+          "craftable": false,
           "base_crafting_prices": [
-            50259.44360952514
+            50259.44361
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -10600,8 +10676,8 @@
               }
             ],
             "crafting_price": {
-              "base": 50259.44360952514,
-              "low": 5025.944360952514,
+              "base": 50259.44361,
+              "low": 5025.944361,
               "domain": 300,
               "curve": 0.2,
               "initial": 50259,
@@ -10637,10 +10713,12 @@
           "quality": 12.8,
           "craftable": true,
           "base_crafting_prices": [
-            246536.3313467851
+            246536.331347
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": true,
           "effects": [
@@ -10672,8 +10750,8 @@
               }
             ],
             "crafting_price": {
-              "base": 246536.3313467851,
-              "low": 24653.633134678512,
+              "base": 246536.331347,
+              "low": 24653.633135,
               "domain": 300,
               "curve": 0.2,
               "initial": 246536,
@@ -10709,10 +10787,12 @@
           "quality": 17.2,
           "craftable": true,
           "base_crafting_prices": [
-            731674.3867735496
+            731674.386774
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": true,
           "available_from_missions": false,
           "effects": [
@@ -10725,7 +10805,7 @@
               "effect_delta": 0.0015,
               "family_effect": "Increases egg of prophecy bonus when set",
               "slots": null,
-              "odds_multiplier": 0.020000000000000004
+              "odds_multiplier": 0.02
             }
           ],
           "recipe": {
@@ -10756,8 +10836,8 @@
               }
             ],
             "crafting_price": {
-              "base": 731674.3867735496,
-              "low": 73167.43867735496,
+              "base": 731674.386774,
+              "low": 73167.438677,
               "domain": 300,
               "curve": 0.2,
               "initial": 731674,
@@ -10791,7 +10871,7 @@
               "count": 12
             }
           ],
-          "odds_multiplier": 0.020000000000000004
+          "odds_multiplier": 0.02
         }
       ]
     },
@@ -10835,7 +10915,9 @@
             3.24
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -10868,10 +10950,12 @@
           "quality": 6.8,
           "craftable": true,
           "base_crafting_prices": [
-            3982.5299999999993
+            3982.53
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -10891,8 +10975,8 @@
               }
             ],
             "crafting_price": {
-              "base": 3982.5299999999993,
-              "low": 398.25299999999993,
+              "base": 3982.53,
+              "low": 398.253,
               "domain": 300,
               "curve": 0.2,
               "initial": 3982,
@@ -10927,10 +11011,12 @@
           "quality": 11.85,
           "craftable": true,
           "base_crafting_prices": [
-            31373.351250000007
+            31373.35125
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -10950,8 +11036,8 @@
               }
             ],
             "crafting_price": {
-              "base": 31373.351250000007,
-              "low": 3137.335125000001,
+              "base": 31373.35125,
+              "low": 3137.335125,
               "domain": 300,
               "curve": 0.2,
               "initial": 31373,
@@ -11001,10 +11087,12 @@
           "quality": 2.8,
           "craftable": false,
           "base_crafting_prices": [
-            42.929999999999986
+            42.93
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -11037,10 +11125,12 @@
           "quality": 8.1,
           "craftable": true,
           "base_crafting_prices": [
-            7867.319999999998
+            7867.32
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -11060,8 +11150,8 @@
               }
             ],
             "crafting_price": {
-              "base": 7867.319999999998,
-              "low": 786.7319999999999,
+              "base": 7867.32,
+              "low": 786.732,
               "domain": 300,
               "curve": 0.2,
               "initial": 7867,
@@ -11070,7 +11160,7 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.7999999999999998
+          "odds_multiplier": 1.8
         },
         {
           "family": {
@@ -11096,10 +11186,12 @@
           "quality": 13.8,
           "craftable": true,
           "base_crafting_prices": [
-            53149.830000000016
+            53149.83
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -11119,8 +11211,8 @@
               }
             ],
             "crafting_price": {
-              "base": 53149.830000000016,
-              "low": 5314.983000000002,
+              "base": 53149.83,
+              "low": 5314.983,
               "domain": 300,
               "curve": 0.2,
               "initial": 53149,
@@ -11170,10 +11262,12 @@
           "quality": 3.2,
           "craftable": false,
           "base_crafting_prices": [
-            104.25000000000003
+            104.25
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -11209,7 +11303,9 @@
             3753
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -11239,7 +11335,7 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.6500000000000001
+          "odds_multiplier": 1.65
         },
         {
           "family": {
@@ -11265,10 +11361,12 @@
           "quality": 12.5,
           "craftable": true,
           "base_crafting_prices": [
-            37794.36000000001
+            37794.36
           ],
           "has_rarities": false,
-          "possible_afx_rarities": null,
+          "possible_afx_rarities": [
+            0
+          ],
           "has_effects": false,
           "available_from_missions": true,
           "effects": null,
@@ -11288,8 +11386,8 @@
               }
             ],
             "crafting_price": {
-              "base": 37794.36000000001,
-              "low": 3779.436000000001,
+              "base": 37794.36,
+              "low": 3779.436,
               "domain": 300,
               "curve": 0.2,
               "initial": 37794,
