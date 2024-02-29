@@ -38,7 +38,7 @@
                         </div>
 
                         <!-- Effects and slots -->
-                        <div class="text-xs text-gray-400 tabular-nums truncate">
+                        <div class="text-xs text-gray-400 tabular-nums">
                           <template
                             v-for="(rarity, index) in tier.effects"
                             :key="rarity.afx_rarity"
