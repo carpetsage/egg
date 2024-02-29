@@ -686,10 +686,10 @@
               "rarity": "Legendary",
               "effect": "+???% away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+???%",
+              "effect_size": "+1000000000%",
               "effect_delta": 9,
               "family_effect": "Increases away earnings",
-              "slots": 2,
+              "slots": 9,
               "odds_multiplier": 0.0006
             }
           ],

@@ -54,23 +54,17 @@
                                 <svg
                                   viewBox="0 0 10 30"
                                   xmlns="http://www.w3.org/2000/svg"
-                                  class="h-3 w-1"
+                                  class="h-3"
+                                  :class="`w-` + (1 + 2*Math.floor((rarity.slots - 1)/ 3))"
                                 >
-                                  <circle cx="5" cy="5" r="3" fill="currentColor" />
-                                  <circle
-                                    v-if="rarity.slots >= 2"
-                                    cx="5"
-                                    cy="15"
-                                    r="3"
-                                    fill="currentColor"
-                                  />
-                                  <circle
-                                    v-if="rarity.slots >= 3"
-                                    cx="5"
-                                    cy="25"
-                                    r="3"
-                                    fill="currentColor"
-                                  />
+                                  <template v-for="slot of rarity.slots" :key="slot">
+                                    <circle
+                                      :cx="5 - 10 * (Math.floor((slot - 1) / 3))"
+                                      :cy="5 + 10 * ((slot + 2) % 3)"
+                                      r="3"
+                                      fill="currentColor"
+                                    />
+                                  </template>
                                 </svg>
                               </template>
                             </span>
