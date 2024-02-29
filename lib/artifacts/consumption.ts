@@ -2,6 +2,7 @@ import data from './consumption.json';
 import { Inventory } from './inventory';
 
 import { ei } from '../proto';
+import { titleCase } from '../utils';
 
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;
@@ -64,7 +65,8 @@ export function itemExpectedFullConsumption(
   const key = itemKey(afxId, afxLevel, afxRarity);
   const demotionGold = itemKeyToDemotionGold.get(key);
   if (demotionGold === undefined || demotionGold === null) {
-    throw new Error(`demotion gold not available for ${afxId}:${afxLevel}:${afxRarity}`);
+    console.log(`Error Demote Gold not available for T${afxLevel + 1} ${titleCase(ei.ArtifactSpec.Rarity[afxRarity])} ${titleCase(ei.ArtifactSpec.Name[afxId])}`);
+    return [0,0];
   }
   const commonRewards = GetFullConsumptionRewards(afxId, afxLevel, Rarity.COMMON);
   return [(commonRewards[0] += demotionGold), commonRewards[1]];
