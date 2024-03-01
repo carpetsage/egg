@@ -48,12 +48,6 @@ const itemIdToTier: Map<string, Tier> = new Map(
     .flat()
     .map(t => [t.id, t])
 );
-const itemAfxIdToTier: Map<Name, Tier> = new Map(
-  data.artifact_families
-    .map(f => f.tiers)
-    .flat()
-    .map(t => [t.afx_id, t])
-);
 const itemAfxIdToType: Map<Name, Type> = new Map(
   data.artifact_families
     .map(f => f.tiers)
@@ -230,13 +224,13 @@ function artifactsToTier(artis: ArtifactParameters[], tier: Tier): Tier {
       minimum: Math.floor(arti.craftingPriceLow)
     }
   }
-  console.log(tier.base_crafting_prices, artis.map(x => x.craftingPrice));
   tier.available_from_missions = arti.baseQuality < 16.48;
   tier.base_crafting_prices = artis.map(x => x.craftingPrice);
   tier.craftable = ei.ArtifactSpec.Level[arti.spec.level] != 0;
   tier.possible_afx_rarities = artis.map(x => ei.ArtifactSpec.Rarity[x.spec.rarity]);
   tier.odds_multiplier = arti.oddsMultiplier;
   tier.quality = arti.baseQuality;
+  tier.crafting_xp = arti.craftingXp;
 
   return tier;
  }
