@@ -94,6 +94,7 @@ export interface ShipsConfig {
   epicResearchZerogLevel: number;
   shipLevels: Record<Spaceship, number>;
   onlyHenners: boolean;
+  showNodata: boolean;
   targets: Record<Artifact, boolean>;
 }
 
@@ -121,6 +122,7 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
     epicResearchFTLLevel,
     epicResearchZerogLevel,
     onlyHenners: false,
+    showNodata: false,
     shipLevels: {
       [Spaceship.CHICKEN_ONE]: 0,
       [Spaceship.CHICKEN_NINE]: 0,
@@ -140,6 +142,7 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
 export function fixOldShipsConfig(x: OldShipsConfig): ShipsConfig {
   const config = (x as ShipsConfig);
   config.onlyHenners = false;
+  config.showNodata = false;
   return config;
 }
 
@@ -788,6 +791,7 @@ export const perfectShipsConfig: ShipsConfig = {
   epicResearchFTLLevel: 40,
   epicResearchZerogLevel: 10,
   onlyHenners: false,
+  showNodata: false,
   shipLevels: {
     [Spaceship.CHICKEN_ONE]: shipMaxLevel(Spaceship.CHICKEN_ONE),
     [Spaceship.CHICKEN_NINE]: shipMaxLevel(Spaceship.CHICKEN_NINE),

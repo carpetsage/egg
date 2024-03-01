@@ -95,6 +95,9 @@
               }"
             />
           </div>
+          <span class="text-sm">
+            {{ artifact.crafting_xp.toLocaleString('en-US') }} Crafting XP
+          </span>
         </div>
       </div>
       <hr />

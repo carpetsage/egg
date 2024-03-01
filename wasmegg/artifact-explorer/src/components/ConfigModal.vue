@@ -119,20 +119,33 @@
                 </div>
               </template>
             </div>
-            <!-- Only show henners -->
             <div>
-                <div class="flex items-center space-x-0.5">
-                  <input
-                    :id="`only_henerprise`"
-                    v-model="config.onlyHenners"
-                    :name="`only_henerprise`"
-                    type="checkbox"
-                    class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-                  />&nbsp;
-                  <label class="text-sm text-gray-600">
-                    Only Show Henerprise
-                  </label>
-                </div>
+              <!-- Only show henners -->
+              <div class="flex items-center space-x-0.5">
+                <input
+                  :id="`only_henerprise`"
+                  v-model="config.onlyHenners"
+                  :name="`only_henerprise`"
+                  type="checkbox"
+                  class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                />&nbsp;
+                <label class="text-sm text-gray-600">
+                  Only Show Henerprise
+                </label>
+              </div>
+              <!-- Display targets with insufficient data -->
+              <div class="flex items-center space-x-0.5">
+                <input
+                  :id="`show_nodata`"
+                  v-model="config.showNodata"
+                  :name="`show_nodata`"
+                  type="checkbox"
+                  class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                />&nbsp;
+                <label class="text-sm text-gray-600">
+                  Show Targets with No data
+                </label>
+              </div>
             </div>
             <!-- Target Selection for Artifact Page -->
             <div>
@@ -220,7 +233,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-::v-deep .w-number-input {
+::deep(.w-number-input) {
   width: 4.5rem;
 }
 </style>
