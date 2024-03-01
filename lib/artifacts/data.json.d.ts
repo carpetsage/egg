@@ -105,6 +105,7 @@ export interface TierCore {
   afx_level: Level;
   name: string;
 
+  crafting_xp: number;
   odds_multiplier: number;
   /**
    * Positive tier number in the 4-tier structure of artifacts and stones (including fragments as tier 1), or 3-tier structure of ingredients.
