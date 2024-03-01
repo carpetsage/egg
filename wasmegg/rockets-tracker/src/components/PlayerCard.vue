@@ -135,7 +135,7 @@
           <div class="mt-1">
             <div class="text-xs">
               Last synced to server:
-              <span v-tippy="{ content: lastRefreshed.format('LLL') }" class="whitespace-nowrap">
+              <span v-tippy="{ content: `${lastRefreshed.format('LLL')}, client version ${version}` }" class="whitespace-nowrap">
                 {{ lastRefreshedRelative }}
               </span>
             </div>
@@ -381,8 +381,8 @@
               {{ fmtApprox(inventoryConsumptionValue[1]) }}
               <base-info
                 v-tippy="{
-                  content: `The inventory consumption value is an approximation of the expected number of GE and Piggy Fill that can be earned from fully (recursively) consuming everything in the inventory. 
-                  <span class='text-blue-300'>You can view detailed consumption outcomes in “Consumption sheet” on this site.</span> 
+                  content: `The inventory consumption value is an approximation of the expected number of GE and Piggy Fill that can be earned from fully (recursively) consuming everything in the inventory.
+                  <span class='text-blue-300'>You can view detailed consumption outcomes in “Consumption sheet” on this site.</span>
                   Due to difficulty sampling consumption data of uncommon items, the calculation assumes you <span class='text-green-300'>demote them first</span>, with <span class='text-green-300'>demotion gold counting towards the total</span>.
                   This also does not include any uncapped piggy fill due to difficulty calculating that. As such this will be a vast underestimate during Unlimited Piggy Events.`
                   ,
@@ -908,6 +908,7 @@ onBeforeUnmount(() => {
 });
 
 const progress = computed(() => backup.value.game!);
+const version = computed(() => backup.value.version ?? "Unknown");
 const artifactsDB = computed(() => backup.value.artifactsDb!);
 const userId = computed(() => backup.value.eiUserId ?? '');
 const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
