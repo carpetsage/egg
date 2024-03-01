@@ -12391,5 +12391,23 @@
     "startTimestamp": 1709226000.0,
     "type": "drone-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1709398800.0,
+    "id": "event-3-1",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1709312400.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1709398800.0,
+    "id": "ultra-3-1",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1709312400.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
