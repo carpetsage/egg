@@ -10,13 +10,16 @@ clean-targets = $(addprefix clean-,$(targets))
 all: $(targets)
 	netlify-headers-expander dist
 
-init: $(init-targets) update-loot-data
+init: $(init-targets) update-loot-data compactify-afx-data
 
 fastbuild: $(fastbuild-targets)
 	netlify-headers-expander dist
 
 update-loot-data:
-	curl -o _common/loot/mission_reward_count.json https://api.ei.mikit.app/mission_reward_count.json
+	./artifact-explorer/update-loot-data.sh
+
+compactify-afx-data:
+	find . -type f -iname '*.json' -exec ./_tools/compactify.sh '{}' \;
 
 clean: $(clean-targets)
 
