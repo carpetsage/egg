@@ -54,6 +54,12 @@
               :src="badgeNAH"
               class="h-4"
             />
+            <img
+              v-if="hasFED"
+              v-tippy="{ content: 'A member of the Full Egg Dedication® club'}"
+              :src="badgeFED"
+              class="h-4"
+            />
 
             <img
               v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB"
@@ -828,6 +834,7 @@ import {
   badgeZLC100,
   badgeZLC7star,
   badgeASC,
+  badgeFED,
   medalZLCRecord,
   medalZLCRecordGrayscale,
 } from '@/badges';
@@ -969,6 +976,16 @@ const hasNAH = computed(() => {
     return true;
   }
   return false;
+});
+const hasFED = computed(() => {
+  const farmsize = progress.value.maxFarmSizeReached!;
+  for(let i = 0; i < farmsize.length; i++) {
+    var compareAgainst = (i == ei.Egg.ENLIGHTENMENT - 1 ? 19845000000 : 14175000000);
+    if (farmsize[i] < compareAgainst) {
+      return false;
+    }
+  }
+  return true;
 });
 const hasEnlightenmentDiamondTrophy = computed(() => {
   const eggs = prophecyEggsProgress.value.fromTrophies.eggs;
