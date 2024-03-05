@@ -56,7 +56,7 @@
             />
             <img
               v-if="hasFED"
-              v-tippy="{ content: 'A member of the Full Egg Dedication® club'}"
+              v-tippy="{ content: 'Full Egg Dedication'}"
               :src="badgeFED"
               class="h-4"
             />
