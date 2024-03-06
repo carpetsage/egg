@@ -1298,6 +1298,7 @@ message InGameMail {
     optional uint32 min_client_version = 10;
     optional uint32 max_client_version = 12;
     optional double min_soul_eggs = 11;
+    optional double max_soul_eggs = 29;
     optional double min_mystical_bonus = 13;
     optional UserType user_type = 17;
     optional uint32 min_piggy_breaks = 20;
@@ -1451,6 +1452,7 @@ message MissionInfo {
         CHICKFIANT = 7;
         VOYEGGER = 8;
         HENERPRISE = 9;
+        ATREGGIES = 10;
     }
 
     optional Status status = 2;
@@ -1651,6 +1653,11 @@ message MissionResponse {
     optional MissionInfo info = 2;
 }
 
+message GetActiveMissionsResponse {
+    optional bool success = 1;
+    repeated MissionInfo active_missions = 2;
+}
+
 message CompleteMissionResponse {
     optional bool success = 1;
     optional MissionInfo info = 2;
@@ -1762,6 +1769,7 @@ message ArtifactsDB {
         optional uint32 count = 3;
     }
 
+    optional MissionInfo fueling_mission = 14;
     repeated MissionInfo mission_infos = 4;
     repeated MissionInfo mission_archive = 5;
     repeated ArtifactSpec discovered_artifacts_DEPRECATED = 8;
