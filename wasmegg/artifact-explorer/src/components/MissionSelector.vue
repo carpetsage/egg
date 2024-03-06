@@ -5,7 +5,7 @@
     </label>
 
     <base-select-filterable
-      :items="missions.toReversed()"
+      :items="validMissions"
       :get-item-id="mission => mission.missionTypeId"
       :get-item-display="mission => mission.name"
       :get-item-icon-path="mission => mission.shipIconPath"
@@ -24,12 +24,14 @@
 </template>
 
 <script setup lang="ts">
-import { PropType } from 'vue';
+import { PropType, computed } from 'vue';
 
 import { missionIdToMission, missions, searchMissions } from '@/lib/filter';
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
+import { hasMissionLootData } from '@/lib';
 
 const BaseSelectFilterable = GenericBaseSelectFilterable<typeof missions[number]>();
+const validMissions = computed(() => missions.filter(x => hasMissionLootData(x.missionTypeId)).toReversed());
 
 defineProps({
   modelValue: {

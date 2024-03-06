@@ -787,7 +787,7 @@ export function requiredTotalLaunchesToUnlockNextShip(shipType: Spaceship): numb
     case Spaceship.VOYEGGER:
       return 30;
     case Spaceship.HENERPRISE:
-      return Infinity;
+      return 40;
     case Spaceship.ATREGGIES:
       return Infinity;
   }

@@ -103,7 +103,7 @@
 
     <div v-if="missionStats.ships.length > 0" class="flex flex-col">
       <div class="-my-2 overflow-x-auto xl:-mx-4">
-        <div class="py-2 align-middle inline-block min-w-full lg:px-4">
+        <div class="py-2 align-middle inline-block min-w-full max-w-6xl lg:px-4">
           <div class="shadow overflow-hidden border-b border-gray-200 lg:rounded-lg">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">

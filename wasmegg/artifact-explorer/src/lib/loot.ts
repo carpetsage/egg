@@ -12,6 +12,13 @@ import lootdata, { MissionLevelLootStore, MissionLootStore } from './loot.json';
 
 export { lootdata, ItemMissionLootStore };
 
+export function hasMissionLootData(missionId: string): boolean {
+  if (/atreggies/.test(missionId)) {
+    return lootdata.missions.map(m => m.missionId).includes(missionId);
+  }
+  return true;
+}
+
 export function getMissionLootData(missionId: string): MissionLootStore {
   for (const missionLoot of lootdata.missions) {
     if (missionLoot.missionId === missionId) {
