@@ -5,7 +5,7 @@
     Rockets tracker
   </h1>
 
-  <div class="max-w-5xl w-full pb-6 mx-auto">
+  <div class="max-w-6xl w-full pb-6 mx-auto">
     <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
     <!-- Use a key to recreate on data loading -->
