@@ -46,6 +46,6 @@ export function stoneFromAfxIdLevel(
   return null;
 }
 
-const { search: searchArtifacts } = useSearch(artifacts.filter(x => !(x.afxId == 0 && x.rarity == 'Legendary' )), 'id', ['display']);
+const { search: searchArtifacts } = useSearch(artifacts, 'id', ['display']);
 const { search: searchStones } = useSearch(stones, 'id', ['display']);
 export { searchArtifacts, searchStones };
