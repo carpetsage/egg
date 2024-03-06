@@ -7,7 +7,7 @@
           <div
             v-tippy="{
               content:
-                `FTL Drive Upgrades: <span class='text-green-200'>${config.epicResearchFTLLevel}/40</span><br>` +
+                `FTL Drive Upgrades: <span class='text-green-200'>${config.epicResearchFTLLevel}/60</span><br>` +
                 `Zero-g Quantum Containment: <span class='text-green-200'>${config.epicResearchZerogLevel}/10</span>`,
               allowHTML: true,
             }"
@@ -52,7 +52,7 @@
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 cursor-pointer',
                   'group inline-flex items-center py-1 px-1 border-b-2 font-medium text-sm',
                 ]"
-                @click="selectedLevel = levelLoot.level"
+                @click="forceLevel(levelLoot.level)"
               >
                 {{ levelLoot.level }}<star-icon class="h-4 w-4 text-yellow-400" />
               </div>
@@ -137,7 +137,7 @@
         </li>
       </ul>
 
-      <template v-if="!tooLittleDataForSelectedLevel"> 
+      <template v-if="!tooLittleDataForSelectedLevel">
         <hr />
 
         <p class="text-sm">
@@ -216,7 +216,7 @@ import { StarIcon } from '@heroicons/vue/solid';
 
 import {
   allPossibleTiers,
-  noFragTargets as targets,
+  noFragTargets as allTargets,
   ei,
   getArtifactTierPropsFromId,
   getLocalStorage,
@@ -264,6 +264,7 @@ function loadItemsSortBy(): ItemsSortBy {
   return s;
 }
 
+
 // List of item ids of artifacts only, excluding stones and ingredients.
 const artifactItemIds = allPossibleTiers
   .filter(t => t.afx_type === ei.ArtifactSpec.Type.ARTIFACT)
@@ -289,13 +290,18 @@ export default defineComponent({
   setup(props) {
     const { missionId } = toRefs(props);
     const mission = computed(() => getMissionTypeFromId(missionId.value));
-    
+
 
     const configuredLevel = computed(() => config.value.shipLevels[mission.value.shipType]);
     const selectedLevel = ref(configuredLevel.value);
-    const forceLevel = (level: number) => { selectedLevel.value = level };
+    const forceLevel = (level: number) => {
+      selectedLevel.value = level
+      if (tooLittleDataForSelectedLevel.value && !config.value.showNodata) {
+        selectedTarget.value = defaultTarget;
+      }
+    };
     const selectLevel = (event: Event) => {
-      selectedLevel.value = parseInt((event.target! as HTMLSelectElement).value);
+      forceLevel(parseInt((event.target! as HTMLSelectElement).value));
     };
     watch(configuredLevel, (current, prev) => {
       if (selectedLevel.value === prev) {
@@ -325,12 +331,22 @@ export default defineComponent({
       selectedLevelLoot.value.targets.find(x => x.targetAfxId === selectedTarget.value)
     );
 
+    const targets = computed(() =>
+      config.value.showNodata ?
+      allTargets :
+      allTargets.filter(target =>
+        target == ei.ArtifactSpec.Name.UNKNOWN ||
+        !missionDataNotEnough(mission.value, selectedLevelLoot.value.targets.find(loot => loot.targetAfxId === target )?.totalDrops ?? 0)
+      )
+    );
+
     const tooLittleDataForSelectedLevel = computed(() =>
       selectedLevelTargetLoot.value ?
       missionDataNotEnough(mission.value, selectedLevelTargetLoot.value.totalDrops) : true
     );
+
     const sortedItemsLoot = computed(() =>
-      selectedLevelTargetLoot.value ? 
+      selectedLevelTargetLoot.value ?
       [...selectedLevelTargetLoot.value.items].sort((i1, i2) => {
         const item1 = getArtifactTierPropsFromId(i1.itemId);
         const item2 = getArtifactTierPropsFromId(i2.itemId);
@@ -364,7 +380,7 @@ export default defineComponent({
       const selectedLevelExpectedFullConsumptionValuePerShip = computed(
         ()=>{
               const consumationValue = computed(() => getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, selectedTarget.value));
-              return [consumationValue.value[0] * selectedLevelCapacity.value, consumationValue.value[1] * selectedLevelCapacity.value];          
+              return [consumationValue.value[0] * selectedLevelCapacity.value, consumationValue.value[1] * selectedLevelCapacity.value];
         }
     );
     const selectedLevelExpectedFullConsumptionValuePerDay = computed(
@@ -405,6 +421,7 @@ export default defineComponent({
       selectedLevelExpectedFullConsumptionValuePerDay,
       precision,
       selectLevel,
+      forceLevel,
       getTargetName,
       sortedItemsLoot,
       config,
@@ -414,6 +431,7 @@ export default defineComponent({
       titleCase,
       iconURL,
       id2url,
+      missionDataNotEnough,
       targets,
     };
   },

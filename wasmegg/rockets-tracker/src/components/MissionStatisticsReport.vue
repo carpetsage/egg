@@ -18,7 +18,7 @@
           FTL Drive Upgrades
         </div>
         <div class="flex items-center text-xs text-green-500 tabular-nums">
-          {{ missionStats.config.epicResearchFTLLevel }} / 40
+          {{ missionStats.config.epicResearchFTLLevel }} / 60
         </div>
 
         <div
@@ -41,7 +41,7 @@
       </div>
       <div
         v-if="
-          missionStats.config.epicResearchFTLLevel < 40 ||
+          missionStats.config.epicResearchFTLLevel < 60 ||
           missionStats.config.epicResearchZerogLevel < 10
         "
         class="text-xs mt-2"
@@ -306,7 +306,7 @@ export default defineComponent({
     });
     const allShipsUnlocked = computed(
       () =>
-        lastShip.value !== null && lastShip.value.shipType === ei.MissionInfo.Spaceship.HENERPRISE
+        lastShip.value !== null && lastShip.value.shipType === ei.MissionInfo.Spaceship.ATREGGIES
     );
     const requiredRemainingLaunchesToUnlockNextShip = computed(
       () => lastShip.value?.requiredRemainingLaunchesToUnlockNextShip || 0
@@ -315,7 +315,7 @@ export default defineComponent({
     const lastShipMaxedOut = computed(
       () =>
         lastShip.value !== null &&
-        lastShip.value.shipType >= ei.MissionInfo.Spaceship.HENERPRISE &&
+        lastShip.value.shipType >= ei.MissionInfo.Spaceship.ATREGGIES &&
         lastShip.value.currentLevel >= shipMaxLevel(lastShip.value.shipType)
     );
     const congratulationsDismissed = ref(

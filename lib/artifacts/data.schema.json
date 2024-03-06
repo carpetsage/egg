@@ -196,6 +196,12 @@
             "quality": {
               "type": "number"
             },
+            "crafting_xp": {
+              "type": "number"
+            },
+            "odds_multiplier": {
+              "type": "number"
+            },
             "craftable": {
               "description": "Whether the item is craftable (false for T1 items, true otherwise)",
               "type": "boolean"
@@ -277,6 +283,9 @@
         },
         "rarity": {
           "type": "string"
+        },
+        "odds_multiplier": {
+          "type": "number"
         },
         "effect": {
           "description": "The full effect description",

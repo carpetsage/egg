@@ -11,6 +11,9 @@ build: data
 data:
 	./update-loot-data.sh
 
+testdata:
+	./update-loot-data.sh test
+
 dist: build
 	../_tools/build.py dist --additional assets --additional static
 

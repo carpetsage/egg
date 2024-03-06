@@ -357,6 +357,14 @@ export class InventoryItem {
     return singleCraftCost(params, this.crafted);
   }
 
+  get totalCraftingXp(): number {
+    return this.crafted * this.afxTier.crafting_xp;
+  }
+
+  get xpPerGE(): number {
+    return this.afxTier.crafting_xp/this.nextCraftCost;
+  }
+
   get possibleRarities(): Rarity[] | null {
     return this.afxTier.possible_afx_rarities;
   }

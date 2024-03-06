@@ -931,7 +931,7 @@ const artifactClub = computed((): ArtifactClub | null => {
       return ArtifactClub.ZERO_LEGENDARY_CLUB;
     }
   }
-  if (inventory.value.distinctLegendaryCount >= 21) {
+  if (inventory.value.distinctLegendaryCount >= 22) {
     return ArtifactClub.ALL_LEGENDARIES_CLUB;
   }
   if (STAFF_USER_ID_HASHES.includes(userIdHash.value)) {
@@ -944,7 +944,7 @@ const shipClub = computed((): ShipClub | null => {
   let allMissionsMaxed = true;
   if (
     stats.ships.length === 0 ||
-    stats.ships[stats.ships.length - 1].shipType !== Spaceship.HENERPRISE
+    stats.ships[stats.ships.length - 1].shipType !== Spaceship.ATREGGIES
   ) {
     allMissionsMaxed = false;
   } else {

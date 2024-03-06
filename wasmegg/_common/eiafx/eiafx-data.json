@@ -62,7 +62,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 1
         },
         {
           "family": {
@@ -148,7 +149,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 32
         },
         {
           "family": {
@@ -246,7 +248,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 17767
         },
         {
           "family": {
@@ -370,7 +373,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.72
+          "odds_multiplier": 0.72,
+          "crafting_xp": 252473
         }
       ]
     },
@@ -423,10 +427,10 @@
             {
               "afx_rarity": 0,
               "rarity": "Common",
-              "effect": "+50% away earnings",
+              "effect": "+100% away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+50%",
-              "effect_delta": 0.5,
+              "effect_size": "+100%",
+              "effect_delta": 1,
               "family_effect": "Increases away earnings",
               "slots": 0,
               "odds_multiplier": 0.9
@@ -435,7 +439,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 1
         },
         {
           "family": {
@@ -475,10 +480,10 @@
             {
               "afx_rarity": 0,
               "rarity": "Common",
-              "effect": "+100% away earnings",
+              "effect": "+300% away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+100%",
-              "effect_delta": 1,
+              "effect_size": "+300%",
+              "effect_delta": 3,
               "family_effect": "Increases away earnings",
               "slots": 0,
               "odds_multiplier": 0.9
@@ -486,10 +491,10 @@
             {
               "afx_rarity": 1,
               "rarity": "Rare",
-              "effect": "+150% away earnings",
+              "effect": "8x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+150%",
-              "effect_delta": 1.5,
+              "effect_size": "8x",
+              "effect_delta": 7,
               "family_effect": "Increases away earnings",
               "slots": 1,
               "odds_multiplier": 0.03
@@ -521,7 +526,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 273
         },
         {
           "family": {
@@ -561,10 +567,10 @@
             {
               "afx_rarity": 0,
               "rarity": "Common",
-              "effect": "+300% away earnings",
+              "effect": "20x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+300%",
-              "effect_delta": 3,
+              "effect_size": "20x",
+              "effect_delta": 19,
               "family_effect": "Increases away earnings",
               "slots": 0,
               "odds_multiplier": 0.9
@@ -572,10 +578,10 @@
             {
               "afx_rarity": 1,
               "rarity": "Rare",
-              "effect": "+400% away earnings",
+              "effect": "40x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+400%",
-              "effect_delta": 4,
+              "effect_size": "40x",
+              "effect_delta": 39,
               "family_effect": "Increases away earnings",
               "slots": 1,
               "odds_multiplier": 0.045
@@ -607,7 +613,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 13972
         },
         {
           "family": {
@@ -636,7 +643,7 @@
             91819.475854,
             374317.488459,
             550423.185354,
-            699243.860053
+            1081741.927429
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -651,10 +658,10 @@
             {
               "afx_rarity": 0,
               "rarity": "Common",
-              "effect": "+500% away earnings",
+              "effect": "50x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+500%",
-              "effect_delta": 5,
+              "effect_size": "50x",
+              "effect_delta": 49,
               "family_effect": "Increases away earnings",
               "slots": 0,
               "odds_multiplier": 0.9
@@ -662,10 +669,10 @@
             {
               "afx_rarity": 1,
               "rarity": "Rare",
-              "effect": "+700% away earnings",
+              "effect": "100x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+700%",
-              "effect_delta": 7,
+              "effect_size": "100x",
+              "effect_delta": 99,
               "family_effect": "Increases away earnings",
               "slots": 1,
               "odds_multiplier": 0.03
@@ -673,10 +680,10 @@
             {
               "afx_rarity": 2,
               "rarity": "Epic",
-              "effect": "+900% away earnings",
+              "effect": "150x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+900%",
-              "effect_delta": 9,
+              "effect_size": "150x",
+              "effect_delta": 149,
               "family_effect": "Increases away earnings",
               "slots": 2,
               "odds_multiplier": 0.0036
@@ -684,13 +691,13 @@
             {
               "afx_rarity": 3,
               "rarity": "Legendary",
-              "effect": "+???% away earnings",
+              "effect": "200x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+1000000000%",
-              "effect_delta": 9,
+              "effect_size": "200x",
+              "effect_delta": 199,
               "family_effect": "Increases away earnings",
-              "slots": 9,
-              "odds_multiplier": 0.0006
+              "slots": 3,
+              "odds_multiplier": 0.000006
             }
           ],
           "recipe": {
@@ -731,7 +738,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 210070
         }
       ]
     },
@@ -796,7 +804,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 2
         },
         {
           "family": {
@@ -882,7 +891,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 175
         },
         {
           "family": {
@@ -993,7 +1003,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 7514
         },
         {
           "family": {
@@ -1117,7 +1128,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 70868
         }
       ]
     },
@@ -1182,7 +1194,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 3
         },
         {
           "family": {
@@ -1268,7 +1281,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 2546
         },
         {
           "family": {
@@ -1366,7 +1380,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 38768
         },
         {
           "family": {
@@ -1477,7 +1492,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 371742
         }
       ]
     },
@@ -1542,7 +1558,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 3
         },
         {
           "family": {
@@ -1615,7 +1632,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 699
         },
         {
           "family": {
@@ -1726,7 +1744,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 16424
         },
         {
           "family": {
@@ -1850,7 +1869,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 114342
         }
       ]
     },
@@ -1915,7 +1935,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 4
         },
         {
           "family": {
@@ -2001,7 +2022,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 3236
         },
         {
           "family": {
@@ -2112,7 +2134,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 36318
         },
         {
           "family": {
@@ -2223,7 +2246,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 270812
         }
       ]
     },
@@ -2288,7 +2312,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 23
         },
         {
           "family": {
@@ -2374,7 +2399,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 4528
         },
         {
           "family": {
@@ -2472,7 +2498,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 44048
         },
         {
           "family": {
@@ -2583,7 +2610,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 464653
         }
       ]
     },
@@ -2648,7 +2676,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 106
         },
         {
           "family": {
@@ -2734,7 +2763,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 3236
         },
         {
           "family": {
@@ -2832,7 +2862,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 20703
         },
         {
           "family": {
@@ -2956,7 +2987,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 114342
         }
       ]
     },
@@ -3021,7 +3053,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 220
         },
         {
           "family": {
@@ -3107,7 +3140,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 6823
         },
         {
           "family": {
@@ -3205,7 +3239,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 46885
         },
         {
           "family": {
@@ -3329,7 +3364,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.45
+          "odds_multiplier": 0.45,
+          "crafting_xp": 871817
         }
       ]
     },
@@ -3394,7 +3430,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 335
         },
         {
           "family": {
@@ -3467,7 +3504,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 5586
         },
         {
           "family": {
@@ -3565,7 +3603,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 33987
         },
         {
           "family": {
@@ -3676,7 +3715,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 192350
         }
       ]
     },
@@ -3741,7 +3781,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 1126
         },
         {
           "family": {
@@ -3826,7 +3867,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 10830
         },
         {
           "family": {
@@ -3911,7 +3953,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 66967
         },
         {
           "family": {
@@ -4022,7 +4065,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 481723
         }
       ]
     },
@@ -4087,7 +4131,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 1343
         },
         {
           "family": {
@@ -4160,7 +4205,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 9913
         },
         {
           "family": {
@@ -4258,7 +4304,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 63232
         },
         {
           "family": {
@@ -4382,7 +4429,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.45
+          "odds_multiplier": 0.45,
+          "crafting_xp": 604836
         }
       ]
     },
@@ -4447,7 +4495,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 1727
         },
         {
           "family": {
@@ -4545,7 +4594,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 9057
         },
         {
           "family": {
@@ -4656,7 +4706,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 46885
         },
         {
           "family": {
@@ -4767,7 +4818,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 371742
         }
       ]
     },
@@ -4832,7 +4884,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 3236
         },
         {
           "family": {
@@ -4917,7 +4970,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 20703
         },
         {
           "family": {
@@ -5015,7 +5069,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 93053
         },
         {
           "family": {
@@ -5151,7 +5206,8 @@
               "count": 1
             }
           ],
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 775063
         }
       ]
     },
@@ -5216,7 +5272,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 4528
         },
         {
           "family": {
@@ -5314,7 +5371,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 23997
         },
         {
           "family": {
@@ -5425,7 +5483,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 139175
         },
         {
           "family": {
@@ -5574,7 +5633,8 @@
               "count": 4
             }
           ],
-          "odds_multiplier": 0.63
+          "odds_multiplier": 0.63,
+          "crafting_xp": 992590
         }
       ]
     },
@@ -5639,7 +5699,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 5306
         },
         {
           "family": {
@@ -5724,7 +5785,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 35138
         },
         {
           "family": {
@@ -5809,7 +5871,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 175798
         },
         {
           "family": {
@@ -5945,7 +6008,8 @@
               "count": 10
             }
           ],
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 936029
         }
       ]
     },
@@ -6010,7 +6074,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 5586
         },
         {
           "family": {
@@ -6095,7 +6160,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 38768
         },
         {
           "family": {
@@ -6193,7 +6259,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 201060
         },
         {
           "family": {
@@ -6341,7 +6408,8 @@
               "count": 12
             }
           ],
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 680184
         }
       ]
     },
@@ -6406,7 +6474,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 10830
         },
         {
           "family": {
@@ -6491,7 +6560,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 59659
         },
         {
           "family": {
@@ -6589,7 +6659,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 282119
         },
         {
           "family": {
@@ -6738,7 +6809,8 @@
               "count": 2
             }
           ],
-          "odds_multiplier": 0.45
+          "odds_multiplier": 0.45,
+          "crafting_xp": 1522971
         }
       ]
     },
@@ -6803,7 +6875,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.63
+          "odds_multiplier": 0.63,
+          "crafting_xp": 32903
         },
         {
           "family": {
@@ -6888,7 +6961,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.45
+          "odds_multiplier": 0.45,
+          "crafting_xp": 139767
         },
         {
           "family": {
@@ -6986,7 +7060,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.45
+          "odds_multiplier": 0.45,
+          "crafting_xp": 728996
         },
         {
           "family": {
@@ -7147,7 +7222,8 @@
               "count": 8
             }
           ],
-          "odds_multiplier": 0.09
+          "odds_multiplier": 0.09,
+          "crafting_xp": 4858320
         }
       ]
     },
@@ -7212,7 +7288,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 41344
         },
         {
           "family": {
@@ -7297,7 +7374,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.45
+          "odds_multiplier": 0.45,
+          "crafting_xp": 237510
         },
         {
           "family": {
@@ -7395,7 +7473,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.27
+          "odds_multiplier": 0.27,
+          "crafting_xp": 1043048
         },
         {
           "family": {
@@ -7543,7 +7622,8 @@
               "count": 10
             }
           ],
-          "odds_multiplier": 0.18
+          "odds_multiplier": 0.18,
+          "crafting_xp": 3663626
         }
       ]
     },
@@ -7608,7 +7688,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 46885
         },
         {
           "family": {
@@ -7706,7 +7787,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 139175
         },
         {
           "family": {
@@ -7804,7 +7886,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 481723
         },
         {
           "family": {
@@ -7952,7 +8035,8 @@
               "count": 10
             }
           ],
-          "odds_multiplier": 0.9
+          "odds_multiplier": 0.9,
+          "crafting_xp": 1224134
         }
       ]
     },
@@ -8007,7 +8091,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.59
+          "odds_multiplier": 1.59,
+          "crafting_xp": 1
         },
         {
           "family": {
@@ -8081,7 +8166,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 159
         },
         {
           "family": {
@@ -8155,7 +8241,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 11890
         },
         {
           "family": {
@@ -8229,7 +8316,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 234442
         }
       ]
     },
@@ -8284,7 +8372,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.06
+          "odds_multiplier": 1.06,
+          "crafting_xp": 1
         },
         {
           "family": {
@@ -8358,7 +8447,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 43
         },
         {
           "family": {
@@ -8432,7 +8522,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 8825
         },
         {
           "family": {
@@ -8518,7 +8609,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 202685
         }
       ]
     },
@@ -8573,7 +8665,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.06
+          "odds_multiplier": 1.06,
+          "crafting_xp": 25
         },
         {
           "family": {
@@ -8647,7 +8740,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 93
         },
         {
           "family": {
@@ -8721,7 +8815,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 8825
         },
         {
           "family": {
@@ -8795,7 +8890,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 289070
         }
       ]
     },
@@ -8850,7 +8946,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.06
+          "odds_multiplier": 1.06,
+          "crafting_xp": 255
         },
         {
           "family": {
@@ -8924,7 +9021,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 1733
         },
         {
           "family": {
@@ -8998,7 +9096,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 17357
         },
         {
           "family": {
@@ -9085,7 +9184,8 @@
               "count": 20
             }
           ],
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 407589
         }
       ]
     },
@@ -9140,7 +9240,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.06
+          "odds_multiplier": 1.06,
+          "crafting_xp": 159
         },
         {
           "family": {
@@ -9214,7 +9315,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 1733
         },
         {
           "family": {
@@ -9288,7 +9390,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.05
+          "odds_multiplier": 0.05,
+          "crafting_xp": 45795
         },
         {
           "family": {
@@ -9362,7 +9465,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.04
+          "odds_multiplier": 0.04,
+          "crafting_xp": 283741
         }
       ]
     },
@@ -9417,7 +9521,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.06
+          "odds_multiplier": 1.06,
+          "crafting_xp": 219
         },
         {
           "family": {
@@ -9491,7 +9596,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 9893
         },
         {
           "family": {
@@ -9565,7 +9671,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 68138
         },
         {
           "family": {
@@ -9652,7 +9759,8 @@
               "count": 15
             }
           ],
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 722988
         }
       ]
     },
@@ -9707,7 +9815,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.06
+          "odds_multiplier": 1.06,
+          "crafting_xp": 134
         },
         {
           "family": {
@@ -9781,7 +9890,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 2668
         },
         {
           "family": {
@@ -9855,7 +9965,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 13697
         },
         {
           "family": {
@@ -9929,7 +10040,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 274584
         }
       ]
     },
@@ -9984,7 +10096,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.06
+          "odds_multiplier": 1.06,
+          "crafting_xp": 296
         },
         {
           "family": {
@@ -10058,7 +10171,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 4326
         },
         {
           "family": {
@@ -10132,7 +10246,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 47364
         },
         {
           "family": {
@@ -10219,7 +10334,8 @@
               "count": 15
             }
           ],
-          "odds_multiplier": 0.1
+          "odds_multiplier": 0.1,
+          "crafting_xp": 447455
         }
       ]
     },
@@ -10274,7 +10390,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.06
+          "odds_multiplier": 1.06,
+          "crafting_xp": 2049
         },
         {
           "family": {
@@ -10348,7 +10465,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.07
+          "odds_multiplier": 0.07,
+          "crafting_xp": 21893
         },
         {
           "family": {
@@ -10434,7 +10552,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.05
+          "odds_multiplier": 0.05,
+          "crafting_xp": 191437
         },
         {
           "family": {
@@ -10557,7 +10676,8 @@
               "count": 24
             }
           ],
-          "odds_multiplier": 0.02
+          "odds_multiplier": 0.02,
+          "crafting_xp": 1281227
         }
       ]
     },
@@ -10612,7 +10732,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.06
+          "odds_multiplier": 1.06,
+          "crafting_xp": 2450
         },
         {
           "family": {
@@ -10686,7 +10807,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.05
+          "odds_multiplier": 0.05,
+          "crafting_xp": 32523
         },
         {
           "family": {
@@ -10760,7 +10882,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 0.03
+          "odds_multiplier": 0.03,
+          "crafting_xp": 271491
         },
         {
           "family": {
@@ -10871,7 +10994,8 @@
               "count": 12
             }
           ],
-          "odds_multiplier": 0.02
+          "odds_multiplier": 0.02,
+          "crafting_xp": 1182751
         }
       ]
     },
@@ -10924,7 +11048,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 5.25
+          "odds_multiplier": 5.25,
+          "crafting_xp": 1
         },
         {
           "family": {
@@ -10985,7 +11110,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 3
+          "odds_multiplier": 3,
+          "crafting_xp": 483
         },
         {
           "family": {
@@ -11046,7 +11172,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 2.25
+          "odds_multiplier": 2.25,
+          "crafting_xp": 7814
         }
       ]
     },
@@ -11099,7 +11226,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 3
+          "odds_multiplier": 3,
+          "crafting_xp": 2
         },
         {
           "family": {
@@ -11160,7 +11288,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.8
+          "odds_multiplier": 1.8,
+          "crafting_xp": 1196
         },
         {
           "family": {
@@ -11221,7 +11350,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 2.25
+          "odds_multiplier": 2.25,
+          "crafting_xp": 16135
         }
       ]
     },
@@ -11274,7 +11404,8 @@
           "recipe": null,
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 3
+          "odds_multiplier": 3,
+          "crafting_xp": 5
         },
         {
           "family": {
@@ -11335,7 +11466,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 1.65
+          "odds_multiplier": 1.65,
+          "crafting_xp": 446
         },
         {
           "family": {
@@ -11396,7 +11528,8 @@
           },
           "ingredients_available_from_missions": true,
           "hard_dependencies": null,
-          "odds_multiplier": 2.55
+          "odds_multiplier": 2.55,
+          "crafting_xp": 10090
         }
       ]
     }

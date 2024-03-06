@@ -264,6 +264,14 @@ export function getCompletedExtendedHenerprises(artifactsDB: ei.IArtifactsDB): e
       (mission.status === Status.COMPLETE || mission.status === Status.ARCHIVED)
   );
 }
+export function getCompletedExtendedAtreggies(artifactsDB: ei.IArtifactsDB): ei.IMissionInfo[] {
+  return getLaunchedMissions(artifactsDB).filter(
+    mission =>
+      mission.ship === Spaceship.ATREGGIES &&
+      mission.durationType === DurationType.EPIC &&
+      (mission.status === Status.COMPLETE || mission.status === Status.ARCHIVED)
+  );
+}
 
 export function getMissionStatistics(
   artifactsDB: ei.IArtifactsDB,

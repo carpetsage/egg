@@ -50,7 +50,7 @@
                   id="epic_research_ftl"
                   base-class="block w-number-input sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-1 border-gray-300"
                   :min="0"
-                  :max="40"
+                  :max="60"
                   :model-value="config.epicResearchFTLLevel"
                   @update:model-value="setEpicResearchFTLLevel"
                 />
@@ -119,20 +119,33 @@
                 </div>
               </template>
             </div>
-            <!-- Only show henners -->
             <div>
-                <div class="flex items-center space-x-0.5">
-                  <input
-                    :id="`only_henerprise`"
-                    v-model="config.onlyHenners"
-                    :name="`only_henerprise`"
-                    type="checkbox"
-                    class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-                  />&nbsp;
-                  <label class="text-sm text-gray-600">
-                    Only Show Henerprise
-                  </label>
-                </div>
+              <!-- Only show henners -->
+              <div class="flex items-center space-x-0.5">
+                <input
+                  :id="`only_henerprise`"
+                  v-model="config.onlyHenners"
+                  :name="`only_henerprise`"
+                  type="checkbox"
+                  class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                />&nbsp;
+                <label class="text-sm text-gray-600">
+                  Only Show Henerprise
+                </label>
+              </div>
+              <!-- Display targets with insufficient data -->
+              <div class="flex items-center space-x-0.5">
+                <input
+                  :id="`show_nodata`"
+                  v-model="config.showNodata"
+                  :name="`show_nodata`"
+                  type="checkbox"
+                  class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                />&nbsp;
+                <label class="text-sm text-gray-600">
+                  Show Targets with No data
+                </label>
+              </div>
             </div>
             <!-- Target Selection for Artifact Page -->
             <div>
@@ -177,7 +190,7 @@ import {
 import { XIcon } from '@heroicons/vue/solid';
 
 import BaseIntegerInput from 'ui/components/BaseIntegerInput.vue';
-import {ei, iconURL, getTargetName, getImageUrlFromId as id2url, shipMaxLevel, spaceshipIconPath, spaceshipList, spaceshipName, targets } from 'lib';
+import {ei, iconURL, getTargetName, getImageUrlFromId as id2url, shipMaxLevel, spaceshipIconPath, spaceshipList, spaceshipName, noFragTargets as targets } from 'lib';
 import {
   closeConfigModal,
   config,
@@ -220,7 +233,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-::v-deep .w-number-input {
+::deep(.w-number-input) {
   width: 4.5rem;
 }
 </style>
