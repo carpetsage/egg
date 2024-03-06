@@ -163,7 +163,7 @@
                 </tr>
               </thead>
               <ship-info
-                v-for="ship in spaceshipList"
+                v-for="ship in spaceshipList.toReversed()"
                 :key="ship"
                 v-model:ship-level="config.shipLevels[ship]"
                 :ship-type="ship"
