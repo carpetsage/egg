@@ -427,10 +427,10 @@
             {
               "afx_rarity": 0,
               "rarity": "Common",
-              "effect": "+50% away earnings",
+              "effect": "+100% away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+50%",
-              "effect_delta": 0.5,
+              "effect_size": "+100%",
+              "effect_delta": 1,
               "family_effect": "Increases away earnings",
               "slots": 0,
               "odds_multiplier": 0.9
@@ -480,10 +480,10 @@
             {
               "afx_rarity": 0,
               "rarity": "Common",
-              "effect": "+100% away earnings",
+              "effect": "+300% away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+100%",
-              "effect_delta": 1,
+              "effect_size": "+300%",
+              "effect_delta": 3,
               "family_effect": "Increases away earnings",
               "slots": 0,
               "odds_multiplier": 0.9
@@ -491,10 +491,10 @@
             {
               "afx_rarity": 1,
               "rarity": "Rare",
-              "effect": "+150% away earnings",
+              "effect": "8x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+150%",
-              "effect_delta": 1.5,
+              "effect_size": "8x",
+              "effect_delta": 7,
               "family_effect": "Increases away earnings",
               "slots": 1,
               "odds_multiplier": 0.03
@@ -567,10 +567,10 @@
             {
               "afx_rarity": 0,
               "rarity": "Common",
-              "effect": "+300% away earnings",
+              "effect": "20x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+300%",
-              "effect_delta": 3,
+              "effect_size": "20x",
+              "effect_delta": 19,
               "family_effect": "Increases away earnings",
               "slots": 0,
               "odds_multiplier": 0.9
@@ -578,10 +578,10 @@
             {
               "afx_rarity": 1,
               "rarity": "Rare",
-              "effect": "+400% away earnings",
+              "effect": "40x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+400%",
-              "effect_delta": 4,
+              "effect_size": "40x",
+              "effect_delta": 39,
               "family_effect": "Increases away earnings",
               "slots": 1,
               "odds_multiplier": 0.045
@@ -658,10 +658,10 @@
             {
               "afx_rarity": 0,
               "rarity": "Common",
-              "effect": "+500% away earnings",
+              "effect": "50x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+500%",
-              "effect_delta": 5,
+              "effect_size": "50x",
+              "effect_delta": 49,
               "family_effect": "Increases away earnings",
               "slots": 0,
               "odds_multiplier": 0.9
@@ -669,10 +669,10 @@
             {
               "afx_rarity": 1,
               "rarity": "Rare",
-              "effect": "+700% away earnings",
+              "effect": "100x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+700%",
-              "effect_delta": 7,
+              "effect_size": "100x",
+              "effect_delta": 99,
               "family_effect": "Increases away earnings",
               "slots": 1,
               "odds_multiplier": 0.03
@@ -680,10 +680,10 @@
             {
               "afx_rarity": 2,
               "rarity": "Epic",
-              "effect": "+900% away earnings",
+              "effect": "150x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+900%",
-              "effect_delta": 9,
+              "effect_size": "150x",
+              "effect_delta": 149,
               "family_effect": "Increases away earnings",
               "slots": 2,
               "odds_multiplier": 0.0036
@@ -691,12 +691,12 @@
             {
               "afx_rarity": 3,
               "rarity": "Legendary",
-              "effect": "+???% away earnings",
+              "effect": "200x away earnings",
               "effect_target": "away earnings",
-              "effect_size": "+1000000000%",
-              "effect_delta": 9,
+              "effect_size": "200x",
+              "effect_delta": 199,
               "family_effect": "Increases away earnings",
-              "slots": 9,
+              "slots": 3,
               "odds_multiplier": 0.000006
             }
           ],
