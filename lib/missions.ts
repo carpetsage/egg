@@ -753,8 +753,8 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
       new MissionFuel(ei.Egg.DARK_MATTER, 3e12),
     ],
     [DurationType.LONG]: [
-      new MissionFuel(ei.Egg.DILITHIUM, 7e12),
-      new MissionFuel(ei.Egg.ANTIMATTER, 3e12),
+      new MissionFuel(ei.Egg.DILITHIUM, 6e12),
+      new MissionFuel(ei.Egg.ANTIMATTER, 6e12),
       new MissionFuel(ei.Egg.DARK_MATTER, 4e12),
     ],
     [DurationType.EPIC]: [
