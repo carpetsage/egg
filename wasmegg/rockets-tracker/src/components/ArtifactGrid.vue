@@ -135,10 +135,12 @@
                         </span>
 
                         <template #content>
-                          You spent an estimated
+                          <p>You spent an estimated
                           <span class="text-yellow-300">{{ ts(tier.sunkCost) }}</span>
-                          golden eggs on crafting this item.
-
+                          golden eggs on crafting this item and gained
+                          <span class="text-blue-300">{{ ts(tier.totalCraftingXp) }}</span>
+                          xp from crafting this item.
+                          </p>
                           <template v-if="tier.isArtifact">
                             The next craft has a
                             <template v-for="rarity in tier.possibleRarities" :key="rarity">

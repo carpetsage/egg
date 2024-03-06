@@ -7,7 +7,7 @@
           <div
             v-tippy="{
               content:
-                `FTL Drive Upgrades: <span class='text-green-200'>${config.epicResearchFTLLevel}/40</span><br>` +
+                `FTL Drive Upgrades: <span class='text-green-200'>${config.epicResearchFTLLevel}/60</span><br>` +
                 `Zero-g Quantum Containment: <span class='text-green-200'>${config.epicResearchZerogLevel}/10</span>`,
               allowHTML: true,
             }"

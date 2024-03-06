@@ -50,7 +50,7 @@
                   id="epic_research_ftl"
                   base-class="block w-number-input sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-1 border-gray-300"
                   :min="0"
-                  :max="40"
+                  :max="60"
                   :model-value="config.epicResearchFTLLevel"
                   @update:model-value="setEpicResearchFTLLevel"
                 />
@@ -190,7 +190,7 @@ import {
 import { XIcon } from '@heroicons/vue/solid';
 
 import BaseIntegerInput from 'ui/components/BaseIntegerInput.vue';
-import {ei, iconURL, getTargetName, getImageUrlFromId as id2url, shipMaxLevel, spaceshipIconPath, spaceshipList, spaceshipName, targets } from 'lib';
+import {ei, iconURL, getTargetName, getImageUrlFromId as id2url, shipMaxLevel, spaceshipIconPath, spaceshipList, spaceshipName, noFragTargets as targets } from 'lib';
 import {
   closeConfigModal,
   config,

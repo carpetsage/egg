@@ -36,6 +36,11 @@ export const targets = [
   Artifact.TACHYON_STONE_FRAGMENT, Artifact.TERRA_STONE_FRAGMENT, Artifact.UNKNOWN,
 ];
 
+export const fragments = [Artifact.CLARITY_STONE_FRAGMENT, Artifact.DILITHIUM_STONE_FRAGMENT,
+  Artifact.LIFE_STONE_FRAGMENT, Artifact.LUNAR_STONE_FRAGMENT, Artifact.PROPHECY_STONE_FRAGMENT,
+  Artifact.QUANTUM_STONE_FRAGMENT, Artifact.SHELL_STONE_FRAGMENT, Artifact.SOUL_STONE_FRAGMENT,
+  Artifact.TACHYON_STONE_FRAGMENT, Artifact.TERRA_STONE_FRAGMENT];
+
 export const noFragTargets = [Artifact.UNKNOWN, Artifact.PUZZLE_CUBE, Artifact.LUNAR_TOTEM, Artifact.DEMETERS_NECKLACE,
   Artifact.VIAL_MARTIAN_DUST, Artifact.AURELIAN_BROOCH, Artifact.TUNGSTEN_ANKH,
   Artifact.ORNATE_GUSSET, Artifact.NEODYMIUM_MEDALLION, Artifact.MERCURYS_LENS,
@@ -46,7 +51,7 @@ export const noFragTargets = [Artifact.UNKNOWN, Artifact.PUZZLE_CUBE, Artifact.L
   Artifact.GOLD_METEORITE, Artifact.TAU_CETI_GEODE, Artifact.SOLAR_TITANIUM,
   Artifact.CLARITY_STONE, Artifact.DILITHIUM_STONE, Artifact.LIFE_STONE,
   Artifact.LUNAR_STONE, Artifact.PROPHECY_STONE, Artifact.QUANTUM_STONE,
-  Artifact.SHELL_STONE, Artifact.SOUL_STONE, Artifact.TACHYON_STONE]
+  Artifact.SHELL_STONE, Artifact.SOUL_STONE, Artifact.TACHYON_STONE];
 
 // Default selection state for targets.
 const targetDefaults: Record<Artifact,boolean> = {
@@ -80,6 +85,7 @@ export const spaceshipList = [
   Spaceship.CHICKFIANT,
   Spaceship.VOYEGGER,
   Spaceship.HENERPRISE,
+  Spaceship.ATREGGIES,
 ];
 
 export const missionDurationTypeList = [
@@ -134,6 +140,7 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
       [Spaceship.CHICKFIANT]: 0,
       [Spaceship.VOYEGGER]: 0,
       [Spaceship.HENERPRISE]: 0,
+      [Spaceship.ATREGGIES]: 0,
     },
     targets: targetDefaults,
   };
@@ -150,10 +157,14 @@ export function fixOldShipsConfig(x: OldShipsConfig): ShipsConfig {
 export function isShipsConfig(x: unknown): x is ShipsConfig {
   const validOldConfig = isOldShipsConfig(x);
 
-  if ((x as ShipsConfig).onlyHenners === undefined) {
-    return false;
+  // fix old config
+  if (validOldConfig) {
+    if ((x as ShipsConfig).showNodata === undefined) {
+      fixOldShipsConfig(x as OldShipsConfig);
+    }
+    // forcibly uncheck any frag targets before removing them from the ui
+    fragments.forEach( fragment => x.targets[fragment] = false);
   }
-
   return validOldConfig;
 }
 
@@ -186,6 +197,10 @@ export function isOldShipsConfig(x: unknown): x is OldShipsConfig {
       return false;
     }
   } catch (TypeError) { return false; }
+
+  if ((x as ShipsConfig).onlyHenners === undefined) {
+    return false;
+  }
 
   return true;
 }
@@ -465,6 +480,7 @@ export function newMissionTypeMapFromFactory<T>(
     [Spaceship.CHICKFIANT]: innerFactory(Spaceship.CHICKFIANT),
     [Spaceship.VOYEGGER]: innerFactory(Spaceship.VOYEGGER),
     [Spaceship.HENERPRISE]: innerFactory(Spaceship.HENERPRISE),
+    [Spaceship.ATREGGIES]: innerFactory(Spaceship.ATREGGIES),
   };
 }
 
@@ -494,6 +510,8 @@ export function spaceshipName(spaceship: Spaceship): string {
       return 'Voyegger';
     case Spaceship.HENERPRISE:
       return 'Henerprise';
+    case Spaceship.ATREGGIES:
+      return 'Atreggies Henliner';
     default:
       return 'Unknown';
   }
@@ -521,6 +539,8 @@ export function spaceshipIconPath(spaceship: Spaceship): string {
       return 'egginc/afx_ship_voyegger.png';
     case Spaceship.HENERPRISE:
       return 'egginc/afx_ship_henerprise.png';
+    case Spaceship.ATREGGIES:
+      return 'egginc/afx_ship_atreggies.png';
     default:
       return 'egginc/icon_help.png';
   }
@@ -725,6 +745,25 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
       new MissionFuel(ei.Egg.DARK_MATTER, 3e12),
     ],
   },
+  [Spaceship.ATREGGIES]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [
+      new MissionFuel(ei.Egg.DILITHIUM, 4e12),
+      new MissionFuel(ei.Egg.ANTIMATTER, 4e12),
+      new MissionFuel(ei.Egg.DARK_MATTER, 3e12),
+    ],
+    [DurationType.LONG]: [
+      new MissionFuel(ei.Egg.DILITHIUM, 7e12),
+      new MissionFuel(ei.Egg.ANTIMATTER, 3e12),
+      new MissionFuel(ei.Egg.DARK_MATTER, 4e12),
+    ],
+    [DurationType.EPIC]: [
+      new MissionFuel(ei.Egg.TACHYON, 2e12),
+      new MissionFuel(ei.Egg.DILITHIUM, 6e12),
+      new MissionFuel(ei.Egg.ANTIMATTER, 6e12),
+      new MissionFuel(ei.Egg.DARK_MATTER, 6e12),
+    ],
+  },
 };
 
 export function requiredTotalLaunchesToUnlockNextShip(shipType: Spaceship): number {
@@ -749,6 +788,8 @@ export function requiredTotalLaunchesToUnlockNextShip(shipType: Spaceship): numb
       return 30;
     case Spaceship.HENERPRISE:
       return Infinity;
+    case Spaceship.ATREGGIES:
+      return Infinity;
   }
 }
 
@@ -764,6 +805,7 @@ const shipLevelRequirements: Record<Spaceship, number[]> = (() => {
     [Spaceship.CHICKFIANT]: [],
     [Spaceship.VOYEGGER]: [],
     [Spaceship.HENERPRISE]: [],
+    [Spaceship.ATREGGIES]: [],
   };
   for (const mp of eiafxConfig.missionParameters) {
     const ship = Spaceship[mp.ship];
@@ -788,7 +830,7 @@ export function shipLevelLaunchPointThresholds(shipType: Spaceship): number[] {
 }
 
 export const perfectShipsConfig: ShipsConfig = {
-  epicResearchFTLLevel: 40,
+  epicResearchFTLLevel: 60,
   epicResearchZerogLevel: 10,
   onlyHenners: false,
   showNodata: false,
@@ -803,6 +845,7 @@ export const perfectShipsConfig: ShipsConfig = {
     [Spaceship.CHICKFIANT]: shipMaxLevel(Spaceship.CHICKFIANT),
     [Spaceship.VOYEGGER]: shipMaxLevel(Spaceship.VOYEGGER),
     [Spaceship.HENERPRISE]: shipMaxLevel(Spaceship.HENERPRISE),
+    [Spaceship.ATREGGIES]: shipMaxLevel(Spaceship.ATREGGIES),
   },
   targets: targetDefaults,
 };
