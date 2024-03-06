@@ -2,13 +2,16 @@ import { ei } from '../proto';
 import data, { AfxFamily, AfxTier, getArtifactFamilyProps, getArtifactTierProps } from './data';
 import { CraftingPriceParams, Recipe } from './data.json';
 import { Artifact, cmpArtifacts } from './effects';
+import { titleCase } from '../utils';
 
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;
 import Rarity = ei.ArtifactSpec.Rarity;
 import Type = ei.ArtifactSpec.Type;
 
+
 type ItemId = string;
+export type craftingStats = { tier: `T${number}`, name: string, crafts: number, sunkCost: number, craftingCost: number, craftingXP: number, totalCraftingXP: number, xpPerGE: number }
 
 const itemIdToRecipe = new Map<ItemId, Recipe | null>(
   data.artifact_families
@@ -305,6 +308,13 @@ export class InventoryItem {
     return this.afxTier.tier_number;
   }
 
+  get familyName(): string {
+    return titleCase(this.afxTier.family.name.replace("The ",''));
+  }
+  get fullName(): string {
+    return `T${this.tierNumber} ${this.afxTier.family.name}`;
+  }
+
   get name(): string {
     return this.afxTier.name;
   }
@@ -357,12 +367,28 @@ export class InventoryItem {
     return singleCraftCost(params, this.crafted);
   }
 
+  get craftXP(): number {
+    return this.afxTier.crafting_xp;
+  }
+
   get totalCraftingXp(): number {
     return this.crafted * this.afxTier.crafting_xp;
   }
 
   get xpPerGE(): number {
     return this.afxTier.crafting_xp/this.nextCraftCost;
+  }
+
+  get craftingStats(): craftingStats {
+    return {
+      tier: `T${this.tierNumber}`,
+      name: this.familyName,
+      crafts: this.crafted,
+      sunkCost: this.sunkCost,
+      craftingCost: this.nextCraftCost,
+      craftingXP: this.craftXP,
+      totalCraftingXP: this.totalCraftingXp,
+      xpPerGE: this.xpPerGE }
   }
 
   get possibleRarities(): Rarity[] | null {
@@ -375,9 +401,7 @@ export class InventoryItem {
 
   craftChance(craft_level_mult: number, rarity: Rarity, previous_crafts: number): number {
     //if no effects: It's a stone, this shouldn't even have been called.
-    if (!this.afxTier.effects) {
-       return 0;
-    }
+    if (!this.afxTier.effects) { return 0; }
     for (const effect of this.afxTier.effects) {
       if (rarity === effect.afx_rarity) {
         const base_rate = this.afxTier.odds_multiplier/effect.odds_multiplier;
