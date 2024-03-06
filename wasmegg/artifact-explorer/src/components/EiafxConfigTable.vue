@@ -352,6 +352,8 @@ function shipAbbrevName(ship: Spaceship): string {
       return 'V';
     case Spaceship.HENERPRISE:
       return 'H';
+    case Spaceship.ATREGGIES:
+      return 'A';
   }
 }
 
