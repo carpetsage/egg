@@ -95,7 +95,7 @@ export default defineComponent({
       throw new Error(`${playerId}: no artifacts database in backup`);
     }
     const inventory = computed(() => new Inventory(artifactsDB));
-    const activeMissions = artifactsDB.missionInfos || [];
+    const activeMissions = artifactsDB.missionInfos?.concat(artifactsDB.fuelingMission ?? []) || [];
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
     reportLegendaries(backup);
     eventBus.on(REPORT_LEGENDARIES, () => {
