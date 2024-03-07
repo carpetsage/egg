@@ -1,6 +1,6 @@
 <!-- This example requires Tailwind CSS v2.0+ -->
 <template>
-  <div class="fixed right-6 bottom-6" :style="{ right: 'max(calc(50vw - 36.5rem), 1.5rem)' }">
+  <div class="fixed right-6 bottom-6">
     <div
       v-tippy="{ content: 'Egg Inc. OoM-aware calculator' }"
       class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-500 shadow-inner cursor-pointer"
