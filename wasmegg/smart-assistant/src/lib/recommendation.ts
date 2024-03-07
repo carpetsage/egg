@@ -442,8 +442,18 @@ export function suggestArtifactSet(
   let habSpaceEffectMultiplierFunc: (delta: number) => number;
   // Effect of the chalice and life stones.
   let internalHatcheryRateEffectMultiplierFunc: (delta: number) => number;
+  let lunarEffectMultiplierFunc: (delta: number) => number = () => 1;
+  let rcbEffectMultiplierFunc: (delta: number) => number = delta => delta + 1;
   switch (strategy) {
     case PrestigeStrategy.PRO_PERMIT_LUNAR:
+      monoclePowerIndex = 2;
+      lunarEffectMultiplierFunc = delta => 1 + delta;
+      rcbEffectMultiplierFunc = () => 1;
+      // More preloaded population => more earnings (assuming almost full habs).
+      habSpaceEffectMultiplierFunc = delta => 1 + delta;
+      // IHR is irrelevant for preload.
+      internalHatcheryRateEffectMultiplierFunc = () => 1;
+      break;
     case PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD:
     case PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD:
       // Monocle affects bird feeds and soul beacons.
@@ -473,7 +483,7 @@ export function suggestArtifactSet(
 
   const bestTotems = contendersInArtifactFamily(
     families.get(Name.LUNAR_TOTEM),
-    delta => strategy === PrestigeStrategy.PRO_PERMIT_LUNAR ? 1 + delta : 1
+    lunarEffectMultiplierFunc
   );
   const bestFeathers = contendersInArtifactFamily(
     families.get(Name.PHOENIX_FEATHER),
@@ -610,7 +620,7 @@ export function suggestArtifactSet(
   // Similar to books, effectMultiplier stored here is additive effect to max RCB.
   const bestVials = contendersInArtifactFamily(
     families.get(Name.VIAL_MARTIAN_DUST),
-    delta => delta
+    rcbEffectMultiplierFunc
   );
   const noVial = new Contenders([new Contender([], [], 0, 0, 0)]);
   const bestTerraStones = bestsInStoneFamily(
@@ -624,7 +634,7 @@ export function suggestArtifactSet(
       bareMaxRCB +
       contender.effectMultiplier +
       stones.reduce((sum, stone) => sum + stone.effectDelta, 0);
-    return maxRCB / bareMaxRCB;
+    return strategy == PrestigeStrategy.PRO_PERMIT_LUNAR ? 1 : maxRCB / bareMaxRCB;
   };
   const rcbCombos = [
     addStonesToContenders(
