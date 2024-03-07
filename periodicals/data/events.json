@@ -12490,5 +12490,23 @@
     "startTimestamp": 1709744400.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1709917200.0,
+    "id": "event-3-7",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1709830800.0,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1709917200.0,
+    "id": "ultra-3-7",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1709830800.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
