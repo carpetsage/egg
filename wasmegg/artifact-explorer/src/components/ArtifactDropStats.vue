@@ -99,13 +99,19 @@ export default defineComponent({
     const expand = ref(getLocalStorage(COLLAPSE_ARTIFACT_DROP_RATES_LOCALSTORAGE_KEY) !== 'true');
     const loot = computed(() => getTierLootData(artifactId.value));
     const filteredMissions = computed(() => {
+      let filtered: ItemMissionLootStore[] = [];
       if (config.value.onlyHenners) {
-        const filtered = loot.value.missions.filter(x => x.afxShip === ei.MissionInfo.Spaceship.HENERPRISE);
-        if (filtered.length > 0) {
-          return filtered;
+        if (config.value.onlyLiners) {
+          filtered = loot.value.missions.filter(x => x.afxShip >= ei.MissionInfo.Spaceship.HENERPRISE);
+        } else {
+          filtered = loot.value.missions.filter(x => x.afxShip === ei.MissionInfo.Spaceship.HENERPRISE);
         }
       }
-      return loot.value.missions;
+      else if (config.value.onlyLiners) {
+        filtered = loot.value.missions.filter(x => x.afxShip === ei.MissionInfo.Spaceship.ATREGGIES);
+      }
+
+      return filtered.length > 0 ? filtered : loot.value.missions;
     }
     )
     const missions = computed(() =>

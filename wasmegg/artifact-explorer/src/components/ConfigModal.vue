@@ -134,6 +134,20 @@
                 </label>
               </div>
               <!-- Display targets with insufficient data -->
+              <!-- Only show liners -->
+              <div class="flex items-center space-x-0.5">
+                <input
+                  :id="`only_liners`"
+                  v-model="config.onlyLiners"
+                  :name="`only_liners`"
+                  type="checkbox"
+                  class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+                />&nbsp;
+                <label class="text-sm text-gray-600">
+                  Only Show Henliners
+                </label>
+              </div>
+              <!-- Display targets with insufficient data -->
               <div class="flex items-center space-x-0.5">
                 <input
                   :id="`show_nodata`"

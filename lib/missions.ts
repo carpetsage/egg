@@ -100,6 +100,7 @@ export interface ShipsConfig {
   epicResearchZerogLevel: number;
   shipLevels: Record<Spaceship, number>;
   onlyHenners: boolean;
+  onlyLiners: boolean;
   showNodata: boolean;
   targets: Record<Artifact, boolean>;
 }
@@ -108,6 +109,7 @@ export interface OldShipsConfig {
   epicResearchFTLLevel: number;
   epicResearchZerogLevel: number;
   shipLevels: Record<Spaceship, number>;
+  onlyHenners: boolean;
   targets: Record<Artifact, boolean>;
 }
 
@@ -128,6 +130,7 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
     epicResearchFTLLevel,
     epicResearchZerogLevel,
     onlyHenners: false,
+    onlyLiners: false,
     showNodata: false,
     shipLevels: {
       [Spaceship.CHICKEN_ONE]: 0,
@@ -148,8 +151,8 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
 
 export function fixOldShipsConfig(x: OldShipsConfig): ShipsConfig {
   const config = (x as ShipsConfig);
-  config.onlyHenners = false;
   config.showNodata = false;
+  config.onlyLiners = false;
   return config;
 }
 
@@ -159,7 +162,7 @@ export function isShipsConfig(x: unknown): x is ShipsConfig {
 
   // fix old config
   if (validOldConfig) {
-    if ((x as ShipsConfig).showNodata === undefined) {
+    if ((x as ShipsConfig).showNodata === undefined || (x as ShipsConfig).onlyLiners === undefined) {
       fixOldShipsConfig(x as OldShipsConfig);
     }
     // forcibly uncheck any frag targets before removing them from the ui
@@ -833,6 +836,7 @@ export const perfectShipsConfig: ShipsConfig = {
   epicResearchFTLLevel: 60,
   epicResearchZerogLevel: 10,
   onlyHenners: false,
+  onlyLiners: false,
   showNodata: false,
   shipLevels: {
     [Spaceship.CHICKEN_ONE]: shipMaxLevel(Spaceship.CHICKEN_ONE),
