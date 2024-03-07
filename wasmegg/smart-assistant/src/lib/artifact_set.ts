@@ -255,6 +255,9 @@ export function artifactSetVirtualEarningsMultiplier(
     case PrestigeStrategy.PRO_PERMIT_MULTI:
       totalMultiplier *= set.internalHatcheryRateMultiplier * set.boostEffectMultiplier ** 3;
       break;
+    case PrestigeStrategy.PRO_PERMIT_LUNAR:
+      totalMultiplier *= set.habSpaceMultiplier * set.boostEffectMultiplier ** 2 * set.awayEarningsMultiplier / equippedFarm.maxRunningChickenBonusWithMaxedCommonResearches;
+      break;
   }
 
   return totalMultiplier;

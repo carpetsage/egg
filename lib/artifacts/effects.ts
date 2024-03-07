@@ -212,6 +212,9 @@ export class ArtifactSet {
     ]);
   }
 
+  get awayEarningsMultiplier(): number {
+    return this.multiplicativeEffect([Name.LUNAR_TOTEM, Name.LUNAR_STONE]);
+  }
   get virtualEarningsMultiplier(): number {
     return this.multiplicativeEffect([Name.PHOENIX_FEATHER]);
   }
