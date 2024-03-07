@@ -142,6 +142,40 @@
       Click to show recommendations for Pro Permit (in case you plan to upgrade)
     </div>
   </div>
+  <div>
+    <div class="text-center text-sm font-medium mb-2">
+      Recommended setup for lunar prestige
+      <template v-if="!hasProPermit">
+        <br />
+        <span class="text-xs text-red-500">Requires Pro Permit</span>
+      </template>
+    </div>
+    <div class="text-s text-center justify-center mb-2 space-y-1">
+      <p>
+        This maybe works?
+      </p>
+    </div>
+    <artifact-gallery
+      :strategy="PrestigeStrategy.PRO_PERMIT_LUNAR"
+      :artifact-set="suggestedForProPermitLunar?.artifactSet"
+      :artifact-assembly-statuses="suggestedForProPermitLunar.assemblyStatuses"
+      :reference-set="currentlyEquipped"
+      :farm="homeFarm"
+      :is-enlightenment="false"
+      :bird-feed-active="true"
+      :soul-beacon-active="true"
+      :boost-beacon-active="true"
+    />
+    <div class="mt-0.5 text-center text-xs text-gray-500">
+      The optimized sandbox stat is <span class="underline">SE gain</span>
+    </div>
+    <div
+      v-if="hasGusset(suggestedForProPermitLunar.artifactSet)"
+      class="mt-0.5 text-center text-xs text-red-500"
+    >
+      Note that this recommended setup assumes you can take advantage of the increased hab space.
+    </div>
+  </div>
 
   <div v-if="showProPermitRecommendations" class="space-y-3">
     <div>
@@ -216,45 +250,6 @@
       </div>
       <div
         v-if="hasGusset(suggestedForProPermitSinglePreload.artifactSet)"
-        class="mt-0.5 text-center text-xs text-red-500"
-      >
-        Note that this recommended setup assumes you can take advantage of the increased hab space.
-      </div>
-    </div>
-    <div>
-      <div class="text-center text-sm font-medium mb-2">
-        Recommended setup for preloaded lunar-prestige
-        <template v-if="!hasProPermit">
-          <br />
-          <span class="text-xs text-red-500">Requires Pro Permit</span>
-        </template>
-      </div>
-      <div class="text-xs mb-2 space-y-1">
-        <p>
-          <strong>Preloaded single-prestige</strong> is a strategy where you pre-fill all habs with
-          tachyon prism and boost beacon while leaving a little hab space for running chicken bonus,
-          then run a single 10min set of two 50x bird feed, 500x soul beacon, and two 50x boost
-          beacons to reap soul eggs. This strategy is simple and stress-free, but not as
-          GE-efficient.
-        </p>
-        <discord-strategy-link />
-      </div>
-      <artifact-gallery
-        :strategy="PrestigeStrategy.PRO_PERMIT_LUNAR"
-        :artifact-set="suggestedForProPermitLunar?.artifactSet"
-        :artifact-assembly-statuses="suggestedForProPermitLunar.assemblyStatuses"
-        :reference-set="currentlyEquipped"
-        :farm="homeFarm"
-        :is-enlightenment="false"
-        :bird-feed-active="true"
-        :soul-beacon-active="true"
-        :boost-beacon-active="true"
-      />
-      <div class="mt-0.5 text-center text-xs text-gray-500">
-        The optimized sandbox stat is <span class="underline">SE gain</span>
-      </div>
-      <div
-        v-if="hasGusset(suggestedForProPermitLunar.artifactSet)"
         class="mt-0.5 text-center text-xs text-red-500"
       >
         Note that this recommended setup assumes you can take advantage of the increased hab space.
