@@ -55,7 +55,7 @@
                   @update:model-value="setEpicResearchFTLLevel"
                 />
                 <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">
-                  / 40
+                  / 60
                 </div>
               </div>
             </div>
