@@ -5,7 +5,7 @@ init-targets = $(addprefix init-,$(targets))
 fastbuild-targets = $(addprefix fastbuild-,$(targets))
 clean-targets = $(addprefix clean-,$(targets))
 
-.PHONY: all init clean $(targets) $(init-targets) $(clean-targets) update-loot-data
+.PHONY: all init clean $(targets) $(init-targets) $(clean-targets)
 
 all: $(targets)
 	netlify-headers-expander dist
@@ -14,9 +14,6 @@ init: $(init-targets) update-loot-data compactify-afx-data
 
 fastbuild: $(fastbuild-targets)
 	netlify-headers-expander dist
-
-update-loot-data:
-	./artifact-explorer/update-loot-data.sh
 
 compactify-afx-data:
 	find . -type f -iname '*.json' -exec ./_tools/compactify.sh '{}' \;
