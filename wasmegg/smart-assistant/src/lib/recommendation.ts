@@ -443,7 +443,7 @@ export function suggestArtifactSet(
   // Effect of the chalice and life stones.
   let internalHatcheryRateEffectMultiplierFunc: (delta: number) => number;
   let lunarEffectMultiplierFunc: (delta: number) => number = () => 1;
-  let rcbEffectMultiplierFunc: (delta: number) => number = delta => delta + 1;
+  let rcbEffectMultiplierFunc: (delta: number) => number = delta => delta;
   switch (strategy) {
     case PrestigeStrategy.PRO_PERMIT_LUNAR:
       monoclePowerIndex = 2;
