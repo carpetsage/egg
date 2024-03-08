@@ -10,7 +10,7 @@ clean-targets = $(addprefix clean-,$(targets))
 all: $(targets)
 	netlify-headers-expander dist
 
-init: $(init-targets) update-loot-data compactify-afx-data
+init: $(init-targets) compactify-afx-data
 
 fastbuild: $(fastbuild-targets)
 	netlify-headers-expander dist
