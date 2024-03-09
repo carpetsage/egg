@@ -298,6 +298,8 @@ export class Contributor {
   offlineSeconds: number;
   offlineTimeStr: string;
   offlineEggs: number;
+  recentlyActive: boolean;
+  finalized: boolean;
 
   constructor(contributor: ei.ContractCoopStatusResponse.IContributionInfo) {
     this.id = contributor.userId!;
@@ -307,6 +309,8 @@ export class Contributor {
     this.earningBonusPercentage = Math.pow(10, contributor.soulPower!) * 100;
     this.farmerRole = soulPowerToFarmerRole(contributor.soulPower!);
     this.tokens = contributor.boostTokens ?? contributor.farmInfo?.boostTokensOnHand ?? 0;
+    this.recentlyActive = contributor.recentlyActive ?? false;
+    this.finalized = contributor.finalized ?? false;
     this.autojoined = contributor.autojoined ?? false;
     this.isActive = contributor.active!;
     this.isTimeCheating = contributor.timeCheatDetected!;
