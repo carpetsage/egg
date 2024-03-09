@@ -426,7 +426,7 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
       name: 'Player',
     },
   ];
-  if (showOptionalColumn.value.tokensSpent) {
+  if (showOptionalColumn.value.finalized) {
     cols.push( {
       id: 'finalized',
       name: 'Checked In',
