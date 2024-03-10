@@ -119,7 +119,20 @@
 <script lang="ts">
 import { computed, defineComponent, ref, watch } from 'vue';
 
-import { eggName, eggIconPath, spaceshipName, allMissionTypes as missions, ei, fuelTankSizes, getLocalStorage, setLocalStorage, formatEIValue, iconURL, spaceshipList as ships } from 'lib';
+import {
+  eggName,
+  eggIconPath,
+  spaceshipName,
+  allMissionTypes as missions,
+  ei,
+  fuelTankSizes,
+  getLocalStorage,
+  setLocalStorage,
+  formatEIValue,
+  iconURL,
+  spaceshipList as ships,
+  eggList
+} from 'lib';
 
 const FUEL_TANK_LEVEL_LOCALSTORAGE_KEY = 'fuelTankLevel';
 const COUNTS_LOCALSTORAGE_KEY = 'counts';
@@ -143,7 +156,7 @@ export default defineComponent({
     );
 
     const fuels = computed(() => {
-      const fuelAmount: Map<ei.Egg, number> = new Map();
+      const fuelAmount: Map<ei.Egg, number> = new Map(eggList.map(egg => [egg,0]));
       missions.forEach((mission, i) => {
         const count = Math.floor(counts.value[i]);
         for (const { egg, amount } of mission.defaultFuels) {
