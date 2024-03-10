@@ -117,3 +117,14 @@ export function eggIconPath(egg: ei.Egg): string {
       return 'egginc/egg_unknown.png';
   }
 }
+
+export const eggList = [
+    ei.Egg.EDIBLE, ei.Egg.SUPERFOOD, ei.Egg.MEDICAL,
+    ei.Egg.ROCKET_FUEL, ei.Egg.SUPER_MATERIAL, ei.Egg.FUSION,
+    ei.Egg.QUANTUM, ei.Egg.IMMORTALITY, ei.Egg.TACHYON,
+    ei.Egg.GRAVITON, ei.Egg.DILITHIUM, ei.Egg.PRODIGY,
+    ei.Egg.TERRAFORM, ei.Egg.ANTIMATTER, ei.Egg.DARK_MATTER,
+    ei.Egg.AI, ei.Egg.NEBULA, ei.Egg.UNIVERSE, ei.Egg.ENLIGHTENMENT,
+    ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON,
+    ei.Egg.FIREWORK, ei.Egg.PUMPKIN
+];

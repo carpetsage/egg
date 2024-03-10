@@ -189,6 +189,16 @@ export const tools = [
       'Updated for new levels of FTL Epic Research.',
   }),
   new Tool({
+    id: 'mission-planner',
+    url: '/mission-planner/',
+    title: 'Mission planner',
+    // Wed Apr 10 08:43:22 UTC 2024
+    updateUntil: 1712738602000,
+    description: 'Spaceship & mission parameters list',
+    whatsNew:
+      'Added fuel tanks >100T and Henliner',
+  }),
+  new Tool({
     id: 'consumption-sheet',
     url: '/consumption-sheet/',
     title: 'Consumption sheet',

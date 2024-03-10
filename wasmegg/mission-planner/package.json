@@ -1,0 +1,30 @@
+{
+  "name": "mission-planner",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "fastbuild": "vite build",
+    "serve": "vite preview",
+    "lint": "eslint --ext .js,.ts,.vue src"
+  },
+  "dependencies": {
+    "@headlessui/vue": "^1.7.19",
+    "@heroicons/vue": "^1.0.6",
+    "lib": "workspace:^",
+    "tippy.js": "^6.3.7",
+    "ui": "workspace:^",
+    "vue": "^3.4.15",
+    "vue-tippy": "^6.4.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.6.2",
+    "@vue/compiler-sfc": "^3.4.15",
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "typescript": "^5.4.2",
+    "vite": "^4.5.2",
+    "vue-tsc": "^2.0.6"
+  }
+}
