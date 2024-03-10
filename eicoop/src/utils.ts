@@ -24,7 +24,7 @@ export function setSessionStorage(key: string, val: unknown, prefix?: string): v
 }
 
 export function iconURL(relpath: string, size: number | string = 'orig'): string {
-  return `https://eggincassets.tcl.sh/${size}/${relpath}`;
+  return `https://images.carpetsage.cc/${size}/${relpath}`;
 }
 
 export function eggTooltip(egg: ei.Egg): string {

@@ -7,7 +7,7 @@
         <div class="flex-shrink-0 h-8 w-8 rounded-lg bg-dark-20">
           <img
             class="h-8 w-8"
-            src="https://eggincassets.tcl.sh/64/egginc-extras/icon_afx_stone_slot.png"
+            src="https://images.carpetsage.cc/64/egginc-extras/icon_afx_stone_slot.png"
           />
         </div>
         <artifact-picker-item-select

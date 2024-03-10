@@ -80,7 +80,7 @@
           <div class="my-0.5 -mx-0.5 flex items-center space-x-1">
             <img
               class="h-4 w-4"
-              src="https://eggincassets.tcl.sh/64/egginc-extras/icon_golden_egg.png"
+              src="https://images.carpetsage.cc/64/egginc-extras/icon_golden_egg.png"
             />
             <span class="text-sm">
               {{ artifact.recipe.crafting_price.initial.toLocaleString('en-US') }} &ndash;

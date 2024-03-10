@@ -17,7 +17,7 @@
       <div class="grid gap-x-2 gap-y-1" :style="{ gridTemplateColumns: 'repeat(2, max-content)' }">
         <label for="epic_research_ftl" class="flex items-center text-sm whitespace-nowrap">
           <img
-            src="https://eggincassets.tcl.sh/64/egginc/r_icon_afx_mission_duration.png"
+            src="https://images.carpetsage.cc/64/egginc/r_icon_afx_mission_duration.png"
             class="h-6 w-6 relative -top-px mr-0.5"
           />
           FTL Drive Upgrades
@@ -44,7 +44,7 @@
 
         <label for="epic_research_zerog" class="flex items-center text-sm whitespace-nowrap">
           <img
-            src="https://eggincassets.tcl.sh/64/egginc/r_icon_afx_mission_capacity.png"
+            src="https://images.carpetsage.cc/64/egginc/r_icon_afx_mission_capacity.png"
             class="h-6 w-6 relative -top-px mr-0.5"
           />
           Zero-g Quantum Containment
