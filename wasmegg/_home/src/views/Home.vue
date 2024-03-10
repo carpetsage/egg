@@ -28,7 +28,7 @@
   </div>
 
   <p>
-    I am <span class="font-medium">CarpetSage#0010</span> on the
+    I am <span class="font-medium">carpetsage</span> on the
     <base-link href="https://discord.gg/egginc">Egg, Inc. Discord server</base-link>. This is the
     index of my fork of <span class="font-medium">mk2#4590's</span> public tools for Egg, Inc.
   </p>
@@ -52,6 +52,7 @@
     <li><tool-description id="smart-assistant" @visit="onvisit" /></li>
     <li><tool-description id="shell-company" @visit="onvisit" /></li>
     <li><tool-description id="eggs-laid" @visit="onvisit" /></li>
+    <li><tool-description id="mission-planner" @visit="onvisit" /></li>
   </ul>
 
   <h3>Data sheets</h3>
@@ -87,12 +88,7 @@
     <li><tool-description id="EggContractor" @visit="onvisit" /></li>
   </ul>
 
-  <h2>Guides</h2>
-  <ul>
-    <li>
-      <base-link href="https://howtofarm.netlify.app/">How to farm materials</base-link>
-    </li>
-  </ul>
+  <!-- <h2>Guides</h2> -->
 
   <h2>Advanced</h2>
   <ul>

@@ -95,6 +95,8 @@ export const missionDurationTypeList = [
   DurationType.EPIC,
 ];
 
+export const fuelTankSizes = [ 2e9, 200e9, 10e12, 100e12, 200e12, 300e12, 400e12, 500e12 ];
+
 export interface ShipsConfig {
   epicResearchFTLLevel: number;
   epicResearchZerogLevel: number;
