@@ -55,7 +55,7 @@
 }
 
 ::v-deep(.p-column-filter .p-column-filter-menu-button .pi-filter-icon.pi-filter::before) {
-  @apply h-2.5 w-2.5 bg-no-repeat;
+  @apply h-2.5 w-2.5 bg-no-repeat inline-block;
   content: ' ';
   background-image: svg-load('../svg/fa-filter-regular.svg', fill: #a1a1aa); /* gray-400 */
 }
