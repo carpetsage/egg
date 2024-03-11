@@ -410,15 +410,17 @@ const { egg, coopStatus, target } = toRefs(props);
 const devmode = inject(devmodeKey);
 
 const showOptionalColumn = computed(
-  () =>
-    Object.fromEntries(
+  () => {
+    const show = Object.fromEntries(
       optionalColumnIds.map(col => [
         col,
         coopStatus.value.contributors.some(contributor => contributor[col] !== null),
       ])
-    ) as Record<OptionalColumnId, boolean>
+    ) as Record<OptionalColumnId, boolean>;
+    show.finalized = coopStatus.value.eggsLaid >= target.value;
+    return show;
+  }
 );
-showOptionalColumn.value.finalized = coopStatus.value.eggsLaid >= target.value;
 const columns: Ref<ColumnSpec[]> = computed(() => {
   const cols: ColumnSpec[] = [
     {
