@@ -1,8 +1,9 @@
 <template>
   <DataTable
     v-model:filters="filters"
-    v-model:expandedRows="expandedRows"
+    v-model:expanded-rows="expandedRows"
     :value="contracts"
+    table-class="min-w-full"
     responsive-layout="scroll"
     data-key="uniqueKey"
     sort-field="offeringTime"
@@ -374,7 +375,7 @@
 
     <template #paginatorend>
       <select
-        class="mt-1 block w-full pl-3 pr-10 py-1 text-base border border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
+        class="mt-1 block pl-3 pr-10 py-1 text-base border border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
         :value="rowsPerPage"
         @input="onRowsPerPageChange($event)"
       >
@@ -391,7 +392,7 @@
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, PropType, ref, toRefs } from 'vue';
 import { useStore } from 'vuex';
-import DataTable from 'primevue/datatable';
+import DataTable, { DataTableExpandedRows } from 'primevue/datatable';
 import Column from 'primevue/column';
 import { FilterMatchMode } from 'primevue/api';
 import dayjs from 'dayjs';
@@ -431,7 +432,7 @@ export default defineComponent({
     const darkThemeOn = computed(() => store.state.theme.darkThemeOn);
 
     const columnHeaderClasses =
-      'px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none';
+      'px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none text-left ';
     const columnHeaderNarrowClasses =
       'px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none';
     const columnBodyClasses =
@@ -458,14 +459,22 @@ export default defineComponent({
       },
     });
 
-    const expandedRows = ref([] as Contract[]);
+    const expandedRows = ref({} as DataTableExpandedRows);
+    const expanded = computed(() => {
+      const rows = {} as DataTableExpandedRows;
+      for (const contract of contracts.value) {
+        rows[contract.uniqueKey] = true;
+      }
+      return rows
+    });
+    // For some reason this only works if you replace the entire object at once
+    // https://github.com/primefaces/primevue/issues/5372
     const expandAll = () => {
-      expandedRows.value = contracts.value;
+      expandedRows.value = expanded.value;
     };
     const collapseAll = () => {
-      expandedRows.value = [];
+      expandedRows.value = {};
     };
-
     const selectContractAndShowCoopSelector = (contractId: string) =>
       store.dispatch('coopSelector/selectContractAndShow', contractId);
     const contractEggIconPath = (contract: Contract) => eggIconPath(contract.egg!);
@@ -491,8 +500,8 @@ export default defineComponent({
     return {
       darkThemeOn,
       columnHeaderClasses,
-      columnHeaderClassesCentered: `${columnHeaderClasses} Column__Header--center`,
-      columnHeaderNarrowClassesCentered: `${columnHeaderNarrowClasses} Column__Header--center`,
+      columnHeaderClassesCentered: `${columnHeaderClasses} text-center Column__Header--center`,
+      columnHeaderNarrowClassesCentered: `${columnHeaderNarrowClasses} text-center Column__Header--center`,
       columnBodyClasses,
       columnBodyClassesCentered: `${columnBodyClasses} text-center`,
       columnColorClasses,
