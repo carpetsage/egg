@@ -12,7 +12,7 @@
           class="flex items-center text-xs whitespace-nowrap"
         >
           <img
-            src="https://images.carpetsage.cc/64/egginc/r_icon_afx_mission_duration.png"
+            :src="iconURL('egginc/r_icon_afx_mission_duration.png', 64)"
             class="h-6 w-6 relative -top-px mr-0.5"
           />
           FTL Drive Upgrades
@@ -30,7 +30,7 @@
           class="flex items-center text-xs whitespace-nowrap"
         >
           <img
-            src="https://images.carpetsage.cc/64/egginc/r_icon_afx_mission_capacity.png"
+            :src="iconURL('egginc/r_icon_afx_mission_capacity.png', 64)"
             class="h-6 w-6 relative -top-px mr-0.5"
           />
           Zero-g Quantum Containment

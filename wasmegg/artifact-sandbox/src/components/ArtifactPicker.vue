@@ -7,7 +7,7 @@
         <div class="flex-shrink-0 h-8 w-8 rounded-lg bg-dark-20">
           <img
             class="h-8 w-8"
-            src="https://images.carpetsage.cc/64/egginc-extras/icon_afx_stone_slot.png"
+            :src="iconURL('egginc-extras/icon_afx_stone_slot.png', 64)"
           />
         </div>
         <artifact-picker-item-select
@@ -26,6 +26,7 @@ import { computed, defineComponent, PropType, ref, toRefs, watch } from 'vue';
 
 import { ArtifactBuildProps, artifactFromId } from '@/lib';
 import ArtifactPickerItemSelect from '@/components/ArtifactPickerItemSelect.vue';
+import { iconURL } from 'lib';
 
 export default defineComponent({
   components: {
@@ -60,6 +61,7 @@ export default defineComponent({
     return {
       selectedArtifact,
       numSlots,
+      iconURL,
     };
   },
 });
