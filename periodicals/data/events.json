@@ -12537,21 +12537,21 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1710176400.0,
-    "id": "event-3-9-2",
-    "message": "4x PIGGY GROWTH!!",
-    "multiplier": 4.0,
-    "startTimestamp": 1710003600.0,
-    "type": "piggy-boost",
-    "ultra": false
-  },
-  {
     "endTimestamp": 1710172800.0,
     "id": "event-3-10",
     "message": "30% OFF CRAFTING!",
     "multiplier": 0.7,
     "startTimestamp": 1710086400.0,
     "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1710176400.0,
+    "id": "event-3-9-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1710003600.0,
+    "type": "piggy-boost",
     "ultra": false
   },
   {
@@ -12562,5 +12562,23 @@
     "startTimestamp": 1710086400.0,
     "type": "mission-capacity",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1710259200.0,
+    "id": "event-3-11",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1710172800.0,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1710259200.0,
+    "id": "ultra-3-11",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1710172800.0,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
