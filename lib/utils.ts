@@ -44,7 +44,7 @@ export function iconURL(
   if (extension) {
     relpath = relpath.replace(/\.[a-z]+$/, `.${extension}`);
   }
-  return `https://images.carpetsage.cc/${size}/${relpath}`;
+  return `https://images.carpetsage.com/${size}/${relpath}`;
 }
 
 // Trim trailing zeros, and possibly the decimal point.
