@@ -23,11 +23,11 @@
 /*** Sort icons ***/
 
 ::v-deep(.p-sortable-column-icon) {
-  @apply block h-3 w-2 ml-0.5;
+  @apply inline-block h-3 w-2 ml-0.5;
 }
 
 ::v-deep(.p-sortable-column-icon::before) {
-  @apply block h-3 w-2 bg-no-repeat;
+  @apply inline-block h-3 w-2 bg-no-repeat;
   content: ' ';
   background-size: auto 0.75rem;
 }
@@ -51,11 +51,11 @@
 }
 
 ::v-deep(.p-column-filter .p-column-filter-menu-button) {
-  @apply focus:outline-none;
+  @apply inline-block focus:outline-none;
 }
 
 ::v-deep(.p-column-filter .p-column-filter-menu-button .pi-filter-icon.pi-filter::before) {
-  @apply block h-2.5 w-2.5 bg-no-repeat;
+  @apply h-2.5 w-2.5 bg-no-repeat;
   content: ' ';
   background-image: svg-load('../svg/fa-filter-regular.svg', fill: #a1a1aa); /* gray-400 */
 }
