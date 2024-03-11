@@ -1,16 +1,19 @@
 <template>
-  <player-card :backup="backup" />
+    <eggs-laid :backup="backup" />
+    <max-chickens :backup="backup" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 
 import {requestFirstContact, UserBackupEmptyError } from 'lib';
-import PlayerCard from '@/components/PlayerCard.vue';
+import EggsLaid from '@/components/EggsLaid.vue';
+import MaxChickens from '@/components/MaxChickens.vue';
 
 export default defineComponent({
   components: {
-    PlayerCard
+    EggsLaid,
+    MaxChickens
   },
   props: {
     playerId: {
