@@ -643,7 +643,7 @@
             91819.475854,
             374317.488459,
             550423.185354,
-            1081741.927429
+            699243.860053
           ],
           "has_rarities": true,
           "possible_afx_rarities": [
@@ -697,7 +697,7 @@
               "effect_delta": 199,
               "family_effect": "Increases away earnings",
               "slots": 3,
-              "odds_multiplier": 0.000006
+              "odds_multiplier": 0.0006
             }
           ],
           "recipe": {
