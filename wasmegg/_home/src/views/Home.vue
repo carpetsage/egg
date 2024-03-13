@@ -83,11 +83,6 @@
     <li><tool-description id="EggLedger" @visit="onvisit" /></li>
   </ul>
 
-  <h2>Self-hosted tools</h2>
-  <ul>
-    <li><tool-description id="EggContractor" @visit="onvisit" /></li>
-  </ul>
-
   <!-- <h2>Guides</h2> -->
 
   <h2>Advanced</h2>

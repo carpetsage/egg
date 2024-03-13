@@ -240,20 +240,11 @@ export const tools = [
     url: 'https://github.com/DavidArthurCole/EggLedger#readme',
     title: 'EggLedger',
     iconUrl: iconURL('wasmegg/EggLedger.png'),
-    description: 'Spaceship mission data exporter, supplementing rockets tracker - forked and fixed by @synthparadox#7576',
+    description: 'Spaceship mission data exporter, supplementing rockets tracker - forked and fixed by @davidarthurcole',
     // Sat Jun 17 16:21 UTC 2023
     newUntil: 1686975703,
     whatsNew:
       'Fixed issue with Chrome'
-  }),
-
-  new Tool({
-    id: 'EggContractor',
-    url: 'https://github.com/fanaticscripter/EggContractor',
-    title: 'EggContractor',
-    description:
-      'Contract monitoring web app & CLI client, with multi-account aggregation, offline time tracking, and more',
-    newUntil: 1686716503,
   }),
 
   new Tool({
