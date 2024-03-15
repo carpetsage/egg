@@ -1,12 +1,12 @@
 import { ei } from './proto';
+import data from './eiafx-config.json';
+export default data as afxconfig;
 
-declare const data: {
+type afxconfig = {
   missionParameters: SpaceshipParameters[];
   artifactParameters: ArtifactParameters[];
   craftingLevelInfos: CraftingLevelInfo[];
 };
-
-export default data;
 
 export interface SpaceshipParameters {
   ship: keyof typeof ei.MissionInfo.Spaceship;

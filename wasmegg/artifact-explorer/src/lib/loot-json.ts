@@ -1,10 +1,11 @@
 import { ei } from 'lib';
+import data from './loot.json';
 
-declare const data: {
+export default data as lootjson;
+
+export type lootjson = {
   missions: MissionLootStore[];
 };
-
-export default data;
 
 export type MissionLootStore = {
   afxShip: ei.MissionInfo.Spaceship;

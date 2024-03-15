@@ -1,10 +1,12 @@
 import { ei } from '../proto';
 import { iconURL } from '../utils';
-import data, {Family, Tier } from './data.json';
-import config, { ArtifactParameters, CraftingLevelInfo, SpaceshipParameters } from '../eiafx-config.json';
+import type { Family, Tier } from './data-json';
+import data from './data-json';
+import type { ArtifactParameters, CraftingLevelInfo, SpaceshipParameters } from '../eiafx-config-json';
+import config from '../eiafx-config-json';
 
 export default data;
-export type { Family as AfxFamily, Tier as AfxTier, Recipe, Effect } from './data.json';
+export type { Family as AfxFamily, Tier as AfxTier, Recipe, Effect } from './data-json';
 
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;

@@ -2,7 +2,8 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
     "strict": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
@@ -23,6 +24,7 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
+    "../../ui/**/*.vue",
     "../../lib/heroicons.d.ts"
   ]
 }
