@@ -18,7 +18,7 @@
     "vue-tippy": "^6.4.1"
   },
   "devDependencies": {
-    "@tailwindcss/forms": "^0.3.4",
+    "@tailwindcss/forms": "^0.5.7",
     "@types/node": "^20.11.6",
     "@vitejs/plugin-vue": "^4.6.2",
     "@vue/compiler-sfc": "^3.4.15",
