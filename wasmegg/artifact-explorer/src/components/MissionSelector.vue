@@ -28,10 +28,9 @@ import { PropType, computed } from 'vue';
 
 import { missionIdToMission, missions, searchMissions } from '@/lib/filter';
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
-import { hasMissionLootData } from '@/lib';
 
 const BaseSelectFilterable = GenericBaseSelectFilterable<typeof missions[number]>();
-const validMissions = computed(() => missions.filter(x => hasMissionLootData(x.missionTypeId)).toReversed());
+const validMissions = computed(() => missions.toReversed());
 
 defineProps({
   modelValue: {
