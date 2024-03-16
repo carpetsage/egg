@@ -9,9 +9,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/fanaticscripter/Egg/wasmegg/_common/consumption"
-	"github.com/fanaticscripter/Egg/wasmegg/_common/eiafx"
-	"github.com/fanaticscripter/EggContractor/api"
+	"github.com/carpetsage/Egg/wasmegg/_common/consumption"
+	"github.com/carpetsage/Egg/wasmegg/_common/eiafx"
+	"github.com/carpetsage/EggContractor/api"
 )
 
 const _appDataFile = "src/data.json"

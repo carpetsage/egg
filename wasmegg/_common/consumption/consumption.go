@@ -6,8 +6,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/fanaticscripter/Egg/wasmegg/_common/eiafx"
-	"github.com/fanaticscripter/EggContractor/api"
+	"github.com/carpetsage/Egg/wasmegg/_common/eiafx"
+	"github.com/carpetsage/EggContractor/api"
 )
 
 //go:embed consumption-data.json
@@ -16,11 +16,11 @@ var _consumptionDataJSON []byte
 var Outcomes []ConsumptionOutcome
 
 type ConsumptionOutcome struct {
-	Item                        Item					`json:"item"`
-	RawProduct					[]RawProduct			`json:"raw_rewards"`
-	ExpectedByproducts          []ExpectedByproduct		`json:"product_rewards"`
-	ExpectedFullConsumption		[]RawProduct			`json:"full_consumption"`
-	DemotionGold				*float64				`json:"demotion_gold"`
+	Item                    Item                `json:"item"`
+	RawProduct              []RawProduct        `json:"raw_rewards"`
+	ExpectedByproducts      []ExpectedByproduct `json:"product_rewards"`
+	ExpectedFullConsumption []RawProduct        `json:"full_consumption"`
+	DemotionGold            *float64            `json:"demotion_gold"`
 }
 
 type Item struct {
@@ -40,9 +40,9 @@ type ExpectedByproduct struct {
 }
 
 type RawProduct struct {
-	RewardType int			`json:"reward_type"`
-	RewardTypeName string	`json:"reward_type_name"`
-	RewardAmount float64	`json:"reward_amount"`
+	RewardType     int     `json:"reward_type"`
+	RewardTypeName string  `json:"reward_type_name"`
+	RewardAmount   float64 `json:"reward_amount"`
 }
 
 func LoadData() error {

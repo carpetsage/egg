@@ -3,7 +3,7 @@ package eiafx
 import (
 	_ "embed"
 
-	"github.com/fanaticscripter/EggContractor/api"
+	"github.com/carpetsage/EggContractor/api"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/encoding/protojson"
 )
