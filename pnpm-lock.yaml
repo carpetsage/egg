@@ -33,8 +33,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       copy-text-to-clipboard:
         specifier: ^3.2.0
         version: 3.2.0
@@ -182,8 +182,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       lib:
         specifier: workspace:^
         version: link:../lib
@@ -246,8 +246,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       copy-text-to-clipboard:
         specifier: ^3.2.0
         version: 3.2.0
@@ -310,8 +310,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       copy-text-to-clipboard:
         specifier: ^3.2.0
         version: 3.2.0
@@ -377,8 +377,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       lib:
         specifier: workspace:^
         version: link:../../lib
@@ -429,8 +429,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       copy-text-to-clipboard:
         specifier: ^3.2.0
         version: 3.2.0
@@ -496,8 +496,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       '@vue/runtime-core':
         specifier: ^3.4.15
         version: 3.4.21
@@ -563,8 +563,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       dayjs:
         specifier: ^1.11.10
         version: 1.11.10
@@ -618,8 +618,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       fontfaceobserver:
         specifier: ^2.3.0
         version: 2.3.0
@@ -682,8 +682,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       '@vue/runtime-core':
         specifier: ^3.4.15
         version: 3.4.21
@@ -770,8 +770,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       lib:
         specifier: workspace:^
         version: link:../../lib
@@ -825,8 +825,8 @@ importers:
         specifier: ^1.7.19
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       lib:
         specifier: workspace:^
         version: link:../../lib
@@ -871,8 +871,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       csv-stringify:
         specifier: ^6.4.5
         version: 6.4.6
@@ -935,8 +935,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       ace-builds:
         specifier: ^1.32.3
         version: 1.32.7
@@ -999,8 +999,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       ace-builds:
         specifier: ^1.32.3
         version: 1.32.7
@@ -1060,8 +1060,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       copy-text-to-clipboard:
         specifier: ^3.2.0
         version: 3.2.0
@@ -1145,8 +1145,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       dayjs:
         specifier: ^1.11.10
         version: 1.11.10
@@ -1200,8 +1200,8 @@ importers:
         specifier: ^1.7.17
         version: 1.7.19(vue@3.4.21)
       '@heroicons/vue':
-        specifier: ^1.0.6
-        version: 1.0.6(vue@3.4.21)
+        specifier: ^2.1.1
+        version: 2.1.1(vue@3.4.21)
       lib:
         specifier: workspace:^
         version: link:../../lib
@@ -2495,8 +2495,8 @@ packages:
       vue: 3.4.21(typescript@5.4.2)
     dev: false
 
-  /@heroicons/vue@1.0.6(vue@3.4.21):
-    resolution: {integrity: sha512-ng2YcCQrdoQWEFpw+ipFl2rZo8mZ56v0T5+MyfQQvNqfKChwgP6DMloZLW+rl17GEcHkE3H82UTAMKBKZr4+WA==}
+  /@heroicons/vue@2.1.1(vue@3.4.21):
+    resolution: {integrity: sha512-Yi5nh/89L193ALgHyJUQUdNLsKXPrrE3yj5yiR8WAlo7nZyXGxGauQcEAmBsa2XJGMhBMuEdoOiuZ8wEwTBxVQ==}
     peerDependencies:
       vue: '>= 3'
     dependencies:
