@@ -7,7 +7,7 @@
     "csv-stringify": "^6.4.5",
     "dayjs": "^1.11.10",
     "lib": "workspace:^",
-    "primevue": "^3.47.1",
+    "primevue": "^3.50.0",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
     "vue": "^3.4.15",
