@@ -2,7 +2,7 @@ import { AfxTier, allPossibleTiers, ei, getArtifactTierProps } from 'lib';
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;
 import Rarity = ei.ArtifactSpec.Rarity;
-import eiafxConfig from 'lib/eiafx-config.json';
+import eiafxConfig from 'lib/eiafx-config-json';
 import { capitalize } from '@/utils';
 
 export interface ArtifactLike extends AfxTier {
