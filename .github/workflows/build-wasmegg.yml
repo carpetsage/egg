@@ -24,7 +24,6 @@ jobs:
   # No TS type checking for faster deployment.
   wasmegg-fastbuild:
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
     defaults:
       run:
         working-directory: wasmegg
@@ -43,13 +42,13 @@ jobs:
           wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
           sudo dpkg -i ets_0.2.1_linux_amd64.deb
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v4
         with:
-          go-version: '^1.18'
+          go-version: '^1.22'
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: "^8.7.4"
+          version: 8
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -57,6 +56,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
+            pnpm-global/5/pnpm-lock.yaml
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -77,26 +77,32 @@ jobs:
           make -j2 fastbuild
         env:
           EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
+      - name: Install netlify cli
+        run: |
+          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+          pnpm add --global netlify-cli
+        if: github.event_name != 'pull_request'
       - name: Deploy
         run: |
-          pnpm netlify deploy --prod -d $GITHUB_WORKSPACE/wasmegg/dist
+          netlify deploy --prod -d $GITHUB_WORKSPACE/wasmegg/dist
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
       - name: Deploy to branch-specific URL
         run: |
-          pnpm netlify deploy --alias "${GITHUB_REF##*/}" -d $GITHUB_WORKSPACE/wasmegg/dist
+          netlify deploy --alias "${GITHUB_REF##*/}" -d $GITHUB_WORKSPACE/wasmegg/dist
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref != 'refs/heads/main'
+        if: github.ref != 'refs/heads/main' && github.event_name != 'pull_request'
       - name: Deploy to commit-specific URL
         run: |
-          pnpm netlify deploy --alias "$GITHUB_SHA" -d $GITHUB_WORKSPACE/wasmegg/dist
+          netlify deploy --alias "$GITHUB_SHA" -d $GITHUB_WORKSPACE/wasmegg/dist
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        if: github.event_name != 'pull_request'
 
   # With TS type checking.
   wasmegg-fullbuild:
@@ -119,7 +125,7 @@ jobs:
           wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
           sudo dpkg -i ets_0.2.1_linux_amd64.deb
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v4
         with:
           go-version: '^1.22'
       - name: Install pnpm
@@ -133,6 +139,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
+            pnpm-global/5/pnpm-lock.yaml
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

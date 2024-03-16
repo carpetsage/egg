@@ -1,7 +1,7 @@
 name: build-eicoops
 on:
   push:
-    paths: 
+    paths:
       - "lib/**"
       - "ui/**"
       - "eicoop/**"
@@ -9,7 +9,7 @@ on:
       - 'protobuf/ei.proto'
   pull_request:
     types: [ opened, edited, reopened]
-    paths: 
+    paths:
       - "lib/**"
       - "ui/**"
       - "eicoop/**"
@@ -23,7 +23,6 @@ jobs:
   # No TS type checking for faster deployment.
   eicoop-fastbuild:
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
     defaults:
       run:
         working-directory: eicoop
@@ -40,6 +39,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
@@ -50,23 +50,27 @@ jobs:
           make
       - name: Build site
         run: make fastbuild
+      - name: Install netlify cli
+        run: |
+          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+          pnpm add --global netlify-cli
       - name: Deploy
         run: |
-          pnpm netlify deploy --prod -d $GITHUB_WORKSPACE/eicoop/dist
+          netlify deploy --prod -d $GITHUB_WORKSPACE/eicoop/dist
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref == 'refs/heads/main'
       - name: Deploy to branch-specific URL
         run: |
-          pnpm netlify deploy --alias "${GITHUB_REF##*/}" -d $GITHUB_WORKSPACE/eicoop/dist
+          netlify deploy --alias "${GITHUB_REF##*/}" -d $GITHUB_WORKSPACE/eicoop/dist
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         if: github.ref != 'refs/heads/main'
       - name: Deploy to commit-specific URL
         run: |
-          pnpm netlify deploy --alias "$GITHUB_SHA" -d $GITHUB_WORKSPACE/eicoop/dist
+          netlify deploy --alias "$GITHUB_SHA" -d $GITHUB_WORKSPACE/eicoop/dist
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -90,6 +94,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
+            pnpm-global/pnpm-lock.yaml
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
