@@ -23,6 +23,7 @@ jobs:
   # No TS type checking for faster deployment.
   eicoop-fastbuild:
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     defaults:
       run:
         working-directory: eicoop

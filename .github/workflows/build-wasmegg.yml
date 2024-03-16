@@ -24,6 +24,7 @@ jobs:
   # No TS type checking for faster deployment.
   wasmegg-fastbuild:
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     defaults:
       run:
         working-directory: wasmegg
