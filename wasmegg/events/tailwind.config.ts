@@ -1,14 +1,9 @@
 import type { Config } from 'tailwindcss';
-import colors from 'tailwindcss/colors';
 
 export default {
   content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   theme: {
     extend: {
-      colors: {
-        ...colors,
-        gray: colors.coolGray,
-      },
       screens: {
         '2col': '1512px',
         '3col': '2280px',
