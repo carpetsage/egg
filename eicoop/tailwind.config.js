@@ -15,16 +15,16 @@ export default {
           350: "#51dda8", // A blend of emerald-300 #6ee7b7 and emerald-400 #34d399
         },
         gray: {
-          ...colors.gray,
+          ...colors.zinc,
           750: "#333338",
         },
         purple: {
-          ...colors.purple,
+          ...colors.violet,
         },
         orange: {
           ...colors.orange,
         },
-        "cool-gray": colors.coolGray,
+        "cool-gray": colors.gray,
         // Interpolation of gray-700 (#3F3F46) and red-500 (#EF4444).
         "gray-700-red-tint": {
           100: "#503f45",
