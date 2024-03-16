@@ -1,5 +1,5 @@
 import { ei } from 'lib';
-import type { FamilyCore, TierCore } from 'lib/artifacts/data-json';
+import { FamilyCore, TierCore } from 'lib/artifacts/data.json';
 
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;

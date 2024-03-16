@@ -14,7 +14,7 @@ export default defineConfig({
   },
   plugins: [vue()],
   build: {
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     host: true,

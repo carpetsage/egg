@@ -8,12 +8,9 @@ import {
 } from 'lib';
 
 import { config } from '@/store';
-import type {lootjson, MissionLevelLootStore, MissionLootStore } from './loot-json';
-import data from './loot-json';
+import lootdata, { MissionLevelLootStore, MissionLootStore } from './loot.json';
 
-const lootdata = data as lootjson;
-
-export { lootdata, type ItemMissionLootStore };
+export { lootdata, ItemMissionLootStore };
 
 export function hasMissionLootData(missionId: string): boolean {
   if (/atreggies/.test(missionId)) {

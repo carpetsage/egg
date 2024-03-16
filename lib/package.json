@@ -11,9 +11,9 @@
     "typescript-memoize": "^1.1.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.24.0",
+    "@babel/core": "^7.23.7",
     "@babel/plugin-transform-modules-commonjs": "^7.23.3",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.11",
     "@types/lunr": "^2.3.7",
     "@types/pako": "^2.0.3",
     "babel-jest": "^29.7.0",

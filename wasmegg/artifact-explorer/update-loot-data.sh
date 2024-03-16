@@ -7,6 +7,7 @@ URL="https://eggincdatacollection.azurewebsites.net/api/GetCarpetDataTrimmed?new
 HTTP_CODE=$(curl -so loot_raw.json --write-out "%{http_code}" "${URL}")
 echo "HTTP ${HTTP_CODE}"
 if [ -s loot_raw.json ]; then
-  echo 'updating loot.json'
-  mv loot_raw.json "$(dirname $0)"/src/lib/loot.json
+  echo 'compacting json'
+  jq -c . loot_raw.json > "$(dirname $0)"/src/lib/loot.json
 fi
+rm loot_raw.json

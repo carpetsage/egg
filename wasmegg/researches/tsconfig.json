@@ -2,8 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "bundler",
-    "isolatedModules": true,
+    "moduleResolution": "node",
     "strict": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",

@@ -1,9 +1,8 @@
 import { ei } from '../proto';
-import data from './consumption.json';
 
-type ConsumptionData = Entry[];
+declare const data: Entry[];
 
-export default data as ConsumptionData;
+export default data;
 
 import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;

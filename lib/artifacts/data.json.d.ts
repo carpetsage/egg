@@ -7,13 +7,12 @@
 // manually.
 
 import { ei } from '../proto';
-import data from './data.json'
 
-type afxdata = {
+declare const data: {
   artifact_families: Family[];
 };
 
-export default data as afxdata;
+export default data;
 
 import Type = ei.ArtifactSpec.Type;
 import Name = ei.ArtifactSpec.Name;

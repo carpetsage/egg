@@ -1,7 +1,6 @@
 import { ei } from '../proto';
-import data, { getArtifactFamilyProps, getArtifactTierProps } from './data';
-import type { AfxFamily, AfxTier,  } from './data';
-import type { CraftingPriceParams, Recipe } from './data-json';
+import data, { AfxFamily, AfxTier, getArtifactFamilyProps, getArtifactTierProps } from './data';
+import { CraftingPriceParams, Recipe } from './data.json';
 import { Artifact, cmpArtifacts } from './effects';
 import { titleCase } from '../utils';
 

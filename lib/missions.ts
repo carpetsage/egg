@@ -3,8 +3,7 @@ import { eggIconPath, eggName } from './eggs';
 import { ei } from './proto';
 import { formatDuration } from './time';
 import { formatEIValue } from './units';
-import eiafxConfig from './eiafx-config-json';
-import type { MissionTypeParameters } from './eiafx-config-json';
+import eiafxConfig, { MissionTypeParameters } from './eiafx-config.json';
 
 import Artifact = ei.ArtifactSpec.Name;
 import Spaceship = ei.MissionInfo.Spaceship;
