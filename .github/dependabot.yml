@@ -9,6 +9,10 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "monthly"
+    ignore:
+      - dependency-name: "@heroicons/vue"
+        versions: ["2.x"]
+      - dependency-name: "*tailwindcss"
   - package-ecosystem: "gomod" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
@@ -17,7 +21,3 @@ updates:
     directory: "wasmegg/_common/eiafx/cmd/monitor/" # Location of package manifests
     schedule:
       interval: "monthly"
-ignore:
- - dependency-name: "@heroicons/vue"
-   versions: ["2.x"]
- - dependency-name: "*tailwindcss"
