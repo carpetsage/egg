@@ -1,8 +1,8 @@
-const colors = require('tailwindcss/colors');
+import type { Config } from 'tailwindcss';
+import colors from 'tailwindcss/colors';
 
 module.exports = {
-  mode: 'jit',
-  purge: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
+  content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   theme: {
     extend: {
       colors: {
@@ -19,4 +19,4 @@ module.exports = {
     },
   },
   plugins: [require('@tailwindcss/forms')],
-};
+} satisfies Config;

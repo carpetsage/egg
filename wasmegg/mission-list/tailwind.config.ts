@@ -1,6 +1,7 @@
-module.exports = {
-  mode: 'jit',
-  purge: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
+import type { Config } from 'tailwindcss';
+
+export default {
+  content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   theme: {
     extend: {
       divideWidth: {
@@ -12,4 +13,4 @@ module.exports = {
     },
   },
   plugins: [require('@tailwindcss/forms')],
-};
+} satisfies Config;

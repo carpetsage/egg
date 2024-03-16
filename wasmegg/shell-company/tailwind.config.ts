@@ -1,4 +1,6 @@
-module.exports = {
+import type { Config } from 'tailwindcss'
+
+export default {
   content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   theme: {
     extend: {
@@ -8,4 +10,4 @@ module.exports = {
     },
   },
   plugins: [require('@tailwindcss/forms')],
-};
+} satisfies Config;

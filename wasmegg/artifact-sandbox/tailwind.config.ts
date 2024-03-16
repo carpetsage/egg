@@ -1,10 +1,9 @@
-const colors = require('tailwindcss/colors');
-const defaultTheme = require('tailwindcss/defaultTheme');
+import type { Config } from 'tailwindcss';
+import colors from 'tailwindcss/colors';
+import defaultTheme from 'tailwindcss/defaultTheme';
 
-module.exports = {
-  mode: 'jit',
-  purge: ['src/*.html', 'src/**/*.vue', '../../ui/**/*.vue'],
-  darkMode: false,
+export default {
+  content: ['src/*.html', 'src/**/*.vue', '../../ui/**/*.vue'],
   theme: {
     // Increase font size by 5% across the board since Always Together is a
     // small and hard to read font.
@@ -27,7 +26,7 @@ module.exports = {
         sans: ['Always Together', ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        gray: colors.trueGray,
+        gray: colors.neutral,
         dark: {
           20: 'hsl(0, 0%, 20%)',
           21: 'hsl(0, 0%, 21%)',
@@ -47,10 +46,5 @@ module.exports = {
       },
     },
   },
-  variants: {
-    extend: {
-      opacity: ['disabled'],
-    },
-  },
   plugins: [require('@tailwindcss/forms')],
-};
+} satisfies Config;

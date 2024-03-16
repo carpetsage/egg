@@ -1,8 +1,8 @@
-const defaultTheme = require('tailwindcss/defaultTheme');
+import type { Config } from 'tailwindcss';
+import defaultTheme from 'tailwindcss/defaultTheme';
 
-module.exports = {
-  mode: 'jit',
-  purge: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
+export default {
+  content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   theme: {
     screens: {
       xs: '411px',
@@ -16,4 +16,4 @@ module.exports = {
     },
   },
   plugins: [require('@tailwindcss/forms')],
-};
+} satisfies Config;

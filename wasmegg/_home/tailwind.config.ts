@@ -1,9 +1,9 @@
-const colors = require('tailwindcss/colors');
-const defaultTheme = require('tailwindcss/defaultTheme');
+import type { Config } from 'tailwindcss';
+import colors from 'tailwindcss/colors';
+import defaultTheme from 'tailwindcss/defaultTheme';
 
-module.exports = {
-  mode: 'jit',
-  purge: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue', '../../lib/tools/*.ts'],
+export default {
+  content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue', '../../lib/tools/*.ts'],
   theme: {
     fontFamily: {
       sans: ['IBM Plex Sans', ...defaultTheme.fontFamily.sans],
@@ -29,4 +29,4 @@ module.exports = {
     },
   },
   plugins: [require('@tailwindcss/forms')],
-};
+} satisfies Config;

@@ -1,6 +1,7 @@
-module.exports = {
-  mode: "jit",
-  purge: ["./index.html", "./src/**/*.{vue,ts}", "../../ui/**/*.vue"],
+import type { Config } from 'tailwindcss';
+
+export default {
+  content: ["./index.html", "./src/**/*.{vue,ts}", "../../ui/**/*.vue"],
   plugins: [require("@tailwindcss/forms")],
   theme: {
     extend: {
@@ -10,4 +11,4 @@ module.exports = {
       },
     },
   },
-};
+} satisfies Config;
