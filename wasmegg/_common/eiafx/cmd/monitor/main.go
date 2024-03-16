@@ -9,8 +9,8 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/testing/protocmp"
 
-	"github.com/fanaticscripter/EggContractor/api"
-	"github.com/fanaticscripter/Egg/wasmegg/_common/eiafx"
+	"github.com/carpetsage/Egg/wasmegg/_common/eiafx"
+	"github.com/carpetsage/EggContractor/api"
 )
 
 const _dataFilePath = "eiafx-config.json"
