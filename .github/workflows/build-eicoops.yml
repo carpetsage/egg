@@ -2,6 +2,7 @@ name: build-eicoops
 on:
   push:
     paths:
+      - pnpm-lock.yaml
       - "lib/**"
       - "ui/**"
       - "eicoop/**"

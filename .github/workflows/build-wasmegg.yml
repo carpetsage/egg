@@ -2,6 +2,7 @@ name: build-wasmegg
 on:
   push:
     paths:
+      - pnpm-lock.yaml
       - 'wasmegg/**'
       - 'ui/**'
       - 'lib/**'
