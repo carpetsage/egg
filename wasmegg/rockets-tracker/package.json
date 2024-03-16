@@ -23,7 +23,7 @@
   "devDependencies": {
     "@tailwindcss/forms": "^0.3.4",
     "@types/uuid": "^9.0.7",
-    "@vitejs/plugin-vue": "^4.6.2",
+    "@vitejs/plugin-vue": "^5.0.4",
     "@vue/compiler-sfc": "^3.4.15",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.33",
