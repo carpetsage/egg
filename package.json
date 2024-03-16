@@ -4,6 +4,7 @@
     "@typescript-eslint/parser": "^7.2.0",
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.23.0",
+    "netlify-cli": "17.18.1",
     "syncpack": "^12.3.0",
     "typescript": "^5.4.2"
   },

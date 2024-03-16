@@ -1,7 +1,0 @@
-{
-  "private": true,
-  "devDependencies": {
-    "netlify-cli": "^17.19.4",
-    "@netlify/blobs": "^6.2.0"
-  }
-}
