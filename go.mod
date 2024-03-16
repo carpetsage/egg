@@ -1,4 +1,4 @@
-module github.com/fanaticscripter/Egg
+module github.com/carpetsage/Egg
 
 go 1.18
 
