@@ -1,5 +1,6 @@
 {
   "name": "events-calendar",
+  "type": "module",
   "version": "0.0.0",
   "dependencies": {
     "@headlessui/vue": "^1.7.19",

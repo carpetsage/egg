@@ -1,5 +1,6 @@
 {
   "name": "coop-tracker",
+  "type": "module",
   "version": "0.1.0",
   "dependencies": {
     "@headlessui/vue": "^1.7.19",
