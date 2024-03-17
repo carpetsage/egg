@@ -99,6 +99,9 @@ importers:
       protobufjs:
         specifier: ^7.2.6
         version: 7.2.6
+      rollup-plugin-gzip:
+        specifier: ^3.1.2
+        version: 3.1.2(rollup@4.13.0)
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.1
@@ -4649,13 +4652,8 @@ packages:
       '@vue/compiler-dom': 3.4.21
       '@vue/shared': 3.4.21
 
-  /@vue/devtools-api@6.5.1:
-    resolution: {integrity: sha512-+KpckaAQyfbvshdDW5xQylLni1asvNSGme1JFs8I1+/H5pHEhqUKMEQD/qn3Nx5+/nycBq11qAEi8lk+LXI2dA==}
-    dev: true
-
   /@vue/devtools-api@6.6.1:
     resolution: {integrity: sha512-LgPscpE3Vs0x96PzSSB4IGVSZXZBZHpfxs+ZA1d+VEPwHdOXowy/Y2CsvCAIFrf+ssVU1pD1jidj505EpUnfbA==}
-    dev: false
 
   /@vue/language-core@2.0.6(typescript@5.4.2):
     resolution: {integrity: sha512-UzqU12tzf9XLqRO3TiWPwRNpP4fyUzE6MAfOQWQNZ4jy6a30ARRUpmODDKq6O8C4goMc2AlPqTmjOHPjHkilSg==}
@@ -5904,6 +5902,11 @@ packages:
   /commander@11.1.0:
     resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
     engines: {node: '>=16'}
+    dev: true
+
+  /commander@12.0.0:
+    resolution: {integrity: sha512-MwVNWlYjDTtOjX5PiD7o5pK0UrFU/OYgcJfjjK4RaHZETNtjJqrZa9Y9ds88+A+f+d5lv+561eZ+yCKoS3gbAA==}
+    engines: {node: '>=18'}
     dev: true
 
   /commander@2.20.3:
@@ -10007,7 +10010,7 @@ packages:
     resolution: {integrity: sha512-eQsKcWzIaZzEZ07NuEyO4Nw65g0hdWAyurVol1IPl1gahRwY+svqzfgfey8U8dahLwG44d6/RwEzuK52rSa/JQ==}
     hasBin: true
     dependencies:
-      commander: 11.1.0
+      commander: 12.0.0
     dev: true
 
   /module-definition@5.0.1:
@@ -11739,6 +11742,15 @@ packages:
       glob: 7.2.3
     dev: true
 
+  /rollup-plugin-gzip@3.1.2(rollup@4.13.0):
+    resolution: {integrity: sha512-9xemMyvCjkklgNpu6jCYqQAbvCLJzA2nilkiOGzFuXTUX3cXEFMwIhsIBRF7kTKD/SnZ1tNPcxFm4m4zJ3VfNQ==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      rollup: '>=2.0.0'
+    dependencies:
+      rollup: 4.13.0
+    dev: true
+
   /rollup@4.13.0:
     resolution: {integrity: sha512-3YegKemjoQnYKmsBlOHfMLVPPA5xLkQ8MHLLSw/fBrFaVkEayL51DilPpNNLq1exr98F2B1TzrV0FUlN3gWRPg==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
@@ -13244,7 +13256,7 @@ packages:
     dependencies:
       '@types/mockjs': 1.0.10
       bundle-require: 4.0.2(esbuild@0.20.2)
-      chokidar: 3.5.3
+      chokidar: 3.6.0
       connect: 3.7.0
       debug: 4.3.4(supports-color@9.4.0)
       fast-glob: 3.3.2
@@ -13368,7 +13380,7 @@ packages:
     peerDependencies:
       vue: ^3.2.0
     dependencies:
-      '@vue/devtools-api': 6.5.1
+      '@vue/devtools-api': 6.6.1
       vue: 3.4.21(typescript@5.4.2)
     dev: true
 
