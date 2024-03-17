@@ -20,7 +20,6 @@ export default {
           ...colors.zinc,
           750: "#333338",
         },
-        purple: colors.violet,
         orange: colors.orange,
         "cool-gray": colors.gray,
         // Interpolation of gray-700 (#3F3F46) and red-500 (#EF4444).
