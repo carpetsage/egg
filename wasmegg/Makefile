@@ -18,9 +18,6 @@ fastbuild: $(fastbuild-targets)
 update-loot-data:
 	./artifact-explorer/update-loot-data.sh
 
-compactify-afx-data:
-	find . -type f -iname '*.json' -exec ./_tools/compactify.sh '{}' \;
-
 clean: $(clean-targets)
 
 $(init-targets): init-%:

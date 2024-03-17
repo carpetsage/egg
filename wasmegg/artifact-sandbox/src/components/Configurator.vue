@@ -11,7 +11,7 @@
         v-model="conf.prophecyEggs"
         :min="0"
         :max="9999"
-        base-class="pl-10 pt-2.5 pb-2"
+        base-class="pl-10 pt-2.5 pb-2 w-full"
       />
     </div>
 
@@ -23,7 +23,7 @@
         id="soul_eggs"
         v-model:raw="conf.soulEggsInput"
         v-model:value="conf.soulEggs"
-        base-class="pl-10 pt-2.5 pb-2"
+        base-class="pl-10 pt-2.5 pb-2 w-full"
       />
     </div>
 
@@ -51,7 +51,7 @@
 
     <div class="mt-4 flex justify-center">
       <div class="space-y-1">
-        <h4 class="text-center text-sm uppercase">Configuration</h4>
+        <h4 class="text-center text-sm uppercase justify-center">Configuration</h4>
         <div class="relative flex items-center justify-end">
           <label for="RCB" class="flex items-center text-sm whitespace-nowrap mr-2">
             Max Base RCB
@@ -180,7 +180,7 @@
               :min="0"
               :model-value="round(conf.tachyonDeflectorBonus * 100)"
               base-class="pl-10 pr-4 pt-2.5 pb-2"
-              @update:modelValue="value => (conf.tachyonDeflectorBonus = value / 100)"
+              @update:model-value="value => (conf.tachyonDeflectorBonus = value / 100)"
             />
             <div class="absolute inset-y-0.5 right-0 pr-2 pt-2.5 pb-2 sm:text-sm text-gray-200">
               %

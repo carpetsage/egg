@@ -4,7 +4,7 @@
     :model-value="modelValue"
     :max="max"
     :min="min"
-    :base-class="`bg-dark-20 block w-full sm:text-sm rounded-md ${baseClass}`"
+    :base-class="`bg-dark-20 block sm:text-sm rounded-md ${baseClass}`"
     valid-class="focus:outline-none focus:ring-blue-500 focus:border-blue-500"
     invalid-class="border-red-300 text-red-500 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500"
     @update:model-value="$emit('update:modelValue', $event)"

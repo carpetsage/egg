@@ -45,10 +45,10 @@
                 <div class="text-sm font-medium text-gray-700">FTL Drive Upgrades</div>
                 <div class="text-sm text-gray-500">(Mission time reducing epic research)</div>
               </label>
-              <div class="relative flex items-center w-max mt-2">
+              <div class="relative flex items-center w-20 mt-2">
                 <base-integer-input
                   id="epic_research_ftl"
-                  base-class="block w-number-input sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-1 border-gray-300"
+                  base-class="block w-full w-number-input sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-1 border-gray-300"
                   :min="0"
                   :max="60"
                   :model-value="config.epicResearchFTLLevel"
@@ -65,10 +65,10 @@
                 <div class="text-sm font-medium text-gray-700">Zero-g Quantum Containment</div>
                 <div class="text-sm text-gray-500">(Mission capacity increasing epic research)</div>
               </label>
-              <div class="relative flex items-center w-max mt-2">
+              <div class="relative flex items-center w-20 mt-2">
                 <base-integer-input
                   id="epic_research_zerog"
-                  base-class="block w-number-input sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-1 border-gray-300"
+                  base-class="block w-full w-number-input sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-1 border-gray-300"
                   :min="0"
                   :max="10"
                   :model-value="config.epicResearchZerogLevel"

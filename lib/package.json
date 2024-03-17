@@ -1,5 +1,6 @@
 {
   "name": "lib",
+  "type": "module",
   "version": "0.1.0",
   "dependencies": {
     "dayjs": "^1.11.10",
