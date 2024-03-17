@@ -364,7 +364,7 @@ export class Mission extends MissionType {
   }
 
   get targetIcon(): string {
-    if (this.missionInfo.targetArtifact) {
+    if (this.missionInfo.targetArtifact !== ei.ArtifactSpec.Name.UNKNOWN && this.missionInfo.targetArtifact != null) {
       return getImageUrlFromId(this.missionInfo.targetArtifact, 32);
     }
     return '';
