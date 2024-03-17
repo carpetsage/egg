@@ -1,4 +1,6 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss';
+import colors from 'tailwindcss/colors';
+import forms from '@tailwindcss/forms';
 
 export default {
   content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
@@ -6,8 +8,11 @@ export default {
     extend: {
       colors: {
         ticket: '#7c00c4',
+        green: colors.emerald,
+        yellow: colors.amber,
+        purple: colors.violet,
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [forms],
 } satisfies Config;

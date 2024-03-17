@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 import colors from 'tailwindcss/colors';
 import defaultTheme from 'tailwindcss/defaultTheme';
+import forms from '@tailwindcss/forms';
 
 export default {
   content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue', '../../lib/tools/*.ts'],
@@ -18,9 +19,11 @@ export default {
     },
     extend: {
       colors: {
-        purple: colors.purple,
         fuchsia: colors.fuchsia,
         orange: colors.orange,
+        green: colors.emerald,
+        yellow: colors.amber,
+        purple: colors.violet,
       },
       gridTemplateColumns: {
         'max-1': 'max-content',
@@ -28,5 +31,5 @@ export default {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [forms],
 } satisfies Config;

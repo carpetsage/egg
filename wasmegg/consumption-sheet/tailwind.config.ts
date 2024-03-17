@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss';
 import colors from 'tailwindcss/colors';
+import forms from '@tailwindcss/forms';
 
 export default {
   content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
@@ -9,6 +10,9 @@ export default {
         cyan: colors.cyan,
         lime: colors.lime,
         teal: colors.teal,
+        green: colors.emerald,
+        yellow: colors.amber,
+        purple: colors.violet,
       },
       screens: {
         '3xl': '1600px',
@@ -18,5 +22,5 @@ export default {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [forms],
 } satisfies Config;

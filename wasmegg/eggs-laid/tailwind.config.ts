@@ -1,15 +1,20 @@
 import type { Config } from 'tailwindcss';
 import colors from 'tailwindcss/colors';
+import forms from '@tailwindcss/forms';
 
-module.exports = {
+export default {
   content: ['./index.html', './src/**/*.{vue,ts}', '../../ui/**/*.vue'],
   theme: {
     extend: {
       colors: {
         gray: {
+          ...colors.zinc,
           150: '#eceef1',
         },
         fuchsia: colors.fuchsia,
+        green: colors.emerald,
+        yellow: colors.amber,
+        purple: colors.violet,
       },
       gridTemplateColumns: {
         'max-2': 'repeat(2, max-content)',
@@ -18,5 +23,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [forms],
 } satisfies Config;

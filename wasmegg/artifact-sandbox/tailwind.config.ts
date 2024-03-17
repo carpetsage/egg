@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss';
 import colors from 'tailwindcss/colors';
+import forms from '@tailwindcss/forms';
 import defaultTheme from 'tailwindcss/defaultTheme';
 
 export default {
@@ -43,8 +44,11 @@ export default {
           80: 'hsl(0, 0%, 80%)',
           90: 'hsl(0, 0%, 90%)',
         },
+        green: colors.emerald,
+        yellow: colors.amber,
+        purple: colors.violet,
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [forms],
 } satisfies Config;
