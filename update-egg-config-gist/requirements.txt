@@ -1,2 +1,2 @@
-protobuf ~= 4.25.1
+protobuf ~= 5.26.0
 requests ~= 2.31.0
