@@ -80,7 +80,7 @@ export const tools = [
     displayIconOnly: true,
     iconCssClasses: 'h-6 -ml-0.5 -mr-1 -top-0.5',
     majorUpdateUntil: 1624607856000,
-    updateUntil: 2638811910000,
+    updateUntil: 1638811910000,
     whatsNew:
       'Grade detection works again',
   }),
@@ -134,7 +134,7 @@ export const tools = [
     iconUrl: iconURL('wasmegg/past-contracts.svg'),
     description: 'Past contracts and prophecy egg completion tracker',
     // Tue Jun  8 12:33:17 UTC 2021
-    updateUntil: 2623155597000,
+    updateUntil: 1623155597000,
     whatsNew:
       'Displays Contract Score',
   }),
