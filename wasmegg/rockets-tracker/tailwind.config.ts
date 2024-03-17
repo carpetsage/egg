@@ -8,7 +8,7 @@ export default {
     extend: {
       colors: {
         gray: {
-          ...colors.zinc,
+          ...colors.gray,
           150: '#eceef1',
         },
         fuchsia: colors.fuchsia,
