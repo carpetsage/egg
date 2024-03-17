@@ -10,4 +10,5 @@ if [ -s loot_raw.json ]; then
   echo 'updating loot.json'
   # jq instead of mv to get rid of evil windows newlines
   jq -r . loot_raw.json > "$(dirname $0)"/src/lib/loot.json
+  rm loot_raw.json
 fi

@@ -7,11 +7,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        gray: {
-          ...colors.zinc,
-          150: '#eceef1',
-        },
-        fuchsia: colors.fuchsia,
         green: colors.emerald,
         yellow: colors.amber,
         purple: colors.violet,
