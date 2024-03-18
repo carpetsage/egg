@@ -47,10 +47,10 @@ export class CoopStatus {
   refreshTime: Dayjs;
   expirationTime: Dayjs;
   eggsLaidOfflineAdjusted: number;
+  allGoalsAchieved: boolean;
   status: string;
 
   constructor(cs: ei.IContractCoopStatusResponse) {
-    this.status = "ACTIVE";
     this.contractId = cs.contractIdentifier!;
     this.contract = null;
     this.coopCode = cs.coopIdentifier!;
@@ -58,6 +58,8 @@ export class CoopStatus {
     this.eggsLaid = cs.totalAmount!;
     this.creatorId = cs.creatorId!;
     this.creatorName = null;
+    this.allGoalsAchieved = cs.allGoalsAchieved ?? false;
+    this.status = this.allGoalsAchieved ? "SUCCESS" : "ACTIVE";
     this.contributors = (cs.contributors || []).map((c) => new Contributor(c));
     this.highestEarningBonusPercentage = Math.max(
       ...this.contributors.map((c) => c.earningBonusPercentage),
@@ -96,6 +98,7 @@ export class CoopStatus {
       this.cannotDetermineCreator = !isEncrypted(cs.creatorId) &&
         this.contributors.some((c) => isEncrypted(c.id));
     }
+
     this.grade = null;
     this.league = null;
     this.goals = null;
@@ -157,10 +160,6 @@ export class CoopStatus {
     } else {
       this.goals = this.contract.goals!;
     }
-    // If people redo contracts they disappear from this history and make completed contracts look unfinished
-    if (this.status === "COMPLETE" && this.eggsLaid < this.goals[this.goals.length - 1].targetAmount!) {
-      this.eggsLaid = this.goals[this.goals.length - 1].targetAmount!
-    }
 
     this.leagueStatus = new ContractLeagueStatus(
       this.eggsLaid,
@@ -193,6 +192,7 @@ export class CoopStatus {
       // grade from response or AAA
       this.grade = grade ? grade : ei.Contract.PlayerGrade.GRADE_AAA;
       // status from response or ACTIVE
+      console.log(status);
       if (this.secondsRemaining > 0) {
         this.status = status ? ei.ContractCoopStatusResponse.Status[status] : "ACTIVE";
       } else {

@@ -93,7 +93,7 @@ export class ContractLeagueStatus {
     this.expectedTimeToComplete = expectedTimeToTarget(eggsLaid, eggsPerHour, this.finalTarget);
     this.expectedTimeToCompleteOfflineAdjusted = expectedTimeToTarget(eggsLaidOfflineAdjusted, eggsPerHour, this.finalTarget);
 
-    if (eggsLaid >= this.finalTarget || status === "COMPLETE") {
+    if (eggsLaid >= this.finalTarget || status === "SUCCESS") {
       this.completionStatus = ContractCompletionStatus.HasCompleted;
       this.requiredEggsPerHour = 0;
       return;
