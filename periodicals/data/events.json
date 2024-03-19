@@ -12688,5 +12688,23 @@
     "startTimestamp": 1710777600.0,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1710950400.0,
+    "id": "event-3-19",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1710864000.0,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1710950400.0,
+    "id": "ultra-3-19",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1710864000.0,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
