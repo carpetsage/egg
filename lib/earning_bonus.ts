@@ -103,15 +103,18 @@ const roles: FarmerRole[] = [
   { oom: 51, name: 'Infinifarmer',           color: '#546e7a'},
 ];
 
-export function soulPowerToFarmerRole(soulPower: number): FarmerRole {
+export function soulPowerToFarmerRole(soulPower: number, randColor?: boolean): FarmerRole {
   const oom = Math.floor(Math.max(soulPower, 0));
   // For Infinifarmer, set oom to match the soulPower.
-  return oom < roles.length
+  const role = oom < roles.length
     ? roles[oom]
     : {
         ...roles[roles.length - 1],
         oom,
       };
+  const index = Math.floor(Math.random() * roles.length);
+  role.color = roles[index].color;
+  return role;
 }
 
 export function earningBonusToFarmerRole(earningBonus: number): FarmerRole {
