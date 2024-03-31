@@ -38,7 +38,10 @@
         <tippy
           tag="div"
           class="h-8 w-8 absolute top-0 transform -translate-x-1/2"
-          :style="{ left: percentage(target(goal), leagueStatus.finalTarget) }"
+          :style="{ left: (index < leagueStatus.goals.length - 1 && duplicates.includes(goal)) ?
+            percentage(0.97 * target(goal), leagueStatus.finalTarget) :
+            percentage(target(goal), leagueStatus.finalTarget)
+          }"
         >
           <base-icon :icon-rel-path="rewardIconPath(goal)" :size="64" class="block h-8 w-8" />
           <template #content>
@@ -86,7 +89,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
 import {
@@ -129,7 +132,10 @@ export default defineComponent({
       required: true,
     },
   },
-  setup() {
+  setup(props) {
+    const { leagueStatus } = toRefs(props);
+    const duplicates = leagueStatus.value.goals.filter((goal,i) => goal.targetAmount === leagueStatus.value.goals.at(i+1)?.targetAmount ?? -1)
+    console.log(duplicates);
     return {
       percentage,
       rewardIconPath,
@@ -140,6 +146,7 @@ export default defineComponent({
       completionStatusFgColorClass,
       // target does a non-null assertion on targetAmount to avoid typing problem in the template.
       target: (goal: ei.Contract.IGoal) => goal.targetAmount!,
+      duplicates,
     };
   },
 });
