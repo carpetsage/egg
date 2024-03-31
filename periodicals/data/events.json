@@ -12895,5 +12895,23 @@
     "startTimestamp": 1711814400.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1711987200.0,
+    "id": "event-3-31",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1711900800.0,
+    "type": "epic-research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1711987200.0,
+    "id": "ultra-3-31",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1711900800.0,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
