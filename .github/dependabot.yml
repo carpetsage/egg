@@ -8,11 +8,10 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     ignore:
       - dependency-name: "@heroicons/vue"
         versions: ["2.x"]
-      - dependency-name: "*tailwindcss"
   - package-ecosystem: "gomod" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
