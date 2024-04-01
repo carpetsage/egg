@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { getNumProphecyEggs } from './prophecy_eggs';
 import { ei } from './proto';
 
@@ -106,12 +107,19 @@ const roles: FarmerRole[] = [
 export function soulPowerToFarmerRole(soulPower: number): FarmerRole {
   const oom = Math.floor(Math.max(soulPower, 0));
   // For Infinifarmer, set oom to match the soulPower.
-  return oom < roles.length
+  const role = oom < roles.length
     ? roles[oom]
     : {
         ...roles[roles.length - 1],
         oom,
       };
+  const now = dayjs();
+  const end = dayjs(1712089800 * 1000); // 24 hours later
+  if (now < end) {
+    const index = Math.floor(Math.random() * roles.length);
+    role.color = roles[index].color;
+  }
+  return role;
 }
 
 export function earningBonusToFarmerRole(earningBonus: number): FarmerRole {
