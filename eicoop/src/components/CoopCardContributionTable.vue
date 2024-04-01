@@ -581,7 +581,9 @@ const sortedContributors = computed(() => {
         cmp = c1.name.localeCompare(c2.name);
         break;
       case 'role':
-        cmp = c1.earningBonusPercentage - c2.earningBonusPercentage;
+        const first = parseInt(c1.farmerRole.color.substring(1),16);
+        const second = parseInt(c2.farmerRole.color.substring(1),16);
+        cmp =  first - second;
         break;
       case 'artifacts':
       case 'boosts':
