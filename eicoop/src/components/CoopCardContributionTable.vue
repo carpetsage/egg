@@ -581,7 +581,7 @@ const sortedContributors = computed(() => {
         cmp = c1.name.localeCompare(c2.name);
         break;
       case 'role':
-        cmp = c1.earningBonusPercentage - c2.earningBonusPercentage
+        cmp = c1.earningBonusPercentage - c2.earningBonusPercentage;
         break;
       case 'artifacts':
       case 'boosts':
