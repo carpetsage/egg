@@ -80,7 +80,7 @@ importers:
         version: 20.11.28
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -106,11 +106,11 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vite-plugin-mock:
         specifier: ^3.0.1
-        version: 3.0.1(esbuild@0.20.2)(mockjs@1.1.0)(vite@5.1.6)
+        version: 3.0.1(esbuild@0.20.2)(mockjs@1.1.0)(vite@5.1.7)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -217,7 +217,7 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -240,11 +240,11 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vite-plugin-image-optimizer:
         specifier: ^1.1.7
-        version: 1.1.7(vite@5.1.6)
+        version: 1.1.7(vite@5.1.7)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -287,10 +287,10 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vitejs/plugin-vue-jsx':
         specifier: ^3.1.0
-        version: 3.1.0(vite@5.1.6)(vue@3.4.21)
+        version: 3.1.0(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -307,8 +307,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -354,10 +354,10 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vitejs/plugin-vue-jsx':
         specifier: ^3.1.0
-        version: 3.1.0(vite@5.1.6)(vue@3.4.21)
+        version: 3.1.0(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -374,8 +374,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -409,7 +409,7 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -426,8 +426,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -476,7 +476,7 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -493,8 +493,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -540,7 +540,7 @@ importers:
         version: 9.0.8
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -560,8 +560,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -598,7 +598,7 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -615,8 +615,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -662,7 +662,7 @@ importers:
         version: 2.1.3
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -679,8 +679,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -747,10 +747,10 @@ importers:
         version: 3.0.5
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vitejs/plugin-vue-jsx':
         specifier: ^3.1.0
-        version: 3.1.0(vite@5.1.6)(vue@3.4.21)
+        version: 3.1.0(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -767,8 +767,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -802,7 +802,7 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -819,8 +819,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -851,7 +851,7 @@ importers:
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -865,8 +865,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -909,7 +909,7 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -926,8 +926,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -976,7 +976,7 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -993,8 +993,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -1037,7 +1037,7 @@ importers:
         version: 1.4.9
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -1054,8 +1054,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -1122,7 +1122,7 @@ importers:
         version: 9.0.8
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -1145,11 +1145,11 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vite-plugin-image-optimizer:
         specifier: ^1.1.7
-        version: 1.1.7(vite@5.1.6)
+        version: 1.1.7(vite@5.1.7)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -1186,7 +1186,7 @@ importers:
         version: 0.5.7(tailwindcss@3.4.1)
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -1203,8 +1203,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -1247,10 +1247,10 @@ importers:
         version: 9.0.8
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.4(vite@5.1.6)(vue@3.4.21)
+        version: 5.0.4(vite@5.1.7)(vue@3.4.21)
       '@vitejs/plugin-vue-jsx':
         specifier: ^3.1.0
-        version: 3.1.0(vite@5.1.6)(vue@3.4.21)
+        version: 3.1.0(vite@5.1.7)(vue@3.4.21)
       '@vue/compiler-sfc':
         specifier: ^3.4.21
         version: 3.4.21
@@ -1267,8 +1267,8 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
       vite:
-        specifier: ^5.1.6
-        version: 5.1.6(@types/node@20.11.28)
+        specifier: ^5.1.7
+        version: 5.1.7(@types/node@20.11.28)
       vue-tsc:
         specifier: ^2.0.6
         version: 2.0.6(typescript@5.4.2)
@@ -4700,7 +4700,7 @@ packages:
       - supports-color
     dev: true
 
-  /@vitejs/plugin-vue-jsx@3.1.0(vite@5.1.6)(vue@3.4.21):
+  /@vitejs/plugin-vue-jsx@3.1.0(vite@5.1.7)(vue@3.4.21):
     resolution: {integrity: sha512-w9M6F3LSEU5kszVb9An2/MmXNxocAnUb3WhRr8bHlimhDrXNt6n6D2nJQR3UXpGlZHh/EsgouOHCsM8V3Ln+WA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
@@ -4710,20 +4710,20 @@ packages:
       '@babel/core': 7.24.0
       '@babel/plugin-transform-typescript': 7.23.6(@babel/core@7.24.0)
       '@vue/babel-plugin-jsx': 1.2.1(@babel/core@7.24.0)
-      vite: 5.1.6(@types/node@20.11.28)
+      vite: 5.1.7(@types/node@20.11.28)
       vue: 3.4.21(typescript@5.4.2)
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@vitejs/plugin-vue@5.0.4(vite@5.1.6)(vue@3.4.21):
+  /@vitejs/plugin-vue@5.0.4(vite@5.1.7)(vue@3.4.21):
     resolution: {integrity: sha512-WS3hevEszI6CEVEx28F8RjTX97k3KsrcY6kvTg7+Whm5y3oYvcqzVeGCU3hxSAn4uY2CLCkeokkGKpoctccilQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       vite: ^5.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 5.1.6(@types/node@20.11.28)
+      vite: 5.1.7(@types/node@20.11.28)
       vue: 3.4.21(typescript@5.4.2)
     dev: true
 
@@ -13436,7 +13436,7 @@ packages:
     engines: {node: '>= 0.8'}
     dev: true
 
-  /vite-plugin-image-optimizer@1.1.7(vite@5.1.6):
+  /vite-plugin-image-optimizer@1.1.7(vite@5.1.7):
     resolution: {integrity: sha512-KPJWndwqVi7Z2hYCudzKeNDw5U7w1DxAc266bqDBKV8taG8W3EtripFuUM4Y05IlFC19yBQndJCFA8+NJymH+w==}
     engines: {node: '>=14'}
     peerDependencies:
@@ -13444,10 +13444,10 @@ packages:
     dependencies:
       ansi-colors: 4.1.3
       pathe: 1.1.2
-      vite: 5.1.6(@types/node@20.11.28)
+      vite: 5.1.7(@types/node@20.11.28)
     dev: true
 
-  /vite-plugin-mock@3.0.1(esbuild@0.20.2)(mockjs@1.1.0)(vite@5.1.6):
+  /vite-plugin-mock@3.0.1(esbuild@0.20.2)(mockjs@1.1.0)(vite@5.1.7):
     resolution: {integrity: sha512-jEqRkX6Ts6z9e3sPrktcmujLGTIjxMwMZUhcgoo1q0dEMcljMBkZgJK1vMaetTm+GfOy2NkGVQOwVqLS/Vy6Uw==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
@@ -13463,14 +13463,14 @@ packages:
       mockjs: 1.1.0
       path-to-regexp: 6.2.1
       picocolors: 1.0.0
-      vite: 5.1.6(@types/node@20.11.28)
+      vite: 5.1.7(@types/node@20.11.28)
     transitivePeerDependencies:
       - esbuild
       - supports-color
     dev: true
 
-  /vite@5.1.6(@types/node@20.11.28):
-    resolution: {integrity: sha512-yYIAZs9nVfRJ/AiOLCA91zzhjsHUgMjB+EigzFb6W2XTLO8JixBCKCjvhKZaye+NKYHCrkv3Oh50dH9EdLU2RA==}
+  /vite@5.1.7(@types/node@20.11.28):
+    resolution: {integrity: sha512-sgnEEFTZYMui/sTlH1/XEnVNHMujOahPLGMxn1+5sIT45Xjng1Ec1K78jRP15dSmVgg5WBin9yO81j3o9OxofA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
