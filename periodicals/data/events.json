@@ -13093,5 +13093,23 @@
     "startTimestamp": 1712851200.0,
     "type": "hab-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1713024000.0,
+    "id": "event-4-12",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1712937600.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1713024000.0,
+    "id": "ultra-4-12",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1712937600.0,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
