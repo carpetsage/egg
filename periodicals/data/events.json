@@ -13158,8 +13158,17 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1713542400.0,
+    "endTimestamp": 1713369600.0,
     "id": "event-4-16",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1713283200.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1713542400.0,
+    "id": "event-4-16-3",
     "message": "2x MISSION CAPACITY!!!",
     "multiplier": 2.0,
     "startTimestamp": 1713283200.0,
