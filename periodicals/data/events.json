@@ -13176,15 +13176,6 @@
     "ultra": true
   },
   {
-    "endTimestamp": 1713542400.0,
-    "id": "event-4-16-3",
-    "message": "2x MISSION CAPACITY!!!",
-    "multiplier": 2.0,
-    "startTimestamp": 1713283200.0,
-    "type": "mission-capacity",
-    "ultra": false
-  },
-  {
     "endTimestamp": 1713456000.0,
     "id": "event-4-17",
     "message": "2x BOOST DURATION!",
@@ -13201,5 +13192,32 @@
     "startTimestamp": 1713369600.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1713542400.0,
+    "id": "event-4-16-3",
+    "message": "2x MISSION CAPACITY!!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1713283200.0,
+    "type": "mission-capacity",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1713542400.0,
+    "id": "event-4-18",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1713456000.0,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1713542400.0,
+    "id": "ultra-4-18",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1713456000.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
