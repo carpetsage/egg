@@ -13408,5 +13408,23 @@
     "startTimestamp": 1714492800.0,
     "type": "earnings-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1714665600.0,
+    "id": "event-5-1",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1714579200.0,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1714665600.0,
+    "id": "event-5-1-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1714579200.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
