@@ -13426,5 +13426,23 @@
     "startTimestamp": 1714579200.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1714752000.0,
+    "id": "event-5-2",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1714665600.0,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1714752000.0,
+    "id": "ultra-5-2",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1714665600.0,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
