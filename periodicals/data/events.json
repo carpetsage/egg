@@ -13464,6 +13464,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1714924800.0,
+    "id": "ultra-5-4",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1714838400.0,
+    "type": "drone-boost",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1715011200.0,
     "id": "event-5-4-2",
     "message": "4x PIGGY GROWTH!!",
@@ -13473,12 +13482,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1714924800.0,
-    "id": "ultra-5-4",
-    "message": "4x DRONE REWARDS!",
-    "multiplier": 4.0,
-    "startTimestamp": 1714838400.0,
-    "type": "drone-boost",
-    "ultra": true
+    "endTimestamp": 1715011200.0,
+    "id": "event-5-5",
+    "message": "4x FASTER MISSIONS!",
+    "multiplier": 0.25,
+    "startTimestamp": 1714924800.0,
+    "type": "mission-duration",
+    "ultra": false
   }
 ]
