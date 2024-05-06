@@ -15,7 +15,7 @@
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
     "vue": "^3.4.21",
-    "vue-router": "^4.3.0",
+    "vue-router": "^4.3.2",
     "vue-tippy": "^6.4.1"
   },
   "devDependencies": {
