@@ -13552,5 +13552,23 @@
     "startTimestamp": 1715270400.0,
     "type": "hab-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1715443200.0,
+    "id": "event-5-10",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1715356800.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1715443200.0,
+    "id": "ultra-5-10",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1715356800.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
