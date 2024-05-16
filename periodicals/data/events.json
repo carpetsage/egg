@@ -13651,5 +13651,23 @@
     "startTimestamp": 1715788800.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1715961600.0,
+    "id": "event-5-16",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1715875200.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1715961600.0,
+    "id": "ultra-5-16",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1715875200.0,
+    "type": "earnings-boost",
+    "ultra": true
   }
 ]
