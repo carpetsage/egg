@@ -13815,15 +13815,6 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1717257600.0,
-    "id": "week-event-5-25",
-    "message": "4x FASTER MISSIONS!",
-    "multiplier": 0.25,
-    "startTimestamp": 1716652800.0,
-    "type": "mission-duration",
-    "ultra": false
-  },
-  {
     "endTimestamp": 1716825600.0,
     "id": "event-5-26",
     "message": "35% OFF EPIC RESEARCH!",
@@ -13840,5 +13831,23 @@
     "startTimestamp": 1716739200.0,
     "type": "mission-fuel",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1717257600.0,
+    "id": "week-event-5-25",
+    "message": "4x FASTER MISSIONS!",
+    "multiplier": 0.25,
+    "startTimestamp": 1716652800.0,
+    "type": "mission-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1716912000.0,
+    "id": "event-5-27",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1716825600.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
