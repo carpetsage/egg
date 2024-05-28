@@ -13833,6 +13833,15 @@
     "ultra": true
   },
   {
+    "endTimestamp": 1716912000.0,
+    "id": "event-5-27",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1716825600.0,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
     "endTimestamp": 1717257600.0,
     "id": "week-event-5-25",
     "message": "4x FASTER MISSIONS!",
@@ -13842,12 +13851,21 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1716912000.0,
-    "id": "event-5-27",
-    "message": "2x EARNINGS!",
-    "multiplier": 2.0,
-    "startTimestamp": 1716825600.0,
-    "type": "earnings-boost",
+    "endTimestamp": 1716998400.0,
+    "id": "event-5-28",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1716912000.0,
+    "type": "mission-fuel",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1716998400.0,
+    "id": "ultra-5-28",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1716912000.0,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
