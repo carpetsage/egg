@@ -13842,15 +13842,6 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1717257600.0,
-    "id": "week-event-5-25",
-    "message": "4x FASTER MISSIONS!",
-    "multiplier": 0.25,
-    "startTimestamp": 1716652800.0,
-    "type": "mission-duration",
-    "ultra": false
-  },
-  {
     "endTimestamp": 1716998400.0,
     "id": "event-5-28",
     "message": "3x FUELING!",
@@ -13867,5 +13858,32 @@
     "startTimestamp": 1716912000.0,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1717257600.0,
+    "id": "week-event-5-25",
+    "message": "4x FASTER MISSIONS!",
+    "multiplier": 0.25,
+    "startTimestamp": 1716652800.0,
+    "type": "mission-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1717084800.0,
+    "id": "event-5-29",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1716998400.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1717084800.0,
+    "id": "event-5-29-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1716998400.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
