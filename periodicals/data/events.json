@@ -13878,15 +13878,6 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1717257600.0,
-    "id": "week-event-5-25",
-    "message": "4x FASTER MISSIONS!",
-    "multiplier": 0.25,
-    "startTimestamp": 1716652800.0,
-    "type": "mission-duration",
-    "ultra": false
-  },
-  {
     "endTimestamp": 1717171200.0,
     "id": "event-5-30",
     "message": "80% OFF HEN HOUSES!",
@@ -13903,5 +13894,23 @@
     "startTimestamp": 1717084800.0,
     "type": "gift-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1717257600.0,
+    "id": "week-event-5-25",
+    "message": "4x FASTER MISSIONS!",
+    "multiplier": 0.25,
+    "startTimestamp": 1716652800.0,
+    "type": "mission-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1717257600.0,
+    "id": "event-5-31",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1717171200.0,
+    "type": "research-sale",
+    "ultra": false
   }
 ]
