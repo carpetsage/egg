@@ -30,7 +30,7 @@
     "protobufjs": "^7.2.6",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.4.2",
-    "vite": "^5.1.6",
+    "vite": "^5.2.12",
     "vite-plugin-mock": "^3.0.1",
     "vue-tsc": "^2.0.14",
     "vuex": "^4.1.0"
