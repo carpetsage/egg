@@ -14137,5 +14137,32 @@
     "startTimestamp": 1718380800.0,
     "type": "research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1718553600.0,
+    "id": "event-6-15",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2.0,
+    "startTimestamp": 1718467200.0,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1718640000.0,
+    "id": "event-6-15-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1718467200.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1718553600.0,
+    "id": "ultra-6-15",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1718467200.0,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
