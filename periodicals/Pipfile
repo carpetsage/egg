@@ -8,7 +8,7 @@ protobuf = "~=4.25.3"
 requests = "~=2.31.0"
 proto-plus = "~=1.22"
 betterproto = "~=1.2"
-more-itertools = "~=10.2"
+more-itertools = "~=10.3"
 
 [requires]
 python_version = "3.10"
