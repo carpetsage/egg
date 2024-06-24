@@ -14299,5 +14299,14 @@
     "startTimestamp": 1719158400.0,
     "type": "mission-fuel",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1719331200.0,
+    "id": "event-6-24",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1719244800.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
