@@ -2,10 +2,11 @@ import { ei } from './proto';
 
 export function eggName(egg: ei.Egg): string {
   const symbol = ei.Egg[egg];
-  return symbol
-    .split('_')
-    .map(word => word[0] + word.substring(1).toLowerCase())
-    .join(' ');
+  return egg == ei.Egg.IMMORTALITY ? "CRISPR" :
+    symbol
+      .split('_')
+      .map(word => word[0] + word.substring(1).toLowerCase())
+      .join(' ');
 }
 
 export function eggValue(egg: ei.Egg): number {
@@ -80,7 +81,7 @@ export function eggIconPath(egg: ei.Egg): string {
     case ei.Egg.QUANTUM:
       return 'egginc/egg_quantum.png';
     case ei.Egg.IMMORTALITY:
-      return 'egginc/egg_immortality.png';
+      return 'egginc/egg_crispr.png';
     case ei.Egg.TACHYON:
       return 'egginc/egg_tachyon.png';
     case ei.Egg.GRAVITON:
