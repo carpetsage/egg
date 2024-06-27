@@ -61,6 +61,8 @@ export function eggValue(egg: ei.Egg): number {
       return 0.99;
     case ei.Egg.UNKNOWN:
       return 0;
+    default:
+      return 0;
   }
 }
 
@@ -115,6 +117,8 @@ export function eggIconPath(egg: ei.Egg): string {
     case ei.Egg.PUMPKIN:
       return 'egginc/egg_pumpkin.png';
     case ei.Egg.UNKNOWN:
+      return 'egginc/egg_unknown.png';
+    default:
       return 'egginc/egg_unknown.png';
   }
 }
