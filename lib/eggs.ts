@@ -1,15 +1,16 @@
 import { ei } from './proto';
+import { Egg } from './sandbox/schema';
 
-export function eggName(egg: ei.Egg): string {
-  const symbol = ei.Egg[egg];
+export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
+  const symbol = custom_egg_id != undefined ? custom_egg_id : ei.Egg[egg];
   return egg == ei.Egg.IMMORTALITY ? "CRISPR" :
     symbol
-      .split('_')
-      .map(word => word[0] + word.substring(1).toLowerCase())
+      .split(/_-/)
+      .map(word => word[0].toUpperCase() + word.substring(1).toLowerCase())
       .join(' ');
 }
 
-export function eggValue(egg: ei.Egg): number {
+export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
   switch (egg) {
     case ei.Egg.EDIBLE:
       return 0.1;
@@ -61,12 +62,27 @@ export function eggValue(egg: ei.Egg): number {
       return 0.99;
     case ei.Egg.UNKNOWN:
       return 0;
-    default:
-      return 0;
+    case ei.Egg.CUSTOM_EGG:
+      switch (custom_egg_id) {
+        case "carbon-fiber":
+          return 500;
+        case "chocolate":
+          return 5;
+        case "easter":
+          return 0.05;
+        case "waterballoon":
+          return 0.1;
+        case "firework":
+          return 4.99;
+        case "pumpkin":
+          return 0.99
+        default:
+          return 0;
+      }
   }
 }
 
-export function eggIconPath(egg: ei.Egg): string {
+export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null): string {
   switch (egg) {
     case ei.Egg.EDIBLE:
       return 'egginc/egg_edible.png';
@@ -118,8 +134,23 @@ export function eggIconPath(egg: ei.Egg): string {
       return 'egginc/egg_pumpkin.png';
     case ei.Egg.UNKNOWN:
       return 'egginc/egg_unknown.png';
-    default:
-      return 'egginc/egg_unknown.png';
+    case ei.Egg.CUSTOM_EGG:
+      switch (custom_egg_id) {
+        case "carbon-fiber":
+          return 'egginc/egg_carbonfiber.png';
+        case "chocolate":
+          return 'egginc/egg_chocolate.png';
+        case "easter":
+          return 'egginc/egg_easter.png';
+        case "waterballoon":
+          return 'egginc/egg_waterballoon.png';
+        case "firework":
+          return 'egginc/egg_firework.png';
+        case "pumpkin":
+          return 'egginc/egg_pumpkin.png';
+        default:
+          return 'egginc/egg_unknown.png'
+      }
   }
 }
 

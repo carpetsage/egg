@@ -5,7 +5,7 @@
       <div class="relative -ml-4 -mt-2 sm:flex items-start justify-between">
         <div class="flex-grow ml-4 mt-2">
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
-            <base-icon v-tippy="{ content: eggTooltip(egg) }" :icon-rel-path="eggIconPath(egg)" :size="64"
+            <base-icon v-tippy="{ content: eggTooltip(egg, contract.customEggId) }" :icon-rel-path="eggIconPath(egg, contract.customEggId)" :size="64"
               class="inline-block align-middle relative -top-px -left-1 h-6 w-6" />
             <base-click-to-copy :text="status.contractId" class="text-gray-900 dark:text-gray-100 mr-0.5">
               {{ contract.name }}
@@ -252,7 +252,7 @@
       <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
           <div class="shadow overflow-hidden border-b border-gray-200 dark:border-gray-700">
-            <coop-card-contribution-table :egg="egg" :coop-status="status" :target="leagueStatus.finalTarget" />
+            <coop-card-contribution-table :egg="egg" :coop-status="status" :target="leagueStatus.finalTarget" :customEggId="contract.customEggId" />
           </div>
         </div>
       </div>

@@ -477,8 +477,8 @@ export default defineComponent({
     };
     const selectContractAndShowCoopSelector = (contractId: string) =>
       store.dispatch('coopSelector/selectContractAndShow', contractId);
-    const contractEggIconPath = (contract: Contract) => eggIconPath(contract.egg!);
-    const contractEggTooltip = (contract: Contract) => eggTooltip(contract.egg!);
+    const contractEggIconPath = (contract: Contract) => eggIconPath(contract.egg!, contract.customEggId);
+    const contractEggTooltip = (contract: Contract) => eggTooltip(contract.egg!, contract.customEggId);
     const isAvailable = (contract: Contract, now: number) => contract.expirationTime! > now / 1000;
     const durationUntilExpiration = (contract: Contract, now: number) =>
       formatDuration(Math.max(contract.expirationTime! - now / 1000, 0), true);

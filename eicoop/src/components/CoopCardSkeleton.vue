@@ -5,7 +5,7 @@
         <div class="flex-grow ml-4 mt-2">
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
             <base-icon
-              :icon-rel-path="eggIconPath(egg)"
+              :icon-rel-path="eggIconPath(egg, contract?.customEggId)"
               :size="64"
               class="inline-block align-middle relative -top-px -left-1 h-6 w-6"
             />

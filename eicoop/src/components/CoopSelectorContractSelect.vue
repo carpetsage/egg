@@ -122,7 +122,7 @@ export default defineComponent({
     const updateSelectedContract = (selected: unknown) => {
       emit('update:modelValue', (selected as Contract).id);
     };
-    const contractEggIconPath = (contract: Contract) => eggIconPath(contract.egg!);
+    const contractEggIconPath = (contract: Contract) => eggIconPath(contract.egg!, contract.customEggId);
     return {
       selectedContract,
       updateSelectedContract,
