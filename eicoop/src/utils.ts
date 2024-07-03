@@ -27,15 +27,15 @@ export function iconURL(relpath: string, size: number | string = 'orig'): string
   return `https://eggincassets.pages.dev/${size}/${relpath}`;
 }
 
-export function eggTooltip(egg: ei.Egg): string {
-  const value = eggValue(egg);
+export function eggTooltip(egg: ei.Egg, custom_egg_id?: string | null): string {
+  const value = eggValue(egg, custom_egg_id);
   const valueDisplay =
     value < 0.01
       ? value.toFixed(7)
       : value < 100
       ? trimTrailingZeros(value.toFixed(2))
       : formatEIValue(value, { trim: true });
-  return `${eggName(egg)} Egg, value: ${valueDisplay}`;
+  return `${eggName(egg, custom_egg_id)} Egg, value: ${valueDisplay}`;
 }
 
 export enum RoundingMode {
