@@ -2,7 +2,7 @@ import { ei } from './proto';
 import { Egg } from './sandbox/schema';
 
 export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
-  const symbol = custom_egg_id != undefined ? custom_egg_id : ei.Egg[egg];
+  const symbol = custom_egg_id || ei.Egg[egg];
   return egg == ei.Egg.IMMORTALITY ? "CRISPR" :
     symbol
       .split(/_-/)
