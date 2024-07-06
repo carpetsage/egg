@@ -20,7 +20,7 @@
           <code class="text-xs font-mono">{{ appVersion }}</code>
           <span class="font-normal">
             (<a
-              href="https://github.com/fanaticscripter/EggContractor/tree/master/misc/protobuf"
+              href="https://github.com/carpetsage/egg/tree/main/protobuf"
               target="_blank"
               class="hover:text-gray-500 border-b border-gray-500 border-dashed"
               >protobuf definitions</a

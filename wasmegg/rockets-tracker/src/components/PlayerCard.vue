@@ -973,7 +973,7 @@ const hasNAH = computed(() => {
   const farmsize = progress.value.maxFarmSizeReached!;
   // subtract 1 for array indexing
   const enlight = ei.Egg.ENLIGHTENMENT - 1;
-  if (farmsize[enlight] === 19845000000) {
+  if (farmsize[enlight] >= 19845000000) {
     return true;
   }
   return false;

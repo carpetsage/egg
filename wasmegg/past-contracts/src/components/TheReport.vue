@@ -208,7 +208,7 @@
                       :class="contractFgClass(contract, true)"
                     >
                       <img
-                        :src="iconURL(eggIconPath(contract.egg), 64)"
+                        :src="iconURL(eggIconPath(contract.egg, contract.customEggId), 64)"
                         class="inline h-4 w-4 mr-0.5 -my-1"
                       />
                       {{ contract.name }}

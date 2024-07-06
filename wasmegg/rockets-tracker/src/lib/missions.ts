@@ -349,8 +349,10 @@ export function getLaunchLog(artifactsDB: ei.IArtifactsDB): LaunchLog {
   const dateToMissions = new Map<EpochMilliseconds, Mission[]>();
   for (const mission of missions) {
     const launchTime = mission.launchTime;
+    // Just skip the ship if launch time is missing for some reason
     if (!launchTime) {
-      throw new Error(`mission ${mission.id}: launch timestamp not found`);
+      console.log(mission);
+      continue;
     }
     const dateTimestamp: EpochMilliseconds = launchTime.startOf('day').valueOf();
     if (dateToMissions.has(dateTimestamp)) {
@@ -370,7 +372,7 @@ export function getLaunchLog(artifactsDB: ei.IArtifactsDB): LaunchLog {
 export function getMissionAirTime(missionArchive?: ei.IMissionInfo[] | null,  ship?: ei.MissionInfo.Spaceship, durationType?: ei.MissionInfo.DurationType) {
   let ships = missionArchive;
   if (ship != undefined) {
-    ships = ships?.filter(m => m.ship ==  ship);
+    ships = ships?.filter(m => m.ship == ship);
   }
   if (durationType != undefined) {
     ships = ships?.filter(m => m.durationType == durationType);

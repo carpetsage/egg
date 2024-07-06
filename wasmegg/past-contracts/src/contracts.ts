@@ -14,6 +14,7 @@ export interface UserContract {
   id: string;
   name: string;
   egg: ei.Egg;
+  customEggId?: string | null;
   isCoop: boolean;
   coopCode: string | null;
   hasGrades: boolean;
@@ -118,6 +119,7 @@ function newUserContract(
   const id = props.identifier!;
   const name = props.name!;
   const egg = props.egg!;
+  const customEggId = props.customEggId;
   const isCoop = !!props.maxCoopSize && props.maxCoopSize > 1;
   const coopCode = contract.coopIdentifier || null;
   const league: ContractLeague = contract.league || 0;
@@ -161,6 +163,7 @@ function newUserContract(
     name,
     teamworkScore,
     egg,
+    customEggId,
     isCoop,
     coopCode,
     hasLeagues,

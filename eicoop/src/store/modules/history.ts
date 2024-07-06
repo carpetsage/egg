@@ -13,6 +13,7 @@ export interface HistoryCoopEntry {
   contractId: string;
   contractName: string;
   contractEgg: ei.Egg;
+  customEggId?: string | null;
   coopCode: string;
   grade?: string,
 }
@@ -68,6 +69,7 @@ function persistCoopsToLocalStorage(coops: HistoryCoopEntry[]) {
           contractName: e.contractName,
           contractEgg: e.contractEgg,
           coopCode: e.coopCode,
+          customEggId: e.customEggId,
         })
       )
     ),
