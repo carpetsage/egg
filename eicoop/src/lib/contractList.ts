@@ -180,7 +180,10 @@ function getGradeGoals(contract: ei.IContract) {
 
 function getEliteGoal(contract: ei.IContract) {
   if (!contract.gradeSpecs) {
-    const goals = contract.goals!;
+    if (!contract.goalSets) {
+      const goals = contract.goals!;
+    }
+    const goals = contract.goalSets ? contract.goalSets[0].goals! : contract.goals!
     return goals[goals.length - 1].targetAmount!;
   }
   const goals = contract.gradeSpecs[1].goals!;

@@ -404,9 +404,9 @@ type ColumnSpec = {
   tooltip?: string;
 };
 
-const props = defineProps<{ egg: ei.Egg; coopStatus: CoopStatus; target: number}>();
+const props = defineProps<{ egg: ei.Egg; coopStatus: CoopStatus; target: number, customEggId?: string | null }>();
 
-const { egg, coopStatus, target } = toRefs(props);
+const { egg, coopStatus, target, customEggId } = toRefs(props);
 const devmode = inject(devmodeKey);
 
 const showOptionalColumn = computed(
@@ -446,7 +446,7 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
     {
       id: 'eggsPerHour',
       name: 'Rate/hr',
-      iconPath: eggIconPath(egg.value),
+      iconPath: eggIconPath(egg.value, customEggId.value),
       suffix: '/ hr',
     },
     {

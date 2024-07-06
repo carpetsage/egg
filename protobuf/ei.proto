@@ -44,6 +44,7 @@ message Backup {
         optional bool max_enabled = 26;
         optional bool hide_cc_status = 28;
         optional bool contracts_widget_enabled = 29;
+        optional bool artifact_sparkle = 30;
         optional double last_backup_time = 24;
         optional bool coppa_queried = 7;
         optional bool coppa_restricted = 8;
@@ -241,6 +242,7 @@ message Backup {
         optional bool backup_reminder_alert = 19;
         optional bool max_button_alert = 23;
         optional bool mission_target_alert = 24;
+        optional bool colleggtibles_alert = 25;
     }
 
     optional MyContracts contracts = 13;
@@ -468,6 +470,7 @@ message Reward {
 message GameModifier {
     optional GameDimension dimension = 1;
     enum GameDimension {
+        INVALID = 0;
         EARNINGS = 1;
         AWAY_EARNINGS = 2;
         INTERNAL_HATCHERY_RATE = 3;
@@ -483,11 +486,25 @@ message GameModifier {
     optional string description = 3;
 }
 
+message CustomEgg {
+    optional string identifier = 1;
+    optional string name = 2;
+    optional string description = 3;
+    optional double value = 4;
+    optional string hatchery_id = 5;
+    optional double hatchery_max_x = 6;
+    optional DLCItem icon = 7;
+    optional double icon_width = 21;
+    optional double icon_height = 22;
+    repeated GameModifier buffs = 8;
+}
+
 message Contract {
     optional string identifier = 1;
     optional string name = 9;
     optional string description = 10;
     optional Egg egg = 2;
+    optional string custom_egg_id = 25;
 
     repeated Goal goals = 3;
     message Goal {
@@ -704,6 +721,7 @@ message ContractsRequest {
 
 message ContractsResponse {
     repeated Contract contracts = 1;
+    repeated CustomEgg custom_eggs = 6;
     optional string warning_message = 4;
     optional double total_eop = 5;
     optional double server_time = 2;
@@ -860,6 +878,7 @@ message LocalContract {
     optional bool coop_share_farm = 17;
     optional double last_amount_when_reward_given = 6;
     optional uint32 num_goals_achieved = 14;
+    optional double max_farm_size_reached = 23;
     optional uint32 boosts_used = 12;
     optional bool points_replay = 20;
     optional uint32 league = 15;
@@ -878,6 +897,7 @@ message MyContracts {
     optional bool initial_grade_revealed = 6;
     optional double last_grade_progress_shown = 7;
     optional bool show_advanced_evaluations = 8;
+    repeated CustomEgg custom_egg_info = 9;
 }
 
 message QueryCoopRequest {
@@ -1429,7 +1449,8 @@ message AdAttributionInfo {
 message ArtifactsClientInfo {
     optional double mission_capacity_mult = 1;
     optional double mission_duration_mult = 2;
-    optional double mission_ftl_duration_mult = 4;
+    optional double mission_ftl_duration_research_mult = 4;
+    optional double mission_capacity_research_mult = 6;
 
     repeated LaunchCount launch_counts = 3;
     message LaunchCount {
@@ -1437,6 +1458,8 @@ message ArtifactsClientInfo {
         optional uint32 num_launches = 2;
         optional double launch_points = 3;
     }
+
+    optional double last_server_launch_count_sum_time = 5;
 }
 
 message MissionInfo {
@@ -1939,6 +1962,7 @@ message ShellSpec {
         HATCHERY_WATERBALLOON = 141;
         HATCHERY_FIREWORK = 142;
         HATCHERY_PUMPKIN = 143;
+        HATCHERY_CUSTOM = 150;
         HOA_1 = 170;
         HOA_2 = 171;
         HOA_3 = 172;
@@ -2373,6 +2397,7 @@ enum Egg {
     WATERBALLOON = 102;
     FIREWORK = 103;
     PUMPKIN = 104;
+    CUSTOM_EGG = 200;
     UNKNOWN = 1000;
 }
 
