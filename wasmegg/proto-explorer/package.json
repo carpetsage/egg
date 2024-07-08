@@ -5,7 +5,7 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.19",
     "@heroicons/vue": "^1.0.6",
-    "ace-builds": "^1.32.7",
+    "ace-builds": "^1.35.2",
     "copy-text-to-clipboard": "^3.2.0",
     "lib": "workspace:^",
     "protobufjs": "^7.2.6",
