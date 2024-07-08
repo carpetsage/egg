@@ -109,8 +109,8 @@ importers:
         specifier: ^5.3.3
         version: 5.3.3(@types/node@20.11.28)
       vite-plugin-mock:
-        specifier: ^3.0.1
-        version: 3.0.1(esbuild@0.21.5)(mockjs@1.1.0)(vite@5.3.3(@types/node@20.11.28))
+        specifier: ^3.0.2
+        version: 3.0.2(esbuild@0.21.5)(mockjs@1.1.0)(vite@5.3.3(@types/node@20.11.28))
       vue-tsc:
         specifier: ^2.0.14
         version: 2.0.14(typescript@5.5.2)
@@ -2906,9 +2906,6 @@ packages:
 
   '@types/mdurl@1.0.5':
     resolution: {integrity: sha512-6L6VymKTzYSrEf4Nev4Xa1LCHKrlTlYCBMTlQKFuddo1CvQcE52I0mwfOJayueUC7MJuXOeHTcIU683lzd0cUA==}
-
-  '@types/mockjs@1.0.10':
-    resolution: {integrity: sha512-SXgrhajHG7boLv6oU93CcmdDm0HYRiceuz6b+7z+/2lCJPTWDv0V5YiwFHT2ejE4bQqgSXQiVPQYPWv7LGsK1g==}
 
   '@types/node@20.11.28':
     resolution: {integrity: sha512-M/GPWVS2wLkSkNHVeLkrF2fD5Lx5UC4PxA0uZcKc6QqbIQUJyW1jVjueJYi1z8n0I5PxYrtpnPnWglE+y9A0KA==}
@@ -7643,10 +7640,11 @@ packages:
     peerDependencies:
       vite: '>=3'
 
-  vite-plugin-mock@3.0.1:
-    resolution: {integrity: sha512-jEqRkX6Ts6z9e3sPrktcmujLGTIjxMwMZUhcgoo1q0dEMcljMBkZgJK1vMaetTm+GfOy2NkGVQOwVqLS/Vy6Uw==}
+  vite-plugin-mock@3.0.2:
+    resolution: {integrity: sha512-bD//HvkTygGmk+LsIAdf0jGNlCv4iWv0kZlH9UEgWT6QYoUwfjQAE4SKxHRw2tfLgVhbPQVv/+X3YlNWvueGUA==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
+      esbuild: '>=0.17'
       mockjs: '>=1.1.0'
       vite: '>=4.0.0'
 
@@ -7882,12 +7880,12 @@ snapshots:
   '@babel/code-frame@7.24.2':
     dependencies:
       '@babel/highlight': 7.24.2
-      picocolors: 1.0.0
+      picocolors: 1.0.1
 
   '@babel/code-frame@7.24.7':
     dependencies:
       '@babel/highlight': 7.24.7
-      picocolors: 1.0.0
+      picocolors: 1.0.1
 
   '@babel/compat-data@7.23.5': {}
 
@@ -8119,7 +8117,7 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.7
       chalk: 2.4.2
       js-tokens: 4.0.0
-      picocolors: 1.0.0
+      picocolors: 1.0.1
 
   '@babel/highlight@7.24.7':
     dependencies:
@@ -9700,8 +9698,6 @@ snapshots:
       '@types/mdurl': 1.0.5
 
   '@types/mdurl@1.0.5': {}
-
-  '@types/mockjs@1.0.10': {}
 
   '@types/node@20.11.28':
     dependencies:
@@ -15241,7 +15237,7 @@ snapshots:
     dependencies:
       browserslist: 4.23.0
       escalade: 3.1.1
-      picocolors: 1.0.0
+      picocolors: 1.0.1
 
   update-notifier@6.0.2:
     dependencies:
@@ -15313,20 +15309,19 @@ snapshots:
       pathe: 1.1.2
       vite: 5.3.3(@types/node@20.11.29)
 
-  vite-plugin-mock@3.0.1(esbuild@0.21.5)(mockjs@1.1.0)(vite@5.3.3(@types/node@20.11.28)):
+  vite-plugin-mock@3.0.2(esbuild@0.21.5)(mockjs@1.1.0)(vite@5.3.3(@types/node@20.11.28)):
     dependencies:
-      '@types/mockjs': 1.0.10
       bundle-require: 4.0.2(esbuild@0.21.5)
       chokidar: 3.6.0
       connect: 3.7.0
       debug: 4.3.4(supports-color@9.4.0)
+      esbuild: 0.21.5
       fast-glob: 3.3.2
       mockjs: 1.1.0
       path-to-regexp: 6.2.1
-      picocolors: 1.0.0
+      picocolors: 1.0.1
       vite: 5.3.3(@types/node@20.11.28)
     transitivePeerDependencies:
-      - esbuild
       - supports-color
 
   vite@5.3.3(@types/node@20.11.28):
