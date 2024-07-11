@@ -944,8 +944,8 @@ importers:
         specifier: ^1.0.6
         version: 1.0.6(vue@3.4.21(typescript@5.5.2))
       ace-builds:
-        specifier: ^1.32.7
-        version: 1.32.7
+        specifier: ^1.35.2
+        version: 1.35.2
       copy-text-to-clipboard:
         specifier: ^3.2.0
         version: 3.2.0
@@ -1008,8 +1008,8 @@ importers:
         specifier: ^1.0.6
         version: 1.0.6(vue@3.4.21(typescript@5.5.2))
       ace-builds:
-        specifier: ^1.32.7
-        version: 1.32.7
+        specifier: ^1.35.2
+        version: 1.35.2
       hotkeys-js:
         specifier: ^3.13.7
         version: 3.13.7
@@ -3161,8 +3161,8 @@ packages:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
     engines: {node: '>= 0.6'}
 
-  ace-builds@1.32.7:
-    resolution: {integrity: sha512-ziv35kaYELFw4suWlotz/Xsl1/1LhWAbwFoD3zIgCgP9gXGECEsAM4GhiB0T0xZdmQjyv6hmAzO280g0+n4vGw==}
+  ace-builds@1.35.2:
+    resolution: {integrity: sha512-06d00u4jDZx+ieI0jLlgy/uefx8kcgz7lhI0mCIFEu8NVWirH00U5IEP7tePHy4sjPsRcJUH4VbJZacoit2Hng==}
 
   acorn-import-attributes@1.9.2:
     resolution: {integrity: sha512-O+nfJwNolEA771IYJaiLWK1UAwjNsQmZbTRqqwBYxCgVQTmpFEMvBw6LOIQV0Me339L5UMVYFyRohGnGlQDdIQ==}
@@ -10084,7 +10084,7 @@ snapshots:
       mime-types: 2.1.35
       negotiator: 0.6.3
 
-  ace-builds@1.32.7: {}
+  ace-builds@1.35.2: {}
 
   acorn-import-attributes@1.9.2(acorn@8.11.3):
     dependencies:
