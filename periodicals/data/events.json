@@ -14596,5 +14596,32 @@
     "startTimestamp": 1720800000.0,
     "type": "research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1720972800.0,
+    "id": "event-7-13",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1720886400.0,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1721059200.0,
+    "id": "event-7-13-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1720886400.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1720972800.0,
+    "id": "ultra-7-13",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1720886400.0,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
