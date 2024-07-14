@@ -14623,5 +14623,41 @@
     "startTimestamp": 1720886400.0,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1721059200.0,
+    "id": "eday-1",
+    "message": "8x PRESTIGE!",
+    "multiplier": 8.0,
+    "startTimestamp": 1720972800.0,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1721059200.0,
+    "id": "eday-2",
+    "message": "8x MISSON SPEED!!",
+    "multiplier": 0.125,
+    "startTimestamp": 1720972800.0,
+    "type": "mission-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1721059200.0,
+    "id": "eday-3",
+    "message": "8x PIGGY GROWTH!!",
+    "multiplier": 8.0,
+    "startTimestamp": 1720972800.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1721059200.0,
+    "id": "eday-ultra",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1720972800.0,
+    "type": "crafting-sale",
+    "ultra": true
   }
 ]
