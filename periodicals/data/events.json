@@ -14659,5 +14659,14 @@
     "startTimestamp": 1720972800.0,
     "type": "crafting-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1721145600.0,
+    "id": "event-7-15",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1721059200.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
