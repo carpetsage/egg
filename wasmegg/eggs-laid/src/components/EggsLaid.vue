@@ -25,7 +25,7 @@
                 <pre>{{ fmtEggTotal(["Total", Total]) }} </pre>
                 <base-click-to-copy
                     :text="`\`\`\`\n${[...eggTotals].map((eggTotal) => fmtEggTotal(eggTotal)).join('\n')}\n${fmtEggTotal(['Total', Total])}\n\`\`\``"
-                  class="text-blue-800 dark:text-gray-100 mr-0.5 font-bold"
+                  class="text-blue-800 mr-0.5 font-bold"
                 >
                   Click to copy to clipboard for discord
                 </base-click-to-copy>
