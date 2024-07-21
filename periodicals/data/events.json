@@ -14742,6 +14742,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1721577600.0,
+    "id": "ultra-7-20",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1721491200.0,
+    "type": "boost-duration",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1721664000.0,
     "id": "event-7-20-2",
     "message": "4x PIGGY GROWTH!!",
@@ -14751,12 +14760,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1721577600.0,
-    "id": "ultra-7-20",
-    "message": "2x BOOST DURATION!",
-    "multiplier": 2.0,
-    "startTimestamp": 1721491200.0,
-    "type": "boost-duration",
-    "ultra": true
+    "endTimestamp": 1721664000.0,
+    "id": "event-7-21",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1721577600.0,
+    "type": "epic-research-sale",
+    "ultra": false
   }
 ]
