@@ -14785,5 +14785,14 @@
     "startTimestamp": 1721664000.0,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1721836800.0,
+    "id": "event-7-23",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1721750400.0,
+    "type": "gift-boost",
+    "ultra": false
   }
 ]
