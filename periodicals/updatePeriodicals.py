@@ -49,8 +49,8 @@ def getEvents(events: list["ei.EggIncEvent"], file: str) -> list["Event"]:
 
 def listContainsEvent(eventList: list["Event"], event: "Event") -> bool:
     for e in eventList:
-        # Events are considered the same if they have the same id and start within 7 days of each other
-        if event['id'] == e['id'] and abs(event['startTimestamp'] - e['startTimestamp']) < 7*86400:
+        # Events are considered the same if they have the same id and start within 2 days of each other
+        if event['id'] == e['id'] and abs(event['startTimestamp'] - e['startTimestamp']) < 2*86400:
             return True
     return False
 
@@ -81,9 +81,9 @@ def getContracts(active: list["ei.Contract"], file: str) -> list["ContractStore"
 
     recent = []
     old = []
-    # get contracts ran in the past 30 days
+    # get contracts ran in the past 14 days
     for c in past:
-        if c.start_time > time.time() - 30*86400:
+        if c.start_time > time.time() - 14*86400:
             recent.append(c)
             continue
         old.append(c)
