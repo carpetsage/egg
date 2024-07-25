@@ -47,6 +47,7 @@ import {
   eggName,
   ei,
   formatEIValue,
+  customEggs
 } from 'lib';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 
@@ -71,20 +72,27 @@ onBeforeUnmount(() => {
 });
 
 
+const contractEggs = [ ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON, ei.Egg.FIREWORK, ei.Egg.PUMPKIN ];
 
-const localContracts = (backup.value.contracts?.archive || []).concat(backup.value.contracts?.contracts || []);
-const contractEggs = [ ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON, ei.Egg.FIREWORK, ei.Egg.PUMPKIN ]
+const localContracts = computed(() => (backup.value.contracts?.archive || []).concat(backup.value.contracts?.contracts || []));
 
-const eggTotals = new Map<string , number>(
+const eggTotals = computed(() => new Map<string , number>(
   backup.value.stats?.eggTotals?.map((eggTotal, index) =>
   [ eggName(index + 1 as ei.Egg), eggTotal ]
-  ));
+)));
 
 contractEggs.forEach(egg => {
-  eggTotals.set(eggName(egg), eggsLaid(localContracts.filter(c => c.contract?.egg == egg)) || 0);
+  eggTotals.value.set(eggName(egg), eggsLaid(localContracts.value.filter(c => c.contract?.egg === egg)) || 0);
 });
+customEggs.forEach(egg => {
+  const name = eggName(ei.Egg.CUSTOM_EGG, egg.identifier);
+  const prev = eggTotals.value.get(name) ?? 0;
 
-const Total = [...eggTotals.values()].reduce((sum,eggTotal)=> sum + eggTotal);
+  eggTotals.value.set(name, prev + eggsLaid(localContracts.value.filter(c => c.contract?.customEggId === egg.identifier)) || 0);
+  }
+)
+
+const Total = [...eggTotals.value.values()].reduce((sum,eggTotal)=> sum + eggTotal);
 
 function contribution(contract: ei.ILocalContract) {
   return contract.coopLastUploadedContribution ?? contract.lastAmountWhenRewardGiven ?? 0;
