@@ -1,13 +1,23 @@
 import { ei } from './proto';
-import { Egg } from './sandbox/schema';
+import { decodeMessage } from './api';
+import customEggsRaw from './customeggs.json';
+
+// parse custom eggs
+export const customEggs = customEggsRaw.map( egg => decodeMessage(ei.CustomEgg, egg, false)) as ei.ICustomEgg[];
 
 export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
   const symbol = custom_egg_id || ei.Egg[egg];
-  return egg == ei.Egg.IMMORTALITY ? "CRISPR" :
-    symbol
-      .split(/_-/)
-      .map(word => word[0].toUpperCase() + word.substring(1).toLowerCase())
-      .join(' ');
+  switch (egg) {
+    case ei.Egg.IMMORTALITY:
+      return "CRISPR";
+    case ei.Egg.AI:
+      return "AI";
+    default:
+      return symbol
+        .split(/[_-]/)
+        .map(word => word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .join(' ');
+  }
 }
 
 export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
@@ -63,22 +73,8 @@ export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
     case ei.Egg.UNKNOWN:
       return 0;
     case ei.Egg.CUSTOM_EGG:
-      switch (custom_egg_id) {
-        case "carbon-fiber":
-          return 500;
-        case "chocolate":
-          return 5;
-        case "easter":
-          return 0.05;
-        case "waterballoon":
-          return 0.1;
-        case "firework":
-          return 4.99;
-        case "pumpkin":
-          return 0.99
-        default:
-          return 0;
-      }
+      const egg = customEggs.find(egg => egg.identifier === custom_egg_id);
+      return egg?.value ?? 1;
   }
 }
 
@@ -135,22 +131,11 @@ export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null): string 
     case ei.Egg.UNKNOWN:
       return 'egginc/egg_unknown.png';
     case ei.Egg.CUSTOM_EGG:
-      switch (custom_egg_id) {
-        case "carbon-fiber":
-          return 'egginc/egg_carbonfiber.png';
-        case "chocolate":
-          return 'egginc/egg_chocolate.png';
-        case "easter":
-          return 'egginc/egg_easter.png';
-        case "waterballoon":
-          return 'egginc/egg_waterballoon.png';
-        case "firework":
-          return 'egginc/egg_firework.png';
-        case "pumpkin":
-          return 'egginc/egg_pumpkin.png';
-        default:
-          return 'egginc/egg_unknown.png'
+      const egg = customEggs.find(egg => egg.identifier === custom_egg_id);
+      if (egg) {
+        return `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/,'')}`
       }
+      return 'egginc/egg_unknown.png'
   }
 }
 
