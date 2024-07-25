@@ -133,7 +133,7 @@ export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null): string 
     case ei.Egg.CUSTOM_EGG:
       const egg = customEggs.find(egg => egg.identifier === custom_egg_id);
       if (egg) {
-        return `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/,'')}`
+        return `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g,'')}.png`
       }
       return 'egginc/egg_unknown.png'
   }
