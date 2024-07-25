@@ -81,9 +81,9 @@ def getContracts(active: list["ei.Contract"], file: str) -> list["ContractStore"
 
     recent = []
     old = []
-    # get contracts ran in the past 14 days
+    # get contracts that are still running
     for c in past:
-        if c.start_time > time.time() - 14*86400:
+        if c.expiration_time > time.time():
             recent.append(c)
             continue
         old.append(c)
