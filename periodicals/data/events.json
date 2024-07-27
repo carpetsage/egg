@@ -14857,5 +14857,14 @@
     "startTimestamp": 1722096000.0,
     "type": "prestige-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1722268800.0,
+    "id": "event-7-27-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1722096000.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
