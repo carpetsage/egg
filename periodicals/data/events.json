@@ -14947,5 +14947,14 @@
     "startTimestamp": 1722528000.0,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1722700800.0,
+    "id": "event-8-2",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1722614400.0,
+    "type": "research-sale",
+    "ultra": false
   }
 ]
