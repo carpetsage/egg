@@ -23,7 +23,7 @@ export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
 export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
   switch (egg) {
     case ei.Egg.EDIBLE:
-      return 0.1;
+      return 0.25;
     case ei.Egg.SUPERFOOD:
       return 1.25;
     case ei.Egg.MEDICAL:
