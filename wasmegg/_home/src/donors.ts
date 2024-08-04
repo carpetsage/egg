@@ -22,6 +22,7 @@ export const donors = [
   "Lightcraftsman20",
   "lorgle",
   "mav",
+  "milky <3",
   "Menno",
   "mifn humorous shiver",
   "Minty",
