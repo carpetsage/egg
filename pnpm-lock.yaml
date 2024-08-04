@@ -69,8 +69,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0(vue@3.4.21(typescript@5.5.2))
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -209,8 +209,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0(vue@3.4.21(typescript@5.5.2))
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -279,8 +279,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0(vue@3.4.21(typescript@5.5.2))
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -346,8 +346,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0(vue@3.4.21(typescript@5.5.2))
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -401,8 +401,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -468,8 +468,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -529,8 +529,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -590,8 +590,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -651,8 +651,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -733,8 +733,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0(vue@3.4.21(typescript@5.5.2))
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -794,8 +794,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -846,8 +846,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^5.0.5
@@ -901,8 +901,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -968,8 +968,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0(vue@3.4.21(typescript@5.5.2))
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -1026,8 +1026,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -1111,8 +1111,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -1178,8 +1178,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -1236,8 +1236,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.5.2)
       vue-tippy:
-        specifier: ^6.4.1
-        version: 6.4.1(vue@3.4.21(typescript@5.5.2))
+        specifier: ^6.4.4
+        version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.7
@@ -7690,8 +7690,8 @@ packages:
   vue-template-compiler@2.7.16:
     resolution: {integrity: sha512-AYbUWAJHLGGQM7+cNTELw+KsOG9nl2CnSv467WobS5Cv9uk3wFcnr1Etsz2sEIHEZvw1U+o9mRlEO6QbZvUPGQ==}
 
-  vue-tippy@6.4.1:
-    resolution: {integrity: sha512-PEAKdioZjUvYWz4euxHFSXKJbL6kIKO29/LtQaCBbnd5Vg0U5kL8iLuqRshB2I31pXPSQS0qJsWx56178eS2QA==}
+  vue-tippy@6.4.4:
+    resolution: {integrity: sha512-0C5TSU482FvjhEeKrPkz08tzyC/KJC0CiEbm3yW9oS+n3fa03ajEzU2QcxI9oR6Hwlg8NOP0U6T4EsGuccq6YQ==}
     peerDependencies:
       vue: ^3.2.0
 
@@ -15365,7 +15365,7 @@ snapshots:
       de-indent: 1.0.2
       he: 1.2.0
 
-  vue-tippy@6.4.1(vue@3.4.21(typescript@5.5.2)):
+  vue-tippy@6.4.4(vue@3.4.21(typescript@5.5.2)):
     dependencies:
       tippy.js: 6.3.7
       vue: 3.4.21(typescript@5.5.2)
