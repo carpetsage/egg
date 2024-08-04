@@ -13,7 +13,7 @@ export const donors = [
   "ejones",
   "evasion-funky0w",
   "Feather_1",
-  "grimdells",
+  "grim 🐳",
   "Garrok",
   "Greenz",
   "Jammin",
