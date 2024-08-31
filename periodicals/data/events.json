@@ -15415,5 +15415,32 @@
     "startTimestamp": 1725033600.0,
     "type": "research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1725206400.0,
+    "id": "event-8-31",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2.0,
+    "startTimestamp": 1725120000.0,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1725292800.0,
+    "id": "event-8-31-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1725120000.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1725206400.0,
+    "id": "ultra-8-31",
+    "message": "20% OFF SHELLS!",
+    "multiplier": 0.8,
+    "startTimestamp": 1725120000.0,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
