@@ -15550,5 +15550,23 @@
     "startTimestamp": 1725724800.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1725984000.0,
+    "id": "event-9-8",
+    "message": "DOUBLE Mission Capacity!",
+    "multiplier": 2.0,
+    "startTimestamp": 1725811200.0,
+    "type": "mission-capacity",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1725897600.0,
+    "id": "ultra-9-8",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1725811200.0,
+    "type": "crafting-sale",
+    "ultra": true
   }
 ]
