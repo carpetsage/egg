@@ -15676,5 +15676,23 @@
     "startTimestamp": 1726416000.0,
     "type": "epic-research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1726588800.0,
+    "id": "event-9-16",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1726502400.0,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1726588800.0,
+    "id": "ultra-9-16",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1726502400.0,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
