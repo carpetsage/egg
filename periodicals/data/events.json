@@ -15775,5 +15775,14 @@
     "startTimestamp": 1726934400.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1726993800.0,
+    "id": "ultra-midnight",
+    "message": "UNLIMITED PIGGY!!!",
+    "multiplier": 1.0,
+    "startTimestamp": 1726992000.0,
+    "type": "piggy-cap-boost",
+    "ultra": true
   }
 ]
