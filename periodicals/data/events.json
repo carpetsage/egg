@@ -15856,5 +15856,23 @@
     "startTimestamp": 1727280000.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1727452800.0,
+    "id": "event-9-26",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1727366400.0,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1727452800.0,
+    "id": "ultra-9-26",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1727366400.0,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
