@@ -16315,5 +16315,14 @@
     "startTimestamp": 1729699200.0,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1729872000.0,
+    "id": "event-10-24",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1729785600.0,
+    "type": "drone-boost",
+    "ultra": false
   }
 ]
