@@ -16360,5 +16360,23 @@
     "startTimestamp": 1729958400.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1730131200.0,
+    "id": "event-10-27",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1730044800.0,
+    "type": "epic-research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1730131200.0,
+    "id": "ultra-10-27",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1730044800.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
