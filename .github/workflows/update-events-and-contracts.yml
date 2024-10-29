@@ -37,6 +37,7 @@ jobs:
       - name: Update events and contracts
         run: |
           pipenv run python ./updatePeriodicals.py events contracts customeggs
+          git diff HEAD -- data
         env:
           EI_USERID: ${{ secrets.EI_USERID }}
       - name: Commit, push changes, and possibly trigger new build
