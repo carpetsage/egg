@@ -16405,5 +16405,23 @@
     "startTimestamp": 1730217600.0,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1730390400.0,
+    "id": "event-10-30",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1730304000.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1730390400.0,
+    "id": "event-10-30-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1730304000.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
