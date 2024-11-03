@@ -16461,15 +16461,6 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1730736000.0,
-    "id": "event-11-2-2",
-    "message": "4x PIGGY GROWTH!!",
-    "multiplier": 4.0,
-    "startTimestamp": 1730563200.0,
-    "type": "piggy-boost",
-    "ultra": false
-  },
-  {
     "endTimestamp": 1730649600.0,
     "id": "ultra-11-2",
     "message": "15% OFF Shells!",
@@ -16477,5 +16468,14 @@
     "startTimestamp": 1730563200.0,
     "type": "shell-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1730736000.0,
+    "id": "event-11-2-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1730563200.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
