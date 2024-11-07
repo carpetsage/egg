@@ -16549,5 +16549,14 @@
     "startTimestamp": 1730912400.0,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1731085200.0,
+    "id": "event-11-7",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1730998800.0,
+    "type": "vehicle-sale",
+    "ultra": false
   }
 ]
