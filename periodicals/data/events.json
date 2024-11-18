@@ -16729,5 +16729,23 @@
     "startTimestamp": 1731862800.0,
     "type": "mission-fuel",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1732035600.0,
+    "id": "event-11-18",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1731949200.0,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1732035600.0,
+    "id": "ultra-11-18",
+    "message": "15% OFF Shells!",
+    "multiplier": 0.85,
+    "startTimestamp": 1731949200.0,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
