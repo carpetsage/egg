@@ -556,6 +556,34 @@ message Contract {
     }
 }
 
+message ContractSeasonGoal {
+    optional double cxp = 1;
+    optional RewardType reward_type = 3;
+    optional string reward_sub_type = 4;
+    optional double reward_amount = 5;
+}
+
+message ContractSeasonRewardConfirmationRequest {
+    optional BasicRequestInfo rinfo = 1;
+    optional string season_id = 2;
+    optional ContractSeasonGoal goal = 3;
+}
+
+message ContractSeasonInfo {
+    optional string id = 1;
+    optional string name = 3;
+    
+    repeated GoalSet grade_goals = 2;
+    message GoalSet {
+        optional Contract.PlayerGrade grade = 1;
+        repeated ContractSeasonGoal goals = 2;
+    }
+}
+
+message ContractSeasonInfos {
+    repeated ContractSeasonInfo infos = 1;
+}
+
 message ContractPlayerInfo {
     optional Contract.PlayerGrade grade = 1;
     optional double total_cxp = 2;
@@ -580,6 +608,15 @@ message ContractPlayerInfo {
     optional double last_evaluation_time = 4;
     optional string last_evaluation_version = 5;
     repeated ContractEvaluation unread_evaluations = 6;
+    
+    repeated SeasonProgress season_progress = 15;
+    message SeasonProgress {
+        optional string season_id = 1;
+        optional bool active = 2;
+        optional Contract.PlayerGrade starting_grade = 3;
+        optional double total_cxp = 4;
+        optional double cxp_last_reward_given = 5;
+    }
 }
 
 message ContractEvaluation {
@@ -726,6 +763,7 @@ message ContractsResponse {
     optional double total_eop = 5;
     optional double server_time = 2;
     optional uint32 max_eop = 3 [default = 1000];
+    optional ContractSeasonInfo current_season = 7;
 }
 
 message ContractCoopStatusRequest {
@@ -734,6 +772,7 @@ message ContractCoopStatusRequest {
     optional string coop_identifier = 2;
     optional string user_id = 3;
     optional uint32 client_version = 4;
+    optional double client_timestamp = 6;
 }
 
 message FarmProductionParams {
@@ -1065,6 +1104,29 @@ message KickPlayerCoopRequest {
     optional uint32 client_version = 7;
 }
 
+message IdleSessionSummary {
+    optional bool success = 11;
+    optional double time_away = 1;
+    optional double time_simulated = 2;
+    optional uint32 silos_owned = 3;
+    optional double average_elr = 4;
+    optional double average_msr = 5;
+    optional double average_egg_delivery_rate = 6;
+    optional double last_egg_delivery_rate = 8;
+    optional double eggs_delivered = 9;
+    
+    repeated Stat stats = 10;
+    message Stat {
+        optional string name = 1;
+        optional double min = 2;
+        optional double max = 3;
+        optional double avg = 4;
+        optional double total_time = 5;
+    }
+    
+    optional uint32 farm_index = 7;
+}
+
 message ContractCoopStatusUpdateRequest {
     optional BasicRequestInfo rinfo = 12;
     optional string user_id = 1;
@@ -1081,6 +1143,7 @@ message ContractCoopStatusUpdateRequest {
     optional bool hide_cc_status = 17;
     optional FarmProductionParams production_params = 14;
     optional PlayerFarmInfo farm_info = 16;
+    optional IdleSessionSummary last_idle_summary = 18;
     optional double egg_laying_rate_buff = 10 [default = 1];
     optional double earnings_buff = 11 [default = 1];
 }
