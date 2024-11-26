@@ -103,7 +103,7 @@ export class CoopStatus {
     this.league = null;
     this.goals = null;
     this.leagueStatus = null;
-    this.refreshTime = dayjs(cs.localTimestamp! * 1000);
+    this.refreshTime = dayjs();
     this.expirationTime = this.refreshTime.add(cs.secondsRemaining!, "second");
     this.eggsLaidOfflineAdjusted = this.eggsLaid;
     for (const contributor of this.contributors) {
