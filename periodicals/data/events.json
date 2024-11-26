@@ -16855,5 +16855,23 @@
     "startTimestamp": 1732554000.0,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1732726800.0,
+    "id": "event-11-26",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1732640400.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1732726800.0,
+    "id": "ultra-11-26",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1732640400.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
