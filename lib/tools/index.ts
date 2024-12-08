@@ -80,7 +80,7 @@ export const tools = [
     displayIconOnly: true,
     iconCssClasses: 'h-6 -ml-0.5 -mr-1 -top-0.5',
     majorUpdateUntil: 1624607856000,
-    updateUntil: 2638811910000,
+    updateUntil: 1638811910000,
     whatsNew:
       'Grade detection works again',
   }),
@@ -134,7 +134,7 @@ export const tools = [
     iconUrl: iconURL('wasmegg/past-contracts.svg'),
     description: 'Past contracts and prophecy egg completion tracker',
     // Tue Jun  8 12:33:17 UTC 2021
-    updateUntil: 2623155597000,
+    updateUntil: 1623155597000,
     whatsNew:
       'Displays Contract Score',
   }),
@@ -189,6 +189,16 @@ export const tools = [
       'Updated for new levels of FTL Epic Research.',
   }),
   new Tool({
+    id: 'mission-planner',
+    url: '/mission-planner/',
+    title: 'Mission planner',
+    // Wed Apr 10 08:43:22 UTC 2024
+    updateUntil: 1712738602000,
+    description: 'Spaceship & mission parameters list',
+    whatsNew:
+      'Added fuel tanks >100T and Henliner',
+  }),
+  new Tool({
     id: 'consumption-sheet',
     url: '/consumption-sheet/',
     title: 'Consumption sheet',
@@ -230,20 +240,11 @@ export const tools = [
     url: 'https://github.com/DavidArthurCole/EggLedger#readme',
     title: 'EggLedger',
     iconUrl: iconURL('wasmegg/EggLedger.png'),
-    description: 'Spaceship mission data exporter, supplementing rockets tracker - forked and fixed by @synthparadox#7576',
+    description: 'Spaceship mission data exporter, supplementing rockets tracker - forked and fixed by @davidarthurcole',
     // Sat Jun 17 16:21 UTC 2023
     newUntil: 1686975703,
     whatsNew:
       'Fixed issue with Chrome'
-  }),
-
-  new Tool({
-    id: 'EggContractor',
-    url: 'https://github.com/fanaticscripter/EggContractor',
-    title: 'EggContractor',
-    description:
-      'Contract monitoring web app & CLI client, with multi-account aggregation, offline time tracking, and more',
-    newUntil: 1686716503,
   }),
 
   new Tool({

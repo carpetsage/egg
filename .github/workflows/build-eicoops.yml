@@ -1,7 +1,8 @@
 name: build-eicoops
 on:
   push:
-    paths: 
+    paths:
+      - pnpm-lock.yaml
       - "lib/**"
       - "ui/**"
       - "eicoop/**"
@@ -9,7 +10,7 @@ on:
       - 'protobuf/ei.proto'
   pull_request:
     types: [ opened, edited, reopened]
-    paths: 
+    paths:
       - "lib/**"
       - "ui/**"
       - "eicoop/**"
@@ -23,15 +24,14 @@ jobs:
   # No TS type checking for faster deployment.
   eicoop-fastbuild:
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
     defaults:
       run:
         working-directory: eicoop
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: "^8.7.4"
+        uses: pnpm/action-setup@v4
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -84,9 +84,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: "^8.7.4"
+        uses: pnpm/action-setup@v4
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:

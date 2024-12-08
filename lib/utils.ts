@@ -44,14 +44,8 @@ export function iconURL(
   if (extension) {
     relpath = relpath.replace(/\.[a-z]+$/, `.${extension}`);
   }
-  if (/icon_dilithium_bulb/.test(relpath)) {
-    return `https://imagedelivery.net/3eHDWErDPIKAYL6ofL-Kwg/${size}/egginc/b_icon_dilithium_bulb.png/public`;
-  } else if (/sub_icon/.test(relpath)) {
-    return `https://imagedelivery.net/3eHDWErDPIKAYL6ofL-Kwg/${size}/egginc/sub_icon.png/public`;
-  } else if (/atreggies/.test(relpath)) {
-    return `https://imagedelivery.net/3eHDWErDPIKAYL6ofL-Kwg/${size}/${relpath}/public`;
-  }
-  return `https://eggincassets.tcl.sh/${size}/${relpath}`;
+  return `https://eggincassets.pages.dev/${size}/${relpath}`;
+  // return `https://images.carpetsage.com/${size}/${relpath}`;
 }
 
 // Trim trailing zeros, and possibly the decimal point.

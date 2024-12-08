@@ -1,6 +1,6 @@
 import path from 'path';
 import process from 'process';
-import { ConfigEnv, UserConfigExport } from 'vite';
+import { splitVendorChunkPlugin, ConfigEnv, UserConfigExport } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { viteMockServe } from 'vite-plugin-mock';
 
@@ -20,9 +20,20 @@ export default ({ command }: ConfigEnv): UserConfigExport => ({
       mockPath: 'mock',
       localEnabled: command === 'serve' && !!process.env.VITE_APP_MOCK,
     }),
+    splitVendorChunkPlugin(),
   ],
   build: {
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 3000,
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('contract')) {
+            console.log(id);
+            return 'contractlist';
+          }
+        }
+      }
+    }
   },
   server: {
     host: true,

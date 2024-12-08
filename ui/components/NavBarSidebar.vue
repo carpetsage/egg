@@ -196,6 +196,7 @@ const entries: ({
   idToTool.get('smart-assistant')!,
   idToTool.get('shell-company')!,
   idToTool.get('eggs-laid')!,
+  idToTool.get('mission-planner')!,
 
   null,
 

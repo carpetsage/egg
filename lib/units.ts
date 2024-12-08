@@ -123,3 +123,7 @@ export function formatEIValue(
     return numpart + oom2symbol.get(oomFloor)!;
   }
 }
+
+export function fmtApprox(n: number): string {
+  return n === 0 ? '0' : `${formatEIValue(n, { decimals: 3 })}`;
+}

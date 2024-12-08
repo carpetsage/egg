@@ -15,7 +15,7 @@
     </router-link>
     <span class="text-gray-500 dark:text-gray-400">&nbsp;@</span>
     <base-icon
-      :icon-rel-path="eggIconPath(entry.contractEgg)"
+      :icon-rel-path="eggIconPath(entry.contractEgg, entry.customEggId)"
       :size="64"
       class="flex-shrink-0 h-4 w-4 mx-1"
     />

@@ -2,6 +2,7 @@ import sys
 import requests
 import time
 import json
+import base64
 from more_itertools import unique_everseen
 # local imports
 import ei
@@ -18,6 +19,17 @@ def main():
          updateEvents(periodicals.events.events, defaults.event_file)
     if "contracts" in sys.argv:
         updateContracts(periodicals.contracts.contracts, defaults.contract_file)
+    if "customeggs" in sys.argv:
+        updateCustomEggs(periodicals.contracts.custom_eggs, defaults.egg_file)
+
+
+def updateCustomEggs(customEggs: list["ei.CustomEgg"], file: str):
+    # print egg list for convenience
+    [print(egg.name) for egg in customEggs]
+
+    # write json array of customegg protos
+    with open(file, 'w', encoding="utf-8") as f:
+        json.dump([base64.b64encode(bytes(egg)).decode("utf-8") for egg in customEggs], f, sort_keys=True, indent=2)
 
 # events: list of currently active events
 # updates existing list of events with current events
@@ -37,8 +49,8 @@ def getEvents(events: list["ei.EggIncEvent"], file: str) -> list["Event"]:
 
 def listContainsEvent(eventList: list["Event"], event: "Event") -> bool:
     for e in eventList:
-        # Events are considered the same if they have the same id and start within 7 days of each other
-        if event['id'] == e['id'] and abs(event['startTimestamp'] - e['startTimestamp']) < 7*86400:
+        # Events are considered the same if they have the same id and start within 2 days of each other
+        if event['id'] == e['id'] and abs(event['startTimestamp'] - e['startTimestamp']) < 2*86400:
             return True
     return False
 
@@ -69,9 +81,9 @@ def getContracts(active: list["ei.Contract"], file: str) -> list["ContractStore"
 
     recent = []
     old = []
-    # get contracts ran in the past 30 days
+    # get contracts that are still running
     for c in past:
-        if c.start_time > time.time() - 30*86400:
+        if c.expiration_time > time.time():
             recent.append(c)
             continue
         old.append(c)

@@ -109,7 +109,7 @@ export default defineComponent({
     );
     const absoluteUrl = computed(() => new URL(url.value, document.location.href).href);
     const ecoopadCommand = computed(() => `ecoopad ${contractId.value} ${coopCode.value}`);
-    const endTimeDiscordified = `<t:${endTime.value}:F>`;
+    const endTimeDiscordified = computed(() =>`<t:${endTime.value}:F>`);
     return {
       url,
       absoluteUrl,

@@ -1,9 +1,9 @@
-const colors = require("tailwindcss/colors");
-const plugin = require("tailwindcss/plugin");
+import colors from "tailwindcss/colors";
+import plugin from "tailwindcss/plugin";
+import forms from "@tailwindcss/forms";
 
-module.exports = {
-  mode: "jit",
-  purge: ["./index.html", "./src/**/*.{vue,ts}", "../ui/**/*.vue"],
+export default {
+  content: ["./index.html", "./src/**/*.{vue,ts}", "../ui/**/*.vue"],
   darkMode: "class",
   theme: {
     extend: {
@@ -15,17 +15,13 @@ module.exports = {
           ...colors.emerald,
           350: "#51dda8", // A blend of emerald-300 #6ee7b7 and emerald-400 #34d399
         },
+        yellow: colors.amber,
         gray: {
-          ...colors.gray,
+          ...colors.zinc,
           750: "#333338",
         },
-        purple: {
-          ...colors.purple,
-        },
-        orange: {
-          ...colors.orange,
-        },
-        "cool-gray": colors.coolGray,
+        orange: colors.orange,
+        "cool-gray": colors.gray,
         // Interpolation of gray-700 (#3F3F46) and red-500 (#EF4444).
         "gray-700-red-tint": {
           100: "#503f45",
@@ -91,7 +87,7 @@ module.exports = {
     },
   },
   plugins: [
-    require("@tailwindcss/forms"),
+    forms,
     // Use !class to apply class as important!
     plugin(({ addVariant }) => {
       addVariant("important", ({ container }) => {

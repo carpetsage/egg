@@ -1,5 +1,6 @@
 {
   "name": "researches",
+  "type": "module",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
@@ -10,26 +11,26 @@
     "lint": "eslint --ext .js,.ts,.vue src"
   },
   "dependencies": {
-    "@headlessui/vue": "^1.7.17",
+    "@headlessui/vue": "^1.7.19",
     "@heroicons/vue": "^1.0.6",
-    "ace-builds": "^1.32.3",
-    "hotkeys-js": "^3.13.5",
+    "ace-builds": "^1.35.2",
+    "hotkeys-js": "^3.13.7",
     "mitt": "^3.0.1",
     "sql.js": "^1.10.2",
     "tippy.js": "^6.3.7",
-    "vue": "^3.4.15",
-    "vue-tippy": "^6.4.1"
+    "vue": "^3.4.21",
+    "vue-tippy": "^6.4.4"
   },
   "devDependencies": {
-    "@tailwindcss/forms": "^0.3.4",
+    "@tailwindcss/forms": "^0.5.7",
     "@types/sql.js": "^1.4.9",
-    "@vitejs/plugin-vue": "^4.6.2",
-    "@vue/compiler-sfc": "^3.4.15",
-    "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.33",
-    "tailwindcss": "^2.2.19",
-    "typescript": "^5.3.3",
-    "vite": "^4.5.2",
-    "vue-tsc": "^1.8.27"
+    "@vitejs/plugin-vue": "^5.0.5",
+    "@vue/compiler-sfc": "^3.4.21",
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.5.2",
+    "vite": "^5.3.3",
+    "vue-tsc": "^2.0.14"
   }
 }

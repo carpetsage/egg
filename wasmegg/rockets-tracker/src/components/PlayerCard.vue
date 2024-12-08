@@ -54,6 +54,12 @@
               :src="badgeNAH"
               class="h-4"
             />
+            <img
+              v-if="hasFED"
+              v-tippy="{ content: 'Full Egg Dedication'}"
+              :src="badgeFED"
+              class="h-4"
+            />
 
             <img
               v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB"
@@ -828,6 +834,7 @@ import {
   badgeZLC100,
   badgeZLC7star,
   badgeASC,
+  badgeFED,
   medalZLCRecord,
   medalZLCRecordGrayscale,
 } from '@/badges';
@@ -866,6 +873,7 @@ const STAFF_USER_ID_HASHES = [
   '17b0d26958d351c15086a8b5a8cad83d12af89c1f99c287f31bf630edc3de0d4',
   '6f8392cde965c66ad2347941cee4430500cafbad9e64501ba571db02a4111702',
   'fdd9713dc2b10bc9956debcedec31da76e7474970ae020a676fa2855df7daba6',
+  '6659470d04891898a5fbdb1e35ea39aed41707eeec4e8ecefd9ac11756a420e9',
 ];
 
 enum ShipClub {
@@ -965,10 +973,20 @@ const hasNAH = computed(() => {
   const farmsize = progress.value.maxFarmSizeReached!;
   // subtract 1 for array indexing
   const enlight = ei.Egg.ENLIGHTENMENT - 1;
-  if (farmsize[enlight] === 19845000000) {
+  if (farmsize[enlight] >= 19845000000) {
     return true;
   }
   return false;
+});
+const hasFED = computed(() => {
+  const farmsize = progress.value.maxFarmSizeReached!;
+  for(let i = 0; i < farmsize.length; i++) {
+    var compareAgainst = (i == ei.Egg.ENLIGHTENMENT - 1 ? 19845000000 : 14175000000);
+    if (farmsize[i] < compareAgainst) {
+      return false;
+    }
+  }
+  return true;
 });
 const hasEnlightenmentDiamondTrophy = computed(() => {
   const eggs = prophecyEggsProgress.value.fromTrophies.eggs;

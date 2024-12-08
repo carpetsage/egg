@@ -32,6 +32,7 @@ class Egg(betterproto.Enum):
     WATERBALLOON = 102
     FIREWORK = 103
     PUMPKIN = 104
+    CUSTOM_EGG = 200
     UNKNOWN = 1000
 
 
@@ -73,14 +74,18 @@ class UILocation(betterproto.Enum):
     ULTRA_SHOP = 10
     SHELLS = 5
     SHELL_SETS = 6
+    SHELLS_SHOWCASE = 12
     CHICKENS = 7
     CHICKEN_HATS = 11
     EPIC_RESEARCH = 8
     SETTINGS = 9
+    HELP = 13
+    UNIVERSITY = 14
 
 
 class UserType(betterproto.Enum):
     ALL_USERS = 0
+    EGGED_UP = 15
     CONTRACTS_UNLOCKED = 1
     ARTIFACTS_UNLOCKED = 3
     FUEL_TANK_UNLOCKED = 4
@@ -88,6 +93,13 @@ class UserType(betterproto.Enum):
     ULTRA_ACTIVE = 6
     NO_PRO_PERMIT = 7
     NO_ULTRA = 8
+    CONTRACTS_INACTIVE = 9
+    CONTRACTS_ACTIVE = 10
+    PLAYING_CONTRACT = 11
+    ARTIFACTS_INACTIVE = 12
+    ARTIFACTS_ACTIVE = 13
+    PRESTIGE_READY = 14
+    PIGGY_HESITANT = 16
 
 
 class LeaderboardScope(betterproto.Enum):
@@ -123,6 +135,7 @@ class EggIncFirstContactResponseErrorCodes(betterproto.Enum):
 
 
 class GameModifierGameDimension(betterproto.Enum):
+    INVALID = 0
     EARNINGS = 1
     AWAY_EARNINGS = 2
     INTERNAL_HATCHERY_RATE = 3
@@ -168,6 +181,18 @@ class ContractEvaluationStatus(betterproto.Enum):
     COMPLETE = 3
 
 
+class ContractCoopStatusResponseResponseStatus(betterproto.Enum):
+    NO_ERROR = 0
+    MISSING_USER = 1
+    MISSING_COOP_ID = 2
+    MISSING_CONTRACT_ID = 3
+    MEMBERSHIP_NOT_FOUND = 4
+    COOP_NOT_FOUND = 5
+    CONTRACT_NOT_FOUND = 6
+    INVALID_MEMBERSHIP = 7
+    NO_HTTP_RESPONSE = 500
+
+
 class ContractCoopStatusResponseMemberStatus(betterproto.Enum):
     VALID = 0
     KICKED_INACTIVE = 1
@@ -199,6 +224,11 @@ class KickPlayerCoopRequestReason(betterproto.Enum):
     PRIVATE = 4
 
 
+class LiveConfigHelpConfigHowToVideoInfoType(betterproto.Enum):
+    VIDEO = 0
+    ARTICLE = 1
+
+
 class MissionInfoSpaceship(betterproto.Enum):
     CHICKEN_ONE = 0
     CHICKEN_NINE = 1
@@ -210,6 +240,7 @@ class MissionInfoSpaceship(betterproto.Enum):
     CHICKFIANT = 7
     VOYEGGER = 8
     HENERPRISE = 9
+    ATREGGIES = 10
 
 
 class MissionInfoStatus(betterproto.Enum):
@@ -385,6 +416,7 @@ class ShellSpecAssetType(betterproto.Enum):
     HATCHERY_WATERBALLOON = 141
     HATCHERY_FIREWORK = 142
     HATCHERY_PUMPKIN = 143
+    HATCHERY_CUSTOM = 150
     HOA_1 = 170
     HOA_2 = 171
     HOA_3 = 172
@@ -446,6 +478,16 @@ class ShellDBFarmElement(betterproto.Enum):
     UNKNOWN = 99
 
 
+class ShellShowcaseListingInfoStatus(betterproto.Enum):
+    NONE = 0
+    SUBMITTED = 1
+    LIVE = 2
+    FEATURED = 3
+    FEATURED_ALUM = 5
+    ARCHIVED = 6
+    INVALID = 4
+
+
 class UserVerificationAnalysisStatus(betterproto.Enum):
     UNKNOWN = 0
     PROCESSING = 1
@@ -467,10 +509,26 @@ class UserSubscriptionInfoStatus(betterproto.Enum):
 
 
 @dataclass
+class Vector3(betterproto.Message):
+    x: float = betterproto.float_field(1)
+    y: float = betterproto.float_field(2)
+    z: float = betterproto.float_field(3)
+
+
+@dataclass
+class Vector4(betterproto.Message):
+    x: float = betterproto.float_field(1)
+    y: float = betterproto.float_field(2)
+    z: float = betterproto.float_field(3)
+    w: float = betterproto.float_field(4)
+
+
+@dataclass
 class Backup(betterproto.Message):
     user_id: str = betterproto.string_field(1)
     ei_user_id: str = betterproto.string_field(18)
     game_services_id: str = betterproto.string_field(16)
+    push_user_id: str = betterproto.string_field(26)
     device_id: str = betterproto.string_field(17)
     user_name: str = betterproto.string_field(2)
     approx_time: float = betterproto.double_field(3)
@@ -491,6 +549,7 @@ class Backup(betterproto.Message):
     artifacts_db: "ArtifactsDB" = betterproto.message_field(15)
     shell_db: "ShellDB" = betterproto.message_field(24)
     read_mail_ids: List[str] = betterproto.string_field(23)
+    mail_state: "MailState" = betterproto.message_field(27)
     checksum: int = betterproto.uint64_field(100)
     signature: str = betterproto.string_field(101)
 
@@ -509,6 +568,9 @@ class BackupSettings(betterproto.Message):
     low_performance: bool = betterproto.bool_field(10)
     auto_stop_fueling: bool = betterproto.bool_field(25)
     max_enabled: bool = betterproto.bool_field(26)
+    hide_cc_status: bool = betterproto.bool_field(28)
+    contracts_widget_enabled: bool = betterproto.bool_field(29)
+    artifact_sparkle: bool = betterproto.bool_field(30)
     last_backup_time: float = betterproto.double_field(24)
     coppa_queried: bool = betterproto.bool_field(7)
     coppa_restricted: bool = betterproto.bool_field(8)
@@ -619,6 +681,7 @@ class BackupArtifacts(betterproto.Message):
     tank_filling_enabled: bool = betterproto.bool_field(14)
     tank_level: int = betterproto.uint32_field(15)
     tank_fuels: List[float] = betterproto.double_field(16)
+    tank_limits: List[float] = betterproto.double_field(18)
     last_fueled_ship: "MissionInfoSpaceship" = betterproto.enum_field(9)
     inventory_score: float = betterproto.double_field(10)
     crafting_xp: float = betterproto.double_field(17)
@@ -705,6 +768,7 @@ class BackupMisc(betterproto.Message):
     backup_reminder_alert: bool = betterproto.bool_field(19)
     max_button_alert: bool = betterproto.bool_field(23)
     mission_target_alert: bool = betterproto.bool_field(24)
+    colleggtibles_alert: bool = betterproto.bool_field(25)
 
 
 @dataclass
@@ -877,6 +941,7 @@ class ActionKeyValuePair(betterproto.Message):
 @dataclass
 class GenericAction(betterproto.Message):
     user_id: str = betterproto.string_field(1)
+    cc_user: bool = betterproto.bool_field(9)
     advertising_id: str = betterproto.string_field(7)
     approx_time__d_e_p: float = betterproto.float_field(2)
     approx_time: float = betterproto.double_field(8)
@@ -945,11 +1010,26 @@ class GameModifier(betterproto.Message):
 
 
 @dataclass
+class CustomEgg(betterproto.Message):
+    identifier: str = betterproto.string_field(1)
+    name: str = betterproto.string_field(2)
+    description: str = betterproto.string_field(3)
+    value: float = betterproto.double_field(4)
+    hatchery_id: str = betterproto.string_field(5)
+    hatchery_max_x: float = betterproto.double_field(6)
+    icon: "DLCItem" = betterproto.message_field(7)
+    icon_width: float = betterproto.double_field(21)
+    icon_height: float = betterproto.double_field(22)
+    buffs: List["GameModifier"] = betterproto.message_field(8)
+
+
+@dataclass
 class Contract(betterproto.Message):
     identifier: str = betterproto.string_field(1)
     name: str = betterproto.string_field(9)
     description: str = betterproto.string_field(10)
     egg: "Egg" = betterproto.enum_field(2)
+    custom_egg_id: str = betterproto.string_field(25)
     goals: List["ContractGoal"] = betterproto.message_field(3)
     goal_sets: List["ContractGoalSet"] = betterproto.message_field(16)
     grade_specs: List["ContractGradeSpec"] = betterproto.message_field(20)
@@ -966,6 +1046,7 @@ class Contract(betterproto.Message):
     min_client_version: int = betterproto.uint32_field(14)
     leggacy: bool = betterproto.bool_field(19)
     cc_only: bool = betterproto.bool_field(22)
+    default_shell_ids: List[str] = betterproto.string_field(24)
     debug: bool = betterproto.bool_field(11)
     key: str = betterproto.string_field(21)
 
@@ -1069,9 +1150,9 @@ class ContractEvaluationBatchPair(betterproto.Message):
 
 @dataclass
 class CoopCompletionSnapshot(betterproto.Message):
-    contributors: List[
-        "CoopCompletionSnapshotContributorSnapshot"
-    ] = betterproto.message_field(1)
+    contributors: List["CoopCompletionSnapshotContributorSnapshot"] = (
+        betterproto.message_field(1)
+    )
 
 
 @dataclass
@@ -1099,17 +1180,17 @@ class BasicRequestInfo(betterproto.Message):
 
 @dataclass
 class ContractSimConfig(betterproto.Message):
-    grade_configs: List[
-        "ContractSimConfigContractGradeSimConfig"
-    ] = betterproto.message_field(1)
+    grade_configs: List["ContractSimConfigContractGradeSimConfig"] = (
+        betterproto.message_field(1)
+    )
 
 
 @dataclass
 class ContractSimConfigContractGradeSimConfig(betterproto.Message):
     grade: "ContractPlayerGrade" = betterproto.enum_field(1)
-    goal_params: List[
-        "ContractSimConfigContractGradeSimConfigGoalParams"
-    ] = betterproto.message_field(2)
+    goal_params: List["ContractSimConfigContractGradeSimConfigGoalParams"] = (
+        betterproto.message_field(2)
+    )
 
 
 @dataclass
@@ -1157,7 +1238,9 @@ class ContractsRequest(betterproto.Message):
 @dataclass
 class ContractsResponse(betterproto.Message):
     contracts: List["Contract"] = betterproto.message_field(1)
+    custom_eggs: List["CustomEgg"] = betterproto.message_field(6)
     warning_message: str = betterproto.string_field(4)
+    total_eop: float = betterproto.double_field(5)
     server_time: float = betterproto.double_field(2)
     max_eop: int = betterproto.uint32_field(3)
 
@@ -1209,13 +1292,16 @@ class PlayerFarmInfo(betterproto.Message):
 
 @dataclass
 class ContractCoopStatusResponse(betterproto.Message):
+    response_status: "ContractCoopStatusResponseResponseStatus" = (
+        betterproto.enum_field(19)
+    )
     contract_identifier: str = betterproto.string_field(1)
     total_amount: float = betterproto.double_field(2)
     coop_identifier: str = betterproto.string_field(3)
     grade: "ContractPlayerGrade" = betterproto.enum_field(17)
-    contributors: List[
-        "ContractCoopStatusResponseContributionInfo"
-    ] = betterproto.message_field(4)
+    contributors: List["ContractCoopStatusResponseContributionInfo"] = (
+        betterproto.message_field(4)
+    )
     auto_generated: bool = betterproto.bool_field(8)
     public: bool = betterproto.bool_field(10)
     creator_id: str = betterproto.string_field(9)
@@ -1226,10 +1312,11 @@ class ContractCoopStatusResponse(betterproto.Message):
     grace_period_seconds_remaining: float = betterproto.double_field(7)
     cleared_for_exit: bool = betterproto.bool_field(15)
     gifts: List["ContractCoopStatusResponseCoopGift"] = betterproto.message_field(11)
-    chicken_runs: List[
-        "ContractCoopStatusResponseChickenRun"
-    ] = betterproto.message_field(13)
+    chicken_runs: List["ContractCoopStatusResponseChickenRun"] = (
+        betterproto.message_field(13)
+    )
     local_timestamp: float = betterproto.double_field(12)
+    last_sync: float = betterproto.double_field(18)
 
 
 @dataclass
@@ -1246,6 +1333,7 @@ class ContractCoopStatusResponseContributionInfo(betterproto.Message):
     rank_change: int = betterproto.int32_field(8)
     recently_active: bool = betterproto.bool_field(23)
     active: bool = betterproto.bool_field(4)
+    cc_member: bool = betterproto.bool_field(24)
     leech: bool = betterproto.bool_field(16)
     finalized: bool = betterproto.bool_field(22)
     time_cheat_detected: bool = betterproto.bool_field(7)
@@ -1291,6 +1379,7 @@ class LocalContract(betterproto.Message):
     coop_share_farm: bool = betterproto.bool_field(17)
     last_amount_when_reward_given: float = betterproto.double_field(6)
     num_goals_achieved: int = betterproto.uint32_field(14)
+    max_farm_size_reached: float = betterproto.double_field(23)
     boosts_used: int = betterproto.uint32_field(12)
     points_replay: bool = betterproto.bool_field(20)
     league: int = betterproto.uint32_field(15)
@@ -1305,13 +1394,14 @@ class MyContracts(betterproto.Message):
     contract_ids_seen: List[str] = betterproto.string_field(3)
     contracts: List["LocalContract"] = betterproto.message_field(1)
     archive: List["LocalContract"] = betterproto.message_field(2)
-    current_coop_statuses: List[
-        "ContractCoopStatusResponse"
-    ] = betterproto.message_field(4)
+    current_coop_statuses: List["ContractCoopStatusResponse"] = (
+        betterproto.message_field(4)
+    )
     last_cpi: "ContractPlayerInfo" = betterproto.message_field(5)
     initial_grade_revealed: bool = betterproto.bool_field(6)
     last_grade_progress_shown: float = betterproto.double_field(7)
     show_advanced_evaluations: bool = betterproto.bool_field(8)
+    custom_egg_info: List["CustomEgg"] = betterproto.message_field(9)
 
 
 @dataclass
@@ -1491,6 +1581,7 @@ class ContractCoopStatusUpdateRequest(betterproto.Message):
     eop: int = betterproto.uint32_field(15)
     boost_tokens: int = betterproto.uint32_field(9)
     boost_tokens_spent: int = betterproto.uint32_field(13)
+    hide_cc_status: bool = betterproto.bool_field(17)
     production_params: "FarmProductionParams" = betterproto.message_field(14)
     farm_info: "PlayerFarmInfo" = betterproto.message_field(16)
     egg_laying_rate_buff: float = betterproto.double_field(10)
@@ -1647,6 +1738,7 @@ class LiveConfig(betterproto.Message):
     boosts_config: "LiveConfigBoostsConfig" = betterproto.message_field(2)
     gift_config: "LiveConfigGiftConfig" = betterproto.message_field(3)
     misc_config: "LiveConfigMiscConfig" = betterproto.message_field(4)
+    help_config: "LiveConfigHelpConfig" = betterproto.message_field(5)
 
 
 @dataclass
@@ -1667,9 +1759,9 @@ class LiveConfigBoostsConfigItemConfig(betterproto.Message):
 
 @dataclass
 class LiveConfigGiftConfig(betterproto.Message):
-    gift_configs: List[
-        "LiveConfigGiftConfigGiftValueConfig"
-    ] = betterproto.message_field(9)
+    gift_configs: List["LiveConfigGiftConfigGiftValueConfig"] = (
+        betterproto.message_field(9)
+    )
     gift_mu_min_spent: float = betterproto.double_field(10)
     gift_mu_max_spent: float = betterproto.double_field(11)
     gift_mu_overall_mult: float = betterproto.double_field(12)
@@ -1719,10 +1811,28 @@ class LiveConfigMiscConfig(betterproto.Message):
     shells_intro_tickets: int = betterproto.uint32_field(7)
     shells_max_free_chicken_configs: int = betterproto.uint32_field(8)
     shells_intro_alert_threshold: int = betterproto.uint32_field(9)
+    shells_lighting_controls_price: int = betterproto.uint32_field(14)
     contracts_expert_league_min_soul_power: float = betterproto.double_field(10)
     new_player_event_duration: float = betterproto.double_field(11)
     contracts_club_available: bool = betterproto.bool_field(12)
     contracts_beta: bool = betterproto.bool_field(13)
+
+
+@dataclass
+class LiveConfigHelpConfig(betterproto.Message):
+    video_infos: List["LiveConfigHelpConfigHowToVideoInfo"] = betterproto.message_field(
+        1
+    )
+
+
+@dataclass
+class LiveConfigHelpConfigHowToVideoInfo(betterproto.Message):
+    type: "LiveConfigHelpConfigHowToVideoInfoType" = betterproto.enum_field(6)
+    name: str = betterproto.string_field(1)
+    description: str = betterproto.string_field(2)
+    duration: str = betterproto.string_field(5)
+    url: str = betterproto.string_field(3)
+    soul_eggs: float = betterproto.double_field(4)
 
 
 @dataclass
@@ -1743,15 +1853,43 @@ class InGameMail(betterproto.Message):
     min_client_version: int = betterproto.uint32_field(10)
     max_client_version: int = betterproto.uint32_field(12)
     min_soul_eggs: float = betterproto.double_field(11)
+    max_soul_eggs: float = betterproto.double_field(29)
     min_mystical_bonus: float = betterproto.double_field(13)
     user_type: "UserType" = betterproto.enum_field(17)
     min_piggy_breaks: int = betterproto.uint32_field(20)
     gold_tip: float = betterproto.double_field(6)
+    tip: bool = betterproto.bool_field(23)
+    priority: int = betterproto.uint32_field(27)
+    min_days_since_last_tip: float = betterproto.double_field(24)
+    max_retries: int = betterproto.uint32_field(25)
+    days_until_retry: float = betterproto.double_field(26)
+    category: str = betterproto.string_field(28)
 
 
 @dataclass
 class MailDB(betterproto.Message):
     mail: List["InGameMail"] = betterproto.message_field(1)
+    tips_db_data: bytes = betterproto.bytes_field(2)
+    tips_checksum: str = betterproto.string_field(3)
+
+
+@dataclass
+class TipsDB(betterproto.Message):
+    tips: List["InGameMail"] = betterproto.message_field(1)
+
+
+@dataclass
+class MailState(betterproto.Message):
+    read_mail_ids: List[str] = betterproto.string_field(1)
+    tips_states: List["MailStateTipState"] = betterproto.message_field(2)
+    tips_checksum: str = betterproto.string_field(3)
+
+
+@dataclass
+class MailStateTipState(betterproto.Message):
+    id: str = betterproto.string_field(1)
+    reads: int = betterproto.uint32_field(2)
+    time_read: float = betterproto.double_field(3)
 
 
 @dataclass
@@ -1761,9 +1899,19 @@ class PeriodicalsResponse(betterproto.Message):
     contracts: "ContractsResponse" = betterproto.message_field(3)
     evaluations: List["ContractEvaluation"] = betterproto.message_field(8)
     gifts: List["ServerGift"] = betterproto.message_field(4)
+    artifact_cases: List["CompleteMissionResponse"] = betterproto.message_field(9)
     live_config: "LiveConfig" = betterproto.message_field(5)
     mail_bag: "MailDB" = betterproto.message_field(6)
     contract_player_info: "ContractPlayerInfo" = betterproto.message_field(7)
+    showcase_royalties: List["PeriodicalsResponseRoyaltyInfo"] = (
+        betterproto.message_field(10)
+    )
+
+
+@dataclass
+class PeriodicalsResponseRoyaltyInfo(betterproto.Message):
+    id: str = betterproto.string_field(1)
+    amount: int = betterproto.uint32_field(2)
 
 
 @dataclass
@@ -1793,6 +1941,7 @@ class ConfigRequest(betterproto.Message):
     fuel_tank_unlocked: bool = betterproto.bool_field(4)
     pro_permit: bool = betterproto.bool_field(6)
     ultra: bool = betterproto.bool_field(7)
+    tips_checksum: str = betterproto.string_field(8)
 
 
 @dataclass
@@ -1849,8 +1998,10 @@ class AdAttributionInfo(betterproto.Message):
 class ArtifactsClientInfo(betterproto.Message):
     mission_capacity_mult: float = betterproto.double_field(1)
     mission_duration_mult: float = betterproto.double_field(2)
-    mission_ftl_duration_mult: float = betterproto.double_field(4)
+    mission_ftl_duration_research_mult: float = betterproto.double_field(4)
+    mission_capacity_research_mult: float = betterproto.double_field(6)
     launch_counts: List["ArtifactsClientInfoLaunchCount"] = betterproto.message_field(3)
+    last_server_launch_count_sum_time: float = betterproto.double_field(5)
 
 
 @dataclass
@@ -1919,23 +2070,23 @@ class ArtifactsConfigurationRequest(betterproto.Message):
 
 @dataclass
 class ArtifactsConfigurationResponse(betterproto.Message):
-    mission_parameters: List[
-        "ArtifactsConfigurationResponseMissionParameters"
-    ] = betterproto.message_field(1)
-    artifact_parameters: List[
-        "ArtifactsConfigurationResponseArtifactParameters"
-    ] = betterproto.message_field(2)
-    crafting_level_infos: List[
-        "ArtifactsConfigurationResponseCraftingLevelInfo"
-    ] = betterproto.message_field(3)
+    mission_parameters: List["ArtifactsConfigurationResponseMissionParameters"] = (
+        betterproto.message_field(1)
+    )
+    artifact_parameters: List["ArtifactsConfigurationResponseArtifactParameters"] = (
+        betterproto.message_field(2)
+    )
+    crafting_level_infos: List["ArtifactsConfigurationResponseCraftingLevelInfo"] = (
+        betterproto.message_field(3)
+    )
 
 
 @dataclass
 class ArtifactsConfigurationResponseMissionParameters(betterproto.Message):
     ship: "MissionInfoSpaceship" = betterproto.enum_field(1)
-    durations: List[
-        "ArtifactsConfigurationResponseMissionParametersDuration"
-    ] = betterproto.message_field(3)
+    durations: List["ArtifactsConfigurationResponseMissionParametersDuration"] = (
+        betterproto.message_field(3)
+    )
     level_mission_requirements: List[int] = betterproto.uint32_field(4)
     capacity__d_e_p_r_e_c_a_t_e_d: int = betterproto.uint32_field(2)
 
@@ -1987,12 +2138,18 @@ class MissionResponse(betterproto.Message):
 
 
 @dataclass
+class GetActiveMissionsResponse(betterproto.Message):
+    success: bool = betterproto.bool_field(1)
+    active_missions: List["MissionInfo"] = betterproto.message_field(2)
+
+
+@dataclass
 class CompleteMissionResponse(betterproto.Message):
     success: bool = betterproto.bool_field(1)
     info: "MissionInfo" = betterproto.message_field(2)
-    artifacts: List[
-        "CompleteMissionResponseSecureArtifactSpec"
-    ] = betterproto.message_field(3)
+    artifacts: List["CompleteMissionResponseSecureArtifactSpec"] = (
+        betterproto.message_field(3)
+    )
     other_rewards: List["Reward"] = betterproto.message_field(4)
     ei_user_id: str = betterproto.string_field(5)
 
@@ -2084,29 +2241,30 @@ class ArtifactsDB(betterproto.Message):
     inventory_items: List["ArtifactInventoryItem"] = betterproto.message_field(1)
     item_sequence: int = betterproto.uint64_field(2)
     inventory_slots: List["InventorySlot"] = betterproto.message_field(3)
-    active_artifacts__d_e_p_r_e_c_a_t_e_d: List[
-        "ArtifactsDBActiveArtifactSlot"
-    ] = betterproto.message_field(7)
-    active_artifact_sets: List[
-        "ArtifactsDBActiveArtifactSet"
-    ] = betterproto.message_field(11)
-    saved_artifact_sets: List[
-        "ArtifactsDBActiveArtifactSet"
-    ] = betterproto.message_field(13)
+    active_artifacts__d_e_p_r_e_c_a_t_e_d: List["ArtifactsDBActiveArtifactSlot"] = (
+        betterproto.message_field(7)
+    )
+    active_artifact_sets: List["ArtifactsDBActiveArtifactSet"] = (
+        betterproto.message_field(11)
+    )
+    saved_artifact_sets: List["ArtifactsDBActiveArtifactSet"] = (
+        betterproto.message_field(13)
+    )
     artifact_status: List["ArtifactsDBCraftableArtifact"] = betterproto.message_field(
         12
     )
+    fueling_mission: "MissionInfo" = betterproto.message_field(14)
     mission_infos: List["MissionInfo"] = betterproto.message_field(4)
     mission_archive: List["MissionInfo"] = betterproto.message_field(5)
-    discovered_artifacts__d_e_p_r_e_c_a_t_e_d: List[
-        "ArtifactSpec"
-    ] = betterproto.message_field(8)
-    craftable_artifacts__d_e_p_r_e_c_a_t_e_d: List[
-        "ArtifactsDBCraftableArtifact"
-    ] = betterproto.message_field(9)
-    crafting_counts__d_e_p_r_e_c_a_t_e_d: List[
-        "ArtifactsDBCraftableArtifact"
-    ] = betterproto.message_field(10)
+    discovered_artifacts__d_e_p_r_e_c_a_t_e_d: List["ArtifactSpec"] = (
+        betterproto.message_field(8)
+    )
+    craftable_artifacts__d_e_p_r_e_c_a_t_e_d: List["ArtifactsDBCraftableArtifact"] = (
+        betterproto.message_field(9)
+    )
+    crafting_counts__d_e_p_r_e_c_a_t_e_d: List["ArtifactsDBCraftableArtifact"] = (
+        betterproto.message_field(10)
+    )
 
 
 @dataclass
@@ -2138,6 +2296,7 @@ class AuthenticatedMessage(betterproto.Message):
     code: str = betterproto.string_field(2)
     compressed: bool = betterproto.bool_field(4)
     original_size: int = betterproto.uint32_field(5)
+    user_id: str = betterproto.string_field(6)
 
 
 @dataclass
@@ -2308,23 +2467,26 @@ class DLCCatalog(betterproto.Message):
     decorators: List["ShellSetSpec"] = betterproto.message_field(6)
     shell_objects: List["ShellObjectSpec"] = betterproto.message_field(4)
     shell_groups: List["ShellGroupSpec"] = betterproto.message_field(5)
+    shells_showcase_last_featured_time: float = betterproto.double_field(7)
 
 
 @dataclass
 class ShellDB(betterproto.Message):
     shell_inventory: List["ShellDBShellStatus"] = betterproto.message_field(1)
-    shell_element_inventory: List[
-        "ShellDBShellElementStatus"
-    ] = betterproto.message_field(5)
-    shell_variation_inventory: List[
-        "ShellDBShellSetVariationStatus"
-    ] = betterproto.message_field(8)
+    shell_element_inventory: List["ShellDBShellElementStatus"] = (
+        betterproto.message_field(5)
+    )
+    shell_variation_inventory: List["ShellDBShellSetVariationStatus"] = (
+        betterproto.message_field(8)
+    )
     shell_set_inventory: List["ShellDBShellStatus"] = betterproto.message_field(2)
     shell_object_inventory: List["ShellDBShellStatus"] = betterproto.message_field(4)
     farm_configs: List["ShellDBFarmConfiguration"] = betterproto.message_field(3)
     saved_configs: List["ShellDBSavedFarmConfiguration"] = betterproto.message_field(9)
     new_shells_downloaded: List[str] = betterproto.string_field(6)
     new_shells_seen: List[str] = betterproto.string_field(7)
+    last_showcase_featured_time_seen: float = betterproto.double_field(11)
+    lighting_controls_unlocked: bool = betterproto.bool_field(10)
 
 
 @dataclass
@@ -2347,6 +2509,7 @@ class ShellDBShellSetVariationStatus(betterproto.Message):
 
 @dataclass
 class ShellDBFarmConfiguration(betterproto.Message):
+    locked_elements: List["ShellDBFarmElement"] = betterproto.enum_field(10)
     shell_configs: List["ShellDBShellConfiguration"] = betterproto.message_field(1)
     shell_set_configs: List["ShellDBShellSetConfiguration"] = betterproto.message_field(
         2
@@ -2354,13 +2517,18 @@ class ShellDBFarmConfiguration(betterproto.Message):
     configure_chickens_by_group: bool = betterproto.bool_field(7)
     group_configs: List["ShellDBShellGroupConfiguration"] = betterproto.message_field(8)
     chicken_configs: List["ShellDBChickenConfig"] = betterproto.message_field(9)
+    lighting_config_enabled: bool = betterproto.bool_field(11)
+    lighting_config: "ShellDBLightingConfig" = betterproto.message_field(12)
 
 
 @dataclass
 class ShellDBSavedFarmConfiguration(betterproto.Message):
-    name: str = betterproto.string_field(1)
+    id: str = betterproto.string_field(1)
     config: "ShellDBFarmConfiguration" = betterproto.message_field(2)
     client_save_time: float = betterproto.double_field(3)
+    server_id: str = betterproto.string_field(4)
+    display_name: str = betterproto.string_field(5)
+    purchased: bool = betterproto.bool_field(6)
 
 
 @dataclass
@@ -2389,6 +2557,19 @@ class ShellDBShellGroupConfiguration(betterproto.Message):
 class ShellDBChickenConfig(betterproto.Message):
     chicken_identifier: str = betterproto.string_field(1)
     hat_identifier: str = betterproto.string_field(2)
+
+
+@dataclass
+class ShellDBLightingConfig(betterproto.Message):
+    light_dir: "Vector3" = betterproto.message_field(1)
+    light_direct_color: "Vector4" = betterproto.message_field(2)
+    light_direct_intensity: float = betterproto.float_field(3)
+    light_ambient_color: "Vector4" = betterproto.message_field(4)
+    light_ambient_intensity: float = betterproto.float_field(5)
+    fog_color: "Vector4" = betterproto.message_field(6)
+    fog_near: float = betterproto.float_field(7)
+    fog_far: float = betterproto.float_field(8)
+    fog_density: float = betterproto.float_field(9)
 
 
 @dataclass
@@ -2421,6 +2602,59 @@ class ShellsActionLog(betterproto.Message):
 
 
 @dataclass
+class SubmitShellShowcaseRequest(betterproto.Message):
+    rinfo: "BasicRequestInfo" = betterproto.message_field(4)
+    local_id: str = betterproto.string_field(1)
+    user_id: str = betterproto.string_field(2)
+    public_username: bool = betterproto.bool_field(5)
+    farm_config: "ShellDBFarmConfiguration" = betterproto.message_field(3)
+
+
+@dataclass
+class ShellShowcase(betterproto.Message):
+    top: List["ShellShowcaseListingInfo"] = betterproto.message_field(1)
+    featured: List["ShellShowcaseListingInfo"] = betterproto.message_field(2)
+    fresh: List["ShellShowcaseListingInfo"] = betterproto.message_field(3)
+
+
+@dataclass
+class ShellShowcaseListingInfo(betterproto.Message):
+    id: str = betterproto.string_field(1)
+    local_id: str = betterproto.string_field(12)
+    name: str = betterproto.string_field(2)
+    description: str = betterproto.string_field(3)
+    is_new: bool = betterproto.bool_field(15)
+    creator_name: str = betterproto.string_field(14)
+    status: "ShellShowcaseListingInfoStatus" = betterproto.enum_field(11)
+    farm_config: "ShellDBFarmConfiguration" = betterproto.message_field(4)
+    sales: int = betterproto.uint32_field(5)
+    gross: int = betterproto.uint64_field(6)
+    views: int = betterproto.uint64_field(7)
+    equips: int = betterproto.uint64_field(13)
+    likes: int = betterproto.uint32_field(8)
+    dislikes: int = betterproto.uint32_field(9)
+    share_url: str = betterproto.string_field(10)
+
+
+@dataclass
+class ShowcaseRoyaltyDeliveryConfirmation(betterproto.Message):
+    rinfo: "BasicRequestInfo" = betterproto.message_field(3)
+    ids: List[str] = betterproto.string_field(1)
+    amount: int = betterproto.uint32_field(2)
+
+
+@dataclass
+class ShellShowcaseListingSet(betterproto.Message):
+    listings: List["ShellShowcaseListingInfo"] = betterproto.message_field(1)
+
+
+@dataclass
+class ShellsActionBatch(betterproto.Message):
+    rinfo: "BasicRequestInfo" = betterproto.message_field(1)
+    actions: List["ShellsActionLog"] = betterproto.message_field(2)
+
+
+@dataclass
 class UserVerificationAnalysis(betterproto.Message):
     overall_status: "UserVerificationAnalysisStatus" = betterproto.enum_field(1)
     start_time: float = betterproto.double_field(2)
@@ -2441,6 +2675,10 @@ class UserVerificationAnalysis(betterproto.Message):
     artifacts_collected: float = betterproto.double_field(9)
     artifacts_consumed: float = betterproto.double_field(10)
     artifacts_in_inventory: float = betterproto.double_field(11)
+    rare_artifacts_in_inventory: int = betterproto.uint64_field(33)
+    rare_artifacts_on_server: int = betterproto.uint64_field(34)
+    legendary_artifacts_in_inventory: int = betterproto.uint64_field(35)
+    legendary_artifacts_on_server: int = betterproto.uint64_field(36)
     gold_spent_crafting: float = betterproto.double_field(21)
     excessive_consumes: bool = betterproto.bool_field(24)
     excessive_inventory: bool = betterproto.bool_field(25)

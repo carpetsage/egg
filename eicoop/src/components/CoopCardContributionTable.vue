@@ -131,6 +131,23 @@
             />
           </svg>
         </td>
+        <td v-if="showOptionalColumn.finalized" class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums">
+          <div class="inset-y-0 left-0 pl-2 flex items-center">
+            <svg
+              v-if="contributor.finalized"
+              class="flex-shrink-0 h-4.5 w-4.5 text-green-500  rounded-full"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span v-else> {{ contributor.offlineTimeStr }} ago</span>
+          </div>
+        </td>
         <td
           class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
         >
@@ -364,6 +381,7 @@ const requiredColumnIds = [
 ] as const;
 
 const optionalColumnIds = [
+  'finalized',
   'tokensSpent',
   'hourlyLayingRateUncapped',
   'hourlyShippingCapacity',
@@ -386,19 +404,22 @@ type ColumnSpec = {
   tooltip?: string;
 };
 
-const props = defineProps<{ egg: ei.Egg; coopStatus: CoopStatus }>();
+const props = defineProps<{ egg: ei.Egg; coopStatus: CoopStatus; target: number, customEggId?: string | null }>();
 
-const { egg, coopStatus } = toRefs(props);
+const { egg, coopStatus, target, customEggId } = toRefs(props);
 const devmode = inject(devmodeKey);
 
 const showOptionalColumn = computed(
-  () =>
-    Object.fromEntries(
+  () => {
+    const show = Object.fromEntries(
       optionalColumnIds.map(col => [
         col,
         coopStatus.value.contributors.some(contributor => contributor[col] !== null),
       ])
-    ) as Record<OptionalColumnId, boolean>
+    ) as Record<OptionalColumnId, boolean>;
+    show.finalized = coopStatus.value.eggsLaid >= target.value;
+    return show;
+  }
 );
 const columns: Ref<ColumnSpec[]> = computed(() => {
   const cols: ColumnSpec[] = [
@@ -406,6 +427,14 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
       id: 'name',
       name: 'Player',
     },
+  ];
+  if (showOptionalColumn.value.finalized) {
+    cols.push( {
+      id: 'finalized',
+      name: 'Checked In',
+    });
+  }
+  cols.push(
     {
       id: 'artifacts',
       name: 'Artifacts',
@@ -417,7 +446,7 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
     {
       id: 'eggsPerHour',
       name: 'Rate/hr',
-      iconPath: eggIconPath(egg.value),
+      iconPath: eggIconPath(egg.value, customEggId.value),
       suffix: '/ hr',
     },
     {
@@ -434,7 +463,7 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
       iconPath: 'egginc/b_icon_token.png',
       tooltip: 'Tokens left',
     },
-  ];
+  );
   if (showOptionalColumn.value.tokensSpent) {
     cols.push({
       id: 'tokensSpent',
@@ -558,6 +587,7 @@ const sortedContributors = computed(() => {
       case 'boosts':
         cmp = 0;
         break;
+      case 'finalized':
       case 'offlineTimeStr':
         cmp = c1.offlineSeconds - c2.offlineSeconds;
         break;

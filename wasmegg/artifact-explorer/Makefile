@@ -5,7 +5,7 @@ all: clean
 
 init:
 
-build: data
+build:
 	pnpm build
 
 data:
@@ -18,7 +18,6 @@ dist: build
 	../_tools/build.py dist --additional assets --additional static
 
 fastbuild: clean
-	$(MAKE) data
 	pnpm fastbuild
 	../_tools/build.py dist --additional assets --additional static
 

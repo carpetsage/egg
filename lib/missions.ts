@@ -3,7 +3,8 @@ import { eggIconPath, eggName } from './eggs';
 import { ei } from './proto';
 import { formatDuration } from './time';
 import { formatEIValue } from './units';
-import eiafxConfig, { MissionTypeParameters } from './eiafx-config.json';
+import eiafxConfig from './eiafx-config-json';
+import type { MissionTypeParameters } from './eiafx-config-json';
 
 import Artifact = ei.ArtifactSpec.Name;
 import Spaceship = ei.MissionInfo.Spaceship;
@@ -95,11 +96,14 @@ export const missionDurationTypeList = [
   DurationType.EPIC,
 ];
 
+export const fuelTankSizes = [ 2e9, 200e9, 10e12, 100e12, 200e12, 300e12, 400e12, 500e12 ];
+
 export interface ShipsConfig {
   epicResearchFTLLevel: number;
   epicResearchZerogLevel: number;
   shipLevels: Record<Spaceship, number>;
   onlyHenners: boolean;
+  onlyLiners: boolean;
   showNodata: boolean;
   targets: Record<Artifact, boolean>;
 }
@@ -108,6 +112,7 @@ export interface OldShipsConfig {
   epicResearchFTLLevel: number;
   epicResearchZerogLevel: number;
   shipLevels: Record<Spaceship, number>;
+  onlyHenners: boolean;
   targets: Record<Artifact, boolean>;
 }
 
@@ -128,6 +133,7 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
     epicResearchFTLLevel,
     epicResearchZerogLevel,
     onlyHenners: false,
+    onlyLiners: false,
     showNodata: false,
     shipLevels: {
       [Spaceship.CHICKEN_ONE]: 0,
@@ -148,8 +154,8 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
 
 export function fixOldShipsConfig(x: OldShipsConfig): ShipsConfig {
   const config = (x as ShipsConfig);
-  config.onlyHenners = false;
   config.showNodata = false;
+  config.onlyLiners = false;
   return config;
 }
 
@@ -159,7 +165,7 @@ export function isShipsConfig(x: unknown): x is ShipsConfig {
 
   // fix old config
   if (validOldConfig) {
-    if ((x as ShipsConfig).showNodata === undefined) {
+    if ((x as ShipsConfig).showNodata === undefined || (x as ShipsConfig).onlyLiners === undefined) {
       fixOldShipsConfig(x as OldShipsConfig);
     }
     // forcibly uncheck any frag targets before removing them from the ui
@@ -358,7 +364,7 @@ export class Mission extends MissionType {
   }
 
   get targetIcon(): string {
-    if (this.missionInfo.targetArtifact) {
+    if (this.missionInfo.targetArtifact !== ei.ArtifactSpec.Name.UNKNOWN && this.missionInfo.targetArtifact != null) {
       return getImageUrlFromId(this.missionInfo.targetArtifact, 32);
     }
     return '';
@@ -833,6 +839,7 @@ export const perfectShipsConfig: ShipsConfig = {
   epicResearchFTLLevel: 60,
   epicResearchZerogLevel: 10,
   onlyHenners: false,
+  onlyLiners: false,
   showNodata: false,
   shipLevels: {
     [Spaceship.CHICKEN_ONE]: shipMaxLevel(Spaceship.CHICKEN_ONE),

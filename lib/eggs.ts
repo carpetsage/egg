@@ -1,17 +1,29 @@
 import { ei } from './proto';
+import { decodeMessage } from './api';
+import customEggsRaw from './customeggs.json';
 
-export function eggName(egg: ei.Egg): string {
-  const symbol = ei.Egg[egg];
-  return symbol
-    .split('_')
-    .map(word => word[0] + word.substring(1).toLowerCase())
-    .join(' ');
+// parse custom eggs
+export const customEggs = customEggsRaw.map( egg => decodeMessage(ei.CustomEgg, egg, false)) as ei.ICustomEgg[];
+
+export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
+  const symbol = custom_egg_id || ei.Egg[egg];
+  switch (egg) {
+    case ei.Egg.IMMORTALITY:
+      return "CRISPR";
+    case ei.Egg.AI:
+      return "AI";
+    default:
+      return symbol
+        .split(/[_-]/)
+        .map(word => word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .join(' ');
+  }
 }
 
-export function eggValue(egg: ei.Egg): number {
+export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
   switch (egg) {
     case ei.Egg.EDIBLE:
-      return 0.1;
+      return 0.25;
     case ei.Egg.SUPERFOOD:
       return 1.25;
     case ei.Egg.MEDICAL:
@@ -60,10 +72,13 @@ export function eggValue(egg: ei.Egg): number {
       return 0.99;
     case ei.Egg.UNKNOWN:
       return 0;
+    case ei.Egg.CUSTOM_EGG:
+      const egg = customEggs.find(egg => egg.identifier === custom_egg_id);
+      return egg?.value ?? 1;
   }
 }
 
-export function eggIconPath(egg: ei.Egg): string {
+export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null): string {
   switch (egg) {
     case ei.Egg.EDIBLE:
       return 'egginc/egg_edible.png';
@@ -80,7 +95,7 @@ export function eggIconPath(egg: ei.Egg): string {
     case ei.Egg.QUANTUM:
       return 'egginc/egg_quantum.png';
     case ei.Egg.IMMORTALITY:
-      return 'egginc/egg_immortality.png';
+      return 'egginc/egg_crispr.png';
     case ei.Egg.TACHYON:
       return 'egginc/egg_tachyon.png';
     case ei.Egg.GRAVITON:
@@ -115,5 +130,22 @@ export function eggIconPath(egg: ei.Egg): string {
       return 'egginc/egg_pumpkin.png';
     case ei.Egg.UNKNOWN:
       return 'egginc/egg_unknown.png';
+    case ei.Egg.CUSTOM_EGG:
+      const egg = customEggs.find(egg => egg.identifier === custom_egg_id);
+      if (egg) {
+        return `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g,'')}.png`
+      }
+      return 'egginc/egg_unknown.png'
   }
 }
+
+export const eggList = [
+    ei.Egg.EDIBLE, ei.Egg.SUPERFOOD, ei.Egg.MEDICAL,
+    ei.Egg.ROCKET_FUEL, ei.Egg.SUPER_MATERIAL, ei.Egg.FUSION,
+    ei.Egg.QUANTUM, ei.Egg.IMMORTALITY, ei.Egg.TACHYON,
+    ei.Egg.GRAVITON, ei.Egg.DILITHIUM, ei.Egg.PRODIGY,
+    ei.Egg.TERRAFORM, ei.Egg.ANTIMATTER, ei.Egg.DARK_MATTER,
+    ei.Egg.AI, ei.Egg.NEBULA, ei.Egg.UNIVERSE, ei.Egg.ENLIGHTENMENT,
+    ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON,
+    ei.Egg.FIREWORK, ei.Egg.PUMPKIN
+];

@@ -296,9 +296,6 @@ export default defineComponent({
     const selectedLevel = ref(configuredLevel.value);
     const forceLevel = (level: number) => {
       selectedLevel.value = level
-      if (tooLittleDataForSelectedLevel.value && !config.value.showNodata) {
-        selectedTarget.value = defaultTarget;
-      }
     };
     const selectLevel = (event: Event) => {
       forceLevel(parseInt((event.target! as HTMLSelectElement).value));

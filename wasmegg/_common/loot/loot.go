@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/fanaticscripter/Egg/wasmegg/_common/eiafx"
-	"github.com/fanaticscripter/EggContractor/api"
+	"github.com/carpetsage/Egg/wasmegg/_common/eiafx"
+	"github.com/carpetsage/EggContractor/api"
 )
 
 //go:embed mission_reward_count.json
