@@ -17098,5 +17098,32 @@
     "startTimestamp": 1733850000.0,
     "type": "hab-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1734022800.0,
+    "id": "event-12-11",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1733936400.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1734022800.0,
+    "id": "event-12-11-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1733936400.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1734022800.0,
+    "id": "ultra-12-11",
+    "message": "15% OFF Shells!",
+    "multiplier": 0.85,
+    "startTimestamp": 1733936400.0,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
