@@ -17125,5 +17125,14 @@
     "startTimestamp": 1733936400.0,
     "type": "shell-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1734109200.0,
+    "id": "event-12-12-24",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1734022800.0,
+    "type": "boost-duration",
+    "ultra": false
   }
 ]
