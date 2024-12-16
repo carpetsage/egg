@@ -17181,6 +17181,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1734368400.0,
+    "id": "ultra-12-15",
+    "message": "10% OFF BOOSTS!",
+    "multiplier": 0.9,
+    "startTimestamp": 1734282000.0,
+    "type": "boost-sale",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1734454800.0,
     "id": "event-12-15-2",
     "message": "2x MISSION CAPACITY!",
@@ -17190,12 +17199,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1734368400.0,
-    "id": "ultra-12-15",
-    "message": "10% OFF BOOSTS!",
-    "multiplier": 0.9,
-    "startTimestamp": 1734282000.0,
-    "type": "boost-sale",
-    "ultra": true
+    "endTimestamp": 1734454800.0,
+    "id": "event-12-16",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1734368400.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
