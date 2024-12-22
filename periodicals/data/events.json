@@ -17280,6 +17280,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1734886800.0,
+    "id": "ultra-12-21",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1734800400.0,
+    "type": "research-sale",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1734973200.0,
     "id": "event-12-21-2",
     "message": "4x PIGGY GROWTH!!",
@@ -17289,12 +17298,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1734886800.0,
-    "id": "ultra-12-21",
-    "message": "70% OFF RESEARCH!",
-    "multiplier": 0.3,
-    "startTimestamp": 1734800400.0,
-    "type": "research-sale",
-    "ultra": true
+    "endTimestamp": 1734973200.0,
+    "id": "event-12-22",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1734886800.0,
+    "type": "epic-research-sale",
+    "ultra": false
   }
 ]
