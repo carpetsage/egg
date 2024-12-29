@@ -17404,5 +17404,23 @@
     "startTimestamp": 1735405200.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1735578000.0,
+    "id": "event-12-29",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1735491600.0,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1735578000.0,
+    "id": "ultra-12-29",
+    "message": "2X FASTER MISSIONS!",
+    "multiplier": 0.5,
+    "startTimestamp": 1735491600.0,
+    "type": "mission-duration",
+    "ultra": true
   }
 ]
