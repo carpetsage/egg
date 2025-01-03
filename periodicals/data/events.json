@@ -17485,5 +17485,14 @@
     "startTimestamp": 1735837200.0,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1736010000.0,
+    "id": "event-1-3",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1735923600.0,
+    "type": "research-sale",
+    "ultra": false
   }
 ]
