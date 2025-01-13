@@ -102,6 +102,9 @@ export function getProphecyEggsProgressFromContracts(
     if (!contract.grade && props.goalSets && props.goalSets.length > league) {
       goals = props.goalSets[league].goals;
     }
+    if (!goals && props.gradeSpecs != null) {
+      goals = props.gradeSpecs[0].goals;
+    }
     if (!goals || goals.length === 0) {
       throw new Error(`no goals found for contract ${props.identifier!}`);
     }
