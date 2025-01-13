@@ -1,6 +1,6 @@
 {
   "private": true,
   "devDependencies": {
-    "netlify-cli": "^17.19.4"
+    "netlify-cli": "^18.0.0"
   }
 }
