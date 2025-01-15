@@ -1,10 +1,12 @@
 import { ei } from 'lib';
 
 export function accountProphecyEggsCount(backup: ei.IBackup): number {
+  
   return (
     trophiesProphecyEggsCount(backup) +
     contractsProphecyEggsCount(backup) +
-    dailyGiftsProphecyEggsCount(backup)
+    dailyGiftsProphecyEggsCount(backup) +
+    seasonalProphecyEggsCount(backup)
   );
 }
 
@@ -91,4 +93,13 @@ function contractsProphecyEggsCount(backup: ei.IBackup): number {
 
 function dailyGiftsProphecyEggsCount(backup: ei.IBackup): number {
   return Math.min(Math.floor(backup.game!.numDailyGiftsCollected! / 28), 24);
+}
+
+function seasonalProphecyEggsCount(backup: ei.IBackup): number {
+  return ( 
+    backup.game!.eggsOfProphecy! -
+    trophiesProphecyEggsCount(backup) -
+    contractsProphecyEggsCount(backup) -
+    dailyGiftsProphecyEggsCount(backup)
+  )
 }
