@@ -4,7 +4,7 @@ export function accountProphecyEggsCount(backup: ei.IBackup): number {
   return (
     trophiesProphecyEggsCount(backup) +
     contractsProphecyEggsCount(backup) +
-    dailyGiftsProphecyEggsCount(backup) 
+    dailyGiftsProphecyEggsCount(backup)
   );
 }
 
