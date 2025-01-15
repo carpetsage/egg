@@ -10,7 +10,13 @@ export function shippingCapacityMultiplier(build: Build, config: Config): number
 }
 
 export function maxHourlyShippingCapacity(build: Build, config: Config): number {
-  return baseMaxHourlyShippingCapacity(config) * shippingCapacityMultiplier(build, config);
+  return baseMaxHourlyShippingCapacity(config) * 
+    shippingCapacityMultiplier(build, config) * 
+    shippingCapacityFromColleggtibles(build, config);  
+}
+
+export function shippingCapacityFromColleggtibles(build: Build, config: Config): number {
+  return (1 + config.pumpkinColleggtible) * (1 + config.carbonFiberColleggtible)
 }
 
 function baseMaxHourlyShippingCapacity(_config: Config): number {

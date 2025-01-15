@@ -9,6 +9,7 @@ import { baseMaxRunningChickenBonus, maxRunningChickenBonusMultiplier } from './
 export function earningsMultiplier(build: Build, config: Config): number {
   return (
     earningBonusMultiplier(build, config) *
+    earningsMultiplerFromColleggtibles(build, config) *
     multiplicativeEffect(build, config, [
       ArtifactSpec.Name.TUNGSTEN_ANKH,
       ArtifactSpec.Name.DEMETERS_NECKLACE,
@@ -20,6 +21,10 @@ export function earningsMultiplier(build: Build, config: Config): number {
   );
 }
 
+export function earningsMultiplerFromColleggtibles(build: Build, config: Config): number {
+  return ( 1 + config.fireworkColleggtible)
+}
+
 export function earningsWithMaxRunningChickenBonusMultiplier(build: Build, config: Config): number {
   return earningsMultiplier(build, config) * maxRunningChickenBonusMultiplier(build, config);
 }
@@ -27,9 +32,14 @@ export function earningsWithMaxRunningChickenBonusMultiplier(build: Build, confi
 export function awayEarningsMultiplier(build: Build, config: Config): number {
   return (
     earningsMultiplier(build, config) *
+    awayEarningsMultiplerFromColleggtibles(build, config) *
     multiplicativeEffect(build, config, [
       ArtifactSpec.Name.LUNAR_TOTEM,
       ArtifactSpec.Name.LUNAR_STONE,
     ]) * (config.proPermit ? 1 : 0.5) / baseMaxRunningChickenBonus(config)
   );
 }
+export function awayEarningsMultiplerFromColleggtibles(build: Build, config: Config): number {
+  return (config.chocolateColleggtible < 1 ? (1 + config.chocolateColleggtible) : config.chocolateColleggtible)
+}
+

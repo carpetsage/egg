@@ -25,6 +25,7 @@
         </div>
         <artifact-set-builder :key="key" v-model:build="builds.builds[0]" />
         <configurator :key="key" v-model:config="builds.config" />
+        <colleggtibles :key="key" v-model:config="builds.config" />
       </div>
     </div>
 
@@ -87,6 +88,7 @@ import ArtifactSetBuilder from '@/components/ArtifactSetBuilder.vue';
 import ArtifactSetDisplay from '@/components/ArtifactSetDisplay.vue';
 import ArtifactSetsEffects from '@/components/ArtifactSetsEffects.vue';
 import Configurator from '@/components/Configurator.vue';
+import Colleggtibles from '@/components/Colleggtibles.vue';
 import ShareSheet from '@/components/ShareSheet.vue';
 
 export default defineComponent({
@@ -95,6 +97,7 @@ export default defineComponent({
     ArtifactSetDisplay,
     ArtifactSetsEffects,
     Configurator,
+    Colleggtibles,
     ShareSheet,
   },
 
