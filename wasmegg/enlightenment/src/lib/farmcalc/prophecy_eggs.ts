@@ -1,7 +1,6 @@
 import { ei } from 'lib';
 
 export function accountProphecyEggsCount(backup: ei.IBackup): number {
-  
   return (
     trophiesProphecyEggsCount(backup) +
     contractsProphecyEggsCount(backup) +
