@@ -11,4 +11,4 @@ proto-plus = "~=1.22"
 more-itertools = "~=10.2"
 
 [requires]
-python_version = "3.10"
+python_version = "3.13"

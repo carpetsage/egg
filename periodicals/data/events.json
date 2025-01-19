@@ -17674,5 +17674,86 @@
     "startTimestamp": 1736874000.0,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1737046800.0,
+    "id": "event-1-15",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1736960400.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1737046800.0,
+    "id": "event-1-15-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1736960400.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1737133200.0,
+    "id": "event-1-16",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1737046800.0,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1737133200.0,
+    "id": "ultra-1-16",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1737046800.0,
+    "type": "gift-boost",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1737219600.0,
+    "id": "event-1-17",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1737133200.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1737219600.0,
+    "id": "ultra-1-17",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1737133200.0,
+    "type": "boost-duration",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1737392400.0,
+    "id": "event-1-18-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1737219600.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1737392400.0,
+    "id": "event-1-19",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1737306000.0,
+    "type": "epic-research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1737392400.0,
+    "id": "ultra-1-19",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1737306000.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
