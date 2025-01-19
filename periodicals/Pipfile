@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-protobuf = "~=5.27.2"
+protobuf = "~=5.29.3"
 requests = "~=2.32.3"
 proto-plus = "~=1.22"
 "betterproto[compiler]" = "~=1.2"
