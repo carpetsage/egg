@@ -10,7 +10,7 @@
     "hotkeys-js": "^3.13.7",
     "js-sha256": "^0.11.0",
     "lib": "workspace:^",
-    "primeicons": "^6.0.1",
+    "primeicons": "^7.0.0",
     "primevue": "^3.50.0",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
