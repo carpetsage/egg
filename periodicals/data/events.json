@@ -17728,5 +17728,32 @@
     "startTimestamp": 1737133200.0,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1737392400.0,
+    "id": "event-1-18-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1737219600.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1737392400.0,
+    "id": "event-1-19",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1737306000.0,
+    "type": "epic-research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1737392400.0,
+    "id": "ultra-1-19",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1737306000.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
