@@ -76,8 +76,6 @@
 
     <recently-viewed-block class="ultrawide:rounded-lg mb-4" />
 
-    <new-contract-forecast class="ultrawide:rounded-lg mb-4" />
-
     <contract-list v-model:rowsPerPage="rowsPerPage" :contracts="contracts" />
   </main>
 </template>

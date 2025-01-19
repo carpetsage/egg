@@ -183,8 +183,6 @@
     </div>
   </div>
 
-  <new-contract-forecast class="ultrawide:rounded-lg mb-4" />
-
   <template v-for="status in soloStatuses" :key="`${status.userId}:${status.contractId}`">
     <solo-card :status="status" />
   </template>
