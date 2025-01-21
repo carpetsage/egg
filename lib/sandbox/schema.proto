@@ -40,6 +40,12 @@ message Config {
   bool pro_permit = 15;
 
   double tachyon_deflector_bonus = 14;
+
+  double carbon_fiber_colleggtible = 30;
+  double chocolate_colleggtible = 31;
+  double easter_colleggtible = 32;
+  double firework_colleggtible = 33;
+  double pumpkin_colleggtible = 34;
 }
 
 message ArtifactSpec {
