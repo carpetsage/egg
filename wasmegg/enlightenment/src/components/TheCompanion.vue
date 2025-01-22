@@ -81,6 +81,43 @@
           Wormhole Dampening levels are required for such a feat.
         </p>
       </template>
+      <hr class="mt-2" />
+
+      <!-- Colleggtibles -->
+        <div class="text-sm">
+          Colleggtibles: 
+          <p v-for="(value, key) in colleggtibles" :key="key" class="text-xs mr-0.5">
+            <template v-if="value !== 1">
+                <template v-if="key === '1'">
+                &nbsp;&nbsp;Earnings: {{ (value *100 ) - 100 }}%
+                </template>
+                <template v-if="key === '2'">
+                &nbsp;&nbsp;Away Earnings: {{ (value * 100 ) }}%
+                </template>
+                <template v-if="key === '3'">
+                &nbsp;&nbsp;Internal Hatchery Rate: {{ (value *100 ) - 100 }}%
+                </template>
+                <template v-if="key === '4'">
+                &nbsp;&nbsp;Egg Laying Rate: {{ (value -1) * 100 }}%
+                </template>
+                <template v-if="key === '5'">
+                &nbsp;&nbsp;Shipping Capacity: {{ (value * 100) -100 }}%
+                </template>
+                <template v-if="key === '6'">
+                &nbsp;&nbsp;Hab Capacity: {{ value * 100 }}%
+                </template>
+                <template v-if="key === '7'">
+                &nbsp;&nbsp;Vehicle Cost: {{ value * 100 }}%
+                </template>
+                <template v-if="key === '8'">
+                &nbsp;&nbsp;Hab Cost: {{ value * 100 }}%
+                </template>
+                <template v-if="key === '9'">
+                &nbsp;&nbsp;Research Cost: {{ value * 100 }}%
+                </template>
+            </template>
+          </p>
+        </div>
 
       <hr class="mt-2" />
 
@@ -379,7 +416,9 @@ import {
   researchPriceMultiplierFromArtifacts,
   researchPriceMultiplierFromResearches,
   calculateMaxFarmCostMissing,
-  calculateTSCost
+  calculateTSCost,
+  getColleggtibleBonuses,
+  researchPriceFromColleggtibles,
 } from '@/lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { formatPercentage, formatWithThousandSeparators, formatDurationAuto } from '@/utils';
@@ -465,6 +504,7 @@ export default defineComponent({
     const currentTimestamp = ref(Date.now());
     const lastRefreshedRelative = ref(lastRefreshed.fromNow());
     const lastRefreshedPopulation = farm.numChickens! as number;
+    const colleggtibles = getColleggtibleBonuses(backup);
     const currentPopulation = computed(
       () =>
         lastRefreshedPopulation +
@@ -486,14 +526,14 @@ export default defineComponent({
 
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
-    const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts);
+    const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts, colleggtibles);
     const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
     const totalHabSpaceSufficient = totalHabSpace >= 1e10;
     const currentWDLevel = farmCurrentWDLevel(farm);
     const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(
-      nakedGangNickname ? [] : artifacts
+      nakedGangNickname ? [] : artifacts, colleggtibles
     );
-    const bestGusset = bestPossibleGussetForEnlightenment(backup);
+    const bestGusset = bestPossibleGussetForEnlightenment(backup, colleggtibles);
     const bestPossibleGusset = nakedGangNickname
       ? null
       : bestGusset;
@@ -508,12 +548,12 @@ export default defineComponent({
     )
     const bestPossibleGussetSet = bestPossibleGusset ? [bestPossibleGusset] : [];
     const minimumRequiredWDLevel = bestPossibleGusset
-      ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset])
+      ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset], colleggtibles)
       : requiredWDLevel;
 
     const earningBonus = farmEarningBonus(backup, farm, progress, artifacts);
     const farmerRole = earningBonusToFarmerRole(earningBonus);
-    const farmValue = calculateFarmValue(backup, farm, progress, artifacts);
+    const farmValue = calculateFarmValue(backup, farm, progress, artifacts, colleggtibles);
     const cashOnHand = farm.cashEarned! - farm.cashSpent!;
     const eggValue = farmEggValue(farmEggValueResearches(farm), artifacts);
     const maxRCB = farmMaxRCB(farmMaxRCBResearches(farm, progress), artifacts);
@@ -521,7 +561,9 @@ export default defineComponent({
       onlineBaseline: earningRateOnlineBaseline,
       onlineMaxRCB: earningRateOnlineMaxRCB,
       offline: earningRateOffline,
-    } = farmEarningRate(backup, farm, progress, artifacts);
+    } = farmEarningRate(backup, farm, progress, artifacts, colleggtibles);
+    
+
     const droneValuesAtMaxRCB = calculateDroneValues(farm, progress, artifacts, {
       population: farm.numChickens! as number,
       farmValue,
@@ -543,10 +585,10 @@ export default defineComponent({
         calculateTSCost(farm) *
           researchPriceMultiplierFromResearches(farm, progress);
 
-    const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts);
-    const bestPossibleCube = bestPossibleCubeForEnlightenment(backup);
+    const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts) * researchPriceFromColleggtibles(colleggtibles);
+    const bestPossibleCube = bestPossibleCubeForEnlightenment(backup, colleggtibles);
     const bestPossibleCubeSet = bestPossibleCube ? [bestPossibleCube] : [];
-    const bestPriceMultiplier = researchPriceMultiplierFromArtifacts(bestPossibleCubeSet);
+    const bestPriceMultiplier = researchPriceMultiplierFromArtifacts(bestPossibleCubeSet) * researchPriceFromColleggtibles(colleggtibles);
     const cashTargets = [
       { multiplier: 1, description: 'No research sale\nno artifacts' },
       { multiplier: 0.3, description: '70% research sale\n no artifacts' },
@@ -610,7 +652,7 @@ export default defineComponent({
       onlineRatePerHab: onlineIHRPerHab,
       onlineRate: onlineIHR,
       offlineRate: offlineIHR,
-    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts);
+    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, colleggtibles);
 
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 
@@ -621,7 +663,9 @@ export default defineComponent({
           setLocalStorage(TARGET_TS_LOCALSTORAGE_KEY, target_ts.value);
       });
 
+
     return {
+      colleggtibles,
       nickname,
       lastRefreshed,
       lastRefreshedTimestamp,

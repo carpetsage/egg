@@ -2,8 +2,9 @@
 
 import { ei } from 'lib';
 import { shippingCapacityMultiplier } from '../effects';
-import { Artifact, Research, ResearchInstance } from '../types';
+import { Artifact, Research, ResearchInstance, Colleggtible } from '../types';
 import { farmResearches } from './common';
+import { shippingCapacityFromColleggtibles } from './colleggtible_eggs';
 
 type VehicleId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
 
@@ -204,7 +205,8 @@ export function farmShippingCapacityResearches(
 export function farmVehicleShippingCapacities(
   vehicles: Vehicle[],
   researches: ShippingCapacityResearchInstance[],
-  artifacts: Artifact[]
+  artifacts: Artifact[],
+  colleggtibles: Colleggtible
 ): number[] {
   let universalMultiplier = 1;
   let hoverOnlyMultiplier = 1;
@@ -226,18 +228,20 @@ export function farmVehicleShippingCapacities(
       universalMultiplier *
       (isHoverVehicle(vehicle) ? hoverOnlyMultiplier : 1) *
       (isHyperloop(vehicle) ? hyperloopOnlyMultiplier : 1) *
-      artifactsMultiplier
+      artifactsMultiplier *
+      shippingCapacityFromColleggtibles(colleggtibles)
   );
 }
 
 export function farmShippingCapacity(
   farm: ei.Backup.ISimulation,
   progress: ei.Backup.IGame,
-  artifacts: Artifact[]
+  artifacts: Artifact[],
+  colleggtibles: Colleggtible
 ): number {
   const vehicles = farmVehicles(farm);
   const researches = farmShippingCapacityResearches(farm, progress);
-  return farmVehicleShippingCapacities(vehicles, researches, artifacts).reduce(
+  return farmVehicleShippingCapacities(vehicles, researches, artifacts, colleggtibles).reduce(
     (total, s) => total + s
   );
 }

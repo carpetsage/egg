@@ -1,8 +1,9 @@
 import { habSpaceMultiplier } from '../effects';
 import { ei } from 'lib';
-import { Artifact, Research, ResearchInstance } from '../types';
+import { Artifact, Research, ResearchInstance, Colleggtible } from '../types';
 import { farmResearch, farmResearches } from './common';
 import { fullResearchCostsList } from './research_price';
+import { habCapacityFromColleggtibles } from './colleggtible_eggs';
 
 type HabId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -197,7 +198,8 @@ export function farmHabSpaceResearches(farm: ei.Backup.ISimulation): HabSpaceRes
 export function farmHabSpaces(
   habs: Hab[],
   researches: HabSpaceResearchInstance[],
-  artifacts: Artifact[]
+  artifacts: Artifact[],
+  colleggtibles: Colleggtible
 ): number[] {
   let universalMultiplier = 1;
   let portalOnlyMultiplier = 1;
@@ -216,9 +218,9 @@ export function farmHabSpaces(
       hab.baseHabSpace *
         universalMultiplier *
         (isPortalHab(hab) ? portalOnlyMultiplier : 1) *
-        artifactsMultiplier
+        artifactsMultiplier *
+        habCapacityFromColleggtibles(colleggtibles))
     )
-  );
 }
 
 export function farmCurrentWDLevel(farm: ei.Backup.ISimulation): number {
@@ -232,7 +234,9 @@ export function farmCurrentWDLevel(farm: ei.Backup.ISimulation): number {
 
 // Wormhole Dampening levels required to reach 10B hab space, assuming max
 // everything else.
-export function requiredWDLevelForEnlightenmentDiamond(artifacts: Artifact[]): number {
+export function requiredWDLevelForEnlightenmentDiamond(artifacts: Artifact[], 
+  colleggtibles: Colleggtible
+): number {
   const target = 1e10;
   const finalHab = habVarieties[habVarieties.length - 1];
   const finalHabs = [finalHab, finalHab, finalHab, finalHab];
@@ -242,7 +246,7 @@ export function requiredWDLevelForEnlightenmentDiamond(artifacts: Artifact[]): n
       ...research,
       level: research.maxLevel,
     }));
-  const maxHabSpaceWithoutWD = farmHabSpaces(finalHabs, maxResearchesWithoutWD, artifacts).reduce(
+  const maxHabSpaceWithoutWD = farmHabSpaces(finalHabs, maxResearchesWithoutWD, artifacts, colleggtibles).reduce(
     (total, s) => total + s
   );
   if (maxHabSpaceWithoutWD >= target) {

@@ -1,8 +1,9 @@
 import { ei } from 'lib';
 import { artifactSpecToItem } from '../catalog';
 import { clarityEffect, researchPriceMultiplierFromArtifacts } from '../effects';
-import { Artifact, Item, Stone } from '../types';
+import { Artifact, Item, Stone, Colleggtible } from '../types';
 import { requiredWDLevelForEnlightenmentDiamond } from './hab_space';
+import { researchPriceFromColleggtibles } from './colleggtible_eggs';
 
 export function homeFarmArtifacts(backup: ei.IBackup): Artifact[] {
   const db = backup.artifactsDb;
@@ -36,7 +37,8 @@ export function homeFarmArtifacts(backup: ei.IBackup): Artifact[] {
   return artifacts;
 }
 
-export function bestPossibleGussetForEnlightenment(backup: ei.IBackup): Artifact | null {
+export function bestPossibleGussetForEnlightenment(backup: ei.IBackup, colleggtibles: Colleggtible
+): Artifact | null {
   const stonedGussets = artifactsFromInventoryWithClarityStones(
     backup,
     ei.ArtifactSpec.Name.ORNATE_GUSSET
@@ -44,7 +46,7 @@ export function bestPossibleGussetForEnlightenment(backup: ei.IBackup): Artifact
   let bestGusset = null;
   let minRequiredWDLevel = 25;
   for (const gusset of stonedGussets) {
-    const level = requiredWDLevelForEnlightenmentDiamond([gusset]);
+    const level = requiredWDLevelForEnlightenmentDiamond([gusset], colleggtibles);
     if (level < minRequiredWDLevel) {
       bestGusset = gusset;
       minRequiredWDLevel = level;
@@ -53,7 +55,7 @@ export function bestPossibleGussetForEnlightenment(backup: ei.IBackup): Artifact
   return bestGusset;
 }
 
-export function bestPossibleCubeForEnlightenment(backup: ei.IBackup): Artifact | null {
+export function bestPossibleCubeForEnlightenment(backup: ei.IBackup, colleggtibles: Colleggtible): Artifact | null {
   const stonedCubes = artifactsFromInventoryWithClarityStones(
     backup,
     ei.ArtifactSpec.Name.PUZZLE_CUBE
@@ -64,7 +66,7 @@ export function bestPossibleCubeForEnlightenment(backup: ei.IBackup): Artifact |
   let bestCube = null;
   let minPriceMultiplier = 1;
   for (const cube of stonedCubes) {
-    const priceMultiplier = researchPriceMultiplierFromArtifacts([cube]);
+    const priceMultiplier = researchPriceMultiplierFromArtifacts([cube]) * researchPriceFromColleggtibles(colleggtibles);
     if (priceMultiplier < minPriceMultiplier) {
       bestCube = cube;
       minPriceMultiplier = priceMultiplier;

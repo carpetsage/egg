@@ -11,3 +11,4 @@ export * from './max_rcb';
 export * from './prophecy_eggs';
 export * from './research_price';
 export * from './shipping_capacity';
+export * from './colleggtible_eggs';

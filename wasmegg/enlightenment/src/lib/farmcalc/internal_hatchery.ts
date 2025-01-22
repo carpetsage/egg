@@ -1,7 +1,8 @@
 import { ei } from 'lib';
 import { internalHatcheryRateMultiplier } from '../effects';
-import { Artifact, Research, ResearchInstance } from '../types';
+import { Artifact, Research, ResearchInstance, Colleggtible } from '../types';
 import { farmResearches } from './common';
+import { internalHatcheryRateFromColleggtibles } from './colleggtible_eggs';
 
 export interface InternalHatcheryResearch extends Research {
   multiplicative?: boolean;
@@ -79,7 +80,8 @@ export function farmInternalHatcheryResearches(
 // Rates are measured in chickens/min.
 export function farmInternalHatcheryRates(
   researches: InternalHatcheryResearchInstance[],
-  artifacts: Artifact[]
+  artifacts: Artifact[],
+  colleggtibles: Colleggtible
 ): {
   onlineRatePerHab: number;
   onlineRate: number;
@@ -105,9 +107,9 @@ export function farmInternalHatcheryRates(
   // With max internal hatchery sharing, four internal hatcheries are constantly
   // at work even if not all habs are bought;
   const onlineRatePerHab = baseRate * onlineMultiplier * artifactsMultiplier;
-  const onlineRate = 4 * onlineRatePerHab;
+  const onlineRate = 4 * onlineRatePerHab * internalHatcheryRateFromColleggtibles(colleggtibles);
   const offlineRatePerHab = onlineRatePerHab * offlineMultiplier;
-  const offlineRate = onlineRate * offlineMultiplier;
+  const offlineRate = onlineRate * offlineMultiplier * internalHatcheryRateFromColleggtibles(colleggtibles);
   return {
     onlineRatePerHab,
     onlineRate,

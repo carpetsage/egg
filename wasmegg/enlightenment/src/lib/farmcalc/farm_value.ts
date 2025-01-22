@@ -21,24 +21,26 @@ export function calculateFarmValue(
   backup: ei.IBackup,
   farm: ei.Backup.ISimulation,
   progress: ei.Backup.IGame,
-  artifacts: Artifact[]
+  artifacts: Artifact[],
+  colleggtibles: Record<ei.GameModifier.GameDimension, number>
 ): number {
   // All calculations need to be done with no artifacts, except a flat bonus
   // from Mercury's lens if equipped.
   const population = farm.numChickens! as number;
-  const shippingCapacity = farmShippingCapacity(farm, progress, []);
-  const eggLayingRate = farmEggLayingRate(farm, progress, []);
+  const shippingCapacity = farmShippingCapacity(farm, progress, [], colleggtibles);
+  const eggLayingRate = farmEggLayingRate(farm, progress, [], colleggtibles);
   const populationEffective = Math.floor(
     population * Math.min(1, shippingCapacity / eggLayingRate)
   );
   const populationUndeliverable = population - populationEffective;
-  const totalHabCapacity = farmHabSpaces(farmHabs(farm), farmHabSpaceResearches(farm), []).reduce(
+  const totalHabCapacity = farmHabSpaces(farmHabs(farm), farmHabSpaceResearches(farm), [], colleggtibles).reduce(
     (total, s) => total + s
   );
   const populationVacant = Math.max(totalHabCapacity - population, 0);
   const internalHatcheryRate = farmInternalHatcheryRates(
     farmInternalHatcheryResearches(farm, progress),
-    []
+    [],
+    colleggtibles
   ).onlineRate;
   const populationProjected = internalHatcheryRate * maxAwayTime(farm, progress);
   const eggConstMultiplier = 20; // 20 for the enlightenment egg.
@@ -62,6 +64,7 @@ export function calculateFarmValue(
       populationVacant ** 0.6 +
       0.25 * populationProjected) *
     farmValueMultiplier(artifacts)
+
   );
 }
 

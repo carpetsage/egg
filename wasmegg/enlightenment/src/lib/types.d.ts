@@ -32,3 +32,5 @@ export interface Research {
 export interface ResearchInstance extends Research {
   level: number;
 }
+
+export type Colleggtible = Record<ei.GameModifier.GameDimension, number>;
