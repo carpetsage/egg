@@ -17782,5 +17782,23 @@
     "startTimestamp": 1737478800.0,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1737651600.0,
+    "id": "event-1-22",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1737565200.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1737651600.0,
+    "id": "event-1-22-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1737565200.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
