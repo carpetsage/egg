@@ -1,7 +1,7 @@
 import { ei, getLocalStorage, setLocalStorage } from 'lib';
 
 const LEGENDARIES_STUDY_OPT_IN_LOCALSTORAGE_KEY = 'reportLegendaries';
-const REPORT_LEGENDARIES_API_URL = 'https://egg-brosssh.vercel.app/submitEID';
+const REPORT_LEGENDARIES_API_URL = 'https://legendary-study-3-0.vercel.app/submitEID';
 
 export function getLegendariesStudyPreference(): boolean | null {
   const recorded = getLocalStorage(LEGENDARIES_STUDY_OPT_IN_LOCALSTORAGE_KEY);
