@@ -83,50 +83,6 @@
       </template>
       <hr class="mt-2" />
 
-      <!-- Colleggtibles -->
-      <collapsible-section
-        section-title="Colleggtibles"
-        :visible="isVisibleSection('colleggtibles')"
-        class="my-2 text-sm"
-        @toggle="toggleSectionVisibility('colleggtibles')"
-      >
-        <div class="text-sm">
-          <p v-for="(value, key) in colleggtibles" :key="key" class="text-xs mr-0.5">
-            <template v-if="value !== 1">
-                <template v-if="key == 1">
-                &nbsp;&nbsp;Earnings: {{ (value *100 ) - 100 }}%
-                </template>
-                <template v-if="key == 2">
-                &nbsp;&nbsp;Away Earnings: {{ (value * 100 ) }}%
-                </template>
-                <template v-if="key == 3">
-                &nbsp;&nbsp;Internal Hatchery Rate: {{ (value *100 ) - 100 }}%
-                </template>
-                <template v-if="key == 4">
-                &nbsp;&nbsp;Egg Laying Rate: {{ (value -1) * 100 }}%
-                </template>
-                <template v-if="key == 5">
-                &nbsp;&nbsp;Shipping Capacity: {{ (value * 100) -100 }}%
-                </template>
-                <template v-if="key == 6">
-                &nbsp;&nbsp;Hab Capacity: {{ value * 100 }}%
-                </template>
-                <template v-if="key == 7">
-                &nbsp;&nbsp;Vehicle Cost: {{ value * 100 }}%
-                </template>
-                <template v-if="key == 8">
-                &nbsp;&nbsp;Hab Cost: {{ value * 100 }}%
-                </template>
-                <template v-if="key == 9">
-                &nbsp;&nbsp;Research Cost: {{ value * 100 }}%
-                </template>
-            </template>
-          </p>
-        </div>
-      </collapsible-section>
-
-      <hr class="mt-2" />
-
       <collapsible-section
         section-title="Habs"
         :visible="isVisibleSection('habs')"
@@ -381,6 +337,51 @@
       >
         <artifacts-gallery :artifacts="artifacts" />
       </collapsible-section>
+
+      <hr />
+
+      <!-- Colleggtibles -->
+      <collapsible-section
+        section-title="Colleggtibles"
+        :visible="isVisibleSection('colleggtibles')"
+        class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('colleggtibles')"
+      >
+        <div class="text-sm">
+          <p v-for="(value, key) in colleggtibles" :key="key" class="text-xs mr-0.5">
+            <template v-if="value !== 1">
+                <template v-if="key == 1">
+                &nbsp;&nbsp;Earnings: {{ (value *100 ) - 100 }}%
+                </template>
+                <template v-if="key == 2">
+                &nbsp;&nbsp;Away Earnings: {{ (value * 100 ) }}%
+                </template>
+                <template v-if="key == 3">
+                &nbsp;&nbsp;Internal Hatchery Rate: {{ (value *100 ) - 100 }}%
+                </template>
+                <template v-if="key == 4">
+                &nbsp;&nbsp;Egg Laying Rate: {{ (value -1) * 100 }}%
+                </template>
+                <template v-if="key == 5">
+                &nbsp;&nbsp;Shipping Capacity: {{ (value * 100) -100 }}%
+                </template>
+                <template v-if="key == 6">
+                &nbsp;&nbsp;Hab Capacity: {{ value * 100 }}%
+                </template>
+                <template v-if="key == 7">
+                &nbsp;&nbsp;Vehicle Cost: {{ value * 100 }}%
+                </template>
+                <template v-if="key == 8">
+                &nbsp;&nbsp;Hab Cost: {{ value * 100 }}%
+                </template>
+                <template v-if="key == 9">
+                &nbsp;&nbsp;Research Cost: {{ value * 100 }}%
+                </template>
+            </template>
+          </p>
+        </div>
+      </collapsible-section>
+
     </template>
   </main>
 </template>
