@@ -84,8 +84,13 @@
       <hr class="mt-2" />
 
       <!-- Colleggtibles -->
+      <collapsible-section
+        section-title="Colleggtibles"
+        :visible="isVisibleSection('colleggtibles')"
+        class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('colleggtibles')"
+      >
         <div class="text-sm">
-          Colleggtibles: 
           <p v-for="(value, key) in colleggtibles" :key="key" class="text-xs mr-0.5">
             <template v-if="value !== 1">
                 <template v-if="key == 1">
@@ -118,6 +123,7 @@
             </template>
           </p>
         </div>
+      </collapsible-section>
 
       <hr class="mt-2" />
 
