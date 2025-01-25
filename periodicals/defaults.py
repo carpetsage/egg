@@ -9,9 +9,11 @@ platform = "IOS"
 event_file = "data/events.json"
 contract_file = "data/contracts.json"
 egg_file = "data/customeggs.json"
+contract_seasons_file = "data/contractseasons.json"
 # Get egg id from environment variable
 user_id = os.environ.get('EI_USERID') or ""
 url = 'https://www.auxbrain.com/ei/get_periodicals'
+season_info_url = 'https://www.auxbrain.com/ei_ctx/get_season_infos_v2'
 
 def rinfo() -> "ei.BasicRequestInfo":
   return ei.BasicRequestInfo(
