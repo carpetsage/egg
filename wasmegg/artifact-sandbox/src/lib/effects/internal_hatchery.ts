@@ -12,7 +12,11 @@ export function internalHatcheryRateMultiplier(build: Build, config: Config): nu
   return multiplicativeEffect(build, config, [
     ArtifactSpec.Name.THE_CHALICE,
     ArtifactSpec.Name.LIFE_STONE,
-  ]);
+  ]) * internalHatcheryRateMultiplierFromColleggtibles(build, config);
+}
+
+export function internalHatcheryRateMultiplierFromColleggtibles(build: Build, config: Config): number {
+  return (1 + config.easterColleggtible);
 }
 
 export function baseMaxInternalHatcheryRatePerMinPerHab(_config: Config): number {
