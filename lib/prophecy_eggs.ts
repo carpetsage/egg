@@ -1,5 +1,6 @@
 import { ei } from './proto';
 import { eggName } from './eggs';
+import { getContractSeasonProgressData } from './contract_seasons';
 
 export enum TrophyLevel {
   Bronze = 1,
@@ -16,6 +17,7 @@ export interface ProphecyEggsProgress {
 
 export interface ProphecyEggsProgressAggregate extends ProphecyEggsProgress {
   fromContracts: ProphecyEggsProgressFromContracts;
+  fromContractSeasons: ProphecyEggsProgressFromContractSeasons;
   fromTrophies: ProphecyEggsProgressFromTrophies;
   fromDailyGifts: ProphecyEggsProgressFromDailyGifts;
 }
@@ -23,6 +25,11 @@ export interface ProphecyEggsProgressAggregate extends ProphecyEggsProgress {
 export interface ProphecyEggsProgressFromContracts extends ProphecyEggsProgress {
   numPEContractsAvailable: number;
   numPEContractsCompleted: number;
+}
+
+export interface ProphecyEggsProgressFromContractSeasons extends ProphecyEggsProgress {
+  numPESeasonsAvailable: number;
+  numPESeasonsCompleted: number;
 }
 
 export interface ProphecyEggsProgressFromTrophies extends ProphecyEggsProgress {
@@ -45,6 +52,7 @@ export interface ProphecyEggsProgressFromDailyGifts extends ProphecyEggsProgress
 export interface ProphecyEggsProgressFromContractsParams {
   numPEsAvailable?: number;
   numPEContractsAvailable?: number;
+  contractSeasons?: ei.IContractSeasonInfo[];
 }
 
 export function getNumProphecyEggs(backup: ei.IBackup): number {
@@ -57,6 +65,7 @@ export function getProphecyEggsProgress(
 ): ProphecyEggsProgressAggregate {
   const completed = backup.game!.eggsOfProphecy!;
   const fromContracts = getProphecyEggsProgressFromContracts(backup, params);
+  const fromContractSeasons = getProphecyEggsProgressFromContractSeasons(backup, params?.contractSeasons);
   const fromTrophies = getProphecyEggsProgressFromTrophies(backup);
   const fromDailyGifts = getProphecyEggsProgressFromDailyGifts(backup);
   // Sometimes when a player has started a half-finished legacy contract, and
@@ -70,7 +79,7 @@ export function getProphecyEggsProgress(
   // See the following bug report:
   // https://discord.com/channels/869885242801029150/869945876313944074/914077000824659979
   // https://discord.com/channels/@me/849156772999462922/914078132309467196
-  const fromContractsCompleted = completed - fromTrophies.completed - fromDailyGifts.completed;
+  const fromContractsCompleted = completed - fromTrophies.completed - fromDailyGifts.completed - fromContractSeasons.completed;
   if (fromContractsCompleted !== fromContracts.completed) {
     console.warn(
       `Discrepancy detected: ` +
@@ -80,9 +89,10 @@ export function getProphecyEggsProgress(
     fromContracts.completed = fromContractsCompleted;
   }
   return {
-    available: fromContracts.available + fromTrophies.available + fromDailyGifts.available,
+    available: fromContracts.available + fromTrophies.available + fromDailyGifts.available + fromContractSeasons.available,
     completed,
     fromContracts,
+    fromContractSeasons,
     fromTrophies,
     fromDailyGifts,
   };
@@ -131,6 +141,38 @@ export function getProphecyEggsProgressFromContracts(
     completed: numPEsCompleted,
     numPEContractsAvailable: params?.numPEContractsAvailable || 0,
     numPEContractsCompleted,
+  };
+}
+
+export function getProphecyEggsProgressFromContractSeasons(
+  backup: ei.IBackup,
+  contractSeasons?: ei.IContractSeasonInfo[]
+): ProphecyEggsProgressFromContractSeasons {
+  const seasonProgressData = getContractSeasonProgressData(backup, contractSeasons);
+
+  let numPEsAvailable = 0;
+  let numPEsCompleted = 0;
+  let numPESeasonsAvailable = 0;
+  let numPESeasonsCompleted = 0;
+  const now = Math.floor(Date.now() / 1000);
+  for (const season of seasonProgressData) {
+    if (season.startTime > now) {
+      // Don't count PEs from future seasons.
+      continue;
+    }
+    numPEsAvailable += season.availablePE
+    numPEsCompleted += season.completedPE
+    if (season.availablePE > 0) {
+      ++numPESeasonsAvailable;
+      if (season.completedPE >= season.availablePE) ++numPESeasonsCompleted;
+    }
+  }
+
+  return {
+    available: numPEsAvailable,
+    completed: numPEsCompleted,
+    numPESeasonsAvailable,
+    numPESeasonsCompleted,
   };
 }
 

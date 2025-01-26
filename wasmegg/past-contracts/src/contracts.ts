@@ -1,5 +1,6 @@
 import { ei, decodeMessage } from 'lib';
 import contractProtos from './contracts.json';
+import contractSeasonProtos from './contractseasons.json';
 
 export enum ContractLeague {
   Elite = 0,
@@ -194,3 +195,9 @@ function newUnattemptedUserContract(props: ContractProps, grade?: ei.Contract.Pl
     grade
   );
 }
+
+export const contractSeasonList: ei.IContractSeasonInfo[] = (() => {
+  return contractSeasonProtos
+    .map(c => decodeMessage(ei.ContractSeasonInfo, c.proto) as ei.IContractSeasonInfo)
+    .sort((c1, c2) => c1.startTime! - c2.startTime!);
+})();
