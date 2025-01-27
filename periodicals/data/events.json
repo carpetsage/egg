@@ -17863,5 +17863,23 @@
     "startTimestamp": 1737910800.0,
     "type": "crafting-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1738083600.0,
+    "id": "event-1-27",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1737997200.0,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1738083600.0,
+    "id": "ultra-1-27",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1737997200.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
