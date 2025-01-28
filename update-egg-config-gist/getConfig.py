@@ -17,9 +17,9 @@ user_id = os.getenv('EI_USERID')
 
 config_request = ei_pb2.ConfigRequest()
 config_request.rinfo.ei_user_id        = user_id
-config_request.rinfo.client_version    = 62
-config_request.rinfo.version           = '1.29'
-config_request.rinfo.build             = '111276'
+config_request.rinfo.client_version    = 68
+config_request.rinfo.version           = '1.34.1'
+config_request.rinfo.build             = '111300'
 config_request.rinfo.platform          = "IOS"
 
 url = 'https://www.auxbrain.com/ei/get_config'
