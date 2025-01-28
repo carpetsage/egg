@@ -1,5 +1,5 @@
 #!/bin/bash
-./getConfig.py > config.json
+uv run ./getConfig.py > config.json
 # delete isNew and secondsRemaining fields if they exist
 jq -S 'walk(try (del(.secondsRemaining) | del(.secondsUntilAvailable))//.)' config.json > configstripped.json
 wget https://gist.githubusercontent.com/carpetsage/${GIST_ID}/raw/config.json -O /tmp/gist.json
