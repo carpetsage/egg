@@ -286,8 +286,8 @@ export async function requestCoopStatus(
     encodedResponsePayload,
     true,
   ) as ei.IContractCoopStatusResponse;
-  if (!status.localTimestamp) {
-    status.localTimestamp = Date.now() / 1000;
+  if (!status.clientTimestamp) {
+    status.clientTimestamp = Date.now() / 1000;
   }
   return status;
 }
