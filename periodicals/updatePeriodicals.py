@@ -25,7 +25,7 @@ def main():
 
 def updateCustomEggs(customEggs: list["ei.CustomEgg"], file: str):
     # print egg list for convenience
-    [print(egg.name) for egg in customEggs]
+    [print(egg.name) for egg in customEggs if len(customEggs) > 0]
 
     # write json array of customegg protos
     with open(file, 'w', encoding="utf-8") as f:
