@@ -25,7 +25,6 @@ jobs:
           enable-cache: true
           cache-suffix: config-gist
       - name: Install dependencies
-        if: steps.install-uv.outputs.cache-hit != 'true'
         run: |
           uv sync
       - name: Update Gist
