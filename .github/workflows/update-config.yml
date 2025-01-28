@@ -16,11 +16,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with: 
-          python-version: '3.10'
-          cache: 'pip'
-      - name: Pip stuff
+          python-version: '>=3.13'
+      - name: Install uv
+        id: install-uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.24"
+          enable-cache: true
+      - name: Install dependencies
+        if: steps.install-uv.outputs.cache-hit != 'true'
         run: |
-          pip install -r requirements.txt
+          uv sync
       - name: Update Gist
         run: |
           ./update-config.sh
