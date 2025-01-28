@@ -33,7 +33,7 @@ jobs:
           uv sync
       - name: Update events and contracts
         run: |
-          uv run ./updatePeriodicals.py events contracts customeggs
+          uv run ./updatePeriodicals.py events contracts customeggs contractseasons
           git diff HEAD -- data
         env:
           EI_USERID: ${{ secrets.EI_USERID }}

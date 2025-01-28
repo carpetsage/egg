@@ -318,7 +318,7 @@ import {
   setLocalStorage,
   UserBackupEmptyError,
 } from 'lib';
-import { getUserContractList, UserContract } from '@/contracts';
+import { getUserContractList, contractSeasonList, UserContract } from '@/contracts';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import TheReportProphecyEggs from '@/components/TheReportProphecyEggs.vue';
 import { formatEIValue, formatDuration } from 'lib';
@@ -368,6 +368,7 @@ export default defineComponent({
     const prophecyEggsProgress = getProphecyEggsProgress(backup, {
       numPEsAvailable: contractsWithPE.reduce((total, c) => total + c.numAvailablePEs, 0),
       numPEContractsAvailable: contractsWithPE.length,
+      contractSeasons: contractSeasonList,
     });
 
     const hideUnattempted = ref(getLocalStorage(HIDE_UNATTEMPTED_LOCALSTORAGE_KEY) === 'true');

@@ -108,11 +108,13 @@ class LeaderboardScope(betterproto.Enum):
 
 
 class Platform(betterproto.Enum):
+    UNKNOWN_PLATFORM = 0
     IOS = 1
     DROID = 2
 
 
 class DeviceFormFactor(betterproto.Enum):
+    UNKNOWN_DEVICE = 0
     PHONE = 1
     TABLET = 2
 
@@ -1075,6 +1077,40 @@ class ContractGradeSpec(betterproto.Message):
 
 
 @dataclass
+class ContractSeasonGoal(betterproto.Message):
+    cxp: float = betterproto.double_field(1)
+    reward_type: "RewardType" = betterproto.enum_field(3)
+    reward_sub_type: str = betterproto.string_field(4)
+    reward_amount: float = betterproto.double_field(5)
+
+
+@dataclass
+class ContractSeasonRewardConfirmationRequest(betterproto.Message):
+    rinfo: "BasicRequestInfo" = betterproto.message_field(1)
+    season_id: str = betterproto.string_field(2)
+    goal: "ContractSeasonGoal" = betterproto.message_field(3)
+
+
+@dataclass
+class ContractSeasonInfo(betterproto.Message):
+    id: str = betterproto.string_field(1)
+    name: str = betterproto.string_field(3)
+    start_time: float = betterproto.double_field(4)
+    grade_goals: List["ContractSeasonInfoGoalSet"] = betterproto.message_field(2)
+
+
+@dataclass
+class ContractSeasonInfoGoalSet(betterproto.Message):
+    grade: "ContractPlayerGrade" = betterproto.enum_field(1)
+    goals: List["ContractSeasonGoal"] = betterproto.message_field(2)
+
+
+@dataclass
+class ContractSeasonInfos(betterproto.Message):
+    infos: List["ContractSeasonInfo"] = betterproto.message_field(1)
+
+
+@dataclass
 class ContractPlayerInfo(betterproto.Message):
     grade: "ContractPlayerGrade" = betterproto.enum_field(1)
     total_cxp: float = betterproto.double_field(2)
@@ -1090,6 +1126,18 @@ class ContractPlayerInfo(betterproto.Message):
     last_evaluation_time: float = betterproto.double_field(4)
     last_evaluation_version: str = betterproto.string_field(5)
     unread_evaluations: List["ContractEvaluation"] = betterproto.message_field(6)
+    season_progress: List["ContractPlayerInfoSeasonProgress"] = (
+        betterproto.message_field(15)
+    )
+
+
+@dataclass
+class ContractPlayerInfoSeasonProgress(betterproto.Message):
+    season_id: str = betterproto.string_field(1)
+    active__d_e_p: bool = betterproto.bool_field(2)
+    starting_grade: "ContractPlayerGrade" = betterproto.enum_field(3)
+    total_cxp: float = betterproto.double_field(4)
+    cxp_last_reward_given: float = betterproto.double_field(5)
 
 
 @dataclass
@@ -1243,6 +1291,7 @@ class ContractsResponse(betterproto.Message):
     total_eop: float = betterproto.double_field(5)
     server_time: float = betterproto.double_field(2)
     max_eop: int = betterproto.uint32_field(3)
+    current_season: "ContractSeasonInfo" = betterproto.message_field(7)
 
 
 @dataclass
@@ -1252,6 +1301,7 @@ class ContractCoopStatusRequest(betterproto.Message):
     coop_identifier: str = betterproto.string_field(2)
     user_id: str = betterproto.string_field(3)
     client_version: int = betterproto.uint32_field(4)
+    client_timestamp: float = betterproto.double_field(6)
 
 
 @dataclass
@@ -1315,8 +1365,8 @@ class ContractCoopStatusResponse(betterproto.Message):
     chicken_runs: List["ContractCoopStatusResponseChickenRun"] = (
         betterproto.message_field(13)
     )
-    local_timestamp: float = betterproto.double_field(12)
-    last_sync: float = betterproto.double_field(18)
+    client_timestamp: float = betterproto.double_field(12)
+    last_sync__d_e_p: float = betterproto.double_field(18)
 
 
 @dataclass
@@ -1568,6 +1618,30 @@ class KickPlayerCoopRequest(betterproto.Message):
 
 
 @dataclass
+class IdleSessionSummary(betterproto.Message):
+    success: bool = betterproto.bool_field(11)
+    time_away: float = betterproto.double_field(1)
+    time_simulated: float = betterproto.double_field(2)
+    silos_owned: int = betterproto.uint32_field(3)
+    average_elr: float = betterproto.double_field(4)
+    average_msr: float = betterproto.double_field(5)
+    average_egg_delivery_rate: float = betterproto.double_field(6)
+    last_egg_delivery_rate: float = betterproto.double_field(8)
+    eggs_delivered: float = betterproto.double_field(9)
+    stats: List["IdleSessionSummaryStat"] = betterproto.message_field(10)
+    farm_index: int = betterproto.uint32_field(7)
+
+
+@dataclass
+class IdleSessionSummaryStat(betterproto.Message):
+    name: str = betterproto.string_field(1)
+    min: float = betterproto.double_field(2)
+    max: float = betterproto.double_field(3)
+    avg: float = betterproto.double_field(4)
+    total_time: float = betterproto.double_field(5)
+
+
+@dataclass
 class ContractCoopStatusUpdateRequest(betterproto.Message):
     rinfo: "BasicRequestInfo" = betterproto.message_field(12)
     user_id: str = betterproto.string_field(1)
@@ -1584,6 +1658,7 @@ class ContractCoopStatusUpdateRequest(betterproto.Message):
     hide_cc_status: bool = betterproto.bool_field(17)
     production_params: "FarmProductionParams" = betterproto.message_field(14)
     farm_info: "PlayerFarmInfo" = betterproto.message_field(16)
+    last_idle_summary: "IdleSessionSummary" = betterproto.message_field(18)
     egg_laying_rate_buff: float = betterproto.double_field(10)
     earnings_buff: float = betterproto.double_field(11)
 
@@ -1816,6 +1891,7 @@ class LiveConfigMiscConfig(betterproto.Message):
     new_player_event_duration: float = betterproto.double_field(11)
     contracts_club_available: bool = betterproto.bool_field(12)
     contracts_beta: bool = betterproto.bool_field(13)
+    season_rewards_enabled: bool = betterproto.bool_field(15)
 
 
 @dataclass
@@ -2167,6 +2243,14 @@ class CollectContractArtifactRewardsRequest(betterproto.Message):
     league: int = betterproto.uint32_field(5)
     grade: "ContractPlayerGrade" = betterproto.enum_field(6)
     goal_index: int = betterproto.uint32_field(3)
+    best_ship: "MissionInfoSpaceship" = betterproto.enum_field(4)
+
+
+@dataclass
+class CollectSeasonArtifactRewardsRequest(betterproto.Message):
+    rinfo: "BasicRequestInfo" = betterproto.message_field(1)
+    season_identifier: str = betterproto.string_field(2)
+    cxp: float = betterproto.double_field(3)
     best_ship: "MissionInfoSpaceship" = betterproto.enum_field(4)
 
 
@@ -2659,6 +2743,7 @@ class UserVerificationAnalysis(betterproto.Message):
     overall_status: "UserVerificationAnalysisStatus" = betterproto.enum_field(1)
     start_time: float = betterproto.double_field(2)
     completion_time: float = betterproto.double_field(3)
+    verification_count: int = betterproto.int32_field(37)
     num_prestiges: float = betterproto.double_field(14)
     soul_eggs: float = betterproto.double_field(15)
     eggs_of_prophecy: int = betterproto.uint32_field(27)
