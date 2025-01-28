@@ -17881,5 +17881,14 @@
     "startTimestamp": 1737997200.0,
     "type": "mission-fuel",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1738170000.0,
+    "id": "event-1-28",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1738083600.0,
+    "type": "hab-sale",
+    "ultra": false
   }
 ]
