@@ -1,0 +1,13 @@
+[project]
+name = "periodicals"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "betterproto[compiler]>=1.2.5",
+    "more-itertools>=10.6.0",
+    "proto-plus>=1.26.0",
+    "protobuf>=5.29.3",
+    "requests>=2.32.3",
+]

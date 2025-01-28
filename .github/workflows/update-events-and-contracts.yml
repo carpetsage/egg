@@ -20,23 +20,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
-          cache: 'pip'
-      - name: Install pipenv
-        run: |
-          python -m pip install --upgrade pipenv wheel
-      - id: cache-pipenv
-        uses: actions/cache@v4
+          python-version-file: 'pyproject.toml'
+      - name: Install uv
+        id: install-uv
+        uses: astral-sh/setup-uv@v5
         with:
-          path: ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+          version: "0.5.24"
+          enable-cache: true
       - name: Install dependencies
-        if: steps.cache-pipenv.outputs.cache-hit != 'true'
+        if: steps.install-uv.outputs.cache-hit != 'true'
         run: |
-          pipenv install --deploy --dev
+          uv sync
       - name: Update events and contracts
         run: |
-          pipenv run python ./updatePeriodicals.py events contracts customeggs
+          uv run ./updatePeriodicals.py events contracts customeggs
           git diff HEAD -- data
         env:
           EI_USERID: ${{ secrets.EI_USERID }}
