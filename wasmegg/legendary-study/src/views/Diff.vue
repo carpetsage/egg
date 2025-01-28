@@ -20,8 +20,8 @@
     <template #default>
       <diff-report
         :key="`${comparedTimestamp}:${selectedTimestamp}`"
-        :timestamp1="comparedTimestamp"
-        :timestamp2="selectedTimestamp"
+        :date1="comparedTimestamp"
+        :date2="selectedTimestamp"
       />
     </template>
     <template #fallback>
@@ -45,21 +45,21 @@ export default defineComponent({
     ReportSelector,
   },
   props: {
-    // Show the latest report if timestamp is undefined.
-    timestamp1: {
+    // Show the latest report if timestamp is undefitimestampned.
+    date1: {
       type: String as PropType<string>,
       required: true,
     },
-    timestamp2: {
+    date2: {
       type: String as PropType<string>,
       required: true,
     },
   },
   setup(props) {
     const router = useRouter();
-    const { timestamp1, timestamp2 } = toRefs(props);
-    const selectedTimestamp = ref(parseInt(timestamp2.value));
-    const comparedTimestamp: Ref<number | undefined> = ref(parseInt(timestamp1.value));
+    const { date1, date2 } = toRefs(props);
+    const selectedTimestamp = ref(date2.value);
+    const comparedTimestamp: Ref<string | undefined> = ref(date1.value);
     const goBackToSingleReport = () => {
       comparedTimestamp.value = undefined;
     };
@@ -69,14 +69,14 @@ export default defineComponent({
           ? {
               name: 'diff',
               params: {
-                timestamp1: comparedTimestamp.value,
-                timestamp2: selectedTimestamp.value,
+                date1: comparedTimestamp.value,
+                date2: selectedTimestamp.value,
               },
             }
           : {
               name: 'report',
               params: {
-                timestamp: selectedTimestamp.value,
+                date: selectedTimestamp.value,
               },
             }
       );

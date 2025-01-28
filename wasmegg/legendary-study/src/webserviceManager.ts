@@ -1,25 +1,17 @@
-const endpoint="https://egg-brosssh.vercel.app/"
-
-interface webServiceResponse{
-    success:boolean;
-    message:any;
-}
+const endpoint = "https://legendary-study-3-0.vercel.app/"
 
 export interface ReportInterface {
-      date_insert:number;
-      report:{
-        leg_seen:[string,number][]
-        legendary_players:[string,number][]
-        zlc_record:{
-          user_name:string;
-          report_date:string;
-          count_exthens:number;
-        }
-        number_total_users:number;
-      }
-  }
+    date_insert: string;
+    leg_seen: [string, number][]
+    legendary_players: [string, number][]
+    zlc_record: {
+        registered_on: string;
+        amount: number;
+    }
+    number_total_users: number;
+}
 
-export async function getTimestampsReports(): Promise<number[]>{
+export async function getTimestampsReports(): Promise<string[]> {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 10000);
     try {
@@ -27,12 +19,9 @@ export async function getTimestampsReports(): Promise<number[]>{
         if (response.status !== 200) {
             throw new Error(`HTTP ${response.status}`);
         }
-        const result = await response.json() as webServiceResponse;
-    if(!result.success){
-        return []
-    }
-    return result.message
-    } catch (e:any) {
+        const result = await response.json() as [string];
+        return result
+    } catch (e: any) {
         console.error(e);
         let msg = e.toString();
         if (e.name === 'AbortError') {
@@ -42,20 +31,17 @@ export async function getTimestampsReports(): Promise<number[]>{
     }
 }
 
-export async function getReportByDate(timestamp:number):Promise<ReportInterface>{
+export async function getReportByDate(date: string): Promise<ReportInterface> {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 10000);
     try {
-        const response = await fetch(endpoint + "getReportByDate?date="+timestamp.toString(), { signal: controller.signal });
+        const response = await fetch(endpoint + "getReportByDate?date="+ date, { signal: controller.signal });
         if (response.status !== 200) {
             throw new Error(`HTTP ${response.status}`);
         }
-    const result = await response.json() as webServiceResponse;
-    if(!result.success){
-        throw new Error(`The report returned was not valid`);
-    }
-    return result.message
-    } catch (e:any) {
+        const result = await response.json() as ReportInterface;
+        return result
+    } catch (e: any) {
         console.error(e);
         let msg = e.toString();
         if (e.name === 'AbortError') {
