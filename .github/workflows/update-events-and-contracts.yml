@@ -29,7 +29,6 @@ jobs:
           enable-cache: true
           cache-suffix: 'periodicals'
       - name: Install dependencies
-        if: steps.install-uv.outputs.cache-hit != 'true'
         run: |
           uv sync
       - name: Update events and contracts
