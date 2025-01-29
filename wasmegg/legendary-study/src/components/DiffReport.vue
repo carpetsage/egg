@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
   <pre v-if="error" class="text-xs text-red-500 whitespace-pre-wrap">{{ error.toString() }}</pre>
-  <div v-else-if="timestamp1 !== timestamp2" class="relative">
+  <div v-else-if="date1 !== date2" class="relative">
     <div v-html="diffHtml"></div>
     <div class="absolute top-2 left-4 flex items-start">
       <div class="flex items-center h-5">
@@ -35,17 +35,17 @@ const DIFF_SIDE_BY_SIDE_LOCALSTORAGE_KEY = 'diffSideBySide';
 
 export default defineComponent({
   props: {
-    timestamp1: {
-      type: Number,
+    date1: {
+      type: String,
       required: true,
     },
-    timestamp2: {
-      type: Number,
+    date2: {
+      type: String,
       required: true,
     },
   },
   /* eslint-disable vue/no-setup-props-destructure */
-  async setup({ timestamp1, timestamp2 }) {
+  async setup({ date1, date2 }) {
     // Default to side-by-side on desktop; line-by-line otherwise.
     const sideBySide = ref(window.innerWidth >= 1024);
     switch (getLocalStorage(DIFF_SIDE_BY_SIDE_LOCALSTORAGE_KEY)) {
@@ -64,21 +64,21 @@ export default defineComponent({
     let report2 = '';
     let error: Error | undefined;
     try {
-      report1 = await fetchReport(timestamp1);
-      report2 = await fetchReport(timestamp2);
+      report1 = await fetchReport(date1);
+      report2 = await fetchReport(date2);
     } catch (e:any) {
       console.error(e);
       error = e;
     }
     const diff =
-      error || timestamp1 === timestamp2
+      error || date1 === date2
         ? ''
         : createTwoFilesPatch('report.txt', 'report.txt', report1, report2, undefined, undefined, {
             context: 9999,
           });
 
     const diffHtml = computed(() =>
-      error || timestamp1 === timestamp2
+      error || date1 === date2
         ? ''
         : Diff2Html.html(diff, {
             drawFileList: false,

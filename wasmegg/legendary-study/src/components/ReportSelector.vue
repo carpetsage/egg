@@ -7,8 +7,8 @@
       :name="id"
       class="block mt-1 w-full sm:w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
     >
-      <option v-for="timestamp in timestamps" :key="timestamp" :value="timestamp">
-        <template v-if="timestamp !== undefined">{{ formatDatetime(timestamp) }}</template>
+      <option v-for="date in dates" :key="date" :value="date">
+        <template v-if="date !== undefined">{{ date }}</template>
         <template v-else>&ndash; select report &ndash;</template>
       </option>
     </select>
@@ -19,7 +19,7 @@
 import { defineComponent, PropType, ref, toRefs, watch } from 'vue';
 import dayjs from 'dayjs';
 
-import { reportTimestamps } from '@/reports';
+import { reportDates } from '@/reports';
 
 export default defineComponent({
   props: {
@@ -32,7 +32,7 @@ export default defineComponent({
       required: true,
     },
     modelValue: {
-      type: Number as PropType<number | undefined>,
+      type: String as PropType<string | undefined>,
       default: undefined,
     },
     optional: {
@@ -42,12 +42,12 @@ export default defineComponent({
   },
   emits: {
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    'update:modelValue': (selected: number | undefined) => true,
+    'update:modelValue': (selected: string | undefined) => true,
     /* eslint-enable @typescript-eslint/no-unused-vars */
   },
   setup(props, { emit }) {
     const { modelValue, optional } = toRefs(props);
-    const timestamps = optional.value ? [undefined, ...reportTimestamps] : reportTimestamps;
+    const dates = optional ? [undefined, ...reportDates] : reportDates;
     const selected = ref(modelValue.value);
     watch(modelValue, () => {
       selected.value = modelValue.value;
@@ -57,13 +57,9 @@ export default defineComponent({
     });
     return {
       selected,
-      timestamps,
-      formatDatetime,
+      dates
     };
   },
 });
 
-function formatDatetime(timestamp: number): string {
-  return dayjs(timestamp * 1000).format('YYYY-MM-DD HH:mm');
-}
 </script>

@@ -11,17 +11,17 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   props: {
-    timestamp: {
-      type: Number,
+    date: {
+      type: String,
       required: true,
     },
   },
   /* eslint-disable vue/no-setup-props-destructure */
-  async setup({ timestamp }) {
+  async setup({ date }) {
     let report = '';
     let error: Error | undefined;
     try {
-      report = await fetchReport(timestamp);
+      report = await fetchReport(date);
     } catch (e:any) {
       console.error(e);
       error = e;

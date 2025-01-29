@@ -12,13 +12,13 @@ const router = createRouter({
     },
     {
       name: 'report',
-      path: '/legendary-study/report/:timestamp(\\d+)/',
+      path: '/legendary-study/report/:date(\\d+)/',
       component: Report,
       props: true,
     },
     {
       name: 'diff',
-      path: '/legendary-study/diff/:timestamp1(\\d+)/:timestamp2(\\d+)/',
+      path: '/legendary-study/diff/:date1(\\d+)/:date2(\\d+)/',
       component: Diff,
       props: true,
     },
