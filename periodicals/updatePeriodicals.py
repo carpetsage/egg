@@ -14,7 +14,6 @@ def main():
     periodicals_response = requestPeriodicals()
     periodicals = utils.decode(
         ei.PeriodicalsResponse(), periodicals_response)
-
     if "events" in sys.argv:
          updateEvents(periodicals.events.events, defaults.event_file)
     if "contracts" in sys.argv:
@@ -24,9 +23,11 @@ def main():
 
 
 def updateCustomEggs(customEggs: list["ei.CustomEgg"], file: str):
+    if len(customEggs) == 0:
+        print("Error fetching custom eggs")
+        return
     # print egg list for convenience
-    [print(egg.name) for egg in customEggs if len(customEggs) > 0]
-
+    [print(egg.name) for egg in customEggs]
     # write json array of customegg protos
     with open(file, 'w', encoding="utf-8") as f:
         json.dump([base64.b64encode(bytes(egg)).decode("utf-8") for egg in customEggs], f, sort_keys=True, indent=2)
