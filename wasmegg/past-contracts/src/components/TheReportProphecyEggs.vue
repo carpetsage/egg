@@ -59,6 +59,15 @@
             {{ progress.fromDailyGifts.onDay }}.
           </template>
         </tippy>
+
+        <tippy tag="li" class="text-sm text-gray-700">
+          From seasons:&nbsp;
+          <span class="font-medium text-gray-900">
+            {{ progress.fromContractSeasons.completed }}/{{ progress.fromContractSeasons.available }}
+          </span>
+        </tippy>
+
+
       </ul>
       <p class="text-center text-xs text-gray-500">
         Hover over or click on each line of the breakdown to see details.

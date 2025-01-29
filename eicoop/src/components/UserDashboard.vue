@@ -90,6 +90,19 @@
               {{ prophecyEggsProgress.fromContracts.completed }}
             </span>
           </dd>
+          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">
+            Seasons
+          </dt>
+          <dd class="flex items-center text-sm text-gray-900 dark:text-gray-100">
+            <base-icon
+              icon-rel-path="egginc/egg_of_prophecy.png"
+              :size="64"
+              class="h-4 w-4 -ml-0.5"
+            />
+            <span class="text-yellow-500">
+              {{ prophecyEggsProgress.fromContractSeasons.completed }}
+            </span>
+          </dd>
         </div>
 
         <div class="mt-2 space-y-1">
