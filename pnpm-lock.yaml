@@ -73,8 +73,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.28)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.28)(typescript@5.5.2)))
       '@types/node':
         specifier: ^20.11.28
         version: 20.11.28
@@ -213,8 +213,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -283,8 +283,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -350,8 +350,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -405,8 +405,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -472,8 +472,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -533,8 +533,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -594,8 +594,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -655,8 +655,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@types/fontfaceobserver':
         specifier: ^2.1.3
         version: 2.1.3
@@ -737,8 +737,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@types/diff':
         specifier: ^5.0.9
         version: 5.0.9
@@ -798,8 +798,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -905,8 +905,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -972,8 +972,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -1030,8 +1030,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@types/sql.js':
         specifier: ^1.4.9
         version: 1.4.9
@@ -1115,8 +1115,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -1182,8 +1182,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.0.11(@types/node@20.11.29)(jiti@1.21.0))(vue@3.4.21(typescript@5.5.2))
@@ -1240,8 +1240,8 @@ importers:
         version: 6.4.4(vue@3.4.21(typescript@5.5.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -2814,10 +2814,10 @@ packages:
     resolution: {integrity: sha512-+PmQX0PiAYPMeVYe237LJAYvOMYW1j2rH5YROyS3b4CTVJum34HfRvKvAzozHAQG0TnHNdUfY9nCeUyRAs//cw==}
     engines: {node: '>=14.16'}
 
-  '@tailwindcss/forms@0.5.7':
-    resolution: {integrity: sha512-QE7X69iQI+ZXwldE+rzasvbJiyV/ju1FGHH0Qn2W3FKbuYtqp8LKcy6iSw79fVUT5/Vvf+0XgLCeYVG+UV6hOw==}
+  '@tailwindcss/forms@0.5.10':
+    resolution: {integrity: sha512-utI1ONF6uf/pPNO68kmN1b8rEwNXv3czukalo8VtJH8ksIkZXr3Q3VYudZLkCsDd4Wku120uF02hYK25XGPorw==}
     peerDependencies:
-      tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
+      tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1 || >= 4.0.0-alpha.20 || >= 4.0.0-beta.1'
 
   '@tanstack/virtual-core@3.1.3':
     resolution: {integrity: sha512-Y5B4EYyv1j9V8LzeAoOVeTg0LI7Fo5InYKgAjkY1Pu9GjtUwX/EKxNcU7ng3sKr99WEf+bPTcktAeybyMOYo+g==}
@@ -9314,12 +9314,12 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@tailwindcss/forms@0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.28)(typescript@5.5.2)))':
+  '@tailwindcss/forms@0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.28)(typescript@5.5.2)))':
     dependencies:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.4(ts-node@10.9.2(@types/node@20.11.28)(typescript@5.5.2))
 
-  '@tailwindcss/forms@0.5.7(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))':
+  '@tailwindcss/forms@0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2)))':
     dependencies:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.4(ts-node@10.9.2(@types/node@20.11.29)(typescript@5.5.2))
