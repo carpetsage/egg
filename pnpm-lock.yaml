@@ -51,8 +51,8 @@ importers:
         specifier: workspace:^
         version: link:../lib
       primeicons:
-        specifier: ^6.0.1
-        version: 6.0.1
+        specifier: ^7.0.0
+        version: 7.0.0
       primevue:
         specifier: ^3.50.0
         version: 3.50.0(vue@3.4.21(typescript@5.5.2))
@@ -6416,8 +6416,8 @@ packages:
     resolution: {integrity: sha512-rksPWtoZb2ZpT5OVgtmy0KHVM+Dca3iVwWY9ifwhcexfjebtgjg3wmrUt9PvJ59XIYBcknQeYHD8IAnVlh9lAw==}
     hasBin: true
 
-  primeicons@6.0.1:
-    resolution: {integrity: sha512-KDeO94CbWI4pKsPnYpA1FPjo79EsY9I+M8ywoPBSf9XMXoe/0crjbUK7jcQEDHuc0ZMRIZsxH3TYLv4TUtHmAA==}
+  primeicons@7.0.0:
+    resolution: {integrity: sha512-jK3Et9UzwzTsd6tzl2RmwrVY/b8raJ3QZLzoDACj+oTJ0oX7L9Hy+XnVwgo4QVKlKpnP/Ur13SXV/pVh4LzaDw==}
 
   primevue@3.50.0:
     resolution: {integrity: sha512-vYpQzvIXSmF0hWUkviHEGnwbFY/G8jI2RSxoa75noJloI2rWhzOX+JarJ8iaesVOr7b2se31N/p7zOx6uh3ddQ==}
@@ -13523,7 +13523,7 @@ snapshots:
       colors: 1.4.0
       minimist: 1.2.8
 
-  primeicons@6.0.1: {}
+  primeicons@7.0.0: {}
 
   primevue@3.50.0(vue@3.4.21(typescript@5.5.2)):
     dependencies:
