@@ -17917,5 +17917,14 @@
     "startTimestamp": 1738170000.0,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1738342800.0,
+    "id": "event-1-30",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1738256400.0,
+    "type": "vehicle-sale",
+    "ultra": false
   }
 ]
