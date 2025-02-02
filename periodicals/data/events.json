@@ -17962,5 +17962,23 @@
     "startTimestamp": 1738429200.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1738602000.0,
+    "id": "event-2-2",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1738515600.0,
+    "type": "epic-research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1738602000.0,
+    "id": "ultra-2-2",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1738515600.0,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
