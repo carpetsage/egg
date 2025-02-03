@@ -39,8 +39,8 @@ importers:
         specifier: ^3.2.0
         version: 3.2.0
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       hotkeys-js:
         specifier: ^3.13.7
         version: 3.13.7
@@ -121,8 +121,8 @@ importers:
   lib:
     dependencies:
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       js-sha256:
         specifier: ^0.11.0
         version: 0.11.0
@@ -325,8 +325,8 @@ importers:
         specifier: ^3.2.0
         version: 3.2.0
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       html2canvas:
         specifier: ^1.4.1
         version: 1.4.1
@@ -444,8 +444,8 @@ importers:
         specifier: ^3.2.0
         version: 3.2.0
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       js-sha256:
         specifier: ^0.11.0
         version: 0.11.0
@@ -511,8 +511,8 @@ importers:
         specifier: ^3.4.21
         version: 3.4.21
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       js-sha256:
         specifier: ^0.11.0
         version: 0.11.0
@@ -575,8 +575,8 @@ importers:
         specifier: ^1.0.6
         version: 1.0.6(vue@3.4.21(typescript@5.5.2))
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       lib:
         specifier: workspace:^
         version: link:../../lib
@@ -700,8 +700,8 @@ importers:
         specifier: ^3.2.0
         version: 3.2.0
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       diff:
         specifier: ^5.2.0
         version: 5.2.0
@@ -883,8 +883,8 @@ importers:
         specifier: ^6.4.6
         version: 6.4.6
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       lib:
         specifier: workspace:^
         version: link:../../lib
@@ -1072,8 +1072,8 @@ importers:
         specifier: ^3.2.0
         version: 3.2.0
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       hotkeys-js:
         specifier: ^3.13.7
         version: 3.13.7
@@ -1163,8 +1163,8 @@ importers:
         specifier: ^1.0.6
         version: 1.0.6(vue@3.4.21(typescript@5.5.2))
       dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
+        specifier: ^1.11.13
+        version: 1.11.13
       lib:
         specifier: workspace:^
         version: link:../../lib
@@ -3934,8 +3934,8 @@ packages:
     resolution: {integrity: sha512-uqCUKXE5q1PNBXjPqvwhwJf9SwMoAHBgWJ6DcrnS5o+W2JOiIILl0JEdVD8SGujrNS02GGxgwAg2PN2zONgtjg==}
     engines: {node: '>=6'}
 
-  dayjs@1.11.10:
-    resolution: {integrity: sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==}
+  dayjs@1.11.13:
+    resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
 
   de-indent@1.0.2:
     resolution: {integrity: sha512-e/1zu3xH5MQryN2zdVaF0OrdNLUbvWxzMbi+iNA6Bky7l1RoP8a2fIbRocyHclXt/arDrrR6lL3TqFD9pMQTsg==}
@@ -10606,7 +10606,7 @@ snapshots:
     dependencies:
       time-zone: 1.0.0
 
-  dayjs@1.11.10: {}
+  dayjs@1.11.13: {}
 
   de-indent@1.0.2: {}
 
