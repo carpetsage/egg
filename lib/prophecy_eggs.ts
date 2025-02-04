@@ -1,6 +1,7 @@
 import { ei } from './proto';
 import { eggName } from './eggs';
 import { getContractSeasonProgressData } from './contract_seasons';
+import { getContractGoals } from './contracts';
 
 export enum TrophyLevel {
   Bronze = 1,
@@ -108,16 +109,8 @@ export function getProphecyEggsProgressFromContracts(
   for (const contract of contracts) {
     const props = contract.contract!;
     const league = contract.league || 0;
-    let goals = props.gradeSpecs != null && contract.grade ? props.gradeSpecs[contract.grade - 1].goals : props.goals;
-    if (!contract.grade && props.goalSets && props.goalSets.length > league) {
-      goals = props.goalSets[league].goals;
-    }
-    if (!goals && props.gradeSpecs != null) {
-      goals = props.gradeSpecs[0].goals;
-    }
-    if (!goals || goals.length === 0) {
-      throw new Error(`no goals found for contract ${props.identifier!}`);
-    }
+    const grade = contract.grade || ei.Contract.PlayerGrade.GRADE_C;
+    const goals = getContractGoals(props, grade, league);
     let isPEContract = false;
     let hasUncompletedPE = false;
     for (let i = 0; i < goals.length; i++) {

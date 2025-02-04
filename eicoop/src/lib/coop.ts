@@ -2,15 +2,16 @@ import dayjs, { Dayjs } from "dayjs";
 
 import {
   ArtifactSet,
+  ContractLeague,
   ei,
   FarmerRole,
   requestQueryCoop,
   soulPowerToFarmerRole,
   requestCoopStatusBasic,
   getLocalStorage,
+  getContractGoals,
 } from "lib";
 import {
-  ContractLeague,
   ContractLeagueStatus,
   getContractFromPlayerSave,
 } from "./contract";
@@ -148,18 +149,11 @@ export class CoopStatus {
         );
       }
       this.contract = result.contract;
-      this.league = result.league ?? null;
-      this.grade = result.grade ?? null;
+      this.league = result.league ?? 1;
+      this.grade = result.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET;
       this.creatorName = result.creatorName;
     }
-
-    if (this.contract.gradeSpecs) {
-      this.goals = this.contract.gradeSpecs[this.grade! - 1].goals!;
-    } else if (this.contract.goalSets) {
-      this.goals = this.contract.goalSets[this.league as number].goals!
-    } else {
-      this.goals = this.contract.goals!;
-    }
+    this.goals = getContractGoals(this.contract, this.grade ?? 1, this.league ?? 0);
 
     this.leagueStatus = new ContractLeagueStatus(
       this.eggsLaid,

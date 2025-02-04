@@ -1,6 +1,6 @@
 import { sha256 } from 'js-sha256';
 
-import { ei, decodeMessage } from 'lib';
+import { ei, decodeMessage, getContractGoals, ContractLeague } from 'lib';
 import contractProtos from './contracts.json';
 import { ContractType } from './contract';
 
@@ -149,7 +149,7 @@ function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
 
 function getProphecyEggsCount(contract: ei.IContract) {
   let count = 0;
-  const goals = contract.gradeSpecs ? contract.gradeSpecs[0].goals! : contract.goals!
+  const goals = getContractGoals(contract);
   for (const goal of goals) {
     if (goal.rewardType === ei.RewardType.EGGS_OF_PROPHECY) {
       count += goal.rewardAmount!;
@@ -179,21 +179,11 @@ function getGradeGoals(contract: ei.IContract) {
 }
 
 function getEliteGoal(contract: ei.IContract) {
-  if (!contract.gradeSpecs) {
-    if (!contract.goalSets) {
-      const goals = contract.goals!;
-    }
-    const goals = contract.goalSets ? contract.goalSets[0].goals! : contract.goals!
-    return goals[goals.length - 1].targetAmount!;
-  }
-  const goals = contract.gradeSpecs[1].goals!;
-  return goals[goals.length - 1].targetAmount!;
+  const goals = getContractGoals(contract, 2, ContractLeague.Elite);
+  return goals[goals.length - 1].targetAmount!
 }
 
 function getStandardGoal(contract: ei.IContract) {
-  if (!contract.goalSets) {
-    return 0;
-  }
-  const goals = contract.goalSets[1].goals!;
-  return goals[goals.length - 1].targetAmount!;
+  const goals = getContractGoals(contract, 1, ContractLeague.Standard);
+  return goals[goals.length - 1].targetAmount!
 }

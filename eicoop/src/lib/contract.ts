@@ -1,12 +1,8 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { ei, requestFirstContact, titleCase } from 'lib';
+import { ei, requestFirstContact, titleCase, ContractLeague } from 'lib';
 
 export type ContractType = 'Original' | 'Leggacy';
 
-export enum ContractLeague {
-  Elite = 0,
-  Standard = 1,
-}
 //enum PlayerGrade {
 //    GRADE_UNSET = 0,
 //    GRADE_C = 1,

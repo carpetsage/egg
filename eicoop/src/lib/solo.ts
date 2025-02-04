@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 
-import { ArtifactSet, ei, Farm, FarmerRole } from 'lib';
-import { ContractLeague, ContractLeagueStatus } from './contract';
+import { ArtifactSet, ContractLeague, ei, Farm, FarmerRole, getContractGoals } from 'lib';
+import { ContractLeagueStatus } from './contract';
 
 export class SoloStatus {
   farm: Farm;
@@ -71,17 +71,7 @@ export class SoloStatus {
     this.league = contract.league || 0;
     this.grade = contract.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET;
 
-    // goal is in one of three places
-    if (this.contract.gradeSpecs?.length && this.grade) {
-      // TODO: assumes gradeSpecs[] only has c through aaa, not GRADE_UNSET -> aaa
-      this.goals = this.contract.gradeSpecs[this.grade as number - 1].goals!;
-    }
-    else if (this.contract.goalSets) {
-      this.goals = this.contract.goalSets[this.league as number].goals!;
-    }
-    else {
-      this.goals = this.contract.goals!;
-    }
+    this.goals = getContractGoals(this.contract, this.grade, this.league)
 
     this.userId = backup.eiUserId!;
     this.userName = backup.userName!;

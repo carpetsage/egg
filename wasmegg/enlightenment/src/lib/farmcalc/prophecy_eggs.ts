@@ -1,4 +1,4 @@
-import { ei } from 'lib';
+import { ei, getContractGoals } from 'lib';
 
 export function accountProphecyEggsCount(backup: ei.IBackup): number {
   return (
@@ -73,13 +73,8 @@ function contractsProphecyEggsCount(backup: ei.IBackup): number {
   for (const contract of contracts) {
     const props = contract.contract!;
     const league = contract.league || 0;
-    let goals = contract.grade? props.gradeSpecs![contract.grade - 1].goals : props.goals;
-    if (!contract.grade && props.goalSets && props.goalSets.length > league) {
-      goals = props.goalSets[league].goals;
-    }
-    if (!goals || goals.length === 0) {
-      throw new Error(`no goals found for contract ${props.identifier!}`);
-    }
+    const grade = contract.grade ?? ei.Contract.PlayerGrade.GRADE_C;
+    const goals = getContractGoals(props, grade, league);
     for (let i = 0; i < contract.numGoalsAchieved!; i++) {
       const goal = goals[i];
       if (goal.rewardType === ei.RewardType.EGGS_OF_PROPHECY) {
@@ -95,7 +90,7 @@ function dailyGiftsProphecyEggsCount(backup: ei.IBackup): number {
 }
 
 function seasonalProphecyEggsCount(backup: ei.IBackup): number {
-  return ( 
+  return (
     backup.game!.eggsOfProphecy! -
     trophiesProphecyEggsCount(backup) -
     contractsProphecyEggsCount(backup) -

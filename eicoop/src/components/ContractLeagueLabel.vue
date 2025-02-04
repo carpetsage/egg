@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import { ContractLeague } from '@/lib';
+import { ContractLeague } from 'lib';
 import { defineComponent, PropType } from 'vue';
 
 export default defineComponent({

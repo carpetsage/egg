@@ -219,18 +219,17 @@ import { computed, defineComponent, inject, PropType, ref, toRefs, watch } from 
 import { useStore } from 'vuex';
 
 import {
-  ContractLeague,
   earningBonusToFarmerRole,
   ei,
   formatEIValue,
   getNakedEarningBonus,
   getNumSoulEggs,
   getProphecyEggsProgress,
-  getUserActiveCoopContracts,
   getUserActiveSoloContracts,
   getUserBackupTime,
   SoloStatus,
 } from '@/lib';
+import { ContractLeague } from 'lib';
 import { key } from '@/store';
 import { refreshCallbackKey } from '@/symbols';
 import { renderNonempty } from '@/utils';
@@ -238,7 +237,6 @@ import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vu
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 import CoopCardLoader from '@/components/CoopCardLoader.vue';
-import NewContractForecast from '@/components/NewContractForecast.vue';
 import SoloCard from '@/components/SoloCard.vue';
 import { getUserActiveCoopContractsSorted } from '../lib/userdata';
 
@@ -248,7 +246,6 @@ export default defineComponent({
     BaseInfo,
     BaseIcon,
     CoopCardLoader,
-    NewContractForecast,
     SoloCard,
   },
   props: {
