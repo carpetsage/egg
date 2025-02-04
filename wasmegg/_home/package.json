@@ -13,7 +13,7 @@
     "@tailwindcss/forms": "^0.5.10",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/compiler-sfc": "^3.4.21",
-    "autoprefixer": "^10.4.18",
+    "autoprefixer": "^10.4.20",
     "postcss": "^8.4.35",
     "sharp": "^0.33.2",
     "svgo": "^3.3.2",
