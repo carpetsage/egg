@@ -157,7 +157,7 @@ export function validateCraftingLevel(level: number) {
 }
 
 export function getXPFromCraftingLevel(level: number) {
-  if (level >= afxCraftingLevelInfos.length) { return 0; }
+  if (level > afxCraftingLevelInfos.length) { return 0; }
   if (level <= 0) { return afxCraftingLevelInfos[0].xpRequired!; }
 
   const levels = afxCraftingLevelInfos.slice(0,level - 1);
