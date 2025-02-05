@@ -48,15 +48,20 @@ export default defineComponent({
     ShareIcon,
   },
   props: {
+    page: {
+      type: String,
+      required: true,
+    },
     id: {
       type: String,
       required: true,
     },
   },
   setup(props) {
-    const { id } = toRefs(props);
+    const { id, page } = toRefs(props);
     const copyLink = () => {
-      copyTextToClipboard(`https://ei.tcl.sh/${id.value}`);
+      // const baseUrl=window.location.origin;
+      copyTextToClipboard(`https://wasmegg-carpet.netlify.app/artifact-explorer/#/${page.value}/${id.value}`);
     };
     return {
       copyLink,

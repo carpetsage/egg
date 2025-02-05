@@ -11,7 +11,7 @@
           />
         </div>
         <div class="ml-4 mt-2 flex-shrink-0">
-          <share :id="artifact.id" />
+          <share :page="'artifact'" :id="artifact.id" />
         </div>
       </div>
     </div>
@@ -283,6 +283,10 @@ export default defineComponent({
     Share,
   },
   props: {
+    page: {
+      type: String,
+      required: true,
+    },
     artifactId: {
       type: String,
       required: true,

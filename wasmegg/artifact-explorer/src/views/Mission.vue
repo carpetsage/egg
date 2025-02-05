@@ -18,7 +18,7 @@
           </div>
         </div>
         <div class="ml-4 mt-2 flex-shrink-0">
-          <share :id="mission.missionTypeId" />
+          <share :page="'mission'" :id="mission.missionTypeId" />
         </div>
       </div>
     </div>
