@@ -153,7 +153,7 @@ export class CoopStatus {
       this.grade = result.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET;
       this.creatorName = result.creatorName;
     }
-    this.goals = getContractGoals(this.contract, this.grade ?? 1, this.league ?? 0);
+    this.goals = getContractGoals({ contract: this.contract, grade: this.grade ?? 1, league: this.league ?? 0 });
 
     this.leagueStatus = new ContractLeagueStatus(
       this.eggsLaid,

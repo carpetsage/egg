@@ -74,7 +74,7 @@ function contractsProphecyEggsCount(backup: ei.IBackup): number {
     const props = contract.contract!;
     const league = contract.league || 0;
     const grade = contract.grade ?? ei.Contract.PlayerGrade.GRADE_C;
-    const goals = getContractGoals(props, grade, league);
+    const goals = getContractGoals({ contract: props, grade, league });
     for (let i = 0; i < contract.numGoalsAchieved!; i++) {
       const goal = goals[i];
       if (goal.rewardType === ei.RewardType.EGGS_OF_PROPHECY) {
