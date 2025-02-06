@@ -77,9 +77,9 @@ export function getCollegtibleProgress (
     ,0
   );
   const tier = tiers.findLastIndex(t => maxFarmSize >= t);
-  // return tier >= 0 ? egg.buffs.at(tier)?.value ?? 0 : 0;
-  return egg.buffs[egg.buffs.length - 1].value;
+  return tier >= 0 ? egg.buffs.at(tier)?.value ?? 0 : 0;
 }
+
 
 // returns map of egg to buff strength
 export function getAllCollegtibleProgress (
