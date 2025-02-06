@@ -26,7 +26,7 @@ export function farmEarningBonus(
   artifacts: Artifact[]
 ): number {
   const soulEggsCount = (progress.soulEggsD || progress.soulEggs || 0) as number;
-  const prophecyEggsCount = accountProphecyEggsCount(backup);
+  const prophecyEggsCount = backup.game?.eggsOfProphecy ?? accountProphecyEggsCount(backup);
   const soulEggBonus = farmSoulEggBonus(farm, progress, artifacts);
   const prophecyEggBonus = farmProphecyEggBonus(farm, progress, artifacts);
   return soulEggsCount * soulEggBonus * (1 + prophecyEggBonus) ** prophecyEggsCount;

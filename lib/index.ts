@@ -20,3 +20,4 @@ export * from './units';
 export * from './utils';
 export * from './visits';
 export * from './contracts';
+export * from './collegtibles';

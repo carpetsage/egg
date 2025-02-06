@@ -2,8 +2,37 @@ import { ei } from './proto';
 import { decodeMessage } from './api';
 import customEggsRaw from './customeggs.json';
 
+export class SafeCustomEgg {
+  identifier: string;
+  name: string;
+  value: number;
+  description: string;
+  buffs: { dimension: ei.GameModifier.GameDimension, value: number}[];
+  constructor(ce: ei.ICustomEgg) {
+    this.identifier = ce.identifier!;
+    this.name = ce.name!;
+    this.description = eggIconPath(ei.Egg.CUSTOM_EGG, ce.identifier!);
+    this.value = ce.value!;
+    this.buffs = ce.buffs!.map(buff => {
+      const b = {dimension: buff.dimension!, value: buff.value!};
+      return b;
+    });
+  }
+}
+
+function safeifyCustomEggs(customEggs: ei.ICustomEgg[]): SafeCustomEgg[] {
+ const safeEggs: SafeCustomEgg[] = [];
+ // jank stuff to
+ customEggs.filter(egg => egg.identifier && egg.name && egg.value && egg.buffs && egg.buffs.filter(x => x.dimension && egg.value).length == egg.buffs.length).forEach(ce =>
+  safeEggs.push(new SafeCustomEgg(ce))
+ );
+ return safeEggs;
+}
+
+
 // parse custom eggs
-export const customEggs = customEggsRaw.map( egg => decodeMessage(ei.CustomEgg, egg, false)) as ei.ICustomEgg[];
+export const rawCustomEggs = customEggsRaw.map( egg => decodeMessage(ei.CustomEgg, egg, false)) as ei.ICustomEgg[];
+export const customEggs = safeifyCustomEggs(rawCustomEggs);
 
 export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
   const symbol = custom_egg_id || ei.Egg[egg];
@@ -73,7 +102,7 @@ export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
     case ei.Egg.UNKNOWN:
       return 0;
     case ei.Egg.CUSTOM_EGG:
-      const egg = customEggs.find(egg => egg.identifier === custom_egg_id);
+      const egg = rawCustomEggs.find(egg => egg.identifier === custom_egg_id);
       return egg?.value ?? 1;
   }
 }
@@ -131,7 +160,7 @@ export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null): string 
     case ei.Egg.UNKNOWN:
       return 'egginc/egg_unknown.png';
     case ei.Egg.CUSTOM_EGG:
-      const egg = customEggs.find(egg => egg.identifier === custom_egg_id);
+      const egg = rawCustomEggs.find(egg => egg.identifier === custom_egg_id);
       if (egg) {
         return `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g,'')}.png`
       }

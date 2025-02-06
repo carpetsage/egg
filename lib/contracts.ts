@@ -6,10 +6,10 @@ export enum ContractLeague {
 }
 
 export function getContractGoals (
-  contract: ei.IContract,
+{ contract,
   grade = ei.Contract.PlayerGrade.GRADE_C,
   league = ContractLeague.Elite
-) {
+}: { contract: ei.IContract; grade?: ei.Contract.PlayerGrade; league?: ContractLeague; }) {
   if (contract.gradeSpecs) {
     const goals = contract.gradeSpecs.at((grade > 0 ? grade : 1) - 1)?.goals;
     if (goals && goals.length) return goals;

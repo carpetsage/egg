@@ -110,7 +110,7 @@ export function getProphecyEggsProgressFromContracts(
     const props = contract.contract!;
     const league = contract.league || 0;
     const grade = contract.grade || ei.Contract.PlayerGrade.GRADE_C;
-    const goals = getContractGoals(props, grade, league);
+    const goals = getContractGoals({ contract: props, grade, league });
     let isPEContract = false;
     let hasUncompletedPE = false;
     for (let i = 0; i < goals.length; i++) {

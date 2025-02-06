@@ -71,7 +71,7 @@ export class SoloStatus {
     this.league = contract.league || 0;
     this.grade = contract.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET;
 
-    this.goals = getContractGoals(this.contract, this.grade, this.league)
+    this.goals = getContractGoals({ contract: this.contract, grade: this.grade, league: this.league })
 
     this.userId = backup.eiUserId!;
     this.userName = backup.userName!;
