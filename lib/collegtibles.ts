@@ -4,6 +4,8 @@ import { customEggs, SafeCustomEgg } from './eggs';
 type Modifier = keyof typeof ei.GameModifier.GameDimension
 export type ValidModifier = Exclude<Modifier, "INVALID">
 
+type ColleggtibleBuff = {egg: string; modifier: ei.GameModifier.GameDimension; multiplier: number}
+
 export type Modifiers = {
   earnings: number;
   awayEarnings: number;
@@ -18,7 +20,7 @@ export type Modifiers = {
 
 const modifierKeys = Object.keys(ei.GameModifier.GameDimension).filter(x => x!="INVALID") as ValidModifier[];
 // Create map of string modifier name to enum value
-const modifierNames = new Map<ValidModifier,ei.GameModifier.GameDimension>(modifierKeys.map( m => [m, ei.GameModifier.GameDimension[m]]))
+const modifierNames = modifierKeys.map( m => ({ name: m, modifier: ei.GameModifier.GameDimension[m] }) )
 
 const tiers = [10_000_000, 100_000_000, 1_000_000_000, 10_000_000_000] as const;
 
@@ -34,8 +36,8 @@ export function AllModifiersFromCollegtibles(
   const collegtibles = getAllCollegtibleProgress(backup);
   // map modifier name to modifier multiplier
   const modifiers = new Map<ValidModifier,number>(
-    modifierNames.entries().map( ([modifierKey, modifier]) =>
-      [modifierKey, ModifierFromCollegtibles(collegtibles,modifier)]
+    modifierNames.map( modifier =>
+      [modifier.name, ModifierFromCollegtibles(collegtibles,modifier.modifier)]
     )
   );
 
@@ -52,14 +54,14 @@ export function AllModifiersFromCollegtibles(
   };
 }
 function ModifierFromCollegtibles(
-  collegtibles: Map<SafeCustomEgg,number>,
+  collegtibles: ColleggtibleBuff[],
   modifier: ei.GameModifier.GameDimension
 ) {
 
   // filter to collegtibles matching desired buff and multiply buffs together
-  const finalValue = collegtibles.entries()
-    .filter(([egg, _]) => egg.buffs[0].dimension === modifier)
-    .map(([_, value]) => value)
+  const finalValue = collegtibles
+    .filter(collegtible => collegtible.modifier === modifier)
+    .map(collegtible => collegtible.multiplier)
     .reduce((accumulator, currentValue) => accumulator * currentValue, 1);
   return finalValue > 0 ? finalValue : 1;
 }
@@ -88,8 +90,6 @@ export function getAllCollegtibleProgress (
   const archive = backup.contracts?.archive ?? [];
   const active = backup.contracts?.contracts ?? [];
   const contracts = archive.concat(active);
-  const progress = new Map<SafeCustomEgg,number>(
-    customEggs.map(egg => [egg, getCollegtibleProgress(contracts,egg)]
-  ));
+  const progress: ColleggtibleBuff[] = customEggs.map(egg => ({egg: egg.identifier, modifier: egg.buffs[0].dimension, multiplier: getCollegtibleProgress(contracts,egg)}));
   return progress;
 }
