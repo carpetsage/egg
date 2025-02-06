@@ -1,4 +1,4 @@
-import { ei, Modifiers } from 'lib';
+import { ei } from 'lib';
 import { farmValueMultiplier } from '../effects/farm_value';
 import { Artifact } from '../types';
 import { farmResearch } from './common';
@@ -21,7 +21,7 @@ export function calculateFarmValue(
   backup: ei.IBackup,
   farm: ei.Backup.ISimulation,
   progress: ei.Backup.IGame,
-  artifacts: Artifact[],
+  artifacts: Artifact[]
 ): number {
   // All calculations need to be done with no artifacts, except a flat bonus
   // from Mercury's lens if equipped.
