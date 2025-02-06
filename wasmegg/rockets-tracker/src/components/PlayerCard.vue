@@ -431,7 +431,7 @@
               Crafting XP, <span class="text-yellow-500">Level {{ craftingLevel.level }}</span>
             </dt>
             <dd
-              v-tippy="{ content: fmt(nextLevelXP - craftingXp) }"
+              v-tippy="{ content: craftingLevel.level === 30 ? 'Crafting Legend' : fmt(nextLevelXP - craftingXp) }"
               class="text-left text-sm text-gray-900">
               {{ fmt(craftingXp) }}
             </dd>
