@@ -18025,5 +18025,23 @@
     "startTimestamp": 1738774800.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1738947600.0,
+    "id": "event-2-6",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1738861200.0,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1738947600.0,
+    "id": "ultra-2-6",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1738861200.0,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
