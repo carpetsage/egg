@@ -25,7 +25,7 @@ export function calculateFarmValue(
 ): number {
   // All calculations need to be done with no artifacts, except a flat bonus
   // from Mercury's lens if equipped.
-  const population = 256; //farm.numChickens! as number;
+  const population = farm.numChickens! as number;
   const shippingCapacity = farmShippingCapacity(farm, progress, []);
   const eggLayingRate = farmEggLayingRate(farm, progress, []);
   const populationEffective = Math.floor(
