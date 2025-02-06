@@ -1,7 +1,8 @@
 import { ei } from 'lib';
 import { eggLayingRateMultiplier } from '../effects';
-import { Artifact, Research, ResearchInstance } from '../types';
+import { Artifact, Research, ResearchInstance, Colleggtible } from '../types';
 import { farmResearches } from './common';
+import { eggLayingRateFromColleggtibles } from './colleggtible_eggs';
 
 type EggLayingRateResearch = Research;
 
@@ -79,10 +80,12 @@ export function farmEggLayingRatePerChicken(
 export function farmEggLayingRate(
   farm: ei.Backup.ISimulation,
   progress: ei.Backup.IGame,
-  artifacts: Artifact[]
+  artifacts: Artifact[],
+  colleggtibles: Colleggtible
 ): number {
   return (
     (farm.numChickens! as number) *
-    farmEggLayingRatePerChicken(farmEggLayingRateResearches(farm, progress), artifacts)
+    farmEggLayingRatePerChicken(farmEggLayingRateResearches(farm, progress), artifacts) *
+    eggLayingRateFromColleggtibles(colleggtibles)
   );
 }
