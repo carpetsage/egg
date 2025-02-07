@@ -18043,5 +18043,14 @@
     "startTimestamp": 1738861200.0,
     "type": "shell-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1739034000.0,
+    "id": "event-2-7",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1738947600.0,
+    "type": "research-sale",
+    "ultra": false
   }
 ]
