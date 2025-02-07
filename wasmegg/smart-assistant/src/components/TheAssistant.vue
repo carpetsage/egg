@@ -99,6 +99,20 @@
     </div>
     <items-select v-model="itemsToExclude" />
   </div>
+  <div v-if="showProPermitRecommendations" class="relative flex items-start mb-1">
+    <div class="flex items-center h-5">
+      <input
+        id="only-show-lunarstige"
+        v-model="onlyLunar"
+        name="only-show-lunarstige"
+        type="checkbox"
+        class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+      />
+    </div>
+    <label class="ml-2 text-sm" for="only-show-lunarstige">
+      Only show lunar-stige
+    </label>
+  </div>
 
   <div v-if="!hasProPermit" class="mb-4">
     <div v-if="suggestedForStandardPermitSinglePreload">
@@ -142,43 +156,9 @@
       Click to show recommendations for Pro Permit (in case you plan to upgrade)
     </div>
   </div>
-  <div>
-    <div class="text-center text-sm font-medium mb-2">
-      Recommended setup for lunar prestige
-      <template v-if="!hasProPermit">
-        <br />
-        <span class="text-xs text-red-500">Requires Pro Permit</span>
-      </template>
-    </div>
-    <div class="text-s text-center justify-center mb-2 space-y-1">
-      <p>
-        This maybe works?
-      </p>
-    </div>
-    <artifact-gallery
-      :strategy="PrestigeStrategy.PRO_PERMIT_LUNAR"
-      :artifact-set="suggestedForProPermitLunar?.artifactSet"
-      :artifact-assembly-statuses="suggestedForProPermitLunar.assemblyStatuses"
-      :reference-set="currentlyEquipped"
-      :farm="homeFarm"
-      :is-enlightenment="false"
-      :bird-feed-active="true"
-      :soul-beacon-active="true"
-      :boost-beacon-active="true"
-    />
-    <div class="mt-0.5 text-center text-xs text-gray-500">
-      The optimized sandbox stat is <span class="underline">SE gain</span>
-    </div>
-    <div
-      v-if="hasGusset(suggestedForProPermitLunar.artifactSet)"
-      class="mt-0.5 text-center text-xs text-red-500"
-    >
-      Note that this recommended setup assumes you can take advantage of the increased hab space.
-    </div>
-  </div>
 
   <div v-if="showProPermitRecommendations" class="space-y-3">
-    <div>
+    <div v-if="!onlyLunar">
       <div class="text-center text-sm font-medium mb-2">
         Recommended setup for multi-prestige and all-in-one single-prestige
         <template v-if="!hasProPermit">
@@ -216,7 +196,7 @@
         The optimized sandbox stat is <span class="underline">SE gain w/ empty habs start</span>
       </div>
     </div>
-    <div>
+    <div v-if="!onlyLunar">
       <div class="text-center text-sm font-medium mb-2">
         Recommended setup for preloaded single-prestige
         <template v-if="!hasProPermit">
@@ -255,6 +235,45 @@
         Note that this recommended setup assumes you can take advantage of the increased hab space.
       </div>
     </div>
+    <div>
+      <div class="text-center text-sm font-medium mb-2">
+        Recommended setup for lunar-prestige
+        <template v-if="!hasProPermit">
+          <br />
+          <span class="text-xs text-red-500">Requires Pro Permit</span>
+        </template>
+      </div>
+      <div class="text-xs mb-2 space-y-1">
+        <p>
+          <strong>Lunar-prestige</strong> is a modification to other prestige strategies where you
+          equip artifacts and stones to increase your away earnings multiplier and go offline instead
+          of running chickens. This can be done as a preload, all-in-one, or multi-prestige. Simply
+          close the app where normal prestige strategies would have you run chickens. It is usually
+          less efficient than online strategies.
+        </p>
+      </div>
+      <artifact-gallery
+        :strategy="PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO"
+        :artifact-set="suggestedForProPermitLunar?.artifactSet"
+        :artifact-assembly-statuses="suggestedForProPermitLunar.assemblyStatuses"
+        :reference-set="currentlyEquipped"
+        :farm="homeFarm"
+        :is-enlightenment="false"
+        :bird-feed-active="true"
+        :soul-beacon-active="true"
+        :boost-beacon-active="true"
+        :modifiers="modifiers"
+      />
+      <div class="mt-0.5 text-center text-xs text-gray-500">
+        The optimized sandbox stat is <span class="underline">SE gain</span>
+      </div>
+      <div
+        v-if="hasGusset(suggestedForProPermitLunar.artifactSet)"
+        class="mt-0.5 text-center text-xs text-red-500"
+      >
+        Note that this recommended setup assumes you can take advantage of the increased hab space.
+      </div>
+    </div>
   </div>
 
   <earning-bonus-planner :backup="backup" />
@@ -265,6 +284,7 @@ import { computed, defineComponent, ref, watch } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
+  AllModifiersFromCollegtibles,
   ArtifactSet,
   earningBonusToFarmerRole,
   ei,
@@ -290,6 +310,7 @@ import { isListOfItemIds, ItemSelectSpec } from '@/lib/select';
 import { notNull } from '@/lib/utils';
 
 const EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY = 'excludedItemIds';
+const SHOW_ONLY_LUNAR_LOCALSTORAGE_KEY = 'onlyShowLunarstige';
 
 export default defineComponent({
   components: {
@@ -315,6 +336,12 @@ export default defineComponent({
     watch(itemIdsToExclude, val => {
       setLocalStorage(EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY, JSON.stringify(val));
     });
+    const onlyLunar = ref(
+      getLocalStorage(SHOW_ONLY_LUNAR_LOCALSTORAGE_KEY) === 'true'
+    );
+    watch(onlyLunar, () =>
+      setLocalStorage(SHOW_ONLY_LUNAR_LOCALSTORAGE_KEY, onlyLunar.value)
+    );
 
     const data: ei.IEggIncFirstContactResponse = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
@@ -327,6 +354,7 @@ export default defineComponent({
     if (!backup.artifactsDb) {
       throw new Error(`${playerId}: no artifacts database in backup`);
     }
+    const modifiers = AllModifiersFromCollegtibles(backup);
     const hasProPermit = data.backup.game.permitLevel === 1;
     const showProPermitRecommendations = ref(hasProPermit);
     const prophecyEggs = getNumProphecyEggs(backup);
@@ -354,7 +382,7 @@ export default defineComponent({
       })
     );
     const suggestedForProPermitLunar = computed(() =>
-      suggestArtifactSet(backup, PrestigeStrategy.PRO_PERMIT_LUNAR, {
+      suggestArtifactSet(backup, PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO, {
         excludedIds: itemIdsToExclude.value,
       })
     );
@@ -376,6 +404,8 @@ export default defineComponent({
       suggestedForProPermitSinglePreload,
       suggestedForProPermitLunar,
       PrestigeStrategy,
+      modifiers,
+      onlyLunar,
       hasGusset,
       iconURL,
       formatEIValue,

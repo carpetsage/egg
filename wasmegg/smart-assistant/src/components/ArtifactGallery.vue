@@ -162,7 +162,7 @@
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { ArtifactSet, ei, Farm, farmToSandboxURL, iconURL, trimTrailingZeros } from 'lib';
+import { ArtifactSet, ei, Farm, farmToSandboxURL, iconURL, trimTrailingZeros, Modifiers } from 'lib';
 
 import Rarity = ei.ArtifactSpec.Rarity;
 import {
@@ -218,6 +218,10 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    modifiers: {
+      type: Object as PropType<Modifiers>,
+      default: undefined
+    },
   },
   setup(props) {
     const {
@@ -230,6 +234,7 @@ export default defineComponent({
       tachyonPrismActive,
       soulBeaconActive,
       boostBeaconActive,
+      modifiers,
     } = toRefs(props);
     // Type casting because somehow protected props are lost during toRefs.
     const empty = computed(() => artifactSet.value.artifacts.length === 0);
@@ -243,7 +248,8 @@ export default defineComponent({
         ? artifactSetVirtualEarningsMultiplier(
             farm.value as Farm,
             artifactSet.value as ArtifactSet,
-            strategy.value
+            strategy.value,
+            modifiers.value
           )
         : undefined
     );
@@ -252,7 +258,8 @@ export default defineComponent({
         ? artifactSetVirtualEarningsMultiplier(
             farm.value as Farm,
             referenceSet.value as ArtifactSet,
-            strategy.value
+            strategy.value,
+            modifiers.value
           )
         : undefined
     );

@@ -10,6 +10,7 @@
  * - Pheonix feather;
  * - Quantum metronome;
  * - Dilithium monocle;
+ * - Lunar totem;
  * - Gusset (only preload);
  * - Chalice (only all-in-one and multi).
  *
@@ -22,6 +23,7 @@
  *   aggregate effect of the top N soul stones is independent from everything
  *   else);
  * - Life stones (only all-in-one and multi).
+ * - Lunar stones
  *
  * Then there are two complex classes of interdependent items:
  *
@@ -97,7 +99,7 @@ export enum PrestigeStrategy {
   STANDARD_PERMIT_SINGLE_PRELOAD,
   PRO_PERMIT_SINGLE_PRELOAD,
   PRO_PERMIT_MULTI,
-  PRO_PERMIT_LUNAR,
+  PRO_PERMIT_LUNAR_PRELOAD_AIO,
 }
 
 export class Contender {
@@ -430,7 +432,7 @@ export function suggestArtifactSet(
     case PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD:
       artifactSlots = 2;
       break;
-    case PrestigeStrategy.PRO_PERMIT_LUNAR:
+    case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
     case PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD:
     case PrestigeStrategy.PRO_PERMIT_MULTI:
       artifactSlots = 4;
@@ -445,7 +447,7 @@ export function suggestArtifactSet(
   let lunarEffectMultiplierFunc: (delta: number) => number = () => 1;
   let rcbEffectMultiplierFunc: (delta: number) => number = delta => delta;
   switch (strategy) {
-    case PrestigeStrategy.PRO_PERMIT_LUNAR:
+    case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
       monoclePowerIndex = 2;
       lunarEffectMultiplierFunc = delta => 1 + delta;
       rcbEffectMultiplierFunc = () => 1;
@@ -634,7 +636,7 @@ export function suggestArtifactSet(
       bareMaxRCB +
       contender.effectMultiplier +
       stones.reduce((sum, stone) => sum + stone.effectDelta, 0);
-    return strategy == PrestigeStrategy.PRO_PERMIT_LUNAR ? 1 : maxRCB / bareMaxRCB;
+    return strategy == PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? 1 : maxRCB / bareMaxRCB;
   };
   const rcbCombos = [
     addStonesToContenders(
@@ -684,7 +686,7 @@ export function suggestArtifactSet(
   const bestLunarStones = bestsInStoneFamily(
     families.get(Name.LUNAR_STONE),
     maxIndependentStoneSlots
-  ).map(stone => ({ stone, multiplier: strategy === PrestigeStrategy.PRO_PERMIT_LUNAR ? 1 + stone.effectDelta : 1}));
+  ).map(stone => ({ stone, multiplier: strategy === PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? 1 + stone.effectDelta : 1}));
   const bestShellStones = bestsInStoneFamily(
     families.get(Name.SHELL_STONE),
     maxIndependentStoneSlots
@@ -752,7 +754,7 @@ export function suggestArtifactSet(
   }
   const winner = flattened[0];
   winner.calibrate();
-  if (strategy === PrestigeStrategy.PRO_PERMIT_LUNAR) {
+  if (strategy === PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO) {
     winner.adjustLunar(bareMaxRCB);
   }
   const result = contenderToArtifactSet(winner, homeFarm.artifactSet, inventory);
