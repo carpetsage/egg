@@ -351,7 +351,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
-import { eggIconPath, iconURL, UserBackupEmptyError, getLocalStorage, setLocalStorage } from 'lib';
+import { AllModifiersFromCollegtibles, eggIconPath, iconURL, UserBackupEmptyError, getLocalStorage, setLocalStorage } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
   bestPossibleGussetForEnlightenment,
@@ -454,7 +454,7 @@ export default defineComponent({
     if (!backup.farms || backup.farms.length === 0) {
       throw new Error(`${playerId}: no farm info in backup`);
     }
-
+    const modifiers = AllModifiersFromCollegtibles(backup);
     const farm = backup.farms[0]; // Home farm
     const egg = farm.eggType!;
     const eggIconURL = iconURL(eggIconPath(egg), 128);
@@ -465,10 +465,12 @@ export default defineComponent({
     const currentTimestamp = ref(Date.now());
     const lastRefreshedRelative = ref(lastRefreshed.fromNow());
     const lastRefreshedPopulation = farm.numChickens! as number;
+    // Cap projected population at hab capacity
     const currentPopulation = computed(
       () =>
-        lastRefreshedPopulation +
-        (offlineIHR / 60_000) * (currentTimestamp.value - lastRefreshedTimestamp)
+        Math.min(lastRefreshedPopulation +
+        (offlineIHR / 60_000) * (currentTimestamp.value - lastRefreshedTimestamp),
+        Math.max(lastRefreshedPopulation, totalHabSpace))
     );
     const artifacts = homeFarmArtifacts(backup);
     // Cap existing trophy level at platinum for people doing a legit diamond
@@ -486,14 +488,14 @@ export default defineComponent({
 
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
-    const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts);
+    const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.habCap);
     const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
     const totalHabSpaceSufficient = totalHabSpace >= 1e10;
     const currentWDLevel = farmCurrentWDLevel(farm);
     const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(
       nakedGangNickname ? [] : artifacts
     );
-    const bestGusset = bestPossibleGussetForEnlightenment(backup);
+    const bestGusset = bestPossibleGussetForEnlightenment(backup, modifiers.habCap);
     const bestPossibleGusset = nakedGangNickname
       ? null
       : bestGusset;
@@ -508,7 +510,7 @@ export default defineComponent({
     )
     const bestPossibleGussetSet = bestPossibleGusset ? [bestPossibleGusset] : [];
     const minimumRequiredWDLevel = bestPossibleGusset
-      ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset])
+      ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset], modifiers.habCap)
       : requiredWDLevel;
 
     const earningBonus = farmEarningBonus(backup, farm, progress, artifacts);
@@ -521,7 +523,7 @@ export default defineComponent({
       onlineBaseline: earningRateOnlineBaseline,
       onlineMaxRCB: earningRateOnlineMaxRCB,
       offline: earningRateOffline,
-    } = farmEarningRate(backup, farm, progress, artifacts);
+    } = farmEarningRate(backup, farm, progress, artifacts, modifiers);
     const droneValuesAtMaxRCB = calculateDroneValues(farm, progress, artifacts, {
       population: farm.numChickens! as number,
       farmValue,
@@ -529,19 +531,23 @@ export default defineComponent({
     });
     const cashTargetPreDiscount =
       calculateWDLevelsCost(currentWDLevel, minimumRequiredWDLevel) *
-          researchPriceMultiplierFromResearches(farm, progress);
+          researchPriceMultiplierFromResearches(farm, progress) *
+          modifiers.researchCost;
 
     const cashTargetNAHPreDiscount =
       calculateWDLevelsCost(currentWDLevel, 25) *
-          researchPriceMultiplierFromResearches(farm, progress);
+          researchPriceMultiplierFromResearches(farm, progress) *
+          modifiers.researchCost;
 
     const cashTargetACREPreDiscount =
       calculateMaxFarmCostMissing(farm) *
-      researchPriceMultiplierFromResearches(farm, progress);
+      researchPriceMultiplierFromResearches(farm, progress) *
+      modifiers.researchCost;
 
     const cashTargetTSPreDiscount =
         calculateTSCost(farm) *
-          researchPriceMultiplierFromResearches(farm, progress);
+          researchPriceMultiplierFromResearches(farm, progress) *
+          modifiers.researchCost;
 
     const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts);
     const bestPossibleCube = bestPossibleCubeForEnlightenment(backup);
@@ -610,7 +616,7 @@ export default defineComponent({
       onlineRatePerHab: onlineIHRPerHab,
       onlineRate: onlineIHR,
       offlineRate: offlineIHR,
-    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts);
+    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.ihr);
 
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 

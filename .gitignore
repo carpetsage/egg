@@ -5,3 +5,5 @@ node_modules
 *.orig
 __pycache__
 dist.frozen
+.vscode
+__target__

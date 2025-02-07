@@ -149,7 +149,7 @@ function annotateAndSortContracts(rawList: ei.IContract[]): Contract[] {
 
 function getProphecyEggsCount(contract: ei.IContract) {
   let count = 0;
-  const goals = getContractGoals(contract);
+  const goals = getContractGoals({ contract });
   for (const goal of goals) {
     if (goal.rewardType === ei.RewardType.EGGS_OF_PROPHECY) {
       count += goal.rewardAmount!;
@@ -179,11 +179,11 @@ function getGradeGoals(contract: ei.IContract) {
 }
 
 function getEliteGoal(contract: ei.IContract) {
-  const goals = getContractGoals(contract, 2, ContractLeague.Elite);
+  const goals = getContractGoals({ contract, grade: 2, league: ContractLeague.Elite });
   return goals[goals.length - 1].targetAmount!
 }
 
 function getStandardGoal(contract: ei.IContract) {
-  const goals = getContractGoals(contract, 1, ContractLeague.Standard);
+  const goals = getContractGoals({ contract, grade: 1, league: ContractLeague.Standard });
   return goals[goals.length - 1].targetAmount!
 }

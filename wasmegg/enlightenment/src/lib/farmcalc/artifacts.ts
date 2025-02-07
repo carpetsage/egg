@@ -36,7 +36,7 @@ export function homeFarmArtifacts(backup: ei.IBackup): Artifact[] {
   return artifacts;
 }
 
-export function bestPossibleGussetForEnlightenment(backup: ei.IBackup): Artifact | null {
+export function bestPossibleGussetForEnlightenment(backup: ei.IBackup, modifier = 1): Artifact | null {
   const stonedGussets = artifactsFromInventoryWithClarityStones(
     backup,
     ei.ArtifactSpec.Name.ORNATE_GUSSET
@@ -44,7 +44,7 @@ export function bestPossibleGussetForEnlightenment(backup: ei.IBackup): Artifact
   let bestGusset = null;
   let minRequiredWDLevel = 25;
   for (const gusset of stonedGussets) {
-    const level = requiredWDLevelForEnlightenmentDiamond([gusset]);
+    const level = requiredWDLevelForEnlightenmentDiamond([gusset], modifier);
     if (level < minRequiredWDLevel) {
       bestGusset = gusset;
       minRequiredWDLevel = level;
