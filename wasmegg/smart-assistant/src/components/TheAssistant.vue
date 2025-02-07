@@ -251,6 +251,7 @@
           close the app where normal prestige strategies would have you run chickens. It is usually
           less efficient than online strategies.
         </p>
+        <discord-strategy-link :lunar="true" />
       </div>
       <artifact-gallery
         :strategy="PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO"
