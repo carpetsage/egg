@@ -266,7 +266,7 @@
         :modifiers="modifiers"
       />
       <div class="mt-0.5 text-center text-xs text-gray-500">
-        The optimized sandbox stat is <span class="underline">SE gain</span>
+        The optimized sandbox stat is <span class="underline">Away SE gain</span>
       </div>
       <div
         v-if="hasGusset(suggestedForProPermitLunar.artifactSet)"
