@@ -10,6 +10,7 @@
  * - Pheonix feather;
  * - Quantum metronome;
  * - Dilithium monocle;
+ * - Lunar totem;
  * - Gusset (only preload);
  * - Chalice (only all-in-one and multi).
  *
@@ -22,6 +23,7 @@
  *   aggregate effect of the top N soul stones is independent from everything
  *   else);
  * - Life stones (only all-in-one and multi).
+ * - Lunar stones
  *
  * Then there are two complex classes of interdependent items:
  *
@@ -97,6 +99,7 @@ export enum PrestigeStrategy {
   STANDARD_PERMIT_SINGLE_PRELOAD,
   PRO_PERMIT_SINGLE_PRELOAD,
   PRO_PERMIT_MULTI,
+  PRO_PERMIT_LUNAR_PRELOAD_AIO,
 }
 
 export class Contender {
@@ -123,6 +126,10 @@ export class Contender {
     this.numArtifactSlotsTaken = this.artifacts.length;
     this.numStoneSlotsTaken =
       -this.artifacts.reduce((sum, a) => sum + a.slots, 0) + this.stones.length;
+  }
+
+  adjustLunar(maxRCB: number): void {
+    this.effectMultiplier /= maxRCB;
   }
 
   // effectMultiplier isn't compared.
@@ -425,6 +432,7 @@ export function suggestArtifactSet(
     case PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD:
       artifactSlots = 2;
       break;
+    case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
     case PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD:
     case PrestigeStrategy.PRO_PERMIT_MULTI:
       artifactSlots = 4;
@@ -436,7 +444,18 @@ export function suggestArtifactSet(
   let habSpaceEffectMultiplierFunc: (delta: number) => number;
   // Effect of the chalice and life stones.
   let internalHatcheryRateEffectMultiplierFunc: (delta: number) => number;
+  let lunarEffectMultiplierFunc: (delta: number) => number = () => 1;
+  let rcbEffectMultiplierFunc: (delta: number) => number = delta => delta;
   switch (strategy) {
+    case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
+      monoclePowerIndex = 2;
+      lunarEffectMultiplierFunc = delta => 1 + delta;
+      rcbEffectMultiplierFunc = () => 1;
+      // More preloaded population => more earnings (assuming almost full habs).
+      habSpaceEffectMultiplierFunc = delta => 1 + delta;
+      // IHR is irrelevant for preload.
+      internalHatcheryRateEffectMultiplierFunc = () => 1;
+      break;
     case PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD:
     case PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD:
       // Monocle affects bird feeds and soul beacons.
@@ -464,6 +483,10 @@ export function suggestArtifactSet(
   });
   const families = new Map(inventory.catalog.map(family => [family.afxId, family]));
 
+  const bestTotems = contendersInArtifactFamily(
+    families.get(Name.LUNAR_TOTEM),
+    lunarEffectMultiplierFunc
+  );
   const bestFeathers = contendersInArtifactFamily(
     families.get(Name.PHOENIX_FEATHER),
     delta => 1 + delta
@@ -496,7 +519,6 @@ export function suggestArtifactSet(
   // Other artifacts may be used as stone holders.
   const others = [
     Name.PUZZLE_CUBE,
-    Name.LUNAR_TOTEM,
     Name.AURELIAN_BROOCH,
     Name.NEODYMIUM_MEDALLION,
     Name.MERCURYS_LENS,
@@ -531,6 +553,7 @@ export function suggestArtifactSet(
     bestMetronomes,
     bestChalices,
     bestGussets,
+    bestTotems,
   ]
     .filter(c => !c.isEmpty)
     .concat(others);
@@ -599,7 +622,7 @@ export function suggestArtifactSet(
   // Similar to books, effectMultiplier stored here is additive effect to max RCB.
   const bestVials = contendersInArtifactFamily(
     families.get(Name.VIAL_MARTIAN_DUST),
-    delta => delta
+    rcbEffectMultiplierFunc
   );
   const noVial = new Contenders([new Contender([], [], 0, 0, 0)]);
   const bestTerraStones = bestsInStoneFamily(
@@ -613,7 +636,7 @@ export function suggestArtifactSet(
       bareMaxRCB +
       contender.effectMultiplier +
       stones.reduce((sum, stone) => sum + stone.effectDelta, 0);
-    return maxRCB / bareMaxRCB;
+    return strategy == PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? 1 : maxRCB / bareMaxRCB;
   };
   const rcbCombos = [
     addStonesToContenders(
@@ -660,6 +683,10 @@ export function suggestArtifactSet(
   independentStoneFreeCombos.debug('Combos ready for independent stones');
   independentStoneFreeCombos.assertNumArtifactSlotsTaken(artifactSlots);
 
+  const bestLunarStones = bestsInStoneFamily(
+    families.get(Name.LUNAR_STONE),
+    maxIndependentStoneSlots
+  ).map(stone => ({ stone, multiplier: strategy === PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? 1 + stone.effectDelta : 1}));
   const bestShellStones = bestsInStoneFamily(
     families.get(Name.SHELL_STONE),
     maxIndependentStoneSlots
@@ -688,7 +715,7 @@ export function suggestArtifactSet(
   }));
 
   const bestIndependentStones = (<{ stone: Item; multiplier: number }[]>[])
-    .concat(bestShellStones, bestTachyonStones, bestSoulStones, bestLifeStones)
+    .concat(bestShellStones, bestTachyonStones, bestSoulStones, bestLifeStones, bestLunarStones)
     .sort((s1, s2) => s2.multiplier - s1.multiplier)
     .slice(0, maxIndependentStoneSlots)
     .map(s => new Contender([], [s.stone], 0, 1, s.multiplier));
@@ -727,6 +754,9 @@ export function suggestArtifactSet(
   }
   const winner = flattened[0];
   winner.calibrate();
+  if (strategy === PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO) {
+    winner.adjustLunar(bareMaxRCB);
+  }
   const result = contenderToArtifactSet(winner, homeFarm.artifactSet, inventory);
   const contenderMultiplier = winner.effectMultiplier;
   const setMultiplier = artifactSetVirtualEarningsMultiplier(

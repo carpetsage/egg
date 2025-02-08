@@ -1,4 +1,4 @@
-import { Artifact, ArtifactSet, Farm, Inventory, Item } from 'lib';
+import { Artifact, ArtifactSet, Farm, Inventory, Item, Modifiers } from 'lib';
 
 import { Contender, PrestigeStrategy } from './recommendation';
 import { ImpossibleError, notNull } from './utils';
@@ -224,7 +224,8 @@ function extractItem(items: Item[], wantedItem: Item): Item | null {
 export function artifactSetVirtualEarningsMultiplier(
   farm: Farm,
   set: ArtifactSet,
-  strategy: PrestigeStrategy
+  strategy: PrestigeStrategy,
+  modifiers?: Modifiers,
 ): number {
   const bareFarm = new Farm(farm.backup, farm.farm);
   bareFarm.artifactSet = new ArtifactSet([], false);
@@ -254,6 +255,9 @@ export function artifactSetVirtualEarningsMultiplier(
       break;
     case PrestigeStrategy.PRO_PERMIT_MULTI:
       totalMultiplier *= set.internalHatcheryRateMultiplier * set.boostEffectMultiplier ** 3;
+      break;
+    case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
+      totalMultiplier *= set.habSpaceMultiplier * set.boostEffectMultiplier ** 2 * set.awayEarningsMultiplier * (modifiers?.awayEarnings ?? 1)/equippedFarm.maxRunningChickenBonusWithMaxedCommonResearches;
       break;
   }
 
