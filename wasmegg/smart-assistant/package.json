@@ -17,7 +17,7 @@
     "scroll-into-view-if-needed": "^3.1.0",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
-    "uuid": "^10.0.0",
+    "uuid": "^11.0.5",
     "vue": "^3.4.21",
     "vue-tippy": "^6.4.4"
   },
