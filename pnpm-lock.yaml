@@ -127,8 +127,8 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       long:
-        specifier: ^5.2.3
-        version: 5.2.3
+        specifier: ^5.2.5
+        version: 5.2.5
       lunr:
         specifier: ^2.3.9
         version: 2.3.9
@@ -5627,6 +5627,9 @@ packages:
 
   long@5.2.3:
     resolution: {integrity: sha512-lcHwpNoggQTObv5apGNCTdJrO69eHOZMi4BNC+rTLER8iHAqGrUVeLh/irVIM7zTw2bOXA8T6uNPeujwOLg/2Q==}
+
+  long@5.2.5:
+    resolution: {integrity: sha512-e0r9YBBgNCq1D1o5Dp8FMH0N5hsFtXDBiVa0qoJPHpakvZkmDKPRoGffZJII/XsHvj9An9blm+cRJ01yQqU+Dw==}
 
   lowercase-keys@3.0.0:
     resolution: {integrity: sha512-ozCC6gdQ+glXOQsveKD0YsDy8DSQFjDTz4zyzEHNV5+JP5D62LmfDZ6o1cycFx9ouG940M5dE8C8CTewdj2YWQ==}
@@ -12720,6 +12723,8 @@ snapshots:
       triple-beam: 1.4.1
 
   long@5.2.3: {}
+
+  long@5.2.5: {}
 
   lowercase-keys@3.0.0: {}
 
