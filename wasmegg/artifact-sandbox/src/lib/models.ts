@@ -373,6 +373,11 @@ export class Config {
   boostBeaconActive: boolean;
   proPermit: boolean;
   tachyonDeflectorBonus: number;
+  carbonFiberColleggtible: number;
+  chocolateColleggtible: number;
+  easterColleggtible: number;
+  fireworkColleggtible: number;
+  pumpkinColleggtible: number;
 
   constructor() {
     this.prophecyEggs = 0;
@@ -388,6 +393,11 @@ export class Config {
     this.boostBeaconActive = false;
     this.proPermit = true;
     this.tachyonDeflectorBonus = 0;
+    this.carbonFiberColleggtible = 0;
+    this.chocolateColleggtible = 0;
+    this.easterColleggtible = 0;
+    this.fireworkColleggtible = 0;
+    this.pumpkinColleggtible = 0;
   }
 
   static newDefaultConfig(): Config {
@@ -413,6 +423,11 @@ export class Config {
     self.boostBeaconActive = config?.boostBeaconActive ?? false;
     self.proPermit = config?.proPermit ?? true;
     self.tachyonDeflectorBonus = config?.tachyonDeflectorBonus ?? 0;
+    self.carbonFiberColleggtible = config?.carbonFiberColleggtible ?? 0;
+    self.chocolateColleggtible = config?.chocolateColleggtible ?? 0;
+    self.easterColleggtible = config?.easterColleggtible ?? 0;
+    self.fireworkColleggtible = config?.fireworkColleggtible ?? 0;
+    self.pumpkinColleggtible = config?.pumpkinColleggtible ?? 0;
     return self;
   }
 
@@ -430,8 +445,14 @@ export class Config {
       boostBeaconActive: this.boostBeaconActive,
       proPermit: this.proPermit,
       tachyonDeflectorBonus: this.tachyonDeflectorBonus,
+      carbonFiberColleggtible: this.carbonFiberColleggtible,
+      chocolateColleggtible: this.chocolateColleggtible,
+      easterColleggtible: this.easterColleggtible,
+      fireworkColleggtible: this.fireworkColleggtible,
+      pumpkinColleggtible: this.pumpkinColleggtible,
     });
   }
+
 
   epicResearchMaxed(): boolean {
     return (
