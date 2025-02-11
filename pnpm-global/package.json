@@ -1,6 +1,0 @@
-{
-  "private": true,
-  "devDependencies": {
-    "netlify-cli": "^18.0.4"
-  }
-}
