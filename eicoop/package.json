@@ -20,13 +20,13 @@
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/postcss": "^4.0.6",
     "@types/node": "^22.13.1",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/compiler-sfc": "^3.5.13",
     "autoprefixer": "^10.4.20",
     "mockjs": "^1.1.0",
     "pinia": "^2.3.1",
-    "pinia-di": "^3.1.2",
     "postcss": "^8.5.2",
     "postcss-inline-svg": "^6.0.0",
     "protobufjs": "^7.4.0",
@@ -34,8 +34,7 @@
     "typescript": "^5.7.3",
     "vite": "^6.1.0",
     "vite-plugin-mock": "^3.0.2",
-    "vue-tsc": "^2.2.0",
-    "vuex": "^4.1.0"
+    "vue-tsc": "^2.2.0"
   },
   "license": "MIT",
   "scripts": {
