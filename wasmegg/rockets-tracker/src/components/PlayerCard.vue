@@ -1,32 +1,20 @@
 <template>
   <div class="mx-4 xl:mx-0 my-4">
-    <div
-      class="relative max-w-xs mx-auto px-3 sm:px-4 py-1 text-center bg-gray-50 rounded-xl shadow"
-    >
+    <div class="relative max-w-xs mx-auto px-3 sm:px-4 py-1 text-center bg-gray-50 rounded-xl shadow">
       <button
         type="button"
         class="absolute p-1 top-2 right-2 sm:right-3 select-none focus:outline-none"
         @click="toggleCollapse"
       >
         <!-- fa: solid/compress-arrows-alt -->
-        <svg
-          v-if="!collapsed"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 512 512"
-          class="h-3 w-3 text-gray-500"
-        >
+        <svg v-if="!collapsed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="h-3 w-3 text-gray-500">
           <path
             fill="currentColor"
             d="M200 288H88c-21.4 0-32.1 25.8-17 41l32.9 31-99.2 99.3c-6.2 6.2-6.2 16.4 0 22.6l25.4 25.4c6.2 6.2 16.4 6.2 22.6 0L152 408l31.1 33c15.1 15.1 40.9 4.4 40.9-17V312c0-13.3-10.7-24-24-24zm112-64h112c21.4 0 32.1-25.9 17-41l-33-31 99.3-99.3c6.2-6.2 6.2-16.4 0-22.6L481.9 4.7c-6.2-6.2-16.4-6.2-22.6 0L360 104l-31.1-33C313.8 55.9 288 66.6 288 88v112c0 13.3 10.7 24 24 24zm96 136l33-31.1c15.1-15.1 4.4-40.9-17-40.9H312c-13.3 0-24 10.7-24 24v112c0 21.4 25.9 32.1 41 17l31-32.9 99.3 99.3c6.2 6.2 16.4 6.2 22.6 0l25.4-25.4c6.2-6.2 6.2-16.4 0-22.6L408 360zM183 71.1L152 104 52.7 4.7c-6.2-6.2-16.4-6.2-22.6 0L4.7 30.1c-6.2 6.2-6.2 16.4 0 22.6L104 152l-33 31.1C55.9 198.2 66.6 224 88 224h112c13.3 0 24-10.7 24-24V88c0-21.3-25.9-32-41-16.9z"
           />
         </svg>
         <!-- fa: solid/expand-arrows-alt -->
-        <svg
-          v-else
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 512 512"
-          class="h-3 w-3 text-gray-500"
-        >
+        <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="h-3 w-3 text-gray-500">
           <path
             fill="currentColor"
             d="M448 344v112a23.94 23.94 0 0 1-24 24H312c-21.39 0-32.09-25.9-17-41l36.2-36.2L224 295.6 116.77 402.9 153 439c15.09 15.1 4.39 41-17 41H24a23.94 23.94 0 0 1-24-24V344c0-21.4 25.89-32.1 41-17l36.19 36.2L184.46 256 77.18 148.7 41 185c-15.1 15.1-41 4.4-41-17V56a23.94 23.94 0 0 1 24-24h112c21.39 0 32.09 25.9 17 41l-36.2 36.2L224 216.4l107.23-107.3L295 73c-15.09-15.1-4.39-41 17-41h112a23.94 23.94 0 0 1 24 24v112c0 21.4-25.89 32.1-41 17l-36.19-36.2L263.54 256l107.28 107.3L407 327.1c15.1-15.2 41-4.5 41 16.9z"
@@ -54,12 +42,7 @@
               :src="badgeNAH"
               class="h-4"
             />
-            <img
-              v-if="hasFED"
-              v-tippy="{ content: 'Full Egg Dedication'}"
-              :src="badgeFED"
-              class="h-4"
-            />
+            <img v-if="hasFED" v-tippy="{ content: 'Full Egg Dedication' }" :src="badgeFED" class="h-4" />
 
             <img
               v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB"
@@ -141,7 +124,10 @@
           <div class="mt-1">
             <div class="text-xs">
               Last synced to server:
-              <span v-tippy="{ content: `${lastRefreshed.format('LLL')}, client version ${version}` }" class="whitespace-nowrap">
+              <span
+                v-tippy="{ content: `${lastRefreshed.format('LLL')}, client version ${version}` }"
+                class="whitespace-nowrap"
+              >
                 {{ lastRefreshedRelative }}
               </span>
             </div>
@@ -193,19 +179,13 @@
             </dd>
           </div>
 
-          <div
-            v-if="!collapsed"
-            class="grid gap-x-2 justify-center"
-            :style="{ gridTemplateColumns: '50% 50%' }"
-          >
+          <div v-if="!collapsed" class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
             <dt class="text-right text-sm font-medium whitespace-nowrap">Trophies</dt>
             <dd class="flex items-center text-left text-sm text-gray-900">
               {{ trophies }}/95,
               <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-4 w-4" />
               <span class="text-yellow-500">
-                {{ prophecyEggsProgress.fromTrophies.completed }}/{{
-                  prophecyEggsProgress.fromTrophies.available
-                }}
+                {{ prophecyEggsProgress.fromTrophies.completed }}/{{ prophecyEggsProgress.fromTrophies.available }}
               </span>
             </dd>
 
@@ -214,9 +194,7 @@
               M{{ dailyGifts.onMonth }}D{{ dailyGifts.onDay }},
               <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-4 w-4" />
               <span class="text-yellow-500">
-                {{ prophecyEggsProgress.fromDailyGifts.completed }}/{{
-                  prophecyEggsProgress.fromDailyGifts.available
-                }}
+                {{ prophecyEggsProgress.fromDailyGifts.completed }}/{{ prophecyEggsProgress.fromDailyGifts.available }}
               </span>
             </dd>
 
@@ -231,17 +209,11 @@
                 <span class="text-yellow-500 underline">
                   {{ prophecyEggsProgress.fromContracts.completed }}
                 </span>
-                <svg
-                  class="h-3.5 w-3.5 text-gray-500 hover:text-gray-600 ml-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
+                <svg class="h-3.5 w-3.5 text-gray-500 hover:text-gray-600 ml-1" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
                   />
-                  <path
-                    d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-                  />
+                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                 </svg>
               </a>
             </dd>
@@ -257,34 +229,21 @@
                 <span class="text-yellow-500 underline">
                   {{ prophecyEggsProgress.fromContractSeasons.completed }}
                 </span>
-                <svg
-                  class="h-3.5 w-3.5 text-gray-500 hover:text-gray-600 ml-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
+                <svg class="h-3.5 w-3.5 text-gray-500 hover:text-gray-600 ml-1" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
                   />
-                  <path
-                    d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-                  />
+                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                 </svg>
               </a>
             </dd>
           </div>
         </div>
 
-        <div
-          v-if="!collapsed"
-          class="py-2 grid gap-x-2 justify-center"
-          :style="{ gridTemplateColumns: '50% 50%' }"
-        >
+        <div v-if="!collapsed" class="py-2 grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
           <div class="text-right text-sm font-medium whitespace-nowrap">Lifetime earned</div>
           <div class="flex items-center text-left text-sm text-gray-900">
-            <img
-              :src="iconURL('egginc-extras/icon_golden_egg.png', 128)"
-              class="flex-shrink-0 h-4 w-4 -ml-0.5"
-            />
+            <img :src="iconURL('egginc-extras/icon_golden_egg.png', 128)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
             <span v-tippy="{ content: formatEIValue(lifetimeGoldenEggsEarned) }" class="truncate">
               {{ fmt(lifetimeGoldenEggsEarned) }}
             </span>
@@ -292,10 +251,7 @@
 
           <div class="text-right text-sm font-medium whitespace-nowrap">Lifetime spent</div>
           <div class="flex items-center text-left text-sm text-gray-900">
-            <img
-              :src="iconURL('egginc-extras/icon_golden_egg.png', 128)"
-              class="flex-shrink-0 h-4 w-4 -ml-0.5"
-            />
+            <img :src="iconURL('egginc-extras/icon_golden_egg.png', 128)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
             <span v-tippy="{ content: formatEIValue(lifetimeGoldenEggsSpent) }" class="truncate">
               {{ fmt(lifetimeGoldenEggsSpent) }}
             </span>
@@ -303,10 +259,7 @@
 
           <div class="text-right text-sm font-medium whitespace-nowrap">Crafting expenses</div>
           <div class="flex items-center text-left text-sm text-gray-900">
-            <img
-              :src="iconURL('egginc-extras/icon_golden_egg.png', 128)"
-              class="flex-shrink-0 h-4 w-4 -ml-0.5"
-            />
+            <img :src="iconURL('egginc-extras/icon_golden_egg.png', 128)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
             <span v-tippy="{ content: formatEIValue(goldenEggsSpentOnCrafting) }" class="truncate">
               ~{{ fmt(goldenEggsSpentOnCrafting) }}
             </span>
@@ -321,10 +274,7 @@
 
           <div class="text-right text-sm font-medium whitespace-nowrap">Current balance</div>
           <div class="flex items-center text-left text-sm text-gray-900">
-            <img
-              :src="iconURL('egginc-extras/icon_golden_egg.png', 128)"
-              class="flex-shrink-0 h-4 w-4 -ml-0.5"
-            />
+            <img :src="iconURL('egginc-extras/icon_golden_egg.png', 128)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
             <span v-tippy="{ content: formatEIValue(currentGoldenEggsBalance) }" class="truncate">
               {{ fmt(currentGoldenEggsBalance) }}
             </span>
@@ -334,37 +284,25 @@
             Piggy, <span class="text-purple-500">Level {{ piggyLevel }}</span>
           </div>
           <div class="flex items-center text-left text-sm text-gray-900">
-            <img
-              :src="iconURL('egginc-extras/icon_golden_egg.png', 128)"
-              class="flex-shrink-0 h-4 w-4 -ml-0.5"
-            />
+            <img :src="iconURL('egginc-extras/icon_golden_egg.png', 128)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
             <span v-tippy="{ content: formatEIValue(piggyGoldenEggs) }" class="truncate">
               {{ fmt(piggyGoldenEggs) }}
             </span>
           </div>
 
-          <div class="text-right text-sm font-medium whitespace-nowrap">
-            Lost Piggy Increments
-          </div>
+          <div class="text-right text-sm font-medium whitespace-nowrap">Lost Piggy Increments</div>
           <div class="flex items-center text-left text-sm text-gray-900">
-            <img
-              :src="iconURL('egginc-extras/icon_golden_egg.png', 128)"
-              class="flex-shrink-0 h-4 w-4 -ml-0.5"
-            />
+            <img :src="iconURL('egginc-extras/icon_golden_egg.png', 128)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
             <span v-tippy="{ content: formatEIValue(piggyLostIncrements) }" class="truncate">
               {{ fmt(piggyLostIncrements) }}
             </span>
           </div>
-          <div class="text-right text-sm font-medium whitespace-nowrap">
-            Date Piggy filled
-          </div>
+          <div class="text-right text-sm font-medium whitespace-nowrap">Date Piggy filled</div>
           <div class="flex items-center text-left text-sm text-gray-900">
             <span v-if="piggyFullDate > 0" v-tippy="{ content: dayjs.unix(piggyFullDate).fromNow() }">
-            {{ dayjs.unix(piggyFullDate).utc().format('YYYY-MM-DD HH:MM') }}
+              {{ dayjs.unix(piggyFullDate).utc().format('YYYY-MM-DD HH:MM') }}
             </span>
-            <span v-else>
-              Not Full
-            </span>
+            <span v-else> Not Full </span>
           </div>
         </div>
 
@@ -399,30 +337,26 @@
             >
               Inv. consume value
             </dt>
-              <div class="flex items-center text-left text-sm text-gray-900">
-              <img
-                :src="iconURL('egginc-extras/icon_golden_egg.png', 128)"
-                class="flex-shrink-0 h-4 w-4 -ml-0.5"
-              />
-            <dd class="flex items-center text-sm text-gray-900">
-              {{ fmtApprox(inventoryConsumptionValue[0]) }}
-              <img
-                :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 128)"
-                class="flex-shrink-0 h-4 w-4 ml-1.5"
-              />
-              {{ fmtApprox(inventoryConsumptionValue[1]) }}
-              <base-info
-                v-tippy="{
-                  content: `The inventory consumption value is an approximation of the expected number of GE and Piggy Fill that can be earned from fully (recursively) consuming everything in the inventory.
+            <div class="flex items-center text-left text-sm text-gray-900">
+              <img :src="iconURL('egginc-extras/icon_golden_egg.png', 128)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
+              <dd class="flex items-center text-sm text-gray-900">
+                {{ fmtApprox(inventoryConsumptionValue[0]) }}
+                <img
+                  :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 128)"
+                  class="flex-shrink-0 h-4 w-4 ml-1.5"
+                />
+                {{ fmtApprox(inventoryConsumptionValue[1]) }}
+                <base-info
+                  v-tippy="{
+                    content: `The inventory consumption value is an approximation of the expected number of GE and Piggy Fill that can be earned from fully (recursively) consuming everything in the inventory.
                   <span class='text-blue-300'>You can view detailed consumption outcomes in “Consumption sheet” on this site.</span>
                   Due to difficulty sampling consumption data of uncommon items, the calculation assumes you <span class='text-green-300'>demote them first</span>, with <span class='text-green-300'>demotion gold counting towards the total</span>.
-                  This also does not include any uncapped piggy fill due to difficulty calculating that. As such this will be a vast underestimate during Unlimited Piggy Events.`
-                  ,
-                  allowHTML: true,
-                }"
-                class="inline ml-0.5"
-              />
-            </dd>
+                  This also does not include any uncapped piggy fill due to difficulty calculating that. As such this will be a vast underestimate during Unlimited Piggy Events.`,
+                    allowHTML: true,
+                  }"
+                  class="inline ml-0.5"
+                />
+              </dd>
             </div>
             <dt
               v-tippy="{ content: fmtCraftingXpRarityMultiplier(craftingLevel) }"
@@ -432,7 +366,8 @@
             </dt>
             <dd
               v-tippy="{ content: craftingLevel.level === 30 ? 'Crafting Legend' : fmt(nextLevelXP - craftingXp) }"
-              class="text-left text-sm text-gray-900">
+              class="text-left text-sm text-gray-900"
+            >
               {{ fmt(craftingXp) }}
             </dd>
           </div>
@@ -445,25 +380,18 @@
             :href="`https://wasmegg-carpet.netlify.app/inventory-visualizer/?playerId=${userId}`"
             target="_blank"
             class="flex items-center justify-center space-x-0.5 text-xs"
-            :class="
-              true ? 'text-green-500 hover:text-green-600' : 'text-gray-500 hover:text-gray-600'
-            "
+            :class="true ? 'text-green-500 hover:text-green-600' : 'text-gray-500 hover:text-gray-600'"
           >
             <span class="underline">Visualize and share your inventory</span>
             <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path
                 d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
               />
-              <path
-                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-              />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
           </a>
 
-          <dl
-            class="grid gap-x-4 justify-center mt-1"
-            :style="{ gridTemplateColumns: 'repeat(4, min-content)' }"
-          >
+          <dl class="grid gap-x-4 justify-center mt-1" :style="{ gridTemplateColumns: 'repeat(4, min-content)' }">
             <div>
               <dt class="text-xs font-medium text-gray-900">Total</dt>
               <dd class="text-sm text-gray-900">{{ fmt(inventory.totalCount) }}</dd>
@@ -481,21 +409,15 @@
               <dd class="text-sm text-yellow-500">{{ fmt(inventory.legendaryCount) }}</dd>
             </div>
           </dl>
-          <div
-            v-if="inventory.epicCount > 0"
-            class="mt-1 flex flex-wrap justify-center space-y-0.5"
-          >
-            <template v-for="family in inventory.catalog" :key="family.id">
+          <div v-if="inventory.epicCount > 0" class="mt-1 flex flex-wrap justify-center space-y-0.5">
+            <template v-for="family in inventory.catalog" :key="family.afxId">
               <template v-for="tier in family.tiers" :key="tier.id">
                 <div
                   v-if="tier.haveEpic > 0"
                   v-tippy="{ content: `Epic ${tier.name} \u00d7 ${tier.haveEpic}` }"
                   class="h-6 w-6 mx-0.5 my-0.5 relative"
                 >
-                  <img
-                    :src="iconURL(tier.iconPath, 128)"
-                    class="h-6 w-6 p-0.5 rounded-full bg-epic"
-                  />
+                  <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-epic" />
                   <div
                     v-if="tier.haveEpic > 1"
                     class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
@@ -506,21 +428,15 @@
               </template>
             </template>
           </div>
-          <div
-            v-if="inventory.legendaryCount > 0"
-            class="mt-1 flex flex-wrap justify-center space-y-0.5"
-          >
-            <template v-for="family in inventory.catalog" :key="family.id">
+          <div v-if="inventory.legendaryCount > 0" class="mt-1 flex flex-wrap justify-center space-y-0.5">
+            <template v-for="family in inventory.catalog" :key="family.afxId">
               <template v-for="tier in family.tiers" :key="tier.id">
                 <div
                   v-if="tier.haveLegendary > 0"
                   v-tippy="{ content: `Legendary ${tier.name} \u00d7 ${tier.haveLegendary}` }"
                   class="h-6 w-6 mx-0.5 my-0.5 relative"
                 >
-                  <img
-                    :src="iconURL(tier.iconPath, 128)"
-                    class="h-6 w-6 p-0.5 rounded-full bg-legendary"
-                  />
+                  <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-legendary" />
                   <div
                     v-if="tier.haveLegendary > 1"
                     class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
@@ -537,25 +453,23 @@
               <span class="whitespace-nowrap">Farmers Without Legendaries</span>.
             </template>
             <template v-else-if="randIndex % 5 === 1">
-              The Secretary of Legendary has launched an investigation into the unusual number of
-              legendaries you possess.
+              The Secretary of Legendary has launched an investigation into the unusual number of legendaries you
+              possess.
             </template>
             <template v-else-if="randIndex % 5 === 2">
-              The Holy Order of Zero Legendaries has sacrificed three high-legendary-count
-              individuals in dark rituals over the past week. Watch your back!
+              The Holy Order of Zero Legendaries has sacrificed three high-legendary-count individuals in dark rituals
+              over the past week. Watch your back!
             </template>
             <template v-else-if="randIndex % 5 === 3">
-              The Gini coefficient of legendaries inequality has reached an all time high of 95%.
-              You are part of the problem, and the poor have taken note!
+              The Gini coefficient of legendaries inequality has reached an all time high of 95%. You are part of the
+              problem, and the poor have taken note!
             </template>
             <template v-else>
-              You have too many legendaries.<br />Hide them well, or you may soon find jealous
-              players with pitchforks at your doorstep.
+              You have too many legendaries.<br />Hide them well, or you may soon find jealous players with pitchforks
+              at your doorstep.
             </template>
           </div>
-          <template
-            v-else-if="zeroLegendaryShaming && !zeroLegendaryUnconditionallyUnworthyNickname"
-          >
+          <template v-else-if="zeroLegendaryShaming && !zeroLegendaryUnconditionallyUnworthyNickname">
             <div class="mt-2 text-xs text-yellow-800 truncate">
               {{ completedExtendedHenerpriseCount }} extended Henerprises,
               {{ completedExtendedHenerpriseTotalDropCount }} drops,
@@ -606,8 +520,7 @@
               v-if="isZLCRecordCloseFollower"
               class="mt-1 flex items-center justify-center text-xs text-yellow-800 truncate"
             >
-              {{ zlcExthenRecord - completedExtendedHenerpriseCount }} short of the current
-              record&nbsp;
+              {{ zlcExthenRecord - completedExtendedHenerpriseCount }} short of the current record&nbsp;
               <img :src="medalZLCRecord" class="inline h-4 w-4 mr-0.5" />
               <a
                 href="https://wasmegg-carpet.netlify.app/legendary-study"
@@ -618,12 +531,9 @@
               </a>
             </div>
           </template>
-          <div
-            v-else-if="zeroLegendaryUnconditionallyUnworthyNickname"
-            class="mt-2 text-xs text-gray-500"
-          >
-            Howdy {{ zeroLegendaryUnconditionallyUnworthyNickname }}, I heard you prefer not being
-            poop-worthy. So I'm happy to inform you that you're not.<br />
+          <div v-else-if="zeroLegendaryUnconditionallyUnworthyNickname" class="mt-2 text-xs text-gray-500">
+            Howdy {{ zeroLegendaryUnconditionallyUnworthyNickname }}, I heard you prefer not being poop-worthy. So I'm
+            happy to inform you that you're not.<br />
             Keep <s>defecating</s> launching.
           </div>
           <div v-else-if="zeroLegendaryUnworthyNickname" class="mt-2 text-xs text-gray-500">
@@ -642,9 +552,7 @@
               <path
                 d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
               />
-              <path
-                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-              />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
           </a>
         </div>
@@ -670,12 +578,10 @@
                 {{ playerGrade }}
               </span>
             </div>
-            <div style="display: none;">
+            <div style="display: none">
               <div class="text-right text-sm font-medium whitespace-nowrap">Next Grade Progress</div>
               <div class="flex items-center text-left text-sm text-gray-900">
-                <span class="truncate">
-                  {{ Math.round(gradeProgress) }}%
-                </span>
+                <span class="truncate"> {{ Math.round(gradeProgress) }}% </span>
               </div>
               <div class="text-right text-sm font-medium whitespace-nowrap">GradeEval Time</div>
               <div class="flex items-center text-left text-sm text-gray-900">
@@ -702,9 +608,7 @@
               <path
                 d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
               />
-              <path
-                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-              />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
           </a>
         </div>
@@ -713,10 +617,7 @@
           <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
             <div class="text-right text-sm font-medium whitespace-nowrap">Lifetime earned</div>
             <div class="flex items-center text-left text-sm text-gray-900">
-              <img
-                :src="iconURL('egginc/icon_shell_script_colored.png', 64)"
-                class="flex-shrink-0 h-4 w-4 -ml-0.5"
-              />
+              <img :src="iconURL('egginc/icon_shell_script_colored.png', 64)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
               <span class="truncate">
                 {{ fmt(lifetimeTicketsEarned) }}
               </span>
@@ -724,10 +625,7 @@
 
             <div class="text-right text-sm font-medium whitespace-nowrap">Lifetime spent</div>
             <div class="flex items-center text-left text-sm text-gray-900">
-              <img
-                :src="iconURL('egginc/icon_shell_script_colored.png', 64)"
-                class="flex-shrink-0 h-4 w-4 -ml-0.5"
-              />
+              <img :src="iconURL('egginc/icon_shell_script_colored.png', 64)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
               <span class="truncate">
                 {{ fmt(lifetimeTicketsSpent) }}
               </span>
@@ -735,10 +633,7 @@
 
             <div class="text-right text-sm font-medium whitespace-nowrap">Current balance</div>
             <div class="flex items-center text-left text-sm text-gray-900">
-              <img
-                :src="iconURL('egginc/icon_shell_script_colored.png', 64)"
-                class="flex-shrink-0 h-4 w-4 -ml-0.5"
-              />
+              <img :src="iconURL('egginc/icon_shell_script_colored.png', 64)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
               <span class="truncate">
                 {{ fmt(currentTicketsBalance) }}
               </span>
@@ -755,9 +650,7 @@
               <path
                 d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
               />
-              <path
-                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-              />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
           </a>
         </div>
@@ -777,7 +670,9 @@
             <dd class="text-left text-sm text-gray-900">{{ fmt(lifetimeVidDoubler) }}</dd>
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Airtime of Spaceships</dt>
-            <dd class="text-left text-sm text-gray-900">{{ formatDuration(getMissionAirTime(artifactsDB.missionArchive), true) }}</dd>
+            <dd class="text-left text-sm text-gray-900">
+              {{ formatDuration(getMissionAirTime(artifactsDB.missionArchive), true) }}
+            </dd>
           </div>
         </div>
 
@@ -788,7 +683,7 @@
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Last Contributed:</dt>
             <dd class="text-left text-sm text-gray-900">
-              {{ contributionTime > 0 ? dayjs(contributionTime).fromNow() : "Never" }}
+              {{ contributionTime > 0 ? dayjs(contributionTime).fromNow() : 'Never' }}
               <base-info
                 v-if="contributionTime > 0"
                 v-tippy="{
@@ -796,12 +691,12 @@
                 }"
                 class="inline ml-0.5"
               />
-              </dd>
-
+            </dd>
           </div>
           <button
             class="items-center justify-center space-x-0.5 text-sm text-gray-500 hover:text-gray-600 mt-1 underline"
-            @click="toggleContribution()">
+            @click="toggleContribution()"
+          >
             Toggle Mission Data Opt-In
           </button>
         </div>
@@ -906,7 +801,7 @@ const STAFF_USER_ID_HASHES = [
   '376a3acbdee3c9474c97ca21a341bce4424669f65ea08bdbf8504f886eb83278',
   '07240b7d19ee048b6a027aaa9500aa6facfb72c02effb9a426081aa2873b12e4',
   'f449381b27e3e313bd3e9df461b0260f48fd2594658cfee096008bdc9bdaa613',
-  'daddf1baaf841640de70e9b11f98ad253bce8f01f5addbc08e71d96deb0451e8'
+  'daddf1baaf841640de70e9b11f98ad253bce8f01f5addbc08e71d96deb0451e8',
 ];
 
 enum ShipClub {
@@ -927,7 +822,7 @@ const ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES = new Map<string, s
 const props = defineProps<{
   backup: ei.IBackup;
   inventory: Inventory;
-  eventBus: Emitter<Record<typeof REPORT_LEGENDARIES | typeof REPORT_MISSIONDATA,unknown>>
+  eventBus: Emitter<Record<typeof REPORT_LEGENDARIES | typeof REPORT_MISSIONDATA, unknown>>;
 }>();
 const { backup, inventory, eventBus } = toRefs(props);
 
@@ -949,7 +844,7 @@ onBeforeUnmount(() => {
 });
 
 const progress = computed(() => backup.value.game!);
-const version = computed(() => backup.value.version ?? "Unknown");
+const version = computed(() => backup.value.version ?? 'Unknown');
 const artifactsDB = computed(() => backup.value.artifactsDb!);
 const userId = computed(() => backup.value.eiUserId ?? '');
 const userIdHash = computed(() => sha256(backup.value.eiUserId ?? ''));
@@ -983,10 +878,7 @@ const artifactClub = computed((): ArtifactClub | null => {
 const shipClub = computed((): ShipClub | null => {
   const stats = missionStats.value;
   let allMissionsMaxed = true;
-  if (
-    stats.ships.length === 0 ||
-    stats.ships[stats.ships.length - 1].shipType !== Spaceship.ATREGGIES
-  ) {
+  if (stats.ships.length === 0 || stats.ships[stats.ships.length - 1].shipType !== Spaceship.ATREGGIES) {
     allMissionsMaxed = false;
   } else {
     for (const ship of stats.ships) {
@@ -1013,8 +905,8 @@ const hasNAH = computed(() => {
 });
 const hasFED = computed(() => {
   const farmsize = progress.value.maxFarmSizeReached!;
-  for(let i = 0; i < farmsize.length; i++) {
-    var compareAgainst = (i == ei.Egg.ENLIGHTENMENT - 1 ? 19845000000 : 14175000000);
+  for (let i = 0; i < farmsize.length; i++) {
+    const compareAgainst = i == ei.Egg.ENLIGHTENMENT - 1 ? 19845000000 : 14175000000;
     if (farmsize[i] < compareAgainst) {
       return false;
     }
@@ -1034,22 +926,18 @@ const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
 const soulEggs = computed(() => getNumSoulEggs(backup.value));
 const earningBonus = computed(() => getNakedEarningBonus(backup.value));
 const role = computed(() => earningBonusToFarmerRole(earningBonus.value));
-const trophies = computed(() =>
-  prophecyEggsProgress.value.fromTrophies.eggs.reduce((sum, egg) => sum + egg.level, 0)
-);
+const trophies = computed(() => prophecyEggsProgress.value.fromTrophies.eggs.reduce((sum, egg) => sum + egg.level, 0));
 const dailyGifts = computed(() => prophecyEggsProgress.value.fromDailyGifts);
 const lifetimeGoldenEggsEarned = computed(() => progress.value.goldenEggsEarned || 0);
 const lifetimeGoldenEggsSpent = computed(() => progress.value.goldenEggsSpent || 0);
 const goldenEggsSpentOnCrafting = computed(() => inventory.value.sunkCost);
-const currentGoldenEggsBalance = computed(
-  () => lifetimeGoldenEggsEarned.value - lifetimeGoldenEggsSpent.value
-);
+const currentGoldenEggsBalance = computed(() => lifetimeGoldenEggsEarned.value - lifetimeGoldenEggsSpent.value);
 const piggyLevel = computed(() => 1 + (backup.value.stats?.numPiggyBreaks || 0));
 const piggyGoldenEggs = computed(() =>
   Math.floor((progress.value.piggyBank || 0) * (1 + piggyLevelBonus(piggyLevel.value)))
 );
-const piggyFullDate = computed(() => backup.value.stats?.timePiggyFilledRealtime || 0 );
-const piggyLostIncrements = computed(() => backup.value.stats?.lostPiggyIncrements || 0 );
+const piggyFullDate = computed(() => backup.value.stats?.timePiggyFilledRealtime || 0);
+const piggyLostIncrements = computed(() => backup.value.stats?.lostPiggyIncrements || 0);
 const numPrestiges = computed(() => backup.value.stats?.numPrestiges || 0);
 const launchedMissions = computed(() => getLaunchedMissions(artifactsDB.value));
 const numMissions = computed(() => launchedMissions.value.length);
@@ -1065,38 +953,35 @@ const daysSinceFirstMission = computed(() => {
 const inventoryScore = computed(() => {
   //dont calculate if they have over 9m of anything
   const tooManyItems = backup.value.artifactsDb?.inventoryItems?.find(item => (item.quantity ?? 0) > 9000000);
-  if (tooManyItems) { return Math.floor(backup.value.artifacts?.inventoryScore || 1); }
+  if (tooManyItems) {
+    return Math.floor(backup.value.artifacts?.inventoryScore || 1);
+  }
 
   const scores = backup.value.artifactsDb?.inventoryItems?.map(arti =>
-    arti.artifact?.spec ?
-      getArtifactTierProps(arti.artifact.spec.name!, arti.artifact.spec.level!).quality * (arti.quantity ?? 0):
-    0
+    arti.artifact?.spec
+      ? getArtifactTierProps(arti.artifact.spec.name!, arti.artifact.spec.level!).quality * (arti.quantity ?? 0)
+      : 0
   ) ?? [0];
-  return Math.floor(scores.reduce((sum, artiscore) => sum + artiscore) || 1 );
-}
-)
+  return Math.floor(scores.reduce((sum, artiscore) => sum + artiscore) || 1);
+});
 const craftingXp = computed(() => Math.floor(backup.value.artifacts?.craftingXp || 0));
 const craftingLevel = computed(() => getCraftingLevelFromXp(craftingXp.value));
 const nextLevelXP = computed(() => getXPFromCraftingLevel(craftingLevel.value.level + 1));
 
-const inventoryConsumptionValue = computed(() =>
-  inventoryExpectedFullConsumption(inventory.value as Inventory)
-);
+const inventoryConsumptionValue = computed(() => inventoryExpectedFullConsumption(inventory.value as Inventory));
 
 // Contract Stuff
 const contractProgress = computed(() => backup.value.contracts?.lastCpi);
 const lastEvalTime = computed(() => contractProgress.value?.lastEvaluationTime || 0);
-const lastEvalVersion = computed(() => contractProgress.value?.lastEvaluationVersion || "unknown");
+const lastEvalVersion = computed(() => contractProgress.value?.lastEvaluationVersion || 'unknown');
 const seasonCxp = computed(() => contractProgress.value?.seasonCxp || 0);
-const totalCxp  = computed(() => contractProgress.value?.totalCxp || 0 );
+const totalCxp = computed(() => contractProgress.value?.totalCxp || 0);
 const playerGrade = computed(() => gradeName[contractProgress.value?.grade || 0]);
 const gradeProgress = computed(() => (contractProgress.value?.gradeProgress || 0) * 100);
 
 const lifetimeTicketsEarned = computed(() => progress.value.shellScriptsEarned || 0);
 const lifetimeTicketsSpent = computed(() => progress.value.shellScriptsSpent || 0);
-const currentTicketsBalance = computed(
-  () => lifetimeTicketsEarned.value - lifetimeTicketsSpent.value
-);
+const currentTicketsBalance = computed(() => lifetimeTicketsEarned.value - lifetimeTicketsSpent.value);
 
 const lifetimeDrones = computed(() => backup.value.stats?.droneTakedowns || 0);
 const lifetimeEliteDrones = computed(() => backup.value.stats?.droneTakedownsElite || 0);
@@ -1111,9 +996,7 @@ const hasTooManyLegendaries = computed(() => {
   }
   return count >= LEGENDARIES_JEALOUSY_THRESHOLD;
 });
-const completedExtendedHenerprises = computed(() =>
-  getCompletedExtendedHenerprises(artifactsDB.value)
-);
+const completedExtendedHenerprises = computed(() => getCompletedExtendedHenerprises(artifactsDB.value));
 const completedExtendedHenerpriseCount = computed(() => completedExtendedHenerprises.value.length);
 const completedExtendedHenerpriseTotalDropCount = computed(() =>
   completedExtendedHenerprises.value.reduce((sum, mission) => sum + (mission.capacity ?? 0), 0)
@@ -1139,8 +1022,7 @@ const zeroLegendaryShaming = computed(
   () =>
     inventory.value.legendaryCount === 0 &&
     completedExtendedHenerpriseCount.value >= ZERO_LEGENDARY_EXTHEN_COUNT_SHAME_TRESHOLD &&
-    completedExtendedHenerpriseTotalDropCount.value >=
-      ZERO_LEGENDARY_EXTHEN_TOTAL_DROP_SHAME_TRESHOLD
+    completedExtendedHenerpriseTotalDropCount.value >= ZERO_LEGENDARY_EXTHEN_TOTAL_DROP_SHAME_TRESHOLD
 );
 // Certain ZLC players have been longing the poop badge
 // (zeroLegendaryShaming), but they are not worthy, yet.
@@ -1159,19 +1041,19 @@ const zeroLegendaryUnconditionallyUnworthyNickname = computed(() =>
     : undefined
 );
 const randIndex = Math.floor(Math.random() * 10000);
-const gradeName = ["None", "C", "B", "A", "AA", "AAA"];
+const gradeName = ['None', 'C', 'B', 'A', 'AA', 'AAA'];
 
 // Toggle opt in for menno's data collection
 const optin = ref(getMissionDataPreference(userId.value));
-const contributor = computed(() => optin.value ? "Yes" : "No");
+const contributor = computed(() => (optin.value ? 'Yes' : 'No'));
 const contributionTime = ref(getMissionDataSubmitTime(userId.value));
 
 const refreshMissionDataParams = () => {
   optin.value = getMissionDataPreference(userId.value);
   contributionTime.value = getMissionDataSubmitTime(userId.value);
-}
+};
 const toggleContribution = () => {
-  recordMissionDataPreference(userId.value,!optin.value);
+  recordMissionDataPreference(userId.value, !optin.value);
   // submit their data if they are now opted in. Does nothing if they're opted out
   eventBus.value.emit(REPORT_MISSIONDATA);
 };
@@ -1186,7 +1068,6 @@ function fmt(n: number): string {
 function fmtApprox(n: number): string {
   return n === 0 ? '0' : `~${formatEIValue(n, { precision: 2 })}`;
 }
-
 
 function piggyLevelBonus(level: number): number {
   switch (level) {
@@ -1205,9 +1086,7 @@ function fmtCraftingXpRarityMultiplier(craftingLevel: PlayerCraftingLevel): stri
   const mult = craftingLevel.rarityMult;
 
   // mimic the way EI shows the increase value on screen
-  const increase = (mult < 2) ?
-    `${Math.floor((mult-1) * 100)}%` :
-    `${Number(mult.toFixed(2))}x`;
+  const increase = mult < 2 ? `${Math.floor((mult - 1) * 100)}%` : `${Number(mult.toFixed(2))}x`;
 
   return `${increase} increase in chance to craft Rare, Epic or Legendary Artifacts`;
 }
