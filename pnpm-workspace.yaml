@@ -1,5 +1,4 @@
 packages:
-  - pnpm-global
   - lib
   - ui
   - eicoop

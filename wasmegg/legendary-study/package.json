@@ -11,9 +11,9 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "@headlessui/vue": "^1.7.19",
+    "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^1.0.6",
-    "@vue/runtime-core": "^3.4.21",
+    "@vue/runtime-core": "^3.5.13",
     "copy-text-to-clipboard": "^3.2.0",
     "dayjs": "^1.11.13",
     "diff": "^5.2.0",
@@ -24,9 +24,9 @@
     "safari-14-idb-fix": "^3.0.0",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
-    "vue": "^3.4.21",
-    "vue-router": "^4.4.0",
-    "vue-tippy": "^6.4.4"
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vue-tippy": "^6.6.0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
@@ -35,12 +35,12 @@
     "@types/hogan.js": "^3.0.5",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vitejs/plugin-vue-jsx": "^4.1.1",
-    "@vue/compiler-sfc": "^3.4.21",
+    "@vue/compiler-sfc": "^3.5.13",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.7.3",
-    "vite": "^6.0.11",
-    "vue-tsc": "^2.0.14"
+    "vite": "^6.1.0",
+    "vue-tsc": "^2.2.0"
   }
 }
