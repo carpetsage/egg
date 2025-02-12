@@ -3,15 +3,13 @@
 </template>
 
 <script lang="ts">
+import useCoopSelectorStore from '@/stores/coopSelector';
 import { defineComponent } from 'vue';
-import { useStore } from 'vuex';
-
-import { key } from '@/store';
 
 export default defineComponent({
   setup() {
-    const store = useStore(key);
-    const show = () => store.commit('coopSelector/show');
+    const coopSelectorStore = useCoopSelectorStore();
+    const show = () => coopSelectorStore.show();
     return {
       show,
     };

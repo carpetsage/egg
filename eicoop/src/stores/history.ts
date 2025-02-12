@@ -1,8 +1,5 @@
-import { ActionTree, Module, MutationTree } from 'vuex';
-
+import { defineStore } from 'pinia';
 import { ei, getLocalStorage, setLocalStorage } from '@/lib';
-
-import { RootState } from '../types';
 
 const MAX_COOP_ENTRIES = 5;
 
@@ -15,7 +12,7 @@ export interface HistoryCoopEntry {
   contractEgg: ei.Egg;
   customEggId?: string | null;
   coopCode: string;
-  grade?: string,
+  grade?: string;
 }
 
 export interface State {
@@ -77,42 +74,32 @@ function persistCoopsToLocalStorage(coops: HistoryCoopEntry[]) {
   );
 }
 
-const state: State = {
-  coops: loadCoopsFromLocalStorage(),
-};
-
-const getters = {};
-
-const actions: ActionTree<State, RootState> = {
-  addCoop({ commit, state }, newEntry: HistoryCoopEntry) {
-    commit('addCoop', newEntry);
-    persistCoopsToLocalStorage(state.coops);
-  },
-};
-
-const mutations: MutationTree<State> = {
-  addCoop(state, newEntry: HistoryCoopEntry) {
-    // Remove existing matching entries.
-    let i = 0;
-    while (i < state.coops.length) {
-      const entry = state.coops[i];
-      if (entry.contractId === newEntry.contractId && entry.coopCode === newEntry.coopCode) {
-        state.coops.splice(i, 1);
-      } else {
-        i++;
+export const useHistoryStore = defineStore('history', {
+  state: (): State => ({
+    coops: loadCoopsFromLocalStorage(),
+  }),
+  actions: {
+    persistCoop(newEntry: HistoryCoopEntry) {
+      this.addCoop(newEntry);
+      persistCoopsToLocalStorage(this.coops);
+    },
+    addCoop(newEntry: HistoryCoopEntry) {
+      // Remove existing matching entries.
+      let i = 0;
+      while (i < this.coops.length) {
+        const entry = this.coops[i];
+        if (entry.contractId === newEntry.contractId && entry.coopCode === newEntry.coopCode) {
+          this.coops.splice(i, 1);
+        } else {
+          i++;
+        }
       }
-    }
-    state.coops.unshift(newEntry);
-    while (state.coops.length > MAX_COOP_ENTRIES) {
-      state.coops.pop();
-    }
+      this.coops.unshift(newEntry);
+      while (this.coops.length > MAX_COOP_ENTRIES) {
+        this.coops.pop();
+      }
+    },
   },
-};
+});
 
-export default {
-  namespaced: true,
-  state,
-  getters,
-  actions,
-  mutations,
-} as Module<State, RootState>;
+export default useHistoryStore;

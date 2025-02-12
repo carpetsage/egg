@@ -33,8 +33,8 @@ export function eggTooltip(egg: ei.Egg, custom_egg_id?: string | null): string {
     value < 0.01
       ? value.toFixed(7)
       : value < 100
-      ? trimTrailingZeros(value.toFixed(2))
-      : formatEIValue(value, { trim: true });
+        ? trimTrailingZeros(value.toFixed(2))
+        : formatEIValue(value, { trim: true });
   return `${eggName(egg, custom_egg_id)} Egg, value: ${valueDisplay}`;
 }
 
@@ -44,10 +44,7 @@ export enum RoundingMode {
   Up = 1,
 }
 
-export function formatWithThousandSeparators(
-  x: number,
-  roundingMode = RoundingMode.Nearest
-): string {
+export function formatWithThousandSeparators(x: number, roundingMode = RoundingMode.Nearest): string {
   let rounded: number;
   switch (roundingMode) {
     case RoundingMode.Down:

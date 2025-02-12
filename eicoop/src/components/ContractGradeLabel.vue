@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { ei, iconURL } from 'lib'
+import { ei, iconURL } from 'lib';
 import { defineComponent, PropType, toRefs } from 'vue';
 
 export default defineComponent({
@@ -15,9 +15,10 @@ export default defineComponent({
   },
   setup(props) {
     const { grade } = toRefs(props);
-    const gradeIcon = grade.value > ei.Contract.PlayerGrade.GRADE_UNSET ?
-      iconURL(`egginc/contract_${ei.Contract.PlayerGrade[grade.value].toLowerCase()}.png`, 64) :
-      iconURL(`egginc/contract_grade_c.png`, 64)
+    const gradeIcon =
+      grade.value > ei.Contract.PlayerGrade.GRADE_UNSET
+        ? iconURL(`egginc/contract_${ei.Contract.PlayerGrade[grade.value].toLowerCase()}.png`, 64)
+        : iconURL(`egginc/contract_grade_c.png`, 64);
     return {
       gradeIcon,
       ei,

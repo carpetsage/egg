@@ -1,5 +1,5 @@
 <template>
-  <Listbox as="div" :model-value="selectedContract" @update:modelValue="updateSelectedContract">
+  <Listbox as="div" :model-value="selectedContract" @update:model-value="updateSelectedContract">
     <ListboxLabel class="block text-sm text-gray-900 dark:text-gray-100" for="contract_id_selected">
       Select a contract:
     </ListboxLabel>
@@ -9,9 +9,7 @@
       >
         <span class="flex items-center">
           <base-icon
-            :icon-rel-path="
-              selectedContract ? contractEggIconPath(selectedContract) : 'egginc/egg_unknown.png'
-            "
+            :icon-rel-path="selectedContract ? contractEggIconPath(selectedContract) : 'egginc/egg_unknown.png'"
             :size="64"
             class="flex-shrink-0 -ml-0.5 h-6 w-6 rounded-full"
           />
@@ -49,18 +47,12 @@
                   :size="64"
                   class="flex-shrink-0 -ml-0.5 h-6 w-6 rounded-full"
                 />
-                <span
-                  class="!duration-0"
-                  :class="[selected ? 'font-semibold' : 'font-normal', 'ml-2 block truncate']"
-                >
+                <span class="!duration-0" :class="[selected ? 'font-semibold' : 'font-normal', 'ml-2 block truncate']">
                   {{ contract.name }}
                 </span>
               </div>
 
-              <span
-                v-if="selected"
-                class="text-green-500 absolute inset-y-0 right-0 flex items-center pr-4"
-              >
+              <span v-if="selected" class="text-green-500 absolute inset-y-0 right-0 flex items-center pr-4">
                 <CheckIcon class="h-5 w-5" aria-hidden="true" />
               </span>
             </li>
@@ -73,13 +65,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from '@headlessui/vue';
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
 import { CheckIcon, SelectorIcon } from '@heroicons/vue/solid';
 
 import { Contract, eggIconPath } from '@/lib';

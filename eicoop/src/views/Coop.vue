@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <main class="flex-1 max-w-ultrawide w-full mx-auto mt-2 ultrawide:px-4">
     <coop-card-loader :contract-id="contractId" :coop-code="coopCode" :gradearg="grade" @success="onSuccess" />
@@ -7,10 +8,9 @@
 
 <script lang="ts">
 import { defineComponent, toRefs } from 'vue';
-import { useStore } from 'vuex';
 
 import { CoopStatus } from '@/lib';
-import { HistoryCoopEntry, key } from '@/store';
+import useHistoryStore, { HistoryCoopEntry } from '@/stores/history';
 import CoopCardLoader from '@/components/CoopCardLoader.vue';
 import FrequentlyAskedQuestions from '@/components/FrequentlyAskedQuestions.vue';
 
@@ -30,11 +30,11 @@ export default defineComponent({
     },
     grade: {
       type: String,
-      default: "",
-    }
+      default: '',
+    },
   },
   setup(props) {
-    const store = useStore(key);
+    const historyStore = useHistoryStore();
     const { grade } = toRefs(props);
     const onSuccess = (coopStatus: CoopStatus) => {
       const entry: HistoryCoopEntry = {
@@ -44,7 +44,7 @@ export default defineComponent({
         coopCode: coopStatus.coopCode,
         grade: grade.value,
       };
-      store.dispatch('history/addCoop', entry);
+      historyStore.addCoop(entry);
     };
     return {
       onSuccess,

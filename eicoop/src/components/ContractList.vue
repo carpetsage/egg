@@ -35,12 +35,7 @@
         </button>
         <div class="relative ml-auto mr-1 ultrawide:mr-0 rounded-md shadow-sm">
           <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-            <svg
-              class="h-4 w-4 text-gray-400"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
+            <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path
                 fill-rule="evenodd"
                 d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -86,26 +81,21 @@
       <template #body="{ data: contract }">
         <span
           v-tippy="
-            isAvailable(contract, now)
-              ? { content: `Expires in ${durationUntilExpiration(contract, now)}` }
-              : {}
+            isAvailable(contract, now) ? { content: `Expires in ${durationUntilExpiration(contract, now)}` } : {}
           "
           class="flex items-center cursor-pointer"
           :class="[
             isAvailable(contract, now)
               ? 'text-green-500'
               : contract.type === 'Original'
-              ? columnColorClassesOriginal
-              : columnColorClasses,
+                ? columnColorClassesOriginal
+                : columnColorClasses,
             contract.type === 'Original' ? 'font-medium ' : null,
           ]"
           @click="selectContractAndShowCoopSelector(contract.id)"
         >
           {{ contract.name }}
-          <div
-            v-if="contract.ccOnly"
-            class="flex items-center ml-1"
-          >
+          <div v-if="contract.ccOnly" class="flex items-center ml-1">
             <base-icon
               v-tippy="{ content: `You must be subscribed to Egg Inc Ultra to see this contract in game` }"
               :icon-rel-path="'egginc/sub_icon.png'"
@@ -113,10 +103,7 @@
               class="block -ml-0.5 h-4 w-4"
             />
           </div>
-          <div
-            v-if="contract.type === 'Original' && contract.prophecyEggs > 0"
-            class="flex items-center ml-1"
-          >
+          <div v-if="contract.type === 'Original' && contract.prophecyEggs > 0" class="flex items-center ml-1">
             <base-icon
               v-for="index in contract.prophecyEggs"
               :key="Number(index)"
@@ -136,10 +123,7 @@
       :body-class="columnBodyClasses"
     >
       <template #body="{ data: contract }">
-        <span
-          :class="[columnColorClasses, 'cursor-pointer']"
-          @click="selectContractAndShowCoopSelector(contract.id)"
-        >
+        <span :class="[columnColorClasses, 'cursor-pointer']" @click="selectContractAndShowCoopSelector(contract.id)">
           {{ contract.id }}
         </span>
       </template>
@@ -163,13 +147,7 @@
         </select>
       </template>
       <template #body="{ data: contract }">
-        <span
-          :class="
-            contract.type === 'Original'
-              ? [columnColorClassesOriginal, 'font-medium']
-              : columnColorClasses
-          "
-        >
+        <span :class="contract.type === 'Original' ? [columnColorClassesOriginal, 'font-medium'] : columnColorClasses">
           {{ contract.type }}
         </span>
       </template>
@@ -391,18 +369,18 @@
 
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, PropType, ref, toRefs } from 'vue';
-import { useStore } from 'vuex';
 import DataTable, { DataTableExpandedRows } from 'primevue/datatable';
 import Column from 'primevue/column';
 import { FilterMatchMode } from 'primevue/api';
 import dayjs from 'dayjs';
 
 import { Contract, eggIconPath, formatDuration, formatEIValue } from '@/lib';
-import { key } from '@/store';
 import { eggTooltip } from '@/utils';
 import BaseInput from 'ui/components/BaseInput.vue';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 import ContractListExpansion from './ContractListExpansion.vue';
+import useThemeStore from '@/stores/theme';
+import useCoopSelectorStore from '@/stores/coopSelector';
 
 export default defineComponent({
   components: {
@@ -425,18 +403,18 @@ export default defineComponent({
   emits: ['update:rowsPerPage'],
   setup(props, { emit }) {
     const { contracts } = toRefs(props);
-    const store = useStore(key);
+    const themeStore = useThemeStore();
+    const coopselectorStore = useCoopSelectorStore();
 
     // We need to set .dark on the root of this component, otherwise scoped
     // dark:... cannot apply.
-    const darkThemeOn = computed(() => store.state.theme.darkThemeOn);
+    const darkThemeOn = computed(() => themeStore.darkThemeOn);
 
     const columnHeaderClasses =
       'px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none text-left ';
     const columnHeaderNarrowClasses =
       'px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-200 focus:outline-none';
-    const columnBodyClasses =
-      'px-4 py-1 whitespace-nowrap text-sm text-gray-500 dark:text-gray-200 tabular-nums';
+    const columnBodyClasses = 'px-4 py-1 whitespace-nowrap text-sm text-gray-500 dark:text-gray-200 tabular-nums';
     const columnColorClasses = 'text-gray-500 dark:text-gray-200';
     const columnColorClassesOriginal = 'text-gray-700 dark:text-yellow-200';
 
@@ -465,7 +443,7 @@ export default defineComponent({
       for (const contract of contracts.value) {
         rows[contract.uniqueKey] = true;
       }
-      return rows
+      return rows;
     });
     // For some reason this only works if you replace the entire object at once
     // https://github.com/primefaces/primevue/issues/5372
@@ -476,15 +454,14 @@ export default defineComponent({
       expandedRows.value = {};
     };
     const selectContractAndShowCoopSelector = (contractId: string) =>
-      store.dispatch('coopSelector/selectContractAndShow', contractId);
+      coopselectorStore.selectContractAndShow(contractId);
     const contractEggIconPath = (contract: Contract) => eggIconPath(contract.egg!, contract.customEggId);
     const contractEggTooltip = (contract: Contract) => eggTooltip(contract.egg!, contract.customEggId);
     const isAvailable = (contract: Contract, now: number) => contract.expirationTime! > now / 1000;
     const durationUntilExpiration = (contract: Contract, now: number) =>
       formatDuration(Math.max(contract.expirationTime! - now / 1000, 0), true);
     const formatDate = (timestamp: number) => dayjs(timestamp * 1000).format('YYYY-MM-DD');
-    const formatDateTime = (timestamp: number) =>
-      dayjs(timestamp * 1000).format('YYYY-MM-DD HH:mm');
+    const formatDateTime = (timestamp: number) => dayjs(timestamp * 1000).format('YYYY-MM-DD HH:mm');
 
     const onRowsPerPageChange = (event: Event) =>
       emit('update:rowsPerPage', parseInt((event.target! as HTMLSelectElement).value));

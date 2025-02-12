@@ -1,9 +1,5 @@
 <template>
-  <tippy
-    class="active:duration-0 cursor-pointer select-none"
-    :class="colorClasses"
-    @click="copyTextToClipboard(text)"
-  >
+  <tippy class="active:duration-0 cursor-pointer select-none" :class="colorClasses" @click="copyTextToClipboard(text)">
     <slot>{{ text }}</slot>
     <template #content>
       <slot name="tooltip">Click to copy</slot>

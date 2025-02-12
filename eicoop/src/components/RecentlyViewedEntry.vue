@@ -31,11 +31,11 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { useStore } from 'vuex';
 
-import { HistoryCoopEntry, key } from '@/store';
+import { HistoryCoopEntry } from '@/stores/history';
 import { eggIconPath } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
+import useCoopSelectorStore from '@/stores/coopSelector';
 
 export default defineComponent({
   components: {
@@ -48,14 +48,12 @@ export default defineComponent({
     },
     colorClasses: {
       type: String,
-      default:
-        'text-gray-700 dark:text-gray-200 hover:text-gray-400 dark:hover:text-gray-400 !duration-100',
+      default: 'text-gray-700 dark:text-gray-200 hover:text-gray-400 dark:hover:text-gray-400 !duration-100',
     },
   },
   setup() {
-    const store = useStore(key);
-    const selectContractAndShowCoopSelector = (contractId: string) =>
-      store.dispatch('coopSelector/selectContractAndShow', contractId);
+    const store = useCoopSelectorStore();
+    const selectContractAndShowCoopSelector = (contractId: string) => store.selectContractAndShow(contractId);
     return {
       selectContractAndShowCoopSelector,
       eggIconPath,

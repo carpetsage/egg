@@ -2,8 +2,10 @@
   <div class="relative">
     <coop-card v-if="coopStatus" :status="coopStatus" />
     <coop-card-skeleton v-else :contract-id="contractId" :coop-code="coopCode" :contract="knownContract" />
-    <div v-if="loading || error"
-      class="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 bg-opacity-80 dark:bg-opacity-80">
+    <div
+      v-if="loading || error"
+      class="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 bg-opacity-80 dark:bg-opacity-80"
+    >
       <div class="h-full py-4 flex items-center justify-center">
         <base-loading v-if="loading" />
         <div v-else-if="error" class="max-h-full overflow-y-scroll">
@@ -19,13 +21,12 @@ import { defineComponent, PropType, provide, Ref, ref, toRefs, watch } from 'vue
 
 import { CoopStatus, ei, requestCoopStatus } from '@/lib';
 import { ContractLeague } from 'lib';
-import { key } from '@/store';
 import { refreshCallbackKey } from '@/symbols';
 import BaseLoading from '@/components/BaseLoading.vue';
 import CoopCard from '@/components/CoopCard.vue';
 import CoopCardSkeleton from '@/components/CoopCardSkeleton.vue';
 import ErrorMessage from '@/components/ErrorMessage.vue';
-import { useStore } from 'vuex';
+import useContractsStore from '@/stores/contracts';
 
 export default defineComponent({
   components: {
@@ -62,7 +63,7 @@ export default defineComponent({
     },
     userId: {
       type: String as PropType<string | undefined>,
-      default: undefined
+      default: undefined,
     },
   },
   emits: {
@@ -71,7 +72,7 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    const store = useStore(key);
+    const contractStore = useContractsStore();
     const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey, userId } = toRefs(props);
 
     const loading = ref(true);
@@ -81,23 +82,21 @@ export default defineComponent({
     const refreshCoopStatus = async () => {
       loading.value = true;
       error.value = undefined;
-      let grade = knownGrade.value;
+      const grade = knownGrade.value;
       let validId = userId.value;
 
       try {
-        if (!userId.value?.startsWith("EI") || userId.value?.length != 19) {
+        if (!userId.value?.startsWith('EI') || userId.value?.length != 19) {
           validId = undefined;
         }
-        const status = new CoopStatus(
-          await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), validId)
-        );
+        const status = new CoopStatus(await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), validId));
         await status.resolveContract({
-          store: store.state.contracts.list,
+          store: contractStore.list,
           knownContract: knownContract.value || coopStatus.value?.contract || undefined,
           knownLeague: knownLeague.value || coopStatus.value?.league || undefined,
           knownGrade: grade || coopStatus.value?.grade || undefined,
         });
-        store.commit('contracts/addContract', status.contract!);
+        contractStore.addContract(status.contract!);
         emit('success', status);
         coopStatus.value = status;
       } catch (err) {

@@ -22,10 +22,9 @@ export function useAutoRefreshedRelativeTime(
   const relativeTime = ref('');
   const refreshPure = () => {
     now.value = dayjs();
-    relativeTime.value = (referenceTime.value.isBefore(now.value)
-      ? referenceTime.value
-      : now.value
-    ).fromNow(opts?.withoutSuffix);
+    relativeTime.value = (referenceTime.value.isBefore(now.value) ? referenceTime.value : now.value).fromNow(
+      opts?.withoutSuffix
+    );
   };
   refreshPure();
 

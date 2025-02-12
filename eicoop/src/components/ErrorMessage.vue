@@ -25,12 +25,7 @@
       class="mx-auto flex items-center justify-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 focus:outline-none rounded-md !duration-0"
       @click="triggerRefresh"
     >
-      <svg
-        class="-ml-px mr-1.5 h-3 w-3 text-gray-100"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
+      <svg class="-ml-px mr-1.5 h-3 w-3 text-gray-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -71,10 +66,7 @@ export default defineComponent({
     const devmode = inject(devmodeKey);
     console.error(error.value);
     const formattedError = computed(() =>
-      String(error.value).replaceAll(
-        /EI\d{16}/g,
-        s => s.substring(0, 6) + '********' + s.substring(14)
-      )
+      String(error.value).replaceAll(/EI\d{16}/g, s => s.substring(0, 6) + '********' + s.substring(14))
     );
     const encodedError = computed(() => btoa(String(error.value)));
     const triggerRefresh = inject(refreshCallbackKey, () => {

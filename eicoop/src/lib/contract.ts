@@ -22,7 +22,12 @@ export enum ContractCompletionStatus {
 export async function getContractFromPlayerSave(
   userId: string,
   contractId: string
-): Promise<{ contract: ei.IContract; league: ContractLeague | null, grade: ei.Contract.PlayerGrade | null, creatorName: string } | null> {
+): Promise<{
+  contract: ei.IContract;
+  league: ContractLeague | null;
+  grade: ei.Contract.PlayerGrade | null;
+  creatorName: string;
+} | null> {
   const firstContact = await requestFirstContact(userId);
   if (!firstContact.backup) {
     throw new Error(`No backup found in /ei/bot_first_contact response for ${userId}.`);
@@ -31,10 +36,7 @@ export async function getContractFromPlayerSave(
   if (!backup.contracts) {
     throw new Error(`No contracts found in ${userId}'s backup.`);
   }
-  const localContracts = [
-    ...backup.contracts.contracts ?? [],
-    ...backup.contracts.archive ?? []
-  ];
+  const localContracts = [...(backup.contracts.contracts ?? []), ...(backup.contracts.archive ?? [])];
   for (const contract of localContracts) {
     if (contractId === contract.contract!.identifier) {
       return {
@@ -49,13 +51,15 @@ export async function getContractFromPlayerSave(
 }
 
 export function getModifiers(gradeSpec: ei.Contract.IGradeSpec) {
-  if (!gradeSpec.modifiers) { return ["None"] }
-  return gradeSpec.modifiers.map( modifier => {
+  if (!gradeSpec.modifiers) {
+    return ['None'];
+  }
+  return gradeSpec.modifiers.map(modifier => {
     if (modifier.dimension && modifier.value) {
-      const name = ei.GameModifier.GameDimension[modifier.dimension]
+      const name = ei.GameModifier.GameDimension[modifier.dimension];
       return `${titleCase(name)}: ${modifier.value}x`;
     }
-    return "None";
+    return 'None';
   });
 }
 
@@ -87,9 +91,13 @@ export class ContractLeagueStatus {
     this.goals = goals;
     this.finalTarget = goals[goals.length - 1].targetAmount!;
     this.expectedTimeToComplete = expectedTimeToTarget(eggsLaid, eggsPerHour, this.finalTarget);
-    this.expectedTimeToCompleteOfflineAdjusted = expectedTimeToTarget(eggsLaidOfflineAdjusted, eggsPerHour, this.finalTarget);
+    this.expectedTimeToCompleteOfflineAdjusted = expectedTimeToTarget(
+      eggsLaidOfflineAdjusted,
+      eggsPerHour,
+      this.finalTarget
+    );
 
-    if (eggsLaid >= this.finalTarget || status === "SUCCESS") {
+    if (eggsLaid >= this.finalTarget || status === 'SUCCESS') {
       this.completionStatus = ContractCompletionStatus.HasCompleted;
       this.requiredEggsPerHour = 0;
       return;
@@ -123,17 +131,12 @@ export class ContractLeagueStatus {
   }
 
   expectedTimeToCompleteGoal(goal: ei.Contract.IGoal): number {
-    return expectedTimeToTarget(
-      this.eggsLaid, this.eggsPerHour, goal.targetAmount!
-    );
+    return expectedTimeToTarget(this.eggsLaid, this.eggsPerHour, goal.targetAmount!);
   }
 
   expectedTimeToCompleteGoalOfflineAdjusted(goal: ei.Contract.IGoal): number {
-    return expectedTimeToTarget(
-      this.eggsLaidOfflineAdjusted, this.eggsPerHour, goal.targetAmount!
-    );
+    return expectedTimeToTarget(this.eggsLaidOfflineAdjusted, this.eggsPerHour, goal.targetAmount!);
   }
-
 }
 
 function expectedTimeToTarget(eggsLaid: number, eggsPerHour: number, target: number): number {

@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div v-if="backup" class="flex-1 relative -my-px py-px">
     <main class="flex-1 max-w-ultrawide w-full mx-auto mt-6 ultrawide:px-4">

@@ -19,18 +19,14 @@
             >
               <template v-if="column.iconPath">
                 <span class="flex flex-shrink-0 flex-row items-center justify-center space-x-px">
-                  <span v-if="column.prefix" class="text-gray-500 dark:text-gray-200">{{
-                    column.prefix
-                  }}</span>
+                  <span v-if="column.prefix" class="text-gray-500 dark:text-gray-200">{{ column.prefix }}</span>
                   <base-icon
                     :icon-rel-path="column.iconPath"
                     :size="64"
                     class="block h-4 w-4"
                     :style="{ minWidth: '1rem' }"
                   />
-                  <span v-if="column.suffix" class="text-gray-500 dark:text-gray-200">{{
-                    column.suffix
-                  }}</span>
+                  <span v-if="column.suffix" class="text-gray-500 dark:text-gray-200">{{ column.suffix }}</span>
                 </span>
               </template>
               <template v-else>
@@ -64,14 +60,9 @@
         :key="contributor.id"
         :class="index % 2 === 1 ? 'bg-gray-50 dark:bg-gray-750' : 'bg-white dark:bg-gray-800'"
       >
-        <td
-          class="px-4 py-1 flex flex-row items-center space-x-0.5 max-w-xxs sm:max-w-xs md:max-w-sm text-sm"
-        >
+        <td class="px-4 py-1 flex flex-row items-center space-x-0.5 max-w-xxs sm:max-w-xs md:max-w-sm text-sm">
           <template v-if="devmode">
-            <base-click-to-copy
-              :text="contributor.name"
-              class="text-gray-500 dark:text-gray-200 truncate"
-            >
+            <base-click-to-copy :text="contributor.name" class="text-gray-500 dark:text-gray-200 truncate">
               {{ renderNonempty(contributor.name) }}
               <template #tooltip>Click to copy name: {{ contributor.name }}</template>
             </base-click-to-copy>
@@ -79,19 +70,25 @@
           <template v-else>
             <span class="text-gray-500 dark:text-gray-200 truncate">{{ contributor.name }}</span>
           </template>
-          <svg v-if="!coopStatus.isPublic && contributor.autojoined" v-tippy="{ content: 'Autojoiner in Private Coop' }"
-            class="h-4 w-4 text-gray-400 dark:text-gray-300 ml-1.5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path fill-rule="evenodd"
-                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                clip-rule="evenodd" />
+          <svg
+            v-if="!coopStatus.isPublic && contributor.autojoined"
+            v-tippy="{ content: 'Autojoiner in Private Coop' }"
+            class="h-4 w-4 text-gray-400 dark:text-gray-300 ml-1.5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+            <path
+              fill-rule="evenodd"
+              d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+              clip-rule="evenodd"
+            />
           </svg>
           <!-- Inactive -->
           <svg
             v-if="!contributor.isActive"
             v-tippy="{
-              content:
-                'This player hasn\'t reported in for a long time and can be kicked by anyone.',
+              content: 'This player hasn\'t reported in for a long time and can be kicked by anyone.',
             }"
             viewBox="0 0 256 256"
             class="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0 cursor-help"
@@ -138,11 +135,14 @@
             />
           </svg>
         </td>
-        <td v-if="showOptionalColumn.finalized" class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums">
+        <td
+          v-if="showOptionalColumn.finalized"
+          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+        >
           <div class="inset-y-0 left-0 pl-2 flex items-center">
             <svg
               v-if="contributor.finalized"
-              class="flex-shrink-0 h-4.5 w-4.5 text-green-500  rounded-full"
+              class="flex-shrink-0 h-4.5 w-4.5 text-green-500 rounded-full"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -155,12 +155,10 @@
             <span v-else> {{ contributor.offlineTimeStr }} ago</span>
           </div>
         </td>
-        <td
-          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
-        >
+        <td class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums">
           <coop-card-contribution-table-artifact-gallery
             v-if="contributor.farmShared && contributor.artifacts.artifacts.length > 0"
-            :artifact-set="(contributor.artifacts as ArtifactSet)"
+            :artifact-set="contributor.artifacts as ArtifactSet"
             class="mx-auto"
           />
           <span
@@ -171,14 +169,10 @@
           >
           <template v-else>Private</template>
         </td>
-        <td
-          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
-        >
+        <td class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums">
           {{ formatEIValue(contributor.eggsLaid) }}
         </td>
-        <td
-          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
-        >
+        <td class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums">
           {{ formatEIValue(contributor.eggsPerHour) }}
         </td>
         <td
@@ -201,9 +195,7 @@
         >
           {{ contributor.farmerRole.name.replace('farmer', '') }}
         </td>
-        <td
-          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
-        >
+        <td class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums">
           {{ formatWithThousandSeparators(contributor.tokens) }}
         </td>
         <td
@@ -215,13 +207,8 @@
           </template>
           <template v-else>&ndash;</template>
         </td>
-        <td
-          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
-        >
-          <div
-            v-if="contributor.farmShared && contributor.boosts.length > 0"
-            class="flex items-center justify-center"
-          >
+        <td class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums">
+          <div v-if="contributor.farmShared && contributor.boosts.length > 0" class="flex items-center justify-center">
             <base-icon
               v-for="(boost, i) of contributor.boosts"
               :key="i"
@@ -240,14 +227,10 @@
           >
           <template v-else>Private</template>
         </td>
-        <td
-          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
-        >
+        <td class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums">
           {{ (contributor.earningsBoost * 100).toFixed(0) }}%
         </td>
-        <td
-          class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
-        >
+        <td class="px-4 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums">
           {{ (contributor.eggLayingRateBoost * 100).toFixed(0) }}%
         </td>
         <td
@@ -276,17 +259,14 @@
                 contributor.hourlyLayingRateUncapped > contributor.hourlyShippingCapacity
               "
               v-tippy="{
-                content:
-                  'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
+                content: 'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
               }"
               icon-rel-path="egginc-extras/icon_warning.png"
               :size="64"
               class="inline-block h-4 w-4 align-middle relative -top-px cursor-help ml-0.5"
             />
             <base-icon
-              v-else-if="
-                contributor.eggsPerHour > contributor.hourlyLayingRateUncapped
-              "
+              v-else-if="contributor.eggsPerHour > contributor.hourlyLayingRateUncapped"
               v-tippy="{
                 content:
                   'The game sometimes returns obviously wrong information for uncapped laying rate per hour. It has been set to the same as eggs per hour instead.',
@@ -354,27 +334,14 @@
 <script setup lang="ts">
 import { computed, ref, toRefs, inject, Ref } from 'vue';
 
-import {
-  ArtifactSet,
-  CoopStatus,
-  boostIconPath,
-  boostName,
-  eggIconPath,
-  ei,
-  formatEIValue,
-} from '@/lib';
-import {
-  getSessionStorage,
-  setSessionStorage,
-  formatWithThousandSeparators,
-  renderNonempty,
-} from '@/utils';
+import { ArtifactSet, CoopStatus, boostIconPath, boostName, eggIconPath, ei, formatEIValue } from '@/lib';
+import { getSessionStorage, setSessionStorage, formatWithThousandSeparators, renderNonempty } from '@/utils';
 import { devmodeKey } from '@/symbols';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 import CoopCardContributionTableArtifactGallery from '@/components/CoopCardContributionTableArtifactGallery.vue';
 
-const requiredColumnIds = [
+type requiredColumnIds = [
   'name',
   'artifacts',
   'eggsLaid',
@@ -385,7 +352,7 @@ const requiredColumnIds = [
   'earningsBoost',
   'role',
   'eggLayingRateBoost',
-] as const;
+];
 
 const optionalColumnIds = [
   'finalized',
@@ -399,8 +366,8 @@ const optionalColumnIds = [
   'offlineEggs',
 ] as const;
 
-type ColumnId = typeof requiredColumnIds[number] | OptionalColumnId;
-type OptionalColumnId = typeof optionalColumnIds[number];
+type ColumnId = requiredColumnIds[number] | OptionalColumnId;
+type OptionalColumnId = (typeof optionalColumnIds)[number];
 
 type ColumnSpec = {
   id: ColumnId;
@@ -411,23 +378,18 @@ type ColumnSpec = {
   tooltip?: string;
 };
 
-const props = defineProps<{ egg: ei.Egg; coopStatus: CoopStatus; target: number, customEggId?: string | null }>();
+const props = defineProps<{ egg: ei.Egg; coopStatus: CoopStatus; target: number; customEggId?: string | null }>();
 
 const { egg, coopStatus, target, customEggId } = toRefs(props);
 const devmode = inject(devmodeKey);
 
-const showOptionalColumn = computed(
-  () => {
-    const show = Object.fromEntries(
-      optionalColumnIds.map(col => [
-        col,
-        coopStatus.value.contributors.some(contributor => contributor[col] !== null),
-      ])
-    ) as Record<OptionalColumnId, boolean>;
-    show.finalized = coopStatus.value.eggsLaid >= target.value;
-    return show;
-  }
-);
+const showOptionalColumn = computed(() => {
+  const show = Object.fromEntries(
+    optionalColumnIds.map(col => [col, coopStatus.value.contributors.some(contributor => contributor[col] !== null)])
+  ) as Record<OptionalColumnId, boolean>;
+  show.finalized = coopStatus.value.eggsLaid >= target.value;
+  return show;
+});
 const columns: Ref<ColumnSpec[]> = computed(() => {
   const cols: ColumnSpec[] = [
     {
@@ -436,7 +398,7 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
     },
   ];
   if (showOptionalColumn.value.finalized) {
-    cols.push( {
+    cols.push({
       id: 'finalized',
       name: 'Checked In',
     });
@@ -469,7 +431,7 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
       name: 'Tokens',
       iconPath: 'egginc/b_icon_token.png',
       tooltip: 'Tokens left',
-    },
+    }
   );
   if (showOptionalColumn.value.tokensSpent) {
     cols.push({
@@ -495,8 +457,7 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
       id: 'eggLayingRateBoost',
       name: 'TD',
       iconPath: 'egginc/afx_tachyon_deflector_4.png',
-      tooltip:
-        'Egg laying rate boost percentage from Tachyon Deflector equipped by each contributor',
+      tooltip: 'Egg laying rate boost percentage from Tachyon Deflector equipped by each contributor',
     }
   );
   if (showOptionalColumn.value.hourlyLayingRateUncapped) {
@@ -550,9 +511,7 @@ const columns: Ref<ColumnSpec[]> = computed(() => {
 
 const columnIds: Ref<string[]> = computed(() => columns.value.map(col => col.id));
 const defaultSortBy: ColumnId = 'eggsLaid';
-const sortBySessionStorageKey = computed(
-  () => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortBy`
-);
+const sortBySessionStorageKey = computed(() => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortBy`);
 const sortAscendingSessionStorageKey = computed(
   () => `${coopStatus.value.contractId}:${coopStatus.value.coopCode}_sortAscending`
 );

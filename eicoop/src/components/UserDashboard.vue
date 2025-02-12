@@ -16,9 +16,7 @@
     >
       <div>
         <div class="grid gap-x-3" :style="{ gridTemplateColumns: 'repeat(2, max-content)' }">
-          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">
-            Mystical eggs
-          </dt>
+          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">Mystical eggs</dt>
           <dd class="flex flex-wrap items-center">
             <span class="flex items-center whitespace-nowrap mr-1">
               <base-icon
@@ -29,18 +27,12 @@
               <span class="text-sm text-yellow-500">{{ prophecyEggs }}</span>
             </span>
             <span class="flex items-center whitespace-nowrap">
-              <base-icon
-                icon-rel-path="egginc/egg_soul.png"
-                :size="64"
-                class="inline-block align-middle h-4 w-4"
-              />
+              <base-icon icon-rel-path="egginc/egg_soul.png" :size="64" class="inline-block align-middle h-4 w-4" />
               <span class="text-sm text-purple-500">{{ formatEIValue(soulEggs) }}</span>
             </span>
           </dd>
 
-          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">
-            Earning bonus
-          </dt>
+          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">Earning bonus</dt>
           <dd class="flex items-center text-sm space-x-0.5">
             <span :style="{ color: role.color }">{{ formatEIValue(earningBonus * 100) }}%,</span>
             <span :style="{ color: role.color }">{{ role.name }}</span>
@@ -51,54 +43,34 @@
             />
           </dd>
 
-          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">
-            Trophies
-          </dt>
+          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">Trophies</dt>
           <dd class="flex items-center text-sm text-gray-900 dark:text-gray-100">
             {{ trophies }}/95,
             <base-icon icon-rel-path="egginc/egg_of_prophecy.png" :size="64" class="h-4 w-4" />
             <span class="text-yellow-500">
-              {{ prophecyEggsProgress.fromTrophies.completed }}/{{
-                prophecyEggsProgress.fromTrophies.available
-              }}
+              {{ prophecyEggsProgress.fromTrophies.completed }}/{{ prophecyEggsProgress.fromTrophies.available }}
             </span>
           </dd>
 
-          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">
-            Daily gifts
-          </dt>
+          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">Daily gifts</dt>
           <dd class="flex items-center text-sm text-gray-900 dark:text-gray-100">
             M{{ dailyGifts.onMonth }}D{{ dailyGifts.onDay }},
             <base-icon icon-rel-path="egginc/egg_of_prophecy.png" :size="64" class="h-4 w-4" />
             <span class="text-yellow-500">
-              {{ prophecyEggsProgress.fromDailyGifts.completed }}/{{
-                prophecyEggsProgress.fromDailyGifts.available
-              }}
+              {{ prophecyEggsProgress.fromDailyGifts.completed }}/{{ prophecyEggsProgress.fromDailyGifts.available }}
             </span>
           </dd>
 
-          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">
-            Contracts
-          </dt>
+          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">Contracts</dt>
           <dd class="flex items-center text-sm text-gray-900 dark:text-gray-100">
-            <base-icon
-              icon-rel-path="egginc/egg_of_prophecy.png"
-              :size="64"
-              class="h-4 w-4 -ml-0.5"
-            />
+            <base-icon icon-rel-path="egginc/egg_of_prophecy.png" :size="64" class="h-4 w-4 -ml-0.5" />
             <span class="text-yellow-500">
               {{ prophecyEggsProgress.fromContracts.completed }}
             </span>
           </dd>
-          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">
-            Seasons
-          </dt>
+          <dt class="text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-300">Seasons</dt>
           <dd class="flex items-center text-sm text-gray-900 dark:text-gray-100">
-            <base-icon
-              icon-rel-path="egginc/egg_of_prophecy.png"
-              :size="64"
-              class="h-4 w-4 -ml-0.5"
-            />
+            <base-icon icon-rel-path="egginc/egg_of_prophecy.png" :size="64" class="h-4 w-4 -ml-0.5" />
             <span class="text-yellow-500">
               {{ prophecyEggsProgress.fromContractSeasons.completed }}
             </span>
@@ -133,12 +105,7 @@
             class="flex items-center justify-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 focus:outline-none rounded-md !duration-0"
             @click="triggerRefresh"
           >
-            <svg
-              class="-ml-px mr-1.5 h-3 w-3 text-gray-100"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg class="-ml-px mr-1.5 h-3 w-3 text-gray-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -152,9 +119,7 @@
       </div>
 
       <div class="mt-2 sm:mt-0">
-        <p class="text-xs text-green-500 leading-5">
-          Bookmark this page to check all your contracts at any time!
-        </p>
+        <p class="text-xs text-green-500 leading-5">Bookmark this page to check all your contracts at any time!</p>
         <p
           v-for="[href, description] in [
             [
@@ -179,9 +144,7 @@
               <path
                 d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
               />
-              <path
-                d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-              />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
             {{ description }}
           </a>
@@ -216,7 +179,6 @@
 
 <script lang="ts">
 import { computed, defineComponent, inject, PropType, ref, toRefs, watch } from 'vue';
-import { useStore } from 'vuex';
 
 import {
   earningBonusToFarmerRole,
@@ -230,7 +192,6 @@ import {
   SoloStatus,
 } from '@/lib';
 import { ContractLeague } from 'lib';
-import { key } from '@/store';
 import { refreshCallbackKey } from '@/symbols';
 import { renderNonempty } from '@/utils';
 import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vue';
@@ -239,6 +200,7 @@ import BaseIcon from 'ui/components/BaseIcon.vue';
 import CoopCardLoader from '@/components/CoopCardLoader.vue';
 import SoloCard from '@/components/SoloCard.vue';
 import { getUserActiveCoopContractsSorted } from '../lib/userdata';
+import useContractsStore from '@/stores/contracts';
 
 export default defineComponent({
   components: {
@@ -255,7 +217,7 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const store = useStore(key);
+    const contractStore = useContractsStore();
     const { backup } = toRefs(props);
     const triggerRefresh = inject(refreshCallbackKey, () => {
       window.location.reload();
@@ -283,12 +245,11 @@ export default defineComponent({
 
     const coops = computed(() => getUserActiveCoopContractsSorted(backup.value));
     const coopParams = computed(() =>
-      coops.value
-      .map(coop => ({
+      coops.value.map(coop => ({
         contractId: coop.contract!.identifier!,
         coopCode: coop.coopIdentifier!,
         contract: coop.contract!,
-        league: coop.league as ContractLeague ?? undefined,
+        league: (coop.league as ContractLeague) ?? undefined,
         grade: coop.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET,
       }))
     );
@@ -297,8 +258,8 @@ export default defineComponent({
     );
 
     const housekeeping = () => {
-      coopParams.value.forEach(coop => store.commit('contracts/addContract', coop.contract));
-      soloStatuses.value.forEach(solo => store.commit('contracts/addContract', solo.contract));
+      coopParams.value.forEach(coop => contractStore.addContract(coop.contract));
+      soloStatuses.value.forEach(solo => contractStore.addContract(solo.contract));
     };
     housekeeping();
     watch(backup, () => {

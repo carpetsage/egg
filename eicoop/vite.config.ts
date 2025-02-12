@@ -31,9 +31,9 @@ export default ({ command }: ConfigEnv): UserConfigExport => ({
             console.log(id);
             return 'contractlist';
           }
-        }
-      }
-    }
+        },
+      },
+    },
   },
   server: {
     host: true,

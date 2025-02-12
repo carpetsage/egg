@@ -75,15 +75,14 @@
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useStore } from 'vuex';
 import hotkeys from 'hotkeys-js';
 
-import { Contract } from '@/lib';
-import { key } from '@/store';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseInput from 'ui/components/BaseInput.vue';
 import BaseModal from '@/components/BaseModal.vue';
 import CoopSelectorContractSelect from '@/components/CoopSelectorContractSelect.vue';
+import useCoopSelectorStore from '@/stores/coopSelector';
+import useContractsStore from '@/stores/contracts';
 
 export default defineComponent({
   components: {
@@ -93,13 +92,14 @@ export default defineComponent({
     CoopSelectorContractSelect,
   },
   setup() {
-    const store = useStore(key);
+    const coopSelectorStore = useCoopSelectorStore();
+    const contractsStore = useContractsStore();
     const router = useRouter();
     const route = useRoute();
 
-    const shouldShow = computed(() => store.state.coopSelector.showModal);
-    const toggle = () => store.commit('coopSelector/toggle');
-    const hide = () => store.commit('coopSelector/hide');
+    const shouldShow = computed(() => coopSelectorStore.showModal);
+    const toggle = () => coopSelectorStore.toggle();
+    const hide = () => coopSelectorStore.hide();
     onMounted(() =>
       hotkeys('c', event => {
         event.preventDefault();
@@ -118,11 +118,9 @@ export default defineComponent({
       hotkeys.unbind('esc');
     });
 
-    const contracts = computed(
-      () => [...store.getters['contracts/deduplicatedList']].reverse() as Contract[]
-    );
+    const contracts = computed(() => [...contractsStore.deduplicatedList].reverse());
 
-    const storeContractId = computed(() => store.state.coopSelector.selectedContractId);
+    const storeContractId = computed(() => coopSelectorStore.selectedContractId);
     const selectedContractId = ref(storeContractId.value || '');
     const manuallyEnteredContractId = ref('');
     const coopCode = ref('');
@@ -148,7 +146,7 @@ export default defineComponent({
       if (selectedContractId.value !== '') {
         manuallyEnteredContractId.value = '';
       }
-      store.commit('coopSelector/selectContract', selectedContractId.value);
+      coopSelectorStore.selectContract(selectedContractId.value);
     });
     watch(manuallyEnteredContractId, () => {
       if (manuallyEnteredContractId.value !== '') {
@@ -177,11 +175,7 @@ export default defineComponent({
 
     // Pre-select the latest contract if none is selected.
     const ensureDefaultContractId = () => {
-      if (
-        selectedContractId.value === '' &&
-        manuallyEnteredContractId.value === '' &&
-        contracts.value.length > 0
-      ) {
+      if (selectedContractId.value === '' && manuallyEnteredContractId.value === '' && contracts.value.length > 0) {
         selectedContractId.value = contracts.value[0].id;
       }
     };

@@ -19,11 +19,7 @@
       <template #content>
         confirmed: {{ formatEIValue(eggsLaid) }},<br />
         <template
-          v-if="
-            eggsLaidOfflineAdjusted &&
-            eggsLaidOfflineAdjusted > eggsLaid &&
-            eggsLaid < leagueStatus.finalTarget
-          "
+          v-if="eggsLaidOfflineAdjusted && eggsLaidOfflineAdjusted > eggsLaid && eggsLaid < leagueStatus.finalTarget"
         >
           current estimate (offline adjusted): {{ formatEIValue(eggsLaidOfflineAdjusted) }},<br />
         </template>
@@ -51,8 +47,7 @@
               />
               <span class="font-medium">{{ rewardAmountDisplay(goal) }}</span>
             </p>
-            {{ formatEIValue(target(goal), { trim: true }) }},
-            {{ percentage(eggsLaid, target(goal), 1) }} completed
+            {{ formatEIValue(target(goal), { trim: true }) }}, {{ percentage(eggsLaid, target(goal), 1) }} completed
             <template v-if="eggsLaid < target(goal)">
               <br />Expected in:
               <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
