@@ -96,9 +96,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@types/node':
         specifier: ^22.13.1
         version: 22.13.1
@@ -233,9 +230,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -306,9 +300,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -376,9 +367,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -434,9 +422,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -504,9 +489,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -568,9 +550,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -632,9 +611,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -696,9 +672,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@types/fontfaceobserver':
         specifier: ^2.1.3
         version: 2.1.3
@@ -781,9 +754,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@types/diff':
         specifier: ^5.0.9
         version: 5.0.9
@@ -845,9 +815,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -955,9 +922,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -1025,9 +989,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -1086,9 +1047,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@types/sql.js':
         specifier: ^1.4.9
         version: 1.4.9
@@ -1174,9 +1132,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -1244,9 +1199,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.1(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
@@ -1305,9 +1257,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      '@tailwindcss/postcss':
-        specifier: ^4.0.6
-        version: 4.0.6
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -2261,82 +2210,6 @@ packages:
     peerDependencies:
       tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1 || >= 4.0.0-alpha.20 || >= 4.0.0-beta.1'
 
-  '@tailwindcss/node@4.0.6':
-    resolution: {integrity: sha512-jb6E0WeSq7OQbVYcIJ6LxnZTeC4HjMvbzFBMCrQff4R50HBlo/obmYNk6V2GCUXDeqiXtvtrQgcIbT+/boB03Q==}
-
-  '@tailwindcss/oxide-android-arm64@4.0.6':
-    resolution: {integrity: sha512-xDbym6bDPW3D2XqQqX3PjqW3CKGe1KXH7Fdkc60sX5ZLVUbzPkFeunQaoP+BuYlLc2cC1FoClrIRYnRzof9Sow==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [android]
-
-  '@tailwindcss/oxide-darwin-arm64@4.0.6':
-    resolution: {integrity: sha512-1f71/ju/tvyGl5c2bDkchZHy8p8EK/tDHCxlpYJ1hGNvsYihZNurxVpZ0DefpN7cNc9RTT8DjrRoV8xXZKKRjg==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@tailwindcss/oxide-darwin-x64@4.0.6':
-    resolution: {integrity: sha512-s/hg/ZPgxFIrGMb0kqyeaqZt505P891buUkSezmrDY6lxv2ixIELAlOcUVTkVh245SeaeEiUVUPiUN37cwoL2g==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [darwin]
-
-  '@tailwindcss/oxide-freebsd-x64@4.0.6':
-    resolution: {integrity: sha512-Z3Wo8FWZnmio8+xlcbb7JUo/hqRMSmhQw8IGIRoRJ7GmLR0C+25Wq+bEX/135xe/yEle2lFkhu9JBHd4wZYiig==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [freebsd]
-
-  '@tailwindcss/oxide-linux-arm-gnueabihf@4.0.6':
-    resolution: {integrity: sha512-SNSwkkim1myAgmnbHs4EjXsPL7rQbVGtjcok5EaIzkHkCAVK9QBQsWeP2Jm2/JJhq4wdx8tZB9Y7psMzHYWCkA==}
-    engines: {node: '>= 10'}
-    cpu: [arm]
-    os: [linux]
-
-  '@tailwindcss/oxide-linux-arm64-gnu@4.0.6':
-    resolution: {integrity: sha512-tJ+mevtSDMQhKlwCCuhsFEFg058kBiSy4TkoeBG921EfrHKmexOaCyFKYhVXy4JtkaeeOcjJnCLasEeqml4i+Q==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [linux]
-
-  '@tailwindcss/oxide-linux-arm64-musl@4.0.6':
-    resolution: {integrity: sha512-IoArz1vfuTR4rALXMUXI/GWWfx2EaO4gFNtBNkDNOYhlTD4NVEwE45nbBoojYiTulajI4c2XH8UmVEVJTOJKxA==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [linux]
-
-  '@tailwindcss/oxide-linux-x64-gnu@4.0.6':
-    resolution: {integrity: sha512-QtsUfLkEAeWAC3Owx9Kg+7JdzE+k9drPhwTAXbXugYB9RZUnEWWx5x3q/au6TvUYcL+n0RBqDEO2gucZRvRFgQ==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-
-  '@tailwindcss/oxide-linux-x64-musl@4.0.6':
-    resolution: {integrity: sha512-QthvJqIji2KlGNwLcK/PPYo7w1Wsi/8NK0wAtRGbv4eOPdZHkQ9KUk+oCoP20oPO7i2a6X1aBAFQEL7i08nNMA==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-
-  '@tailwindcss/oxide-win32-arm64-msvc@4.0.6':
-    resolution: {integrity: sha512-+oka+dYX8jy9iP00DJ9Y100XsqvbqR5s0yfMZJuPR1H/lDVtDfsZiSix1UFBQ3X1HWxoEEl6iXNJHWd56TocVw==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [win32]
-
-  '@tailwindcss/oxide-win32-x64-msvc@4.0.6':
-    resolution: {integrity: sha512-+o+juAkik4p8Ue/0LiflQXPmVatl6Av3LEZXpBTfg4qkMIbZdhCGWFzHdt2NjoMiLOJCFDddoV6GYaimvK1Olw==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [win32]
-
-  '@tailwindcss/oxide@4.0.6':
-    resolution: {integrity: sha512-lVyKV2y58UE9CeKVcYykULe9QaE1dtKdxDEdrTPIdbzRgBk6bdxHNAoDqvcqXbIGXubn3VOl1O/CFF77v/EqSA==}
-    engines: {node: '>= 10'}
-
-  '@tailwindcss/postcss@4.0.6':
-    resolution: {integrity: sha512-noTaGPHjGCXTCc487TWnfAEN0VMjqDAecssWDOsfxV2hFrcZR0AHthX7IdY/0xHTg/EtpmIPdssddlZ5/B7JnQ==}
-
   '@tanstack/virtual-core@3.13.0':
     resolution: {integrity: sha512-NBKJP3OIdmZY3COJdWkSonr50FMVIi+aj5ZJ7hI/DTpEKg2RMfo/KvP8A3B/zOSpMgIe52B5E2yn7rryULzA6g==}
 
@@ -3090,10 +2963,6 @@ packages:
   encodeurl@1.0.2:
     resolution: {integrity: sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==}
     engines: {node: '>= 0.8'}
-
-  enhanced-resolve@5.18.1:
-    resolution: {integrity: sha512-ZSW3ma5GkcQBIpwZTSRAI8N71Uuwgs93IezB7mf7R60tC8ZbJideoDNKjHn2O9KIlx6rkGTTEk1xUCK2E1Y2Yg==}
-    engines: {node: '>=10.13.0'}
 
   enquirer@2.4.1:
     resolution: {integrity: sha512-rRqJg/6gd538VHvR3PSrdRBb/1Vy2YfzHqzvbhGIQpDRKIa4FgV/54b5Q1xYSxOOwKvjXweS26E0Q+nAMwp2pQ==}
@@ -4611,13 +4480,6 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
-  tailwindcss@4.0.6:
-    resolution: {integrity: sha512-mysewHYJKaXgNOW6pp5xon/emCsfAMnO8WMaGKZZ35fomnR/T5gYnRg2/yRTTrtXiEl1tiVkeRt0eMO6HxEZqw==}
-
-  tapable@2.2.1:
-    resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
-    engines: {node: '>=6'}
-
   test-exclude@6.0.0:
     resolution: {integrity: sha512-cAGWPIyOHU6zlmg88jwm7VRyXnMN7iV68OGAbYDk/Mh/xC/pzVPlQtY6ngoIH/5/tciuhGfvESU8GrHrcxD56w==}
     engines: {node: '>=8'}
@@ -5921,68 +5783,6 @@ snapshots:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))
 
-  '@tailwindcss/node@4.0.6':
-    dependencies:
-      enhanced-resolve: 5.18.1
-      jiti: 2.4.2
-      tailwindcss: 4.0.6
-
-  '@tailwindcss/oxide-android-arm64@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-darwin-arm64@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-darwin-x64@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-freebsd-x64@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-linux-arm-gnueabihf@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-linux-arm64-gnu@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-linux-arm64-musl@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-linux-x64-gnu@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-linux-x64-musl@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-win32-arm64-msvc@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide-win32-x64-msvc@4.0.6':
-    optional: true
-
-  '@tailwindcss/oxide@4.0.6':
-    optionalDependencies:
-      '@tailwindcss/oxide-android-arm64': 4.0.6
-      '@tailwindcss/oxide-darwin-arm64': 4.0.6
-      '@tailwindcss/oxide-darwin-x64': 4.0.6
-      '@tailwindcss/oxide-freebsd-x64': 4.0.6
-      '@tailwindcss/oxide-linux-arm-gnueabihf': 4.0.6
-      '@tailwindcss/oxide-linux-arm64-gnu': 4.0.6
-      '@tailwindcss/oxide-linux-arm64-musl': 4.0.6
-      '@tailwindcss/oxide-linux-x64-gnu': 4.0.6
-      '@tailwindcss/oxide-linux-x64-musl': 4.0.6
-      '@tailwindcss/oxide-win32-arm64-msvc': 4.0.6
-      '@tailwindcss/oxide-win32-x64-msvc': 4.0.6
-
-  '@tailwindcss/postcss@4.0.6':
-    dependencies:
-      '@alloc/quick-lru': 5.2.0
-      '@tailwindcss/node': 4.0.6
-      '@tailwindcss/oxide': 4.0.6
-      lightningcss: 1.29.1
-      postcss: 8.5.2
-      tailwindcss: 4.0.6
-
   '@tanstack/virtual-core@3.13.0': {}
 
   '@tanstack/vue-virtual@3.13.0(vue@3.5.13(typescript@5.7.3))':
@@ -6726,7 +6526,8 @@ snapshots:
 
   deepmerge@4.3.1: {}
 
-  detect-libc@1.0.3: {}
+  detect-libc@1.0.3:
+    optional: true
 
   detect-libc@2.0.2: {}
 
@@ -6801,11 +6602,6 @@ snapshots:
   emoji-regex@9.2.2: {}
 
   encodeurl@1.0.2: {}
-
-  enhanced-resolve@5.18.1:
-    dependencies:
-      graceful-fs: 4.2.11
-      tapable: 2.2.1
 
   enquirer@2.4.1:
     dependencies:
@@ -7696,7 +7492,8 @@ snapshots:
 
   jiti@1.21.7: {}
 
-  jiti@2.4.2: {}
+  jiti@2.4.2:
+    optional: true
 
   js-sha256@0.11.0: {}
 
@@ -7815,6 +7612,7 @@ snapshots:
       lightningcss-linux-x64-musl: 1.29.1
       lightningcss-win32-arm64-msvc: 1.29.1
       lightningcss-win32-x64-msvc: 1.29.1
+    optional: true
 
   lilconfig@2.1.0: {}
 
@@ -8647,10 +8445,6 @@ snapshots:
       sucrase: 3.35.0
     transitivePeerDependencies:
       - ts-node
-
-  tailwindcss@4.0.6: {}
-
-  tapable@2.2.1: {}
 
   test-exclude@6.0.0:
     dependencies:
