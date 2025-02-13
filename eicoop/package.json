@@ -3,37 +3,37 @@
   "type": "module",
   "version": "0.1.0",
   "dependencies": {
-    "@headlessui/vue": "^1.7.19",
+    "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^1.0.6",
     "copy-text-to-clipboard": "^3.2.0",
     "dayjs": "^1.11.13",
-    "hotkeys-js": "^3.13.7",
+    "hotkeys-js": "^3.13.9",
     "js-sha256": "^0.11.0",
     "lib": "workspace:^",
     "primeicons": "^7.0.0",
-    "primevue": "^3.50.0",
+    "primevue": "^3.53.1",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
-    "vue": "^3.4.21",
-    "vue-router": "^4.4.0",
-    "vue-tippy": "^6.4.4"
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vue-tippy": "^6.6.0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
-    "@types/node": "^20.11.28",
+    "@types/node": "^22.13.1",
     "@vitejs/plugin-vue": "^5.2.1",
-    "@vue/compiler-sfc": "^3.4.21",
+    "@vue/compiler-sfc": "^3.5.13",
     "autoprefixer": "^10.4.20",
     "mockjs": "^1.1.0",
-    "postcss": "^8.4.35",
+    "pinia": "^2.3.1",
+    "postcss": "^8.5.2",
     "postcss-inline-svg": "^6.0.0",
-    "protobufjs": "^7.2.6",
-    "tailwindcss": "^3.4.4",
+    "protobufjs": "^7.4.0",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",
-    "vite": "^6.0.11",
+    "vite": "^6.1.0",
     "vite-plugin-mock": "^3.0.2",
-    "vue-tsc": "^2.0.14",
-    "vuex": "^4.1.0"
+    "vue-tsc": "^2.2.0"
   },
   "license": "MIT",
   "scripts": {
@@ -41,6 +41,7 @@
     "dev": "vite",
     "fastbuild": "vite build",
     "lint": "eslint --ext .js,.ts,.vue src",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "profile": "vite --profile"
   }
 }

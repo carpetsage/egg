@@ -51,18 +51,16 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { useStore } from 'vuex';
-
-import { key } from '@/store';
 import RecentlyViewedEntry from './RecentlyViewedEntry.vue';
+import useHistoryStore from '@/stores/history';
 
 export default defineComponent({
   components: {
     RecentlyViewedEntry,
   },
   setup() {
-    const store = useStore(key);
-    const entries = store.state.history.coops;
+    const store = useHistoryStore();
+    const entries = store.coops;
 
     const triggerRef = ref(null as HTMLElement | null);
     const showDropdown = ref(false);

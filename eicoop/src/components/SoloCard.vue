@@ -1,9 +1,6 @@
 <template>
   <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg">
-    <div
-      class="px-4 py-4 sm:px-6"
-      :class="completionStatusBgColorClass(leagueStatus.completionStatus)"
-    >
+    <div class="px-4 py-4 sm:px-6" :class="completionStatusBgColorClass(leagueStatus.completionStatus)">
       <div class="relative -ml-4 -mt-2 sm:flex items-start justify-between">
         <div class="flex-grow ml-4 mt-2">
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
@@ -13,14 +10,9 @@
               :size="64"
               class="inline-block align-middle relative -top-px -left-1 h-6 w-6"
             />
-            <base-click-to-copy
-              :text="status.contractId"
-              class="text-gray-900 dark:text-gray-100 mr-0.5"
-            >
+            <base-click-to-copy :text="status.contractId" class="text-gray-900 dark:text-gray-100 mr-0.5">
               {{ contract.name }}
-              <template #tooltip>
-                Copy contract ID &lsquo;{{ status.contractId }}&rsquo; to clipboard
-              </template>
+              <template #tooltip> Copy contract ID &lsquo;{{ status.contractId }}&rsquo; to clipboard </template>
             </base-click-to-copy>
             <template v-if="grade">
               <contract-grade-label :grade="grade" class="relative -top-px" />
@@ -45,11 +37,7 @@
               {{ status.userName }}
             </span>
             <template v-if="contract.minutesPerToken">
-              <base-icon
-                icon-rel-path="egginc/b_icon_token.png"
-                :size="64"
-                class="block h-5 w-5 ml-1.5"
-              />
+              <base-icon icon-rel-path="egginc/b_icon_token.png" :size="64" class="block h-5 w-5 ml-1.5" />
               <span class="pl-px text-sm text-gray-700 dark:text-gray-300 truncate">
                 {{ contract.minutesPerToken }}m
               </span>
@@ -73,9 +61,7 @@
             }"
             class="flex items-center space-x-0.5 cursor-help"
           >
-            <span class="text-xs text-gray-500 dark:text-gray-400 truncate">
-              Synced {{ relativeRefreshTime }}
-            </span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 truncate"> Synced {{ relativeRefreshTime }} </span>
             <base-info />
           </span>
         </div>
@@ -85,9 +71,7 @@
     <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6">
       <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
         Confirmed progress
-        <span class="whitespace-nowrap text-gray-900 dark:text-gray-100"
-          >({{ relativeRefreshTime }})</span
-        >
+        <span class="whitespace-nowrap text-gray-900 dark:text-gray-100">({{ relativeRefreshTime }})</span>
       </div>
 
       <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -99,9 +83,7 @@
           </dd>
         </div>
         <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Hourly production rate
-          </dt>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Hourly production rate</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
             <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
               formatEIValue(leagueStatus.eggsPerHour)
@@ -123,7 +105,8 @@
                 Expected to complete at {{ leagueStatus.expectedFinalCompletionDate.format('YYYY-MM-DD HH:mm') }}.<br />
                 This is an estimate based on the current laying rate (see FAQ below)
               </template>
-            </tippy> /
+            </tippy>
+            /
             <tippy class="text-gray-900 dark:text-gray-100">
               {{ formatDuration(Math.max(leagueStatus.secondsRemaining, 0)) }} remaining
               <template #content>
@@ -166,17 +149,14 @@
         </svg>
       </div>
 
-      <div
-        v-if="effectiveMinutesSinceRefresh > status.farm.siloMinutes"
-        class="text-xs text-yellow-500 mb-2"
-      >
+      <div v-if="effectiveMinutesSinceRefresh > status.farm.siloMinutes" class="text-xs text-yellow-500 mb-2">
         <base-icon
           icon-rel-path="egginc-extras/icon_warning.png"
           :size="64"
           class="inline-block align-middle h-4 w-4 relative -top-px -ml-px"
         />
-        Your silos ({{ formatDuration(status.farm.siloMinutes * 60, true) }} max) may have run out!
-        The following estimates assume you were able to refresh silos in time.
+        Your silos ({{ formatDuration(status.farm.siloMinutes * 60, true) }} max) may have run out! The following
+        estimates assume you were able to refresh silos in time.
       </div>
 
       <dl class="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -189,9 +169,7 @@
           </dd>
         </div>
         <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Hourly production rate
-          </dt>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Hourly production rate</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
             <span :class="completionStatusFgColorClass(estimatedLeagueStatus.completionStatus)">{{
               formatEIValue(estimatedLeagueStatus.eggsPerHour)
@@ -220,11 +198,7 @@
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Tokens in stock</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 flex items-center">
-            <base-icon
-              icon-rel-path="egginc/b_icon_token.png"
-              :size="64"
-              class="block h-4 w-4 mr-0.5"
-            />
+            <base-icon icon-rel-path="egginc/b_icon_token.png" :size="64" class="block h-4 w-4 mr-0.5" />
             {{ formatWithThousandSeparators(tokensInStockByNow) }}
             <template v-if="minutesFromNowUntilNextToken !== null">
               (next in {{ formatWithThousandSeparators(minutesFromNowUntilNextToken) }}m)
@@ -257,18 +231,14 @@
                       :class="column.id === 'name' ? 'text-left' : 'text-center'"
                     >
                       <template v-if="column.iconPath">
-                        <span
-                          class="flex flex-shrink-0 flex-row items-center justify-center space-x-px"
-                        >
+                        <span class="flex flex-shrink-0 flex-row items-center justify-center space-x-px">
                           <base-icon
                             :icon-rel-path="column.iconPath"
                             :size="64"
                             class="block h-4 w-4"
                             :style="{ minWidth: '1rem' }"
                           />
-                          <span v-if="column.suffix" class="text-gray-500 dark:text-gray-200">{{
-                            column.suffix
-                          }}</span>
+                          <span v-if="column.suffix" class="text-gray-500 dark:text-gray-200">{{ column.suffix }}</span>
                         </span>
                       </template>
                       <template v-else>
@@ -284,18 +254,13 @@
                     class="px-4 py-1 flex flex-row items-center space-x-0.5 max-w-xxs sm:max-w-xs md:max-w-sm text-sm"
                   >
                     <template v-if="devmode">
-                      <base-click-to-copy
-                        :text="status.userId"
-                        class="text-gray-500 dark:text-gray-200 truncate"
-                      >
+                      <base-click-to-copy :text="status.userId" class="text-gray-500 dark:text-gray-200 truncate">
                         {{ renderNonempty(status.userName) }}
                         <template #tooltip>Click to copy ID: {{ status.userId }}</template>
                       </base-click-to-copy>
                     </template>
                     <template v-else>
-                      <span class="text-gray-500 dark:text-gray-200 truncate">{{
-                        status.userName
-                      }}</span>
+                      <span class="text-gray-500 dark:text-gray-200 truncate">{{ status.userName }}</span>
                     </template>
                   </td>
                   <td
@@ -306,10 +271,7 @@
                       :artifact-set="status.artifacts"
                       class="mx-auto"
                     />
-                    <span
-                      v-else
-                      v-tippy="{ content: 'No artifact is equipped.' }"
-                      class="hover:cursor-help"
+                    <span v-else v-tippy="{ content: 'No artifact is equipped.' }" class="hover:cursor-help"
                       >&ndash;</span
                     >
                   </td>
@@ -352,9 +314,7 @@
                         v-for="(boost, i) of status.boosts"
                         :key="i"
                         v-tippy="{ content: `${boost.boostId ? boostName(boost.boostId) : '?'}` }"
-                        :icon-rel-path="
-                          boost.boostId ? boostIconPath(boost.boostId) : 'egginc/icon_help.png'
-                        "
+                        :icon-rel-path="boost.boostId ? boostIconPath(boost.boostId) : 'egginc/icon_help.png'"
                         class="flex-0 h-4 w-4"
                       />
                     </div>
@@ -390,8 +350,7 @@
                         status.hourlyLayingRateUncapped > status.hourlyShippingCapacity
                       "
                       v-tippy="{
-                        content:
-                          'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
+                        content: 'This player is shipping-limited (vehicles cannot ship all eggs being laid).',
                       }"
                       icon-rel-path="egginc-extras/icon_warning.png"
                       :size="64"
@@ -423,16 +382,10 @@
                       {{ formatWithThousandSeparators(status.internalHatcheryRateBoostMultiplier) }}
                     </template>
                     <template #content>
-                      {{
-                        formatWithThousandSeparators(
-                          status.awayInternalHatcheryRatePerMinPerHab,
-                          -1
-                        )
+                      {{ formatWithThousandSeparators(status.awayInternalHatcheryRatePerMinPerHab, -1)
                       }}<template v-if="status.internalHatcheryRateBoostMultiplier > 1">
                         &times;
-                        {{
-                          formatWithThousandSeparators(status.internalHatcheryRateBoostMultiplier)
-                        }}
+                        {{ formatWithThousandSeparators(status.internalHatcheryRateBoostMultiplier) }}
                       </template>
                       / min / hab while away
                     </template>
@@ -451,14 +404,7 @@
 import { computed, inject, ref, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import {
-  boostName,
-  boostIconPath,
-  eggIconPath,
-  formatEIValue,
-  formatDuration,
-  SoloStatus,
-} from '@/lib';
+import { boostName, boostIconPath, eggIconPath, formatEIValue, formatDuration, SoloStatus } from '@/lib';
 import { completionStatusFgColorClass, completionStatusBgColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
 import { eggTooltip, formatWithThousandSeparators, renderNonempty } from '@/utils';
@@ -481,7 +427,6 @@ const egg = computed(() => contract.value.egg!);
 const league = computed(() => status.value.league!);
 const grade = computed(() => status.value.grade);
 
-
 const refreshTime = computed(() => status.value.refreshTime);
 const estimatesBeingRefreshed = ref(false);
 const {
@@ -498,18 +443,14 @@ const {
   },
 });
 const effectiveMinutesSinceRefresh = computed(() => {
-  const until = now.value.isBefore(status.value.expirationTime)
-    ? now.value
-    : status.value.expirationTime;
+  const until = now.value.isBefore(status.value.expirationTime) ? now.value : status.value.expirationTime;
   return until.diff(refreshTime.value, 'minutes', true);
 });
 
 const leagueStatus = computed(() => now.value && status.value.confirmedLeagueStatusNow);
 const estimatedLeagueStatus = computed(() => now.value && status.value.estimatedLeagueStatusNow);
 const tokensInStockByNow = computed(() => now.value && status.value.farm.tokensInStockByNow);
-const minutesFromNowUntilNextToken = computed(
-  () => now.value && status.value.farm.minutesFromNowUntilNextToken
-);
+const minutesFromNowUntilNextToken = computed(() => now.value && status.value.farm.minutesFromNowUntilNextToken);
 
 const columns = [
   {

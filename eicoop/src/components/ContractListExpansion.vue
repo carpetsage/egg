@@ -38,7 +38,9 @@
           <td
             class="pl-2 pr-3 py-1 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
             :class="
-              (hasLeagues && column === 0 || hasGrades && column < 4 ) ? 'border-r border-gray-200 dark:border-gray-600' : null
+              (hasLeagues && column === 0) || (hasGrades && column < 4)
+                ? 'border-r border-gray-200 dark:border-gray-600'
+                : null
             "
             :style="{ minWidth: '6rem' }"
           >
@@ -100,9 +102,13 @@
       </template>
 
       <template v-if="contract?.description != ''">
-        <tr>&nbsp;</tr> <!-- I hate table spacing -->
         <tr>
-          <td :colspan="hasGrades ? 10 : hasLeagues ? 4 : 2"
+          &nbsp;
+        </tr>
+        <!-- I hate table spacing -->
+        <tr>
+          <td
+            :colspan="hasGrades ? 10 : hasLeagues ? 4 : 2"
             class="px-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
           >
             Description
@@ -110,13 +116,13 @@
         </tr>
         <tr>
           <td
-          class="pr-3 pl-3 py-1 whitespace-pre-line text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
-          :colspan="hasGrades ? 10 : hasLeagues ? 4 : 2">
+            class="pr-3 pl-3 py-1 whitespace-pre-line text-center text-sm text-gray-500 dark:text-gray-200 tabular-nums"
+            :colspan="hasGrades ? 10 : hasLeagues ? 4 : 2"
+          >
             {{ formatDescription(contract.description) }}
           </td>
         </tr>
       </template>
-
     </tbody>
   </table>
 </template>
@@ -124,7 +130,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { rewardAmountDisplay, rewardIconPath, rewardName, titleCase } from 'lib';
+import { rewardAmountDisplay, rewardIconPath, rewardName } from 'lib';
 import { Contract, ei, formatEIValue, getModifiers } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 
@@ -147,16 +153,16 @@ export default defineComponent({
     const hasGrades = computed(() => !!contract.value.gradeSpecs);
     const lengthHours = computed(() => {
       if (hasGrades.value) {
-        return contract.value.gradeSpecs!.map(gradespec => gradespec.lengthSeconds! / 3600).reverse()
+        return contract.value.gradeSpecs!.map(gradespec => gradespec.lengthSeconds! / 3600).reverse();
       }
       const length = contract.value.lengthSeconds! / 3600;
-      return [length, length]
+      return [length, length];
     });
     const tiers = computed(() => {
       if (hasGrades.value) {
         const allGoals = contract.value.gradeSpecs!.map(g => g.goals!);
         // create array of goals in convenient format for display
-        return allGoals[0].map((cGoal, i) => [allGoals[4][i], allGoals[3][i], allGoals[2][i], allGoals[1][i], cGoal])
+        return allGoals[0].map((cGoal, i) => [allGoals[4][i], allGoals[3][i], allGoals[2][i], allGoals[1][i], cGoal]);
       } else if (hasLeagues.value) {
         const eliteGoals = contract.value.goalSets![0].goals!;
         const standardGoals = contract.value.goalSets![1].goals!;
@@ -171,16 +177,20 @@ export default defineComponent({
         return [];
       }
       const allModifiers = contract.value.gradeSpecs.map(g => getModifiers(g));
-      return allModifiers[0].map((modifier, i) => [allModifiers[4][i], allModifiers[3][i], allModifiers[3][i], allModifiers[1][i], modifier]);
+      return allModifiers[0].map((modifier, i) => [
+        allModifiers[4][i],
+        allModifiers[3][i],
+        allModifiers[3][i],
+        allModifiers[1][i],
+        modifier,
+      ]);
     });
     const requiredHourlyRates = computed(() => {
-      return tiers.value[tiers.value.length - 1].map(
-        (goal, i) => goal.targetAmount! / lengthHours.value[i]
-      );
+      return tiers.value[tiers.value.length - 1].map((goal, i) => goal.targetAmount! / lengthHours.value[i]);
     });
     const target = (goal: Goal) => goal.targetAmount!;
     const formatDescription = (description: string) => {
-      return description.replaceAll(".", ".\n").replace(/\(\d{4}\) /g, "");
+      return description.replaceAll('.', '.\n').replace(/\(\d{4}\) /g, '');
     };
 
     return {

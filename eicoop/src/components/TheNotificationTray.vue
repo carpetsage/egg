@@ -1,8 +1,5 @@
 <template>
-  <div
-    aria-live="assertive"
-    class="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start"
-  >
+  <div aria-live="assertive" class="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start">
     <div class="w-full flex flex-col items-center space-y-4 sm:items-end">
       <template v-for="notification in notifications" :key="notification.id">
         <transition
@@ -14,6 +11,7 @@
           leave-to-class="opacity-0"
         >
           <div
+            v-if="notification.id"
             class="max-w-sm w-full bg-white dark:bg-gray-700 shadow-lg rounded-lg pointer-events-auto ring-1 ring-black dark:ring-gray-500 ring-opacity-5 overflow-hidden"
           >
             <div class="p-4">
@@ -43,20 +41,18 @@
 
 <script lang="ts">
 import { computed, defineComponent } from 'vue';
-import { useStore } from 'vuex';
 import { XIcon } from '@heroicons/vue/solid';
-
-import { key } from '@/store';
+import useNotificationsStore from '@/stores/notifications';
 
 export default defineComponent({
   components: {
     XIcon,
   },
   setup() {
-    const store = useStore(key);
-    const notifications = computed(() => store.state.notifications.notifications);
+    const notificationStore = useNotificationsStore();
+    const notifications = computed(() => notificationStore.notifications);
     const dismiss = (id: number) => {
-      store.commit('notifications/dismiss', id);
+      notificationStore.dismiss(id);
     };
     return {
       notifications,

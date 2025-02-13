@@ -26,8 +26,7 @@
           <svg
             v-if="devmode"
             v-tippy="{
-              content:
-                'Developer mode enabled! Click to disable temporarily (re-enabled upon refresh).',
+              content: 'Developer mode enabled! Click to disable temporarily (re-enabled upon refresh).',
             }"
             viewBox="0 0 512 512"
             class="h-3 w-3 flex-shrink-0 text-gray-200 cursor-pointer ml-3"
@@ -85,15 +84,15 @@
 
 <script lang="ts">
 import { computed, defineComponent } from 'vue';
-import { useStore } from 'vuex';
 import { MenuIcon } from '@heroicons/vue/solid';
 
-import { key } from '@/store';
 import BasePing from 'ui/components/BasePing.vue';
 import NavBarSidebar from 'ui/components/NavBarSidebar.vue';
 import CoopSelectorShow from './CoopSelectorShow.vue';
 import TheThemeSwitcher from './TheThemeSwitcher.vue';
 import TheRecentlyViewedDropdown from './TheRecentlyViewedDropdown.vue';
+import useSitewideNavStore from '@/stores/sitewideNav';
+import useDevmodeStore from '@/stores/devmode';
 
 export default defineComponent({
   components: {
@@ -111,13 +110,14 @@ export default defineComponent({
     },
   },
   setup() {
-    const store = useStore(key);
-    const sitewideNavOpen = computed(() => store.state.sitewideNav.open);
-    const sitewideNavUsed = computed(() => store.state.sitewideNav.used);
-    const openSidewideNav = () => store.dispatch('sitewideNav/open');
-    const closeSidewideNav = () => store.dispatch('sitewideNav/close');
-    const devmode = computed(() => store.state.devmode.on);
-    const disableDevmodeTemporarily = () => store.dispatch('devmode/disableTemporarily');
+    const navStore = useSitewideNavStore();
+    const devmodeStore = useDevmodeStore();
+    const sitewideNavOpen = computed(() => navStore.open);
+    const sitewideNavUsed = computed(() => navStore.used);
+    const openSidewideNav = () => navStore.openNav();
+    const closeSidewideNav = () => navStore.closeNav();
+    const devmode = computed(() => devmodeStore.on);
+    const disableDevmodeTemporarily = () => devmodeStore.disableTemporarily();
     return {
       sitewideNavOpen,
       sitewideNavUsed,

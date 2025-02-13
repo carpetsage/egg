@@ -1,8 +1,6 @@
 <template>
   <div class="bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg">
-    <div
-      class="px-4 sm:px-6 py-3 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-sm font-medium"
-    >
+    <div class="px-4 sm:px-6 py-3 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-sm font-medium">
       Access personal dashboard
       <sup
         v-if="onboarding"
@@ -14,9 +12,9 @@
     </div>
     <div class="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3">
       <p class="text-xs text-gray-900 dark:text-gray-100 mb-2">
-        Enter your ID to access a personal dashboard where the status of all your contracts,
-        including solos and not-yet-joined-coops, are shown in one place. Bookmark your dashboard
-        page to check on all your contracts at any time.
+        Enter your ID to access a personal dashboard where the status of all your contracts, including solos and
+        not-yet-joined-coops, are shown in one place. Bookmark your dashboard page to check on all your contracts at any
+        time.
       </p>
 
       <form

@@ -10,14 +10,13 @@
 
 <script lang="ts">
 import { computed, defineComponent, provide } from 'vue';
-import { useStore } from 'vuex';
 
 import { devmodeKey } from './symbols';
-import { key } from '@/store';
 import TheNavBar from '@/components/TheNavBar.vue';
 import TheFooter from '@/components/TheFooter.vue';
 import TheCoopSelector from '@/components/TheCoopSelector.vue';
 import TheNotificationTray from '@/components/TheNotificationTray.vue';
+import useDevmodeStore from './stores/devmode';
 
 export default defineComponent({
   name: 'App',
@@ -28,8 +27,8 @@ export default defineComponent({
     TheNotificationTray,
   },
   setup() {
-    const store = useStore(key);
-    const devmode = computed(() => store.state.devmode.on);
+    const devmodeStore = useDevmodeStore();
+    const devmode = computed(() => devmodeStore.on);
     provide(devmodeKey, devmode);
   },
 });

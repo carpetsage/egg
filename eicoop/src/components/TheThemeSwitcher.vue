@@ -20,17 +20,15 @@
 </template>
 
 <script lang="ts">
+import useThemeStore from '@/stores/theme';
 import { computed, defineComponent } from 'vue';
-import { useStore } from 'vuex';
-
-import { key } from '@/store';
 
 export default defineComponent({
   setup() {
-    const store = useStore(key);
-    const darkThemeOn = computed(() => store.state.theme.darkThemeOn);
+    const store = useThemeStore();
+    const darkThemeOn = computed(() => store.darkThemeOn);
     const toggleDarkTheme = () => {
-      store.commit('theme/toggle');
+      store.toggle();
       document.documentElement.classList.toggle('dark');
       localStorage['theme'] = darkThemeOn.value ? 'dark' : 'light';
     };

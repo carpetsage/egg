@@ -11,18 +11,17 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useStore } from 'vuex';
 
-import { key } from '@/store';
 import BaseIcon from 'ui/components/BaseIcon.vue';
+import useSitewideNavStore from '@/stores/sitewideNav';
 
 export default defineComponent({
   components: {
     BaseIcon,
   },
   setup() {
-    const store = useStore(key);
-    const openSidewideNav = () => store.dispatch('sitewideNav/open');
+    const navStore = useSitewideNavStore();
+    const openSidewideNav = () => navStore.openNav();
     return {
       openSidewideNav,
     };

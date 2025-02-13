@@ -28,16 +28,14 @@ export function getUserActiveCoopContracts(backup: ei.IBackup): ei.ILocalContrac
   return backup.contracts?.contracts?.filter(c => !!c.coopIdentifier) || [];
 }
 export function getUserActiveCoopContractsSorted(backup: ei.IBackup): ei.ILocalContract[] {
-  return getUserActiveCoopContracts(backup)
-  .sort((coopA,coopB) => {
+  return getUserActiveCoopContracts(backup).sort((coopA, coopB) => {
     let cmp = (coopA.numGoalsAchieved || 0) - (coopB.numGoalsAchieved || 0);
     // if same num goals sort by most recently started
-    if (cmp === 0 ) {
+    if (cmp === 0) {
       cmp = (coopB.timeAccepted || 0) - (coopA.timeAccepted || 0);
     }
     return cmp;
-  }
-  )
+  });
 }
 
 export function getUserActiveSoloContracts(backup: ei.IBackup): ei.ILocalContract[] {

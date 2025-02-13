@@ -7,16 +7,14 @@
 </template>
 
 <script lang="ts">
+import useDevmodeStore from '@/stores/devmode';
 import { defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useStore } from 'vuex';
-
-import { key } from '@/store';
 
 export default defineComponent({
   setup() {
     const router = useRouter();
-    const store = useStore(key);
+    const devmodeStore = useDevmodeStore();
 
     const delaySeconds = 5;
     const deadline = Date.now() + delaySeconds * 1000;
@@ -24,7 +22,7 @@ export default defineComponent({
     let countdownIntervalId: number | undefined;
     let redirectTimeoutId: number | undefined;
     onMounted(() => {
-      store.dispatch('devmode/enablePermanently');
+      devmodeStore.enablePermanently();
       countdownIntervalId = setInterval(() => {
         countdown.value = Math.max(Math.ceil((deadline - Date.now()) / 1000), 0);
       }, 100);

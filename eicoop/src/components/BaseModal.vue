@@ -56,6 +56,7 @@ import { Dialog, DialogOverlay, TransitionChild, TransitionRoot } from '@headles
 
 export default defineComponent({
   components: {
+    // eslint-disable-next-line vue/no-reserved-component-names
     Dialog,
     DialogOverlay,
     TransitionChild,
