@@ -20,7 +20,7 @@
     "diff2html": "^3.4.47",
     "js-sha256": "^0.11.0",
     "lib": "workspace:^",
-    "protobufjs": "^7.2.6",
+    "protobufjs": "^7.4.0",
     "safari-14-idb-fix": "^3.0.0",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",

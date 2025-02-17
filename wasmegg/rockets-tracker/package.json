@@ -12,7 +12,7 @@
     "lib": "workspace:^",
     "localforage": "^1.10.0",
     "mitt": "^3.0.1",
-    "protobufjs": "^7.2.6",
+    "protobufjs": "^7.4.0",
     "safari-14-idb-fix": "^3.0.0",
     "tippy.js": "^6.3.7",
     "typescript-memoize": "^1.1.1",
