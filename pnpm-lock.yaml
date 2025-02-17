@@ -157,8 +157,8 @@ importers:
         specifier: 2.1.0
         version: 2.1.0
       protobufjs:
-        specifier: ^7.2.6
-        version: 7.2.6
+        specifier: ^7.4.0
+        version: 7.4.0
       typescript-memoize:
         specifier: ^1.1.1
         version: 1.1.1
@@ -186,7 +186,7 @@ importers:
         version: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))
       protobufjs-cli:
         specifier: ^1.1.2
-        version: 1.1.2(protobufjs@7.2.6)
+        version: 1.1.2(protobufjs@7.4.0)
       ts-jest:
         specifier: ^29.1.2
         version: 29.1.2(@babel/core@7.26.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(jest@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))(typescript@5.7.3)
@@ -468,8 +468,8 @@ importers:
         specifier: workspace:^
         version: link:../../lib
       protobufjs:
-        specifier: ^7.2.6
-        version: 7.2.6
+        specifier: ^7.4.0
+        version: 7.4.0
       safari-14-idb-fix:
         specifier: ^3.0.0
         version: 3.0.0
@@ -566,8 +566,8 @@ importers:
         specifier: ^8.4.35
         version: 8.4.35
       protobufjs:
-        specifier: ^7.2.6
-        version: 7.2.6
+        specifier: ^7.4.0
+        version: 7.4.0
       tailwindcss:
         specifier: ^3.4.4
         version: 3.4.4(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3))
@@ -730,8 +730,8 @@ importers:
         specifier: workspace:^
         version: link:../../lib
       protobufjs:
-        specifier: ^7.2.6
-        version: 7.2.6
+        specifier: ^7.4.0
+        version: 7.4.0
       safari-14-idb-fix:
         specifier: ^3.0.0
         version: 3.0.0
@@ -968,8 +968,8 @@ importers:
         specifier: workspace:^
         version: link:../../lib
       protobufjs:
-        specifier: ^7.2.6
-        version: 7.2.6
+        specifier: ^7.4.0
+        version: 7.4.0
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
@@ -1105,8 +1105,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       protobufjs:
-        specifier: ^7.2.6
-        version: 7.2.6
+        specifier: ^7.4.0
+        version: 7.4.0
       safari-14-idb-fix:
         specifier: ^3.0.0
         version: 3.0.0
@@ -3771,9 +3771,6 @@ packages:
     resolution: {integrity: sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==}
     engines: {node: '>= 0.6.0'}
 
-  long@5.2.3:
-    resolution: {integrity: sha512-lcHwpNoggQTObv5apGNCTdJrO69eHOZMi4BNC+rTLER8iHAqGrUVeLh/irVIM7zTw2bOXA8T6uNPeujwOLg/2Q==}
-
   long@5.3.0:
     resolution: {integrity: sha512-5vvY5yF1zF/kXk+L94FRiTDa1Znom46UjPCH6/XbSvS8zBKMFBHTJk8KDMqJ+2J6QezQFi7k1k8v21ClJYHPaw==}
 
@@ -4208,10 +4205,6 @@ packages:
     hasBin: true
     peerDependencies:
       protobufjs: ^7.0.0
-
-  protobufjs@7.2.6:
-    resolution: {integrity: sha512-dgJaEDDL6x8ASUZ1YqWciTRrdOuYNzoOf27oHNfdyvKqHr5i0FV7FSLU+aIeFjyFgVxrpTOtQUi0BLLBymZaBw==}
-    engines: {node: '>=12.0.0'}
 
   protobufjs@7.4.0:
     resolution: {integrity: sha512-mRUWCc3KUU4w1jU8sGxICXH/gNS94DvI1gxqDvBzhj1JpcsimQkYiOJfwsPUykUI5ZaspFbSgmBLER8IrQ3tqw==}
@@ -7656,8 +7649,6 @@ snapshots:
 
   loglevel@1.9.2: {}
 
-  long@5.2.3: {}
-
   long@5.3.0: {}
 
   lru-cache@10.4.3: {}
@@ -8068,7 +8059,7 @@ snapshots:
       kleur: 3.0.3
       sisteransi: 1.0.5
 
-  protobufjs-cli@1.1.2(protobufjs@7.2.6):
+  protobufjs-cli@1.1.2(protobufjs@7.4.0):
     dependencies:
       chalk: 4.1.2
       escodegen: 1.14.3
@@ -8077,25 +8068,10 @@ snapshots:
       glob: 8.1.0
       jsdoc: 4.0.2
       minimist: 1.2.8
-      protobufjs: 7.2.6
+      protobufjs: 7.4.0
       semver: 7.6.0
       tmp: 0.2.3
       uglify-js: 3.17.4
-
-  protobufjs@7.2.6:
-    dependencies:
-      '@protobufjs/aspromise': 1.1.2
-      '@protobufjs/base64': 1.1.2
-      '@protobufjs/codegen': 2.0.4
-      '@protobufjs/eventemitter': 1.1.0
-      '@protobufjs/fetch': 1.1.0
-      '@protobufjs/float': 1.0.2
-      '@protobufjs/inquire': 1.1.0
-      '@protobufjs/path': 1.1.2
-      '@protobufjs/pool': 1.1.0
-      '@protobufjs/utf8': 1.1.0
-      '@types/node': 22.13.1
-      long: 5.2.3
 
   protobufjs@7.4.0:
     dependencies:
