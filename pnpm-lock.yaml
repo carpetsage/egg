@@ -258,8 +258,8 @@ importers:
         specifier: ^6.1.0
         version: 6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0)
       vite-plugin-image-optimizer:
-        specifier: ^1.1.7
-        version: 1.1.7(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))
+        specifier: ^1.1.8
+        version: 1.1.8(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))
       vue-tsc:
         specifier: ^2.2.0
         version: 2.2.0(typescript@5.7.3)
@@ -1163,8 +1163,8 @@ importers:
         specifier: ^6.1.0
         version: 6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0)
       vite-plugin-image-optimizer:
-        specifier: ^1.1.7
-        version: 1.1.7(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))
+        specifier: ^1.1.8
+        version: 1.1.8(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0))
       vue-tsc:
         specifier: ^2.2.0
         version: 2.2.0(typescript@5.7.3)
@@ -4666,8 +4666,8 @@ packages:
     resolution: {integrity: sha512-OljLrQ9SQdOUqTaQxqL5dEfZWrXExyyWsozYlAWFawPVNuD83igl7uJD2RTkNMbniIYgt8l81eCJGIdQF7avLQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
-  vite-plugin-image-optimizer@1.1.7:
-    resolution: {integrity: sha512-KPJWndwqVi7Z2hYCudzKeNDw5U7w1DxAc266bqDBKV8taG8W3EtripFuUM4Y05IlFC19yBQndJCFA8+NJymH+w==}
+  vite-plugin-image-optimizer@1.1.8:
+    resolution: {integrity: sha512-40bYRDHQLUOrIwJIJQqyKJHrfgVshqzDLtMy8SEgf+fB7PnppslSTTkY7PJFrBGqgbCdOdN9KkqsvccXmnEa5Q==}
     engines: {node: '>=14'}
     peerDependencies:
       vite: '>=3'
@@ -8603,7 +8603,7 @@ snapshots:
 
   validate-npm-package-name@5.0.1: {}
 
-  vite-plugin-image-optimizer@1.1.7(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0)):
+  vite-plugin-image-optimizer@1.1.8(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0)):
     dependencies:
       ansi-colors: 4.1.3
       pathe: 1.1.2
