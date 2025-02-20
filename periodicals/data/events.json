@@ -18259,5 +18259,23 @@
     "startTimestamp": 1739984400.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1740157200.0,
+    "id": "event-2-20",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1740070800.0,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1740157200.0,
+    "id": "ultra-2-20",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1740070800.0,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
