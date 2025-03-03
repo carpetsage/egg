@@ -18439,5 +18439,14 @@
     "startTimestamp": 1740934800.0,
     "type": "shell-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1741107600.0,
+    "id": "event-3-3",
+    "message": "3x on 3/3!!!",
+    "multiplier": 3.0,
+    "startTimestamp": 1741021200.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
