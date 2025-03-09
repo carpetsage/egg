@@ -18538,5 +18538,23 @@
     "startTimestamp": 1741453200.0,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1741708800.0,
+    "id": "event-3-9",
+    "message": "2x MISSION CAPACITY!",
+    "multiplier": 2.0,
+    "startTimestamp": 1741536000.0,
+    "type": "mission-capacity",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1741622400.0,
+    "id": "event-3-9-2",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1741536000.0,
+    "type": "crafting-sale",
+    "ultra": false
   }
 ]
