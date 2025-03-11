@@ -18574,5 +18574,14 @@
     "startTimestamp": 1741622400.0,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1741795200.0,
+    "id": "event-3-11",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1741708800.0,
+    "type": "gift-boost",
+    "ultra": false
   }
 ]
