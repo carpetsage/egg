@@ -18619,5 +18619,23 @@
     "startTimestamp": 1741881600.0,
     "type": "vehicle-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1742054400.0,
+    "id": "event-3-14",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1741968000.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1742054400.0,
+    "id": "ultra-3-14",
+    "message": "Pi x EARNINGS!",
+    "multiplier": 3.1415,
+    "startTimestamp": 1741968000.0,
+    "type": "earnings-boost",
+    "ultra": true
   }
 ]
