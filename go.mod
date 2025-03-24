@@ -8,7 +8,7 @@ require (
 	github.com/carpetsage/EggContractor v0.0.0-20240316031915-ca4a4893ea1f
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
-	google.golang.org/protobuf v1.36.4
+	google.golang.org/protobuf v1.36.5
 )
 
 require (
