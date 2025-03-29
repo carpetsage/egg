@@ -27,7 +27,10 @@ export default ({ command }: ConfigEnv): UserConfigExport => ({
     rollupOptions: {
       output: {
         manualChunks(id: string) {
-          if (id.includes('contract')) {
+          if (id.includes('.json')) {
+            console.log(id);
+            return 'json';
+          } else if (id.includes('contract')) {
             console.log(id);
             return 'contractlist';
           }

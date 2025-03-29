@@ -66,7 +66,7 @@ export function getProphecyEggsProgress(
 ): ProphecyEggsProgressAggregate {
   const completed = backup.game!.eggsOfProphecy!;
   const fromContracts = getProphecyEggsProgressFromContracts(backup, params);
-  const fromContractSeasons = getProphecyEggsProgressFromContractSeasons(backup, params?.contractSeasons);
+  const fromContractSeasons = getProphecyEggsProgressFromContractSeasons(backup);
   const fromTrophies = getProphecyEggsProgressFromTrophies(backup);
   const fromDailyGifts = getProphecyEggsProgressFromDailyGifts(backup);
   // Sometimes when a player has started a half-finished legacy contract, and
@@ -80,7 +80,8 @@ export function getProphecyEggsProgress(
   // See the following bug report:
   // https://discord.com/channels/869885242801029150/869945876313944074/914077000824659979
   // https://discord.com/channels/@me/849156772999462922/914078132309467196
-  const fromContractsCompleted = completed - fromTrophies.completed - fromDailyGifts.completed - fromContractSeasons.completed;
+  const fromContractsCompleted =
+    completed - fromTrophies.completed - fromDailyGifts.completed - fromContractSeasons.completed;
   if (fromContractsCompleted !== fromContracts.completed) {
     console.warn(
       `Discrepancy detected: ` +
@@ -90,7 +91,8 @@ export function getProphecyEggsProgress(
     fromContracts.completed = fromContractsCompleted;
   }
   return {
-    available: fromContracts.available + fromTrophies.available + fromDailyGifts.available + fromContractSeasons.available,
+    available:
+      fromContracts.available + fromTrophies.available + fromDailyGifts.available + fromContractSeasons.available,
     completed,
     fromContracts,
     fromContractSeasons,
@@ -139,9 +141,9 @@ export function getProphecyEggsProgressFromContracts(
 
 export function getProphecyEggsProgressFromContractSeasons(
   backup: ei.IBackup,
-  contractSeasons?: ei.IContractSeasonInfo[]
+  contractSeasonIDs?: string[]
 ): ProphecyEggsProgressFromContractSeasons {
-  const seasonProgressData = getContractSeasonProgressData(backup, contractSeasons);
+  const seasonProgressData = getContractSeasonProgressData(backup, contractSeasonIDs);
 
   let numPEsAvailable = 0;
   let numPEsCompleted = 0;
@@ -153,8 +155,8 @@ export function getProphecyEggsProgressFromContractSeasons(
       // Don't count PEs from future seasons.
       continue;
     }
-    numPEsAvailable += season.availablePE
-    numPEsCompleted += season.completedPE
+    numPEsAvailable += season.availablePE;
+    numPEsCompleted += season.completedPE;
     if (season.availablePE > 0) {
       ++numPESeasonsAvailable;
       if (season.completedPE >= season.availablePE) ++numPESeasonsCompleted;
@@ -169,9 +171,7 @@ export function getProphecyEggsProgressFromContractSeasons(
   };
 }
 
-export function getProphecyEggsProgressFromTrophies(
-  backup: ei.IBackup
-): ProphecyEggsProgressFromTrophies {
+export function getProphecyEggsProgressFromTrophies(backup: ei.IBackup): ProphecyEggsProgressFromTrophies {
   const trophyLevels: TrophyLevel[] = backup.game!.eggMedalLevel!;
   if (trophyLevels.length !== 19) {
     throw new Error(`expected trophy levels for 19 eggs, got ${trophyLevels.length}`);
@@ -265,9 +265,7 @@ export function getProphecyEggsProgressFromTrophies(
   };
 }
 
-export function getProphecyEggsProgressFromDailyGifts(
-  backup: ei.IBackup
-): ProphecyEggsProgressFromDailyGifts {
+export function getProphecyEggsProgressFromDailyGifts(backup: ei.IBackup): ProphecyEggsProgressFromDailyGifts {
   const numDays = backup.game!.numDailyGiftsCollected!;
   const available = 24;
   const completed = Math.min(Math.floor(numDays / 28), available);
