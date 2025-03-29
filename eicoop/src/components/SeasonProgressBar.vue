@@ -102,18 +102,16 @@ export default defineComponent({
     const finalTarget = computed(
       () => contractSeasonProgress.value.goals.at(contractSeasonProgress.value.goals.length - 1)?.cxp ?? 0
     );
-    const projection = ref(contractSeasonProgress.value.totalCxp);
-    // computed(() => {
-    // const time = Math.round(Date.now() / 1000 - contractSeasonProgress.value.startTime);
-    // const y = contractSeasonProgress.value.totalCxp / time;
-    // const z = contractSeasonProgress.value.totalCxp + y * contractSeasonProgress.value.remaningTime;
-    // console.log(time, y, z, contractSeasonProgress.value.remaningTime);
-    // return z;
-    // });
-    console.log(projection.value);
-    // const contractScore = computed(contractSeasonProgress.value.totalCxp)dd
-    // function finalTarget(goals: ei.ContractSeasonInfo.IGoalSet[], grade: ei.Contract.PlayerGrade) {
-    // }
+    // Get average score per contract this season and multiply by 13 (number of contracts per season) to get estimate
+    const projection = computed(() => {
+      // Convert seconds since season started to weeks since season started
+      // which is the same as contracts since season started
+      const contractsReleased = Math.ceil(
+        (Date.now() / 1000 - contractSeasonProgress.value.startTime) / (60 * 60 * 24 * 7)
+      );
+      const averageCS = contractSeasonProgress.value.totalCxp / contractsReleased;
+      return averageCS * 13;
+    });
     return {
       percentage,
       rewardIconPath,
