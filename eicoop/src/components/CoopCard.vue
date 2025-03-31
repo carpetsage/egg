@@ -231,19 +231,32 @@
         </div>
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 flex flex-row dark:text-gray-400">
-            Time to complete, offline adjusted
-            <base-warning
-              v-if="anyPlayerPrivate && leagueStatus.expectedTimeToCompleteOfflineAdjusted > 0"
-              v-tippy="'This is a conservative estimate due to some players having private farms'"
-              class="mx-0.5 translate-y-0.5"
-            />
+            <template v-if="leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0">
+              Total time taken to complete contract
+            </template>
+            <template v-else>
+              Time to complete, offline adjusted
+              <base-warning
+                v-if="anyPlayerPrivate && leagueStatus.expectedTimeToCompleteOfflineAdjusted > 0"
+                v-tippy="'This is a conservative estimate due to some players having private farms'"
+                class="mx-0.5 translate-y-0.5"
+              />
+            </template>
           </dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
             <tippy class="text-gray-900 dark:text-gray-100">
-              <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
-                formatDuration(leagueStatus.expectedTimeToCompleteOfflineAdjusted)
-              }}</span>
-              expected
+              <span
+                v-if="leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0"
+                :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
+              >
+                {{ formatDuration(Date.now() / 1000 + leagueStatus.secondsRemaining - (contract.startTime ?? 0)) }}
+              </span>
+              <template v-else>
+                <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
+                  >{{ formatDuration(leagueStatus.expectedTimeToCompleteOfflineAdjusted) }}
+                </span>
+                expected
+              </template>
               <template v-if="leagueStatus.expectedTimeToCompleteOfflineAdjusted > 0" #content>
                 <p>
                   The expected completion time taking into account offline eggs laid for all members is
@@ -328,6 +341,7 @@ import ContractProgressBar from '@/components/ContractProgressBar.vue';
 import CoopCardContributionTable from '@/components/CoopCardContributionTable.vue';
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vue';
+import dayjs from 'dayjs';
 
 export default defineComponent({
   components: {
@@ -383,6 +397,7 @@ export default defineComponent({
       offlineDuration,
       onlineDuration,
       modifiers,
+      dayjs,
       formatEIValue,
       formatDuration,
       completionStatusFgColorClass,
