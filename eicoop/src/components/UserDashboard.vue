@@ -263,7 +263,7 @@ export default defineComponent({
       getUserActiveSoloContracts(backup.value).map(solo => new SoloStatus(solo, backup.value))
     );
 
-    const latestSeasonProgress = computed(() => getContractSeasonProgressData(backup.value, ['spring_2025']));
+    const latestSeasonProgress = computed(() => getContractSeasonProgressData(backup.value, ['latest']));
 
     const housekeeping = () => {
       coopParams.value.forEach(coop => contractStore.addContract(coop.contract));

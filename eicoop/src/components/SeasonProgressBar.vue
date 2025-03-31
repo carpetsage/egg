@@ -102,15 +102,10 @@ export default defineComponent({
     const finalTarget = computed(
       () => contractSeasonProgress.value.goals.at(contractSeasonProgress.value.goals.length - 1)?.cxp ?? 0
     );
-    // Get average score per contract this season and multiply by 13 (number of contracts per season) to get estimate
+    // Find average score of contracts they've completed * number of non expired contracts left this season
     const projection = computed(() => {
-      // Convert seconds since season started to weeks since season started
-      // which is the same as contracts since season started
-      const contractsReleased = Math.ceil(
-        (Date.now() / 1000 - contractSeasonProgress.value.startTime) / (60 * 60 * 24 * 7)
-      );
-      const averageCS = contractSeasonProgress.value.totalCxp / contractsReleased;
-      return averageCS * 13;
+      const averageCS = contractSeasonProgress.value.totalCxp / contractSeasonProgress.value.contractsCompleted;
+      return averageCS * (13 - contractSeasonProgress.value.contractsExpired);
     });
     return {
       percentage,

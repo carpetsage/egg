@@ -1,6 +1,10 @@
 import { ei } from './proto';
 import { decodeMessage } from './api';
 import contractSeasonProtos from './contractseasons.json';
+import { contractCompleted } from './contracts';
+import seasonContractProtos from './seasoncontracts.json';
+
+const seasonContractList = seasonContractProtos.map(c => decodeMessage(ei.Contract, c.proto) as ei.IContract);
 
 export const contractSeasonList: ei.IContractSeasonInfo[] = (() => {
   return contractSeasonProtos
@@ -12,7 +16,9 @@ export interface ContractSeasonProgress {
   seasonId: string;
   seasonName: string;
   startTime: number;
-  remaningTime: number;
+  contractsCompleted: number;
+  contractsInProgress: number;
+  contractsExpired: number;
   availablePE: number;
   completedPE: number;
   startingGrade: ei.Contract.PlayerGrade;
@@ -99,44 +105,40 @@ function getDefaultSeasonForYear(year: number): ei.IContractSeasonInfo {
 
 export function getContractSeasonProgressData(backup: ei.IBackup, seasonIDs?: string[]): ContractSeasonProgress[] {
   const rewardSeasonIds = new Set<string>();
+  // const contractSeasons: ei.IContractSeasonInfo[] = [];
   const contractSeasons = seasonIDs
-    ? (contractSeasonList.filter(season => seasonIDs.includes(season.id ?? '')) ?? [
-        contractSeasonList[contractSeasonList.length - 1],
-      ])
+    ? contractSeasonList.filter(season => seasonIDs?.includes(season.id ?? '')).length > 0
+      ? contractSeasonList.filter(season => seasonIDs?.includes(season.id ?? ''))
+      : [contractSeasonList[contractSeasonList.length - 1]]
     : contractSeasonList;
+
   // Collect the player's progress per season.
   // If we have a cxpLastRewardGiven value then it's a contract season with rewards.
   // Track the best contract grade we've seen too, in case we need it later.
-  const seasonProgressById: { [id: string]: ei.ContractPlayerInfo.ISeasonProgress } = {};
+  const seasonProgressById = new Map<string, ei.ContractPlayerInfo.ISeasonProgress>();
   const allSeasonProgress = backup.contracts?.lastCpi?.seasonProgress ?? [];
-  let pastStartingGrade =
+  const pastStartingGrade =
     allSeasonProgress.findLast(x => x.startingGrade != null)?.startingGrade ?? ei.Contract.PlayerGrade.GRADE_C;
-  const seasonProgressData = seasonIDs
-    ? allSeasonProgress.filter(seasonProgress => seasonIDs?.includes(seasonProgress.seasonId ?? ''))
-    : allSeasonProgress;
+  const seasonProgressData = allSeasonProgress.filter(seasonProgress =>
+    contractSeasons?.find(c => c.id === seasonProgress.seasonId)
+  );
   for (const seasonProgress of seasonProgressData) {
     if (seasonProgress.seasonId != null) {
-      seasonProgressById[seasonProgress.seasonId] = seasonProgress;
+      seasonProgressById.set(seasonProgress.seasonId, seasonProgress);
       if (seasonProgress.cxpLastRewardGiven != null) {
         rewardSeasonIds.add(seasonProgress.seasonId);
       }
-      if (seasonProgress.startingGrade != null && seasonProgress.startingGrade > pastStartingGrade) {
-        pastStartingGrade = seasonProgress.startingGrade;
-      }
     }
-    console.log(pastStartingGrade);
   }
 
   // Contract seasons with rewards by ID
-  const contractSeasonsById: { [id: string]: ei.IContractSeasonInfo } = {};
+  // const contractSeasonsById: { [id: string]: ei.IContractSeasonInfo } = {};
+  const contractSeasonsById = new Map<string, ei.IContractSeasonInfo>();
   for (const season of contractSeasons) {
     if (season.id != null) {
-      contractSeasonsById[season.id] = season;
+      contractSeasonsById.set(season.id, season);
       // Do we have a non-empty list of goals for any grade?
-      if (
-        season.gradeGoals != null &&
-        season.gradeGoals.some(gradeGoal => Array.isArray(gradeGoal.goals) && gradeGoal.goals.length > 0)
-      ) {
+      if (season.gradeGoals?.some(gradeGoal => (gradeGoal?.goals?.length ?? 0) > 0)) {
         rewardSeasonIds.add(season.id);
       }
     }
@@ -150,46 +152,39 @@ export function getContractSeasonProgressData(backup: ei.IBackup, seasonIDs?: st
   // - If we have progress for a season after Winter 2025 but no season definition, assume it has a single PE
   //   with the same CXP requirements as Winter 2025. If it's before Winter 2025 assume no PEs.
   const result: ContractSeasonProgress[] = [];
+  const contracts = backup.contracts?.archive?.concat(backup.contracts.contracts ?? []) ?? [];
   for (const seasonId of rewardSeasonIds) {
     const seasonYear = parseSeasonId(seasonId);
-    const contractSeason = contractSeasonsById[seasonId] ?? getDefaultSeasonForYear(seasonYear);
-    const seasonProgress = seasonProgressById[seasonId];
+    const contractSeason = contractSeasonsById.get(seasonId) ?? getDefaultSeasonForYear(seasonYear);
+    const seasonProgress = seasonProgressById.get(seasonId);
+    const startingGrade = seasonProgress?.startingGrade ?? pastStartingGrade;
+    const goals = contractSeason.gradeGoals?.find(gradeGoal => gradeGoal?.grade === startingGrade)?.goals ?? [];
+    const peGoal = goals.find(goal => goal.rewardType === ei.RewardType.EGGS_OF_PROPHECY);
+    const availablePE = peGoal?.rewardAmount ?? 0;
+    const cxpLastRewardGiven = seasonProgress?.cxpLastRewardGiven ?? seasonProgress?.totalCxp ?? 0;
+    const completedPE = cxpLastRewardGiven > (peGoal?.cxp ?? 315000) ? availablePE : 0;
+    const attemptedContracts = contracts.filter(c => c.contract?.seasonId === seasonId);
+    // counts as completed if end time is in the past
+    // or contract is "done" but end time is more than 12 hours in the future
+    const completedContracts = attemptedContracts.filter(
+      c =>
+        (c.coopGracePeriodEndTime ?? c.coopSharedEndTime ?? 0) < (backup.approxTime ?? Date.now() / 1000) ||
+        (contractCompleted(c) &&
+          (c.coopSharedEndTime ?? Infinity) > (backup.approxTime ?? Date.now() / 1000) + 12 * 60 * 60)
+    ).length;
+    // Find expired contracts that aren't completed/in progress
+    const expiredContracts = seasonContractList
+      .filter(c => c.seasonId === seasonId)
+      .filter(c => (c.expirationTime ?? Infinity) < Date.now() / 100)
+      .filter(c => !attemptedContracts.some(a => a.contract?.identifier === c.identifier));
 
-    let availablePE = 0;
-    let completedPE = 0;
-    let goals: ei.IContractSeasonGoal[] = [];
-    let startingGrade: ei.Contract.PlayerGrade = ei.Contract.PlayerGrade.GRADE_UNSET;
-    if (contractSeason.gradeGoals != null) {
-      // Maximum number of PEs available for any grade
-      const allGradesPECounts = contractSeason.gradeGoals.map(gradeGoal =>
-        (gradeGoal.goals || [])
-          .filter(goal => goal.rewardType === ei.RewardType.EGGS_OF_PROPHECY)
-          .reduce((total, goal) => total + (goal.rewardAmount ?? 1), 0)
-      ) ?? [0];
-      availablePE = Math.max(...allGradesPECounts);
-
-      startingGrade = seasonProgress?.startingGrade ?? pastStartingGrade;
-      goals = contractSeason.gradeGoals.find(gradeGoal => gradeGoal?.grade === startingGrade)?.goals ?? [];
-
-      // PEs obtained
-      if (seasonProgress != null) {
-        const cxpLastRewardGiven = seasonProgress.cxpLastRewardGiven ?? seasonProgress.totalCxp ?? 0;
-        if (cxpLastRewardGiven > 0) {
-          completedPE = goals
-            .filter(
-              goal =>
-                goal.cxp != null && goal.cxp <= cxpLastRewardGiven && goal.rewardType === ei.RewardType.EGGS_OF_PROPHECY
-            )
-            .reduce((total, goal) => total + (goal.rewardAmount ?? 1), 0);
-        }
-      }
-    }
-    const startTime = contractSeason.startTime ?? estimateSeasonStartTime(seasonYear);
     const contractSeasonProgress: ContractSeasonProgress = {
       seasonId: seasonId,
       seasonName: contractSeason.name ?? seasonId,
-      startTime: startTime,
-      remaningTime: startTime + secondsIn52Weeks / 4 - Date.now() / 1000,
+      startTime: contractSeason.startTime ?? estimateSeasonStartTime(seasonYear),
+      contractsCompleted: completedContracts,
+      contractsInProgress: attemptedContracts.length - completedContracts,
+      contractsExpired: expiredContracts.length,
       availablePE,
       completedPE,
       startingGrade,
@@ -198,9 +193,6 @@ export function getContractSeasonProgressData(backup: ei.IBackup, seasonIDs?: st
       goals,
     };
     result.push(contractSeasonProgress);
-    if (seasonIDs) {
-      console.log(contractSeasonProgress);
-    }
   }
   result.sort((a, b) => a.startTime - b.startTime);
   return result;
