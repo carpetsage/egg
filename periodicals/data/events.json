@@ -18889,5 +18889,23 @@
     "startTimestamp": 1743350400.0,
     "type": "epic-research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1743523200.0,
+    "id": "event-3-31",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743436800.0,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1743523200.0,
+    "id": "ultra-3-31",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1743436800.0,
+    "type": "hab-sale",
+    "ultra": true
   }
 ]
