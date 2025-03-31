@@ -1,0 +1,36 @@
+{
+  "name": "periodicals",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "pnpm tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.7.0",
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.3"
+  },
+  "bin": {
+    "updatePeriodicals": "./bin/run.js"
+  },
+  "oclif": {
+    "bin": "updatePeriodicals",
+    "commands": {
+      "strategy": "single",
+      "target": "./dist/index.js"
+    },
+    "dirname": "updatePeriodicals",
+    "topicSeparator": " "
+  },
+  "dependencies": {
+    "@oclif/core": "^4.2.10",
+    "lib": "workspace:^"
+  }
+}
