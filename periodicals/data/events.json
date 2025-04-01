@@ -18907,5 +18907,14 @@
     "startTimestamp": 1743436800.0,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1743609600.0,
+    "id": "event-4-1",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1743523200.0,
+    "type": "mission-fuel",
+    "ultra": false
   }
 ]
