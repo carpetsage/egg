@@ -18943,5 +18943,14 @@
     "startTimestamp": 1743609600.0,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1743782400.0,
+    "id": "event-4-3",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743696000.0,
+    "type": "boost-duration",
+    "ultra": false
   }
 ]
