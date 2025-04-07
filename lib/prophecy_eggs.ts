@@ -1,6 +1,6 @@
 import { ei } from './proto';
 import { eggName } from './eggs';
-import { getContractSeasonProgressData } from './contract_seasons';
+import { getContractSeasonsProgressData } from './contract_seasons';
 import { getContractGoals } from './contracts';
 
 export enum TrophyLevel {
@@ -143,7 +143,7 @@ export function getProphecyEggsProgressFromContractSeasons(
   backup: ei.IBackup,
   contractSeasonIDs?: string[]
 ): ProphecyEggsProgressFromContractSeasons {
-  const seasonProgressData = getContractSeasonProgressData(backup, contractSeasonIDs);
+  const seasonProgressData = getContractSeasonsProgressData(backup, contractSeasonIDs);
 
   let numPEsAvailable = 0;
   let numPEsCompleted = 0;

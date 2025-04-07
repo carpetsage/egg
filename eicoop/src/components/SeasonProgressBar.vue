@@ -1,6 +1,6 @@
 <template>
   <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6 space-y-4">
-    <h3>{{ contractSeasonProgress.seasonName }} Season Progress</h3>
+    <h3>{{ latestSeasonProgress.seasonName }} Season Progress</h3>
     <div class="h-8 relative">
       <tippy tag="div" class="h-6 relative top-1 rounded-full overflow-hidden">
         <div class="w-full h-full bg-gray-200 absolute"></div>
@@ -10,19 +10,17 @@
         ></div>
         <div
           class="h-full bg-green-500 absolute rounded-full"
-          :style="{ width: percentage(contractSeasonProgress.totalCxp, finalTarget) }"
+          :style="{ width: percentage(latestSeasonProgress.totalCxp, finalTarget) }"
         ></div>
         <template #content>
-          confirmed: {{ formatEIValue(contractSeasonProgress.totalCxp) }},<br />
-          <template
-            v-if="projection > contractSeasonProgress.totalCxp && contractSeasonProgress.totalCxp < finalTarget"
-          >
+          confirmed: {{ formatEIValue(latestSeasonProgress.totalCxp) }},<br />
+          <template v-if="projection > latestSeasonProgress.totalCxp && latestSeasonProgress.totalCxp < finalTarget">
             projected total: {{ formatEIValue(projection) }},<br />
           </template>
           final target: {{ formatEIValue(finalTarget, { trim: true }) }}
         </template>
       </tippy>
-      <template v-for="(goal, index) in contractSeasonProgress.goals" :key="index">
+      <template v-for="(goal, index) in latestSeasonProgress.goals" :key="index">
         <div>
           <tippy
             tag="div"
@@ -41,11 +39,11 @@
                 <span class="font-medium">{{ rewardAmountDisplay(goal) }}</span>
               </p>
               {{ formatEIValue(target(goal), { trim: true }) }},
-              {{ percentage(contractSeasonProgress.totalCxp, target(goal), 1) }} completed
+              {{ percentage(latestSeasonProgress.totalCxp, target(goal), 1) }} completed
             </template>
           </tippy>
           <svg
-            v-if="contractSeasonProgress.totalCxp >= target(goal)"
+            v-if="latestSeasonProgress.totalCxp >= target(goal)"
             class="absolute h-3.5 w-3.5 bottom-0 text-green-500 bg-white dark:bg-gray-800 rounded-full"
             :style="{
               left: `calc(${percentage(target(goal), finalTarget)} + 0.125rem)`,
@@ -66,13 +64,15 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, ref, toRefs } from 'vue';
+import { computed, defineComponent, PropType, provide, Ref, ref, toRefs, watch } from 'vue';
 import { Tippy } from 'vue-tippy';
 
 import {
   ei,
   formatDuration,
   formatEIValue,
+  getUserContractsArchive,
+  requestContractsArchive,
   rewardAmountDisplay,
   rewardIconPath,
   rewardName,
@@ -80,7 +80,8 @@ import {
 } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 import { completionStatusFgColorClass } from '@/styles';
-import { ContractSeasonProgress } from 'lib/contract_seasons';
+import { getContractSeasonProgress } from 'lib/contract_seasons';
+import { refreshCallbackKey } from '@/symbols';
 
 function percentage(x: number, y: number, decimals = 3): string {
   return `${trimTrailingZeros((Math.min(x / y, 1) * 100).toFixed(decimals))}%`;
@@ -92,20 +93,53 @@ export default defineComponent({
     BaseIcon,
   },
   props: {
-    contractSeasonProgress: {
-      type: Object as PropType<ContractSeasonProgress>,
+    backup: {
+      type: Object as PropType<ei.IBackup>,
       required: true,
+    },
+    // Supply a refreshKey to force a refresh.
+    refreshKey: {
+      type: Number,
+      default: 0,
     },
   },
   setup(props) {
-    const { contractSeasonProgress } = toRefs(props);
+    const { backup, refreshKey } = toRefs(props);
+    const contracts: Ref<ei.IContractsArchive | undefined> = ref(undefined);
+    const loading = ref(true);
+    const error: Ref<Error | undefined> = ref(undefined);
+
+    const refreshContractsArchive = async () => {
+      loading.value = true;
+      error.value = undefined;
+
+      try {
+        contracts.value = await getUserContractsArchive(backup.value.eiUserId!);
+      } catch (err) {
+        error.value = err instanceof Error ? err : new Error(`${err}`);
+      }
+      loading.value = false;
+    };
+    refreshContractsArchive();
+    provide(refreshCallbackKey, () => {
+      refreshContractsArchive();
+    });
+    watch(refreshKey, () => {
+      refreshContractsArchive();
+    });
+
+    const latestSeasonProgress = computed(() => getContractSeasonProgress(backup.value, 'latest', contracts.value));
     const finalTarget = computed(
-      () => contractSeasonProgress.value.goals.at(contractSeasonProgress.value.goals.length - 1)?.cxp ?? 0
+      () => latestSeasonProgress.value?.goals.at(latestSeasonProgress.value?.goals.length - 1)?.cxp ?? 0
     );
+    // Get average score per contract this season and multiply by 13 (number of contracts per season) to get estimate
     // Find average score of contracts they've completed * number of non expired contracts left this season
     const projection = computed(() => {
-      const averageCS = contractSeasonProgress.value.totalCxp / contractSeasonProgress.value.contractsCompleted;
-      return averageCS * (13 - contractSeasonProgress.value.contractsExpired);
+      const averageCS =
+        latestSeasonProgress.value.contractsCompleted > 0
+          ? latestSeasonProgress.value.totalCxp / latestSeasonProgress.value.contractsCompleted
+          : 0;
+      return averageCS * (13 - latestSeasonProgress.value.contractsExpired);
     });
     return {
       percentage,
@@ -117,6 +151,7 @@ export default defineComponent({
       completionStatusFgColorClass,
       target: (goal: ei.IContractSeasonGoal) => goal.cxp ?? 0,
       projection,
+      latestSeasonProgress,
       finalTarget,
     };
   },

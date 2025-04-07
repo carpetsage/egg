@@ -157,9 +157,11 @@
     >
       No active contract found in your save. Check back when you have one!
     </div>
-    <template v-for="seasonProgress in latestSeasonProgress" :key="seasonProgress.seasonId">
-      <season-progress-bar v-if="seasonProgress.goals" :contract-season-progress="seasonProgress" />
-    </template>
+    <season-progress-bar
+      v-if="backup.contracts?.lastCpi?.seasonProgress != null"
+      :backup="backup"
+      :refresh-key="coopRefreshKey"
+    />
   </div>
 
   <template v-for="status in soloStatuses" :key="`${status.userId}:${status.contractId}`">
@@ -205,7 +207,6 @@ import SoloCard from '@/components/SoloCard.vue';
 import { getUserActiveCoopContractsSorted } from '../lib/userdata';
 import useContractsStore from '@/stores/contracts';
 import SeasonProgressBar from '@/components/SeasonProgressBar.vue';
-import { getContractSeasonProgressData } from 'lib/contract_seasons';
 
 export default defineComponent({
   components: {
@@ -262,9 +263,6 @@ export default defineComponent({
     const soloStatuses = computed(() =>
       getUserActiveSoloContracts(backup.value).map(solo => new SoloStatus(solo, backup.value))
     );
-
-    const latestSeasonProgress = computed(() => getContractSeasonProgressData(backup.value, ['latest']));
-
     const housekeeping = () => {
       coopParams.value.forEach(coop => contractStore.addContract(coop.contract));
       soloStatuses.value.forEach(solo => contractStore.addContract(solo.contract));
@@ -289,7 +287,6 @@ export default defineComponent({
       dailyGifts,
       coopParams,
       soloStatuses,
-      latestSeasonProgress,
       renderNonempty,
       formatEIValue,
       triggerRefresh,
