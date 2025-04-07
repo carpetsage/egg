@@ -6,14 +6,7 @@ import { getNumProphecyEggs } from '../prophecy_eggs';
 import { ei } from '../proto';
 import { formatEIValue } from '../units';
 
-import {
-  IArtifact as ISandboxArtifact,
-  Builds,
-  IBuild,
-  IBuilds,
-  IConfig,
-  IStone as ISandboxStone,
-} from './schema';
+import { IArtifact as ISandboxArtifact, Builds, IBuild, IBuilds, IConfig, IStone as ISandboxStone } from './schema';
 
 type FarmToSandboxConfigOverride = {
   isEnlightenment?: boolean;
@@ -56,9 +49,7 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
     boostBeaconActive: override?.boostBeaconActive ?? true,
     proPermit: override?.proPermit ?? true,
   };
-  const artifacts = (override?.artifactSet ?? farm.artifactSet).artifacts.map(
-    artifactToSandboxArtifact
-  );
+  const artifacts = (override?.artifactSet ?? farm.artifactSet).artifacts.map(artifactToSandboxArtifact);
   while (artifacts.length < 4) {
     artifacts.push({
       isEmpty: true,

@@ -7,40 +7,46 @@ export class SafeCustomEgg {
   name: string;
   value: number;
   description: string;
-  buffs: { dimension: ei.GameModifier.GameDimension, value: number}[];
+  buffs: { dimension: ei.GameModifier.GameDimension; value: number }[];
   constructor(ce: ei.ICustomEgg) {
     this.identifier = ce.identifier!;
     this.name = ce.name!;
     this.description = eggIconPath(ei.Egg.CUSTOM_EGG, ce.identifier!);
     this.value = ce.value!;
     this.buffs = ce.buffs!.map(buff => {
-      const b = {dimension: buff.dimension!, value: buff.value!};
+      const b = { dimension: buff.dimension!, value: buff.value! };
       return b;
     });
   }
 }
 
 function safeifyCustomEggs(customEggs: ei.ICustomEgg[]): SafeCustomEgg[] {
- const safeEggs: SafeCustomEgg[] = [];
- // jank stuff to
- customEggs.filter(egg => egg.identifier && egg.name && egg.value && egg.buffs && egg.buffs.filter(x => x.dimension && egg.value).length == egg.buffs.length).forEach(ce =>
-  safeEggs.push(new SafeCustomEgg(ce))
- );
- return safeEggs;
+  const safeEggs: SafeCustomEgg[] = [];
+  // jank stuff to
+  customEggs
+    .filter(
+      egg =>
+        egg.identifier &&
+        egg.name &&
+        egg.value &&
+        egg.buffs &&
+        egg.buffs.filter(x => x.dimension && egg.value).length == egg.buffs.length
+    )
+    .forEach(ce => safeEggs.push(new SafeCustomEgg(ce)));
+  return safeEggs;
 }
 
-
 // parse custom eggs
-export const rawCustomEggs = customEggsRaw.map( egg => decodeMessage(ei.CustomEgg, egg, false)) as ei.ICustomEgg[];
+export const rawCustomEggs = customEggsRaw.map(egg => decodeMessage(ei.CustomEgg, egg, false)) as ei.ICustomEgg[];
 export const customEggs = safeifyCustomEggs(rawCustomEggs);
 
 export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
   const symbol = custom_egg_id || ei.Egg[egg];
   switch (egg) {
     case ei.Egg.IMMORTALITY:
-      return "CRISPR";
+      return 'CRISPR';
     case ei.Egg.AI:
-      return "AI";
+      return 'AI';
     default:
       return symbol
         .split(/[_-]/)
@@ -102,8 +108,7 @@ export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
     case ei.Egg.UNKNOWN:
       return 0;
     case ei.Egg.CUSTOM_EGG:
-      const egg = rawCustomEggs.find(egg => egg.identifier === custom_egg_id);
-      return egg?.value ?? 1;
+      return rawCustomEggs.find(egg => egg.identifier === custom_egg_id)?.value ?? 1;
   }
 }
 
@@ -160,21 +165,35 @@ export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null): string 
     case ei.Egg.UNKNOWN:
       return 'egginc/egg_unknown.png';
     case ei.Egg.CUSTOM_EGG:
-      const egg = rawCustomEggs.find(egg => egg.identifier === custom_egg_id);
-      if (egg) {
-        return `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g,'')}.png`
-      }
-      return 'egginc/egg_unknown.png'
+      return rawCustomEggs.some(egg => egg.identifier === custom_egg_id)
+        ? `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g, '')}.png`
+        : 'egginc/egg_unknown.png';
   }
 }
 
 export const eggList = [
-    ei.Egg.EDIBLE, ei.Egg.SUPERFOOD, ei.Egg.MEDICAL,
-    ei.Egg.ROCKET_FUEL, ei.Egg.SUPER_MATERIAL, ei.Egg.FUSION,
-    ei.Egg.QUANTUM, ei.Egg.IMMORTALITY, ei.Egg.TACHYON,
-    ei.Egg.GRAVITON, ei.Egg.DILITHIUM, ei.Egg.PRODIGY,
-    ei.Egg.TERRAFORM, ei.Egg.ANTIMATTER, ei.Egg.DARK_MATTER,
-    ei.Egg.AI, ei.Egg.NEBULA, ei.Egg.UNIVERSE, ei.Egg.ENLIGHTENMENT,
-    ei.Egg.CHOCOLATE, ei.Egg.EASTER, ei.Egg.WATERBALLOON,
-    ei.Egg.FIREWORK, ei.Egg.PUMPKIN
+  ei.Egg.EDIBLE,
+  ei.Egg.SUPERFOOD,
+  ei.Egg.MEDICAL,
+  ei.Egg.ROCKET_FUEL,
+  ei.Egg.SUPER_MATERIAL,
+  ei.Egg.FUSION,
+  ei.Egg.QUANTUM,
+  ei.Egg.IMMORTALITY,
+  ei.Egg.TACHYON,
+  ei.Egg.GRAVITON,
+  ei.Egg.DILITHIUM,
+  ei.Egg.PRODIGY,
+  ei.Egg.TERRAFORM,
+  ei.Egg.ANTIMATTER,
+  ei.Egg.DARK_MATTER,
+  ei.Egg.AI,
+  ei.Egg.NEBULA,
+  ei.Egg.UNIVERSE,
+  ei.Egg.ENLIGHTENMENT,
+  ei.Egg.CHOCOLATE,
+  ei.Egg.EASTER,
+  ei.Egg.WATERBALLOON,
+  ei.Egg.FIREWORK,
+  ei.Egg.PUMPKIN,
 ];
