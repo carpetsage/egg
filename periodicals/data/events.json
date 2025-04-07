@@ -18871,5 +18871,32 @@
     "startTimestamp": 1743350400.0,
     "type": "epic-research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1744041600.0,
+    "id": "event-4-5-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1743868800.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1744041600.0,
+    "id": "event-4-6",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1743955200.0,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1744128000.0,
+    "id": "ultra-4-6",
+    "message": "2x MISSION CAPACITY!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743955200.0,
+    "type": "mission-capacity",
+    "ultra": true
   }
 ]
