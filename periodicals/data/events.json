@@ -18855,6 +18855,24 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1743350400.0,
+    "id": "event-3-29",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743264000.0,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1743350400.0,
+    "id": "ultra-3-29",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743264000.0,
+    "type": "boost-duration",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1743436800.0,
     "id": "event-3-29-2",
     "message": "4x PIGGY GROWTH!!",
@@ -18870,6 +18888,96 @@
     "multiplier": 0.65,
     "startTimestamp": 1743350400.0,
     "type": "epic-research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1743523200.0,
+    "id": "event-3-31",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743436800.0,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1743523200.0,
+    "id": "ultra-3-31",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1743436800.0,
+    "type": "hab-sale",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1743609600.0,
+    "id": "event-4-1",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1743523200.0,
+    "type": "mission-fuel",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1743696000.0,
+    "id": "event-4-2",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1743609600.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1743696000.0,
+    "id": "event-4-2-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1743609600.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1743696000.0,
+    "id": "ultra-4-2",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743609600.0,
+    "type": "boost-duration",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1743782400.0,
+    "id": "event-4-3",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743696000.0,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1743868800.0,
+    "id": "event-4-4",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1743782400.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1743868800.0,
+    "id": "ultra-4-4",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743782400.0,
+    "type": "gift-boost",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1743955200.0,
+    "id": "event-4-5",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2.0,
+    "startTimestamp": 1743868800.0,
+    "type": "prestige-boost",
     "ultra": false
   },
   {
