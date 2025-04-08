@@ -72,7 +72,6 @@ import {
   formatDuration,
   formatEIValue,
   getUserContractsArchive,
-  requestContractsArchive,
   rewardAmountDisplay,
   rewardIconPath,
   rewardName,
@@ -130,7 +129,7 @@ export default defineComponent({
 
     const latestSeasonProgress = computed(() => getContractSeasonProgress(backup.value, 'latest', contracts.value));
     const finalTarget = computed(
-      () => latestSeasonProgress.value?.goals.at(latestSeasonProgress.value?.goals.length - 1)?.cxp ?? 0
+      () => latestSeasonProgress.value.goals.at(latestSeasonProgress.value?.goals.length - 1)?.cxp ?? 0
     );
     // Get average score per contract this season and multiply by 13 (number of contracts per season) to get estimate
     // Find average score of contracts they've completed * number of non expired contracts left this season

@@ -232,7 +232,7 @@
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 flex flex-row dark:text-gray-400">
             <template v-if="leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0">
-              Total time taken to complete contract
+              Total time taken for contract completion
             </template>
             <template v-else>
               Time to complete, offline adjusted
@@ -249,7 +249,9 @@
                 v-if="leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0"
                 :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
               >
-                {{ formatDuration(Date.now() / 1000 + leagueStatus.secondsRemaining - (contract.startTime ?? 0)) }}
+                {{
+                  formatDuration(Date.now() / 1000 - status.secondsSinceAllGoalsAchieved - (contract.startTime ?? 0))
+                }}
               </span>
               <template v-else>
                 <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
