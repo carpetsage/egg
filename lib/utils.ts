@@ -33,8 +33,9 @@ export function iconURL(relpath: string, size: number | string = 'orig', extensi
   if (extension) {
     relpath = relpath.replace(/\.[a-z]+$/, `.${extension}`);
   }
-  return `https://carpetsage.github.io/weirdassets/${size}/${relpath}`;
-  // return `https://images.carpetsage.com/${size}/${relpath}`;
+  // return `https://carpetsage.github.io/weirdassets/${size}/${relpath}`;
+  // return `https://images.carpetsage.com/${size}/${relpath}`;:
+  return `https://eggincassets.pages.dev/${size}/${relpath}`;
 }
 
 // Trim trailing zeros, and possibly the decimal point.
