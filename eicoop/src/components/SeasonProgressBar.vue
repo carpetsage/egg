@@ -15,12 +15,23 @@
         <template #content>
           confirmed: {{ formatEIValue(latestSeasonProgress.totalCxp) }},<br />
           <template v-if="projection > latestSeasonProgress.totalCxp && latestSeasonProgress.totalCxp < finalTarget">
-            projected total: {{ formatEIValue(projection) }},<br />
+            projected total: {{ formatEIValue(projection, { decimals: 0 }) }},<br />
           </template>
           final target: {{ formatEIValue(finalTarget, { trim: true }) }}
         </template>
       </tippy>
-      <template v-for="(goal, index) in latestSeasonProgress.goals" :key="index">
+      <div
+        v-if="loading || error"
+        class="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 bg-opacity-80 dark:bg-opacity-80"
+      >
+        <div class="h-full py-4 flex items-center justify-center">
+          <base-loading v-if="loading" />
+          <div v-else-if="error" class="max-h-full overflow-y-scroll">
+            <error-message :error="error" />
+          </div>
+        </div>
+      </div>
+      <template v-for="(goal, index) in latestSeasonProgress.goals" v-else :key="index">
         <div>
           <tippy
             tag="div"
@@ -78,6 +89,8 @@ import {
   trimTrailingZeros,
 } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
+import ErrorMessage from '@/components/ErrorMessage.vue';
+import BaseLoading from '@/components/BaseLoading.vue';
 import { completionStatusFgColorClass } from '@/styles';
 import { getContractSeasonProgress } from 'lib/contract_seasons';
 import { refreshCallbackKey } from '@/symbols';
@@ -88,6 +101,8 @@ function percentage(x: number, y: number, decimals = 3): string {
 
 export default defineComponent({
   components: {
+    BaseLoading,
+    ErrorMessage,
     Tippy,
     BaseIcon,
   },
@@ -152,6 +167,8 @@ export default defineComponent({
       projection,
       latestSeasonProgress,
       finalTarget,
+      loading,
+      error,
     };
   },
 });

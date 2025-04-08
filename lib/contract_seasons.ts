@@ -187,8 +187,8 @@ export function getSeasonContractsProgress(backup: ei.IBackup, seasonID: string,
   // Find expired contracts that aren't completed/in progress
   const expiredContracts = seasonContractList
     .filter(c => c.seasonId === seasonID)
-    .filter(c => (c.expirationTime ?? Infinity) < Date.now() / 100)
-    .filter(c => attemptedContracts.some(a => a.contract?.identifier === c.identifier));
+    .filter(c => (c.expirationTime ?? Infinity) < Date.now() / 1000)
+    .filter(c => !attemptedContracts.some(a => a.contract?.identifier === c.identifier));
 
   return { attemptedContracts, completedContracts, expiredContracts };
 }

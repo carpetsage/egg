@@ -157,6 +157,9 @@
     >
       No active contract found in your save. Check back when you have one!
     </div>
+  </div>
+
+  <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg mb-4">
     <season-progress-bar
       v-if="backup.contracts?.lastCpi?.seasonProgress != null"
       :backup="backup"
