@@ -207,7 +207,7 @@
               >
                 <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-4 w-4 -ml-0.5" />
                 <span class="text-yellow-500 underline">
-                  {{ prophecyEggsProgress.fromContracts.completed }}
+                  {{ prophecyEggsProgress.fromContracts.completed }}/{{ progressPE.fromContracts.available }}
                 </span>
                 <svg class="h-3.5 w-3.5 text-gray-500 hover:text-gray-600 ml-1" viewBox="0 0 20 20" fill="currentColor">
                   <path
@@ -227,7 +227,7 @@
               >
                 <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-4 w-4 -ml-0.5" />
                 <span class="text-yellow-500 underline">
-                  {{ prophecyEggsProgress.fromContractSeasons.completed }}
+                  {{ prophecyEggsProgress.fromContractSeasons.completed }}/{{ prophecyEggsProgress.fromContractSeasons.available }}
                 </span>
                 <svg class="h-3.5 w-3.5 text-gray-500 hover:text-gray-600 ml-1" viewBox="0 0 20 20" fill="currentColor">
                   <path
@@ -732,6 +732,7 @@ import {
   PlayerCraftingLevel,
   getXPFromCraftingLevel,
   formatDuration,
+  ProphecyEggsProgressAggregate
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getMissionDataPreference, getMissionDataSubmitTime, recordMissionDataPreference } from '../lib/missiondata';
@@ -823,9 +824,10 @@ const ZERO_LEGENDARY_UNCONDITIONALLY_UNWORTHY_USER_NICKNAMES = new Map<string, s
 const props = defineProps<{
   backup: ei.IBackup;
   inventory: Inventory;
+  progressPE: ProphecyEggsProgressAggregate;
   eventBus: Emitter<Record<typeof REPORT_LEGENDARIES | typeof REPORT_MISSIONDATA, unknown>>;
 }>();
-const { backup, inventory, eventBus } = toRefs(props);
+const { backup, inventory, progressPE, eventBus } = toRefs(props);
 
 const collapsed = ref(getLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY) === 'true');
 const toggleCollapse = () => {
