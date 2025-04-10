@@ -33,7 +33,7 @@ const defaultContractSeasonProgress: ContractSeasonProgress = {
   contractsCompleted: 0,
   contractsInProgress: 0,
   contractsExpired: 0,
-  availablePE: 1,
+  availablePE: 0,
   completedPE: 0,
   startingGrade: ei.Contract.PlayerGrade.GRADE_C,
   totalCxp: 0,
@@ -194,10 +194,13 @@ export function getSeasonContractsProgress(backup: ei.IBackup, seasonID: string,
 }
 
 export function getContractSeasonsProgressData(backup: ei.IBackup, seasonIDs?: string[]) {
-  const contractSeasons = seasonIDs
-    ? contractSeasonList.filter(season => seasonIDs?.includes(season.id ?? '')).length > 0
-      ? contractSeasonList.filter(season => seasonIDs?.includes(season.id ?? ''))
-      : [contractSeasonList[contractSeasonList.length - 1]]
-    : contractSeasonList;
+  let contractSeasons: ei.IContractSeasonInfo[] = [contractSeasonList[contractSeasonList.length - 1]];
+
+  if (contractSeasonList.filter(season => seasonIDs?.includes(season.id ?? '')).length > 0) {
+    contractSeasons = contractSeasonList.filter(season => seasonIDs?.includes(season.id ?? ''));
+  } else {
+    contractSeasons = contractSeasonList;
+  }
+
   return contractSeasons.map(cs => getContractSeasonProgress(backup, cs.id ?? '')).filter(cs => cs != null);
 }
