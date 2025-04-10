@@ -15,7 +15,7 @@
         <template #content>
           confirmed: {{ formatEIValue(latestSeasonProgress.totalCxp) }},<br />
           <template v-if="projection > latestSeasonProgress.totalCxp && latestSeasonProgress.totalCxp < finalTarget">
-            projected total: {{ formatEIValue(projection, { decimals: 0 }) }},<br />
+            projected total: {{ formatEIValue(projection, { precision: 3 }) }},<br />
           </template>
           final target: {{ formatEIValue(finalTarget, { trim: true }) }}
         </template>
