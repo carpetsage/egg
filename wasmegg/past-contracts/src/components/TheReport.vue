@@ -1,10 +1,7 @@
 <template>
-  <div
-    class="rounded-md bg-green-100 text-green-800 text-sm w-max max-w-full px-4 py-2 mx-auto mb-4 shadow"
-  >
+  <div class="rounded-md bg-green-100 text-green-800 text-sm w-max max-w-full px-4 py-2 mx-auto mb-4 shadow">
     You can track all your active contracts on your
-    <a :href="`https://eicoop-carpet.netlify.app/u/${playerId}`" class="underline" target="_blank"
-      >personal dashboard</a
+    <a :href="`https://eicoop-carpet.netlify.app/u/${playerId}`" class="underline" target="_blank">personal dashboard</a
     >.
   </div>
 
@@ -16,9 +13,7 @@
       <ul class="text-center">
         <li class="text-sm text-gray-700">
           Contracts completed:&nbsp;
-          <span class="font-medium text-gray-900">
-            {{ contractsCompleted.length }}/{{ contracts.length }}
-          </span>
+          <span class="font-medium text-gray-900"> {{ contractsCompleted.length }}/{{ contracts.length }} </span>
         </li>
         <li class="text-sm text-gray-700">
           PE contracts:&nbsp;
@@ -45,10 +40,7 @@
       <div class="relative flex items-start">
         <span class="flex items-center text-green-500">
           <svg viewBox="-32 -32 576 576" class="h-4">
-            <path
-              fill="currentColor"
-              d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
-            />
+            <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
           </svg>
         </span>
         <span class="ml-2 text-xs text-gray-600">Never attempted</span>
@@ -56,10 +48,7 @@
       <div class="relative flex items-start">
         <span class="flex items-center h-4 text-red-500">
           <svg viewBox="-32 -32 576 576" class="h-4">
-            <path
-              fill="currentColor"
-              d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
-            />
+            <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
           </svg>
         </span>
         <span class="ml-2 text-xs text-gray-600">Attempted, failed to collect prophecy egg(s)</span>
@@ -67,10 +56,7 @@
       <div class="relative flex items-start">
         <span class="flex items-center h-4 text-yellow-500">
           <svg viewBox="-32 -32 576 576" class="h-4">
-            <path
-              fill="currentColor"
-              d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
-            />
+            <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
           </svg>
         </span>
         <span class="ml-2 text-xs text-gray-600">Attempted, failed to complete all goals</span>
@@ -78,10 +64,7 @@
       <div class="relative flex items-start">
         <span class="flex items-center h-4 text-gray-500">
           <svg viewBox="-32 -32 576 576" class="h-4">
-            <path
-              fill="currentColor"
-              d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z"
-            />
+            <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
           </svg>
         </span>
         <span class="ml-2 text-xs text-gray-600">Completed</span>
@@ -130,9 +113,7 @@
           />
         </div>
         <div class="ml-2 text-sm">
-          <label for="hideNoPE" class="text-gray-600"
-            >Hide contracts without prophecy egg reward</label
-          >
+          <label for="hideNoPE" class="text-gray-600">Hide contracts without prophecy egg reward</label>
         </div>
       </div>
       <div class="relative flex items-start">
@@ -158,45 +139,27 @@
         <div class="shadow overflow-hidden border-b border-gray-200">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
-                ID
-              </th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
-                Name
-              </th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
-                Date
-              </th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
-                Code
-              </th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
-                Goals
-              </th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
-                PE
-              </th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
-                Score
-              </th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
-                Teamwork Score
-              </th>
-              <th v-if="username==='abubu0524'" scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">ID</th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Name</th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Date</th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Code</th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Goals</th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">PE</th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Score</th>
+              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Teamwork Score</th>
+              <th
+                v-if="username === 'abubu0524'"
+                scope="col"
+                class="px-6 py-2 text-center text-xs font-medium text-gray-500"
+              >
                 Tokens Received
               </th>
             </thead>
             <tbody>
               <template v-for="(contract, index) in visibleContracts" :key="contract.id">
-                <tr
-                  :class="[index % 2 === 0 ? 'bg-white' : 'bg-gray-50', contractFgClass(contract)]"
-                >
+                <tr :class="[index % 2 === 0 ? 'bg-white' : 'bg-gray-50', contractFgClass(contract)]">
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm cursor-pointer">
-                    <a
-                      :href="contractLink(contract)"
-                      target="_blank"
-                      :class="contractFgClass(contract, true)"
-                    >
+                    <a :href="contractLink(contract)" target="_blank" :class="contractFgClass(contract, true)">
                       {{ contract.id }}
                     </a>
                   </td>
@@ -223,16 +186,9 @@
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm tabular-nums">
                     {{ epochSecondsToFormattedDate(contract.timestamp) }}
                   </td>
-                  <td
-                    class="px-6 py-1 truncate text-center text-sm cursor-pointer"
-                    :style="{ maxWidth: '12rem' }"
-                  >
+                  <td class="px-6 py-1 truncate text-center text-sm cursor-pointer" :style="{ maxWidth: '12rem' }">
                     <template v-if="contract.coopCode !== null">
-                      <a
-                        :href="coopLink(contract)"
-                        target="_blank"
-                        :class="contractFgClass(contract, true)"
-                      >
+                      <a :href="coopLink(contract)" target="_blank" :class="contractFgClass(contract, true)">
                         {{ contract.coopCode }}
                       </a>
                     </template>
@@ -245,13 +201,13 @@
                     {{ contractPESpec(contract) }}
                   </td>
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
-                    {{ contract.score || "" }}
+                    {{ contract.score || '' }}
                   </td>
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
-                    {{ contract.teamworkScore > 0 ? contract.teamworkScore.toFixed(3) : "" }}
+                    {{ contract.teamworkScore > 0 ? contract.teamworkScore.toFixed(3) : '' }}
                   </td>
-                  <td v-if="username==='abubu0524'" class="px-6 py-1 whitespace-nowrap text-center text-sm">
-                    {{ contract.tokens || "" }}
+                  <td v-if="username === 'abubu0524'" class="px-6 py-1 whitespace-nowrap text-center text-sm">
+                    {{ contract.tokens || '' }}
                   </td>
                 </tr>
               </template>
@@ -266,37 +222,30 @@
     Notes:
     <ul class="list-disc">
       <li>
-        For contracts with multiple incarnations, i.e. original run and leggacy run(s), only one
-        incarnation is listed. If the player has attempted the contract, the last attempted
-        incarnation is shown; otherwise, the latest incarnation is shown.
+        For contracts with multiple incarnations, i.e. original run and leggacy run(s), only one incarnation is listed.
+        If the player has attempted the contract, the last attempted incarnation is shown; otherwise, the latest
+        incarnation is shown.
       </li>
       <li>
-        The "Date" column shows the date on which the player last started a contract farm for the
-        contract, or the estimated date the contract was offered (which may not be accurate) if it
-        was never attempted.
+        The "Date" column shows the date on which the player last started a contract farm for the contract, or the
+        estimated date the contract was offered (which may not be accurate) if it was never attempted.
       </li>
       <li>
-        The "PE" column indicates which reward of the contract, if any, was one or more prophecy
-        eggs (the number of prophecy eggs is noted in parentheses if it's more than 1). The column
-        is blank if there's no PE associated with the contract. Otherwise, for older contracts
-        without standard/elite tiers, this column should look like "#2", meaning the second reward
-        being a PE; for newer contracts with tiers, this column should look like "std #3", meaning
-        the third reward of standard tier being a PE, or "elt #2", meaning the second reward of
-        elite tier being a PE. The tier shown is the tier the player last attempted the contract on,
-        with the exception that if the player completed none of the goals then the tier shown
-        defaults to elite (since in that case it's harder to tell which tier the player was on at
-        the time, if they did make an attempt).
+        The "PE" column indicates which reward of the contract, if any, was one or more prophecy eggs (the number of
+        prophecy eggs is noted in parentheses if it's more than 1). The column is blank if there's no PE associated with
+        the contract. Otherwise, for older contracts without standard/elite tiers, this column should look like "#2",
+        meaning the second reward being a PE; for newer contracts with tiers, this column should look like "std #3",
+        meaning the third reward of standard tier being a PE, or "elt #2", meaning the second reward of elite tier being
+        a PE. The tier shown is the tier the player last attempted the contract on, with the exception that if the
+        player completed none of the goals then the tier shown defaults to elite (since in that case it's harder to tell
+        which tier the player was on at the time, if they did make an attempt).
       </li>
       <li>
         Clicking on a contract ID or name takes you to the contract on
-        <a
-          href="https://eicoop-carpet.netlify.app/"
-          target="_blank"
-          class="text-blue-500 hover:text-blue-600"
+        <a href="https://eicoop-carpet.netlify.app/" target="_blank" class="text-blue-500 hover:text-blue-600"
           >CoopTracker</a
-        >. Clicking on a coop code takes you to that specific coop. Note that data for old coops may
-        have been purged from Egg, Inc.'s server, so you may encounter an error, or find the coop
-        has no players in it.
+        >. Clicking on a coop code takes you to that specific coop. Note that data for old coops may have been purged
+        from Egg, Inc.'s server, so you may encounter an error, or find the coop has no players in it.
       </li>
     </ul>
   </div>
@@ -318,7 +267,8 @@ import {
   setLocalStorage,
   UserBackupEmptyError,
 } from 'lib';
-import { getUserContractList, contractSeasonList, UserContract } from '@/contracts';
+import { getUserContractList, UserContract } from '@/contracts';
+import { contractSeasonList } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import TheReportProphecyEggs from '@/components/TheReportProphecyEggs.vue';
 import { formatEIValue, formatDuration } from 'lib';
@@ -340,7 +290,7 @@ export default defineComponent({
     },
   },
   // This async component does not respond to playerId changes.
-  /* eslint-disable vue/no-setup-props-destructure */
+
   async setup({ playerId }) {
     const data = await requestFirstContact(playerId);
     const contractsArchive = await requestContractsArchive(playerId);
@@ -349,7 +299,7 @@ export default defineComponent({
     }
     const backup = data.backup;
 
-    const username = backup.userName || "";
+    const username = backup.userName || '';
     const contracts = getUserContractList(backup, contractsArchive);
     const contractsWithPE = contracts.filter(c => c.numAvailablePEs > 0);
     const contractsCompleted = contracts.filter(c => c.numCompletedGoals === c.numAvailableGoals);
@@ -368,7 +318,6 @@ export default defineComponent({
     const prophecyEggsProgress = getProphecyEggsProgress(backup, {
       numPEsAvailable: contractsWithPE.reduce((total, c) => total + c.numAvailablePEs, 0),
       numPEContractsAvailable: contractsWithPE.length,
-      contractSeasons: contractSeasonList,
     });
 
     const hideUnattempted = ref(getLocalStorage(HIDE_UNATTEMPTED_LOCALSTORAGE_KEY) === 'true');
@@ -426,7 +375,7 @@ export default defineComponent({
       }
       let spec = '';
       if (contract.hasGrades) {
-        spec += contract.grade > 0 ? `${ei.Contract.PlayerGrade[contract.grade].split("_")[1]} ` : '';
+        spec += contract.grade > 0 ? `${ei.Contract.PlayerGrade[contract.grade].split('_')[1]} ` : '';
       } else if (contract.hasLeagues) {
         spec += contract.league === 1 ? 'std ' : 'elt ';
       }
@@ -439,9 +388,7 @@ export default defineComponent({
 
     const downloadAsCSV = () => {
       const csvBody = csvStringify(
-        [
-          ['ID', 'Name', 'Date', 'Code', 'Goals', 'PE', 'Attempted', 'PE collected', 'Completed'],
-        ].concat(
+        [['ID', 'Name', 'Date', 'Code', 'Goals', 'PE', 'Attempted', 'PE collected', 'Completed']].concat(
           contracts.map(contract => [
             contract.id,
             contract.name,
@@ -450,9 +397,7 @@ export default defineComponent({
             contractGoalsSpec(contract),
             contractPESpec(contract),
             csvbool(contract.attempted),
-            csvbool(
-              contract.indexOfPEGoal !== null && contract.numCompletedGoals > contract.indexOfPEGoal
-            ),
+            csvbool(contract.indexOfPEGoal !== null && contract.numCompletedGoals > contract.indexOfPEGoal),
             csvbool(contract.numCompletedGoals >= contract.numAvailableGoals),
           ])
         )

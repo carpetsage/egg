@@ -23,22 +23,17 @@ export function decodeMessage(
     // notably, enums and 64-bit integer values are encoded as strings.
     toJSON: boolean;
     stringEnums?: boolean;
-  },
+  }
 ): Record<string, unknown> {
-  $protobuf.util.toJSONOptions = {enums: String}
+  $protobuf.util.toJSONOptions = { enums: String };
   if (authenticated) {
-    const wrapperPayload = decodeMessage(
-      ei.AuthenticatedMessage,
-      encoded,
-      false
-    ) as ei.IAuthenticatedMessage;
+    const wrapperPayload = decodeMessage(ei.AuthenticatedMessage, encoded, false) as ei.IAuthenticatedMessage;
     if (wrapperPayload.message === null || wrapperPayload.message === undefined) {
       throw new Error('No message found behind wrap.');
     }
     const m = wrapperPayload.compressed ? pako.inflate(wrapperPayload.message) : wrapperPayload.message;
     return decodeMessage(message, m, false, options);
   }
-
 
   let binary;
   try {
@@ -58,7 +53,7 @@ export function decodeMessage(
   }
   const decoded = message.decode(binaryStringToUint8Array(binary));
   if (options?.stringEnums) {
-    return message.toObject(decoded, {enums: String});
+    return message.toObject(decoded, { enums: String });
   }
-  return options?.toJSON ? decoded.toJSON() : message.toObject(decoded) ;
+  return options?.toJSON ? decoded.toJSON() : message.toObject(decoded);
 }

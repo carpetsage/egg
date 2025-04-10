@@ -159,6 +159,14 @@
     </div>
   </div>
 
+  <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg mb-4">
+    <season-progress-bar
+      v-if="backup.contracts?.lastCpi?.seasonProgress != null"
+      :backup="backup"
+      :refresh-key="coopRefreshKey"
+    />
+  </div>
+
   <template v-for="status in soloStatuses" :key="`${status.userId}:${status.contractId}`">
     <solo-card :status="status" />
   </template>
@@ -201,6 +209,7 @@ import CoopCardLoader from '@/components/CoopCardLoader.vue';
 import SoloCard from '@/components/SoloCard.vue';
 import { getUserActiveCoopContractsSorted } from '../lib/userdata';
 import useContractsStore from '@/stores/contracts';
+import SeasonProgressBar from '@/components/SeasonProgressBar.vue';
 
 export default defineComponent({
   components: {
@@ -208,6 +217,7 @@ export default defineComponent({
     BaseInfo,
     BaseIcon,
     CoopCardLoader,
+    SeasonProgressBar,
     SoloCard,
   },
   props: {
@@ -256,7 +266,6 @@ export default defineComponent({
     const soloStatuses = computed(() =>
       getUserActiveSoloContracts(backup.value).map(solo => new SoloStatus(solo, backup.value))
     );
-
     const housekeeping = () => {
       coopParams.value.forEach(coop => contractStore.addContract(coop.contract));
       soloStatuses.value.forEach(solo => contractStore.addContract(solo.contract));

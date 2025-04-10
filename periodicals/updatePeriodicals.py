@@ -99,6 +99,10 @@ def getContracts(active: list["ei.Contract"], file: str) -> list["ContractStore"
                             key = lambda x: x.identifier),
             key=lambda x: x .start_time)
 
+    seasonContracts = [ ContractStore(contract) for contract in old + contracts if contract.season_id == 'spring_2025' ]
+    with open('data/seasoncontracts.json', 'w', encoding="utf-8") as f:
+        json.dump(seasonContracts, f, sort_keys=True, indent=2)
+
     # return list of all contracts in { id: contract id, proto: b64 contract proto } form
     return [ ContractStore(contract) for contract in old + contracts ]
 
@@ -122,6 +126,7 @@ def getContractSeasons(season_info: ei.ContractSeasonInfos, file: str) -> list["
         unique_everseen(season_info.infos + existing,
                         key = lambda x: x.id),
         key = lambda x: x .start_time)
+
 
     # return list of all contracts in { id: contract id, proto: b64 contract proto } form
     return [ ContractSeasonStore(contract_season) for contract_season in updated_list ]

@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { ei, requestFirstContact, UserBackupEmptyError } from 'lib';
+import { ei, requestContractsArchive, requestFirstContact, UserBackupEmptyError } from 'lib';
 
 export async function getUserBackup(userId: string): Promise<ei.IBackup> {
   const data = await requestFirstContact(userId);
@@ -40,4 +40,12 @@ export function getUserActiveCoopContractsSorted(backup: ei.IBackup): ei.ILocalC
 
 export function getUserActiveSoloContracts(backup: ei.IBackup): ei.ILocalContract[] {
   return backup.contracts?.contracts?.filter(c => !c.coopIdentifier) || [];
+}
+
+export async function getUserContractsArchive(userId: string): Promise<ei.IContractsArchive> {
+  const data = await requestContractsArchive(userId);
+  if (data.archive == null) {
+    throw new UserBackupEmptyError(userId);
+  }
+  return data;
 }

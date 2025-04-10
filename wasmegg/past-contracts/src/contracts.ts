@@ -1,6 +1,5 @@
 import { ei, decodeMessage } from 'lib';
 import contractProtos from './contracts.json';
-import contractSeasonProtos from './contractseasons.json';
 
 export enum ContractLeague {
   Elite = 0,
@@ -81,7 +80,7 @@ export function getUserContractList(backup: ei.IBackup, archive?: ei.IContractsA
   for (const active of activeContracts) {
     const match = localContracts.find(c => c.contract?.identifier === active.contract?.identifier);
     if (!match) {
-      localContracts.push(active)
+      localContracts.push(active);
     }
   }
 
@@ -127,9 +126,9 @@ function newUserContract(
   let hasLeagues = false;
   // grade stuff
   const hasGrades = Boolean(contract.contract?.gradeSpecs);
-  const grade = hasGrades ?
-    contract.evaluation?.grade || playerGrade || ei.Contract.PlayerGrade.GRADE_AAA :
-    ei.Contract.PlayerGrade.GRADE_UNSET;
+  const grade = hasGrades
+    ? contract.evaluation?.grade || playerGrade || ei.Contract.PlayerGrade.GRADE_AAA
+    : ei.Contract.PlayerGrade.GRADE_UNSET;
   let goals = props.gradeSpecs?.[(grade || 1) - 1].goals ?? props.goals;
   if (!hasGrades && props.goalSets && props.goalSets.length > league) {
     hasLeagues = true;
@@ -181,7 +180,7 @@ function newUserContract(
     indexOfPEGoal,
     timestamp,
     props,
-    grade
+    grade,
   };
 }
 
@@ -195,9 +194,3 @@ function newUnattemptedUserContract(props: ContractProps, grade?: ei.Contract.Pl
     grade
   );
 }
-
-export const contractSeasonList: ei.IContractSeasonInfo[] = (() => {
-  return contractSeasonProtos
-    .map(c => decodeMessage(ei.ContractSeasonInfo, c.proto) as ei.IContractSeasonInfo)
-    .sort((c1, c2) => c1.startTime! - c2.startTime!);
-})();

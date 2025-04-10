@@ -68,6 +68,19 @@ jobs:
               https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-eicoops.yml/dispatches \
               -d '{"ref": "'${GITHUB_REF##*/}'"}'
             }
+          git add data/seasoncontracts.json
+          git diff --cached --quiet || {
+            git commit -m 'contracts: update data/seasoncontracts.json (from GitHub Actions)'
+            git push
+            # Use a separate personal access token since the token included doesn't seem to trigger
+            # anything, although the response (HTTP 204) looks all right.
+            curl -fsS -D- \
+              -X POST \
+              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
+              -H 'Accept: application/vnd.github.v3+json' \
+              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-eicoops.yml/dispatches \
+              -d '{"ref": "'${GITHUB_REF##*/}'"}'
+            }
           git add data/customeggs.json
           git diff --cached --quiet || {
             git commit -m 'custom eggs: update data/customeggs.json (from GitHub Actions)'
