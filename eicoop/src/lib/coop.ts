@@ -46,7 +46,7 @@ export class CoopStatus {
   expirationTime: Dayjs;
   eggsLaidOfflineAdjusted: number;
   allGoalsAchieved: boolean;
-  secondsSinceAllGoalsAchieved: number;
+  secondsSinceAllGoalsAchieved?: number | null;
   status: string;
 
   constructor(cs: ei.IContractCoopStatusResponse) {
@@ -58,7 +58,7 @@ export class CoopStatus {
     this.creatorId = cs.creatorId!;
     this.creatorName = null;
     this.allGoalsAchieved = cs.allGoalsAchieved ?? false;
-    this.secondsSinceAllGoalsAchieved = cs.secondsSinceAllGoalsAchieved ?? 0;
+    this.secondsSinceAllGoalsAchieved = cs.secondsSinceAllGoalsAchieved;
     this.status = this.allGoalsAchieved ? 'SUCCESS' : 'ACTIVE';
     this.contributors = (cs.contributors || []).map(c => new Contributor(c));
     this.highestEarningBonusPercentage = Math.max(...this.contributors.map(c => c.earningBonusPercentage));

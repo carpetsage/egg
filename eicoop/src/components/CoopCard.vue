@@ -250,7 +250,11 @@
                 :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
               >
                 {{
-                  formatDuration(Date.now() / 1000 - status.secondsSinceAllGoalsAchieved - (contract.startTime ?? 0))
+                  formatDuration(
+                    status.secondsSinceAllGoalsAchieved
+                      ? Date.now() / 1000 - status.secondsSinceAllGoalsAchieved - (contract.startTime ?? 0)
+                      : (contract.lengthSeconds ?? Infinity)
+                  )
                 }}
               </span>
               <template v-else>
