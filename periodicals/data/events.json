@@ -19051,5 +19051,23 @@
     "startTimestamp": 1744214400.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1744387200.0,
+    "id": "event-4-10",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1744300800.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1744387200.0,
+    "id": "ultra-4-10",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1744300800.0,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
