@@ -58,6 +58,7 @@ jobs:
           git diff --cached --quiet || {
             git commit -m 'contracts: update data/contracts.json (from GitHub Actions)'
             git push
+            sleep 2
             # Use a separate personal access token since the token included doesn't seem to trigger
             # anything, although the response (HTTP 204) looks all right.
             curl -fsS -D- \
