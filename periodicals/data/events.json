@@ -19069,5 +19069,14 @@
     "startTimestamp": 1744300800.0,
     "type": "mission-fuel",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1744473600.0,
+    "id": "event-4-11",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1744387200.0,
+    "type": "research-sale",
+    "ultra": false
   }
 ]
