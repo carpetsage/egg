@@ -53,11 +53,11 @@ jobs:
           git add data/seasoncontracts.json
           git diff --cached --quiet || git commit -m 'contracts: update data/seasoncontracts.json (from GitHub Actions)'
 
+          git add data/contractseasons.json
+          git diff --cached --quiet || git commit -m 'contracts: update data/contractseasons.json (from GitHub Actions)'
+
           git add data/customeggs.json
           git diff --cached --quiet || git commit -m 'custom eggs: update data/customeggs.json (from GitHub Actions)'
-
-          git add data/contractseasons.json
-          git diff --cached --quiet || git commit -m 'custom eggs: update data/contractseasons.json (from GitHub Actions)'
 
           git push
         env:
