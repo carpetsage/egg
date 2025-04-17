@@ -2,13 +2,13 @@ name: update-events-and-contracts
 on:
   push:
     paths:
-      - "periodicals/*"
-      - ".github/**"
+      - 'periodicals/*'
+      - '.github/**'
   workflow_dispatch:
   #schedule:
-    # replaced with cloudflare worker triggering this
-    #
-    # - cron: '0 15-18,23 * * *'
+  # replaced with cloudflare worker triggering this
+  #
+  # - cron: '0 15-18,23 * * *'
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -17,6 +17,8 @@ jobs:
         working-directory: periodicals
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -25,7 +27,7 @@ jobs:
         id: install-uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.5.24"
+          version: '0.5.24'
           enable-cache: true
           cache-suffix: 'periodicals'
       - name: Install dependencies
@@ -41,83 +43,22 @@ jobs:
         run: |
           git config user.name 'github-actions'
           git config user.email 'actions@github.com'
+
           git add data/events.json
-          git diff --cached --quiet || {
-            git commit -m 'events: update data/events.json (from GitHub Actions)'
-            git push
-            # Use a separate personal access token since the token included doesn't seem to trigger
-            # anything, although the response (HTTP 204) looks all right.
-            curl -fsS -D- \
-              -X POST \
-              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
-              -H 'Accept: application/vnd.github.v3+json' \
-              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-wasmegg.yml/dispatches \
-              -d '{"ref": "'${GITHUB_REF##*/}'"}'
-            }
+          git diff --cached --quiet || git commit -m 'events: update data/events.json (from GitHub Actions)'
+
           git add data/contracts.json
-          git diff --cached --quiet || {
-            git commit -m 'contracts: update data/contracts.json (from GitHub Actions)'
-            git push
-            sleep 2
-            # Use a separate personal access token since the token included doesn't seem to trigger
-            # anything, although the response (HTTP 204) looks all right.
-            curl -fsS -D- \
-              -X POST \
-              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
-              -H 'Accept: application/vnd.github.v3+json' \
-              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-eicoops.yml/dispatches \
-              -d '{"ref": "'${GITHUB_REF##*/}'"}'
-            }
+          git diff --cached --quiet || git commit -m 'contracts: update data/contracts.json (from GitHub Actions)'
+
           git add data/seasoncontracts.json
-          git diff --cached --quiet || {
-            git commit -m 'contracts: update data/seasoncontracts.json (from GitHub Actions)'
-            git push
-            # Use a separate personal access token since the token included doesn't seem to trigger
-            # anything, although the response (HTTP 204) looks all right.
-            curl -fsS -D- \
-              -X POST \
-              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
-              -H 'Accept: application/vnd.github.v3+json' \
-              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-eicoops.yml/dispatches \
-              -d '{"ref": "'${GITHUB_REF##*/}'"}'
-            }
+          git diff --cached --quiet || git commit -m 'contracts: update data/seasoncontracts.json (from GitHub Actions)'
+
           git add data/customeggs.json
-          git diff --cached --quiet || {
-            git commit -m 'custom eggs: update data/customeggs.json (from GitHub Actions)'
-            git push
-            # Use a separate personal access token since the token included doesn't seem to trigger
-            # anything, although the response (HTTP 204) looks all right.
-            curl -fsS -D- \
-              -X POST \
-              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
-              -H 'Accept: application/vnd.github.v3+json' \
-              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-eicoops.yml/dispatches \
-              -d '{"ref": "'${GITHUB_REF##*/}'"}'
-            curl -fsS -D- \
-              -X POST \
-              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
-              -H 'Accept: application/vnd.github.v3+json' \
-              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-wasmegg.yml/dispatches \
-              -d '{"ref": "'${GITHUB_REF##*/}'"}'
-            }
+          git diff --cached --quiet || git commit -m 'custom eggs: update data/customeggs.json (from GitHub Actions)'
+
           git add data/contractseasons.json
-          git diff --cached --quiet || {
-            git commit -m 'custom eggs: update data/contractseasons.json (from GitHub Actions)'
-            git push
-            # Use a separate personal access token since the token included doesn't seem to trigger
-            # anything, although the response (HTTP 204) looks all right.
-            curl -fsS -D- \
-              -X POST \
-              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
-              -H 'Accept: application/vnd.github.v3+json' \
-              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-eicoops.yml/dispatches \
-              -d '{"ref": "'${GITHUB_REF##*/}'"}'
-            curl -fsS -D- \
-              -X POST \
-              -H 'Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}' \
-              -H 'Accept: application/vnd.github.v3+json' \
-              https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-wasmegg.yml/dispatches \
-              -d '{"ref": "'${GITHUB_REF##*/}'"}'
-            }
+          git diff --cached --quiet || git commit -m 'custom eggs: update data/contractseasons.json (from GitHub Actions)'
+
+          git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
