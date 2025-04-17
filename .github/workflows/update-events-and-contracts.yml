@@ -44,18 +44,23 @@ jobs:
           git config user.name 'github-actions'
           git config user.email 'actions@github.com'
 
+          # Triggers wasmegg build
           git add data/events.json
           git diff --cached --quiet || git commit -m 'events: update data/events.json (from GitHub Actions)'
 
+          # Triggers eicoop build
           git add data/contracts.json
           git diff --cached --quiet || git commit -m 'contracts: update data/contracts.json (from GitHub Actions)'
 
+          # Triggers eicoop build
           git add data/seasoncontracts.json
           git diff --cached --quiet || git commit -m 'contracts: update data/seasoncontracts.json (from GitHub Actions)'
 
+          # Triggers both builds
           git add data/contractseasons.json
           git diff --cached --quiet || git commit -m 'contracts: update data/contractseasons.json (from GitHub Actions)'
 
+          # Triggers both builds
           git add data/customeggs.json
           git diff --cached --quiet || git commit -m 'custom eggs: update data/customeggs.json (from GitHub Actions)'
 
