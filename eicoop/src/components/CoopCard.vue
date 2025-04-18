@@ -246,16 +246,12 @@
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
             <tippy class="text-gray-900 dark:text-gray-100">
               <span
-                v-if="leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0"
+                v-if="
+                  leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0 && completionTime > 0
+                "
                 :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
               >
-                {{
-                  formatDuration(
-                    status.secondsSinceAllGoalsAchieved
-                      ? Date.now() / 1000 - status.secondsSinceAllGoalsAchieved - (contract.startTime ?? 0)
-                      : (contract.lengthSeconds ?? Infinity)
-                  )
-                }}
+                {{ formatDuration(completionTime) }}
               </span>
               <template v-else>
                 <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
@@ -390,6 +386,12 @@ export default defineComponent({
       () => leagueStatus.value.expectedFinalCompletionDateOfflineAdjusted.unix() - startDate.value
     );
     const modifiers = computed(() => (gradeSpec.value ? getModifiers(gradeSpec.value) : ['']));
+    const completionTime = computed(() => {
+      if (status.value.secondsSinceAllGoalsAchieved && contract.value.startTime && contract.value.lengthSeconds) {
+        return contract.value.lengthSeconds - status.value.secondsRemaining - status.value.secondsSinceAllGoalsAchieved;
+      }
+      return 0;
+    });
 
     return {
       devmode,
@@ -412,6 +414,7 @@ export default defineComponent({
       eggTooltip,
       max: Math.max,
       grades,
+      completionTime,
     };
   },
 });
