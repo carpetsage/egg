@@ -1,5 +1,5 @@
 <template>
-  <player-card :backup="backup" :inventory="inventory" :event-bus="eventBus" />
+  <player-card :backup="backup" :inventory="inventory" :progressPE="prophecyEggsProgress" :event-bus="eventBus" />
 
   <collapsible-section
     section-title="Active missions"
@@ -46,10 +46,11 @@
 import { computed, defineComponent, PropType } from 'vue';
 import { Emitter } from 'mitt';
 
-import { Inventory, requestFirstContact, UserBackupEmptyError } from 'lib';
+import { Inventory, requestFirstContact, UserBackupEmptyError, getProphecyEggsProgress, requestContractsArchive,} from 'lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { reportLegendaries, reportMissionData } from '@/lib';
 import { REPORT_LEGENDARIES, REPORT_MISSIONDATA } from '@/events';
+import { getUserContractList, contractSeasonList, } from '@/../../past-contracts/src/contracts';
 import CollapsibleSection from '@/components/CollapsibleSection.vue';
 import PlayerCard from '@/components/PlayerCard.vue';
 import ActiveMissionsReport from '@/components/ActiveMissionsReport.vue';
@@ -82,6 +83,7 @@ export default defineComponent({
   /* eslint-disable vue/no-setup-props-destructure */
   async setup({ playerId, eventBus }) {
     const data = await requestFirstContact(playerId);
+    const contractsArchive = await requestContractsArchive(playerId);
     if (!data.backup || !data.backup.game) {
       throw new UserBackupEmptyError(playerId);
     }
@@ -94,6 +96,13 @@ export default defineComponent({
     if (!artifactsDB) {
       throw new Error(`${playerId}: no artifacts database in backup`);
     }
+    const contracts = getUserContractList(backup, contractsArchive);
+    const contractsWithPE = contracts.filter(c => c.numAvailablePEs > 0);
+    const prophecyEggsProgress = getProphecyEggsProgress(backup, {
+      numPEsAvailable: contractsWithPE.reduce((total, c) => total + c.numAvailablePEs, 0),
+      numPEContractsAvailable: contractsWithPE.length,
+      contractSeasons: contractSeasonList,
+    });
     const inventory = computed(() => new Inventory(artifactsDB));
     const activeMissions = artifactsDB.missionInfos?.concat(artifactsDB.fuelingMission ?? []) || [];
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
@@ -106,6 +115,7 @@ export default defineComponent({
       reportMissionData(backup);
     });
     return {
+      prophecyEggsProgress,
       backup,
       progress,
       artifactsDB,
