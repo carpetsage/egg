@@ -19357,5 +19357,23 @@
     "startTimestamp": 1745856000.0,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1746028800.0,
+    "id": "event-4-29",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1745942400.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1746028800.0,
+    "id": "ultra-4-29",
+    "message": "10% OFF SHELLS!",
+    "multiplier": 0.9,
+    "startTimestamp": 1745942400.0,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
