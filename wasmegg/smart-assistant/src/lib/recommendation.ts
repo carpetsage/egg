@@ -68,16 +68,7 @@
  * 5. Combine the results from stage 3 and 4 to find the best N artifact combo.
  */
 
-import {
-  ArtifactSet,
-  ei,
-  Farm,
-  getNumProphecyEggs,
-  Inventory,
-  InventoryFamily,
-  Item,
-  newItem,
-} from 'lib';
+import { ArtifactSet, ei, Farm, getNumProphecyEggs, Inventory, InventoryFamily, Item, newItem } from 'lib';
 import {
   ArtifactAssemblyStatus,
   ArtifactAssemblyStatusNonMissing,
@@ -100,6 +91,9 @@ export enum PrestigeStrategy {
   PRO_PERMIT_SINGLE_PRELOAD,
   PRO_PERMIT_MULTI,
   PRO_PERMIT_LUNAR_PRELOAD_AIO,
+  PRO_PERMIT_MIRROR,
+  PRO_PERMIT_LUNAR_MIRROR,
+  STANDARD_PERMIT_MIRROR,
 }
 
 export class Contender {
@@ -124,8 +118,7 @@ export class Contender {
   // strategic fillers.
   calibrate(): void {
     this.numArtifactSlotsTaken = this.artifacts.length;
-    this.numStoneSlotsTaken =
-      -this.artifacts.reduce((sum, a) => sum + a.slots, 0) + this.stones.length;
+    this.numStoneSlotsTaken = -this.artifacts.reduce((sum, a) => sum + a.slots, 0) + this.stones.length;
   }
 
   adjustLunar(maxRCB: number): void {
@@ -190,17 +183,13 @@ export class Contender {
 
   assertNumArtifactSlotsTaken(n: number): void {
     if (this.numArtifactSlotsTaken !== n) {
-      throw new ImpossibleError(
-        `expected ${n} artifact slots taken, got ${this.numArtifactSlotsTaken}: ${this}`
-      );
+      throw new ImpossibleError(`expected ${n} artifact slots taken, got ${this.numArtifactSlotsTaken}: ${this}`);
     }
   }
 
   assertNumStoneSlotsTaken(n: number): void {
     if (this.numStoneSlotsTaken !== n) {
-      throw new ImpossibleError(
-        `expected ${n} stone slots taken, got ${this.numStoneSlotsTaken}: ${this}`
-      );
+      throw new ImpossibleError(`expected ${n} stone slots taken, got ${this.numStoneSlotsTaken}: ${this}`);
     }
   }
 }
@@ -255,11 +244,10 @@ class Contenders {
   }
 
   get isEmpty(): boolean {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
     for (const c of this.iter()) {
       return false;
     }
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+
     return true;
   }
 
@@ -327,13 +315,7 @@ function contendersInArtifactFamily(
         const artifact = newItem({ name: tier.afxId, level: tier.afxLevel, rarity });
         const effectDelta = tier.effectDelta(rarity);
         contenders.add(
-          new Contender(
-            [artifact],
-            [],
-            1,
-            -tier.stoneSlotCount(rarity),
-            getEffectMultiplier(effectDelta)
-          )
+          new Contender([artifact], [], 1, -tier.stoneSlotCount(rarity), getEffectMultiplier(effectDelta))
         );
         break;
       }
@@ -352,9 +334,7 @@ function bestsInStoneFamily(family: InventoryFamily | undefined, n: number): Ite
     throw new Error(`${Type[family.type]} is not a stone`);
   }
   const stones = <Item[]>[];
-  for (const tier of [...family.tiers]
-    .filter(t => t.type === Type.STONE)
-    .sort((t1, t2) => t2.afxLevel - t1.afxLevel)) {
+  for (const tier of [...family.tiers].filter(t => t.type === Type.STONE).sort((t1, t2) => t2.afxLevel - t1.afxLevel)) {
     const stone = newItem({ name: tier.afxId, level: tier.afxLevel, rarity: Rarity.COMMON });
     const count = tier.haveCommon;
     for (let i = 0; i < count && n > 0; i++) {
@@ -384,13 +364,7 @@ function combine(...contenders: Contender[]): Contender {
   const numArtifactSlotsTaken = contenders.reduce((sum, c) => sum + c.numArtifactSlotsTaken, 0);
   const numStoneSlotsTaken = contenders.reduce((sum, c) => sum + c.numStoneSlotsTaken, 0);
   const effectMultiplier = contenders.reduce((product, c) => product * c.effectMultiplier, 1);
-  return new Contender(
-    artifacts,
-    stones,
-    numArtifactSlotsTaken,
-    numStoneSlotsTaken,
-    effectMultiplier
-  );
+  return new Contender(artifacts, stones, numArtifactSlotsTaken, numStoneSlotsTaken, effectMultiplier);
 }
 
 function addStonesToContenders(
@@ -401,10 +375,7 @@ function addStonesToContenders(
 ): Contenders {
   const stonedContenders = new Contenders();
   for (const contender of contenders.iter()) {
-    const maxNumStones = Math.min(
-      maxStoneSlots - contender.numStoneSlotsTaken,
-      availableStones.length
-    );
+    const maxNumStones = Math.min(maxStoneSlots - contender.numStoneSlotsTaken, availableStones.length);
     for (let i = 0; i <= maxNumStones; i++) {
       const stones = availableStones.slice(0, i);
       stonedContenders.add(
@@ -430,16 +401,17 @@ export function suggestArtifactSet(
   let artifactSlots: number;
   switch (strategy) {
     case PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD:
+    case PrestigeStrategy.STANDARD_PERMIT_MIRROR:
       artifactSlots = 2;
       break;
-    case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
-    case PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD:
-    case PrestigeStrategy.PRO_PERMIT_MULTI:
+    default:
       artifactSlots = 4;
       break;
   }
 
   let monoclePowerIndex: number;
+  // Effect of the feather
+  let virtualEarningsEffectMultiplierFunc: (delta: number) => number = delta => 1 + delta;
   // Effect of the gusset.
   let habSpaceEffectMultiplierFunc: (delta: number) => number;
   // Effect of the chalice and life stones.
@@ -473,6 +445,37 @@ export function suggestArtifactSet(
       // Boosted IHR leads to faster population growth, hence more earnings.
       internalHatcheryRateEffectMultiplierFunc = delta => 1 + delta;
       break;
+    case PrestigeStrategy.PRO_PERMIT_LUNAR_MIRROR:
+      monoclePowerIndex = 2;
+      // feather useless while mirroring
+      virtualEarningsEffectMultiplierFunc = () => 1;
+      lunarEffectMultiplierFunc = delta => 1 + delta;
+      rcbEffectMultiplierFunc = () => 1;
+      // Assume gussets are useless while mirroring
+      habSpaceEffectMultiplierFunc = () => 1;
+      // Boosted IHR leads to faster population growth, hence more earnings.
+      internalHatcheryRateEffectMultiplierFunc = delta => 1 + delta;
+      break;
+    case PrestigeStrategy.PRO_PERMIT_MIRROR:
+      // feather useless while mirroring
+      virtualEarningsEffectMultiplierFunc = () => 1;
+      // Monocle affects bird feeds and tachyon prisms.
+      monoclePowerIndex = 2;
+      // Assume gussets are useless while mirroring
+      habSpaceEffectMultiplierFunc = () => 1;
+      // Boosted IHR leads to faster population growth, hence more earnings.
+      internalHatcheryRateEffectMultiplierFunc = delta => 1 + delta;
+      break;
+    case PrestigeStrategy.STANDARD_PERMIT_MIRROR:
+      // feather useless while mirroring
+      virtualEarningsEffectMultiplierFunc = () => 1;
+      // Monocle affects bird feeds
+      monoclePowerIndex = 1;
+      // Assume gussets are useless while mirroring
+      habSpaceEffectMultiplierFunc = () => 1;
+      // Boosted IHR leads to faster population growth, hence more earnings.
+      internalHatcheryRateEffectMultiplierFunc = delta => 1 + delta;
+      break;
   }
 
   const homeFarm = new Farm(backup, backup.farms![0]);
@@ -483,38 +486,23 @@ export function suggestArtifactSet(
   });
   const families = new Map(inventory.catalog.map(family => [family.afxId, family]));
 
-  const bestTotems = contendersInArtifactFamily(
-    families.get(Name.LUNAR_TOTEM),
-    lunarEffectMultiplierFunc
-  );
+  const bestTotems = contendersInArtifactFamily(families.get(Name.LUNAR_TOTEM), lunarEffectMultiplierFunc);
   const bestFeathers = contendersInArtifactFamily(
     families.get(Name.PHOENIX_FEATHER),
-    delta => 1 + delta
+    virtualEarningsEffectMultiplierFunc
   );
-  const bestNecklaces = contendersInArtifactFamily(
-    families.get(Name.DEMETERS_NECKLACE),
-    delta => 1 + delta
-  );
-  const bestAnkhs = contendersInArtifactFamily(
-    families.get(Name.TUNGSTEN_ANKH),
-    delta => 1 + delta
-  );
+  const bestNecklaces = contendersInArtifactFamily(families.get(Name.DEMETERS_NECKLACE), delta => 1 + delta);
+  const bestAnkhs = contendersInArtifactFamily(families.get(Name.TUNGSTEN_ANKH), delta => 1 + delta);
   const bestMonocles = contendersInArtifactFamily(
     families.get(Name.DILITHIUM_MONOCLE),
     delta => (1 + delta) ** monoclePowerIndex
   );
-  const bestMetronomes = contendersInArtifactFamily(
-    families.get(Name.QUANTUM_METRONOME),
-    delta => 1 + delta
-  );
+  const bestMetronomes = contendersInArtifactFamily(families.get(Name.QUANTUM_METRONOME), delta => 1 + delta);
   const bestChalices = contendersInArtifactFamily(
     families.get(Name.THE_CHALICE),
     internalHatcheryRateEffectMultiplierFunc
   );
-  const bestGussets = contendersInArtifactFamily(
-    families.get(Name.ORNATE_GUSSET),
-    habSpaceEffectMultiplierFunc
-  );
+  const bestGussets = contendersInArtifactFamily(families.get(Name.ORNATE_GUSSET), habSpaceEffectMultiplierFunc);
 
   // Other artifacts may be used as stone holders.
   const others = [
@@ -579,9 +567,7 @@ export function suggestArtifactSet(
     combos.assertNumArtifactSlotsTaken(n);
   }
 
-  const maxSpareStoneSlotsForOtherCombos = maxSpareStoneSlotsInContenders(
-    independentArtifactCombos[artifactSlots]
-  );
+  const maxSpareStoneSlotsForOtherCombos = maxSpareStoneSlotsInContenders(independentArtifactCombos[artifactSlots]);
 
   // Note that here we're using effectMultiplier only to take advantage of
   // existing code. What's stored is the additive effect to each prophecy egg.
@@ -595,24 +581,19 @@ export function suggestArtifactSet(
   const getProphecyComboEffect = (contender: Contender, stones: Item[]): number => {
     // Recall that contender.effectMultiplier is actually the delta of the book.
     const prophecyEggBonus =
-      bareProphecyEggBonus +
-      contender.effectMultiplier +
-      stones.reduce((sum, stone) => sum + stone.effectDelta, 0);
-    return ((1 + prophecyEggBonus) / (1 + bareProphecyEggBonus)) ** numProphecyEggs;
+      bareProphecyEggBonus + contender.effectMultiplier + stones.reduce((sum, stone) => sum + stone.effectDelta, 0);
+    switch (strategy) {
+      case PrestigeStrategy.PRO_PERMIT_LUNAR_MIRROR:
+      case PrestigeStrategy.PRO_PERMIT_MIRROR:
+      case PrestigeStrategy.STANDARD_PERMIT_MIRROR:
+        return 1;
+      default:
+        return ((1 + prophecyEggBonus) / (1 + bareProphecyEggBonus)) ** numProphecyEggs;
+    }
   };
   const prophecyCombos = [
-    addStonesToContenders(
-      noBook,
-      bestProphecyStones,
-      getProphecyComboEffect,
-      maxSpareStoneSlotsForOtherCombos
-    ),
-    addStonesToContenders(
-      bestBooks,
-      bestProphecyStones,
-      getProphecyComboEffect,
-      maxSpareStoneSlotsForOtherCombos
-    ),
+    addStonesToContenders(noBook, bestProphecyStones, getProphecyComboEffect, maxSpareStoneSlotsForOtherCombos),
+    addStonesToContenders(bestBooks, bestProphecyStones, getProphecyComboEffect, maxSpareStoneSlotsForOtherCombos),
   ];
   for (let i = 0; i < 2; i++) {
     prophecyCombos[i].debug(`${i} book prophecy combos`);
@@ -620,10 +601,7 @@ export function suggestArtifactSet(
   }
 
   // Similar to books, effectMultiplier stored here is additive effect to max RCB.
-  const bestVials = contendersInArtifactFamily(
-    families.get(Name.VIAL_MARTIAN_DUST),
-    rcbEffectMultiplierFunc
-  );
+  const bestVials = contendersInArtifactFamily(families.get(Name.VIAL_MARTIAN_DUST), rcbEffectMultiplierFunc);
   const noVial = new Contenders([new Contender([], [], 0, 0, 0)]);
   const bestTerraStones = bestsInStoneFamily(
     families.get(Name.TERRA_STONE),
@@ -632,25 +610,18 @@ export function suggestArtifactSet(
   const bareMaxRCB = homeFarm.bareMaxRunningChickenBonusWithMaxedCommonResearches;
   const getRcbComboEffect = (contender: Contender, stones: Item[]): number => {
     // Recall that contender.effectMultiplier is actually the delta of the vial.
-    const maxRCB =
-      bareMaxRCB +
-      contender.effectMultiplier +
-      stones.reduce((sum, stone) => sum + stone.effectDelta, 0);
-    return strategy == PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? 1 : maxRCB / bareMaxRCB;
+    const maxRCB = bareMaxRCB + contender.effectMultiplier + stones.reduce((sum, stone) => sum + stone.effectDelta, 0);
+    switch (strategy) {
+      case PrestigeStrategy.PRO_PERMIT_LUNAR_MIRROR:
+      case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
+        return 1;
+      default:
+        return maxRCB / bareMaxRCB;
+    }
   };
   const rcbCombos = [
-    addStonesToContenders(
-      noVial,
-      bestTerraStones,
-      getRcbComboEffect,
-      maxSpareStoneSlotsForOtherCombos
-    ),
-    addStonesToContenders(
-      bestVials,
-      bestTerraStones,
-      getRcbComboEffect,
-      maxSpareStoneSlotsForOtherCombos
-    ),
+    addStonesToContenders(noVial, bestTerraStones, getRcbComboEffect, maxSpareStoneSlotsForOtherCombos),
+    addStonesToContenders(bestVials, bestTerraStones, getRcbComboEffect, maxSpareStoneSlotsForOtherCombos),
   ];
   for (let i = 0; i < 2; i++) {
     rcbCombos[i].debug(`${i} vial RCB combos`);
@@ -683,33 +654,26 @@ export function suggestArtifactSet(
   independentStoneFreeCombos.debug('Combos ready for independent stones');
   independentStoneFreeCombos.assertNumArtifactSlotsTaken(artifactSlots);
 
-  const bestLunarStones = bestsInStoneFamily(
-    families.get(Name.LUNAR_STONE),
-    maxIndependentStoneSlots
-  ).map(stone => ({ stone, multiplier: strategy === PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? 1 + stone.effectDelta : 1}));
-  const bestShellStones = bestsInStoneFamily(
-    families.get(Name.SHELL_STONE),
-    maxIndependentStoneSlots
-  ).map(stone => ({ stone, multiplier: 1 + stone.effectDelta }));
-  const bestTachyonStones = bestsInStoneFamily(
-    families.get(Name.TACHYON_STONE),
-    maxIndependentStoneSlots
-  ).map(stone => ({ stone, multiplier: 1 + stone.effectDelta }));
+  const bestLunarStones = bestsInStoneFamily(families.get(Name.LUNAR_STONE), maxIndependentStoneSlots).map(stone => ({
+    stone,
+    multiplier: lunarEffectMultiplierFunc(stone.effectDelta),
+  }));
+  const bestShellStones = bestsInStoneFamily(families.get(Name.SHELL_STONE), maxIndependentStoneSlots).map(stone => ({
+    stone,
+    multiplier: 1 + stone.effectDelta,
+  }));
+  const bestTachyonStones = bestsInStoneFamily(families.get(Name.TACHYON_STONE), maxIndependentStoneSlots).map(
+    stone => ({ stone, multiplier: 1 + stone.effectDelta })
+  );
   // Each soul stone is less effective than the last.
   let soulBonusAccumulator = homeFarm.bareSoulEggBonus;
-  const bestSoulStones = bestsInStoneFamily(
-    families.get(Name.SOUL_STONE),
-    maxIndependentStoneSlots
-  ).map(stone => {
+  const bestSoulStones = bestsInStoneFamily(families.get(Name.SOUL_STONE), maxIndependentStoneSlots).map(stone => {
     const before = soulBonusAccumulator;
     soulBonusAccumulator += stone.effectDelta;
     const after = soulBonusAccumulator;
     return { stone, multiplier: after / before };
   });
-  const bestLifeStones = bestsInStoneFamily(
-    families.get(Name.LIFE_STONE),
-    maxIndependentStoneSlots
-  ).map(stone => ({
+  const bestLifeStones = bestsInStoneFamily(families.get(Name.LIFE_STONE), maxIndependentStoneSlots).map(stone => ({
     stone,
     multiplier: internalHatcheryRateEffectMultiplierFunc(stone.effectDelta),
   }));
@@ -754,20 +718,16 @@ export function suggestArtifactSet(
   }
   const winner = flattened[0];
   winner.calibrate();
-  if (strategy === PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO) {
+  if ([PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO, PrestigeStrategy.PRO_PERMIT_LUNAR_MIRROR].includes(strategy)) {
     winner.adjustLunar(bareMaxRCB);
   }
   const result = contenderToArtifactSet(winner, homeFarm.artifactSet, inventory);
   const contenderMultiplier = winner.effectMultiplier;
-  const setMultiplier = artifactSetVirtualEarningsMultiplier(
-    homeFarm,
-    result.artifactSet,
-    strategy
-  );
+  const setMultiplier = artifactSetVirtualEarningsMultiplier(homeFarm, result.artifactSet, strategy);
   const multiplierDiff = Math.abs(contenderMultiplier - setMultiplier);
   if (multiplierDiff >= 1e-6 && multiplierDiff / setMultiplier >= 1e-9) {
     throw new ImpossibleError(
-      `recommended artifact set effect multiplier different from two calculation methods, ${contenderMultiplier} !== ${setMultiplier}: ${winner}`
+      `recommended artifact set effect multiplier different from two calculation methods ${PrestigeStrategy[strategy]}, ${contenderMultiplier} !== ${setMultiplier}: ${winner}`
     );
   }
   if (debug) {

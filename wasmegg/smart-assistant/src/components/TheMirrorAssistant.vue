@@ -3,28 +3,16 @@
     <h2 class="text-sm font-medium underline mb-1">Important notes</h2>
     <ol class="list-decimal list-inside text-xs space-y-1">
       <li>
-        This tool suggests optimal loadouts <span class="underline">during</span> prestige sessions, but it is equally
+        This tool suggests optimal loadouts <span class="underline">during</span> mirroring sessions, but it is equally
         important to try to
         <span class="underline"
-          >maximize your boost durations with Dilithium stones before activating boosts and switching to a prestige
+          >maximize your boost durations with Dilithium stones before activating boosts and switching to a mirroring
           set</span
         >. Dilithium stone setups are left out of the suggestions because optimization is rather obvious:
         <span class="underline">use as many of your best stones as possible</span>. However, in some cases there may be
         a conflict between using your best stone holders for the prestige set or for dilithium stones, and the superior
         combination ultimately depends on execution and cannot be optimized theoretically. This is a limitation to keep
         in mind.
-      </li>
-      <li>
-        Prestige strategies are only described briefly here. If you are not familiar with them, you are encouraged to
-        <span class="underline">join the Egg, Inc. Discord server</span> to access more resources and help from the
-        community. Invitation link:
-        <a href="https://discord.gg/egginc" target="_blank" class="underline">discord.gg/egginc</a>.
-      </li>
-      <li v-if="nakedEarningBonus < 1e15">
-        The recommendation algorithm makes assumptions that may not hold for early or early-mid game players, e.g., that
-        the player can quickly max out common researches for max running chicken bonus (RCB), and that the player can
-        maintain max RCB at all times. The soul eggs gain multiplier is also calculated based on the mid to late game
-        formula. However, the recommendations should still be good if not always optimal.
       </li>
     </ol>
   </div>
@@ -89,7 +77,7 @@
     </div>
     <items-select v-model="itemsToExclude" />
   </div>
-  <div v-if="showProPermitRecommendations" class="relative flex items-start mb-1">
+  <!-- <div v-if="showProPermitRecommendations" class="relative flex items-start mb-1">
     <div class="flex items-center h-5">
       <input
         id="only-show-lunarstige"
@@ -100,10 +88,10 @@
       />
     </div>
     <label class="ml-2 text-sm" for="only-show-lunarstige"> Only show lunar-stige </label>
-  </div>
+  </div> -->
 
   <div v-if="!hasProPermit" class="mb-4">
-    <div v-if="suggestedForStandardPermitSinglePreload">
+    <div v-if="suggestedForStandardMirror">
       <div class="text-center text-sm font-medium mb-2">Recommended setup for preloaded single-prestige</div>
       <div class="text-xs mb-2 space-y-1">
         <p>
@@ -115,22 +103,16 @@
       </div>
       <artifact-gallery
         :strategy="PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD"
-        :artifact-set="suggestedForStandardPermitSinglePreload.artifactSet"
-        :artifact-assembly-statuses="suggestedForStandardPermitSinglePreload.assemblyStatuses"
+        :artifact-set="suggestedForStandardMirror.artifactSet"
+        :artifact-assembly-statuses="suggestedForStandardMirror.assemblyStatuses"
         :reference-set="currentlyEquipped"
         :is-enlightenment="false"
         :farm="homeFarm"
         :bird-feed-active="true"
-        :soul-beacon-active="true"
+        :soul-beacon-active="false"
       />
       <div class="mt-0.5 text-center text-xs text-gray-500">
         The optimized stat is &ldquo;<strong>SE gain</strong>&rdquo; in the sandbox.
-      </div>
-      <div
-        v-if="hasGusset(suggestedForStandardPermitSinglePreload.artifactSet)"
-        class="mt-0.5 text-center text-xs text-red-500"
-      >
-        Note that this recommended setup assumes you can take advantage of the increased hab space.
       </div>
     </div>
 
@@ -144,101 +126,37 @@
   </div>
 
   <div v-if="showProPermitRecommendations" class="space-y-3">
-    <div v-if="!onlyLunar">
-      <div class="text-center text-sm font-medium mb-2">
-        Recommended setup for multi-prestige and all-in-one single-prestige
-        <template v-if="!hasProPermit">
-          <br />
-          <span class="text-xs text-red-500">Requires Pro Permit</span>
-        </template>
-      </div>
-      <div class="text-xs mb-2 space-y-1">
-        <p>
-          <strong>Multi-prestige</strong> is a strategy where you run a single 10min set of 1000x tachyon prism, 50x
-          bird feed, 500x soul beacon, and two 50x boost beacons, and try to cram multiple prestige sessions into the
-          boost session to maximize gains. This is the best known strategy for high EB players.
-        </p>
-        <p>
-          <strong>All-in-one single-prestige</strong> is a strategy using the same set of boosts in exactly one prestige
-          session, which is good for mid-game players for whom multi-prestige is not yet superior.
-        </p>
-        <discord-strategy-link :plural="true" />
-      </div>
-      <artifact-gallery
-        :strategy="PrestigeStrategy.PRO_PERMIT_MULTI"
-        :artifact-set="suggestedForProPermitMulti.artifactSet"
-        :artifact-assembly-statuses="suggestedForProPermitMulti.assemblyStatuses"
-        :reference-set="currentlyEquipped"
-        :farm="homeFarm"
-        :is-enlightenment="false"
-        :bird-feed-active="true"
-        :soul-beacon-active="true"
-        :tachyon-prism-active="true"
-        :boost-beacon-active="true"
-      />
-      <div class="mt-0.5 text-center text-xs text-gray-500">
-        The optimized sandbox stat is <span class="underline">SE gain w/ empty habs start</span>
-      </div>
+    <div class="text-center text-sm font-medium mb-2">
+      Recommended setup for multi-prestige and all-in-one single-prestige
+      <template v-if="!hasProPermit">
+        <br />
+        <span class="text-xs text-red-500">Requires Pro Permit</span>
+      </template>
     </div>
-    <div v-if="!onlyLunar">
-      <div class="text-center text-sm font-medium mb-2">
-        Recommended setup for preloaded single-prestige
-        <template v-if="!hasProPermit">
-          <br />
-          <span class="text-xs text-red-500">Requires Pro Permit</span>
-        </template>
-      </div>
-      <div class="text-xs mb-2 space-y-1">
-        <p>
-          <strong>Preloaded single-prestige</strong> is a strategy where you pre-fill all habs with tachyon prism and
-          boost beacon while leaving a little hab space for running chicken bonus, then run a single 10min set of two
-          50x bird feed, 500x soul beacon, and two 50x boost beacons to reap soul eggs. This strategy is simple and
-          stress-free, but not as GE-efficient.
-        </p>
-        <discord-strategy-link />
-      </div>
-      <artifact-gallery
-        :strategy="PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD"
-        :artifact-set="suggestedForProPermitSinglePreload.artifactSet"
-        :artifact-assembly-statuses="suggestedForProPermitSinglePreload.assemblyStatuses"
-        :reference-set="currentlyEquipped"
-        :farm="homeFarm"
-        :is-enlightenment="false"
-        :bird-feed-active="true"
-        :soul-beacon-active="true"
-        :boost-beacon-active="true"
-      />
-      <div class="mt-0.5 text-center text-xs text-gray-500">
-        The optimized sandbox stat is <span class="underline">SE gain</span>
-      </div>
-      <div
-        v-if="hasGusset(suggestedForProPermitSinglePreload.artifactSet)"
-        class="mt-0.5 text-center text-xs text-red-500"
-      >
-        Note that this recommended setup assumes you can take advantage of the increased hab space.
-      </div>
-    </div>
+    <artifact-gallery
+      :strategy="PrestigeStrategy.PRO_PERMIT_MIRROR"
+      :artifact-set="suggestedForProPermitMirror.artifactSet"
+      :artifact-assembly-statuses="suggestedForProPermitMirror.assemblyStatuses"
+      :reference-set="currentlyEquipped"
+      :farm="homeFarm"
+      :is-enlightenment="false"
+      :bird-feed-active="true"
+      :soul-beacon-active="true"
+      :tachyon-prism-active="true"
+      :boost-beacon-active="true"
+    />
     <div>
       <div class="text-center text-sm font-medium mb-2">
-        Recommended setup for lunar-prestige
+        Recommended setup for Lunar mirror
         <template v-if="!hasProPermit">
           <br />
           <span class="text-xs text-red-500">Requires Pro Permit</span>
         </template>
       </div>
-      <div class="text-xs mb-2 space-y-1">
-        <p>
-          <strong>Lunar-prestige</strong> is a modification to other prestige strategies where you equip artifacts and
-          stones to increase your away earnings multiplier and go offline instead of running chickens. This can be done
-          as a preload, all-in-one, or multi-prestige. Simply close the app where normal prestige strategies would have
-          you run chickens. It is usually less efficient than online strategies.
-        </p>
-        <discord-strategy-link :lunar="true" />
-      </div>
       <artifact-gallery
-        :strategy="PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO"
-        :artifact-set="suggestedForProPermitLunar?.artifactSet"
-        :artifact-assembly-statuses="suggestedForProPermitLunar.assemblyStatuses"
+        :strategy="PrestigeStrategy.PRO_PERMIT_LUNAR_MIRROR"
+        :artifact-set="suggestedForProPermitLunarMirror?.artifactSet"
+        :artifact-assembly-statuses="suggestedForProPermitLunarMirror.assemblyStatuses"
         :reference-set="currentlyEquipped"
         :farm="homeFarm"
         :is-enlightenment="false"
@@ -247,12 +165,6 @@
         :boost-beacon-active="true"
         :modifiers="modifiers"
       />
-      <div class="mt-0.5 text-center text-xs text-gray-500">
-        The optimized sandbox stat is <span class="underline">Away SE gain</span>
-      </div>
-      <div v-if="hasGusset(suggestedForProPermitLunar.artifactSet)" class="mt-0.5 text-center text-xs text-red-500">
-        Note that this recommended setup assumes you can take advantage of the increased hab space.
-      </div>
     </div>
   </div>
 
@@ -314,9 +226,6 @@ export default defineComponent({
     watch(itemIdsToExclude, val => {
       setLocalStorage(EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY, JSON.stringify(val));
     });
-    const onlyLunar = ref(getLocalStorage(SHOW_ONLY_LUNAR_LOCALSTORAGE_KEY) === 'true');
-    watch(onlyLunar, () => setLocalStorage(SHOW_ONLY_LUNAR_LOCALSTORAGE_KEY, onlyLunar.value));
-
     const data: ei.IEggIncFirstContactResponse = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
       throw new UserBackupEmptyError(playerId);
@@ -338,25 +247,20 @@ export default defineComponent({
     const homeFarm = new Farm(backup, backup.farms[0]);
     const homeFarmIsEnlightenment = homeFarm.egg === ei.Egg.ENLIGHTENMENT;
     const currentlyEquipped = homeFarm.artifactSet;
-    const suggestedForStandardPermitSinglePreload = computed(() =>
+    const suggestedForStandardMirror = computed(() =>
       hasProPermit
         ? null
-        : suggestArtifactSet(backup, PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD, {
+        : suggestArtifactSet(backup, PrestigeStrategy.STANDARD_PERMIT_MIRROR, {
             excludedIds: itemIdsToExclude.value,
           })
     );
-    const suggestedForProPermitMulti = computed(() =>
-      suggestArtifactSet(backup, PrestigeStrategy.PRO_PERMIT_MULTI, {
+    const suggestedForProPermitMirror = computed(() =>
+      suggestArtifactSet(backup, PrestigeStrategy.PRO_PERMIT_MIRROR, {
         excludedIds: itemIdsToExclude.value,
       })
     );
-    const suggestedForProPermitSinglePreload = computed(() =>
-      suggestArtifactSet(backup, PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD, {
-        excludedIds: itemIdsToExclude.value,
-      })
-    );
-    const suggestedForProPermitLunar = computed(() =>
-      suggestArtifactSet(backup, PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO, {
+    const suggestedForProPermitLunarMirror = computed(() =>
+      suggestArtifactSet(backup, PrestigeStrategy.PRO_PERMIT_LUNAR_MIRROR, {
         excludedIds: itemIdsToExclude.value,
       })
     );
@@ -372,14 +276,12 @@ export default defineComponent({
       homeFarm,
       homeFarmIsEnlightenment,
       currentlyEquipped,
+      suggestedForProPermitLunarMirror,
+      suggestedForProPermitMirror,
+      suggestedForStandardMirror,
       itemsToExclude,
-      suggestedForStandardPermitSinglePreload,
-      suggestedForProPermitMulti,
-      suggestedForProPermitSinglePreload,
-      suggestedForProPermitLunar,
       PrestigeStrategy,
       modifiers,
-      onlyLunar,
       hasGusset,
       iconURL,
       formatEIValue,

@@ -76,17 +76,13 @@ export function contenderToArtifactSet(
       continue;
     }
     // Attempt to find a match first in the guide set, then in the inventory.
-    const match =
-      findMatchingItem(host, stones, guideArtifacts) ||
-      findMatchingItem(host, stones, inventoryArtifacts);
+    const match = findMatchingItem(host, stones, guideArtifacts) || findMatchingItem(host, stones, inventoryArtifacts);
     const constructed = match !== null ? match : new Artifact(host, []);
     constructedArtifacts.push(constructed);
     for (const stone of constructed.stones) {
       const extracted = extractItem(stones, stone);
       if (extracted === null) {
-        throw new ImpossibleError(
-          `trying to slot ${stone.id} which doesn't exist in the recommendation`
-        );
+        throw new ImpossibleError(`trying to slot ${stone.id} which doesn't exist in the recommendation`);
       }
     }
   }
@@ -105,9 +101,7 @@ export function contenderToArtifactSet(
     }
   }
   if (stones.length > 0) {
-    throw new ImpossibleError(
-      `nowhere to slot some stones in the recommendation: ${stones.map(s => s.id).join(', ')}`
-    );
+    throw new ImpossibleError(`nowhere to slot some stones in the recommendation: ${stones.map(s => s.id).join(', ')}`);
   }
 
   // Reorder constructed artifacts to best match the guide set.
@@ -153,9 +147,7 @@ export function contenderToArtifactSet(
       continue;
     } else {
       assemblyStatuses.push(
-        inventoryArtifactKeys.has(key)
-          ? ArtifactAssemblyStatus.ASSEMBLED
-          : ArtifactAssemblyStatus.AWAITING_ASSEMBLY
+        inventoryArtifactKeys.has(key) ? ArtifactAssemblyStatus.ASSEMBLED : ArtifactAssemblyStatus.AWAITING_ASSEMBLY
       );
     }
   }
@@ -225,15 +217,14 @@ export function artifactSetVirtualEarningsMultiplier(
   farm: Farm,
   set: ArtifactSet,
   strategy: PrestigeStrategy,
-  modifiers?: Modifiers,
+  modifiers?: Modifiers
 ): number {
   const bareFarm = new Farm(farm.backup, farm.farm);
   bareFarm.artifactSet = new ArtifactSet([], false);
   const equippedFarm = new Farm(farm.backup, farm.farm);
   equippedFarm.artifactSet = set;
 
-  const earningBonusMultiplier =
-    bareFarm.earningBonus > 0 ? equippedFarm.earningBonus / bareFarm.earningBonus : 1;
+  const earningBonusMultiplier = bareFarm.earningBonus > 0 ? equippedFarm.earningBonus / bareFarm.earningBonus : 1;
   const eggValueMultiplier = set.eggValueMultiplier;
   const eggLayingRateMultiplier = set.eggLayingRateMultiplier;
   const maxRunningChickenBonusMultiplier =
@@ -253,11 +244,30 @@ export function artifactSetVirtualEarningsMultiplier(
     case PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD:
       totalMultiplier *= set.habSpaceMultiplier * set.boostEffectMultiplier ** 2;
       break;
+    case PrestigeStrategy.STANDARD_PERMIT_MIRROR:
+      totalMultiplier *= set.habSpaceMultiplier * set.boostEffectMultiplier;
+      break;
     case PrestigeStrategy.PRO_PERMIT_MULTI:
       totalMultiplier *= set.internalHatcheryRateMultiplier * set.boostEffectMultiplier ** 3;
       break;
     case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
-      totalMultiplier *= set.habSpaceMultiplier * set.boostEffectMultiplier ** 2 * set.awayEarningsMultiplier * (modifiers?.awayEarnings ?? 1)/equippedFarm.maxRunningChickenBonusWithMaxedCommonResearches;
+      totalMultiplier *=
+        (set.habSpaceMultiplier *
+          set.boostEffectMultiplier ** 2 *
+          set.awayEarningsMultiplier *
+          (modifiers?.awayEarnings ?? 1)) /
+        equippedFarm.maxRunningChickenBonusWithMaxedCommonResearches;
+      break;
+    case PrestigeStrategy.PRO_PERMIT_LUNAR_MIRROR:
+      totalMultiplier *=
+        (set.internalHatcheryRateMultiplier *
+          set.boostEffectMultiplier ** 2 *
+          set.awayEarningsMultiplier *
+          (modifiers?.awayEarnings ?? 1)) /
+        equippedFarm.maxRunningChickenBonusWithMaxedCommonResearches;
+      break;
+    case PrestigeStrategy.PRO_PERMIT_MIRROR:
+      totalMultiplier *= set.internalHatcheryRateMultiplier * set.boostEffectMultiplier ** 2;
       break;
   }
 
