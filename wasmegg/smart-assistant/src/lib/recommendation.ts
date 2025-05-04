@@ -418,6 +418,7 @@ export function suggestArtifactSet(
   let internalHatcheryRateEffectMultiplierFunc: (delta: number) => number;
   let lunarEffectMultiplierFunc: (delta: number) => number = () => 1;
   let rcbEffectMultiplierFunc: (delta: number) => number = delta => delta;
+  let soulStoneEffectMultiplierFunc: (delta: number) => number = delta => delta;
   switch (strategy) {
     case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
       monoclePowerIndex = 2;
@@ -447,8 +448,9 @@ export function suggestArtifactSet(
       break;
     case PrestigeStrategy.PRO_PERMIT_LUNAR_MIRROR:
       monoclePowerIndex = 2;
-      // feather useless while mirroring
+      // feather/soul stones useless while mirroring
       virtualEarningsEffectMultiplierFunc = () => 1;
+      soulStoneEffectMultiplierFunc = () => 1;
       lunarEffectMultiplierFunc = delta => 1 + delta;
       rcbEffectMultiplierFunc = () => 1;
       // Assume gussets are useless while mirroring
@@ -459,6 +461,7 @@ export function suggestArtifactSet(
     case PrestigeStrategy.PRO_PERMIT_MIRROR:
       // feather useless while mirroring
       virtualEarningsEffectMultiplierFunc = () => 1;
+      soulStoneEffectMultiplierFunc = () => 1;
       // Monocle affects bird feeds and tachyon prisms.
       monoclePowerIndex = 2;
       // Assume gussets are useless while mirroring
@@ -469,6 +472,7 @@ export function suggestArtifactSet(
     case PrestigeStrategy.STANDARD_PERMIT_MIRROR:
       // feather useless while mirroring
       virtualEarningsEffectMultiplierFunc = () => 1;
+      soulStoneEffectMultiplierFunc = () => 1;
       // Monocle affects bird feeds
       monoclePowerIndex = 1;
       // Assume gussets are useless while mirroring
@@ -671,7 +675,7 @@ export function suggestArtifactSet(
     const before = soulBonusAccumulator;
     soulBonusAccumulator += stone.effectDelta;
     const after = soulBonusAccumulator;
-    return { stone, multiplier: after / before };
+    return { stone, multiplier: soulStoneEffectMultiplierFunc(after / before) };
   });
   const bestLifeStones = bestsInStoneFamily(families.get(Name.LIFE_STONE), maxIndependentStoneSlots).map(stone => ({
     stone,
