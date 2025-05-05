@@ -943,7 +943,7 @@ const hasEnlightenmentDiamondTrophy = computed(() => {
   return false;
 });
 const hasUltraSubscription = computed(() => {
-  return backup.value.subscription?.level === ei.UserSubscriptionInfo.Level.ULTRA;
+  return false; // TODO implement ultra subscription check
 });
 const hasCrafting30 = computed(() => craftingXp.value > 5070943000);
 const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
