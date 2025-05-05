@@ -31,19 +31,31 @@
             />
             <span class="font-serif truncate">{{ nickname }}</span>
             <img
+              v-if="hasUltraSubscription"
+              v-tippy="{ content: 'Ultra Subscription' }"
+              :src="badgeUltra"
+              class="h-4"
+            />
+          </div>
+          <div class="flex items-center justify-center space-x-1 mx-6 mt-1">
+            <img
               v-if="hasEnlightenmentDiamondTrophy"
               v-tippy="{ content: 'Proud owner of the enlightenment diamond trophy.' }"
               :src="iconURL('egginc/icon_trophy_diamond.png', 128)"
               class="h-4 w-4 flex-shrink-0"
             />
             <img
-              v-if="hasNAH"
+              v-if="hasFED"
+              v-tippy="{ content: 'Full Egg Dedication' }"
+              :src="badgeFED"
+              class="h-4"
+            />
+            <img
+              v-else-if="hasNAH"
               v-tippy="{ content: 'Proud owner of the Nobel Prize in Animal Husbandry®' }"
               :src="badgeNAH"
               class="h-4"
             />
-            <img v-if="hasFED" v-tippy="{ content: 'Full Egg Dedication' }" :src="badgeFED" class="h-4" />
-
             <img
               v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB"
               v-tippy="{ content: 'Zero Legendary Club' }"
@@ -118,6 +130,12 @@
               }"
               class="h-4"
               :src="medalZLCRecordGrayscale"
+            />
+            <img
+              v-if="hasCrafting30"
+              v-tippy="{ content: 'Good Job.' }"
+              :src="badgeCraftingLegend"
+              class="h-4"
             />
           </div>
 
@@ -756,6 +774,8 @@ import {
   badgeZLC7star,
   badgeASC,
   badgeFED,
+  badgeCraftingLegend,
+  badgeUltra,
   medalZLCRecord,
   medalZLCRecordGrayscale,
 } from '@/badges';
@@ -802,7 +822,6 @@ const STAFF_USER_ID_HASHES = [
   '07240b7d19ee048b6a027aaa9500aa6facfb72c02effb9a426081aa2873b12e4',
   'f449381b27e3e313bd3e9df461b0260f48fd2594658cfee096008bdc9bdaa613',
   'daddf1baaf841640de70e9b11f98ad253bce8f01f5addbc08e71d96deb0451e8',
-  '97cfbe3148ad6d7e5e411e72aa58be85b2c91ac05419fef47b46a9a028c8c6e9',
 ];
 
 enum ShipClub {
@@ -923,6 +942,10 @@ const hasEnlightenmentDiamondTrophy = computed(() => {
   }
   return false;
 });
+const hasUltraSubscription = computed(() => {
+  return backup.value.subscription?.level === ei.UserSubscriptionInfo.Level.ULTRA;
+});
+const hasCrafting30 = computed(() => craftingXp.value > 5070943000);
 const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
 const soulEggs = computed(() => getNumSoulEggs(backup.value));
 const earningBonus = computed(() => getNakedEarningBonus(backup.value));
