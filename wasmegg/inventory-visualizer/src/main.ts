@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import App from './App.vue';
 import './index.css';
 
@@ -17,6 +18,8 @@ import { performWebpTest } from '@/lib';
   await performWebpTest();
 
   const app = createApp(App);
+  const pinia = createPinia();
+  app.use(pinia);
   app.use(VueTippy, {
     defaultProps: { theme: 'translucent' },
   });

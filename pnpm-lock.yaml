@@ -498,6 +498,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -562,6 +565,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -684,6 +690,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -931,6 +940,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -1208,6 +1220,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -1272,6 +1287,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
