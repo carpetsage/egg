@@ -184,7 +184,7 @@
           <span class="whitespace-nowrap">
             <span class="text-yellow-500">
                 {{
-              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[0] * 3, precision[0])
+              formatToPrecision(selectedLevelExpectedFullConsumptionValuePerDay[1] * 3, precision[0])
                 }}/d
             </span>
             (3 mission slots)</span>.
