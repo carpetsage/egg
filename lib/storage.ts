@@ -1,4 +1,5 @@
 import { getLocalStorage, getLocalStorageNoPrefix, setLocalStorage, setLocalStorageNoPrefix } from './utils';
+import useEidsStore from './stores/eids';
 
 const SITE_WIDE_SAVED_PLAYER_ID_LOCALSTORAGE_KEY = 'siteWideSavedPlayerId';
 const TOOL_SPECIFIC_PLAYER_ID_LOCALSTORAGE_KEY = 'playerId';
@@ -14,6 +15,7 @@ export function getSavedPlayerID(): string | undefined {
 export function savePlayerID(playerId: string): void {
   setLocalStorage(TOOL_SPECIFIC_PLAYER_ID_LOCALSTORAGE_KEY, playerId);
   setLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_ID_LOCALSTORAGE_KEY, playerId);
+  useEidsStore().addEid(playerId);
 }
 
 export function getSavedPlayerIDs(): string[] | undefined {
