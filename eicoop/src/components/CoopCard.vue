@@ -231,7 +231,11 @@
         </div>
         <div class="sm:col-span-1">
           <dt class="text-sm font-medium text-gray-500 flex flex-row dark:text-gray-400">
-            <template v-if="leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0">
+            <template
+              v-if="
+                leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0 && completionTime > 0
+              "
+            >
               Total time taken for contract completion
             </template>
             <template v-else>
@@ -386,9 +390,12 @@ export default defineComponent({
       () => leagueStatus.value.expectedFinalCompletionDateOfflineAdjusted.unix() - startDate.value
     );
     const modifiers = computed(() => (gradeSpec.value ? getModifiers(gradeSpec.value) : ['']));
+    const contractlength = computed(
+      () => contract.value.gradeSpecs?.[grade.value - 1].lengthSeconds ?? contract.value.lengthSeconds ?? 0
+    );
     const completionTime = computed(() => {
-      if (status.value.secondsSinceAllGoalsAchieved && contract.value.startTime && contract.value.lengthSeconds) {
-        return contract.value.lengthSeconds - status.value.secondsRemaining - status.value.secondsSinceAllGoalsAchieved;
+      if (status.value.secondsSinceAllGoalsAchieved && contract.value.startTime) {
+        return contractlength.value - status.value.secondsRemaining - status.value.secondsSinceAllGoalsAchieved;
       }
       return 0;
     });
