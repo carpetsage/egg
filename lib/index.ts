@@ -22,3 +22,4 @@ export * from './visits';
 export * from './contracts';
 export * from './collegtibles';
 export * from './contract_seasons';
+export * from './stores/eids';

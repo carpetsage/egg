@@ -184,12 +184,18 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.13.10)(ts-node@10.9.2(@types/node@22.13.10)(typescript@5.7.3))
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       protobufjs-cli:
         specifier: ^1.1.2
         version: 1.1.2(protobufjs@7.4.0)
       ts-jest:
         specifier: ^29.1.2
         version: 29.1.2(@babel/core@7.26.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(jest@29.7.0(@types/node@22.13.10)(ts-node@10.9.2(@types/node@22.13.10)(typescript@5.7.3)))(typescript@5.7.3)
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.13(typescript@5.7.3)
 
   ui:
     dependencies:

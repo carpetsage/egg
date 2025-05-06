@@ -34,7 +34,7 @@
       </button>
     </div>
   </form>
-  <div v-if="eids.size > 1" class="mx-4 xl:mx-0 my-4">
+  <div v-if="eids.size >= 1" class="mx-4 xl:mx-0 my-4">
     <div class="relative max-w-xs mx-auto px-3 sm:px-4 py-1 text-center bg-gray-50 rounded-xl shadow">
       <button
         type="button"
@@ -68,6 +68,10 @@
               />
             </svg>
             <a :href="'/?playerId=' + entry" target="_self" class="underline">{{ entry }}</a>
+
+            <div class="inset-y-0 flex cursor-pointer" :onClick="() => eidsStore.removeEid(entry)">
+              <x-icon class="h-4 w-4 text-gray-400" />
+            </div>
           </span>
         </div>
       </div>
@@ -77,16 +81,17 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref, toRefs, watch } from 'vue';
-import useEidsStore from '../stores/eids';
 
 import BaseInfo from './BaseInfo.vue';
 import BaseInput from './BaseInput.vue';
-import { getLocalStorage, setLocalStorage } from 'lib';
+import { getLocalStorage, setLocalStorage, useEidsStore } from 'lib';
+import { XIcon } from '@heroicons/vue/solid';
 
 export default defineComponent({
   components: {
     BaseInfo,
     BaseInput,
+    XIcon,
   },
   props: {
     playerId: {
@@ -99,16 +104,17 @@ export default defineComponent({
   },
   setup(props) {
     const { playerId } = toRefs(props);
-    const input = ref(playerId.value);
-    const eidsStore = useEidsStore();
-    eidsStore.addEid(playerId.value);
-    const eids = ref(eidsStore.list);
+    const eidsStore = ref(useEidsStore());
     const COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY = 'collpaseRecentEids';
+
+    const input = ref(playerId.value);
+    const eids = eidsStore.value.list;
+
     watch(playerId, () => {
       input.value = playerId.value;
-      eidsStore.addEid(playerId.value);
+      eidsStore.value.addEid(playerId.value);
     });
-    const submittable = computed(() => input.value !== '');
+    const submittable = computed(() => /^(mk2!)?EI\d{16}$/.test(input.value));
     const collapsed = ref(getLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY) === 'true');
     const toggleCollapse = () => {
       collapsed.value = !collapsed.value;
@@ -118,6 +124,7 @@ export default defineComponent({
       input,
       submittable,
       eids,
+      eidsStore,
       collapsed,
       toggleCollapse,
     };

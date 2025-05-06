@@ -1,15 +1,11 @@
-import { getSavedPlayerIDs, savePlayerIDs } from 'lib';
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { Ref, ref } from 'vue';
+import { getSavedPlayerIDs, savePlayerIDs } from '../storage';
+import { ref } from 'vue';
 
 export const useEidsStore = defineStore('eids', () => {
-  const list: Ref<Set<string>> = ref(new Set<string>(getSavedPlayerIDs() ?? []));
-  console.log('uwu: ', JSON.stringify([...list.value]));
-  console.log('owo: ', list.value);
+  const list = ref(new Set<string>(getSavedPlayerIDs() ?? []));
 
   function addEid(eid: string) {
-    console.log('adding', eid);
-    console.log('uwu: ', JSON.stringify(list.value.values()));
     if (/^EI\d{16}$/.test(eid)) {
       list.value.add(eid);
     }
