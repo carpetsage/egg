@@ -19474,5 +19474,14 @@
     "startTimestamp": 1746460800.0,
     "type": "gift-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1746633600.0,
+    "id": "event-5-6",
+    "message": "3x FUELING!",
+    "multiplier": 3.0,
+    "startTimestamp": 1746547200.0,
+    "type": "mission-fuel",
+    "ultra": false
   }
 ]
