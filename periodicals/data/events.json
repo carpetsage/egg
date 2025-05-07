@@ -19483,5 +19483,32 @@
     "startTimestamp": 1746547200.0,
     "type": "mission-fuel",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1746720000.0,
+    "id": "event-5-7",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1746633600.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1746720000.0,
+    "id": "event-5-7-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1746633600.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1746720000.0,
+    "id": "ultra-5-7",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1746633600.0,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
