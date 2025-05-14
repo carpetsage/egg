@@ -31,19 +31,31 @@
             />
             <span class="font-serif truncate">{{ nickname }}</span>
             <img
+              v-if="hasUltraSubscription"
+              v-tippy="{ content: 'Ultra Subscription' }"
+              :src="badgeUltra"
+              class="h-4"
+            />
+          </div>
+          <div class="flex items-center justify-center space-x-1 mx-6 mt-1">
+            <img
               v-if="hasEnlightenmentDiamondTrophy"
               v-tippy="{ content: 'Proud owner of the enlightenment diamond trophy.' }"
               :src="iconURL('egginc/icon_trophy_diamond.png', 128)"
               class="h-4 w-4 flex-shrink-0"
             />
             <img
-              v-if="hasNAH"
+              v-if="hasFED"
+              v-tippy="{ content: 'Full Egg Dedication' }"
+              :src="badgeFED"
+              class="h-4"
+            />
+            <img
+              v-else-if="hasNAH"
               v-tippy="{ content: 'Proud owner of the Nobel Prize in Animal Husbandry®' }"
               :src="badgeNAH"
               class="h-4"
             />
-            <img v-if="hasFED" v-tippy="{ content: 'Full Egg Dedication' }" :src="badgeFED" class="h-4" />
-
             <img
               v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB"
               v-tippy="{ content: 'Zero Legendary Club' }"
@@ -118,6 +130,12 @@
               }"
               class="h-4"
               :src="medalZLCRecordGrayscale"
+            />
+            <img
+              v-if="hasCrafting30"
+              v-tippy="{ content: 'Good Job.' }"
+              :src="badgeCraftingLegend"
+              class="h-4"
             />
           </div>
 
@@ -756,6 +774,8 @@ import {
   badgeZLC7star,
   badgeASC,
   badgeFED,
+  badgeCraftingLegend,
+  badgeUltra,
   medalZLCRecord,
   medalZLCRecordGrayscale,
 } from '@/badges';
@@ -923,6 +943,10 @@ const hasEnlightenmentDiamondTrophy = computed(() => {
   }
   return false;
 });
+const hasUltraSubscription = computed(() => {
+  return false; // TODO implement ultra subscription check
+});
+const hasCrafting30 = computed(() => craftingXp.value > 5070943000);
 const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
 const soulEggs = computed(() => getNumSoulEggs(backup.value));
 const earningBonus = computed(() => getNakedEarningBonus(backup.value));
