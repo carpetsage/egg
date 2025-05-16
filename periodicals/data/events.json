@@ -19636,5 +19636,14 @@
     "startTimestamp": 1747324800.0,
     "type": "gift-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1747497600.0,
+    "id": "event-5-16",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1747411200.0,
+    "type": "research-sale",
+    "ultra": false
   }
 ]
