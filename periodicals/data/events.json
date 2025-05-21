@@ -19717,5 +19717,32 @@
     "startTimestamp": 1747756800.0,
     "type": "boost-duration",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1747929600.0,
+    "id": "event-5-21",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1747843200.0,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1747929600.0,
+    "id": "event-5-21-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1747843200.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1747929600.0,
+    "id": "ultra-5-21",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1747843200.0,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
