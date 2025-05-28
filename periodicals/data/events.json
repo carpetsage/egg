@@ -19834,5 +19834,23 @@
     "startTimestamp": 1748361600.0,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1748534400.0,
+    "id": "event-5-28",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1748448000.0,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1748534400.0,
+    "id": "event-5-28-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1748448000.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
