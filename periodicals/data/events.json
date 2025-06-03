@@ -19933,5 +19933,14 @@
     "startTimestamp": 1748880000.0,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1749052800.0,
+    "id": "event-6-3",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1748966400.0,
+    "type": "gift-boost",
+    "ultra": false
   }
 ]
