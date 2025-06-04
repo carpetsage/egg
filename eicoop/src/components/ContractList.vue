@@ -96,12 +96,7 @@
         >
           {{ contract.name }}
           <div v-if="contract.ccOnly" class="flex items-center ml-1">
-            <base-icon
-              v-tippy="{ content: `You must be subscribed to Egg Inc Ultra to see this contract in game` }"
-              :icon-rel-path="'egginc/sub_icon.png'"
-              :size="64"
-              class="block -ml-0.5 h-4 w-4"
-            />
+            <img src="/assets/ultra.svg" class="block -ml-0.5 h-4 w-4" />
           </div>
           <div v-if="contract.type === 'Original' && contract.prophecyEggs > 0" class="flex items-center ml-1">
             <base-icon
