@@ -197,7 +197,7 @@
   </div>
 
   <div
-    v-if="filteredEids.length"
+    v-if="eids.length"
     class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg mb-4"
   >
     <div
@@ -208,21 +208,30 @@
     <div class="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3">
       <div class="flex flex-wrap gap-2">
         <span
-          v-for="(entry, index) in [...filteredEids].reverse()"
+          v-for="(entry, index) in eids.toReversed()"
           :key="index"
           class="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-xs text-gray-800 dark:text-gray-200"
         >
+          <button
+            type="button"
+            class="mr-1 text-gray-400 hover:text-blue-500 focus:outline-none"
+            aria-label="Edit name"
+            @click="editEidName(entry)"
+          >
+            ✎
+          </button>
           <router-link
-            :to="{ name: 'dashboard', params: { userId: entry } }"
+            :to="{ name: 'dashboard', params: { userId: entry.id } }"
             class="hover:underline mr-1"
             style="text-decoration-thickness: 1.5px"
-            >{{ entry }}
+            @click="setLocalStorage(USER_ID_LOCALSTORAGE_KEY, entry.id, '')"
+            >{{ entry.name || entry.id }}
           </router-link>
           <button
             type="button"
             class="ml-1 text-gray-400 hover:text-red-500 focus:outline-none"
             aria-label="Remove"
-            @click="eidsStore.removeEid(entry)"
+            @click="eidsStore.removeEid(entry.id)"
           >
             &times;
           </button>
@@ -271,6 +280,7 @@ import {
   getUserBackupTime,
   SoloStatus,
   useEidsStore,
+  setLocalStorage,
 } from '@/lib';
 import { ContractLeague } from 'lib';
 import { refreshCallbackKey } from '@/symbols';
@@ -283,6 +293,9 @@ import SoloCard from '@/components/SoloCard.vue';
 import { getUserActiveCoopContractsSorted } from '../lib/userdata';
 import useContractsStore from '@/stores/contracts';
 import SeasonProgressBar from '@/components/SeasonProgressBar.vue';
+import { EidEntry } from 'lib/storage';
+
+const USER_ID_LOCALSTORAGE_KEY = 'userId';
 
 export default defineComponent({
   components: {
@@ -302,8 +315,7 @@ export default defineComponent({
   setup(props) {
     const contractStore = useContractsStore();
     const eidsStore = ref(useEidsStore());
-    const eids = eidsStore.value.list;
-    const filteredEids = computed(() => [...eids].filter((eid) => eid !== userId.value));
+    const eids = computed(() => [...eidsStore.value.list]);
     const { backup } = toRefs(props);
     const triggerRefresh = inject(refreshCallbackKey, () => {
       window.location.reload();
@@ -351,6 +363,13 @@ export default defineComponent({
       housekeeping();
     });
 
+    const editEidName = (entry: EidEntry) => {
+      const name = prompt('Enter a name for this ID:', entry.name || entry.id);
+      if (name !== null) {
+        eidsStore.value.updateEidName(entry.id, name);
+      }
+    };
+
     return {
       coopRefreshKey,
       backupTime,
@@ -370,8 +389,10 @@ export default defineComponent({
       formatEIValue,
       triggerRefresh,
       eids,
-      filteredEids,
       eidsStore,
+      editEidName,
+      setLocalStorage,
+      USER_ID_LOCALSTORAGE_KEY,
     };
   },
 });

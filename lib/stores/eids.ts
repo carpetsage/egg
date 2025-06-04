@@ -1,27 +1,62 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { getSavedPlayerIDs, savePlayerIDs } from '../storage';
+import { getSavedPlayerIDs, savePlayerIDs, type EidEntry } from '../storage';
 import { ref } from 'vue';
 
 export const useEidsStore = defineStore('eids', () => {
-  const list = ref(new Set<string>(getSavedPlayerIDs() ?? []));
+  const list = ref<Set<EidEntry>>(new Set());
 
-  function addEid(eid: string) {
-    if (/^EI\d{16}$/.test(eid)) {
-      list.value.add(eid);
+  // Initialize from saved data
+  const savedEntries = getSavedPlayerIDs() ?? [];
+  savedEntries.forEach((entry) => {
+    list.value.add(entry);
+  });
+
+  function addEid(eid: string, name?: string) {
+    if (!/^EI\d{16}$/.test(eid)) {
+      return;
     }
 
+    // Check if eid already exists
+    const existingEntry = Array.from(list.value).find((entry) => entry.id === eid);
+    if (existingEntry) {
+      if (name) {
+        existingEntry.name = name;
+      }
+      return;
+    }
+
+    // Add new entry
+    list.value.add({ id: eid, name });
+
+    // Remove oldest entry if over limit
     if (list.value.size > 5) {
-      list.value.delete(list.value.values().next().value ?? '');
+      removeEid(Array.from(list.value)[0].id);
     }
+
     savePlayerIDs(list.value);
   }
 
   function removeEid(eid: string) {
-    list.value.delete(eid);
+    const entry = list.value.values().find((entry) => entry.id === eid);
+    if (entry) {
+      removeEntry(entry);
+    }
+  }
+
+  function removeEntry(entry: EidEntry) {
+    list.value.delete(entry);
     savePlayerIDs(list.value);
   }
 
-  return { list, addEid, removeEid };
+  function updateEidName(eid: string, name: string) {
+    const entry = list.value.values().find((entry) => entry.id === eid);
+    if (entry) {
+      entry.name = name;
+      savePlayerIDs(list.value);
+    }
+  }
+
+  return { list, addEid, removeEntry, removeEid, updateEidName };
 });
 
 if (import.meta.hot) {

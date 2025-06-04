@@ -14,7 +14,7 @@
         placeholder="Player ID"
         maxlength="18"
       />
-      <div v-if="!filteredEids.length" class="text-center">
+      <div v-if="!eids.length" class="text-center">
         <span
           v-tippy="{
             content:
@@ -29,24 +29,32 @@
       <div v-else class="mt-2 mb-2">
         <div class="grid grid-cols-1 sm:grid-cols-2">
           <span
-            v-for="(entry, index) in filteredEids"
+            v-for="(entry, index) in eids"
             :key="index"
             class="inline-flex items-center px-2 py-1 rounded-full bg-gray-150 border border-gray-300 text-xs text-gray-900 w-fit"
           >
+            <button
+              type="button"
+              class="mr-1 text-gray-400 hover:text-blue-500 focus:outline-none"
+              aria-label="Edit name"
+              @click="editEidName(entry)"
+            >
+              ✎
+            </button>
             <span
               class="hover:underline cursor-pointer"
               style="text-decoration-thickness: 1.5px"
               @click="
-                input = entry;
-                $emit('submit', entry);
+                input = entry.id;
+                $emit('submit', entry.id);
               "
-              >{{ entry }}</span
+              >{{ entry.name || entry.id }}</span
             >
             <button
               type="button"
               class="text-gray-500 hover:text-red-500 focus:outline-none"
               aria-label="Remove"
-              @click="eidsStore.removeEid(entry)"
+              @click="eidsStore.removeEid(entry.id)"
             >
               &times;
             </button>
@@ -73,6 +81,7 @@ import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 import BaseInfo from './BaseInfo.vue';
 import BaseInput from './BaseInput.vue';
 import { useEidsStore } from 'lib';
+import { EidEntry } from 'lib/storage';
 
 export default defineComponent({
   components: {
@@ -92,8 +101,7 @@ export default defineComponent({
     const { playerId } = toRefs(props);
     const eidsStore = ref(useEidsStore());
     const input = ref(playerId.value);
-    const eids = eidsStore.value.list;
-    const filteredEids = computed(() => [...eids].filter((eid) => eid !== playerId.value));
+    const eids = computed(() => [...eidsStore.value.list]);
 
     watch(playerId, () => {
       input.value = playerId.value;
@@ -101,12 +109,19 @@ export default defineComponent({
     });
     const submittable = computed(() => /^(mk2!)?EI\d{16}$/.test(input.value));
 
+    const editEidName = (entry: EidEntry) => {
+      const name = prompt('Enter a name for this ID:', entry.name || entry.id);
+      if (name !== null) {
+        eidsStore.value.updateEidName(entry.id, name);
+      }
+    };
+
     return {
       input,
       submittable,
       eids,
-      filteredEids,
       eidsStore,
+      editEidName,
     };
   },
 });

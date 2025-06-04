@@ -65,25 +65,37 @@
         <span class="text-xs text-gray-500 dark:text-gray-400">Where do I find my ID?</span>
       </span>
 
-      <div v-if="filteredEids.length" class="mt-3">
+      <div v-if="eids.length" class="mt-3">
         <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Recent IDs:</div>
         <div class="flex flex-wrap gap-2">
           <span
-            v-for="(entry, index) in filteredEids.toReversed()"
+            v-for="(entry, index) in eids.toReversed()"
             :key="index"
             class="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-xs text-gray-800 dark:text-gray-200"
           >
+            <button
+              type="button"
+              class="mr-1 text-gray-400 hover:text-blue-500 focus:outline-none"
+              aria-label="Edit name"
+              @click="editEidName(entry)"
+            >
+              ✎
+            </button>
             <router-link
-              :to="{ name: 'dashboard', params: { userId: entry } }"
+              :to="{ name: 'dashboard', params: { userId: entry.id } }"
               class="hover:underline mr-1"
               style="text-decoration-thickness: 1.5px"
-              >{{ entry }}
+              @click="
+                userId = entry.id;
+                submit();
+              "
+              >{{ entry.name || entry.id }}
             </router-link>
             <button
               type="button"
               class="ml-1 text-gray-400 hover:text-red-500 focus:outline-none"
               aria-label="Remove"
-              @click="eidsStore.removeEid(entry)"
+              @click="eidsStore.removeEid(entry.id)"
             >
               &times;
             </button>
@@ -104,6 +116,7 @@ import {
   setLocalStorage,
   useEidsStore,
 } from '@/lib';
+import { EidEntry } from 'lib/storage';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseInput from 'ui/components/BaseInput.vue';
 
@@ -120,8 +133,7 @@ export default defineComponent({
     const onboarding = checkIfShouldOnboardUserDashboardFeature();
     const userId = ref(getLocalStorage(USER_ID_LOCALSTORAGE_KEY) || '');
     const eidsStore = ref(useEidsStore());
-    const eids = eidsStore.value.list;
-    const filteredEids = computed(() => [...eids].filter((eid) => eid !== userId.value));
+    const eids = computed(() => [...eidsStore.value.list]);
     const collapsed = ref(getLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY) === 'true');
 
     const submittable = computed(() => {
@@ -139,16 +151,23 @@ export default defineComponent({
       setLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY, collapsed.value);
     };
 
+    const editEidName = (entry: EidEntry) => {
+      const name = prompt('Enter a name for this ID:', entry.name || entry.id);
+      if (name !== null) {
+        eidsStore.value.updateEidName(entry.id, name);
+      }
+    };
+
     return {
       onboarding,
       userId,
       submittable,
       submit,
-      filteredEids,
       eids,
       eidsStore,
       collapsed,
       toggleCollapse,
+      editEidName,
     };
   },
 });
