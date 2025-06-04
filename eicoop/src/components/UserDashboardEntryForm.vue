@@ -1,6 +1,8 @@
 <template>
   <div class="bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg">
-    <div class="px-4 sm:px-6 py-3 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-sm font-medium">
+    <div
+      class="px-4 sm:px-6 py-3 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-sm font-medium"
+    >
       Access personal dashboard
       <sup
         v-if="onboarding"
@@ -12,9 +14,9 @@
     </div>
     <div class="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3">
       <p class="text-xs text-gray-900 dark:text-gray-100 mb-2">
-        Enter your ID to access a personal dashboard where the status of all your contracts, including solos and
-        not-yet-joined-coops, are shown in one place. Bookmark your dashboard page to check on all your contracts at any
-        time.
+        Enter your ID to access a personal dashboard where the status of all your contracts,
+        including solos and not-yet-joined-coops, are shown in one place. Bookmark your dashboard
+        page to check on all your contracts at any time.
       </p>
 
       <form
@@ -62,6 +64,32 @@
         <base-info />
         <span class="text-xs text-gray-500 dark:text-gray-400">Where do I find my ID?</span>
       </span>
+
+      <div v-if="filteredEids.length" class="mt-3">
+        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Recent IDs:</div>
+        <div class="flex flex-wrap gap-2">
+          <span
+            v-for="(entry, index) in [...eids].reverse().filter((eid) => eid !== userId)"
+            :key="index"
+            class="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-xs text-gray-800 dark:text-gray-200"
+          >
+            <router-link
+              :to="{ name: 'dashboard', params: { userId: entry } }"
+              class="hover:underline mr-1"
+              style="text-decoration-thickness: 1.5px"
+              >{{ entry }}
+            </router-link>
+            <button
+              type="button"
+              class="ml-1 text-gray-400 hover:text-red-500 focus:outline-none"
+              aria-label="Remove"
+              @click="eidsStore.removeEid(entry)"
+            >
+              &times;
+            </button>
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -70,11 +98,17 @@
 import { computed, defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { checkIfShouldOnboardUserDashboardFeature, getLocalStorage, setLocalStorage } from '@/lib';
+import {
+  checkIfShouldOnboardUserDashboardFeature,
+  getLocalStorage,
+  setLocalStorage,
+  useEidsStore,
+} from '@/lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseInput from 'ui/components/BaseInput.vue';
 
 const USER_ID_LOCALSTORAGE_KEY = 'userId';
+const COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY = 'collpaseRecentEids';
 
 export default defineComponent({
   components: {
@@ -85,18 +119,36 @@ export default defineComponent({
     const router = useRouter();
     const onboarding = checkIfShouldOnboardUserDashboardFeature();
     const userId = ref(getLocalStorage(USER_ID_LOCALSTORAGE_KEY) || '');
+    const eidsStore = ref(useEidsStore());
+    const eids = eidsStore.value.list;
+    const filteredEids = computed(() => [...eids].filter((eid) => eid !== userId.value));
+    const collapsed = ref(getLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY) === 'true');
+
     const submittable = computed(() => {
-      return userId.value !== '';
+      return /^EI\d{16}$/.test(userId.value);
     });
+
     const submit = () => {
       setLocalStorage(USER_ID_LOCALSTORAGE_KEY, userId.value);
+      eidsStore.value.addEid(userId.value);
       router.push({ name: 'dashboard', params: { userId: userId.value } });
     };
+
+    const toggleCollapse = () => {
+      collapsed.value = !collapsed.value;
+      setLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY, collapsed.value);
+    };
+
     return {
       onboarding,
       userId,
       submittable,
       submit,
+      filteredEids,
+      eids,
+      eidsStore,
+      collapsed,
+      toggleCollapse,
     };
   },
 });
