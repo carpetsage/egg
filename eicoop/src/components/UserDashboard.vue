@@ -224,7 +224,7 @@
             :to="{ name: 'dashboard', params: { userId: entry.id } }"
             class="hover:underline mr-1"
             style="text-decoration-thickness: 1.5px"
-            @click="setLocalStorage(USER_ID_LOCALSTORAGE_KEY, entry.id, '')"
+            @click="setLocalStorage(USER_ID_LOCALSTORAGE_KEY, entry.id, '/_')"
             >{{ entry.name || entry.id }}
           </router-link>
           <button
@@ -273,14 +273,15 @@ import {
   earningBonusToFarmerRole,
   ei,
   formatEIValue,
+  getLocalStorage,
   getNakedEarningBonus,
   getNumSoulEggs,
   getProphecyEggsProgress,
   getUserActiveSoloContracts,
   getUserBackupTime,
+  setLocalStorage,
   SoloStatus,
   useEidsStore,
-  setLocalStorage,
 } from '@/lib';
 import { ContractLeague } from 'lib';
 import { refreshCallbackKey } from '@/symbols';

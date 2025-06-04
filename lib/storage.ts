@@ -51,10 +51,7 @@ export function getSavedPlayerIDs(): EidEntry[] | undefined {
 
 export function savePlayerIDs(entries: Set<EidEntry>) {
   const names = Object.fromEntries(
-    Array.from(entries)
-      .filter((entry) => entry.name)
-      .map((entry) => [entry.id, entry.name])
+    Array.from(entries).map((entry) => [entry.id, entry.name || ''])
   );
-
   setLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_NAMES_LOCALSTORAGE_KEY, JSON.stringify(names));
 }

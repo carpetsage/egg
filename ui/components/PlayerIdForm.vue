@@ -27,7 +27,7 @@
         </span>
       </div>
       <div v-else class="mt-2 mb-2">
-        <div class="grid grid-cols-1 sm:grid-cols-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <span
             v-for="(entry, index) in eids"
             :key="index"
@@ -102,6 +102,11 @@ export default defineComponent({
     const eidsStore = ref(useEidsStore());
     const input = ref(playerId.value);
     const eids = computed(() => [...eidsStore.value.list]);
+
+    // Initialize with current playerId
+    if (playerId.value) {
+      eidsStore.value.addEid(playerId.value);
+    }
 
     watch(playerId, () => {
       input.value = playerId.value;

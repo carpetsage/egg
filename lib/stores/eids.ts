@@ -33,11 +33,12 @@ export const useEidsStore = defineStore('eids', () => {
       removeEid(Array.from(list.value)[0].id);
     }
 
+    console.log('addEid', JSON.stringify(list.value));
     savePlayerIDs(list.value);
   }
 
   function removeEid(eid: string) {
-    const entry = list.value.values().find((entry) => entry.id === eid);
+    const entry = Array.from(list.value).find((entry) => entry.id === eid);
     if (entry) {
       removeEntry(entry);
     }
@@ -49,7 +50,7 @@ export const useEidsStore = defineStore('eids', () => {
   }
 
   function updateEidName(eid: string, name: string) {
-    const entry = list.value.values().find((entry) => entry.id === eid);
+    const entry = Array.from(list.value).find((entry) => entry.id === eid);
     if (entry) {
       entry.name = name;
       savePlayerIDs(list.value);
