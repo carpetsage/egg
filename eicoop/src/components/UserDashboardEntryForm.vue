@@ -69,7 +69,7 @@
         <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Recent IDs:</div>
         <div class="flex flex-wrap gap-2">
           <span
-            v-for="(entry, index) in [...eids].reverse().filter((eid) => eid !== userId)"
+            v-for="(entry, index) in filteredEids.toReversed()"
             :key="index"
             class="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-xs text-gray-800 dark:text-gray-200"
           >
