@@ -139,24 +139,23 @@
         <div class="shadow overflow-hidden border-b border-gray-200">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">ID</th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Name</th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Date</th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Code</th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Goals</th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">PE</th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Score</th>
-              <th scope="col" class="px-6 py-2 text-center text-xs font-medium text-gray-500">Teamwork Score</th>
               <th
-                v-if="username === 'abubu0524'"
+                v-for="column in columns"
+                :key="column.key"
                 scope="col"
-                class="px-6 py-2 text-center text-xs font-medium text-gray-500"
+                class="px-6 py-2 text-center text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                @click="sortBy(column.key)"
               >
-                Tokens Received
+                <div class="flex items-center justify-center">
+                  {{ column.label }}
+                  <span v-if="sortKey === column.key" class="ml-1">
+                    {{ sortOrder === 'asc' ? '↑' : '↓' }}
+                  </span>
+                </div>
               </th>
             </thead>
             <tbody>
-              <template v-for="(contract, index) in visibleContracts" :key="contract.id">
+              <template v-for="(contract, index) in sortedContracts" :key="contract.id">
                 <tr :class="[index % 2 === 0 ? 'bg-white' : 'bg-gray-50', contractFgClass(contract)]">
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm cursor-pointer">
                     <a :href="contractLink(contract)" target="_blank" :class="contractFgClass(contract, true)">
@@ -268,7 +267,6 @@ import {
   UserBackupEmptyError,
 } from 'lib';
 import { getUserContractList, UserContract } from '@/contracts';
-import { contractSeasonList } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import TheReportProphecyEggs from '@/components/TheReportProphecyEggs.vue';
 import { formatEIValue, formatDuration } from 'lib';
@@ -422,6 +420,91 @@ export default defineComponent({
       document.body.removeChild(link);
     };
 
+    const sortKey = ref('id');
+    const sortOrder = ref<'asc' | 'desc'>('asc');
+
+    const columns = [
+      { key: 'id', label: 'ID' },
+      { key: 'name', label: 'Name' },
+      { key: 'date', label: 'Date' },
+      { key: 'code', label: 'Code' },
+      { key: 'goals', label: 'Goals' },
+      { key: 'pe', label: 'PE' },
+      { key: 'score', label: 'Score' },
+      { key: 'teamworkScore', label: 'Teamwork Score' },
+    ].concat(username === 'abubu0524' ? [{ key: 'tokens', label: 'Tokens Received' }] : []);
+
+    const sortBy = (key: string) => {
+      if (sortKey.value === key) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortKey.value = key;
+        sortOrder.value = 'asc';
+      }
+    };
+
+    const sortedContracts = computed(() => {
+      return [...visibleContracts.value].sort((a, b) => {
+        let aValue: string | number;
+        let bValue: string | number;
+
+        switch (sortKey.value) {
+          case 'id':
+            aValue = a.id;
+            bValue = b.id;
+            break;
+          case 'name':
+            aValue = a.name;
+            bValue = b.name;
+            break;
+          case 'date':
+            aValue = a.timestamp;
+            bValue = b.timestamp;
+            break;
+          case 'code':
+            aValue = a.coopCode || '';
+            bValue = b.coopCode || '';
+            break;
+          case 'goals':
+            aValue = a.numCompletedGoals / a.numAvailableGoals;
+            bValue = b.numCompletedGoals / b.numAvailableGoals;
+            if (aValue === bValue) {
+              aValue = a.numAvailableGoals;
+              bValue = b.numAvailableGoals;
+            }
+            break;
+          case 'pe':
+            aValue = a.numAvailablePEs;
+            bValue = b.numAvailablePEs;
+            if (aValue === bValue) {
+              aValue = a.indexOfPEGoal ?? 0;
+              bValue = b.indexOfPEGoal ?? 0;
+            }
+            break;
+          case 'score':
+            aValue = a.score || 0;
+            bValue = b.score || 0;
+            break;
+          case 'teamworkScore':
+            aValue = a.teamworkScore || 0;
+            bValue = b.teamworkScore || 0;
+            break;
+          case 'tokens':
+            aValue = a.tokens || 0;
+            bValue = b.tokens || 0;
+            break;
+          default:
+            return 0;
+        }
+
+        if (sortOrder.value === 'asc') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+    });
+
     return {
       prophecyEggsProgress,
       contracts,
@@ -443,6 +526,11 @@ export default defineComponent({
       downloadAsCSV,
       iconURL,
       eggIconPath,
+      columns,
+      sortKey,
+      sortOrder,
+      sortBy,
+      sortedContracts,
     };
   },
 });
