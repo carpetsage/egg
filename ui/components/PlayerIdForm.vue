@@ -26,12 +26,12 @@
           <span class="text-xs text-gray-500">Where do I find my ID?</span>
         </span>
       </div>
-      <div v-else class="mt-2 mb-2">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div v-else class="mt-2 mb-2 w-fit">
+        <div class="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 max-w-full">
           <span
             v-for="(entry, index) in eids"
             :key="index"
-            class="inline-flex items-center px-2 py-1 rounded-full bg-gray-150 border border-gray-300 text-xs text-gray-900 w-fit"
+            class="inline-flex items-center px-1 py-1 rounded-full bg-gray-200 border border-gray-300 text-xs text-gray-900 w-fit"
           >
             <button
               type="button"
@@ -52,7 +52,7 @@
             >
             <button
               type="button"
-              class="text-gray-500 hover:text-red-500 focus:outline-none"
+              class="mx-0.5 text-gray-500 hover:text-red-500 focus:outline-none"
               aria-label="Remove"
               @click="eidsStore.removeEid(entry.id)"
             >
