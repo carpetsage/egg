@@ -21,7 +21,7 @@
                     {{ notification.message }}
                   </p>
                 </div>
-                <div class="ml-4 flex-shrink-0 flex">
+                <div class="ml-4 shrink-0 flex">
                   <button
                     class="rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     @click="dismiss(notification.id)"

@@ -4,7 +4,7 @@
       <base-icon
         :icon-rel-path="hasProPermit ? 'egginc/pro_permit.png' : 'egginc/free_permit.png'"
         :size="128"
-        class="h-4 w-6 flex-shrink-0 -ml-0.5"
+        class="h-4 w-6 shrink-0 -ml-0.5"
       />
       <span class="text-base font-serif text-gray-900 dark:text-gray-100">
         {{ renderNonempty(nickname) }}
@@ -102,7 +102,7 @@
           </p>
           <button
             type="button"
-            class="flex items-center justify-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 focus:outline-none rounded-md !duration-0"
+            class="flex items-center justify-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 focus:outline-none rounded-md duration-0!"
             @click="triggerRefresh"
           >
             <svg class="-ml-px mr-1.5 h-3 w-3 text-gray-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">

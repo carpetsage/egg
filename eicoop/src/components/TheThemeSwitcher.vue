@@ -2,7 +2,7 @@
   <svg
     v-tippy="{ content: 'Toggle light/dark theme' }"
     viewBox="0 0 20 20"
-    class="h-4.5 w-4.5 flex-shrink-0 text-gray-200 cursor-pointer select-none focus:outline-none"
+    class="h-4.5 w-4.5 shrink-0 text-gray-200 cursor-pointer select-none focus:outline-none"
     @click="toggleDarkTheme"
   >
     <path

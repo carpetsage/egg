@@ -21,14 +21,14 @@
       <div class="flex flex-row mb-2">
         <button
           type="button"
-          class="flex-shrink-0 px-2 py-1 mx-1 ultrawide:ml-0 border border-transparent shadow-sm text-xs leading-4 rounded-md text-white bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none"
+          class="shrink-0 px-2 py-1 mx-1 ultrawide:ml-0 border border-transparent shadow-sm text-xs leading-4 rounded-md text-white bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none"
           @click="expandAll"
         >
           Expand all
         </button>
         <button
           type="button"
-          class="flex-shrink-0 px-2 py-1 ml-1 mr-2 border border-transparent shadow-sm text-xs leading-4 rounded-md text-white bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none"
+          class="shrink-0 px-2 py-1 ml-1 mr-2 border border-transparent shadow-sm text-xs leading-4 rounded-md text-white bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none"
           @click="collapseAll"
         >
           Collapse all

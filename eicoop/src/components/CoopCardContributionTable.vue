@@ -18,7 +18,7 @@
               :class="{ 'justify-center': column.id !== 'name' }"
             >
               <template v-if="column.iconPath">
-                <span class="flex flex-shrink-0 flex-row items-center justify-center space-x-px">
+                <span class="flex shrink-0 flex-row items-center justify-center space-x-px">
                   <span v-if="column.prefix" class="text-gray-500 dark:text-gray-200">{{ column.prefix }}</span>
                   <base-icon
                     :icon-rel-path="column.iconPath"
@@ -36,7 +36,7 @@
               <svg
                 v-if="column.id !== 'artifacts' && column.id !== 'boosts'"
                 viewBox="0 0 320 512"
-                class="flex-shrink-0 h-3 text-gray-400"
+                class="shrink-0 h-3 text-gray-400"
               >
                 <path
                   v-if="!(sortBy === column.id && !sortAscending)"
@@ -91,7 +91,7 @@
               content: 'This player hasn\'t reported in for a long time and can be kicked by anyone.',
             }"
             viewBox="0 0 256 256"
-            class="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0 cursor-help"
+            class="h-4 w-4 text-gray-500 dark:text-gray-400 shrink-0 cursor-help"
           >
             <path
               fill="currentColor"
@@ -114,7 +114,7 @@
             }"
             icon-rel-path="egginc-extras/icon_time_cheat.png"
             :size="64"
-            class="h-4 w-4 flex-shrink-0 cursor-help"
+            class="h-4 w-4 shrink-0 cursor-help"
             :style="{ filter: 'brightness(0.5) sepia(1) saturate(10000%)' }"
           />
           <!-- Leech -->
@@ -124,7 +124,7 @@
               content:
                 'This player\'s contribution rate has been deemed unsatisfactory, and is at the risk of being kicked by anyone.',
             }"
-            class="h-3.5 w-3.5 flex-shrink-0 text-red-500 cursor-help"
+            class="h-3.5 w-3.5 shrink-0 text-red-500 cursor-help"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -142,7 +142,7 @@
           <div class="inset-y-0 left-0 pl-2 flex items-center">
             <svg
               v-if="contributor.finalized"
-              class="flex-shrink-0 h-4.5 w-4.5 text-green-500 rounded-full"
+              class="shrink-0 h-4.5 w-4.5 text-green-500 rounded-full"
               viewBox="0 0 20 20"
               fill="currentColor"
             >

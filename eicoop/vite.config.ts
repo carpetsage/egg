@@ -17,8 +17,10 @@ export default ({ command }: ConfigEnv): UserConfigExport => ({
     },
   },
   plugins: [
-    tailwindcss(),
     vue(),
+    tailwindcss({
+      content: ['./index.html', './src/**/*.{vue,ts}', '../ui/**/*.vue'],
+    }),
     viteMockServe({
       mockPath: 'mock',
       localEnabled: command === 'serve' && !!process.env.VITE_APP_MOCK,

@@ -2,7 +2,7 @@
   <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg">
     <div class="px-4 py-4 sm:px-6 bg-gray-50 dark:bg-gray-700">
       <div class="relative -ml-4 -mt-2 sm:flex items-start justify-between">
-        <div class="flex-grow ml-4 mt-2">
+        <div class="grow ml-4 mt-2">
           <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
             <base-icon
               :icon-rel-path="eggIconPath(egg, contract?.customEggId)"

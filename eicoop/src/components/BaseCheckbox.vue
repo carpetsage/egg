@@ -4,7 +4,7 @@
       :id="name"
       :name="name"
       type="checkbox"
-      class="h-4 w-4 text-green-600 bg-white dark:bg-gray-800 dark:checked:bg-green-600 border-gray-300 dark:border-gray-500 rounded focus:outline-none focus:ring-0 focus:ring-offset-0 !duration-0"
+      class="h-4 w-4 text-green-600 bg-white dark:bg-gray-800 dark:checked:bg-green-600 border-gray-300 dark:border-gray-500 rounded focus:outline-none focus:ring-0 focus:ring-offset-0 duration-0!"
       :checked="modelValue"
       @change="onChange"
     />

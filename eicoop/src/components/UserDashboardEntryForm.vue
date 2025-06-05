@@ -18,7 +18,7 @@
       </p>
 
       <form
-        class="relative sm:max-w-xs flex items-stretch flex-grow focus-within:z-10"
+        class="relative sm:max-w-xs flex items-stretch grow focus-within:z-10"
         :class="onboarding ? 'border border-green-500 rounded-md' : null"
         :style="onboarding ? { animation: 'glowing 2s ease-in-out infinite' } : undefined"
         @submit="
@@ -38,7 +38,7 @@
         />
         <button
           type="submit"
-          class="-ml-px relative inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-r-md bg-blue-600 hover:bg-blue-700 !duration-0 focus:outline-none disabled:opacity-50"
+          class="-ml-px relative inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-r-md bg-blue-600 hover:bg-blue-700 duration-0! focus:outline-none disabled:opacity-50"
           :class="{ 'cursor-not-allowed': !submittable }"
           :disabled="!submittable"
         >

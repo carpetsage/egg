@@ -1,6 +1,6 @@
 <template>
   <div
-    class="ml-4 mt-2 -mb-1 sm:flex-shrink-0 flex items-center text-xs sm:text-sm font-medium uppercase"
+    class="ml-4 mt-2 -mb-1 sm:shrink-0 flex items-center text-xs sm:text-sm font-medium uppercase"
     :class="colorClass"
   >
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-4 w-4 sm:h-5 sm:w-5 mr-1">

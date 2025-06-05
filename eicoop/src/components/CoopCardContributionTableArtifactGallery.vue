@@ -113,6 +113,7 @@ function artifactRarityBgClass(afxRarity: ei.ArtifactSpec.Rarity): string {
 </script>
 
 <style scoped>
+@reference '../index.css';
 .text-rare {
   @apply text-blue-500;
 }

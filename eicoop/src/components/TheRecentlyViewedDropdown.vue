@@ -6,7 +6,7 @@
       <svg
         ref="triggerRef"
         viewBox="-72 -72 656 656"
-        class="h-4.5 w-4.5 flex-shrink-0 text-gray-200 cursor-pointer select-none"
+        class="h-4.5 w-4.5 shrink-0 text-gray-200 cursor-pointer select-none"
         @click="toggle"
       >
         <path

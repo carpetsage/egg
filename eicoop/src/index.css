@@ -1,8 +1,122 @@
 @import 'tailwindcss';
 
-@import 'ui/styles/base';
-@import 'ui/styles/app-loading';
-@import 'ui/styles/tippy';
+@theme {
+  /* Screens */
+  --breakpoint-ultrawide: 1728px;
+
+  /* Default gray colors (zinc palette) */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f4f4f5;
+  --color-gray-200: #e4e4e7;
+  --color-gray-300: #d4d4d8;
+  --color-gray-400: #a1a1aa;
+  --color-gray-500: #71717a;
+  --color-gray-600: #52525b;
+  --color-gray-700: #3f3f46;
+  --color-gray-750: #333338;
+  --color-gray-800: #27272a;
+  --color-gray-900: #18181b;
+  --color-gray-950: #09090b;
+
+  /* Green colors (emerald palette) */
+  --color-green-50: #ecfdf5;
+  --color-green-100: #d1fae5;
+  --color-green-200: #a7f3d0;
+  --color-green-300: #6ee7b7;
+  --color-green-350: #51dda8;
+  --color-green-400: #34d399;
+  --color-green-500: #10b981;
+  --color-green-600: #059669;
+  --color-green-700: #047857;
+  --color-green-800: #065f46;
+  --color-green-900: #064e3b;
+  --color-green-950: #022c22;
+
+  /* Yellow colors (amber palette) */
+  --color-yellow-50: #fffbeb;
+  --color-yellow-100: #fef3c7;
+  --color-yellow-200: #fde68a;
+  --color-yellow-300: #fcd34d;
+  --color-yellow-400: #fbbf24;
+  --color-yellow-500: #f59e0b;
+  --color-yellow-600: #d97706;
+  --color-yellow-700: #b45309;
+  --color-yellow-800: #92400e;
+  --color-yellow-900: #78350f;
+  --color-yellow-950: #451a03;
+
+  /* Orange colors */
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
+  --color-orange-800: #9a3412;
+  --color-orange-900: #7c2d12;
+  --color-orange-950: #431407;
+
+  /* Gray-red tint colors */
+  --color-gray-700-red-tint-100: #503f45;
+  --color-gray-700-red-tint-200: #624045;
+  --color-gray-700-red-tint-300: #734045;
+  --color-gray-700-red-tint-400: #854145;
+  --color-gray-700-red-tint-500: #974145;
+  --color-gray-700-red-tint-600: #a84244;
+  --color-gray-700-red-tint-700: #ba4244;
+  --color-gray-700-red-tint-800: #cb4344;
+  --color-gray-700-red-tint-900: #dd4344;
+
+  /* Gray-green tint colors */
+  --color-gray-700-green-tint-100: #3a4b4b;
+  --color-gray-700-green-tint-200: #355751;
+  --color-gray-700-green-tint-300: #306357;
+  --color-gray-700-green-tint-400: #2c6f5d;
+  --color-gray-700-green-tint-500: #277c63;
+  --color-gray-700-green-tint-600: #228869;
+  --color-gray-700-green-tint-700: #1e946f;
+  --color-gray-700-green-tint-800: #19a075;
+  --color-gray-700-green-tint-900: #14ac7b;
+
+  /* Gray-blue tint colors */
+  --color-gray-700-blue-tint-100: #3e4557;
+  --color-gray-700-blue-tint-200: #3e4c69;
+  --color-gray-700-blue-tint-300: #3d537a;
+  --color-gray-700-blue-tint-400: #3d598c;
+  --color-gray-700-blue-tint-500: #3d609e;
+  --color-gray-700-blue-tint-600: #3c67af;
+  --color-gray-700-blue-tint-700: #3c6dc1;
+  --color-gray-700-blue-tint-800: #3b74d2;
+  --color-gray-700-blue-tint-900: #3b7be4;
+
+  /* Gray-yellow tint colors */
+  --color-gray-700-yellow-tint-100: #514840;
+  --color-gray-700-yellow-tint-200: #63523a;
+  --color-gray-700-yellow-tint-300: #755b34;
+  --color-gray-700-yellow-tint-400: #87652e;
+  --color-gray-700-yellow-tint-500: #9a6e28;
+  --color-gray-700-yellow-tint-600: #ac7822;
+  --color-gray-700-yellow-tint-700: #be811c;
+  --color-gray-700-yellow-tint-800: #d08b16;
+  --color-gray-700-yellow-tint-900: #e29410;
+
+  /* Transition durations */
+  --transition-duration-0: 0ms;
+
+  /* Max widths */
+  --max-width-xxs: 16rem;
+  --max-width-ultrawide: 128rem;
+
+  /* Height and width */
+  --height-4_5: 1.125rem;
+  --width-4_5: 1.125rem;
+}
+
+@import 'ui/styles/base.css';
+@import 'ui/styles/app-loading.css';
+@import 'ui/styles/tippy.css';
 
 @import './css/components/DataTableColumnFilterOverlay.css';
 

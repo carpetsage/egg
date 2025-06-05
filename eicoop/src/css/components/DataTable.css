@@ -1,4 +1,5 @@
 /*** Table ***/
+@reference '../../index.css';
 
 ::v-deep(.p-datatable-thead) {
   @apply bg-gray-100 dark:bg-gray-700;

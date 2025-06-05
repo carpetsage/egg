@@ -22,7 +22,7 @@
 
     <button
       type="button"
-      class="mx-auto flex items-center justify-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 focus:outline-none rounded-md !duration-0"
+      class="mx-auto flex items-center justify-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 focus:outline-none rounded-md duration-0!"
       @click="triggerRefresh"
     >
       <svg class="-ml-px mr-1.5 h-3 w-3 text-gray-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">

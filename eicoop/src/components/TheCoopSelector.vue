@@ -21,7 +21,7 @@
                 v-model.trim="manuallyEnteredContractId"
                 name="contract_id_manual"
                 type="text"
-                class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500 !duration-0"
+                class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500 duration-0!"
                 placeholder="Contract ID"
                 spellcheck="false"
                 autocapitalize="off"
@@ -50,7 +50,7 @@
               name="coop_code"
               type="text"
               required
-              class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500 !duration-0"
+              class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500 duration-0!"
               placeholder="Coop Code"
               spellcheck="false"
               autocapitalize="off"
@@ -61,7 +61,7 @@
         <div class="mt-5 sm:mt-6">
           <button
             type="submit"
-            class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 sm:text-sm disabled:opacity-50 disabled:cursor-default disabled:hover:bg-blue-600 !duration-0"
+            class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 sm:text-sm disabled:opacity-50 disabled:cursor-default disabled:hover:bg-blue-600 duration-0!"
             :disabled="!submittable"
           >
             View coop status
