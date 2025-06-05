@@ -1,6 +1,8 @@
 import path from 'path';
 import process from 'process';
 import { ConfigEnv, UserConfigExport } from 'vite';
+// @ts-expect-error - @tailwindcss/vite package has incorrect type definitions
+import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import { viteMockServe } from 'vite-plugin-mock';
 
@@ -15,6 +17,7 @@ export default ({ command }: ConfigEnv): UserConfigExport => ({
     },
   },
   plugins: [
+    tailwindcss(),
     vue(),
     viteMockServe({
       mockPath: 'mock',
