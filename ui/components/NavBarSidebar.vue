@@ -79,7 +79,7 @@
                   <component
                     :is="item.iconUrl ? 'img' : item.icon ? item.icon : CollectionIcon"
                     :src="item.iconUrl"
-                    class="flex-shrink-0"
+                    class="shrink-0"
                     :class="[
                       item.id === 'eicoop' ? 'h-5 w-5 -ml-0.5 mr-1.5' : 'h-4 w-4 mr-2',
                       useCoolGray ? 'text-cool-gray-300' : 'text-gray-300',
@@ -111,7 +111,7 @@
                 :class="useCoolGray ? 'text-cool-gray-100' : 'text-gray-100'"
               >
                 <identification-icon
-                  class="flex-shrink-0 h-4 w-4 mr-2"
+                  class="shrink-0 h-4 w-4 mr-2"
                   :class="useCoolGray ? 'text-cool-gray-300' : 'text-gray-300'"
                 />
                 Copyright &copy; 2021&nbsp;<a
@@ -125,7 +125,7 @@
           </div>
         </div>
       </TransitionChild>
-      <div class="flex-shrink-0 w-14" aria-hidden="true">
+      <div class="shrink-0 w-14" aria-hidden="true">
         <!-- Dummy element to force sidebar to shrink to fit close icon -->
       </div>
     </Dialog>

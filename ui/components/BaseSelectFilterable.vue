@@ -292,10 +292,10 @@ class BaseSelectFilterableFactory<T = unknown> {
                   <BaseIcon
                     iconRelPath={this.getItemIconPath(this.selected)}
                     size={64}
-                    class="flex-shrink-0 h-6 w-6"
+                    class="shrink-0 h-6 w-6"
                   />
                 ) : (
-                  <QuestionMarkCircleIcon class="flex-shrink-0 h-6 w-6 p-px text-gray-400" />
+                  <QuestionMarkCircleIcon class="shrink-0 h-6 w-6 p-px text-gray-400" />
                 )}
               </div>
               <input
@@ -353,7 +353,7 @@ class BaseSelectFilterableFactory<T = unknown> {
                     <BaseIcon
                       iconRelPath={this.getItemIconPath(item)}
                       size={64}
-                      class="flex-shrink-0 h-6 w-6"
+                      class="shrink-0 h-6 w-6"
                     />
                     <span
                       class={[
@@ -380,7 +380,7 @@ class BaseSelectFilterableFactory<T = unknown> {
               {this.filteredItems.length === 0 && (
                 <div class="py-0.5 pl-3 pr-9">
                   <div class="flex items-center">
-                    <ExclamationCircleIcon class="flex-shrink-0 h-6 w-6 p-px text-gray-400" />
+                    <ExclamationCircleIcon class="shrink-0 h-6 w-6 p-px text-gray-400" />
                     <span class="ml-2 block truncate">No match</span>
                   </div>
                 </div>
