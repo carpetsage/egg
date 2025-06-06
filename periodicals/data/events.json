@@ -19978,5 +19978,23 @@
     "startTimestamp": 1749139200.0,
     "type": "vehicle-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1749312000.0,
+    "id": "event-6-6",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1749225600.0,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1749312000.0,
+    "id": "ultra-6-6",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1749225600.0,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
