@@ -140,7 +140,7 @@ export function getContractSeasonProgress(backup: ei.IBackup, seasonID: string, 
   const peGoal = goals.find(goal => goal.rewardType === ei.RewardType.EGGS_OF_PROPHECY);
   const availablePE = peGoal?.rewardAmount ?? 0;
   const cxpLastRewardGiven = seasonProgress?.cxpLastRewardGiven ?? seasonProgress?.totalCxp ?? 0;
-  const completedPE = cxpLastRewardGiven > (peGoal?.cxp ?? 315000) ? availablePE : 0;
+  const completedPE = cxpLastRewardGiven >= (peGoal?.cxp ?? 315000) ? availablePE : 0;
 
   const { attemptedContracts, completedContracts, expiredContracts } = getSeasonContractsProgress(
     backup,

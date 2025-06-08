@@ -102,7 +102,7 @@ function eggsLaid(contracts: ei.ILocalContract[]): number {
 }
 
 function fmtEggTotal(eggTotal: [string, number]) {
-  return `${eggTotal[0].padEnd(14, " ")} - ${fmtApprox(eggTotal[1])}`
+  return `${eggTotal[0].padEnd(15, " ")} - ${fmtApprox(eggTotal[1])}`
 }
 
 function fmtApprox(n: number): string {

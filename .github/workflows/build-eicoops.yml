@@ -3,23 +3,23 @@ on:
   push:
     paths:
       - pnpm-lock.yaml
-      - "lib/**"
-      - "ui/**"
-      - "eicoop/**"
-      - "periodicals/data/contracts.json"
+      - 'lib/**'
+      - 'ui/**'
+      - 'eicoop/**'
+      - 'periodicals/data/*'
+      - '!periodicals/data/events.json'
       - 'protobuf/ei.proto'
   pull_request:
-    types: [ opened, edited, reopened]
+    types: [opened, edited, reopened]
     paths:
-      - "lib/**"
-      - "ui/**"
-      - "eicoop/**"
-      - "periodicals/*"
+      - 'lib/**'
+      - 'ui/**'
+      - 'eicoop/**'
+      - 'periodicals/*'
   workflow_dispatch:
- #schedule:
-    # Regenerate every day to incorporate updated mission outcome data.
-    # Scheduled after https://github.com/ei-labo/cold-api/blob/f46659b12592200621a2f27adb031e9ed0b87cbf/.github/workflows/build.yml#L5-L6.
-    # - cron: '30 4 * * *'
+  #schedule:
+  # Regenerate every day to incorporate updated mission outcome data.
+  # - cron: '30 4 * * *'
 jobs:
   # No TS type checking for faster deployment.
   eicoop-fastbuild:
@@ -35,7 +35,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
@@ -89,7 +89,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
