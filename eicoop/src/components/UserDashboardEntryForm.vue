@@ -114,7 +114,7 @@ import BaseInput from 'ui/components/BaseInput.vue';
 import { PlayerIdSchema } from 'lib/schema';
 
 const USER_ID_LOCALSTORAGE_KEY = 'userId';
-const COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY = 'collpaseRecentEids';
+const COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY = 'collapseRecentEids';
 
 export default defineComponent({
   components: {
