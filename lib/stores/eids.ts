@@ -1,63 +1,50 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { getSavedPlayerIDs, savePlayerIDs, type EidEntry } from '../storage';
+import { getSavedPlayerIDs, savePlayerIDs } from '../storage';
 import { ref } from 'vue';
+import { PlayerIdSchema } from '../schema';
 
 export const useEidsStore = defineStore('eids', () => {
-  const list = ref<Set<EidEntry>>(new Set());
-
   // Initialize from saved data
-  const savedEntries = getSavedPlayerIDs() ?? [];
-  savedEntries.forEach((entry) => {
-    list.value.add(entry);
-  });
+  const eids = ref(getSavedPlayerIDs());
 
-  function addEid(eid: string, name?: string) {
-    if (!/^EI\d{16}$/.test(eid)) {
+  function addEid(eid: string) {
+    eid = eid.trim();
+    if (!PlayerIdSchema.safeParse(eid).success || eids.value.has(eid)) {
       return;
     }
 
-    // Check if eid already exists
-    const existingEntry = Array.from(list.value).find((entry) => entry.id === eid);
-    if (existingEntry) {
-      if (name) {
-        existingEntry.name = name;
-      }
-      return;
-    }
-
-    // Add new entry
-    list.value.add({ id: eid, name });
+    eids.value.set(eid, '');
 
     // Remove oldest entry if over limit
-    if (list.value.size > 5) {
-      removeEid(Array.from(list.value)[0].id);
+    if (eids.value.size > 5) {
+      const firstKey = eids.value.keys().next().value;
+      eids.value.delete(firstKey ?? '');
     }
 
-    console.log('addEid', JSON.stringify(list.value));
-    savePlayerIDs(list.value);
+    savePlayerIDs(eids.value);
   }
 
   function removeEid(eid: string) {
-    const entry = Array.from(list.value).find((entry) => entry.id === eid);
-    if (entry) {
-      removeEntry(entry);
+    eids.value.delete(eid);
+    savePlayerIDs(eids.value);
+  }
+
+  function updateEid(eid: string, name: string) {
+    if (!PlayerIdSchema.safeParse(eid).success) {
+      return;
+    }
+    eids.value.set(eid, name);
+    savePlayerIDs(eids.value);
+  }
+
+  function editName(eid: string, oldname?: string) {
+    const name = prompt('Enter a name for this EID:', oldname);
+    if (name !== null) {
+      updateEid(eid, name);
     }
   }
 
-  function removeEntry(entry: EidEntry) {
-    list.value.delete(entry);
-    savePlayerIDs(list.value);
-  }
-
-  function updateEidName(eid: string, name: string) {
-    const entry = Array.from(list.value).find((entry) => entry.id === eid);
-    if (entry) {
-      entry.name = name;
-      savePlayerIDs(list.value);
-    }
-  }
-
-  return { list, addEid, removeEntry, removeEid, updateEidName };
+  return { eids, addEid, removeEid, updateEid, editName };
 });
 
 if (import.meta.hot) {

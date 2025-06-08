@@ -1,8 +1,5 @@
 <template>
-  <form
-    class="mx-4 sm:mx-auto sm:max-w-xs sm:w-full mt-2 mb-4 space-y-1"
-    @submit.prevent="$emit('submit', input)"
-  >
+  <form class="mx-4 sm:mx-auto sm:max-w-xs sm:w-full mt-2 mb-4 space-y-1" @submit.prevent="$emit('submit', input)">
     <div>
       <label for="email" class="sr-only">Player ID</label>
       <base-input
@@ -12,9 +9,8 @@
         name="playerId"
         class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         placeholder="Player ID"
-        maxlength="18"
       />
-      <div v-if="!eids.length" class="text-center">
+      <div v-if="eids.size <= 1" class="text-center">
         <span
           v-tippy="{
             content:
@@ -26,18 +22,18 @@
           <span class="text-xs text-gray-500">Where do I find my ID?</span>
         </span>
       </div>
-      <div v-else class="mt-2 mb-2 w-fit">
-        <div class="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 max-w-full">
+      <div v-else class="mt-2 mb-2 w-fit mx-auto">
+        <div class="flex flex-wrap gap-2 w-fit">
           <span
-            v-for="(entry, index) in eids"
-            :key="index"
+            v-for="[eid, name] of eids"
+            :key="eid"
             class="inline-flex items-center px-1 py-1 rounded-full bg-gray-200 border border-gray-300 text-xs text-gray-900 w-fit"
           >
             <button
               type="button"
               class="mr-1 text-gray-400 hover:text-blue-500 focus:outline-none"
               aria-label="Edit name"
-              @click="editEidName(entry)"
+              @click="eidsStore.editName(eid, name)"
             >
               ✎
             </button>
@@ -45,16 +41,16 @@
               class="hover:underline cursor-pointer"
               style="text-decoration-thickness: 1.5px"
               @click="
-                input = entry.id;
-                $emit('submit', entry.id);
+                input = eid;
+                $emit('submit', eid);
               "
-              >{{ entry.name || entry.id }}</span
+              >{{ name || eid }}</span
             >
             <button
               type="button"
               class="mx-0.5 text-gray-500 hover:text-red-500 focus:outline-none"
               aria-label="Remove"
-              @click="eidsStore.removeEid(entry.id)"
+              @click="eidsStore.removeEid(eid)"
             >
               &times;
             </button>
@@ -81,7 +77,7 @@ import { computed, defineComponent, ref, toRefs, watch } from 'vue';
 import BaseInfo from './BaseInfo.vue';
 import BaseInput from './BaseInput.vue';
 import { useEidsStore } from 'lib';
-import { EidEntry } from 'lib/storage';
+import { PlayerIdSchema } from 'lib/schema';
 
 export default defineComponent({
   components: {
@@ -100,8 +96,8 @@ export default defineComponent({
   setup(props) {
     const { playerId } = toRefs(props);
     const eidsStore = ref(useEidsStore());
-    const input = ref(playerId.value);
-    const eids = computed(() => [...eidsStore.value.list]);
+    const input = ref(playerId.value.trim());
+    const eids = eidsStore.value.eids;
 
     // Initialize with current playerId
     if (playerId.value) {
@@ -109,24 +105,17 @@ export default defineComponent({
     }
 
     watch(playerId, () => {
-      input.value = playerId.value;
+      input.value = playerId.value.trim();
       eidsStore.value.addEid(playerId.value);
     });
-    const submittable = computed(() => /^(mk2!)?EI\d{16}$/.test(input.value));
 
-    const editEidName = (entry: EidEntry) => {
-      const name = prompt('Enter a name for this ID:', entry.name || entry.id);
-      if (name !== null) {
-        eidsStore.value.updateEidName(entry.id, name);
-      }
-    };
+    const submittable = computed(() => PlayerIdSchema.safeParse(input.value.trim()).success);
 
     return {
       input,
       submittable,
       eids,
       eidsStore,
-      editEidName,
     };
   },
 });

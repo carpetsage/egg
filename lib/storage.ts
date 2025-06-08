@@ -1,25 +1,29 @@
 import {
+  deleteLocalStorage,
+  deleteLocalStorageNoPrefix,
   getLocalStorage,
   getLocalStorageNoPrefix,
   setLocalStorage,
   setLocalStorageNoPrefix,
 } from './utils';
 import useEidsStore from './stores/eids';
+import { EidStoreFromDiskSchema, PlayerIdSchema } from './schema';
 
 const SITE_WIDE_SAVED_PLAYER_ID_LOCALSTORAGE_KEY = 'siteWideSavedPlayerId';
 const TOOL_SPECIFIC_PLAYER_ID_LOCALSTORAGE_KEY = 'playerId';
 const SITE_WIDE_SAVED_PLAYER_NAMES_LOCALSTORAGE_KEY = 'siteWideSavedPlayerNames';
 
-export interface EidEntry {
-  id: string;
-  name?: string;
-}
-
-export function getSavedPlayerID(): string | undefined {
-  return (
+export function getSavedPlayerID() {
+  const playerId =
     getLocalStorage(TOOL_SPECIFIC_PLAYER_ID_LOCALSTORAGE_KEY) ||
-    getLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_ID_LOCALSTORAGE_KEY)
-  );
+    getLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_ID_LOCALSTORAGE_KEY);
+  const result = PlayerIdSchema.safeParse(playerId);
+  if (!result.success) {
+    console.warn('Invalid player ID in localStorage:', result.error);
+    deletePlayerID();
+    return undefined;
+  }
+  return result.data;
 }
 
 export function savePlayerID(playerId: string): void {
@@ -28,30 +32,28 @@ export function savePlayerID(playerId: string): void {
   useEidsStore().addEid(playerId);
 }
 
-export function getSavedPlayerIDs(): EidEntry[] | undefined {
-  try {
-    const storedNames = getLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_NAMES_LOCALSTORAGE_KEY);
-    const parsedNames = JSON.parse(storedNames || '{}');
-
-    if (typeof parsedNames !== 'object' || parsedNames === null) {
-      throw new Error(
-        `${SITE_WIDE_SAVED_PLAYER_NAMES_LOCALSTORAGE_KEY}: not an object: ${storedNames}`
-      );
-    }
-
-    return Object.entries(parsedNames).map(([id, name]) => ({
-      id,
-      name: name as string,
-    }));
-  } catch (e) {
-    console.warn(e);
-    return [];
-  }
+export function deletePlayerID() {
+  deleteLocalStorage(TOOL_SPECIFIC_PLAYER_ID_LOCALSTORAGE_KEY);
+  deleteLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_ID_LOCALSTORAGE_KEY);
 }
 
-export function savePlayerIDs(entries: Set<EidEntry>) {
-  const names = Object.fromEntries(
-    Array.from(entries).map((entry) => [entry.id, entry.name || ''])
-  );
-  setLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_NAMES_LOCALSTORAGE_KEY, JSON.stringify(names));
+export function getSavedPlayerIDs() {
+  const storedNames = getLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_NAMES_LOCALSTORAGE_KEY);
+  const parsedNames = JSON.parse(storedNames || '{}');
+
+  const result = EidStoreFromDiskSchema.safeParse(parsedNames);
+  if (!result.success) {
+    console.warn('Invalid player names data in localStorage: ', storedNames, result.error.message);
+    deleteLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_NAMES_LOCALSTORAGE_KEY);
+    return new Map<string, string | undefined>();
+  }
+
+  // Convert the validated object to a Map
+  return new Map(Object.entries(result.data));
+}
+
+export function savePlayerIDs(playerIDs: Map<string, string | undefined>): void {
+  const obj = Object.fromEntries(playerIDs);
+  const output = JSON.stringify(obj);
+  setLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_NAMES_LOCALSTORAGE_KEY, output);
 }
