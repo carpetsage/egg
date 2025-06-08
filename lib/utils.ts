@@ -29,6 +29,22 @@ export function setLocalStorageNoPrefix(key: string, val: unknown): void {
   setLocalStorage(key, val, '');
 }
 
+export function deleteLocalStorage(key: string, prefix?: string): void {
+  if (prefix === undefined) {
+    prefix = `${window.location.pathname}_`;
+  }
+  try {
+    localStorage.removeItem(prefix + key);
+    delete localStorage[prefix + key];
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export function deleteLocalStorageNoPrefix(key: string): void {
+  deleteLocalStorage(key, '');
+}
+
 export function iconURL(relpath: string, size: number | string = 'orig', extension?: 'png' | 'svg' | 'webp'): string {
   if (extension) {
     relpath = relpath.replace(/\.[a-z]+$/, `.${extension}`);

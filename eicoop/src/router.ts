@@ -29,7 +29,7 @@ const router = createRouter({
       component: Coop,
       props: true,
       meta: {
-        title: route => {
+        title: (route) => {
           const contractId = route.params.contractId as string;
           const coopCode = route.params.coopCode as string;
           return `${coopCode}@${contractId} - CoopTracker`;

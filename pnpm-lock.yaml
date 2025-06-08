@@ -162,6 +162,9 @@ importers:
       typescript-memoize:
         specifier: ^1.1.1
         version: 1.1.1
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.56
     devDependencies:
       '@babel/core':
         specifier: ^7.26.0
@@ -184,12 +187,18 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.13.10)(ts-node@10.9.2(@types/node@22.13.10)(typescript@5.7.3))
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       protobufjs-cli:
         specifier: ^1.1.2
         version: 1.1.2(protobufjs@7.4.0)
       ts-jest:
         specifier: ^29.1.2
         version: 29.1.2(@babel/core@7.26.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(jest@29.7.0(@types/node@22.13.10)(ts-node@10.9.2(@types/node@22.13.10)(typescript@5.7.3)))(typescript@5.7.3)
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.13(typescript@5.7.3)
 
   ui:
     dependencies:
@@ -498,6 +507,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -562,6 +574,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -684,6 +699,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -931,6 +949,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -1144,6 +1165,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -1208,6 +1232,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -1272,6 +1299,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.35)
+      pinia:
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
       postcss:
         specifier: ^8.4.35
         version: 8.4.35
@@ -4849,6 +4879,9 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  zod@3.25.56:
+    resolution: {integrity: sha512-rd6eEF3BTNvQnR2e2wwolfTmUTnp70aUTqr0oaGbHifzC3BKJsoV+Gat8vxUMR1hwOKBs6El+qWehrHbCpW6SQ==}
 
 snapshots:
 
@@ -8772,3 +8805,5 @@ snapshots:
     optional: true
 
   yocto-queue@0.1.0: {}
+
+  zod@3.25.56: {}

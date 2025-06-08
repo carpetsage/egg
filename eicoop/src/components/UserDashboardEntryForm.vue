@@ -62,6 +62,44 @@
         <base-info />
         <span class="text-xs text-gray-500 dark:text-gray-400">Where do I find my ID?</span>
       </span>
+
+      <div v-if="eids.size > 1" class="mt-3">
+        <div class="text-xs text-gray-900 dark:text-gray-100 mb-1">Recent IDs:</div>
+        <div class="flex flex-wrap gap-2">
+          <span
+            v-for="[eid, name] in eids"
+            :key="eid"
+            class="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-xs text-gray-800 dark:text-gray-200"
+          >
+            <button
+              type="button"
+              class="mr-1 text-gray-400 hover:text-blue-500 focus:outline-none"
+              aria-label="Edit name"
+              @click="eidsStore.editName(eid, name)"
+            >
+              ✎
+            </button>
+            <router-link
+              :to="{ name: 'dashboard', params: { userId: eid } }"
+              class="hover:underline mr-1"
+              style="text-decoration-thickness: 1.5px"
+              @click="
+                userId = eid;
+                submit();
+              "
+              >{{ name || eid }}
+            </router-link>
+            <button
+              type="button"
+              class="ml-1 text-gray-400 hover:text-red-500 focus:outline-none"
+              aria-label="Remove"
+              @click="eidsStore.removeEid(eid)"
+            >
+              &times;
+            </button>
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -70,11 +108,13 @@
 import { computed, defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { checkIfShouldOnboardUserDashboardFeature, getLocalStorage, setLocalStorage } from '@/lib';
+import { checkIfShouldOnboardUserDashboardFeature, getLocalStorage, setLocalStorage, useEidsStore } from '@/lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseInput from 'ui/components/BaseInput.vue';
+import { PlayerIdSchema } from 'lib/schema';
 
 const USER_ID_LOCALSTORAGE_KEY = 'userId';
+const COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY = 'collapseRecentEids';
 
 export default defineComponent({
   components: {
@@ -85,18 +125,34 @@ export default defineComponent({
     const router = useRouter();
     const onboarding = checkIfShouldOnboardUserDashboardFeature();
     const userId = ref(getLocalStorage(USER_ID_LOCALSTORAGE_KEY) || '');
+    const eidsStore = ref(useEidsStore());
+    const eids = eidsStore.value.eids;
+    const collapsed = ref(getLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY) === 'true');
+
     const submittable = computed(() => {
-      return userId.value !== '';
+      return PlayerIdSchema.safeParse(userId.value.trim()).success;
     });
+
     const submit = () => {
       setLocalStorage(USER_ID_LOCALSTORAGE_KEY, userId.value);
+      eidsStore.value.addEid(userId.value);
       router.push({ name: 'dashboard', params: { userId: userId.value } });
     };
+
+    const toggleCollapse = () => {
+      collapsed.value = !collapsed.value;
+      setLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY, collapsed.value);
+    };
+
     return {
       onboarding,
       userId,
       submittable,
       submit,
+      eids,
+      eidsStore,
+      collapsed,
+      toggleCollapse,
     };
   },
 });

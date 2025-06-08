@@ -34,6 +34,7 @@ import BaseLoading from '@/components/BaseLoading.vue';
 import ErrorMessage from '@/components/ErrorMessage.vue';
 import FrequentlyAskedQuestions from '@/components/FrequentlyAskedQuestions.vue';
 import UserDashboard from '@/components/UserDashboard.vue';
+import useEidsStore from 'lib/stores/eids';
 
 export default defineComponent({
   components: {
@@ -50,6 +51,7 @@ export default defineComponent({
   },
   setup(props) {
     const { userId } = toRefs(props);
+    const eidsStore = useEidsStore();
 
     const loading = ref(true);
     const backup: Ref<ei.IBackup | undefined> = ref(undefined);
@@ -61,6 +63,7 @@ export default defineComponent({
         const userBackup = await getUserBackup(userId.value);
         backup.value = userBackup;
         recordUserDashboardFeatureUsage();
+        eidsStore.addEid(userId.value);
       } catch (err) {
         error.value = err instanceof Error ? err : new Error(`${err}`);
       }
