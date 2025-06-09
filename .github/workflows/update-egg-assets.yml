@@ -11,6 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          path: egg
           token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
           fetch-depth: 1
 
@@ -50,12 +51,12 @@ jobs:
           sudo apt-get install -y imagemagick optipng zsh
 
       - name: Install dependencies for periodicals
-        working-directory: egg-fresh/periodicals
+        working-directory: egg/periodicals
         run: |
           uv sync
 
       - name: Download custom egg icons
-        working-directory: egg-fresh/periodicals
+        working-directory: egg/periodicals
         run: |
           uv run ./updatePeriodicals.py download-customeggs
         env:
