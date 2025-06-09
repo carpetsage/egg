@@ -75,10 +75,9 @@
           :offline-i-h-r="offlineIHR"
         />
         <p class="text-xs text-gray-500">
-          The Nobel Prize in Animal Husbandry&reg; is conferred by the Royal Mk.II Society of
-          Sciences&reg; on legendary farmers who manage to reach 19,845,000,000 population on their
-          enlightenment farm. A legendary jeweled gusset with three Eggceptional clarity stones and all
-          Wormhole Dampening levels are required for such a feat.
+          The Nobel Prize in Animal Husbandry&reg; is conferred by the Royal Mk.II Society of Sciences&reg; on legendary
+          farmers who manage to reach 19,845,000,000 population on their enlightenment farm. A legendary jeweled gusset
+          with three Eggceptional clarity stones and all Wormhole Dampening levels are required for such a feat.
         </p>
       </template>
 
@@ -120,18 +119,16 @@
           </p>
           <template v-if="minimumRequiredWDLevel < requiredWDLevel">
             <p>
-              Note that the level above assumes your current set of artifacts. The minimum WD level
-              required is
-              <span class="text-blue-500 mr-0.5">{{ minimumRequiredWDLevel }}/25</span>, assuming
-              you equip your most effective gusset as pictured below (stone rearrangement possibly
-              needed):
+              Note that the level above assumes your current set of artifacts. The minimum WD level required is
+              <span class="text-blue-500 mr-0.5">{{ minimumRequiredWDLevel }}/25</span>, assuming you equip your most
+              effective gusset as pictured below (stone rearrangement possibly needed):
             </p>
             <artifacts-gallery :artifacts="bestPossibleGussetSet" class="mt-2 mb-3" />
           </template>
           <template v-if="nakedGangNickname">
             <p class="text-yellow-500">
-              {{ nakedGangNickname }}, you're in the naked gang. Your gussets are ignored. You won't
-              get any gusset recommendations.
+              {{ nakedGangNickname }}, you're in the naked gang. Your gussets are ignored. You won't get any gusset
+              recommendations.
             </p>
           </template>
         </template>
@@ -148,24 +145,17 @@
         <p>
           Earning bonus:
           <base-e-i-value class="text-green-500" :value="earningBonus * 100" suffix="%" />,
-          <span class="whitespace-nowrap" :style="{ color: farmerRole.color }">{{
-            farmerRole.name
-          }}</span>
+          <span class="whitespace-nowrap" :style="{ color: farmerRole.color }">{{ farmerRole.name }}</span>
         </p>
         <p>Farm value: <base-e-i-value class="text-green-500" :value="farmValue" /></p>
         <p>Cash on hand: <base-e-i-value class="text-green-500" :value="cashOnHand" /></p>
         <p>Egg value: <base-e-i-value class="text-green-500" :value="eggValue" /></p>
         <p>
           Earning rate (active, no running chicken, video doubler on):
-          <base-e-i-value
-            class="text-green-500"
-            :value="earningRateOnlineBaseline * 2"
-            suffix="/s"
-          />
+          <base-e-i-value class="text-green-500" :value="earningRateOnlineBaseline * 2" suffix="/s" />
         </p>
         <p>
-          Earning rate (active, max RCB <span class="text-green-500">{{ maxRCB }}x</span>, video
-          doubler on):
+          Earning rate (active, max RCB <span class="text-green-500">{{ maxRCB }}x</span>, video doubler on):
           <base-e-i-value class="text-green-500" :value="earningRateOnlineMaxRCB * 2" suffix="/s" />
         </p>
         <p>
@@ -174,9 +164,7 @@
         </p>
         <p class="mt-1">Drone values at max RCB:</p>
         <ul>
-          <li>
-            Elite: <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.elite" />
-          </li>
+          <li>Elite: <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.elite" /></li>
           <li>
             Regular tier 1:
             <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.tier1" /> ({{
@@ -202,18 +190,16 @@
           </li>
         </ul>
         <p class="text-xs text-gray-500 my-1">
-          Drone values are based on your current equipped set of artifacts. You may increase their
-          values with an Aurelian brooch or a Mercury's lens (drone reward is proportional to farm
-          value) or a Vial of Martian dust / terra stones (drone reward is proportional to the
-          square root of active running chicken bonus, so increasing max RCB helps to a small
-          extent); or increase their frequency with a Neodymium medallion. Farming drones during a
-          Generous Drones event is also immensely helpful.
+          Drone values are based on your current equipped set of artifacts. You may increase their values with an
+          Aurelian brooch or a Mercury's lens (drone reward is proportional to farm value) or a Vial of Martian dust /
+          terra stones (drone reward is proportional to the square root of active running chicken bonus, so increasing
+          max RCB helps to a small extent); or increase their frequency with a Neodymium medallion. Farming drones
+          during a Generous Drones event is also immensely helpful.
         </p>
         <p class="text-xs text-gray-500 my-1">
-          Note: Farm value and drone values are calculated based on mikit#7826's research on game
-          version v1.12.13 (pre-artifacts), and drone probabilities were speculative at that time.
-          No in-depth research has been carried out since the artifact update, so values may be
-          inaccurate in certain edge cases.
+          Note: Farm value and drone values are calculated based on mikit#7826's research on game version v1.12.13
+          (pre-artifacts), and drone probabilities were speculative at that time. No in-depth research has been carried
+          out since the artifact update, so values may be inaccurate in certain edge cases.
         </p>
 
         <template v-if="cashTargetPreDiscount > 0">
@@ -241,8 +227,8 @@
               class="text-blue-500 hover:text-blue-600"
               >Sami#2336's spreadsheet</a
             >
-            may provide more detailed help regarding execution, at the expense of requiring manual
-            input for many parameters.
+            may provide more detailed help regarding execution, at the expense of requiring manual input for many
+            parameters.
           </div>
         </template>
         <template v-else-if="cashTargetPreDiscount <= 0 && cashTargetNAHPreDiscount > 0 && showNAH">
@@ -257,31 +243,31 @@
             :current="cashOnHand"
             :targets="cashTargets"
             :means="cashMeans"
-            class="my-2" />
+            class="my-2"
+          />
           <template v-if="betterCubePossible">
-              <p>Your best cube possible is pictured below (stone rearrangement possibly needed):</p>
-              <artifacts-gallery :artifacts="bestPossibleCubeSet" class="mt-2 mb-3" />
+            <p>Your best cube possible is pictured below (stone rearrangement possibly needed):</p>
+            <artifacts-gallery :artifacts="bestPossibleCubeSet" class="mt-2 mb-3" />
           </template>
         </template>
 
         <template v-else-if="cashTargetNAHPreDiscount <= 0 && cashTargetACREPreDiscount >= 0">
           <p>
-            Cash required to max out the farm
-            (before discounts):
+            Cash required to max out the farm (before discounts):
             <base-e-i-value class="text-pink-500" :value="cashTargetACREPreDiscount" />
           </p>
-            <div class="relative flex items-start">
-                <div class="flex items-center h-5">
-                    <input
-                      id="target_ts"
-                      v-model="target_ts"
-                      name="target_ts"
-                      type="checkbox"
-                      class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
-                    />
-                </div>
+          <div class="relative flex items-start">
+            <div class="flex items-center h-5">
+              <input
+                id="target_ts"
+                v-model="target_ts"
+                name="target_ts"
+                type="checkbox"
+                class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+              />
+            </div>
             <div class="ml-2 text-sm">
-                <label for="target_ts" class="text-gray-600">Show required cash for Timeline Splicing only</label>
+              <label for="target_ts" class="text-gray-600">Show required cash for Timeline Splicing only</label>
             </div>
           </div>
           <target-cash-matrix
@@ -289,7 +275,8 @@
             :current="cashOnHand"
             :targets="cashTargets"
             :means="cashMeans"
-            class="my-2" />
+            class="my-2"
+          />
           <template v-if="betterCubePossible">
             <p>Your best cube possible is pictured below (stone rearrangement possibly needed):</p>
             <artifacts-gallery :artifacts="bestPossibleCubeSet" class="mt-2 mb-3" />
@@ -314,9 +301,7 @@
           <!-- Force a space between the two nowrap spans to prevent the two being treated as a whole. -->
           {{ ' ' }}
           <span class="whitespace-nowrap">
-            (<span class="text-green-500">{{
-              formatWithThousandSeparators(onlineIHRPerHab, -1)
-            }}</span>
+            (<span class="text-green-500">{{ formatWithThousandSeparators(onlineIHRPerHab, -1) }}</span>
             chickens/min/hab)
           </span>
         </p>
@@ -351,7 +336,14 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
-import { AllModifiersFromCollegtibles, eggIconPath, iconURL, UserBackupEmptyError, getLocalStorage, setLocalStorage } from 'lib';
+import {
+  allModifiersFromColleggtibles,
+  eggIconPath,
+  iconURL,
+  UserBackupEmptyError,
+  getLocalStorage,
+  setLocalStorage,
+} from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
   bestPossibleGussetForEnlightenment,
@@ -379,7 +371,7 @@ import {
   researchPriceMultiplierFromArtifacts,
   researchPriceMultiplierFromResearches,
   calculateMaxFarmCostMissing,
-  calculateTSCost
+  calculateTSCost,
 } from '@/lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { formatPercentage, formatWithThousandSeparators, formatDurationAuto } from '@/utils';
@@ -425,13 +417,11 @@ export default defineComponent({
     },
   },
   // This async component does not respond to playerId changes.
-  /* eslint-disable vue/no-setup-props-destructure */
+
   async setup({ playerId }) {
     // Validate and sanitize player ID.
     if (!playerId.match(/^EI\d+$/i)) {
-      throw new Error(
-        `ID ${playerId} is not in the form EI1234567890123456; please consult "Where do I find my ID?"`
-      );
+      throw new Error(`ID ${playerId} is not in the form EI1234567890123456; please consult "Where do I find my ID?"`);
     }
     playerId = playerId.toUpperCase();
 
@@ -454,7 +444,7 @@ export default defineComponent({
     if (!backup.farms || backup.farms.length === 0) {
       throw new Error(`${playerId}: no farm info in backup`);
     }
-    const modifiers = AllModifiersFromCollegtibles(backup);
+    const modifiers = allModifiersFromColleggtibles(backup);
     const farm = backup.farms[0]; // Home farm
     const egg = farm.eggType!;
     const eggIconURL = iconURL(eggIconPath(egg), 128);
@@ -466,11 +456,11 @@ export default defineComponent({
     const lastRefreshedRelative = ref(lastRefreshed.fromNow());
     const lastRefreshedPopulation = farm.numChickens! as number;
     // Cap projected population at hab capacity
-    const currentPopulation = computed(
-      () =>
-        Math.min(lastRefreshedPopulation +
-        (offlineIHR / 60_000) * (currentTimestamp.value - lastRefreshedTimestamp),
-        Math.max(lastRefreshedPopulation, totalHabSpace))
+    const currentPopulation = computed(() =>
+      Math.min(
+        lastRefreshedPopulation + (offlineIHR / 60_000) * (currentTimestamp.value - lastRefreshedTimestamp),
+        Math.max(lastRefreshedPopulation, totalHabSpace)
+      )
     );
     const artifacts = homeFarmArtifacts(backup);
     // Cap existing trophy level at platinum for people doing a legit diamond
@@ -492,22 +482,16 @@ export default defineComponent({
     const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
     const totalHabSpaceSufficient = totalHabSpace >= 1e10;
     const currentWDLevel = farmCurrentWDLevel(farm);
-    const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(
-      nakedGangNickname ? [] : artifacts
-    );
+    const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(nakedGangNickname ? [] : artifacts);
     const bestGusset = bestPossibleGussetForEnlightenment(backup, modifiers.habCap);
-    const bestPossibleGusset = nakedGangNickname
-      ? null
-      : bestGusset;
+    const bestPossibleGusset = nakedGangNickname ? null : bestGusset;
     // check for t4l gusset + 3 t4 clarities
     const canNAH = computed(
-      () =>
-        bestGusset?.afxRarity === ei.ArtifactSpec.Rarity.LEGENDARY &&
-        bestGusset.clarityEffect === 3
+      () => bestGusset?.afxRarity === ei.ArtifactSpec.Rarity.LEGENDARY && bestGusset.clarityEffect === 3
     );
-    const showNAH = computed(() =>
-      existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH.value
-    )
+    const showNAH = computed(
+      () => existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH.value
+    );
     const bestPossibleGussetSet = bestPossibleGusset ? [bestPossibleGusset] : [];
     const minimumRequiredWDLevel = bestPossibleGusset
       ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset], modifiers.habCap)
@@ -531,13 +515,13 @@ export default defineComponent({
     });
     const cashTargetPreDiscount =
       calculateWDLevelsCost(currentWDLevel, minimumRequiredWDLevel) *
-          researchPriceMultiplierFromResearches(farm, progress) *
-          modifiers.researchCost;
+      researchPriceMultiplierFromResearches(farm, progress) *
+      modifiers.researchCost;
 
     const cashTargetNAHPreDiscount =
       calculateWDLevelsCost(currentWDLevel, 25) *
-          researchPriceMultiplierFromResearches(farm, progress) *
-          modifiers.researchCost;
+      researchPriceMultiplierFromResearches(farm, progress) *
+      modifiers.researchCost;
 
     const cashTargetACREPreDiscount =
       calculateMaxFarmCostMissing(farm) *
@@ -545,9 +529,7 @@ export default defineComponent({
       modifiers.researchCost;
 
     const cashTargetTSPreDiscount =
-        calculateTSCost(farm) *
-          researchPriceMultiplierFromResearches(farm, progress) *
-          modifiers.researchCost;
+      calculateTSCost(farm) * researchPriceMultiplierFromResearches(farm, progress) * modifiers.researchCost;
 
     const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts);
     const bestPossibleCube = bestPossibleCubeForEnlightenment(backup);
@@ -623,9 +605,9 @@ export default defineComponent({
     const TARGET_TS_LOCALSTORAGE_KEY = 'targetTs';
 
     const target_ts = ref(getLocalStorage(TARGET_TS_LOCALSTORAGE_KEY) === 'true');
-      watch(target_ts, () => {
-          setLocalStorage(TARGET_TS_LOCALSTORAGE_KEY, target_ts.value);
-      });
+    watch(target_ts, () => {
+      setLocalStorage(TARGET_TS_LOCALSTORAGE_KEY, target_ts.value);
+    });
 
     return {
       nickname,
@@ -681,7 +663,7 @@ export default defineComponent({
       formatPercentage,
       iconURL,
       cashTargetTSPreDiscount,
-      target_ts
+      target_ts,
     };
   },
 });

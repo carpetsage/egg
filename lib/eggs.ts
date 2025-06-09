@@ -1,44 +1,75 @@
+import { z } from 'zod/v4-mini';
 import { ei } from './proto';
 import { decodeMessage } from './api';
 import customEggsRaw from './customeggs.json';
 
-export class SafeCustomEgg {
-  identifier: string;
-  name: string;
-  value: number;
-  description: string;
-  buffs: { dimension: ei.GameModifier.GameDimension; value: number }[];
-  constructor(ce: ei.ICustomEgg) {
-    this.identifier = ce.identifier!;
-    this.name = ce.name!;
-    this.description = eggIconPath(ei.Egg.CUSTOM_EGG, ce.identifier!);
-    this.value = ce.value!;
-    this.buffs = ce.buffs!.map(buff => {
-      const b = { dimension: buff.dimension!, value: buff.value! };
-      return b;
-    });
-  }
-}
+/**
+ * Zod schema for game modifier buff validation
+ */
+const GameModifierBuffSchema = z.array(
+  z.object({
+    dimension: z.enum(ei.GameModifier.GameDimension),
+    value: z.number(),
+    description: z.optional(z.string()), // Optional description field
+  })
+);
 
-function safeifyCustomEggs(customEggs: ei.ICustomEgg[]): SafeCustomEgg[] {
-  const safeEggs: SafeCustomEgg[] = [];
-  // jank stuff to
-  customEggs
-    .filter(
-      egg =>
-        egg.identifier &&
-        egg.name &&
-        egg.value &&
-        egg.buffs &&
-        egg.buffs.filter(x => x.dimension && egg.value).length == egg.buffs.length
-    )
-    .forEach(ce => safeEggs.push(new SafeCustomEgg(ce)));
-  return safeEggs;
+/**
+ * Zod schema for custom egg validation
+ */
+const CustomEggSchema = z.object({
+  identifier: z.string(),
+  name: z.string(),
+  value: z.number(),
+  buffs: GameModifierBuffSchema,
+});
+
+/**
+ * Validated custom egg type derived from Zod schema
+ */
+export type SafeCustomEgg = z.infer<typeof CustomEggSchema> & {
+  readonly description: string; // Always computed from eggIconPath
+};
+
+/**
+ * Validates and transforms a protobuf custom egg into a safe custom egg using Zod
+ */
+function validateCustomEgg(ce: ei.ICustomEgg): SafeCustomEgg | null {
+  // Basic validation that required fields exist
+  if (!ce.identifier || !ce.name || !ce.value || !ce.buffs || ce.buffs.length === 0) {
+    return null;
+  }
+
+  // Validate buffs have required fields
+  const validBuffs = GameModifierBuffSchema.safeParse(ce.buffs);
+  if (!validBuffs.success) {
+    return null;
+  }
+
+  // Parse and validate with Zod
+  const rawEgg = {
+    identifier: ce.identifier,
+    name: ce.name,
+    value: ce.value,
+    buffs: validBuffs.data,
+  };
+
+  const result = CustomEggSchema.safeParse(rawEgg);
+  if (!result.success) {
+    return null;
+  }
+
+  // Add computed description field
+  return {
+    ...result.data,
+    description: eggIconPath(ei.Egg.CUSTOM_EGG, result.data.identifier, false),
+  };
 }
 
 // parse custom eggs
-export const rawCustomEggs = customEggsRaw.map(egg => decodeMessage(ei.CustomEgg, egg, false)) as ei.ICustomEgg[];
-export const customEggs = safeifyCustomEggs(rawCustomEggs);
+export const customEggs = customEggsRaw
+  .map(egg => validateCustomEgg(decodeMessage(ei.CustomEgg, egg, false)))
+  .filter(egg => egg != null);
 
 export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
   const symbol = custom_egg_id || ei.Egg[egg];
@@ -108,11 +139,11 @@ export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
     case ei.Egg.UNKNOWN:
       return 0;
     case ei.Egg.CUSTOM_EGG:
-      return rawCustomEggs.find(egg => egg.identifier === custom_egg_id)?.value ?? 1;
+      return customEggs.find(egg => egg.identifier === custom_egg_id)?.value ?? 1;
   }
 }
 
-export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null): string {
+export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null, validate: boolean = true): string {
   switch (egg) {
     case ei.Egg.EDIBLE:
       return 'egginc/egg_edible.png';
@@ -165,9 +196,11 @@ export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null): string 
     case ei.Egg.UNKNOWN:
       return 'egginc/egg_unknown.png';
     case ei.Egg.CUSTOM_EGG:
-      return rawCustomEggs.some(egg => egg.identifier === custom_egg_id)
-        ? `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g, '')}.png`
-        : 'egginc/egg_unknown.png';
+      return validate
+        ? customEggs.some(egg => egg.identifier === custom_egg_id)
+          ? `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g, '')}.png`
+          : 'egginc/egg_unknown.png'
+        : `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g, '')}.png`;
   }
 }
 
