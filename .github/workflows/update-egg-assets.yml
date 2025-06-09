@@ -1,0 +1,92 @@
+name: update-egg-assets
+on:
+  workflow_dispatch:
+  schedule:
+    # Run daily at 12:00 UTC to check for new custom eggs
+    - cron: '0 12 * * *'
+
+jobs:
+  update-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout egg-fresh repo
+        uses: actions/checkout@v4
+        with:
+          path: egg-fresh
+          token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
+
+      - name: Checkout EggIncAssets repo
+        uses: actions/checkout@v4
+        with:
+          repository: carpetsage/EggIncAssets
+          path: EggIncAssets
+          token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '>=3.13'
+
+      - name: Install uv
+        id: install-uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.5.24'
+          enable-cache: true
+          cache-suffix: 'periodicals'
+
+      - name: Install dependencies for periodicals
+        working-directory: egg-fresh/periodicals
+        run: |
+          uv sync
+
+      - name: Download custom egg icons
+        working-directory: egg-fresh/periodicals
+        run: |
+          uv run ./updatePeriodicals.py download-customeggs
+        env:
+          EI_USERID: ${{ secrets.EI_USERID }}
+
+      - name: Move egg icons to EggIncAssets
+        run: |
+          # Create the orig/egginc directory if it doesn't exist
+          mkdir -p EggIncAssets/orig/egginc
+          
+          # Move all egg_*.png files to the assets repo
+          if ls egg-fresh/periodicals/egg_*.png 1> /dev/null 2>&1; then
+            mv egg-fresh/periodicals/egg_*.png EggIncAssets/orig/egginc/
+            echo "Moved custom egg icons to EggIncAssets/orig/egginc/"
+          else
+            echo "No custom egg icons found to move"
+          fi
+
+      - name: Run generate.sh in EggIncAssets
+        working-directory: EggIncAssets
+        run: |
+          # Make generate.sh executable if it isn't already
+          chmod +x generate.sh
+          
+          # Run the generation script
+          ./generate.sh
+
+      - name: Commit and push changes to EggIncAssets
+        working-directory: EggIncAssets
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'actions@github.com'
+          
+          # Add all changes
+          git add .
+          
+          # Check if there are any changes to commit
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            # Get current date for commit message
+            current_date=$(date -u +"%Y-%m-%d")
+            git commit -m "Update custom egg assets - ${current_date}"
+            git push
+            echo "Successfully updated EggIncAssets repository"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}

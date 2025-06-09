@@ -41,7 +41,7 @@ def updateCustomEggs(customEggs: list["ei.CustomEgg"], file: str, download: bool
             if hasattr(egg, 'icon') and hasattr(egg.icon, 'url') and egg.icon.url:
                 try:
                     # lowercase the egg name for filename
-                    filename = f"egg_{egg.name.lower().replace(' ', '_')}.png"
+                    filename = f"egg_{egg.name.lower().replace(' ', '').replace('-', '')}.png"
 
                     print(f"Downloading icon for {egg.name} to {filename}")
                     icon_response = requests.get(egg.icon.url)
