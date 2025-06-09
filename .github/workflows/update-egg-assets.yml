@@ -36,20 +36,11 @@ jobs:
           enable-cache: true
           cache-suffix: 'periodicals'
 
-      - name: Cache apt packages
-        uses: actions/cache@v3
-        id: cache-apt
-        with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-apt-${{ hashFiles('**/apt-packages.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-
-
       - name: Install apt packages
-        if: steps.cache-apt.outputs.cache-hit != 'true'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y imagemagick optipng zsh
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: imagemagick optipng zsh
+          version: 1.0
 
       - name: Install dependencies for periodicals
         working-directory: egg/periodicals
@@ -69,8 +60,8 @@ jobs:
           mkdir -p EggIncAssets/orig/egginc
 
           # Move all egg_*.png files to the assets repo
-          if ls egg-fresh/periodicals/egg_*.png 1> /dev/null 2>&1; then
-            mv egg-fresh/periodicals/egg_*.png EggIncAssets/orig/egginc/
+          if ls egg/periodicals/egg_*.png 1> /dev/null 2>&1; then
+            mv egg/periodicals/egg_*.png EggIncAssets/orig/egginc/
             echo "Moved custom egg icons to EggIncAssets/orig/egginc/"
           else
             echo "No custom egg icons found to move"
