@@ -26,12 +26,30 @@ def main():
         updateContractSeasons(season_info, defaults.contract_seasons_file)
 
 
-def updateCustomEggs(customEggs: list["ei.CustomEgg"], file: str):
+def updateCustomEggs(customEggs: list["ei.CustomEgg"], file: str, download: bool = False):
     if len(customEggs) == 0:
         print("Error fetching custom eggs")
         return
     # print egg list for convenience
     [print(egg.name) for egg in customEggs]
+
+    # download egg icons if requested
+    if download:
+        for egg in customEggs:
+            if hasattr(egg, 'icon') and hasattr(egg.icon, 'url') and egg.icon.url:
+                try:
+                    # lowercase the egg name for filename
+                    filename = f"egg_{egg.name.lower().replace(' ', '_')}.png"
+
+                    print(f"Downloading icon for {egg.name} to {filename}")
+                    icon_response = requests.get(egg.icon.url)
+                    icon_response.raise_for_status()
+
+                    with open(filename, 'wb') as icon_file:
+                        icon_file.write(icon_response.content)
+                except Exception as e:
+                    print(f"Failed to download icon for {egg.name}: {e}")
+
     # write json array of customegg protos
     with open(file, 'w', encoding="utf-8") as f:
         json.dump([base64.b64encode(bytes(egg)).decode("utf-8") for egg in customEggs], f, sort_keys=True, indent=2)
