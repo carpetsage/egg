@@ -9,11 +9,10 @@ jobs:
   update-assets:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout egg-fresh repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          path: egg-fresh
           token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
+          fetch-depth: 1
 
       - name: Checkout EggIncAssets repo
         uses: actions/checkout@v4
@@ -35,6 +34,21 @@ jobs:
           enable-cache: true
           cache-suffix: 'periodicals'
 
+      - name: Cache apt packages
+        uses: actions/cache@v3
+        id: cache-apt
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/apt-packages.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
+
+      - name: Install apt packages
+        if: steps.cache-apt.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick optipng zsh
+
       - name: Install dependencies for periodicals
         working-directory: egg-fresh/periodicals
         run: |
@@ -51,7 +65,7 @@ jobs:
         run: |
           # Create the orig/egginc directory if it doesn't exist
           mkdir -p EggIncAssets/orig/egginc
-          
+
           # Move all egg_*.png files to the assets repo
           if ls egg-fresh/periodicals/egg_*.png 1> /dev/null 2>&1; then
             mv egg-fresh/periodicals/egg_*.png EggIncAssets/orig/egginc/
@@ -62,22 +76,17 @@ jobs:
 
       - name: Run generate.sh in EggIncAssets
         working-directory: EggIncAssets
-        run: |
-          # Make generate.sh executable if it isn't already
-          chmod +x generate.sh
-          
-          # Run the generation script
-          ./generate.sh
+        run: ./generate.sh
 
       - name: Commit and push changes to EggIncAssets
         working-directory: EggIncAssets
         run: |
           git config user.name 'github-actions'
           git config user.email 'actions@github.com'
-          
+
           # Add all changes
           git add .
-          
+
           # Check if there are any changes to commit
           if git diff --cached --quiet; then
             echo "No changes to commit"
