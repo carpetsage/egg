@@ -1,9 +1,12 @@
 name: update-egg-assets
 on:
+  push:
+    paths:
+      - '.github/workflows/update-egg-assets.yml'
   workflow_dispatch:
   schedule:
-    # Run daily at 12:00 UTC to check for new custom eggs
-    - cron: '0 12 * * *'
+    # Run every Monday at 9:00 UTC to check for new custom eggs
+    - cron: '0 9 * * 1'
 
 jobs:
   update-assets:
@@ -37,10 +40,8 @@ jobs:
           cache-suffix: 'periodicals'
 
       - name: Install apt packages
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: imagemagick optipng zsh
-          version: 1.0
+        run: |
+          sudo apt-get install -y imagemagick optipng zsh
 
       - name: Install dependencies for periodicals
         working-directory: egg/periodicals
