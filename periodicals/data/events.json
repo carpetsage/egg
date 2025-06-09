@@ -20032,5 +20032,14 @@
     "startTimestamp": 1749398400.0,
     "type": "shell-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1749571200.0,
+    "id": "event-6-9",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1749484800.0,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
