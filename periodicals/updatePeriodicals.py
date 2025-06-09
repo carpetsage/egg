@@ -20,6 +20,8 @@ def main():
         updateContracts(periodicals.contracts.contracts, defaults.contract_file)
     if "customeggs" in sys.argv:
         updateCustomEggs(periodicals.contracts.custom_eggs, defaults.egg_file)
+    if "download-customeggs" in sys.argv:
+        updateCustomEggs(periodicals.contracts.custom_eggs, defaults.egg_file, True)
     if "contractseasons" in sys.argv:
         season_info_response = requestSeasonInfo()
         season_info = utils.decode(ei.ContractSeasonInfos(), season_info_response)
@@ -49,6 +51,7 @@ def updateCustomEggs(customEggs: list["ei.CustomEgg"], file: str, download: bool
                         icon_file.write(icon_response.content)
                 except Exception as e:
                     print(f"Failed to download icon for {egg.name}: {e}")
+        return
 
     # write json array of customegg protos
     with open(file, 'w', encoding="utf-8") as f:
