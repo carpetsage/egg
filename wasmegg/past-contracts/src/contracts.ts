@@ -1,4 +1,4 @@
-import { ei, decodeMessage } from 'lib';
+import { ei, decodeMessage, contractSeasonList } from 'lib';
 import contractProtos from './contracts.json';
 
 export enum ContractLeague {
@@ -33,6 +33,7 @@ export interface UserContract {
   indexOfPEGoal: number | null;
   timestamp: number; // Either accepted timestamp (attempted) or offering timestamp (unattempted)
   tokens: number;
+  season: string;
   props: ContractProps;
 }
 
@@ -118,6 +119,7 @@ function newUserContract(
   };
   const id = props.identifier!;
   const name = props.name!;
+  const season = contractSeasonList.find(s => s.id === props.seasonId)?.name || '';
   const egg = props.egg!;
   const customEggId = props.customEggId;
   const isCoop = !!props.maxCoopSize && props.maxCoopSize > 1;
@@ -161,6 +163,7 @@ function newUserContract(
     id,
     tokens,
     name,
+    season,
     teamworkScore,
     egg,
     customEggId,

@@ -119,6 +119,20 @@
       <div class="relative flex items-start">
         <div class="flex items-center h-5">
           <input
+            id="hideNoSeason"
+            v-model="hideNoSeason"
+            name="hideNoSeason"
+            type="checkbox"
+            class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="hideNoSeason" class="text-gray-600">Hide contracts without a season</label>
+        </div>
+      </div>
+      <div class="relative flex items-start">
+        <div class="flex items-center h-5">
+          <input
             id="showTwoGoals"
             v-model="showTwoGoals"
             name="showTwoGoals"
@@ -181,6 +195,9 @@
                         Solo
                       </span>
                     </a>
+                  </td>
+                  <td class="px-6 py-1 whitespace-nowrap text-center text-sm">
+                    {{ contract.season || '' }}
                   </td>
                   <td class="px-6 py-1 whitespace-nowrap text-center text-sm tabular-nums">
                     {{ epochSecondsToFormattedDate(contract.timestamp) }}
@@ -261,6 +278,7 @@ import {
   getLocalStorage,
   getProphecyEggsProgress,
   iconURL,
+  parseSeasonId,
   requestContractsArchive,
   requestFirstContact,
   setLocalStorage,
@@ -274,7 +292,10 @@ import { formatEIValue, formatDuration } from 'lib';
 const HIDE_UNATTEMPTED_LOCALSTORAGE_KEY = 'hideUnattempted';
 const HIDE_COMPLETED_LOCALSTORAGE_KEY = 'hideCompleted';
 const HIDE_NO_PE_LOCALSTORAGE_KEY = 'hideNoPE';
+const HIDE_NO_SEASON_LOCALSTORAGE_KEY = 'hideNoSeason';
 const SHOW_TWO_GOALS_LOCALSTORAGE_KEY = 'showTwoGoals';
+const SORT_KEY_LOCALSTORAGE_KEY = 'sortKey';
+const SORT_ORDER_LOCALSTORAGE_KEY = 'sortOrder';
 
 export default defineComponent({
   components: {
@@ -321,7 +342,11 @@ export default defineComponent({
     const hideUnattempted = ref(getLocalStorage(HIDE_UNATTEMPTED_LOCALSTORAGE_KEY) === 'true');
     const hideCompleted = ref(getLocalStorage(HIDE_COMPLETED_LOCALSTORAGE_KEY) === 'true');
     const hideNoPE = ref(getLocalStorage(HIDE_NO_PE_LOCALSTORAGE_KEY) === 'true');
+    const hideNoSeason = ref(getLocalStorage(HIDE_NO_SEASON_LOCALSTORAGE_KEY) === 'true');
     const showTwoGoals = ref(getLocalStorage(SHOW_TWO_GOALS_LOCALSTORAGE_KEY) === 'true');
+
+    const sortKey = ref(getLocalStorage(SORT_KEY_LOCALSTORAGE_KEY) || 'date');
+    const sortOrder = ref<'asc' | 'desc'>((getLocalStorage(SORT_ORDER_LOCALSTORAGE_KEY) as 'asc' | 'desc') || 'desc');
 
     /* eslint-disable vue/no-watch-after-await */
     watch(hideUnattempted, () => {
@@ -333,8 +358,17 @@ export default defineComponent({
     watch(hideNoPE, () => {
       setLocalStorage(HIDE_NO_PE_LOCALSTORAGE_KEY, hideNoPE.value);
     });
+    watch(hideNoSeason, () => {
+      setLocalStorage(HIDE_NO_SEASON_LOCALSTORAGE_KEY, hideNoSeason.value);
+    });
     watch(showTwoGoals, () => {
       setLocalStorage(SHOW_TWO_GOALS_LOCALSTORAGE_KEY, showTwoGoals.value);
+    });
+    watch(sortKey, () => {
+      setLocalStorage(SORT_KEY_LOCALSTORAGE_KEY, sortKey.value);
+    });
+    watch(sortOrder, () => {
+      setLocalStorage(SORT_ORDER_LOCALSTORAGE_KEY, sortOrder.value);
     });
     /* eslint-enable vue/no-watch-after-await */
 
@@ -347,6 +381,9 @@ export default defineComponent({
           return false;
         }
         if (hideNoPE.value && c.numAvailablePEs === 0) {
+          return false;
+        }
+        if (hideNoSeason.value && !c.props.seasonId) {
           return false;
         }
         if (showTwoGoals.value && c.numAvailableGoals != 2) {
@@ -386,10 +423,11 @@ export default defineComponent({
 
     const downloadAsCSV = () => {
       const csvBody = csvStringify(
-        [['ID', 'Name', 'Date', 'Code', 'Goals', 'PE', 'Attempted', 'PE collected', 'Completed']].concat(
+        [['ID', 'Name', 'Season', 'Date', 'Code', 'Goals', 'PE', 'Attempted', 'PE collected', 'Completed']].concat(
           contracts.map(contract => [
             contract.id,
             contract.name,
+            contract.props.seasonId || '',
             epochSecondsToFormattedDate(contract.timestamp),
             contract.coopCode ?? '',
             contractGoalsSpec(contract),
@@ -420,12 +458,10 @@ export default defineComponent({
       document.body.removeChild(link);
     };
 
-    const sortKey = ref('id');
-    const sortOrder = ref<'asc' | 'desc'>('asc');
-
     const columns = [
       { key: 'id', label: 'ID' },
       { key: 'name', label: 'Name' },
+      { key: 'season', label: 'Season' },
       { key: 'date', label: 'Date' },
       { key: 'code', label: 'Code' },
       { key: 'goals', label: 'Goals' },
@@ -456,6 +492,10 @@ export default defineComponent({
           case 'name':
             aValue = a.name;
             bValue = b.name;
+            break;
+          case 'season':
+            aValue = parseSeasonId(a.props.seasonId || '');
+            bValue = parseSeasonId(b.props.seasonId || '');
             break;
           case 'date':
             aValue = a.timestamp;
@@ -512,6 +552,7 @@ export default defineComponent({
       hideUnattempted,
       hideCompleted,
       hideNoPE,
+      hideNoSeason,
       showTwoGoals,
       visibleContracts,
       username,
