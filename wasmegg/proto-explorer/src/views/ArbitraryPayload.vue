@@ -2,9 +2,7 @@
   <div class="flex flex-col flex-1 pt-1 pb-4">
     <div class="flex flex-col flex-1 max-w-4xl w-full mx-auto px-4 xl:px-0 space-y-2 mt-2">
       <div class="max-w-sm">
-        <label for="message" class="block text-sm font-medium text-gray-700">
-          Protobuf message type
-        </label>
+        <label for="message" class="block text-sm font-medium text-gray-700"> Protobuf message type </label>
         <select
           id="message"
           v-model="messageName"
@@ -25,9 +23,7 @@
           type="checkbox"
           class="h-4 w-4 text-blue-600 focus:outline-none border-gray-300 rounded"
         />
-        <label for="authenticated" class="ml-2 block text-sm text-gray-900">
-          Decode as authenticated message
-        </label>
+        <label for="authenticated" class="ml-2 block text-sm text-gray-900"> Decode as authenticated message </label>
       </div>
 
       <textarea
@@ -38,11 +34,7 @@
         spellcheck="false"
       ></textarea>
 
-      <decode-result
-        :message-name="messageName"
-        :authenticated="authenticated"
-        :encoded-payload="encodedPayload"
-      />
+      <decode-result :message-name="messageName" :authenticated="authenticated" :encoded-payload="encodedPayload" />
     </div>
   </div>
 </template>
@@ -75,12 +67,8 @@ export default defineComponent({
     const encodedPayload = ref(getLocalStorage(ENCODED_PAYLOAD_LOCALSTORAGE_KEY) || '');
 
     watch(messageName, () => setLocalStorage(MESSAGE_LOCALSTORAGE_KEY, messageName.value));
-    watch(authenticated, () =>
-      setLocalStorage(AUTHENTICATED_LOCALSTORAGE_KEY, authenticated.value)
-    );
-    watch(encodedPayload, () =>
-      setLocalStorage(ENCODED_PAYLOAD_LOCALSTORAGE_KEY, encodedPayload.value)
-    );
+    watch(authenticated, () => setLocalStorage(AUTHENTICATED_LOCALSTORAGE_KEY, authenticated.value));
+    watch(encodedPayload, () => setLocalStorage(ENCODED_PAYLOAD_LOCALSTORAGE_KEY, encodedPayload.value));
 
     return {
       messageGroups,

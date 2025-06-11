@@ -11,9 +11,9 @@ const enumNames = [
   'RewardType',
   'LeaderboardScope',
   'UILocation',
-  'UserType'
+  'UserType',
 ] as const;
-export type MessageName = Exclude<keyof typeof ei, typeof enumNames[number]>;
+export type MessageName = Exclude<keyof typeof ei, (typeof enumNames)[number]>;
 
 const messages: Record<string, MessageName[]> = {
   commonlyInspected: [
@@ -30,6 +30,9 @@ const messages: Record<string, MessageName[]> = {
     'ContractCoopStatusResponse',
     'Backup',
     'SaveBackupResponse',
+    'Contract',
+    'CustomEgg',
+    'ContractSeasonInfo',
   ],
   otherArtifactRequestResponse: [
     'ArtifactsConfigurationRequest',
@@ -64,16 +67,13 @@ const messages: Record<string, MessageName[]> = {
 const seen = ([] as MessageName[]).concat(
   messages.commonlyInspected,
   messages.otherArtifactRequestResponse,
-  messages.otherCoopRequestResponse,
+  messages.otherCoopRequestResponse
 );
 for (const name in ei) {
   // Make sure we only pick up capitalized names just in case some lower case
   // helpers are introduced in the future.
   if ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.includes(name[0])) {
-    if (
-      !(enumNames as ReadonlyArray<string>).includes(name) &&
-      !seen.includes(name as MessageName)
-    ) {
+    if (!(enumNames as ReadonlyArray<string>).includes(name) && !seen.includes(name as MessageName)) {
       messages.other.push(name as MessageName);
     }
   }
@@ -103,5 +103,5 @@ export const validMessageNames = ([] as MessageName[]).concat(
   messages.commonlyInspected,
   messages.otherArtifactRequestResponse,
   messages.otherCoopRequestResponse,
-  messages.other,
+  messages.other
 );

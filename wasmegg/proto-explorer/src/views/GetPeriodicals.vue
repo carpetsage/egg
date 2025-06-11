@@ -22,7 +22,7 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
 
-import { basicRequestInfo, CLIENT_VERSION, ei, getLocalStorage, setLocalStorage } from 'lib';
+import { basicRequestInfo, ei, getLocalStorage, setLocalStorage } from 'lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import ParameterInput from '@/components/ParameterInput.vue';
 import RequestButton from '@/components/RequestButton.vue';
@@ -47,7 +47,7 @@ export default defineComponent({
 
     const getRequestPayloadObject = (): GetPeriodicalsRequestPayload => ({
       userId: userId.value,
-      currentClientVersion: CLIENT_VERSION,
+      currentClientVersion: 999,
       rinfo: basicRequestInfo(userId.value),
     });
 
