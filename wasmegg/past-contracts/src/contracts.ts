@@ -1,4 +1,4 @@
-import { ei, decodeMessage, contractSeasonList } from 'lib';
+import { ei, decodeMessage, contractSeasons } from 'lib';
 import contractProtos from './contracts.json';
 
 export enum ContractLeague {
@@ -119,7 +119,7 @@ function newUserContract(
   };
   const id = props.identifier!;
   const name = props.name!;
-  const season = contractSeasonList.find(s => s.id === props.seasonId)?.name || '';
+  const season = contractSeasons.get(props.seasonId ?? '')?.name || '';
   const egg = props.egg!;
   const customEggId = props.customEggId;
   const isCoop = !!props.maxCoopSize && props.maxCoopSize > 1;
