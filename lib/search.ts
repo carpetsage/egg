@@ -21,6 +21,7 @@ export function useSearch<T extends object>(
   });
 
   const refEntryMap = new Map(entries.map(entry => [`${entry[refField]}`, entry]));
+  const refToOriginalIndex = new Map(entries.map((entry, index) => [`${entry[refField]}`, index]));
   const refToEntry = (ref: string) => refEntryMap.get(ref)!;
 
   // Since lunr's wildcard doesn't match the empty string (e.g. "Simple Demeters
@@ -63,9 +64,32 @@ export function useSearch<T extends object>(
         }
       });
     });
-    const matches = fullMatches
-      .concat(partialFinalMatches)
-      .sort((result1, result2) => result2.score - result1.score);
+    const matches = fullMatches.concat(partialFinalMatches).sort((result1, result2) => {
+      // Extract prefix before the number (e.g., "word-word-word" from "word-word-word-4-epic")
+      const prefixMatch1 = result1.ref.match(/^(.+)-(\d+)/);
+      const prefixMatch2 = result2.ref.match(/^(.+)-(\d+)/);
+
+      if (prefixMatch1?.at(1) === prefixMatch2?.at(1) && prefixMatch1?.at(1) !== undefined) {
+        // If prefixes match, maintain original order
+        const index1 = refToOriginalIndex.get(result1.ref) ?? 0;
+        const index2 = refToOriginalIndex.get(result2.ref) ?? 0;
+        return index1 - index2;
+      }
+
+      if (result2.score === result1.score) {
+        // If scores are equal, maintain original order
+        const index1 = refToOriginalIndex.get(result1.ref) ?? 0;
+        const index2 = refToOriginalIndex.get(result2.ref) ?? 0;
+        return index1 - index2;
+      }
+
+      // Otherwise sort by score
+      return result2.score - result1.score;
+    });
+
+    const uniqueMatches = new Map(matches.map(result => [result.ref, result.score]));
+    console.log('Matches:', uniqueMatches);
+
     // Deduplicate and keep the highest score entry of each result.
     const matchRefs = new Set(matches.map(result => result.ref));
     return [...matchRefs.entries()].map(([ref]) => refToEntry(ref));
