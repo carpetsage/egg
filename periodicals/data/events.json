@@ -20059,5 +20059,23 @@
     "startTimestamp": 1749571200.0,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1749744000.0,
+    "id": "event-6-11",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1749657600.0,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1749744000.0,
+    "id": "event-6-11-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1749657600.0,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
