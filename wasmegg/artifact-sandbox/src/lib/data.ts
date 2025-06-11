@@ -19,11 +19,7 @@ export function artifactFromAfxIdLevelRarity(
   afxRarity: ArtifactSpec.Rarity
 ): ItemProps | null {
   for (const artifact of artifacts) {
-    if (
-      artifact.afxId === afxId &&
-      artifact.afxLevel === afxLevel &&
-      artifact.afxRarity === afxRarity
-    ) {
+    if (artifact.afxId === afxId && artifact.afxLevel === afxLevel && artifact.afxRarity === afxRarity) {
       return artifact;
     }
   }
@@ -34,10 +30,7 @@ export function stoneFromId(id: string): ItemProps | null {
   return stoneIdToStone.get(id) || null;
 }
 
-export function stoneFromAfxIdLevel(
-  afxId: ArtifactSpec.Name,
-  afxLevel: ArtifactSpec.Level
-): ItemProps | null {
+export function stoneFromAfxIdLevel(afxId: ArtifactSpec.Name, afxLevel: ArtifactSpec.Level): ItemProps | null {
   for (const stone of stones) {
     if (stone.afxId === afxId && stone.afxLevel === afxLevel) {
       return stone;

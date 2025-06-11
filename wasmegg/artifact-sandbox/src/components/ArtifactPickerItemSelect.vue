@@ -7,9 +7,7 @@
     :item-from-id="id => (type === 'artifact' ? artifactIdToArtifact : stoneIdToStone).get(id)!"
     :search-items="type === 'artifact' ? searchArtifacts : searchStones"
     :item-color-class="item => rarityFgClass(item.afxRarity)"
-    :placeholder="
-      type === 'artifact' ? '-- Select artifact (type to filter) --' : '-- Select stone --'
-    "
+    :placeholder="type === 'artifact' ? '-- Select artifact (type to filter) --' : '-- Select stone --'"
     allow-clearing
     :model-value="modelValue || null"
     @update:model-value="$emit('update:modelValue', $event ?? '')"
@@ -21,18 +19,11 @@ import { PropType } from 'vue';
 
 import { ei } from 'lib';
 import Rarity = ei.ArtifactSpec.Rarity;
-import {
-  artifactIdToArtifact,
-  artifacts,
-  searchArtifacts,
-  searchStones,
-  stoneIdToStone,
-  stones,
-} from '@/lib';
+import { artifactIdToArtifact, artifacts, searchArtifacts, searchStones, stoneIdToStone, stones } from '@/lib';
 
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
 
-const BaseSelectFilterable = GenericBaseSelectFilterable<typeof artifacts[number]>();
+const BaseSelectFilterable = GenericBaseSelectFilterable<(typeof artifacts)[number]>();
 
 defineProps({
   modelValue: {

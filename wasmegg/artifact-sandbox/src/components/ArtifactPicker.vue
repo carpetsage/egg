@@ -5,10 +5,7 @@
     <template v-for="i in 3" :key="i">
       <div class="flex items-center space-x-1 mt-1" :class="i > numSlots ? 'opacity-50' : null">
         <div class="flex-shrink-0 h-8 w-8 rounded-lg bg-dark-20">
-          <img
-            class="h-8 w-8"
-            :src="iconURL('egginc-extras/icon_afx_stone_slot.png', 64)"
-          />
+          <img class="h-8 w-8" :src="iconURL('egginc-extras/icon_afx_stone_slot.png', 64)" />
         </div>
         <artifact-picker-item-select
           v-model="selectedArtifact.stones[i - 1]"
