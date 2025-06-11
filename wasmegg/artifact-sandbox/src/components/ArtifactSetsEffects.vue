@@ -26,10 +26,7 @@
             </span>
           </div>
           <div v-if="builds.config.prophecyBonus < 5" class="flex whitespace-nowrap">
-            <img
-              :src="iconURL('egginc/r_icon_prophecy_bonus.png', 64)"
-              class="inline h-6 w-6 -mt-0.5 mr-0.5"
-            />
+            <img :src="iconURL('egginc/r_icon_prophecy_bonus.png', 64)" class="inline h-6 w-6 -mt-0.5 mr-0.5" />
             <span class="text-sm">
               Prophecy bonus
               <span class="Prophecy">{{ builds.config.prophecyBonus }} / 5</span>
@@ -41,39 +38,24 @@
 
     <div v-if="builds.config.anyBoostActive()" class="flex flex-col items-center justify-center">
       <div v-if="builds.config.birdFeedActive" class="flex whitespace-nowrap">
-        <img
-          :src="iconURL('egginc/b_icon_jimbos_orange_big.png', 64)"
-          class="inline h-5 w-5 mr-1"
-        />
+        <img :src="iconURL('egginc/b_icon_jimbos_orange_big.png', 64)" class="inline h-5 w-5 mr-1" />
         <span class="text-sm">Bird feed active</span>
       </div>
       <div v-if="builds.config.tachyonPrismActive" class="flex whitespace-nowrap">
-        <img
-          :src="iconURL('egginc/b_icon_tachyon_prism_orange_big.png', 64)"
-          class="inline h-5 w-5 mr-1"
-        />
+        <img :src="iconURL('egginc/b_icon_tachyon_prism_orange_big.png', 64)" class="inline h-5 w-5 mr-1" />
         <span class="text-sm">Tachyon prism active</span>
       </div>
       <div v-if="builds.config.soulBeaconActive" class="flex whitespace-nowrap">
-        <img
-          :src="iconURL('egginc/b_icon_soul_beacon_orange.png', 64)"
-          class="inline h-5 w-5 mr-1"
-        />
+        <img :src="iconURL('egginc/b_icon_soul_beacon_orange.png', 64)" class="inline h-5 w-5 mr-1" />
         <span class="text-sm">Soul beacon active</span>
       </div>
       <div v-if="builds.config.boostBeaconActive" class="flex whitespace-nowrap">
-        <img
-          :src="iconURL('egginc/b_icon_boost_beacon_orange.png', 64)"
-          class="inline h-5 w-5 mr-1"
-        />
+        <img :src="iconURL('egginc/b_icon_boost_beacon_orange.png', 64)" class="inline h-5 w-5 mr-1" />
         <span class="text-sm">Boost beacon active</span>
       </div>
     </div>
 
-    <div
-      v-if="builds.config.tachyonDeflectorBonus > 0"
-      class="flex flex-wrap items-center justify-center"
-    >
+    <div v-if="builds.config.tachyonDeflectorBonus > 0" class="flex flex-wrap items-center justify-center">
       <span class="flex whitespace-nowrap">
         <img :src="iconURL('egginc/afx_tachyon_deflector_4.png', 64)" class="inline h-5 w-5 mr-1" />
         <span class="text-sm">
@@ -92,9 +74,7 @@
           :builds="builds"
         >
           <span class="Value">{{ formatEIPercentage(earningBonus(build, config)) }}</span>
-          <span class="Bonus"
-            >&nbsp;(&times;{{ formatFloat(earningBonusMultiplier(build, config)) }})</span
-          >
+          <span class="Bonus">&nbsp;(&times;{{ formatFloat(earningBonusMultiplier(build, config)) }})</span>
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
@@ -103,10 +83,7 @@
           :show-footnote="showFootnotes"
           :builds="builds"
         >
-          <template
-            v-for="role in [earningBonusToFarmerRole(earningBonus(build, config))]"
-            :key="role.name"
-          >
+          <template v-for="role in [earningBonusToFarmerRole(earningBonus(build, config))]" :key="role.name">
             <span :style="{ color: role.color }">
               {{ role.name }}
             </span>
@@ -129,9 +106,7 @@
           :builds="builds"
         >
           <span class="Value">{{ maxRunningChickenBonus(build, config) }}</span>
-          <span class="Bonus"
-            >&nbsp;(&times;{{ formatFloat(maxRunningChickenBonusMultiplier(build, config)) }})</span
-          >
+          <span class="Bonus">&nbsp;(&times;{{ formatFloat(maxRunningChickenBonusMultiplier(build, config)) }})</span>
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
@@ -141,9 +116,7 @@
           :builds="builds"
         >
           <span class="Bonus"
-            >&times;{{
-              formatFloat(earningsWithMaxRunningChickenBonusMultiplier(build, config))
-            }}</span
+            >&times;{{ formatFloat(earningsWithMaxRunningChickenBonusMultiplier(build, config)) }}</span
           >
         </artifact-sets-effects-row>
 
@@ -174,11 +147,7 @@
         >
           <template #name>SE gain w/<br />empty habs start</template>
           <template #default="{ build, config }">
-            <span class="Bonus"
-              >&times;{{
-                formatFloat(soulEggsGainWithEmptyHabsStartMultiplier(build, config))
-              }}</span
-            >
+            <span class="Bonus">&times;{{ formatFloat(soulEggsGainWithEmptyHabsStartMultiplier(build, config)) }}</span>
           </template>
         </artifact-sets-effects-row>
 
@@ -201,9 +170,7 @@
           <template #name>Away SE gain w/<br />empty habs start</template>
           <template #default="{ build, config }">
             <span class="Bonus"
-              >&times;{{
-                formatFloat(soulEggsGainWithEmptyHabsStartMultiplierAway(build, config))
-              }}</span
+              >&times;{{ formatFloat(soulEggsGainWithEmptyHabsStartMultiplierAway(build, config)) }}</span
             >
           </template>
         </artifact-sets-effects-row>
@@ -214,9 +181,7 @@
           :show-footnote="showFootnotes"
           :builds="builds"
         >
-          <span class="Bonus"
-            >&times;{{ formatFloat(boostDurationMultiplier(build, config)) }}</span
-          >
+          <span class="Bonus">&times;{{ formatFloat(boostDurationMultiplier(build, config)) }}</span>
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
@@ -235,9 +200,7 @@
           :builds="builds"
         >
           <span class="Value">{{ maxHabSpace(build, config).toLocaleString('en-US') }}</span>
-          <span class="Bonus"
-            >&nbsp;(&times;{{ formatFloat(habSpaceMultiplier(build, config)) }})</span
-          >
+          <span class="Bonus">&nbsp;(&times;{{ formatFloat(habSpaceMultiplier(build, config)) }})</span>
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
@@ -259,13 +222,9 @@
             class="cursor-help"
           >
             <span class="Value"
-              >{{
-                maxInternalHatcheryRatePerMinPerHab(build, config).toLocaleString('en-US')
-              }}/min/hab</span
+              >{{ maxInternalHatcheryRatePerMinPerHab(build, config).toLocaleString('en-US') }}/min/hab</span
             >
-            <span class="Bonus"
-              >&nbsp;(&times;{{ formatFloat(internalHatcheryRateMultiplier(build, config)) }})</span
-            >
+            <span class="Bonus">&nbsp;(&times;{{ formatFloat(internalHatcheryRateMultiplier(build, config)) }})</span>
           </span>
         </artifact-sets-effects-row>
 
@@ -285,9 +244,7 @@
           :builds="builds"
         >
           <span class="Value">{{ formatEIValue(maxHourlyLayingRate(build, config)) }}/hr</span>
-          <span class="Bonus"
-            >&nbsp;(&times;{{ formatFloat(maxLayingRateMultiplier(build, config)) }})</span
-          >
+          <span class="Bonus">&nbsp;(&times;{{ formatFloat(maxLayingRateMultiplier(build, config)) }})</span>
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
@@ -296,12 +253,8 @@
           :show-footnote="showFootnotes"
           :builds="builds"
         >
-          <span class="Value"
-            >{{ formatEIValue(maxHourlyShippingCapacity(build, config)) }}/hr</span
-          >
-          <span class="Bonus"
-            >&nbsp;(&times;{{ formatFloat(shippingCapacityMultiplier(build, config)) }})</span
-          >
+          <span class="Value">{{ formatEIValue(maxHourlyShippingCapacity(build, config)) }}/hr</span>
+          <span class="Bonus">&nbsp;(&times;{{ formatFloat(shippingCapacityMultiplier(build, config)) }})</span>
         </artifact-sets-effects-row>
       </tbody>
     </table>
@@ -310,14 +263,13 @@
   <div class="mt-2 DaggerNote text-sm leading-tight">
     <sup>&dagger;</sup> In order to maximize SE gain from boosted prestiges, you should optimize the
     <span class="DaggerNote--highlight">“SE gain”</span> or
-    <span class="DaggerNote--highlight">“SE gain w/ empty habs start”</span> stat. If you start your
-    boosts with preloaded, almost full habs, artifact effects over your SE gain is reflected by the
-    <span class="DaggerNote--highlight">“SE gain”</span> stat, which you should attempt to maximize;
-    if you start your boosts (including at least one tachyon prism) with empty habs, commonly seen
-    in multi-prestige or all-in-one single-prestige strategies, you should instead maximize
-    <span class="DaggerNote--highlight">“SE gain w/ empty habs start”</span>. Don't forget to
-    configure <span class="uppercase">active boost effects</span> when optimizing aforementioned
-    stats.
+    <span class="DaggerNote--highlight">“SE gain w/ empty habs start”</span> stat. If you start your boosts with
+    preloaded, almost full habs, artifact effects over your SE gain is reflected by the
+    <span class="DaggerNote--highlight">“SE gain”</span> stat, which you should attempt to maximize; if you start your
+    boosts (including at least one tachyon prism) with empty habs, commonly seen in multi-prestige or all-in-one
+    single-prestige strategies, you should instead maximize
+    <span class="DaggerNote--highlight">“SE gain w/ empty habs start”</span>. Don't forget to configure
+    <span class="uppercase">active boost effects</span> when optimizing aforementioned stats.
   </div>
 
   <div v-if="showFootnotes" class="mt-2">
@@ -382,19 +334,14 @@ export default defineComponent({
   setup(props) {
     const { builds } = toRefs(props);
 
-    const buildValidities = computed(() =>
-      builds.value.builds.map(build => !build.hasDuplicates())
-    );
+    const buildValidities = computed(() => builds.value.builds.map(build => !build.hasDuplicates()));
     const buildConfigs = computed(() => {
       const config = builds.value.config;
       return builds.value.builds.map((build): [Build, Config] => [build, config]);
     });
 
     const daysToDiamondTrophyAtMaxIHR = (build: Build, config: Config): number => {
-      const rate =
-        4 /* 4 habs */ *
-        3 /* internal hatchery calm */ *
-        maxInternalHatcheryRatePerMinPerHab(build, config);
+      const rate = 4 /* 4 habs */ * 3 /* internal hatchery calm */ * maxInternalHatcheryRatePerMinPerHab(build, config);
       return 1e10 / (rate * 60 * 24);
     };
 

@@ -373,6 +373,7 @@ export class Config {
   boostBeaconActive: boolean;
   proPermit: boolean;
   tachyonDeflectorBonus: number;
+  colleggtibleTiers: Record<string, number>;
 
   constructor() {
     this.prophecyEggs = 0;
@@ -388,6 +389,7 @@ export class Config {
     this.boostBeaconActive = false;
     this.proPermit = true;
     this.tachyonDeflectorBonus = 0;
+    this.colleggtibleTiers = {};
   }
 
   static newDefaultConfig(): Config {
@@ -413,6 +415,7 @@ export class Config {
     self.boostBeaconActive = config?.boostBeaconActive ?? false;
     self.proPermit = config?.proPermit ?? true;
     self.tachyonDeflectorBonus = config?.tachyonDeflectorBonus ?? 0;
+    self.colleggtibleTiers = config?.colleggtibleTiers ?? {};
     return self;
   }
 
@@ -430,24 +433,16 @@ export class Config {
       boostBeaconActive: this.boostBeaconActive,
       proPermit: this.proPermit,
       tachyonDeflectorBonus: this.tachyonDeflectorBonus,
+      colleggtibleTiers: this.colleggtibleTiers,
     });
   }
 
   epicResearchMaxed(): boolean {
-    return (
-      this.soulFood === maxSoulFood &&
-      this.prophecyBonus === maxProphecyBonus &&
-      this.RCB === maxRCB
-    );
+    return this.soulFood === maxSoulFood && this.prophecyBonus === maxProphecyBonus && this.RCB === maxRCB;
   }
 
   anyBoostActive(): boolean {
-    return (
-      this.birdFeedActive ||
-      this.tachyonPrismActive ||
-      this.soulBeaconActive ||
-      this.boostBeaconActive
-    );
+    return this.birdFeedActive || this.tachyonPrismActive || this.soulBeaconActive || this.boostBeaconActive;
   }
 }
 

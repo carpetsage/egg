@@ -53,27 +53,14 @@
       <div class="space-y-1">
         <h4 class="text-center text-sm uppercase justify-center">Configuration</h4>
         <div class="relative flex items-center justify-end">
-          <label for="RCB" class="flex items-center text-sm whitespace-nowrap mr-2">
-            Max Base RCB
-          </label>
-          <integer-input
-            id="RCB"
-            v-model="conf.RCB"
-            :min="0"
-            :max="540"
-            base-class="w-20 pl-2.5 pt-1 pb-0.5"
-          />
-          <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">
-            / 540
-          </div>
+          <label for="RCB" class="flex items-center text-sm whitespace-nowrap mr-2"> Max Base RCB </label>
+          <integer-input id="RCB" v-model="conf.RCB" :min="0" :max="540" base-class="w-20 pl-2.5 pt-1 pb-0.5" />
+          <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">/ 540</div>
         </div>
         <h4 class="text-center text-sm uppercase">Epic research</h4>
         <div class="relative flex items-center justify-end">
           <label for="soul_food" class="flex items-center text-sm whitespace-nowrap mr-2">
-            <img
-              :src="iconURL('egginc/r_icon_soul_food.png', 64)"
-              class="h-8 w-8 relative -top-px"
-            />
+            <img :src="iconURL('egginc/r_icon_soul_food.png', 64)" class="h-8 w-8 relative -top-px" />
             Soul food
           </label>
           <integer-input
@@ -83,16 +70,11 @@
             :max="140"
             base-class="w-20 pl-2.5 pt-1 pb-0.5"
           />
-          <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">
-            / 140
-          </div>
+          <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">/ 140</div>
         </div>
         <div class="relative flex items-center justify-end">
           <label for="prophecy_bonus" class="flex items-center text-sm whitespace-nowrap mr-2">
-            <img
-              :src="iconURL('egginc/r_icon_prophecy_bonus.png', 64)"
-              class="h-8 w-8 relative -top-px mr-px"
-            />
+            <img :src="iconURL('egginc/r_icon_prophecy_bonus.png', 64)" class="h-8 w-8 relative -top-px mr-px" />
             Prophecy bonus
           </label>
           <integer-input
@@ -102,9 +84,7 @@
             :max="5"
             base-class="w-20 pl-2.5 pt-1 pb-0.5"
           />
-          <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">
-            / 5
-          </div>
+          <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">/ 5</div>
         </div>
       </div>
     </div>
@@ -130,9 +110,7 @@
             type="checkbox"
             class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-dark-30 rounded"
           />
-          <label for="tachyon_prism_active" class="ml-2 block text-sm"
-            >Tachyon prism (internal hatchery)</label
-          >
+          <label for="tachyon_prism_active" class="ml-2 block text-sm">Tachyon prism (internal hatchery)</label>
         </div>
         <div class="relative flex items-start">
           <input
@@ -182,9 +160,31 @@
               base-class="pl-10 pr-4 pt-2.5 pb-2"
               @update:model-value="value => (conf.tachyonDeflectorBonus = value / 100)"
             />
-            <div class="absolute inset-y-0.5 right-0 pr-2 pt-2.5 pb-2 sm:text-sm text-gray-200">
-              %
+            <div class="absolute inset-y-0.5 right-0 pr-2 pt-2.5 pb-2 sm:text-sm text-gray-200">%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 flex justify-center">
+      <div class="space-y-0.5">
+        <h4 class="text-center text-sm uppercase">Colleggtibles</h4>
+        <div class="grid grid-cols-2 gap-2 w-fit mx-auto">
+          <div v-for="egg in customEggs" :key="egg.identifier" class="flex flex-col items-center space-y-1 w-32">
+            <div class="flex items-center space-x-1">
+              <img :src="iconURL(eggIconPath(ei.Egg.CUSTOM_EGG, egg.identifier), 64)" class="h-5 w-5" />
+              <label :for="`colleggtible_${egg.identifier}`" class="text-xs text-center">{{ egg.name }}</label>
             </div>
+            <select
+              :id="`colleggtible_${egg.identifier}`"
+              v-model="conf.colleggtibleTiers[egg.identifier]"
+              class="bg-dark-20 text-white text-xs rounded px-1 py-1 border border-gray-600 w-full"
+            >
+              <option :value="-1">None</option>
+              <option v-for="(threshold, index) in farmSizeTiers" :key="index" :value="index">
+                Tier {{ index + 1 }} ({{ formatNumber(threshold) }})
+              </option>
+            </select>
           </div>
         </div>
       </div>
@@ -195,7 +195,7 @@
 <script lang="ts">
 import { defineComponent, ref, toRefs, watch } from 'vue';
 
-import { iconURL } from 'lib';
+import { iconURL, customEggs, eggIconPath, ei } from 'lib';
 import { Config } from '@/lib';
 import EIValueInput from '@/components/EIValueInput.vue';
 import IntegerInput from '@/components/IntegerInput.vue';
@@ -228,6 +228,18 @@ export default defineComponent({
       conf,
       round,
       iconURL,
+      customEggs,
+      eggIconPath,
+      ei,
+      farmSizeTiers: [10_000_000, 100_000_000, 1_000_000_000, 10_000_000_000],
+      formatNumber: (num: number) => {
+        if (num >= 1_000_000_000) {
+          return (num / 1_000_000_000).toFixed(0) + 'b';
+        } else if (num >= 1_000_000) {
+          return (num / 1_000_000).toFixed(0) + 'm';
+        }
+        return num.toLocaleString();
+      },
     };
   },
 });

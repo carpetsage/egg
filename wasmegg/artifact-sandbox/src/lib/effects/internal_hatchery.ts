@@ -1,6 +1,7 @@
 import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
+import { colleggtibleInternalHatcheryRateMultiplier } from './colleggtibles';
 
 export function maxInternalHatcheryRatePerMinPerHab(build: Build, config: Config): number {
   return Math.floor(
@@ -9,10 +10,12 @@ export function maxInternalHatcheryRatePerMinPerHab(build: Build, config: Config
 }
 
 export function internalHatcheryRateMultiplier(build: Build, config: Config): number {
-  return multiplicativeEffect(build, config, [
-    ArtifactSpec.Name.THE_CHALICE,
-    ArtifactSpec.Name.LIFE_STONE,
-  ]);
+  return (
+    multiplicativeEffect(build, config, [
+      ArtifactSpec.Name.THE_CHALICE,
+      ArtifactSpec.Name.LIFE_STONE,
+    ]) * colleggtibleInternalHatcheryRateMultiplier(config)
+  );
 }
 
 export function baseMaxInternalHatcheryRatePerMinPerHab(_config: Config): number {

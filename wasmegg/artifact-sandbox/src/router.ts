@@ -1,12 +1,12 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
 
-import Builds from '@/views/Builds.vue';
+import TheBuilds from '@/views/TheBuilds.vue';
 
 const routes: RouteRecordRaw[] = [
   {
     name: 'builds',
     path: '/b/:serializedBuilds?',
-    component: Builds,
+    component: TheBuilds,
     props: true,
   },
   {
