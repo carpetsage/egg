@@ -62,7 +62,7 @@
       body-class="pl-4 pr-1 py-1"
       :body-style="{ minWidth: '2.25rem' }"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <base-icon
           v-tippy="{ content: contractEggTooltip(contract) }"
           :icon-rel-path="contractEggIconPath(contract)"
@@ -78,7 +78,7 @@
       :header-class="columnHeaderClasses"
       :body-class="columnBodyClasses"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <span
           v-tippy="
             isAvailable(contract, now) ? { content: `Expires in ${durationUntilExpiration(contract, now)}` } : {}
@@ -122,9 +122,23 @@
       :header-class="columnHeaderClasses"
       :body-class="columnBodyClasses"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <span :class="[columnColorClasses, 'cursor-pointer']" @click="selectContractAndShowCoopSelector(contract.id)">
           {{ contract.id }}
+        </span>
+      </template>
+    </Column>
+    <Column
+      field="season"
+      header="Season"
+      :sortable="true"
+      :header-class="columnHeaderClasses"
+      :body-class="columnBodyClasses"
+      :sort-function="seasonSortFunction"
+    >
+      <template #body="{ data: contract }: { data: Contract }">
+        <span :class="columnColorClasses">
+          {{ contract.season || '' }}
         </span>
       </template>
     </Column>
@@ -146,7 +160,7 @@
           <option>Leggacy</option>
         </select>
       </template>
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <span :class="contract.type === 'Original' ? [columnColorClassesOriginal, 'font-medium'] : columnColorClasses">
           {{ contract.type }}
         </span>
@@ -186,8 +200,8 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
-        {{ formatDuration(contract.lengthSeconds, true) }}
+      <template #body="{ data: contract }: { data: Contract }">
+        {{ formatDuration(contract.aaaLength, true) }}
       </template>
     </Column>
     <Column
@@ -197,7 +211,7 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         {{ contract.maxCoopSize || '\u2013' }}
       </template>
     </Column>
@@ -208,7 +222,7 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <template v-if="contract.minutesPerToken"> {{ contract.minutesPerToken }}m </template>
         <template v-else>&ndash;</template>
       </template>
@@ -247,7 +261,7 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <span
           v-tippy="{
             content: formatDateTime(contract.offeringTime),
@@ -265,14 +279,14 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <span
           v-tippy="{
-            content: formatDateTime(contract.expirationTime),
+            content: formatDateTime(contract.expirationTime ?? 0),
           }"
           :class="columnColorClasses"
         >
-          {{ formatDate(contract.expirationTime) }}
+          {{ formatDate(contract.expirationTime ?? 0) }}
         </span>
       </template>
     </Column>
@@ -283,7 +297,7 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <template v-if="contract.aaaGoal">
           {{ formatEIValue(contract.aaaGoal, { trim: true }) }}
         </template>
@@ -297,7 +311,7 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <template v-if="contract.aaGoal">
           {{ formatEIValue(contract.aaGoal, { trim: true }) }}
         </template>
@@ -311,7 +325,7 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <template v-if="contract.aGoal">
           {{ formatEIValue(contract.aGoal, { trim: true }) }}
         </template>
@@ -325,7 +339,7 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <template v-if="contract.bGoal">
           {{ formatEIValue(contract.bGoal, { trim: true }) }}
         </template>
@@ -339,7 +353,7 @@
       :header-class="columnHeaderClassesCentered"
       :body-class="columnBodyClassesCentered"
     >
-      <template #body="{ data: contract }">
+      <template #body="{ data: contract }: { data: Contract }">
         <template v-if="contract.cGoal">
           {{ formatEIValue(contract.cGoal, { trim: true }) }}
         </template>
@@ -347,7 +361,7 @@
       </template>
     </Column>
 
-    <template #expansion="{ data: contract }">
+    <template #expansion="{ data: contract }: { data: Contract }">
       <contract-list-expansion :contract="contract" />
     </template>
 
@@ -374,7 +388,7 @@ import Column from 'primevue/column';
 import { FilterMatchMode } from 'primevue/api';
 import dayjs from 'dayjs';
 
-import { Contract, eggIconPath, formatDuration, formatEIValue } from '@/lib';
+import { Contract, eggIconPath, formatDuration, formatEIValue, parseSeasonId } from '@/lib';
 import { eggTooltip } from '@/utils';
 import BaseInput from 'ui/components/BaseInput.vue';
 import BaseIcon from 'ui/components/BaseIcon.vue';
@@ -466,6 +480,14 @@ export default defineComponent({
     const onRowsPerPageChange = (event: Event) =>
       emit('update:rowsPerPage', parseInt((event.target! as HTMLSelectElement).value));
 
+    const seasonSortFunction = (contractA: Contract, contractB: Contract, sortOrder: 1 | -1) => {
+      const aValue = parseSeasonId(contractA.seasonId || '');
+      const bValue = parseSeasonId(contractB.seasonId || '');
+
+      const result = aValue - bValue;
+      return sortOrder === 1 ? result : -result;
+    };
+
     const now = ref(Date.now());
     const refreshIntervalId = setInterval(() => {
       now.value = Date.now();
@@ -497,6 +519,7 @@ export default defineComponent({
       formatDateTime,
       formatDuration,
       onRowsPerPageChange,
+      seasonSortFunction,
       now,
     };
   },

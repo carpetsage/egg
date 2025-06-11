@@ -1,6 +1,6 @@
 import { sha256 } from 'js-sha256';
 
-import { ei, decodeMessage, getContractGoals, ContractLeague } from 'lib';
+import { ei, decodeMessage, getContractGoals, ContractLeague, contractSeasons } from 'lib';
 import contractProtos from './contracts.json';
 import { ContractType } from './contract';
 
@@ -22,10 +22,12 @@ type maxGoals = {
 export interface Contract extends ei.IContract {
   id: string;
   uniqueKey: string;
+  season: string;
   type: ContractType;
   numLeggacies: number;
   offeringTime: number;
   prophecyEggs: number;
+  aaaLength: number;
   aaaGoal: number;
   aaGoal?: number;
   aGoal?: number;
@@ -105,6 +107,9 @@ function toContract(c: ei.IContract): Contract {
   const goals = getGoals(c);
   return {
     ...c,
+    aaaLength:
+      c.gradeSpecs?.find(g => g.grade === ei.Contract.PlayerGrade.GRADE_AAA)?.lengthSeconds ?? c.lengthSeconds ?? 0,
+    season: contractSeasons.get(c.seasonId ?? '')?.name ?? '',
     id: c.identifier!,
     uniqueKey: `${c.identifier}-${c.expirationTime}`,
     type: 'Original',
@@ -164,11 +169,7 @@ function getGoals(contract: ei.IContract): maxGoals {
 }
 
 function getGradeGoals(contract: ei.IContract) {
-  const goals: number[] = [];
-  for (const gradeSpec of contract.gradeSpecs!) {
-    goals.push(gradeSpec.goals![gradeSpec.goals!.length - 1].targetAmount!);
-  }
-  return goals;
+  return contract.gradeSpecs!.map(gradeSpec => gradeSpec.goals![gradeSpec.goals!.length - 1].targetAmount!);
 }
 
 function getEliteGoal(contract: ei.IContract) {
