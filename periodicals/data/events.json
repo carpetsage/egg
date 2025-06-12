@@ -20077,5 +20077,23 @@
     "startTimestamp": 1749657600.0,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1749830400.0,
+    "id": "event-6-12",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1749744000.0,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1749830400.0,
+    "id": "ultra-6-12",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1749744000.0,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
