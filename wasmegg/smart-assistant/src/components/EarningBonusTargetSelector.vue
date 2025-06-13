@@ -10,9 +10,7 @@
             <template v-if="selected">
               <span :style="{ color: selected.color }">{{ selected.name }}</span>
               <span>,</span>
-              <span class="ml-1.5"
-                >{{ formatEIValue(10 ** (selected.oom + 2), { trim: true }) }}%</span
-              >
+              <span class="ml-1.5">{{ formatEIValue(10 ** (selected.oom + 2), { trim: true }) }}%</span>
             </template>
             <template v-else>Custom target</template>
           </span>
@@ -46,9 +44,7 @@
                   <template v-if="target">
                     <span :style="isActive ? {} : { color: target.color }">{{ target.name }}</span>
                     <span>,</span>
-                    <span class="ml-1.5"
-                      >{{ formatEIValue(10 ** (target.oom + 2), { trim: true }) }}%</span
-                    >
+                    <span class="ml-1.5">{{ formatEIValue(10 ** (target.oom + 2), { trim: true }) }}%</span>
                   </template>
                   <template v-else>Custom target</template>
                 </span>
@@ -82,8 +78,7 @@
               : 'focus-within:ring-blue-600 focus-within:border-blue-600'
           "
         >
-          <label
-            class="absolute -top-2 left-2 -mt-px inline-block px-1 bg-white text-xs font-medium text-gray-900"
+          <label class="absolute -top-2 left-2 -mt-px inline-block px-1 bg-white text-xs font-medium text-gray-900"
             >Custom EB target</label
           >
           <input
@@ -102,9 +97,7 @@
             %
           </div>
         </div>
-        <div class="text-xs mt-2">
-          Valid OoM units: {{ units.map(unit => unit.symbol).join(', ') }}.
-        </div>
+        <div class="text-xs mt-2">Valid OoM units: {{ units.map(unit => unit.symbol).join(', ') }}.</div>
       </template>
     </base-e-i-value-input>
   </div>
@@ -112,13 +105,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, Ref, ref, toRefs, watch } from 'vue';
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from '@headlessui/vue';
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
 import { CheckIcon, SelectorIcon } from '@heroicons/vue/solid';
 
 import { FarmerRole, formatEIValue, units } from 'lib';

@@ -45,7 +45,7 @@ import { ItemSelectSpec, itemIdToItem, excludableItems as items, searchItems } f
 
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
 
-const BaseSelectFilterable = GenericBaseSelectFilterable<typeof items[number]>();
+const BaseSelectFilterable = GenericBaseSelectFilterable<(typeof items)[number]>();
 
 defineProps({
   modelValue: {
