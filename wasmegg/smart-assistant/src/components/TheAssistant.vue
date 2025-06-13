@@ -271,7 +271,7 @@
         :include-colleggtibles="includeColleggtibles"
       />
       <div class="mt-0.5 text-center text-xs text-gray-500">
-        The optimized sandbox stat is <span class="underline">Away SE gain</span>
+        The optimized sandbox stat is <span class="underline">Away SE gain (Relative)</span>
       </div>
       <div v-if="hasGusset(suggestedForProPermitLunar.artifactSet)" class="mt-0.5 text-center text-xs text-red-500">
         Note that this recommended setup assumes you can take advantage of the increased hab space.
