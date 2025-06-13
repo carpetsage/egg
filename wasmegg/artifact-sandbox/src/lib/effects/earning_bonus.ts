@@ -22,10 +22,7 @@ export function earningBonusMultiplier(build: Build, config: Config): number {
 function prophecyEggBonus(build: Build, config: Config): number {
   return (
     baseProphecyEggBonus(config) +
-    additiveEffect(build, config, [
-      ArtifactSpec.Name.BOOK_OF_BASAN,
-      ArtifactSpec.Name.PROPHECY_STONE,
-    ])
+    additiveEffect(build, config, [ArtifactSpec.Name.BOOK_OF_BASAN, ArtifactSpec.Name.PROPHECY_STONE])
   );
 }
 

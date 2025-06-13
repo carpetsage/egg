@@ -40,6 +40,8 @@ message Config {
   bool pro_permit = 15;
 
   double tachyon_deflector_bonus = 14;
+  
+  map<string, int32> colleggtible_tiers = 16;  // egg identifier -> tier index (-1 for none, 0-3 for tiers)
 }
 
 message ArtifactSpec {

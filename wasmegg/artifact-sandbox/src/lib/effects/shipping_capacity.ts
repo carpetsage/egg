@@ -1,12 +1,13 @@
 import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
-import { colleggtibleShippingCapacityMultiplier } from './colleggtibles';
+import { colleggtibleModifier } from './colleggtibles';
+import { ei } from 'lib';
 
 export function shippingCapacityMultiplier(build: Build, config: Config): number {
   return (
     multiplicativeEffect(build, config, [ArtifactSpec.Name.INTERSTELLAR_COMPASS, ArtifactSpec.Name.QUANTUM_STONE]) *
-    colleggtibleShippingCapacityMultiplier(config)
+    colleggtibleModifier(config, ei.GameModifier.GameDimension.SHIPPING_CAPACITY)
   );
 }
 

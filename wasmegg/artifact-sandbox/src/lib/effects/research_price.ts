@@ -1,7 +1,8 @@
 import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { aggregateEffect } from './common';
-import { colleggtibleResearchCostDiscount } from './colleggtibles';
+import { colleggtibleModifier } from './colleggtibles';
+import { ei } from 'lib';
 
 export function researchPriceMultiplier(build: Build, config: Config): number {
   return (
@@ -14,7 +15,7 @@ export function researchPriceMultiplier(build: Build, config: Config): number {
           ? (1 + effect.delta * effect.multiplier) * aggregate
           : ((1 + effect.delta) / effect.multiplier) * aggregate,
       1
-    ) * colleggtibleResearchCostDiscount(config)
+    ) * colleggtibleModifier(config, ei.GameModifier.GameDimension.RESEARCH_COST)
   );
 }
 

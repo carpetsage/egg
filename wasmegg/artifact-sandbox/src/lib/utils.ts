@@ -10,7 +10,7 @@ export function formatFloat(x: number, decimals = 3): string {
   if (!isFinite(x)) {
     return 'infinity';
   }
-  if (x < 1e6) {
+  if (x < 1e8) {
     return trimTrailingZeros(x.toFixed(decimals));
   } else {
     return x.toExponential(decimals);

@@ -68,7 +68,7 @@
     <table class="min-w-full rounded-md overflow-hidden">
       <tbody>
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="eb"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -78,7 +78,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="role"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -91,7 +91,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="earnings"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -100,7 +100,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="max-rcb"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -110,7 +110,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="earnings-max-rcb"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -121,7 +121,16 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
+          effect-id="earnings-away-relative"
+          :show-footnote="showFootnotes"
+          :builds="builds"
+        >
+          <span class="Bonus">&times;{{ formatFloat(awayEarningsMultiplier(build, config) / config.RCB) }}</span>
+        </artifact-sets-effects-row>
+
+        <artifact-sets-effects-row
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="earnings-away"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -130,7 +139,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="se-gain"
           :show-footnote="showFootnotes"
           :dagger="true"
@@ -152,31 +161,31 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
+          effect-id="se-gain-away-relative"
+          :show-footnote="showFootnotes"
+          :dagger="true"
+          :builds="builds"
+        >
+          <span class="Bonus"
+            >&times;{{ formatFloat(soulEggsGainMultiplierAway(build, config) / config.RCB ** 0.21) }}</span
+          >
+        </artifact-sets-effects-row>
+
+        <artifact-sets-effects-row
           effect-id="se-gain-away"
           :show-footnote="showFootnotes"
           :dagger="true"
           :builds="builds"
         >
-          <span class="Bonus">&times;{{ formatFloat(soulEggsGainMultiplierAway(build, config)) }}</span>
-        </artifact-sets-effects-row>
-
-        <artifact-sets-effects-row
-          effect-id="se-gain-empty-habs-away"
-          :show-footnote="showFootnotes"
-          :dagger="true"
-          :builds="builds"
-        >
-          <template #name>Away SE gain w/<br />empty habs start</template>
+          <template #name>Away SE gain</template>
           <template #default="{ build, config }">
-            <span class="Bonus"
-              >&times;{{ formatFloat(soulEggsGainWithEmptyHabsStartMultiplierAway(build, config)) }}</span
-            >
+            <span class="Bonus">&times;{{ formatFloat(soulEggsGainMultiplierAway(build, config)) }}</span>
           </template>
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="boost-duration"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -185,7 +194,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="research-discount"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -194,7 +203,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="max-hab-space"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -204,7 +213,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="max-ihr"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -229,7 +238,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="elr"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -238,7 +247,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="max-elr"
           :show-footnote="showFootnotes"
           :builds="builds"
@@ -248,7 +257,7 @@
         </artifact-sets-effects-row>
 
         <artifact-sets-effects-row
-          v-slot="{ build, config }"
+          v-slot="{ build, config }: { build: Build; config: Config }"
           effect-id="max-shipping-capacity"
           :show-footnote="showFootnotes"
           :builds="builds"

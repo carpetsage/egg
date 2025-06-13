@@ -13,7 +13,12 @@ export const effects = [
   {
     id: 'earnings-away',
     name: 'Away Earnings',
-    note: 'Aggregate effect on AFK bock earning rate from earning bonus increase, egg value increase, egg laying rate increase, and away earning bonuses (not considering shipping-limited scenarios). Running chicken bonus is not taken into account here; see “Earnings w/ max RCB” instead. Indirect bonus from boosted chicken population growth is not included.',
+    note: 'Aggregate effect on AFK bock earning rate from earning bonus increase, egg value increase, egg laying rate increase, and away earning bonuses (not considering shipping-limited scenarios). Indirect bonus from boosted chicken population growth is not included.',
+  },
+  {
+    id: 'earnings-away-relative',
+    name: 'Away Earnings (Relative)',
+    note: 'Away Earnings divided by running chicken bonus to provide a number comparable to online earning.',
   },
   { id: 'max-rcb', name: 'Max RCB', note: 'Max running chicken bonus.' },
   {
@@ -35,6 +40,11 @@ export const effects = [
     id: 'se-gain-away',
     name: 'Away SE gain',
     note: 'Same as “SE gain” except for taking into account afk earnings boosts and ignoring RCB',
+  },
+  {
+    id: 'se-gain-away-relative',
+    name: 'Away SE gain (Relative)',
+    note: 'Same as "Away SE gain", except divides earnings by RCB to end up with a number comparable to online SE gain.',
   },
   {
     id: 'se-gain-empty-habs-away',

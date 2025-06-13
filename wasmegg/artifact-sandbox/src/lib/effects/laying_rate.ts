@@ -2,12 +2,13 @@ import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 import { maxHabSpace, habSpaceMultiplier } from './hab_space';
-import { colleggtibleEggLayingRateMultiplier, colleggtibleInternalHatcheryRateMultiplier } from './colleggtibles';
+import { colleggtibleModifier } from './colleggtibles';
+import { ei } from 'lib';
 
 export function layingRateMultiplier(build: Build, config: Config): number {
   return (
     multiplicativeEffect(build, config, [ArtifactSpec.Name.QUANTUM_METRONOME, ArtifactSpec.Name.TACHYON_STONE]) *
-    colleggtibleEggLayingRateMultiplier(config) *
+    colleggtibleModifier(config, ei.GameModifier.GameDimension.EGG_LAYING_RATE) *
     (1 + config.tachyonDeflectorBonus)
   );
 }

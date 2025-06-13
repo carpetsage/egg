@@ -35,9 +35,7 @@ export const allUsableItems = (() => {
   for (const tier of data.artifact_families.map(f => f.tiers).flat()) {
     if (tier.afx_type === Type.ARTIFACT) {
       for (const effect of tier.effects!) {
-        items.push(
-          newItem({ name: tier.afx_id, level: tier.afx_level, rarity: effect.afx_rarity })
-        );
+        items.push(newItem({ name: tier.afx_id, level: tier.afx_level, rarity: effect.afx_rarity }));
       }
     } else if (tier.afx_type === Type.STONE) {
       items.push(newItem({ name: tier.afx_id, level: tier.afx_level, rarity: Rarity.COMMON }));
@@ -173,26 +171,15 @@ export class ArtifactSet {
     aggregator: (aggregate: number, effect: Effect) => number,
     initialValue: number
   ): number {
-    return gatherRelevantEffects(this.artifacts, afxIds, this.enlightenment).reduce(
-      aggregator,
-      initialValue
-    );
+    return gatherRelevantEffects(this.artifacts, afxIds, this.enlightenment).reduce(aggregator, initialValue);
   }
 
   protected additiveEffect(afxIds: Name[]): number {
-    return this.aggregateEffect(
-      afxIds,
-      (aggregate, effect) => aggregate + effect.delta * effect.multiplier,
-      0
-    );
+    return this.aggregateEffect(afxIds, (aggregate, effect) => aggregate + effect.delta * effect.multiplier, 0);
   }
 
   protected multiplicativeEffect(afxIds: Name[]): number {
-    return this.aggregateEffect(
-      afxIds,
-      (aggregate, effect) => aggregate * (1 + effect.delta * effect.multiplier),
-      1
-    );
+    return this.aggregateEffect(afxIds, (aggregate, effect) => aggregate * (1 + effect.delta * effect.multiplier), 1);
   }
 
   get soulEggBonus(): number {
@@ -266,10 +253,7 @@ export function newItem(spec: ei.IArtifactSpec): Item {
     if (effect.afx_rarity === afxRarity) {
       return {
         key: `${afxId}:${afxLevel}:${afxRarity}`,
-        id:
-          tier.afx_type === Type.ARTIFACT
-            ? `${tier.id}:${Rarity[afxRarity].toLowerCase()}`
-            : tier.id,
+        id: tier.afx_type === Type.ARTIFACT ? `${tier.id}:${Rarity[afxRarity].toLowerCase()}` : tier.id,
         afxId,
         afxLevel,
         afxRarity,
@@ -300,11 +284,7 @@ type Effect = {
   multiplier: number;
 };
 
-function gatherRelevantEffects(
-  artifacts: Artifact[],
-  afxIds: Name[],
-  enlightenment: boolean
-): Effect[] {
+function gatherRelevantEffects(artifacts: Artifact[], afxIds: Name[], enlightenment: boolean): Effect[] {
   const deltas = [];
   for (const artifact of artifacts) {
     const effectMultiplier = enlightenment ? artifact.clarityEffect : 1;
