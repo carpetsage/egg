@@ -33,7 +33,7 @@
                   ]"
                   @click="updateColleggtibleTier(egg.identifier, -1)"
                 >
-                  {{ formatMultiplier(1, egg.buffs[0].dimension) }}
+                  {{ formatMultiplier(1) }}
                 </button>
 
                 <!-- Tier Buttons -->
@@ -49,7 +49,7 @@
                   ]"
                   @click="updateColleggtibleTier(egg.identifier, index)"
                 >
-                  {{ formatMultiplier(egg.buffs[index]?.value || 1, egg.buffs[0].dimension) }}
+                  {{ formatMultiplier(egg.buffs[index]?.value || 1) }}
                 </button>
               </div>
             </div>
