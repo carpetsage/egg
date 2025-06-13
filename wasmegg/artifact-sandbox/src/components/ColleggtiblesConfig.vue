@@ -28,7 +28,7 @@
                   :class="[
                     'w-14 justify-center px-3 py-1 text-xs font-medium border transition-colors rounded-l-md',
                     config.colleggtibleTiers[egg.identifier] === -1
-                      ? 'bg-blue-600 border-blue-600 text-white z-10'
+                      ? 'bg-blue-600 border-blue-600 text-white'
                       : 'bg-dark-20 border-gray-600 text-gray-300 hover:bg-dark-10',
                   ]"
                   @click="updateColleggtibleTier(egg.identifier, -1)"
@@ -44,7 +44,7 @@
                     'w-14 justify-center px-3 py-1 text-xs font-medium border transition-colors',
                     index === farmSizeTiers.length - 1 ? 'rounded-r-md' : '',
                     config.colleggtibleTiers[egg.identifier] === index
-                      ? 'bg-blue-600 border-blue-600 text-white z-10'
+                      ? 'bg-blue-600 border-blue-600 text-white'
                       : 'bg-dark-20 border-gray-600 text-gray-300 hover:bg-dark-10',
                   ]"
                   @click="updateColleggtibleTier(egg.identifier, index)"

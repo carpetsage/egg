@@ -1,9 +1,7 @@
 <!-- Largely duplicated from rockets-tracker/src/components/ArtifactGallery.vue -->
 <template>
   <template v-if="empty">
-    <div
-      class="px-4 py-2 rounded-md w-max mx-auto text-center text-sm font-medium text-red-700 bg-red-100 mb-2"
-    >
+    <div class="px-4 py-2 rounded-md w-max mx-auto text-center text-sm font-medium text-red-700 bg-red-100 mb-2">
       <template v-if="referenceSet">No recommendable artifact</template>
       <template v-else>No artifact equipped</template>
     </div>
@@ -20,10 +18,7 @@
           class="h-32 w-32 mx-2 my-2 relative rounded-full isolate"
           :class="artifactRarityBgClass(artifact.afxRarity) || 'bg-gray-200'"
         >
-          <img
-            class="absolute top-0 left-0 h-full w-full z-10"
-            :src="iconURL(artifact.iconPath, 256)"
-          />
+          <img class="absolute top-0 left-0 h-full w-full z-10" :src="iconURL(artifact.iconPath, 256)" />
           <img
             v-for="(stone, stoneIndex) in artifact.stones.slice().reverse()"
             :key="stoneIndex"
@@ -52,9 +47,7 @@
             />
             <!-- Heroicon name: solid/plus-circle -->
             <path
-              v-if="
-                artifactAssemblyStatuses[artifactIndex] === ArtifactAssemblyStatus.AWAITING_ASSEMBLY
-              "
+              v-if="artifactAssemblyStatuses[artifactIndex] === ArtifactAssemblyStatus.AWAITING_ASSEMBLY"
               fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
               clip-rule="evenodd"
@@ -67,10 +60,7 @@
                 <div class="font-medium">
                   <img :src="iconURL(artifact.iconPath)" class="inline h-4 w-4 relative -top-px" />
                   {{ artifact.name }} (T{{ artifact.tierNumber }})
-                  <span
-                    v-if="artifact.afxRarity > 0"
-                    :class="artifactRarityFgClass(artifact.afxRarity)"
-                  >
+                  <span v-if="artifact.afxRarity > 0" :class="artifactRarityFgClass(artifact.afxRarity)">
                     {{ artifact.rarity }}
                   </span>
                 </div>
@@ -98,9 +88,7 @@
     <div v-if="multiplier !== undefined" class="text-center text-xs my-2">
       <div>
         Virtual earnings multiplier from artifacts:
-        <span class="text-green-500 font-medium"
-          >&times;{{ trimTrailingZeros(multiplier.toFixed(3)) }}</span
-        >
+        <span class="text-green-500 font-medium">&times;{{ trimTrailingZeros(multiplier.toFixed(3)) }}</span>
         <template v-if="referenceMultiplier !== undefined && !alreadyOptimal">
           {{ ' ' }}
           <span class="whitespace-nowrap text-gray-700"
@@ -114,9 +102,7 @@
       </div>
       <div>
         Soul eggs gain multiplier from artifacts:
-        <span class="text-green-500 font-medium"
-          >&times;{{ trimTrailingZeros((multiplier ** 0.21).toFixed(3)) }}</span
-        >
+        <span class="text-green-500 font-medium">&times;{{ trimTrailingZeros((multiplier ** 0.21).toFixed(3)) }}</span>
         <template v-if="referenceMultiplier !== undefined && !alreadyOptimal">
           {{ ' ' }}
           <span class="whitespace-nowrap text-gray-700"
@@ -130,9 +116,7 @@
       </div>
       <div v-if="hasStones" class="text-purple-500 font-medium">Stones may be arbitrarily rearranged.</div>
     </div>
-    <div class="mt-1 text-center text-xs text-gray-500">
-      Hover over / click on each artifact to show details
-    </div>
+    <div class="mt-1 text-center text-xs text-gray-500">Hover over / click on each artifact to show details</div>
   </template>
 
   <div class="mt-0.5 text-center">
@@ -141,12 +125,7 @@
         <template v-if="!empty">Tweak this set in the sandbox</template>
         <template v-else>Tweak in the sandbox</template>
       </span>
-      <svg
-        class="inline h-3 w-3 relative -top-px ml-0.5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
+      <svg class="inline h-3 w-3 relative -top-px ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -220,7 +199,7 @@ export default defineComponent({
     },
     modifiers: {
       type: Object as PropType<Modifiers>,
-      default: undefined
+      default: undefined,
     },
   },
   setup(props) {
@@ -240,8 +219,7 @@ export default defineComponent({
     const empty = computed(() => artifactSet.value.artifacts.length === 0);
     const alreadyOptimal = computed(
       () =>
-        !!referenceSet.value &&
-        artifactSetEqual(artifactSet.value as ArtifactSet, referenceSet.value as ArtifactSet)
+        !!referenceSet.value && artifactSetEqual(artifactSet.value as ArtifactSet, referenceSet.value as ArtifactSet)
     );
     const multiplier = computed(() =>
       strategy.value !== undefined
@@ -263,9 +241,7 @@ export default defineComponent({
           )
         : undefined
     );
-    const hasStones = computed(() =>
-      artifactSet.value.artifacts.some(artifact => artifact.stones.length > 0)
-    );
+    const hasStones = computed(() => artifactSet.value.artifacts.some(artifact => artifact.stones.length > 0));
     const sandboxURL = computed(() =>
       farmToSandboxURL(farm.value as Farm, {
         isEnlightenment: isEnlightenment.value,
@@ -373,8 +349,7 @@ img.Artifact__stone {
   bottom: 7%;
   height: 17%;
   width: 17%;
-  filter: drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white)
-    drop-shadow(-1px 0 0 white);
+  filter: drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white);
 }
 
 img.Artifact__stone:nth-child(2) {

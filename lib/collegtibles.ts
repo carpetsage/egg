@@ -100,3 +100,25 @@ export function getAllColleggtibleProgress(backup: ei.IBackup) {
     multiplier: getColleggtibleProgress(allContracts, egg),
   }));
 }
+
+/**
+ * Gets the colleggtible tier index achieved for each custom egg from backup data.
+ * Returns a Record mapping egg identifier to tier index (-1 for no tier achieved, 0-3 for tiers 1-4).
+ * This matches the colleggtibleTiers format used in the Config schema.
+ */
+export function getColleggtibleTiers(backup: ei.IBackup): Record<string, number> {
+  const allContracts = [...(backup.contracts?.archive ?? []), ...(backup.contracts?.contracts ?? [])];
+  const tiers: Record<string, number> = {};
+
+  for (const egg of customEggs) {
+    const maxFarmSize = Math.max(
+      ...allContracts.filter(c => c.contract?.customEggId === egg.identifier).map(c => c.maxFarmSizeReached ?? 0),
+      0
+    );
+
+    const tierIndex = FARM_SIZE_TIERS.findLastIndex(threshold => maxFarmSize >= threshold);
+    tiers[egg.identifier] = tierIndex; // -1 if no tier achieved, 0-3 for tiers 1-4
+  }
+
+  return tiers;
+}
