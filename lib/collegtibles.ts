@@ -40,6 +40,17 @@ const FARM_SIZE_TIERS = [
   10_000_000_000, // Tier 4: 10B chickens
 ] as const;
 
+export const defaultModifiers: Modifiers = {
+  earnings: 1,
+  awayEarnings: 1,
+  ihr: 1,
+  elr: 1,
+  shippingCap: 1,
+  habCap: 1,
+  vehicleCost: 1,
+  habCost: 1,
+  researchCost: 1,
+};
 /**
  * Calculates all modifier values from colleggtibles in a backup.
  * Returns a structured object with all game modifiers applied.

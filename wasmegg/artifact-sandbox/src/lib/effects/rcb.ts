@@ -11,10 +11,7 @@ export function maxRunningChickenBonusMultiplier(build: Build, config: Config): 
 export function maxRunningChickenBonus(build: Build, config: Config): number {
   return (
     baseMaxRunningChickenBonus(config) +
-    additiveEffect(build, config, [
-      ArtifactSpec.Name.VIAL_MARTIAN_DUST,
-      ArtifactSpec.Name.TERRA_STONE,
-    ])
+    additiveEffect(build, config, [ArtifactSpec.Name.VIAL_MARTIAN_DUST, ArtifactSpec.Name.TERRA_STONE])
   );
 }
 

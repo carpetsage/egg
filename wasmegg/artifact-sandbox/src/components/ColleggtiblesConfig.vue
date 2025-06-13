@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-4 flex justify-center">
+  <div class="flex justify-center">
     <div class="space-y-0.5">
       <h4 class="text-center text-sm uppercase">Colleggtibles</h4>
       <div class="space-y-4 max-w-4xl mx-auto">

@@ -87,7 +87,7 @@
     </div>
     <div v-if="multiplier !== undefined" class="text-center text-xs my-2">
       <div>
-        Virtual earnings multiplier from artifacts:
+        Virtual earnings multiplier from artifacts and colleggtibles:
         <span class="text-green-500 font-medium">&times;{{ trimTrailingZeros(multiplier.toFixed(3)) }}</span>
         <template v-if="referenceMultiplier !== undefined && !alreadyOptimal">
           {{ ' ' }}
@@ -101,7 +101,7 @@
         </template>
       </div>
       <div>
-        Soul eggs gain multiplier from artifacts:
+        Soul eggs gain multiplier from artifacts and colleggtibles:
         <span class="text-green-500 font-medium">&times;{{ trimTrailingZeros((multiplier ** 0.21).toFixed(3)) }}</span>
         <template v-if="referenceMultiplier !== undefined && !alreadyOptimal">
           {{ ' ' }}
@@ -141,7 +141,16 @@
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { ArtifactSet, ei, Farm, farmToSandboxURL, iconURL, trimTrailingZeros, Modifiers } from 'lib';
+import {
+  ArtifactSet,
+  ei,
+  Farm,
+  farmToSandboxURL,
+  iconURL,
+  trimTrailingZeros,
+  allModifiersFromColleggtibles,
+  defaultModifiers,
+} from 'lib';
 
 import Rarity = ei.ArtifactSpec.Rarity;
 import {
@@ -197,9 +206,9 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
-    modifiers: {
-      type: Object as PropType<Modifiers>,
-      default: undefined,
+    includeColleggtibles: {
+      type: Boolean,
+      default: false,
     },
   },
   setup(props) {
@@ -213,13 +222,16 @@ export default defineComponent({
       tachyonPrismActive,
       soulBeaconActive,
       boostBeaconActive,
-      modifiers,
+      includeColleggtibles,
     } = toRefs(props);
     // Type casting because somehow protected props are lost during toRefs.
     const empty = computed(() => artifactSet.value.artifacts.length === 0);
     const alreadyOptimal = computed(
       () =>
         !!referenceSet.value && artifactSetEqual(artifactSet.value as ArtifactSet, referenceSet.value as ArtifactSet)
+    );
+    const modifiers = computed(() =>
+      includeColleggtibles.value ? allModifiersFromColleggtibles(farm.value.backup) : defaultModifiers
     );
     const multiplier = computed(() =>
       strategy.value !== undefined

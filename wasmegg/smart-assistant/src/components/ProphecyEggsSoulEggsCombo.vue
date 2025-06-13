@@ -1,15 +1,11 @@
 <template>
   <span v-if="showProphecyEggs" class="flex whitespace-nowrap mr-1">
     <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="inline h-5 w-5" />
-    <span v-tippy="{ content: prophecyEggsTooltip }" class="text-sm text-yellow-500">{{
-      prophecyEggs
-    }}</span>
+    <span v-tippy="{ content: prophecyEggsTooltip }" class="text-sm text-yellow-500">{{ prophecyEggs }}</span>
   </span>
   <span v-if="showSoulEggs" class="flex whitespace-nowrap">
     <img :src="iconURL('egginc/egg_soul.png', 64)" class="inline h-5 w-5" />
-    <span v-tippy="{ content: soulEggsTooltip }" class="text-sm text-purple-500">{{
-      formatEIValue(soulEggs)
-    }}</span>
+    <span v-tippy="{ content: soulEggsTooltip }" class="text-sm text-purple-500">{{ formatEIValue(soulEggs) }}</span>
   </span>
 </template>
 

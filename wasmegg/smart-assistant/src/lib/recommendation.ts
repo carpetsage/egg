@@ -68,7 +68,18 @@
  * 5. Combine the results from stage 3 and 4 to find the best N artifact combo.
  */
 
-import { ArtifactSet, ei, Farm, getNumProphecyEggs, Inventory, InventoryFamily, Item, newItem } from 'lib';
+import {
+  allModifiersFromColleggtibles,
+  ArtifactSet,
+  ei,
+  Farm,
+  getNumProphecyEggs,
+  Inventory,
+  InventoryFamily,
+  Item,
+  Modifiers,
+  newItem,
+} from 'lib';
 import {
   ArtifactAssemblyStatus,
   ArtifactAssemblyStatusNonMissing,
@@ -253,15 +264,17 @@ class Contenders {
   // with more stone slots taken should have a strictly better effect
   // multiplier.
   trim(): void {
-    for (const na of [...this.contenders.keys()].sort((na1, na2) => na1 - na2)) {
-      const c = this.contenders.get(na)!;
-      let maxEffectMultiplier = 0;
-      for (const ns of [...c.keys()].sort((ns1, ns2) => ns1 - ns2)) {
-        const effectMultiplier = c.get(ns)!.effectMultiplier;
-        if (effectMultiplier <= maxEffectMultiplier) {
-          c.delete(ns);
+    for (const artifactSlotCount of [...this.contenders.keys()].sort((a, b) => a - b)) {
+      const contendersForArtifactSlots = this.contenders.get(artifactSlotCount)!;
+      let bestEffectMultiplierSoFar = 0;
+      for (const stoneSlotCount of [...contendersForArtifactSlots.keys()].sort((a, b) => a - b)) {
+        const currentContender = contendersForArtifactSlots.get(stoneSlotCount)!;
+        const currentEffectMultiplier = currentContender.effectMultiplier;
+        if (currentEffectMultiplier <= bestEffectMultiplierSoFar) {
+          // This contender uses more stone slots but has worse or equal effect - remove it
+          contendersForArtifactSlots.delete(stoneSlotCount);
         } else {
-          maxEffectMultiplier = effectMultiplier;
+          bestEffectMultiplierSoFar = currentEffectMultiplier;
         }
       }
     }
@@ -310,7 +323,11 @@ function contendersInArtifactFamily(
   for (const tier of family.tiers) {
     for (const rarity of rarities) {
       if (tier.haveRarity[rarity] > 0) {
-        const artifact = newItem({ name: tier.afxId, level: tier.afxLevel, rarity });
+        const artifact = newItem({
+          name: tier.afxId,
+          level: tier.afxLevel,
+          rarity,
+        });
         const effectDelta = tier.effectDelta(rarity);
         contenders.add(
           new Contender([artifact], [], 1, -tier.stoneSlotCount(rarity), getEffectMultiplier(effectDelta))
@@ -333,7 +350,11 @@ function bestsInStoneFamily(family: InventoryFamily | undefined, n: number): Ite
   }
   const stones = <Item[]>[];
   for (const tier of [...family.tiers].filter(t => t.type === Type.STONE).sort((t1, t2) => t2.afxLevel - t1.afxLevel)) {
-    const stone = newItem({ name: tier.afxId, level: tier.afxLevel, rarity: Rarity.COMMON });
+    const stone = newItem({
+      name: tier.afxId,
+      level: tier.afxLevel,
+      rarity: Rarity.COMMON,
+    });
     const count = tier.haveCommon;
     for (let i = 0; i < count && n > 0; i++) {
       stones.push(stone);
@@ -395,7 +416,11 @@ export function suggestArtifactSet(
   backup: ei.IBackup,
   strategy: PrestigeStrategy,
   opts?: { excludedIds?: string[] }
-): { artifactSet: ArtifactSet; assemblyStatuses: ArtifactAssemblyStatusNonMissing[] } {
+): {
+  artifactSet: ArtifactSet;
+  assemblyStatuses: ArtifactAssemblyStatusNonMissing[];
+} {
+  const modifiers = allModifiersFromColleggtibles(backup);
   let artifactSlots: number;
   switch (strategy) {
     case PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD:
@@ -482,7 +507,11 @@ export function suggestArtifactSet(
     // Light of eggendil is ineffective even as a stone holder.
     // Name.LIGHT_OF_EGGENDIL,
   ]
-    .map(afxId => contendersInArtifactFamily(families.get(afxId), () => 1, { rareOrAbove: true }))
+    .map(afxId =>
+      contendersInArtifactFamily(families.get(afxId), () => 1, {
+        rareOrAbove: true,
+      })
+    )
     .filter(c => !c.isEmpty);
   // Only keep at most 4 (2 on standard permit) best stone holders.
   const getNumStoneSlotsTaken = (contenders: Contenders): number => {
@@ -653,7 +682,6 @@ export function suggestArtifactSet(
   for (const c of bestIndependentStoneCombos) {
     c.debug();
   }
-
   const finishedCombos = new Contenders();
   for (const c of independentStoneFreeCombos.iter()) {
     finishedCombos.add(combine(c, bestIndependentStoneCombos[-c.numStoneSlotsTaken]));
@@ -668,10 +696,10 @@ export function suggestArtifactSet(
   }
   const winner = flattened[0];
   winner.calibrate();
+  const result = contenderToArtifactSet(winner, homeFarm.artifactSet, inventory);
   if (strategy === PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO) {
     winner.adjustLunar(bareMaxRCB);
   }
-  const result = contenderToArtifactSet(winner, homeFarm.artifactSet, inventory);
   const contenderMultiplier = winner.effectMultiplier;
   const setMultiplier = artifactSetVirtualEarningsMultiplier(homeFarm, result.artifactSet, strategy);
   const multiplierDiff = Math.abs(contenderMultiplier - setMultiplier);

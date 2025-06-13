@@ -1,4 +1,4 @@
-import { Artifact, ArtifactSet, Farm, Inventory, Item, Modifiers } from 'lib';
+import { Artifact, ArtifactSet, defaultModifiers, Farm, Inventory, Item, Modifiers } from 'lib';
 
 import { Contender, PrestigeStrategy } from './recommendation';
 import { ImpossibleError, notNull } from './utils';
@@ -217,7 +217,7 @@ export function artifactSetVirtualEarningsMultiplier(
   farm: Farm,
   set: ArtifactSet,
   strategy: PrestigeStrategy,
-  modifiers?: Modifiers
+  modifiers: Modifiers = defaultModifiers
 ): number {
   const bareFarm = new Farm(farm.backup, farm.farm);
   bareFarm.artifactSet = new ArtifactSet([], false);
@@ -226,7 +226,7 @@ export function artifactSetVirtualEarningsMultiplier(
 
   const earningBonusMultiplier = bareFarm.earningBonus > 0 ? equippedFarm.earningBonus / bareFarm.earningBonus : 1;
   const eggValueMultiplier = set.eggValueMultiplier;
-  const eggLayingRateMultiplier = set.eggLayingRateMultiplier;
+  const eggLayingRateMultiplier = set.eggLayingRateMultiplier * modifiers.elr;
   const maxRunningChickenBonusMultiplier =
     equippedFarm.maxRunningChickenBonusWithMaxedCommonResearches /
     bareFarm.maxRunningChickenBonusWithMaxedCommonResearches;
@@ -237,22 +237,24 @@ export function artifactSetVirtualEarningsMultiplier(
     eggValueMultiplier *
     eggLayingRateMultiplier *
     maxRunningChickenBonusMultiplier *
-    virtualEarningsMultiplier;
+    virtualEarningsMultiplier *
+    modifiers.earnings;
 
   switch (strategy) {
     case PrestigeStrategy.STANDARD_PERMIT_SINGLE_PRELOAD:
     case PrestigeStrategy.PRO_PERMIT_SINGLE_PRELOAD:
-      totalMultiplier *= set.habSpaceMultiplier * set.boostEffectMultiplier ** 2;
+      totalMultiplier *= set.habSpaceMultiplier * modifiers.habCap * set.boostEffectMultiplier ** 2;
       break;
     case PrestigeStrategy.PRO_PERMIT_MULTI:
-      totalMultiplier *= set.internalHatcheryRateMultiplier * set.boostEffectMultiplier ** 3;
+      totalMultiplier *= set.internalHatcheryRateMultiplier * modifiers.ihr * set.boostEffectMultiplier ** 3;
       break;
     case PrestigeStrategy.PRO_PERMIT_LUNAR_PRELOAD_AIO:
       totalMultiplier *=
         (set.habSpaceMultiplier *
+          modifiers.habCap *
           set.boostEffectMultiplier ** 2 *
           set.awayEarningsMultiplier *
-          (modifiers?.awayEarnings ?? 1)) /
+          modifiers.awayEarnings) /
         equippedFarm.maxRunningChickenBonusWithMaxedCommonResearches;
       break;
   }

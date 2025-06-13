@@ -6,14 +6,10 @@
       v-for="(entry, index) in modelValue"
       :key="entry.rowid"
       :model-value="entry"
-      @update:modelValue="updateItem(index, $event)"
+      @update:model-value="updateItem(index, $event)"
       @delete="() => deleteItem(index)"
     />
-    <button
-      type="button"
-      class="px-1 rounded-md flex items-center focus:outline-none"
-      @click="addItem"
-    >
+    <button type="button" class="px-1 rounded-md flex items-center focus:outline-none" @click="addItem">
       <span
         class="-ml-1 w-7 h-7 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400"
       >
