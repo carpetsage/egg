@@ -22,6 +22,9 @@ export default {
       '7xl': 'calc(1.05 * 5rem)',
     },
     extend: {
+      screens: {
+        '3xl': '2300px',
+      },
       fontFamily: {
         default: defaultTheme.fontFamily.sans,
         sans: ['Always Together', ...defaultTheme.fontFamily.sans],

@@ -1,7 +1,7 @@
 <template>
   <div class="xl:flex xl:max-w-full xl:justify-center w-full mx-auto">
     <div class="xl:flex xl:justify-end xl:flex-1 border-b border-dark-30 xl:border-b-0 xl:border-r xl:border-dark-30">
-      <div class="w-full px-4 py-4 max-w-4xl mx-auto xl:mx-0">
+      <div class="w-full px-4 py-4 max-w-4xl 3xl:max-w-7xl mx-auto xl:mx-0">
         <div class="text-center text-sm text-green-200 mb-2">
           <a href="/smart-assistant/" target="_blank" class="bg-green-700 hover:text-green-300 px-1 underline"
             >Smart assistant</a
@@ -21,7 +21,7 @@
     </div>
 
     <div class="xl:flex xl:flex-1">
-      <div class="w-full px-4 py-4 max-w-4xl mx-auto xl:mx-0">
+      <div class="w-full px-4 py-4 max-w-4xl 3xl:max-w-7xl mx-auto xl:mx-0">
         <div class="my-2 text-center">
           <button
             type="button"
@@ -43,14 +43,20 @@
           </button>
         </div>
 
-        <div id="builds" class="max-w-4xl w-full mx-auto px-4 py-4 overflow-hidden bg-dark-25 rounded-xl">
-          <artifact-set-display :key="key" :build="builds.builds[0]" :config="builds.config" />
-          <hr class="border-dark-30" />
-          <artifact-sets-effects
-            :key="key"
-            :builds="builds"
-            :show-footnotes="showShareSheet && showFootnotesWhenSharing"
-          />
+        <div id="builds" class="max-w-4xl 3xl:max-w-7xl w-full mx-auto px-4 py-4 overflow-hidden bg-dark-25 rounded-xl">
+          <div class="3xl:grid 3xl:grid-cols-2 3xl:gap-6">
+            <div>
+              <artifact-set-display :key="key" :build="builds.builds[0]" :config="builds.config" />
+            </div>
+            <hr class="border-dark-30 3xl:hidden" />
+            <div>
+              <artifact-sets-effects
+                :key="key"
+                :builds="builds"
+                :show-footnotes="showShareSheet && showFootnotesWhenSharing"
+              />
+            </div>
+          </div>
           <div class="mt-2 text-center text-xs text-dark-60">Built on https://ei.tcl.sh/sandbox</div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-xs sm:max-w-6xl mx-auto my-4">
     <h3 class="my-2 mb-4 text-center text-sm font-medium uppercase">Configurations</h3>
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div class="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-0 sm:-mx-8">
       <div>
         <h4 class="text-center text-sm uppercase">Mystical Eggs</h4>
         <div class="mt-1 relative rounded-md shadow-sm max-w-xs mx-auto">
