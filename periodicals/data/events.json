@@ -20115,6 +20115,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1750003200.0,
+    "id": "ultra-6-14",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4.0,
+    "startTimestamp": 1749916800.0,
+    "type": "drone-boost",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1750089600.0,
     "id": "event-6-14-2",
     "message": "4x PIGGY GROWTH!!",
@@ -20124,12 +20133,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1750003200.0,
-    "id": "ultra-6-14",
-    "message": "4x DRONE REWARDS!",
-    "multiplier": 4.0,
-    "startTimestamp": 1749916800.0,
-    "type": "drone-boost",
-    "ultra": true
+    "endTimestamp": 1750608000.0,
+    "id": "summer-wormhole",
+    "message": "4x FASTER MISSIONS!",
+    "multiplier": 0.25,
+    "startTimestamp": 1750003200.0,
+    "type": "mission-duration",
+    "ultra": false
   }
 ]
