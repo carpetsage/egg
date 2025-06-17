@@ -20133,15 +20133,6 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1750608000.0,
-    "id": "summer-wormhole",
-    "message": "4x FASTER MISSIONS!",
-    "multiplier": 0.25,
-    "startTimestamp": 1750003200.0,
-    "type": "mission-duration",
-    "ultra": false
-  },
-  {
     "endTimestamp": 1750176000.0,
     "id": "event-6-16",
     "message": "2x EARNINGS!",
@@ -20158,5 +20149,23 @@
     "startTimestamp": 1750089600.0,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1750608000.0,
+    "id": "summer-wormhole",
+    "message": "4x FASTER MISSIONS!",
+    "multiplier": 0.25,
+    "startTimestamp": 1750003200.0,
+    "type": "mission-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1750262400.0,
+    "id": "event-6-17",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1750176000.0,
+    "type": "gift-boost",
+    "ultra": false
   }
 ]
