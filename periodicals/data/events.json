@@ -20151,6 +20151,15 @@
     "ultra": true
   },
   {
+    "endTimestamp": 1750262400.0,
+    "id": "event-6-17",
+    "message": "2x GIFTS!!",
+    "multiplier": 2.0,
+    "startTimestamp": 1750176000.0,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
     "endTimestamp": 1750608000.0,
     "id": "summer-wormhole",
     "message": "4x FASTER MISSIONS!",
@@ -20160,12 +20169,30 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1750262400.0,
-    "id": "event-6-17",
-    "message": "2x GIFTS!!",
+    "endTimestamp": 1750348800.0,
+    "id": "event-6-18",
+    "message": "2x BOOST DURATION!",
     "multiplier": 2.0,
-    "startTimestamp": 1750176000.0,
-    "type": "gift-boost",
+    "startTimestamp": 1750262400.0,
+    "type": "boost-duration",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1750348800.0,
+    "id": "event-6-18-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4.0,
+    "startTimestamp": 1750262400.0,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1750348800.0,
+    "id": "ultra-6-18",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1750262400.0,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
