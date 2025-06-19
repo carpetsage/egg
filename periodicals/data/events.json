@@ -20160,15 +20160,6 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1750608000.0,
-    "id": "summer-wormhole",
-    "message": "4x FASTER MISSIONS!",
-    "multiplier": 0.25,
-    "startTimestamp": 1750003200.0,
-    "type": "mission-duration",
-    "ultra": false
-  },
-  {
     "endTimestamp": 1750348800.0,
     "id": "event-6-18",
     "message": "2x BOOST DURATION!",
@@ -20194,5 +20185,23 @@
     "startTimestamp": 1750262400.0,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1750608000.0,
+    "id": "summer-wormhole",
+    "message": "4x FASTER MISSIONS!",
+    "multiplier": 0.25,
+    "startTimestamp": 1750003200.0,
+    "type": "mission-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1750435200.0,
+    "id": "event-6-19",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1750348800.0,
+    "type": "hab-sale",
+    "ultra": false
   }
 ]
