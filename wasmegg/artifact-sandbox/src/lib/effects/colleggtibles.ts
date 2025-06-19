@@ -2,14 +2,19 @@ import { Config } from '../models';
 import { groupCustomEggsByDimension, ei } from 'lib';
 
 // Cache the grouped eggs for better performance
-const eggsByDimension = groupCustomEggsByDimension();
+const eggsByDimension = Object.fromEntries(
+  Object.entries(groupCustomEggsByDimension()).map(([dimension, eggs]) => [
+    dimension,
+    new Map(eggs.map(egg => [egg.identifier, egg]))
+  ])
+);
 
 export function colleggtibleModifier(config: Config, modifier: ei.GameModifier.GameDimension): number {
-  // Get all eggs for this dimension
-  const dimensionEggs = eggsByDimension[modifier] || [];
+  // Get the pre-indexed map of eggs for this dimension
+  const dimensionEggMap = eggsByDimension[modifier] || new Map();
 
   return Object.entries(config.colleggtibleTiers).reduce((total, [eggId, tier]) => {
-    const customEgg = dimensionEggs.find(egg => egg.identifier === eggId);
+    const customEgg = dimensionEggMap.get(eggId);
 
     if (!customEgg) return total;
 
