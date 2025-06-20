@@ -1,9 +1,4 @@
-import {
-  artifactFromId,
-  artifactFromAfxIdLevelRarity,
-  stoneFromId,
-  stoneFromAfxIdLevel,
-} from './data';
+import { artifactFromId, artifactFromAfxIdLevelRarity, stoneFromId, stoneFromAfxIdLevel } from './data';
 
 import proto from './proto';
 import { ItemProps } from './types';
@@ -23,7 +18,10 @@ export type ArtifactBuildProps = {
 };
 
 export class Builds {
-  constructor(public builds: Build[], public config: Config) {}
+  constructor(
+    public builds: Build[],
+    public config: Config
+  ) {}
 
   static newDefaultBuilds(): Builds {
     return new Builds([Build.newEmptyBuild()], Config.newDefaultConfig());
@@ -75,7 +73,7 @@ export class Build {
   static fromProto(build: proto.IBuild): Build {
     return new Build(build.artifacts?.map(Artifact.fromProto) ?? []);
   }
-buildProps(): BuildProps {
+  buildProps(): BuildProps {
     return this.artifacts.map(a => a.buildProps());
   }
 
@@ -180,11 +178,7 @@ export class Artifact {
   static fromProto(artifact: proto.IArtifact): Artifact {
     const artifactProps = artifact.isEmpty
       ? null
-      : artifactFromAfxIdLevelRarity(
-          artifact.afxId ?? 0,
-          artifact.afxLevel ?? 0,
-          artifact.afxRarity ?? 0
-        );
+      : artifactFromAfxIdLevelRarity(artifact.afxId ?? 0, artifact.afxLevel ?? 0, artifact.afxRarity ?? 0);
     const stones = artifact.stones?.map(Stone.fromProto) ?? [];
     return new Artifact(artifactProps, stones);
   }
@@ -197,9 +191,7 @@ export class Artifact {
   }
 
   toProto(): proto.Artifact {
-    const stones = this.stones.map(s =>
-      s !== null ? s.toProto() : proto.Stone.create({ isEmpty: true })
-    );
+    const stones = this.stones.map(s => (s !== null ? s.toProto() : proto.Stone.create({ isEmpty: true })));
     return proto.Artifact.create(
       this.isEmpty()
         ? {
@@ -373,6 +365,7 @@ export class Config {
   boostBeaconActive: boolean;
   proPermit: boolean;
   tachyonDeflectorBonus: number;
+  colleggtibleTiers: Record<string, number>;
 
   constructor() {
     this.prophecyEggs = 0;
@@ -388,6 +381,7 @@ export class Config {
     this.boostBeaconActive = false;
     this.proPermit = true;
     this.tachyonDeflectorBonus = 0;
+    this.colleggtibleTiers = {};
   }
 
   static newDefaultConfig(): Config {
@@ -413,6 +407,7 @@ export class Config {
     self.boostBeaconActive = config?.boostBeaconActive ?? false;
     self.proPermit = config?.proPermit ?? true;
     self.tachyonDeflectorBonus = config?.tachyonDeflectorBonus ?? 0;
+    self.colleggtibleTiers = config?.colleggtibleTiers ?? {};
     return self;
   }
 
@@ -430,24 +425,16 @@ export class Config {
       boostBeaconActive: this.boostBeaconActive,
       proPermit: this.proPermit,
       tachyonDeflectorBonus: this.tachyonDeflectorBonus,
+      colleggtibleTiers: this.colleggtibleTiers,
     });
   }
 
   epicResearchMaxed(): boolean {
-    return (
-      this.soulFood === maxSoulFood &&
-      this.prophecyBonus === maxProphecyBonus &&
-      this.RCB === maxRCB
-    );
+    return this.soulFood === maxSoulFood && this.prophecyBonus === maxProphecyBonus && this.RCB === maxRCB;
   }
 
   anyBoostActive(): boolean {
-    return (
-      this.birdFeedActive ||
-      this.tachyonPrismActive ||
-      this.soulBeaconActive ||
-      this.boostBeaconActive
-    );
+    return this.birdFeedActive || this.tachyonPrismActive || this.soulBeaconActive || this.boostBeaconActive;
   }
 }
 

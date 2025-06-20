@@ -6,22 +6,13 @@
         class="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
       >
         <span class="flex items-center">
-          <img
-            v-if="selected"
-            :src="iconURL(selected.iconPath, 64)"
-            class="flex-shrink-0 h-6 w-6 rounded-full"
-          />
+          <img v-if="selected" :src="iconURL(selected.iconPath, 64)" class="flex-shrink-0 h-6 w-6 rounded-full" />
           <ban-icon v-else class="flex-shrink-0 h-6 w-6 p-1 rounded-full text-gray-500" />
-          <span
-            class="ml-1.5 block truncate"
-            :class="artifactRarityFgClass(selected?.afxRarity ?? 0)"
-          >
+          <span class="ml-1.5 block truncate" :class="artifactRarityFgClass(selected?.afxRarity ?? 0)">
             <template v-if="selected">T{{ selected.tierNumber }}, {{ selected.rarity }}</template>
             <template v-else>No book</template>
           </span>
-          <span
-            v-if="selected"
-            :class="ownedBookIds.includes(selected.id) ? 'text-green-500' : 'text-red-500'"
+          <span v-if="selected" :class="ownedBookIds.includes(selected.id) ? 'text-green-500' : 'text-red-500'"
             >&nbsp;<template v-if="ownedBookIds.includes(selected.id)">(owned)</template
             ><template v-else>(not owned)</template></span
           >
@@ -53,11 +44,7 @@
               ]"
             >
               <div class="flex items-center">
-                <img
-                  v-if="book"
-                  :src="iconURL(book.iconPath, 64)"
-                  class="flex-shrink-0 h-6 w-6 rounded-full"
-                />
+                <img v-if="book" :src="iconURL(book.iconPath, 64)" class="flex-shrink-0 h-6 w-6 rounded-full" />
                 <ban-icon
                   v-else
                   class="flex-shrink-0 h-6 w-6 p-1 rounded-full"
@@ -75,13 +62,7 @@
                 </span>
                 <span
                   v-if="book"
-                  :class="
-                    isActive
-                      ? 'text-white'
-                      : ownedBookIds.includes(book.id)
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  "
+                  :class="isActive ? 'text-white' : ownedBookIds.includes(book.id) ? 'text-green-500' : 'text-red-500'"
                   >&nbsp;<template v-if="ownedBookIds.includes(book.id)">(owned)</template
                   ><template v-else>(not owned)</template></span
                 >
@@ -106,13 +87,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, toRefs, watch } from 'vue';
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from '@headlessui/vue';
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
 import { BanIcon, CheckIcon, SelectorIcon } from '@heroicons/vue/solid';
 
 import { ei, iconURL } from 'lib';

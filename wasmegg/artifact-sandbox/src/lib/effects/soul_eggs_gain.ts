@@ -3,11 +3,12 @@ import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 import { boostMultiplier } from './boosts';
 import { awayEarningsMultiplier, earningsWithMaxRunningChickenBonusMultiplier } from './earnings';
+import { colleggtibleModifier } from './colleggtibles';
+import { ei } from 'lib';
 
 export function soulEggsGainMultiplier(build: Build, config: Config): number {
   return Math.pow(virtualEarningsMultiplier(build, config), 0.21);
 }
-
 
 export function soulEggsGainWithEmptyHabsStartMultiplier(build: Build, config: Config): number {
   return Math.pow(virtualEarningsWithEmptyHabsStartMultiplier(build, config), 0.21);
@@ -24,11 +25,9 @@ function virtualEarningsMultiplier(build: Build, config: Config): number {
 function virtualEarningsWithEmptyHabsStartMultiplier(build: Build, config: Config): number {
   return (
     virtualEarningsMultiplier(build, config) *
-    multiplicativeEffect(build, config, [
-      ArtifactSpec.Name.THE_CHALICE,
-      ArtifactSpec.Name.LIFE_STONE,
-    ]) *
-    (config.tachyonPrismActive ? boostMultiplier(build, config) : 1)
+    multiplicativeEffect(build, config, [ArtifactSpec.Name.THE_CHALICE, ArtifactSpec.Name.LIFE_STONE]) *
+    (config.tachyonPrismActive ? boostMultiplier(build, config) : 1) *
+    colleggtibleModifier(config, ei.GameModifier.GameDimension.INTERNAL_HATCHERY_RATE)
   );
 }
 
@@ -51,10 +50,7 @@ function virtualEarningsMultiplierAway(build: Build, config: Config): number {
 function virtualEarningsWithEmptyHabsStartMultiplierAway(build: Build, config: Config): number {
   return (
     virtualEarningsMultiplierAway(build, config) *
-    multiplicativeEffect(build, config, [
-      ArtifactSpec.Name.THE_CHALICE,
-      ArtifactSpec.Name.LIFE_STONE,
-    ]) *
+    multiplicativeEffect(build, config, [ArtifactSpec.Name.THE_CHALICE, ArtifactSpec.Name.LIFE_STONE]) *
     (config.tachyonPrismActive ? boostMultiplier(build, config) : 1)
   );
 }

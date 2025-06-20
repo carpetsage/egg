@@ -1,5 +1,6 @@
 import { uint8ArrayToBinaryString } from '../api';
 import { Artifact, ArtifactSet, Stone } from '../artifacts';
+import { getColleggtibleTiers } from '../collegtibles';
 import { getNumSoulEggs } from '../earning_bonus';
 import { Farm } from '../farm';
 import { getNumProphecyEggs } from '../prophecy_eggs';
@@ -48,6 +49,8 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
     soulBeaconActive: override?.soulBeaconActive ?? true,
     boostBeaconActive: override?.boostBeaconActive ?? true,
     proPermit: override?.proPermit ?? true,
+
+    colleggtibleTiers: getColleggtibleTiers(backup),
   };
   const artifacts = (override?.artifactSet ?? farm.artifactSet).artifacts.map(artifactToSandboxArtifact);
   while (artifacts.length < 4) {

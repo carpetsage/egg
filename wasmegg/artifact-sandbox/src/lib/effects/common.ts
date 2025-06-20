@@ -58,13 +58,7 @@ export function aggregateEffect(
 }
 
 export function additiveEffect(build: Build, config: Config, afxIds: Name[]): number {
-  return aggregateEffect(
-    build,
-    config,
-    afxIds,
-    (aggregate, effect) => aggregate + effect.delta * effect.multiplier,
-    0
-  );
+  return aggregateEffect(build, config, afxIds, (aggregate, effect) => aggregate + effect.delta * effect.multiplier, 0);
 }
 
 export function multiplicativeEffect(build: Build, config: Config, afxIds: Name[]): number {

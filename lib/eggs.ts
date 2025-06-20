@@ -71,6 +71,41 @@ export const customEggs = customEggsRaw
   .map(egg => validateCustomEgg(decodeMessage(ei.CustomEgg, egg, false)))
   .filter(egg => egg != null);
 
+/**
+ * Groups custom eggs by their GameDimension enum value.
+ * Returns a SafeCustomEgg[][] where the index corresponds to the GameDimension enum value
+ * and the value is an array of SafeCustomEggs whose dimension matches that value.
+ *
+ * GameDimension enum values:
+ * 0: INVALID
+ * 1: EARNINGS
+ * 2: AWAY_EARNINGS
+ * 3: INTERNAL_HATCHERY_RATE
+ * 4: EGG_LAYING_RATE
+ * 5: SHIPPING_CAPACITY
+ * 6: HAB_CAPACITY
+ * 7: VEHICLE_COST
+ * 8: HAB_COST
+ * 9: RESEARCH_COST
+ */
+export function groupCustomEggsByDimension(): SafeCustomEgg[][] {
+  // Initialize array with empty arrays for each dimension (0-9)
+  const grouped: SafeCustomEgg[][] = Array.from({ length: 10 }, () => []);
+
+  for (const egg of customEggs) {
+    // Get the dimension from the first buff (assuming all buffs in an egg have the same dimension)
+    if (egg.buffs && egg.buffs.length > 0 && egg.buffs[0].dimension !== undefined) {
+      const dimensionIndex = egg.buffs[0].dimension;
+      // Ensure the dimension index is within our expected range
+      if (dimensionIndex >= 0 && dimensionIndex < grouped.length) {
+        grouped[dimensionIndex].push(egg);
+      }
+    }
+  }
+
+  return grouped;
+}
+
 export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
   const symbol = custom_egg_id || ei.Egg[egg];
   switch (egg) {

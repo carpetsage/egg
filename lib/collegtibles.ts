@@ -40,6 +40,17 @@ const FARM_SIZE_TIERS = [
   10_000_000_000, // Tier 4: 10B chickens
 ] as const;
 
+export const defaultModifiers: Modifiers = {
+  earnings: 1,
+  awayEarnings: 1,
+  ihr: 1,
+  elr: 1,
+  shippingCap: 1,
+  habCap: 1,
+  vehicleCost: 1,
+  habCost: 1,
+  researchCost: 1,
+};
 /**
  * Calculates all modifier values from colleggtibles in a backup.
  * Returns a structured object with all game modifiers applied.
@@ -99,4 +110,26 @@ export function getAllColleggtibleProgress(backup: ei.IBackup) {
     modifier: egg.buffs[0].dimension,
     multiplier: getColleggtibleProgress(allContracts, egg),
   }));
+}
+
+/**
+ * Gets the colleggtible tier index achieved for each custom egg from backup data.
+ * Returns a Record mapping egg identifier to tier index (-1 for no tier achieved, 0-3 for tiers 1-4).
+ * This matches the colleggtibleTiers format used in the Config schema.
+ */
+export function getColleggtibleTiers(backup: ei.IBackup): Record<string, number> {
+  const allContracts = [...(backup.contracts?.archive ?? []), ...(backup.contracts?.contracts ?? [])];
+  const tiers: Record<string, number> = {};
+
+  for (const egg of customEggs) {
+    const maxFarmSize = Math.max(
+      ...allContracts.filter(c => c.contract?.customEggId === egg.identifier).map(c => c.maxFarmSizeReached ?? 0),
+      0
+    );
+
+    const tierIndex = FARM_SIZE_TIERS.findLastIndex(threshold => maxFarmSize >= threshold);
+    tiers[egg.identifier] = tierIndex; // -1 if no tier achieved, 0-3 for tiers 1-4
+  }
+
+  return tiers;
 }

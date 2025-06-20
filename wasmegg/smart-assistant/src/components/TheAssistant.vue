@@ -74,7 +74,11 @@
       <a href="/enlightenment/" target="_blank" class="text-green-800 underline">Enlightenment companion</a>
       instead for stats and suggestions.
     </div>
-    <artifact-gallery :artifact-set="currentlyEquipped" :farm="homeFarm" />
+    <artifact-gallery
+      :artifact-set="currentlyEquipped"
+      :farm="homeFarm"
+      :include-colleggtibles="includeColleggtibles"
+    />
   </div>
 
   <div class="my-6 bg-blue-100 p-4 rounded-lg shadow-inner">
@@ -89,17 +93,33 @@
     </div>
     <items-select v-model="itemsToExclude" />
   </div>
-  <div v-if="showProPermitRecommendations" class="relative flex items-start mb-1">
-    <div class="flex items-center h-5">
-      <input
-        id="only-show-lunarstige"
-        v-model="onlyLunar"
-        name="only-show-lunarstige"
-        type="checkbox"
-        class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
-      />
+  <div class="flex items-center space-x-4 mb-1">
+    <div v-if="showProPermitRecommendations" class="space-y-1">
+      <div class="relative flex items-start">
+        <div class="flex items-center h-5">
+          <input
+            id="only-show-lunarstige"
+            v-model="onlyLunar"
+            name="only-show-lunarstige"
+            type="checkbox"
+            class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+          />
+        </div>
+        <label class="ml-2 text-sm" for="only-show-lunarstige"> Only show lunar-stige </label>
+      </div>
     </div>
-    <label class="ml-2 text-sm" for="only-show-lunarstige"> Only show lunar-stige </label>
+    <div class="relative flex items-start">
+      <div class="flex items-center h-5">
+        <input
+          id="include-colleggtibles"
+          v-model="includeColleggtibles"
+          name="include-colleggtibles"
+          type="checkbox"
+          class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+        />
+      </div>
+      <label class="ml-2 text-sm" for="include-colleggtibles"> Include colleggtibles </label>
+    </div>
   </div>
 
   <div v-if="!hasProPermit" class="mb-4">
@@ -122,6 +142,7 @@
         :farm="homeFarm"
         :bird-feed-active="true"
         :soul-beacon-active="true"
+        :include-colleggtibles="includeColleggtibles"
       />
       <div class="mt-0.5 text-center text-xs text-gray-500">
         The optimized stat is &ldquo;<strong>SE gain</strong>&rdquo; in the sandbox.
@@ -175,6 +196,7 @@
         :soul-beacon-active="true"
         :tachyon-prism-active="true"
         :boost-beacon-active="true"
+        :include-colleggtibles="includeColleggtibles"
       />
       <div class="mt-0.5 text-center text-xs text-gray-500">
         The optimized sandbox stat is <span class="underline">SE gain w/ empty habs start</span>
@@ -207,6 +229,7 @@
         :bird-feed-active="true"
         :soul-beacon-active="true"
         :boost-beacon-active="true"
+        :include-colleggtibles="includeColleggtibles"
       />
       <div class="mt-0.5 text-center text-xs text-gray-500">
         The optimized sandbox stat is <span class="underline">SE gain</span>
@@ -245,10 +268,10 @@
         :bird-feed-active="true"
         :soul-beacon-active="true"
         :boost-beacon-active="true"
-        :modifiers="modifiers"
+        :include-colleggtibles="includeColleggtibles"
       />
       <div class="mt-0.5 text-center text-xs text-gray-500">
-        The optimized sandbox stat is <span class="underline">Away SE gain</span>
+        The optimized sandbox stat is <span class="underline">Away SE gain (Relative)</span>
       </div>
       <div v-if="hasGusset(suggestedForProPermitLunar.artifactSet)" class="mt-0.5 text-center text-xs text-red-500">
         Note that this recommended setup assumes you can take advantage of the increased hab space.
@@ -264,7 +287,6 @@ import { computed, defineComponent, ref, watch } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
-  allModifiersFromColleggtibles,
   ArtifactSet,
   earningBonusToFarmerRole,
   ei,
@@ -291,6 +313,7 @@ import { notNull } from '@/lib/utils';
 
 const EXCLUDED_ITEM_IDS_LOCALSTORAGE_KEY = 'excludedItemIds';
 const SHOW_ONLY_LUNAR_LOCALSTORAGE_KEY = 'onlyShowLunarstige';
+const INCLUDE_COLLEGGTIBLES_LOCALSTORAGE_KEY = 'includeColleggtibles';
 
 export default defineComponent({
   components: {
@@ -317,6 +340,11 @@ export default defineComponent({
     const onlyLunar = ref(getLocalStorage(SHOW_ONLY_LUNAR_LOCALSTORAGE_KEY) === 'true');
     watch(onlyLunar, () => setLocalStorage(SHOW_ONLY_LUNAR_LOCALSTORAGE_KEY, onlyLunar.value));
 
+    const includeColleggtibles = ref(getLocalStorage(INCLUDE_COLLEGGTIBLES_LOCALSTORAGE_KEY) !== 'false');
+    watch(includeColleggtibles, () =>
+      setLocalStorage(INCLUDE_COLLEGGTIBLES_LOCALSTORAGE_KEY, includeColleggtibles.value)
+    );
+
     const data: ei.IEggIncFirstContactResponse = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
       throw new UserBackupEmptyError(playerId);
@@ -328,7 +356,6 @@ export default defineComponent({
     if (!backup.artifactsDb) {
       throw new Error(`${playerId}: no artifacts database in backup`);
     }
-    const modifiers = allModifiersFromColleggtibles(backup);
     const hasProPermit = data.backup.game.permitLevel === 1;
     const showProPermitRecommendations = ref(hasProPermit);
     const prophecyEggs = getNumProphecyEggs(backup);
@@ -378,8 +405,8 @@ export default defineComponent({
       suggestedForProPermitSinglePreload,
       suggestedForProPermitLunar,
       PrestigeStrategy,
-      modifiers,
       onlyLunar,
+      includeColleggtibles,
       hasGusset,
       iconURL,
       formatEIValue,

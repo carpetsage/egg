@@ -6,9 +6,7 @@
         <span class="mr-1">T{{ stone.tierNumber }} {{ stoneName }}s:</span>
         <div class="relative mr-1">
           <span class="invisible">00</span>
-          <span class="absolute top-0 right-0 text-blue-500">{{
-            configuredStoneCounts[index]
-          }}</span>
+          <span class="absolute top-0 right-0 text-blue-500">{{ configuredStoneCounts[index] }}</span>
         </div>
         <button
           class="text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-default disabled:hover:text-gray-500"

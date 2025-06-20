@@ -2,13 +2,13 @@ import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { multiplicativeEffect } from './common';
 import { maxHabSpace, habSpaceMultiplier } from './hab_space';
+import { colleggtibleModifier } from './colleggtibles';
+import { ei } from 'lib';
 
 export function layingRateMultiplier(build: Build, config: Config): number {
   return (
-    multiplicativeEffect(build, config, [
-      ArtifactSpec.Name.QUANTUM_METRONOME,
-      ArtifactSpec.Name.TACHYON_STONE,
-    ]) *
+    multiplicativeEffect(build, config, [ArtifactSpec.Name.QUANTUM_METRONOME, ArtifactSpec.Name.TACHYON_STONE]) *
+    colleggtibleModifier(config, ei.GameModifier.GameDimension.EGG_LAYING_RATE) *
     (1 + config.tachyonDeflectorBonus)
   );
 }
@@ -18,11 +18,7 @@ export function maxLayingRateMultiplier(build: Build, config: Config): number {
 }
 
 export function maxHourlyLayingRate(build: Build, config: Config): number {
-  return (
-    baseMaxHourlyLayingRatePerChicken(config) *
-    layingRateMultiplier(build, config) *
-    maxHabSpace(build, config)
-  );
+  return baseMaxHourlyLayingRatePerChicken(config) * layingRateMultiplier(build, config) * maxHabSpace(build, config);
 }
 
 function baseMaxHourlyLayingRatePerChicken(_config: Config): number {

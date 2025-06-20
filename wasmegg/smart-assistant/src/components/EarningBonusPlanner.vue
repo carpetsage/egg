@@ -5,28 +5,18 @@
     <div class="text-sm">
       Currently, ignoring artifact effects:<br />
       <span class="whitespace-nowrap" :style="{ color: currentNakedFarmerRole.color }"
-        >{{ currentNakedFarmerRole.name }},
-        {{ formatEIValue(currentNakedEarningBonus * 100) }}%</span
+        >{{ currentNakedFarmerRole.name }}, {{ formatEIValue(currentNakedEarningBonus * 100) }}%</span
       >&nbsp;
       <span class="inline-flex flex-wrap items-center">
         <span class="mr-1">at</span>
-        <prophecy-eggs-soul-eggs-combo
-          :prophecy-eggs="currentProphecyEggs"
-          :soul-eggs="currentSoulEggs"
-        />
+        <prophecy-eggs-soul-eggs-combo :prophecy-eggs="currentProphecyEggs" :soul-eggs="currentSoulEggs" />
       </span>
     </div>
 
-    <earning-bonus-target-selector
-      v-model:selected-target="selectedTarget"
-      :targets="targets"
-      class="mt-1"
-    />
+    <earning-bonus-target-selector v-model:selected-target="selectedTarget" :targets="targets" class="mt-1" />
 
     <fieldset
-      v-if="
-        currentSoulFoodLevel < maxSoulFoodLevel || currentProphecyBonusLevel < maxProphecyBonusLevel
-      "
+      v-if="currentSoulFoodLevel < maxSoulFoodLevel || currentProphecyBonusLevel < maxProphecyBonusLevel"
       class="mt-2 mb-3"
     >
       <div class="flex items-center mb-1">
@@ -52,8 +42,7 @@
                   : 'focus-within:ring-blue-600 focus-within:border-blue-600'
               "
             >
-              <label
-                class="absolute -top-2 left-2 -mt-px inline-block px-1 bg-white text-xs font-medium text-gray-900"
+              <label class="absolute -top-2 left-2 -mt-px inline-block px-1 bg-white text-xs font-medium text-gray-900"
                 >Soul food level</label
               >
               <input
@@ -75,13 +64,8 @@
         </base-integer-input>
         <div v-if="configuredSoulFoodLevel > currentSoulFoodLevel" class="text-xs mt-1">
           Upgrade cost from level {{ currentSoulFoodLevel }} to {{ configuredSoulFoodLevel }}:
-          <span class="text-yellow-500">{{
-            configuredSoulFoodUpgradeCost.toLocaleString('en-US')
-          }}</span>
-          <img
-            :src="iconURL('/egginc-extras/icon_golden_egg.png', 64)"
-            class="inline h-3.5 w-3.5 relative -top-px"
-          />
+          <span class="text-yellow-500">{{ configuredSoulFoodUpgradeCost.toLocaleString('en-US') }}</span>
+          <img :src="iconURL('/egginc-extras/icon_golden_egg.png', 64)" class="inline h-3.5 w-3.5 relative -top-px" />
         </div>
       </div>
 
@@ -101,8 +85,7 @@
                   : 'focus-within:ring-blue-600 focus-within:border-blue-600'
               "
             >
-              <label
-                class="absolute -top-2 left-2 -mt-px inline-block px-1 bg-white text-xs font-medium text-gray-900"
+              <label class="absolute -top-2 left-2 -mt-px inline-block px-1 bg-white text-xs font-medium text-gray-900"
                 >Prophecy bonus level</label
               >
               <input
@@ -123,15 +106,9 @@
           </template>
         </base-integer-input>
         <div v-if="configuredProphecyBonusLevel > currentProphecyBonusLevel" class="text-xs mt-1">
-          Upgrade cost from level {{ currentProphecyBonusLevel }} to
-          {{ configuredProphecyBonusLevel }}:
-          <span class="text-yellow-500">{{
-            configuredProphecyBonusUpgradeCost.toLocaleString('en-US')
-          }}</span>
-          <img
-            :src="iconURL('/egginc-extras/icon_golden_egg.png', 64)"
-            class="inline h-3.5 w-3.5 relative -top-px"
-          />
+          Upgrade cost from level {{ currentProphecyBonusLevel }} to {{ configuredProphecyBonusLevel }}:
+          <span class="text-yellow-500">{{ configuredProphecyBonusUpgradeCost.toLocaleString('en-US') }}</span>
+          <img :src="iconURL('/egginc-extras/icon_golden_egg.png', 64)" class="inline h-3.5 w-3.5 relative -top-px" />
         </div>
       </div>
     </fieldset>
@@ -154,9 +131,7 @@
             class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
           />
         </div>
-        <label class="ml-2 text-sm" for="eb-planner-include-artifact-effects"
-          >Include artifact effects</label
-        >
+        <label class="ml-2 text-sm" for="eb-planner-include-artifact-effects">Include artifact effects</label>
       </div>
 
       <book-selector
@@ -190,16 +165,12 @@
 
     <div v-if="earningBonusAsConfigured !== currentNakedEarningBonus" class="text-sm mt-2">
       EB as configured:
-      <span :style="{ color: farmerRoleAsConfigured.color }"
-        >{{ formatEIValue(earningBonusAsConfigured * 100) }}%</span
-      >
+      <span :style="{ color: farmerRoleAsConfigured.color }">{{ formatEIValue(earningBonusAsConfigured * 100) }}%</span>
     </div>
 
     <div class="bg-yellow-100 p-4 rounded-lg shadow-inner my-3">
       <template v-if="combosToReachTarget.length > 0">
-        <div class="text-sm -mt-1 mb-1">
-          One of the following combos is required to reach the target:
-        </div>
+        <div class="text-sm -mt-1 mb-1">One of the following combos is required to reach the target:</div>
         <div class="relative flex items-start mb-2">
           <div class="flex items-center h-5">
             <input
@@ -215,10 +186,7 @@
           >
         </div>
 
-        <div
-          class="grid gap-x-1 gap-y-0.5 tabular-nums"
-          :style="{ gridTemplateColumns: 'repeat(auto-fill, 10rem)' }"
-        >
+        <div class="grid gap-x-1 gap-y-0.5 tabular-nums" :style="{ gridTemplateColumns: 'repeat(auto-fill, 10rem)' }">
           <div v-for="(combo, index) in combosToReachTarget" :key="index">
             <div class="flex flex-wrap items-center">
               <prophecy-eggs-soul-eggs-combo
@@ -323,9 +291,7 @@ export default defineComponent({
           artifactProphecyEggBonus: 0,
         })
     );
-    const currentNakedFarmerRole = computed(() =>
-      earningBonusToFarmerRole(currentNakedEarningBonus.value)
-    );
+    const currentNakedFarmerRole = computed(() => earningBonusToFarmerRole(currentNakedEarningBonus.value));
 
     const configuredSoulFoodLevel = ref(currentSoulFoodLevel.value);
     const configuredProphecyBonusLevel = ref(currentProphecyBonusLevel.value);
@@ -336,16 +302,12 @@ export default defineComponent({
       prophecyBonusUpgradeCost(currentProphecyBonusLevel.value, configuredProphecyBonusLevel.value)
     );
 
-    const includeArtifactEffects = ref(
-      getLocalStorage(INCLUDE_ARTIFACT_EFFECTS_LOCALSTORAGE_KEY) === 'true'
-    );
+    const includeArtifactEffects = ref(getLocalStorage(INCLUDE_ARTIFACT_EFFECTS_LOCALSTORAGE_KEY) === 'true');
     watch(includeArtifactEffects, () =>
       setLocalStorage(INCLUDE_ARTIFACT_EFFECTS_LOCALSTORAGE_KEY, includeArtifactEffects.value)
     );
     const inventory = computed(() => new Inventory(backup.value.artifactsDb!));
-    const homeFarmArtifactSet = computed(
-      () => new Farm(backup.value, backup.value.farms![0]).artifactSet
-    );
+    const homeFarmArtifactSet = computed(() => new Farm(backup.value, backup.value.farms![0]).artifactSet);
     const ownedBookIds = computed(() => {
       const ids = <string[]>[];
       for (const level of [Level.INFERIOR, Level.LESSER, Level.NORMAL, Level.GREATER]) {
@@ -376,9 +338,7 @@ export default defineComponent({
         return null;
       })()
     );
-    const maxPossibleSlots = computed(() =>
-      selectedBook.value ? selectedBook.value.slots + 9 : 12
-    );
+    const maxPossibleSlots = computed(() => (selectedBook.value ? selectedBook.value.slots + 9 : 12));
     const ownedStoneCounts = (afxId: Name) => {
       const counts = <StoneCounts>[0, 0, 0];
       for (const level of [Level.INFERIOR, Level.LESSER, Level.NORMAL]) {
@@ -406,9 +366,7 @@ export default defineComponent({
     const ownedSoulStoneCounts = computed(() => ownedStoneCounts(Name.SOUL_STONE));
     const selectedSoulStoneCounts = ref(equippedStoneCounts(Name.SOUL_STONE));
     const totalSelectedStones = computed(() =>
-      [...selectedProphecyStoneCounts.value, ...selectedSoulStoneCounts.value].reduce(
-        (sum, count) => sum + count
-      )
+      [...selectedProphecyStoneCounts.value, ...selectedSoulStoneCounts.value].reduce((sum, count) => sum + count)
     );
     const artifactSoulEggBonus = computed(() =>
       soulStones
@@ -431,14 +389,10 @@ export default defineComponent({
           soulFoodLevel: configuredSoulFoodLevel.value,
           prophecyBonusLevel: configuredProphecyBonusLevel.value,
           artifactSoulEggBonus: includeArtifactEffects.value ? artifactSoulEggBonus.value : 0,
-          artifactProphecyEggBonus: includeArtifactEffects.value
-            ? artifactProphecyEggBonus.value
-            : 0,
+          artifactProphecyEggBonus: includeArtifactEffects.value ? artifactProphecyEggBonus.value : 0,
         })
     );
-    const farmerRoleAsConfigured = computed(() =>
-      earningBonusToFarmerRole(earningBonusAsConfigured.value)
-    );
+    const farmerRoleAsConfigured = computed(() => earningBonusToFarmerRole(earningBonusAsConfigured.value));
 
     const targets = computed(() => {
       const currentRank = Math.floor(Math.log10(currentNakedEarningBonus.value));
@@ -478,9 +432,7 @@ export default defineComponent({
       return combos.reverse();
     });
     const showTotalRequired = ref(getLocalStorage(SHOW_TOTAL_REQUIRED_LOCALSTORAGE_KEY) === 'true');
-    watch(showTotalRequired, () =>
-      setLocalStorage(SHOW_TOTAL_REQUIRED_LOCALSTORAGE_KEY, showTotalRequired.value)
-    );
+    watch(showTotalRequired, () => setLocalStorage(SHOW_TOTAL_REQUIRED_LOCALSTORAGE_KEY, showTotalRequired.value));
 
     return {
       currentProphecyEggs,

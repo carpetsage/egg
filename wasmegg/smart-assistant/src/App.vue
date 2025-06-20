@@ -1,9 +1,7 @@
 <template>
   <the-nav-bar active-entry-id="smart-assistant" />
 
-  <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
-    Smart assistant
-  </h1>
+  <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">Smart assistant</h1>
 
   <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
@@ -23,16 +21,14 @@
     <template v-else>
       <div class="text-sm space-y-2">
         <p>
-          This tool automatically recommends optimal artifact setups for various prestiging
-          strategies based on what artifacts you have. Use in conjuction with
-          <a href="/artifact-sandbox/" target="_blank" class="text-blue-500 hover:text-blue-600"
-            >Artifact sandbox</a
-          >, where you can explore any artifact setup without acquiring the constituents.
+          This tool automatically recommends optimal artifact setups for various prestiging strategies based on what
+          artifacts you have. Use in conjuction with
+          <a href="/artifact-sandbox/" target="_blank" class="text-blue-500 hover:text-blue-600">Artifact sandbox</a>,
+          where you can explore any artifact setup without acquiring the constituents.
         </p>
         <p>
-          Also included is an earning bonus planner where you can check the soul eggs and prophecy
-          eggs needed to progress to any earning bonus target, with support for artifact effects and
-          epic research preview.
+          Also included is an earning bonus planner where you can check the soul eggs and prophecy eggs needed to
+          progress to any earning bonus target, with support for artifact effects and epic research preview.
         </p>
       </div>
     </template>
@@ -61,9 +57,7 @@ export default defineComponent({
     TheCalculatorWrapper,
   },
   setup() {
-    const playerId = ref(
-      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || ''
-    );
+    const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
     const refreshId = ref(Date.now());
     const submitPlayerId = (id: string) => {
       playerId.value = id;

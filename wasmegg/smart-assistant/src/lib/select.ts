@@ -1,9 +1,7 @@
 import { allUsableItems, ei, Item, useSearch } from 'lib';
 
 export type { Item };
-export const excludableItems = allUsableItems.filter(
-  item => item.afxType === ei.ArtifactSpec.Type.ARTIFACT
-);
+export const excludableItems = allUsableItems.filter(item => item.afxType === ei.ArtifactSpec.Type.ARTIFACT);
 export const itemIds = excludableItems.map(item => item.id);
 export const itemIdToItem = new Map(excludableItems.map(item => [item.id, item]));
 

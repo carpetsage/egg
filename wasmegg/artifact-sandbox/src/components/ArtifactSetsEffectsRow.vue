@@ -15,10 +15,7 @@
         </sup>
       </span>
     </td>
-    <td
-      v-if="builds.builds[0].hasDuplicates()"
-      class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap"
-    >
+    <td v-if="builds.builds[0].hasDuplicates()" class="px-4 py-1.5 text-base text-right text-red-500 whitespace-nowrap">
       &mdash;
     </td>
     <td v-else class="px-4 py-1.5 text-base text-right whitespace-nowrap">

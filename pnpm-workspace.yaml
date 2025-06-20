@@ -20,3 +20,9 @@ packages:
   - wasmegg/eggs-laid
   - wasmegg/legendary-study
   - wasmegg/mission-planner
+
+onlyBuiltDependencies:
+  - esbuild
+  - protobufjs
+  - sharp
+  - vue-demi
