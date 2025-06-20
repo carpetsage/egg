@@ -31,17 +31,13 @@
 
         <span class="text-blue-200">With 1 mission slot:</span><br />
         1 item per
-        <span class="text-green-300">{{
-          formatToPrecision(expectedMissionsPerDrop, precision)
-        }}</span>
+        <span class="text-green-300">{{ formatToPrecision(expectedMissionsPerDrop, precision) }}</span>
         missions, or 1 item per
         <span class="text-green-300">{{ formatToPrecision(expectedDaysPerDrop, precision) }}</span>
         days.<br />
         <span class="text-blue-200">With 3 mission slots:</span><br />
         1 item per
-        <span class="text-green-300">{{
-          formatToPrecision(expectedDaysPerDrop / 3, precision)
-        }}</span>
+        <span class="text-green-300">{{ formatToPrecision(expectedDaysPerDrop / 3, precision) }}</span>
         days.<br />
 
         <template v-if="isArtifact">
@@ -52,12 +48,8 @@
             >: {{ entry.drops }}/{{ itemTotalDrops
             }}<template v-if="entry.drops >= 10"
               >, 1 per
-              <span class="text-green-300">{{
-                formatToPrecision(entry.daysPerDrop, entry.precision)
-              }}</span>
-              days (<span class="text-green-300">{{
-                formatToPrecision(entry.daysPerDrop / 3, entry.precision)
-              }}</span>
+              <span class="text-green-300">{{ formatToPrecision(entry.daysPerDrop, entry.precision) }}</span>
+              days (<span class="text-green-300">{{ formatToPrecision(entry.daysPerDrop / 3, entry.precision) }}</span>
               days with 3 slots)</template
             >
             <br />
@@ -114,24 +106,16 @@ export default defineComponent({
   },
   setup(props) {
     const { mission, level, totalDrops, itemDrops } = toRefs(props);
-    const customConfig = computed(() =>
-      configWithCustomShipLevel(mission.value.shipType, level.value - 1)
-    );
-    const tooLittleMissionData = computed(() =>
-      missionDataNotEnough(mission.value, totalDrops.value)
-    );
+    const customConfig = computed(() => configWithCustomShipLevel(mission.value.shipType, level.value - 1));
+    const tooLittleMissionData = computed(() => missionDataNotEnough(mission.value, totalDrops.value));
     const missionCapacity = computed(() => mission.value.boostedCapacity(customConfig.value));
-    const missionDurationDays = computed(
-      () => mission.value.boostedDurationSeconds(customConfig.value) / 86400
-    );
+    const missionDurationDays = computed(() => mission.value.boostedDurationSeconds(customConfig.value) / 86400);
     const itemTotalDrops = computed(() => sum(itemDrops.value));
     const tooLittleItemData = computed(() => itemTotalDrops.value < 20);
     const expectedDropsPerMission = computed(() =>
       totalDrops.value > 0 ? (itemTotalDrops.value / totalDrops.value) * missionCapacity.value : 0
     );
-    const expectedDropsPerDay = computed(
-      () => expectedDropsPerMission.value / missionDurationDays.value
-    );
+    const expectedDropsPerDay = computed(() => expectedDropsPerMission.value / missionDurationDays.value);
     const expectedMissionsPerDrop = computed(() => 1 / expectedDropsPerMission.value);
     const expectedDaysPerDrop = computed(() => 1 / expectedDropsPerDay.value);
     const precision = computed(() => Math.min(itemTotalDrops.value.toString().length, 3));
@@ -140,8 +124,7 @@ export default defineComponent({
         afxRarity,
         rarity: capitalize(Rarity[afxRarity]),
         drops: itemDrops.value[afxRarity],
-        daysPerDrop:
-          expectedDaysPerDrop.value * (itemTotalDrops.value / itemDrops.value[afxRarity]),
+        daysPerDrop: expectedDaysPerDrop.value * (itemTotalDrops.value / itemDrops.value[afxRarity]),
         precision: Math.min(itemDrops.value[afxRarity].toString().length, 3),
       }))
     );

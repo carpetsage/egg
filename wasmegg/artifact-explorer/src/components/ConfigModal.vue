@@ -33,11 +33,7 @@
             </DialogTitle>
 
             <button class="absolute -top-3 right-0 inline-flex rounded-md p-2 focus:outline-none">
-              <XIcon
-                class="h-4 w-4 text-gray-500 hover:text-gray-600"
-                aria-hidden="true"
-                @click="closeConfigModal"
-              />
+              <XIcon class="h-4 w-4 text-gray-500 hover:text-gray-600" aria-hidden="true" @click="closeConfigModal" />
             </button>
 
             <div>
@@ -54,9 +50,7 @@
                   :model-value="config.epicResearchFTLLevel"
                   @update:model-value="setEpicResearchFTLLevel"
                 />
-                <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">
-                  / 60
-                </div>
+                <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">/ 60</div>
               </div>
             </div>
 
@@ -74,9 +68,7 @@
                   :model-value="config.epicResearchZerogLevel"
                   @update:model-value="setEpicResearchZerogLevel"
                 />
-                <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">
-                  / 10
-                </div>
+                <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">/ 10</div>
               </div>
             </div>
 
@@ -129,9 +121,7 @@
                   type="checkbox"
                   class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
                 />&nbsp;
-                <label class="text-sm text-gray-600">
-                  Only Show Henerprise
-                </label>
+                <label class="text-sm text-gray-600"> Only Show Henerprise </label>
               </div>
               <!-- Display targets with insufficient data -->
               <!-- Only show liners -->
@@ -143,9 +133,7 @@
                   type="checkbox"
                   class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
                 />&nbsp;
-                <label class="text-sm text-gray-600">
-                  Only Show Henliners
-                </label>
+                <label class="text-sm text-gray-600"> Only Show Henliners </label>
               </div>
               <!-- Display targets with insufficient data -->
               <div class="flex items-center space-x-0.5">
@@ -156,9 +144,7 @@
                   type="checkbox"
                   class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
                 />&nbsp;
-                <label class="text-sm text-gray-600">
-                  Show Targets with No data
-                </label>
+                <label class="text-sm text-gray-600"> Show Targets with No data </label>
               </div>
             </div>
             <!-- Target Selection for Artifact Page -->
@@ -176,13 +162,16 @@
                   />&nbsp;
                   <label :for="`target_${target}`" class="text-sm text-gray-600">
                     <template v-if="Number(target) !== 10000">
-                      <img class="inline-flex h-6 w-6" :src="id2url(Number(target),32)" :alt="ei.ArtifactSpec.Name[target]" />
+                      <img
+                        class="inline-flex h-6 w-6"
+                        :src="id2url(Number(target), 32)"
+                        :alt="ei.ArtifactSpec.Name[target]"
+                      />
                       {{ getTargetName(target) }}
                     </template>
                     <template v-else>Untargeted</template>
                   </label>
                 </div>
-
               </template>
             </div>
           </div>
@@ -194,17 +183,21 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import {
-  Dialog,
-  DialogOverlay,
-  DialogTitle,
-  TransitionChild,
-  TransitionRoot,
-} from '@headlessui/vue';
+import { Dialog, DialogOverlay, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XIcon } from '@heroicons/vue/solid';
 
 import BaseIntegerInput from 'ui/components/BaseIntegerInput.vue';
-import {ei, iconURL, getTargetName, getImageUrlFromId as id2url, shipMaxLevel, spaceshipIconPath, spaceshipList, spaceshipName, noFragTargets as targets } from 'lib';
+import {
+  ei,
+  iconURL,
+  getTargetName,
+  getImageUrlFromId as id2url,
+  shipMaxLevel,
+  spaceshipIconPath,
+  spaceshipList,
+  spaceshipName,
+  noFragTargets as targets,
+} from 'lib';
 import {
   closeConfigModal,
   config,

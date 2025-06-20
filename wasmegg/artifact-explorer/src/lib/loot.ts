@@ -8,7 +8,7 @@ import {
 } from 'lib';
 
 import { config } from '@/store';
-import type {lootjson, MissionLevelLootStore, MissionLootStore } from './loot-json';
+import type { lootjson, MissionLevelLootStore, MissionLootStore } from './loot-json';
 import data from './loot-json';
 
 const lootdata = data as lootjson;
@@ -77,8 +77,7 @@ export function getTierLootData(itemId: string): ItemLootStore {
   };
   for (const missionLoot of lootdata.missions) {
     const mission = getMissionTypeFromId(missionLoot.missionId);
-    const withinRange =
-      mission.params.minQuality <= item.quality && item.quality <= mission.maxBoostedMaxQuality();
+    const withinRange = mission.params.minQuality <= item.quality && item.quality <= mission.maxBoostedMaxQuality();
     const validTargets = mission.isFTL ? targets : [ei.ArtifactSpec.Name.UNKNOWN];
     for (const target of validTargets) {
       if (!config.value.targets[target] && item.afx_id != target) {

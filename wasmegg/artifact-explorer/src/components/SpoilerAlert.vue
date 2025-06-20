@@ -20,9 +20,9 @@
         <h3 class="text-sm font-medium text-blue-800">SPOILER ALERT</h3>
         <div class="mt-2 text-sm text-blue-700">
           <p>
-            This site contains a shocking amount of spoilers. By further interacting with this site,
-            you agree to waive your natural and/or legal right to a spoiler-free gaming experience
-            and the excitement or despair of discovery.
+            This site contains a shocking amount of spoilers. By further interacting with this site, you agree to waive
+            your natural and/or legal right to a spoiler-free gaming experience and the excitement or despair of
+            discovery.
           </p>
         </div>
         <div class="mt-4">

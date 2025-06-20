@@ -6,11 +6,10 @@
     <div class="flex">
       <div
         v-tippy="{
-          content: `<img data-src='${iconURL( mission.shipIconPath,
+          content: `<img data-src='${iconURL(
+            mission.shipIconPath,
             256
-          )}' class='h-36 w-36 p-1.5 rounded-full border-2 ${durationBorderClass(
-            mission.durationType
-          )}'>`,
+          )}' class='h-36 w-36 p-1.5 rounded-full border-2 ${durationBorderClass(mission.durationType)}'>`,
           allowHTML: true,
         }"
         class="flex items-center"
@@ -22,16 +21,21 @@
             :src="iconURL(mission.shipIconPath, 32)"
           />
         </div>
-        <span class="ml-1 text-sm">{{ mission.name }}
-        <span v-if="target !== undefined" class="font-bold">
-          <template v-if="target !== 10000">
-            <img class="inline-flex h-6 w-6" :src="id2url(target, 32)" :alt="ei.ArtifactSpec.Name[target]" />
-            {{ getTargetName(target).split(' ').map(x => x[0].toUpperCase() + x.substring(1).toLowerCase()).join(' ') }} Target
-          </template>
-          <template v-else>
-            &nbsp;No Target
-          </template>
-        </span>
+        <span class="ml-1 text-sm"
+          >{{ mission.name }}
+          <span v-if="target !== undefined" class="font-bold">
+            <template v-if="target !== 10000">
+              <img class="inline-flex h-6 w-6" :src="id2url(target, 32)" :alt="ei.ArtifactSpec.Name[target]" />
+              {{
+                getTargetName(target)
+                  .split(' ')
+                  .map(x => x[0].toUpperCase() + x.substring(1).toLowerCase())
+                  .join(' ')
+              }}
+              Target
+            </template>
+            <template v-else> &nbsp;No Target </template>
+          </span>
         </span>
       </div>
     </div>
@@ -41,7 +45,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 
-import { ei, getTargetName, iconURL, MissionType, getImageUrlFromId as id2url} from 'lib';
+import { ei, getTargetName, iconURL, MissionType, getImageUrlFromId as id2url } from 'lib';
 import { durationBorderClass } from '@/utils';
 
 export default defineComponent({

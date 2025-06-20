@@ -1,8 +1,6 @@
 <template>
   <div class="space-y-2">
-    <label class="block text-sm font-medium text-gray-700">
-      What does this artifact do and how do I get it?
-    </label>
+    <label class="block text-sm font-medium text-gray-700"> What does this artifact do and how do I get it? </label>
 
     <base-select-filterable
       :items="artifacts"
@@ -17,8 +15,8 @@
     />
 
     <p class="text-xs text-gray-500">
-      You may use this dropdown or the visual artifacts picker below, or click on any artifact name
-      on the page, including, for instance, results in a mission query.
+      You may use this dropdown or the visual artifacts picker below, or click on any artifact name on the page,
+      including, for instance, results in a mission query.
     </p>
   </div>
 </template>
@@ -29,7 +27,7 @@ import { PropType } from 'vue';
 import { artifactIdToArtifact, artifacts, searchArtifacts } from '@/lib/filter';
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
 
-const BaseSelectFilterable = GenericBaseSelectFilterable<typeof artifacts[number]>();
+const BaseSelectFilterable = GenericBaseSelectFilterable<(typeof artifacts)[number]>();
 
 defineProps({
   modelValue: {

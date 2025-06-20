@@ -2,9 +2,7 @@
   <template v-if="plainText">
     {{ artifact.name }}
     <template v-if="showTier"> (T{{ artifact.tier_number }}) </template>
-    <template v-if="isArtifactLike(artifact) && artifact.afx_rarity > 0">
-      , {{ artifact.rarity }}
-    </template>
+    <template v-if="isArtifactLike(artifact) && artifact.afx_rarity > 0"> , {{ artifact.rarity }} </template>
   </template>
 
   <template v-else>
@@ -15,10 +13,7 @@
       <div class="flex">
         <div
           v-tippy="{
-            content: `<img data-src='${iconURL(
-              'egginc/' + artifact.icon_filename,
-              256
-            )}' class='h-32 w-32'>`,
+            content: `<img data-src='${iconURL('egginc/' + artifact.icon_filename, 256)}' class='h-32 w-32'>`,
             allowHTML: true,
           }"
           class="flex items-center"
@@ -30,14 +25,10 @@
             class="ml-1 flex text-sm"
             :class="[
               isArtifactLike(artifact) ? rarityFgClass500(artifact.afx_rarity) : null,
-              artifact.available_from_missions || noAvailabilityMarker
-                ? null
-                : 'text-red-900 dagger',
+              artifact.available_from_missions || noAvailabilityMarker ? null : 'text-red-900 dagger',
             ]"
           >
-            <span :class="limitWidth ? 'xs:max-w-xxxs inline-block truncate' : 'truncate'">{{
-              artifact.name
-            }}</span>
+            <span :class="limitWidth ? 'xs:max-w-xxxs inline-block truncate' : 'truncate'">{{ artifact.name }}</span>
             <template v-if="showTier">
               <span>&nbsp;(T{{ artifact.tier_number }})</span>
             </template>

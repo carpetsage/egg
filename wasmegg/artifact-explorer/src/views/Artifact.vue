@@ -3,15 +3,10 @@
     <div class="bg-gray-100 px-4 py-4 border-b border-gray-200 sm:px-6">
       <div class="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
         <div class="ml-4 mt-2">
-          <artifact-name
-            :artifact="artifact"
-            :show-tier="true"
-            :no-link="true"
-            :no-availability-marker="true"
-          />
+          <artifact-name :artifact="artifact" :show-tier="true" :no-link="true" :no-availability-marker="true" />
         </div>
         <div class="ml-4 mt-2 flex-shrink-0">
-          <share :page="'artifact'" :id="artifact.id" />
+          <share :id="artifact.id" :page="'artifact'" />
         </div>
       </div>
     </div>
@@ -30,10 +25,7 @@
                   :key="rarity.afx_rarity"
                   :class="rarityFgClass500(rarity.afx_rarity)"
                 >
-                  <td
-                    v-if="artifact.has_rarities"
-                    class="h-5 px-2 whitespace-nowrap text-left text-sm leading-4"
-                  >
+                  <td v-if="artifact.has_rarities" class="h-5 px-2 whitespace-nowrap text-left text-sm leading-4">
                     {{ rarity.rarity }}
                   </td>
                   <td
@@ -78,10 +70,7 @@
             </tbody>
           </table>
           <div class="my-0.5 -mx-0.5 flex items-center space-x-1">
-            <img
-              class="h-4 w-4"
-              :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
-            />
+            <img class="h-4 w-4" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
             <span class="text-sm">
               {{ artifact.recipe.crafting_price.initial.toLocaleString('en-US') }} &ndash;
               {{ artifact.recipe.crafting_price.minimum.toLocaleString('en-US') }}
@@ -95,9 +84,7 @@
               }"
             />
           </div>
-          <span class="text-sm">
-            {{ artifact.crafting_xp.toLocaleString('en-US') }} Crafting XP
-          </span>
+          <span class="text-sm"> {{ artifact.crafting_xp.toLocaleString('en-US') }} Crafting XP </span>
         </div>
       </div>
       <hr />
@@ -136,8 +123,7 @@
           <span class="text-sm font-medium text-gray-500">Recursive ingredients</span>
           <base-info
             v-tippy="{
-              content:
-                'Ingredients of ingredients, ingredients of ingredients of ingredients, etc.',
+              content: 'Ingredients of ingredients, ingredients of ingredients of ingredients, etc.',
             }"
           />
         </div>
@@ -212,9 +198,7 @@
     <hr />
     <div class="px-4 py-4 sm:px-6 space-y-1">
       <div>
-        <span class="text-sm font-medium text-gray-500 mr-1">
-          What do I get from consuming this item?
-        </span>
+        <span class="text-sm font-medium text-gray-500 mr-1"> What do I get from consuming this item? </span>
         <a
           :href="`https://wasmegg-carpet.netlify.app/consumption-sheet/#${artifactId}`"
           target="_blank"
@@ -225,9 +209,7 @@
             <path
               d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
             />
-            <path
-              d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-            />
+            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
           </svg>
         </a>
       </div>
@@ -246,9 +228,7 @@
             <path
               d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
             />
-            <path
-              d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
-            />
+            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
           </svg>
         </a>
       </div>
@@ -260,11 +240,7 @@
 import { computed, defineComponent, toRefs } from 'vue';
 
 import { ei, iconURL } from 'lib';
-import {
-  AfxTier,
-  allPossibleTiers,
-  getArtifactTierPropsFromId as id2artifact,
-} from 'lib/artifacts/data';
+import { AfxTier, allPossibleTiers, getArtifactTierPropsFromId as id2artifact } from 'lib/artifacts/data';
 import { cmpArtifactTiers } from '@/lib';
 import { rarityFgClass500 } from '@/utils';
 import BaseInfo from 'ui/components/BaseInfo.vue';

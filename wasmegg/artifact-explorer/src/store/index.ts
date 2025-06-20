@@ -43,11 +43,9 @@ export function loadConfig(): ShipsConfig {
   }
   if (isShipsConfig(storedConfig)) {
     return storedConfig;
-  }
-  else if (isOldShipsConfig(storedConfig)) {
+  } else if (isOldShipsConfig(storedConfig)) {
     return fixOldShipsConfig(storedConfig);
-  }
-  else {
+  } else {
     return perfectShipsConfig;
   }
 }
@@ -56,10 +54,7 @@ export function persistConfig() {
   setLocalStorage(CONFIG_LOCALSTORAGE_KEY, JSON.stringify(config.value));
 }
 
-export function configWithCustomShipLevel(
-  ship: ei.MissionInfo.Spaceship,
-  level: number
-): ShipsConfig {
+export function configWithCustomShipLevel(ship: ei.MissionInfo.Spaceship, level: number): ShipsConfig {
   const shipLevels = { ...config.value.shipLevels };
   shipLevels[ship] = level;
   return {

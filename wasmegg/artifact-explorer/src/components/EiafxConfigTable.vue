@@ -9,10 +9,7 @@
               rowspan="2"
               class="sticky top-0 z-10 sm:left-0 px-4 py-1 text-left text-xs font-medium text-gray-500 bg-gray-50"
             >
-              <div
-                class="flex items-center justify-center cursor-pointer"
-                @click="toggleSort(SortBy.Item)"
-              >
+              <div class="flex items-center justify-center cursor-pointer" @click="toggleSort(SortBy.Item)">
                 Item<sort-arrow :direction="sortButtonDirection(SortBy.Item)" />
               </div>
             </th>
@@ -22,10 +19,7 @@
               rowspan="2"
               class="sticky top-0 px-4 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50"
             >
-              <div
-                class="flex items-center justify-center cursor-pointer"
-                @click="toggleSort(SortBy.Tier)"
-              >
+              <div class="flex items-center justify-center cursor-pointer" @click="toggleSort(SortBy.Tier)">
                 Tier<sort-arrow :direction="sortButtonDirection(SortBy.Tier)" />
               </div>
             </th>
@@ -35,10 +29,7 @@
               rowspan="2"
               class="sticky top-0 px-4 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50"
             >
-              <div
-                class="flex items-center justify-center cursor-pointer"
-                @click="toggleSort(SortBy.Quality)"
-              >
+              <div class="flex items-center justify-center cursor-pointer" @click="toggleSort(SortBy.Quality)">
                 Base quality<sort-arrow :direction="sortButtonDirection(SortBy.Quality)" />
               </div>
             </th>
@@ -48,13 +39,8 @@
               rowspan="2"
               class="sticky top-0 px-4 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50"
             >
-              <div
-                class="flex items-center justify-center cursor-pointer"
-                @click="toggleSort(SortBy.OddsMultiplier)"
-              >
-                Odds multiplier<sort-arrow
-                  :direction="sortButtonDirection(SortBy.OddsMultiplier)"
-                />
+              <div class="flex items-center justify-center cursor-pointer" @click="toggleSort(SortBy.OddsMultiplier)">
+                Odds multiplier<sort-arrow :direction="sortButtonDirection(SortBy.OddsMultiplier)" />
               </div>
             </th>
 
@@ -106,9 +92,7 @@
               v-tippy="{
                 content:
                   `${mission.name}, ` +
-                  `${mission.params.minQuality.toFixed(1)} - ${mission.maxBoostedMaxQuality().toFixed(
-                    1
-                  )}`,
+                  `${mission.params.minQuality.toFixed(1)} - ${mission.maxBoostedMaxQuality().toFixed(1)}`,
               }"
               class="sticky top-6 px-2 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 cursor-pointer"
             >
@@ -117,20 +101,14 @@
               </router-link>
             </th>
 
-            <th
-              class="sticky top-6 px-2 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50 border"
-            >
-              Base
-            </th>
+            <th class="sticky top-6 px-2 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50 border">Base</th>
 
             <th
               class="sticky top-6 px-2 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200"
             >
               Low
             </th>
-            <th
-              class="sticky top-6 px-2 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50 border"
-            >
+            <th class="sticky top-6 px-2 py-1 text-center text-xs font-medium text-gray-500 bg-gray-50 border">
               Domain
             </th>
 
@@ -143,11 +121,7 @@
         </thead>
 
         <tbody class="divide-y">
-          <tr
-            v-for="artifact in sortedArtifacts"
-            :key="`${artifact.id}:${artifact.rarity}`"
-            class="divide-x"
-          >
+          <tr v-for="artifact in sortedArtifacts" :key="`${artifact.id}:${artifact.rarity}`" class="divide-x">
             <td class="sm:sticky left-0 px-4 py-1 whitespace-nowrap text-sm text-gray-500 bg-white">
               <artifact-name :artifact="artifact" />
             </td>
@@ -310,7 +284,7 @@ export default defineComponent({
         return sortAscending.value ? cmp : -cmp;
       })
     );
-    const craftable = (artifact: typeof artifacts[number]) =>
+    const craftable = (artifact: (typeof artifacts)[number]) =>
       artifact.craftable && artifact.afx_rarity === Rarity.COMMON;
     return {
       ships,
@@ -374,10 +348,10 @@ function formatSmallFloat(x: number): string {
     return '0';
   }
   if (x >= 1) {
-    let s = x.toFixed(2);
+    const s = x.toFixed(2);
     return s.replace(/\.?0+$/, '');
   }
-  let s = x.toPrecision(2);
+  const s = x.toPrecision(2);
   return s.replace(/0+$/, '');
 }
 </script>

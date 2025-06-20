@@ -18,10 +18,7 @@
                   <div class="flex">
                     <div
                       v-tippy="{
-                        content: `<img data-src='${iconURL(
-                          'egginc/' + tier.icon_filename,
-                          256
-                        )}' class='h-32 w-32'>`,
+                        content: `<img data-src='${iconURL('egginc/' + tier.icon_filename, 256)}' class='h-32 w-32'>`,
                         allowHTML: true,
                       }"
                       class="flex items-center space-x-2"
@@ -30,19 +27,14 @@
                       <div>
                         <div
                           class="text-xs"
-                          :class="
-                            !tier.available_from_missions ? 'text-red-900 dagger' : 'text-gray-500'
-                          "
+                          :class="!tier.available_from_missions ? 'text-red-900 dagger' : 'text-gray-500'"
                         >
                           {{ tier.tier_name }}
                         </div>
 
                         <!-- Effects and slots -->
                         <div class="text-xs text-gray-400 tabular-nums">
-                          <template
-                            v-for="(rarity, index) in tier.effects"
-                            :key="rarity.afx_rarity"
-                          >
+                          <template v-for="(rarity, index) in tier.effects" :key="rarity.afx_rarity">
                             <template v-if="index !== 0">, </template>
                             <span
                               class="inline-flex items-center space-x-px"
@@ -55,11 +47,11 @@
                                   viewBox="0 0 10 30"
                                   xmlns="http://www.w3.org/2000/svg"
                                   class="h-3"
-                                  :class="`w-` + (1 + 2*Math.floor((rarity.slots - 1)/ 3))"
+                                  :class="`w-` + (1 + 2 * Math.floor((rarity.slots - 1) / 3))"
                                 >
                                   <template v-for="slot of rarity.slots" :key="slot">
                                     <circle
-                                      :cx="5 - 10 * (Math.floor((slot - 1) / 3))"
+                                      :cx="5 - 10 * Math.floor((slot - 1) / 3)"
                                       :cy="5 + 10 * ((slot + 2) % 3)"
                                       r="3"
                                       fill="currentColor"

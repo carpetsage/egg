@@ -10,9 +10,7 @@ export const artifacts = artifactTiers.map(artifact => ({
 export const artifactIds = artifacts.map(artifact => artifact.id);
 export const artifactIdToArtifact = new Map(artifacts.map(artifact => [artifact.id, artifact]));
 export const missionIds = missions.map(mission => mission.missionTypeId);
-export const missionIdToMission = new Map(
-  missions.map(mission => [mission.missionTypeId, mission])
-);
+export const missionIdToMission = new Map(missions.map(mission => [mission.missionTypeId, mission]));
 
 const { search: searchArtifacts } = useSearch(artifacts, 'id', ['display']);
 const { search: searchMissions } = useSearch(missions, 'missionTypeId', ['name']);

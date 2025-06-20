@@ -45,10 +45,7 @@ export function cmpArtifacts(a1: ArtifactLike, a2: ArtifactLike): number {
 export const artifactTiers = allPossibleTiers.sort(cmpArtifactTiers);
 export const artifacts = eiafxConfig.artifactParameters
   .map(params => ({
-    ...newArtifact(
-      getArtifactTierProps(Name[params.spec.name], Level[params.spec.level]),
-      Rarity[params.spec.rarity]
-    ),
+    ...newArtifact(getArtifactTierProps(Name[params.spec.name], Level[params.spec.level]), Rarity[params.spec.rarity]),
     params,
   }))
   .sort(cmpArtifacts);

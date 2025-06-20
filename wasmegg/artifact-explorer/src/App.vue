@@ -1,17 +1,13 @@
 <template>
   <the-nav-bar active-entry-id="artifact-explorer" width-classes="max-w-7xl px-4 xl:px-0" />
 
-  <h1 class="mx-4 mt-4 text-center text-lg leading-6 font-medium text-gray-900">
-    Artifact explorer
-  </h1>
+  <h1 class="mx-4 mt-4 text-center text-lg leading-6 font-medium text-gray-900">Artifact explorer</h1>
 
   <div class="max-w-7xl w-full px-4 pb-4 xl:px-0 mx-auto">
     <router-view />
   </div>
 
-  <h2 class="mt-4 mb-2 text-center text-base leading-6 font-medium text-gray-900">
-    <code>/ei_afx/config</code> data
-  </h2>
+  <h2 class="mt-4 mb-2 text-center text-base leading-6 font-medium text-gray-900"><code>/ei_afx/config</code> data</h2>
   <eiafx-config-table />
 
   <config-modal />
