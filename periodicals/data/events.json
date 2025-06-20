@@ -20187,6 +20187,15 @@
     "ultra": true
   },
   {
+    "endTimestamp": 1750435200.0,
+    "id": "event-6-19",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1750348800.0,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
     "endTimestamp": 1750608000.0,
     "id": "summer-wormhole",
     "message": "4x FASTER MISSIONS!",
@@ -20196,12 +20205,21 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1750435200.0,
-    "id": "event-6-19",
-    "message": "80% OFF HEN HOUSES!",
-    "multiplier": 0.2,
-    "startTimestamp": 1750348800.0,
-    "type": "hab-sale",
+    "endTimestamp": 1750521600.0,
+    "id": "event-6-20",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1750435200.0,
+    "type": "research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1750521600.0,
+    "id": "ultra-6-20",
+    "message": "2x EARNINGS!",
+    "multiplier": 2.0,
+    "startTimestamp": 1750435200.0,
+    "type": "earnings-boost",
+    "ultra": true
   }
 ]
