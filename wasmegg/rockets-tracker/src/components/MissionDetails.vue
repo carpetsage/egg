@@ -26,8 +26,10 @@
           <div class="text-right font-medium">Capacity:</div>
           <div>{{ mission.capacity }}</div>
           <div class="text-right font-medium mt-0.5">Sensor target:</div>
-          <div class="text-center text-xs text-white rounded-full w-max px-1.5 py-0.5 mx-auto bg-gray-400 font-semibold">
-            {{ mission.sensorTarget || "None"}}
+          <div
+            class="text-center text-xs text-white rounded-full w-max px-1.5 py-0.5 mx-auto bg-gray-400 font-semibold"
+          >
+            {{ mission.sensorTarget || 'None' }}
           </div>
         </div>
       </div>
@@ -51,10 +53,7 @@
             class="relative block h-full w-full rounded-full"
             :class="artifactRarityBgClass(item.afxRarity) || 'bg-gray-200'"
           >
-            <img
-              :src="iconURL(`egginc/${item.tierProps.icon_filename}`, 128)"
-              class="h-full w-full"
-            />
+            <img :src="iconURL(`egginc/${item.tierProps.icon_filename}`, 128)" class="h-full w-full" />
             <div
               v-if="item.count > 1"
               class="absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
@@ -102,9 +101,7 @@
       <span class="text-sm -ml-1">Retrieving mission data...</span>
     </base-loading>
   </div>
-  <div v-else-if="error" class="mt-3 text-center text-red-500 text-sm">
-    Failed to retrieve mission data.
-  </div>
+  <div v-else-if="error" class="mt-3 text-center text-red-500 text-sm">Failed to retrieve mission data.</div>
 
   <div v-if="showDev && mission" class="mt-2">
     <div class="text-center text-xs font-medium my-2">Dev</div>
@@ -220,8 +217,7 @@ export default defineComponent({
       const m = completeMissionResponse.value;
       return m ? new Loot(m).itemsSortedByQuality : [];
     });
-    const lootItemsByType = (type: Type) =>
-      lootItems.value.filter(it => it.tierProps.afx_type === type);
+    const lootItemsByType = (type: Type) => lootItems.value.filter(it => it.tierProps.afx_type === type);
     const lootSections: Ref<[string, string, LootItem[]][]> = computed(() => {
       const sections: [string, string, LootItem[]][] = [
         ['Artifacts', 'bg-blue-500', lootItemsByType(Type.ARTIFACT)],

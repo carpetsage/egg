@@ -37,8 +37,9 @@ import badgeZLC from './badge-zlc.svg';
 import badgeZLC100 from './badge-zlc100.svg';
 import badgeZLC7star from './badge-zlc7star.svg';
 import badgeASC from './badge-asc.svg';
-import badgeFED from './badge-fed.svg'
-export { badgeNAH, badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star, badgeASC, badgeFED };
+import badgeFED from './badge-fed.svg';
+import badgeGoodJob from './badge-good-job.svg';
+export { badgeNAH, badgeALC, badgeSLC, badgeZLC, badgeZLC100, badgeZLC7star, badgeASC, badgeFED, badgeGoodJob };
 
 import medalZLCRecord from './medal-zlc-record.svg';
 import medalZLCRecordGrayscale from './medal-zlc-record-grayscale.svg';
