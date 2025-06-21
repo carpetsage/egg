@@ -1,6 +1,7 @@
 import path from 'path';
 import process from 'process';
 import { ConfigEnv, UserConfigExport } from 'vite';
+import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 import vue from '@vitejs/plugin-vue';
 import { viteMockServe } from 'vite-plugin-mock';
 
@@ -20,6 +21,7 @@ export default ({ command }: ConfigEnv): UserConfigExport => ({
       mockPath: 'mock',
       localEnabled: command === 'serve' && !!process.env.VITE_APP_MOCK,
     }),
+    ViteImageOptimizer(),
   ],
   build: {
     chunkSizeWarningLimit: 3000,

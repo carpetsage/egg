@@ -96,10 +96,9 @@
         >
           {{ contract.name }}
           <div v-if="contract.ccOnly" class="flex items-center ml-1">
-            <base-icon
+            <img
               v-tippy="{ content: `You must be subscribed to Egg Inc Ultra to see this contract in game` }"
-              :icon-rel-path="'egginc/sub_icon.png'"
-              :size="64"
+              src="/ultra.svg"
               class="block -ml-0.5 h-4 w-4"
             />
           </div>
