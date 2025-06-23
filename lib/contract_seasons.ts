@@ -150,7 +150,7 @@ export function getContractSeasonProgress(backup: ei.IBackup, seasonID: string, 
     false;
 
   // Return default progress if season doesn't have rewards or required data
-  if (!rewardSeason || !seasonProgress || !contractSeason?.id) {
+  if (!rewardSeason || !contractSeason?.id) {
     return defaultContractSeasonProgress;
   }
 
@@ -169,7 +169,7 @@ export function getContractSeasonProgress(backup: ei.IBackup, seasonID: string, 
   // Calculate PE rewards
   const availablePE = peGoal?.rewardAmount ?? 0;
   const cxpLastRewardGiven = seasonProgress?.cxpLastRewardGiven ?? seasonProgress?.totalCxp ?? 0;
-  const completedPE = cxpLastRewardGiven >= (peGoal?.cxp ?? 315000) ? availablePE : 0;
+  const completedPE = cxpLastRewardGiven >= (peGoal?.cxp ?? Infinity) ? availablePE : 0;
 
   // Get contract completion statistics
   const { attemptedContracts, completedContracts, expiredContracts } = getSeasonContractsProgress(
