@@ -1,0 +1,62 @@
+name: update-periodicals
+on:
+  push:
+    paths:
+      - 'periodicals/*'
+      - '.github/**'
+  workflow_dispatch:
+  #schedule:
+  # replaced with cloudflare worker triggering this
+  #
+  # - cron: '0 15-18,23 * * *'
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: periodicals
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.24'
+      - name: Generate protobuf definitions
+        run: |
+          make ei.pb.go
+      - name: Update Periodicals
+        run: |
+          go run main.go ei.pb.go events contracts customeggs contractseasons
+          git diff HEAD -- data
+        env:
+          EI_USERID: ${{ secrets.EI_USERID }}
+      - name: Commit, push changes, and possibly trigger new build
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'actions@github.com'
+
+          # Triggers wasmegg build
+          git add data/events.json
+          git diff --cached --quiet || git commit -m 'events: update data/events.json (from GitHub Actions)'
+
+          # Triggers eicoop build
+          git add data/contracts.json
+          git diff --cached --quiet || git commit -m 'contracts: update data/contracts.json (from GitHub Actions)'
+
+          # Triggers eicoop build
+          git add data/seasoncontracts.json
+          git diff --cached --quiet || git commit -m 'contracts: update data/seasoncontracts.json (from GitHub Actions)'
+
+          # Triggers both builds
+          git add data/contractseasons.json
+          git diff --cached --quiet || git commit -m 'contracts: update data/contractseasons.json (from GitHub Actions)'
+
+          # Triggers both builds
+          git add data/customeggs.json
+          git diff --cached --quiet || git commit -m 'custom eggs: update data/customeggs.json (from GitHub Actions)'
+
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
