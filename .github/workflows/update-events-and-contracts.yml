@@ -1,14 +1,14 @@
 name: update-events-and-contracts
-# on:
-#   push:
-#     paths:
-#       - 'periodicals/*'
-#       - '.github/**'
-#   workflow_dispatch:
-#   #schedule:
-#   # replaced with cloudflare worker triggering this
-#   #
-#   # - cron: '0 15-18,23 * * *'
+on:
+  # push:
+  #   paths:
+  #     - 'periodicals/*'
+  #     - '.github/**'
+  workflow_dispatch:
+  # schedule:
+  #  replaced with cloudflare worker triggering this
+  # 
+  #  - cron: '0 15-18,23 * * *'
 jobs:
   update:
     runs-on: ubuntu-latest
