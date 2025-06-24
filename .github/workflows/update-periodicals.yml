@@ -23,9 +23,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '>=1.24'
-      - name: Generate protobuf definitions
-        run: |
-          make ei.pb.go
       - name: Update Periodicals
         run: |
           go run main.go ei.pb.go events contracts customeggs contractseasons
