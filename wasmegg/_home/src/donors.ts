@@ -2,6 +2,7 @@ export const donors = [
   '3Omac',
   'Adriannosaurus',
   'ahoff',
+  'sentient_ent',
   'Anonymous',
   'bbbb1121',
   'budvugger',
