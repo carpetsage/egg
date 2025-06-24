@@ -4,7 +4,7 @@
 // 	protoc        v5.29.3
 // source: ei.proto
 
-package periodicals
+package main
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

@@ -12,4 +12,4 @@ ei.py: ../protobuf/ei.proto
 	rmdir ei
 
 ei.pb.go: ../protobuf/ei.proto
-	protoc -I . --go_out=. --go_opt=paths=source_relative --go_opt=Mei.proto=github.com/carpetsage/egg/periodicals ei.proto
+	protoc -I . --go_out=. --go_opt=paths=source_relative --go_opt=Mei.proto=github.com/carpetsage/egg/periodicals/main ei.proto
