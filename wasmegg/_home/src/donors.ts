@@ -6,6 +6,7 @@ export const donors = [
   'Anonymous',
   'bbbb1121',
   'budvugger',
+  'Quail',
   'cneal',
   'Dandy',
   'dchester',
