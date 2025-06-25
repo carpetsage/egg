@@ -3,9 +3,13 @@ import utc from 'dayjs/plugin/utc';
 
 import { EventTypeId, InGameEventParams } from './types';
 
-import inGameEvents from '@/events.json';
-import legacyInGameEvents from '@/legacy_events.json';
-import appVersions from '@/version_history.json';
+import inGameEventsData from '@/events.json';
+import legacyInGameEventsData from '@/legacy_events.json';
+import appVersionsData from '@/version_history.json';
+
+const inGameEvents = inGameEventsData as InGameEventParams[];
+const legacyInGameEvents = legacyInGameEventsData as InGameEventParams[];
+const appVersions = appVersionsData as { versionDisplay: string; releaseNotes: string; releaseDate: string }[];
 
 dayjs.extend(utc);
 
@@ -290,9 +294,7 @@ export const events: GameEvent[] = [
   ...[...legacyInGameEvents, ...inGameEvents].map(params => new InGameEvent(params)),
   ...appVersions
     .filter(params => !params.releaseDate.startsWith('2019-'))
-    .map(
-      params => new AppUpdateEvent(params.versionDisplay, params.releaseDate, params.releaseNotes)
-    ),
+    .map(params => new AppUpdateEvent(params.versionDisplay, params.releaseDate, params.releaseNotes)),
 ].sort((e1, e2) => e1.startTimestamp - e2.startTimestamp);
 
 const existingEventTypes = new Set(events.map(e => e.type.id));
