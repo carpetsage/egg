@@ -18,6 +18,7 @@ export const donors = [
   'Garrok',
   'Greenz',
   'Jammin',
+  'Gomero',
   'JassmSa',
   'jbienkens',
   'kjkawa',
