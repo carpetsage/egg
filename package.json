@@ -1,18 +1,18 @@
 {
   "devDependencies": {
-    "@eslint/js": "^9.20.0",
-    "@typescript-eslint/parser": "^8.24.0",
-    "eslint": "^9.20.1",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.3",
-    "eslint-plugin-vue": "^9.32.0",
+    "@eslint/js": "^9.29.0",
+    "@typescript-eslint/parser": "^8.35.0",
+    "eslint": "^9.29.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
+    "eslint-plugin-vue": "^10.2.0",
     "globals": "^16.2.0",
     "prettier": "^3.5.1",
-    "prettier-eslint": "^16.3.0",
+    "prettier-eslint": "^16.4.2",
     "syncpack": "^12.4.0",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.24.0",
-    "vue-eslint-parser": "^9.4.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.35.0",
+    "vue-eslint-parser": "^10.1.4"
   },
   "private": true,
   "scripts": {
@@ -40,5 +40,5 @@
     "wasmegg/legendary-study",
     "wasmegg/mission-planner"
   ],
-  "packageManager": "pnpm@10.12.2+sha512.a32540185b964ee30bb4e979e405adc6af59226b438ee4cc19f9e8773667a66d302f5bfee60a39d3cac69e35e4b96e708a71dd002b7e9359c4112a1722ac323f"
+  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
 }
