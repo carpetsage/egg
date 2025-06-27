@@ -1,0 +1,2 @@
+export const LEGENDARIES_JEALOUSY_THRESHOLD = 69;
+export const ZLC_EXTHEN_RECORD = 222;

@@ -5,7 +5,7 @@ all: clean
 
 init:
 
-build: src/lib/study_stats.ts
+build:
 	pnpm build
 
 # The EIAPI_TOKEN environment variable has to be set. Use the -fake flag to
@@ -21,7 +21,7 @@ fastbuild: src/lib/study_stats.ts
 	../_tools/build.py dist --additional assets --additional static
 
 clean:
-	@$(RM) -r dist src/lib/study_stats.ts
+	@$(RM) -r dist
 
 dev:
 	pnpm dev
