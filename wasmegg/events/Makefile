@@ -9,6 +9,7 @@ build: src/lib/version_history.json
 	pnpm build
 
 src/lib/version_history.json:
+	cd tools/version_history
 	go run tools/version_history/main.go
 
 dist: build
