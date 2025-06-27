@@ -21,7 +21,7 @@ fastbuild:
 	../_tools/build.py dist --additional assets --additional static
 
 clean:
-	@$(RM) -r dist src/lib/study_stats.ts
+	@$(RM) -r dist
 
 dev:
 	pnpm dev
