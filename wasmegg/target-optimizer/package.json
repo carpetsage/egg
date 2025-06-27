@@ -1,5 +1,5 @@
 {
-  "name": "consumption-sheet",
+  "name": "@@ID@@",
   "type": "module",
   "version": "0.0.0",
   "license": "MIT",
@@ -11,23 +11,24 @@
     "lint": "eslint --ext .js,.ts,.vue src"
   },
   "dependencies": {
-    "@headlessui/vue": "^1.7.23",
+    "@headlessui/vue": "^1.7.19",
     "@heroicons/vue": "^1.0.6",
     "lib": "workspace:^",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
-    "vue": "^3.5.13",
-    "vue-tippy": "^6.6.0"
+    "vue": "^3.4.21",
+    "vue-tippy": "^6.4.1"
   },
   "devDependencies": {
-    "@tailwindcss/forms": "^0.5.10",
-    "@vitejs/plugin-vue": "^5.2.1",
-    "@vue/compiler-sfc": "^3.5.13",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.3",
-    "vite": "^6.3.5",
-    "vue-tsc": "^2.2.0"
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/postcss": "^4.0.6",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@vue/compiler-sfc": "^3.4.21",
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.4.2",
+    "vite": "^5.1.6",
+    "vue-tsc": "^2.0.6"
   }
 }
