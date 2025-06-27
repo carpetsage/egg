@@ -1,5 +1,287 @@
 [
   {
+    "versionDisplay": "1.34.3",
+    "releaseNotes": "- small improvements and bug fixes",
+    "releaseDate": "2025-03-31",
+    "releaseTimestamp": "2025-03-31T19:29:10Z"
+  },
+  {
+    "versionDisplay": "1.34.2",
+    "releaseNotes": "-small improvements and bug fixes",
+    "releaseDate": "2025-03-12",
+    "releaseTimestamp": "2025-03-12T13:12:42Z"
+  },
+  {
+    "versionDisplay": "1.34.1",
+    "releaseNotes": "- season reward support\\n*fix for players with unassigned grades",
+    "releaseDate": "2024-12-21",
+    "releaseTimestamp": "2024-12-21T16:51:51Z"
+  },
+  {
+    "versionDisplay": "1.34",
+    "releaseNotes": "- season reward support\\n- small improvements and bug fixes",
+    "releaseDate": "2024-12-12",
+    "releaseTimestamp": "2024-12-12T17:39:24Z"
+  },
+  {
+    "versionDisplay": "1.33.6",
+    "releaseNotes": "- small improvements and bug fixes",
+    "releaseDate": "2024-12-01",
+    "releaseTimestamp": "2024-12-01T20:51:51Z"
+  },
+  {
+    "versionDisplay": "1.33.5",
+    "releaseNotes": "- fixes a long running contracts bug\\n* launch crash fix",
+    "releaseDate": "2024-11-26",
+    "releaseTimestamp": "2024-11-26T15:04:02Z"
+  },
+  {
+    "versionDisplay": "1.33.4",
+    "releaseNotes": "- fixes a long running contracts bug",
+    "releaseDate": "2024-11-24",
+    "releaseTimestamp": "2024-11-24T23:42:04Z"
+  },
+  {
+    "versionDisplay": "1.33.2",
+    "releaseNotes": "- Colleggtibles feature (keep an eye out for them in Contracts)\\n- Immortality =\u003e CRISPR\\n- Small improvements and bug fixes\\n* minor contracts bug fixes",
+    "releaseDate": "2024-07-10",
+    "releaseTimestamp": "2024-07-10T20:18:06Z"
+  },
+  {
+    "versionDisplay": "1.33.1",
+    "releaseNotes": "- Colleggtibles feature (keep an eye out for them in Contracts)\\n- Immortality =\u003e CRISPR\\n- Small improvements and bug fixes\\n* minor contracts buf fixes",
+    "releaseDate": "2024-07-02",
+    "releaseTimestamp": "2024-07-02T22:59:45Z"
+  },
+  {
+    "versionDisplay": "1.33",
+    "releaseNotes": "- Colleggtibles feature (keep an eye out for them in Contracts)\\n- Immortality =\u003e CRISPR\\n- Small improvements and bug fixes",
+    "releaseDate": "2024-06-26",
+    "releaseTimestamp": "2024-06-26T21:10:27Z"
+  },
+  {
+    "versionDisplay": "1.32.1",
+    "releaseNotes": "- Room for more decorators\\n- Adaptive Artifacts inventory screen\\n- Auxiliary fuel tanks increase flow rate\\n- small improvements and bug fixes\\n* min rows fix",
+    "releaseDate": "2024-04-29",
+    "releaseTimestamp": "2024-04-29T15:53:24Z"
+  },
+  {
+    "versionDisplay": "1.32",
+    "releaseNotes": "- Room for more decorators\\n- Adaptive Artifacts inventory screen\\n- Auxiliary fuel tanks increase flow rate\\n- small improvements and bug fixes",
+    "releaseDate": "2024-04-23",
+    "releaseTimestamp": "2024-04-23T17:33:45Z"
+  },
+  {
+    "versionDisplay": "1.31",
+    "releaseNotes": "- Atreggies Henliner\\n- Lunar Totem's revenge",
+    "releaseDate": "2024-03-06",
+    "releaseTimestamp": "2024-03-06T17:57:55Z"
+  },
+  {
+    "versionDisplay": "1.30",
+    "releaseNotes": "- Egg Inc University! (look on the help screen)\\n- small improvements and bug fixes",
+    "releaseDate": "2024-02-21",
+    "releaseTimestamp": "2024-02-21T03:01:43Z"
+  },
+  {
+    "versionDisplay": "1.29.3",
+    "releaseNotes": "- icon change\\n- minor improvements and bug fixes",
+    "releaseDate": "2024-01-11",
+    "releaseTimestamp": "2024-01-11T22:35:33Z"
+  },
+  {
+    "versionDisplay": "1.29.2",
+    "releaseNotes": "- Shells Showcase! - share your customized farm with he egg inc community, browse and vote on cool farms!\\n- Artifacts stability improvements\\n- small improvements and bug fixes",
+    "releaseDate": "2023-12-11",
+    "releaseTimestamp": "2023-12-11T16:44:13Z"
+  },
+  {
+    "versionDisplay": "1.29.1",
+    "releaseNotes": "- Shells Showcase! - share your customized farm with he egg inc community, browse and vote on cool farms!\\n- Artifacts stability improvements\\n- small improvements and bug fixes",
+    "releaseDate": "2023-12-05",
+    "releaseTimestamp": "2023-12-05T15:26:24Z"
+  },
+  {
+    "versionDisplay": "1.29",
+    "releaseNotes": "- Shells Showcase! - share your customized farm with he egg inc community, browse and vote on cool farms!\\n- Artifacts stability improvements",
+    "releaseDate": "2023-12-04",
+    "releaseTimestamp": "2023-12-04T22:55:58Z"
+  },
+  {
+    "versionDisplay": "1.28.8",
+    "releaseNotes": "- small improvements and bug fixes",
+    "releaseDate": "2023-11-07",
+    "releaseTimestamp": "2023-11-07T16:40:29Z"
+  },
+  {
+    "versionDisplay": "1.28.7",
+    "releaseNotes": "- small improvements and bug fixes",
+    "releaseDate": "2023-11-01",
+    "releaseTimestamp": "2023-11-01T16:04:27Z"
+  },
+  {
+    "versionDisplay": "1.28.6",
+    "releaseNotes": "- small improvements and bug fixes",
+    "releaseDate": "2023-10-19",
+    "releaseTimestamp": "2023-10-19T16:26:44Z"
+  },
+  {
+    "versionDisplay": "1.28.5",
+    "releaseNotes": "- Lighting controls\\n- many improvements and bug fixes",
+    "releaseDate": "2023-10-11",
+    "releaseTimestamp": "2023-10-11T14:23:31Z"
+  },
+  {
+    "versionDisplay": "1.28.4",
+    "releaseNotes": "- Lighting controls\\n- many improvements and bug fixes",
+    "releaseDate": "2023-10-09",
+    "releaseTimestamp": "2023-10-09T14:43:31Z"
+  },
+  {
+    "versionDisplay": "1.28.3",
+    "releaseNotes": "- Lighting controls\\n- many improvements and bug fixes\\n* shader fix",
+    "releaseDate": "2023-10-06",
+    "releaseTimestamp": "2023-10-06T02:00:38Z"
+  },
+  {
+    "versionDisplay": "1.28.2",
+    "releaseNotes": "- Lighting controls\\n- many improvements and bug fixes",
+    "releaseDate": "2023-10-05",
+    "releaseTimestamp": "2023-10-05T13:23:09Z"
+  },
+  {
+    "versionDisplay": "1.28",
+    "releaseNotes": "- Fuel Tank Limits\n- Contracts Widget",
+    "releaseDate": "2023-09-22",
+    "releaseTimestamp": "2023-09-22T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.27.2",
+    "releaseNotes": "- MAX Button\n- Artifact Mission Targeting\n- Artifact Sets\n- Dilithium Bulb\n- minor bug fixes",
+    "releaseDate": "2023-06-12",
+    "releaseTimestamp": "2023-06-12T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.27.1",
+    "releaseNotes": "- MAX Button\n- Artifact Mission Targeting\n- Artifact Sets\n- Dilithium Bulb",
+    "releaseDate": "2023-06-09",
+    "releaseTimestamp": "2023-06-09T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.27",
+    "releaseNotes": "- MAX Button\n- Artifact Mission Targeting\n- Artifact Sets\n- Dilithium Bulb",
+    "releaseDate": "2023-06-08",
+    "releaseTimestamp": "2023-06-08T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.26.2",
+    "releaseNotes": "- Contracts v2 Beta!\n- better end of contract handling, including status indicators for each member\n- artifacts being used on completed contracts can be used on other farms",
+    "releaseDate": "2023-05-11",
+    "releaseTimestamp": "2023-05-11T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.26.1",
+    "releaseNotes": "- Contracts v2 Beta\n- a few minor updates and bug fixes\n- Goodbye CP, hello CS",
+    "releaseDate": "2023-05-03",
+    "releaseTimestamp": "2023-05-03T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.26",
+    "releaseNotes": "- Contracts v2 feature set - released as a Beta",
+    "releaseDate": "2023-05-01",
+    "releaseTimestamp": "2023-05-01T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.25.5",
+    "releaseNotes": "- Icon change\n- minor improvements and bug fixes",
+    "releaseDate": "2023-01-31",
+    "releaseTimestamp": "2023-01-31T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.25.4",
+    "releaseNotes": "Winter is here!",
+    "releaseDate": "2022-12-06",
+    "releaseTimestamp": "2022-12-06T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.25.3",
+    "releaseNotes": "- minor improvements and bug fixes",
+    "releaseDate": "2022-11-16",
+    "releaseTimestamp": "2022-11-16T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.25.2",
+    "releaseNotes": "- Built for iOS 16",
+    "releaseDate": "2022-11-03",
+    "releaseTimestamp": "2022-11-03T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.25.1",
+    "releaseNotes": "- Halloween Decorations!\n- Jump between teammates' farms in coops\n- Save/Load Farm Shell configs\n- minor improvements and bug fixes",
+    "releaseDate": "2022-10-10",
+    "releaseTimestamp": "2022-10-10T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.25",
+    "releaseNotes": "- Save and load farm Shell configurations!\n- Jump between coop-mates' farms!\n- many more small improvements and bug fixes",
+    "releaseDate": "2022-10-07",
+    "releaseTimestamp": "2022-10-07T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.24.6",
+    "releaseNotes": "- small improvements and bug fixes",
+    "releaseDate": "2022-09-03",
+    "releaseTimestamp": "2022-09-03T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.24.5",
+    "releaseNotes": "- small improvements and bug fixes",
+    "releaseDate": "2022-08-20",
+    "releaseTimestamp": "2022-08-20T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.24.4",
+    "releaseNotes": "- small improvements and bug fixes",
+    "releaseDate": "2022-08-18",
+    "releaseTimestamp": "2022-08-18T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.24.3",
+    "releaseNotes": "- contains fix for missing variations\n- Artifacts crafting experience system!\n- Contract Co-op info screen enhancements\n- See your teammates' active boosts and artifacts\n- much much more!",
+    "releaseDate": "2022-08-09",
+    "releaseTimestamp": "2022-08-09T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.24.2",
+    "releaseNotes": "- Shell \"Variations\" feature\n- Artifacts crafting experience system!\n- Contract Co-op info screen enhancements\n- See your teammates' active boosts and artifacts\n- much much more!",
+    "releaseDate": "2022-08-04",
+    "releaseTimestamp": "2022-08-04T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.24.1",
+    "releaseNotes": "- Shell \"Variations\" feature\n- Artifacts crafting experience system!\n- Contract Co-op info screen enhancements\n- See your teammates' active boosts and artifacts\n- much much more!",
+    "releaseDate": "2022-08-03",
+    "releaseTimestamp": "2022-08-03T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.24",
+    "releaseNotes": "- Shell \"Variations\" feature\n- Artifacts crafting experience system!\n- Contract Co-op info screen enhancements\n- See your teammates' active boosts and artifacts\n- much much more!",
+    "releaseDate": "2022-08-03",
+    "releaseTimestamp": "2022-08-03T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.23.1",
+    "releaseNotes": "Shells!!!\n- Customize every inch of your farm!\n- Customize your flock! And of course, our chickens wear hats!\n- New shells will be added regularly\n- includes minor launch bug fixes",
+    "releaseDate": "2022-07-14",
+    "releaseTimestamp": "2022-07-14T00:00:00Z"
+  },
+  {
+    "versionDisplay": "1.23",
+    "releaseNotes": "Shells!!!\n- Customize every inch of your farm!\n- Customize your flock! And of course, our chickens wear hats!\n- New shells will be added regularly",
+    "releaseDate": "2022-07-13",
+    "releaseTimestamp": "2022-07-13T00:00:00Z"
+  },
+  {
     "versionDisplay": "1.22.9",
     "releaseNotes": "- Updated app rating to reflect ad content",
     "releaseDate": "2022-04-16",
@@ -19,7 +301,7 @@
   },
   {
     "versionDisplay": "1.22.6",
-    "releaseNotes": "- Small improvements & bug fixes",
+    "releaseNotes": "- Small improvements \u0026 bug fixes",
     "releaseDate": "2022-03-23",
     "releaseTimestamp": "2022-03-23T02:37:03Z"
   },
@@ -152,76 +434,91 @@
   {
     "versionDisplay": "1.12.11",
     "releaseNotes": "- bug fixes",
-    "releaseDate": "2020-07-05"
+    "releaseDate": "2020-07-05",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.10",
     "releaseNotes": "- small improvements and bug fixes",
-    "releaseDate": "2020-06-30"
+    "releaseDate": "2020-06-30",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.9",
     "releaseNotes": "- small improvements and bug fixes",
-    "releaseDate": "2020-06-11"
+    "releaseDate": "2020-06-11",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.8",
-    "releaseNotes": "- Contract progress details now displayed on contract egg screen\n- Exponential contract progress bars to give a better feel on progress (tap to toggle)\n- Press and hold boost token gift buttons\n- Get a Boost token as a video reward or as a random delivery!\n- Elite Contract Goals & Rewards - Contract goals & rewards are now split into standard and elite. Beginning players will have more achievable goals, and expert players will have more fun and earn larger rewards, Egg of Prophecy rewards will be the same between both types!",
-    "releaseDate": "2020-03-17"
+    "releaseNotes": "- Contract progress details now displayed on contract egg screen\n- Exponential contract progress bars to give a better feel on progress (tap to toggle)\n- Press and hold boost token gift buttons\n- Get a Boost token as a video reward or as a random delivery!\n- Elite Contract Goals \u0026 Rewards - Contract goals \u0026 rewards are now split into standard and elite. Beginning players will have more achievable goals, and expert players will have more fun and earn larger rewards, Egg of Prophecy rewards will be the same between both types!",
+    "releaseDate": "2020-03-17",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.7",
-    "releaseNotes": "- Exponential contract progress bars to give a better feel on progress (tap to toggle)\n- Press and hold boost token gift buttons\n- Get a Boost token as a video reward or as a random delivery!\n- Elite Contract Goals & Rewards - Contract goals & rewards are now split into standard and elite. Beginning players will have more achievable goals, and expert players will have more fun and earn larger rewards, Egg of Prophecy rewards will be the same between both types!",
-    "releaseDate": "2020-03-16"
+    "releaseNotes": "- Exponential contract progress bars to give a better feel on progress (tap to toggle)\n- Press and hold boost token gift buttons\n- Get a Boost token as a video reward or as a random delivery!\n- Elite Contract Goals \u0026 Rewards - Contract goals \u0026 rewards are now split into standard and elite. Beginning players will have more achievable goals, and expert players will have more fun and earn larger rewards, Egg of Prophecy rewards will be the same between both types!",
+    "releaseDate": "2020-03-16",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.6",
     "releaseNotes": "- See boost tokens of your coop mates!\n- Several minor improvements and bug fixes",
-    "releaseDate": "2020-02-21"
+    "releaseDate": "2020-02-21",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.5",
     "releaseNotes": "- Minor improvements and bug fixes\n- Enhanced Privacy Controls\n",
-    "releaseDate": "2020-01-29"
+    "releaseDate": "2020-01-29",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.4",
     "releaseNotes": "* Alleviates coop kick bug and age restriction bug *\n- CCPA Compliance and data consent is now expanded to ALL Players\n- Players who do not consent to data collection can now watch *untracked* ads for rewards!\n- Piggy grows faster\n- Bug fixes",
-    "releaseDate": "2020-01-11"
+    "releaseDate": "2020-01-11",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.3",
     "releaseNotes": "- CCPA Compliance and data consent is now expanded to ALL Players\n- Players who do not consent to data collection can now watch *untracked* ads for rewards!\n- Piggy grows faster\n- Bug fixes",
-    "releaseDate": "2020-01-10"
+    "releaseDate": "2020-01-10",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.2",
     "releaseNotes": "* crash fix, ads fix, instant cash boost bug fix, running chicken bonus increase\n- Missions update: Complete 3 missions simultaneously\n- Boost Tokens! A new fun way boosts are regulated in Contracts\n- New Boost: Soul Mirror - Mirror the Earnings Bonus of the top player in your co-op!\n- Balance changes: Some cash have increased BUT while the MAX running chicken bonus reduced, but it now increases farm value AND drone rewards!\n- Numerous improvements and bug fixes with more to come!",
-    "releaseDate": "2019-12-16"
+    "releaseDate": "2019-12-16",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12.1",
     "releaseNotes": "* fix for a restore backup crash\n- Missions update: Complete 3 missions simultaneously\n- Boost Tokens! A new fun way boosts are regulated in Contracts\n- New Boost: Soul Mirror - Mirror the Earnings Bonus of the top player in your co-op!\n- Balance changes: Some cash have increased BUT while the MAX running chicken bonus reduced, but it now increases farm value AND drone rewards!\n- Numerous improvements and bug fixes with more to come!",
-    "releaseDate": "2019-12-14"
+    "releaseDate": "2019-12-14",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.12",
     "releaseNotes": "- Missions update: Complete 3 missions simultaneously\n- Boost Tokens! A new fun way boosts are regulated in Contracts\n- New Boost: Soul Mirror - Mirror the Earnings Bonus of the top player in your co-op!\n- Balance changes: Some cash have increased BUT while the MAX running chicken bonus reduced, but it now increases farm value AND drone rewards!\n- Numerous improvements and bug fixes with more to come!",
-    "releaseDate": "2019-12-10"
+    "releaseDate": "2019-12-10",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.11.6",
     "releaseNotes": "- Numerous small improvements and bug fixes",
-    "releaseDate": "2019-10-24"
+    "releaseDate": "2019-10-24",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.11.5",
     "releaseNotes": "- New Help screen!\n- Different purchases increment the piggy different amounts\n",
-    "releaseDate": "2019-10-22"
+    "releaseDate": "2019-10-22",
+    "releaseTimestamp": ""
   },
   {
     "versionDisplay": "1.11.4",
     "releaseNotes": "- Contract onboarding improvements\n- Piggy cap starts lower but grows faster and ends up increasing the cap significantly\n* fixes contract screen crash when no contracts are available",
-    "releaseDate": "2019-10-10"
+    "releaseDate": "2019-10-10",
+    "releaseTimestamp": ""
   }
 ]
