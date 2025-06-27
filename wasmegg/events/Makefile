@@ -5,8 +5,11 @@ all: clean
 
 init:
 
-build:
+build: src/lib/version_history.json
 	pnpm build
+
+src/lib/version_history.json:
+	go run tools/version_history/main.go
 
 dist: build
 	../_tools/build.py dist --additional assets

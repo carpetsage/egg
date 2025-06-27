@@ -2,9 +2,7 @@
   <the-nav-bar active-entry-id="events" width-classes="max-w-4xl px-4 lg:px-0" />
 
   <div class="max-w-4xl px-4 lg:px-0 mx-auto my-4 space-y-2">
-    <h1 class="mx-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
-      Events calendar
-    </h1>
+    <h1 class="mx-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">Events calendar</h1>
 
     <div class="flex justify-start sm:justify-center">
       <div>
@@ -46,9 +44,7 @@
             />
           </div>
           <div class="ml-2 flex items-center space-x-1">
-            <label for="forceFullWidth" class="text-sm text-gray-600">
-              Display boost multipliers
-            </label>
+            <label for="forceFullWidth" class="text-sm text-gray-600"> Display boost multipliers </label>
             <base-info
               v-tippy="{
                 content: `Display boost multipliers in addition to event labels directly in the
@@ -116,9 +112,7 @@
             />
           </div>
           <div class="ml-2 flex items-center space-x-1">
-            <label for="forceSingleColumn" class="text-sm text-gray-600">
-              Single column view
-            </label>
+            <label for="forceSingleColumn" class="text-sm text-gray-600"> Single column view </label>
             <base-info
               v-tippy="{
                 content: `When checked, show only one month per row.`,
@@ -145,9 +139,7 @@
         <div class="ml-2">
           <label :for="`show-${eventType.id}`" class="flex items-center space-x-1">
             <event-badge :event="eventType" />
-            <span class="text-sm text-gray-600">{{
-              capitalize(eventType.name.toLowerCase())
-            }}</span>
+            <span class="text-sm text-gray-600">{{ capitalize(eventType.name.toLowerCase()) }}</span>
           </label>
         </div>
       </div>
@@ -172,23 +164,18 @@
 
     <div>
       <p class="text-center text-xs text-gray-500">
-        Data for 2020 events were extracted from spreadsheet provided by Discord user @lamCube.
-        Start timestamps and durations are provided on a best-effort basis and not accurate. 2019 or
-        earlier events are omitted due to event scarcity and lack of predictive power.
+        Data for 2020 events were extracted from spreadsheet provided by Discord user @lamCube. Start timestamps and
+        durations are provided on a best-effort basis and not accurate. 2019 or earlier events are omitted due to event
+        scarcity and lack of predictive power.
       </p>
-      <p class="text-center text-xs text-gray-700">
-        Tip: Hover over / click on event labels to reveal details.
-      </p>
+      <p class="text-center text-xs text-gray-700">Tip: Hover over / click on event labels to reveal details.</p>
     </div>
   </div>
 
   <div class="overflow-x-auto pb-6 mt-4">
     <div
       class="Calendar grid content-evenly gap-6 mx-auto"
-      :class="[
-        forceFullWidth ? 'Calendar--full-width' : null,
-        forceSingleColumn ? 'Calendar--single-column' : null,
-      ]"
+      :class="[forceFullWidth ? 'Calendar--full-width' : null, forceSingleColumn ? 'Calendar--single-column' : null]"
     >
       <template v-for="{ month, date2events } in months" :key="month">
         <calendar-month
@@ -267,13 +254,11 @@ export default defineComponent({
     const forceFullWidth = ref(getLocalStorage(FORCE_FULL_WIDTH_LOCALSTORAGE_KEY) === 'true');
     watch(forceFullWidth, () => setLocalStorage(FORCE_FULL_WIDTH_LOCALSTORAGE_KEY, forceFullWidth));
     const forceSingleColumn = ref(getLocalStorage(FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY) === 'true');
-    watch(forceSingleColumn, () =>
-      setLocalStorage(FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY, forceSingleColumn.value)
-    );
+    watch(forceSingleColumn, () => setLocalStorage(FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY, forceSingleColumn.value));
     const showUltraEvents = ref(getLocalStorage(SHOW_ULTRA_EVENTS_LOCALSTORAGE_KEY) === 'false');
-    watch(showUltraEvents , () => setLocalStorage(SHOW_ULTRA_EVENTS_LOCALSTORAGE_KEY, showUltraEvents.value));
+    watch(showUltraEvents, () => setLocalStorage(SHOW_ULTRA_EVENTS_LOCALSTORAGE_KEY, showUltraEvents.value));
     const showNormalEvents = ref(getLocalStorage(SHOW_NORMAL_EVENTS_LOCALSTORAGE_KEY) !== 'false');
-    watch(showNormalEvents , () => setLocalStorage(SHOW_NORMAL_EVENTS_LOCALSTORAGE_KEY, showNormalEvents.value));
+    watch(showNormalEvents, () => setLocalStorage(SHOW_NORMAL_EVENTS_LOCALSTORAGE_KEY, showNormalEvents.value));
 
     const eventTypesOn = ref(getEventTypesOn());
     const persistEventTypeOn = (id: EventTypeId) =>

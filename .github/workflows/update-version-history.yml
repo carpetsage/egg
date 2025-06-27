@@ -1,0 +1,42 @@
+name: update-version-history
+on:
+  push:
+    paths:
+      - 'wasmegg/events/tools/version_history'
+      - '.github/workflows/update-version-history.yml'
+  workflow_dispatch:
+  # Just run daily at some point. Time is not important.
+  schedule:
+   - cron: '0 23 * * *'
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wasmegg/events
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.24'
+      - name: Update Version History
+        run: |
+          make src/lib/version_history.json
+          git diff HEAD -- src/lib/version_history.json || echo 'No changes to version history'
+        env:
+          EI_USERID: ${{ secrets.EI_USERID }}
+      - name: Commit, push changes, and possibly trigger new build
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'actions@github.com'
+
+          # Triggers wasmegg build
+          git add src/lib/version_history.json
+          git diff --cached --quiet || git commit -m 'events: update src/lib/version_history.json (from GitHub Actions)'
+
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}

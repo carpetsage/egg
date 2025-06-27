@@ -27,10 +27,7 @@
               :class="forceFullWidth ? 'justify-start' : 'justify-center'"
             >
               <event-badge :event="event.type" />
-              <span
-                class="text-xs truncate md:inline"
-                :class="[event.fgClass, forceFullWidth ? 'inline' : 'hidden']"
-              >
+              <span class="text-xs truncate md:inline" :class="[event.fgClass, forceFullWidth ? 'inline' : 'hidden']">
                 <template v-if="event.isInGameEvent()">{{ event.caption }}</template>
                 <template v-else>v{{ event.version }}</template>
               </span>
@@ -66,10 +63,7 @@
                 <template v-else>
                   <div :class="event.brightFgClass">
                     <p class="flex items-center space-x-1">
-                      <img
-                        :src="iconURL('egginc/ei_app_icon.png', 64)"
-                        class="h-4 w-4 rounded-sm"
-                      />
+                      <img :src="iconURL('egginc/ei_app_icon.png', 64)" class="h-4 w-4 rounded-sm" />
                       <span>App version {{ event.version }}</span>
                     </p>
                     <p>
@@ -78,7 +72,7 @@
                     </p>
                     <p>
                       <span class="text-white">Release notes:</span><br />
-                      <span class="whitespace-pre-line">{{ event.releaseNotes }}</span>
+                      <span class="whitespace-pre-line">{{ event.releaseNotes.replaceAll('\\n', '\n') }}</span>
                     </p>
                   </div>
                 </template>
@@ -100,7 +94,6 @@ import { formatDuration, getDevModeOn, iconURL } from 'lib';
 import { GameEvent } from '@/events';
 import { EventTypeSwitches } from '@/types';
 import EventBadge from '@/components/EventBadge.vue';
-import { InGameEvent } from '../events';
 
 export default defineComponent({
   components: {
@@ -131,7 +124,7 @@ export default defineComponent({
     showNormalEvents: {
       type: Boolean,
       default: false,
-    }
+    },
   },
   setup(props) {
     const { month, date2events, showUltraEvents, showNormalEvents } = toRefs(props);
@@ -148,11 +141,10 @@ export default defineComponent({
     });
     const showEvent = (event: GameEvent) => {
       if (event.isInGameEvent() && event.ultra) {
-        return showUltraEvents.value
+        return showUltraEvents.value;
       }
       if (event.isInGameEvent() && !event.ultra) {
-        console.log(showNormalEvents.value)
-        return showNormalEvents.value
+        return showNormalEvents.value;
       }
       return true;
     };
