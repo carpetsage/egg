@@ -5,10 +5,10 @@ all: clean
 
 init:
 
-build: src/lib/version_history.json
+build: src/version_history.json
 	pnpm build
 
-src/lib/version_history.json:
+src/version_history.json:
 	GOFLAGS="-modfile=tools/version_history/go.mod" go run tools/version_history/main.go
 
 dist: build
