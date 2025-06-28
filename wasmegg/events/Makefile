@@ -9,8 +9,7 @@ build: src/lib/version_history.json
 	pnpm build
 
 src/lib/version_history.json:
-	cd tools/version_history
-	go run tools/version_history/main.go
+	GOFLAGS="-modfile=tools/version_history/go.mod" go run tools/version_history/main.go
 
 dist: build
 	../_tools/build.py dist --additional assets
