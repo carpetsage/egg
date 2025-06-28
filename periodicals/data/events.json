@@ -21445,5 +21445,14 @@
     "startTimestamp": 1751126400,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1751153400,
+    "id": "ultra-6-28",
+    "message": "UNCAPPED PIGGY!",
+    "multiplier": 1,
+    "startTimestamp": 1751151600,
+    "type": "piggy-cap-boost",
+    "ultra": true
   }
 ]
