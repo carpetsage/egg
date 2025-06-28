@@ -1,25 +1,32 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "esModuleInterop": true,
     "exactOptionalPropertyTypes": true,
-    "strict": true,
+    "experimentalDecorators": true,
+    "isolatedModules": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
-    "isolatedModules": true,
-    "sourceMap": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "lib": ["esnext", "dom"],
-    "types": [],
-    "baseUrl": ".",
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["src/*"],
-      "ui/*": ["../../ui/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "ui/*": [
+        "../../ui/*"
+      ]
     },
-    "skipLibCheck": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "esnext",
+    "types": []
   },
   "include": [
     "src/**/*.ts",

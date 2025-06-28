@@ -30,9 +30,9 @@ export function getMissionDataPreference(playerId: string) {
   return getMissionDataPreferences()[playerId];
 }
 
-export function recordMissionDataPreference(playerId: string, optin: boolean): void {
+export function recordMissionDataPreference(playerId: string, optin: boolean) {
   const missionDataPref = ref(getMissionDataPreferences());
-  missionDataPref.value[playerId] = optin
+  missionDataPref.value[playerId] = optin;
   setLocalStorageNoPrefix(MISSIONDATA_OPT_IN_LOCALSTORAGE_KEY, JSON.stringify(missionDataPref.value));
 }
 
@@ -48,7 +48,7 @@ export function getMissionDataSubmitTimes() {
         submissionTimes[key] = val;
       }
     }
-    return submissionTimes
+    return submissionTimes;
   } catch (e) {
     console.error(`error loading mission data preferences from localStorage: ${e}`);
     return {};
@@ -58,13 +58,13 @@ export function getMissionDataSubmitTime(playerId: string) {
   return getMissionDataSubmitTimes()[playerId] || 0;
 }
 
-export function recordMissionDataSubmitTime(playerId: string): void {
+export function recordMissionDataSubmitTime(playerId: string) {
   const missionDataSubmitTimes = ref(getMissionDataSubmitTimes());
-  missionDataSubmitTimes.value[playerId] = Date.now()
+  missionDataSubmitTimes.value[playerId] = Date.now();
   setLocalStorageNoPrefix(LAST_REPORT_TIME_LOCALSTORAGE_KEY, JSON.stringify(missionDataSubmitTimes.value));
 }
 
-export async function reportMissionData(backup: ei.IBackup): Promise<void> {
+export async function reportMissionData(backup: ei.IBackup) {
   const playerId = backup.eiUserId!;
   const lastSubmit = getMissionDataSubmitTime(playerId) || 0;
   // only submit if it's been 24+ hours since last time
@@ -78,13 +78,13 @@ export async function reportMissionData(backup: ei.IBackup): Promise<void> {
       method: 'POST',
       mode: 'cors',
       headers: {
-        "x-functions-key": FUNCTIONKEY,
-        'Accept' : '*/*',
-        "Content-Type": "application/json",
+        'x-functions-key': FUNCTIONKEY,
+        Accept: '*/*',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        'eid': playerId
-      })
+        eid: playerId,
+      }),
     });
   } catch (err) {
     console.error(err);

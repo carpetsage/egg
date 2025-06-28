@@ -1,23 +1,35 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "isolatedModules": true,
-    "strict": true,
-    "jsx": "preserve",
-    "jsxImportSource": "vue",
-    "sourceMap": true,
-    "resolveJsonModule": true,
+    "baseUrl": ".",
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "lib": ["esnext", "dom"],
-    "baseUrl": ".",
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["src/*"],
-      "ui/*": ["../../ui/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "ui/*": [
+        "../../ui/*"
+      ]
     },
-    "skipLibCheck": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "esnext"
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue"
+  ]
 }

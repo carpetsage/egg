@@ -4,12 +4,7 @@ import { Memoize } from 'typescript-memoize';
 import { ArtifactSet } from '../artifacts';
 import { earningBonusToFarmerRole, FarmerRole } from '../earning_bonus';
 import { ei } from '../proto';
-import {
-  activeBoostBeacons,
-  activeTachyonPrisms,
-  BoostInstance,
-  internalHatcheryRateBoostMultiplier,
-} from './boosts';
+import { activeBoostBeacons, activeTachyonPrisms, BoostInstance, internalHatcheryRateBoostMultiplier } from './boosts';
 import {
   bareProphecyEggBonus,
   bareSoulEggBonus,
@@ -17,13 +12,7 @@ import {
   prophecyEggBonusResearches,
   soulEggBonusResearches,
 } from './earning_bonus';
-import {
-  Hab,
-  habList,
-  habSpaceList,
-  habSpaceResearches,
-  HabSpaceResearchInstance,
-} from './hab_space';
+import { Hab, habList, habSpaceList, habSpaceResearches, HabSpaceResearchInstance } from './hab_space';
 import {
   InternalHatcheryRateResearchInstance,
   internalHatcheryRateResearches,
@@ -58,15 +47,11 @@ export class Farm {
   artifactSet: ArtifactSet;
   tokenIntervalMinutes?: number;
 
-  constructor(
-    backup: ei.IBackup,
-    farm: ei.Backup.ISimulation,
-    opts?: { tokenIntervalMinutes?: number }
-  ) {
+  constructor(backup: ei.IBackup, farm: ei.Backup.ISimulation, opts?: { tokenIntervalMinutes?: number }) {
     this.backup = backup;
     this.progress = backup.game!;
     this.farm = farm;
-    this.tokenIntervalMinutes = opts?.tokenIntervalMinutes;
+    this.tokenIntervalMinutes = opts?.tokenIntervalMinutes ?? 60;
     const isEnlightenment = this.egg === ei.Egg.ENLIGHTENMENT;
 
     // Fish out the farm index in order to extract artifact loadout. A farm is
@@ -175,11 +160,7 @@ export class Farm {
     // players, which isn't included in boostTokensReceived. We exclude these
     // unclaimed tokens in order to be consistent with the token number shown on
     // the boosts page.
-    return (
-      (this.farm.boostTokensReceived || 0) -
-      (this.farm.boostTokensGiven || 0) -
-      (this.farm.boostTokensSpent || 0)
-    );
+    return (this.farm.boostTokensReceived || 0) - (this.farm.boostTokensGiven || 0) - (this.farm.boostTokensSpent || 0);
   }
 
   get tokensSpent(): number {
@@ -205,17 +186,9 @@ export class Farm {
     if (!this.nextTokenTimeAfterRefresh) {
       return this.tokensInStock;
     }
-    const lastRecordedTokenTime = this.nextTokenTimeAfterRefresh.subtract(
-      this.tokenIntervalMinutes,
-      'minutes'
-    );
-    const minutesSinceLastRecordedToken = Math.max(
-      dayjs().diff(lastRecordedTokenTime, 'minute', true),
-      0
-    );
-    return (
-      this.tokensInStock + Math.floor(minutesSinceLastRecordedToken / this.tokenIntervalMinutes)
-    );
+    const lastRecordedTokenTime = this.nextTokenTimeAfterRefresh.subtract(this.tokenIntervalMinutes, 'minutes');
+    const minutesSinceLastRecordedToken = Math.max(dayjs().diff(lastRecordedTokenTime, 'minute', true), 0);
+    return this.tokensInStock + Math.floor(minutesSinceLastRecordedToken / this.tokenIntervalMinutes);
   }
 
   get minutesFromNowUntilNextToken(): number | null {
@@ -225,14 +198,8 @@ export class Farm {
     if (!this.nextTokenTimeAfterRefresh) {
       return null;
     }
-    const lastRecordedTokenTime = this.nextTokenTimeAfterRefresh.subtract(
-      this.tokenIntervalMinutes,
-      'minutes'
-    );
-    const minutesSinceLastRecordedToken = Math.max(
-      dayjs().diff(lastRecordedTokenTime, 'minute', true),
-      0
-    );
+    const lastRecordedTokenTime = this.nextTokenTimeAfterRefresh.subtract(this.tokenIntervalMinutes, 'minutes');
+    const minutesSinceLastRecordedToken = Math.max(dayjs().diff(lastRecordedTokenTime, 'minute', true), 0);
     return this.tokenIntervalMinutes - (minutesSinceLastRecordedToken % this.tokenIntervalMinutes);
   }
 
@@ -358,11 +325,7 @@ export class Farm {
 
   @Memoize()
   get internalHatcheryRateBoostMultiplier(): number {
-    return internalHatcheryRateBoostMultiplier(
-      this,
-      this.activeTachyonPrisms,
-      this.activeBoostBeacons
-    );
+    return internalHatcheryRateBoostMultiplier(this, this.activeTachyonPrisms, this.activeBoostBeacons);
   }
 
   @Memoize()
@@ -412,18 +375,12 @@ export class Farm {
 
   @Memoize()
   get bareMaxRunningChickenBonusWithMaxedCommonResearches(): number {
-    return bareMaxRunningChickenBonusWithMaxedCommonResearches(
-      this,
-      this.maxRunningChickenBonusResearches
-    );
+    return bareMaxRunningChickenBonusWithMaxedCommonResearches(this, this.maxRunningChickenBonusResearches);
   }
 
   @Memoize()
   get maxRunningChickenBonusWithMaxedCommonResearches(): number {
-    return maxRunningChickenBonusWithMaxedCommonResearches(
-      this,
-      this.maxRunningChickenBonusResearches
-    );
+    return maxRunningChickenBonusWithMaxedCommonResearches(this, this.maxRunningChickenBonusResearches);
   }
 }
 
