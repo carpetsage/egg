@@ -44,13 +44,13 @@ export class Tool {
     this.url = url || `https://wasmegg-carpet.netlify.app/${this.id}/`;
     this.title = title;
     this.iconUrl = iconUrl || '';
-    this.description = description;
+    this.description = description || '';
     this.displayIconOnly = displayIconOnly || false;
     this.iconCssClasses = iconCssClasses || '';
     this.newUntil = newUntil || 0;
     this.majorUpdateUntil = majorUpdateUntil || 0;
     this.updateUntil = updateUntil || 0;
-    this.whatsNew = whatsNew;
+    this.whatsNew = whatsNew || '';
   }
 
   get isNew(): boolean {
@@ -81,8 +81,7 @@ export const tools = [
     iconCssClasses: 'h-6 -ml-0.5 -mr-1 -top-0.5',
     majorUpdateUntil: 1624607856000,
     updateUntil: 1638811910000,
-    whatsNew:
-      'Grade detection works again',
+    whatsNew: 'Grade detection works again',
   }),
 
   new Tool({
@@ -93,8 +92,7 @@ export const tools = [
     description: 'Explorer for everything artifacts',
     // forever
     updateUntil: 1638811910000,
-    whatsNew:
-      'Updated for new levels of FTL Epic Research.',
+    whatsNew: 'Updated for new levels of FTL Epic Research.',
   }),
   new Tool({
     id: 'artifact-sandbox',
@@ -104,8 +102,7 @@ export const tools = [
     description: 'Sandbox for experimenting, optimizing, and sharing artifact builds',
     // forever
     updateUntil: 1638811910000,
-    whatsNew:
-      'Added Max Base RCB field.',
+    whatsNew: 'Added Max Base RCB field.',
   }),
   new Tool({
     id: 'rockets-tracker',
@@ -116,15 +113,13 @@ export const tools = [
       'Tracker for active rocket missions, historical mission statistics, progress on artifact collection, etc.',
     // forever
     updateUntil: 1637780082000,
-    whatsNew:
-      'Fixed crafting expense and crafting count.',
+    whatsNew: 'Fixed crafting expense and crafting count.',
   }),
   new Tool({
     id: 'eggs-laid',
     title: 'Eggs laid',
     url: '/eggs-laid/',
-    description:
-      'Lists total eggs laid for all eggs',
+    description: 'Lists total eggs laid for all eggs',
     // forever
   }),
   new Tool({
@@ -135,8 +130,7 @@ export const tools = [
     description: 'Past contracts and prophecy egg completion tracker',
     // Tue Jun  8 12:33:17 UTC 2021
     updateUntil: 1623155597000,
-    whatsNew:
-      'Displays Contract Score',
+    whatsNew: 'Displays Contract Score',
   }),
   new Tool({
     id: 'inventory-visualizer',
@@ -185,8 +179,7 @@ export const tools = [
     // forever
     updateUntil: 1624548902000,
     description: 'Spaceship & mission parameters list',
-    whatsNew:
-      'Updated for new levels of FTL Epic Research.',
+    whatsNew: 'Updated for new levels of FTL Epic Research.',
   }),
   new Tool({
     id: 'mission-planner',
@@ -195,8 +188,7 @@ export const tools = [
     // Wed Apr 10 08:43:22 UTC 2024
     updateUntil: 1712738602000,
     description: 'Spaceship & mission parameters list',
-    whatsNew:
-      'Added fuel tanks >100T and Henliner',
+    whatsNew: 'Added fuel tanks >100T and Henliner',
   }),
   new Tool({
     id: 'consumption-sheet',
@@ -205,8 +197,7 @@ export const tools = [
     description: 'Artifact consumption outcomes',
     // Fri Jul 30 12:32:29 UTC 2021
     updateUntil: 1627648349000,
-    whatsNew:
-      'Added expected gold yield of fully consuming artifacts, and gold yield of demoting uncommon artifacts.',
+    whatsNew: 'Added expected gold yield of fully consuming artifacts, and gold yield of demoting uncommon artifacts.',
   }),
   new Tool({
     id: 'events',
@@ -214,18 +205,15 @@ export const tools = [
     title: 'Events calendar',
     description: 'Filterable calendar of (not so) special events',
     updateUntil: 1638811910000,
-    whatsNew:
-      'It works again.',
+    whatsNew: 'It works again.',
   }),
   new Tool({
     id: 'legendary-study',
     url: '/legendary-study/',
     title: 'Legendary study report',
-    description:
-      'See how you fare against other Egg, Inc. players in the legendary artifact department',
+    description: 'See how you fare against other Egg, Inc. players in the legendary artifact department',
     updateUntil: 1638811910000,
-    whatsNew:
-      'It works again.',
+    whatsNew: 'It works again.',
   }),
 
   new Tool({
@@ -240,11 +228,11 @@ export const tools = [
     url: 'https://github.com/DavidArthurCole/EggLedger#readme',
     title: 'EggLedger',
     iconUrl: iconURL('wasmegg/EggLedger.png'),
-    description: 'Spaceship mission data exporter, supplementing rockets tracker - forked and fixed by @davidarthurcole',
+    description:
+      'Spaceship mission data exporter, supplementing rockets tracker - forked and fixed by @davidarthurcole',
     // Sat Jun 17 16:21 UTC 2023
     newUntil: 1686975703,
-    whatsNew:
-      'Fixed issue with Chrome'
+    whatsNew: 'Fixed issue with Chrome',
   }),
 
   new Tool({
@@ -269,9 +257,7 @@ export const idToTool = new Map<string, Tool>(tools.map(t => [t.id, t]));
 
 export const newTools = tools.filter(tool => tool.isNew);
 export const majorUpdateTools = tools.filter(tool => !tool.isNew && tool.isMajorUpdate);
-export const updateTools = tools.filter(
-  tool => !tool.isNew && !tool.isMajorUpdate && tool.isUpdate
-);
+export const updateTools = tools.filter(tool => !tool.isNew && !tool.isMajorUpdate && tool.isUpdate);
 
 // This is the signature of the what's new section of a particular build. We
 // generate a signature so that a user can hide what's new and won't be bothered

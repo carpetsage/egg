@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { splitVendorChunkPlugin, defineConfig } from 'vite';
+import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 
@@ -13,7 +13,7 @@ export default defineConfig({
       ui: path.resolve(__dirname, '../../ui'),
     },
   },
-  plugins: [vue(), vueJsx(), splitVendorChunkPlugin()],
+  plugins: [vue(), vueJsx()],
   build: {
     chunkSizeWarningLimit: 5000,
     rollupOptions: {
@@ -22,9 +22,9 @@ export default defineConfig({
           if (id.endsWith('loot.json')) {
             return 'loot';
           }
-        }
-      }
-    }
+        },
+      },
+    },
   },
   server: {
     host: true,
