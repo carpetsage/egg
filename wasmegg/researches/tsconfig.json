@@ -16,7 +16,8 @@
     "paths": {
       "@/*": ["src/*"],
       "ui/*": ["../../ui/*"]
-    }
+    },
+    "skipLibCheck": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
 }
