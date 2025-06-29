@@ -21454,5 +21454,14 @@
     "startTimestamp": 1751126400,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1751299200,
+    "id": "event-6-29",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1751212800,
+    "type": "crafting-sale",
+    "ultra": false
   }
 ]
