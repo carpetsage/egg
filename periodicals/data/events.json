@@ -21697,5 +21697,50 @@
     "startTimestamp": 1752422400,
     "type": "mission-capacity",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1752595200,
+    "id": "egg-day-1",
+    "message": "9x PRESTIGE!",
+    "multiplier": 9,
+    "startTimestamp": 1752508800,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1752595200,
+    "id": "egg-day-2",
+    "message": "9x PIGGY GROWTH!!",
+    "multiplier": 9,
+    "startTimestamp": 1752508800,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1752595200,
+    "id": "egg-day-3",
+    "message": "9x DRONE REWARDS!",
+    "multiplier": 9,
+    "startTimestamp": 1752508800,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1752595200,
+    "id": "egg-day-4",
+    "message": "9x FUELING!",
+    "multiplier": 9,
+    "startTimestamp": 1752508800,
+    "type": "mission-fuel",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1752595200,
+    "id": "egg-day-ultra",
+    "message": "15% OFF BOOSTS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1752508800,
+    "type": "boost-sale",
+    "ultra": true
   }
 ]
