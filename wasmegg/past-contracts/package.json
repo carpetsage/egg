@@ -24,7 +24,7 @@
     "tailwindcss": "^3.4.4",
     "typescript": "^5.7.3",
     "vite": "^6.3.5",
-    "vue-tsc": "^2.2.0",
+    "vue-tsc": "^3.0.3",
     "vuex": "^4.1.0"
   },
   "license": "MIT",
