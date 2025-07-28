@@ -21949,5 +21949,23 @@
     "startTimestamp": 1753632000,
     "type": "crafting-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1753804800,
+    "id": "event-7-28",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1753718400,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1753804800,
+    "id": "ultra-7-28",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1753718400,
+    "type": "hab-sale",
+    "ultra": true
   }
 ]
