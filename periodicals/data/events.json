@@ -21976,5 +21976,32 @@
     "startTimestamp": 1753804800,
     "type": "gift-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1753977600,
+    "id": "event-7-30",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1753891200,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1753977600,
+    "id": "event-7-30-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1753891200,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1753977600,
+    "id": "ultra-7-30",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1753891200,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
