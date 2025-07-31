@@ -22003,5 +22003,14 @@
     "startTimestamp": 1753891200,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1754064000,
+    "id": "event-7-31",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1753977600,
+    "type": "boost-duration",
+    "ultra": false
   }
 ]
