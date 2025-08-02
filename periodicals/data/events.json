@@ -22030,5 +22030,23 @@
     "startTimestamp": 1754064000,
     "type": "gift-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1754236800,
+    "id": "event-8-2",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2,
+    "startTimestamp": 1754150400,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1754323200,
+    "id": "event-8-2-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1754150400,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
