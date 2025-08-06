@@ -22093,5 +22093,23 @@
     "startTimestamp": 1754409600,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1754582400,
+    "id": "event-8-6",
+    "message": "2x GIFTS!!",
+    "multiplier": 2,
+    "startTimestamp": 1754496000,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1754582400,
+    "id": "event-8-6-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1754496000,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
