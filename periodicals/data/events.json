@@ -22183,5 +22183,23 @@
     "startTimestamp": 1754841600,
     "type": "mission-capacity",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1755014400,
+    "id": "event-8-11",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1754928000,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1755014400,
+    "id": "ultra-8-11",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1754928000,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
