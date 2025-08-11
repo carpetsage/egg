@@ -11,13 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout egg repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: egg
           token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
           fetch-depth: 1
       - name: Checkout EggIncAssets repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: carpetsage/EggIncAssets
           path: EggIncAssets
