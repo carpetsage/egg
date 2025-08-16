@@ -22264,5 +22264,23 @@
     "startTimestamp": 1755273600,
     "type": "mission-fuel",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1755446400,
+    "id": "event-8-16",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2,
+    "startTimestamp": 1755360000,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1755532800,
+    "id": "event-8-16-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1755360000,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
