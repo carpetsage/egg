@@ -22327,5 +22327,23 @@
     "startTimestamp": 1755619200,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1755792000,
+    "id": "event-8-20",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1755705600,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1755792000,
+    "id": "event-8-20-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1755705600,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
