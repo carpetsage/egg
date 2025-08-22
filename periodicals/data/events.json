@@ -22363,5 +22363,14 @@
     "startTimestamp": 1755792000,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1755964800,
+    "id": "event-8-22",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1755878400,
+    "type": "research-sale",
+    "ultra": false
   }
 ]
