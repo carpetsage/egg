@@ -13,7 +13,7 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^1.0.6",
-    "@vue/runtime-core": "^3.5.13",
+    "@vue/runtime-core": "^3.5.20",
     "dayjs": "^1.11.13",
     "js-sha256": "^0.11.0",
     "lib": "workspace:^",
