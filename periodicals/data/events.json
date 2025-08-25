@@ -22408,5 +22408,23 @@
     "startTimestamp": 1756051200,
     "type": "crafting-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1756224000,
+    "id": "event-8-25",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1756137600,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1756224000,
+    "id": "ultra-8-25",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1756137600,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
