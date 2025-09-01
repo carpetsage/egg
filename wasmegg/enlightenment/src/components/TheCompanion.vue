@@ -256,7 +256,7 @@
             Cash required to max out the farm (before discounts):
             <base-e-i-value class="text-pink-500" :value="cashTargetACREPreDiscount" />
           </p>
-          <div class="relative flex items-start">
+          <div v-if="cashTargetTSPreDiscount > 0" class="relative flex items-start">
             <div class="flex items-center h-5">
               <input
                 id="target_ts"
