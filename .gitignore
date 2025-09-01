@@ -7,3 +7,4 @@ __pycache__
 dist.frozen
 .vscode
 __target__
+*.swp
