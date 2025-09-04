@@ -13,6 +13,7 @@ How to set up build environment
 1. Use Linux, MacOS, or a linux environment on windows (WSL or maybe git bash?) - I only have personal experience building directly on Linux
 1. Install protoc: https://protobuf.dev/installation/
 1. Install pnpm: https://pnpm.io/installation
+1. Install ets: https://github.com/zmwangx/ets?tab=readme-ov-file#installation
 1. Install make
 1. cd to lib folder in root of project and run `make init` and `make`. This will install dependencies with pnpm and run protoc
 
