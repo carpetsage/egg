@@ -61,7 +61,7 @@ jobs:
             pnpm-lock.yaml
             pnpm-global/5/pnpm-lock.yaml
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
       - name: Do other preparations
@@ -142,7 +142,7 @@ jobs:
             pnpm-lock.yaml
             pnpm-global/5/pnpm-lock.yaml
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
       - name: Do other preparations
