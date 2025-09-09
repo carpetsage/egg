@@ -22660,5 +22660,14 @@
     "startTimestamp": 1757347200,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1757520000,
+    "id": "event-9-9",
+    "message": "2x GIFTS!!",
+    "multiplier": 2,
+    "startTimestamp": 1757433600,
+    "type": "gift-boost",
+    "ultra": false
   }
 ]
