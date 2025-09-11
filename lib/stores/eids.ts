@@ -16,7 +16,7 @@ export const useEidsStore = defineStore('eids', () => {
     eids.value.set(eid, '');
 
     // Remove oldest entry if over limit
-    if (eids.value.size > 5) {
+    if (eids.value.size > 7) {
       const firstKey = eids.value.keys().next().value;
       eids.value.delete(firstKey ?? '');
     }
