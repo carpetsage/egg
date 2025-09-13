@@ -22723,5 +22723,23 @@
     "startTimestamp": 1757692800,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1757865600,
+    "id": "event-9-13",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2,
+    "startTimestamp": 1757779200,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1757952000,
+    "id": "event-9-13-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1757779200,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
