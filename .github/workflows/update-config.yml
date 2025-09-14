@@ -10,7 +10,7 @@ jobs:
       run:
         working-directory: update-egg-config-gist
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Node
         uses: actions/setup-node@v4
       - name: Set up Python
