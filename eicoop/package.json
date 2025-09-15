@@ -34,7 +34,7 @@
     "vite": "^6.3.5",
     "vite-plugin-image-optimizer": "^1.1.8",
     "vite-plugin-mock": "^3.0.2",
-    "vue-tsc": "^2.2.0"
+    "vue-tsc": "^3.0.7"
   },
   "license": "MIT",
   "scripts": {
