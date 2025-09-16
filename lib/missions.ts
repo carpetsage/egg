@@ -10,69 +10,178 @@ import Artifact = ei.ArtifactSpec.Name;
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
 import Status = ei.MissionInfo.Status;
-import {getImageUrlFromId, getTargetName} from './artifacts';
+import { getImageUrlFromId, getTargetName } from './artifacts';
 
 // Real artifacts only
-export type Target = Exclude<Artifact,
-  Artifact.ALIEN_WOOD | Artifact.EXTRATERRESTRIAL_ALUMINUM | Artifact.ANCIENT_TUNGSTEN | Artifact.SPACE_ROCKS |
-  Artifact.CENTAURIAN_STEEL | Artifact.CELESTIAL_BRONZE | Artifact.ERIDANI_FEATHER | Artifact.DRONE_PARTS |
-  Artifact.LALANDE_HIDE>
+export type Target = Exclude<
+  Artifact,
+  | Artifact.ALIEN_WOOD
+  | Artifact.EXTRATERRESTRIAL_ALUMINUM
+  | Artifact.ANCIENT_TUNGSTEN
+  | Artifact.SPACE_ROCKS
+  | Artifact.CENTAURIAN_STEEL
+  | Artifact.CELESTIAL_BRONZE
+  | Artifact.ERIDANI_FEATHER
+  | Artifact.DRONE_PARTS
+  | Artifact.LALANDE_HIDE
+>;
 
 // Valid targets
 export const targets = [
-  Artifact.PUZZLE_CUBE, Artifact.LUNAR_TOTEM, Artifact.DEMETERS_NECKLACE,
-  Artifact.VIAL_MARTIAN_DUST, Artifact.AURELIAN_BROOCH, Artifact.TUNGSTEN_ANKH,
-  Artifact.ORNATE_GUSSET, Artifact.NEODYMIUM_MEDALLION, Artifact.MERCURYS_LENS,
-  Artifact.BEAK_OF_MIDAS, Artifact.CARVED_RAINSTICK, Artifact.INTERSTELLAR_COMPASS,
-  Artifact.THE_CHALICE, Artifact.PHOENIX_FEATHER, Artifact.QUANTUM_METRONOME,
-  Artifact.DILITHIUM_MONOCLE, Artifact.TITANIUM_ACTUATOR, Artifact.SHIP_IN_A_BOTTLE,
-  Artifact.TACHYON_DEFLECTOR, Artifact.BOOK_OF_BASAN, Artifact.LIGHT_OF_EGGENDIL,
-  Artifact.GOLD_METEORITE, Artifact.TAU_CETI_GEODE, Artifact.SOLAR_TITANIUM,
-  Artifact.CLARITY_STONE, Artifact.DILITHIUM_STONE, Artifact.LIFE_STONE,
-  Artifact.LUNAR_STONE, Artifact.PROPHECY_STONE, Artifact.QUANTUM_STONE,
-  Artifact.SHELL_STONE, Artifact.SOUL_STONE, Artifact.TACHYON_STONE,
-  Artifact.TERRA_STONE, Artifact.CLARITY_STONE_FRAGMENT, Artifact.DILITHIUM_STONE_FRAGMENT,
-  Artifact.LIFE_STONE_FRAGMENT, Artifact.LUNAR_STONE_FRAGMENT, Artifact.PROPHECY_STONE_FRAGMENT,
-  Artifact.QUANTUM_STONE_FRAGMENT, Artifact.SHELL_STONE_FRAGMENT, Artifact.SOUL_STONE_FRAGMENT,
-  Artifact.TACHYON_STONE_FRAGMENT, Artifact.TERRA_STONE_FRAGMENT, Artifact.UNKNOWN,
+  Artifact.PUZZLE_CUBE,
+  Artifact.LUNAR_TOTEM,
+  Artifact.DEMETERS_NECKLACE,
+  Artifact.VIAL_MARTIAN_DUST,
+  Artifact.AURELIAN_BROOCH,
+  Artifact.TUNGSTEN_ANKH,
+  Artifact.ORNATE_GUSSET,
+  Artifact.NEODYMIUM_MEDALLION,
+  Artifact.MERCURYS_LENS,
+  Artifact.BEAK_OF_MIDAS,
+  Artifact.CARVED_RAINSTICK,
+  Artifact.INTERSTELLAR_COMPASS,
+  Artifact.THE_CHALICE,
+  Artifact.PHOENIX_FEATHER,
+  Artifact.QUANTUM_METRONOME,
+  Artifact.DILITHIUM_MONOCLE,
+  Artifact.TITANIUM_ACTUATOR,
+  Artifact.SHIP_IN_A_BOTTLE,
+  Artifact.TACHYON_DEFLECTOR,
+  Artifact.BOOK_OF_BASAN,
+  Artifact.LIGHT_OF_EGGENDIL,
+  Artifact.GOLD_METEORITE,
+  Artifact.TAU_CETI_GEODE,
+  Artifact.SOLAR_TITANIUM,
+  Artifact.CLARITY_STONE,
+  Artifact.DILITHIUM_STONE,
+  Artifact.LIFE_STONE,
+  Artifact.LUNAR_STONE,
+  Artifact.PROPHECY_STONE,
+  Artifact.QUANTUM_STONE,
+  Artifact.SHELL_STONE,
+  Artifact.SOUL_STONE,
+  Artifact.TACHYON_STONE,
+  Artifact.TERRA_STONE,
+  Artifact.CLARITY_STONE_FRAGMENT,
+  Artifact.DILITHIUM_STONE_FRAGMENT,
+  Artifact.LIFE_STONE_FRAGMENT,
+  Artifact.LUNAR_STONE_FRAGMENT,
+  Artifact.PROPHECY_STONE_FRAGMENT,
+  Artifact.QUANTUM_STONE_FRAGMENT,
+  Artifact.SHELL_STONE_FRAGMENT,
+  Artifact.SOUL_STONE_FRAGMENT,
+  Artifact.TACHYON_STONE_FRAGMENT,
+  Artifact.TERRA_STONE_FRAGMENT,
+  Artifact.UNKNOWN,
 ];
 
-export const fragments = [Artifact.CLARITY_STONE_FRAGMENT, Artifact.DILITHIUM_STONE_FRAGMENT,
-  Artifact.LIFE_STONE_FRAGMENT, Artifact.LUNAR_STONE_FRAGMENT, Artifact.PROPHECY_STONE_FRAGMENT,
-  Artifact.QUANTUM_STONE_FRAGMENT, Artifact.SHELL_STONE_FRAGMENT, Artifact.SOUL_STONE_FRAGMENT,
-  Artifact.TACHYON_STONE_FRAGMENT, Artifact.TERRA_STONE_FRAGMENT];
+export const fragments = [
+  Artifact.CLARITY_STONE_FRAGMENT,
+  Artifact.DILITHIUM_STONE_FRAGMENT,
+  Artifact.LIFE_STONE_FRAGMENT,
+  Artifact.LUNAR_STONE_FRAGMENT,
+  Artifact.PROPHECY_STONE_FRAGMENT,
+  Artifact.QUANTUM_STONE_FRAGMENT,
+  Artifact.SHELL_STONE_FRAGMENT,
+  Artifact.SOUL_STONE_FRAGMENT,
+  Artifact.TACHYON_STONE_FRAGMENT,
+  Artifact.TERRA_STONE_FRAGMENT,
+];
 
-export const noFragTargets = [Artifact.UNKNOWN, Artifact.PUZZLE_CUBE, Artifact.LUNAR_TOTEM, Artifact.DEMETERS_NECKLACE,
-  Artifact.VIAL_MARTIAN_DUST, Artifact.AURELIAN_BROOCH, Artifact.TUNGSTEN_ANKH,
-  Artifact.ORNATE_GUSSET, Artifact.NEODYMIUM_MEDALLION, Artifact.MERCURYS_LENS,
-  Artifact.BEAK_OF_MIDAS, Artifact.CARVED_RAINSTICK, Artifact.INTERSTELLAR_COMPASS,
-  Artifact.THE_CHALICE, Artifact.PHOENIX_FEATHER, Artifact.QUANTUM_METRONOME,
-  Artifact.DILITHIUM_MONOCLE, Artifact.TITANIUM_ACTUATOR, Artifact.SHIP_IN_A_BOTTLE,
-  Artifact.TACHYON_DEFLECTOR, Artifact.BOOK_OF_BASAN, Artifact.LIGHT_OF_EGGENDIL,
-  Artifact.GOLD_METEORITE, Artifact.TAU_CETI_GEODE, Artifact.SOLAR_TITANIUM,
-  Artifact.CLARITY_STONE, Artifact.DILITHIUM_STONE, Artifact.LIFE_STONE,
-  Artifact.LUNAR_STONE, Artifact.PROPHECY_STONE, Artifact.QUANTUM_STONE,
-  Artifact.SHELL_STONE, Artifact.SOUL_STONE, Artifact.TACHYON_STONE];
+export const noFragTargets = [
+  Artifact.UNKNOWN,
+  Artifact.PUZZLE_CUBE,
+  Artifact.LUNAR_TOTEM,
+  Artifact.DEMETERS_NECKLACE,
+  Artifact.VIAL_MARTIAN_DUST,
+  Artifact.AURELIAN_BROOCH,
+  Artifact.TUNGSTEN_ANKH,
+  Artifact.ORNATE_GUSSET,
+  Artifact.NEODYMIUM_MEDALLION,
+  Artifact.MERCURYS_LENS,
+  Artifact.BEAK_OF_MIDAS,
+  Artifact.CARVED_RAINSTICK,
+  Artifact.INTERSTELLAR_COMPASS,
+  Artifact.THE_CHALICE,
+  Artifact.PHOENIX_FEATHER,
+  Artifact.QUANTUM_METRONOME,
+  Artifact.DILITHIUM_MONOCLE,
+  Artifact.TITANIUM_ACTUATOR,
+  Artifact.SHIP_IN_A_BOTTLE,
+  Artifact.TACHYON_DEFLECTOR,
+  Artifact.BOOK_OF_BASAN,
+  Artifact.LIGHT_OF_EGGENDIL,
+  Artifact.GOLD_METEORITE,
+  Artifact.TAU_CETI_GEODE,
+  Artifact.SOLAR_TITANIUM,
+  Artifact.CLARITY_STONE,
+  Artifact.DILITHIUM_STONE,
+  Artifact.LIFE_STONE,
+  Artifact.LUNAR_STONE,
+  Artifact.PROPHECY_STONE,
+  Artifact.QUANTUM_STONE,
+  Artifact.SHELL_STONE,
+  Artifact.SOUL_STONE,
+  Artifact.TACHYON_STONE,
+];
 
 // Default selection state for targets.
-const targetDefaults: Record<Artifact,boolean> = {
-  [Artifact.LUNAR_TOTEM]: false, [Artifact.NEODYMIUM_MEDALLION]: false, [Artifact.BEAK_OF_MIDAS]: false,
-  [Artifact.LIGHT_OF_EGGENDIL]: false, [Artifact.DEMETERS_NECKLACE]: false, [Artifact.VIAL_MARTIAN_DUST]: false,
-  [Artifact.ORNATE_GUSSET]: false, [Artifact.THE_CHALICE]: false, [Artifact.BOOK_OF_BASAN]: false,
-  [Artifact.PHOENIX_FEATHER]: false, [Artifact.TUNGSTEN_ANKH]: false, [Artifact.AURELIAN_BROOCH]: false,
-  [Artifact.CARVED_RAINSTICK]: false, [Artifact.PUZZLE_CUBE]: false, [Artifact.QUANTUM_METRONOME]: false,
-  [Artifact.SHIP_IN_A_BOTTLE]: false, [Artifact.TACHYON_DEFLECTOR]: false, [Artifact.INTERSTELLAR_COMPASS]: false,
-  [Artifact.DILITHIUM_MONOCLE]: false, [Artifact.TITANIUM_ACTUATOR]: false, [Artifact.MERCURYS_LENS]: false,
-  [Artifact.TACHYON_STONE]: false, [Artifact.DILITHIUM_STONE]: false, [Artifact.SHELL_STONE]: false,
-  [Artifact.LUNAR_STONE]: false, [Artifact.SOUL_STONE]: false, [Artifact.PROPHECY_STONE]: false,
-  [Artifact.QUANTUM_STONE]: false, [Artifact.TERRA_STONE]: false, [Artifact.LIFE_STONE]: false,
-  [Artifact.CLARITY_STONE]: false, [Artifact.GOLD_METEORITE]: false, [Artifact.TAU_CETI_GEODE]: false,
-  [Artifact.SOLAR_TITANIUM]: false, [Artifact.TACHYON_STONE_FRAGMENT]: false, [Artifact.DILITHIUM_STONE_FRAGMENT]: false,
-  [Artifact.SHELL_STONE_FRAGMENT]: false, [Artifact.LUNAR_STONE_FRAGMENT]: false, [Artifact.SOUL_STONE_FRAGMENT]: false,
-  [Artifact.PROPHECY_STONE_FRAGMENT]: false, [Artifact.QUANTUM_STONE_FRAGMENT]: false, [Artifact.TERRA_STONE_FRAGMENT]: false,
-  [Artifact.LIFE_STONE_FRAGMENT]: false, [Artifact.CLARITY_STONE_FRAGMENT]: false, [Artifact.UNKNOWN]: true,
+const targetDefaults: Record<Artifact, boolean> = {
+  [Artifact.LUNAR_TOTEM]: false,
+  [Artifact.NEODYMIUM_MEDALLION]: false,
+  [Artifact.BEAK_OF_MIDAS]: false,
+  [Artifact.LIGHT_OF_EGGENDIL]: false,
+  [Artifact.DEMETERS_NECKLACE]: false,
+  [Artifact.VIAL_MARTIAN_DUST]: false,
+  [Artifact.ORNATE_GUSSET]: false,
+  [Artifact.THE_CHALICE]: false,
+  [Artifact.BOOK_OF_BASAN]: false,
+  [Artifact.PHOENIX_FEATHER]: false,
+  [Artifact.TUNGSTEN_ANKH]: false,
+  [Artifact.AURELIAN_BROOCH]: false,
+  [Artifact.CARVED_RAINSTICK]: false,
+  [Artifact.PUZZLE_CUBE]: false,
+  [Artifact.QUANTUM_METRONOME]: false,
+  [Artifact.SHIP_IN_A_BOTTLE]: false,
+  [Artifact.TACHYON_DEFLECTOR]: false,
+  [Artifact.INTERSTELLAR_COMPASS]: false,
+  [Artifact.DILITHIUM_MONOCLE]: false,
+  [Artifact.TITANIUM_ACTUATOR]: false,
+  [Artifact.MERCURYS_LENS]: false,
+  [Artifact.TACHYON_STONE]: false,
+  [Artifact.DILITHIUM_STONE]: false,
+  [Artifact.SHELL_STONE]: false,
+  [Artifact.LUNAR_STONE]: false,
+  [Artifact.SOUL_STONE]: false,
+  [Artifact.PROPHECY_STONE]: false,
+  [Artifact.QUANTUM_STONE]: false,
+  [Artifact.TERRA_STONE]: false,
+  [Artifact.LIFE_STONE]: false,
+  [Artifact.CLARITY_STONE]: false,
+  [Artifact.GOLD_METEORITE]: false,
+  [Artifact.TAU_CETI_GEODE]: false,
+  [Artifact.SOLAR_TITANIUM]: false,
+  [Artifact.TACHYON_STONE_FRAGMENT]: false,
+  [Artifact.DILITHIUM_STONE_FRAGMENT]: false,
+  [Artifact.SHELL_STONE_FRAGMENT]: false,
+  [Artifact.LUNAR_STONE_FRAGMENT]: false,
+  [Artifact.SOUL_STONE_FRAGMENT]: false,
+  [Artifact.PROPHECY_STONE_FRAGMENT]: false,
+  [Artifact.QUANTUM_STONE_FRAGMENT]: false,
+  [Artifact.TERRA_STONE_FRAGMENT]: false,
+  [Artifact.LIFE_STONE_FRAGMENT]: false,
+  [Artifact.CLARITY_STONE_FRAGMENT]: false,
+  [Artifact.UNKNOWN]: true,
   //Artifacts in code but not in game
-  [Artifact.EXTRATERRESTRIAL_ALUMINUM]: false, [Artifact.ANCIENT_TUNGSTEN]: false, [Artifact.SPACE_ROCKS]: false, [Artifact.ALIEN_WOOD]: false, [Artifact.CENTAURIAN_STEEL]: false, [Artifact.ERIDANI_FEATHER]: false, [Artifact.DRONE_PARTS]: false, [Artifact.CELESTIAL_BRONZE]: false, [Artifact.LALANDE_HIDE]: false
+  [Artifact.EXTRATERRESTRIAL_ALUMINUM]: false,
+  [Artifact.ANCIENT_TUNGSTEN]: false,
+  [Artifact.SPACE_ROCKS]: false,
+  [Artifact.ALIEN_WOOD]: false,
+  [Artifact.CENTAURIAN_STEEL]: false,
+  [Artifact.ERIDANI_FEATHER]: false,
+  [Artifact.DRONE_PARTS]: false,
+  [Artifact.CELESTIAL_BRONZE]: false,
+  [Artifact.LALANDE_HIDE]: false,
 };
 
 export const spaceshipList = [
@@ -96,7 +205,7 @@ export const missionDurationTypeList = [
   DurationType.EPIC,
 ];
 
-export const fuelTankSizes = [ 2e9, 200e9, 10e12, 100e12, 200e12, 300e12, 400e12, 500e12 ];
+export const fuelTankSizes = [2e9, 200e9, 10e12, 100e12, 200e12, 300e12, 400e12, 500e12];
 
 export interface ShipsConfig {
   epicResearchFTLLevel: number;
@@ -153,7 +262,7 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
 }
 
 export function fixOldShipsConfig(x: OldShipsConfig): ShipsConfig {
-  const config = (x as ShipsConfig);
+  const config = x as ShipsConfig;
   config.showNodata = false;
   config.onlyLiners = false;
   return config;
@@ -169,7 +278,7 @@ export function isShipsConfig(x: unknown): x is ShipsConfig {
       fixOldShipsConfig(x as OldShipsConfig);
     }
     // forcibly uncheck any frag targets before removing them from the ui
-    fragments.forEach( fragment => x.targets[fragment] = false);
+    fragments.forEach(fragment => (x.targets[fragment] = false));
   }
   return validOldConfig;
 }
@@ -202,7 +311,9 @@ export function isOldShipsConfig(x: unknown): x is OldShipsConfig {
     if ((shipTarget as Record<Target, boolean>)[0] === undefined) {
       return false;
     }
-  } catch (TypeError) { return false; }
+  } catch (TypeError) {
+    return false;
+  }
 
   if ((x as ShipsConfig).onlyHenners === undefined) {
     return false;
@@ -210,8 +321,6 @@ export function isOldShipsConfig(x: unknown): x is OldShipsConfig {
 
   return true;
 }
-
-
 
 export class MissionType {
   shipType: Spaceship;
@@ -223,7 +332,7 @@ export class MissionType {
   }
 
   get isFTL(): boolean {
-    return this.shipType >= Spaceship.MILLENIUM_CHICKEN
+    return this.shipType >= Spaceship.MILLENIUM_CHICKEN;
   }
 
   get missionTypeId(): string {
@@ -282,27 +391,23 @@ export class MissionType {
   }
 
   boostedQuality(config: ShipsConfig): number {
-    return Math.round(
-      (this.params.quality + this.params.levelQualityBump * config.shipLevels[this.shipType]) * 100
-    ) / 100;
+    return (
+      Math.round((this.params.quality + this.params.levelQualityBump * config.shipLevels[this.shipType]) * 100) / 100
+    );
   }
 
   boostedMaxQuality(config: ShipsConfig): number {
-    return Math.round(
-      (this.params.maxQuality + this.params.levelQualityBump * config.shipLevels[this.shipType]) * 100
-    ) / 100;
+    return (
+      Math.round((this.params.maxQuality + this.params.levelQualityBump * config.shipLevels[this.shipType]) * 100) / 100
+    );
   }
 
   maxBoostedQuality(): number {
-    return Math.round(
-      (this.params.quality + this.params.levelQualityBump * this.maxLevel) * 100
-    ) / 100;
+    return Math.round((this.params.quality + this.params.levelQualityBump * this.maxLevel) * 100) / 100;
   }
 
   maxBoostedMaxQuality(): number {
-    return Math.round(
-      (this.params.maxQuality + this.params.levelQualityBump * this.maxLevel) * 100
-    ) / 100;
+    return Math.round((this.params.maxQuality + this.params.levelQualityBump * this.maxLevel) * 100) / 100;
   }
 
   boostedDurationSeconds(config: ShipsConfig): number {
@@ -358,7 +463,7 @@ export class Mission extends MissionType {
       return getTargetName(targetId)
         .split(' ')
         .map(x => x.charAt(0).toUpperCase() + x.slice(1))
-        .join(" ");
+        .join(' ');
     }
     return '';
   }
@@ -369,7 +474,6 @@ export class Mission extends MissionType {
     }
     return '';
   }
-
 
   get status(): Status {
     return this.missionInfo.status!;
@@ -414,9 +518,7 @@ export class Mission extends MissionType {
   }
 
   get returnTimestamp(): number | null {
-    return this.launchTimestamp && this.durationSeconds
-      ? this.launchTimestamp + this.durationSeconds
-      : null;
+    return this.launchTimestamp && this.durationSeconds ? this.launchTimestamp + this.durationSeconds : null;
   }
 
   get returnTime(): Dayjs | null {
@@ -491,7 +593,7 @@ export function newMissionTypeMapFromFactory<T>(
 }
 
 export function spaceshipId(spaceship: Spaceship): string {
- return Spaceship[spaceship].toLowerCase().replaceAll('_', '-');
+  return Spaceship[spaceship].toLowerCase().replaceAll('_', '-');
 }
 
 export function spaceshipName(spaceship: Spaceship): string {
@@ -628,25 +730,13 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
   [Spaceship.CHICKEN_HEAVY]: {
     [DurationType.TUTORIAL]: [],
     [DurationType.SHORT]: [new MissionFuel(ei.Egg.ROCKET_FUEL, 100e6)],
-    [DurationType.LONG]: [
-      new MissionFuel(ei.Egg.ROCKET_FUEL, 50e6),
-      new MissionFuel(ei.Egg.FUSION, 5e6),
-    ],
-    [DurationType.EPIC]: [
-      new MissionFuel(ei.Egg.ROCKET_FUEL, 75e6),
-      new MissionFuel(ei.Egg.FUSION, 25e6),
-    ],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.ROCKET_FUEL, 50e6), new MissionFuel(ei.Egg.FUSION, 5e6)],
+    [DurationType.EPIC]: [new MissionFuel(ei.Egg.ROCKET_FUEL, 75e6), new MissionFuel(ei.Egg.FUSION, 25e6)],
   },
   [Spaceship.BCR]: {
     [DurationType.TUTORIAL]: [],
-    [DurationType.SHORT]: [
-      new MissionFuel(ei.Egg.ROCKET_FUEL, 250e6),
-      new MissionFuel(ei.Egg.FUSION, 50e6),
-    ],
-    [DurationType.LONG]: [
-      new MissionFuel(ei.Egg.ROCKET_FUEL, 400e6),
-      new MissionFuel(ei.Egg.FUSION, 75e6),
-    ],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.ROCKET_FUEL, 250e6), new MissionFuel(ei.Egg.FUSION, 50e6)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.ROCKET_FUEL, 400e6), new MissionFuel(ei.Egg.FUSION, 75e6)],
     [DurationType.EPIC]: [
       new MissionFuel(ei.Egg.SUPERFOOD, 5e6),
       new MissionFuel(ei.Egg.ROCKET_FUEL, 300e6),
@@ -655,14 +745,8 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
   },
   [Spaceship.MILLENIUM_CHICKEN]: {
     [DurationType.TUTORIAL]: [],
-    [DurationType.SHORT]: [
-      new MissionFuel(ei.Egg.FUSION, 5e9),
-      new MissionFuel(ei.Egg.GRAVITON, 1e9),
-    ],
-    [DurationType.LONG]: [
-      new MissionFuel(ei.Egg.FUSION, 7e9),
-      new MissionFuel(ei.Egg.GRAVITON, 5e9),
-    ],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.FUSION, 5e9), new MissionFuel(ei.Egg.GRAVITON, 1e9)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.FUSION, 7e9), new MissionFuel(ei.Egg.GRAVITON, 5e9)],
     [DurationType.EPIC]: [
       new MissionFuel(ei.Egg.SUPERFOOD, 10e6),
       new MissionFuel(ei.Egg.FUSION, 10e9),
@@ -671,14 +755,8 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
   },
   [Spaceship.CORELLIHEN_CORVETTE]: {
     [DurationType.TUTORIAL]: [],
-    [DurationType.SHORT]: [
-      new MissionFuel(ei.Egg.FUSION, 15e9),
-      new MissionFuel(ei.Egg.GRAVITON, 2e9),
-    ],
-    [DurationType.LONG]: [
-      new MissionFuel(ei.Egg.FUSION, 20e9),
-      new MissionFuel(ei.Egg.GRAVITON, 3e9),
-    ],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.FUSION, 15e9), new MissionFuel(ei.Egg.GRAVITON, 2e9)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.FUSION, 20e9), new MissionFuel(ei.Egg.GRAVITON, 3e9)],
     [DurationType.EPIC]: [
       new MissionFuel(ei.Egg.SUPERFOOD, 500e6),
       new MissionFuel(ei.Egg.FUSION, 25e9),
@@ -687,14 +765,8 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
   },
   [Spaceship.GALEGGTICA]: {
     [DurationType.TUTORIAL]: [],
-    [DurationType.SHORT]: [
-      new MissionFuel(ei.Egg.FUSION, 50e9),
-      new MissionFuel(ei.Egg.GRAVITON, 10e9),
-    ],
-    [DurationType.LONG]: [
-      new MissionFuel(ei.Egg.FUSION, 75e9),
-      new MissionFuel(ei.Egg.GRAVITON, 25e9),
-    ],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.FUSION, 50e9), new MissionFuel(ei.Egg.GRAVITON, 10e9)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.FUSION, 75e9), new MissionFuel(ei.Egg.GRAVITON, 25e9)],
     [DurationType.EPIC]: [
       new MissionFuel(ei.Egg.FUSION, 100e9),
       new MissionFuel(ei.Egg.GRAVITON, 50e9),
@@ -703,14 +775,8 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
   },
   [Spaceship.CHICKFIANT]: {
     [DurationType.TUTORIAL]: [],
-    [DurationType.SHORT]: [
-      new MissionFuel(ei.Egg.DILITHIUM, 200e9),
-      new MissionFuel(ei.Egg.ANTIMATTER, 50e9),
-    ],
-    [DurationType.LONG]: [
-      new MissionFuel(ei.Egg.DILITHIUM, 250e9),
-      new MissionFuel(ei.Egg.ANTIMATTER, 150e9),
-    ],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.DILITHIUM, 200e9), new MissionFuel(ei.Egg.ANTIMATTER, 50e9)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.DILITHIUM, 250e9), new MissionFuel(ei.Egg.ANTIMATTER, 150e9)],
     [DurationType.EPIC]: [
       new MissionFuel(ei.Egg.TACHYON, 25e9),
       new MissionFuel(ei.Egg.DILITHIUM, 250e9),
@@ -719,14 +785,8 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
   },
   [Spaceship.VOYEGGER]: {
     [DurationType.TUTORIAL]: [],
-    [DurationType.SHORT]: [
-      new MissionFuel(ei.Egg.DILITHIUM, 1e12),
-      new MissionFuel(ei.Egg.ANTIMATTER, 1e12),
-    ],
-    [DurationType.LONG]: [
-      new MissionFuel(ei.Egg.DILITHIUM, 1.5e12),
-      new MissionFuel(ei.Egg.ANTIMATTER, 1.5e12),
-    ],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.DILITHIUM, 1e12), new MissionFuel(ei.Egg.ANTIMATTER, 1e12)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.DILITHIUM, 1.5e12), new MissionFuel(ei.Egg.ANTIMATTER, 1.5e12)],
     [DurationType.EPIC]: [
       new MissionFuel(ei.Egg.TACHYON, 100e9),
       new MissionFuel(ei.Egg.DILITHIUM, 2e12),
@@ -735,10 +795,7 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
   },
   [Spaceship.HENERPRISE]: {
     [DurationType.TUTORIAL]: [],
-    [DurationType.SHORT]: [
-      new MissionFuel(ei.Egg.DILITHIUM, 2e12),
-      new MissionFuel(ei.Egg.ANTIMATTER, 2e12),
-    ],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.DILITHIUM, 2e12), new MissionFuel(ei.Egg.ANTIMATTER, 2e12)],
     [DurationType.LONG]: [
       new MissionFuel(ei.Egg.DILITHIUM, 3e12),
       new MissionFuel(ei.Egg.ANTIMATTER, 3e12),
