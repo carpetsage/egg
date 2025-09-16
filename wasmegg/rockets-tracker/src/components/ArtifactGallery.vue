@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="grid justify-center"
-    :class="mini ? 'grid-cols-max-4' : 'grid-cols-max-2 sm:grid-cols-max-4'"
-  >
+  <div class="grid justify-center" :class="mini ? 'grid-cols-max-4' : 'grid-cols-max-2 sm:grid-cols-max-4'">
     <div v-for="(artifact, artifactIndex) in artifactSet.artifacts" :key="artifactIndex">
       <tippy
         tag="div"
@@ -12,10 +9,7 @@
           artifactRarityBgClass(artifact.afxRarity) || 'bg-gray-200',
         ]"
       >
-        <img
-          class="absolute top-0 left-0 h-full w-full z-10"
-          :src="iconURL(artifact.iconPath, 256)"
-        />
+        <img class="absolute top-0 left-0 h-full w-full z-10" :src="iconURL(artifact.iconPath, 256)" />
         <img
           v-for="(stone, stoneIndex) in artifact.stones.slice().reverse()"
           :key="stoneIndex"
@@ -29,10 +23,7 @@
               <div class="font-medium">
                 <img :src="iconURL(artifact.iconPath)" class="inline h-4 w-4 relative -top-px" />
                 {{ artifact.name }} (T{{ artifact.tierNumber }})
-                <span
-                  v-if="artifact.afxRarity > 0"
-                  :class="artifactRarityFgClass(artifact.afxRarity)"
-                >
+                <span v-if="artifact.afxRarity > 0" :class="artifactRarityFgClass(artifact.afxRarity)">
                   {{ artifact.rarity }}
                 </span>
               </div>
@@ -98,8 +89,7 @@ img.Artifact__stone {
   bottom: 7%;
   height: 17%;
   width: 17%;
-  filter: drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white)
-    drop-shadow(-1px 0 0 white);
+  filter: drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white);
 }
 
 img.Artifact__stone:nth-child(2) {

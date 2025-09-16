@@ -1,11 +1,8 @@
 <template>
   <template v-if="missions.length > 0">
-    <div
-      v-if="missions.some(mission => mission.hasReturnedBy(now))"
-      class="lg:text-center text-xs mx-4 xl:mx-0 -mt-2"
-    >
-      You should press <span class="text-blue-500">"Load Player Data"</span> again to refresh your
-      mission list once you have collected your finished missions and sent out new ones.
+    <div v-if="missions.some(mission => mission.hasReturnedBy(now))" class="lg:text-center text-xs mx-4 xl:mx-0 -mt-2">
+      You should press <span class="text-blue-500">"Load Player Data"</span> again to refresh your mission list once you
+      have collected your finished missions and sent out new ones.
     </div>
     <ul
       class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 mx-4 xl:mx-0 my-4"
@@ -17,10 +14,7 @@
         class="col-span-1 flex flex-col text-center bg-gray-50 rounded-2xl shadow-lg divide-y divide-gray-200"
       >
         <div class="flex-1 flex flex-col p-6">
-          <div
-            class="w-36 h-36 flex-shrink-0 mx-auto relative"
-            :class="missionDurationTypeFgClass(mission)"
-          >
+          <div class="w-36 h-36 flex-shrink-0 mx-auto relative" :class="missionDurationTypeFgClass(mission)">
             <img
               class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full"
               :src="iconURL(mission.shipIconPath, 256)"
@@ -53,11 +47,11 @@
               </template>
               <template v-else> &ndash; </template>
             </div>
-            <div class="mt-1 mb-1 text-gray-500 text-xs">
-              Sensor target:
-            </div>
-            <div class="text-center text-xs text-white rounded-full w-max px-1.5 py-0.5 mx-auto bg-gray-400 font-semibold">
-              {{ mission.sensorTarget || "None" }}
+            <div class="mt-1 mb-1 text-gray-500 text-xs">Sensor target:</div>
+            <div
+              class="text-center text-xs text-white rounded-full w-max px-1.5 py-0.5 mx-auto bg-gray-400 font-semibold"
+            >
+              {{ mission.sensorTarget || 'None' }}
             </div>
             <div class="mt-2 text-gray-700 text-sm font-medium">{{ mission.statusName }}</div>
             <div
