@@ -107,7 +107,7 @@ export function groupCustomEggsByDimension(): SafeCustomEgg[][] {
 }
 
 export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
-  const symbol = custom_egg_id || ei.Egg[egg];
+  const symbol = egg in ei.Egg ? custom_egg_id || ei.Egg[egg] : 'Unknown';
   switch (egg) {
     case ei.Egg.IMMORTALITY:
       return 'CRISPR';
@@ -161,6 +161,16 @@ export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
       return 1e14;
     case ei.Egg.ENLIGHTENMENT:
       return 1e-7;
+    case ei.Egg.CURIOSITY:
+      return 1;
+    case ei.Egg.INTEGRITY:
+      return 1;
+    case ei.Egg.HUMILITY:
+      return 1;
+    case ei.Egg.RESILIENCE:
+      return 1;
+    case ei.Egg.KINDNESS:
+      return 1;
     case ei.Egg.CHOCOLATE:
       return 5;
     case ei.Egg.EASTER:
@@ -175,6 +185,8 @@ export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
       return 0;
     case ei.Egg.CUSTOM_EGG:
       return customEggs.find(egg => egg.identifier === custom_egg_id)?.value ?? 1;
+    default:
+      return 1;
   }
 }
 
@@ -218,6 +230,16 @@ export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null, validate
       return 'egginc/egg_universe.png';
     case ei.Egg.ENLIGHTENMENT:
       return 'egginc/egg_enlightenment.png';
+    case ei.Egg.CURIOSITY:
+      return 'egginc/egg_curiosity.png';
+    case ei.Egg.INTEGRITY:
+      return 'egginc/egg_integrity.png';
+    case ei.Egg.HUMILITY:
+      return 'egginc/egg_humility.png';
+    case ei.Egg.RESILIENCE:
+      return 'egginc/egg_resilience.png';
+    case ei.Egg.KINDNESS:
+      return 'egginc/egg_kindness.png';
     case ei.Egg.CHOCOLATE:
       return 'egginc/egg_chocolate.png';
     case ei.Egg.EASTER:
@@ -236,6 +258,8 @@ export function eggIconPath(egg: ei.Egg, custom_egg_id?: string | null, validate
           ? `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g, '')}.png`
           : 'egginc/egg_unknown.png'
         : `egginc/egg_${custom_egg_id?.replaceAll(/[-_]/g, '')}.png`;
+    default:
+      return 'egginc/egg_unknown.png';
   }
 }
 
@@ -259,6 +283,11 @@ export const eggList = [
   ei.Egg.NEBULA,
   ei.Egg.UNIVERSE,
   ei.Egg.ENLIGHTENMENT,
+  ei.Egg.CURIOSITY,
+  ei.Egg.INTEGRITY,
+  ei.Egg.HUMILITY,
+  ei.Egg.RESILIENCE,
+  ei.Egg.KINDNESS,
   ei.Egg.CHOCOLATE,
   ei.Egg.EASTER,
   ei.Egg.WATERBALLOON,
