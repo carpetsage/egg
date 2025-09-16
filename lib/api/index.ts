@@ -10,11 +10,11 @@ export * from './encode';
 export * from './utils';
 export * from './version';
 
-const API_ROOT = 'https://egg-forwarder.carpet.workers.dev/?url=https://ctx-dot-auxbrainhome.appspot.com';
+const API_ROOT = 'https://egg-forwarder.carpet.workers.dev/?url=https://www.auxbrain.com';
 
 const CONFIG_GIST_URL =
   'https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/config.json';
-const TIMEOUT = 8000;
+const TIMEOUT = 18000;
 
 // A valid userId donated by a volunteer.
 const defaultUserId = atob('RUk2MjkxOTQwOTY4MjM1MDA4');
