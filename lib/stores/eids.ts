@@ -17,8 +17,21 @@ export const useEidsStore = defineStore('eids', () => {
 
     // Remove oldest entry if over limit
     if (eids.value.size > 7) {
-      const firstKey = eids.value.keys().next().value;
-      eids.value.delete(firstKey ?? '');
+      // First try to find an entry with empty string value
+      let keyToDelete = null;
+      for (const [key, value] of eids.value.entries()) {
+        if (value === '') {
+          keyToDelete = key;
+          break;
+        }
+      }
+
+      // If no empty string found, use the first key
+      if (keyToDelete === null) {
+        keyToDelete = eids.value.keys().next().value;
+      }
+
+      eids.value.delete(keyToDelete ?? '');
     }
 
     savePlayerIDs(eids.value);
