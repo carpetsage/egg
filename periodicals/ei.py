@@ -27,6 +27,11 @@ class Egg(betterproto.Enum):
     NEBULA = 17
     UNIVERSE = 18
     ENLIGHTENMENT = 19
+    CURIOSITY = 50
+    INTEGRITY = 51
+    HUMILITY = 52
+    RESILIENCE = 53
+    KINDNESS = 54
     CHOCOLATE = 100
     EASTER = 101
     WATERBALLOON = 102
@@ -62,6 +67,7 @@ class RewardType(betterproto.Enum):
     ARTIFACT_CASE = 12
     CHICKEN = 13
     SHELL_SCRIPT = 14
+    VIRTUE_GEM = 15
     UNKNOWN_REWARD = 100
 
 
@@ -262,6 +268,11 @@ class MissionInfoDurationType(betterproto.Enum):
     TUTORIAL = 3
 
 
+class MissionInfoMissionType(betterproto.Enum):
+    STANDARD = 0
+    VIRTUE = 1
+
+
 class ArtifactSpecName(betterproto.Enum):
     LUNAR_TOTEM = 0
     NEODYMIUM_MEDALLION = 3
@@ -419,6 +430,11 @@ class ShellSpecAssetType(betterproto.Enum):
     HATCHERY_FIREWORK = 142
     HATCHERY_PUMPKIN = 143
     HATCHERY_CUSTOM = 150
+    HATCHERY_CURIOSITY = 160
+    HATCHERY_INTEGRITY = 161
+    HATCHERY_HUMILITY = 162
+    HATCHERY_RESILIENCE = 163
+    HATCHERY_KINDNESS = 164
     HOA_1 = 170
     HOA_2 = 171
     HOA_3 = 172
@@ -442,6 +458,11 @@ class ShellSpecAssetType(betterproto.Enum):
     HATCHERY_UNIVERSE_PROBE = 515
     HATCHERY_UNIVERSE_BOLT = 516
     HATCHERY_ENLIGHTENMENT_ORB = 520
+    HATCHERY_CURIOSITY_EXTRA = 550
+    HATCHERY_INTEGRITY_EXTRA = 551
+    HATCHERY_HUMILITY_EXTRA = 552
+    HATCHERY_RESILIENCE_EXTRA = 553
+    HATCHERY_KINDNESS_EXTRA = 554
     HYPERLOOP_TRACK = 570
     MAILBOX_FULL = 600
     CHICKEN = 1000
@@ -542,6 +563,7 @@ class Backup(betterproto.Message):
     stats: "BackupStats" = betterproto.message_field(6)
     game: "BackupGame" = betterproto.message_field(7)
     artifacts: "BackupArtifacts" = betterproto.message_field(14)
+    virtue: "BackupVirtue" = betterproto.message_field(29)
     shells: "BackupShells" = betterproto.message_field(25)
     sim: "BackupSimulation" = betterproto.message_field(8)
     farms: List["BackupSimulation"] = betterproto.message_field(12)
@@ -693,6 +715,16 @@ class BackupArtifacts(betterproto.Message):
 
 
 @dataclass
+class BackupVirtue(betterproto.Message):
+    shift_count: int = betterproto.uint32_field(1)
+    resets: int = betterproto.uint32_field(2)
+    eov_earned: List[int] = betterproto.uint32_field(3)
+    eggs_delivered: List[float] = betterproto.double_field(4)
+    afx: "BackupArtifacts" = betterproto.message_field(5)
+    active_afx: List["ActiveArtifactSlot"] = betterproto.message_field(6)
+
+
+@dataclass
 class BackupShells(betterproto.Message):
     intro_alert: bool = betterproto.bool_field(1)
     contracts_intro_alert: bool = betterproto.bool_field(2)
@@ -732,6 +764,7 @@ class BackupSimulation(betterproto.Message):
     boost_tokens_given: int = betterproto.uint32_field(28)
     unclaimed_boost_tokens: int = betterproto.uint32_field(27)
     gametime_until_next_boost_token: float = betterproto.double_field(29)
+    total_step_time: float = betterproto.double_field(32)
 
 
 @dataclass
@@ -771,6 +804,7 @@ class BackupMisc(betterproto.Message):
     max_button_alert: bool = betterproto.bool_field(23)
     mission_target_alert: bool = betterproto.bool_field(24)
     colleggtibles_alert: bool = betterproto.bool_field(25)
+    eov_alert: bool = betterproto.bool_field(26)
 
 
 @dataclass
@@ -1171,6 +1205,7 @@ class ContractEvaluation(betterproto.Message):
     counted_in_season: bool = betterproto.bool_field(20)
     season_id: str = betterproto.string_field(21)
     time_cheats: int = betterproto.uint32_field(27)
+    extra_players: int = betterproto.uint32_field(30)
     issues: List["ContractEvaluationPoorBehavior"] = betterproto.enum_field(19)
     notes: List[str] = betterproto.string_field(12)
     version: str = betterproto.string_field(50)
@@ -1206,6 +1241,7 @@ class CoopCompletionSnapshot(betterproto.Message):
 @dataclass
 class CoopCompletionSnapshotContributorSnapshot(betterproto.Message):
     contribution: float = betterproto.double_field(1)
+    total_step_time: float = betterproto.double_field(8)
     last_contribution_time: float = betterproto.double_field(6)
     finalized: bool = betterproto.bool_field(7)
     soul_power: float = betterproto.double_field(2)
@@ -1366,6 +1402,7 @@ class ContractCoopStatusResponse(betterproto.Message):
         betterproto.message_field(13)
     )
     client_timestamp: float = betterproto.double_field(12)
+    background_sync: bool = betterproto.bool_field(20)
     last_sync__d_e_p: float = betterproto.double_field(18)
 
 
@@ -1651,6 +1688,7 @@ class ContractCoopStatusUpdateRequest(betterproto.Message):
     amount: float = betterproto.double_field(4)
     rate: float = betterproto.double_field(5)
     time_cheats_detected: int = betterproto.uint32_field(6)
+    total_step_time: float = betterproto.double_field(19)
     soul_power: float = betterproto.double_field(7)
     eop: int = betterproto.uint32_field(15)
     boost_tokens: int = betterproto.uint32_field(9)
@@ -1689,8 +1727,14 @@ class CoopChickenRunEntry(betterproto.Message):
 
 
 @dataclass
-class CoopLastChickenRunTimes(betterproto.Message):
+class PlayerLastChickenRunTimes(betterproto.Message):
+    user_id: str = betterproto.string_field(4)
     entries: List["CoopChickenRunEntry"] = betterproto.message_field(3)
+
+
+@dataclass
+class CoopLastChickenRunTimes(betterproto.Message):
+    entries: List["PlayerLastChickenRunTimes"] = betterproto.message_field(1)
 
 
 @dataclass
@@ -2092,6 +2136,8 @@ class MissionInfo(betterproto.Message):
     ship: "MissionInfoSpaceship" = betterproto.enum_field(1)
     status: "MissionInfoStatus" = betterproto.enum_field(2)
     duration_type: "MissionInfoDurationType" = betterproto.enum_field(3)
+    type: "MissionInfoMissionType" = betterproto.enum_field(14)
+    reset_index: int = betterproto.uint32_field(15)
     fuel: List["MissionInfoFuel"] = betterproto.message_field(4)
     level: int = betterproto.uint32_field(12)
     duration_seconds: float = betterproto.double_field(5)
@@ -2321,11 +2367,19 @@ class SetArtifactResponse(betterproto.Message):
 
 
 @dataclass
+class ActiveArtifactSlot(betterproto.Message):
+    occupied: bool = betterproto.bool_field(1)
+    item_id: int = betterproto.uint64_field(2)
+
+
+@dataclass
 class ArtifactsDB(betterproto.Message):
     inventory_items: List["ArtifactInventoryItem"] = betterproto.message_field(1)
     item_sequence: int = betterproto.uint64_field(2)
-    inventory_slots: List["InventorySlot"] = betterproto.message_field(3)
-    active_artifacts__d_e_p_r_e_c_a_t_e_d: List["ArtifactsDBActiveArtifactSlot"] = (
+    inventory_slots__n_o_t__u_s_e_d: List["InventorySlot"] = betterproto.message_field(
+        3
+    )
+    active_artifacts__d_e_p_r_e_c_a_t_e_d: List["ActiveArtifactSlot"] = (
         betterproto.message_field(7)
     )
     active_artifact_sets: List["ArtifactsDBActiveArtifactSet"] = (
@@ -2340,6 +2394,7 @@ class ArtifactsDB(betterproto.Message):
     fueling_mission: "MissionInfo" = betterproto.message_field(14)
     mission_infos: List["MissionInfo"] = betterproto.message_field(4)
     mission_archive: List["MissionInfo"] = betterproto.message_field(5)
+    virtue_afx_db: "ArtifactsDBVirtueDB" = betterproto.message_field(15)
     discovered_artifacts__d_e_p_r_e_c_a_t_e_d: List["ArtifactSpec"] = (
         betterproto.message_field(8)
     )
@@ -2352,14 +2407,8 @@ class ArtifactsDB(betterproto.Message):
 
 
 @dataclass
-class ArtifactsDBActiveArtifactSlot(betterproto.Message):
-    occupied: bool = betterproto.bool_field(1)
-    item_id: int = betterproto.uint64_field(2)
-
-
-@dataclass
 class ArtifactsDBActiveArtifactSet(betterproto.Message):
-    slots: List["ArtifactsDBActiveArtifactSlot"] = betterproto.message_field(1)
+    slots: List["ActiveArtifactSlot"] = betterproto.message_field(1)
     uid: int = betterproto.uint32_field(2)
 
 
@@ -2371,6 +2420,14 @@ class ArtifactsDBCraftableArtifact(betterproto.Message):
     recipe_discovered: bool = betterproto.bool_field(5)
     seen: bool = betterproto.bool_field(2)
     count: int = betterproto.uint32_field(3)
+
+
+@dataclass
+class ArtifactsDBVirtueDB(betterproto.Message):
+    inventory_items: List["ArtifactInventoryItem"] = betterproto.message_field(1)
+    artifact_status: List["ArtifactsDBCraftableArtifact"] = betterproto.message_field(2)
+    fueling_mission: "MissionInfo" = betterproto.message_field(3)
+    active_artifacts: "ArtifactsDBActiveArtifactSet" = betterproto.message_field(13)
 
 
 @dataclass

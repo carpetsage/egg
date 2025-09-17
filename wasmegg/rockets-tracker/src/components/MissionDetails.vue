@@ -25,6 +25,16 @@
           <div>{{ mission.durationDisplay }}</div>
           <div class="text-right font-medium">Capacity:</div>
           <div>{{ mission.capacity }}</div>
+          <div class="text-right font-medium">Fuel:</div>
+          <div>
+            <img
+              v-for="fuel in mission.fuels"
+              :key="fuel.egg"
+              v-tippy="{ content: `${fuel.amountDisplay} ${eggName(fuel.egg)}` }"
+              class="inline h-4 w-4 align-text-top"
+              :src="iconURL(fuel.eggIconPath, 64)"
+            />
+          </div>
           <div class="text-right font-medium mt-0.5">Sensor target:</div>
           <div
             class="text-center text-xs text-white rounded-full w-max px-1.5 py-0.5 mx-auto bg-gray-400 font-semibold"
@@ -158,7 +168,7 @@ import { Tippy } from 'vue-tippy';
 import copyTextToClipboard from 'copy-text-to-clipboard';
 import hotkeys from 'hotkeys-js';
 
-import { ei, iconURL, Mission } from 'lib';
+import { eggName, ei, iconURL, Mission } from 'lib';
 import { getCompletedMission, Loot, LootItem } from '@/lib';
 import { artifactRarityBgClass, artifactRarityFgClass, missionDurationTypeFgClass } from '@/utils';
 import BaseLoading from 'ui/components/BaseLoading.vue';
@@ -296,6 +306,7 @@ export default defineComponent({
       error,
       completedMission,
       lootSections,
+      eggName,
       itemsCount,
       missionDurationTypeFgClass,
       artifactRarityFgClass,

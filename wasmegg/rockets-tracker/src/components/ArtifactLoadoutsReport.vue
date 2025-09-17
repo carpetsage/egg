@@ -1,8 +1,6 @@
 <template>
   <div v-if="farms.length > 0" class="-mt-2 mx-4 xl:mx-0">
-    <div class="text-center text-xs mb-2">
-      You can hover over or click on an artifact to reveal names and effects.
-    </div>
+    <div class="text-center text-xs mb-2">You can hover over or click on an artifact to reveal names and effects.</div>
     <div class="space-y-4">
       <div v-for="(farm, index) in farms" :key="index">
         <div class="text-center">
@@ -10,18 +8,9 @@
           <span class="text-sm">{{ farmTitle(farm) }}</span>
         </div>
         <div class="text-center mb-1">
-          <a
-            :href="farmToSandboxURL(farm)"
-            target="_blank"
-            class="text-xs text-blue-500 hover:text-blue-600"
-          >
+          <a :href="farmToSandboxURL(farm)" target="_blank" class="text-xs text-blue-500 hover:text-blue-600">
             <span class="underline">Tweak this set in the sandbox</span>
-            <svg
-              class="inline h-3 w-3 relative -top-px ml-0.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg class="inline h-3 w-3 relative -top-px ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -31,30 +20,19 @@
             </svg>
           </a>
         </div>
-        <artifact-gallery
-          v-if="farm.artifactSet.artifacts.length > 0"
-          :artifact-set="farm.artifactSet"
-        />
-        <div v-else class="text-center text-sm text-gray-700">
-          No artifact equipped on this farm.
-        </div>
+        <artifact-gallery v-if="farm.artifactSet.artifacts.length > 0" :artifact-set="farm.artifactSet" />
+        <div v-else class="text-center text-sm text-gray-700">No artifact equipped on this farm.</div>
         <div
           v-if="farm.isHomeFarm"
           class="w-max max-w-full px-3 py-2 text-center text-xs text-green-800 bg-green-50 rounded-md shadow-sm mx-auto mt-1"
         >
           You can get recommendations for optimal prestige loadouts from
-          <a
-            href="/smart-assistant/"
-            target="_blank"
-            class="text-green-700 hover:text-green-900 underline"
+          <a href="/smart-assistant/" target="_blank" class="text-green-700 hover:text-green-900 underline"
             >Smart assistant</a
           >.<template v-if="farm.isEnlightenmentFarm"
             ><br />
             If you're aiming for an enlightenment trophy, check
-            <a
-              href="/enlightenment/"
-              target="_blank"
-              class="text-green-700 hover:text-green-900 underline"
+            <a href="/enlightenment/" target="_blank" class="text-green-700 hover:text-green-900 underline"
               >Enlightenment companion</a
             >.</template
           >

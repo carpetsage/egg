@@ -1,9 +1,6 @@
 <template>
   <div class="mx-4 xl:mx-0">
-    <div
-      v-if="fuelTankEnabled"
-      class="w-max max-w-full mx-auto px-4 py-2 bg-gray-50 rounded-lg shadow"
-    >
+    <div v-if="fuelTankEnabled" class="w-max max-w-full mx-auto px-4 py-2 bg-gray-50 rounded-lg shadow">
       <div class="text-sm text-center">
         Fuel tank usage:
         <span class="text-gray-700 whitespace-nowrap">
@@ -24,20 +21,14 @@
             />
           </div>
           <div class="ml-1.5 text-xs">
-            <label for="show-exact-fuel-amounts" class="text-gray-600"
-              >Show &ldquo;exact&rdquo; amounts</label
-            >
+            <label for="show-exact-fuel-amounts" class="text-gray-600">Show &ldquo;exact&rdquo; amounts</label>
           </div>
         </div>
       </div>
 
       <template v-if="fuels.length > 0">
         <div v-if="!showExactFuelAmounts" class="flex flex-wrap justify-center mt-1">
-          <div
-            v-for="fuel in fuels"
-            :key="fuel.egg"
-            class="flex flex-shrink-0 items-center px-1 my-0.5"
-          >
+          <div v-for="fuel in fuels" :key="fuel.egg" class="flex flex-shrink-0 items-center px-1 my-0.5">
             <img
               v-tippy="{ content: fuel.eggName }"
               class="inline h-4 w-4 align-text-top"
@@ -48,11 +39,7 @@
         </div>
 
         <div v-else class="grid grid-cols-max-3 items-center text-xs text-gray-700 tabular-nums">
-          <template
-            v-for="fuel in fuels"
-            :key="fuel.egg"
-            class="flex flex-shrink-0 items-center px-1 my-0.5"
-          >
+          <template v-for="fuel in fuels" :key="fuel.egg">
             <img
               v-tippy="{ content: fuel.eggName }"
               class="inline h-4 w-4 align-text-top"
@@ -61,7 +48,7 @@
             <span class="text-right ml-1">{{ formatEIValue(fuel.amount) }}</span>
             <span class="text-right ml-2"
               >({{
-                fuel.amount.toLocaleString('en-US', {
+                fuel.amount.toLocaleString(undefined, {
                   minimumFractionDigits: 3,
                   maximumFractionDigits: 3,
                 })
@@ -121,21 +108,15 @@ export default defineComponent({
     });
     const fuels = computed(() => {
       const tankFuels = backup.value.artifacts?.tankFuels || [];
-      if (tankFuels.length !== 0 && tankFuels.length !== 19) {
-        throw new Error(
-          `the impossible happened: ${tankFuels.length} eggs found in tankFuels, expected 19`
-        );
+      if (![0, 19, 25].includes(tankFuels.length)) {
+        throw new Error(`the impossible happened: ${tankFuels.length} eggs found in tankFuels, expected 19 or 25`);
       }
       return tankFuels
         .map((amount, index) => new MissionFuel(ei.Egg.EDIBLE + index, amount))
         .filter(fuel => fuel.amount > 0);
     });
-    const fuelTankUsage = computed(() =>
-      fuels.value.reduce((total, fuel) => total + fuel.amount, 0)
-    );
-    const showExactFuelAmounts = ref(
-      getLocalStorage(SHOW_EXACT_FUEL_AMOUNTS_LOCALSTORAGE_KEY) === 'true'
-    );
+    const fuelTankUsage = computed(() => fuels.value.reduce((total, fuel) => total + fuel.amount, 0));
+    const showExactFuelAmounts = ref(getLocalStorage(SHOW_EXACT_FUEL_AMOUNTS_LOCALSTORAGE_KEY) === 'true');
     watch(showExactFuelAmounts, () => {
       setLocalStorage(SHOW_EXACT_FUEL_AMOUNTS_LOCALSTORAGE_KEY, showExactFuelAmounts.value);
     });
