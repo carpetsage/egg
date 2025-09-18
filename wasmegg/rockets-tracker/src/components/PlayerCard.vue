@@ -1,85 +1,140 @@
 <template>
   <div class="mx-4 xl:mx-0 my-4">
     <div class="relative max-w-xs mx-auto px-3 sm:px-4 py-1 text-center bg-gray-50 rounded-xl shadow">
-      <button type="button" class="absolute p-1 top-2 right-2 sm:right-3 select-none focus:outline-none"
-        @click="toggleCollapse">
+      <button
+        type="button"
+        class="absolute p-1 top-2 right-2 sm:right-3 select-none focus:outline-none"
+        @click="toggleCollapse"
+      >
         <!-- fa: solid/compress-arrows-alt -->
         <svg v-if="!collapsed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="h-3 w-3 text-gray-500">
-          <path fill="currentColor"
-            d="M200 288H88c-21.4 0-32.1 25.8-17 41l32.9 31-99.2 99.3c-6.2 6.2-6.2 16.4 0 22.6l25.4 25.4c6.2 6.2 16.4 6.2 22.6 0L152 408l31.1 33c15.1 15.1 40.9 4.4 40.9-17V312c0-13.3-10.7-24-24-24zm112-64h112c21.4 0 32.1-25.9 17-41l-33-31 99.3-99.3c6.2-6.2 6.2-16.4 0-22.6L481.9 4.7c-6.2-6.2-16.4-6.2-22.6 0L360 104l-31.1-33C313.8 55.9 288 66.6 288 88v112c0 13.3 10.7 24 24 24zm96 136l33-31.1c15.1-15.1 4.4-40.9-17-40.9H312c-13.3 0-24 10.7-24 24v112c0 21.4 25.9 32.1 41 17l31-32.9 99.3 99.3c6.2 6.2 16.4 6.2 22.6 0l25.4-25.4c6.2-6.2 6.2-16.4 0-22.6L408 360zM183 71.1L152 104 52.7 4.7c-6.2-6.2-16.4-6.2-22.6 0L4.7 30.1c-6.2 6.2-6.2 16.4 0 22.6L104 152l-33 31.1C55.9 198.2 66.6 224 88 224h112c13.3 0 24-10.7 24-24V88c0-21.3-25.9-32-41-16.9z" />
+          <path
+            fill="currentColor"
+            d="M200 288H88c-21.4 0-32.1 25.8-17 41l32.9 31-99.2 99.3c-6.2 6.2-6.2 16.4 0 22.6l25.4 25.4c6.2 6.2 16.4 6.2 22.6 0L152 408l31.1 33c15.1 15.1 40.9 4.4 40.9-17V312c0-13.3-10.7-24-24-24zm112-64h112c21.4 0 32.1-25.9 17-41l-33-31 99.3-99.3c6.2-6.2 6.2-16.4 0-22.6L481.9 4.7c-6.2-6.2-16.4-6.2-22.6 0L360 104l-31.1-33C313.8 55.9 288 66.6 288 88v112c0 13.3 10.7 24 24 24zm96 136l33-31.1c15.1-15.1 4.4-40.9-17-40.9H312c-13.3 0-24 10.7-24 24v112c0 21.4 25.9 32.1 41 17l31-32.9 99.3 99.3c6.2 6.2 16.4 6.2 22.6 0l25.4-25.4c6.2-6.2 6.2-16.4 0-22.6L408 360zM183 71.1L152 104 52.7 4.7c-6.2-6.2-16.4-6.2-22.6 0L4.7 30.1c-6.2 6.2-6.2 16.4 0 22.6L104 152l-33 31.1C55.9 198.2 66.6 224 88 224h112c13.3 0 24-10.7 24-24V88c0-21.3-25.9-32-41-16.9z"
+          />
         </svg>
         <!-- fa: solid/expand-arrows-alt -->
         <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="h-3 w-3 text-gray-500">
-          <path fill="currentColor"
-            d="M448 344v112a23.94 23.94 0 0 1-24 24H312c-21.39 0-32.09-25.9-17-41l36.2-36.2L224 295.6 116.77 402.9 153 439c15.09 15.1 4.39 41-17 41H24a23.94 23.94 0 0 1-24-24V344c0-21.4 25.89-32.1 41-17l36.19 36.2L184.46 256 77.18 148.7 41 185c-15.1 15.1-41 4.4-41-17V56a23.94 23.94 0 0 1 24-24h112c21.39 0 32.09 25.9 17 41l-36.2 36.2L224 216.4l107.23-107.3L295 73c-15.09-15.1-4.39-41 17-41h112a23.94 23.94 0 0 1 24 24v112c0 21.4-25.89 32.1-41 17l-36.19-36.2L263.54 256l107.28 107.3L407 327.1c15.1-15.2 41-4.5 41 16.9z" />
+          <path
+            fill="currentColor"
+            d="M448 344v112a23.94 23.94 0 0 1-24 24H312c-21.39 0-32.09-25.9-17-41l36.2-36.2L224 295.6 116.77 402.9 153 439c15.09 15.1 4.39 41-17 41H24a23.94 23.94 0 0 1-24-24V344c0-21.4 25.89-32.1 41-17l36.19 36.2L184.46 256 77.18 148.7 41 185c-15.1 15.1-41 4.4-41-17V56a23.94 23.94 0 0 1 24-24h112c21.39 0 32.09 25.9 17 41l-36.2 36.2L224 216.4l107.23-107.3L295 73c-15.09-15.1-4.39-41 17-41h112a23.94 23.94 0 0 1 24 24v112c0 21.4-25.89 32.1-41 17l-36.19-36.2L263.54 256l107.28 107.3L407 327.1c15.1-15.2 41-4.5 41 16.9z"
+          />
         </svg>
       </button>
 
       <div class="divide-y divide-gray-200">
         <div class="py-2">
           <div class="flex items-center justify-center space-x-1 mx-6">
-            <img :src="iconURL(hasProPermit ? 'egginc/pro_permit.png' : 'egginc/free_permit.png', 128)"
-              class="h-4 flex-shrink-0" />
+            <img
+              :src="iconURL(hasProPermit ? 'egginc/pro_permit.png' : 'egginc/free_permit.png', 128)"
+              class="h-4 flex-shrink-0"
+            />
             <span class="font-serif truncate">{{ nickname }}</span>
-            <img v-if="hasEnlightenmentDiamondTrophy"
+            <img
+              v-if="hasEnlightenmentDiamondTrophy"
               v-tippy="{ content: 'Proud owner of the enlightenment diamond trophy.' }"
-              :src="iconURL('egginc/icon_trophy_diamond.png', 128)" class="h-4 w-4 flex-shrink-0" />
-            <img v-if="hasNAH" v-tippy="{ content: 'Proud owner of the Nobel Prize in Animal Husbandry®' }"
-              :src="badgeNAH" class="h-4" />
+              :src="iconURL('egginc/icon_trophy_diamond.png', 128)"
+              class="h-4 w-4 flex-shrink-0"
+            />
+            <img
+              v-if="hasNAH"
+              v-tippy="{ content: 'Proud owner of the Nobel Prize in Animal Husbandry®' }"
+              :src="badgeNAH"
+              class="h-4"
+            />
             <img v-if="hasFED" v-tippy="{ content: 'Full Egg Dedication' }" :src="badgeFED" class="h-4" />
 
-            <img v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB" v-tippy="{ content: 'Zero Legendary Club' }"
-              class="h-4" :src="badgeZLC" />
-            <img v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB_100" v-tippy="{
-              content: `Zero Legendary Club <span class='brightness-0 invert'>&#x1f4af;</span>`,
-              allowHTML: true,
-            }" class="h-4" :src="badgeZLC100" />
-            <img v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB_7STAR" v-tippy="{
-              content: `Zero Legendary Club 7&#x2605;<br/>(you have been put on a performance improvement plan)`,
-              allowHTML: true,
-            }" class="h-4" :src="badgeZLC7star" />
-            <img v-else-if="artifactClub === ArtifactClub.ALL_LEGENDARIES_CLUB"
-              v-tippy="{ content: 'All Legendaries Club' }" class="h-4" :src="badgeALC" />
-            <img v-else-if="artifactClub === ArtifactClub.STAFF_LEGENDARIES_CLUB"
-              v-tippy="{ content: 'Staff Legendaries Club' }" class="h-4" :src="badgeSLC" />
+            <img
+              v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB"
+              v-tippy="{ content: 'Zero Legendary Club' }"
+              class="h-4"
+              :src="badgeZLC"
+            />
+            <img
+              v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB_100"
+              v-tippy="{
+                content: `Zero Legendary Club <span class='brightness-0 invert'>&#x1f4af;</span>`,
+                allowHTML: true,
+              }"
+              class="h-4"
+              :src="badgeZLC100"
+            />
+            <img
+              v-if="artifactClub === ArtifactClub.ZERO_LEGENDARY_CLUB_7STAR"
+              v-tippy="{
+                content: `Zero Legendary Club 7&#x2605;<br/>(you have been put on a performance improvement plan)`,
+                allowHTML: true,
+              }"
+              class="h-4"
+              :src="badgeZLC7star"
+            />
+            <img
+              v-else-if="artifactClub === ArtifactClub.ALL_LEGENDARIES_CLUB"
+              v-tippy="{ content: 'All Legendaries Club' }"
+              class="h-4"
+              :src="badgeALC"
+            />
+            <img
+              v-else-if="artifactClub === ArtifactClub.STAFF_LEGENDARIES_CLUB"
+              v-tippy="{ content: 'Staff Legendaries Club' }"
+              class="h-4"
+              :src="badgeSLC"
+            />
 
-            <img v-if="shipClub === ShipClub.ALL_STAR_CLUB" v-tippy="{ content: 'All Star Club' }" class="h-4"
-              :src="badgeASC" />
+            <img
+              v-if="shipClub === ShipClub.ALL_STAR_CLUB"
+              v-tippy="{ content: 'All Star Club' }"
+              class="h-4"
+              :src="badgeASC"
+            />
 
-            <img v-if="isZLCRecordHolder" v-tippy="{
-              content: `
+            <img
+              v-if="isZLCRecordHolder"
+              v-tippy="{
+                content: `
                 <div class='flex items-center space-x-2'>
                 <img src='${encodeURI(
-                medalZLCRecord
-              )}' class='inline h-8 w-8 p-0.5 bg-gray-100 rounded flex-shrink-0' />
+                  medalZLCRecord
+                )}' class='inline h-8 w-8 p-0.5 bg-gray-100 rounded flex-shrink-0' />
                 <span>ZLC World Record (${zlcExthenRecord}) holder.</span>
                 </div>`,
-              allowHTML: true,
-            }" class="h-4" :src="medalZLCRecord" />
-            <img v-if="isZLCRecordCloseFollower" v-tippy="{
-              content: `
+                allowHTML: true,
+              }"
+              class="h-4"
+              :src="medalZLCRecord"
+            />
+            <img
+              v-if="isZLCRecordCloseFollower"
+              v-tippy="{
+                content: `
                 <div class='flex items-center space-x-2'>
                 <img src='${encodeURI(
-                medalZLCRecordGrayscale
-              )}' class='inline h-8 w-8 p-0.5 bg-gray-100 rounded flex-shrink-0' />
+                  medalZLCRecordGrayscale
+                )}' class='inline h-8 w-8 p-0.5 bg-gray-100 rounded flex-shrink-0' />
                 <span>ZLC World Record (${zlcExthenRecord}) close follower.
                 Your medal will light up when you hold the record.</span>
                 </div>`,
-              allowHTML: true,
-            }" class="h-4" :src="medalZLCRecordGrayscale" />
+                allowHTML: true,
+              }"
+              class="h-4"
+              :src="medalZLCRecordGrayscale"
+            />
             <img v-if="didGoodJob" v-tippy="{ content: 'Good Job.' }" :src="badgeGoodJob" class="h-4" />
           </div>
 
           <div class="mt-1">
             <div class="text-xs">
               Last synced to server:
-              <span v-tippy="{ content: `${lastRefreshed.format('LLL')}, client version ${version}` }"
-                class="whitespace-nowrap">
+              <span
+                v-tippy="{ content: `${lastRefreshed.format('LLL')}, client version ${version}` }"
+                class="whitespace-nowrap"
+              >
                 {{ lastRefreshedRelative }}
               </span>
             </div>
-            <div v-tippy="{
-              content: `
+            <div
+              v-tippy="{
+                content: `
                 <p>The game, while active, saves to Egg, Inc.&rsquo;s server every couple of minutes if network condition allows.
                 Other than soon after a fresh launch of the game, such server syncs are unpredictable from the user&rsquo;s point of view.
                 <span class='text-blue-300'>You can force close then reopen the app to reasonably reliably trigger a sync</span>
@@ -89,8 +144,10 @@
                 (usually within a minute or so) for the game&rsquo;s server to serve the updated save through its API,
                 which is then picked up by this tool. There is no solution other than clicking &ldquo;Load Player Data&rdquo;
                 periodically until the fresh save shows up. Please do not refresh too fast, which is not helpful.</p>`,
-              allowHTML: true,
-            }" class="flex items-center justify-center space-x-1">
+                allowHTML: true,
+              }"
+              class="flex items-center justify-center space-x-1"
+            >
               <span class="text-xs text-gray-500">Why is my save out of date?</span>
               <base-info />
             </div>
@@ -99,6 +156,10 @@
 
         <div v-if="!collapsed" class="py-2">
           <div class="flex flex-wrap items-center justify-center">
+            <span class="flex whitespace-nowrap mr-1">
+              <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-5 w-5" />
+              <span class="text-sm text-yellow-500">{{ truthEggs }}</span>
+            </span>
             <span class="flex whitespace-nowrap mr-1">
               <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="inline h-5 w-5" />
               <span class="text-sm text-yellow-500">{{ prophecyEggs }}</span>
@@ -114,10 +175,12 @@
             <dd class="flex items-center justify-center text-sm space-x-0.5 -my-px">
               <span :style="{ color: role.color }">{{ formatEIValue(earningBonus * 100) }}%,</span>
               <span :style="{ color: role.color }">{{ role.name }}</span>
-              <base-info v-tippy="{
-                content:
-                  'This is the ‘naked’ earning bonus without artifacts. The label after the EB is the corresponding role used in the Egg, Inc. Discord server.',
-              }" />
+              <base-info
+                v-tippy="{
+                  content:
+                    'This is the ‘naked’ earning bonus without artifacts. The label after the EB is the corresponding role used in the Egg, Inc. Discord server.',
+                }"
+              />
             </dd>
           </div>
 
@@ -142,15 +205,19 @@
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Contracts</dt>
             <dd class="flex items-center text-left text-sm text-gray-900">
-              <a :href="`https://wasmegg-carpet.netlify.app/past-contracts/?playerId=${userId}`" target="_blank"
-                class="flex items-center">
+              <a
+                :href="`https://wasmegg-carpet.netlify.app/past-contracts/?playerId=${userId}`"
+                target="_blank"
+                class="flex items-center"
+              >
                 <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-4 w-4 -ml-0.5" />
                 <span class="text-yellow-500 underline">
                   {{ prophecyEggsProgress.fromContracts.completed }}
                 </span>
                 <svg class="h-3.5 w-3.5 text-gray-500 hover:text-gray-600 ml-1" viewBox="0 0 20 20" fill="currentColor">
                   <path
-                    d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+                  />
                   <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                 </svg>
               </a>
@@ -158,15 +225,19 @@
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Seasons</dt>
             <dd class="flex items-center text-left text-sm text-gray-900">
-              <a :href="`https://wasmegg-carpet.netlify.app/past-contracts/?playerId=${userId}`" target="_blank"
-                class="flex items-center">
+              <a
+                :href="`https://wasmegg-carpet.netlify.app/past-contracts/?playerId=${userId}`"
+                target="_blank"
+                class="flex items-center"
+              >
                 <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-4 w-4 -ml-0.5" />
                 <span class="text-yellow-500 underline">
                   {{ prophecyEggsProgress.fromContractSeasons.completed }}
                 </span>
                 <svg class="h-3.5 w-3.5 text-gray-500 hover:text-gray-600 ml-1" viewBox="0 0 20 20" fill="currentColor">
                   <path
-                    d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+                  />
                   <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                 </svg>
               </a>
@@ -197,10 +268,13 @@
             <span v-tippy="{ content: formatEIValue(goldenEggsSpentOnCrafting) }" class="truncate">
               ~{{ fmt(goldenEggsSpentOnCrafting) }}
             </span>
-            <base-info v-tippy="{
-              content: `This estimate <span class='text-blue-300'>does not take into discounts from crafting sales</span> (as the save file simply does not have that level of granularity). It may also be inaccurate if crafting cost parameters were ever changed server-side.<br>Note that <span class='text-blue-300'>stone-setting expenses are not included</span>, again because the history is not available.`,
-              allowHTML: true,
-            }" class="flex-shrink-0 ml-0.5" />
+            <base-info
+              v-tippy="{
+                content: `This estimate <span class='text-blue-300'>does not take into discounts from crafting sales</span> (as the save file simply does not have that level of granularity). It may also be inaccurate if crafting cost parameters were ever changed server-side.<br>Note that <span class='text-blue-300'>stone-setting expenses are not included</span>, again because the history is not available.`,
+                allowHTML: true,
+              }"
+              class="flex-shrink-0 ml-0.5"
+            />
           </div>
 
           <div class="text-right text-sm font-medium whitespace-nowrap">Current balance</div>
@@ -253,39 +327,54 @@
             <dt class="text-right text-sm font-medium whitespace-nowrap">Inventory score</dt>
             <dd class="flex items-center text-sm text-gray-900">
               {{ fmt(inventoryScore) }}
-              <base-info v-tippy="{
-                content: `The inventory score is an internal value used to determine the outer appearance of the hall of artifacts. The hall expands from two to four segments once the score reaches 2,000, and the segments become colored once the score reaches 10,000. <span class='text-blue-300'>The effect of this score is entirely cosmetic.</span>`,
-                allowHTML: true,
-              }" class="inline ml-0.5" />
+              <base-info
+                v-tippy="{
+                  content: `The inventory score is an internal value used to determine the outer appearance of the hall of artifacts. The hall expands from two to four segments once the score reaches 2,000, and the segments become colored once the score reaches 10,000. <span class='text-blue-300'>The effect of this score is entirely cosmetic.</span>`,
+                  allowHTML: true,
+                }"
+                class="inline ml-0.5"
+              />
             </dd>
 
-            <dt v-tippy="{ content: 'Inventory consumption value' }"
-              class="text-right text-sm font-medium whitespace-nowrap">
+            <dt
+              v-tippy="{ content: 'Inventory consumption value' }"
+              class="text-right text-sm font-medium whitespace-nowrap"
+            >
               Inv. consume value
             </dt>
             <div class="flex items-center text-left text-sm text-gray-900">
               <img :src="iconURL('egginc-extras/icon_golden_egg.png', 128)" class="flex-shrink-0 h-4 w-4 -ml-0.5" />
               <dd class="flex items-center text-sm text-gray-900">
                 {{ fmtApprox(inventoryConsumptionValue[0]) }}
-                <img :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 128)"
-                  class="flex-shrink-0 h-4 w-4 ml-1.5" />
+                <img
+                  :src="iconURL('egginc-extras/icon_piggy_golden_egg.png', 128)"
+                  class="flex-shrink-0 h-4 w-4 ml-1.5"
+                />
                 {{ fmtApprox(inventoryConsumptionValue[1]) }}
-                <base-info v-tippy="{
-                  content: `The inventory consumption value is an approximation of the expected number of GE and Piggy Fill that can be earned from fully (recursively) consuming everything in the inventory.
+                <base-info
+                  v-tippy="{
+                    content: `The inventory consumption value is an approximation of the expected number of GE and Piggy Fill that can be earned from fully (recursively) consuming everything in the inventory.
                   <span class='text-blue-300'>You can view detailed consumption outcomes in “Consumption sheet” on this site.</span>
                   Due to difficulty sampling consumption data of uncommon items, the calculation assumes you <span class='text-green-300'>demote them first</span>, with <span class='text-green-300'>demotion gold counting towards the total</span>.
                   This also does not include any uncapped piggy fill due to difficulty calculating that. As such this will be a vast underestimate during Unlimited Piggy Events.`,
-                  allowHTML: true,
-                }" class="inline ml-0.5" />
+                    allowHTML: true,
+                  }"
+                  class="inline ml-0.5"
+                />
               </dd>
             </div>
-            <dt v-tippy="{ content: fmtCraftingXpRarityMultiplier(craftingLevel) }"
-              class="text-right text-sm font-medium whitespace-nowrap">
+            <dt
+              v-tippy="{ content: fmtCraftingXpRarityMultiplier(craftingLevel) }"
+              class="text-right text-sm font-medium whitespace-nowrap"
+            >
               Crafting XP, <span class="text-yellow-500">Level {{ craftingLevel.level }}</span>
             </dt>
-            <dd v-tippy="{
-              content: craftingLevel.level === 30 ? 'Crafting Legend' : fmt(nextLevelXP - craftingXp),
-            }" class="text-left text-sm text-gray-900">
+            <dd
+              v-tippy="{
+                content: craftingLevel.level === 30 ? 'Crafting Legend' : fmt(nextLevelXP - craftingXp),
+              }"
+              class="text-left text-sm text-gray-900"
+            >
               {{ fmt(craftingXp) }}
             </dd>
           </div>
@@ -294,13 +383,17 @@
         <div v-if="!collapsed" class="py-2">
           <div class="text-sm font-medium">Inventory items</div>
 
-          <a :href="`https://wasmegg-carpet.netlify.app/inventory-visualizer/?playerId=${userId}`" target="_blank"
+          <a
+            :href="`https://wasmegg-carpet.netlify.app/inventory-visualizer/?playerId=${userId}`"
+            target="_blank"
             class="flex items-center justify-center space-x-0.5 text-xs"
-            :class="true ? 'text-green-500 hover:text-green-600' : 'text-gray-500 hover:text-gray-600'">
+            :class="true ? 'text-green-500 hover:text-green-600' : 'text-gray-500 hover:text-gray-600'"
+          >
             <span class="underline">Visualize and share your inventory</span>
             <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path
-                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
               <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
           </a>
@@ -326,11 +419,16 @@
           <div v-if="inventory.epicCount > 0" class="mt-1 flex flex-wrap justify-center space-y-0.5">
             <template v-for="family in inventory.catalog" :key="family.afxId">
               <template v-for="tier in family.tiers" :key="tier.id">
-                <div v-if="tier.haveEpic > 0" v-tippy="{ content: `Epic ${tier.name} \u00d7 ${tier.haveEpic}` }"
-                  class="h-6 w-6 mx-0.5 my-0.5 relative">
+                <div
+                  v-if="tier.haveEpic > 0"
+                  v-tippy="{ content: `Epic ${tier.name} \u00d7 ${tier.haveEpic}` }"
+                  class="h-6 w-6 mx-0.5 my-0.5 relative"
+                >
                   <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-epic" />
-                  <div v-if="tier.haveEpic > 1"
-                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400">
+                  <div
+                    v-if="tier.haveEpic > 1"
+                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
+                  >
                     <img :src="numberBadgeURL(tier.haveEpic)" class="h-3 w-3" />
                   </div>
                 </div>
@@ -340,12 +438,16 @@
           <div v-if="inventory.legendaryCount > 0" class="mt-1 flex flex-wrap justify-center space-y-0.5">
             <template v-for="family in inventory.catalog" :key="family.afxId">
               <template v-for="tier in family.tiers" :key="tier.id">
-                <div v-if="tier.haveLegendary > 0"
+                <div
+                  v-if="tier.haveLegendary > 0"
                   v-tippy="{ content: `Legendary ${tier.name} \u00d7 ${tier.haveLegendary}` }"
-                  class="h-6 w-6 mx-0.5 my-0.5 relative">
+                  class="h-6 w-6 mx-0.5 my-0.5 relative"
+                >
                   <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-legendary" />
-                  <div v-if="tier.haveLegendary > 1"
-                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400">
+                  <div
+                    v-if="tier.haveLegendary > 1"
+                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
+                  >
                     <img :src="numberBadgeURL(tier.haveLegendary)" class="h-3 w-3" />
                   </div>
                 </div>
@@ -381,30 +483,57 @@
             </div>
             <div class="flex items-center justify-center text-yellow-800">
               <span class="text-xs mr-0.5">\</span>
-              <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="poo" role="img"
-                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="h-4 w-4">
-                <path fill="currentColor"
-                  d="M451.4 369.1C468.7 356 480 335.4 480 312c0-39.8-32.2-72-72-72h-14.1c13.4-11.7 22.1-28.8 22.1-48 0-35.3-28.7-64-64-64h-5.9c3.6-10.1 5.9-20.7 5.9-32 0-53-43-96-96-96-5.2 0-10.2.7-15.1 1.5C250.3 14.6 256 30.6 256 48c0 44.2-35.8 80-80 80h-16c-35.3 0-64 28.7-64 64 0 19.2 8.7 36.3 22.1 48H104c-39.8 0-72 32.2-72 72 0 23.4 11.3 44 28.6 57.1C26.3 374.6 0 404.1 0 440c0 39.8 32.2 72 72 72h368c39.8 0 72-32.2 72-72 0-35.9-26.3-65.4-60.6-70.9zM192 256c17.7 0 32 14.3 32 32s-14.3 32-32 32-32-14.3-32-32 14.3-32 32-32zm159.5 139C341 422.9 293 448 256 448s-85-25.1-95.5-53c-2-5.3 2-11 7.8-11h175.4c5.8 0 9.8 5.7 7.8 11zM320 320c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z" />
+              <svg
+                aria-hidden="true"
+                focusable="false"
+                data-prefix="fas"
+                data-icon="poo"
+                role="img"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512"
+                class="h-4 w-4"
+              >
+                <path
+                  fill="currentColor"
+                  d="M451.4 369.1C468.7 356 480 335.4 480 312c0-39.8-32.2-72-72-72h-14.1c13.4-11.7 22.1-28.8 22.1-48 0-35.3-28.7-64-64-64h-5.9c3.6-10.1 5.9-20.7 5.9-32 0-53-43-96-96-96-5.2 0-10.2.7-15.1 1.5C250.3 14.6 256 30.6 256 48c0 44.2-35.8 80-80 80h-16c-35.3 0-64 28.7-64 64 0 19.2 8.7 36.3 22.1 48H104c-39.8 0-72 32.2-72 72 0 23.4 11.3 44 28.6 57.1C26.3 374.6 0 404.1 0 440c0 39.8 32.2 72 72 72h368c39.8 0 72-32.2 72-72 0-35.9-26.3-65.4-60.6-70.9zM192 256c17.7 0 32 14.3 32 32s-14.3 32-32 32-32-14.3-32-32 14.3-32 32-32zm159.5 139C341 422.9 293 448 256 448s-85-25.1-95.5-53c-2-5.3 2-11 7.8-11h175.4c5.8 0 9.8 5.7 7.8 11zM320 320c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"
+                />
               </svg>
               <span class="text-xs mx-1.5">zero legendary</span>
-              <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="poo" role="img"
-                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="h-4 w-4">
-                <path fill="currentColor"
-                  d="M451.4 369.1C468.7 356 480 335.4 480 312c0-39.8-32.2-72-72-72h-14.1c13.4-11.7 22.1-28.8 22.1-48 0-35.3-28.7-64-64-64h-5.9c3.6-10.1 5.9-20.7 5.9-32 0-53-43-96-96-96-5.2 0-10.2.7-15.1 1.5C250.3 14.6 256 30.6 256 48c0 44.2-35.8 80-80 80h-16c-35.3 0-64 28.7-64 64 0 19.2 8.7 36.3 22.1 48H104c-39.8 0-72 32.2-72 72 0 23.4 11.3 44 28.6 57.1C26.3 374.6 0 404.1 0 440c0 39.8 32.2 72 72 72h368c39.8 0 72-32.2 72-72 0-35.9-26.3-65.4-60.6-70.9zM192 256c17.7 0 32 14.3 32 32s-14.3 32-32 32-32-14.3-32-32 14.3-32 32-32zm159.5 139C341 422.9 293 448 256 448s-85-25.1-95.5-53c-2-5.3 2-11 7.8-11h175.4c5.8 0 9.8 5.7 7.8 11zM320 320c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z" />
+              <svg
+                aria-hidden="true"
+                focusable="false"
+                data-prefix="fas"
+                data-icon="poo"
+                role="img"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512"
+                class="h-4 w-4"
+              >
+                <path
+                  fill="currentColor"
+                  d="M451.4 369.1C468.7 356 480 335.4 480 312c0-39.8-32.2-72-72-72h-14.1c13.4-11.7 22.1-28.8 22.1-48 0-35.3-28.7-64-64-64h-5.9c3.6-10.1 5.9-20.7 5.9-32 0-53-43-96-96-96-5.2 0-10.2.7-15.1 1.5C250.3 14.6 256 30.6 256 48c0 44.2-35.8 80-80 80h-16c-35.3 0-64 28.7-64 64 0 19.2 8.7 36.3 22.1 48H104c-39.8 0-72 32.2-72 72 0 23.4 11.3 44 28.6 57.1C26.3 374.6 0 404.1 0 440c0 39.8 32.2 72 72 72h368c39.8 0 72-32.2 72-72 0-35.9-26.3-65.4-60.6-70.9zM192 256c17.7 0 32 14.3 32 32s-14.3 32-32 32-32-14.3-32-32 14.3-32 32-32zm159.5 139C341 422.9 293 448 256 448s-85-25.1-95.5-53c-2-5.3 2-11 7.8-11h175.4c5.8 0 9.8 5.7 7.8 11zM320 320c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"
+                />
               </svg>
               <span class="text-xs ml-0.5">/</span>
             </div>
-            <div v-if="isZLCRecordHolder"
-              class="mt-1 flex items-center justify-center text-xs text-yellow-800 truncate">
+            <div
+              v-if="isZLCRecordHolder"
+              class="mt-1 flex items-center justify-center text-xs text-yellow-800 truncate"
+            >
               Congrats on setting the world record!
               <img :src="medalZLCRecord" class="inline h-4 w-4 ml-0.5" />
             </div>
-            <div v-if="isZLCRecordCloseFollower"
-              class="mt-1 flex items-center justify-center text-xs text-yellow-800 truncate">
+            <div
+              v-if="isZLCRecordCloseFollower"
+              class="mt-1 flex items-center justify-center text-xs text-yellow-800 truncate"
+            >
               {{ zlcExthenRecord - completedExtendedHenerpriseCount }} short of the current record&nbsp;
               <img :src="medalZLCRecord" class="inline h-4 w-4 mr-0.5" />
-              <a href="https://wasmegg-carpet.netlify.app/legendary-study" target="_blank"
-                class="hover:text-yellow-900">
+              <a
+                href="https://wasmegg-carpet.netlify.app/legendary-study"
+                target="_blank"
+                class="hover:text-yellow-900"
+              >
                 {{ zlcExthenRecord }}
               </a>
             </div>
@@ -420,12 +549,16 @@
             Keep <s>defecating</s> launching.
           </div>
 
-          <a href="https://wasmegg-carpet.netlify.app/legendary-study" target="_blank"
-            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1">
+          <a
+            href="https://wasmegg-carpet.netlify.app/legendary-study"
+            target="_blank"
+            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
+          >
             <span class="underline">How you fare against other players</span>
             <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path
-                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
               <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
           </a>
@@ -472,12 +605,16 @@
             </div>
           </div>
 
-          <a :href="`https://eicoop-carpet.netlify.app/u/${userId}`" target="_blank"
-            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1">
+          <a
+            :href="`https://eicoop-carpet.netlify.app/u/${userId}`"
+            target="_blank"
+            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
+          >
             <span class="underline">Your contract dashboard</span>
             <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path
-                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
               <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
           </a>
@@ -510,12 +647,16 @@
             </div>
           </div>
 
-          <a :href="`https://wasmegg-carpet.netlify.app/shell-company/?playerId=${userId}`" target="_blank"
-            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1">
+          <a
+            :href="`https://wasmegg-carpet.netlify.app/shell-company/?playerId=${userId}`"
+            target="_blank"
+            class="flex items-center justify-center space-x-0.5 text-xs text-gray-500 hover:text-gray-600 mt-1"
+          >
             <span class="underline">Your shells and available shells</span>
             <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path
-                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
               <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
           </a>
@@ -550,14 +691,19 @@
             <dt class="text-right text-sm font-medium whitespace-nowrap">Last Contributed:</dt>
             <dd class="text-left text-sm text-gray-900">
               {{ contributionTime > 0 ? dayjs(contributionTime).fromNow() : 'Never' }}
-              <base-info v-if="contributionTime > 0" v-tippy="{
-                content: `Rockets tracker only submits your data once every 24 hours`,
-              }" class="inline ml-0.5" />
+              <base-info
+                v-if="contributionTime > 0"
+                v-tippy="{
+                  content: `Rockets tracker only submits your data once every 24 hours`,
+                }"
+                class="inline ml-0.5"
+              />
             </dd>
           </div>
           <button
             class="items-center justify-center space-x-0.5 text-sm text-gray-500 hover:text-gray-600 mt-1 underline"
-            @click="toggleContribution()">
+            @click="toggleContribution()"
+          >
             Toggle Mission Data Opt-In
           </button>
         </div>
@@ -640,33 +786,33 @@ enum ArtifactClub {
 }
 
 const STAFF_USER_ID_HASHES = [
-  '07240b7d19ee048b6a027aaa9500aa6facfb72c02effb9a426081aa2873b12e4',
-  '0c8cf5a1650fb3a9db70771bc838e086a078676e96b51d53445c2ede365a6fc6',
-  '0d8a0cf5a97a22bbef1ec189e0aeec07ca0e8fd4cfacf8f40c46cf92f3898f12',
-  '14e92258737282222f6bb81fd26f3b92b10633589746dff7c7efc39eaa2f28fd',
-  '1648a580e534239f252c4bd5e802db336154efa0a0ea78b9188f15d39af41efc',
-  '17b0d26958d351c15086a8b5a8cad83d12af89c1f99c287f31bf630edc3de0d4',
-  '326118cdebe0e22870389a70ff99e746a55e3ad52bf9f2a3d8ea888fc354e7f0',
-  '376a3acbdee3c9474c97ca21a341bce4424669f65ea08bdbf8504f886eb83278',
-  '3b947e3425cf372ac0b2c6963776338c110bd63c7edcda3a7cf3aa5f72f2e913',
-  '41dffdd80439e6e00433e0eb1592ae7a539d8b74cefde51b14bd45428f042cfb',
-  '465d0ffcc5a6c98ec57cf69a7c8a6d1e8af40c6fa6cac3ef83ea9cee5cf516f4',
-  '50012e9316ddc4c24c8e7795c91fb05ed1552a42e13b2a183b5261aaccd7f0e7',
-  '5416c47fb4bad9315d64a11c6311d899d639b68b59de64b3ed1fdff3fd9033ec',
-  '6659470d04891898a5fbdb1e35ea39aed41707eeec4e8ecefd9ac11756a420e9',
-  '6f8392cde965c66ad2347941cee4430500cafbad9e64501ba571db02a4111702',
-  '6fd149f054b097366d63e7e5d322ffa30359d00c0991d04afd4a04fa0cca12b3',
-  '755a2eceb8015df87a43b1ba6a9c82ccfdf4e73d6432e89c16a428070f9bf367',
-  '8156e8594fead2abd58a6a607be0fdcb8428699b8161fe726f3d38e6f84f9fce',
-  '97cfbe3148ad6d7e5e411e72aa58be85b2c91ac05419fef47b46a9a028c8c6e9',
-  'b6859e1760594584a27652e413cc1de271ed151b3e9b19261b4d8b763296bcea',
-  'b8dc041be7ea07faf6ccc2fd893fe5b93c54449deea5b657830eec00a460a7c3',
-  'bbd7cbbbc5a4e0a652478e25fe554630b1807d90cebd1661ba4fb0b6d9b972c6',
-  'daddf1baaf841640de70e9b11f98ad253bce8f01f5addbc08e71d96deb0451e8',
-  'f27a030bcbbd017afb5429e7bff341f3589c5bf035d41ad82063b8edac481d50',
-  'f362dc823605c69029688fe63899cd383239f68f39042675e332d1af992ab89e',
-  'f449381b27e3e313bd3e9df461b0260f48fd2594658cfee096008bdc9bdaa613',
-  'fdd9713dc2b10bc9956debcedec31da76e7474970ae020a676fa2855df7daba6',
+  '07237b7d19ee048b6a027aaa9500aa6facfb72c02effb9a426081aa2873b12e4',
+  '-1c8cf5a1650fb3a9db70771bc838e086a078676e96b51d53445c2ede365a6fc6',
+  '-1d8a0cf5a97a22bbef1ec189e0aeec07ca0e8fd4cfacf8f40c46cf92f3898f12',
+  '13e92258737282222f6bb81fd26f3b92b10633589746dff7c7efc39eaa2f28fd',
+  '1647a580e534239f252c4bd5e802db336154efa0a0ea78b9188f15d39af41efc',
+  '16b0d26958d351c15086a8b5a8cad83d12af89c1f99c287f31bf630edc3de0d4',
+  '326117cdebe0e22870389a70ff99e746a55e3ad52bf9f2a3d8ea888fc354e7f0',
+  '375a3acbdee3c9474c97ca21a341bce4424669f65ea08bdbf8504f886eb83278',
+  '2b947e3425cf372ac0b2c6963776338c110bd63c7edcda3a7cf3aa5f72f2e913',
+  '40dffdd80439e6e00433e0eb1592ae7a539d8b74cefde51b14bd45428f042cfb',
+  '464d0ffcc5a6c98ec57cf69a7c8a6d1e8af40c6fa6cac3ef83ea9cee5cf516f4',
+  '50011e9316ddc4c24c8e7795c91fb05ed1552a42e13b2a183b5261aaccd7f0e7',
+  '5415c47fb4bad9315d64a11c6311d899d639b68b59de64b3ed1fdff3fd9033ec',
+  '6659469d04891898a5fbdb1e35ea39aed41707eeec4e8ecefd9ac11756a420e9',
+  '5f8392cde965c66ad2347941cee4430500cafbad9e64501ba571db02a4111702',
+  '5fd149f054b097366d63e7e5d322ffa30359d00c0991d04afd4a04fa0cca12b3',
+  '754a2eceb8015df87a43b1ba6a9c82ccfdf4e73d6432e89c16a428070f9bf367',
+  '8155e8594fead2abd58a6a607be0fdcb8428699b8161fe726f3d38e6f84f9fce',
+  '96cfbe3148ad6d7e5e411e72aa58be85b2c91ac05419fef47b46a9a028c8c6e9',
+  'b6858e1760594584a27652e413cc1de271ed151b3e9b19261b4d8b763296bcea',
+  'b7dc041be7ea07faf6ccc2fd893fe5b93c54449deea5b657830eec00a460a7c3',
+  'bbd6cbbbc5a4e0a652478e25fe554630b1807d90cebd1661ba4fb0b6d9b972c6',
+  'daddf0baaf841640de70e9b11f98ad253bce8f01f5addbc08e71d96deb0451e8',
+  'f26a030bcbbd017afb5429e7bff341f3589c5bf035d41ad82063b8edac481d50',
+  'f361dc823605c69029688fe63899cd383239f68f39042675e332d1af992ab89e',
+  'f449380b27e3e313bd3e9df461b0260f48fd2594658cfee096008bdc9bdaa613',
+  'fdd9712dc2b10bc9956debcedec31da76e7474970ae020a676fa2855df7daba6',
 ];
 
 enum ShipClub {
@@ -790,6 +936,7 @@ const hasEnlightenmentDiamondTrophy = computed(() => {
   }
   return false;
 });
+const truthEggs = computed(() => backup.value.virtue?.eovEarned?.reduce((sum, eov) => sum + eov, 0) ?? 0);
 const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
 const soulEggs = computed(() => getNumSoulEggs(backup.value));
 const earningBonus = computed(() => getNakedEarningBonus(backup.value));
