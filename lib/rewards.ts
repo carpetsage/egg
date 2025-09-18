@@ -60,6 +60,8 @@ export function rewardIconPath(r: ei.IReward | ei.Contract.IGoal): string {
       return `egginc/icon_afx_chest_3.png`;
     case ei.RewardType.SHELL_SCRIPT:
       return `egginc/icon_shell_script_colored.png`;
+    case ei.RewardType.VIRTUE_GEM:
+      return `egginc-extras/icon_virtue_gem.png`;
     // We haven't seen a single-artifact reward yet, so I'd rather not guess
     // what rewardSubType would be, so unknown it is.
     //
@@ -169,6 +171,8 @@ export function rewardName(r: ei.IReward | ei.Contract.IGoal): string {
       return 'Chicken';
     case ei.RewardType.SHELL_SCRIPT:
       return 'Tickets';
+    case ei.RewardType.VIRTUE_GEM:
+      return 'Virtue gem';
     case ei.RewardType.UNKNOWN_REWARD:
       return 'Unknown';
   }
