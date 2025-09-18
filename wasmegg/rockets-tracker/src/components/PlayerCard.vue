@@ -316,7 +316,7 @@
             <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime prestiges</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numPrestiges) }}</dd>
 
-            <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime shifts</dt>
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Current shifts</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numShifts) }}</dd>
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime resets</dt>
