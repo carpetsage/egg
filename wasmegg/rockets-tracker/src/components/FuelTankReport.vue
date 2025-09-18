@@ -1,66 +1,118 @@
 <template>
   <div class="mx-4 xl:mx-0">
-    <div v-if="fuelTankEnabled" class="w-max max-w-full mx-auto px-4 py-2 bg-gray-50 rounded-lg shadow">
-      <div class="text-sm text-center">
-        Fuel tank usage:
-        <span class="text-gray-700 whitespace-nowrap">
-          {{ formatEIValue(fuelTankUsage, { trim: true }) }} /
-          {{ formatEIValue(fuelTankCapacity, { trim: true }) }}
-        </span>
-      </div>
-
-      <div class="flex justify-center my-1">
-        <div class="relative flex items-start">
-          <div class="flex items-center h-4">
-            <input
-              id="show-exact-fuel-amounts"
-              v-model="showExactFuelAmounts"
-              name="show-exact-fuel-amounts"
-              type="checkbox"
-              class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
-            />
-          </div>
-          <div class="ml-1.5 text-xs">
-            <label for="show-exact-fuel-amounts" class="text-gray-600">Show &ldquo;exact&rdquo; amounts</label>
-          </div>
+    <div class="flex justify-center my-1">
+      <div class="relative flex items-start">
+        <div class="flex items-center h-4">
+          <input
+            id="show-exact-fuel-amounts"
+            v-model="showExactFuelAmounts"
+            name="show-exact-fuel-amounts"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+          />
+        </div>
+        <div class="ml-1.5 text-xs">
+          <label for="show-exact-fuel-amounts" class="text-gray-600">Show &ldquo;exact&rdquo; amounts</label>
         </div>
       </div>
+    </div>
 
-      <template v-if="fuels.length > 0">
-        <div v-if="!showExactFuelAmounts" class="flex flex-wrap justify-center mt-1">
-          <div v-for="fuel in fuels" :key="fuel.egg" class="flex flex-shrink-0 items-center px-1 my-0.5">
-            <img
-              v-tippy="{ content: fuel.eggName }"
-              class="inline h-4 w-4 align-text-top"
-              :src="iconURL(fuel.eggIconPath, 64)"
-            />
-            <span class="text-xs text-gray-700 tabular-nums">{{ fuel.amountDisplay }}</span>
-          </div>
+    <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 justify-center">
+      <!-- Standard Fuel Tank Card -->
+      <div v-if="fuelTankEnabled" class="px-4 py-2 bg-gray-50 rounded-lg shadow">
+        <div class="text-sm text-center">
+          Fuel tank usage:
+          <span class="text-gray-700 whitespace-nowrap">
+            {{ formatEIValue(fuelTankUsage, { trim: true }) }} /
+            {{ formatEIValue(fuelTankCapacity, { trim: true }) }}
+          </span>
         </div>
 
-        <div v-else class="grid grid-cols-max-3 items-center text-xs text-gray-700 tabular-nums">
-          <template v-for="fuel in fuels" :key="fuel.egg">
-            <img
-              v-tippy="{ content: fuel.eggName }"
-              class="inline h-4 w-4 align-text-top"
-              :src="iconURL(fuel.eggIconPath, 64)"
-            />
-            <span class="text-right ml-1">{{ formatEIValue(fuel.amount) }}</span>
-            <span class="text-right ml-2"
-              >({{
-                fuel.amount.toLocaleString(undefined, {
-                  minimumFractionDigits: 3,
-                  maximumFractionDigits: 3,
-                })
-              }})</span
-            >
+        <div>
+          <template v-if="fuels.length > 0">
+            <div v-if="!showExactFuelAmounts" class="flex flex-wrap justify-center mt-1">
+              <div v-for="fuel in fuels" :key="fuel.egg" class="flex flex-shrink-0 items-center px-1 my-0.5">
+                <img
+                  v-tippy="{ content: fuel.eggName }"
+                  class="inline h-4 w-4 align-text-top"
+                  :src="iconURL(fuel.eggIconPath, 64)"
+                />
+                <span class="text-xs text-gray-700 tabular-nums">{{ fuel.amountDisplay }}</span>
+              </div>
+            </div>
+
+            <div v-else class="grid grid-cols-max-3 items-center text-xs text-gray-700 tabular-nums">
+              <template v-for="fuel in fuels" :key="fuel.egg">
+                <img
+                  v-tippy="{ content: fuel.eggName }"
+                  class="inline h-4 w-4 align-text-top"
+                  :src="iconURL(fuel.eggIconPath, 64)"
+                />
+                <span class="text-right ml-1">{{ formatEIValue(fuel.amount) }}</span>
+                <span class="text-right ml-2"
+                  >({{
+                    fuel.amount.toLocaleString(undefined, {
+                      minimumFractionDigits: 3,
+                      maximumFractionDigits: 3,
+                    })
+                  }})</span
+                >
+              </template>
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="text-center text-xs text-gray-700">No fuel stored in standard tank.</div>
           </template>
         </div>
-      </template>
+      </div>
 
-      <template v-else>
-        <div class="text-center text-xs text-gray-700">No fuel stored.</div>
-      </template>
+      <!-- Virtue Fuel Tank Card -->
+      <div v-if="virtueFuels.length > 0 || fuelTankEnabled" class="px-4 py-2 bg-gray-50 rounded-lg shadow">
+        <div class="text-sm text-center">
+          Virtue tank usage:
+          <span class="text-gray-700 whitespace-nowrap">
+            {{ formatEIValue(virtueFuelTankUsage, { trim: true }) }}
+          </span>
+        </div>
+
+        <div>
+          <template v-if="virtueFuels.length > 0">
+            <div v-if="!showExactFuelAmounts" class="flex flex-wrap justify-center mt-1">
+              <div v-for="fuel in virtueFuels" :key="fuel.egg" class="flex flex-shrink-0 items-center px-1 my-0.5">
+                <img
+                  v-tippy="{ content: fuel.eggName }"
+                  class="inline h-4 w-4 align-text-top"
+                  :src="iconURL(fuel.eggIconPath, 64)"
+                />
+                <span class="text-xs text-gray-700 tabular-nums">{{ fuel.amountDisplay }}</span>
+              </div>
+            </div>
+
+            <div v-else class="grid grid-cols-max-3 items-center text-xs text-gray-700 tabular-nums">
+              <template v-for="fuel in virtueFuels" :key="fuel.egg">
+                <img
+                  v-tippy="{ content: fuel.eggName }"
+                  class="inline h-4 w-4 align-text-top"
+                  :src="iconURL(fuel.eggIconPath, 64)"
+                />
+                <span class="text-right ml-1">{{ formatEIValue(fuel.amount) }}</span>
+                <span class="text-right ml-2"
+                  >({{
+                    fuel.amount.toLocaleString(undefined, {
+                      minimumFractionDigits: 3,
+                      maximumFractionDigits: 3,
+                    })
+                  }})</span
+                >
+              </template>
+            </div>
+          </template>
+          <template v-else>
+            <div class="text-center text-xs text-gray-700">No fuel stored in virtue tank.</div>
+          </template>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -115,7 +167,16 @@ export default defineComponent({
         .map((amount, index) => new MissionFuel(ei.Egg.EDIBLE + index, amount))
         .filter(fuel => fuel.amount > 0);
     });
+    const virtueFuels = computed(() => {
+      const tankFuels = backup.value.virtue?.afx?.tankFuels || [];
+      return tankFuels
+        .slice(19)
+        .map((amount, index) => new MissionFuel(ei.Egg.EDIBLE + index + 48, amount))
+        .filter(fuel => fuel.amount > 0);
+    });
+    console.log(virtueFuels.value);
     const fuelTankUsage = computed(() => fuels.value.reduce((total, fuel) => total + fuel.amount, 0));
+    const virtueFuelTankUsage = computed(() => virtueFuels.value.reduce((total, fuel) => total + fuel.amount, 0));
     const showExactFuelAmounts = ref(getLocalStorage(SHOW_EXACT_FUEL_AMOUNTS_LOCALSTORAGE_KEY) === 'true');
     watch(showExactFuelAmounts, () => {
       setLocalStorage(SHOW_EXACT_FUEL_AMOUNTS_LOCALSTORAGE_KEY, showExactFuelAmounts.value);
@@ -124,7 +185,9 @@ export default defineComponent({
       fuelTankEnabled,
       fuelTankCapacity,
       fuels,
+      virtueFuels,
       fuelTankUsage,
+      virtueFuelTankUsage,
       showExactFuelAmounts,
       iconURL,
       formatEIValue,

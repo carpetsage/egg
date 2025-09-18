@@ -13,8 +13,13 @@
         :key="index"
         class="col-span-1 flex flex-col text-center bg-gray-50 rounded-2xl shadow-lg divide-y divide-gray-200"
       >
-        <div class="flex-1 flex flex-col p-6">
+        <div class="flex-1 flex flex-col p-6 relative">
           <div class="w-36 h-36 flex-shrink-0 mx-auto relative" :class="missionDurationTypeFgClass(mission)">
+            <img
+              v-if="mission.type === ei.MissionInfo.MissionType.VIRTUE"
+              :src="iconURL('egginc/icon_virtue_gem.png', 64)"
+              class="absolute top-4 right-5 w-7 h-7 z-10"
+            />
             <img
               class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full"
               :src="iconURL(mission.shipIconPath, 256)"
@@ -135,6 +140,7 @@ export default defineComponent({
       clearInterval(refreshIntervalId);
     });
     return {
+      ei,
       missions,
       now,
       missionDurationTypeFgClass,
