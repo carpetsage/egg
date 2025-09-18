@@ -448,6 +448,10 @@ export class Mission extends MissionType {
     return this.missionInfo.identifier!;
   }
 
+  get type() {
+    return this.missionInfo.type || ei.MissionInfo.MissionType.STANDARD;
+  }
+
   get level(): number {
     return this.missionInfo.level || 0;
   }
