@@ -107,18 +107,26 @@ export function groupCustomEggsByDimension(): SafeCustomEgg[][] {
 }
 
 export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
-  const symbol = egg in ei.Egg ? custom_egg_id || ei.Egg[egg] : 'Unknown';
+  const symbol = egg in ei.Egg ? (egg === ei.Egg.CUSTOM_EGG ? custom_egg_id! : ei.Egg[egg]) : 'Unknown';
   switch (egg) {
     case ei.Egg.IMMORTALITY:
       return 'CRISPR';
     case ei.Egg.AI:
       return 'AI';
     default:
+      console.log('symbol: ', symbol);
       return symbol
         .split(/[_-]/)
         .map(word => word[0].toUpperCase() + word.substring(1).toLowerCase())
         .join(' ');
   }
+}
+
+export function eggFromName(name: string) {
+  const eggNameToEnumMap = new Map<string, ei.Egg>(eggList.map(egg => [eggName(egg), egg]));
+  eggNameToEnumMap.set(eggName(ei.Egg.CUSTOM_EGG, name), ei.Egg.CUSTOM_EGG);
+
+  return eggNameToEnumMap.get(name) ?? ei.Egg.UNKNOWN;
 }
 
 export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
