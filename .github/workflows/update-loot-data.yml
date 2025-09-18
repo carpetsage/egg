@@ -1,8 +1,8 @@
 name: update-loot-data
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 14 * * *'
+#  schedule:
+#    - cron: '0 14 * * *'
 jobs:
   update:
     runs-on: ubuntu-latest
