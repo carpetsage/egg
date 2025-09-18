@@ -316,6 +316,12 @@
             <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime prestiges</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numPrestiges) }}</dd>
 
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime shifts</dt>
+            <dd class="text-left text-sm text-gray-900">{{ fmt(numShifts) }}</dd>
+
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime resets</dt>
+            <dd class="text-left text-sm text-gray-900">{{ fmt(numResets) }}</dd>
+
             <dt class="text-right text-sm font-medium whitespace-nowrap">Rockets launched</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numMissions) }}</dd>
 
@@ -954,6 +960,8 @@ const piggyGoldenEggs = computed(() =>
 const piggyFullDate = computed(() => backup.value.stats?.timePiggyFilledRealtime || 0);
 const piggyLostIncrements = computed(() => backup.value.stats?.lostPiggyIncrements || 0);
 const numPrestiges = computed(() => backup.value.stats?.numPrestiges || 0);
+const numShifts = computed(() => backup.value.virtue?.shiftCount || 0);
+const numResets = computed(() => backup.value.virtue?.resets || 0);
 const launchedMissions = computed(() => getLaunchedMissions(artifactsDB.value));
 const numMissions = computed(() => launchedMissions.value.length);
 const daysSinceFirstMission = computed(() => {
