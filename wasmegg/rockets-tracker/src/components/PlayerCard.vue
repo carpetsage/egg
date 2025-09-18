@@ -322,6 +322,12 @@
             <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime resets</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numResets) }}</dd>
 
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Next shift cost</dt>
+            <dd class="text-left text-sm text-purple-500">
+              {{ fmtApprox(nextShiftCost) }}
+              <img :src="iconURL('egginc/egg_soul.png', 64)" class="inline h-4 w-4" />
+            </dd>
+
             <dt class="text-right text-sm font-medium whitespace-nowrap">Rockets launched</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numMissions) }}</dd>
 
@@ -962,6 +968,11 @@ const piggyLostIncrements = computed(() => backup.value.stats?.lostPiggyIncremen
 const numPrestiges = computed(() => backup.value.stats?.numPrestiges || 0);
 const numShifts = computed(() => backup.value.virtue?.shiftCount || 0);
 const numResets = computed(() => backup.value.virtue?.resets || 0);
+const nextShiftCost = computed(() => {
+  const basis = soulEggs.value * (0.02 * Math.pow(numShifts.value / 120, 3) + 0.0001);
+  console.log('basis: ', fmtApprox(basis));
+  return Math.pow(10, 11) + 0.6 * basis + Math.pow(0.4 * basis, 0.9);
+});
 const launchedMissions = computed(() => getLaunchedMissions(artifactsDB.value));
 const numMissions = computed(() => launchedMissions.value.length);
 const daysSinceFirstMission = computed(() => {
