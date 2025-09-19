@@ -142,26 +142,27 @@
             v-tippy="{
               content: `${vehicle.name}, space: ${formatWithThousandSeparators(vehicleSpaces[index])}`,
             }"
-            :src="iconURL(vehicle.iconPath, 'orig')"
+            :src="iconURL(vehicle.iconPath, 128)"
+            class="h-6 bg-gray-50 rounded-lg shadow"
           />
         </div>
         <p>
           Shipping Capacity:
-          <span class="text-green-500">{{ fmtApprox(totalVehicleSpace * 60) }}</span>
+          <span class="text-green-500">{{ fmtApprox(totalVehicleSpace * 60 * 60) }}</span>
           <img :src="eggIconURL" class="inline h-6 w-6" />
-          / min
+          / hr
         </p>
         <p>
           Egg Laying Rate:
-          <span class="text-green-500">{{ fmtApprox(eggLayingRate * 60) }}</span>
+          <span class="text-green-500">{{ fmtApprox(eggLayingRate * 60 * 60) }}</span>
           <img :src="eggIconURL" class="inline h-6 w-6" />
-          / min
+          / hr
         </p>
         <p>
           Shipping Rate:
-          <span class="text-green-500">{{ fmtApprox(effectiveELR * 60) }}</span>
+          <span class="text-green-500">{{ fmtApprox(effectiveELR * 60 * 60) }}</span>
           <img :src="eggIconURL" class="inline h-6 w-6" />
-          / min
+          / hr
         </p>
       </collapsible-section>
 
@@ -450,7 +451,7 @@ export default defineComponent({
       onlineRatePerHab: onlineIHRPerHab,
       onlineRate: onlineIHR,
       offlineRate: offlineIHR,
-    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.ihr);
+    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.ihr, totalTruthEggs.value);
 
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 

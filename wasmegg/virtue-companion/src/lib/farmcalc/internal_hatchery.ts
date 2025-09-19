@@ -80,7 +80,8 @@ export function farmInternalHatcheryResearches(
 export function farmInternalHatcheryRates(
   researches: InternalHatcheryResearchInstance[],
   artifacts: Artifact[],
-  modifier = 1
+  modifier = 1,
+  truthEggs = 0
 ): {
   onlineRatePerHab: number;
   onlineRate: number;
@@ -102,10 +103,11 @@ export function farmInternalHatcheryRates(
       baseRate += research.level * research.perLevel;
     }
   }
+  const truthEggBonus = 1.1 ** truthEggs;
   const artifactsMultiplier = internalHatcheryRateMultiplier(artifacts);
   // With max internal hatchery sharing, four internal hatcheries are constantly
   // at work even if not all habs are bought;
-  const onlineRatePerHab = baseRate * onlineMultiplier * artifactsMultiplier * modifier;
+  const onlineRatePerHab = baseRate * onlineMultiplier * artifactsMultiplier * modifier * truthEggBonus;
   const onlineRate = 4 * onlineRatePerHab;
   const offlineRatePerHab = onlineRatePerHab * offlineMultiplier;
   const offlineRate = onlineRate * offlineMultiplier;

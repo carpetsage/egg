@@ -1,4 +1,4 @@
-import { ei } from 'lib';
+import { ei, virtueEggs } from 'lib';
 import { prophecyEggBonusFromArtifacts, soulEggBonusFromArtifacts } from '../effects';
 import { Artifact, Research } from '../types';
 import { farmResearch } from './common';
@@ -23,33 +23,23 @@ export function farmEarningBonus(
   backup: ei.IBackup,
   farm: ei.Backup.ISimulation,
   progress: ei.Backup.IGame,
-  artifacts: Artifact[]
+  artifacts: Artifact[],
+  truthEggs = 0
 ): number {
   const soulEggsCount = (progress.soulEggsD || progress.soulEggs || 0) as number;
   const prophecyEggsCount = backup.game?.eggsOfProphecy ?? accountProphecyEggsCount(backup);
   const soulEggBonus = farmSoulEggBonus(farm, progress, artifacts);
   const prophecyEggBonus = farmProphecyEggBonus(farm, progress, artifacts);
-  return soulEggsCount * soulEggBonus * (1 + prophecyEggBonus) ** prophecyEggsCount;
+  const truthEggBonus = virtueEggs.includes(farm.eggType ?? ei.Egg.UNKNOWN) ? 1.1 : 1.01;
+  return soulEggsCount * soulEggBonus * (1 + prophecyEggBonus) ** prophecyEggsCount * truthEggBonus ** truthEggs;
 }
 
-function farmSoulEggBonus(
-  farm: ei.Backup.ISimulation,
-  progress: ei.Backup.IGame,
-  artifacts: Artifact[]
-): number {
+function farmSoulEggBonus(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame, artifacts: Artifact[]): number {
   const research = farmResearch(farm, progress, soulFoodResearch);
-  return (
-    baseSoulEggBonus +
-    (research ? research.perLevel * research.level : 0) +
-    soulEggBonusFromArtifacts(artifacts)
-  );
+  return baseSoulEggBonus + (research ? research.perLevel * research.level : 0) + soulEggBonusFromArtifacts(artifacts);
 }
 
-function farmProphecyEggBonus(
-  farm: ei.Backup.ISimulation,
-  progress: ei.Backup.IGame,
-  artifacts: Artifact[]
-): number {
+function farmProphecyEggBonus(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame, artifacts: Artifact[]): number {
   const research = farmResearch(farm, progress, prophecyBonusResearch);
   return (
     baseProphecyEggBonus +
