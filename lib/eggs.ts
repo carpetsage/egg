@@ -302,3 +302,5 @@ export const eggList = [
   ei.Egg.FIREWORK,
   ei.Egg.PUMPKIN,
 ];
+
+export const virtueEggs = [ei.Egg.CURIOSITY, ei.Egg.INTEGRITY, ei.Egg.HUMILITY, ei.Egg.RESILIENCE, ei.Egg.KINDNESS];

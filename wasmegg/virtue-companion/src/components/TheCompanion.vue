@@ -28,31 +28,81 @@
         <span class="text-xs text-gray-500">Why is my save out of date?</span>
       </span>
     </p>
-    <p v-if="!virtueEggs.includes(egg)" class="text-sm text-red-500 inline-flex items-center">
-      Current egg is <img :src="eggIconURL" class="inline h-8 w-8" />, not one of the virtue eggs! Support for showing
-      virtue progress outside of virtue eggs is not yet implemented.
+    <p class="text-sm">
+      Last save population:
+      <span class="text-green-500 tabular-nums">
+        {{ formatWithThousandSeparators(lastRefreshedPopulation) }}
+      </span>
     </p>
-    <template v-else>
-      <p class="text-sm">
-        Last save population:
-        <span class="text-green-500 tabular-nums">
-          {{ formatWithThousandSeparators(lastRefreshedPopulation) }}
-        </span>
-      </p>
-      <p class="text-sm">
-        Current population:
-        <span class="text-green-500 tabular-nums mr-0.5">
-          {{ formatWithThousandSeparators(currentPopulation) }}
-        </span>
-        <base-info
-          v-tippy="{
-            content:
-              'The current population is calculated based on the population and offline IHR from the last save. Assuming your IHR did not change since the last save, this number should be slightly ahead of your actual population at the moment, depending on how long you remained active since the last save.',
-          }"
-          class="inline relative -top-px"
-        />
-      </p>
-      <hr class="mt-2" />
+    <p class="text-sm">
+      Current population:
+      <span class="text-green-500 tabular-nums mr-0.5">
+        {{ formatWithThousandSeparators(currentPopulation) }}
+      </span>
+      <base-info
+        v-tippy="{
+          content:
+            'The current population is calculated based on the population and offline IHR from the last save. Assuming your IHR did not change since the last save, this number should be slightly ahead of your actual population at the moment, depending on how long you remained active since the last save.',
+        }"
+        class="inline relative -top-px"
+      />
+    </p>
+    <hr class="mt-2" />
+    <collapsible-section
+      section-title="Truth Egg Progress"
+      :visible="isVisibleSection('truth_eggs')"
+      class="my-2 text-sm"
+      @toggle="toggleSectionVisibility('truth_eggs')"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+        <div
+          v-for="(vegg, index) in virtueEggs"
+          :key="index"
+          class="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg"
+        >
+          <img :src="iconURL(eggIconPath(vegg), 64)" class="h-6 w-6" />
+          <div class="flex-1">
+            <div class="font-medium">{{ eggName(vegg) }}</div>
+            <div class="text-sm text-gray-600">
+              <div>
+                {{ truthEggs[index] }}
+                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" />
+                earned
+              </div>
+              <div>
+                {{ truthEggsPending[index] }}
+                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" /> pending
+              </div>
+              <div>
+                {{ fmtApprox(eovDelivered[index]) }}
+                <img :src="iconURL(eggIconPath(vegg), 64)" class="inline h-4 w-4 mb-1" />
+                delivered
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+          <img :src="iconURL('egginc/egg_truth.png', 64)" class="h-6 w-6" />
+          <div class="flex-1">
+            <div class="font-medium">Total Truth Eggs</div>
+            <div class="text-sm text-gray-600">
+              <div>
+                {{ totalTruthEggs }}
+                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" />
+                earned
+              </div>
+              <div>
+                {{ totalTruthEggsPending }}
+                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" /> pending
+              </div>
+              <div>{{ fmtApprox(totaleovDelivered) }} eggs delivered</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </collapsible-section>
+    <template v-if="virtueEggs.includes(egg)">
+      <hr />
 
       <collapsible-section
         section-title="Habs"
@@ -76,15 +126,18 @@
           <span class="text-green-500">{{ formatWithThousandSeparators(totalHabSpace) }}</span>
         </p>
       </collapsible-section>
+
+      <hr />
+
       <collapsible-section
         section-title="Vehicles"
         :visible="isVisibleSection('vehicles')"
         class="my-2 text-sm"
         @toggle="toggleSectionVisibility('vehicles')"
       >
-        <div class="flex flex-wrap my-2 gap-5 max-w-full">
+        <div class="flex flex-wrap mb-2 max-w-full">
           <img
-            v-for="(vehicle, index) in vehicles.toSorted((a, b) => a.id - b.id)"
+            v-for="(vehicle, index) in vehicles"
             :key="index"
             v-tippy="{
               content: `${vehicle.name}, space: ${formatWithThousandSeparators(vehicleSpaces[index])}`,
@@ -100,13 +153,13 @@
         </p>
         <p>
           Egg Laying Rate:
-          <span class="text-green-500">{{ fmtApprox(effectiveELR * 60) }}</span>
+          <span class="text-green-500">{{ fmtApprox(eggLayingRate * 60) }}</span>
           <img :src="eggIconURL" class="inline h-6 w-6" />
           / min
         </p>
         <p>
-          Uncapped Egg Laying Rate:
-          <span class="text-green-500">{{ fmtApprox(eggLayingRate * 60) }}</span>
+          Shipping Rate:
+          <span class="text-green-500">{{ fmtApprox(effectiveELR * 60) }}</span>
           <img :src="eggIconURL" class="inline h-6 w-6" />
           / min
         </p>
@@ -165,20 +218,22 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
 import {
+  ei,
   allModifiersFromColleggtibles,
-  eggIconPath,
   iconURL,
   UserBackupEmptyError,
   getLocalStorage,
   setLocalStorage,
   virtueEggs,
+  eggName,
+  eggIconPath,
+  fmtApprox,
 } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
   calculateDroneValues,
   calculateFarmValue,
   earningBonusToFarmerRole,
-  ei,
   farmEarningBonus,
   farmEarningRate,
   farmEggValue,
@@ -197,8 +252,8 @@ import {
   homeFarmArtifacts,
   requestFirstContact,
   researchPriceMultiplierFromArtifacts,
-  fmtApprox,
   farmEggLayingRate,
+  pendingTruthEggs,
 } from '@/lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { formatPercentage, formatWithThousandSeparators, formatDurationAuto } from '@/utils';
@@ -285,6 +340,18 @@ export default defineComponent({
       currentTimestamp.value = Date.now();
       lastRefreshedRelative.value = lastRefreshed.fromNow();
     }, 200);
+
+    const totalTruthEggs = computed(() => backup.virtue?.eovEarned?.reduce((a, b) => a + b, 0) || 0);
+    const truthEggs = backup.virtue?.eovEarned || [0, 0, 0, 0, 0];
+    const eovDelivered = backup.virtue?.eggsDelivered || [0, 0, 0, 0, 0];
+    const totaleovDelivered = computed(() => eovDelivered.reduce((a, b) => a + b, 0));
+    const truthEggsPending = computed(() => {
+      return truthEggs.map((earned, index) => {
+        const pending = pendingTruthEggs(eovDelivered[index], truthEggs[index]) || 0;
+        return Math.max(0, pending - earned);
+      });
+    });
+    const totalTruthEggsPending = computed(() => truthEggsPending.value.reduce((a, b) => a + b, 0));
 
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
@@ -445,6 +512,14 @@ export default defineComponent({
       effectiveELR,
       eggLayingRate,
       fmtApprox,
+      eggName,
+      eggIconPath,
+      truthEggs,
+      totalTruthEggs,
+      truthEggsPending,
+      eovDelivered,
+      totaleovDelivered,
+      totalTruthEggsPending,
     };
   },
 });
