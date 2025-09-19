@@ -54,6 +54,24 @@
       class="my-2 text-sm"
       @toggle="toggleSectionVisibility('truth_eggs')"
     >
+      <div class="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+        <img :src="iconURL('egginc/egg_truth.png', 64)" class="h-6 w-6" />
+        <div class="flex-1">
+          <div class="font-medium">Total Truth Eggs</div>
+          <div class="text-sm text-gray-600">
+            <div>
+              {{ totalTruthEggs }}
+              <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" />
+              earned
+            </div>
+            <div>
+              {{ totalTruthEggsPending }}
+              <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" /> pending
+            </div>
+            <div>{{ fmtApprox(totaleovDelivered) }} Virtue Eggs delivered</div>
+          </div>
+        </div>
+      </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
         <div
           v-for="(vegg, index) in virtueEggs"
@@ -78,24 +96,6 @@
                 <img :src="iconURL(eggIconPath(vegg), 64)" class="inline h-4 w-4 mb-1" />
                 delivered
               </div>
-            </div>
-          </div>
-        </div>
-        <div class="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-          <img :src="iconURL('egginc/egg_truth.png', 64)" class="h-6 w-6" />
-          <div class="flex-1">
-            <div class="font-medium">Total Truth Eggs</div>
-            <div class="text-sm text-gray-600">
-              <div>
-                {{ totalTruthEggs }}
-                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" />
-                earned
-              </div>
-              <div>
-                {{ totalTruthEggsPending }}
-                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" /> pending
-              </div>
-              <div>{{ fmtApprox(totaleovDelivered) }} eggs delivered</div>
             </div>
           </div>
         </div>
@@ -135,7 +135,7 @@
         class="my-2 text-sm"
         @toggle="toggleSectionVisibility('vehicles')"
       >
-        <div class="flex flex-wrap mb-2 max-w-full">
+        <div class="flex flex-wrap gap-5 mb-2 max-w-full">
           <img
             v-for="(vehicle, index) in vehicles"
             :key="index"
