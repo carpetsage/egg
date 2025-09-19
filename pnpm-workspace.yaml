@@ -2,24 +2,25 @@ packages:
   - lib
   - ui
   - eicoop
-  - wasmegg/_home
   - wasmegg/artifact-explorer
   - wasmegg/artifact-sandbox
   - wasmegg/consumption-sheet
+  - wasmegg/eggs-laid
   - wasmegg/enlightenment
   - wasmegg/events
+  - wasmegg/_home
   - wasmegg/inventory-visualizer
+  - wasmegg/legendary-study
   - wasmegg/loot-simulator
   - wasmegg/mission-list
+  - wasmegg/mission-planner
   - wasmegg/past-contracts
   - wasmegg/proto-explorer
   - wasmegg/researches
   - wasmegg/rockets-tracker
-  - wasmegg/smart-assistant
   - wasmegg/shell-company
-  - wasmegg/eggs-laid
-  - wasmegg/legendary-study
-  - wasmegg/mission-planner
+  - wasmegg/smart-assistant
+  - wasmegg/virtue-companion
 
 onlyBuiltDependencies:
   - esbuild
