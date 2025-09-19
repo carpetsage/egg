@@ -5,6 +5,7 @@ const TE_BREAKPOINTS = [
   7e10, // 70B
   5e11, // 500B
   2e12, // 2T
+  7e12, // 7T
 ];
 
 // TE-only pass count (<= 100q)
@@ -17,11 +18,7 @@ function countTETiersPassed(delivered: number) {
 // Pending TE calculation per egg
 export function pendingTruthEggs(delivered: number, earnedTE: number) {
   const tiersPassed = countTETiersPassed(delivered);
-
-  if (earnedTE < TE_BREAKPOINTS.length) {
-    // Only base matters until all base are earned
-    return Math.max(0, tiersPassed - earnedTE);
-  }
+  return Math.max(0, tiersPassed - earnedTE);
 }
 
 export function nextTruthEggThreshold(delivered: number) {

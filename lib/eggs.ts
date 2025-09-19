@@ -114,7 +114,6 @@ export function eggName(egg: ei.Egg, custom_egg_id?: string | null): string {
     case ei.Egg.AI:
       return 'AI';
     default:
-      console.log('symbol: ', symbol);
       return symbol
         .split(/[_-]/)
         .map(word => word[0].toUpperCase() + word.substring(1).toLowerCase())

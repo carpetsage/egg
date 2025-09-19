@@ -347,10 +347,7 @@ export default defineComponent({
     const eovDelivered = backup.virtue?.eggsDelivered || [0, 0, 0, 0, 0];
     const totaleovDelivered = computed(() => eovDelivered.reduce((a, b) => a + b, 0));
     const truthEggsPending = computed(() => {
-      return truthEggs.map((earned, index) => {
-        const pending = pendingTruthEggs(eovDelivered[index], truthEggs[index]) || 0;
-        return Math.max(0, pending - earned);
-      });
+      return truthEggs.map((earned, index) => pendingTruthEggs(eovDelivered[index], earned) || 0);
     });
     const totalTruthEggsPending = computed(() => truthEggsPending.value.reduce((a, b) => a + b, 0));
 
