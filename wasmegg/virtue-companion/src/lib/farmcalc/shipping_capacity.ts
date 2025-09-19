@@ -94,7 +94,7 @@ export const vehicleTypes: VehicleType[] = [
     id: 11,
     name: 'Hyperloop Train',
     baseCapacity: 50e6 / 60,
-    iconPath: 'egginc/ei_vehicle_icon_hyperloop_train.png',
+    iconPath: 'egginc/ei_vehicle_icon_hyperloop_engine.png',
   },
 ];
 
