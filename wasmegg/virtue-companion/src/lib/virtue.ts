@@ -7,6 +7,7 @@ const TE_BREAKPOINTS = [
   2e12, // 2T
   7e12, // 7T
   2e13, // 20T
+  6e13, // 60T
 ];
 
 // TE-only pass count (<= 100q)
