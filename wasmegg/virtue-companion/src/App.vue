@@ -21,20 +21,7 @@
     <template v-else>
       <div class="text-sm mt-4">
         This tool pulls the latest save for the specified player, and generates a report with information useful for
-        completing the enlightenment diamond trophy, e.g. hab space, internal hatchery rate, equipped artifacts,
-        projected completion date, etc.
-      </div>
-
-      <div class="text-sm mt-2">
-        If you are not yet sure about feasibility of the trophy, or earning enough cash for the required WD level
-        appears to be very difficult,
-        <a
-          href="https://docs.google.com/spreadsheets/d/157K4r3Z5wfCNKhUWb34mlxM08DEA1AWamsA20xjQIhw/edit?usp=sharing"
-          target="_blank"
-          class="text-blue-500 hover:text-blue-600"
-          >Sami#2336's detailed spreadsheet</a
-        >
-        may help with your decision and execution.
+        virtue eggs, e.g. hab space, internal hatchery rate, equipped artifacts, projected time to next TE, etc.
       </div>
     </template>
   </div>

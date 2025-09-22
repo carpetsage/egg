@@ -5,3 +5,8 @@
 @import 'ui/styles/base';
 @import 'ui/styles/app-loading';
 @import 'ui/styles/tippy';
+
+/* #8bedc4 is the blending of #6ee7b7 (green-300) and #a7f3d0 (green-200). */
+.ProgressBar--striped {
+  background: repeating-linear-gradient(135deg, #8bedc4, #8bedc4 3px, #a7f3d0 3px, #a7f3d0 6px);
+}
