@@ -83,6 +83,16 @@
                 <span class="Bonus">&nbsp;(&times;{{ formatFloat(earningBonusMultiplier(build, config)) }})</span>
               </artifact-sets-effects-row>
 
+              <artifact-sets-effects-row
+                v-slot="{ build, config }: { build: Build; config: Config }"
+                effect-id="eb_virtue"
+                :show-footnote="showFootnotes"
+                :builds="builds"
+              >
+                <span class="Value">{{ formatEIPercentage(earningBonus(build, config, true)) }}</span>
+                <span class="Bonus">&nbsp;(&times;{{ formatFloat(earningBonusMultiplier(build, config, true)) }})</span>
+              </artifact-sets-effects-row>
+
               <!-- Farmer role based on current earning bonus -->
               <artifact-sets-effects-row
                 v-slot="{ build, config }: { build: Build; config: Config }"

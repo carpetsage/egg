@@ -5,6 +5,20 @@
       <div>
         <h4 class="text-center text-sm uppercase">Mystical Eggs</h4>
         <div class="mt-1 relative rounded-md shadow-sm max-w-xs mx-auto">
+          <div class="mt-1 relative rounded-md shadow-sm max-w-xs mx-auto">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <img :src="iconURL('egginc/egg_truth.png', 64)" class="h-5 w-5" />
+            </div>
+            <integer-input
+              id="truth_eggs"
+              v-model="conf.truthEggs"
+              :min="0"
+              :max="999"
+              base-class="pl-10 pt-2.5 pb-2 w-full"
+            />
+          </div>
+        </div>
+        <div class="mt-1 relative rounded-md shadow-sm max-w-xs mx-auto">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="h-5 w-5" />
           </div>
@@ -41,6 +55,16 @@
                   class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-dark-30 rounded"
                 />
                 <label for="is_enlightenment" class="ml-2 block text-sm">Enlightenment farm</label>
+              </div>
+              <div class="relative flex items-start">
+                <input
+                  id="is_virtue"
+                  v-model="conf.isVirtue"
+                  name="is_virtue"
+                  type="checkbox"
+                  class="h-4 w-4 bg-dark-20 text-blue-600 focus:ring-blue-500 focus:ring-offset-dark-30 rounded"
+                />
+                <label for="is_virtue" class="ml-2 block text-sm">Virtue farm</label>
               </div>
 
               <div class="relative flex items-start">
@@ -203,6 +227,25 @@ export default defineComponent({
         emit('update:config', conf.value);
       },
       { deep: true }
+    );
+
+    // Prevent both enlightenment and virtue from being selected simultaneously
+    watch(
+      () => conf.value.isEnlightenment,
+      newValue => {
+        if (newValue && conf.value.isVirtue) {
+          conf.value.isVirtue = false;
+        }
+      }
+    );
+
+    watch(
+      () => conf.value.isVirtue,
+      newValue => {
+        if (newValue && conf.value.isEnlightenment) {
+          conf.value.isEnlightenment = false;
+        }
+      }
     );
 
     const round = (x: number): number => Math.round(x);

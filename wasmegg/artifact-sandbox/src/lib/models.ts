@@ -355,7 +355,9 @@ export class Config {
   prophecyEggs: number;
   soulEggs: number;
   soulEggsInput: string;
+  truthEggs: number;
   isEnlightenment: boolean;
+  isVirtue: boolean;
   soulFood: number;
   prophecyBonus: number;
   RCB: number;
@@ -370,8 +372,10 @@ export class Config {
   constructor() {
     this.prophecyEggs = 0;
     this.soulEggs = 0;
+    this.truthEggs = 0;
     this.soulEggsInput = '';
     this.isEnlightenment = false;
+    this.isVirtue = false;
     this.soulFood = maxSoulFood;
     this.prophecyBonus = maxProphecyBonus;
     this.RCB = maxRCB;
@@ -398,6 +402,8 @@ export class Config {
     self.soulEggs = config?.soulEggs ?? 0;
     self.soulEggsInput = config?.soulEggsInput ?? '';
     self.isEnlightenment = config?.isEnlightenment ?? false;
+    self.isVirtue = config?.isVirtue ?? false;
+    self.truthEggs = config?.truthEggs ?? 0;
     self.soulFood = maxSoulFood - (config?.missingSoulFood ?? 0);
     self.prophecyBonus = maxProphecyBonus - (config?.missingProphecyBonus ?? 0);
     self.RCB = maxRCB;
@@ -417,6 +423,8 @@ export class Config {
       soulEggs: this.soulEggs,
       soulEggsInput: this.soulEggsInput,
       isEnlightenment: this.isEnlightenment,
+      isVirtue: this.isVirtue,
+      truthEggs: this.truthEggs,
       missingSoulFood: maxSoulFood - this.soulFood,
       missingProphecyBonus: maxProphecyBonus - this.prophecyBonus,
       birdFeedActive: this.birdFeedActive,

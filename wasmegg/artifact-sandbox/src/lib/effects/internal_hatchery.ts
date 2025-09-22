@@ -5,15 +5,14 @@ import { colleggtibleModifier } from './colleggtibles';
 import { ei } from 'lib';
 
 export function maxInternalHatcheryRatePerMinPerHab(build: Build, config: Config): number {
-  return Math.floor(
-    baseMaxInternalHatcheryRatePerMinPerHab(config) * internalHatcheryRateMultiplier(build, config)
-  );
+  return Math.floor(baseMaxInternalHatcheryRatePerMinPerHab(config) * internalHatcheryRateMultiplier(build, config));
 }
 
 export function internalHatcheryRateMultiplier(build: Build, config: Config): number {
   return (
     multiplicativeEffect(build, config, [ArtifactSpec.Name.THE_CHALICE, ArtifactSpec.Name.LIFE_STONE]) *
-    colleggtibleModifier(config, ei.GameModifier.GameDimension.INTERNAL_HATCHERY_RATE)
+    colleggtibleModifier(config, ei.GameModifier.GameDimension.INTERNAL_HATCHERY_RATE) *
+    (config.isVirtue ? 1.1 : 1.01) ** config.truthEggs
   );
 }
 

@@ -1,5 +1,6 @@
 export const effects = [
   { id: 'eb', name: 'EB', note: 'Earning bonus, as shown on the prestige screen.' },
+  { id: 'eb_virtue', name: 'EB (Virtue)', note: 'Earning bonus, as shown on the prestige screen on a virtue farm.' },
   {
     id: 'role',
     name: 'Role',
