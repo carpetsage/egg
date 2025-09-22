@@ -128,6 +128,23 @@ export function eggFromName(name: string) {
   return eggNameToEnumMap.get(name) ?? ei.Egg.UNKNOWN;
 }
 
+export function virtuePurpose(egg: ei.Egg) {
+  switch (egg) {
+    case ei.Egg.CURIOSITY:
+      return 'Research';
+    case ei.Egg.INTEGRITY:
+      return 'Housing';
+    case ei.Egg.HUMILITY:
+      return 'Artifacts';
+    case ei.Egg.RESILIENCE:
+      return 'Silos';
+    case ei.Egg.KINDNESS:
+      return 'Vehicles';
+    default:
+      return 'N/A';
+  }
+}
+
 export function eggValue(egg: ei.Egg, custom_egg_id?: string | null): number {
   switch (egg) {
     case ei.Egg.EDIBLE:

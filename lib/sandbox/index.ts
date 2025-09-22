@@ -1,7 +1,8 @@
 import { uint8ArrayToBinaryString } from '../api';
 import { Artifact, ArtifactSet, Stone } from '../artifacts';
 import { getColleggtibleTiers } from '../collegtibles';
-import { getNumSoulEggs } from '../earning_bonus';
+import { getNumSoulEggs, getNumTruthEggs } from '../earning_bonus';
+import { virtueEggs } from '../eggs';
 import { Farm } from '../farm';
 import { getNumProphecyEggs } from '../prophecy_eggs';
 import { ei } from '../proto';
@@ -11,6 +12,7 @@ import { IArtifact as ISandboxArtifact, Builds, IBuild, IBuilds, IConfig, IStone
 
 type FarmToSandboxConfigOverride = {
   isEnlightenment?: boolean;
+  isVirtue?: boolean;
   proPermit?: boolean;
   artifactSet?: ArtifactSet;
   birdFeedActive?: boolean;
@@ -36,9 +38,11 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
   const missingEpicMultiplier = epicMultiplierResearch.maxLevel - epicMultiplierResearch.level;
   const config: IConfig = {
     prophecyEggs: getNumProphecyEggs(backup),
+    truthEggs: getNumTruthEggs(backup),
     soulEggs: getNumSoulEggs(backup),
     soulEggsInput: formatEIValue(getNumSoulEggs(backup), { decimals: 6 }),
     isEnlightenment: override?.isEnlightenment ?? farm.egg === ei.Egg.ENLIGHTENMENT,
+    isVirtue: override?.isVirtue ?? virtueEggs.includes(farm.egg ?? ei.Egg.UNKNOWN),
 
     missingSoulFood,
     missingProphecyBonus,

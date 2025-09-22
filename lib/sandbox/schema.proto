@@ -26,8 +26,10 @@ message Stone {
 message Config {
   uint32 prophecy_eggs = 1;
   double soul_eggs = 2;
+  uint32 truth_eggs = 5;
   string soul_eggs_input = 3;  // String for of SE count, as entered.
   bool is_enlightenment = 4;
+  bool is_virtue = 6;
 
   uint32 missing_soul_food = 20;
   uint32 missing_prophecy_bonus = 21;
@@ -40,7 +42,7 @@ message Config {
   bool pro_permit = 15;
 
   double tachyon_deflector_bonus = 14;
-  
+
   map<string, int32> colleggtible_tiers = 16;  // egg identifier -> tier index (-1 for none, 0-3 for tiers)
 }
 
@@ -151,6 +153,11 @@ enum Egg {
   NEBULA = 17;
   UNIVERSE = 18;
   ENLIGHTENMENT = 19;
+  CURIOSITY = 50;
+  INTEGRITY = 51;
+  HUMILITY = 52;
+  RESILIENCE = 53;
+  KINDNESS = 54;
   CHOCOLATE = 100;
   EASTER = 101;
   WATERBALLOON = 102;

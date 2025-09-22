@@ -51,13 +51,8 @@ export const valueWithOptionalUnitRegExpPattern = `\\b(?<value>\\d+(\\.(\\d+)?)?
   .map(u => u.symbol)
   .join('|')})?\\b`;
 export const valueWithOptionalUnitRegExp = new RegExp(valueWithOptionalUnitRegExpPattern);
-export const valueWithOptionalUnitRegExpGlobal = new RegExp(
-  valueWithOptionalUnitRegExpPattern,
-  'g'
-);
-export const valueWithOptionalUnitRegExpExact = new RegExp(
-  `^${valueWithOptionalUnitRegExpPattern}$`
-);
+export const valueWithOptionalUnitRegExpGlobal = new RegExp(valueWithOptionalUnitRegExpPattern, 'g');
+export const valueWithOptionalUnitRegExpExact = new RegExp(`^${valueWithOptionalUnitRegExpPattern}$`);
 
 export function parseValueWithUnit(s: string, unitRequired = true): number | null {
   const match = s.match(unitRequired ? valueWithUnitRegExpExact : valueWithOptionalUnitRegExpExact);
@@ -106,8 +101,7 @@ export function formatEIValue(
     oomFloor = maxOom;
   }
   const principal = x / 10 ** oomFloor;
-  const precision =
-    options?.precision && Math.max(options?.precision, principal.toFixed(0).toString().length);
+  const precision = options?.precision && Math.max(options?.precision, principal.toFixed(0).toString().length);
   let numpart =
     principal < 1e21
       ? precision !== undefined

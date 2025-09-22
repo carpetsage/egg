@@ -6,6 +6,15 @@ export function getNumSoulEggs(backup: ei.IBackup): number {
   return backup.game?.soulEggsD || 0;
 }
 
+export function getNumTruthEggs(backup: ei.IBackup) {
+  return backup.virtue?.eovEarned?.reduce((a, b) => a + b, 0) || 0;
+}
+
+export function nextShiftCost(backup: ei.IBackup) {
+  const basis = getNumSoulEggs(backup) * (0.02 * Math.pow((backup.virtue?.shiftCount || 0) / 120, 3) + 0.0001);
+  return 10 ** 11 + 0.6 * basis + (0.4 * basis) ** 0.9;
+}
+
 export function getSoulFoodLevel(backup: ei.IBackup): number {
   const epicResearches = backup.game?.epicResearch || [];
   let soulFoodLevel = 0;
@@ -28,10 +37,16 @@ export function getProphecyBonusLevel(backup: ei.IBackup): number {
   return prophecyBonusLevel;
 }
 
-export function getNakedEarningBonus(backup: ei.IBackup): number {
+export function getNakedEarningBonus(backup: ei.IBackup, virtue = false): number {
   const soulEggBonus = 0.1 + getSoulFoodLevel(backup) * 0.01;
   const prophecyEggBonus = 0.05 + getProphecyBonusLevel(backup) * 0.01;
-  return getNumSoulEggs(backup) * soulEggBonus * (1 + prophecyEggBonus) ** getNumProphecyEggs(backup);
+  const truthEggBonus = virtue ? 1.1 : 1.01;
+  return virtue
+    ? truthEggBonus ** getNumTruthEggs(backup)
+    : getNumSoulEggs(backup) *
+        soulEggBonus *
+        (1 + prophecyEggBonus) ** getNumProphecyEggs(backup) *
+        truthEggBonus ** getNumTruthEggs(backup);
 }
 
 // Implements farmer roles from the Egg, Inc. Discord.
