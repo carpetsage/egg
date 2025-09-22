@@ -5,6 +5,10 @@
     <div>
       <div class="flex flex-wrap items-center justify-center">
         <span class="flex whitespace-nowrap mr-2">
+          <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-5 w-5" />
+          <span class="text-sm Prophecy">{{ builds.config.truthEggs }}</span>
+        </span>
+        <span class="flex whitespace-nowrap mr-2">
           <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="inline h-5 w-5" />
           <span class="text-sm Prophecy">{{ builds.config.prophecyEggs }}</span>
         </span>
