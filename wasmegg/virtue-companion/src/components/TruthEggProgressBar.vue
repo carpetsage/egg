@@ -83,11 +83,11 @@
           </p>
           <template v-if="eggLayingRate > 0 && showSpoilers">
             <br />Expected in:
-            <span class="bg-green-500">
+            <span>
               {{ formatDuration((nextTruthEggTargets[0] - eggsLaid) / eggLayingRate) }}
             </span>
             <br />Offline adjusted:
-            <span class="bg-green-350">
+            <span>
               {{ formatDuration((nextTruthEggTargets[0] - eggsLaidOfflineAdjusted) / eggLayingRate) }}
             </span>
           </template>
