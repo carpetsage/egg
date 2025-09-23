@@ -22885,5 +22885,14 @@
     "startTimestamp": 1758556800,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1758729600,
+    "id": "event-9-23",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1758643200,
+    "type": "vehicle-sale",
+    "ultra": false
   }
 ]
