@@ -30,8 +30,8 @@ function countBasePassed(delivered: number) {
 }
 
 // Extra passes *after* 100q following +50q, +60q, +70q... pattern
-function countTailPassed(delivered: number) {
-  if (delivered < TAIL_START) return 0;
+function countTailPassed(delivered: number): [number, number] {
+  if (delivered < TAIL_START) return [0, TAIL_START + 50 * q];
   let count = 0;
   let current = TAIL_START; // last threshold hit
   let inc = 50 * q; // next increment (+50q)
@@ -41,7 +41,7 @@ function countTailPassed(delivered: number) {
     inc += 10 * q; // increment grows by +10q each step
     if (!Number.isFinite(current) || !Number.isFinite(inc)) break;
   }
-  return count;
+  return [count, current + inc];
 }
 
 // Pending TE calculation per egg
@@ -54,16 +54,20 @@ export function pendingTruthEggs(delivered: number, earnedTE: number) {
   }
 
   // All base earned — any extra pending comes from tail beyond 100q
-  const tailPassed = countTailPassed(delivered);
-  return tailPassed;
+  return countTailPassed(delivered)[0];
 }
 
 export function nextTruthEggThreshold(delivered: number) {
-  const tiersPassed = countBasePassed(delivered) + countTailPassed(delivered);
+  const basePassed = countBasePassed(delivered);
+  const [tailPassed, nextThreshold] = countTailPassed(delivered);
+  const tiersPassed = basePassed + tailPassed;
 
   if (tiersPassed >= 99) {
     return Infinity;
   }
-
-  return TE_BREAKPOINTS[tiersPassed];
+  if (tiersPassed < BASE_COUNT) {
+    return TE_BREAKPOINTS[tiersPassed];
+  } else {
+    return nextThreshold;
+  }
 }
