@@ -23056,5 +23056,32 @@
     "startTimestamp": 1759507200,
     "type": "research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1759680000,
+    "id": "event-10-4",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2,
+    "startTimestamp": 1759593600,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1759766400,
+    "id": "event-10-4-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1759593600,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1759680000,
+    "id": "ultra-10-4",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1759593600,
+    "type": "hab-sale",
+    "ultra": true
   }
 ]
