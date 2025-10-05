@@ -23067,6 +23067,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1759680000,
+    "id": "ultra-10-4",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1759593600,
+    "type": "hab-sale",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1759766400,
     "id": "event-10-4-2",
     "message": "4x PIGGY GROWTH!!",
@@ -23076,12 +23085,21 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1759680000,
-    "id": "ultra-10-4",
-    "message": "80% OFF HEN HOUSES!",
-    "multiplier": 0.2,
-    "startTimestamp": 1759593600,
-    "type": "hab-sale",
-    "ultra": true
+    "endTimestamp": 1759766400,
+    "id": "event-10-5",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1759680000,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1759852800,
+    "id": "event-10-5-2",
+    "message": "2x MISSION CAPACITY!",
+    "multiplier": 2,
+    "startTimestamp": 1759680000,
+    "type": "mission-capacity",
+    "ultra": false
   }
 ]
