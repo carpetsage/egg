@@ -23101,5 +23101,23 @@
     "startTimestamp": 1759680000,
     "type": "mission-capacity",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1759852800,
+    "id": "event-10-6",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1759766400,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1759852800,
+    "id": "ultra-10-6",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1759766400,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
