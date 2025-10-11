@@ -23182,5 +23182,23 @@
     "startTimestamp": 1760112000,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1760284800,
+    "id": "event-10-11",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2,
+    "startTimestamp": 1760198400,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1760371200,
+    "id": "event-10-11-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1760198400,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
