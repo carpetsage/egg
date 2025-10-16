@@ -235,35 +235,50 @@
             class="h-6"
           />
         </div>
-        <div class="space-y-1">
-          <div>
-            <div class="text-sm">Shipping Capacity</div>
-            <div>
-              <span v-tippy="{ content: `${fmtApprox(totalVehicleSpace * 60 * 60)} eggs/hr` }" class="text-green-500">
-                {{ fmtApprox(totalVehicleSpace * 60) }}
-              </span>
-              <img :src="eggIconURL" class="inline h-6 w-6 mb-1" />/ min
-            </div>
-          </div>
-          <div>
-            <div class="text-sm">Egg Laying Rate</div>
-            <div>
-              <span v-tippy="{ content: `${fmtApprox(eggLayingRate * 60 * 60)} eggs/hr` }" class="text-green-500">
-                {{ fmtApprox(eggLayingRate * 60) }}
-              </span>
-              <img :src="eggIconURL" class="inline h-6 w-6 mb-1" />/ min
-            </div>
-          </div>
-          <div>
-            <div class="text-sm">Egg Delivery Rate</div>
-            <div>
-              <span v-tippy="{ content: `${fmtApprox(effectiveELR * 60 * 60)} eggs/hr` }" class="text-green-500">
-                {{ fmtApprox(effectiveELR * 60) }}
-              </span>
-              <img :src="eggIconURL" class="inline h-6 w-6 mb-1" />/ min
-            </div>
-          </div>
-        </div>
+        <table class="text-sm">
+          <thead>
+            <tr class="border-b">
+              <th class="text-left py-1 pr-6"></th>
+              <th class="text-right py-1 px-4">Per Minute</th>
+              <th class="text-right py-1 pl-4">Per Hour</th>
+            </tr>
+          </thead>
+          <tbody class="space-y-1">
+            <tr>
+              <td class="py-1 pr-6">Shipping Capacity</td>
+              <td class="text-right py-1 px-4">
+                <span class="text-green-500">{{ fmtApprox(totalVehicleSpace * 60) }}</span>
+                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
+              </td>
+              <td class="text-right py-1 pl-4">
+                <span class="text-green-500">{{ fmtApprox(totalVehicleSpace * 60 * 60) }}</span>
+                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
+              </td>
+            </tr>
+            <tr>
+              <td class="py-1 pr-6">Egg Laying Rate</td>
+              <td class="text-right py-1 px-4">
+                <span class="text-green-500">{{ fmtApprox(eggLayingRate * 60) }}</span>
+                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
+              </td>
+              <td class="text-right py-1 pl-4">
+                <span class="text-green-500">{{ fmtApprox(eggLayingRate * 60 * 60) }}</span>
+                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
+              </td>
+            </tr>
+            <tr>
+              <td class="py-1 pr-6 font-bold">Egg Delivery Rate</td>
+              <td class="text-right py-1 px-4">
+                <span class="text-green-500">{{ fmtApprox(effectiveELR * 60) }}</span>
+                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
+              </td>
+              <td class="text-right py-1 pl-4">
+                <span class="text-green-500">{{ fmtApprox(effectiveELR * 60 * 60) }}</span>
+                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </collapsible-section>
 
       <hr />
@@ -586,14 +601,53 @@ export default defineComponent({
     } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.ihr, totalTruthEggs.value);
 
     // Calculate eggs delivered using integration - handles hab capacity and shipping capacity scenarios
+    const calculateEOVDelivered = (ihr: number) => {
+      const timeElapsed = (currentTimestamp.value - lastRefreshedTimestamp) / 1000; // Convert to seconds
+      const ihrPerSecond = ihr / 60; // Convert from per minute to per second
 
+      // Calculate population at which shipping capacity is maxed out
+      const maxEffectivePopulation = (totalVehicleSpace / eggLayingRate) * lastRefreshedPopulation;
+
+      // Effective capacity is the minimum of hab capacity and shipping-limited population
+      const effectiveCapacity = Math.min(totalHabSpace, maxEffectivePopulation);
+
+      // If we're already at or above effective capacity, ELR is static
+      if (lastRefreshedPopulation >= effectiveCapacity) {
+        const staticELR = Math.min(eggLayingRate, totalVehicleSpace);
+        const eggsDeliveredWhileOffline = staticELR * timeElapsed;
+        return eovDelivered[egg - 50] + eggsDeliveredWhileOffline;
+      }
+
+      // If we reach effective capacity during this period
+      if (currentPopulation.value >= effectiveCapacity) {
+        // Calculate time to reach effective capacity
+        const timeToCapacity = (effectiveCapacity - lastRefreshedPopulation) / ihrPerSecond;
+
+        // Phase 1: Growing population until effective capacity is reached (use growth formula)
+        const initialELR = eggLayingRate;
+        const linearTerm1 = initialELR * timeToCapacity;
+        const quadraticTerm1 =
+          (initialELR * ihrPerSecond * timeToCapacity * timeToCapacity) / (2 * lastRefreshedPopulation);
+        const eggsPhase1 = linearTerm1 + quadraticTerm1;
+
+        // Phase 2: Static ELR after effective capacity is reached
+        const timeAfterCapacity = timeElapsed - timeToCapacity;
+        const staticELR = Math.min(eggLayingRate * (effectiveCapacity / lastRefreshedPopulation), totalVehicleSpace);
+        const eggsPhase2 = staticELR * timeAfterCapacity;
+
+        return eovDelivered[egg - 50] + eggsPhase1 + eggsPhase2;
+      }
+
+      // Population stays below effective capacity - use standard growth formula
+      const linearTerm = eggLayingRate * timeElapsed;
+      const quadraticTerm = (eggLayingRate * ihrPerSecond * timeElapsed * timeElapsed) / (2 * lastRefreshedPopulation);
+      const eggsDeliveredWhileOffline = linearTerm + quadraticTerm;
+
+      return eovDelivered[egg - 50] + eggsDeliveredWhileOffline;
+    };
     const activeEOVDeliveredAdjusted = computed(() => ({
-      offline:
-        eovDelivered[egg - 50] +
-        projectEggsLaidOverTime(backup, (currentTimestamp.value - lastRefreshedTimestamp) / 1000),
-      online:
-        eovDelivered[egg - 50] +
-        projectEggsLaidOverTime(backup, (currentTimestamp.value - lastRefreshedTimestamp) / 1000, onlineIHR),
+      offline: calculateEOVDelivered(offlineIHR),
+      online: calculateEOVDelivered(onlineIHR),
     }));
     const truthEggsPendingAdjusted = computed(() => ({
       offline: pendingTruthEggs(activeEOVDeliveredAdjusted.value.offline, truthEggs[egg - 50]) || 0,
