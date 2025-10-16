@@ -40,7 +40,8 @@ export function projectEggsLaid(backup: ei.IBackup, targetEggAmount: number) {
   const startingEggLayingRate = Math.min(eggLayingRate, shippingCapacity);
   const targetEggsRemaining = targetEggAmount - delivered;
 
-  if (offlineIHR === 0) {
+  // No population growth possible - either no IHR or already at max capacity
+  if (offlineIHR === 0 || lastRefreshedPopulation >= maxPopulation) {
     return targetEggsRemaining / startingEggLayingRate;
   }
   let timeToTarget =
@@ -88,7 +89,8 @@ export function projectEggsLaidOverTime(backup: ei.IBackup, timeInSeconds: numbe
   const startingEggLayingRate = Math.min(eggLayingRate, shippingCapacity);
   const timeInMinutes = (timeInSeconds + lastRefreshedRelative) / 60;
 
-  if (offlineIHR === 0) {
+  // No population growth possible - either no IHR or already at max capacity
+  if (offlineIHR === 0 || lastRefreshedPopulation >= maxPopulation) {
     return startingEggLayingRate * timeInMinutes;
   }
 
