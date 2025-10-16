@@ -42,7 +42,7 @@ export function projectEggsLaid(backup: ei.IBackup, targetEggAmount: number) {
 
   // No population growth possible - either no IHR or already at max capacity
   if (offlineIHR === 0 || lastRefreshedPopulation >= maxPopulation) {
-    return targetEggsRemaining / startingEggLayingRate;
+    return (60 * targetEggsRemaining) / startingEggLayingRate - lastRefreshedRelative;
   }
   let timeToTarget =
     (Math.sqrt(
