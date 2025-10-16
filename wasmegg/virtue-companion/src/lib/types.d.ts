@@ -18,7 +18,6 @@ export type Stone = Item;
 
 export interface Artifact extends Item {
   stones: Stone[];
-  clarityEffect: number;
 }
 
 export interface Research {

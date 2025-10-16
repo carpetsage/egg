@@ -80,6 +80,7 @@
                   :eggs-laid-online-adjusted="activeEOVDeliveredAdjusted.online"
                   :egg-laying-rate="currentELR"
                   :egg="egg"
+                  :backup="backup"
                   :show-spoilers="shouldShowThreshold(eovDelivered[egg - 50])"
                 />
               </div>
@@ -233,24 +234,35 @@
             class="h-6"
           />
         </div>
-        <p>
-          Shipping Capacity:
-          <span class="text-green-500">{{ fmtApprox(totalVehicleSpace * 60 * 60) }}</span>
-          <img :src="eggIconURL" class="inline h-6 w-6" />
-          / hr
-        </p>
-        <p>
-          Egg Laying Rate:
-          <span class="text-green-500">{{ fmtApprox(eggLayingRate * 60 * 60) }}</span>
-          <img :src="eggIconURL" class="inline h-6 w-6" />
-          / hr
-        </p>
-        <p>
-          Shipping Rate:
-          <span class="text-green-500">{{ fmtApprox(effectiveELR * 60 * 60) }}</span>
-          <img :src="eggIconURL" class="inline h-6 w-6" />
-          / hr
-        </p>
+        <div class="space-y-1">
+          <div>
+            <div class="text-sm">Shipping Capacity</div>
+            <div>
+              <span v-tippy="{ content: `${fmtApprox(totalVehicleSpace * 60 * 60)} eggs/hr` }" class="text-green-500">
+                {{ fmtApprox(totalVehicleSpace * 60) }}
+              </span>
+              <img :src="eggIconURL" class="inline h-6 w-6 mb-1" />/ min
+            </div>
+          </div>
+          <div>
+            <div class="text-sm">Egg Laying Rate</div>
+            <div>
+              <span v-tippy="{ content: `${fmtApprox(eggLayingRate * 60 * 60)} eggs/hr` }" class="text-green-500">
+                {{ fmtApprox(eggLayingRate * 60) }}
+              </span>
+              <img :src="eggIconURL" class="inline h-6 w-6 mb-1" />/ min
+            </div>
+          </div>
+          <div>
+            <div class="text-sm">Egg Delivery Rate</div>
+            <div>
+              <span v-tippy="{ content: `${fmtApprox(effectiveELR * 60 * 60)} eggs/hr` }" class="text-green-500">
+                {{ fmtApprox(effectiveELR * 60) }}
+              </span>
+              <img :src="eggIconURL" class="inline h-6 w-6 mb-1" />/ min
+            </div>
+          </div>
+        </div>
       </collapsible-section>
 
       <hr />
@@ -323,7 +335,7 @@ import {
   calculateDroneValues,
   calculateFarmValue,
   earningBonusToFarmerRole,
-  bestPossibleCubeForEnlightenment,
+  artifactsFromInventory,
   farmEarningBonus,
   farmEarningRate,
   farmEggValue,
@@ -345,6 +357,7 @@ import {
   farmEggLayingRate,
   pendingTruthEggs,
   nextTruthEggThreshold,
+  projectEggsLaidOverTime,
 } from '@/lib';
 import { TE_BREAKPOINTS } from '@/lib/virtue';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
@@ -498,7 +511,7 @@ export default defineComponent({
     });
 
     const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts);
-    const bestPossibleCube = bestPossibleCubeForEnlightenment(backup);
+    const bestPossibleCube = artifactsFromInventory(backup, ei.ArtifactSpec.Name.PUZZLE_CUBE)[0];
     const bestPossibleCubeSet = bestPossibleCube ? [bestPossibleCube] : [];
     const bestPriceMultiplier = researchPriceMultiplierFromArtifacts(bestPossibleCubeSet);
     const cashTargets = [
@@ -566,46 +579,15 @@ export default defineComponent({
       offlineRate: offlineIHR,
     } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.ihr, totalTruthEggs.value);
 
-    // Calculate eggs delivered using integration - handles hab capacity scenarios
-    const calculateEOVDelivered = (ihr: number) => {
-      const timeElapsed = (currentTimestamp.value - lastRefreshedTimestamp) / 1000; // Convert to seconds
-      const ihrPerSecond = ihr / 60; // Convert from per minute to per second
-
-      // If habs were already capped at last refresh, ELR is static for entire period
-      if (lastRefreshedPopulation >= totalHabSpace) {
-        const eggsDeliveredWhileOffline = effectiveELR * timeElapsed;
-        return eovDelivered[egg - 50] + eggsDeliveredWhileOffline;
-      }
-
-      // If habs become capped during this period
-      if (currentPopulation.value >= totalHabSpace) {
-        // Calculate time to reach hab capacity
-        const timeToCapacity = (totalHabSpace - lastRefreshedPopulation) / ihrPerSecond;
-
-        // Phase 1: Growing population until habs are full
-        const linearTerm1 = effectiveELR * timeToCapacity;
-        const quadraticTerm1 =
-          (effectiveELR * ihrPerSecond * timeToCapacity * timeToCapacity) / (2 * lastRefreshedPopulation);
-        const eggsPhase1 = linearTerm1 + quadraticTerm1;
-
-        // Phase 2: Static ELR after habs are full
-        const timeAfterCapacity = timeElapsed - timeToCapacity;
-        const eggsPhase2 = effectiveELR * timeAfterCapacity * (totalHabSpace / lastRefreshedPopulation);
-
-        return eovDelivered[egg - 50] + eggsPhase1 + eggsPhase2;
-      }
-
-      // Habs not yet capped - use full growth formula
-      const linearTerm = effectiveELR * timeElapsed;
-      const quadraticTerm = (effectiveELR * ihrPerSecond * timeElapsed * timeElapsed) / (2 * lastRefreshedPopulation);
-      const eggsDeliveredWhileOffline = linearTerm + quadraticTerm;
-
-      return eovDelivered[egg - 50] + eggsDeliveredWhileOffline;
-    };
+    // Calculate eggs delivered using integration - handles hab capacity and shipping capacity scenarios
 
     const activeEOVDeliveredAdjusted = computed(() => ({
-      offline: calculateEOVDelivered(offlineIHR),
-      online: calculateEOVDelivered(onlineIHR),
+      offline:
+        eovDelivered[egg - 50] +
+        projectEggsLaidOverTime(backup, (currentTimestamp.value - lastRefreshedTimestamp) / 1000),
+      online:
+        eovDelivered[egg - 50] +
+        projectEggsLaidOverTime(backup, (currentTimestamp.value - lastRefreshedTimestamp) / 1000, onlineIHR),
     }));
     const truthEggsPendingAdjusted = computed(() => ({
       offline: pendingTruthEggs(activeEOVDeliveredAdjusted.value.offline, truthEggs[egg - 50]) || 0,
@@ -702,6 +684,7 @@ export default defineComponent({
       totalShifts,
       totalResets,
       nextShiftSE,
+      backup,
     };
   },
 });

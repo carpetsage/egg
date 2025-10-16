@@ -6,10 +6,7 @@ export function researchPriceMultiplierFromArtifacts(artifacts: Artifact[]): num
   return aggregateEffect(
     artifacts,
     [ei.ArtifactSpec.Name.PUZZLE_CUBE],
-    (aggregate, effect) =>
-      effect.multiplier <= 1
-        ? (1 + effect.delta * effect.multiplier) * aggregate
-        : ((1 + effect.delta) / effect.multiplier) * aggregate,
+    (aggregate, effect) => (1 + effect.delta) * aggregate,
     1
   );
 }

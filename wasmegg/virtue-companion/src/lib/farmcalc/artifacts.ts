@@ -71,72 +71,28 @@ export function homeFarmVirtueArtifacts(backup: ei.IBackup): Artifact[] {
   return artifacts;
 }
 
-export function bestPossibleGussetForEnlightenment(backup: ei.IBackup, modifier = 1): Artifact | null {
-  const stonedGussets = artifactsFromInventoryWithClarityStones(backup, ei.ArtifactSpec.Name.ORNATE_GUSSET);
-  let bestGusset = null;
-  let minRequiredWDLevel = 25;
-  for (const gusset of stonedGussets) {
-    const level = requiredWDLevelForEnlightenmentDiamond([gusset], modifier);
-    if (level < minRequiredWDLevel) {
-      bestGusset = gusset;
-      minRequiredWDLevel = level;
-    }
-  }
-  return bestGusset;
-}
-
-export function bestPossibleCubeForEnlightenment(backup: ei.IBackup): Artifact | null {
-  const stonedCubes = artifactsFromInventoryWithClarityStones(backup, ei.ArtifactSpec.Name.PUZZLE_CUBE);
-  if (stonedCubes.length === 0) {
-    return null;
-  }
-  let bestCube = null;
-  let minPriceMultiplier = 1;
-  for (const cube of stonedCubes) {
-    const priceMultiplier = researchPriceMultiplierFromArtifacts([cube]);
-    if (priceMultiplier < minPriceMultiplier) {
-      bestCube = cube;
-      minPriceMultiplier = priceMultiplier;
-    }
-  }
-  return bestCube;
-}
-
 function newArtifact(hostItem: Item, stones: Stone[]): Artifact {
   return {
     ...hostItem,
     stones,
-    clarityEffect: clarityEffect(hostItem, stones),
   };
 }
 
 // Given an artifact family, returns a list of owned artifacts of that family
-// slotted with the best possible clarity stones owned. Commons are skipped as
-// they can't be stoned.
-function artifactsFromInventoryWithClarityStones(backup: ei.IBackup, family: ei.ArtifactSpec.Name): Artifact[] {
-  if (!backup.artifactsDb) {
+export function artifactsFromInventory(backup: ei.IBackup, family: ei.ArtifactSpec.Name): Artifact[] {
+  if (!backup.artifactsDb?.virtueAfxDb) {
     return [];
   }
-  const inventory = backup.artifactsDb.inventoryItems;
+  const inventory = backup.artifactsDb.virtueAfxDb?.inventoryItems;
   if (!inventory) {
     return [];
   }
-
-  const clarityStones = <Artifact[]>[];
-  const recordClarityStone = (spec: ei.IArtifactSpec, count: number) => {
-    if (spec.name === ei.ArtifactSpec.Name.CLARITY_STONE) {
-      const stone = newArtifact(artifactSpecToItem(spec), []);
-      for (let i = 0; i < count; i++) {
-        clarityStones.push(stone);
-      }
-    }
-  };
 
   const bareArtifacts = <Artifact[]>[];
   const seenGussetKeys = new Set<string>();
   const recordArtifact = (spec: ei.IArtifactSpec) => {
     // Skip commons as they are useless for enlightenment.
-    if (spec.name === family && spec.rarity! > 0) {
+    if (spec.name === family) {
       const gusset = newArtifact(artifactSpecToItem(spec), []);
       if (!seenGussetKeys.has(gusset.key)) {
         bareArtifacts.push(gusset);
@@ -146,13 +102,8 @@ function artifactsFromInventoryWithClarityStones(backup: ei.IBackup, family: ei.
   };
 
   for (const item of inventory) {
-    const count = item.quantity!;
     const spec = item.artifact!.spec!;
     recordArtifact(spec);
-    recordClarityStone(spec, count);
-    for (const stone of item.artifact!.stones || []) {
-      recordClarityStone(stone, count);
-    }
   }
   if (bareArtifacts.length === 0) {
     return [];
@@ -160,6 +111,5 @@ function artifactsFromInventoryWithClarityStones(backup: ei.IBackup, family: ei.
   // Sort artifacts and clarity stones from higher to lower level, then higher to
   // lower rarity.
   bareArtifacts.sort((g1, g2) => g2.afxLevel - g1.afxLevel || g2.afxRarity - g1.afxRarity);
-  clarityStones.sort((s1, s2) => s2.afxLevel - s1.afxLevel);
-  return bareArtifacts.map(gusset => newArtifact(gusset, clarityStones.slice(0, gusset.slots)));
+  return bareArtifacts.map(gusset => newArtifact(gusset, []));
 }
