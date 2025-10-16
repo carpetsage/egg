@@ -484,7 +484,12 @@ export default defineComponent({
 
     const vehicles = farmVehicles(farm);
     const vehicleSpaceResearches = farmShippingCapacityResearches(farm, backup.game!);
-    const vehicleSpaces = farmVehicleShippingCapacities(vehicles, vehicleSpaceResearches, [], modifiers.shippingCap);
+    const vehicleSpaces = farmVehicleShippingCapacities(
+      vehicles,
+      vehicleSpaceResearches,
+      artifacts,
+      modifiers.shippingCap
+    );
     const totalVehicleSpace = farmShippingCapacity(farm, backup.game!, artifacts, modifiers.shippingCap);
 
     const eggLayingRate = farmEggLayingRate(farm, progress, artifacts) * modifiers.elr;
