@@ -92,14 +92,16 @@
             </template>
           </p>
           <template v-if="eggLayingRate > 0 && showSpoilers">
-            <br />Expected in:
-            <span>
-              {{ formatDuration((nextTruthEggTargets.offline - eggsLaid) / eggLayingRate) }}
-            </span>
-            <br />Offline adjusted:
-            <span>
-              {{ formatDuration((nextTruthEggTargets.offline - eggsLaidOfflineAdjusted) / eggLayingRate) }}
-            </span>
+            <br />Next 5 Truth Eggs Expected In:
+            <div class="grid grid-cols-[auto_1fr] gap-x-4">
+              <div class="font-semibold text-xs">Duration</div>
+              <div class="font-semibold text-xs">Target Time</div>
+              <template v-for="(timeToTarget, index) in timeToNext5Thresholds" :key="index">
+                <div class="text-xs">{{ formatDuration(timeToTarget) }}</div>
+                <div class="text-xs font-mono">{{ targetDateTimes[index] }}</div>
+              </template>
+            </div>
+            <div class="text-xs mt-2">Assuming offline IHR</div>
           </template>
         </template>
       </tippy>
