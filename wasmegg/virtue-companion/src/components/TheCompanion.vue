@@ -124,6 +124,7 @@
                   :eggs-laid="eovDelivered[vegg - 50]"
                   :eggs-laid-offline-adjusted="eovDelivered[vegg - 50]"
                   :egg-laying-rate="0"
+                  :backup="backup"
                   :egg="vegg"
                   :show-spoilers="shouldShowThreshold(eovDelivered[vegg - 50])"
                 />

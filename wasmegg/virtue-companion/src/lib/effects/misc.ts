@@ -15,7 +15,7 @@ export function clarityEffect(hostItem: Item, stones: Stone[]): number {
 }
 
 export function hasNoEffect(artifact: Artifact): boolean {
-  return artifact.clarityEffect === 0;
+  return false;
 }
 
 export function hasIneffectiveClarityStones(artifact: Artifact): boolean {
