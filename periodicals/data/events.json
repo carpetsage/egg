@@ -23389,5 +23389,23 @@
     "startTimestamp": 1761235200,
     "type": "gift-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1761408000,
+    "id": "event-10-24",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1761321600,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1761408000,
+    "id": "ultra-10-24",
+    "message": "2x GIFTS!!",
+    "multiplier": 2,
+    "startTimestamp": 1761321600,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
