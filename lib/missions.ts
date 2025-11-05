@@ -211,6 +211,7 @@ export interface ShipsConfig {
   epicResearchFTLLevel: number;
   epicResearchZerogLevel: number;
   shipLevels: Record<Spaceship, number>;
+  shipVisibility: Record<Spaceship, boolean>;
   onlyHenners: boolean;
   onlyLiners: boolean;
   showNodata: boolean;
@@ -257,6 +258,19 @@ export function newShipsConfig(progress?: ei.Backup.IGame): ShipsConfig {
       [Spaceship.HENERPRISE]: 0,
       [Spaceship.ATREGGIES]: 0,
     },
+    shipVisibility: {
+      [Spaceship.CHICKEN_ONE]: true,
+      [Spaceship.CHICKEN_NINE]: true,
+      [Spaceship.CHICKEN_HEAVY]: true,
+      [Spaceship.BCR]: true,
+      [Spaceship.MILLENIUM_CHICKEN]: true,
+      [Spaceship.CORELLIHEN_CORVETTE]: true,
+      [Spaceship.GALEGGTICA]: true,
+      [Spaceship.CHICKFIANT]: true,
+      [Spaceship.VOYEGGER]: true,
+      [Spaceship.HENERPRISE]: true,
+      [Spaceship.ATREGGIES]: true,
+    },
     targets: targetDefaults,
   };
 }
@@ -265,22 +279,109 @@ export function fixOldShipsConfig(x: OldShipsConfig): ShipsConfig {
   const config = x as ShipsConfig;
   config.showNodata = false;
   config.onlyLiners = false;
+  if (!config.shipVisibility) {
+    // Apply old filter settings to ship visibility
+    if (config.onlyHenners && config.onlyLiners) {
+      // Only show Henerprise and above
+      config.shipVisibility = {
+        [Spaceship.CHICKEN_ONE]: false,
+        [Spaceship.CHICKEN_NINE]: false,
+        [Spaceship.CHICKEN_HEAVY]: false,
+        [Spaceship.BCR]: false,
+        [Spaceship.MILLENIUM_CHICKEN]: false,
+        [Spaceship.CORELLIHEN_CORVETTE]: false,
+        [Spaceship.GALEGGTICA]: false,
+        [Spaceship.CHICKFIANT]: false,
+        [Spaceship.VOYEGGER]: false,
+        [Spaceship.HENERPRISE]: true,
+        [Spaceship.ATREGGIES]: true,
+      };
+    } else if (config.onlyHenners) {
+      // Only show Henerprise
+      config.shipVisibility = {
+        [Spaceship.CHICKEN_ONE]: false,
+        [Spaceship.CHICKEN_NINE]: false,
+        [Spaceship.CHICKEN_HEAVY]: false,
+        [Spaceship.BCR]: false,
+        [Spaceship.MILLENIUM_CHICKEN]: false,
+        [Spaceship.CORELLIHEN_CORVETTE]: false,
+        [Spaceship.GALEGGTICA]: false,
+        [Spaceship.CHICKFIANT]: false,
+        [Spaceship.VOYEGGER]: false,
+        [Spaceship.HENERPRISE]: true,
+        [Spaceship.ATREGGIES]: false,
+      };
+    } else if (config.onlyLiners) {
+      // Only show Atreggies
+      config.shipVisibility = {
+        [Spaceship.CHICKEN_ONE]: false,
+        [Spaceship.CHICKEN_NINE]: false,
+        [Spaceship.CHICKEN_HEAVY]: false,
+        [Spaceship.BCR]: false,
+        [Spaceship.MILLENIUM_CHICKEN]: false,
+        [Spaceship.CORELLIHEN_CORVETTE]: false,
+        [Spaceship.GALEGGTICA]: false,
+        [Spaceship.CHICKFIANT]: false,
+        [Spaceship.VOYEGGER]: false,
+        [Spaceship.HENERPRISE]: false,
+        [Spaceship.ATREGGIES]: true,
+      };
+    } else {
+      // Show all ships by default
+      config.shipVisibility = {
+        [Spaceship.CHICKEN_ONE]: true,
+        [Spaceship.CHICKEN_NINE]: true,
+        [Spaceship.CHICKEN_HEAVY]: true,
+        [Spaceship.BCR]: true,
+        [Spaceship.MILLENIUM_CHICKEN]: true,
+        [Spaceship.CORELLIHEN_CORVETTE]: true,
+        [Spaceship.GALEGGTICA]: true,
+        [Spaceship.CHICKFIANT]: true,
+        [Spaceship.VOYEGGER]: true,
+        [Spaceship.HENERPRISE]: true,
+        [Spaceship.ATREGGIES]: true,
+      };
+    }
+  }
   return config;
 }
 
 // check if *any* config value is not set
 export function isShipsConfig(x: unknown): x is ShipsConfig {
-  const validOldConfig = isOldShipsConfig(x);
-
-  // fix old config
-  if (validOldConfig) {
-    if ((x as ShipsConfig).showNodata === undefined || (x as ShipsConfig).onlyLiners === undefined) {
-      fixOldShipsConfig(x as OldShipsConfig);
-    }
-    // forcibly uncheck any frag targets before removing them from the ui
-    fragments.forEach(fragment => (x.targets[fragment] = false));
+  // Basic shape checks
+  if (typeof x !== 'object' || x === null) {
+    return false;
   }
-  return validOldConfig;
+  const maybe = x as ShipsConfig;
+
+  // Must have these base properties
+  if (
+    maybe.epicResearchFTLLevel === undefined ||
+    maybe.epicResearchZerogLevel === undefined ||
+    maybe.shipLevels === undefined ||
+    maybe.targets === undefined ||
+    maybe.onlyHenners === undefined ||
+    maybe.onlyLiners === undefined ||
+    maybe.showNodata === undefined
+  ) {
+    // If it's an old config, upgrade it in-place
+    if (isOldShipsConfig(x)) {
+      fixOldShipsConfig(x as OldShipsConfig);
+      // ensure frag targets are unset
+      fragments.forEach(fragment => (maybe.targets[fragment] = false));
+      return true;
+    }
+    return false;
+  }
+
+  // Fix missing shipVisibility field
+  if (!maybe.shipVisibility) {
+    fixOldShipsConfig(maybe as OldShipsConfig);
+  }
+
+  // Ensure frag targets are unset for safety
+  fragments.forEach(fragment => (maybe.targets[fragment] = false));
+  return true;
 }
 
 // Check if everything except new config value is set
@@ -1052,6 +1153,19 @@ export const perfectShipsConfig: ShipsConfig = {
     [Spaceship.VOYEGGER]: shipMaxLevel(Spaceship.VOYEGGER),
     [Spaceship.HENERPRISE]: shipMaxLevel(Spaceship.HENERPRISE),
     [Spaceship.ATREGGIES]: shipMaxLevel(Spaceship.ATREGGIES),
+  },
+  shipVisibility: {
+    [Spaceship.CHICKEN_ONE]: true,
+    [Spaceship.CHICKEN_NINE]: true,
+    [Spaceship.CHICKEN_HEAVY]: true,
+    [Spaceship.BCR]: true,
+    [Spaceship.MILLENIUM_CHICKEN]: true,
+    [Spaceship.CORELLIHEN_CORVETTE]: true,
+    [Spaceship.GALEGGTICA]: true,
+    [Spaceship.CHICKFIANT]: true,
+    [Spaceship.VOYEGGER]: true,
+    [Spaceship.HENERPRISE]: true,
+    [Spaceship.ATREGGIES]: true,
   },
   targets: targetDefaults,
 };

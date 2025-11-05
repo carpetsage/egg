@@ -107,7 +107,10 @@ export default defineComponent({
         filtered = loot.value.missions.filter(x => x.afxShip === ei.MissionInfo.Spaceship.ATREGGIES);
       }
 
-      return filtered.length > 0 ? filtered : loot.value.missions;
+      const baseMissions = filtered.length > 0 ? filtered : loot.value.missions;
+
+      // Filter by ship visibility
+      return baseMissions.filter(x => config.value.shipVisibility[x.afxShip]);
     });
     const missions = computed(() =>
       filteredMissions.value.map(missionLoot => {

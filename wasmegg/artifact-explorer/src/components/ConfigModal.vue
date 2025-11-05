@@ -74,9 +74,18 @@
 
             <div>
               <template v-for="ship in spaceshipList" :key="ship">
-                <div v-if="shipMaxLevel(ship) > 0" class="flex flex-wrap">
-                  <span class="text-sm w-full xs:w-40">{{ spaceshipName(ship) }}</span>
-                  <div class="flex items-center space-x-0.5">
+                <div class="flex flex-wrap">
+                  <div class="flex items-center space-x-2 w-full xs:w-40">
+                    <input
+                      :id="`ship_visibility_${ship}`"
+                      v-model="config.shipVisibility[ship]"
+                      :name="`ship_visibility_${ship}`"
+                      type="checkbox"
+                      class="focus:ring-green-500 h-3 w-3 text-green-600 border-gray-300 rounded"
+                    />
+                    <span class="text-sm">{{ spaceshipName(ship) }}</span>
+                  </div>
+                  <div v-if="shipMaxLevel(ship) > 0" class="flex items-center space-x-0.5">
                     <!-- fa: solid/ban -->
                     <svg
                       viewBox="0 0 512 512"
@@ -110,31 +119,22 @@
                   </div>
                 </div>
               </template>
+              <div class="flex items-center space-x-2 mt-2 pt-2 border-t border-gray-200">
+                <input
+                  id="ship_visibility_all"
+                  :checked="allShipsVisible"
+                  :indeterminate="someShipsVisible && !allShipsVisible"
+                  name="ship_visibility_all"
+                  type="checkbox"
+                  class="focus:ring-green-500 h-3.5 w-3.5 text-green-600 border-gray-300 rounded"
+                  @change="toggleAllShips"
+                />
+                <label for="ship_visibility_all" class="text-sm text-gray-600 cursor-pointer">
+                  Show/Hide All Ships
+                </label>
+              </div>
             </div>
             <div>
-              <!-- Only show henners -->
-              <div class="flex items-center space-x-0.5">
-                <input
-                  :id="`only_henerprise`"
-                  v-model="config.onlyHenners"
-                  :name="`only_henerprise`"
-                  type="checkbox"
-                  class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-                />&nbsp;
-                <label class="text-sm text-gray-600"> Only Show Henerprise </label>
-              </div>
-              <!-- Display targets with insufficient data -->
-              <!-- Only show liners -->
-              <div class="flex items-center space-x-0.5">
-                <input
-                  :id="`only_liners`"
-                  v-model="config.onlyLiners"
-                  :name="`only_liners`"
-                  type="checkbox"
-                  class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-                />&nbsp;
-                <label class="text-sm text-gray-600"> Only Show Henliners </label>
-              </div>
               <!-- Display targets with insufficient data -->
               <div class="flex items-center space-x-0.5">
                 <input
@@ -182,7 +182,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { computed, defineComponent } from 'vue';
 import { Dialog, DialogOverlay, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XIcon } from '@heroicons/vue/solid';
 
@@ -205,6 +205,7 @@ import {
   setEpicResearchFTLLevel,
   setEpicResearchZerogLevel,
   setShipLevel,
+  setShipVisibility,
 } from '@/store';
 
 export default defineComponent({
@@ -218,6 +219,16 @@ export default defineComponent({
     XIcon,
   },
   setup() {
+    const allShipsVisible = computed(() => spaceshipList.every(ship => config.value.shipVisibility[ship]));
+    const someShipsVisible = computed(() => spaceshipList.some(ship => config.value.shipVisibility[ship]));
+
+    const toggleAllShips = () => {
+      const newValue = !allShipsVisible.value;
+      spaceshipList.forEach(ship => {
+        setShipVisibility(ship, newValue);
+      });
+    };
+
     return {
       configModalOpen,
       closeConfigModal,
@@ -233,7 +244,11 @@ export default defineComponent({
       setEpicResearchFTLLevel,
       setEpicResearchZerogLevel,
       setShipLevel,
+      setShipVisibility,
       targets,
+      allShipsVisible,
+      someShipsVisible,
+      toggleAllShips,
     };
   },
 });
