@@ -302,6 +302,9 @@ export default defineComponent({
     });
     const defaultTarget = ei.ArtifactSpec.Name.UNKNOWN;
     const selectedTarget = ref(defaultTarget);
+    const getSelectedTarget = computed(() => {
+      return mission.value.isFTL ? selectedTarget.value : defaultTarget;
+    });
     const selectTarget = (event: Event) => {
       const x = getTargetId((event.target! as HTMLSelectElement).value);
       selectedTarget.value = x;
@@ -319,7 +322,7 @@ export default defineComponent({
     }
 
     const selectedLevelTargetLoot = computed(() =>
-      selectedLevelLoot.value.targets.find(x => x.targetAfxId === selectedTarget.value)
+      selectedLevelLoot.value.targets.find(x => x.targetAfxId === getSelectedTarget.value)
     );
 
     const targets = computed(() =>
@@ -373,7 +376,7 @@ export default defineComponent({
     );
     const selectedLevelExpectedFullConsumptionValuePerShip = computed(() => {
       const consumationValue = computed(() =>
-        getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, selectedTarget.value)
+        getMissionLevelLootAverageConsumptionValue(selectedLevelLoot.value, getSelectedTarget.value)
       );
       return [
         consumationValue.value[0] * selectedLevelCapacity.value,
