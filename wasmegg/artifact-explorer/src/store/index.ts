@@ -29,6 +29,10 @@ export function setShipLevel(ship: ei.MissionInfo.Spaceship, level: number): voi
   config.value.shipLevels[ship] = level;
 }
 
+export function setShipVisibility(ship: ei.MissionInfo.Spaceship, visible: boolean): void {
+  config.value.shipVisibility[ship] = visible;
+}
+
 export function loadConfig(): ShipsConfig {
   const str = getLocalStorage(CONFIG_LOCALSTORAGE_KEY);
   if (!str) {
