@@ -123,6 +123,7 @@ export const noFragTargets = [
   Artifact.SHELL_STONE,
   Artifact.SOUL_STONE,
   Artifact.TACHYON_STONE,
+  Artifact.TERRA_STONE,
 ];
 
 // Default selection state for targets.
