@@ -23668,5 +23668,14 @@
     "startTimestamp": 1762707600,
     "type": "gift-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1762880400,
+    "id": "event-11-10",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1762794000,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
