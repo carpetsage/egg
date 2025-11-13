@@ -23713,5 +23713,23 @@
     "startTimestamp": 1762966800,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1763139600,
+    "id": "event-11-13",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1763053200,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1763139600,
+    "id": "ultra-11-13",
+    "message": "3x FUELING!",
+    "multiplier": 3,
+    "startTimestamp": 1763053200,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
