@@ -54,12 +54,16 @@
             />
             <span class="font-medium">{{ fmtApprox(eggsLaidOfflineAdjusted) }}</span>
           </p>
-          <template v-if="eggLayingRate > 0 && showSpoilers">
-            <br />Next 5 Truth Eggs Expected In:
-            <div class="grid grid-cols-[auto_1fr] gap-x-4">
+          <template v-if="showThresholdSpoilers">
+            <br />Next {{ timeToThresholds.length }} Truth Eggs Expected In:
+            <div class="grid grid-cols-[auto_auto_auto_1fr] gap-x-4">
+              <div class="font-semibold text-xs">TE</div>
+              <div class="font-semibold text-xs">Target</div>
               <div class="font-semibold text-xs">Duration</div>
               <div class="font-semibold text-xs">Target Time</div>
-              <template v-for="(timeToTarget, index) in timeToNext5Thresholds" :key="index">
+              <template v-for="(timeToTarget, index) in timeToThresholds" :key="index">
+                <div class="text-xs">{{ index + 1 + te }}</div>
+                <div class="text-xs">{{ fmtApprox(TE_BREAKPOINTS[index + te]) }}</div>
                 <div class="text-xs">{{ formatDuration(timeToTarget) }}</div>
                 <div class="text-xs font-mono">{{ targetDateTimes[index] }}</div>
               </template>
@@ -91,12 +95,16 @@
               <span class="font-medium">???</span>
             </template>
           </p>
-          <template v-if="eggLayingRate > 0 && showSpoilers">
-            <br />Next 5 Truth Eggs Expected In:
-            <div class="grid grid-cols-[auto_1fr] gap-x-4">
+          <template v-if="showThresholdSpoilers">
+            <br />Next {{ timeToThresholds.length }} Truth Eggs Expected In:
+            <div class="grid grid-cols-[auto_auto_auto_1fr] gap-x-4">
+              <div class="font-semibold text-xs">TE</div>
+              <div class="font-semibold text-xs">Target</div>
               <div class="font-semibold text-xs">Duration</div>
               <div class="font-semibold text-xs">Target Time</div>
-              <template v-for="(timeToTarget, index) in timeToNext5Thresholds" :key="index">
+              <template v-for="(timeToTarget, index) in timeToThresholds" :key="index">
+                <div class="text-xs">{{ index + 1 + te }}</div>
+                <div class="text-xs">{{ fmtApprox(TE_BREAKPOINTS[index + te]) }}</div>
                 <div class="text-xs">{{ formatDuration(timeToTarget) }}</div>
                 <div class="text-xs font-mono">{{ targetDateTimes[index] }}</div>
               </template>
@@ -127,6 +135,7 @@ import {
   eggIconPath,
   nextTruthEggThreshold,
   projectEggsLaid,
+  TE_BREAKPOINTS,
 } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 
@@ -140,6 +149,14 @@ export default defineComponent({
     BaseIcon,
   },
   props: {
+    targetTE: {
+      type: Number,
+      required: true,
+    },
+    te: {
+      type: Number,
+      required: true,
+    },
     eggsLaid: {
       type: Number,
       required: true,
@@ -169,32 +186,35 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    showThresholdSpoilers: {
+      type: Boolean,
+      default: true,
+    },
   },
   setup(props) {
-    const { eggsLaidOfflineAdjusted, eggsLaidOnlineAdjusted, backup } = toRefs(props);
+    const { eggsLaidOfflineAdjusted, eggsLaidOnlineAdjusted, eggLayingRate, backup, egg, te, targetTE } = toRefs(props);
     const nextTruthEggTargets = computed(() => ({
       offline: nextTruthEggThreshold(eggsLaidOfflineAdjusted.value),
       online: nextTruthEggThreshold(eggsLaidOnlineAdjusted.value),
     }));
 
-    const timeToNext5Thresholds = computed(() => {
+    const timeToThresholds = computed(() => {
       const times = [];
       let currentThreshold = nextTruthEggThreshold(eggsLaidOfflineAdjusted.value);
+      const numThresholds = targetTE.value - te.value < 5 ? 5 : targetTE.value - te.value;
 
-      for (let i = 0; i < 5; i++) {
-        times.push(projectEggsLaid(backup.value, currentThreshold));
+      for (let i = 0; i < numThresholds; i++) {
+        times.push(projectEggsLaid(backup.value, currentThreshold, eggLayingRate.value != 0, egg.value));
         currentThreshold = nextTruthEggThreshold(currentThreshold);
       }
 
       return times;
     });
 
-    const time = computed(() => timeToNext5Thresholds.value[0]);
+    const time = computed(() => timeToThresholds.value[0]);
 
     const targetDateTimes = computed(() =>
-      timeToNext5Thresholds.value.map(timeToTarget =>
-        dayjs().add(timeToTarget, 'seconds').format('YYYY-MM-DD HH:mm:ss')
-      )
+      timeToThresholds.value.map(timeToTarget => dayjs().add(timeToTarget, 'seconds').format('YYYY-MM-DD HH:mm:ss'))
     );
 
     return {
@@ -210,9 +230,10 @@ export default defineComponent({
       eggIconPath,
       eggName,
       time,
-      timeToNext5Thresholds,
+      timeToThresholds,
       nextTruthEggTargets,
       targetDateTimes,
+      TE_BREAKPOINTS,
     };
   },
 });

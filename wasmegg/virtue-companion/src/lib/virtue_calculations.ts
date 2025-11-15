@@ -1,4 +1,4 @@
-import { ei, allModifiersFromColleggtibles, fmtApprox } from '@/lib';
+import { ei, allModifiersFromColleggtibles, fmtApprox, eggName } from '@/lib';
 import {
   farmHabs,
   farmHabSpaceResearches,
@@ -11,16 +11,16 @@ import {
 } from '@/lib';
 import dayjs from 'dayjs';
 
-export function projectEggsLaid(backup: ei.IBackup, targetEggAmount: number) {
+export function projectEggsLaid(backup: ei.IBackup, targetEggAmount: number, active = true, eggOverride?: ei.Egg) {
   const farm = backup.farms![0];
-  const egg = farm.eggType!;
+  const egg = eggOverride || farm.eggType!;
   const delivered = backup.virtue?.eggsDelivered!.at(egg - 50) || 0;
-  const lastRefreshedPopulation = (farm.numChickens! as number) || 1;
-  const lastRefreshedRelative = Date.now() / 1000 - farm.lastStepTime!;
+  const lastRefreshedPopulation = active ? (farm.numChickens! as number) || 1 : 1;
+  const lastRefreshedRelative = active ? Date.now() / 1000 - farm.lastStepTime! : 0;
   const artifacts = homeFarmArtifacts(backup, true);
   const modifiers = allModifiersFromColleggtibles(backup);
   const eggLayingRate = 60 * farmEggLayingRate(farm, backup.game!, artifacts) * modifiers.elr;
-  const perChickenPerMinuteLayingRate = eggLayingRate / lastRefreshedPopulation;
+  const perChickenPerMinuteLayingRate = eggLayingRate / (farm.numChickens! || 1);
   const shippingCapacity = 60 * farmShippingCapacity(farm, backup.game!, artifacts, modifiers.shippingCap);
   const effectivePopulationCap = shippingCapacity / perChickenPerMinuteLayingRate;
   const totalTruthEggs = backup.virtue?.eovEarned?.reduce((a, b) => a + b, 0) || 0;
@@ -37,7 +37,7 @@ export function projectEggsLaid(backup: ei.IBackup, targetEggAmount: number) {
   const habCapacity = Math.round(habSpaces.reduce((total, s) => total + s));
 
   const maxPopulation = Math.min(habCapacity, effectivePopulationCap);
-  const startingEggLayingRate = Math.min(eggLayingRate, shippingCapacity);
+  const startingEggLayingRate = active ? Math.min(eggLayingRate, shippingCapacity) : perChickenPerMinuteLayingRate;
   const targetEggsRemaining = targetEggAmount - delivered;
 
   // No population growth possible - either no IHR or already at max capacity

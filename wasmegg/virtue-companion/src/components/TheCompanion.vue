@@ -54,6 +54,16 @@
       class="my-2 text-sm"
       @toggle="toggleSectionVisibility('truth_eggs')"
     >
+      <div class="flex items-center space-x-2 mb-4">
+        <label class="text-sm font-medium">Target TE:</label>
+        <input
+          v-model.number="targetTE"
+          type="number"
+          min="1"
+          max="499"
+          class="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+        />
+      </div>
       <template v-if="virtueEggs.includes(egg)">
         <!-- Current Virtue Egg -->
         <div class="flex items-start space-x-2 p-2 bg-gray-50 rounded-lg mb-2">
@@ -75,6 +85,8 @@
               </div>
               <div class="mr-5">
                 <truth-egg-progress-bar
+                  :target-t-e="targetTE"
+                  :te="truthEggs[egg - 50] + truthEggsPendingAdjusted.offline"
                   :eggs-laid="activeEOVDelivered"
                   :eggs-laid-offline-adjusted="activeEOVDeliveredAdjusted.offline"
                   :eggs-laid-online-adjusted="activeEOVDeliveredAdjusted.online"
@@ -82,6 +94,7 @@
                   :egg="egg"
                   :backup="backup"
                   :show-spoilers="shouldShowThreshold(eovDelivered[egg - 50])"
+                  :show-threshold-spoilers="showThresholdSpoilers"
                 />
               </div>
               <div>
@@ -121,12 +134,15 @@
               </div>
               <div class="mr-5">
                 <truth-egg-progress-bar
+                  :target-t-e="targetTE"
+                  :te="truthEggs[vegg - 50] + truthEggsPending[vegg - 50]"
                   :eggs-laid="eovDelivered[vegg - 50]"
                   :eggs-laid-offline-adjusted="eovDelivered[vegg - 50]"
                   :egg-laying-rate="0"
                   :backup="backup"
                   :egg="vegg"
                   :show-spoilers="shouldShowThreshold(eovDelivered[vegg - 50])"
+                  :show-threshold-spoilers="showThresholdSpoilers"
                 />
               </div>
               <div v-if="shouldShowThreshold(eovDelivered[vegg - 50])">
@@ -656,11 +672,23 @@ export default defineComponent({
 
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 
+    const TARGET_TE_LOCALSTORAGE_KEY = 'targetTE';
     const TARGET_TS_LOCALSTORAGE_KEY = 'targetTs';
     const THRESHOLD_SPOILERS_LOCALSTORAGE_KEY = 'showThresholdSpoilers';
 
+    const defaultTargetTE = computed(
+      () => Math.max(...truthEggs.map((earned, index) => earned + truthEggsPending.value[index])) + 5
+    );
+
+    const savedTargetTE = ref(parseInt(getLocalStorage(TARGET_TE_LOCALSTORAGE_KEY) || ''));
+    const targetTE = ref(savedTargetTE.value < defaultTargetTE.value ? defaultTargetTE.value : savedTargetTE.value);
     const target_ts = ref(getLocalStorage(TARGET_TS_LOCALSTORAGE_KEY) === 'true');
     const showThresholdSpoilers = ref(getLocalStorage(THRESHOLD_SPOILERS_LOCALSTORAGE_KEY) === 'true'); // Default to false
+
+    // eslint-disable-next-line vue/no-watch-after-await
+    watch(targetTE, () => {
+      setLocalStorage(TARGET_TE_LOCALSTORAGE_KEY, targetTE.value.toString());
+    });
 
     watch(target_ts, () => {
       setLocalStorage(TARGET_TS_LOCALSTORAGE_KEY, target_ts.value);
@@ -745,6 +773,7 @@ export default defineComponent({
       totalResets,
       nextShiftSE,
       backup,
+      targetTE,
     };
   },
 });
