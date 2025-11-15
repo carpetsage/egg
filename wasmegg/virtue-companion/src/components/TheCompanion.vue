@@ -681,12 +681,18 @@ export default defineComponent({
     );
 
     const savedTargetTE = ref(parseInt(getLocalStorage(TARGET_TE_LOCALSTORAGE_KEY) || '') || defaultTargetTE.value);
-    const targetTE = ref(savedTargetTE.value < defaultTargetTE.value ? defaultTargetTE.value : savedTargetTE.value);
+    const targetTE = ref(
+      Math.min(98, savedTargetTE.value < defaultTargetTE.value ? defaultTargetTE.value : savedTargetTE.value)
+    );
     const target_ts = ref(getLocalStorage(TARGET_TS_LOCALSTORAGE_KEY) === 'true');
     const showThresholdSpoilers = ref(getLocalStorage(THRESHOLD_SPOILERS_LOCALSTORAGE_KEY) === 'true'); // Default to false
 
     // eslint-disable-next-line vue/no-watch-after-await
     watch(targetTE, () => {
+      // Clamp to max of 98
+      if (targetTE.value > 98) {
+        targetTE.value = 98;
+      }
       setLocalStorage(TARGET_TE_LOCALSTORAGE_KEY, targetTE.value.toString());
     });
 
