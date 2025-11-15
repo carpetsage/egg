@@ -60,7 +60,7 @@
           v-model.number="targetTE"
           type="number"
           min="1"
-          max="499"
+          max="98"
           class="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
         />
       </div>
