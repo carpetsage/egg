@@ -680,7 +680,7 @@ export default defineComponent({
       () => Math.max(...truthEggs.map((earned, index) => earned + truthEggsPending.value[index])) + 5
     );
 
-    const savedTargetTE = ref(parseInt(getLocalStorage(TARGET_TE_LOCALSTORAGE_KEY) || ''));
+    const savedTargetTE = ref(parseInt(getLocalStorage(TARGET_TE_LOCALSTORAGE_KEY) || '') || defaultTargetTE.value);
     const targetTE = ref(savedTargetTE.value < defaultTargetTE.value ? defaultTargetTE.value : savedTargetTE.value);
     const target_ts = ref(getLocalStorage(TARGET_TS_LOCALSTORAGE_KEY) === 'true');
     const showThresholdSpoilers = ref(getLocalStorage(THRESHOLD_SPOILERS_LOCALSTORAGE_KEY) === 'true'); // Default to false
