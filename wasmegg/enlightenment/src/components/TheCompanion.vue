@@ -343,6 +343,7 @@ import {
   UserBackupEmptyError,
   getLocalStorage,
   setLocalStorage,
+  getNumTruthEggs,
 } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
@@ -446,6 +447,7 @@ export default defineComponent({
     }
     const modifiers = allModifiersFromColleggtibles(backup);
     const farm = backup.farms[0]; // Home farm
+    const truthEggs = getNumTruthEggs(backup);
     const egg = farm.eggType!;
     const eggIconURL = iconURL(eggIconPath(egg), 128);
     const enlightenmentEgg = ei.Egg.ENLIGHTENMENT;
@@ -598,7 +600,7 @@ export default defineComponent({
       onlineRatePerHab: onlineIHRPerHab,
       onlineRate: onlineIHR,
       offlineRate: offlineIHR,
-    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.ihr);
+    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, truthEggs, modifiers.ihr);
 
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 
