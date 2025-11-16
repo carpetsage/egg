@@ -1,5 +1,5 @@
 <template>
-  <the-nav-bar active-entry-id="enlightenment" />
+  <the-nav-bar active-entry-id="virtue-companion" />
 
   <div class="max-w-5xl w-full px-4 pb-4 xl:px-0 mx-auto">
     <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">Virtue companion</h1>
