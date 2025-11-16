@@ -13,16 +13,16 @@
           </select>
         </div>
 
+        <div class="my-2">
+          <div class="form-check">
+            <input id="virtueFuelsCheckbox" v-model="useVirtueFuels" class="form-check-input" type="checkbox" />
+            <label class="form-check-label" for="virtueFuelsCheckbox"> Virtue Farm </label>
+          </div>
+        </div>
+
         <div class="row gx-4 gy-2 my-2">
-          <template
-            v-for="(mission, i) in missions"
-            :key="mission.missionTypeId"
-            >
-            <div
-              v-if="mission.durationType != 3"
-              class="col-4 input-group"
-              style="max-width: 21rem"
-            >
+          <template v-for="(mission, i) in missions" :key="mission.missionTypeId">
+            <div v-if="mission.durationType != 3" class="col-4 input-group" style="max-width: 21rem">
               <span
                 class="input-group-text"
                 :class="durationTypeFgClass(mission.durationType)"
@@ -41,9 +41,7 @@
             </div>
           </template>
         </div>
-        <button type="button" class="btn btn-secondary btn-sm mt-2" @click="clear">
-          Clear missions
-        </button>
+        <button type="button" class="btn btn-secondary btn-sm mt-2" @click="clear">Clear missions</button>
       </div>
 
       <hr />
@@ -51,14 +49,9 @@
       <div class="my-2 tabular-nums">
         <h2 class="fs-5">Fuel</h2>
         <div>
-          <template v-for="[egg,fuel] in fuels" :key="egg">
+          <template v-for="[egg, fuel] in fuels" :key="egg">
             <span v-if="fuel > 0" class="me-2 text-nowrap">
-              <img
-                :src="iconURL(eggIconPath(egg), 64)"
-                height="16"
-                width="16"
-                style="position: relative; top: -2px"
-              />
+              <img :src="iconURL(eggIconPath(egg), 64)" height="16" width="16" style="position: relative; top: -2px" />
               <span>{{ formatEIValue(fuel, { trim: true }) }}</span>
             </span>
           </template>
@@ -70,7 +63,7 @@
           >
             {{ formatEIValue(totalFuel, { trim: true }) }}
           </span>
-          / {{ formatEIValue(fuelTankCapacity, {trim:true}) }}
+          / {{ formatEIValue(fuelTankCapacity, { trim: true }) }}
         </div>
         <div v-if="fuelTankOverCapacity" class="text-danger text-decoration-underline">
           <small>Total fuel required exceeds tank capacity!</small>
@@ -84,11 +77,10 @@
         </div>
         <p class="text-danger lh-sm">
           <small>
-            Note that fueling in-game is imprecise; a mission could actually take slightly more or
-            less fuel (usually by a fraction of an egg) than advertised. Therefore you should
-            always have a little surplus of each fuel when planning your tank. A precisely planned
-            tank &mdash; e.g. a full 100T tank for 10 extended Henerprises &mdash; is pointless
-            and will likely leave you disappointed.
+            Note that fueling in-game is imprecise; a mission could actually take slightly more or less fuel (usually by
+            a fraction of an egg) than advertised. Therefore you should always have a little surplus of each fuel when
+            planning your tank. A precisely planned tank &mdash; e.g. a full 100T tank for 10 extended Henerprises
+            &mdash; is pointless and will likely leave you disappointed.
           </small>
         </p>
       </div>
@@ -97,7 +89,7 @@
 
       <div>
         <h2 class="fs-5">Launch points</h2>
-        <table class="table table-striped table-hover tabular-nums" style="max-width: 30rem;">
+        <table class="table table-striped table-hover tabular-nums" style="max-width: 30rem">
           <thead>
             <tr>
               <th scope="col">Spaceship</th>
@@ -131,35 +123,44 @@ import {
   formatEIValue,
   iconURL,
   spaceshipList as ships,
-  eggList
+  eggList,
 } from 'lib';
 
 const FUEL_TANK_LEVEL_LOCALSTORAGE_KEY = 'fuelTankLevel';
 const COUNTS_LOCALSTORAGE_KEY = 'counts';
+const USE_VIRTUE_FUELS_LOCALSTORAGE_KEY = 'useVirtueFuels';
 
 export default defineComponent({
-
   setup() {
     const fuelTankLevel = ref(loadFuelTankLevel());
     watch(fuelTankLevel, () => {
       setLocalStorage(FUEL_TANK_LEVEL_LOCALSTORAGE_KEY, fuelTankLevel.value);
     });
     const fuelTankCapacity = computed(() => fuelTankSizes[fuelTankLevel.value]);
+
+    const useVirtueFuels = ref(getLocalStorage(USE_VIRTUE_FUELS_LOCALSTORAGE_KEY) === 'true');
+    watch(useVirtueFuels, () => {
+      setLocalStorage(USE_VIRTUE_FUELS_LOCALSTORAGE_KEY, useVirtueFuels.value.toString());
+    });
+
     const counts = ref(loadCounts());
     const clear = () => {
       counts.value = missions.map(() => 0);
     };
     watch(
       counts,
-      () => { setLocalStorage(COUNTS_LOCALSTORAGE_KEY, JSON.stringify(counts.value)); },
+      () => {
+        setLocalStorage(COUNTS_LOCALSTORAGE_KEY, JSON.stringify(counts.value));
+      },
       { deep: true }
     );
 
     const fuels = computed(() => {
-      const fuelAmount: Map<ei.Egg, number> = new Map(eggList.map(egg => [egg,0]));
+      const fuelAmount: Map<ei.Egg, number> = new Map(eggList.map(egg => [egg, 0]));
       missions.forEach((mission, i) => {
         const count = Math.floor(counts.value[i]);
-        for (const { egg, amount } of mission.defaultFuels) {
+        const missionFuels = useVirtueFuels.value ? mission.virtueFuels : mission.defaultFuels;
+        for (const { egg, amount } of missionFuels) {
           fuelAmount.set(egg, (fuelAmount.get(egg) ?? 0) + amount * count);
         }
       });
@@ -168,15 +169,11 @@ export default defineComponent({
     const totalFuel = computed(() => {
       // Object.values(fuels.value).reduce((sum, { amount }) => sum + amount, 0)
       let total = 0;
-      fuels.value.forEach(fuelUsed => total += fuelUsed )
-      return total
+      fuels.value.forEach(fuelUsed => (total += fuelUsed));
+      return total;
     });
-    const fuelTankPercentage = computed(
-      () => (totalFuel.value / fuelTankCapacity.value) * 100
-    );
-    const fuelTankOverCapacity = computed(
-      () => totalFuel.value >= fuelTankCapacity.value
-    );
+    const fuelTankPercentage = computed(() => (totalFuel.value / fuelTankCapacity.value) * 100);
+    const fuelTankOverCapacity = computed(() => totalFuel.value >= fuelTankCapacity.value);
 
     const launchPoints = computed(() => {
       const lps = ships.map(() => 0);
@@ -185,50 +182,50 @@ export default defineComponent({
         lps[mission.shipType] += durationTypeLaunchPoints(mission.durationType) * count;
       });
       return lps;
-  });
+    });
 
-  return {
-    ships,
-    spaceshipName,
-    eggName,
-    eggIconPath,
-    missions,
-    fuelTankSizes,
-    fuelTankLevel,
-    fuelTankCapacity,
-    counts,
-    clear,
-    fuels,
-    totalFuel,
-    fuelTankPercentage,
-    fuelTankOverCapacity,
-    launchPoints,
-    durationTypeFgClass,
-    formatEIValue,
-    iconURL,
-  };
+    return {
+      ships,
+      spaceshipName,
+      eggName,
+      eggIconPath,
+      missions,
+      fuelTankSizes,
+      fuelTankLevel,
+      fuelTankCapacity,
+      useVirtueFuels,
+      counts,
+      clear,
+      fuels,
+      totalFuel,
+      fuelTankPercentage,
+      fuelTankOverCapacity,
+      launchPoints,
+      durationTypeFgClass,
+      formatEIValue,
+      iconURL,
+    };
   },
 });
 
-
 function loadFuelTankLevel() {
-const maxLevel = fuelTankSizes.length - 1;
-const s = getLocalStorage(FUEL_TANK_LEVEL_LOCALSTORAGE_KEY);
-if (s === undefined) {
-  return maxLevel;
-}
-let parsed;
-try {
-  parsed = parseInt(s);
-} catch (err) {
-  console.warn(`${FUEL_TANK_LEVEL_LOCALSTORAGE_KEY}: ${s}: ${err}`);
-  return maxLevel;
-}
-if (typeof parsed !== 'number' || !(parsed >= 0 && parsed <= maxLevel)) {
-  console.warn(`${FUEL_TANK_LEVEL_LOCALSTORAGE_KEY}: ${s}: invalid level`);
-  return maxLevel;
-}
-return parsed;
+  const maxLevel = fuelTankSizes.length - 1;
+  const s = getLocalStorage(FUEL_TANK_LEVEL_LOCALSTORAGE_KEY);
+  if (s === undefined) {
+    return maxLevel;
+  }
+  let parsed;
+  try {
+    parsed = parseInt(s);
+  } catch (err) {
+    console.warn(`${FUEL_TANK_LEVEL_LOCALSTORAGE_KEY}: ${s}: ${err}`);
+    return maxLevel;
+  }
+  if (typeof parsed !== 'number' || !(parsed >= 0 && parsed <= maxLevel)) {
+    console.warn(`${FUEL_TANK_LEVEL_LOCALSTORAGE_KEY}: ${s}: invalid level`);
+    return maxLevel;
+  }
+  return parsed;
 }
 
 function loadCounts(): number[] {
@@ -286,5 +283,4 @@ function durationTypeFgClass(durationType: ei.MissionInfo.DurationType) {
       return '';
   }
 }
-
 </script>
