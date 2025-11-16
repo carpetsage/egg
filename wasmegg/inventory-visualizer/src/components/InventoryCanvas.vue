@@ -36,11 +36,11 @@
       </template>
       <div v-else class="space-y-2">
         <p v-if="blockedByFirefoxPrivacyResistFingerprinting" class="text-xs text-red-500">
-          Oops! Canvas to image functionality might have been sabotaged by your browser! Ignore this
-          if the image looks normal. Otherwise, if you're using Firefox, you might have the
-          <code>privacy.resistFingerprinting</code> setting turned on. Please check your browser
-          address bar and look for a picture icon which you can click and grant "Extract canvas
-          data" permission to this site. Reload after granting the permission.
+          Oops! Canvas to image functionality might have been sabotaged by your browser! Ignore this if the image looks
+          normal. Otherwise, if you're using Firefox, you might have the
+          <code>privacy.resistFingerprinting</code> setting turned on. Please check your browser address bar and look
+          for a picture icon which you can click and grant "Extract canvas data" permission to this site. Reload after
+          granting the permission.
         </p>
         <div class="flex items-center justify-center">
           <a
@@ -52,16 +52,11 @@
           </a>
         </div>
         <p class="max-w-lg mx-auto text-center text-xs text-gray-500">
-          If the download button doesn't work, you may also right click / long press on the image
-          below to use your browser's image saving function.
+          If the download button doesn't work, you may also right click / long press on the image below to use your
+          browser's image saving function.
         </p>
         <div class="overflow-scroll">
-          <img
-            :src="imageURL"
-            :width="width / 2"
-            :height="height / 2"
-            class="block mx-auto max-w-full"
-          />
+          <img :src="imageURL" :width="width / 2" :height="height / 2" class="block mx-auto max-w-full" />
         </div>
       </div>
     </template>
@@ -82,12 +77,9 @@ const props = defineProps({
   },
 });
 const { inventory } = toRefs(props);
-
 const RARER_ITEMS_FIRST_LOCALSTORAGE_KEY = 'rarerItemsFirst';
-const rarerItemsFirst = ref(getLocalStorage(RARER_ITEMS_FIRST_LOCALSTORAGE_KEY) === 'true');
-watch(rarerItemsFirst, () =>
-  setLocalStorage(RARER_ITEMS_FIRST_LOCALSTORAGE_KEY, rarerItemsFirst.value)
-);
+const rarerItemsFirst = ref(getLocalStorage(RARER_ITEMS_FIRST_LOCALSTORAGE_KEY) !== 'false');
+watch(rarerItemsFirst, () => setLocalStorage(RARER_ITEMS_FIRST_LOCALSTORAGE_KEY, rarerItemsFirst.value));
 const grid = computed(() =>
   generateInventoryGrid(inventory.value as Inventory, {
     rarerItemsFirst: rarerItemsFirst.value,
@@ -113,8 +105,7 @@ const regenerate = async () => {
     imageURL.value = result.url;
     width.value = result.width;
     height.value = result.height;
-    blockedByFirefoxPrivacyResistFingerprinting.value =
-      result.blockedByFirefoxPrivacyResistFingerprinting;
+    blockedByFirefoxPrivacyResistFingerprinting.value = result.blockedByFirefoxPrivacyResistFingerprinting;
     if (await imageIsEmpty(imageURL.value)) {
       error.value = new Error('unknown error occurred, generated canvas is empty');
     }

@@ -1,9 +1,18 @@
 <template>
-  <inventory-canvas :inventory="inventory" />
+  <div>
+    <div class="w-full max-w-xs mx-auto my-2">
+      <label class="flex items-center justify-center text-sm text-gray-700 cursor-pointer">
+        <input v-model="showVirtue" type="checkbox" class="mr-2 rounded text-green-600 focus:ring-green-500" />
+        <span>Virtue artifacts</span>
+      </label>
+    </div>
+    <inventory-canvas :inventory="inventory" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { Inventory, requestFirstContact, UserBackupEmptyError } from 'lib';
+import { ref, computed, watch } from 'vue';
+import { Inventory, requestFirstContact, UserBackupEmptyError, getLocalStorage, setLocalStorage } from 'lib';
 
 import InventoryCanvas from '@/components/InventoryCanvas.vue';
 
@@ -13,9 +22,14 @@ const props = defineProps({
     required: true,
   },
 });
+
+const SHOW_VIRTUE_LOCALSTORAGE_KEY = 'showVirtue';
+const showVirtue = ref(getLocalStorage(SHOW_VIRTUE_LOCALSTORAGE_KEY) === 'true');
+watch(showVirtue, () => setLocalStorage(SHOW_VIRTUE_LOCALSTORAGE_KEY, showVirtue.value));
+
 // Note that data playerId does not respond to changes. Use a new key when
 // playerId changes.
-/* eslint-disable vue/no-setup-props-destructure */
+
 const { playerId } = props;
 const data = await requestFirstContact(playerId);
 if (!data.backup || !data.backup.game) {
@@ -29,5 +43,5 @@ const artifactsDB = backup.artifactsDb;
 if (!artifactsDB) {
   throw new Error(`${playerId}: no artifacts database in backup`);
 }
-const inventory = new Inventory(artifactsDB);
+const inventory = computed(() => new Inventory(artifactsDB, { virtue: showVirtue.value }));
 </script>
