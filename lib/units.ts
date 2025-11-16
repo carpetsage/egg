@@ -71,7 +71,7 @@ export function parseValueWithUnit(s: string, unitRequired = true): number | nul
 // When scientific on, the value is formatted as HTML.
 export function formatEIValue(
   x: number,
-  options?: { trim?: boolean; decimals?: number; precision?: number; scientific?: boolean }
+  options?: { trim?: boolean; decimals?: number; precision?: number; scientific?: boolean; minOom?: number }
 ): string {
   const trim = options?.trim === undefined ? false : options?.trim;
   const decimals = options?.decimals === undefined ? 3 : options?.decimals;
@@ -84,6 +84,9 @@ export function formatEIValue(
   }
   if (!isFinite(x)) {
     return 'infinity';
+  }
+  if (options?.minOom !== undefined && x < 10 ** options.minOom) {
+    return x.toLocaleString();
   }
   const oom = Math.log10(x);
   if (oom < minOom) {
