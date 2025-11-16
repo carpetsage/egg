@@ -70,7 +70,7 @@
     </div>
 
     <!-- Responsive: Single column mobile, two column desktop using CSS Grid -->
-    <div class="max-w-xs sm:max-w-xl mx-auto">
+    <div class="max-w-xs sm:max-w-2xl mx-auto">
       <div class="grid grid-cols-1 sm:grid-cols-2 sm:gap-0 items-stretch overflow-hidden rounded-md">
         <!-- First half -->
         <div class="sm:rounded-l-md sm:rounded-r-none overflow-hidden">
@@ -276,7 +276,9 @@
                   class="cursor-help"
                 >
                   <span class="Value"
-                    >{{ maxInternalHatcheryRatePerMinPerHab(build, config).toLocaleString('en-US') }}/min/hab</span
+                    >{{
+                      formatEIValue(maxInternalHatcheryRatePerMinPerHab(build, config), { minOom: 6 })
+                    }}/min/hab</span
                   >
                   <span class="Bonus"
                     >&nbsp;(&times;{{ formatFloat(internalHatcheryRateMultiplier(build, config)) }})</span

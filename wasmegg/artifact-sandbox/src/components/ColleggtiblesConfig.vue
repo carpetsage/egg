@@ -16,7 +16,7 @@
               <img
                 v-tippy="{ content: egg.name }"
                 :src="iconURL(eggIconPath(ei.Egg.CUSTOM_EGG, egg.identifier), 64)"
-                class="h-5 w-5 flex-shrink-0"
+                class="h-5 w-5 min-w-5 min-h-5"
               />
             </div>
 

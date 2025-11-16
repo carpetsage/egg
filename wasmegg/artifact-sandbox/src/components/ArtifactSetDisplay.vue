@@ -2,12 +2,7 @@
   <div class="flex items-center justify-center mb-2 space-x-1">
     <img
       :key="config.isEnlightenment.toString()"
-      :src="
-        iconURL(
-          config.isEnlightenment ? 'egginc/egg_enlightenment.png' : 'egginc/egg_universe.png',
-          64
-        )
-      "
+      :src="iconURL(config.isEnlightenment ? 'egginc/egg_enlightenment.png' : 'egginc/egg_universe.png', 64)"
       class="inline h-5 w-5"
     />
     <span class="text-sm">{{ config.isEnlightenment ? 'Enlightenment' : 'Regular' }} farm</span>
@@ -59,12 +54,10 @@
                 <span class="EffectSize mr-1">{{ stone.effectSize }}</span>
                 <span>{{ stone.effectTarget }}</span>
               </span>
-              <span
-                class="inline-flex items-center text-xs text-dark-60 whitespace-nowrap leading-normal"
-                >(<img
-                  class="inline h-3 w-3"
-                  :src="iconURL('egginc-extras/icon_golden_egg.png', 64)"
-                />{{ stoneSettingCost(artifact, stone).toLocaleString('en-US') }})</span
+              <span class="inline-flex items-center text-xs text-dark-60 whitespace-nowrap leading-normal"
+                >(<img class="inline h-3 w-3" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />{{
+                  stoneSettingCost(artifact, stone).toLocaleString('en-US')
+                }})</span
               >
             </div>
           </div>
@@ -81,10 +74,7 @@
               >
             </div>
             <div v-else>
-              <img
-                class="inline h-3.5 w-3.5 relative -top-px"
-                :src="iconURL('egginc-extras/icon_warning.png', 64)"
-              />
+              <img class="inline h-3.5 w-3.5 relative -top-px" :src="iconURL('egginc-extras/icon_warning.png', 64)" />
               <span class="Warning text-xs uppercase"
                 >Not compatible with enlightenment egg
                 <template v-if="artifact.afxRarity > 0">as configured</template></span
@@ -99,18 +89,14 @@
                 class="inline h-3.5 w-4 pr-0.5 relative -top-px"
                 :src="iconURL('egginc-extras/icon_warning.png', 64)"
               />
-              <span class="Warning text-xs uppercase"
-                >Not compatible with non-enlightenment egg</span
-              >
+              <span class="Warning text-xs uppercase">Not compatible with non-enlightenment egg</span>
             </div>
             <div v-if="artifact.hasClarityStones()">
               <img
                 class="inline h-3.5 w-4 pr-0.5 relative -top-px"
                 :src="iconURL('egginc-extras/icon_warning.png', 64)"
               />
-              <span class="Warning text-xs uppercase"
-                >Clarity stone not compatible with non-enlightenment egg</span
-              >
+              <span class="Warning text-xs uppercase">Clarity stone not compatible with non-enlightenment egg</span>
             </div>
           </template>
         </div>
@@ -120,9 +106,7 @@
     <div class="flex items-center justify-center mt-3 mb-2">
       <span class="text-sm">Total stone-setting costs:</span>
       <img class="inline h-3 w-3" :src="iconURL('egginc-extras/icon_golden_egg.png', 64)" />
-      <span class="text-xs text-dark-60">{{
-        aggregateStoneSettingCost(build).toLocaleString('en-US')
-      }}</span>
+      <span class="text-xs text-dark-60">{{ aggregateStoneSettingCost(build).toLocaleString('en-US') }}</span>
     </div>
   </template>
 </template>
@@ -132,13 +116,7 @@ import { defineComponent } from 'vue';
 
 import ArtifactDisplay from '@/components/ArtifactDisplay.vue';
 
-import {
-  aggregateStoneSettingCost,
-  Build,
-  Config,
-  formatPercentage,
-  stoneSettingCost,
-} from '@/lib';
+import { aggregateStoneSettingCost, Build, Config, formatPercentage, stoneSettingCost } from '@/lib';
 import { iconURL } from 'lib';
 
 export default defineComponent({
