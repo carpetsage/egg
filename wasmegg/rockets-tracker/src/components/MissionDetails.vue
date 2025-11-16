@@ -28,7 +28,7 @@
           <div class="text-right font-medium">Fuel:</div>
           <div>
             <img
-              v-for="fuel in mission.fuels"
+              v-for="fuel in mission.isVirtue ? mission.virtueFuels : mission.fuels"
               :key="fuel.egg"
               v-tippy="{ content: `${fuel.amountDisplay} ${eggName(fuel.egg)}` }"
               class="inline h-4 w-4 align-text-top"

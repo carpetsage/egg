@@ -12,7 +12,7 @@
       >.
     </div>
 
-    <div class="flex justify-center mb-2">
+    <div class="flex justify-center mb-2 space-x-4">
       <div class="relative flex items-start">
         <div class="flex items-left h-5">
           <input
@@ -27,10 +27,22 @@
           <label for="spoilers" class="text-gray-600">Show unseen items (SPOILERS)</label>
         </div>
       </div>
+      <div class="relative flex items-start">
+        <div class="flex items-left h-5">
+          <input
+            id="showVirtue"
+            v-model="showVirtue"
+            name="showVirtue"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+          />
+        </div>
+        <div class="ml-2 text-sm">
+          <label for="showVirtue" class="text-gray-600">Show virtue items</label>
+        </div>
+      </div>
     </div>
-    <div class="text-center">
-    Don't use as crafting ingredients:
-    </div>
+    <div class="text-center">Don't use as crafting ingredients:</div>
     <div class="flex justify-center mb-2">
       <div class="relative flex items-start">
         <!-- Toggle demoting rares -->
@@ -90,33 +102,49 @@
 
     <ul class="list-disc list-inside text-xs leading-tight space-y-1">
       <li>
-        Hovering on the icon or name of an item reveals its crafting recipe; clicking on it takes
-        you to the relevant page on
-        <a href="/artifact-explorer/" target="_blank" class="text-blue-500 hover:text-blue-600"
-          >Artifact explorer</a
-        >.
+        Hovering on the icon or name of an item reveals its crafting recipe; clicking on it takes you to the relevant
+        page on
+        <a href="/artifact-explorer/" target="_blank" class="text-blue-500 hover:text-blue-600">Artifact explorer</a>.
       </li>
       <li>
-        Items with a green dot in the corner can be crafted from your current possessions. How many
-        is shown to the right. Intermediate crafting and demoting are both allowed here. For
-        instance, if you have 4 common, 1 rare and 1 epic T3 necklaces and 11 T2 gold meteorites,
-        these satisfy the 6 T3 necklaces and 1 T3 gold meteorite required for a T4 necklace, which
-        is considered craftable.
+        Items with a green dot in the corner can be crafted from your current possessions. How many is shown to the
+        right. Intermediate crafting and demoting are both allowed here. For instance, if you have 4 common, 1 rare and
+        1 epic T3 necklaces and 11 T2 gold meteorites, these satisfy the 6 T3 necklaces and 1 T3 gold meteorite required
+        for a T4 necklace, which is considered craftable.
       </li>
       <li>
-        Hovering or clicking on the "crafted" / "can craft" line shows the estimated crafting
-        expenses sunk into the specific item, and the cost of the next craft.
+        Hovering or clicking on the "crafted" / "can craft" line shows the estimated crafting expenses sunk into the
+        specific item, and the cost of the next craft.
       </li>
     </ul>
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Artifacts</h3>
-    <artifact-grid :inventory="inventory" :families="artifacts" :spoilers="spoilers" :backup="backup" :ignore-rares="ignore_rares" :ignore-epics="ignore_epics" :ignore-leggies="ignore_leggies" />
+    <artifact-grid
+      :inventory="showVirtue ? virtueInventory : inventory"
+      :families="artifacts"
+      :spoilers="spoilers"
+      :backup="backup"
+      :ignore-rares="ignore_rares"
+      :ignore-epics="ignore_epics"
+      :ignore-leggies="ignore_leggies"
+    />
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Stones &amp; stone fragments</h3>
-    <artifact-grid :inventory="inventory" :families="stones" :spoilers="spoilers" :backup="backup" :ignore-slotted-stones="ignore_slotted_stones" />
+    <artifact-grid
+      :inventory="showVirtue ? virtueInventory : inventory"
+      :families="stones"
+      :spoilers="spoilers"
+      :backup="backup"
+      :ignore-slotted-stones="ignore_slotted_stones"
+    />
 
     <h3 class="my-2 text-sm font-medium text-gray-900">Ingredients</h3>
-    <artifact-grid :inventory="inventory" :families="ingredients" :spoilers="spoilers" :backup="backup" />
+    <artifact-grid
+      :inventory="showVirtue ? virtueInventory : inventory"
+      :families="ingredients"
+      :spoilers="spoilers"
+      :backup="backup"
+    />
   </div>
 </template>
 
@@ -127,6 +155,7 @@ import { ei, getLocalStorage, Inventory, InventoryFamily, setLocalStorage } from
 import ArtifactGrid from '@/components/ArtifactGrid.vue';
 
 const SPOILERS_LOCALSTORAGE_KEY = 'spoilers';
+const SHOW_VIRTUE_LOCALSTORAGE_KEY = 'showVirtue';
 const IGNORE_RARES_LOCALSTORAGE_KEY = 'ignoreRares';
 const IGNORE_EPICS_LOCALSTORAGE_KEY = 'ignoreEpics';
 const IGNORE_LEGGIES_LOCALSTORAGE_KEY = 'ignoreLeggies';
@@ -151,21 +180,24 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const { inventory } = toRefs(props);
+    const { inventory, backup } = toRefs(props);
+    const virtueInventory = computed(() => new Inventory(backup.value.artifactsDb!, { virtue: true }));
     // Type casting because somehow InventoryFamily loses protected props during toRefs.
-    const catalog = computed(() => inventory.value.catalog as InventoryFamily[]);
+    const catalog = computed(() => (showVirtue.value ? virtueInventory : inventory).value.catalog as InventoryFamily[]);
     const artifacts = computed(() =>
       catalog.value.filter(family => family.type === ei.ArtifactSpec.Type.ARTIFACT).reverse()
     );
-    const stones = computed(() =>
-      catalog.value.filter(family => family.type === ei.ArtifactSpec.Type.STONE).reverse()
-    );
+    const stones = computed(() => catalog.value.filter(family => family.type === ei.ArtifactSpec.Type.STONE).reverse());
     const ingredients = computed(() =>
       catalog.value.filter(family => family.type === ei.ArtifactSpec.Type.INGREDIENT).reverse()
     );
     const spoilers = ref(getLocalStorage(SPOILERS_LOCALSTORAGE_KEY) === 'true');
     watch(spoilers, () => {
       setLocalStorage(SPOILERS_LOCALSTORAGE_KEY, spoilers.value);
+    });
+    const showVirtue = ref(getLocalStorage(SHOW_VIRTUE_LOCALSTORAGE_KEY) === 'true');
+    watch(showVirtue, () => {
+      setLocalStorage(SHOW_VIRTUE_LOCALSTORAGE_KEY, showVirtue.value);
     });
     const ignore_epics = ref(getLocalStorage(IGNORE_EPICS_LOCALSTORAGE_KEY) === 'true');
     watch(ignore_epics, () => {
@@ -189,10 +221,12 @@ export default defineComponent({
       stones,
       ingredients,
       spoilers,
+      showVirtue,
       ignore_rares,
       ignore_epics,
       ignore_leggies,
-      ignore_slotted_stones
+      ignore_slotted_stones,
+      virtueInventory,
     };
   },
 });

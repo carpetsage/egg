@@ -14,7 +14,7 @@
     :visible="isVisibleSection('mission-statistics')"
     @toggle="toggleSectionVisibility('mission-statistics')"
   >
-    <mission-statistics-report :artifacts-d-b="artifactsDB" :progress="progress" />
+    <mission-statistics-report :artifacts-d-b="artifactsDB" :progress="progress" :virtue="virtue" />
   </collapsible-section>
 
   <collapsible-section
@@ -46,7 +46,7 @@
 import { computed, defineComponent, PropType } from 'vue';
 import { Emitter } from 'mitt';
 
-import { Inventory, requestFirstContact, UserBackupEmptyError } from 'lib';
+import { ei, Inventory, requestFirstContact, UserBackupEmptyError, virtueEggs } from 'lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { reportLegendaries, reportMissionData } from '@/lib';
 import { REPORT_LEGENDARIES, REPORT_MISSIONDATA } from '@/events';
@@ -79,7 +79,7 @@ export default defineComponent({
     },
   },
   // This async component does not respond to playerId changes.
-  /* eslint-disable vue/no-setup-props-destructure */
+
   async setup({ playerId, eventBus }) {
     const data = await requestFirstContact(playerId);
     if (!data.backup || !data.backup.game) {
@@ -87,6 +87,8 @@ export default defineComponent({
     }
     const backup = data.backup;
     const progress = data.backup.game;
+    const egg = backup.farms?.at(0)?.eggType || ei.Egg.UNKNOWN;
+    const virtue = virtueEggs.includes(egg);
     if (!backup.settings) {
       throw new Error(`${playerId}: settings not found in backup`);
     }
@@ -107,6 +109,7 @@ export default defineComponent({
     });
     return {
       backup,
+      virtue,
       progress,
       artifactsDB,
       inventory,

@@ -1,10 +1,7 @@
 <template>
   <ul class="my-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
     <template v-for="family in families" :key="family.name">
-      <li
-        v-if="spoilers || family.discovered"
-        class="col-span-1 bg-gray-50 rounded-lg shadow divide-y divide-gray-200"
-      >
+      <li v-if="spoilers || family.discovered" class="col-span-1 bg-gray-50 rounded-lg shadow divide-y divide-gray-200">
         <div class="w-full flex items-center justify-between px-6 py-4 space-x-4">
           <div class="flex-1 truncate">
             <div class="flex items-center space-x-3" :class="{ 'opacity-30': !family.discovered }">
@@ -39,11 +36,7 @@
                     :class="{ 'opacity-30': !tier.discovered }"
                   >
                     <div class="h-12 w-12 bg-gray-150 rounded-full">
-                      <a
-                        v-if="spoilers || tier.discovered"
-                        :href="artifactExplorerLink(tier)"
-                        target="_blank"
-                      >
+                      <a v-if="spoilers || tier.discovered" :href="artifactExplorerLink(tier)" target="_blank">
                         <tippy tag="img" class="h-12 w-12 p-1" :src="iconURL(tier.iconPath, 128)">
                           <template v-if="tier.props.recipe" #content>
                             <p>Crafting recipe:</p>
@@ -57,11 +50,7 @@
                         </tippy>
                       </a>
                       <template v-else>
-                        <tippy
-                          tag="img"
-                          class="h-12 w-12 p-1 silhouette"
-                          :src="iconURL(tier.iconPath, 128)"
-                        >
+                        <tippy tag="img" class="h-12 w-12 p-1 silhouette" :src="iconURL(tier.iconPath, 128)">
                           <template v-if="tier.props.recipe" #content>
                             <p>Crafting recipe:</p>
                             <artifact-recipe
@@ -92,8 +81,7 @@
                         &times;
                         <span
                           v-tippy="{
-                            content:
-                              'total number of this item currently owned, including &quot;shiny&quot; ones',
+                            content: 'total number of this item currently owned, including &quot;shiny&quot; ones',
                           }"
                           >{{ tier.have }}</span
                         >
@@ -105,23 +93,16 @@
                         <span v-if="tier.haveEpic > 0" :class="artifactRarityFgClass(Rarity.EPIC)"
                           >{{ tier.haveEpic }} Epic</span
                         >
-                        <span
-                          v-if="tier.haveLegendary > 0"
-                          :class="artifactRarityFgClass(Rarity.LEGENDARY)"
+                        <span v-if="tier.haveLegendary > 0" :class="artifactRarityFgClass(Rarity.LEGENDARY)"
                           >{{ tier.haveLegendary }} Legendary</span
                         >
                       </div>
-                      <div
-                        v-if="tier.isStone && tier.have > 0"
-                        class="delimited text-xs text-gray-400"
-                      >
+                      <div v-if="tier.isStone && tier.have > 0" class="delimited text-xs text-gray-400">
                         <tippy v-if="tier.slotted > 0" tag="span" class="text-purple-400"
                           ><span class="underline">{{ tier.slotted }} slotted</span
                           ><template #content>
                             <artifact-gallery
-                              :artifact-set="
-                                new ArtifactSet(inventory.artifactsWithStone(tier), false)
-                              "
+                              :artifact-set="new ArtifactSet(inventory.artifactsWithStone(tier), false)"
                               :mini="true" /></template
                         ></tippy>
                         <span v-else>0 slotted</span>
@@ -135,11 +116,12 @@
                         </span>
 
                         <template #content>
-                          <p>You spent an estimated
-                          <span class="text-yellow-300">{{ ts(tier.sunkCost) }}</span>
-                          golden eggs on crafting this item and gained
-                          <span class="text-blue-300">{{ ts(tier.totalCraftingXp) }}</span>
-                          xp from crafting this item.
+                          <p>
+                            You spent an estimated
+                            <span class="text-yellow-300">{{ ts(tier.sunkCost) }}</span>
+                            golden eggs on crafting this item and gained
+                            <span class="text-blue-300">{{ ts(tier.totalCraftingXp) }}</span>
+                            xp from crafting this item.
                           </p>
                           <template v-if="tier.isArtifact">
                             The next craft has a
@@ -167,16 +149,14 @@
                           <template v-else-if="!nextRecursiveCraftable(tier)">
                             The next craft is going to cost
                             <span class="text-blue-300">{{ ts(tier.nextCraftCost) }}</span>
-                            GE (not including the cost of intermediate crafting); you'll have to do
-                            some demotion before having enough materials to craft.
+                            GE (not including the cost of intermediate crafting); you'll have to do some demotion before
+                            having enough materials to craft.
                           </template>
                           <template v-else-if="nextRecursiveCraftCost(tier) > tier.nextCraftCost">
                             The next craft is going to cost
                             <span class="text-blue-300">{{ ts(tier.nextCraftCost) }}</span>
                             GE, or
-                            <span class="text-blue-300">{{
-                              ts(nextRecursiveCraftCost(tier))
-                            }}</span>
+                            <span class="text-blue-300">{{ ts(nextRecursiveCraftCost(tier)) }}</span>
                             GE if the cost of recursive crafting of materials is included.
                           </template>
                           <template v-else>
@@ -209,7 +189,16 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
-import { ArtifactSet, ei, iconURL, Inventory, InventoryFamily, InventoryItem, getCraftingLevelFromXp, titleCase } from 'lib';
+import {
+  ArtifactSet,
+  ei,
+  iconURL,
+  Inventory,
+  InventoryFamily,
+  InventoryItem,
+  getCraftingLevelFromXp,
+  titleCase,
+} from 'lib';
 import { artifactRarityFgClass, artifactRarityFgClassBright } from '@/utils';
 import ArtifactRecipe from '@/components/ArtifactRecipe.vue';
 import ArtifactGallery from './ArtifactGallery.vue';
@@ -259,7 +248,7 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: false,
-    }
+    },
   },
   setup(props) {
     const { inventory, families, backup, ignoreRares, ignoreEpics, ignoreLeggies, ignoreSlottedStones } = toRefs(props);
@@ -268,8 +257,19 @@ export default defineComponent({
       // Type casting because somehow InventoryFamily loses protected props during toRefs.
       for (const family of families.value as InventoryFamily[]) {
         for (const tier of family.tiers) {
-          if (tier.have > TOOMUCHSHIT) { break; }
-          counts.set(tier.id, inventory.value.countCraftable(tier, ignoreRares.value, ignoreEpics.value, ignoreLeggies.value, ignoreSlottedStones.value));
+          if (tier.have > TOOMUCHSHIT) {
+            break;
+          }
+          counts.set(
+            tier.id,
+            inventory.value.countCraftable(
+              tier,
+              ignoreRares.value,
+              ignoreEpics.value,
+              ignoreLeggies.value,
+              ignoreSlottedStones.value
+            )
+          );
         }
       }
       return counts;
@@ -281,7 +281,9 @@ export default defineComponent({
       const counts = new Map<ItemId, { craftable: boolean; cost: number }>();
       for (const family of families.value as InventoryFamily[]) {
         for (const tier of family.tiers) {
-          if (tier.have > TOOMUCHSHIT) { break; }
+          if (tier.have > TOOMUCHSHIT) {
+            break;
+          }
           counts.set(tier.id, inventory.value.nextRecursiveCraft(tier));
         }
       }
@@ -293,20 +295,25 @@ export default defineComponent({
     const nextRecursiveCraftCost = (item: InventoryItem) => {
       return nextRecursiveCrafts.value.get(item.id)?.cost ?? 0;
     };
-    const nextCraftRarityChance = (item : InventoryItem, craft_multiplier : number, rarity : number, crafted_count : number) => {
+    const nextCraftRarityChance = (
+      item: InventoryItem,
+      craft_multiplier: number,
+      rarity: number,
+      crafted_count: number
+    ) => {
       let craft_chance = 100.0; //For Common: Initialize with 100% chance
       if (rarity > 0) {
-        craft_chance = item.craftChance(craft_multiplier,rarity,crafted_count); //Rare or better
+        craft_chance = item.craftChance(craft_multiplier, rarity, crafted_count); //Rare or better
       }
-      for (let i = rarity+1; i < 4; i++) {
+      for (let i = rarity + 1; i < 4; i++) {
         if (item.possibleRarity(i)) {
           //Subtract resulting chance of next higher existing rarity and return. Look at Auxbrain's medium post about craft chances.
-          craft_chance = craft_chance - item.craftChance(craft_multiplier,i,crafted_count);
+          craft_chance = craft_chance - item.craftChance(craft_multiplier, i, crafted_count);
           return craft_chance;
         }
       }
       return craft_chance;
-    }
+    };
 
     const craftingXp = computed(() => Math.floor(backup.value.artifacts?.craftingXp || 0));
     const craftingLevel = computed(() => getCraftingLevelFromXp(craftingXp.value));
@@ -337,8 +344,6 @@ function artifactExplorerLink(item: InventoryItem) {
 function ts(x: number): string {
   return x.toLocaleString('en-US');
 }
-
-
 </script>
 
 <style scoped>

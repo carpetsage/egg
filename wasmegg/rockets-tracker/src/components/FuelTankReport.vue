@@ -174,7 +174,6 @@ export default defineComponent({
         .map((amount, index) => new MissionFuel(ei.Egg.EDIBLE + index + 48, amount))
         .filter(fuel => fuel.amount > 0);
     });
-    console.log(virtueFuels.value);
     const fuelTankUsage = computed(() => fuels.value.reduce((total, fuel) => total + fuel.amount, 0));
     const virtueFuelTankUsage = computed(() => virtueFuels.value.reduce((total, fuel) => total + fuel.amount, 0));
     const showExactFuelAmounts = ref(getLocalStorage(SHOW_EXACT_FUEL_AMOUNTS_LOCALSTORAGE_KEY) === 'true');

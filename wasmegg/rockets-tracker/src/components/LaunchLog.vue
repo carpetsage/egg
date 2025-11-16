@@ -32,10 +32,11 @@
                 <span class="mr-2" :class="!mission.statusIsComplete ? 'text-green-500' : null">{{
                   mission.launchTimeDisplay
                 }}</span>
-                <span class="mr-1">{{ mission.shipName }}</span>
-                <span :class="missionDurationTypeFgClass(mission)">{{
-                  mission.durationTypeName
-                }}</span>
+                <span class="inline-flex mr-1">
+                  {{ mission.type === ei.MissionInfo.MissionType.VIRTUE ? 'Virtue ' : '' }}
+                  {{ mission.shipName }}
+                </span>
+                <span :class="missionDurationTypeFgClass(mission)">{{ mission.durationTypeName }}</span>
                 <span v-if="mission.level > 0" class="inline-flex items-center text-gray-700">
                   <span>&nbsp;({{ mission.level }}</span>
                   <svg viewBox="0 0 576 512" class="h-3 w-3 pb-px text-yellow-400 select-none">
@@ -47,10 +48,7 @@
                   <span>)</span>
                 </span>
                 <span v-if="mission.sensorTarget">
-                  <img
-                    class="inline-flex h-6 w-6"
-                    :src="mission.targetIcon"
-                    :alt="mission.sensorTarget" />
+                  <img class="inline-flex h-6 w-6" :src="mission.targetIcon" :alt="mission.sensorTarget" />
                 </span>
               </div>
             </div>
@@ -169,6 +167,7 @@ export default defineComponent({
       missionLootModalOpen,
       missionDurationTypeFgClass,
       iconURL,
+      ei,
     };
   },
 });

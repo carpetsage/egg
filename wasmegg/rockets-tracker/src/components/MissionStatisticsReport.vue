@@ -173,7 +173,7 @@
                       <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
                         <div class="flex items-center justify-center w-16 mx-auto">
                           <img
-                            v-for="fuel in duration.mission.defaultFuels"
+                            v-for="fuel in virtue ? duration.mission.virtueFuels : duration.mission.defaultFuels"
                             :key="fuel.egg"
                             v-tippy="{ content: fuel.amountDisplay }"
                             class="flex-shrink-0 h-4 w-4"
@@ -242,6 +242,11 @@ export default defineComponent({
     progress: {
       type: Object as PropType<ei.Backup.IGame>,
       required: true,
+    },
+    virtue: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   setup(props) {

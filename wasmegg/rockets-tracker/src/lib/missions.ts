@@ -75,8 +75,7 @@ export class ShipStatistics {
     const thresholds = this.levelLaunchPointThresholds;
     const maxLevel = thresholds.length - 1;
     const finalThreshold = thresholds[maxLevel];
-    const launchPointsToMaxLevel =
-      finalThreshold > launchPoints ? finalThreshold - launchPoints : null;
+    const launchPointsToMaxLevel = finalThreshold > launchPoints ? finalThreshold - launchPoints : null;
     let level = 0;
     for (; level < thresholds.length; level++) {
       if (launchPoints >= thresholds[level]) {
@@ -127,10 +126,7 @@ export class ShipStatistics {
   }
 
   get shortMissionsTimeToNextLevel(): number {
-    return (
-      this.perMissionDurationSeconds(DurationType.SHORT) *
-      Math.ceil(this.shortMissionsToNextLevel / 3)
-    );
+    return this.perMissionDurationSeconds(DurationType.SHORT) * Math.ceil(this.shortMissionsToNextLevel / 3);
   }
 
   get standardMissionsToNextLevel(): number {
@@ -138,10 +134,7 @@ export class ShipStatistics {
   }
 
   get standardMissionsTimeToNextLevel(): number {
-    return (
-      this.perMissionDurationSeconds(DurationType.LONG) *
-      Math.ceil(this.standardMissionsToNextLevel / 3)
-    );
+    return this.perMissionDurationSeconds(DurationType.LONG) * Math.ceil(this.standardMissionsToNextLevel / 3);
   }
 
   get extendedMissionsToNextLevel(): number {
@@ -149,10 +142,7 @@ export class ShipStatistics {
   }
 
   get extendedMissionsTimeToNextLevel(): number {
-    return (
-      this.perMissionDurationSeconds(DurationType.EPIC) *
-      Math.ceil(this.extendedMissionsToNextLevel / 3)
-    );
+    return this.perMissionDurationSeconds(DurationType.EPIC) * Math.ceil(this.extendedMissionsToNextLevel / 3);
   }
 
   // null if already at the final level.
@@ -166,10 +156,7 @@ export class ShipStatistics {
   }
 
   get shortMissionsTimeToMaxLevel(): number {
-    return (
-      this.perMissionDurationSeconds(DurationType.SHORT) *
-      Math.ceil(this.shortMissionsToMaxLevel / 3)
-    );
+    return this.perMissionDurationSeconds(DurationType.SHORT) * Math.ceil(this.shortMissionsToMaxLevel / 3);
   }
 
   get standardMissionsToMaxLevel(): number {
@@ -177,10 +164,7 @@ export class ShipStatistics {
   }
 
   get standardMissionsTimeToMaxLevel(): number {
-    return (
-      this.perMissionDurationSeconds(DurationType.LONG) *
-      Math.ceil(this.standardMissionsToMaxLevel / 3)
-    );
+    return this.perMissionDurationSeconds(DurationType.LONG) * Math.ceil(this.standardMissionsToMaxLevel / 3);
   }
 
   get extendedMissionsToMaxLevel(): number {
@@ -188,10 +172,7 @@ export class ShipStatistics {
   }
 
   get extendedMissionsTimeToMaxLevel(): number {
-    return (
-      this.perMissionDurationSeconds(DurationType.EPIC) *
-      Math.ceil(this.extendedMissionsToMaxLevel / 3)
-    );
+    return this.perMissionDurationSeconds(DurationType.EPIC) * Math.ceil(this.extendedMissionsToMaxLevel / 3);
   }
 
   get requiredTotalLaunchesToUnlockNextShip(): number {
@@ -273,10 +254,7 @@ export function getCompletedExtendedAtreggies(artifactsDB: ei.IArtifactsDB): ei.
   );
 }
 
-export function getMissionStatistics(
-  artifactsDB: ei.IArtifactsDB,
-  progress: ei.Backup.IGame
-): Statistics {
+export function getMissionStatistics(artifactsDB: ei.IArtifactsDB, progress: ei.Backup.IGame): Statistics {
   const missions = getLaunchedMissions(artifactsDB);
   const missionTypeCounts = newMissionTypeMap(0);
   for (const mission of missions) {
@@ -369,7 +347,11 @@ export function getLaunchLog(artifactsDB: ei.IArtifactsDB): LaunchLog {
   return log;
 }
 
-export function getMissionAirTime(missionArchive?: ei.IMissionInfo[] | null,  ship?: ei.MissionInfo.Spaceship, durationType?: ei.MissionInfo.DurationType) {
+export function getMissionAirTime(
+  missionArchive?: ei.IMissionInfo[] | null,
+  ship?: ei.MissionInfo.Spaceship,
+  durationType?: ei.MissionInfo.DurationType
+) {
   let ships = missionArchive;
   if (ship != undefined) {
     ships = ships?.filter(m => m.ship == ship);
@@ -377,7 +359,7 @@ export function getMissionAirTime(missionArchive?: ei.IMissionInfo[] | null,  sh
   if (durationType != undefined) {
     ships = ships?.filter(m => m.durationType == durationType);
   }
-  const airtimes= ships?.map(m => m.durationSeconds ?? 0);
+  const airtimes = ships?.map(m => m.durationSeconds ?? 0);
   if (airtimes && airtimes.length > 0) {
     return airtimes.reduce((sum, duration) => sum + duration);
   }

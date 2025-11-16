@@ -245,6 +245,36 @@
           </div>
         </div>
 
+        <div v-if="!collapsed" class="py-2">
+          <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime resets</dt>
+            <dd class="text-left text-sm text-gray-900">{{ fmt(numResets) }}</dd>
+
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Current shifts</dt>
+            <dd class="text-left text-sm text-gray-900">{{ fmt(numShifts) }}</dd>
+
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Next shift cost</dt>
+            <dd class="text-left text-sm text-purple-500">
+              {{ fmtApprox(nextShiftCost) }}
+              <img :src="iconURL('egginc/egg_soul.png', 64)" class="inline h-4 w-4" />
+            </dd>
+          </div>
+          <a
+            :href="`https://wasmegg-carpet.netlify.app/virtue-companion/?playerId=${userId}`"
+            target="_blank"
+            class="flex items-center justify-center space-x-0.5 text-xs"
+            :class="true ? 'text-green-500 hover:text-green-600' : 'text-gray-500 hover:text-gray-600'"
+          >
+            <span class="underline">Your virtue companion</span>
+            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+              />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+            </svg>
+          </a>
+        </div>
+
         <div v-if="!collapsed" class="py-2 grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
           <div class="text-right text-sm font-medium whitespace-nowrap">Lifetime earned</div>
           <div class="flex items-center text-left text-sm text-gray-900">
@@ -315,18 +345,6 @@
           <div class="grid gap-x-2 justify-center" :style="{ gridTemplateColumns: '50% 50%' }">
             <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime prestiges</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numPrestiges) }}</dd>
-
-            <dt class="text-right text-sm font-medium whitespace-nowrap">Current shifts</dt>
-            <dd class="text-left text-sm text-gray-900">{{ fmt(numShifts) }}</dd>
-
-            <dt class="text-right text-sm font-medium whitespace-nowrap">Lifetime resets</dt>
-            <dd class="text-left text-sm text-gray-900">{{ fmt(numResets) }}</dd>
-
-            <dt class="text-right text-sm font-medium whitespace-nowrap">Next shift cost</dt>
-            <dd class="text-left text-sm text-purple-500">
-              {{ fmtApprox(nextShiftCost) }}
-              <img :src="iconURL('egginc/egg_soul.png', 64)" class="inline h-4 w-4" />
-            </dd>
 
             <dt class="text-right text-sm font-medium whitespace-nowrap">Rockets launched</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numMissions) }}</dd>
@@ -970,7 +988,6 @@ const numShifts = computed(() => backup.value.virtue?.shiftCount || 0);
 const numResets = computed(() => backup.value.virtue?.resets || 0);
 const nextShiftCost = computed(() => {
   const basis = soulEggs.value * (0.02 * Math.pow(numShifts.value / 120, 3) + 0.0001);
-  console.log('basis: ', fmtApprox(basis));
   return Math.pow(10, 11) + 0.6 * basis + Math.pow(0.4 * basis, 0.9);
 });
 const launchedMissions = computed(() => getLaunchedMissions(artifactsDB.value));
