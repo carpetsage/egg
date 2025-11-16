@@ -1,6 +1,6 @@
 import { ei } from '../proto';
 import data, { getArtifactFamilyProps, getArtifactTierProps } from './data';
-import type { AfxFamily, AfxTier,  } from './data';
+import type { AfxFamily, AfxTier } from './data';
 import type { CraftingPriceParams, Recipe } from './data-json';
 import { Artifact, cmpArtifacts } from './effects';
 import { titleCase } from '../utils';
@@ -10,9 +10,17 @@ import Level = ei.ArtifactSpec.Level;
 import Rarity = ei.ArtifactSpec.Rarity;
 import Type = ei.ArtifactSpec.Type;
 
-
 type ItemId = string;
-export type craftingStats = { tier: `T${number}`, name: string, crafts: number, sunkCost: number, craftingCost: number, craftingXP: number, totalCraftingXP: number, xpPerGE: number }
+export type craftingStats = {
+  tier: `T${number}`;
+  name: string;
+  crafts: number;
+  sunkCost: number;
+  craftingCost: number;
+  craftingXP: number;
+  totalCraftingXP: number;
+  xpPerGE: number;
+};
 
 const itemIdToRecipe = new Map<ItemId, Recipe | null>(
   data.artifact_families
@@ -22,6 +30,7 @@ const itemIdToRecipe = new Map<ItemId, Recipe | null>(
 );
 
 export class Inventory {
+  virtue: boolean;
   store: Map<Name, Map<Level, InventoryItem>>;
   stoned: Artifact[];
   excludedIds: string[];
@@ -30,10 +39,12 @@ export class Inventory {
   // the inventory. Stones slotted in an excluded artifact also vanish. However,
   // excluding a stone that is slotted in an unexcluded artifact is considered
   // undefined behavior (still showing up in `stoned`), thus should be avoided.
-  constructor(db: ei.IArtifactsDB, opts?: { excludedIds?: string[] }) {
+  constructor(db: ei.IArtifactsDB, opts?: { excludedIds?: string[]; virtue?: boolean }) {
+    this.virtue = opts?.virtue ?? false;
     this.store = new Map();
     this.stoned = [];
     this.excludedIds = opts?.excludedIds ?? [];
+    const inventoryItems = (opts?.virtue ? db.virtueAfxDb?.inventoryItems : db.inventoryItems) || [];
     // Initialize with all possible items.
     for (const tier of data.artifact_families.map(f => f.tiers).flat()) {
       let family = this.store.get(tier.afx_id);
@@ -45,9 +56,9 @@ export class Inventory {
     }
     for (const item of db.artifactStatus || []) {
       this.getItem(item.spec!).crafted = item.count!;
-      this.getItem(item.spec!).discovered = (item.recipeDiscovered! || item.discovered!);
+      this.getItem(item.spec!).discovered = item.recipeDiscovered! || item.discovered!;
     }
-    for (const item of db.inventoryItems || []) {
+    for (const item of inventoryItems) {
       const artifact = item.artifact!;
       const count = item.quantity!;
       if (!this.add(artifact.spec!, count)) {
@@ -128,15 +139,29 @@ export class Inventory {
 
   // countCraftable takes demotion of uncommon items into account. This makes it
   // different from the in-game view of whether an item is craftable.
-  countCraftable(targetItem: InventoryItem, ignoreRare?: boolean, ignoreEpic?: boolean, ignoreLeggies?: boolean, ignoreSlotted?: boolean): number {
+  countCraftable(
+    targetItem: InventoryItem,
+    ignoreRare?: boolean,
+    ignoreEpic?: boolean,
+    ignoreLeggies?: boolean,
+    ignoreSlotted?: boolean
+  ): number {
     const counter = new Map<ItemId, number>();
     for (const f of this.store.values()) {
       for (const item of f.values()) {
         let total = item.have;
-        if (ignoreSlotted) { total -= item.slotted}
-        if (ignoreRare) { total -= item.haveRare; }
-        if (ignoreEpic) { total -= item.haveEpic;}
-        if (ignoreLeggies) { total -= item.haveLegendary;}
+        if (ignoreSlotted) {
+          total -= item.slotted;
+        }
+        if (ignoreRare) {
+          total -= item.haveRare;
+        }
+        if (ignoreEpic) {
+          total -= item.haveEpic;
+        }
+        if (ignoreLeggies) {
+          total -= item.haveLegendary;
+        }
 
         counter.set(item.id, total);
       }
@@ -170,10 +195,7 @@ export class Inventory {
           break;
         }
         for (const subingredient of recipe.ingredients) {
-          ingredients.set(
-            subingredient.id,
-            (ingredients.get(subingredient.id) || 0) + deficit * subingredient.count
-          );
+          ingredients.set(subingredient.id, (ingredients.get(subingredient.id) || 0) + deficit * subingredient.count);
         }
       }
       if (ingredients.size > 0) {
@@ -234,16 +256,9 @@ export class Inventory {
         ingredients.set(ingredientId, deficit);
         break;
       }
-      totalCost += multiCraftCost(
-        recipe.crafting_price,
-        previousCrafts.get(ingredientId)!,
-        deficit
-      );
+      totalCost += multiCraftCost(recipe.crafting_price, previousCrafts.get(ingredientId)!, deficit);
       for (const subingredient of recipe.ingredients) {
-        ingredients.set(
-          subingredient.id,
-          (ingredients.get(subingredient.id) || 0) + deficit * subingredient.count
-        );
+        ingredients.set(subingredient.id, (ingredients.get(subingredient.id) || 0) + deficit * subingredient.count);
       }
     }
     if (ingredients.size > 0) {
@@ -310,7 +325,7 @@ export class InventoryItem {
   }
 
   get familyName(): string {
-    return titleCase(this.afxTier.family.name.replace("The ",''));
+    return titleCase(this.afxTier.family.name.replace('The ', ''));
   }
   get fullName(): string {
     return `T${this.tierNumber} ${this.afxTier.family.name}`;
@@ -377,7 +392,7 @@ export class InventoryItem {
   }
 
   get xpPerGE(): number {
-    return this.afxTier.crafting_xp/this.nextCraftCost;
+    return this.afxTier.crafting_xp / this.nextCraftCost;
   }
 
   get craftingStats(): craftingStats {
@@ -389,7 +404,8 @@ export class InventoryItem {
       craftingCost: this.nextCraftCost,
       craftingXP: this.craftXP,
       totalCraftingXP: this.totalCraftingXp,
-      xpPerGE: this.xpPerGE }
+      xpPerGE: this.xpPerGE,
+    };
   }
 
   get possibleRarities(): Rarity[] | null {
@@ -402,14 +418,16 @@ export class InventoryItem {
 
   craftChance(craft_level_mult: number, rarity: Rarity, previous_crafts: number): number {
     //if no effects: It's a stone, this shouldn't even have been called.
-    if (!this.afxTier.effects) { return 0; }
+    if (!this.afxTier.effects) {
+      return 0;
+    }
     for (const effect of this.afxTier.effects) {
       if (rarity === effect.afx_rarity) {
-        const base_rate = this.afxTier.odds_multiplier/effect.odds_multiplier;
-        const final_rate = Math.max(10.0, base_rate/craft_level_mult);
-        const amount_mu = Math.min(1.0, previous_crafts/400.0);
-        return Math.min(10, 100*((1/final_rate)**(1-0.3*amount_mu)));
-       }
+        const base_rate = this.afxTier.odds_multiplier / effect.odds_multiplier;
+        const final_rate = Math.max(10.0, base_rate / craft_level_mult);
+        const amount_mu = Math.min(1.0, previous_crafts / 400.0);
+        return Math.min(10, 100 * (1 / final_rate) ** (1 - 0.3 * amount_mu));
+      }
     }
     throw new Error(`the impossible happened: invalid rarity ${rarity} for ${this.afxId}:${this.afxLevel}`);
   }
@@ -423,9 +441,7 @@ export class InventoryItem {
         return effect.slots || 0;
       }
     }
-    throw new Error(
-      `the impossible happened: invalid rarity ${rarity} for ${this.afxId}:${this.afxLevel}`
-    );
+    throw new Error(`the impossible happened: invalid rarity ${rarity} for ${this.afxId}:${this.afxLevel}`);
   }
 
   effectDelta(rarity: Rarity): number {
@@ -486,11 +502,7 @@ export class InventoryFamily {
 
 function singleCraftCost(params: CraftingPriceParams, previousCrafts: number): number {
   return Math.floor(
-    Math.max(
-      1,
-      params.base -
-        (params.base - params.low) * Math.min(1, previousCrafts / params.domain) ** params.curve
-    )
+    Math.max(1, params.base - (params.base - params.low) * Math.min(1, previousCrafts / params.domain) ** params.curve)
   );
 }
 
