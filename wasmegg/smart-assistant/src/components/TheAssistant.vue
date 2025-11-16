@@ -39,6 +39,10 @@
     </div>
     <div class="flex flex-wrap items-center justify-center">
       <span class="flex whitespace-nowrap mr-1">
+        <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-5 w-5" />
+        <span class="text-sm text-yellow-500">{{ truthEggs }}</span>
+      </span>
+      <span class="flex whitespace-nowrap mr-1">
         <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="inline h-5 w-5" />
         <span class="text-sm text-yellow-500">{{ prophecyEggs }}</span>
       </span>
@@ -296,6 +300,7 @@ import {
   getNakedEarningBonus,
   getNumProphecyEggs,
   getNumSoulEggs,
+  getNumTruthEggs,
   iconURL,
   requestFirstContact,
   setLocalStorage,
@@ -360,6 +365,7 @@ export default defineComponent({
     const showProPermitRecommendations = ref(hasProPermit);
     const prophecyEggs = getNumProphecyEggs(backup);
     const soulEggs = getNumSoulEggs(backup);
+    const truthEggs = getNumTruthEggs(backup);
     const nakedEarningBonus = getNakedEarningBonus(backup);
     const nakedRole = earningBonusToFarmerRole(nakedEarningBonus);
     const homeFarm = new Farm(backup, backup.farms[0]);
@@ -394,6 +400,7 @@ export default defineComponent({
       showProPermitRecommendations,
       prophecyEggs,
       soulEggs,
+      truthEggs,
       nakedEarningBonus,
       nakedRole,
       homeFarm,

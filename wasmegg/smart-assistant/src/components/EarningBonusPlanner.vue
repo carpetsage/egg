@@ -9,7 +9,11 @@
       >&nbsp;
       <span class="inline-flex flex-wrap items-center">
         <span class="mr-1">at</span>
-        <prophecy-eggs-soul-eggs-combo :prophecy-eggs="currentProphecyEggs" :soul-eggs="currentSoulEggs" />
+        <prophecy-eggs-soul-eggs-combo
+          :prophecy-eggs="currentProphecyEggs"
+          :soul-eggs="currentSoulEggs"
+          :truth-eggs="currentTruthEggs"
+        />
       </span>
     </div>
 
@@ -197,6 +201,7 @@
                 :soul-eggs="currentSoulEggs + combo.soulEggs"
                 :show-soul-eggs="currentSoulEggs + combo.soulEggs > 0"
                 :soul-eggs-tooltip="`${formatEIValue(combo.soulEggs)} additional required`"
+                :truth-eggs="currentTruthEggs"
               />
               <prophecy-eggs-soul-eggs-combo
                 v-else
@@ -206,6 +211,8 @@
                 :soul-eggs="combo.soulEggs"
                 :show-soul-eggs="combo.soulEggs > 0"
                 :soul-eggs-tooltip="`${formatEIValue(currentSoulEggs + combo.soulEggs)} total`"
+                :truth-eggs="currentTruthEggs"
+                :show-truth-eggs="false"
               />
             </div>
           </div>
@@ -227,6 +234,7 @@ import {
   getLocalStorage,
   getNumProphecyEggs,
   getNumSoulEggs,
+  getNumTruthEggs,
   getProphecyBonusLevel,
   getSoulFoodLevel,
   iconURL,
@@ -255,6 +263,7 @@ import Level = ei.ArtifactSpec.Level;
 type Combo = {
   prophecyEggs: number;
   soulEggs: number;
+  truthEggs: number;
 };
 
 const INCLUDE_ARTIFACT_EFFECTS_LOCALSTORAGE_KEY = 'ebPlannerIncludeArtifactEffects';
@@ -278,6 +287,7 @@ export default defineComponent({
     const { backup } = toRefs(props);
     const currentProphecyEggs = computed(() => getNumProphecyEggs(backup.value));
     const currentSoulEggs = computed(() => getNumSoulEggs(backup.value));
+    const currentTruthEggs = computed(() => getNumTruthEggs(backup.value));
     const currentSoulFoodLevel = computed(() => getSoulFoodLevel(backup.value));
     const currentProphecyBonusLevel = computed(() => getProphecyBonusLevel(backup.value));
     const currentNakedEarningBonus = computed(
@@ -285,6 +295,7 @@ export default defineComponent({
         currentSoulEggs.value *
         earningBonusPerSoulEgg({
           numProphecyEggs: currentProphecyEggs.value,
+          numTruthEggs: currentTruthEggs.value,
           soulFoodLevel: currentSoulFoodLevel.value,
           prophecyBonusLevel: currentProphecyBonusLevel.value,
           artifactSoulEggBonus: 0,
@@ -386,6 +397,7 @@ export default defineComponent({
         currentSoulEggs.value *
         earningBonusPerSoulEgg({
           numProphecyEggs: currentProphecyEggs.value,
+          numTruthEggs: currentTruthEggs.value,
           soulFoodLevel: configuredSoulFoodLevel.value,
           prophecyBonusLevel: configuredProphecyBonusLevel.value,
           artifactSoulEggBonus: includeArtifactEffects.value ? artifactSoulEggBonus.value : 0,
@@ -403,6 +415,7 @@ export default defineComponent({
     const combosToReachTarget = computed((): Combo[] => {
       const currentPE = currentProphecyEggs.value;
       const currentSE = currentSoulEggs.value;
+      const currentTE = currentTruthEggs.value;
       const soulFood = configuredSoulFoodLevel.value;
       const prophecyBonus = configuredProphecyBonusLevel.value;
       const targetEB = 10 ** targetSoulPower.value;
@@ -415,6 +428,7 @@ export default defineComponent({
           targetEB /
             earningBonusPerSoulEgg({
               numProphecyEggs: currentPE + additionalPE,
+              numTruthEggs: currentTE,
               soulFoodLevel: soulFood,
               prophecyBonusLevel: prophecyBonus,
               artifactSoulEggBonus: artifactSEBonus,
@@ -422,7 +436,7 @@ export default defineComponent({
             }) -
           currentSE;
         if (additionalPE > 0 || additionalSE > 0) {
-          combos.push({ prophecyEggs: additionalPE, soulEggs: Math.max(additionalSE, 0) });
+          combos.push({ prophecyEggs: additionalPE, soulEggs: Math.max(additionalSE, 0), truthEggs: currentTE });
         }
         if (additionalSE <= 0) {
           break;
@@ -437,6 +451,7 @@ export default defineComponent({
     return {
       currentProphecyEggs,
       currentSoulEggs,
+      currentTruthEggs,
       currentSoulFoodLevel,
       currentProphecyBonusLevel,
       currentNakedEarningBonus,
@@ -473,19 +488,22 @@ export default defineComponent({
 
 function earningBonusPerSoulEgg({
   numProphecyEggs,
+  numTruthEggs,
   soulFoodLevel,
   prophecyBonusLevel,
   artifactSoulEggBonus,
   artifactProphecyEggBonus,
 }: {
   numProphecyEggs: number;
+  numTruthEggs: number;
   soulFoodLevel: number;
   prophecyBonusLevel: number;
   artifactSoulEggBonus: number;
   artifactProphecyEggBonus: number;
 }): number {
+  const teBonus = 1.01 ** numTruthEggs;
   const soulEggBonus = 0.1 + soulFoodLevel * 0.01 + artifactSoulEggBonus;
   const prophecyEggBonus = 0.05 + prophecyBonusLevel * 0.01 + artifactProphecyEggBonus;
-  return soulEggBonus * (1 + prophecyEggBonus) ** numProphecyEggs;
+  return soulEggBonus * (1 + prophecyEggBonus) ** numProphecyEggs * teBonus;
 }
 </script>

@@ -1,4 +1,8 @@
 <template>
+  <span v-if="showTruthEggs" class="flex whitespace-nowrap mr-1">
+    <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-5 w-5" />
+    <span v-tippy="{ content: truthEggsTooltip }" class="text-sm text-blue-500">{{ formatEIValue(truthEggs) }}</span>
+  </span>
   <span v-if="showProphecyEggs" class="flex whitespace-nowrap mr-1">
     <img :src="iconURL('egginc/egg_of_prophecy.png', 64)" class="inline h-5 w-5" />
     <span v-tippy="{ content: prophecyEggsTooltip }" class="text-sm text-yellow-500">{{ prophecyEggs }}</span>
@@ -37,6 +41,18 @@ export default defineComponent({
       default: true,
     },
     soulEggsTooltip: {
+      type: String as PropType<string | undefined>,
+      default: undefined,
+    },
+    truthEggs: {
+      type: Number,
+      required: true,
+    },
+    showTruthEggs: {
+      type: Boolean,
+      default: true,
+    },
+    truthEggsTooltip: {
       type: String as PropType<string | undefined>,
       default: undefined,
     },
