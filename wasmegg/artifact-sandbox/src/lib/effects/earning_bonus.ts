@@ -8,7 +8,7 @@ export function earningBonus(build: Build, config: Config, virtue = false): numb
   const seBonus = soulEggBonus(build, config);
   const seCount = config.soulEggs;
   const teCount = config.truthEggs;
-  return virtue ? Math.pow(1.1, teCount) : seCount * seBonus * Math.pow(1 + peBonus, peCount) * Math.pow(1.01, teCount);
+  return virtue ? 1.1 ** teCount - 1 : seCount * seBonus * Math.pow(1 + peBonus, peCount) * Math.pow(1.01, teCount);
 }
 
 export function earningBonusMultiplier(build: Build, config: Config, virtue = false): number {
@@ -17,10 +17,7 @@ export function earningBonusMultiplier(build: Build, config: Config, virtue = fa
   const peCount = config.prophecyEggs;
   const seBonusBase = baseSoulEggBonus(config);
   const seBonus = soulEggBonus(build, config);
-  const teCount = config.truthEggs;
-  return virtue
-    ? 1.1 ** teCount
-    : Math.pow((1 + peBonus) / (1 + peBonusBase), peCount) * (seBonus / seBonusBase) * Math.pow(1.01, teCount);
+  return Math.pow((1 + peBonus) / (1 + peBonusBase), peCount) * (seBonus / seBonusBase);
 }
 
 function prophecyEggBonus(build: Build, config: Config): number {
