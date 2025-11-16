@@ -10,10 +10,7 @@
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <DialogOverlay
-          class="fixed inset-0 bg-opacity-75"
-          :class="useCoolGray ? 'bg-cool-gray-600' : 'bg-gray-600'"
-        />
+        <DialogOverlay class="fixed inset-0 bg-opacity-75" :class="useCoolGray ? 'bg-cool-gray-600' : 'bg-gray-600'" />
       </TransitionChild>
       <TransitionChild
         as="template"
@@ -56,23 +53,14 @@
                   v-if="item !== null"
                   :key="item.id"
                   v-tippy="{ content: item.description ?? '' }"
-                  :href="
-                    item.id === activeEntryId
-                      ? ''
-                      : useAbsoluteUrls
-                      ? toAbsoluteUrl(item.url)
-                      : item.url
-                  "
+                  :href="item.id === activeEntryId ? '' : useAbsoluteUrls ? toAbsoluteUrl(item.url) : item.url"
                   class="group flex items-center px-2 py-1.5 text-sm rounded-md"
                   :class="
                     item.id === activeEntryId
-                      ? [
-                          'text-white cursor-default',
-                          useCoolGray ? 'bg-cool-gray-900' : 'bg-gray-900',
-                        ]
+                      ? ['text-white cursor-default', useCoolGray ? 'bg-cool-gray-900' : 'bg-gray-900']
                       : useCoolGray
-                      ? 'text-cool-gray-100 hover:bg-cool-gray-600'
-                      : 'text-gray-100 hover:bg-gray-600'
+                        ? 'text-cool-gray-100 hover:bg-cool-gray-600'
+                        : 'text-gray-100 hover:bg-gray-600'
                   "
                   target="_blank"
                 >
@@ -85,12 +73,9 @@
                       useCoolGray ? 'text-cool-gray-300' : 'text-gray-300',
                     ]"
                   />
-                  <span
-                    :class="
-                      item.id === 'eicoop' ? 'text-yellow-300 font-medium small-caps' : undefined
-                    "
-                    >{{ item.title }}</span
-                  >
+                  <span :class="item.id === 'eicoop' ? 'text-yellow-300 font-medium small-caps' : undefined">{{
+                    item.title
+                  }}</span>
                   <span
                     v-if="item.id === 'contact'"
                     class="flex items-center text-xs ml-2"
@@ -190,6 +175,7 @@ const entries: ({
   idToTool.get('artifact-explorer')!,
   idToTool.get('artifact-sandbox')!,
   idToTool.get('rockets-tracker')!,
+  idToTool.get('virtue-companion')!,
   idToTool.get('past-contracts')!,
   idToTool.get('inventory-visualizer')!,
   idToTool.get('enlightenment')!,
