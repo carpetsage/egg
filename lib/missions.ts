@@ -382,6 +382,9 @@ export class MissionType {
   get defaultFuels(): MissionFuels {
     return missionFuelsInfo[this.shipType][this.durationType];
   }
+  get virtueFuels(): MissionFuels {
+    return virtueMissionFuelsInfo[this.shipType][this.durationType];
+  }
 
   boostedCapacity(config: ShipsConfig): number {
     return Math.floor(
@@ -450,6 +453,9 @@ export class Mission extends MissionType {
 
   get type() {
     return this.missionInfo.type || ei.MissionInfo.MissionType.STANDARD;
+  }
+  get isVirtue(): boolean {
+    return this.type === ei.MissionInfo.MissionType.VIRTUE;
   }
 
   get level(): number {
@@ -829,6 +835,138 @@ const missionFuelsInfo: MissionTypeMap<MissionFuels> = {
       new MissionFuel(ei.Egg.DILITHIUM, 6e12),
       new MissionFuel(ei.Egg.ANTIMATTER, 6e12),
       new MissionFuel(ei.Egg.DARK_MATTER, 6e12),
+    ],
+  },
+};
+const virtueMissionFuelsInfo: MissionTypeMap<MissionFuels> = {
+  [Spaceship.CHICKEN_ONE]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.HUMILITY, 5e6)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.HUMILITY, 10e6)],
+    [DurationType.EPIC]: [new MissionFuel(ei.Egg.HUMILITY, 20e6)],
+  },
+  [Spaceship.CHICKEN_NINE]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.HUMILITY, 10e6)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.HUMILITY, 20e6)],
+    [DurationType.EPIC]: [new MissionFuel(ei.Egg.HUMILITY, 50e6)],
+  },
+  [Spaceship.CHICKEN_HEAVY]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.HUMILITY, 50e6)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.HUMILITY, 100e6)],
+    [DurationType.EPIC]: [new MissionFuel(ei.Egg.HUMILITY, 150e6)],
+  },
+  [Spaceship.BCR]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.HUMILITY, 100e6), new MissionFuel(ei.Egg.INTEGRITY, 10e6)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.HUMILITY, 150e6), new MissionFuel(ei.Egg.INTEGRITY, 20e6)],
+    [DurationType.EPIC]: [new MissionFuel(ei.Egg.HUMILITY, 200e6), new MissionFuel(ei.Egg.INTEGRITY, 30e6)],
+  },
+  [Spaceship.MILLENIUM_CHICKEN]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.HUMILITY, 10e9), new MissionFuel(ei.Egg.INTEGRITY, 10e9)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.HUMILITY, 20e9), new MissionFuel(ei.Egg.INTEGRITY, 20e9)],
+    [DurationType.EPIC]: [new MissionFuel(ei.Egg.HUMILITY, 50e9), new MissionFuel(ei.Egg.INTEGRITY, 50e9)],
+  },
+  [Spaceship.CORELLIHEN_CORVETTE]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [new MissionFuel(ei.Egg.HUMILITY, 20e9), new MissionFuel(ei.Egg.INTEGRITY, 5e9)],
+    [DurationType.LONG]: [new MissionFuel(ei.Egg.HUMILITY, 40e9), new MissionFuel(ei.Egg.INTEGRITY, 8e9)],
+    [DurationType.EPIC]: [new MissionFuel(ei.Egg.HUMILITY, 70e9), new MissionFuel(ei.Egg.INTEGRITY, 10e9)],
+  },
+  [Spaceship.GALEGGTICA]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [
+      new MissionFuel(ei.Egg.HUMILITY, 200e9),
+      new MissionFuel(ei.Egg.INTEGRITY, 200e9),
+      new MissionFuel(ei.Egg.CURIOSITY, 200e9),
+    ],
+    [DurationType.LONG]: [
+      new MissionFuel(ei.Egg.HUMILITY, 400e9),
+      new MissionFuel(ei.Egg.INTEGRITY, 400e9),
+      new MissionFuel(ei.Egg.CURIOSITY, 400e9),
+    ],
+    [DurationType.EPIC]: [
+      new MissionFuel(ei.Egg.HUMILITY, 600e9),
+      new MissionFuel(ei.Egg.INTEGRITY, 600e9),
+      new MissionFuel(ei.Egg.CURIOSITY, 600e9),
+    ],
+  },
+  [Spaceship.CHICKFIANT]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [
+      new MissionFuel(ei.Egg.HUMILITY, 1e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 1e12),
+      new MissionFuel(ei.Egg.KINDNESS, 1e12),
+    ],
+    [DurationType.LONG]: [
+      new MissionFuel(ei.Egg.HUMILITY, 2e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 2e12),
+      new MissionFuel(ei.Egg.KINDNESS, 2e12),
+    ],
+    [DurationType.EPIC]: [
+      new MissionFuel(ei.Egg.HUMILITY, 3e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 3e12),
+      new MissionFuel(ei.Egg.KINDNESS, 3e12),
+    ],
+  },
+  [Spaceship.VOYEGGER]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [
+      new MissionFuel(ei.Egg.HUMILITY, 5e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 10e12),
+      new MissionFuel(ei.Egg.KINDNESS, 5e12),
+    ],
+    [DurationType.LONG]: [
+      new MissionFuel(ei.Egg.HUMILITY, 10e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 20e12),
+      new MissionFuel(ei.Egg.KINDNESS, 10e12),
+    ],
+    [DurationType.EPIC]: [
+      new MissionFuel(ei.Egg.HUMILITY, 15e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 25e12),
+      new MissionFuel(ei.Egg.KINDNESS, 15e12),
+    ],
+  },
+  [Spaceship.HENERPRISE]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [
+      new MissionFuel(ei.Egg.HUMILITY, 10e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 15e12),
+      new MissionFuel(ei.Egg.KINDNESS, 10e12),
+    ],
+    [DurationType.LONG]: [
+      new MissionFuel(ei.Egg.HUMILITY, 15e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 20e12),
+      new MissionFuel(ei.Egg.KINDNESS, 15e12),
+      new MissionFuel(ei.Egg.RESILIENCE, 10e12),
+    ],
+    [DurationType.EPIC]: [
+      new MissionFuel(ei.Egg.HUMILITY, 25e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 25e12),
+      new MissionFuel(ei.Egg.KINDNESS, 25e12),
+      new MissionFuel(ei.Egg.RESILIENCE, 20e12),
+    ],
+  },
+  [Spaceship.ATREGGIES]: {
+    [DurationType.TUTORIAL]: [],
+    [DurationType.SHORT]: [
+      new MissionFuel(ei.Egg.HUMILITY, 20e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 25e12),
+      new MissionFuel(ei.Egg.KINDNESS, 20e12),
+    ],
+    [DurationType.LONG]: [
+      new MissionFuel(ei.Egg.HUMILITY, 30e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 40e12),
+      new MissionFuel(ei.Egg.KINDNESS, 30e12),
+      new MissionFuel(ei.Egg.RESILIENCE, 20e12),
+    ],
+    [DurationType.EPIC]: [
+      new MissionFuel(ei.Egg.HUMILITY, 75e12),
+      new MissionFuel(ei.Egg.CURIOSITY, 50e12),
+      new MissionFuel(ei.Egg.KINDNESS, 75e12),
+      new MissionFuel(ei.Egg.RESILIENCE, 40e12),
     ],
   },
 };
