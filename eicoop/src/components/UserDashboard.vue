@@ -20,6 +20,14 @@
           <dd class="flex flex-wrap items-center">
             <span class="flex items-center whitespace-nowrap mr-1">
               <base-icon
+                icon-rel-path="egginc/egg_truth.png"
+                :size="64"
+                class="inline-block align-middle h-4 w-4 -ml-0.5"
+              />
+              <span class="text-sm text-yellow-500">{{ truthEggs }}</span>
+            </span>
+            <span class="flex items-center whitespace-nowrap mr-1">
+              <base-icon
                 icon-rel-path="egginc/egg_of_prophecy.png"
                 :size="64"
                 class="inline-block align-middle h-4 w-4 -ml-0.5"
@@ -240,7 +248,7 @@ import {
   SoloStatus,
   useEidsStore,
 } from '@/lib';
-import { ContractLeague } from 'lib';
+import { ContractLeague, getNumTruthEggs } from 'lib';
 import { refreshCallbackKey } from '@/symbols';
 import { renderNonempty } from '@/utils';
 import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vue';
@@ -289,6 +297,7 @@ export default defineComponent({
     const nickname = computed(() => backup.value.userName!);
     const hasProPermit = computed(() => progress.value.permitLevel === 1);
     const prophecyEggsProgress = computed(() => getProphecyEggsProgress(backup.value));
+    const truthEggs = computed(() => getNumTruthEggs(backup.value));
     const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
     const soulEggs = computed(() => getNumSoulEggs(backup.value));
     const earningBonus = computed(() => getNakedEarningBonus(backup.value));
@@ -328,6 +337,7 @@ export default defineComponent({
       hasProPermit,
       prophecyEggsProgress,
       prophecyEggs,
+      truthEggs,
       soulEggs,
       earningBonus,
       role,
