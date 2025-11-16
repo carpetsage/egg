@@ -1,26 +1,14 @@
 <template>
   <tbody class="divide-y divide-gray-200">
-    <tr
-      v-for="(mission, index) in missionTypes"
-      :key="mission.durationType"
-      class="text-gray-500 divide-x"
-    >
-      <td
-        v-if="index === 0"
-        :rowspan="missionTypes.length"
-        class="relative px-4 py-1.5 whitespace-nowrap text-sm"
-      >
+    <tr v-for="(mission, index) in missionTypes" :key="mission.durationType" class="text-gray-500 divide-x">
+      <td v-if="index === 0" :rowspan="missionTypes.length" class="relative px-4 py-1.5 whitespace-nowrap text-sm">
         <img
           class="absolute top-1/2 left-6 transform -translate-y-1/2 w-16 h-16"
           :src="iconURL(mission.shipIconPath, 128)"
         />
         <span class="pl-20">{{ mission.shipName }}</span>
       </td>
-      <td
-        v-if="index === 0"
-        :rowspan="missionTypes.length"
-        class="px-4 py-1.5 whitespace-nowrap text-center text-sm"
-      >
+      <td v-if="index === 0" :rowspan="missionTypes.length" class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
         {{ sensor }}
       </td>
       <td
@@ -60,11 +48,15 @@
           </template>
         </div>
       </td>
-      <td
-        v-if="index === 0"
-        :rowspan="missionTypes.length"
-        class="px-4 py-1.5 whitespace-nowrap text-center text-sm"
-      >
+      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
+        <div class="flex items-center justify-center w-44 mx-auto">
+          <template v-for="fuel in mission.virtueFuels" :key="fuel.egg">
+            <img class="h-4 w-4" :src="iconURL(fuel.eggIconPath, 64)" />
+            <span class="mr-1">{{ fuel.amountDisplay }}</span>
+          </template>
+        </div>
+      </td>
+      <td v-if="index === 0" :rowspan="missionTypes.length" class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
         <template v-if="launchesToUnlockNextShip !== null">
           {{ launchesToUnlockNextShip }}
         </template>
@@ -78,9 +70,7 @@
         <template v-if="timeToAdvance !== null">{{ formatDuration(timeToAdvance, true) }}</template>
         <template v-else>&ndash;</template>
       </td>
-      <td
-        class="px-4 py-1.5 whitespace-nowrap text-center text-sm"
-      >
+      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
         <template v-if="config.shipLevels[mission.shipType] != mission.maxLevel">
           {{ launchesToStar(mission, config.shipLevels[mission.shipType]) }}
         </template>
@@ -91,9 +81,7 @@
         </template>
         <template v-else>&ndash;</template>
       </td>
-      <td
-        class="px-4 py-1.5 whitespace-nowrap text-center text-sm"
-      >
+      <td class="px-4 py-1.5 whitespace-nowrap text-center text-sm">
         <template v-if="config.shipLevels[mission.shipType] != mission.maxLevel">
           {{ launchesToStar(mission, config.shipLevels[mission.shipType], mission.maxLevel) }}
         </template>
@@ -126,14 +114,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import {
-  ei,
-  formatDuration,
-  iconURL,
-  MissionType,
-  requiredTotalLaunchesToUnlockNextShip,
-  ShipsConfig,
-} from 'lib';
+import { ei, formatDuration, iconURL, MissionType, requiredTotalLaunchesToUnlockNextShip, ShipsConfig } from 'lib';
 import StarLevels from '@/components/StarLevels.vue';
 
 import Spaceship = ei.MissionInfo.Spaceship;
@@ -168,9 +149,7 @@ export default defineComponent({
       shipType.value === Spaceship.CHICKEN_ONE
         ? [DurationType.TUTORIAL, DurationType.SHORT, DurationType.LONG, DurationType.EPIC]
         : [DurationType.SHORT, DurationType.LONG, DurationType.EPIC];
-    const missionTypes = computed(() =>
-      durationTypes.map(type => new MissionType(shipType.value, type))
-    );
+    const missionTypes = computed(() => durationTypes.map(type => new MissionType(shipType.value, type)));
     const sensor = computed(() => shipSensor(shipType.value));
     const launchesToUnlockNextShip = computed(() => {
       const num = requiredTotalLaunchesToUnlockNextShip(shipType.value);
@@ -196,21 +175,23 @@ export default defineComponent({
 });
 
 function launchesToStar(mission: MissionType, stars: number, target = stars + 1) {
-  const points = stars < mission.maxLevel ?
-    mission.levelLaunchPointThresholds[target] - mission.levelLaunchPointThresholds[stars] : 0
+  const points =
+    stars < mission.maxLevel
+      ? mission.levelLaunchPointThresholds[target] - mission.levelLaunchPointThresholds[stars]
+      : 0;
   switch (mission.durationType) {
     case DurationType.TUTORIAL:
     case DurationType.SHORT:
       return points;
     case DurationType.LONG:
-      return Math.ceil(points/1.4);
+      return Math.ceil(points / 1.4);
     case DurationType.EPIC:
-      return Math.ceil(points/1.8);
+      return Math.ceil(points / 1.8);
   }
 }
 function timeToStar(mission: MissionType, config: ShipsConfig, target = config.shipLevels[mission.shipType] + 1) {
   const launches = launchesToStar(mission, config.shipLevels[mission.shipType], target);
-  return mission.boostedDurationSeconds(config) * Math.ceil(launches / 3)
+  return mission.boostedDurationSeconds(config) * Math.ceil(launches / 3);
 }
 
 function shipSensor(spaceship: Spaceship): string {
