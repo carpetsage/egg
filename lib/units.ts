@@ -85,9 +85,6 @@ export function formatEIValue(
   if (!isFinite(x)) {
     return 'infinity';
   }
-  if (options?.minOom !== undefined && x < 10 ** options.minOom) {
-    return x.toLocaleString();
-  }
   const oom = Math.log10(x);
   if (oom < minOom) {
     // Always round small number to an integer.
