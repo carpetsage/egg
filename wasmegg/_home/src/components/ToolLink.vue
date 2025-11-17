@@ -1,12 +1,7 @@
 <template>
   <template v-if="tool.displayIconOnly">
     <base-link :href="tool.url" @click="$emit('visit', tool)">
-      <img
-        :src="tool.iconUrl"
-        :alt="tool.title"
-        class="inline relative"
-        :class="tool.iconCssClasses"
-      />
+      <img :src="tool.iconUrl" :alt="tool.title" class="inline relative" :class="tool.iconCssClasses" />
     </base-link>
   </template>
   <template v-else>
