@@ -400,7 +400,7 @@ export class Config {
     self.isEnlightenment = config?.isEnlightenment ?? false;
     self.soulFood = maxSoulFood - (config?.missingSoulFood ?? 0);
     self.prophecyBonus = maxProphecyBonus - (config?.missingProphecyBonus ?? 0);
-    self.RCB = maxRCB;
+    self.RCB = maxRCB - ((config?.missingEpicMultiplier ?? 0) * 2);
     self.birdFeedActive = config?.birdFeedActive ?? false;
     self.tachyonPrismActive = config?.tachyonPrismActive ?? false;
     self.soulBeaconActive = config?.soulBeaconActive ?? false;
