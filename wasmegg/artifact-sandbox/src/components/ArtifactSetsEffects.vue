@@ -276,9 +276,7 @@
                   class="cursor-help"
                 >
                   <span class="Value"
-                    >{{
-                      formatEIValue(maxInternalHatcheryRatePerMinPerHab(build, config), { minOom: 6 })
-                    }}/min/hab</span
+                    >{{ formatEIValue(maxInternalHatcheryRatePerMinPerHab(build, config)) }}/min/hab</span
                   >
                   <span class="Bonus"
                     >&nbsp;(&times;{{ formatFloat(internalHatcheryRateMultiplier(build, config)) }})</span
