@@ -47,6 +47,7 @@ export class Farm {
   farm: ei.Backup.ISimulation;
   artifactSet: ArtifactSet;
   tokenIntervalMinutes?: number;
+  customEggId: string;
 
   constructor(backup: ei.IBackup, farm: ei.Backup.ISimulation, opts?: { tokenIntervalMinutes?: number }) {
     this.backup = backup;
@@ -55,6 +56,11 @@ export class Farm {
     this.tokenIntervalMinutes = opts?.tokenIntervalMinutes;
     const isEnlightenment = this.egg === ei.Egg.ENLIGHTENMENT;
     const isVirtue = virtueEggs.includes(this.egg);
+    this.customEggId =
+      farm.farmType === ei.FarmType.CONTRACT
+        ? backup.contracts?.contracts?.find(c => c.contract?.identifier === farm.contractId)?.contract?.customEggId ||
+          ''
+        : '';
 
     // Fish out the farm index in order to extract artifact loadout. A farm is
     // uniquely identified by farm type (home/contract) and contract ID.

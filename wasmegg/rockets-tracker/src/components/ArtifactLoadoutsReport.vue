@@ -4,7 +4,7 @@
     <div class="space-y-4">
       <div v-for="(farm, index) in farms" :key="index">
         <div class="text-center">
-          <img :src="iconURL(eggIconPath(farm.egg))" class="inline h-5 w-5 relative -top-px" />
+          <img :src="iconURL(eggIconPath(farm.egg, farm.customEggId))" class="inline h-5 w-5 relative -top-px" />
           <span class="text-sm">{{ farmTitle(farm) }}</span>
         </div>
         <div class="text-center mb-1">
