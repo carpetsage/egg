@@ -47,7 +47,7 @@ jobs:
           wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
           sudo dpkg -i ets_0.2.1_linux_amd64.deb
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '^1.22'
       - name: Install pnpm
@@ -128,7 +128,7 @@ jobs:
           wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
           sudo dpkg -i ets_0.2.1_linux_amd64.deb
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '^1.22'
       - name: Install pnpm
