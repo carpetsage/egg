@@ -54,7 +54,7 @@
             />
             <span class="font-medium">{{ fmtApprox(eggsLaidOfflineAdjusted) }}</span>
           </p>
-          <template v-if="showThresholdSpoilers">
+          <template v-if="showThresholdSpoilers && onVirtue">
             <br />Next {{ timeToThresholds.length }} Truth Eggs Expected In:
             <div class="grid grid-cols-[auto_auto_auto_1fr] gap-x-4">
               <div class="font-semibold text-xs">TE</div>
@@ -95,7 +95,7 @@
               <span class="font-medium">???</span>
             </template>
           </p>
-          <template v-if="showThresholdSpoilers">
+          <template v-if="showThresholdSpoilers && onVirtue">
             <br />Next {{ timeToThresholds.length }} Truth Eggs Expected In:
             <div class="grid grid-cols-[auto_auto_auto_1fr] gap-x-4">
               <div class="font-semibold text-xs">TE</div>
@@ -136,6 +136,7 @@ import {
   nextTruthEggThreshold,
   projectEggsLaid,
   TE_BREAKPOINTS,
+  virtueEggs,
 } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 
@@ -193,6 +194,7 @@ export default defineComponent({
   },
   setup(props) {
     const { eggsLaidOfflineAdjusted, eggsLaidOnlineAdjusted, eggLayingRate, backup, egg, te, targetTE } = toRefs(props);
+    const onVirtue = computed(() => virtueEggs.includes(backup.value.farms?.at(0)?.eggType || ei.Egg.UNKNOWN));
     const nextTruthEggTargets = computed(() => ({
       offline: nextTruthEggThreshold(eggsLaidOfflineAdjusted.value),
       online: nextTruthEggThreshold(eggsLaidOnlineAdjusted.value),
@@ -229,6 +231,7 @@ export default defineComponent({
       target: (goal: ei.Contract.IGoal) => goal.targetAmount!,
       eggIconPath,
       eggName,
+      onVirtue,
       time,
       timeToThresholds,
       nextTruthEggTargets,
