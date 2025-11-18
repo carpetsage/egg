@@ -151,8 +151,8 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       long:
-        specifier: ^5.2.5
-        version: 5.3.0
+        specifier: ^5.3.2
+        version: 5.3.2
       lunr:
         specifier: ^2.3.9
         version: 2.3.9
@@ -3951,6 +3951,9 @@ packages:
 
   long@5.3.0:
     resolution: {integrity: sha512-5vvY5yF1zF/kXk+L94FRiTDa1Znom46UjPCH6/XbSvS8zBKMFBHTJk8KDMqJ+2J6QezQFi7k1k8v21ClJYHPaw==}
+
+  long@5.3.2:
+    resolution: {integrity: sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA==}
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
@@ -7897,6 +7900,8 @@ snapshots:
   loglevel@1.9.2: {}
 
   long@5.3.0: {}
+
+  long@5.3.2: {}
 
   lru-cache@10.4.3: {}
 
