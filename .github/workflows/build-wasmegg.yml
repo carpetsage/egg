@@ -33,7 +33,7 @@ jobs:
       run:
         working-directory: wasmegg
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up protoc
         run: |
           sudo apt-get install -y --no-install-recommends protobuf-compiler
@@ -114,7 +114,7 @@ jobs:
       run:
         working-directory: wasmegg
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up protoc
         run: |
           sudo apt-get install -y --no-install-recommends protobuf-compiler

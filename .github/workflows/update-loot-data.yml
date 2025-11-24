@@ -10,7 +10,7 @@ jobs:
       run:
         working-directory: wasmegg/artifact-explorer
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Update Loot Data
         run: |
           make data
