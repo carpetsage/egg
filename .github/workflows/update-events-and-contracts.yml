@@ -16,7 +16,7 @@ jobs:
       run:
         working-directory: periodicals
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
       - name: Set up Python
