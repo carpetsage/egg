@@ -24028,5 +24028,14 @@
     "startTimestamp": 1764608400,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1764781200,
+    "id": "event-12-2",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1764694800,
+    "type": "drone-boost",
+    "ultra": false
   }
 ]
