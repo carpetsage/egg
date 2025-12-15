@@ -133,3 +133,18 @@ export function getColleggtibleTiers(backup: ei.IBackup): Record<string, number>
 
   return tiers;
 }
+
+/**
+ * Calculates the maximum possible multiplier for a specific modifier from all colleggtibles.
+ * Assumes all colleggtibles are at their maximum tier (tier 3 = 10B chickens).
+ * Returns the product of all max tier multipliers for that modifier type.
+ */
+export function maxModifierFromColleggtibles(modifier: ei.GameModifier.GameDimension): number {
+  return customEggs
+    .filter(egg => egg.buffs.length > 0 && egg.buffs[0].dimension === modifier)
+    .reduce((total, egg) => {
+      // Get the value at the highest tier (index 3)
+      const maxValue = egg.buffs[3]?.value ?? 1;
+      return total * maxValue;
+    }, 1);
+}

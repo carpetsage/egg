@@ -70,14 +70,15 @@
           trophy-name="Nobel Prize in Animal Husbandry&reg;"
           :last-refreshed-population="lastRefreshedPopulation"
           :last-refreshed-timestamp="lastRefreshedTimestamp"
-          :target-population="19_845_000_000"
+          :target-population="nahPopulationTarget"
           :hab-space="totalHabSpace"
           :offline-i-h-r="offlineIHR"
         />
         <p class="text-xs text-gray-500">
           The Nobel Prize in Animal Husbandry&reg; is conferred by the Royal Mk.II Society of Sciences&reg; on legendary
-          farmers who manage to reach 19,845,000,000 population on their enlightenment farm. A legendary jeweled gusset
-          with three Eggceptional clarity stones and all Wormhole Dampening levels are required for such a feat.
+          farmers who manage to reach {{ formatWithThousandSeparators(nahPopulationTarget) }} population on their
+          enlightenment farm. A legendary jeweled gusset with three Eggceptional clarity stones and all Wormhole
+          Dampening levels are required for such a feat.
         </p>
       </template>
 
@@ -344,6 +345,7 @@ import {
   getLocalStorage,
   setLocalStorage,
   getNumTruthEggs,
+  maxModifierFromColleggtibles,
 } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
@@ -446,6 +448,8 @@ export default defineComponent({
       throw new Error(`${playerId}: no farm info in backup`);
     }
     const modifiers = allModifiersFromColleggtibles(backup);
+    const maxHabCapModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.HAB_CAPACITY);
+    const nahPopulationTarget = Math.round(19_845_000_000 * maxHabCapModifier);
     const farm = backup.farms[0]; // Home farm
     const truthEggs = getNumTruthEggs(backup);
     const egg = farm.eggType!;
@@ -484,7 +488,10 @@ export default defineComponent({
     const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
     const totalHabSpaceSufficient = totalHabSpace >= 1e10;
     const currentWDLevel = farmCurrentWDLevel(farm);
-    const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(nakedGangNickname ? [] : artifacts);
+    const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(
+      nakedGangNickname ? [] : artifacts,
+      modifiers.habCap
+    );
     const bestGusset = bestPossibleGussetForEnlightenment(backup, modifiers.habCap);
     const bestPossibleGusset = nakedGangNickname ? null : bestGusset;
     // check for t4l gusset + 3 t4 clarities
@@ -653,6 +660,7 @@ export default defineComponent({
       cashMeans,
       canNAH,
       showNAH,
+      nahPopulationTarget,
       betterCubePossible,
       bestPossibleCubeSet,
       internalHatcheryResearches,

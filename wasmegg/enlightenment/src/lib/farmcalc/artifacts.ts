@@ -37,10 +37,7 @@ export function homeFarmArtifacts(backup: ei.IBackup): Artifact[] {
 }
 
 export function bestPossibleGussetForEnlightenment(backup: ei.IBackup, modifier = 1): Artifact | null {
-  const stonedGussets = artifactsFromInventoryWithClarityStones(
-    backup,
-    ei.ArtifactSpec.Name.ORNATE_GUSSET
-  );
+  const stonedGussets = artifactsFromInventoryWithClarityStones(backup, ei.ArtifactSpec.Name.ORNATE_GUSSET);
   let bestGusset = null;
   let minRequiredWDLevel = 25;
   for (const gusset of stonedGussets) {
@@ -54,10 +51,7 @@ export function bestPossibleGussetForEnlightenment(backup: ei.IBackup, modifier 
 }
 
 export function bestPossibleCubeForEnlightenment(backup: ei.IBackup): Artifact | null {
-  const stonedCubes = artifactsFromInventoryWithClarityStones(
-    backup,
-    ei.ArtifactSpec.Name.PUZZLE_CUBE
-  );
+  const stonedCubes = artifactsFromInventoryWithClarityStones(backup, ei.ArtifactSpec.Name.PUZZLE_CUBE);
   if (stonedCubes.length === 0) {
     return null;
   }
@@ -84,10 +78,7 @@ function newArtifact(hostItem: Item, stones: Stone[]): Artifact {
 // Given an artifact family, returns a list of owned artifacts of that family
 // slotted with the best possible clarity stones owned. Commons are skipped as
 // they can't be stoned.
-function artifactsFromInventoryWithClarityStones(
-  backup: ei.IBackup,
-  family: ei.ArtifactSpec.Name
-): Artifact[] {
+function artifactsFromInventoryWithClarityStones(backup: ei.IBackup, family: ei.ArtifactSpec.Name): Artifact[] {
   if (!backup.artifactsDb) {
     return [];
   }
