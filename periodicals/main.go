@@ -270,11 +270,11 @@ func downloadEggIcons(customEggs []*CustomEgg) error {
 		go func(egg *CustomEgg, iconURL string) {
 			defer wg.Done()
 
-			// Create simple filename: egg_eggname.png
-			filename := fmt.Sprintf("egg_%s.png", strings.ReplaceAll(strings.ToLower(egg.GetName()), " ", ""))
+			identifier := egg.GetIdentifier()
+			cleanIdentifier := strings.NewReplacer("-", "", "_", "").Replace(identifier)
+			filename := fmt.Sprintf("egg_%s.png", cleanIdentifier)
 
 			fmt.Printf("Downloading %s -> %s\n", egg.GetName(), filename)
-
 			resp, err := http.Get(iconURL)
 			if err != nil {
 				fmt.Printf("Failed to download %s: %v\n", egg.GetName(), err)

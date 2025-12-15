@@ -22,31 +22,17 @@ jobs:
           repository: carpetsage/EggIncAssets
           path: EggIncAssets
           token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up Go
+        uses: actions/setup-go@v6
         with:
-          python-version: '>=3.13'
-      - name: Install uv
-        id: install-uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: 0.5.24
-          enable-cache: true
-          cache-suffix: periodicals
+          go-version: '>=1.24'
       - name: Install dependencies
         run: |
-          # Install apt packages in background
-          sudo apt-get install -y imagemagick optipng zsh &
-
-          # Install uv dependencies in background
-          cd egg/periodicals && uv sync &
-
-          # Wait for both jobs to complete
-          wait
+          sudo apt-get install -y imagemagick optipng zsh
       - name: Download custom egg icons
         working-directory: egg/periodicals
         run: |
-          uv run ./updatePeriodicals.py download-customeggs
+          go run main.go ei.pb.go download-customeggs
         env:
           EI_USERID: ${{ secrets.EI_USERID }}
       - name: Move egg icons to EggIncAssets
