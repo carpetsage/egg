@@ -24235,5 +24235,23 @@
     "startTimestamp": 1765731600,
     "type": "crafting-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1765904400,
+    "id": "event-12-15",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1765818000,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1765904400,
+    "id": "ultra-12-15",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1765818000,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
