@@ -24379,5 +24379,23 @@
     "startTimestamp": 1766509200,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1766682000,
+    "id": "event-12-24",
+    "message": "2x GIFTS!!",
+    "multiplier": 2,
+    "startTimestamp": 1766595600,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1766682000,
+    "id": "event-12-24-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1766595600,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
