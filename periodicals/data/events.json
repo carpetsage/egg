@@ -24397,5 +24397,23 @@
     "startTimestamp": 1766595600,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1766768400,
+    "id": "event-12-25",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1766682000,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1766768400,
+    "id": "ultra-12-25",
+    "message": "2x GIFTS!!",
+    "multiplier": 2,
+    "startTimestamp": 1766682000,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
