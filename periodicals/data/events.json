@@ -24532,5 +24532,23 @@
     "startTimestamp": 1767286800,
     "type": "gift-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1767459600,
+    "id": "event-1-2",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1767373200,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1767459600,
+    "id": "ultra-1-2",
+    "message": "3x FUELING!",
+    "multiplier": 3,
+    "startTimestamp": 1767373200,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
