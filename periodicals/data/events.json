@@ -24595,5 +24595,23 @@
     "startTimestamp": 1767632400,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1767805200,
+    "id": "event-1-6",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1767718800,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1767805200,
+    "id": "ultra-1-6",
+    "message": "70% OFF VEHICLES!",
+    "multiplier": 0.3,
+    "startTimestamp": 1767718800,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
