@@ -24658,5 +24658,32 @@
     "startTimestamp": 1767978000,
     "type": "research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1768150800,
+    "id": "event-1-10",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2,
+    "startTimestamp": 1768064400,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1768237200,
+    "id": "event-1-10-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1768064400,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1768150800,
+    "id": "ultra-1-10",
+    "message": "3x FUELING!",
+    "multiplier": 3,
+    "startTimestamp": 1768064400,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
