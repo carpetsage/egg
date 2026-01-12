@@ -110,9 +110,9 @@
             <tr
               v-for="(cost, index) in research.tierCosts"
               v-show="
-                expandedResearches.has(research.id) &&
+                expandedResearches[research.id] &&
                 index >= research.level &&
-                (showAllLevels.has(research.id) || index < research.level + 15)
+                (showAllLevels[research.id] || index < research.level + 15)
               "
               :key="`${research.id}-tier-${index}`"
               class="text-xs bg-gray-50"
@@ -157,8 +157,8 @@
             </tr>
             <tr
               v-if="
-                expandedResearches.has(research.id) &&
-                !showAllLevels.has(research.id) &&
+                expandedResearches[research.id] &&
+                !showAllLevels[research.id] &&
                 research.maxLevel - research.level > 15
               "
               :key="`${research.id}-show-all`"
@@ -203,7 +203,7 @@
               <span class="inline-flex items-center gap-1">
                 <svg
                   class="w-3 h-3 transition-transform text-gray-400"
-                  :class="{ 'rotate-90': expandedResearches.has(research.id) }"
+                  :class="{ 'rotate-90': expandedResearches[research.id] }"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -250,7 +250,7 @@
           </tr>
           <tr
             v-for="(cost, index) in research.tierCosts"
-            v-show="expandedResearches.has(research.id) && (showAllLevels.has(research.id) || index < 15)"
+            v-show="expandedResearches[research.id] && (showAllLevels[research.id] || index < 15)"
             :key="`${research.id}-tier-${index}`"
             class="text-xs bg-gray-50"
             :class="index === 0 ? 'text-blue-600 font-medium' : 'text-gray-500'"
@@ -289,7 +289,7 @@
             </td>
           </tr>
           <tr
-            v-if="expandedResearches.has(research.id) && !showAllLevels.has(research.id) && research.maxLevel > 15"
+            v-if="expandedResearches[research.id] && !showAllLevels[research.id] && research.maxLevel > 15"
             :key="`${research.id}-show-all`"
             class="text-xs bg-gray-50 cursor-pointer hover:bg-gray-100"
             @click.stop="toggleShowAll(research.id)"
@@ -355,8 +355,8 @@ export default defineComponent({
   },
   setup(props) {
     const { backup, earningsSet } = toRefs(props);
-    const expandedResearches = ref(new Set<string>());
-    const showAllLevels = ref(new Set<string>());
+    const expandedResearches = ref<Record<string, boolean>>({});
+    const showAllLevels = ref<Record<string, boolean>>({});
 
     const RESEARCH_SALE_KEY = 'researchSale';
     const USE_EARNINGS_SET_KEY = 'useEarningsSetCube';
@@ -397,27 +397,21 @@ export default defineComponent({
       return !!cubeInActiveSet.value;
     });
     const toggleResearch = (researchId: string) => {
-      const newSet = new Set(expandedResearches.value);
-      if (newSet.has(researchId)) {
-        newSet.delete(researchId);
+      if (expandedResearches.value[researchId]) {
+        delete expandedResearches.value[researchId];
         // Also clear showAll when collapsing
-        const newShowAll = new Set(showAllLevels.value);
-        newShowAll.delete(researchId);
-        showAllLevels.value = newShowAll;
+        delete showAllLevels.value[researchId];
       } else {
-        newSet.add(researchId);
+        expandedResearches.value[researchId] = true;
       }
-      expandedResearches.value = newSet;
     };
 
     const toggleShowAll = (researchId: string) => {
-      const newSet = new Set(showAllLevels.value);
-      if (newSet.has(researchId)) {
-        newSet.delete(researchId);
+      if (showAllLevels.value[researchId]) {
+        delete showAllLevels.value[researchId];
       } else {
-        newSet.add(researchId);
+        showAllLevels.value[researchId] = true;
       }
-      showAllLevels.value = newSet;
     };
 
     const priceMultiplier = computed(() => {
