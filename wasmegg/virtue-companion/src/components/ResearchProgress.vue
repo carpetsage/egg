@@ -398,20 +398,19 @@ export default defineComponent({
       console.log('[toggleResearch] called with:', researchId);
       console.log('[toggleResearch] current state:', JSON.stringify(expandedResearches.value));
       
-      // Create new objects and reassign .value to trigger reactivity
-      const newExpanded = { ...expandedResearches.value };
-      const newShowAll = { ...showAllLevels.value };
-      
-      if (newExpanded[researchId]) {
-        delete newExpanded[researchId];
-        delete newShowAll[researchId];
+      // Create new object and reassign to trigger reactivity
+      if (expandedResearches.value[researchId]) {
+        const { [researchId]: _, ...rest } = expandedResearches.value;
+        expandedResearches.value = rest;
+        
+        const { [researchId]: __, ...restShow } = showAllLevels.value;
+        showAllLevels.value = restShow;
       } else {
-        newExpanded[researchId] = true;
+        expandedResearches.value = {
+          ...expandedResearches.value,
+          [researchId]: true
+        };
       }
-      
-      // Reassign to trigger Vue reactivity
-      expandedResearches.value = newExpanded;
-      showAllLevels.value = newShowAll;
       
       console.log('[toggleResearch] new state:', JSON.stringify(expandedResearches.value));
     };
@@ -419,26 +418,30 @@ export default defineComponent({
     const toggleShowAll = (researchId: string) => {
       console.log('[toggleShowAll] called with:', researchId);
       
-      const newShowAll = { ...showAllLevels.value };
-      
-      if (newShowAll[researchId]) {
-        delete newShowAll[researchId];
+      if (showAllLevels.value[researchId]) {
+        const { [researchId]: _, ...rest } = showAllLevels.value;
+        showAllLevels.value = rest;
       } else {
-        newShowAll[researchId] = true;
+        showAllLevels.value = {
+          ...showAllLevels.value,
+          [researchId]: true
+        };
       }
-      
-      showAllLevels.value = newShowAll;
       
       console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevels.value));
     };
 
-    // Helper functions - wrap in computed to ensure reactivity tracking
+    // Use computed to create copies that Vue can track
+    const expandedState = computed(() => ({ ...expandedResearches.value }));
+    const showAllState = computed(() => ({ ...showAllLevels.value }));
+    
+    // Helper functions that access the computed copies
     const isExpanded = computed(() => (researchId: string) => {
-      return !!expandedResearches.value[researchId];
+      return !!expandedState.value[researchId];
     });
 
     const isShowingAll = computed(() => (researchId: string) => {
-      return !!showAllLevels.value[researchId];
+      return !!showAllState.value[researchId];
     });
 
     const priceMultiplier = computed(() => {
