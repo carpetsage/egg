@@ -487,6 +487,10 @@ export class MissionType {
   get virtueFuels(): MissionFuels {
     return virtueMissionFuelsInfo[this.shipType][this.durationType];
   }
+  fuelMap(virtue = false): Map<ei.Egg, number> {
+    const fuels = virtue ? this.virtueFuels : this.defaultFuels;
+    return new Map(fuels.map(fuel => [fuel.egg, fuel.amount]));
+  }
 
   boostedCapacity(config: ShipsConfig): number {
     return Math.floor(
