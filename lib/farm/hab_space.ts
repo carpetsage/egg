@@ -2,7 +2,7 @@ import { Farm, Research } from './farm';
 
 type HabId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
-function isHabId(x: number): x is HabId {
+export function isHabId(x: number): x is HabId {
   return Number.isInteger(x) && x >= 0 && x <= 18;
 }
 
@@ -11,12 +11,12 @@ export interface Hab {
   name: string;
   iconPath: string;
   baseHabSpace: number;
-  normalCost: number[];
-  virtueCost: number[];
+  normalCost?: number[];
+  virtueCost?: number[];
 }
 
 // https://egg-inc.fandom.com/wiki/Habitats
-const habTypes: Hab[] = [
+export const habTypes: Hab[] = [
   {
     id: 0,
     name: 'Coop',

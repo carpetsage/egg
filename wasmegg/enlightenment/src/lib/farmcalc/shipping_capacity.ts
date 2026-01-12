@@ -1,89 +1,20 @@
 // https://egg-inc.fandom.com/wiki/Vehicles
 
-import { ei } from 'lib';
+import {
+  ei,
+  VehicleType,
+  Vehicle,
+  isVehicleId,
+  vehicleTypes,
+  ShippingCapacityResearch,
+  ShippingCapacityResearchInstance,
+} from 'lib';
 import { shippingCapacityMultiplier } from '../effects';
 import { Artifact, Research, ResearchInstance } from '../types';
 import { farmResearches } from './common';
 
-type VehicleId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
-
-export function isVehicleId(x: number): x is VehicleId {
-  return Number.isInteger(x) && x >= 0 && x <= 11;
-}
-
-export interface VehicleType {
-  id: VehicleId;
-  name: string;
-  // Unupgraded shipping capacity per second.
-  baseCapacity: number;
-}
-
-export interface Vehicle extends VehicleType {
-  trainLength: number;
-}
-
-export const vehicleTypes: VehicleType[] = [
-  {
-    id: 0,
-    name: 'Trike',
-    baseCapacity: 5e3 / 60,
-  },
-  {
-    id: 1,
-    name: 'Transit Van',
-    baseCapacity: 15e3 / 60,
-  },
-  {
-    id: 2,
-    name: 'Pickup',
-    baseCapacity: 50e3 / 60,
-  },
-  {
-    id: 3,
-    name: '10 Foot',
-    baseCapacity: 100e3 / 60,
-  },
-  {
-    id: 4,
-    name: '24 Foot',
-    baseCapacity: 250e3 / 60,
-  },
-  {
-    id: 5,
-    name: 'Semi',
-    baseCapacity: 500e3 / 60,
-  },
-  {
-    id: 6,
-    name: 'Double Semi',
-    baseCapacity: 1e6 / 60,
-  },
-  {
-    id: 7,
-    name: 'Future Semi',
-    baseCapacity: 5e6 / 60,
-  },
-  {
-    id: 8,
-    name: 'Mega Semi',
-    baseCapacity: 15e6 / 60,
-  },
-  {
-    id: 9,
-    name: 'Hover Semi',
-    baseCapacity: 30e6 / 60,
-  },
-  {
-    id: 10,
-    name: 'Quantum Transporter',
-    baseCapacity: 50e6 / 60,
-  },
-  {
-    id: 11,
-    name: 'Hyperloop Train',
-    baseCapacity: 50e6 / 60,
-  },
-];
+export type { VehicleType, Vehicle, ShippingCapacityResearch, ShippingCapacityResearchInstance } from 'lib';
+export { isVehicleId, vehicleTypes } from 'lib';
 
 function isHoverVehicle(vehicle: VehicleType): boolean {
   return vehicle.id >= 9;
@@ -91,16 +22,6 @@ function isHoverVehicle(vehicle: VehicleType): boolean {
 
 function isHyperloop(vehicle: VehicleType): boolean {
   return vehicle.id === 11;
-}
-
-export interface ShippingCapacityResearch extends Research {
-  hoverOnly?: boolean;
-  hyperloopOnly?: boolean;
-}
-
-export interface ShippingCapacityResearchInstance extends ResearchInstance {
-  hoverOnly?: boolean;
-  hyperloopOnly?: boolean;
 }
 
 const availableShippingCapacityResearches: ShippingCapacityResearch[] = [
@@ -172,9 +93,7 @@ export function farmVehicles(farm: ei.Backup.ISimulation): Vehicle[] {
   const vehicleIds = farm.vehicles!;
   const trainLengths = farm.trainLength!;
   if (vehicleIds.length !== trainLengths.length) {
-    throw new Error(
-      `vehicles and trainLength have different lengths: ${vehicleIds.length} != ${trainLengths.length}`
-    );
+    throw new Error(`vehicles and trainLength have different lengths: ${vehicleIds.length} != ${trainLengths.length}`);
   }
   const count = vehicleIds.length;
   const vehicles: Vehicle[] = [];
@@ -237,7 +156,5 @@ export function farmShippingCapacity(
 ): number {
   const vehicles = farmVehicles(farm);
   const researches = farmShippingCapacityResearches(farm, progress);
-  return farmVehicleShippingCapacities(vehicles, researches, artifacts).reduce(
-    (total, s) => total + s
-  );
+  return farmVehicleShippingCapacities(vehicles, researches, artifacts).reduce((total, s) => total + s);
 }
