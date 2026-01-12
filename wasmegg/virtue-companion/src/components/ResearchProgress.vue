@@ -8,24 +8,20 @@
         class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
       />
       <label for="research-sale" class="ml-2 text-sm text-gray-600">Research Sale (70% off)</label>
-      <template v-if="showEarningsSetCheckbox">
-        <input
-          id="use-earnings-cube"
-          v-model="useEarningsSet"
-          type="checkbox"
-          class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0 ml-2"
-        />
-        <label for="use-earnings-cube" class="ml-2 text-sm text-gray-600">Use Cube From Earnings Set</label>
-      </template>
-      <template v-if="showActiveSetCheckbox">
-        <input
-          id="use-active-cube"
-          v-model="useActiveSet"
-          type="checkbox"
-          class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0 ml-2"
-        />
-        <label for="use-active-cube" class="ml-2 text-sm text-gray-600">Use Cube From Active Set</label>
-      </template>
+      <input
+        id="use-earnings-cube"
+        v-model="useEarningsSet"
+        type="checkbox"
+        class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0 ml-2"
+      />
+      <label for="use-earnings-cube" class="ml-2 text-sm text-gray-600">Use Cube From Earnings Set</label>
+      <input
+        id="use-active-cube"
+        v-model="useActiveSet"
+        type="checkbox"
+        class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0 ml-2"
+      />
+      <label for="use-active-cube" class="ml-2 text-sm text-gray-600">Use Cube From Active Set</label>
     </div>
     <div class="mb-2 text-xs text-gray-500">
       Note: Click on a price to target it in the earnings section above. Click on the + to add to the target.
@@ -359,7 +355,7 @@ export default defineComponent({
     // Use reactive for expansion state - Vue tracks property access better with reactive objects
     const expandedResearches = reactive<Record<string, boolean>>({});
     const showAllLevels = reactive<Record<string, boolean>>({});
-    
+
     const RESEARCH_SALE_KEY = 'researchSale';
     const USE_EARNINGS_SET_KEY = 'useEarningsSetCube';
     const USE_ACTIVE_SET_KEY = 'useActiveSetCube';
@@ -367,9 +363,9 @@ export default defineComponent({
     const researchSale = ref(getLocalStorage(RESEARCH_SALE_KEY) === 'true');
     const useEarningsSet = ref(getLocalStorage(USE_EARNINGS_SET_KEY) === 'true');
 
-    const activeArtifacts = homeFarmArtifacts(backup.value, true);
+    const activeArtifacts = computed(() => homeFarmArtifacts(backup.value, true));
     const cubeInActiveSet = computed(() => {
-      return activeArtifacts.find(a => a.afxId === ei.ArtifactSpec.Name.PUZZLE_CUBE);
+      return activeArtifacts.value.find(a => a.afxId === ei.ArtifactSpec.Name.PUZZLE_CUBE);
     });
     const useActiveSetStored = getLocalStorage(USE_ACTIVE_SET_KEY);
     const useActiveSet = ref(useActiveSetStored !== null ? useActiveSetStored === 'true' : !!cubeInActiveSet.value);
@@ -380,49 +376,35 @@ export default defineComponent({
 
     watch(useEarningsSet, () => {
       setLocalStorage(USE_EARNINGS_SET_KEY, useEarningsSet.value.toString());
+      // If turning on earnings set cube, turn off active set cube
+      if (useEarningsSet.value) {
+        useActiveSet.value = false;
+      }
     });
 
     watch(useActiveSet, () => {
       setLocalStorage(USE_ACTIVE_SET_KEY, useActiveSet.value.toString());
-    });
-    const cubeInEarningSet = computed(() => {
-      return earningsSet.value.find(a => a.afxId === ei.ArtifactSpec.Name.PUZZLE_CUBE);
-    });
-
-    // Show earning set checkbox if earning set has a different cube than active
-    const showEarningsSetCheckbox = computed(() => {
-      return cubeInEarningSet.value && cubeInEarningSet.value.key !== cubeInActiveSet.value?.key;
+      // If turning on active set cube, turn off earnings set cube
+      if (useActiveSet.value) {
+        useEarningsSet.value = false;
+      }
     });
 
-    // Show active set checkbox if active set has a cube
-    const showActiveSetCheckbox = computed(() => {
-      return !!cubeInActiveSet.value;
-    });
     const toggleResearch = (researchId: string) => {
-      console.log('[toggleResearch] called with:', researchId);
-      console.log('[toggleResearch] current state:', JSON.stringify(expandedResearches));
-
-      // With reactive, we can directly modify properties
       if (expandedResearches[researchId]) {
         delete expandedResearches[researchId];
         delete showAllLevels[researchId];
       } else {
         expandedResearches[researchId] = true;
       }
-
-      console.log('[toggleResearch] new state:', JSON.stringify(expandedResearches));
     };
 
     const toggleShowAll = (researchId: string) => {
-      console.log('[toggleShowAll] called with:', researchId);
-
       if (showAllLevels[researchId]) {
         delete showAllLevels[researchId];
       } else {
         showAllLevels[researchId] = true;
       }
-
-      console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevels));
     };
 
     const priceMultiplier = computed(() => {
@@ -432,12 +414,8 @@ export default defineComponent({
       const farm = backup.value.farms[0];
 
       // Determine which artifact set to use for cube discount
-      let artifacts: Artifact[] = [];
-      if (useEarningsSet.value && cubeInEarningSet.value) {
-        artifacts = earningsSet.value;
-      } else if (useActiveSet.value && cubeInActiveSet.value) {
-        artifacts = activeArtifacts;
-      }
+      const artifacts = useEarningsSet.value ? earningsSet.value : useActiveSet.value ? activeArtifacts.value : [];
+      // If neither checkbox is checked then no artis.
 
       const modifiers = allModifiersFromColleggtibles(backup.value);
       const eventMultiplier = researchSale.value ? 0.3 : 1;
@@ -653,8 +631,6 @@ export default defineComponent({
       toggleShowAll,
       useEarningsSet,
       useActiveSet,
-      showEarningsSetCheckbox,
-      showActiveSetCheckbox,
       expandedResearches,
       showAllLevels,
     };
