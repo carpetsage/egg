@@ -302,7 +302,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, PropType, ref, toRefs, watch } from 'vue';
+import { defineComponent, computed, PropType, ref, toRefs, watch, reactive } from 'vue';
 import { ei, formatEIValue, allModifiersFromColleggtibles, getLocalStorage, setLocalStorage, researches } from '@/lib';
 import { Artifact } from '@/lib/types';
 import { researchPriceMultiplier, homeFarmArtifacts, tierThresholds } from '@/lib/farmcalc';
@@ -351,12 +351,12 @@ export default defineComponent({
   },
   setup(props) {
     const { backup, earningsSet } = toRefs(props);
-    const expandedResearchesMap = ref<Record<string, boolean>>({});
-    const showAllLevelsMap = ref<Record<string, boolean>>({});
-
-    // Use computed to ensure reactivity tracking in production
-    const expandedResearches = computed(() => expandedResearchesMap.value);
-    const showAllLevels = computed(() => showAllLevelsMap.value);
+    
+    // Use reactive objects for better reactivity tracking in production
+    const state = reactive({
+      expandedResearches: {} as Record<string, boolean>,
+      showAllLevels: {} as Record<string, boolean>,
+    });
 
     const RESEARCH_SALE_KEY = 'researchSale';
     const USE_EARNINGS_SET_KEY = 'useEarningsSetCube';
@@ -398,51 +398,49 @@ export default defineComponent({
     });
     const toggleResearch = (researchId: string) => {
       console.log('[toggleResearch] called with:', researchId);
-      console.log('[toggleResearch] current state:', JSON.stringify(expandedResearchesMap.value));
-
-      // Create a new object to ensure reactivity - similar to eicoop's pattern
-      const newExpanded = { ...expandedResearchesMap.value };
-      const newShowAll = { ...showAllLevelsMap.value };
-
-      if (newExpanded[researchId]) {
-        delete newExpanded[researchId];
-        delete newShowAll[researchId];
-      } else {
-        newExpanded[researchId] = true;
-      }
-
+      console.log('[toggleResearch] current state:', JSON.stringify(state.expandedResearches));
+      
       // Replace entire object for reactivity
-      expandedResearchesMap.value = newExpanded;
-      showAllLevelsMap.value = newShowAll;
-
-      console.log('[toggleResearch] new state:', JSON.stringify(expandedResearchesMap.value));
+      if (state.expandedResearches[researchId]) {
+        state.expandedResearches = { ...state.expandedResearches };
+        delete state.expandedResearches[researchId];
+        
+        state.showAllLevels = { ...state.showAllLevels };
+        delete state.showAllLevels[researchId];
+      } else {
+        state.expandedResearches = { 
+          ...state.expandedResearches,
+          [researchId]: true 
+        };
+      }
+      
+      console.log('[toggleResearch] new state:', JSON.stringify(state.expandedResearches));
     };
 
     const toggleShowAll = (researchId: string) => {
       console.log('[toggleShowAll] called with:', researchId);
-
-      // Create a new object to ensure reactivity
-      const newShowAll = { ...showAllLevelsMap.value };
-
-      if (newShowAll[researchId]) {
-        delete newShowAll[researchId];
-      } else {
-        newShowAll[researchId] = true;
-      }
-
+      
       // Replace entire object for reactivity
-      showAllLevelsMap.value = newShowAll;
-
-      console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevelsMap.value));
+      if (state.showAllLevels[researchId]) {
+        state.showAllLevels = { ...state.showAllLevels };
+        delete state.showAllLevels[researchId];
+      } else {
+        state.showAllLevels = {
+          ...state.showAllLevels,
+          [researchId]: true
+        };
+      }
+      
+      console.log('[toggleShowAll] new state:', JSON.stringify(state.showAllLevels));
     };
 
-    // Helper functions to ensure Vue tracks property access via computed
+    // Helper functions to ensure Vue tracks property access via reactive
     const isExpanded = (researchId: string) => {
-      return !!expandedResearches.value[researchId];
+      return !!state.expandedResearches[researchId];
     };
 
     const isShowingAll = (researchId: string) => {
-      return !!showAllLevels.value[researchId];
+      return !!state.showAllLevels[researchId];
     };
 
     const priceMultiplier = computed(() => {
@@ -668,10 +666,8 @@ export default defineComponent({
       visibleTiers,
       nextTier,
       formatPrice,
-      expandedResearches,
       toggleResearch,
       researchSale,
-      showAllLevels,
       toggleShowAll,
       useEarningsSet,
       useActiveSet,
