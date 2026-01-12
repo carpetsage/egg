@@ -50,7 +50,7 @@
                 <span class="inline-flex items-center gap-1">
                   <svg
                     class="w-3 h-3 transition-transform text-gray-400"
-                    :class="{ 'rotate-90': expandedResearches[research.id] }"
+                    :class="{ 'rotate-90': isExpanded(research.id) }"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -110,9 +110,9 @@
             <tr
               v-for="(cost, index) in research.tierCosts"
               v-show="
-                expandedResearches[research.id] &&
+                isExpanded(research.id) &&
                 index >= research.level &&
-                (showAllLevels[research.id] || index < research.level + 15)
+                (isShowingAll(research.id) || index < research.level + 15)
               "
               :key="`${research.id}-tier-${index}`"
               class="text-xs bg-gray-50"
@@ -157,8 +157,8 @@
             </tr>
             <tr
               v-if="
-                expandedResearches[research.id] &&
-                !showAllLevels[research.id] &&
+                isExpanded(research.id) &&
+                !isShowingAll(research.id) &&
                 research.maxLevel - research.level > 15
               "
               :key="`${research.id}-show-all`"
@@ -203,7 +203,7 @@
               <span class="inline-flex items-center gap-1">
                 <svg
                   class="w-3 h-3 transition-transform text-gray-400"
-                  :class="{ 'rotate-90': expandedResearches[research.id] }"
+                  :class="{ 'rotate-90': isExpanded(research.id) }"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -250,7 +250,7 @@
           </tr>
           <tr
             v-for="(cost, index) in research.tierCosts"
-            v-show="expandedResearches[research.id] && (showAllLevels[research.id] || index < 15)"
+            v-show="isExpanded(research.id) && (isShowingAll(research.id) || index < 15)"
             :key="`${research.id}-tier-${index}`"
             class="text-xs bg-gray-50"
             :class="index === 0 ? 'text-blue-600 font-medium' : 'text-gray-500'"
@@ -289,7 +289,7 @@
             </td>
           </tr>
           <tr
-            v-if="expandedResearches[research.id] && !showAllLevels[research.id] && research.maxLevel > 15"
+            v-if="isExpanded(research.id) && !isShowingAll(research.id) && research.maxLevel > 15"
             :key="`${research.id}-show-all`"
             class="text-xs bg-gray-50 cursor-pointer hover:bg-gray-100"
             @click.stop="toggleShowAll(research.id)"
@@ -434,6 +434,15 @@ export default defineComponent({
       showAllLevels.value = newShowAll;
 
       console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevels.value));
+    };
+
+    // Helper functions to ensure Vue tracks property access
+    const isExpanded = (researchId: string) => {
+      return !!expandedResearches.value[researchId];
+    };
+
+    const isShowingAll = (researchId: string) => {
+      return !!showAllLevels.value[researchId];
     };
 
     const priceMultiplier = computed(() => {
@@ -668,6 +677,8 @@ export default defineComponent({
       useActiveSet,
       showEarningsSetCheckbox,
       showActiveSetCheckbox,
+      isExpanded,
+      isShowingAll,
     };
   },
 });
