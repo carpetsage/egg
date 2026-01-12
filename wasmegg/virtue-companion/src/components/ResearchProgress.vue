@@ -50,7 +50,7 @@
                 <span class="inline-flex items-center gap-1">
                   <svg
                     class="w-3 h-3 transition-transform text-gray-400"
-                    :class="{ 'rotate-90': expandedResearches.has(research.id) }"
+                    :class="{ 'rotate-90': expandedResearches[research.id] }"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
