@@ -50,7 +50,7 @@
                 <span class="inline-flex items-center gap-1">
                   <svg
                     class="w-3 h-3 transition-transform text-gray-400"
-                    :class="{ 'rotate-90': isExpanded(research.id) }"
+                    :class="{ 'rotate-90': expandedResearches[research.id] }"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -110,9 +110,9 @@
             <tr
               v-for="(cost, index) in research.tierCosts"
               v-show="
-                isExpanded(research.id) &&
+                expandedResearches[research.id] &&
                 index >= research.level &&
-                (isShowingAll(research.id) || index < research.level + 15)
+                (showAllLevels[research.id] || index < research.level + 15)
               "
               :key="`${research.id}-tier-${index}`"
               class="text-xs bg-gray-50"
@@ -156,7 +156,11 @@
               </td>
             </tr>
             <tr
-              v-if="isExpanded(research.id) && !isShowingAll(research.id) && research.maxLevel - research.level > 15"
+              v-if="
+                expandedResearches[research.id] &&
+                !showAllLevels[research.id] &&
+                research.maxLevel - research.level > 15
+              "
               :key="`${research.id}-show-all`"
               class="text-xs bg-gray-50 cursor-pointer hover:bg-gray-100"
               @click.stop="toggleShowAll(research.id)"
@@ -199,7 +203,7 @@
               <span class="inline-flex items-center gap-1">
                 <svg
                   class="w-3 h-3 transition-transform text-gray-400"
-                  :class="{ 'rotate-90': isExpanded(research.id) }"
+                  :class="{ 'rotate-90': expandedResearches[research.id] }"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -246,7 +250,7 @@
           </tr>
           <tr
             v-for="(cost, index) in research.tierCosts"
-            v-show="isExpanded(research.id) && (isShowingAll(research.id) || index < 15)"
+            v-show="expandedResearches[research.id] && (showAllLevels[research.id] || index < 15)"
             :key="`${research.id}-tier-${index}`"
             class="text-xs bg-gray-50"
             :class="index === 0 ? 'text-blue-600 font-medium' : 'text-gray-500'"
@@ -285,7 +289,7 @@
             </td>
           </tr>
           <tr
-            v-if="isExpanded(research.id) && !isShowingAll(research.id) && research.maxLevel > 15"
+            v-if="expandedResearches[research.id] && !showAllLevels[research.id] && research.maxLevel > 15"
             :key="`${research.id}-show-all`"
             class="text-xs bg-gray-50 cursor-pointer hover:bg-gray-100"
             @click.stop="toggleShowAll(research.id)"
@@ -351,11 +355,11 @@ export default defineComponent({
   },
   setup(props) {
     const { backup, earningsSet } = toRefs(props);
-    
-    // Use ref for reactivity - must reassign .value to trigger updates in production
-    const expandedResearches = ref<Record<string, boolean>>({});
-    const showAllLevels = ref<Record<string, boolean>>({});
 
+    // Use reactive for expansion state - Vue tracks property access better with reactive objects
+    const expandedResearches = reactive<Record<string, boolean>>({});
+    const showAllLevels = reactive<Record<string, boolean>>({});
+    
     const RESEARCH_SALE_KEY = 'researchSale';
     const USE_EARNINGS_SET_KEY = 'useEarningsSetCube';
     const USE_ACTIVE_SET_KEY = 'useActiveSetCube';
@@ -396,53 +400,30 @@ export default defineComponent({
     });
     const toggleResearch = (researchId: string) => {
       console.log('[toggleResearch] called with:', researchId);
-      console.log('[toggleResearch] current state:', JSON.stringify(expandedResearches.value));
-      
-      // Create new object and reassign to trigger reactivity
-      if (expandedResearches.value[researchId]) {
-        const { [researchId]: _, ...rest } = expandedResearches.value;
-        expandedResearches.value = rest;
-        
-        const { [researchId]: __, ...restShow } = showAllLevels.value;
-        showAllLevels.value = restShow;
+      console.log('[toggleResearch] current state:', JSON.stringify(expandedResearches));
+
+      // With reactive, we can directly modify properties
+      if (expandedResearches[researchId]) {
+        delete expandedResearches[researchId];
+        delete showAllLevels[researchId];
       } else {
-        expandedResearches.value = {
-          ...expandedResearches.value,
-          [researchId]: true
-        };
+        expandedResearches[researchId] = true;
       }
-      
-      console.log('[toggleResearch] new state:', JSON.stringify(expandedResearches.value));
+
+      console.log('[toggleResearch] new state:', JSON.stringify(expandedResearches));
     };
 
     const toggleShowAll = (researchId: string) => {
       console.log('[toggleShowAll] called with:', researchId);
-      
-      if (showAllLevels.value[researchId]) {
-        const { [researchId]: _, ...rest } = showAllLevels.value;
-        showAllLevels.value = rest;
+
+      if (showAllLevels[researchId]) {
+        delete showAllLevels[researchId];
       } else {
-        showAllLevels.value = {
-          ...showAllLevels.value,
-          [researchId]: true
-        };
+        showAllLevels[researchId] = true;
       }
-      
-      console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevels.value));
+
+      console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevels));
     };
-
-    // Use computed to create copies that Vue can track
-    const expandedState = computed(() => ({ ...expandedResearches.value }));
-    const showAllState = computed(() => ({ ...showAllLevels.value }));
-    
-    // Helper functions that access the computed copies
-    const isExpanded = computed(() => (researchId: string) => {
-      return !!expandedState.value[researchId];
-    });
-
-    const isShowingAll = computed(() => (researchId: string) => {
-      return !!showAllState.value[researchId];
-    });
 
     const priceMultiplier = computed(() => {
       if (!backup.value.farms || backup.value.farms.length === 0 || !backup.value.game) {
@@ -674,8 +655,8 @@ export default defineComponent({
       useActiveSet,
       showEarningsSetCheckbox,
       showActiveSetCheckbox,
-      isExpanded,
-      isShowingAll,
+      expandedResearches,
+      showAllLevels,
     };
   },
 });
