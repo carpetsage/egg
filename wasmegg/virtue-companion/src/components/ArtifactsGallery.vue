@@ -1,7 +1,7 @@
 <template>
   <div class="grid gap-4 text-xs" :style="{ gridTemplateColumns: 'repeat(auto-fill, minmax(15rem, 1fr))' }">
     <div
-      v-for="(artifact, artifactIndex) in artifacts"
+      v-for="(artifact, artifactIndex) in artifacts.toSorted((a, b) => a.afxId - b.afxId)"
       :key="artifactIndex"
       class="px-4 py-4 bg-gray-50 shadow rounded-lg overflow-hidden text-center"
     >
@@ -17,7 +17,7 @@
         </div>
       </div>
       <div class="font-medium mb-1">
-        {{ artifact.name }}
+        {{ artifact.name }} (T{{ artifact.afxLevel + 1 }})
         <span v-if="artifact.afxRarity > 0" :class="rarityFgClass(artifact.afxRarity)">
           {{ artifact.rarity }}
         </span>
@@ -34,12 +34,11 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, toRefs } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 import { iconURL } from 'lib';
 import { Artifact } from '@/lib/types';
 import { ei } from '@/lib';
-import { hasIneffectiveClarityStones, hasNoEffect } from '@/lib/effects';
 
 export default defineComponent({
   props: {
@@ -48,8 +47,7 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
-    const { artifacts } = toRefs(props);
+  setup() {
     const rarityFgClass = (afxRarity: ei.ArtifactSpec.Rarity): string => {
       switch (afxRarity) {
         case ei.ArtifactSpec.Rarity.COMMON:
