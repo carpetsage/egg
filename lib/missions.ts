@@ -501,6 +501,12 @@ export class MissionType {
     );
   }
 
+  boostedMaxQualityAtLevel(level: number): number {
+    return (
+      Math.round((this.params.maxQuality + this.params.levelQualityBump * Math.min(level, this.maxLevel)) * 100) / 100
+    );
+  }
+
   boostedMaxQuality(config: ShipsConfig): number {
     return (
       Math.round((this.params.maxQuality + this.params.levelQualityBump * config.shipLevels[this.shipType]) * 100) / 100
@@ -516,13 +522,21 @@ export class MissionType {
   }
 
   boostedDurationSeconds(config: ShipsConfig): number {
+    return this.boostedDurationSecondsAtLevel(config.shipLevels[this.shipType]);
+  }
+
+  boostedDurationSecondsAtLevel(level: number): number {
     return this.shipType >= Spaceship.MILLENIUM_CHICKEN
-      ? this.defaultDurationSeconds * (1 - 0.01 * config.epicResearchFTLLevel)
+      ? this.defaultDurationSeconds * (1 - 0.01 * level)
       : this.defaultDurationSeconds;
   }
 
   boostedDurationDisplay(config: ShipsConfig): string {
     return formatDuration(this.boostedDurationSeconds(config), true);
+  }
+
+  boostedDurationDisplayAtLevel(level: number): string {
+    return formatDuration(this.boostedDurationSecondsAtLevel(level), true);
   }
 }
 

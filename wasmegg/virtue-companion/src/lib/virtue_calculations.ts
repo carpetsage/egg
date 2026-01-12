@@ -1,4 +1,4 @@
-import { ei, allModifiersFromColleggtibles, fmtApprox, eggName } from '@/lib';
+import { ei, allModifiersFromColleggtibles } from '@/lib';
 import {
   farmHabs,
   farmHabSpaceResearches,
@@ -9,7 +9,6 @@ import {
   farmEggLayingRate,
   homeFarmArtifacts,
 } from '@/lib';
-import dayjs from 'dayjs';
 
 export function projectEggsLaid(backup: ei.IBackup, targetEggAmount: number, active = true, eggOverride?: ei.Egg) {
   const farm = backup.farms![0];

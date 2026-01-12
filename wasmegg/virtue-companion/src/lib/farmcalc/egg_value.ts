@@ -127,12 +127,9 @@ export function farmEggValueResearches(farm: ei.Backup.ISimulation): EggValueRes
   return farmResearches(farm, null, availableEggValueResearches);
 }
 
-const baseEggValue = 1e-7;
+const baseEggValue = 1;
 
-export function farmEggValue(
-  researches: EggValueResearchInstance[],
-  artifacts: Artifact[]
-): number {
+export function farmEggValue(researches: EggValueResearchInstance[], artifacts: Artifact[]): number {
   let eggValue = baseEggValue;
   for (const research of researches) {
     if (research.compoundMultiplicatively) {

@@ -113,3 +113,38 @@ export function artifactsFromInventory(backup: ei.IBackup, family: ei.ArtifactSp
   bareArtifacts.sort((g1, g2) => g2.afxLevel - g1.afxLevel || g2.afxRarity - g1.afxRarity);
   return bareArtifacts.map(gusset => newArtifact(gusset, []));
 }
+
+export function bestPossibleCube(backup: ei.IBackup): Artifact | null {
+  const cubes = artifactsFromInventory(backup, ei.ArtifactSpec.Name.PUZZLE_CUBE);
+  if (cubes.length === 0) {
+    return null;
+  }
+  let bestCube = null;
+  let minPriceMultiplier = 1;
+  for (const cube of cubes) {
+    const priceMultiplier = researchPriceMultiplierFromArtifacts([cube]);
+    if (priceMultiplier < minPriceMultiplier) {
+      bestCube = cube;
+      minPriceMultiplier = priceMultiplier;
+    }
+  }
+  return bestCube;
+}
+
+export function bestPossibleCubeCTE(backup: ei.IBackup): Artifact | null {
+  const cubes = artifactsFromInventory(backup, ei.ArtifactSpec.Name.PUZZLE_CUBE);
+  if (cubes.length === 0) {
+    return null;
+  }
+  let bestCube = null;
+  let minPriceMultiplier = 1;
+  for (const cube of cubes) {
+    const priceMultiplier = researchPriceMultiplierFromArtifacts([cube]);
+    const CTE = 1 / priceMultiplier;
+    if (priceMultiplier < minPriceMultiplier) {
+      bestCube = cube;
+      minPriceMultiplier = priceMultiplier;
+    }
+  }
+  return bestCube;
+}

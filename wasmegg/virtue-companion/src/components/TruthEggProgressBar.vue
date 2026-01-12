@@ -5,17 +5,14 @@
       <div
         v-if="eggsLaidOfflineAdjusted !== 0"
         class="ProgressBar--striped h-full absolute rounded-full"
-        :style="{ width: percentage(eggsLaidOfflineAdjusted, nextTruthEggTargets.offline) }"
+        :style="{ width: computePercentage(eggsLaidOfflineAdjusted) }"
       ></div>
       <div
         v-if="eggsLaidOnlineAdjusted !== 0"
         class="h-full bg-green-300 absolute rounded-full"
-        :style="{ width: percentage(eggsLaidOnlineAdjusted, nextTruthEggTargets.offline) }"
+        :style="{ width: computePercentage(eggsLaidOnlineAdjusted) }"
       ></div>
-      <div
-        class="h-full bg-green-500 absolute rounded-full"
-        :style="{ width: percentage(eggsLaid, nextTruthEggTargets.offline) }"
-      ></div>
+      <div class="h-full bg-green-500 absolute rounded-full" :style="{ width: computePercentage(eggsLaid) }"></div>
 
       <template #content>
         confirmed: {{ formatEIValue(eggsLaid) }},<br />
@@ -39,7 +36,7 @@
       <tippy
         tag="div"
         class="h-8 w-8 absolute top-0 transform -translate-x-1/2"
-        :style="{ left: percentage(eggsLaidOfflineAdjusted, nextTruthEggTargets.offline) }"
+        :style="{ left: computePercentage(eggsLaidOfflineAdjusted) }"
         :theme="'light'"
         :interactive="true"
       >
@@ -118,7 +115,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, toRefs } from 'vue';
+import { computed, defineComponent, PropType, toRefs, watch } from 'vue';
 import { Tippy } from 'vue-tippy';
 import dayjs from 'dayjs';
 
@@ -191,14 +188,46 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    showRelativeProgress: {
+      type: Boolean,
+      default: false,
+    },
   },
-  setup(props) {
-    const { eggsLaidOfflineAdjusted, eggsLaidOnlineAdjusted, eggLayingRate, backup, egg, te, targetTE } = toRefs(props);
+  emits: ['time-to-target'],
+  setup(props, { emit }) {
+    const {
+      eggsLaidOfflineAdjusted,
+      eggsLaidOnlineAdjusted,
+      eggLayingRate,
+      backup,
+      egg,
+      te,
+      targetTE,
+      showRelativeProgress,
+    } = toRefs(props);
     const onVirtue = computed(() => virtueEggs.includes(backup.value.farms?.at(0)?.eggType || ei.Egg.UNKNOWN));
     const nextTruthEggTargets = computed(() => ({
       offline: nextTruthEggThreshold(eggsLaidOfflineAdjusted.value),
       online: nextTruthEggThreshold(eggsLaidOnlineAdjusted.value),
     }));
+
+    const rangeStart = computed(() => {
+      if (!showRelativeProgress.value) {
+        return 0;
+      }
+      return te.value > 0 ? TE_BREAKPOINTS[te.value - 1] : 0;
+    });
+
+    const rangeEnd = computed(() => nextTruthEggTargets.value.offline);
+
+    const computePercentage = (val: number, decimals = 3) => {
+      const start = rangeStart.value;
+      const end = rangeEnd.value;
+      // If end <= start (shouldn't happen unless error or maxed), return 100% or 0%
+      if (end <= start) return val >= end ? '100%' : '0%';
+      const ratio = (val - start) / (end - start);
+      return `${trimTrailingZeros((Math.min(Math.max(ratio, 0), 1) * 100).toFixed(decimals))}%`;
+    };
 
     const timeToThresholds = computed(() => {
       const times = [];
@@ -219,8 +248,26 @@ export default defineComponent({
       timeToThresholds.value.map(timeToTarget => dayjs().add(timeToTarget, 'seconds').format('YYYY-MM-DD HH:mm:ss'))
     );
 
+    // Watch for time to target update and emit
+    const updateTimeToTarget = () => {
+      let time = 0;
+      if (te.value < targetTE.value) {
+        // timeToThresholds indices: 0 -> te + 1
+        // We want level = targetTE
+        // index = targetTE - te - 1
+        const index = targetTE.value - te.value - 1;
+        if (index >= 0 && index < timeToThresholds.value.length) {
+          time = timeToThresholds.value[index];
+        }
+      }
+      emit('time-to-target', { egg: egg.value, time });
+    };
+
+    watch(timeToThresholds, updateTimeToTarget, { immediate: true });
+
     return {
       percentage,
+      computePercentage,
       rewardIconPath,
       rewardName,
       rewardAmountDisplay,

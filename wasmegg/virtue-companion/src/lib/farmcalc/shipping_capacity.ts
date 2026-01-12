@@ -1,6 +1,7 @@
 // https://egg-inc.fandom.com/wiki/Vehicles
 
 import { ei } from 'lib';
+import { getResearchesByCategory } from '../researches';
 import { shippingCapacityMultiplier } from '../effects';
 import { Artifact, Research, ResearchInstance } from '../types';
 import { farmResearches } from './common';
@@ -181,6 +182,15 @@ const availableShippingCapacityResearches: ShippingCapacityResearch[] = [
   },
 ];
 
+const availableFleetSizeResearches: Research[] = getResearchesByCategory('fleet_size')
+  .filter(r => r.id !== 'micro_coupling')
+  .map(r => ({
+    id: r.id,
+    name: r.name,
+    maxLevel: r.levels,
+    perLevel: r.per_level,
+  }));
+
 export function farmVehicles(farm: ei.Backup.ISimulation): Vehicle[] {
   const vehicleIds = farm.vehicles!;
   const trainLengths = farm.trainLength!;
@@ -251,5 +261,18 @@ export function farmShippingCapacity(
 ): number {
   const vehicles = farmVehicles(farm);
   const researches = farmShippingCapacityResearches(farm, progress);
-  return farmVehicleShippingCapacities(vehicles, researches, artifacts, modifier).reduce((total, s) => total + s);
+  return farmVehicleShippingCapacities(vehicles, researches, artifacts, modifier).reduce((total, s) => total + s, 0);
+}
+
+export function farmFleetSizeResearches(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): ResearchInstance[] {
+  return farmResearches(farm, progress, availableFleetSizeResearches);
+}
+
+export function farmAvailableVehicleSlots(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): number {
+  const researches = farmFleetSizeResearches(farm, progress);
+  let slots = 4;
+  for (const r of researches) {
+    slots += r.level * r.perLevel;
+  }
+  return slots;
 }

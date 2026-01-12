@@ -1,4 +1,4 @@
-import { ei } from 'lib';
+import { eggValue as getEggValue, ei } from 'lib';
 import { farmValueMultiplier } from '../effects/farm_value';
 import { Artifact } from '../types';
 import { farmResearch } from './common';
@@ -6,11 +6,7 @@ import { farmEarningBonus } from './earning_bonus';
 import { farmEggValue, farmEggValueResearches } from './egg_value';
 import { farmHabs, farmHabSpaceResearches, farmHabSpaces } from './hab_space';
 import { farmInternalHatcheryRates, farmInternalHatcheryResearches } from './internal_hatchery';
-import {
-  farmEggLayingRate,
-  farmEggLayingRatePerChicken,
-  farmEggLayingRateResearches,
-} from './laying_rate';
+import { farmEggLayingRate, farmEggLayingRatePerChicken, farmEggLayingRateResearches } from './laying_rate';
 import { farmMaxRCB, farmMaxRCBResearches } from './max_rcb';
 import { farmShippingCapacity } from './shipping_capacity';
 
@@ -28,9 +24,7 @@ export function calculateFarmValue(
   const population = farm.numChickens! as number;
   const shippingCapacity = farmShippingCapacity(farm, progress, []);
   const eggLayingRate = farmEggLayingRate(farm, progress, []);
-  const populationEffective = Math.floor(
-    population * Math.min(1, shippingCapacity / eggLayingRate)
-  );
+  const populationEffective = Math.floor(population * Math.min(1, shippingCapacity / eggLayingRate));
   const populationUndeliverable = population - populationEffective;
   const totalHabCapacity = farmHabSpaces(farmHabs(farm), farmHabSpaceResearches(farm), []).reduce(
     (total, s) => total + s
@@ -38,29 +32,24 @@ export function calculateFarmValue(
   const populationVacant = Math.max(totalHabCapacity - population, 0);
   const internalHatcheryRate = farmInternalHatcheryRates(
     farmInternalHatcheryResearches(farm, progress),
-    []
+    [],
+    1
   ).onlineRate;
   const populationProjected = internalHatcheryRate * maxAwayTime(farm, progress);
-  const eggConstMultiplier = 20; // 20 for the enlightenment egg.
+  const eggConstMultiplier = getEggValue(farm.eggType!);
   const eggValue = farmEggValue(farmEggValueResearches(farm), []);
-  const eggLayingRatePerChicken = farmEggLayingRatePerChicken(
-    farmEggLayingRateResearches(farm, progress),
-    []
-  );
-  const earningBonus = farmEarningBonus(backup, farm, progress, []);
+  const eggLayingRatePerChicken = farmEggLayingRatePerChicken(farmEggLayingRateResearches(farm, progress), []);
+  const earningBonus = farmEarningBonus(backup);
   const maxRCB = farmMaxRCB(farmMaxRCBResearches(farm, progress), []);
   return (
-    30000 *
+    180000 *
     accountingTrickMultiplier(farm, progress) *
     eggValue *
     eggLayingRatePerChicken *
     (earningBonus + 1) *
     (maxRCB - 4) ** 0.25 *
     eggConstMultiplier *
-    (populationEffective +
-      0.2 * populationUndeliverable +
-      populationVacant ** 0.6 +
-      0.25 * populationProjected) *
+    (populationEffective + 0.2 * populationUndeliverable + populationVacant ** 0.6 + 0.25 * populationProjected) *
     farmValueMultiplier(artifacts)
   );
 }
