@@ -214,9 +214,8 @@ import {
   farmMaxRCB,
   farmMaxRCBResearches,
   calculateClothedTE,
-  calculateAndFormatNumDrones,
-  calculateAndFormatDuration,
 } from '@/lib';
+import { calculateAndFormatDuration } from 'lib/utils';
 import { Artifact } from '@/lib/types';
 import { formatPercentage, formatWithThousandSeparators } from '@/utils';
 import { getLocalStorage, setLocalStorage } from 'lib/utils';
@@ -472,6 +471,18 @@ export default defineComponent({
     const addCashTarget = (amount: number) => {
       const current = parsedCashTarget.value || 0;
       cashTargetInput.value = formatEIValue(current + amount, { trim: true });
+    };
+
+    const calculateAndFormatNumDrones = (target: number, droneValue: number): string => {
+      let count: number | string;
+      if (target <= 0) {
+        count = 0;
+      } else if (droneValue === 0) {
+        count = '\u221E';
+      } else {
+        count = Math.ceil(target / droneValue);
+      }
+      return `\u00D7${count}`;
     };
 
     const formatTargetDate = (amount: number, rate: number) => {

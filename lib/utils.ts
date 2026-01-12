@@ -101,3 +101,17 @@ export function formatDurationAuto(seconds: number): string {
     return hours > 0 ? `${days}d${hours}h` : `${days}d`;
   }
 }
+
+/**
+ * Calculates and formats duration to earn target at a given rate
+ *
+ * @param target Target cash amount
+ * @param rate Earning rate (cash per second)
+ * @returns Formatted duration string
+ */
+export function calculateAndFormatDuration(target: number, rate: number): string {
+  if (target <= 0) {
+    return '-';
+  }
+  return formatDurationAuto(target / rate);
+}
