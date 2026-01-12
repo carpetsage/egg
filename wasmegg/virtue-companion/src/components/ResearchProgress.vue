@@ -352,11 +352,9 @@ export default defineComponent({
   setup(props) {
     const { backup, earningsSet } = toRefs(props);
     
-    // Use reactive objects for better reactivity tracking in production
-    const state = reactive({
-      expandedResearches: {} as Record<string, boolean>,
-      showAllLevels: {} as Record<string, boolean>,
-    });
+    // Use ref for reactivity - must reassign .value to trigger updates in production
+    const expandedResearches = ref<Record<string, boolean>>({});
+    const showAllLevels = ref<Record<string, boolean>>({});
 
     const RESEARCH_SALE_KEY = 'researchSale';
     const USE_EARNINGS_SET_KEY = 'useEarningsSetCube';
@@ -398,50 +396,50 @@ export default defineComponent({
     });
     const toggleResearch = (researchId: string) => {
       console.log('[toggleResearch] called with:', researchId);
-      console.log('[toggleResearch] current state:', JSON.stringify(state.expandedResearches));
+      console.log('[toggleResearch] current state:', JSON.stringify(expandedResearches.value));
       
-      // Replace entire object for reactivity
-      if (state.expandedResearches[researchId]) {
-        state.expandedResearches = { ...state.expandedResearches };
-        delete state.expandedResearches[researchId];
-        
-        state.showAllLevels = { ...state.showAllLevels };
-        delete state.showAllLevels[researchId];
+      // Create new objects and reassign .value to trigger reactivity
+      const newExpanded = { ...expandedResearches.value };
+      const newShowAll = { ...showAllLevels.value };
+      
+      if (newExpanded[researchId]) {
+        delete newExpanded[researchId];
+        delete newShowAll[researchId];
       } else {
-        state.expandedResearches = { 
-          ...state.expandedResearches,
-          [researchId]: true 
-        };
+        newExpanded[researchId] = true;
       }
       
-      console.log('[toggleResearch] new state:', JSON.stringify(state.expandedResearches));
+      // Reassign to trigger Vue reactivity
+      expandedResearches.value = newExpanded;
+      showAllLevels.value = newShowAll;
+      
+      console.log('[toggleResearch] new state:', JSON.stringify(expandedResearches.value));
     };
 
     const toggleShowAll = (researchId: string) => {
       console.log('[toggleShowAll] called with:', researchId);
       
-      // Replace entire object for reactivity
-      if (state.showAllLevels[researchId]) {
-        state.showAllLevels = { ...state.showAllLevels };
-        delete state.showAllLevels[researchId];
+      const newShowAll = { ...showAllLevels.value };
+      
+      if (newShowAll[researchId]) {
+        delete newShowAll[researchId];
       } else {
-        state.showAllLevels = {
-          ...state.showAllLevels,
-          [researchId]: true
-        };
+        newShowAll[researchId] = true;
       }
       
-      console.log('[toggleShowAll] new state:', JSON.stringify(state.showAllLevels));
+      showAllLevels.value = newShowAll;
+      
+      console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevels.value));
     };
 
-    // Helper functions to ensure Vue tracks property access via reactive
-    const isExpanded = (researchId: string) => {
-      return !!state.expandedResearches[researchId];
-    };
+    // Helper functions - wrap in computed to ensure reactivity tracking
+    const isExpanded = computed(() => (researchId: string) => {
+      return !!expandedResearches.value[researchId];
+    });
 
-    const isShowingAll = (researchId: string) => {
-      return !!state.showAllLevels[researchId];
-    };
+    const isShowingAll = computed(() => (researchId: string) => {
+      return !!showAllLevels.value[researchId];
+    });
 
     const priceMultiplier = computed(() => {
       if (!backup.value.farms || backup.value.farms.length === 0 || !backup.value.game) {
