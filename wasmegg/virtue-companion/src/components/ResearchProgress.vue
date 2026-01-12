@@ -9,19 +9,25 @@
       />
       <label for="research-sale" class="ml-2 text-sm text-gray-600">Research Sale (70% off)</label>
       <input
+        v-if="cubeInEarningsSet && !sameCubeInBothSets"
         id="use-earnings-cube"
         v-model="useEarningsSet"
         type="checkbox"
         class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0 ml-2"
       />
-      <label for="use-earnings-cube" class="ml-2 text-sm text-gray-600">Use Cube From Earnings Set</label>
+      <label v-if="cubeInEarningsSet && !sameCubeInBothSets" for="use-earnings-cube" class="ml-2 text-sm text-gray-600"
+        >Use Cube From Earnings Set</label
+      >
       <input
+        v-if="cubeInActiveSet"
         id="use-active-cube"
         v-model="useActiveSet"
         type="checkbox"
         class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0 ml-2"
       />
-      <label for="use-active-cube" class="ml-2 text-sm text-gray-600">Use Cube From Active Set</label>
+      <label v-if="cubeInActiveSet" for="use-active-cube" class="ml-2 text-sm text-gray-600"
+        >Use Cube From Active Set</label
+      >
     </div>
     <div class="mb-2 text-xs text-gray-500">
       Note: Click on a price to target it in the earnings section above. Click on the + to add to the target.
@@ -361,14 +367,39 @@ export default defineComponent({
     const USE_ACTIVE_SET_KEY = 'useActiveSetCube';
 
     const researchSale = ref(getLocalStorage(RESEARCH_SALE_KEY) === 'true');
-    const useEarningsSet = ref(getLocalStorage(USE_EARNINGS_SET_KEY) === 'true');
+
+    const cubeInEarningsSet = computed(() => {
+      return earningsSet.value.find(a => a.afxId === ei.ArtifactSpec.Name.PUZZLE_CUBE);
+    });
 
     const activeArtifacts = computed(() => homeFarmArtifacts(backup.value, true));
     const cubeInActiveSet = computed(() => {
       return activeArtifacts.value.find(a => a.afxId === ei.ArtifactSpec.Name.PUZZLE_CUBE);
     });
+
+    const sameCubeInBothSets = computed(() => {
+      const earningsCube = cubeInEarningsSet.value;
+      const activeCube = cubeInActiveSet.value;
+      if (!earningsCube || !activeCube) return false;
+      return earningsCube.afxLevel === activeCube.afxLevel && earningsCube.afxRarity === activeCube.afxRarity;
+    });
+
+    const useEarningsSetStored = getLocalStorage(USE_EARNINGS_SET_KEY);
     const useActiveSetStored = getLocalStorage(USE_ACTIVE_SET_KEY);
-    const useActiveSet = ref(useActiveSetStored !== null ? useActiveSetStored === 'true' : !!cubeInActiveSet.value);
+
+    const useEarningsSet = ref(
+      useEarningsSetStored !== null && cubeInEarningsSet.value && !sameCubeInBothSets.value
+        ? useEarningsSetStored === 'true'
+        : false
+    );
+
+    const useActiveSet = ref(
+      sameCubeInBothSets.value
+        ? useEarningsSetStored === 'true' || useActiveSetStored === 'true'
+        : useActiveSetStored !== null && cubeInActiveSet.value
+          ? useActiveSetStored === 'true'
+          : false
+    );
 
     watch(researchSale, () => {
       setLocalStorage(RESEARCH_SALE_KEY, researchSale.value.toString());
@@ -631,6 +662,9 @@ export default defineComponent({
       toggleShowAll,
       useEarningsSet,
       useActiveSet,
+      cubeInEarningsSet,
+      cubeInActiveSet,
+      sameCubeInBothSets,
       expandedResearches,
       showAllLevels,
     };
