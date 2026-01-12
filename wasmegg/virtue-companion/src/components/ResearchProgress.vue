@@ -355,8 +355,12 @@ export default defineComponent({
   },
   setup(props) {
     const { backup, earningsSet } = toRefs(props);
-    const expandedResearches = ref<Record<string, boolean>>({});
-    const showAllLevels = ref<Record<string, boolean>>({});
+    const expandedResearchesMap = ref<Record<string, boolean>>({});
+    const showAllLevelsMap = ref<Record<string, boolean>>({});
+    
+    // Use computed to ensure reactivity tracking in production
+    const expandedResearches = computed(() => expandedResearchesMap.value);
+    const showAllLevels = computed(() => showAllLevelsMap.value);
 
     const RESEARCH_SALE_KEY = 'researchSale';
     const USE_EARNINGS_SET_KEY = 'useEarningsSetCube';
@@ -398,47 +402,45 @@ export default defineComponent({
     });
     const toggleResearch = (researchId: string) => {
       console.log('[toggleResearch] called with:', researchId);
-      console.log('[toggleResearch] current state:', JSON.stringify(expandedResearches.value));
-
+      console.log('[toggleResearch] current state:', JSON.stringify(expandedResearchesMap.value));
+      
       // Create a new object to ensure reactivity - similar to eicoop's pattern
-      const newExpanded = { ...expandedResearches.value };
-      const newShowAll = { ...showAllLevels.value };
-
+      const newExpanded = { ...expandedResearchesMap.value };
+      const newShowAll = { ...showAllLevelsMap.value };
+      
       if (newExpanded[researchId]) {
         delete newExpanded[researchId];
         delete newShowAll[researchId];
       } else {
         newExpanded[researchId] = true;
       }
-
+      
       // Replace entire object for reactivity
-      expandedResearches.value = newExpanded;
-      showAllLevels.value = newShowAll;
-
-      console.log('[toggleResearch] new state:', JSON.stringify(expandedResearches.value));
+      expandedResearchesMap.value = newExpanded;
+      showAllLevelsMap.value = newShowAll;
+      
+      console.log('[toggleResearch] new state:', JSON.stringify(expandedResearchesMap.value));
     };
 
     const toggleShowAll = (researchId: string) => {
       console.log('[toggleShowAll] called with:', researchId);
-
+      
       // Create a new object to ensure reactivity
-      const newShowAll = { ...showAllLevels.value };
-
+      const newShowAll = { ...showAllLevelsMap.value };
+      
       if (newShowAll[researchId]) {
         delete newShowAll[researchId];
       } else {
         newShowAll[researchId] = true;
       }
-
+      
       // Replace entire object for reactivity
-      showAllLevels.value = newShowAll;
-
-      console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevels.value));
+      showAllLevelsMap.value = newShowAll;
+      
+      console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevelsMap.value));
     };
 
-    // Helper functions to ensure Vue tracks property access
-    const isExpanded = (researchId: string) => {
-      return !!expandedResearches.value[researchId];
+    // Helper functions to ensure Vue tracks property access via computed
     };
 
     const isShowingAll = (researchId: string) => {
