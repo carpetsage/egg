@@ -397,21 +397,43 @@ export default defineComponent({
       return !!cubeInActiveSet.value;
     });
     const toggleResearch = (researchId: string) => {
-      if (expandedResearches.value[researchId]) {
-        delete expandedResearches.value[researchId];
-        // Also clear showAll when collapsing
-        delete showAllLevels.value[researchId];
+      console.log('[toggleResearch] called with:', researchId);
+      console.log('[toggleResearch] current state:', JSON.stringify(expandedResearches.value));
+
+      // Create a new object to ensure reactivity - similar to eicoop's pattern
+      const newExpanded = { ...expandedResearches.value };
+      const newShowAll = { ...showAllLevels.value };
+
+      if (newExpanded[researchId]) {
+        delete newExpanded[researchId];
+        delete newShowAll[researchId];
       } else {
-        expandedResearches.value[researchId] = true;
+        newExpanded[researchId] = true;
       }
+
+      // Replace entire object for reactivity
+      expandedResearches.value = newExpanded;
+      showAllLevels.value = newShowAll;
+
+      console.log('[toggleResearch] new state:', JSON.stringify(expandedResearches.value));
     };
 
     const toggleShowAll = (researchId: string) => {
-      if (showAllLevels.value[researchId]) {
-        delete showAllLevels.value[researchId];
+      console.log('[toggleShowAll] called with:', researchId);
+
+      // Create a new object to ensure reactivity
+      const newShowAll = { ...showAllLevels.value };
+
+      if (newShowAll[researchId]) {
+        delete newShowAll[researchId];
       } else {
-        showAllLevels.value[researchId] = true;
+        newShowAll[researchId] = true;
       }
+
+      // Replace entire object for reactivity
+      showAllLevels.value = newShowAll;
+
+      console.log('[toggleShowAll] new state:', JSON.stringify(showAllLevels.value));
     };
 
     const priceMultiplier = computed(() => {
