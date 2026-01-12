@@ -74,7 +74,9 @@
               <img
                 v-for="fuel in mission.fuels"
                 :key="fuel.egg"
-                v-tippy="{ content: fuel.amountDisplay }"
+                v-tippy="{
+                  content: getFuelDisplay(fuel, mission),
+                }"
                 class="inline h-4 w-4 align-text-top"
                 :src="iconURL(fuel.eggIconPath, 64)"
               />
@@ -97,6 +99,7 @@ import { computed, defineComponent, onBeforeUnmount, PropType, ref, toRefs } fro
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import { formatEIValue, MissionFuel } from 'lib';
 
 import { ei, iconURL, Mission } from 'lib';
 import { missionDurationTypeFgClass, missionDurationTypeBgClass } from '@/utils';
@@ -139,6 +142,15 @@ export default defineComponent({
     onBeforeUnmount(() => {
       clearInterval(refreshIntervalId);
     });
+
+    const getFuelDisplay = (fuel: MissionFuel, mission: Mission) => {
+      const requiredFuel = mission.fuelMap(mission.isVirtue).get(fuel.egg);
+      if (requiredFuel !== undefined) {
+        return `${fuel.amountDisplay} / ${formatEIValue(requiredFuel, { trim: true })}`;
+      }
+      return `${fuel.amountDisplay}`;
+    };
+
     return {
       ei,
       missions,
@@ -146,6 +158,8 @@ export default defineComponent({
       missionDurationTypeFgClass,
       missionDurationTypeBgClass,
       iconURL,
+      formatEIValue,
+      getFuelDisplay,
     };
   },
 });
