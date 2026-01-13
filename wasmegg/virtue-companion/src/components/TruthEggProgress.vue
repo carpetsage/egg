@@ -19,13 +19,16 @@
           class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
         />
         <label for="show-relative-progress" class="ml-2 text-sm text-gray-600">Relative progress</label>
-        <base-info
+        <span
           v-tippy="{
             content:
               'When enabled, the progress bar shows the percentage of eggs delivered between the previous Truth Egg threshold and the next one. When disabled, it shows the percentage of the total required eggs starting from zero.',
           }"
-          class="inline relative -top-px ml-1 text-gray-400"
-        />
+          class="inline-flex items-center px-1 py-1 mt-0.5 cursor-help text-gray-400 hover:text-gray-600"
+        >
+          <base-info height="5" width="5" class="inline relative -top-px" />
+          <span class="ml-1 text-xs">What is this?</span>
+        </span>
       </div>
     </div>
     <template v-if="virtueEggs.includes(egg)">
@@ -60,6 +63,7 @@
                 :show-spoilers="shouldShowThreshold(eovDelivered[egg - 50])"
                 :show-threshold-spoilers="showThresholdSpoilers"
                 :show-relative-progress="showRelativeProgress"
+                :discovered-thresholds="discoveredThresholds"
                 @time-to-target="handleTimeUpdate"
               />
             </div>
@@ -110,6 +114,7 @@
                 :show-spoilers="shouldShowThreshold(eovDelivered[vegg - 50])"
                 :show-threshold-spoilers="showThresholdSpoilers"
                 :show-relative-progress="showRelativeProgress"
+                :discovered-thresholds="discoveredThresholds"
                 @time-to-target="handleTimeUpdate"
               />
             </div>
@@ -140,7 +145,24 @@
           <div>{{ fmtApprox(currentTotalDelivered) }} Virtue Eggs delivered</div>
           <div class="mt-2">
             <div
-              v-tippy="{ content: totalTooltipContent, allowHTML: true }"
+              v-tippy="{
+                content:
+                  totalTime <= 0
+                    ? undefined
+                    : showThresholdSpoilers ||
+                        targetTE <= Math.max(...truthEggs.map((earned, i) => earned + truthEggsPending[i]))
+                      ? `<div class='text-xs space-y-1 text-left'>
+                        <div>Remaining eggs needed: <span class='text-blue-300'>${fmtApprox(totalEggsToTarget)}</span></div>
+                        <div>Estimated time: <span class='text-blue-300'>${formatDuration(totalTime)}</span></div>
+                        <div>Expected completion: <span class='text-blue-300'>${totalTargetDate}</span></div>
+                      </div>`
+                      : `<div class='text-xs space-y-1 text-left'>
+                        <div>Remaining eggs needed: <span class='text-blue-300'>???</span></div>
+                        <div>Estimated time: <span class='text-blue-300'>???</span></div>
+                        <div>Expected completion: <span class='text-blue-300'>???</span></div>
+                      </div>`,
+                allowHTML: true,
+              }"
               class="h-3 relative rounded-full overflow-hidden bg-gray-200"
             >
               <div
@@ -149,9 +171,20 @@
               ></div>
             </div>
             <div class="text-xs text-center mt-1 text-gray-500">
-              {{ fmtApprox(totalProgress) }} / {{ fmtApprox(totalGoal) }} ({{ totalPercentage.toFixed(2) }}%) towards
-              {{ targetTE }} <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-3 w-3" /> on all virtue
-              eggs
+              <template
+                v-if="
+                  showThresholdSpoilers ||
+                  targetTE <= Math.max(...truthEggs.map((earned, i) => earned + truthEggsPending[i]))
+                "
+              >
+                {{ fmtApprox(totalProgress) }} / {{ fmtApprox(totalGoal) }} ({{ totalPercentage.toFixed(2) }}%) towards
+                {{ targetTE }} <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-3 w-3" /> on all virtue
+                eggs
+              </template>
+              <template v-else>
+                {{ fmtApprox(currentTotalDelivered) }} eggs delivered towards {{ targetTE }}
+                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-3 w-3" /> on all virtue eggs
+              </template>
             </div>
           </div>
         </div>
@@ -278,7 +311,14 @@ export default defineComponent({
       return sum;
     });
 
-    const totalTargetDate = computed(() => dayjs().add(totalTime.value, 'seconds').format('YYYY-MM-DD HH:mm:ss'));
+    const totalTargetDate = computed(() => {
+      const SECONDS_IN_100_YEARS = 100 * 365.25 * 24 * 60 * 60;
+      if (totalTime.value > SECONDS_IN_100_YEARS) {
+        const currentYear = dayjs().year();
+        return `after ${currentYear + 100}`;
+      }
+      return dayjs().add(totalTime.value, 'seconds').format('YYYY-MM-DD HH:mm:ss');
+    });
 
     const totalEggsToTarget = computed(() => {
       const threshold = targetThreshold.value;
@@ -295,15 +335,6 @@ export default defineComponent({
         sum += Math.max(0, threshold - amount);
       }
       return sum;
-    });
-
-    const totalTooltipContent = computed(() => {
-      if (totalTime.value <= 0) return undefined;
-      return `<div class='text-xs space-y-1 text-left'>
-                <div>Remaining eggs needed: <span class='text-blue-300'>${fmtApprox(totalEggsToTarget.value)}</span></div>
-                <div>Estimated time: <span class='text-blue-300'>${formatDuration(totalTime.value)}</span></div>
-                <div>Expected completion: <span class='text-blue-300'>${totalTargetDate.value}</span></div>
-              </div>`;
     });
 
     return {
@@ -324,7 +355,6 @@ export default defineComponent({
       totalTime,
       totalTargetDate,
       totalEggsToTarget,
-      totalTooltipContent,
       formatDuration,
     };
   },

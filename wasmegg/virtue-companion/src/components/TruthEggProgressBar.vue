@@ -51,18 +51,20 @@
             />
             <span class="font-medium">{{ fmtApprox(eggsLaidOfflineAdjusted) }}</span>
           </p>
-          <template v-if="showThresholdSpoilers && onVirtue">
+          <template v-if="onVirtue">
             <br />Next {{ timeToThresholds.length }} Truth Eggs Expected In:
             <div class="grid grid-cols-[auto_auto_auto_1fr] gap-x-4">
               <div class="font-semibold text-xs">TE</div>
               <div class="font-semibold text-xs">Target</div>
               <div class="font-semibold text-xs">Duration</div>
-              <div class="font-semibold text-xs">Target Time</div>
+              <div class="font-semibold text-xs">Target Date</div>
               <template v-for="(timeToTarget, index) in timeToThresholds" :key="index">
-                <div class="text-xs">{{ index + 1 + te }}</div>
-                <div class="text-xs">{{ fmtApprox(TE_BREAKPOINTS[index + te]) }}</div>
-                <div class="text-xs">{{ formatDuration(timeToTarget) }}</div>
-                <div class="text-xs font-mono">{{ targetDateTimes[index] }}</div>
+                <template v-if="showThresholdSpoilers || shouldShowThresholdAtIndex(index)">
+                  <div class="text-xs">{{ index + 1 + te }}</div>
+                  <div class="text-xs">{{ fmtApprox(TE_BREAKPOINTS[index + te]) }}</div>
+                  <div class="text-xs">{{ formatDuration(timeToTarget) }}</div>
+                  <div class="text-xs font-mono">{{ targetDateTimes[index] }}</div>
+                </template>
               </template>
             </div>
             <div class="text-xs mt-2">Assuming offline IHR</div>
@@ -92,18 +94,20 @@
               <span class="font-medium">???</span>
             </template>
           </p>
-          <template v-if="showThresholdSpoilers && onVirtue">
+          <template v-if="onVirtue">
             <br />Next {{ timeToThresholds.length }} Truth Eggs Expected In:
             <div class="grid grid-cols-[auto_auto_auto_1fr] gap-x-4">
               <div class="font-semibold text-xs">TE</div>
               <div class="font-semibold text-xs">Target</div>
               <div class="font-semibold text-xs">Duration</div>
-              <div class="font-semibold text-xs">Target Time</div>
+              <div class="font-semibold text-xs">Target Date</div>
               <template v-for="(timeToTarget, index) in timeToThresholds" :key="index">
-                <div class="text-xs">{{ index + 1 + te }}</div>
-                <div class="text-xs">{{ fmtApprox(TE_BREAKPOINTS[index + te]) }}</div>
-                <div class="text-xs">{{ formatDuration(timeToTarget) }}</div>
-                <div class="text-xs font-mono">{{ targetDateTimes[index] }}</div>
+                <template v-if="showThresholdSpoilers || shouldShowThresholdAtIndex(index)">
+                  <div class="text-xs">{{ index + 1 + te }}</div>
+                  <div class="text-xs">{{ fmtApprox(TE_BREAKPOINTS[index + te]) }}</div>
+                  <div class="text-xs">{{ formatDuration(timeToTarget) }}</div>
+                  <div class="text-xs font-mono">{{ targetDateTimes[index] }}</div>
+                </template>
               </template>
             </div>
             <div class="text-xs mt-2">Assuming offline IHR</div>
@@ -192,6 +196,10 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    discoveredThresholds: {
+      type: Array as PropType<number[]>,
+      default: () => [],
+    },
   },
   emits: ['time-to-target'],
   setup(props, { emit }) {
@@ -204,6 +212,7 @@ export default defineComponent({
       te,
       targetTE,
       showRelativeProgress,
+      discoveredThresholds,
     } = toRefs(props);
     const onVirtue = computed(() => virtueEggs.includes(backup.value.farms?.at(0)?.eggType || ei.Egg.UNKNOWN));
     const nextTruthEggTargets = computed(() => ({
@@ -219,6 +228,11 @@ export default defineComponent({
     });
 
     const rangeEnd = computed(() => nextTruthEggTargets.value.offline);
+
+    const shouldShowThresholdAtIndex = (index: number) => {
+      const threshold = TE_BREAKPOINTS[te.value + index];
+      return discoveredThresholds.value.includes(threshold);
+    };
 
     const computePercentage = (val: number, decimals = 3) => {
       const start = rangeStart.value;
@@ -244,9 +258,16 @@ export default defineComponent({
 
     const time = computed(() => timeToThresholds.value[0]);
 
-    const targetDateTimes = computed(() =>
-      timeToThresholds.value.map(timeToTarget => dayjs().add(timeToTarget, 'seconds').format('YYYY-MM-DD HH:mm:ss'))
-    );
+    const targetDateTimes = computed(() => {
+      const SECONDS_IN_100_YEARS = 100 * 365.25 * 24 * 60 * 60;
+      const currentYear = dayjs().year();
+      return timeToThresholds.value.map(timeToTarget => {
+        if (timeToTarget > SECONDS_IN_100_YEARS) {
+          return `After ${currentYear + 100}`;
+        }
+        return dayjs().add(timeToTarget, 'seconds').format('YYYY-MM-DD HH:mm:ss');
+      });
+    });
 
     // Watch for time to target update and emit
     const updateTimeToTarget = () => {
@@ -284,6 +305,7 @@ export default defineComponent({
       nextTruthEggTargets,
       targetDateTimes,
       TE_BREAKPOINTS,
+      shouldShowThresholdAtIndex,
     };
   },
 });

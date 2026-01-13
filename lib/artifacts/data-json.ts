@@ -7,7 +7,7 @@
 // manually.
 
 import { ei } from '../proto';
-import data from './data.json'
+import data from './data.json';
 
 type afxdata = {
   artifact_families: Family[];

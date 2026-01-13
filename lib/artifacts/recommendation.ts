@@ -33,6 +33,7 @@
 
 import { ArtifactSet, ei, Farm, getNumProphecyEggs, Inventory, InventoryFamily, Item, newItem } from '..';
 
+const debug = import.meta.env.DEV || import.meta.env.VITE_APP_BETA;
 import Name = ei.ArtifactSpec.Name;
 import Rarity = ei.ArtifactSpec.Rarity;
 import Type = ei.ArtifactSpec.Type;
@@ -79,12 +80,7 @@ export class Contender {
   }
 
   adjustLunar(maxRCB: number): void {
-    // For lunar preload strategies, scale lunar stone effects by max RCB
-    for (const stone of this.stones) {
-      if (stone.afxId === Name.LUNAR_STONE) {
-        this.effectMultiplier *= 1 + stone.effectDelta * maxRCB;
-      }
-    }
+    this.effectMultiplier /= maxRCB;
   }
 
   equals(other: Contender): boolean {
@@ -121,7 +117,7 @@ export class Contender {
     );
   }
 
-  debug(debug: boolean): void {
+  debug(): void {
     if (!debug) {
       return;
     }
@@ -156,44 +152,91 @@ export class Contender {
 }
 
 class Contenders {
-  private contenders: Map<string, Contender>;
+  contenders: Map<ArtifactSlotCount, Map<StoneSlotCount, Contender>>;
 
   constructor(contenders?: Contender[]) {
     this.contenders = new Map();
-    if (contenders) {
-      for (const c of contenders) {
-        this.add(c);
+    if (contenders !== undefined) {
+      for (const contender of contenders) {
+        this.add(contender);
       }
     }
   }
 
   add(contender: Contender): void {
-    const key = `${contender.numArtifactSlotsTaken}\t${contender.numStoneSlotsTaken}`;
-    const existing = this.contenders.get(key);
-    if (!existing || contender.effectMultiplier > existing.effectMultiplier) {
-      this.contenders.set(key, contender);
+    const na = contender.numArtifactSlotsTaken;
+    const ns = contender.numStoneSlotsTaken;
+    const c = this.contenders.get(na);
+    if (c) {
+      const cc = c.get(ns);
+      if (cc) {
+        if (cc.effectMultiplier < contender.effectMultiplier) {
+          c.set(ns, contender);
+        }
+      } else {
+        c.set(ns, contender);
+      }
+    } else {
+      this.contenders.set(na, new Map([[ns, contender]]));
     }
   }
 
-  trim(): void {
-    // Already trimmed by nature of Map keying
+  *iter(): Generator<Contender, void> {
+    for (const na of [...this.contenders.keys()].sort((na1, na2) => na1 - na2)) {
+      const c = this.contenders.get(na)!;
+      for (const ns of [...c.keys()].sort((ns1, ns2) => ns1 - ns2)) {
+        yield c.get(ns)!;
+      }
+    }
   }
 
-  iter(): IterableIterator<Contender> {
-    return this.contenders.values();
+  get length(): number {
+    let len = 0;
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    for (const c of this.iter()) {
+      len++;
+    }
+    /* eslint-enable @typescript-eslint/no-unused-vars */
+    return len;
   }
 
   get isEmpty(): boolean {
-    return this.contenders.size === 0;
+    for (const c of this.iter()) {
+      return false;
+    }
+
+    return true;
   }
 
-  debug(label: string, debug: boolean): void {
+  // Make sure that given the same number of artifact slots taken, a contender
+  // with more stone slots taken should have a strictly better effect
+  // multiplier.
+  trim(): void {
+    for (const artifactSlotCount of [...this.contenders.keys()].sort((a, b) => a - b)) {
+      const contendersForArtifactSlots = this.contenders.get(artifactSlotCount)!;
+      let bestEffectMultiplierSoFar = 0;
+      for (const stoneSlotCount of [...contendersForArtifactSlots.keys()].sort((a, b) => a - b)) {
+        const currentContender = contendersForArtifactSlots.get(stoneSlotCount)!;
+        const currentEffectMultiplier = currentContender.effectMultiplier;
+        if (currentEffectMultiplier <= bestEffectMultiplierSoFar) {
+          // This contender uses more stone slots but has worse or equal effect - remove it
+          contendersForArtifactSlots.delete(stoneSlotCount);
+        } else {
+          bestEffectMultiplierSoFar = currentEffectMultiplier;
+        }
+      }
+    }
+  }
+
+  debug(description?: string): void {
     if (!debug) {
       return;
     }
-    console.debug(`%c${label}:`, 'color: orangered');
+    if (description) {
+      console.debug(`%c${description}:`, 'color: orangered');
+    }
     for (const c of this.iter()) {
-      c.debug(debug);
+      c.debug();
     }
   }
 
@@ -215,31 +258,34 @@ function contendersInArtifactFamily(
   getEffectMultiplier: (delta: number) => number,
   opts?: { rareOrAbove?: boolean }
 ): Contenders {
-  if (!family) {
-    return new Contenders();
-  }
   const contenders = new Contenders();
+  if (!family) {
+    return contenders;
+  }
+  if (family.type !== Type.ARTIFACT) {
+    throw new Error(`${Type[family.type]} is not an artifact`);
+  }
+  const rarities = opts?.rareOrAbove
+    ? [Rarity.LEGENDARY, Rarity.EPIC, Rarity.RARE]
+    : [Rarity.LEGENDARY, Rarity.EPIC, Rarity.RARE, Rarity.COMMON];
   for (const tier of family.tiers) {
-    if (tier.type !== Type.ARTIFACT) {
-      continue;
-    }
-    for (const rarity of [Rarity.LEGENDARY, Rarity.EPIC, Rarity.RARE]) {
-      if (opts?.rareOrAbove && rarity < Rarity.RARE) {
-        continue;
+    for (const rarity of rarities) {
+      if (tier.haveRarity[rarity] > 0) {
+        const artifact = newItem({
+          name: tier.afxId,
+          level: tier.afxLevel,
+          rarity,
+        });
+        const effectDelta = tier.effectDelta(rarity);
+        contenders.add(
+          new Contender([artifact], [], 1, -tier.stoneSlotCount(rarity), getEffectMultiplier(effectDelta))
+        );
+        break;
       }
-      const count = tier.haveRarity[rarity];
-      if (count === 0) {
-        continue;
-      }
-      const artifact = newItem({
-        name: tier.afxId,
-        level: tier.afxLevel,
-        rarity,
-      });
-      const multiplier = getEffectMultiplier(artifact.effectDelta);
-      contenders.add(new Contender([artifact], [], 1, -artifact.slots, multiplier));
     }
   }
+  contenders.trim();
+  contenders.debug(`Contenders in family ${Name[family.afxId]}`);
   return contenders;
 }
 
@@ -314,30 +360,43 @@ function addStonesToContenders(
   return stonedContenders;
 }
 
-function* combinations<T>(arr: T[], k: number): Generator<T[]> {
-  if (k === 0) {
-    yield [];
+function* combinations<T>(pool: T[], r: number): Generator<T[], void> {
+  const n = pool.length;
+  if (r > n) {
     return;
   }
-  if (k > arr.length) {
-    return;
-  }
-  for (let i = 0; i <= arr.length - k; i++) {
-    for (const combo of combinations(arr.slice(i + 1), k - 1)) {
-      yield [arr[i], ...combo];
+  const indices = range(r);
+  yield indices.map(i => pool[i]);
+  while (true) {
+    let i;
+    for (i = r - 1; i >= 0; i--) {
+      if (indices[i] !== i + n - r) {
+        break;
+      }
     }
+    if (i < 0) {
+      return;
+    }
+    indices[i]++;
+    for (let j = i + 1; j < r; j++) {
+      indices[j] = indices[j - 1] + 1;
+    }
+    yield indices.map(i => pool[i]);
   }
 }
 
-function* product<T>(...arrays: T[][]): Generator<T[]> {
-  if (arrays.length === 0) {
-    yield [];
+function* product<T>(...pools: T[][]): Generator<T[], void> {
+  if (pools.length === 0) {
     return;
-  }
-  const [first, ...rest] = arrays;
-  for (const item of first) {
-    for (const combo of product(...rest)) {
-      yield [item, ...combo];
+  } else if (pools.length === 1) {
+    for (const t of pools[0]) {
+      yield [t];
+    }
+  } else {
+    for (const t of pools[0]) {
+      for (const tt of product(...pools.slice(1))) {
+        yield [t, ...tt];
+      }
     }
   }
 }
@@ -484,9 +543,11 @@ export function recommendArtifactSet(
     .concat(others);
 
   while (choices.length < artifactSlots) {
+    // Slots intentionally left empty due to the lack of potentially effective artifacts.
     choices.push(new Contenders([new Contender([], [], 1, 0, 1)]));
   }
 
+  // independentArtifactCombos[n] is the contenders with n artifact slots taken.
   const independentArtifactCombos = newArray(artifactSlots + 1, () => new Contenders());
   for (let n = artifactSlots - 2; n <= artifactSlots; n++) {
     const combos = new Contenders();
@@ -498,7 +559,7 @@ export function recommendArtifactSet(
     }
     combos.trim();
     independentArtifactCombos[n] = combos;
-    combos.debug(`${n} independent artifact combos`, debug);
+    combos.debug(`${n} independent artifact combos`);
     combos.assertNumArtifactSlotsTaken(n);
   }
 
@@ -512,6 +573,8 @@ export function recommendArtifactSet(
     prophecyCombos = [new Contenders([new Contender([], [], 0, 0, 1)]), new Contenders()];
     rcbCombos = [new Contenders([new Contender([], [], 0, 0, 1)]), new Contenders()];
   } else {
+    // Note that here we're using effectMultiplier only to take advantage of
+    // existing code. What's stored is the additive effect to each prophecy egg.
     const bestBooks = contendersInArtifactFamily(families.get(Name.BOOK_OF_BASAN), delta => delta);
     const noBook = new Contenders([new Contender([], [], 0, 0, 0)]);
     const bestProphecyStones = bestsInStoneFamily(
@@ -520,6 +583,7 @@ export function recommendArtifactSet(
     );
     const bareProphecyEggBonus = homeFarm!.bareProphecyEggBonus;
     const getProphecyComboEffect = (contender: Contender, stones: Item[]): number => {
+      // Recall that contender.effectMultiplier is actually the delta of the book.
       const prophecyEggBonus =
         bareProphecyEggBonus + contender.effectMultiplier + stones.reduce((sum, stone) => sum + stone.effectDelta, 0);
       return ((1 + prophecyEggBonus) / (1 + bareProphecyEggBonus)) ** numProphecyEggs;
@@ -529,10 +593,11 @@ export function recommendArtifactSet(
       addStonesToContenders(bestBooks, bestProphecyStones, getProphecyComboEffect, maxSpareStoneSlotsForOtherCombos),
     ];
     for (let i = 0; i < 2; i++) {
-      prophecyCombos[i].debug(`${i} book prophecy combos`, debug);
+      prophecyCombos[i].debug(`${i} book prophecy combos`);
       prophecyCombos[i].assertNumArtifactSlotsTaken(i);
     }
 
+    // Similar to books, effectMultiplier stored here is additive effect to max RCB.
     const bestVials = contendersInArtifactFamily(families.get(Name.VIAL_MARTIAN_DUST), delta => delta);
     const noVial = new Contenders([new Contender([], [], 0, 0, 0)]);
     const bestTerraStones = bestsInStoneFamily(
@@ -541,6 +606,7 @@ export function recommendArtifactSet(
     );
     const bareMaxRCB = homeFarm!.bareMaxRunningChickenBonusWithMaxedCommonResearches;
     const getRcbComboEffect = (contender: Contender, stones: Item[]): number => {
+      // Recall that contender.effectMultiplier is actually the delta of the vial.
       const maxRCB =
         bareMaxRCB + contender.effectMultiplier + stones.reduce((sum, stone) => sum + stone.effectDelta, 0);
       return strategy == Strategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? 1 : maxRCB / bareMaxRCB;
@@ -550,11 +616,13 @@ export function recommendArtifactSet(
       addStonesToContenders(bestVials, bestTerraStones, getRcbComboEffect, maxSpareStoneSlotsForOtherCombos),
     ];
     for (let i = 0; i < 2; i++) {
-      rcbCombos[i].debug(`${i} vial RCB combos`, debug);
+      rcbCombos[i].debug(`${i} vial RCB combos`);
       rcbCombos[i].assertNumArtifactSlotsTaken(i);
     }
   }
 
+  // i1 is the number of artifact slots taken by the prophecy combo (0 or 1),
+  // and i2 is the number taken by the RCB combo (again, 0 or 1).
   const independentStoneFreeCombos = new Contenders();
   let maxIndependentStoneSlots = 0;
   for (let i1 = 0; i1 < 2; i1++) {
@@ -576,7 +644,7 @@ export function recommendArtifactSet(
     }
   }
   independentStoneFreeCombos.trim();
-  independentStoneFreeCombos.debug('Combos ready for independent stones', debug);
+  independentStoneFreeCombos.debug('Combos ready for independent stones');
   independentStoneFreeCombos.assertNumArtifactSlotsTaken(artifactSlots);
 
   // Independent stones
@@ -624,10 +692,11 @@ export function recommendArtifactSet(
   let stoneCombo = new Contender([], [], 0, 0, 1);
   const bestIndependentStoneCombos = range(maxIndependentStoneSlots + 1).map(n => {
     if (n === 0) {
-      return stoneCombo;
+      // Empty.
     } else if (n <= bestIndependentStones.length) {
       stoneCombo = combine(stoneCombo, bestIndependentStones[n - 1]);
     } else {
+      // Not enough stones, add phantom stone.
       stoneCombo = combine(stoneCombo, new Contender([], [], 0, 1, 1));
     }
     stoneCombo.assertNumStoneSlotsTaken(n);
@@ -637,16 +706,15 @@ export function recommendArtifactSet(
     console.debug(`%cBest independent stone combos:`, 'color: orangered');
   }
   for (const c of bestIndependentStoneCombos) {
-    c.debug(debug);
+    c.debug();
   }
 
   const finishedCombos = new Contenders();
   for (const c of independentStoneFreeCombos.iter()) {
-    const combined = combine(c, bestIndependentStoneCombos[-c.numStoneSlotsTaken]);
-    finishedCombos.add(combined);
+    finishedCombos.add(combine(c, bestIndependentStoneCombos[-c.numStoneSlotsTaken]));
   }
   finishedCombos.trim();
-  finishedCombos.debug('Best finished combos', debug);
+  finishedCombos.debug('Best finished combos');
   finishedCombos.assertNumArtifactSlotsTaken(artifactSlots);
   finishedCombos.assertNumStoneSlotsTaken(0);
 
@@ -657,7 +725,7 @@ export function recommendArtifactSet(
   const winner = flattened[0];
   winner.calibrate();
 
-  if (!isVirtue && strategy === Strategy.PRO_PERMIT_LUNAR_PRELOAD_AIO) {
+  if (strategy === Strategy.PRO_PERMIT_LUNAR_PRELOAD_AIO) {
     winner.adjustLunar(homeFarm!.bareMaxRunningChickenBonusWithMaxedCommonResearches);
   }
 

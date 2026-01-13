@@ -1,6 +1,7 @@
 <template>
   <svg
-    class="h-4 w-4 text-gray-400 cursor-help"
+    class="text-gray-400 cursor-help"
+    :class="[`h-${height}`, `w-${width}`]"
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 20 20"
     fill="currentColor"
@@ -17,5 +18,16 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-export default defineComponent({});
+export default defineComponent({
+  props: {
+    height: {
+      type: String,
+      default: '4',
+    },
+    width: {
+      type: String,
+      default: '4',
+    },
+  },
+});
 </script>

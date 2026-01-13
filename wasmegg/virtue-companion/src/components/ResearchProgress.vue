@@ -32,7 +32,7 @@
     <div class="mb-2 text-xs text-gray-500">
       Note: Click on a price to target it in the earnings section above. Click on the + to add to the target.
     </div>
-    <table v-if="visibleTiers.length > 0" class="tabular-nums w-full">
+    <table v-if="visibleTiers.length > 0 || nextTier" class="tabular-nums w-full">
       <thead>
         <tr class="border-b border-gray-200">
           <th class="px-2 py-1 text-left font-bold">Research</th>
@@ -41,267 +41,22 @@
           <th class="px-2 py-1 text-right font-bold">Remaining</th>
         </tr>
       </thead>
-      <template v-for="tier in visibleTiers" :key="tier.tier">
-        <tbody>
-          <tr>
-            <td colspan="4" class="px-2 py-1 font-medium text-gray-900 bg-gray-100 rounded-sm">Tier {{ tier.tier }}</td>
-          </tr>
-          <template v-for="research in tier.items" :key="research.id">
-            <tr class="cursor-pointer hover:bg-gray-50" @click="toggleResearch(research.id)">
-              <td class="px-2 py-0.5 pr-4">
-                <span class="inline-flex items-center gap-1">
-                  <svg
-                    class="w-3 h-3 transition-transform text-gray-400"
-                    :class="{ 'rotate-90': expandedResearches[research.id] }"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                  {{ research.name }}
-                  <base-info
-                    v-tippy="{ content: research.description }"
-                    class="inline relative -top-px ml-1 text-gray-400"
-                  />
-                </span>
-              </td>
-              <td
-                class="px-2 py-0.5 text-right whitespace-nowrap"
-                :class="research.level === research.maxLevel ? 'text-green-600' : 'text-gray-600'"
-              >
-                {{ research.level }}/{{ research.maxLevel }}
-              </td>
-              <td class="px-2 py-0.5 text-right whitespace-nowrap">
-                <template v-if="research.level < research.maxLevel">
-                  <span
-                    class="text-gray-500 cursor-pointer hover:text-blue-600"
-                    @click.stop="setCashTarget?.(research.nextCost)"
-                  >
-                    {{ formatPrice(research.nextCost) }}
-                  </span>
-                  <span
-                    v-if="addCashTarget"
-                    class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
-                    title="Add to target"
-                    @click.stop="addCashTarget(research.nextCost)"
-                    >+</span
-                  >
-                </template>
-                <span v-else class="text-green-600">Done</span>
-              </td>
-              <td class="px-2 py-0.5 text-right whitespace-nowrap">
-                <template v-if="research.level < research.maxLevel">
-                  <span
-                    class="text-gray-500 cursor-pointer hover:text-blue-600"
-                    @click.stop="setCashTarget?.(research.remainingCost)"
-                  >
-                    {{ formatPrice(research.remainingCost) }}
-                  </span>
-                  <span
-                    v-if="addCashTarget"
-                    class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
-                    title="Add to target"
-                    @click.stop="addCashTarget(research.remainingCost)"
-                    >+</span
-                  >
-                </template>
-                <span v-else class="text-green-600">-</span>
-              </td>
-            </tr>
-            <tr
-              v-for="(cost, index) in research.tierCosts"
-              v-show="
-                expandedResearches[research.id] &&
-                index >= research.level &&
-                (showAllLevels[research.id] || index < research.level + 15)
-              "
-              :key="`${research.id}-tier-${index}`"
-              class="text-xs bg-gray-50"
-              :class="index === research.level ? 'text-blue-600 font-medium' : 'text-gray-500'"
-            >
-              <td class="px-2 py-0.5 pl-8">
-                Level {{ index + 1 }}
-                <span v-if="index === research.level" class="ml-1">←</span>
-              </td>
-              <td class="px-2 py-0.5 text-right"></td>
-              <td class="px-2 py-0.5 text-right tabular-nums whitespace-nowrap">
-                <span class="cursor-pointer hover:text-blue-600" @click.stop="setCashTarget?.(cost)">
-                  {{ formatPrice(cost) }}
-                </span>
-                <span
-                  v-if="addCashTarget"
-                  class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
-                  title="Add to target"
-                  @click.stop="addCashTarget(cost)"
-                  >+</span
-                >
-              </td>
-              <td class="px-2 py-0.5 text-right tabular-nums whitespace-nowrap">
-                <span
-                  class="cursor-pointer hover:text-blue-600"
-                  @click.stop="
-                    setCashTarget?.(research.tierCosts.slice(research.level, index + 1).reduce((a, b) => a + b, 0))
-                  "
-                >
-                  {{ formatPrice(research.tierCosts.slice(research.level, index + 1).reduce((a, b) => a + b, 0)) }}
-                </span>
-                <span
-                  v-if="addCashTarget"
-                  class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
-                  title="Add to target"
-                  @click.stop="
-                    addCashTarget(research.tierCosts.slice(research.level, index + 1).reduce((a, b) => a + b, 0))
-                  "
-                  >+</span
-                >
-              </td>
-            </tr>
-            <tr
-              v-if="
-                expandedResearches[research.id] &&
-                !showAllLevels[research.id] &&
-                research.maxLevel - research.level > 15
-              "
-              :key="`${research.id}-show-all`"
-              class="text-xs bg-gray-50 cursor-pointer hover:bg-gray-100"
-              @click.stop="toggleShowAll(research.id)"
-            >
-              <td colspan="4" class="px-2 py-0.5 pl-8 text-blue-600">
-                Show all {{ research.maxLevel - research.level - 15 }} remaining levels...
-              </td>
-            </tr>
-          </template>
-        </tbody>
-      </template>
-      <tbody v-if="nextTier">
-        <tr>
-          <td colspan="4" class="px-2 py-1 font-medium text-gray-900 bg-gray-100 rounded-sm">
-            <div class="flex justify-between items-center">
-              <span>Tier {{ nextTier.tier }} (Locked)</span>
-              <span class="text-sm text-gray-600">
-                {{ nextTier.levelsRemaining }} levels remaining
-                <span class="text-xs whitespace-nowrap">
-                  <span
-                    class="text-gray-500 cursor-pointer hover:text-blue-600"
-                    @click.stop="setCashTarget?.(nextTier.cheapestLevelsCost)"
-                    >({{ formatPrice(nextTier.cheapestLevelsCost) }})</span
-                  >
-                  <span
-                    v-if="addCashTarget"
-                    class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
-                    title="Add to target"
-                    @click.stop="addCashTarget(nextTier.cheapestLevelsCost)"
-                    >+</span
-                  >
-                </span>
-              </span>
-            </div>
-          </td>
-        </tr>
-        <template v-for="research in nextTier.items" :key="research.id">
-          <tr class="cursor-pointer hover:bg-gray-50" @click="toggleResearch(research.id)">
-            <td class="px-2 py-0.5 pr-4">
-              <span class="inline-flex items-center gap-1">
-                <svg
-                  class="w-3 h-3 transition-transform text-gray-400"
-                  :class="{ 'rotate-90': expandedResearches[research.id] }"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                {{ research.name }}
-                <base-info
-                  v-tippy="{ content: research.description }"
-                  class="inline relative -top-px ml-1 text-gray-400"
-                />
-              </span>
-            </td>
-            <td class="px-2 py-0.5 text-right whitespace-nowrap text-gray-600">0/{{ research.maxLevel }}</td>
-            <td class="px-2 py-0.5 text-right whitespace-nowrap">
-              <span
-                class="text-gray-500 cursor-pointer hover:text-blue-600"
-                @click.stop="setCashTarget?.(research.nextCost)"
-                >{{ formatPrice(research.nextCost) }}</span
-              >
-              <span
-                v-if="addCashTarget"
-                class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
-                title="Add to target"
-                @click.stop="addCashTarget(research.nextCost)"
-                >+</span
-              >
-            </td>
-            <td class="px-2 py-0.5 text-right whitespace-nowrap">
-              <span
-                class="text-gray-500 cursor-pointer hover:text-blue-600"
-                @click.stop="setCashTarget?.(research.remainingCost)"
-              >
-                {{ formatPrice(research.remainingCost) }}
-              </span>
-              <span
-                v-if="addCashTarget"
-                class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
-                title="Add to target"
-                @click.stop="addCashTarget(research.remainingCost)"
-                >+</span
-              >
-            </td>
-          </tr>
-          <tr
-            v-for="(cost, index) in research.tierCosts"
-            v-show="expandedResearches[research.id] && (showAllLevels[research.id] || index < 15)"
-            :key="`${research.id}-tier-${index}`"
-            class="text-xs bg-gray-50"
-            :class="index === 0 ? 'text-blue-600 font-medium' : 'text-gray-500'"
-          >
-            <td class="px-2 py-0.5 pl-8">
-              Level {{ index + 1 }}
-              <span v-if="index === 0" class="ml-1">←</span>
-            </td>
-            <td class="px-2 py-0.5 text-right"></td>
-            <td class="px-2 py-0.5 text-right tabular-nums whitespace-nowrap">
-              <span class="cursor-pointer hover:text-blue-600" @click.stop="setCashTarget?.(cost)">
-                {{ formatPrice(cost) }}
-              </span>
-              <span
-                v-if="addCashTarget"
-                class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
-                title="Add to target"
-                @click.stop="addCashTarget(cost)"
-                >+</span
-              >
-            </td>
-            <td class="px-2 py-0.5 text-right tabular-nums whitespace-nowrap">
-              <span
-                class="cursor-pointer hover:text-blue-600"
-                @click.stop="setCashTarget?.(research.tierCosts.slice(0, index + 1).reduce((a, b) => a + b, 0))"
-              >
-                {{ formatPrice(research.tierCosts.slice(0, index + 1).reduce((a, b) => a + b, 0)) }}
-              </span>
-              <span
-                v-if="addCashTarget"
-                class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
-                title="Add to target"
-                @click.stop="addCashTarget(research.tierCosts.slice(0, index + 1).reduce((a, b) => a + b, 0))"
-                >+</span
-              >
-            </td>
-          </tr>
-          <tr
-            v-if="expandedResearches[research.id] && !showAllLevels[research.id] && research.maxLevel > 15"
-            :key="`${research.id}-show-all`"
-            class="text-xs bg-gray-50 cursor-pointer hover:bg-gray-100"
-            @click.stop="toggleShowAll(research.id)"
-          >
-            <td colspan="4" class="px-2 py-0.5 pl-8 text-blue-600">
-              Show all {{ research.maxLevel - 15 }} remaining levels...
-            </td>
-          </tr>
-        </template>
-      </tbody>
+      <research-tier
+        v-for="tier in visibleTiers"
+        :key="tier.tier"
+        :tier-number="tier.tier"
+        :items="tier.items"
+        :locked="tier.levelsRemaining !== undefined"
+        :levels-remaining="tier.levelsRemaining"
+        :cheapest-levels-cost="tier.cheapestLevelsCost"
+        :expanded-researches="expandedResearches"
+        :show-all-levels="showAllLevels"
+        :format-price="formatPrice"
+        :set-cash-target="setCashTarget"
+        :add-cash-target="addCashTarget"
+        @toggle-research="toggleResearch"
+        @toggle-show-all="toggleShowAll"
+      />
     </table>
     <div v-else class="text-center text-gray-500 py-4">No active research tiers found.</div>
   </div>
@@ -311,8 +66,15 @@
 import { defineComponent, computed, PropType, ref, toRefs, watch, reactive } from 'vue';
 import { ei, formatEIValue, allModifiersFromColleggtibles, getLocalStorage, setLocalStorage, researches } from '@/lib';
 import { Artifact } from '@/lib/types';
-import { researchPriceMultiplier, homeFarmArtifacts, tierThresholds } from '@/lib/farmcalc';
-import BaseInfo from 'ui/components/BaseInfo.vue';
+import {
+  researchPriceMultiplier,
+  homeFarmArtifacts,
+  tierThresholds,
+  getTotalResearchLevels,
+  getUnlockedTiers,
+  getNextLockedTier,
+} from '@/lib/farmcalc';
+import ResearchTier from '@/components/ResearchTier.vue';
 
 interface ResearchItem {
   id: string;
@@ -327,14 +89,32 @@ interface ResearchItem {
   tierCosts: number[];
 }
 
+interface ResearchLevelCost {
+  researchId: string;
+  researchName: string;
+  level: number;
+  cost: number;
+}
+
 interface TierGroup {
   tier: number;
   items: ResearchItem[];
+  levelsRemaining?: number;
+  cheapestLevelsCost?: number;
+  cheapestResearches?: ResearchLevelCost[];
 }
+
+// return {
+//       tier: nextTierNum,
+//       levelsRemaining: levelsRemaining,
+//       cheapestLevelsCost: cheapestLevelsCost,
+//       cheapestResearches: cheapestResearches,
+//       items: tierItems,
+//     };
 
 export default defineComponent({
   name: 'ResearchProgress',
-  components: { BaseInfo },
+  components: { ResearchTier },
   props: {
     backup: {
       type: Object as PropType<ei.IBackup>,
@@ -453,6 +233,97 @@ export default defineComponent({
       return researchPriceMultiplier(farm, backup.value.game, artifacts, modifiers.researchCost, eventMultiplier);
     });
 
+    const nextTier = computed(() => {
+      if (!backup.value.farms || backup.value.farms.length === 0) {
+        return null;
+      }
+
+      const farm = backup.value.farms[0];
+      const commonResearch = farm.commonResearch || [];
+
+      // Calculate total research levels purchased
+      const totalLevels = getTotalResearchLevels(farm);
+
+      // Find the next locked tier
+      const nextTierNum = getNextLockedTier(totalLevels);
+      if (nextTierNum === null) {
+        return null; // All tiers unlocked
+      }
+
+      // Get threshold for next tier (tier numbers are 1-indexed, array is 0-indexed)
+      const requiredLevels = tierThresholds[nextTierNum - 1];
+      // Get threshold for current tier (0 if tier 1)
+      const previousTierLevels = nextTierNum > 1 ? tierThresholds[nextTierNum - 2] : 0;
+
+      // Calculate levels relative to previous tier
+      const currentLevelsRelative = totalLevels - previousTierLevels;
+      const requiredLevelsRelative = requiredLevels - previousTierLevels;
+      const levelsRemaining = requiredLevelsRelative - currentLevelsRelative;
+
+      // Safety check - should never be negative now
+      if (levelsRemaining < 0) {
+        return null; // Tier already unlocked
+      }
+
+      // Calculate cost of cheapest N research levels to unlock tier
+      // Collect all available research level costs from tiers below the next tier
+
+      const availableLevelCosts: ResearchLevelCost[] = [];
+      for (const r of researches) {
+        if (r.type !== 'common' || r.tier === undefined || r.tier >= nextTierNum) continue;
+
+        const currentLevel = commonResearch.find(cr => cr.id === r.id)?.level || 0;
+        if (currentLevel < r.levels && r.virtue_prices) {
+          // Add costs for remaining levels in this research
+          for (let i = currentLevel; i < r.levels && i < r.virtue_prices.length; i++) {
+            availableLevelCosts.push({
+              researchId: r.id,
+              researchName: r.name,
+              level: i + 1,
+              cost: r.virtue_prices[i] * priceMultiplier.value,
+            });
+          }
+        }
+      }
+
+      // Sort by price and take the cheapest N levels
+      availableLevelCosts.sort((a, b) => a.cost - b.cost);
+      const cheapestResearches = availableLevelCosts.slice(0, levelsRemaining);
+      const cheapestLevelsCost = cheapestResearches.reduce((sum, item) => sum + item.cost, 0);
+
+      // Get research items for this tier
+      const tierItems: ResearchItem[] = [];
+      for (const r of researches) {
+        if (r.type !== 'common' || r.tier !== nextTierNum) continue;
+
+        const tierCosts: number[] = (r.virtue_prices || []).map(price => price * priceMultiplier.value);
+        const nextCost = tierCosts.length > 0 ? tierCosts[0] : 0;
+        const remainingCost = tierCosts.reduce((sum, cost) => sum + cost, 0);
+
+        tierItems.push({
+          id: r.id,
+          name: r.name,
+          description: r.description,
+          level: 0,
+          maxLevel: r.levels,
+          tier: r.tier,
+          nextCost: nextCost,
+          next5Cost: 0,
+          remainingCost: remainingCost,
+          tierCosts: tierCosts,
+        });
+      }
+
+      const result: TierGroup = {
+        tier: nextTierNum,
+        levelsRemaining: levelsRemaining,
+        cheapestLevelsCost: cheapestLevelsCost,
+        cheapestResearches: cheapestResearches,
+        items: tierItems,
+      };
+      return result;
+    });
+
     const visibleTiers = computed(() => {
       if (!backup.value.farms || backup.value.farms.length === 0) {
         return [];
@@ -460,6 +331,12 @@ export default defineComponent({
 
       const farm = backup.value.farms[0];
       const commonResearch = farm.commonResearch || [];
+
+      // Calculate total research levels to determine which tiers are unlocked
+      const totalLevels = getTotalResearchLevels(farm);
+
+      // Determine which tiers are unlocked
+      const unlockedTiers = getUnlockedTiers(totalLevels);
 
       // Map research ID to current level
       const researchLevels = new Map<string, number>();
@@ -536,115 +413,23 @@ export default defineComponent({
 
       for (const tierNum of sortedTierKeys) {
         const items = tiers.get(tierNum)!;
-
-        // Check visibility conditions:
-        // 1. Hide if all research in tier is maxed.
         const allMaxed = items.every(item => item.level >= item.maxLevel);
 
-        // 2. Hide if nothing researched yet (all levels are 0) - unless it's the next tier to unlock
-        const nothingResearched = items.every(item => item.level === 0);
-
-        if (!allMaxed && !nothingResearched) {
+        // Show unlocked tiers that are not fully maxed
+        const isUnlocked = unlockedTiers.has(tierNum);
+        if (!allMaxed && isUnlocked) {
           result.push({
             tier: tierNum,
             items: items,
           });
         }
       }
+      // Show next locked tier as well if it exists
+      if (nextTier.value) {
+        result.push(nextTier.value);
+      }
 
       return result;
-    });
-
-    const nextTier = computed(() => {
-      if (!backup.value.farms || backup.value.farms.length === 0) {
-        return null;
-      }
-
-      const farm = backup.value.farms[0];
-      const commonResearch = farm.commonResearch || [];
-
-      // Calculate total research levels purchased
-      let totalLevels = 0;
-      for (const r of commonResearch) {
-        if (r.level !== undefined && r.level !== null) {
-          totalLevels += r.level;
-        }
-      }
-
-      // Find the highest tier with any research purchased
-      let highestTierWithResearch = 0;
-      for (const r of researches) {
-        if (r.type !== 'common' || r.tier === undefined) continue;
-        const currentLevel = commonResearch.find(cr => cr.id === r.id)?.level || 0;
-        if (currentLevel > 0 && r.tier > highestTierWithResearch) {
-          highestTierWithResearch = r.tier;
-        }
-      }
-
-      // Check if next tier exists
-      const nextTierNum = highestTierWithResearch + 1;
-      if (nextTierNum > tierThresholds.length) {
-        return null; // No more tiers
-      }
-
-      // Get threshold for next tier (tier numbers are 1-indexed, array is 0-indexed)
-      const requiredLevels = tierThresholds[nextTierNum - 1];
-      // Get threshold for current tier (0 if tier 1)
-      const previousTierLevels = nextTierNum > 1 ? tierThresholds[nextTierNum - 2] : 0;
-
-      // Calculate levels relative to previous tier
-      const currentLevelsRelative = totalLevels - previousTierLevels;
-      const requiredLevelsRelative = requiredLevels - previousTierLevels;
-      const levelsRemaining = requiredLevelsRelative - currentLevelsRelative;
-
-      // Calculate cost of cheapest N research levels to unlock tier
-      // Collect all available research level costs from tiers below the next tier
-      const availableLevelCosts: number[] = [];
-      for (const r of researches) {
-        if (r.type !== 'common' || r.tier === undefined || r.tier >= nextTierNum) continue;
-
-        const currentLevel = commonResearch.find(cr => cr.id === r.id)?.level || 0;
-        if (currentLevel < r.levels && r.virtue_prices) {
-          // Add costs for remaining levels in this research
-          for (let i = currentLevel; i < r.levels && i < r.virtue_prices.length; i++) {
-            availableLevelCosts.push(r.virtue_prices[i] * priceMultiplier.value);
-          }
-        }
-      }
-
-      // Sort by price and take the cheapest N levels
-      availableLevelCosts.sort((a, b) => a - b);
-      const cheapestLevelsCost = availableLevelCosts.slice(0, levelsRemaining).reduce((sum, cost) => sum + cost, 0);
-
-      // Get research items for this tier
-      const tierItems: ResearchItem[] = [];
-      for (const r of researches) {
-        if (r.type !== 'common' || r.tier !== nextTierNum) continue;
-
-        const tierCosts: number[] = (r.virtue_prices || []).map(price => price * priceMultiplier.value);
-        const nextCost = tierCosts.length > 0 ? tierCosts[0] : 0;
-        const remainingCost = tierCosts.reduce((sum, cost) => sum + cost, 0);
-
-        tierItems.push({
-          id: r.id,
-          name: r.name,
-          description: r.description,
-          level: 0,
-          maxLevel: r.levels,
-          tier: r.tier,
-          nextCost: nextCost,
-          next5Cost: 0,
-          remainingCost: remainingCost,
-          tierCosts: tierCosts,
-        });
-      }
-
-      return {
-        tier: nextTierNum,
-        levelsRemaining: levelsRemaining,
-        cheapestLevelsCost: cheapestLevelsCost,
-        items: tierItems,
-      };
     });
 
     const formatPrice = (price: number) => {

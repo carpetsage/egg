@@ -49,6 +49,60 @@ interface ResearchItem {
 // levels of research need to unlock each research tier
 export const tierThresholds = [0, 30, 80, 160, 280, 400, 520, 650, 800, 980, 1185, 1390, 1655] as const;
 
+/**
+ * Calculate total research levels purchased across all common research
+ */
+export function getTotalResearchLevels(farm: ei.Backup.ISimulation): number {
+  const commonResearch = farm.commonResearch || [];
+  let totalLevels = 0;
+  for (const r of commonResearch) {
+    if (r.level !== undefined && r.level !== null) {
+      totalLevels += r.level;
+    }
+  }
+  return totalLevels;
+}
+
+/**
+ * Determine which research tiers are unlocked based on total research levels
+ * @returns Set of unlocked tier numbers (1-indexed)
+ */
+export function getUnlockedTiers(totalLevels: number): Set<number> {
+  const unlockedTiers = new Set<number>();
+  unlockedTiers.add(1); // Tier 1 is always unlocked
+  for (let i = 0; i < tierThresholds.length; i++) {
+    if (totalLevels >= tierThresholds[i]) {
+      unlockedTiers.add(i + 2); // Unlock tier i+2 (tier 2 unlocked at threshold[0], etc.)
+    }
+  }
+  return unlockedTiers;
+}
+
+/**
+ * Find the next locked tier number based on total research levels
+ * @returns Next locked tier number, or null if all tiers are unlocked
+ */
+export function getNextLockedTier(totalLevels: number): number | null {
+  // Find the next LOCKED tier based on total levels
+  // Tiers are unlocked when you reach the threshold
+  let nextTierNum = 1;
+  for (let i = 0; i < tierThresholds.length; i++) {
+    if (totalLevels >= tierThresholds[i]) {
+      nextTierNum = i + 2; // Next tier after this unlocked one
+    } else {
+      nextTierNum = i + 1; // This tier is locked
+      break;
+    }
+  }
+
+  // Check if next tier exists
+  if (nextTierNum > tierThresholds.length) {
+    return null; // All tiers unlocked
+  }
+
+  return nextTierNum;
+}
+
 export const fullResearchCostsList: ResearchItem[] = [
   {
     id: 'comfy_nests',
