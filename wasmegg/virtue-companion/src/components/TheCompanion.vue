@@ -134,6 +134,7 @@
           :backup="backup"
           :optimal-artifacts="maxClothedTEResult.artifacts"
           :target-t-e="targetTE"
+          :current-population="currentPopulation"
         />
       </collapsible-section>
 

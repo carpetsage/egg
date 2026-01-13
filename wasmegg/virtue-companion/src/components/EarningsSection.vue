@@ -175,6 +175,15 @@
             />
           </svg>
         </button>
+        <div class="flex items-center">
+          <input
+            id="ignore-cash-on-hand"
+            v-model="ignoreCashOnHand"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+          />
+          <label for="ignore-cash-on-hand" class="ml-2 text-sm text-gray-600">Ignore cash on hand</label>
+        </div>
       </div>
 
       <div v-if="parsedCashTarget > 0" class="mt-2 pt-2 border-t border-gray-200">
@@ -267,21 +276,27 @@ export default defineComponent({
       type: Number,
       required: true,
     },
+    currentPopulation: {
+      type: Number,
+      required: true,
+    },
   },
   setup(props) {
-    const { backup, optimalArtifacts, targetTE } = toRefs(props);
+    const { backup, optimalArtifacts, targetTE, currentPopulation } = toRefs(props);
 
     const CASH_TARGET_LOCALSTORAGE_KEY = 'earningsCashTarget';
     const VIDEO_DOUBLER_LOCALSTORAGE_KEY = 'alwaysCountVideoDoubler';
     const HIDE_ONLINE_EARNINGS_KEY = 'hideOnlineEarnings';
     const SHOW_DRONE_RCB_KEY = 'showDroneRCB';
     const ASSUME_TARGET_TE_KEY = 'assumeTargetTE';
+    const IGNORE_CASH_ON_HAND_KEY = 'ignoreCashOnHand';
 
     const cashTargetInput = ref(getLocalStorage(CASH_TARGET_LOCALSTORAGE_KEY) || '');
     const alwaysCountVideoDoubler = ref(getLocalStorage(VIDEO_DOUBLER_LOCALSTORAGE_KEY) !== 'false');
     const hideOnlineEarnings = ref(getLocalStorage(HIDE_ONLINE_EARNINGS_KEY) !== 'false');
     const showDroneRCB = ref(getLocalStorage(SHOW_DRONE_RCB_KEY) !== 'false');
     const assumeTargetTE = ref(getLocalStorage(ASSUME_TARGET_TE_KEY) === 'true');
+    const ignoreCashOnHand = ref(getLocalStorage(IGNORE_CASH_ON_HAND_KEY) === 'true');
 
     watch(cashTargetInput, () => {
       setLocalStorage(CASH_TARGET_LOCALSTORAGE_KEY, cashTargetInput.value);
@@ -301,6 +316,10 @@ export default defineComponent({
 
     watch(assumeTargetTE, () => {
       setLocalStorage(ASSUME_TARGET_TE_KEY, assumeTargetTE.value.toString());
+    });
+
+    watch(ignoreCashOnHand, () => {
+      setLocalStorage(IGNORE_CASH_ON_HAND_KEY, ignoreCashOnHand.value.toString());
     });
 
     const parsedCashTarget = computed(() => {
@@ -323,17 +342,24 @@ export default defineComponent({
 
     const computedMetrics = computed(() => {
       const farm = backup.value.farms![0];
-      const progress = backup.value.game!;
-      const modifiers = allModifiersFromColleggtibles(backup.value);
+
+      // Create a modified farm with current population
+      const workingFarm = {
+        ...farm,
+        numChickens: currentPopulation.value,
+      };
 
       // Create a modified backup if target TE is assumed, for EB and EB-dependent calculations.
-      let workingBackup: ei.IBackup = backup.value;
+      let workingBackup: ei.IBackup = {
+        ...backup.value,
+        farms: [workingFarm],
+      };
 
       if (assumeTargetTE.value) {
         // Override the truth eggs count to targetTE * 5
         const originalVirtue = backup.value.virtue || {};
         workingBackup = {
-          ...backup.value,
+          ...workingBackup,
           virtue: {
             ...originalVirtue,
             eovEarned: [effectiveTruthEggs.value],
@@ -341,34 +367,31 @@ export default defineComponent({
         };
       }
 
+      const progress = backup.value.game!;
+      const modifiers = allModifiersFromColleggtibles(backup.value);
+      const artifacts = homeFarmArtifacts(backup.value, true);
       const earningBonus = farmEarningBonus(workingBackup);
       const farmerRole = earningBonusToFarmerRole(earningBonus);
-      const artifacts = homeFarmArtifacts(backup.value, true);
-      const farmValue = calculateFarmValue(workingBackup, farm, progress, artifacts);
-      // eggValue depends on researches, not EB directly.
-      const eggValue = farmEggValue(farmEggValueResearches(farm), artifacts);
-      const maxRCB = farmMaxRCB(farmMaxRCBResearches(farm, progress), artifacts);
+      const farmValue = calculateFarmValue(workingBackup, workingFarm, progress, artifacts);
+      const eggValue = farmEggValue(farmEggValueResearches(workingFarm), artifacts);
+      const maxRCB = farmMaxRCB(farmMaxRCBResearches(workingFarm, progress), artifacts);
+      const rates = farmEarningRate(workingBackup, workingFarm, progress, artifacts, modifiers);
 
-      const rates = farmEarningRate(workingBackup, farm, progress, artifacts, modifiers);
-
-      const droneValuesMaxRCB = calculateDroneValues(farm, progress, artifacts, {
-        population: farm.numChickens! as number,
+      const droneValuesMaxRCB = calculateDroneValues(workingFarm, progress, artifacts, {
+        population: currentPopulation.value,
         farmValue,
         rcb: maxRCB,
       });
 
-      const droneValuesNoRCB = calculateDroneValues(farm, progress, artifacts, {
-        population: farm.numChickens! as number,
+      const droneValuesNoRCB = calculateDroneValues(workingFarm, progress, artifacts, {
+        population: currentPopulation.value,
         farmValue,
         rcb: 1,
       });
 
       const clothedTE = calculateClothedTE(workingBackup, artifacts);
-
-      // We assume optimal artifacts set doesn't change with adding pending TE, just the resulting clothed TE count.
       const maxClothedTE = calculateClothedTE(workingBackup, optimalArtifacts.value);
-
-      const ratesOptimal = farmEarningRate(workingBackup, farm, progress, optimalArtifacts.value, modifiers);
+      const ratesOptimal = farmEarningRate(workingBackup, workingFarm, progress, optimalArtifacts.value, modifiers);
 
       return {
         earningBonus,
@@ -482,7 +505,8 @@ export default defineComponent({
     });
 
     const needToEarn = computed(() => {
-      return Math.max(parsedCashTarget.value - cashOnHand.value, 0);
+      const base = ignoreCashOnHand.value ? parsedCashTarget.value : parsedCashTarget.value - cashOnHand.value;
+      return Math.max(base, 0);
     });
 
     const setCashTarget = (amount: number) => {
@@ -526,6 +550,7 @@ export default defineComponent({
       alwaysCountVideoDoubler,
       hideOnlineEarnings,
       assumeTargetTE,
+      ignoreCashOnHand,
       showRCB,
       showDroneRCB,
       offlineWithDoubler,

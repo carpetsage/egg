@@ -55,6 +55,28 @@
               {{ formatWithThousandSeparators(Math.round(maxEffectivePopulation)) }}
             </td>
           </tr>
+          <tr v-if="maxEffectivePopulation > currentPopulation && maxEffectivePopulation <= totalHabSpace">
+            <td class="py-1.5 pr-4 text-gray-600 align-top pt-2">Time to max effective pop</td>
+            <td class="py-1.5 text-right text-green-600 tabular-nums">
+              <div
+                v-tippy="{
+                  content: `${dayjs(currentTimestamp).add(calculateTimeToMaxEffective(offlineIHR), 'seconds').format('LLL')} (offline)`,
+                }"
+              >
+                {{ formatDurationAuto(calculateTimeToMaxEffective(offlineIHR)) }}
+                <span class="text-xs text-gray-500">(offline)</span>
+              </div>
+              <div
+                v-tippy="{
+                  content: `${dayjs(currentTimestamp).add(calculateTimeToMaxEffective(onlineIHR), 'seconds').format('LLL')} (online)`,
+                }"
+                class="mt-0.5"
+              >
+                {{ formatDurationAuto(calculateTimeToMaxEffective(onlineIHR)) }}
+                <span class="text-xs text-gray-500">(online)</span>
+              </div>
+            </td>
+          </tr>
           <tr>
             <td class="py-1.5 pr-4 text-gray-600">Last save population</td>
             <td class="py-1.5 text-right font-medium text-green-600 tabular-nums">
@@ -185,6 +207,11 @@ export default defineComponent({
 
     const timeToHabLock = (ihr: number) => calculateTimeToHabLock(totalHabSpace, currentPopulation.value, ihr);
 
+    const calculateTimeToMaxEffective = (ihr: number) => {
+      if (ihr <= 0 || maxEffectivePopulation <= currentPopulation.value) return 0;
+      return (maxEffectivePopulation - currentPopulation.value) / ihr;
+    };
+
     return {
       groupedHabs,
       unfinishedResearches,
@@ -196,6 +223,7 @@ export default defineComponent({
       onlineIHR,
       maxEffectivePopulation,
       calculateTimeToHabLock: timeToHabLock,
+      calculateTimeToMaxEffective,
       formatWithThousandSeparators,
       formatDurationAuto,
       dayjs,
