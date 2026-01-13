@@ -6,7 +6,19 @@
     <table class="text-sm w-auto">
       <tbody class="divide-y divide-gray-200">
         <tr v-for="group in groupedHabs" :key="group.name">
-          <td class="py-1 pr-4 text-gray-700 font-medium">{{ group.name }}</td>
+          <td
+            v-tippy="{
+              content: `${formatWithThousandSeparators(group.spacePerUnit)} chickens per hab`.concat(
+                group.count > 1
+                  ? `<br>${formatWithThousandSeparators(group.spacePerUnit * group.count)} chickens total`
+                  : ``
+              ),
+              allowHTML: true,
+            }"
+            class="py-1 pr-4 text-gray-700 font-medium"
+          >
+            {{ group.name }}
+          </td>
           <td class="py-1 text-right font-semibold text-gray-900 tabular-nums">
             {{ group.count }}
           </td>
@@ -193,10 +205,12 @@ export default defineComponent({
     const maxEffectivePopulation = (totalVehicleSpace / eggLayingRate) * lastRefreshedPopulation;
 
     const groupedHabs = computed(() => {
-      const groups = new Map<string, { name: string; iconPath: string; count: number }>();
-      for (const hab of habs) {
+      const groups = new Map<string, { name: string; iconPath: string; count: number; spacePerUnit: number }>();
+      for (let i = 0; i < habs.length; i++) {
+        const hab = habs[i];
+        const space = habSpaces[i];
         if (!groups.has(hab.name)) {
-          groups.set(hab.name, { name: hab.name, iconPath: hab.iconPath, count: 0 });
+          groups.set(hab.name, { name: hab.name, iconPath: hab.iconPath, count: 0, spacePerUnit: space });
         }
         groups.get(hab.name)!.count++;
       }

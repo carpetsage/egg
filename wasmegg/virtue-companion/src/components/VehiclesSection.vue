@@ -8,7 +8,15 @@
     <table class="text-sm w-auto">
       <tbody class="divide-y divide-gray-100">
         <tr v-for="group in groupedVehicles" :key="group.key">
-          <td class="py-1 pr-4 text-gray-700">
+          <td
+            v-tippy="{
+              content: `${fmtApprox(group.capacityPerUnit * 3600)}/hr per vehicle`.concat(
+                group.count > 1 ? `<br>${fmtApprox(group.capacityPerUnit * group.count * 3600)}/hr total` : ``
+              ),
+              allowHTML: true,
+            }"
+            class="py-1 pr-4 text-gray-700"
+          >
             {{ group.name }}
             <span v-if="group.trainLength">(Length: {{ group.trainLength }})</span>
           </td>
@@ -150,9 +158,11 @@ export default defineComponent({
     const groupedVehicles = computed(() => {
       const groups = new Map<
         string,
-        { key: string; name: string; iconPath: string; count: number; trainLength?: number }
+        { key: string; name: string; iconPath: string; count: number; trainLength?: number; capacityPerUnit: number }
       >();
-      for (const vehicle of vehicles) {
+      for (let i = 0; i < vehicles.length; i++) {
+        const vehicle = vehicles[i];
+        const capacity = vehicleSpaces[i];
         const isHyperloop = vehicle.id === 11;
         const key = isHyperloop ? `${vehicle.name}-${vehicle.trainLength}` : vehicle.name;
 
@@ -163,6 +173,7 @@ export default defineComponent({
             iconPath: vehicle.iconPath,
             count: 0,
             trainLength: isHyperloop ? vehicle.trainLength : undefined,
+            capacityPerUnit: capacity,
           });
         }
         groups.get(key)!.count++;
