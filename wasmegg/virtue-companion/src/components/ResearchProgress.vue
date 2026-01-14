@@ -38,7 +38,7 @@
           <th class="px-2 py-1 text-left font-bold">Research</th>
           <th class="px-2 py-1 text-right font-bold">Level</th>
           <th class="px-2 py-1 text-right font-bold">Next Level</th>
-          <th class="px-2 py-1 text-right font-bold">Remaining</th>
+          <th class="px-2 py-1 text-right font-bold">Sum</th>
         </tr>
       </thead>
       <research-tier
@@ -363,9 +363,6 @@ export default defineComponent({
         let next5Cost = 0;
         if (currentLevel < maxLevel) {
           // prices array is 0-indexed, so price for next level (currentLevel + 1) is at index currentLevel
-          // However, researches.json structure needs to be checked.
-          // Usually prices[i] is the cost to buy the (i+1)-th level.
-          // e.g. prices[0] is cost to go from 0 to 1.
           // So if currentLevel is 0, we want prices[0].
           // If currentLevel is 5, we want prices[5] (cost for 6th level).
           if (r.virtue_prices) {
@@ -415,9 +412,8 @@ export default defineComponent({
         const items = tiers.get(tierNum)!;
         const allMaxed = items.every(item => item.level >= item.maxLevel);
 
-        // Show unlocked tiers that are not fully maxed
-        const isUnlocked = unlockedTiers.has(tierNum);
-        if (!allMaxed && isUnlocked) {
+        // Skip this tier if it's the next locked tier (will be added separately below)
+        if (!allMaxed && unlockedTiers.has(tierNum)) {
           result.push({
             tier: tierNum,
             items: items,

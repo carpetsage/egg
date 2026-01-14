@@ -69,10 +69,9 @@ export function getTotalResearchLevels(farm: ei.Backup.ISimulation): number {
  */
 export function getUnlockedTiers(totalLevels: number): Set<number> {
   const unlockedTiers = new Set<number>();
-  unlockedTiers.add(1); // Tier 1 is always unlocked
   for (let i = 0; i < tierThresholds.length; i++) {
     if (totalLevels >= tierThresholds[i]) {
-      unlockedTiers.add(i + 2); // Unlock tier i+2 (tier 2 unlocked at threshold[0], etc.)
+      unlockedTiers.add(i + 1);
     }
   }
   return unlockedTiers;
