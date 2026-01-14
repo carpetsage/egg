@@ -19,6 +19,8 @@
         />
         <label for="hide-online-earnings" class="ml-2 text-sm text-gray-600">Hide online earnings</label>
       </div>
+    </div>
+    <div class="mb-2 flex items-center gap-4">
       <div class="flex items-center">
         <input
           id="assume-target-te"
@@ -27,6 +29,15 @@
           class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
         />
         <label for="assume-target-te" class="ml-2 text-sm text-gray-600">Assume target TE</label>
+      </div>
+      <div class="flex items-center">
+        <input
+          id="include-pending-te"
+          v-model="includePendingTE"
+          type="checkbox"
+          class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+        />
+        <label for="include-pending-te" class="ml-2 text-sm text-gray-600">Include pending TE</label>
       </div>
     </div>
     <p>
@@ -152,7 +163,7 @@
           v-model="cashTargetInput"
           type="text"
           placeholder="e.g. 1.5T, 100M"
-          class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-32"
+          class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-20"
         />
         <button
           type="button"
@@ -280,15 +291,20 @@ export default defineComponent({
       type: Number,
       required: true,
     },
+    totalTruthEggsPending: {
+      type: Number,
+      required: true,
+    },
   },
   setup(props) {
-    const { backup, optimalArtifacts, targetTE, currentPopulation } = toRefs(props);
+    const { backup, optimalArtifacts, targetTE, currentPopulation, totalTruthEggsPending } = toRefs(props);
 
     const CASH_TARGET_LOCALSTORAGE_KEY = 'earningsCashTarget';
     const VIDEO_DOUBLER_LOCALSTORAGE_KEY = 'alwaysCountVideoDoubler';
     const HIDE_ONLINE_EARNINGS_KEY = 'hideOnlineEarnings';
     const SHOW_DRONE_RCB_KEY = 'showDroneRCB';
     const ASSUME_TARGET_TE_KEY = 'assumeTargetTE';
+    const INCLUDE_PENDING_TE_KEY = 'includePendingTE';
     const IGNORE_CASH_ON_HAND_KEY = 'ignoreCashOnHand';
 
     const cashTargetInput = ref(getLocalStorage(CASH_TARGET_LOCALSTORAGE_KEY) || '');
@@ -296,6 +312,7 @@ export default defineComponent({
     const hideOnlineEarnings = ref(getLocalStorage(HIDE_ONLINE_EARNINGS_KEY) !== 'false');
     const showDroneRCB = ref(getLocalStorage(SHOW_DRONE_RCB_KEY) !== 'false');
     const assumeTargetTE = ref(getLocalStorage(ASSUME_TARGET_TE_KEY) === 'true');
+    const includePendingTE = ref(getLocalStorage(INCLUDE_PENDING_TE_KEY) === 'true');
     const ignoreCashOnHand = ref(getLocalStorage(IGNORE_CASH_ON_HAND_KEY) === 'true');
 
     watch(cashTargetInput, () => {
@@ -315,7 +332,17 @@ export default defineComponent({
     });
 
     watch(assumeTargetTE, () => {
+      if (assumeTargetTE.value && includePendingTE.value) {
+        includePendingTE.value = false;
+      }
       setLocalStorage(ASSUME_TARGET_TE_KEY, assumeTargetTE.value.toString());
+    });
+
+    watch(includePendingTE, () => {
+      if (includePendingTE.value && assumeTargetTE.value) {
+        assumeTargetTE.value = false;
+      }
+      setLocalStorage(INCLUDE_PENDING_TE_KEY, includePendingTE.value.toString());
     });
 
     watch(ignoreCashOnHand, () => {
@@ -329,10 +356,16 @@ export default defineComponent({
 
     const effectiveTruthEggs = computed(() => {
       const baseTE = getNumTruthEggs(backup.value);
-      if (!assumeTargetTE.value) {
-        return baseTE;
+
+      if (assumeTargetTE.value) {
+        return targetTE.value * 5;
       }
-      return targetTE.value * 5;
+
+      if (includePendingTE.value) {
+        return baseTE + totalTruthEggsPending.value;
+      }
+
+      return baseTE;
     });
 
     const cashOnHand = computed(() => {
@@ -349,14 +382,14 @@ export default defineComponent({
         numChickens: currentPopulation.value,
       };
 
-      // Create a modified backup if target TE is assumed, for EB and EB-dependent calculations.
+      // Create a modified backup if target TE is assumed or pending TE is included, for EB and EB-dependent calculations.
       let workingBackup: ei.IBackup = {
         ...backup.value,
         farms: [workingFarm],
       };
 
-      if (assumeTargetTE.value) {
-        // Override the truth eggs count to targetTE * 5
+      if (assumeTargetTE.value || includePendingTE.value) {
+        // Override the truth eggs count
         const originalVirtue = backup.value.virtue || {};
         workingBackup = {
           ...workingBackup,
@@ -550,6 +583,7 @@ export default defineComponent({
       alwaysCountVideoDoubler,
       hideOnlineEarnings,
       assumeTargetTE,
+      includePendingTE,
       ignoreCashOnHand,
       showRCB,
       showDroneRCB,

@@ -135,6 +135,7 @@
           :optimal-artifacts="maxClothedTEResult.artifacts"
           :target-t-e="targetTE"
           :current-population="currentPopulation"
+          :total-truth-eggs-pending="totalTruthEggsPending"
         />
       </collapsible-section>
 
