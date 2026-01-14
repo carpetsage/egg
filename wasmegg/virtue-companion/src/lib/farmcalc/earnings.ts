@@ -10,13 +10,13 @@ import {
 } from 'lib';
 import { awayEarningsMultiplier, eggValueMultiplier, researchPriceMultiplierFromArtifacts } from '../effects';
 import { Artifact, Stone } from '../types';
-import { homeFarmArtifacts } from './artifacts';
 import { farmEarningBonus } from './earning_bonus';
 import { farmEggValue, farmEggValueResearches } from './egg_value';
 import { farmEggLayingRate } from './laying_rate';
 import { farmMaxRCB, farmMaxRCBResearches } from './max_rcb';
 import { farmShippingCapacity } from './shipping_capacity';
 import { researchPriceMultiplierFromResearches } from './research_price';
+import { homeFarmArtifacts } from './artifacts';
 
 export function farmEarningRate(
   backup: ei.IBackup,
