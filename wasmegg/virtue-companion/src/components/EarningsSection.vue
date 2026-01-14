@@ -162,7 +162,7 @@
           id="cash-target"
           v-model="cashTargetInput"
           type="text"
-          placeholder="e.g. 1.5T, 100M"
+          placeholder="1.5T"
           class="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-20"
         />
         <button
