@@ -96,9 +96,18 @@
         class="my-2 text-sm"
         @toggle="toggleSectionVisibility('habs_vehicles')"
       >
+        <div class="mb-2 flex items-center">
+          <input
+            id="show-hab-vehicle-icons"
+            v-model="showHabVehicleIcons"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+          />
+          <label for="show-hab-vehicle-icons" class="ml-2 text-sm text-gray-600">Icons</label>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <vehicles-section :backup="backup" />
-          <habs-section :backup="backup" :current-timestamp="currentTimestamp" />
+          <vehicles-section :backup="backup" :show-icons="showHabVehicleIcons" />
+          <habs-section :backup="backup" :current-timestamp="currentTimestamp" :show-icons="showHabVehicleIcons" />
         </div>
       </collapsible-section>
 
@@ -408,6 +417,7 @@ export default defineComponent({
 
     const TARGET_TE_LOCALSTORAGE_KEY = 'targetTE';
     const THRESHOLD_SPOILERS_LOCALSTORAGE_KEY = 'showThresholdSpoilers';
+    const SHOW_HAB_VEHICLE_ICONS_KEY = 'showHabVehicleIcons';
 
     const truthEggsWithPending = computed(() =>
       truthEggs.value.map((earned, index) => earned + truthEggsPending.value[index])
@@ -421,6 +431,7 @@ export default defineComponent({
       Math.min(98, savedTargetTE.value < defaultTargetTE.value ? defaultTargetTE.value : savedTargetTE.value)
     );
     const showThresholdSpoilers = ref(getLocalStorage(THRESHOLD_SPOILERS_LOCALSTORAGE_KEY) === 'true'); // Default to false
+    const showHabVehicleIcons = ref(getLocalStorage(SHOW_HAB_VEHICLE_ICONS_KEY) !== 'false'); // Default to true
 
     // eslint-disable-next-line vue/no-watch-after-await
     watch(targetTE, () => {
@@ -434,6 +445,11 @@ export default defineComponent({
     // eslint-disable-next-line vue/no-watch-after-await
     watch(showThresholdSpoilers, () => {
       setLocalStorage(THRESHOLD_SPOILERS_LOCALSTORAGE_KEY, showThresholdSpoilers.value);
+    });
+
+    // eslint-disable-next-line vue/no-watch-after-await
+    watch(showHabVehicleIcons, () => {
+      setLocalStorage(SHOW_HAB_VEHICLE_ICONS_KEY, showHabVehicleIcons.value.toString());
     });
 
     const earningsSectionRef = ref<InstanceType<typeof EarningsSection>>();
@@ -489,6 +505,7 @@ export default defineComponent({
       nextShiftSE,
       targetTE,
       showThresholdSpoilers,
+      showHabVehicleIcons,
 
       // UI helpers
       isVisibleSection,

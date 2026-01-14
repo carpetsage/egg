@@ -5,23 +5,24 @@
     <!-- Inventory -->
     <table class="text-sm w-auto">
       <tbody class="divide-y divide-gray-200">
-        <tr v-for="group in groupedHabs" :key="group.name">
-          <td
-            v-tippy="{
-              content: `${formatWithThousandSeparators(group.spacePerUnit)} chickens per hab`.concat(
+        <tr
+          v-for="group in groupedHabs"
+          :key="group.name"
+          v-tippy="{
+            content:
+              `${showIcons ? group.name + '<br>' : ''}${formatWithThousandSeparators(group.spacePerUnit)} chickens per hab`.concat(
                 group.count > 1
                   ? `<br>${formatWithThousandSeparators(group.spacePerUnit * group.count)} chickens total`
                   : ``
               ),
-              allowHTML: true,
-            }"
-            class="py-1 pr-4 text-gray-700 font-medium"
-          >
-            {{ group.name }}
+            allowHTML: true,
+          }"
+        >
+          <td class="py-1 pr-4 text-gray-700 font-medium">
+            <img v-if="showIcons" :src="iconURL(group.iconPath, 128)" class="h-14" />
+            <span v-else>{{ group.name }}</span>
           </td>
-          <td class="py-1 text-right font-semibold text-gray-900 tabular-nums">
-            {{ group.count }}
-          </td>
+          <td class="py-1 text-right font-semibold text-gray-900 tabular-nums">x{{ group.count }}</td>
         </tr>
       </tbody>
     </table>
@@ -155,6 +156,8 @@ import {
   calculateCurrentPopulation,
   calculateTimeToHabLock,
   formatDurationAuto,
+  iconURL,
+  getNumTruthEggs,
 } from '@/lib';
 import { formatWithThousandSeparators } from '@/utils';
 import BaseInfo from 'ui/components/BaseInfo.vue';
@@ -165,6 +168,7 @@ export default defineComponent({
   props: {
     backup: { type: Object as PropType<ei.IBackup>, required: true },
     currentTimestamp: { type: Number, required: true },
+    showIcons: { type: Boolean, default: true },
   },
   setup(props) {
     const { backup, currentTimestamp } = toRefs(props);
@@ -181,7 +185,7 @@ export default defineComponent({
     const lastRefreshedTimestamp = farm.lastStepTime! * 1000;
     const lastRefreshedPopulation = farm.numChickens! as number;
 
-    const totalTruthEggs = computed(() => backup.value.virtue?.eovEarned?.reduce((a, b) => a + b, 0) || 0);
+    const totalTruthEggs = computed(() => getNumTruthEggs(backup.value));
     const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
     const { onlineRate: onlineIHR, offlineRate: offlineIHR } = farmInternalHatcheryRates(
       internalHatcheryResearches,
@@ -241,6 +245,7 @@ export default defineComponent({
       formatWithThousandSeparators,
       formatDurationAuto,
       dayjs,
+      iconURL,
     };
   },
 });

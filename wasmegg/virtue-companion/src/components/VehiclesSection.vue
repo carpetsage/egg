@@ -7,22 +7,25 @@
     <!-- Inventory -->
     <table class="text-sm w-auto">
       <tbody class="divide-y divide-gray-100">
-        <tr v-for="group in groupedVehicles" :key="group.key">
-          <td
-            v-tippy="{
-              content: `${fmtApprox(group.capacityPerUnit * 3600)}/hr per vehicle`.concat(
+        <tr
+          v-for="group in groupedVehicles"
+          :key="group.key"
+          v-tippy="{
+            content:
+              `${showIcons ? group.name + '<br>' : ''}${fmtApprox(group.capacityPerUnit * 3600)}/hr per vehicle`.concat(
                 group.count > 1 ? `<br>${fmtApprox(group.capacityPerUnit * group.count * 3600)}/hr total` : ``
               ),
-              allowHTML: true,
-            }"
-            class="py-1 pr-4 text-gray-700"
-          >
-            {{ group.name }}
+            allowHTML: true,
+          }"
+        >
+          <td class="py-1 pr-4 text-gray-700">
+            <img v-if="showIcons" :src="iconURL(group.iconPath, 256)" class="h-6 inline" />
+            <span v-else>{{ group.name }}</span>
+          </td>
+          <td v-if="groupedVehicles.some(g => g.trainLength)" class="py-1 pr-2 text-gray-700">
             <span v-if="group.trainLength">(Length: {{ group.trainLength }})</span>
           </td>
-          <td class="py-1 text-right font-semibold text-gray-900 tabular-nums">
-            {{ group.count }}
-          </td>
+          <td class="py-1 text-right font-semibold text-gray-900 tabular-nums">x{{ group.count }}</td>
         </tr>
       </tbody>
     </table>
@@ -129,6 +132,7 @@ export default defineComponent({
   name: 'VehiclesSection',
   props: {
     backup: { type: Object as PropType<ei.IBackup>, required: true },
+    showIcons: { type: Boolean, default: true },
   },
   setup(props) {
     const { backup } = toRefs(props);
@@ -212,6 +216,7 @@ export default defineComponent({
       effectiveELR,
       eggIconURL,
       fmtApprox,
+      iconURL,
     };
   },
 });
