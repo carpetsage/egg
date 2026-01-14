@@ -60,7 +60,7 @@
             </span>
             <PlusIcon
               v-if="addCashTarget"
-              class="inline w-3 h-3 ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
+              class="inline w-3 h-3 ml-0.5 mb-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
               title="Add to target"
               @click.stop="addCashTarget(research.nextCost)"
             />
@@ -77,7 +77,7 @@
             </span>
             <PlusIcon
               v-if="addCashTarget"
-              class="inline size-3 ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
+              class="inline w-3 h-3 ml-0.5 mb-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
               title="Add to target"
               @click.stop="addCashTarget(research.remainingCost)"
             />
@@ -120,7 +120,7 @@
           </span>
           <PlusIcon
             v-if="addCashTarget"
-            class="inline w-3 h-3 ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
+            class="inline w-3 h-3 ml-0.5 mb-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
             title="Add to target"
             @click.stop="addCashTarget(cost)"
           />
@@ -136,7 +136,7 @@
           </span>
           <PlusIcon
             v-if="addCashTarget"
-            class="inline w-3 h-3 ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
+            class="inline w-3 h-3 ml-0.5 mb-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
             title="Add to target"
             @click.stop="addCashTarget(research.tierCosts.slice(research.level, index + 1).reduce((a, b) => a + b, 0))"
           />
