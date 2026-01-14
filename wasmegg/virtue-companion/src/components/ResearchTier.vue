@@ -12,13 +12,12 @@
                 @click.stop="setCashTarget?.(cheapestLevelsCost)"
                 >({{ formatPrice(cheapestLevelsCost) }})</span
               >
-              <span
+              <PlusIcon
                 v-if="addCashTarget"
-                class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
+                class="inline w-3 h-3 ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
                 title="Add to target"
                 @click.stop="addCashTarget(cheapestLevelsCost)"
-                >+</span
-              >
+              />
             </span>
           </span>
         </div>
@@ -59,13 +58,12 @@
             >
               {{ formatPrice(research.nextCost) }}
             </span>
-            <span
+            <PlusIcon
               v-if="addCashTarget"
-              class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
+              class="inline w-3 h-3 ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
               title="Add to target"
               @click.stop="addCashTarget(research.nextCost)"
-              >+</span
-            >
+            />
           </template>
           <span v-else class="text-green-600">Done</span>
         </td>
@@ -77,13 +75,12 @@
             >
               {{ formatPrice(research.remainingCost) }}
             </span>
-            <span
+            <PlusIcon
               v-if="addCashTarget"
-              class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
+              class="inline size-3 ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
               title="Add to target"
               @click.stop="addCashTarget(research.remainingCost)"
-              >+</span
-            >
+            />
           </template>
           <span v-else class="text-green-600">-</span>
         </td>
@@ -121,13 +118,12 @@
           <span class="cursor-pointer hover:text-blue-600" @click.stop="setCashTarget?.(cost)">
             {{ formatPrice(cost) }}
           </span>
-          <span
+          <PlusIcon
             v-if="addCashTarget"
-            class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
+            class="inline w-3 h-3 ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
             title="Add to target"
             @click.stop="addCashTarget(cost)"
-            >+</span
-          >
+          />
         </td>
         <td class="px-2 py-0.5 text-right tabular-nums whitespace-nowrap">
           <span
@@ -138,23 +134,16 @@
           >
             {{ formatPrice(research.tierCosts.slice(research.level, index + 1).reduce((a, b) => a + b, 0)) }}
           </span>
-          <span
+          <PlusIcon
             v-if="addCashTarget"
-            class="ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
+            class="inline w-3 h-3 ml-0.5 text-gray-400 cursor-pointer hover:text-blue-600"
             title="Add to target"
-            @click.stop="
-              addCashTarget(research.tierCosts.slice(research.level, index + 1).reduce((a, b) => a + b, 0))
-            "
-            >+</span
-          >
+            @click.stop="addCashTarget(research.tierCosts.slice(research.level, index + 1).reduce((a, b) => a + b, 0))"
+          />
         </td>
       </tr>
       <tr
-        v-if="
-          expandedResearches[research.id] &&
-          !showAllLevels[research.id] &&
-          research.maxLevel - research.level > 15
-        "
+        v-if="expandedResearches[research.id] && !showAllLevels[research.id] && research.maxLevel - research.level > 15"
         :key="`${research.id}-show-all`"
         class="text-xs bg-gray-50 cursor-pointer hover:bg-gray-100"
         @click.stop="$emit('toggle-show-all', research.id)"
@@ -169,6 +158,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+import { PlusIcon } from '@heroicons/vue/solid';
 
 interface ResearchItem {
   id: string;
@@ -185,6 +175,9 @@ interface ResearchItem {
 
 export default defineComponent({
   name: 'ResearchTier',
+  components: {
+    PlusIcon,
+  },
   props: {
     tierNumber: {
       type: Number,

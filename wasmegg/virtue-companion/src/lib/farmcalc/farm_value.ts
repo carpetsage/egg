@@ -30,11 +30,7 @@ export function calculateFarmValue(
     (total, s) => total + s
   );
   const populationVacant = Math.max(totalHabCapacity - population, 0);
-  const internalHatcheryRate = farmInternalHatcheryRates(
-    farmInternalHatcheryResearches(farm, progress),
-    [],
-    1
-  ).onlineRate;
+  const internalHatcheryRate = farmInternalHatcheryRates(farmInternalHatcheryResearches(farm, progress), []).onlineRate;
   const populationProjected = internalHatcheryRate * maxAwayTime(farm, progress);
   const eggConstMultiplier = getEggValue(farm.eggType!);
   const eggValue = farmEggValue(farmEggValueResearches(farm), []);
@@ -46,7 +42,7 @@ export function calculateFarmValue(
     accountingTrickMultiplier(farm, progress) *
     eggValue *
     eggLayingRatePerChicken *
-    (earningBonus + 1) *
+    earningBonus *
     (maxRCB - 4) ** 0.25 *
     eggConstMultiplier *
     (populationEffective + 0.2 * populationUndeliverable + populationVacant ** 0.6 + 0.25 * populationProjected) *

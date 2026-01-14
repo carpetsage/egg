@@ -42,7 +42,7 @@
     </div>
     <p>
       Earning bonus:
-      <base-e-i-value class="text-green-500" :value="earningBonus * 100" suffix="%" />,
+      <base-e-i-value class="text-green-500" :value="(earningBonus - 1) * 100" suffix="%" />,
       <span class="whitespace-nowrap" :style="{ color: farmerRole.color }">{{ farmerRole.name }}</span>
     </p>
     <p>Farm value: <base-e-i-value class="text-green-500" :value="farmValue" /></p>
@@ -522,14 +522,14 @@ export default defineComponent({
         const giftRate = farmValue.value * 0.005;
         means.push({
           rate: giftRate,
-          description: 'Random gift (cash)',
+          description: 'Small gems gift',
           calc: calculateAndFormatNumDrones,
         });
 
         const videoGiftRate = farmValue.value * 0.015;
         means.push({
           rate: videoGiftRate,
-          description: 'Video gift (cash)',
+          description: 'Large gems gift',
           calc: calculateAndFormatNumDrones,
         });
       }
