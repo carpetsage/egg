@@ -54,6 +54,18 @@
         <span class="text-ticket">{{ ticketsSpent }}</span>
       </div>
       <div class="flex items-center">
+        <span class="mr-1">Total shells owned:</span>
+        <span class="text-ticket">{{ shellsFlatOwned.length }}/{{ totalShells }}</span>
+      </div>
+      <div class="flex items-center">
+        <span class="mr-1">Total decorators owned:</span>
+        <span class="text-ticket">{{ totalDecoratorsOwned }}/{{ totalDecorators }}</span>
+      </div>
+      <div class="flex items-center">
+        <span class="mr-1">Total variations owned:</span>
+        <span class="text-ticket">{{ totalVariationsOwned }}/{{ totalVariations }}</span>
+      </div>
+      <div class="flex items-center">
         <span class="mr-1">Total pieces owned:</span>
         <span class="text-ticket">{{ totalPiecesOwned }}/{{ totalPieces }}</span>
       </div>
@@ -112,18 +124,24 @@
           <template v-for="set in shellSets" :key="set.id">
             <div
               v-if="showShellThingy(set)"
-              class="flex text-sm"
+              class="flex items-start text-sm"
               :class="{ 'opacity-40': !set.complete }"
             >
               <div
-                class="flex-0 h-8 w-8 rounded-full mr-2.5"
-                :class="knownShellSetIds.includes(set.id) ? `set-${set.id}` : 'set-unknown'"
+                class="flex-0 h-8 w-8 rounded-full mr-2.5 border-[0.5px] border-[#cacacc] shrink-0"
+                :class="{ 'set-unknown': !set.baseColor }"
+                :style="set.baseColor ? { backgroundColor: set.baseColor } : undefined"
               ></div>
               <div class="leading-snug -mt-px">
                 <div class="flex items-center">
                   <div class="mr-1">{{ set.name }}</div>
                   <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
                   <div class="flex-0 text-ticket -ml-px">{{ set.totalPrice }}</div>
+                  <template v-if="set.ownedVariationValue">
+                    <div class="mx-1 text-[0.65rem] text-gray-500">+</div>
+                    <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
+                    <div class="flex-0 text-ticket -ml-px">{{ set.ownedVariationValue }}</div>
+                  </template>
                   <sup v-if="set.isNew" class="flex-0 text-[.6rem] text-red-600 ml-0.5">NEW!</sup>
                 </div>
                 <div class="flex items-center text-gray-500">
@@ -134,6 +152,84 @@
                     <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
                     <div class="flex-0 text-ticket -ml-px">{{ set.priceToComplete }}</div>
                     <div>&nbsp;to complete</div>
+                  </template>
+                </div>
+                <div
+                  v-if="set.variations.length"
+                  class="mt-1 flex flex-wrap gap-1.5"
+                >
+                  <div
+                    v-for="variation in set.variations"
+                    :key="variation.id"
+                    class="flex items-center space-x-1 rounded-full border border-gray-200 px-2 py-0.5 text-[0.65rem]"
+                    :class="{ 'opacity-40': !variation.owned }"
+                  >
+                    <div
+                      class="h-3 w-3 rounded-full border border-white/60 bg-gray-200 shrink-0"
+                      :style="variation.hexColor ? { backgroundColor: variation.hexColor } : undefined"
+                    ></div>
+                    <div class="max-w-[76px] truncate">{{ variation.name }}</div>
+                    <div class="flex items-center space-x-0.5">
+                      <img :src="ticketImageURL" class="h-3 w-3" />
+                      <span class="text-ticket">{{ variation.price }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div v-if="decorators.length">
+        <h2 class="text-sm font-medium text-blue-700">Decorators</h2>
+        <div
+          class="grid sm:grid-cols-[repeat(auto-fill,minmax(336px,1fr))] gap-y-3 mt-2 empty:mt-0"
+        >
+          <template v-for="decorator in decorators" :key="decorator.id">
+            <div
+              v-if="showShellThingy(decorator)"
+              class="flex text-sm"
+              :class="{ 'opacity-40': !decorator.owned }"
+            >
+              <div
+                class="flex-0 h-8 w-8 rounded-full mr-2.5 overflow-hidden bg-gray-200 border-[0.5px] border-[#cacacc]"
+                :style="decorator.baseColor && !decorator.iconUrl ? { backgroundColor: decorator.baseColor } : undefined"
+              >
+                <img
+                  v-if="decorator.iconUrl"
+                  :src="decorator.iconUrl"
+                  class="h-full w-full object-cover"
+                  :alt="`${decorator.name} icon`"
+                />
+                <div
+                  v-else
+                  class="h-full w-full rounded-full"
+                  :class="{ 'set-unknown': !decorator.baseColor }"
+                  :style="decorator.baseColor ? { backgroundColor: decorator.baseColor } : undefined"
+                ></div>
+              </div>
+              <div class="leading-snug -mt-px">
+                <div class="flex items-center">
+                  <div class="mr-1">{{ decorator.name }}</div>
+                  <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
+                  <div class="flex-0 text-ticket -ml-px">{{ decorator.totalPrice }}</div>
+                  <sup
+                    v-if="decorator.isNew"
+                    class="flex-0 text-[.6rem] text-red-600 ml-0.5"
+                    >NEW!</sup
+                  >
+                </div>
+                <div class="flex items-center text-gray-500">
+                  <template v-if="decorator.owned">
+                    <div>Bundle owned</div>
+                  </template>
+                  <template v-else>
+                    <div>Bundle not owned</div>
+                    <div>,&nbsp;</div>
+                    <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
+                    <div class="flex-0 text-ticket -ml-px">{{ decorator.priceToComplete }}</div>
+                    <div>&nbsp;to purchase</div>
                   </template>
                 </div>
               </div>
@@ -149,14 +245,17 @@
             <div
               v-if="showShellThingy(shell)"
               class="flex items-center text-sm"
-              :class="{ 'opacity-40': !shell.owned }"
+              :class="{ 'opacity-40': !shell.owned, 'text-red-600': isUnavailable(shell) }"
             >
               <div
                 v-if="shell.setId && shellSetIds.includes(shell.setId)"
                 v-tippy="{ content: `This is a piece in the ${shell.setName ?? '?'} set.` }"
-                class="flex-0 h-4 w-4 rounded-full mr-1.5"
-                :class="
-                  knownShellSetIds.includes(shell.setId) ? `set-${shell.setId}` : 'set-unknown'
+                class="flex-0 h-4 w-4 rounded-full mr-1.5 border-[0.5px] border-[#cacacc]"
+                :class="{ 'set-unknown': !getShellSetBaseColor(shell.setId) }"
+                :style="
+                  getShellSetBaseColor(shell.setId)
+                    ? { backgroundColor: getShellSetBaseColor(shell.setId) }
+                    : undefined
                 "
               ></div>
               <div class="truncate mr-1">{{ shell.name }} </div>
@@ -182,7 +281,7 @@
             <div
               v-if="showShellThingy(obj)"
               class="flex items-center text-sm"
-              :class="{ 'opacity-40': !obj.owned }"
+              :class="{ 'opacity-40': !obj.owned, 'text-red-600': isUnavailable(obj) }"
             >
               <div class="truncate mr-1">{{ obj.name }}</div>
               <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
@@ -232,7 +331,22 @@ type ShellSet = {
   discount: number;
   priceToComplete: number;
   isNew: boolean;
+  iconUrl?: string;
+  baseColor?: string;
+  variations: ShellSetVariation[];
+  ownedVariationValue: number;
   spec: ei.IShellSetSpec;
+};
+
+type ShellSetVariation = {
+  id: string;
+  name: string;
+  hexColor?: string;
+  price: number;
+  owned: boolean;
+  isDefault: boolean;
+  isCustom: boolean;
+  sortPriority: number;
 };
 
 type Shell = {
@@ -263,6 +377,63 @@ type ShellObject = {
 type Chicken = ShellObject & { type: AssetType.CHICKEN };
 type Hat = ShellObject & { type: AssetType.HAT };
 
+type CatalogIcon = {
+  directory?: string | null;
+  name?: string | null;
+  ext?: string | null;
+  url?: string | null;
+};
+
+type HasHexBaseColor = { hexBaseColor?: string | null };
+
+const normalizeHexColor = (raw?: string | null): string | undefined => {
+  if (!raw) {
+    return undefined;
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  if (/^#([0-9a-f]{6}|[0-9a-f]{8})$/i.test(trimmed)) {
+    return trimmed;
+  }
+  if (/^(0x)?[0-9a-f]{6,8}$/i.test(trimmed)) {
+    const hex = trimmed.replace(/^0x/i, '');
+    return `#${hex.slice(-6)}`;
+  }
+  return undefined;
+};
+
+const unavailableShellIds = new Set<string>(['ei_mailbox_empty_brick']);
+
+const resolveHexBaseColor = (spec: HasHexBaseColor | undefined): string | undefined =>
+  normalizeHexColor(spec?.hexBaseColor ?? undefined);
+
+const resolveIconUrl = (icon?: CatalogIcon | null): string | undefined => {
+  if (!icon) {
+    return undefined;
+  }
+  if (icon.url) {
+    return icon.url;
+  }
+  if (!icon.directory || !icon.name) {
+    return undefined;
+  }
+  const ext = icon.ext ?? 'png';
+  return `https://www.auxbrain.com/dlc/${icon.directory}/${icon.name}.${ext}`;
+};
+
+const formatVariationName = (identifier?: string | null): string => {
+  if (!identifier) {
+    return '';
+  }
+  return identifier
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+};
+
 const props = defineProps<{ playerId: string }>();
 
 const SHOW_OWNED_LOCALSTORAGE_KEY = 'showOwned';
@@ -285,6 +456,8 @@ watch(showExclusive, () => {
 watch(showNonExclusive, () => {
   setLocalStorage(SHOW_NONEXCLUSIVE_LOCALSTORAGE_KEY, showNonExclusive.value);
 });
+const isUnavailable = (shellThingy: Shell | ShellObject | ShellSet): boolean =>
+  unavailableShellIds.has(shellThingy.id);
 
 const lastRefreshed = ref(dayjs());
 const now = ref(dayjs());
@@ -344,38 +517,76 @@ for (const s of save.backup.shellDb?.shellSetInventory ?? []) {
   ownedShellSetIds.add(s.identifier);
 }
 
-const knownShellSetIds = [
-  'woodyellow',
-  'pink',
-  'purple',
-  'doylestown',
-  'yolk',
-  'red_white_blue',
-  'seafoam',
-  'pride',
-  'quicksand',
-  'squash',
-  'stretch',
-  'craftsman',
-  'blueorange',
-  'future_white',
-  'starstruck',
-  'black_white',
-  'plastic',
-  'new_order',
-  'paperclip',
-  'neon',
-  'glitch',
-  'cheese',
-  'shrunken',
-  'amore',
-  'voxel',
-  'firehall',
-  'mushroom_village',
-];
+const ownedVariationIdsBySet = new Map<string, Set<string>>();
+for (const status of save.backup.shellDb?.shellVariationInventory ?? []) {
+  const setIdentifier = status.setIdentifier;
+  if (!setIdentifier) {
+    console.warn(`shellVariationInventory entry missing set identifier`);
+    continue;
+  }
+  const ownedVariationIds = new Set<string>();
+  for (const variationId of status.ownedVariations ?? []) {
+    if (!variationId) {
+      continue;
+    }
+    ownedVariationIds.add(variationId);
+  }
+  ownedVariationIdsBySet.set(setIdentifier, ownedVariationIds);
+}
+
+const buildShellSetVariations = (
+  setId: string,
+  spec: ei.IShellSetSpec,
+  setOwned: boolean
+): { variations: ShellSetVariation[]; ownedValue: number } => {
+  const ownedVariations = ownedVariationIdsBySet.get(setId) ?? new Set<string>();
+  const variations = (spec.variations ?? [])
+    .map((variation, index) => {
+      if (!variation) {
+        return undefined;
+      }
+      const rawId = variation.identifier ?? `${setId}-variation-${index}`;
+      const prettyName = formatVariationName(variation.identifier);
+      const name = prettyName || `Variation ${index + 1}`;
+      const hexColor = normalizeHexColor(variation.hexColor ?? undefined);
+      const price = variation.price ?? 0;
+      const isDefault = !!variation.defaultAppearance;
+      const isCustom = !!variation.customAppearance;
+      const owned = ownedVariations.has(rawId) || (isDefault && setOwned);
+      const sortPriority = variation.sortPriority ?? index;
+      return {
+        id: rawId,
+        name,
+        hexColor,
+        price,
+        owned,
+        isDefault,
+        isCustom,
+        sortPriority,
+      } as ShellSetVariation;
+    })
+    .filter((variation): variation is ShellSetVariation => variation !== undefined)
+    .sort((v1, v2) => {
+      if (v1.sortPriority !== v2.sortPriority) {
+        return v1.sortPriority - v2.sortPriority;
+      }
+      if (v1.price !== v2.price) {
+        return v1.price - v2.price;
+      }
+      return v1.name.localeCompare(v2.name);
+    });
+  const ownedValue = variations
+    .filter(variation => variation.owned)
+    .reduce((acc, variation) => acc + variation.price, 0);
+  return { variations, ownedValue };
+};
+
 const shellSets: ShellSet[] = [];
+const decorators: ShellSet[] = [];
 const shellSetNames: Record<string, string> = {};
-for (const set of config.dlcCatalog?.shellSets ?? []) {
+const shellSetSpecs = config.dlcCatalog?.shellSets ?? [];
+const decoratorSpecs = config.dlcCatalog?.decorators ?? [];
+for (const set of shellSetSpecs) {
   const id = set.identifier;
   if (!id) {
     console.warn(`shell set has no id`);
@@ -393,6 +604,11 @@ for (const set of config.dlcCatalog?.shellSets ?? []) {
   if (!set.elementSet && ((set.secondsUntilAvailable ?? 0) <= 0)) {
     const discount = set.discount ?? 0;
     const isNew = !!set.isNew;
+    const { variations, ownedValue: ownedVariationValue } = buildShellSetVariations(
+      id,
+      set,
+      ownedShellSetIds.has(id)
+    );
     shellSets.push({
       id,
       name,
@@ -405,11 +621,58 @@ for (const set of config.dlcCatalog?.shellSets ?? []) {
       discount,
       priceToComplete: 0,
       isNew,
+      baseColor: resolveHexBaseColor(set as HasHexBaseColor),
+      variations,
+      ownedVariationValue,
       spec: set,
     });
   }
 }
+for (const set of decoratorSpecs) {
+  const id = set.identifier;
+  if (!id) {
+    console.warn(`decorator set has no id`);
+    continue;
+  }
+  const name = set.name;
+  if (!name) {
+    console.warn(`decorator set ${id} has no name`);
+    continue;
+  }
+  const expires = set.expires ?? false;
+  shellSetNames[id] = name;
+  const iconUrl = resolveIconUrl((set as { icon?: CatalogIcon }).icon);
+  const discount = set.discount ?? 0;
+  const isNew = !!set.isNew;
+  const owned = ownedShellSetIds.has(id);
+  decorators.push({
+    id,
+    name,
+    expires,
+    totalComponents: 0,
+    ownedComponents: 0,
+    complete: owned,
+    owned,
+    totalPrice: set.price ?? 0,
+    discount,
+    priceToComplete: 0,
+    isNew,
+    iconUrl,
+    baseColor: resolveHexBaseColor(set as HasHexBaseColor),
+    variations: [],
+    ownedVariationValue: 0,
+    spec: set,
+  });
+}
 const shellSetIds = shellSets.map(set => set.id);
+const shellSetsById = new Map<string, ShellSet>(shellSets.map(set => [set.id, set]));
+const decoratorsById = new Map<string, ShellSet>(decorators.map(set => [set.id, set]));
+const getShellSetBaseColor = (id?: string): string | undefined => {
+  if (!id) {
+    return undefined;
+  }
+  return shellSetsById.get(id)?.baseColor ?? decoratorsById.get(id)?.baseColor;
+};
 
 const shellTypes = [
   AssetType.GROUND,
@@ -427,6 +690,9 @@ const shellTypes = [
   AssetType.SILO_0_SMALL,
 ] as const;
 type ShellType = typeof shellTypes[number];
+const canonicalShellTypes = new Set<ShellType>(shellTypes);
+const isCanonicalShellType = (assetType: AssetType): assetType is ShellType =>
+  canonicalShellTypes.has(assetType as ShellType);
 const shellTypeNames: Record<ShellType, string> = {
   [AssetType.GROUND]: 'Ground',
   [AssetType.HARDSCAPE]: 'Hardscape',
@@ -521,12 +787,19 @@ for (const shellConfig of shellConfigs) {
     console.warn(`no asset type for shell ${id}`);
     continue;
   }
+  const isDecoratorShell = id.toLowerCase().includes('_sd_');
   const typeStr = AssetType[type].toLowerCase();
   const price = shellConfig.price ?? 0;
   const owned = ownedShellIds.has(id) || (setId !== undefined && ownedShellSetIds.has(setId));
   const isNew = !!shellConfig.isNew;
   const expires = !!shellConfig.expires;
   const released = (shellConfig.secondsUntilAvailable ?? 0) <= 0;
+  const belongsToShellSet = setId !== undefined && shellSetsById.has(setId);
+  const belongsToDecorator = setId !== undefined && decoratorsById.has(setId);
+  const shouldCountTowardsSummary =
+    released &&
+    setId !== undefined &&
+    (belongsToDecorator || (belongsToShellSet && isCanonicalShellType(type)));
   const shell: Shell = {
     id,
     name,
@@ -540,6 +813,29 @@ for (const shellConfig of shellConfigs) {
     isNew,
     spec: shellConfig,
   };
+  if (shouldCountTowardsSummary && setId) {
+    const set = shellSetsById.get(setId);
+    if (set) {
+      set.totalComponents++;
+      set.totalPrice += price;
+      if (owned) {
+        set.ownedComponents++;
+      } else {
+        set.priceToComplete += price;
+      }
+    } else {
+      const decorator = decoratorsById.get(setId);
+      if (decorator) {
+        decorator.totalComponents++;
+        if (owned) {
+          decorator.ownedComponents++;
+        }
+      }
+    }
+  }
+  if (isDecoratorShell) {
+    continue;
+  }
   switch (type) {
     case AssetType.GROUND:
     case AssetType.HARDSCAPE:
@@ -656,34 +952,22 @@ for (const shellConfig of shellConfigs) {
   }
 }
 
-// Calculate shell set total components and prices.
-for (const shellType of shellTypes) {
-  for (const shell of shells[shellType]) {
-    const setId = shell.setId;
-    if (setId) {
-      for (const set of shellSets) {
-        if (set.id === setId) {
-          set.totalComponents++;
-          set.totalPrice += shell.price;
-          if (shell.owned) {
-            set.ownedComponents++;
-          } else {
-            set.priceToComplete += shell.price;
-          }
-          break;
-        }
-      }
-    }
-  }
-}
+// Finalize shell set total components and prices.
 for (const set of shellSets) {
   set.complete = set.ownedComponents === set.totalComponents;
   set.owned = set.complete;
   set.priceToComplete = Math.round(set.priceToComplete * (1 - set.discount));
 }
+for (const decorator of decorators) {
+  decorator.complete = decorator.owned;
+  decorator.priceToComplete = decorator.owned ? 0 : decorator.totalPrice;
+}
 
 // Sort shell sets.
 shellSets.sort((s1, s2) => {
+  if (s2.variations.length !== s1.variations.length) {
+    return s2.variations.length - s1.variations.length;
+  }
   if ((s1.spec.requiredEop ?? 0) !== (s2.spec.requiredEop ?? 0)) {
     return (s1.spec.requiredEop ?? 0) - (s2.spec.requiredEop ?? 0);
   }
@@ -692,6 +976,18 @@ shellSets.sort((s1, s2) => {
   }
   if (s1.totalPrice !== s2.totalPrice) {
     return s1.totalPrice - s2.totalPrice;
+  }
+  return 0;
+});
+decorators.sort((d1, d2) => {
+  if ((d1.spec.requiredEop ?? 0) !== (d2.spec.requiredEop ?? 0)) {
+    return (d1.spec.requiredEop ?? 0) - (d2.spec.requiredEop ?? 0);
+  }
+  if ((d1.spec.requiredSoulEggs ?? 0) !== (d2.spec.requiredSoulEggs ?? 0)) {
+    return (d1.spec.requiredSoulEggs ?? 0) - (d2.spec.requiredSoulEggs ?? 0);
+  }
+  if (d1.totalPrice !== d2.totalPrice) {
+    return d1.totalPrice - d2.totalPrice;
   }
   return 0;
 });
@@ -798,410 +1094,51 @@ function sum(arr: number[]) {
 }
 
 const shellsFlat = Object.values(shells).flat();
-const totalPieces = shellsFlat.length + objects.length;
+const shellsFlatOwned = shellsFlat.filter(shell => shell.owned);
+const unavailableShellCount = shellsFlat.filter(shell => isUnavailable(shell)).length;
+const totalShells = shellsFlat.length - unavailableShellCount;
+const decoratorValueOwned = sum(decorators.filter(d => d.owned).map(d => d.totalPrice));
+const variationValueOwned = sum(shellSets.map(set => set.ownedVariationValue));
+const variationPriceToComplete = shellSets.reduce((acc, set) => {
+  const missingVariationValue = set.variations
+    .filter(variation => !variation.owned)
+    .reduce((variationAcc, variation) => variationAcc + variation.price, 0);
+  return acc + missingVariationValue;
+}, 0);
+const totalDecorators = decorators.length;
+const totalDecoratorsOwned = decorators.filter(d => d.owned).length;
+const totalVariations = shellSets.reduce((acc, set) => acc + set.variations.length, 0);
+const totalVariationsOwned = shellSets.reduce(
+  (acc, set) => acc + set.variations.filter(variation => variation.owned).length,
+  0
+);
+const totalPieces = totalShells + objects.length + decorators.length + totalVariations;
 const totalPiecesOwned =
-  shellsFlat.filter(s => s.owned).length + objects.filter(s => s.owned).length;
+  shellsFlatOwned.length +
+  objects.filter(s => s.owned).length +
+  decorators.filter(d => d.owned).length +
+  totalVariationsOwned;
 const totalValueOwned =
-  sum(shellsFlat.filter(s => s.owned).map(s => s.price)) +
-  sum(objects.filter(s => s.owned).map(s => s.price));
+  sum(shellsFlatOwned.map(s => s.price)) +
+  sum(objects.filter(s => s.owned).map(s => s.price)) +
+  decoratorValueOwned +
+  variationValueOwned;
 const costToPurchaseEverything =
   sum(shellSets.map(set => set.priceToComplete)) +
   sum(shellsFlat.filter(s => !s.owned && !s.isPartOfSet).map(s => s.price)) +
-  sum(objects.filter(o => !o.owned).map(o => o.price));
+  sum(objects.filter(o => !o.owned).map(o => o.price)) +
+  sum(decorators.map(decorator => decorator.priceToComplete)) +
+  variationPriceToComplete;
 
 const showShellThingy = (shellThingy: Shell | ShellObject | ShellSet): boolean => {
-  return ((showOwned.value && shellThingy.owned) || (showUnowned.value && !shellThingy.owned)) && 
-     ((showExclusive.value  && shellThingy.expires) || (showNonExclusive.value && !shellThingy.expires))
-}
+  return (
+    ((showOwned.value && shellThingy.owned) || (showUnowned.value && !shellThingy.owned)) &&
+    ((showExclusive.value && shellThingy.expires) || (showNonExclusive.value && !shellThingy.expires))
+  );
+};
 </script>
 
 <style scoped lang="postcss">
-
-.set-woodyellow {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #645343 0%,
-    #645343 50%,
-    #e6c14c 50%,
-    #e6c14c 100%
-  );
-}
-
-.set-pink {
-  @apply border-[0.5px] border-[#cacacc];
-  background: #f3b1f9;
-}
-
-.set-purple {
-  @apply border-[0.5px] border-[#cacacc];
-  background: #9552c5;
-}
-
-.set-doylestown {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #ff5765 0%,
-    #ff5765 33.33%,
-    #6b9c98 33.33%,
-    #6b9c98 66.67%,
-    #fff576 66.67%,
-    #fff576 100%
-  );
-}
-
-.set-yolk {
-  @apply border-[0.5px] border-[#cacacc];
-  background: radial-gradient(
-    ellipse at center,
-    #fffc05 0%,
-    #fffc05 35%,
-    #ffffff 35%,
-    #ffffff 100%
-  );
-}
-
-.set-red_white_blue {
-  @apply border-[0.5px] border-[#cacacc];
-  background: conic-gradient(
-    transparent 0deg,
-    transparent 270deg,
-    #0a3161 270deg
-  ),
-  repeating-linear-gradient(
-    to bottom,
-    #b31942 0%,
-    #b31942 7.6%,
-    #ffffff 7.7%,
-    #ffffff 16%
-  );
-}
-
-.set-seafoam {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #d3f2db 0%,
-    #d3f2db 33.33%,
-    #ffffff 33.33%,
-    #ffffff 66.67%,
-    #ebab8a 66.67%,
-    #ebab8a 100%
-  );
-}
-
-.set-pride {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #ff340b 0%,
-    #ff340b 16.67%,
-    #ff9301 16.67%,
-    #ff9301 33.34%,
-    #ffeb00 33.34%,
-    #ffeb00 50.01%,
-    #6cdb00 50.01%,
-    #6cdb00 66.67%,
-    #0186ff 66.67%,
-    #0186ff 83.34%,
-    #9b50e7 83.34%,
-    #9b50e7 100%
-  );
-}
-
-.set-quicksand {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to bottom,
-    #b0e756 0%,
-    #b0e756 20%,
-    #685b33 20%,
-    #685b33 55%,
-    #4f3c1a 55%,
-    #4f3c1a 100%
-  );
-}
-
-.set-squash {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    135deg,
-    #000000 25%,
-    transparent 25%
-  ) -7px 0/ 14px 14px,
-  linear-gradient(
-    225deg,
-    #777777 24%,
-    transparent 25%
-  ) -7px 0/ 14px 14px,
-  linear-gradient(
-    315deg,
-    #000000 25.5%,
-    transparent 25%
-  ) 0px 0/ 14px 14px,
-  linear-gradient(
-    45deg,
-    #777777 25%,
-    #ffffff 25%
-  ) 0 0/ 14px 14px;
-}
-
-.set-stretch {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    45deg,
-    #000000 25%,
-    transparent 25%
-  ) 0 -7px/ 14px 14px,
-  linear-gradient(
-    135deg,
-    #777777 24%,
-    transparent 25%
-  ) 0 -7px/ 14px 14px,
-  linear-gradient(
-    225deg,
-    #000000 25.5%,
-    transparent 25%
-  ) 0px 0/ 14px 14px,
-  linear-gradient(
-    315deg,
-    #777777 25%,
-    #ffffff 25%
-  ) 0 0/ 14px 14px;
-}
-
-.set-craftsman {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #aa857f 0%,
-    #aa857f 25%,
-    #f8cf7f 25%,
-    #f8cf7f 50%,
-    #fcf8ef 50%,
-    #fcf8ef 75%,
-    #a2b097 75%,
-    #a2b097 100%
-  );
-}
-
-.set-blueorange {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #5ccbf9 0%,
-    #5ccbf9 50%,
-    #f09837 50%,
-    #f09837 100%
-  );
-}
-
-.set-future_white {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #cacacc 0%,
-    #cacacc 50%,
-    white 50%,
-    white 100%
-  );
-}
-  
-.set-starstruck {
-  @apply border-[0.5px] border-[#cacacc];
-  background-image: radial-gradient(
-    #fff 1.25px,
-    transparent 1.25px
-  ), radial-gradient(
-    #fff 1.25px,
-    transparent 1.25px
-  );
-  background-size: 15px 15px;
-  background-position: -2px -1px, 7.5px 7.5px;
-  background-color: #000000
-  ;
-}
-
-.set-black_white {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    black 0%,
-    black 50%,
-    white 50%,
-    white 100%
-  );
-}
-
-.set-plastic {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #ff0000 0%,
-    #ff0000 33.33%,
-    #00ff00 33.33%,
-    #00ff00 66.67%,
-    #0000ff 66.67%,
-    #0000ff 100%
-  );
-}
-
-.set-new_order {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #2f2f31 0%,
-    #2f2f31 33.33%,
-    #58585a 33.33%,
-    #58585a 66.67%,
-    #ea3a2d 66.67%,
-    #ea3a2d 100%
-  );
-}
-
-.set-paperclip {
-    @apply border-[o.5px] border-[#cacacc];
-    background:  conic-gradient(
-      at 62.5% 12.5%,
-      #777777 25%,
-      #0000 0) calc(10px/-8) calc(10px/2),
-    conic-gradient(
-      at 62.5% 12.5%,
-      #777777 25%,
-      #0000 0) calc(-3*10px/8) calc(10px/4),
-    conic-gradient(
-      at 87.5% 62.5%,
-      #777777 25%,
-      #0000 0) calc(3*10px/8) calc(10px/4),
-    conic-gradient(
-      at 87.5% 62.5%,
-      #777777 25%,
-      #0000 0) calc(10px/-8) 0,
-    conic-gradient(
-      at 25% 12.5%,
-      #777777 25%,
-      #0000 0) 0 calc(10px/-4),
-    conic-gradient(
-      at 25% 12.5%,
-      #777777 25%,
-      #0000 0) calc(10px/-4) 0,
-    conic-gradient(
-      at 87.5% 87.5%,
-      #777777 25%,
-      #0000 0) calc(10px/8) 0
-      #ffffff;
-  background-size: 10px 10px
-  ;
-}
-
-.set-neon {
-    @apply border-[o.5px] border-[#cacacc];
-    background:  conic-gradient(
-      at 62.5% 12.5%,
-      #ff10f0 25%,
-      #0000 0) calc(10px/-8) calc(10px/2),
-    conic-gradient(
-      at 62.5% 12.5%,
-      #ff10f0 25%,
-      #0000 0) calc(-3*10px/8) calc(10px/4),
-    conic-gradient(
-      at 87.5% 62.5%,
-      #ff10f0 25%,
-      #0000 0) calc(3*10px/8) calc(10px/4),
-    conic-gradient(
-      at 87.5% 62.5%,
-      #ff10f0 25%,
-      #0000 0) calc(10px/-8) 0,
-    conic-gradient(
-      at 25% 12.5%,
-      #ff10f0 25%,
-      #0000 0) 0 calc(10px/-4),
-    conic-gradient(
-      at 25% 12.5%,
-      #ff10f0 25%,
-      #0000 0) calc(10px/-4) 0,
-    conic-gradient(
-      at 87.5% 87.5%,
-      #ff10f0 25%,
-      #0000 0) calc(10px/8) 0
-      #ffffff;
-  background-size: 10px 10px
-  ;
-}
-
-.set-glitch {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    to right,
-    #8cfffb 0%,
-    #8cfffb 33.33%,
-    #c4ff0e 33.33%,
-    #c4ff0e 66.67%,
-    #ff528a 66.67%,
-    #ff528a 100%
-  );
-}
-
-.set-cheese {
-  @apply border-[0.5px] border-[#cacacc];
-  background-image: radial-gradient(
-    #ffc000 5px,
-    transparent 5px
-  ), radial-gradient(
-    #ffc000 2px,
-    transparent 2px
-  );
-  background-position: -2px -1px, 7px 7px;
-  background-color: #ffe000
-  ;
-}
-
-.set-shrunken {
-    @apply border-[0.5px] border-[#cacacc];
-    background: #d3d3d3;
-}
-
-.set-amore {
-    @apply border-[0.5px] border-[#cacacc];
-    background: #eb3a5b;
-}
-
-.set-shrunken {
-  @apply border-[0.5px] border-[#cacacc];
-  background: repeating-conic-gradient(
-    #000000 0%,
-    #000000 25%,
-    #ffffff 25%,
-    #ffffff 50%
-  );
-}
-
-.set-firehall {
-  @apply border-[0.5px] border-[#cacacc];
-  background: linear-gradient(
-    137deg,
-    #ffffff 0%,
-    #ffffff 50%,
-    #ee0000 50%,
-    #ee0000 100%
-  );
-}
-
-.set-mushroom_village {
-  @apply border-[0.5px] border-[#cacacc];
-  background-image: radial-gradient(
-    #fffbc7 5px,
-    transparent 5px
-  ), radial-gradient(
-    #fffbc7 2px,
-    transparent 2px
-  );
-  background-position: 5px 6px, -4px -7px;
-  background-color: #d2301d
-  ;
-}
-
 .set-unknown {
   @apply relative bg-gray-300;
 }
