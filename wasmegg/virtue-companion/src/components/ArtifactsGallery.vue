@@ -1,12 +1,18 @@
 <template>
+  <div v-if="alreadyOptimal" class="text-center text-sm font-medium text-yellow-500 mb-2">
+    &#x1f389; Already optimal &#x1f389;
+  </div>
   <div class="grid gap-4 text-xs" :style="{ gridTemplateColumns: 'repeat(auto-fill, minmax(15rem, 1fr))' }">
     <div
-      v-for="(artifact, artifactIndex) in artifacts.toSorted((a, b) => a.afxId - b.afxId)"
+      v-for="(artifact, artifactIndex) in artifactSet.artifacts"
       :key="artifactIndex"
       class="px-4 py-4 bg-gray-50 shadow rounded-lg overflow-hidden text-center"
     >
       <div class="flex justify-center mb-2">
-        <div class="h-32 w-32 relative rounded-full" :class="rarityBgClass(artifact.afxRarity) || 'bg-gray-200'">
+        <div
+          class="h-32 w-32 relative rounded-full isolate"
+          :class="rarityBgClass(artifact.afxRarity) || 'bg-gray-200'"
+        >
           <img class="absolute top-0 left-0 h-full w-full z-10" :src="iconURL(artifact.iconPath, 256)" />
           <img
             v-for="(stone, stoneIndex) in artifact.stones.slice().reverse()"
@@ -14,6 +20,34 @@
             class="Artifact__stone z-20"
             :src="iconURL(stone.iconPath, 128)"
           />
+          <svg
+            v-if="artifactAssemblyStatuses"
+            v-tippy="{
+              content: artifactAssemblyStatusTooltip(artifactAssemblyStatuses[artifactIndex]),
+            }"
+            class="Artifact__status z-20 cursor-help"
+            :class="artifactAssemblyStatusClass(artifactAssemblyStatuses[artifactIndex])"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <!-- Heroicon name: solid/check-circle -->
+            <path
+              v-if="
+                artifactAssemblyStatuses[artifactIndex] === ArtifactAssemblyStatus.EQUIPPED ||
+                artifactAssemblyStatuses[artifactIndex] === ArtifactAssemblyStatus.ASSEMBLED
+              "
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+            <!-- Heroicon name: solid/plus-circle -->
+            <path
+              v-if="artifactAssemblyStatuses[artifactIndex] === ArtifactAssemblyStatus.AWAITING_ASSEMBLY"
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+              clip-rule="evenodd"
+            />
+          </svg>
         </div>
       </div>
       <div class="font-medium mb-1">
@@ -34,20 +68,53 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { computed, defineComponent, PropType, toRefs } from 'vue';
 
-import { iconURL } from 'lib';
-import { Artifact } from '@/lib/types';
+import { iconURL, ArtifactSet, artifactSetEqual, ArtifactAssemblyStatus, ArtifactAssemblyStatusNonMissing } from 'lib';
 import { ei } from '@/lib';
 
 export default defineComponent({
   props: {
-    artifacts: {
-      type: Array as PropType<Artifact[]>,
+    artifactSet: {
+      type: Object as PropType<ArtifactSet>,
       required: true,
     },
+    referenceSet: {
+      type: Object as PropType<ArtifactSet | undefined>,
+      default: undefined,
+    },
+    artifactAssemblyStatuses: {
+      type: Array as PropType<ArtifactAssemblyStatusNonMissing[] | undefined>,
+      default: undefined,
+    },
   },
-  setup() {
+  setup(props) {
+    const { artifactSet, referenceSet } = toRefs(props);
+    const artifacts = computed(() => artifactSet.value?.artifacts ?? []);
+    const alreadyOptimal = computed(
+      () =>
+        !!referenceSet.value && artifactSetEqual(artifactSet.value as ArtifactSet, referenceSet.value as ArtifactSet)
+    );
+    const artifactAssemblyStatusClass = (status: ArtifactAssemblyStatusNonMissing): string => {
+      switch (status) {
+        case ArtifactAssemblyStatus.AWAITING_ASSEMBLY:
+          return 'text-red-400';
+        case ArtifactAssemblyStatus.ASSEMBLED:
+          return 'text-blue-400';
+        case ArtifactAssemblyStatus.EQUIPPED:
+          return 'text-green-400';
+      }
+    };
+    const artifactAssemblyStatusTooltip = (status: ArtifactAssemblyStatusNonMissing): string => {
+      switch (status) {
+        case ArtifactAssemblyStatus.AWAITING_ASSEMBLY:
+          return 'Needs to be assembled';
+        case ArtifactAssemblyStatus.ASSEMBLED:
+          return 'Already in your inventory';
+        case ArtifactAssemblyStatus.EQUIPPED:
+          return 'Already equipped';
+      }
+    };
     const rarityFgClass = (afxRarity: ei.ArtifactSpec.Rarity): string => {
       switch (afxRarity) {
         case ei.ArtifactSpec.Rarity.COMMON:
@@ -85,9 +152,13 @@ export default defineComponent({
     //   })
     // );
     return {
+      artifacts,
+      alreadyOptimal,
       rarityFgClass,
       rarityBgClass,
-      // warnings,
+      artifactAssemblyStatusClass,
+      artifactAssemblyStatusTooltip,
+      ArtifactAssemblyStatus,
       iconURL,
     };
   },
@@ -141,6 +212,16 @@ img.Artifact__stone:nth-child(3) {
 
 img.Artifact__stone:nth-child(4) {
   right: 41%;
+}
+
+svg.Artifact__status {
+  position: absolute;
+  top: 7%;
+  right: 7%;
+  height: 17%;
+  width: 17%;
+  border-radius: 9999px;
+  background-color: white;
 }
 
 img.Artifact__warning {

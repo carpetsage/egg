@@ -257,7 +257,7 @@ import {
   calculateClothedTE,
 } from '@/lib';
 import { calculateAndFormatDuration } from 'lib/utils';
-import { Artifact } from '@/lib/types';
+import { Artifact } from 'lib';
 import { formatPercentage, formatWithThousandSeparators } from '@/utils';
 import { getLocalStorage, setLocalStorage } from 'lib/utils';
 import BaseEIValue from 'ui/components/BaseEIValue.vue';

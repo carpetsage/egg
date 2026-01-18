@@ -68,12 +68,14 @@
               {{ formatWithThousandSeparators(Math.round(maxEffectivePopulation)) }}
             </td>
           </tr>
-          <tr v-if="maxEffectivePopulation > currentPopulation && maxEffectivePopulation <= totalHabSpace">
+          <tr v-if="maxEffectivePopulation > currentPopulation && maxEffectivePopulation < totalHabSpace">
             <td class="py-1.5 pr-4 text-gray-600 align-top pt-2">Time to max effective pop</td>
             <td class="py-1.5 text-right text-green-600 tabular-nums">
               <div
                 v-tippy="{
-                  content: `${dayjs(currentTimestamp).add(calculateTimeToMaxEffective(offlineIHR), 'seconds').format('LLL')} (offline)`,
+                  content: `${dayjs(currentTimestamp)
+                    .add(calculateTimeToMaxEffective(offlineIHR), 'seconds')
+                    .format('LLL')} (offline)`,
                 }"
               >
                 {{ formatDurationAuto(calculateTimeToMaxEffective(offlineIHR)) }}
@@ -81,7 +83,9 @@
               </div>
               <div
                 v-tippy="{
-                  content: `${dayjs(currentTimestamp).add(calculateTimeToMaxEffective(onlineIHR), 'seconds').format('LLL')} (online)`,
+                  content: `${dayjs(currentTimestamp)
+                    .add(calculateTimeToMaxEffective(onlineIHR), 'seconds')
+                    .format('LLL')} (online)`,
                 }"
                 class="mt-0.5"
               >
@@ -172,6 +176,7 @@ export default defineComponent({
   },
   setup(props) {
     const { backup, currentTimestamp } = toRefs(props);
+
     const farm = backup.value.farms![0];
     const progress = backup.value.game!;
     const artifacts = homeFarmArtifacts(backup.value, true);
@@ -185,13 +190,13 @@ export default defineComponent({
     const lastRefreshedTimestamp = farm.lastStepTime! * 1000;
     const lastRefreshedPopulation = farm.numChickens! as number;
 
-    const totalTruthEggs = computed(() => getNumTruthEggs(backup.value));
+    const totalTruthEggs = getNumTruthEggs(backup.value);
     const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
     const { onlineRate: onlineIHR, offlineRate: offlineIHR } = farmInternalHatcheryRates(
       internalHatcheryResearches,
       artifacts,
       modifiers.ihr,
-      totalTruthEggs.value
+      totalTruthEggs
     );
 
     const currentPopulation = computed(() =>
@@ -221,14 +226,11 @@ export default defineComponent({
       return Array.from(groups.values());
     });
 
-    const unfinishedResearches = computed(() => researches.filter(r => r.level < r.maxLevel));
+    const unfinishedResearches = researches.filter(r => r.level < r.maxLevel);
 
     const timeToHabLock = (ihr: number) => calculateTimeToHabLock(totalHabSpace, currentPopulation.value, ihr);
-
-    const calculateTimeToMaxEffective = (ihr: number) => {
-      if (ihr <= 0 || maxEffectivePopulation <= currentPopulation.value) return 0;
-      return (maxEffectivePopulation - currentPopulation.value) / ihr;
-    };
+    const timeToMaxEffectivePop = (ihr: number) =>
+      calculateTimeToHabLock(maxEffectivePopulation, currentPopulation.value, ihr);
 
     return {
       groupedHabs,
@@ -241,7 +243,7 @@ export default defineComponent({
       onlineIHR,
       maxEffectivePopulation,
       calculateTimeToHabLock: timeToHabLock,
-      calculateTimeToMaxEffective,
+      calculateTimeToMaxEffective: timeToMaxEffectivePop,
       formatWithThousandSeparators,
       formatDurationAuto,
       dayjs,

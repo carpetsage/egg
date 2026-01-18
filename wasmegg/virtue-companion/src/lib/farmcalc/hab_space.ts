@@ -1,6 +1,5 @@
 import { habSpaceMultiplier } from '../effects';
-import { ei, Hab, isHabId, habTypes, HabSpaceResearch, HabSpaceResearchInstance } from 'lib';
-import { Artifact } from '../types';
+import { ei, Hab, isHabId, habTypes, HabSpaceResearch, HabSpaceResearchInstance, Artifact } from 'lib';
 import { farmResearch, farmResearches } from './common';
 
 export type { Hab, HabSpaceResearch, HabSpaceResearchInstance } from 'lib';

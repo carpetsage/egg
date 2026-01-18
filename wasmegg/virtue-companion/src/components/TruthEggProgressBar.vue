@@ -51,7 +51,7 @@
             />
             <span class="font-medium">{{ fmtApprox(eggsLaidOfflineAdjusted) }}</span>
           </p>
-          <template v-if="onVirtue">
+          <template v-if="showThresholdSpoilers && onVirtue">
             <br />Next {{ timeToThresholds.length }} Truth Eggs Expected In:
             <div class="grid grid-cols-[auto_auto_auto_1fr] gap-x-4">
               <div class="font-semibold text-xs">TE</div>
@@ -59,12 +59,10 @@
               <div class="font-semibold text-xs">Duration</div>
               <div class="font-semibold text-xs">Target Date</div>
               <template v-for="(timeToTarget, index) in timeToThresholds" :key="index">
-                <template v-if="showThresholdSpoilers || shouldShowThresholdAtIndex(index)">
-                  <div class="text-xs">{{ index + 1 + te }}</div>
-                  <div class="text-xs">{{ fmtApprox(TE_BREAKPOINTS[index + te]) }}</div>
-                  <div class="text-xs">{{ formatDuration(timeToTarget) }}</div>
-                  <div class="text-xs font-mono">{{ targetDateTimes[index] }}</div>
-                </template>
+                <div class="text-xs">{{ index + 1 + te }}</div>
+                <div class="text-xs">{{ fmtApprox(TE_BREAKPOINTS[index + te]) }}</div>
+                <div class="text-xs">{{ formatDuration(timeToTarget) }}</div>
+                <div class="text-xs font-mono">{{ targetDateTimes[index] }}</div>
               </template>
             </div>
             <div class="text-xs mt-2">Assuming offline IHR</div>
@@ -94,7 +92,7 @@
               <span class="font-medium">???</span>
             </template>
           </p>
-          <template v-if="onVirtue">
+          <template v-if="showThresholdSpoilers && onVirtue">
             <br />Next {{ timeToThresholds.length }} Truth Eggs Expected In:
             <div class="grid grid-cols-[auto_auto_auto_1fr] gap-x-4">
               <div class="font-semibold text-xs">TE</div>
@@ -231,7 +229,9 @@ export default defineComponent({
 
     const shouldShowThresholdAtIndex = (index: number) => {
       const threshold = TE_BREAKPOINTS[te.value + index];
-      return discoveredThresholds.value.includes(threshold);
+      const result = discoveredThresholds.value.includes(threshold);
+
+      return result;
     };
 
     const computePercentage = (val: number, decimals = 3) => {

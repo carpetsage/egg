@@ -1,5 +1,4 @@
-import { ei } from 'lib';
-import { Artifact } from '../types';
+import { ei, Artifact } from 'lib';
 import { additiveEffect } from './common';
 
 export function soulEggBonusFromArtifacts(artifacts: Artifact[]): number {
@@ -7,8 +6,5 @@ export function soulEggBonusFromArtifacts(artifacts: Artifact[]): number {
 }
 
 export function prophecyEggBonusFromArtifacts(artifacts: Artifact[]): number {
-  return additiveEffect(artifacts, [
-    ei.ArtifactSpec.Name.BOOK_OF_BASAN,
-    ei.ArtifactSpec.Name.PROPHECY_STONE,
-  ]);
+  return additiveEffect(artifacts, [ei.ArtifactSpec.Name.BOOK_OF_BASAN, ei.ArtifactSpec.Name.PROPHECY_STONE]);
 }

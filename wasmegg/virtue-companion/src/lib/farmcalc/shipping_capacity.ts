@@ -8,10 +8,11 @@ import {
   vehicleTypes,
   ShippingCapacityResearch,
   ShippingCapacityResearchInstance,
+  Artifact,
 } from 'lib';
 import { getResearchesByCategory } from '../researches';
 import { shippingCapacityMultiplier } from '../effects';
-import { Artifact, Research, ResearchInstance } from '../types';
+import { Research, ResearchInstance } from '../types';
 import { farmResearches } from './common';
 
 export type { VehicleType, Vehicle, ShippingCapacityResearch, ShippingCapacityResearchInstance } from 'lib';

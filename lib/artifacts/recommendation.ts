@@ -31,7 +31,19 @@
  * The algorithm uses divide and conquer + exhaustive search with pruning.
  */
 
-import { ArtifactSet, ei, Farm, getNumProphecyEggs, Inventory, InventoryFamily, Item, newItem } from '..';
+import {
+  Artifact,
+  ArtifactAssemblyStatus,
+  ArtifactAssemblyStatusNonMissing,
+  ArtifactSet,
+  ei,
+  Farm,
+  getNumProphecyEggs,
+  Inventory,
+  InventoryFamily,
+  Item,
+  newItem,
+} from '..';
 
 const debug = import.meta.env.DEV || import.meta.env.VITE_APP_BETA;
 import Name = ei.ArtifactSpec.Name;
@@ -289,6 +301,39 @@ function contendersInArtifactFamily(
   return contenders;
 }
 
+function contendersInArtifactFamilyWithSlots(
+  family: InventoryFamily | undefined,
+  getEffectMultiplier: (delta: number, stoneSlots: number) => number,
+  prioritizeSlots: boolean
+): Contenders {
+  const contenders = new Contenders();
+  if (!family) {
+    return contenders;
+  }
+  if (family.type !== Type.ARTIFACT) {
+    throw new Error(`${Type[family.type]} is not an artifact`);
+  }
+  const rarities = [Rarity.LEGENDARY, Rarity.EPIC, Rarity.RARE, Rarity.COMMON];
+  for (const tier of family.tiers) {
+    for (const rarity of rarities) {
+      if (tier.haveRarity[rarity] > 0) {
+        const artifact = newItem({
+          name: tier.afxId,
+          level: tier.afxLevel,
+          rarity,
+        });
+        const effectDelta = tier.effectDelta(rarity);
+        const stoneSlots = tier.stoneSlotCount(rarity);
+        contenders.add(new Contender([artifact], [], 1, -stoneSlots, getEffectMultiplier(effectDelta, stoneSlots)));
+        break;
+      }
+    }
+  }
+  contenders.trim();
+  contenders.debug(`Contenders in family ${Name[family.afxId]}`);
+  return contenders;
+}
+
 function bestsInStoneFamily(family: InventoryFamily | undefined, n: number): Item[] {
   if (!family) {
     return [];
@@ -416,7 +461,7 @@ function range(n: number): number[] {
 export function recommendArtifactSet(
   backup: ei.IBackup,
   strategy: Strategy,
-  opts?: { excludedIds?: string[]; debug?: boolean }
+  opts?: { excludedIds?: string[]; debug?: boolean; requireGusset?: boolean }
 ): Contender {
   const debug = opts?.debug ?? false;
   const isVirtue = isVirtueStrategy(strategy);
@@ -491,12 +536,18 @@ export function recommendArtifactSet(
     families.get(Name.THE_CHALICE),
     isVirtue ? inactiveMultiplierFunc : prestigeMultiplierFunc
   );
+  // For virtue or when gusset is required, prioritize stone slots over effect
   const bestGussets = contendersInArtifactFamily(
     families.get(Name.ORNATE_GUSSET),
     isVirtue ? inactiveMultiplierFunc : prestigeMultiplierFunc
   );
   const bestTotems = contendersInArtifactFamily(families.get(Name.LUNAR_TOTEM), totemFunc);
   const bestCubes = contendersInArtifactFamily(families.get(Name.PUZZLE_CUBE), cubeFunc);
+
+  // Validate gusset availability if required
+  if (opts?.requireGusset && bestGussets.isEmpty) {
+    throw new Error('Gusset required but none available in inventory');
+  }
 
   // Other artifacts as stone holders
   const others = [
@@ -551,10 +602,22 @@ export function recommendArtifactSet(
   const independentArtifactCombos = newArray(artifactSlots + 1, () => new Contenders());
   for (let n = artifactSlots - 2; n <= artifactSlots; n++) {
     const combos = new Contenders();
-    for (const familyCombo of combinations(choices, n)) {
-      const pools = familyCombo.map(family => [...family.iter()]);
-      for (const combo of product(...pools)) {
-        combos.add(combine(...combo));
+    if (opts?.requireGusset) {
+      // Only generate combos that include a gusset
+      const otherChoices = choices.filter(c => c !== bestGussets);
+      // Generate combos with n-1 slots from other choices, plus 1 gusset
+      for (const familyCombo of combinations(otherChoices, n - 1)) {
+        const pools = [...familyCombo, bestGussets].map(family => [...family.iter()]);
+        for (const combo of product(...pools)) {
+          combos.add(combine(...combo));
+        }
+      }
+    } else {
+      for (const familyCombo of combinations(choices, n)) {
+        const pools = familyCombo.map(family => [...family.iter()]);
+        for (const combo of product(...pools)) {
+          combos.add(combine(...combo));
+        }
       }
     }
     combos.trim();
@@ -730,4 +793,196 @@ export function recommendArtifactSet(
   }
 
   return winner;
+}
+
+class ImpossibleError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ImpossibleError';
+  }
+}
+
+function notNull<T>(value: T | null): value is T {
+  return value !== null;
+}
+
+// Check if a stoned artifact in choices (1) has the specified host item and (2)
+// all its stones are within the stonePool. If there are multiple candidates,
+// choose one with the most stones.
+function findMatchingItem(host: Item, stonePool: Item[], choices: Artifact[]): Artifact | null {
+  const hostKey = host.key;
+  const stonePoolCounter = new Counter(stonePool.map(s => s.key));
+  let match: Artifact | null = null;
+  let matchStoneCount = 0;
+  for (const choice of choices) {
+    if (choice.key !== hostKey || choice.stones.length <= matchStoneCount) {
+      continue;
+    }
+    if (stonePoolCounter.contains(choice.stones.map(s => s.key))) {
+      match = choice;
+      matchStoneCount = choice.stones.length;
+    }
+  }
+  return match;
+}
+
+class Counter<T> {
+  counts: Map<T, number>;
+
+  constructor(s: Iterable<T>) {
+    this.counts = new Map<T, number>();
+    for (const el of s) {
+      this.counts.set(el, (this.counts.get(el) ?? 0) + 1);
+    }
+  }
+
+  contains(c: Counter<T> | Iterable<T>) {
+    const counts = c instanceof Counter ? c.counts : new Counter(c).counts;
+    for (const [el, count] of counts.entries()) {
+      if ((this.counts.get(el) ?? 0) < count) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+// Extract an item from items if it exists (items is updated in place) and
+// returns it. Returns null if it doesn't exist.
+function extractItem(items: Item[], wantedItem: Item): Item | null {
+  const wantedKey = wantedItem.key;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].key === wantedKey) {
+      const extracted = items[i];
+      items.splice(i, 1);
+      return extracted;
+    }
+  }
+  return null;
+}
+
+/**
+ * Convert a Contender to an ArtifactSet with assembly statuses.
+ * This function takes the recommended artifact/stone combination and constructs
+ * actual Artifact objects, matching against the currently equipped set and inventory.
+ *
+ * @param contender - The winning contender from recommendArtifactSet
+ * @param guide - The currently equipped artifact set
+ * @param inventory - The player's artifact inventory
+ * @returns Object with the constructed artifact set and assembly status for each artifact
+ */
+export function contenderToArtifactSet(
+  contender: Contender,
+  guide: ArtifactSet,
+  inventory: Inventory
+): { artifactSet: ArtifactSet; assemblyStatuses: ArtifactAssemblyStatusNonMissing[] } {
+  // First test if the currently equipped set is already optimal, and if so
+  // directly return it.
+  if (contender.equals(Contender.fromArtifactSet(guide))) {
+    return {
+      artifactSet: new ArtifactSet(guide.artifacts, false),
+      assemblyStatuses: guide.artifacts.map(() => ArtifactAssemblyStatus.EQUIPPED),
+    };
+  }
+
+  const unstonedArtifacts = [...contender.artifacts].sort((a1, a2) => {
+    if (a1.slots !== a2.slots) {
+      return a1.slots - a2.slots;
+    }
+    if (a1.baseCraftingPrice !== a2.baseCraftingPrice) {
+      return a1.baseCraftingPrice - a2.baseCraftingPrice;
+    }
+    return a1.quality - a2.quality;
+  });
+  const stones = [...contender.stones];
+  const guideArtifacts = guide.artifacts;
+  const inventoryArtifacts = inventory.stoned;
+
+  let constructedArtifacts: Artifact[] = [];
+  for (const host of unstonedArtifacts) {
+    if (host.slots === 0) {
+      constructedArtifacts.push(new Artifact(host, []));
+      continue;
+    }
+    // Attempt to find a match first in the guide set, then in the inventory.
+    const match = findMatchingItem(host, stones, guideArtifacts) || findMatchingItem(host, stones, inventoryArtifacts);
+    const constructed = match !== null ? new Artifact(match.host, [...match.stones]) : new Artifact(host, []);
+    constructedArtifacts.push(constructed);
+    for (const stone of constructed.stones) {
+      const extracted = extractItem(stones, stone);
+      if (extracted === null) {
+        throw new ImpossibleError(`trying to slot ${stone.id} which doesn't exist in the recommendation`);
+      }
+    }
+  }
+
+  // Put in the remaining stones, less expensive ones first, so that future
+  // replacements hopefully happen on cheaper hosts first.
+  if (stones.length > 0) {
+    stones.sort((s1, s2) => s1.baseCraftingPrice - s2.baseCraftingPrice);
+    for (const constructed of constructedArtifacts) {
+      while (stones.length > 0 && constructed.stones.length < constructed.slots) {
+        constructed.stones.push(stones.shift()!);
+      }
+      if (stones.length === 0) {
+        break;
+      }
+    }
+  }
+  if (stones.length > 0) {
+    throw new ImpossibleError(`nowhere to slot some stones in the recommendation: ${stones.map(s => s.id).join(', ')}`);
+  }
+
+  // Reorder constructed artifacts to best match the guide set.
+  const reordered: (Artifact | null)[] = [...constructedArtifacts];
+  while (reordered.length < guideArtifacts.length) {
+    reordered.push(null);
+  }
+  for (let i = 0; i < guideArtifacts.length; i++) {
+    const guideAfxId = guideArtifacts[i].afxId;
+    if (reordered[i]?.afxId === guideAfxId) {
+      continue;
+    }
+    for (let j = 0; j < reordered.length; j++) {
+      if (reordered[j]?.afxId === guideAfxId) {
+        [reordered[i], reordered[j]] = [reordered[j], reordered[i]];
+        break;
+      }
+    }
+  }
+  constructedArtifacts = reordered.filter(notNull);
+  const constructedSet = new ArtifactSet(constructedArtifacts, false);
+
+  // Double check.
+  const constructedContender = Contender.fromArtifactSet(constructedSet);
+  if (!constructedContender.equals(contender)) {
+    console.error(`constructed:`, constructedArtifacts);
+    throw new ImpossibleError(
+      `constructed set differ from contender generated by recommendataion engine: ` +
+        `got ${constructedContender}, expected ${contender}`
+    );
+  }
+
+  const guideArtifactKeys = new Set(guideArtifacts.map(artifact => artifact.completeKey));
+  const inventoryArtifactKeys = new Set(inventoryArtifacts.map(artifact => artifact.completeKey));
+  const assemblyStatuses = <ArtifactAssemblyStatusNonMissing[]>[];
+  for (const artifact of constructedArtifacts) {
+    const key = artifact.completeKey;
+    if (guideArtifactKeys.has(key)) {
+      assemblyStatuses.push(ArtifactAssemblyStatus.EQUIPPED);
+    } else if (artifact.stones.length === 0) {
+      // Unstoned artifacts are trivially "assembled".
+      assemblyStatuses.push(ArtifactAssemblyStatus.ASSEMBLED);
+      continue;
+    } else {
+      assemblyStatuses.push(
+        inventoryArtifactKeys.has(key) ? ArtifactAssemblyStatus.ASSEMBLED : ArtifactAssemblyStatus.AWAITING_ASSEMBLY
+      );
+    }
+  }
+
+  return {
+    artifactSet: constructedSet,
+    assemblyStatuses,
+  };
 }

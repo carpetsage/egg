@@ -65,7 +65,7 @@
 <script lang="ts">
 import { defineComponent, computed, PropType, ref, toRefs, watch, reactive } from 'vue';
 import { ei, formatEIValue, allModifiersFromColleggtibles, getLocalStorage, setLocalStorage, researches } from '@/lib';
-import { Artifact } from '@/lib/types';
+import { Artifact } from 'lib';
 import {
   researchPriceMultiplier,
   homeFarmArtifacts,

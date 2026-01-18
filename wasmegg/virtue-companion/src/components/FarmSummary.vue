@@ -6,9 +6,19 @@
       <div class="text-xs text-gray-600">Egg delivery</div>
     </div>
     <div class="bg-gray-50 rounded-lg p-2 border border-gray-200">
-      <div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Clothed TE</div>
-      <div class="text-sm text-gray-900">{{ Math.round(clothedTE).toLocaleString() }}</div>
-      <div class="text-xs text-gray-600">Max: {{ Math.round(maxClothedTE).toLocaleString() }}</div>
+      <div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+        Clothed TE
+
+        <base-info
+          v-tippy="{
+            content:
+              'Adjusted Truth Egg count based on bonuses from artifacts, colleggtibles, and epic research. Used to more easily compare progress between players.',
+          }"
+          class="inline relative -top-px ml-1 text-gray-400"
+        />
+      </div>
+      <div class="text-sm text-gray-900">{{ Math.round(maxClothedTE).toLocaleString() }}</div>
+      <div class="text-xs text-gray-600">Active: {{ Math.round(clothedTE).toLocaleString() }}</div>
     </div>
 
     <div class="bg-gray-50 rounded-lg p-2 border border-gray-200">
@@ -27,8 +37,8 @@
 
     <div class="bg-gray-50 rounded-lg p-2 border border-gray-200">
       <div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Silos</div>
-      <div class="text-sm text-gray-900">{{ silosOwned }}</div>
-      <div class="text-xs text-gray-600">{{ formatDuration(totalAwayTimeMinutes) }} away</div>
+      <div class="text-sm text-gray-900">{{ formatDuration(totalAwayTimeMinutes) }}</div>
+      <div class="text-xs text-gray-600">{{ silosOwned }} silos</div>
     </div>
 
     <div class="bg-gray-50 rounded-lg p-2 border border-gray-200">
@@ -42,6 +52,7 @@
 </template>
 
 <script lang="ts">
+import BaseInfo from 'ui/components/BaseInfo.vue';
 import { computed, defineComponent, toRefs, type PropType } from 'vue';
 import {
   ei,
@@ -66,6 +77,7 @@ import {
 } from '@/lib';
 
 export default defineComponent({
+  components: { BaseInfo },
   props: {
     backup: { type: Object as PropType<ei.IBackup>, required: true },
     currentPopulation: { type: Number, required: true },

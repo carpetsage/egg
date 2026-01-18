@@ -1,6 +1,6 @@
-import { ei } from 'lib';
+import { ei, Artifact } from 'lib';
 import { eggValueMultiplier } from '../effects';
-import { Artifact, Research, ResearchInstance } from '../types';
+import { Research, ResearchInstance } from '../types';
 import { farmResearches } from './common';
 
 interface EggValueResearch extends Research {

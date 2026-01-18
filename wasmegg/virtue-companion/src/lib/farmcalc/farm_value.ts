@@ -1,6 +1,5 @@
-import { eggValue as getEggValue, ei } from 'lib';
+import { eggValue as getEggValue, ei, Artifact } from 'lib';
 import { farmValueMultiplier } from '../effects/farm_value';
-import { Artifact } from '../types';
 import { farmResearch } from './common';
 import { farmEarningBonus } from './earning_bonus';
 import { farmEggValue, farmEggValueResearches } from './egg_value';

@@ -1,5 +1,5 @@
 import { ei } from './proto';
-import { customEggs, SafeCustomEgg } from './eggs';
+import { customEggs, groupCustomEggsByDimension, SafeCustomEgg } from './eggs';
 
 type Modifier = keyof typeof ei.GameModifier.GameDimension;
 export type ValidModifier = Exclude<Modifier, 'INVALID'>;
@@ -25,7 +25,7 @@ export type Modifiers = {
   researchCost: number;
 };
 
-const modifierKeys = Object.keys(ei.GameModifier.GameDimension).filter(x => x != 'INVALID') as ValidModifier[];
+export const modifierKeys = Object.keys(ei.GameModifier.GameDimension).filter(x => x != 'INVALID') as ValidModifier[];
 // Create map of string modifier name to enum value
 const modifierNames = modifierKeys.map(m => ({ name: m, modifier: ei.GameModifier.GameDimension[m] }));
 
@@ -147,4 +147,28 @@ export function maxModifierFromColleggtibles(modifier: ei.GameModifier.GameDimen
       const maxValue = egg.buffs[3]?.value ?? 1;
       return total * maxValue;
     }, 1);
+}
+
+export function allMaxModifiersFromColleggtibles() {
+  const modifiers = new Map<ei.GameModifier.GameDimension, number>(
+    groupCustomEggsByDimension().map(modifierGroup => [
+      modifierGroup[0].buffs[0]?.dimension,
+      modifierGroup.reduce((total, egg) => {
+        const maxValue = egg.buffs[3]?.value ?? 1;
+        return total * maxValue;
+      }, 1),
+    ])
+  );
+
+  return {
+    earnings: modifiers.get(ei.GameModifier.GameDimension.EARNINGS) ?? 1,
+    awayEarnings: modifiers.get(ei.GameModifier.GameDimension.AWAY_EARNINGS) ?? 1,
+    ihr: modifiers.get(ei.GameModifier.GameDimension.INTERNAL_HATCHERY_RATE) ?? 1,
+    elr: modifiers.get(ei.GameModifier.GameDimension.EGG_LAYING_RATE) ?? 1,
+    shippingCap: modifiers.get(ei.GameModifier.GameDimension.SHIPPING_CAPACITY) ?? 1,
+    habCap: modifiers.get(ei.GameModifier.GameDimension.HAB_CAPACITY) ?? 1,
+    vehicleCost: modifiers.get(ei.GameModifier.GameDimension.VEHICLE_COST) ?? 1,
+    habCost: modifiers.get(ei.GameModifier.GameDimension.HAB_COST) ?? 1,
+    researchCost: modifiers.get(ei.GameModifier.GameDimension.RESEARCH_COST) ?? 1,
+  };
 }

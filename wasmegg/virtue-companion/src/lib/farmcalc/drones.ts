@@ -1,6 +1,5 @@
-import { ei } from 'lib';
+import { ei, Artifact } from 'lib';
 import { droneRewardsMultiplier } from '../effects';
-import { Artifact } from '../types';
 import { farmResearch } from './common';
 
 // Based on @mikit's research:

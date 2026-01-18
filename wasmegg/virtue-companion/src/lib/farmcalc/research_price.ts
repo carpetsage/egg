@@ -1,7 +1,6 @@
-import { ei } from 'lib';
+import { ei, Artifact } from 'lib';
 import { farmResearch } from './common';
 import { researchPriceMultiplierFromArtifacts } from '../effects';
-import { Artifact } from '../types';
 
 export function researchPriceMultiplierFromResearches(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): number {
   const research = farmResearch(farm, progress, {

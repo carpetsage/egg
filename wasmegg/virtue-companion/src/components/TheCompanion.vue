@@ -84,7 +84,7 @@
           :backup="backup"
           :current-population="currentPopulation"
           :clothed-t-e="clothedTE"
-          :max-clothed-t-e="maxClothedTEResult.clothedTE"
+          :max-clothed-t-e="maxClothedTE"
           :always-count-video-doubler="earningsSectionRef?.alwaysCountVideoDoubler || false"
         />
       </collapsible-section>
@@ -141,7 +141,7 @@
         <earnings-section
           ref="earningsSectionRef"
           :backup="backup"
-          :optimal-artifacts="maxClothedTEResult.artifacts"
+          :optimal-artifacts="cteArtiSet.artifacts"
           :target-t-e="targetTE"
           :current-population="currentPopulation"
           :total-truth-eggs-pending="totalTruthEggsPending"
@@ -159,7 +159,7 @@
           :backup="backup"
           :set-cash-target="setCashTarget"
           :add-cash-target="addCashTarget"
-          :earnings-set="maxClothedTEResult.artifacts"
+          :earnings-set="cteArtiSet.artifacts"
         />
       </collapsible-section>
 
@@ -171,15 +171,19 @@
         class="my-2 text-sm"
         @toggle="toggleSectionVisibility('artifacts')"
       >
-        <artifacts-gallery :artifacts="artifacts" />
+        <artifacts-gallery :artifact-set="equippedArtiSet" />
       </collapsible-section>
       <collapsible-section
-        :section-title="`Optimal Artifacts for Earnings (Clothed TE: ${formatWithThousandSeparators(Math.round(maxClothedTEResult.clothedTE))})`"
-        :visible="isVisibleSection('artifacts')"
+        :section-title="`Optimal Artifacts for Earnings (Clothed TE: ${formatWithThousandSeparators(Math.round(maxClothedTE))})`"
+        :visible="isVisibleSection('artifacts-cte')"
         class="my-2 text-sm"
-        @toggle="toggleSectionVisibility('artifacts')"
+        @toggle="toggleSectionVisibility('artifacts-cte')"
       >
-        <artifacts-gallery :artifacts="maxClothedTEResult.artifacts" />
+        <artifacts-gallery
+          :artifact-set="cteArtiSet"
+          :reference-set="equippedArtiSet"
+          :artifact-assembly-statuses="cteAssemblyStatuses"
+        />
       </collapsible-section>
     </template>
   </main>
@@ -196,6 +200,7 @@ import utc from 'dayjs/plugin/utc';
 
 import {
   iconURL,
+  ArtifactSet,
   UserBackupEmptyError,
   getLocalStorage,
   setLocalStorage,
@@ -203,6 +208,9 @@ import {
   fmtApprox,
   nextShiftCost,
   getNumTruthEggs,
+  Inventory,
+  contenderToArtifactSet,
+  ArtifactAssemblyStatus,
 } from 'lib';
 import {
   allModifiersFromColleggtibles,
@@ -308,9 +316,18 @@ export default defineComponent({
     );
 
     const artifacts = homeFarmArtifacts(backup, true);
+    const equippedArtiSet = new ArtifactSet(artifacts, false);
 
-    // Calculate max clothed TE with optimal artifacts
-    const maxClothedTEResult = calculateMaxClothedTE(backup);
+    // Create inventory and convert contender to artifact set with assembly statuses
+    const inventory = new Inventory(backup.artifactsDb!, { virtue: true });
+    // Calculate max clothed TE and optimal artifacts
+    const { clothedTE: maxClothedTE, recommendedArtifacts: maxClothedTEArtifacts } = calculateMaxClothedTE(
+      backup,
+      inventory,
+      equippedArtiSet
+    );
+
+    const { artifactSet: cteArtiSet, assemblyStatuses: cteAssemblyStatuses } = maxClothedTEArtifacts;
 
     refreshIntervalId = setInterval(() => {
       currentTimestamp.value = Date.now();
@@ -472,13 +489,18 @@ export default defineComponent({
       artifacts,
       backup,
 
+      // Artifact Sets
+      equippedArtiSet,
+      cteArtiSet,
+      cteAssemblyStatuses,
+
       // Population & timing
       currentPopulation,
       currentTimestamp,
 
       // Earnings data
       clothedTE,
-      maxClothedTEResult,
+      maxClothedTE,
 
       // Internal hatchery
       internalHatcheryResearches,

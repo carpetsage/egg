@@ -147,7 +147,7 @@
             <div
               v-tippy="{
                 content:
-                  totalTime <= 0
+                  totalTime <= 0 || !onVirtue
                     ? undefined
                     : showThresholdSpoilers ||
                         targetTE <= Math.max(...truthEggs.map((earned, i) => earned + truthEggsPending[i]))
@@ -235,8 +235,15 @@ export default defineComponent({
   },
   emits: ['update:targetTE'],
   setup(props) {
-    const { targetTE, showThresholdSpoilers, egg, activeEOVDeliveredAdjusted, eovDelivered, discoveredThresholds } =
-      toRefs(props);
+    const {
+      backup,
+      targetTE,
+      showThresholdSpoilers,
+      egg,
+      activeEOVDeliveredAdjusted,
+      eovDelivered,
+      discoveredThresholds,
+    } = toRefs(props);
 
     const RELATIVE_PROGRESS_KEY = 'showRelativeProgress';
     const showRelativeProgress = ref(getLocalStorage(RELATIVE_PROGRESS_KEY) !== 'false');
@@ -245,6 +252,7 @@ export default defineComponent({
       setLocalStorage(RELATIVE_PROGRESS_KEY, showRelativeProgress.value.toString());
     });
 
+    const onVirtue = computed(() => virtueEggs.includes(backup.value.farms?.at(0)?.eggType || ei.Egg.UNKNOWN));
     const shouldShowThreshold = (currentDelivered: number) => {
       const threshold = nextTruthEggThreshold(currentDelivered);
       return showThresholdSpoilers.value || discoveredThresholds.value.includes(threshold);
@@ -356,6 +364,7 @@ export default defineComponent({
       totalTargetDate,
       totalEggsToTarget,
       formatDuration,
+      onVirtue,
     };
   },
 });

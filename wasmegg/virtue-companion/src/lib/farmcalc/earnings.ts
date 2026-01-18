@@ -1,5 +1,7 @@
 import {
   ei,
+  Artifact,
+  Stone,
   Modifiers,
   maxModifierFromColleggtibles,
   allModifiersFromColleggtibles,
@@ -7,9 +9,11 @@ import {
   recommendArtifactSet,
   Strategy,
   Contender,
+  contenderToArtifactSet,
+  ArtifactSet,
+  Inventory,
 } from 'lib';
 import { awayEarningsMultiplier, eggValueMultiplier, researchPriceMultiplierFromArtifacts } from '../effects';
-import { Artifact, Stone } from '../types';
 import { farmEarningBonus } from './earning_bonus';
 import { farmEggValue, farmEggValueResearches } from './egg_value';
 import { farmEggLayingRate } from './laying_rate';
@@ -125,49 +129,19 @@ export function calculateClothedTE(backup: ei.IBackup, artifactsOverride?: Artif
  * Uses the shared recommendation algorithm from /lib with virtue strategy.
  *
  * @param backup - The backup data
- * @returns Object with max clothed TE and the optimal artifact set
+ * @returns Object with max clothed TE and the winning contender
  */
-export function calculateMaxClothedTE(backup: ei.IBackup) {
-  const inventory = backup.artifactsDb?.virtueAfxDb?.inventoryItems;
-  if (!inventory) {
-    return { clothedTE: calculateClothedTE(backup), artifacts: [] };
-  }
-
+export function calculateMaxClothedTE(backup: ei.IBackup, inventory: Inventory, equipped: ArtifactSet) {
   // Determine strategy based on permit
   const progress = backup.game!;
   const strategy = progress.permitLevel === 1 ? Strategy.PRO_PERMIT_VIRTUE_CTE : Strategy.STANDARD_PERMIT_VIRTUE_CTE;
 
-  // Get recommendation from shared algorithm
-  const winner = recommendArtifactSet(backup, strategy, { debug: false });
+  // Get recommendation from smartass algorithm
+  const contender = recommendArtifactSet(backup, strategy);
 
-  // Convert Contender to Artifact[] format expected by virtue companion
-  const artifacts = contenderToArtifacts(winner, backup);
+  // Convert Contender to ArtifactSet format
+  const recommendedArtifacts = contenderToArtifactSet(contender, equipped, inventory);
 
-  const clothedTE = calculateClothedTE(backup, artifacts);
-  return { clothedTE, artifacts };
-}
-
-/**
- * Convert a Contender (from recommendation algorithm) to Artifact[] format.
- * Matches stones to artifacts by filling slots greedily.
- */
-function contenderToArtifacts(contender: Contender, _backup: ei.IBackup): Artifact[] {
-  const result: Artifact[] = [];
-  const stones = [...contender.stones];
-
-  for (const artifactItem of contender.artifacts) {
-    const artifact: Artifact = {
-      ...artifactItem,
-      stones: [],
-    };
-
-    // Fill this artifact's slots with stones
-    for (let i = 0; i < artifactItem.slots && stones.length > 0; i++) {
-      artifact.stones.push(stones.shift()! as Stone);
-    }
-
-    result.push(artifact);
-  }
-
-  return result;
+  const clothedTE = calculateClothedTE(backup, recommendedArtifacts.artifactSet.artifacts);
+  return { clothedTE, recommendedArtifacts };
 }

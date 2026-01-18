@@ -6,6 +6,18 @@ import Level = ei.ArtifactSpec.Level;
 import Rarity = ei.ArtifactSpec.Rarity;
 import Type = ei.ArtifactSpec.Type;
 
+export enum ArtifactAssemblyStatus {
+  MISSING_CONSTITUENTS,
+  AWAITING_ASSEMBLY,
+  ASSEMBLED,
+  EQUIPPED,
+}
+
+export type ArtifactAssemblyStatusNonMissing =
+  | ArtifactAssemblyStatus.AWAITING_ASSEMBLY
+  | ArtifactAssemblyStatus.ASSEMBLED
+  | ArtifactAssemblyStatus.EQUIPPED;
+
 export interface Item {
   key: string; // Unique identifier
   id: string; // Longer, more human readable unique identifier
@@ -57,8 +69,10 @@ export class Artifact implements Item {
     if (!artifact.spec) {
       throw new Error(`complete artifact has no spec: ${JSON.stringify(artifact)}`);
     }
+
     const host = newItem(artifact.spec);
     const stones = (artifact.stones || []).map(stone => newItem(stone));
+
     return new Artifact(host, stones);
   }
 
@@ -229,6 +243,33 @@ export class ArtifactSet {
   get maxRunningChickenBonus(): number {
     return this.additiveEffect([Name.VIAL_MARTIAN_DUST, Name.TERRA_STONE]);
   }
+}
+
+export function artifactSetEqual(s1: ArtifactSet, s2: ArtifactSet): boolean {
+  if (s1.artifacts.length !== s2.artifacts.length) {
+    return false;
+  }
+  for (let i = 0; i < s1.artifacts.length; i++) {
+    if (!artifactEqual(s1.artifacts[i], s2.artifacts[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function artifactEqual(a1: Artifact, a2: Artifact): boolean {
+  if (a1.key !== a2.key) {
+    return false;
+  }
+  if (a1.stones.length !== a2.stones.length) {
+    return false;
+  }
+  for (let i = 0; i < a1.stones.length; i++) {
+    if (a1.stones[i].key !== a2.stones[i].key) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function newItem(spec: ei.IArtifactSpec): Item {
