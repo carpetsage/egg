@@ -526,7 +526,7 @@ export class MissionType {
   }
 
   boostedDurationSeconds(config: ShipsConfig): number {
-    return this.boostedDurationSecondsAtLevel(config.shipLevels[this.shipType]);
+    return this.boostedDurationSecondsAtLevel(config.epicResearchFTLLevel);
   }
 
   boostedDurationSecondsAtLevel(level: number): number {
