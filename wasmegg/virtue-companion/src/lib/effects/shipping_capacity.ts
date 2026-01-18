@@ -1,5 +1,4 @@
-import { ei } from 'lib';
-import { Artifact } from '../types';
+import { ei, Artifact } from 'lib';
 import { multiplicativeEffect } from './common';
 
 export function shippingCapacityMultiplier(artifacts: Artifact[]): number {

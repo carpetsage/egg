@@ -95,5 +95,5 @@ function seasonalProphecyEggsCount(backup: ei.IBackup): number {
     trophiesProphecyEggsCount(backup) -
     contractsProphecyEggsCount(backup) -
     dailyGiftsProphecyEggsCount(backup)
-  )
+  );
 }

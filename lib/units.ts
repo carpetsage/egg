@@ -43,16 +43,16 @@ const maxOom = units[units.length - 1].oom;
 export const valueWithUnitRegExpPattern = `\\b(?<value>\\d+(\\.(\\d+)?)?)\\s*(?<unit>${units
   .map(u => u.symbol)
   .join('|')})\\b`;
-export const valueWithUnitRegExp = new RegExp(valueWithUnitRegExpPattern);
-export const valueWithUnitRegExpGlobal = new RegExp(valueWithUnitRegExpPattern, 'g');
-export const valueWithUnitRegExpExact = new RegExp(`^${valueWithUnitRegExpPattern}$`);
+export const valueWithUnitRegExp = new RegExp(valueWithUnitRegExpPattern, 'i');
+export const valueWithUnitRegExpGlobal = new RegExp(valueWithUnitRegExpPattern, 'gi');
+export const valueWithUnitRegExpExact = new RegExp(`^${valueWithUnitRegExpPattern}$`, 'i');
 
 export const valueWithOptionalUnitRegExpPattern = `\\b(?<value>\\d+(\\.(\\d+)?)?)\\s*(?<unit>${units
   .map(u => u.symbol)
   .join('|')})?\\b`;
-export const valueWithOptionalUnitRegExp = new RegExp(valueWithOptionalUnitRegExpPattern);
-export const valueWithOptionalUnitRegExpGlobal = new RegExp(valueWithOptionalUnitRegExpPattern, 'g');
-export const valueWithOptionalUnitRegExpExact = new RegExp(`^${valueWithOptionalUnitRegExpPattern}$`);
+export const valueWithOptionalUnitRegExp = new RegExp(valueWithOptionalUnitRegExpPattern, 'i');
+export const valueWithOptionalUnitRegExpGlobal = new RegExp(valueWithOptionalUnitRegExpPattern, 'gi');
+export const valueWithOptionalUnitRegExpExact = new RegExp(`^${valueWithOptionalUnitRegExpPattern}$`, 'i');
 
 export function parseValueWithUnit(s: string, unitRequired = true): number | null {
   const match = s.match(unitRequired ? valueWithUnitRegExpExact : valueWithOptionalUnitRegExpExact);
@@ -60,11 +60,40 @@ export function parseValueWithUnit(s: string, unitRequired = true): number | nul
     return null;
   }
   const value = match.groups!.value;
-  const unit = match.groups!.unit;
+  let unit = match.groups!.unit;
   if (unit === undefined) {
     return parseFloat(value);
   }
-  return parseFloat(value) * 10 ** symbol2oom.get(unit)!;
+
+  // Handle case-insensitive unit matching, but preserve exact matches first
+  let oom = symbol2oom.get(unit);
+  if (oom === undefined) {
+    // Try case-insensitive matching for unambiguous cases
+    // Build a map of lowercase -> symbol for units that don't conflict
+    const lowerToSymbol = new Map<string, string>();
+    const ambiguous = new Set<string>();
+
+    for (const u of units) {
+      const lower = u.symbol.toLowerCase();
+      if (lowerToSymbol.has(lower) && lowerToSymbol.get(lower) !== u.symbol) {
+        ambiguous.add(lower);
+      } else {
+        lowerToSymbol.set(lower, u.symbol);
+      }
+    }
+
+    const lowerUnit = unit.toLowerCase();
+    if (!ambiguous.has(lowerUnit) && lowerToSymbol.has(lowerUnit)) {
+      unit = lowerToSymbol.get(lowerUnit)!;
+      oom = symbol2oom.get(unit);
+    }
+  }
+
+  if (oom === undefined) {
+    return null;
+  }
+
+  return parseFloat(value) * 10 ** oom;
 }
 
 // precision overrides decimals.

@@ -1,6 +1,6 @@
-import { ei } from 'lib';
+import { ei, Artifact } from 'lib';
 import { maxRCBBonusFromArtifacts } from '../effects/max_rcb';
-import { Artifact, Research, ResearchInstance } from '../types';
+import { Research, ResearchInstance } from '../types';
 import { farmResearches } from './common';
 
 export type MaxRCBResearch = Research;
@@ -33,10 +33,7 @@ const availableMaxRCBResearches: MaxRCBResearch[] = [
   },
 ];
 
-export function farmMaxRCBResearches(
-  farm: ei.Backup.ISimulation,
-  progress: ei.Backup.IGame
-): MaxRCBResearchInstance[] {
+export function farmMaxRCBResearches(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): MaxRCBResearchInstance[] {
   return farmResearches(farm, progress, availableMaxRCBResearches);
 }
 

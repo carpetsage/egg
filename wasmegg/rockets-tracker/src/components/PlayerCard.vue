@@ -349,6 +349,9 @@
             <dt class="text-right text-sm font-medium whitespace-nowrap">Rockets launched</dt>
             <dd class="text-left text-sm text-gray-900">{{ fmt(numMissions) }}</dd>
 
+            <dt class="text-right text-sm font-medium whitespace-nowrap">Virtue rockets launched</dt>
+            <dd class="text-left text-sm text-gray-900">{{ fmt(numVirtueMissions) }}</dd>
+
             <template v-if="daysSinceFirstMission >= 0">
               <dt class="text-right text-sm font-medium whitespace-nowrap">Days since 1st ship</dt>
               <dd class="text-left text-sm text-gray-900">{{ fmt(daysSinceFirstMission) }}</dd>
@@ -428,6 +431,8 @@
             </svg>
           </a>
 
+          <!-- Standard Inventory -->
+          <div class="text-xs font-medium text-gray-600 mt-2">Standard</div>
           <dl class="grid gap-x-4 justify-center mt-1" :style="{ gridTemplateColumns: 'repeat(4, min-content)' }">
             <div>
               <dt class="text-xs font-medium text-gray-900">Total</dt>
@@ -484,6 +489,7 @@
               </template>
             </template>
           </div>
+
           <div v-if="hasTooManyLegendaries" class="mt-2 text-xs text-yellow-500">
             <template v-if="randIndex % 5 === 0">
               You have been personally named in a class action lawsuit brought by major trade union
@@ -578,7 +584,6 @@
             You aren't poop-worthy.<br />
             Keep <s>defecating</s> launching.
           </div>
-
           <a
             href="https://wasmegg-carpet.netlify.app/legendary-study"
             target="_blank"
@@ -592,6 +597,66 @@
               <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
           </a>
+        </div>
+
+        <div v-if="!collapsed" class="py-2">
+          <div class="text-sm font-medium">Virtue inventory items</div>
+          <dl class="grid gap-x-4 justify-center mt-1" :style="{ gridTemplateColumns: 'repeat(4, min-content)' }">
+            <div>
+              <dt class="text-xs font-medium text-gray-900">Total</dt>
+              <dd class="text-sm text-gray-900">{{ fmt(virtueInventory.totalCount) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-blue-500">Rare</dt>
+              <dd class="text-sm text-blue-500">{{ fmt(virtueInventory.rareCount) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-purple-500">Epic</dt>
+              <dd class="text-sm text-purple-500">{{ fmt(virtueInventory.epicCount) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-yellow-500">Legendary</dt>
+              <dd class="text-sm text-yellow-500">{{ fmt(virtueInventory.legendaryCount) }}</dd>
+            </div>
+          </dl>
+          <div v-if="virtueInventory.epicCount > 0" class="mt-1 flex flex-wrap justify-center space-y-0.5">
+            <template v-for="family in virtueInventory.catalog" :key="family.afxId">
+              <template v-for="tier in family.tiers" :key="tier.id">
+                <div
+                  v-if="tier.haveEpic > 0"
+                  v-tippy="{ content: `Epic ${tier.name} \u00d7 ${tier.haveEpic}` }"
+                  class="h-6 w-6 mx-0.5 my-0.5 relative"
+                >
+                  <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-epic" />
+                  <div
+                    v-if="tier.haveEpic > 1"
+                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
+                  >
+                    <img :src="numberBadgeURL(tier.haveEpic)" class="h-3 w-3" />
+                  </div>
+                </div>
+              </template>
+            </template>
+          </div>
+          <div v-if="virtueInventory.legendaryCount > 0" class="mt-1 flex flex-wrap justify-center space-y-0.5">
+            <template v-for="family in virtueInventory.catalog" :key="family.afxId">
+              <template v-for="tier in family.tiers" :key="tier.id">
+                <div
+                  v-if="tier.haveLegendary > 0"
+                  v-tippy="{ content: `Legendary ${tier.name} \u00d7 ${tier.haveLegendary}` }"
+                  class="h-6 w-6 mx-0.5 my-0.5 relative"
+                >
+                  <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-legendary" />
+                  <div
+                    v-if="tier.haveLegendary > 1"
+                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
+                  >
+                    <img :src="numberBadgeURL(tier.haveLegendary)" class="h-3 w-3" />
+                  </div>
+                </div>
+              </template>
+            </template>
+          </div>
         </div>
 
         <div v-if="!collapsed" class="py-2">
@@ -769,6 +834,7 @@ import {
   PlayerCraftingLevel,
   getXPFromCraftingLevel,
   formatDuration,
+  getNumTruthEggs,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getMissionDataPreference, getMissionDataSubmitTime, recordMissionDataPreference } from '../lib/missiondata';
@@ -867,6 +933,7 @@ const props = defineProps<{
 }>();
 
 const { backup, inventory, eventBus } = toRefs(props);
+const virtueInventory = computed(() => new Inventory(backup.value.artifactsDb!, { virtue: true }));
 
 const collapsed = ref(getLocalStorage(COLLAPSE_PLAYER_CARD_LOCALSTORAGE_KEY) === 'true');
 const toggleCollapse = () => {
@@ -966,7 +1033,7 @@ const hasEnlightenmentDiamondTrophy = computed(() => {
   }
   return false;
 });
-const truthEggs = computed(() => backup.value.virtue?.eovEarned?.reduce((sum, eov) => sum + eov, 0) ?? 0);
+const truthEggs = computed(() => getNumTruthEggs(backup.value));
 const prophecyEggs = computed(() => prophecyEggsProgress.value.completed);
 const soulEggs = computed(() => getNumSoulEggs(backup.value));
 const earningBonus = computed(() => getNakedEarningBonus(backup.value));
@@ -992,6 +1059,9 @@ const nextShiftCost = computed(() => {
 });
 const launchedMissions = computed(() => getLaunchedMissions(artifactsDB.value));
 const numMissions = computed(() => launchedMissions.value.length);
+const numVirtueMissions = computed(
+  () => launchedMissions.value.filter(m => m.type === ei.MissionInfo.MissionType.VIRTUE).length
+);
 const daysSinceFirstMission = computed(() => {
   if (numMissions.value === 0) {
     return -1;
@@ -1020,6 +1090,9 @@ const craftingLevel = computed(() => getCraftingLevelFromXp(craftingXp.value));
 const nextLevelXP = computed(() => getXPFromCraftingLevel(craftingLevel.value.level + 1));
 
 const inventoryConsumptionValue = computed(() => inventoryExpectedFullConsumption(inventory.value as Inventory));
+const virtueInventoryConsumptionValue = computed(() =>
+  inventoryExpectedFullConsumption(virtueInventory.value as Inventory)
+);
 
 // Contract Stuff
 const contractProgress = computed(() => backup.value.contracts?.lastCpi);

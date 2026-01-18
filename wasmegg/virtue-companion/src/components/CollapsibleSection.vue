@@ -1,14 +1,14 @@
 <template>
   <section>
-    <h2 class="font-medium">
-      {{ sectionTitle }}
-      <span
-        class="ml-0.5 text-indigo-500 hover:text-indigo-600 font-normal underline cursor-pointer select-none"
-        @click="$emit('toggle')"
-      >
-        {{ visible ? 'collapse section' : 'expand section' }}
-      </span>
-    </h2>
+    <div class="flex items-center cursor-pointer select-none group py-1" @click="$emit('toggle')">
+      <h2 class="text-lg font-bold text-gray-900 mr-2">
+        {{ sectionTitle }}
+      </h2>
+      <component
+        :is="visible ? 'ChevronUpIcon' : 'ChevronDownIcon'"
+        class="h-5 w-5 text-gray-400 group-hover:text-gray-600"
+      />
+    </div>
     <div v-show="visible">
       <slot></slot>
     </div>
@@ -17,8 +17,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/solid';
 
 export default defineComponent({
+  components: {
+    ChevronDownIcon,
+    ChevronUpIcon,
+  },
   props: {
     sectionTitle: {
       type: String,

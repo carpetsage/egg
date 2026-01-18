@@ -1,8 +1,4 @@
-import { ei } from 'lib';
-import { artifactSpecToItem } from '../catalog';
-import { clarityEffect, researchPriceMultiplierFromArtifacts } from '../effects';
-import { Artifact, Item, Stone } from '../types';
-import { requiredWDLevelForEnlightenmentDiamond } from './hab_space';
+import { ei, Artifact, newItem } from 'lib';
 
 export function homeFarmArtifacts(backup: ei.IBackup, virtue = false): Artifact[] {
   if (virtue) {
@@ -31,9 +27,9 @@ export function homeFarmArtifacts(backup: ei.IBackup, virtue = false): Artifact[
     }
     const artifact = itemIdToArtifact.get(slot.itemId!);
     if (artifact) {
-      const hostItem = artifactSpecToItem(artifact.spec!);
-      const stones = (artifact.stones || []).map(spec => artifactSpecToItem(spec));
-      artifacts.push(newArtifact(hostItem, stones));
+      const hostItem = newItem(artifact.spec!);
+      const stones = (artifact.stones || []).map(spec => newItem(spec));
+      artifacts.push(new Artifact(hostItem, stones));
     }
   }
   return artifacts;
@@ -63,19 +59,12 @@ export function homeFarmVirtueArtifacts(backup: ei.IBackup): Artifact[] {
     }
     const artifact = itemIdToArtifact.get(slot.itemId!);
     if (artifact) {
-      const hostItem = artifactSpecToItem(artifact.spec!);
-      const stones = (artifact.stones || []).map(spec => artifactSpecToItem(spec));
-      artifacts.push(newArtifact(hostItem, stones));
+      const hostItem = newItem(artifact.spec!);
+      const stones = (artifact.stones || []).map(spec => newItem(spec));
+      artifacts.push(new Artifact(hostItem, stones));
     }
   }
   return artifacts;
-}
-
-function newArtifact(hostItem: Item, stones: Stone[]): Artifact {
-  return {
-    ...hostItem,
-    stones,
-  };
 }
 
 // Given an artifact family, returns a list of owned artifacts of that family
@@ -89,14 +78,13 @@ export function artifactsFromInventory(backup: ei.IBackup, family: ei.ArtifactSp
   }
 
   const bareArtifacts = <Artifact[]>[];
-  const seenGussetKeys = new Set<string>();
+  const seenArtifactKeys = new Set<string>();
   const recordArtifact = (spec: ei.IArtifactSpec) => {
-    // Skip commons as they are useless for enlightenment.
     if (spec.name === family) {
-      const gusset = newArtifact(artifactSpecToItem(spec), []);
-      if (!seenGussetKeys.has(gusset.key)) {
-        bareArtifacts.push(gusset);
-        seenGussetKeys.add(gusset.key);
+      const artifact = new Artifact(newItem(spec), []);
+      if (!seenArtifactKeys.has(artifact.key)) {
+        bareArtifacts.push(artifact);
+        seenArtifactKeys.add(artifact.key);
       }
     }
   };
@@ -108,8 +96,7 @@ export function artifactsFromInventory(backup: ei.IBackup, family: ei.ArtifactSp
   if (bareArtifacts.length === 0) {
     return [];
   }
-  // Sort artifacts and clarity stones from higher to lower level, then higher to
-  // lower rarity.
+  // Sort artifacts from higher to lower level, then higher to lower rarity.
   bareArtifacts.sort((g1, g2) => g2.afxLevel - g1.afxLevel || g2.afxRarity - g1.afxRarity);
-  return bareArtifacts.map(gusset => newArtifact(gusset, []));
+  return bareArtifacts.map(artifact => new Artifact(artifact.host, []));
 }

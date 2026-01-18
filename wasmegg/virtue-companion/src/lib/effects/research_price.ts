@@ -1,5 +1,4 @@
-import { ei } from 'lib';
-import { Artifact } from '../types';
+import { ei, Artifact } from 'lib';
 import { aggregateEffect } from './common';
 
 export function researchPriceMultiplierFromArtifacts(artifacts: Artifact[]): number {
