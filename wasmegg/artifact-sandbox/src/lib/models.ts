@@ -1,5 +1,5 @@
 import { artifactFromId, artifactFromAfxIdLevelRarity, stoneFromId, stoneFromAfxIdLevel } from './data';
-import { Artifact as StandardArtifact, newItem } from 'lib';
+import { Artifact as StandardArtifact, customEggs, ei, groupCustomEggsByDimension, newItem } from 'lib';
 
 import proto from './proto';
 import { ItemProps } from './types';
@@ -405,6 +405,11 @@ export class Config {
     self.prophecyEggs = 1;
     self.soulEggs = 250;
     self.soulEggsInput = '250';
+
+    const IGNORED_DIMENSIONS = [ei.GameModifier.GameDimension.HAB_COST, ei.GameModifier.GameDimension.VEHICLE_COST];
+    self.colleggtibleTiers = Object.fromEntries(
+      customEggs.filter(egg => !IGNORED_DIMENSIONS.includes(egg.buffs[0].dimension)).map(egg => [egg.identifier, 3])
+    );
     return self;
   }
 

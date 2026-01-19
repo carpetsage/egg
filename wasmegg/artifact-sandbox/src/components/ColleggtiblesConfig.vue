@@ -2,9 +2,6 @@
   <div class="flex justify-center">
     <div class="space-y-0.5">
       <h4 class="text-center text-sm uppercase">Colleggtibles</h4>
-      <div class="flex justify-center mt-2">
-        <button class="px-2 py-1 text-xs bg-green-600 text-white rounded" @click="maxAllColleggtibles">Max All</button>
-      </div>
       <div class="space-y-4 max-w-4xl mx-auto">
         <div v-for="group in groupedColleggtibles" :key="group.dimensionIndex">
           <h5 class="mt-3 mb-1 text-center text-xs uppercase">
@@ -104,21 +101,11 @@ export default defineComponent({
       emit('colleggtible-tier-changed', eggIdentifier, tier);
     };
 
-    const maxAllColleggtibles = () => {
-      const maxIndex = 3;
-      groupedColleggtibles.value.forEach(group => {
-        group.eggs.forEach(egg => {
-          emit('colleggtible-tier-changed', egg.identifier, maxIndex);
-        });
-      });
-    };
-
     return {
       groupedColleggtibles,
       formatMultiplier,
       modifierName,
       updateColleggtibleTier,
-      maxAllColleggtibles,
       iconURL,
       eggIconPath,
       ei,
