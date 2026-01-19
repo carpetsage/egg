@@ -1,5 +1,5 @@
 import { ei } from './proto';
-import { allModifiersFromColleggtibles, maxModifierFromColleggtibles } from './collegtibles';
+import { allModifiersFromColleggtibles, maxModifierFromColleggtibles, Modifiers } from './collegtibles';
 import { Artifact } from './artifacts/effects';
 import {
   eggValueMultiplier,
@@ -31,6 +31,7 @@ export function cteFromArtifacts(artifacts: Artifact[]): number {
   const eggValueMult = eggValueMultiplier(artifacts);
   const awayEarningsMult = awayEarningsMultiplier(artifacts);
   const researchPriceMult = researchPriceMultiplierFromArtifacts(artifacts);
+  console.log(researchPriceMult);
   const researchDiscountEffect = 1 / researchPriceMult;
 
   // Combine all artifact multipliers
@@ -39,10 +40,12 @@ export function cteFromArtifacts(artifacts: Artifact[]): number {
   return multiplierToTE(totalMultiplier);
 }
 
-export function cteFromColleggtibles(backup: ei.IBackup): number {
-  // Get current modifiers from colleggtibles
+export function cteFromColleggtiblesFromBackup(backup: ei.IBackup): number {
   const currentModifiers = allModifiersFromColleggtibles(backup);
+  return cteFromColleggtibles(currentModifiers);
+}
 
+export function cteFromColleggtibles(modifiers: Modifiers): number {
   // Get max possible modifiers from colleggtibles
   const maxEarningsModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.EARNINGS);
   const maxAwayEarningsModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.AWAY_EARNINGS);
@@ -50,55 +53,12 @@ export function cteFromColleggtibles(backup: ei.IBackup): number {
 
   // Calculate colleggtible penalties
   // These represent what fraction of max power we have
-  const earningsPenalty = currentModifiers.earnings / maxEarningsModifier;
-  const awayEarningsPenalty = currentModifiers.awayEarnings / maxAwayEarningsModifier;
-  const researchCostPenalty = maxResearchCostModifier / currentModifiers.researchCost;
+  const earningsPenalty = modifiers.earnings / maxEarningsModifier;
+  const awayEarningsPenalty = modifiers.awayEarnings / maxAwayEarningsModifier;
+  const researchCostPenalty = maxResearchCostModifier / modifiers.researchCost;
 
   // Combine all colleggtible penalties
   const totalPenalty = earningsPenalty * awayEarningsPenalty * researchCostPenalty;
 
   return multiplierToTE(totalPenalty);
-}
-
-/**
- * Calculate "Clothed TE" - effective Truth Egg count adjusted for artifacts and missing bonuses.
- *
- * Clothed TE represents your effective Truth Egg count, adjusted for:
- * - Artifacts (necklace, ankh, shell stones for egg value; totem, lunar stones for offline earnings; cube for research discount)
- * - Missing Colleggtibles (earnings, offline earnings, research discount)
- * - Missing Epic Research (Lab Upgrade research discount)
- *
- * Only considers offline earnings, not RCB. Standard permit players have 50% offline penalty applied.
- *
- * @param backup - The backup data
- * @param truthEggs - Number of Truth Eggs
- * @param artifacts - Artifact setup
- * @param researchPriceMultiplierFromResearches - Function to calculate research price multiplier from researches
- * @returns Clothed TE value
- */
-export function calculateClothedTE(
-  backup: ei.IBackup,
-  truthEggs: number,
-  artifacts: Artifact[],
-  researchPriceMultiplierFromResearches: (farm: ei.Backup.ISimulation, progress: ei.Backup.IGame) => number
-): number {
-  const farm = backup.farms![0];
-  const progress = backup.game!;
-
-  // Calculate epic research multiplier (Lab Upgrade) - actual level from backup
-  const erResearchMult = researchPriceMultiplierFromResearches(farm, progress);
-  const maxErResearchMult = 1 + 10 * -0.05; // Max level 10, -5% per level = 0.5 (50% discount)
-  const erMult = maxErResearchMult / erResearchMult;
-
-  // Standard permit penalty (50% offline earnings)
-  const permitMult = progress.permitLevel === 1 ? 1 : 0.5;
-  // This represents the total earnings multiplier from all sources
-
-  const totalMultiplier = erMult * permitMult;
-
-  // Convert multiplier to TE equivalent
-  const multiplierAsTE = multiplierToTE(totalMultiplier);
-  const clothedTE = truthEggs + multiplierAsTE + cteFromArtifacts(artifacts) + cteFromColleggtibles(backup);
-
-  return clothedTE;
 }

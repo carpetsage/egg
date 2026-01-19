@@ -171,7 +171,7 @@
         class="my-2 text-sm"
         @toggle="toggleSectionVisibility('artifacts')"
       >
-        <artifacts-gallery :artifact-set="equippedArtiSet" />
+        <artifacts-gallery :artifact-set="equippedArtiSet" :farm="homeFarm" />
       </collapsible-section>
       <collapsible-section
         :section-title="`Optimal Artifacts for Earnings (Clothed TE: ${formatWithThousandSeparators(Math.round(maxClothedTE))})`"
@@ -183,6 +183,7 @@
           :artifact-set="cteArtiSet"
           :reference-set="equippedArtiSet"
           :artifact-assembly-statuses="cteAssemblyStatuses"
+          :farm="homeFarm"
         />
       </collapsible-section>
     </template>
@@ -211,6 +212,7 @@ import {
   Inventory,
   contenderToArtifactSet,
   ArtifactAssemblyStatus,
+  Farm,
 } from 'lib';
 import {
   allModifiersFromColleggtibles,
@@ -301,6 +303,7 @@ export default defineComponent({
     }
     const modifiers = allModifiersFromColleggtibles(backup);
     const farm = backup.farms[0]; // Home farm
+    const homeFarm = new Farm(backup, backup.farms[0]);
     const egg = farm.eggType!;
     const lastRefreshedTimestamp = farm.lastStepTime! * 1000;
     const lastRefreshed = dayjs(Math.min(lastRefreshedTimestamp, Date.now()));
@@ -488,6 +491,7 @@ export default defineComponent({
       virtueEggs,
       artifacts,
       backup,
+      homeFarm,
 
       // Artifact Sets
       equippedArtiSet,

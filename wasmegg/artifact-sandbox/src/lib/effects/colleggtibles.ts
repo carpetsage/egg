@@ -1,11 +1,11 @@
 import { Config } from '../models';
-import { groupCustomEggsByDimension, ei } from 'lib';
+import { groupCustomEggsByDimension, ei, Modifiers } from 'lib';
 
 // Cache the grouped eggs for better performance
 const eggsByDimension = Object.fromEntries(
   Object.entries(groupCustomEggsByDimension()).map(([dimension, eggs]) => [
     dimension,
-    new Map(eggs.map(egg => [egg.identifier, egg]))
+    new Map(eggs.map(egg => [egg.identifier, egg])),
   ])
 );
 
@@ -23,4 +23,18 @@ export function colleggtibleModifier(config: Config, modifier: ei.GameModifier.G
 
     return total * tierValue;
   }, 1);
+}
+
+export function allColleggtiblesModifiers(config: Config): Modifiers {
+  return {
+    earnings: colleggtibleModifier(config, ei.GameModifier.GameDimension.EARNINGS),
+    awayEarnings: colleggtibleModifier(config, ei.GameModifier.GameDimension.AWAY_EARNINGS),
+    ihr: colleggtibleModifier(config, ei.GameModifier.GameDimension.INTERNAL_HATCHERY_RATE),
+    elr: colleggtibleModifier(config, ei.GameModifier.GameDimension.EGG_LAYING_RATE),
+    shippingCap: colleggtibleModifier(config, ei.GameModifier.GameDimension.SHIPPING_CAPACITY),
+    habCap: colleggtibleModifier(config, ei.GameModifier.GameDimension.HAB_CAPACITY),
+    habCost: colleggtibleModifier(config, ei.GameModifier.GameDimension.HAB_COST),
+    vehicleCost: colleggtibleModifier(config, ei.GameModifier.GameDimension.VEHICLE_COST),
+    researchCost: colleggtibleModifier(config, ei.GameModifier.GameDimension.RESEARCH_COST),
+  };
 }
