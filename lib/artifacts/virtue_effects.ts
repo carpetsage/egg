@@ -61,10 +61,7 @@ export function eggValueMultiplier(artifacts: ArtifactWithStones[]): number {
  * Considers Lunar Totem and Lunar Stones.
  */
 export function awayEarningsMultiplier(artifacts: ArtifactWithStones[]): number {
-  return multiplicativeEffect(artifacts, [
-    ei.ArtifactSpec.Name.LUNAR_TOTEM,
-    ei.ArtifactSpec.Name.LUNAR_STONE,
-  ]);
+  return multiplicativeEffect(artifacts, [ei.ArtifactSpec.Name.LUNAR_TOTEM, ei.ArtifactSpec.Name.LUNAR_STONE]);
 }
 
 /**

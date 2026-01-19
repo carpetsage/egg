@@ -1,4 +1,5 @@
 import { artifactFromId, artifactFromAfxIdLevelRarity, stoneFromId, stoneFromAfxIdLevel } from './data';
+import { Artifact as StandardArtifact, newItem } from 'lib';
 
 import proto from './proto';
 import { ItemProps } from './types';
@@ -206,6 +207,17 @@ export class Artifact {
             stones,
           }
     );
+  }
+
+  toStandardArtifact(): StandardArtifact | null {
+    const itemFromProps = (props: ItemProps) =>
+      newItem({ name: props?.afxId, level: props?.afxLevel, rarity: props?.afxRarity });
+    return this.props
+      ? new StandardArtifact(
+          itemFromProps(this.props),
+          this.activeStones.map(s => itemFromProps(s.props))
+        )
+      : null;
   }
 
   isEmpty(): boolean {

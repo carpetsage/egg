@@ -1,6 +1,8 @@
 import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
+import { allColleggtiblesModifiers } from './colleggtibles';
 import { additiveEffect } from './common';
+import { cteFromArtifacts, cteFromColleggtibles } from 'lib';
 
 export function earningBonus(build: Build, config: Config, virtue = false): number {
   const peBonus = prophecyEggBonus(build, config);
@@ -18,6 +20,15 @@ export function earningBonusMultiplier(build: Build, config: Config, virtue = fa
   const seBonusBase = baseSoulEggBonus(config);
   const seBonus = soulEggBonus(build, config);
   return Math.pow((1 + peBonus) / (1 + peBonusBase), peCount) * (seBonus / seBonusBase);
+}
+
+export function clothedTE(build: Build, config: Config) {
+  const artis = build.artifacts.map(arti => arti.toStandardArtifact()).filter(a => a != null);
+  const cteFromArtis = artis.length > 0 ? cteFromArtifacts(artis) : 0;
+  const modifiers = allColleggtiblesModifiers(config);
+  const cteFromColleggs = cteFromColleggtibles(modifiers);
+
+  return cteFromArtis + cteFromColleggs;
 }
 
 function prophecyEggBonus(build: Build, config: Config): number {
