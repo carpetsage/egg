@@ -45,7 +45,10 @@
     </template>
   </template>
   <div v-else class="text-sm font-medium text-gray-500">
-    <template v-if="getArtifactTierPropsFromId(artifactId).available_from_missions"> No drops recorded :( </template>
+    <template v-if="getArtifactTierPropsFromId(artifactId).available_from_missions">
+      No drops recorded in selected ships :(
+      <config-prompt />
+    </template>
     <template v-else> Not available from missions :( </template>
   </div>
 </template>
