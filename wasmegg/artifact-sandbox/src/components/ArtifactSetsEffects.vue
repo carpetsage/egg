@@ -97,6 +97,20 @@
                 <span class="Bonus">&nbsp;(&times;{{ formatFloat(earningBonusMultiplier(build, config, true)) }})</span>
               </artifact-sets-effects-row>
 
+              <!-- Clothed TE -->
+              <artifact-sets-effects-row
+                v-slot="{ build, config }: { build: Build; config: Config }"
+                effect-id="cte"
+                :show-footnote="showFootnotes"
+                :builds="builds"
+              >
+                <span class="Value">{{ formatFloat(config.truthEggs + clothedTE(build, config)) }}</span>
+                <span class="Bonus"
+                  >&nbsp;({{ clothedTE(build, config) >= 0 ? '+' : ''
+                  }}{{ formatFloat(clothedTE(build, config)) }})</span
+                >
+              </artifact-sets-effects-row>
+
               <!-- Farmer role based on current earning bonus -->
               <artifact-sets-effects-row
                 v-slot="{ build, config }: { build: Build; config: Config }"
@@ -349,6 +363,7 @@ import { computed, defineComponent, toRefs } from 'vue';
 import { earningBonusToFarmerRole, formatEIValue, iconURL } from 'lib';
 import {
   boostDurationMultiplier,
+  clothedTE,
   Build,
   Builds,
   Config,
@@ -435,6 +450,7 @@ export default defineComponent({
       shippingCapacityMultiplier,
       maxHourlyShippingCapacity,
       daysToDiamondTrophyAtMaxIHR,
+      clothedTE,
 
       iconURL,
       formatEIValue,

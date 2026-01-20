@@ -1,6 +1,5 @@
-import { ei } from 'lib';
+import { ei, Artifact } from 'lib';
 import { droneRewardsMultiplier } from '../effects';
-import { Artifact } from '../types';
 import { farmResearch } from './common';
 
 // Based on @mikit's research:
@@ -22,44 +21,24 @@ export function calculateDroneValues(
   tier3: number;
   tier3Prob: number;
   elite: number;
+  gift: number;
 } {
-  const { population, farmValue, rcb } = params;
-  const farmValuePerChicken = farmValue / population;
-  const scalingFactor =
-    farmValuePerChicken < 3
-      ? 30
-      : farmValuePerChicken < 15
-      ? 15
-      : farmValuePerChicken < 30
-      ? 8
-      : farmValuePerChicken < 100
-      ? 5
-      : farmValuePerChicken < 200
-      ? 2
-      : farmValuePerChicken < 1_000
-      ? 1
-      : farmValuePerChicken < 50_000
-      ? 0.75
-      : farmValuePerChicken < 1_000_000
-      ? 0.5
-      : 0.25;
-  const base = ((farmValue * rcb ** 0.5) / 50) * droneRewardsMultiplier(artifacts);
+  const { farmValue, rcb } = params;
+  const base = farmValue * rcb ** 0.5 * droneRewardsMultiplier(artifacts);
   const probMultiplier = biggerDronesProbabilityMultiplier(farm, progress);
   return {
-    tier1: 0.02 * base * scalingFactor,
+    tier1: 0.00004 * base,
     tier1Prob: 1 - 0.1 * probMultiplier,
-    tier2: 0.1 * base * scalingFactor,
+    tier2: 0.0002 * base,
     tier2Prob: 0.07 * probMultiplier,
-    tier3: 0.5 * base * scalingFactor,
+    tier3: 0.001 * base,
     tier3Prob: 0.03 * probMultiplier,
-    elite: 10.0 * base * Math.min(10, scalingFactor),
+    elite: 0.02 * base,
+    gift: 0.005 * base,
   };
 }
 
-function biggerDronesProbabilityMultiplier(
-  farm: ei.Backup.ISimulation,
-  progress: ei.Backup.IGame
-): number {
+function biggerDronesProbabilityMultiplier(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): number {
   const research = farmResearch(farm, progress, {
     id: 'drone_rewards',
     name: 'Drone Rewards',

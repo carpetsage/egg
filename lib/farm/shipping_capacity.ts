@@ -4,81 +4,94 @@ import { Farm, Research } from './farm';
 
 type VehicleId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
 
-function isVehicleId(x: number): x is VehicleId {
+export function isVehicleId(x: number): x is VehicleId {
   return Number.isInteger(x) && x >= 0 && x <= 11;
 }
 
-interface VehicleType {
+export interface VehicleType {
   id: VehicleId;
   name: string;
   // Unupgraded shipping capacity per second.
   baseCapacity: number;
+  iconPath: string;
 }
 
 export interface Vehicle extends VehicleType {
   trainLength: number;
 }
 
-const vehicleTypes: VehicleType[] = [
+export const vehicleTypes: VehicleType[] = [
   {
     id: 0,
     name: 'Trike',
     baseCapacity: 5e3 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_trike.png',
   },
   {
     id: 1,
     name: 'Transit Van',
     baseCapacity: 15e3 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_transit_van.png',
   },
   {
     id: 2,
     name: 'Pickup',
     baseCapacity: 50e3 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_pickup.png',
   },
   {
     id: 3,
     name: '10 Foot',
     baseCapacity: 100e3 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_10ft.png',
   },
   {
     id: 4,
     name: '24 Foot',
     baseCapacity: 250e3 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_24ft.png',
   },
   {
     id: 5,
     name: 'Semi',
     baseCapacity: 500e3 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_semi.png',
   },
   {
     id: 6,
     name: 'Double Semi',
     baseCapacity: 1e6 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_double_semi.png',
   },
   {
     id: 7,
     name: 'Future Semi',
     baseCapacity: 5e6 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_future_semi.png',
   },
   {
     id: 8,
     name: 'Mega Semi',
     baseCapacity: 15e6 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_mega_semi.png',
   },
   {
     id: 9,
     name: 'Hover Semi',
     baseCapacity: 30e6 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_hover_semi.png',
   },
   {
     id: 10,
     name: 'Quantum Transporter',
     baseCapacity: 50e6 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_quantum_transporter.png',
   },
   {
     id: 11,
     name: 'Hyperloop Train',
     baseCapacity: 50e6 / 60,
+    iconPath: 'egginc/ei_vehicle_icon_hyperloop_engine.png',
   },
 ];
 
@@ -168,9 +181,7 @@ export function vehicleList(farm: Farm): Vehicle[] {
   const vehicleIds = farm.farm.vehicles!;
   const trainLengths = farm.farm.trainLength!;
   if (vehicleIds.length !== trainLengths.length) {
-    throw new Error(
-      `vehicles and trainLength have different lengths: ${vehicleIds.length} != ${trainLengths.length}`
-    );
+    throw new Error(`vehicles and trainLength have different lengths: ${vehicleIds.length} != ${trainLengths.length}`);
   }
   const count = vehicleIds.length;
   const vehicles: Vehicle[] = [];

@@ -54,287 +54,137 @@
       class="my-2 text-sm"
       @toggle="toggleSectionVisibility('truth_eggs')"
     >
-      <div class="flex items-center space-x-2 mb-4">
-        <label class="text-sm font-medium">Target TE:</label>
-        <input
-          v-model.number="targetTE"
-          type="number"
-          min="1"
-          max="98"
-          class="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-        />
-      </div>
-      <template v-if="virtueEggs.includes(egg)">
-        <!-- Current Virtue Egg -->
-        <div class="flex items-start space-x-2 p-2 bg-gray-50 rounded-lg mb-2">
-          <img :src="iconURL(eggIconPath(egg), 64)" class="h-6 w-6" />
-          <div class="flex-1">
-            <div class="font-medium">{{ eggName(egg) }} ({{ virtuePurpose(egg) }})</div>
-            <div class="text-sm text-gray-600">
-              <div>
-                {{ truthEggs[egg - 50] }}
-                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" />
-                earned
-              </div>
-              <div>
-                <template v-if="truthEggsPendingAdjusted.offline > truthEggsPendingAdjusted.online">
-                  {{ truthEggsPendingAdjusted.online }} -
-                </template>
-                {{ truthEggsPendingAdjusted.offline }}
-                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" /> pending
-              </div>
-              <div class="mr-5">
-                <truth-egg-progress-bar
-                  :target-t-e="targetTE"
-                  :te="truthEggs[egg - 50] + truthEggsPendingAdjusted.offline"
-                  :eggs-laid="activeEOVDelivered"
-                  :eggs-laid-offline-adjusted="activeEOVDeliveredAdjusted.offline"
-                  :eggs-laid-online-adjusted="activeEOVDeliveredAdjusted.online"
-                  :egg-laying-rate="currentELR"
-                  :egg="egg"
-                  :backup="backup"
-                  :show-spoilers="shouldShowThreshold(eovDelivered[egg - 50])"
-                  :show-threshold-spoilers="showThresholdSpoilers"
-                />
-              </div>
-              <div>
-                {{ fmtApprox(activeEOVDeliveredAdjusted.online) }}
-                <template v-if="activeEOVDeliveredAdjusted.offline > 1.01 * activeEOVDeliveredAdjusted.online">
-                  - {{ fmtApprox(activeEOVDeliveredAdjusted.offline) }}
-                </template>
-                <template v-if="shouldShowThreshold(activeEOVDeliveredAdjusted.offline)">
-                  /
-                  {{ fmtApprox(nextTruthEggThreshold(activeEOVDeliveredAdjusted.offline)) }}
-                </template>
-                <template v-else> delivered</template>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-      <!-- Other Virtue Eggs -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
-        <div
-          v-for="vegg in virtueEggs.filter((_, i) => i + 50 !== egg)"
-          :key="vegg"
-          class="flex items-start space-x-2 p-2 bg-gray-50 rounded-lg"
-        >
-          <img :src="iconURL(eggIconPath(vegg), 64)" class="h-6 w-6" />
-          <div class="flex-1">
-            <div class="font-medium">{{ eggName(vegg) }} ({{ virtuePurpose(vegg) }})</div>
-            <div class="text-sm text-gray-600">
-              <div>
-                {{ truthEggs[vegg - 50] }}
-                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" />
-                earned
-              </div>
-              <div>
-                {{ truthEggsPending[vegg - 50] }}
-                <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" /> pending
-              </div>
-              <div class="mr-5">
-                <truth-egg-progress-bar
-                  :target-t-e="targetTE"
-                  :te="truthEggs[vegg - 50] + truthEggsPending[vegg - 50]"
-                  :eggs-laid="eovDelivered[vegg - 50]"
-                  :eggs-laid-offline-adjusted="eovDelivered[vegg - 50]"
-                  :egg-laying-rate="0"
-                  :backup="backup"
-                  :egg="vegg"
-                  :show-spoilers="shouldShowThreshold(eovDelivered[vegg - 50])"
-                  :show-threshold-spoilers="showThresholdSpoilers"
-                />
-              </div>
-              <div v-if="shouldShowThreshold(eovDelivered[vegg - 50])">
-                {{ fmtApprox(eovDelivered[vegg - 50]) }} /
-                {{ fmtApprox(nextTruthEggThreshold(eovDelivered[vegg - 50])) }}
-              </div>
-              <div v-else>{{ fmtApprox(eovDelivered[vegg - 50]) }} delivered</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Total Truth Eggs -->
-      <div class="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-        <img :src="iconURL('egginc/egg_truth.png', 64)" class="h-6 w-6" />
-        <div class="flex-1">
-          <div class="font-medium">Total Truth Eggs</div>
-          <div class="text-sm text-gray-600">
-            <div>
-              {{ totalTruthEggs }}
-              <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" />
-              earned
-            </div>
-            <div>
-              {{ totalTruthEggsPending }}
-              <img :src="iconURL('egginc/egg_truth.png', 64)" class="inline h-4 w-4 mb-1" /> pending
-            </div>
-            <div>{{ fmtApprox(totaleovDelivered) }} Virtue Eggs delivered</div>
-          </div>
-        </div>
-      </div>
+      <truth-egg-progress
+        v-model:target-t-e="targetTE"
+        :show-threshold-spoilers="showThresholdSpoilers"
+        :egg="egg"
+        :backup="backup"
+        :truth-eggs="truthEggs"
+        :truth-eggs-pending-adjusted="truthEggsPendingAdjusted"
+        :active-e-o-v-delivered="activeEOVDelivered"
+        :active-e-o-v-delivered-adjusted="activeEOVDeliveredAdjusted"
+        :current-e-l-r="currentELR"
+        :eov-delivered="eovDelivered"
+        :truth-eggs-pending="truthEggsPending"
+        :total-truth-eggs="totalTruthEggs"
+        :total-truth-eggs-pending="totalTruthEggsPending"
+        :totaleov-delivered="totaleovDelivered"
+        :discovered-thresholds="discoveredThresholds"
+      />
     </collapsible-section>
-    <hr class="mt-2" />
     <template v-if="virtueEggs.includes(egg)">
-      <hr />
+      <hr class="mt-2" />
+      <collapsible-section
+        section-title="Summary"
+        :visible="isVisibleSection('summary')"
+        class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('summary')"
+      >
+        <farm-summary
+          :backup="backup"
+          :current-population="currentPopulation"
+          :clothed-t-e="clothedTE"
+          :max-clothed-t-e="maxClothedTE"
+          :always-count-video-doubler="earningsSectionRef?.alwaysCountVideoDoubler || false"
+        />
+      </collapsible-section>
+      <hr class="mt-2" />
 
       <collapsible-section
-        section-title="Habs"
-        :visible="isVisibleSection('habs')"
+        section-title="Habs & Vehicles"
+        :visible="isVisibleSection('habs_vehicles')"
         class="my-2 text-sm"
-        @toggle="toggleSectionVisibility('habs')"
+        @toggle="toggleSectionVisibility('habs_vehicles')"
       >
-        <div class="flex my-2 space-x-2">
-          <img
-            v-for="(hab, index) in habs"
-            :key="index"
-            v-tippy="{
-              content: `${hab.name}, space: ${formatWithThousandSeparators(habSpaces[index])}`,
-            }"
-            :src="iconURL(hab.iconPath, 128)"
-            class="h-16 w-16 bg-gray-50 rounded-lg shadow"
+        <div class="mb-2 flex items-center">
+          <input
+            id="show-hab-vehicle-icons"
+            v-model="showHabVehicleIcons"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
           />
+          <label for="show-hab-vehicle-icons" class="ml-2 text-sm text-gray-600">Icons</label>
         </div>
-        <p>
-          Hab space:
-          <span class="text-green-500">{{ formatWithThousandSeparators(totalHabSpace) }}</span>
-        </p>
-        <p class="text-sm">
-          Last save population:
-          <span class="text-green-500 tabular-nums">
-            {{ formatWithThousandSeparators(lastRefreshedPopulation) }}
-          </span>
-        </p>
-        <p class="text-sm">
-          Current population:
-          <span class="text-green-500 tabular-nums mr-0.5">
-            {{ formatWithThousandSeparators(currentPopulation) }}
-          </span>
-          <base-info
-            v-tippy="{
-              content:
-                'The current population is calculated based on the population and offline IHR from the last save. Assuming your IHR did not change since the last save, this number should be slightly ahead of your actual population at the moment, depending on how long you remained active since the last save.',
-            }"
-            class="inline relative -top-px"
-          />
-        </p>
-        <p v-if="totalHabSpace > currentPopulation" class="text-sm">
-          Estimated time to hab capacity:
-          <span
-            v-tippy="{
-              content: `${dayjs(currentTimestamp).add(calculateTimeToHabLock(offlineIHR), 'seconds').format('LLL')} to ${dayjs(currentTimestamp).add(calculateTimeToHabLock(onlineIHR), 'seconds').format('LLL')}`,
-            }"
-            class="text-green-500 tabular-nums"
-          >
-            {{ formatDurationAuto(calculateTimeToHabLock(offlineIHR)) }} (offline) to
-            {{ formatDurationAuto(calculateTimeToHabLock(onlineIHR)) }} (online)
-          </span>
-        </p>
-      </collapsible-section>
-
-      <hr />
-
-      <collapsible-section
-        section-title="Vehicles"
-        :visible="isVisibleSection('vehicles')"
-        class="my-2 text-sm"
-        @toggle="toggleSectionVisibility('vehicles')"
-      >
-        <div class="flex flex-wrap gap-5 mb-2 max-w-full">
-          <img
-            v-for="(vehicle, index) in vehicles"
-            :key="index"
-            v-tippy="{
-              content: `${vehicle.name}, space: ${formatWithThousandSeparators(vehicleSpaces[index])}`,
-            }"
-            :src="iconURL(vehicle.iconPath, 128)"
-            class="h-6"
-          />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <vehicles-section :backup="backup" :show-icons="showHabVehicleIcons" />
+          <habs-section :backup="backup" :current-timestamp="currentTimestamp" :show-icons="showHabVehicleIcons" />
         </div>
-        <table class="text-sm">
-          <thead>
-            <tr class="border-b">
-              <th class="text-left py-1 pr-6"></th>
-              <th class="text-right py-1 px-4">Per Minute</th>
-              <th class="text-right py-1 pl-4">Per Hour</th>
-            </tr>
-          </thead>
-          <tbody class="space-y-1">
-            <tr>
-              <td class="py-1 pr-6">Shipping Capacity</td>
-              <td class="text-right py-1 px-4">
-                <span class="text-green-500">{{ fmtApprox(totalVehicleSpace * 60) }}</span>
-                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
-              </td>
-              <td class="text-right py-1 pl-4">
-                <span class="text-green-500">{{ fmtApprox(totalVehicleSpace * 60 * 60) }}</span>
-                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
-              </td>
-            </tr>
-            <tr>
-              <td class="py-1 pr-6">Egg Laying Rate</td>
-              <td class="text-right py-1 px-4">
-                <span class="text-green-500">{{ fmtApprox(eggLayingRate * 60) }}</span>
-                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
-              </td>
-              <td class="text-right py-1 pl-4">
-                <span class="text-green-500">{{ fmtApprox(eggLayingRate * 60 * 60) }}</span>
-                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
-              </td>
-            </tr>
-            <tr>
-              <td class="py-1 pr-6 font-bold">Egg Delivery Rate</td>
-              <td class="text-right py-1 px-4">
-                <span class="text-green-500">{{ fmtApprox(effectiveELR * 60) }}</span>
-                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
-              </td>
-              <td class="text-right py-1 pl-4">
-                <span class="text-green-500">{{ fmtApprox(effectiveELR * 60 * 60) }}</span>
-                <img :src="eggIconURL" class="inline h-4 w-4 ml-1 mb-0.5" />
-              </td>
-            </tr>
-          </tbody>
-        </table>
       </collapsible-section>
 
-      <hr />
+      <hr class="mt-2" />
 
       <collapsible-section
-        section-title="Internal hatchery"
-        :visible="isVisibleSection('internal_hatchery')"
+        section-title="Silos & Internal Hatchery"
+        :visible="isVisibleSection('silos_ihr')"
         class="my-2 text-sm"
-        @toggle="toggleSectionVisibility('internal_hatchery')"
+        @toggle="toggleSectionVisibility('silos_ihr')"
       >
-        <p class="mt-1">
-          Active IHR:
-          <span class="whitespace-nowrap">
-            <span class="text-green-500">{{ formatWithThousandSeparators(onlineIHR, -1) }}</span>
-            chickens/min
-          </span>
-          <!-- Force a space between the two nowrap spans to prevent the two being treated as a whole. -->
-          {{ ' ' }}
-          <span class="whitespace-nowrap">
-            (<span class="text-green-500">{{ formatWithThousandSeparators(onlineIHRPerHab, -1) }}</span>
-            chickens/min/hab)
-          </span>
-        </p>
-        <p>
-          Offline IHR:
-          <span class="text-green-500">{{ formatWithThousandSeparators(offlineIHR, -1) }}</span>
-          chickens/min
-        </p>
-        <unfinished-researches :researches="internalHatcheryResearches" class="my-1" />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <internal-hatchery-info
+            :online-i-h-r="onlineIHR"
+            :online-i-h-r-per-hab="onlineIHRPerHab"
+            :offline-i-h-r="offlineIHR"
+            :internal-hatchery-researches="internalHatcheryResearches"
+          />
+          <silos-section :backup="backup" :set-cash-target="setCashTarget" :add-cash-target="addCashTarget" />
+        </div>
+      </collapsible-section>
+
+      <hr class="mt-2" />
+
+      <collapsible-section
+        section-title="Earnings"
+        :visible="isVisibleSection('earnings')"
+        class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('earnings')"
+      >
+        <earnings-section
+          ref="earningsSectionRef"
+          :backup="backup"
+          :optimal-artifacts="cteArtiSet.artifacts"
+          :target-t-e="targetTE"
+          :current-population="currentPopulation"
+          :total-truth-eggs-pending="totalTruthEggsPending"
+        />
+      </collapsible-section>
+
+      <hr class="mt-2" />
+      <collapsible-section
+        section-title="Research"
+        :visible="isVisibleSection('research')"
+        class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('research')"
+      >
+        <research-progress
+          :backup="backup"
+          :set-cash-target="setCashTarget"
+          :add-cash-target="addCashTarget"
+          :earnings-set="cteArtiSet.artifacts"
+        />
       </collapsible-section>
 
       <hr />
 
       <collapsible-section
-        section-title="Artifacts"
+        section-title="Currently Equipped Artifacts"
         :visible="isVisibleSection('artifacts')"
         class="my-2 text-sm"
         @toggle="toggleSectionVisibility('artifacts')"
       >
-        <artifacts-gallery :artifacts="artifacts" />
+        <artifacts-gallery :artifact-set="equippedArtiSet" :farm="homeFarm" />
+      </collapsible-section>
+      <collapsible-section
+        :section-title="`Optimal Artifacts for Earnings (Clothed TE: ${formatWithThousandSeparators(Math.round(maxClothedTE))})`"
+        :visible="isVisibleSection('artifacts-cte')"
+        class="my-2 text-sm"
+        @toggle="toggleSectionVisibility('artifacts-cte')"
+      >
+        <artifacts-gallery
+          :artifact-set="cteArtiSet"
+          :reference-set="equippedArtiSet"
+          :artifact-assembly-statuses="cteAssemblyStatuses"
+          :farm="homeFarm"
+        />
       </collapsible-section>
     </template>
   </main>
@@ -350,55 +200,49 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
 import {
-  ei,
-  allModifiersFromColleggtibles,
   iconURL,
+  ArtifactSet,
   UserBackupEmptyError,
   getLocalStorage,
   setLocalStorage,
   virtueEggs,
-  eggName,
-  eggIconPath,
   fmtApprox,
-  virtuePurpose,
   nextShiftCost,
+  getNumTruthEggs,
+  Inventory,
+  contenderToArtifactSet,
+  ArtifactAssemblyStatus,
+  Farm,
 } from 'lib';
 import {
-  calculateDroneValues,
-  calculateFarmValue,
-  earningBonusToFarmerRole,
-  artifactsFromInventory,
-  farmEarningBonus,
-  farmEarningRate,
-  farmEggValue,
-  farmEggValueResearches,
+  allModifiersFromColleggtibles,
+  calculateClothedTE,
+  calculateMaxClothedTE,
   farmHabs,
   farmHabSpaceResearches,
   farmHabSpaces,
-  farmVehicles,
-  farmShippingCapacityResearches,
-  farmVehicleShippingCapacities,
   farmShippingCapacity,
   farmInternalHatcheryRates,
   farmInternalHatcheryResearches,
-  farmMaxRCB,
-  farmMaxRCBResearches,
   homeFarmArtifacts,
   requestFirstContact,
-  researchPriceMultiplierFromArtifacts,
   farmEggLayingRate,
   pendingTruthEggs,
-  nextTruthEggThreshold,
-  projectEggsLaidOverTime,
 } from '@/lib';
 import { TE_BREAKPOINTS } from '@/lib/virtue';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
-import { formatPercentage, formatWithThousandSeparators, formatDurationAuto } from '@/utils';
+import { formatWithThousandSeparators } from '@/utils';
 import CollapsibleSection from '@/components/CollapsibleSection.vue';
 import ArtifactsGallery from '@/components/ArtifactsGallery.vue';
-import UnfinishedResearches from '@/components/UnfinishedResearches.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
-import TruthEggProgressBar from '@/components/TruthEggProgressBar.vue';
+import ResearchProgress from '@/components/ResearchProgress.vue';
+import TruthEggProgress from '@/components/TruthEggProgress.vue';
+import FarmSummary from '@/components/FarmSummary.vue';
+import HabsSection from '@/components/HabsSection.vue';
+import VehiclesSection from '@/components/VehiclesSection.vue';
+import SilosSection from '@/components/SilosSection.vue';
+import InternalHatcheryInfo from '@/components/InternalHatcheryInfo.vue';
+import EarningsSection from '@/components/EarningsSection.vue';
 
 // Note that timezone abbreviation may not work due to
 // https://github.com/iamkun/dayjs/issues/1154, in which case the GMT offset is
@@ -413,9 +257,15 @@ export default defineComponent({
   components: {
     CollapsibleSection,
     ArtifactsGallery,
-    UnfinishedResearches,
     BaseInfo,
-    TruthEggProgressBar,
+    ResearchProgress,
+    TruthEggProgress,
+    FarmSummary,
+    HabsSection,
+    VehiclesSection,
+    SilosSection,
+    InternalHatcheryInfo,
+    EarningsSection,
   },
   props: {
     playerId: {
@@ -453,8 +303,8 @@ export default defineComponent({
     }
     const modifiers = allModifiersFromColleggtibles(backup);
     const farm = backup.farms[0]; // Home farm
+    const homeFarm = new Farm(backup, backup.farms[0]);
     const egg = farm.eggType!;
-    const eggIconURL = iconURL(eggIconPath(egg), 128);
     const lastRefreshedTimestamp = farm.lastStepTime! * 1000;
     const lastRefreshed = dayjs(Math.min(lastRefreshedTimestamp, Date.now()));
     const currentTimestamp = ref(Date.now());
@@ -467,15 +317,20 @@ export default defineComponent({
         Math.max(lastRefreshedPopulation, totalHabSpace)
       )
     );
-    const calculateTimeToHabLock = (ihr: number) => {
-      return Math.max(0, (60 * (totalHabSpace - currentPopulation.value)) / ihr);
-    };
 
     const artifacts = homeFarmArtifacts(backup, true);
-    // Cap existing trophy level at platinum for people doing a legit diamond
-    // run after cheating it first.
-    const existingTrophyLevel = Math.min(backup.game!.eggMedalLevel![18], 4);
-    const existingTrophyLevelUncapped = backup.game!.eggMedalLevel![18];
+    const equippedArtiSet = new ArtifactSet(artifacts, false);
+
+    // Create inventory and convert contender to artifact set with assembly statuses
+    const inventory = new Inventory(backup.artifactsDb!, { virtue: true });
+    // Calculate max clothed TE and optimal artifacts
+    const { clothedTE: maxClothedTE, recommendedArtifacts: maxClothedTEArtifacts } = calculateMaxClothedTE(
+      backup,
+      inventory,
+      equippedArtiSet
+    );
+
+    const { artifactSet: cteArtiSet, assemblyStatuses: cteAssemblyStatuses } = maxClothedTEArtifacts;
 
     refreshIntervalId = setInterval(() => {
       currentTimestamp.value = Date.now();
@@ -485,42 +340,27 @@ export default defineComponent({
     const totalShifts = computed(() => backup.virtue?.shiftCount || 0);
     const totalResets = computed(() => backup.virtue?.resets || 0);
     const nextShiftSE = computed(() => fmtApprox(nextShiftCost(backup)));
-    const totalTruthEggs = computed(() => backup.virtue?.eovEarned?.reduce((a, b) => a + b, 0) || 0);
-    const truthEggs = backup.virtue?.eovEarned || [0, 0, 0, 0, 0];
-    const eovDelivered = backup.virtue?.eggsDelivered || [0, 0, 0, 0, 0];
-    const totaleovDelivered = computed(() => eovDelivered.reduce((a, b) => a + b, 0));
+    const totalTruthEggs = computed(() => getNumTruthEggs(backup));
+    const truthEggs = computed(() => backup.virtue?.eovEarned || [0, 0, 0, 0, 0]);
+    const eovDelivered = computed(() => backup.virtue?.eggsDelivered || [0, 0, 0, 0, 0]);
+    const totaleovDelivered = computed(() => eovDelivered.value.reduce((a, b) => a + b, 0));
     const truthEggsPending = computed(() => {
-      return truthEggs.map((earned, index) => pendingTruthEggs(eovDelivered[index], earned) || 0);
+      return truthEggs.value.map((earned, index) => pendingTruthEggs(eovDelivered.value[index], earned) || 0);
     });
     const totalTruthEggsPending = computed(() => truthEggsPending.value.reduce((a, b) => a + b, 0));
-    const nextTruthEggTarget = computed(() => nextTruthEggThreshold(eovDelivered[egg - 50]));
-    const activeEOVDelivered = eovDelivered[egg - 50];
+    const activeEOVDelivered = eovDelivered.value[egg - 50];
 
     // Determine which truth egg thresholds have been discovered (reached by any virtue egg)
     const discoveredThresholds = computed(() => {
-      const maxDelivered = Math.max(...eovDelivered);
+      const maxDelivered = Math.max(...eovDelivered.value);
       return TE_BREAKPOINTS.filter(threshold => maxDelivered >= threshold);
     });
-
-    // Smart spoiler logic: show threshold if spoilers are on OR if threshold has been discovered
-    const shouldShowThreshold = (currentDelivered: number) => {
-      const threshold = nextTruthEggThreshold(currentDelivered);
-      return showThresholdSpoilers.value || discoveredThresholds.value.includes(threshold);
-    };
 
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
     const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.habCap);
     const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
 
-    const vehicles = farmVehicles(farm);
-    const vehicleSpaceResearches = farmShippingCapacityResearches(farm, backup.game!);
-    const vehicleSpaces = farmVehicleShippingCapacities(
-      vehicles,
-      vehicleSpaceResearches,
-      artifacts,
-      modifiers.shippingCap
-    );
     const totalVehicleSpace = farmShippingCapacity(farm, backup.game!, artifacts, modifiers.shippingCap);
 
     const eggLayingRate = farmEggLayingRate(farm, progress, artifacts) * modifiers.elr;
@@ -530,84 +370,7 @@ export default defineComponent({
       Math.min((currentPopulation.value / lastRefreshedPopulation) * effectiveELR, totalVehicleSpace)
     );
 
-    const earningBonus = farmEarningBonus(backup, farm, progress, artifacts);
-    const farmerRole = earningBonusToFarmerRole(earningBonus);
-    const farmValue = calculateFarmValue(backup, farm, progress, artifacts);
-    const cashOnHand = farm.cashEarned! - farm.cashSpent!;
-    const eggValue = farmEggValue(farmEggValueResearches(farm), artifacts);
-    const maxRCB = farmMaxRCB(farmMaxRCBResearches(farm, progress), artifacts);
-    const {
-      onlineBaseline: earningRateOnlineBaseline,
-      onlineMaxRCB: earningRateOnlineMaxRCB,
-      offline: earningRateOffline,
-    } = farmEarningRate(backup, farm, progress, artifacts, modifiers);
-    const droneValuesAtMaxRCB = calculateDroneValues(farm, progress, artifacts, {
-      population: farm.numChickens! as number,
-      farmValue,
-      rcb: maxRCB,
-    });
-
-    const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts);
-    const bestPossibleCube = artifactsFromInventory(backup, ei.ArtifactSpec.Name.PUZZLE_CUBE)[0];
-    const bestPossibleCubeSet = bestPossibleCube ? [bestPossibleCube] : [];
-    const bestPriceMultiplier = researchPriceMultiplierFromArtifacts(bestPossibleCubeSet);
-    const cashTargets = [
-      { multiplier: 1, description: 'No research sale\nno artifacts' },
-      { multiplier: 0.3, description: '70% research sale\n no artifacts' },
-    ];
-    if (currentPriceMultiplier < 1) {
-      cashTargets.push(
-        { multiplier: currentPriceMultiplier, description: 'No research sale\ncurrent artifacts' },
-        {
-          multiplier: currentPriceMultiplier * 0.3,
-          description: '70% research sale\ncurrent artifacts',
-        }
-      );
-    }
-    const betterCubePossible = bestPriceMultiplier < currentPriceMultiplier;
-    if (betterCubePossible) {
-      cashTargets.push(
-        { multiplier: bestPriceMultiplier, description: 'No research sale\nbest cube possible' },
-        {
-          multiplier: bestPriceMultiplier * 0.3,
-          description: '70% research sale\nbest cube possible',
-        }
-      );
-    }
-    const calculateAndFormatDuration = (target: number, rate: number): string => {
-      if (target <= 0) {
-        return '-';
-      }
-      return formatDurationAuto(target / rate);
-    };
-    const calculateAndFormatNumDrones = (target: number, rate: number): string => {
-      let count: number | string;
-      if (target <= 0) {
-        count = 0;
-      } else if (rate === 0) {
-        count = '\u221E';
-      } else {
-        count = Math.ceil(target / rate);
-      }
-      return `\u00D7${count}`;
-    };
-    const cashMeans = [
-      {
-        rate: earningRateOnlineMaxRCB * 2,
-        description: 'Active earnings w/ max RCB, video 2x',
-        calc: calculateAndFormatDuration,
-      },
-      {
-        rate: earningRateOffline,
-        description: 'Offline earnings',
-        calc: calculateAndFormatDuration,
-      },
-      {
-        rate: droneValuesAtMaxRCB.elite,
-        description: 'Elite drone at max RCB',
-        calc: calculateAndFormatNumDrones,
-      },
-    ];
+    const clothedTE = calculateClothedTE(backup, artifacts);
 
     const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
     const {
@@ -631,7 +394,7 @@ export default defineComponent({
       if (lastRefreshedPopulation >= effectiveCapacity) {
         const staticELR = Math.min(eggLayingRate, totalVehicleSpace);
         const eggsDeliveredWhileOffline = staticELR * timeElapsed;
-        return eovDelivered[egg - 50] + eggsDeliveredWhileOffline;
+        return eovDelivered.value[egg - 50] + eggsDeliveredWhileOffline;
       }
 
       // If we reach effective capacity during this period
@@ -651,7 +414,7 @@ export default defineComponent({
         const staticELR = Math.min(eggLayingRate * (effectiveCapacity / lastRefreshedPopulation), totalVehicleSpace);
         const eggsPhase2 = staticELR * timeAfterCapacity;
 
-        return eovDelivered[egg - 50] + eggsPhase1 + eggsPhase2;
+        return eovDelivered.value[egg - 50] + eggsPhase1 + eggsPhase2;
       }
 
       // Population stays below effective capacity - use standard growth formula
@@ -659,33 +422,36 @@ export default defineComponent({
       const quadraticTerm = (eggLayingRate * ihrPerSecond * timeElapsed * timeElapsed) / (2 * lastRefreshedPopulation);
       const eggsDeliveredWhileOffline = linearTerm + quadraticTerm;
 
-      return eovDelivered[egg - 50] + eggsDeliveredWhileOffline;
+      return eovDelivered.value[egg - 50] + eggsDeliveredWhileOffline;
     };
     const activeEOVDeliveredAdjusted = computed(() => ({
       offline: calculateEOVDelivered(offlineIHR),
       online: calculateEOVDelivered(onlineIHR),
     }));
     const truthEggsPendingAdjusted = computed(() => ({
-      offline: pendingTruthEggs(activeEOVDeliveredAdjusted.value.offline, truthEggs[egg - 50]) || 0,
-      online: pendingTruthEggs(activeEOVDeliveredAdjusted.value.online, truthEggs[egg - 50]) || 0,
+      offline: pendingTruthEggs(activeEOVDeliveredAdjusted.value.offline, truthEggs.value[egg - 50]) || 0,
+      online: pendingTruthEggs(activeEOVDeliveredAdjusted.value.online, truthEggs.value[egg - 50]) || 0,
     }));
 
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 
     const TARGET_TE_LOCALSTORAGE_KEY = 'targetTE';
-    const TARGET_TS_LOCALSTORAGE_KEY = 'targetTs';
     const THRESHOLD_SPOILERS_LOCALSTORAGE_KEY = 'showThresholdSpoilers';
+    const SHOW_HAB_VEHICLE_ICONS_KEY = 'showHabVehicleIcons';
 
-    const defaultTargetTE = computed(
-      () => Math.max(...truthEggs.map((earned, index) => earned + truthEggsPending.value[index])) + 5
+    const truthEggsWithPending = computed(() =>
+      truthEggs.value.map((earned, index) => earned + truthEggsPending.value[index])
+    );
+    const defaultTargetTE = computed(() =>
+      Math.max(Math.min(...truthEggsWithPending.value) + 5, Math.max(...truthEggsWithPending.value))
     );
 
     const savedTargetTE = ref(parseInt(getLocalStorage(TARGET_TE_LOCALSTORAGE_KEY) || '') || defaultTargetTE.value);
     const targetTE = ref(
       Math.min(98, savedTargetTE.value < defaultTargetTE.value ? defaultTargetTE.value : savedTargetTE.value)
     );
-    const target_ts = ref(getLocalStorage(TARGET_TS_LOCALSTORAGE_KEY) === 'true');
     const showThresholdSpoilers = ref(getLocalStorage(THRESHOLD_SPOILERS_LOCALSTORAGE_KEY) === 'true'); // Default to false
+    const showHabVehicleIcons = ref(getLocalStorage(SHOW_HAB_VEHICLE_ICONS_KEY) !== 'false'); // Default to true
 
     // eslint-disable-next-line vue/no-watch-after-await
     watch(targetTE, () => {
@@ -696,90 +462,85 @@ export default defineComponent({
       setLocalStorage(TARGET_TE_LOCALSTORAGE_KEY, targetTE.value.toString());
     });
 
-    watch(target_ts, () => {
-      setLocalStorage(TARGET_TS_LOCALSTORAGE_KEY, target_ts.value);
-    });
-
+    // eslint-disable-next-line vue/no-watch-after-await
     watch(showThresholdSpoilers, () => {
       setLocalStorage(THRESHOLD_SPOILERS_LOCALSTORAGE_KEY, showThresholdSpoilers.value);
     });
 
+    // eslint-disable-next-line vue/no-watch-after-await
+    watch(showHabVehicleIcons, () => {
+      setLocalStorage(SHOW_HAB_VEHICLE_ICONS_KEY, showHabVehicleIcons.value.toString());
+    });
+
+    const earningsSectionRef = ref<InstanceType<typeof EarningsSection>>();
+
+    const setCashTarget = (amount: number) => {
+      earningsSectionRef.value?.setCashTarget(amount);
+    };
+
+    const addCashTarget = (amount: number) => {
+      earningsSectionRef.value?.addCashTarget(amount);
+    };
+
     return {
+      // Basic farm info
       nickname,
       lastRefreshed,
-      lastRefreshedTimestamp,
       lastRefreshedRelative,
       egg,
-      eggIconURL,
+      virtueEggs,
       artifacts,
-      lastRefreshedPopulation,
-      existingTrophyLevel,
-      existingTrophyLevelUncapped,
+      backup,
+      homeFarm,
+
+      // Artifact Sets
+      equippedArtiSet,
+      cteArtiSet,
+      cteAssemblyStatuses,
+
+      // Population & timing
       currentPopulation,
-      habs,
-      habSpaceResearches,
-      totalHabSpace,
-      habSpaces,
-      vehicles,
-      vehicleSpaceResearches,
-      vehicleSpaces,
-      totalVehicleSpace,
-      earningBonus,
-      farmerRole,
-      farmValue,
-      cashOnHand,
-      eggValue,
-      maxRCB,
-      earningRateOnlineBaseline,
-      earningRateOnlineMaxRCB,
-      earningRateOffline,
-      droneValuesAtMaxRCB,
-      cashTargets,
-      cashMeans,
-      betterCubePossible,
-      bestPossibleCubeSet,
+      currentTimestamp,
+
+      // Earnings data
+      clothedTE,
+      maxClothedTE,
+
+      // Internal hatchery
       internalHatcheryResearches,
       onlineIHR,
       onlineIHRPerHab,
       offlineIHR,
-      isVisibleSection,
-      toggleSectionVisibility,
-      formatWithThousandSeparators,
-      formatPercentage,
-      iconURL,
-      target_ts,
-      virtueEggs,
-      ei,
-      effectiveELR,
-      eggLayingRate,
-      fmtApprox,
-      eggName,
-      eggIconPath,
+
+      // Truth eggs
       truthEggs,
       totalTruthEggs,
       truthEggsPending,
+      totalTruthEggsPending,
       eovDelivered,
       totaleovDelivered,
-      totalTruthEggsPending,
       currentELR,
-      nextTruthEggTarget,
-      activeEOVDeliveredAdjusted,
       activeEOVDelivered,
+      activeEOVDeliveredAdjusted,
       truthEggsPendingAdjusted,
-      nextTruthEggThreshold,
-      formatDurationAuto,
-      currentTimestamp,
-      dayjs,
-      showThresholdSpoilers,
-      shouldShowThreshold,
       discoveredThresholds,
-      virtuePurpose,
-      calculateTimeToHabLock,
+
+      // Virtue tracking
       totalShifts,
       totalResets,
       nextShiftSE,
-      backup,
       targetTE,
+      showThresholdSpoilers,
+      showHabVehicleIcons,
+
+      // UI helpers
+      isVisibleSection,
+      toggleSectionVisibility,
+      formatWithThousandSeparators,
+      iconURL,
+      earningsSectionRef,
+      setCashTarget,
+      addCashTarget,
     };
   },
 });

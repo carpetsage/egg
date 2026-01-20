@@ -2,6 +2,11 @@ export const effects = [
   { id: 'eb', name: 'EB', note: 'Earning bonus, as shown on the prestige screen.' },
   { id: 'eb_virtue', name: 'EB (Virtue)', note: 'Earning bonus, as shown on the prestige screen on a virtue farm.' },
   {
+    id: 'cte',
+    name: 'CTE (Virtue)',
+    note: 'Effective TE count on virtue for earnings, including effects from artifacts and colleggtibles.',
+  },
+  {
     id: 'role',
     name: 'Role',
     note: 'This is the role (rank) corresponding to the earning bonus, as used in the Egg, Inc. Discord.',

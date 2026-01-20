@@ -12,19 +12,17 @@ import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;
 import Type = ei.ArtifactSpec.Type;
 
-export type PlayerCraftingLevel = { level: number, rarityMult: number };
+export type PlayerCraftingLevel = { level: number; rarityMult: number };
 type configType = {
-  missionParameters: SpaceshipParameters[],
-  artifactParameters: ArtifactParameters[],
-  craftingLevelInfos: CraftingLevelInfo[],
-}
+  missionParameters: SpaceshipParameters[];
+  artifactParameters: ArtifactParameters[];
+  craftingLevelInfos: CraftingLevelInfo[];
+};
 
 export const allPossibleTiers = data.artifact_families.map(f => f.tiers).flat();
 export const afxCraftingLevelInfos = config.craftingLevelInfos;
 
-const familyAfxIdToFamily: Map<Name, Family> = new Map(
-  data.artifact_families.map(f => [f.afx_id, f])
-);
+const familyAfxIdToFamily: Map<Name, Family> = new Map(data.artifact_families.map(f => [f.afx_id, f]));
 
 const itemAfxIdToFile: Map<Name, string> = new Map(
   data.artifact_families
@@ -76,18 +74,17 @@ export function afxMatchesTarget(afxId: Name, targetId: Name): boolean {
     return afxId === targetId;
   }
   return afxFamily === targetFamily;
-
 }
 export function getTargetName(afxId: Name): string {
   if (afxId === 10000) {
-    return "Untargeted";
+    return 'Untargeted';
   }
   const familyName = itemAfxIdToFamilyName.get(afxId);
   const type = itemAfxIdToType.get(afxId)!;
   if (type === Type.STONE_INGREDIENT) {
-    return itemIdtoName.get(afxId) ?? "Not Found";
+    return itemIdtoName.get(afxId) ?? 'Not Found';
   }
-  return familyName ?? `Not Found 2: ${afxId}`
+  return familyName ?? `Not Found 2: ${afxId}`;
 }
 
 export function getTargetId(afxName: string) {
@@ -95,8 +92,6 @@ export function getTargetId(afxName: string) {
     if (getTargetName(id).toLowerCase() == afxName.toLowerCase()) {
       return id;
     }
-    console.log("target" + getTargetName(id))
-    console.log("selected" + afxName)
   }
   return 10000;
 }
@@ -128,9 +123,7 @@ export function getArtifactTierProps(afxId: Name, afxLevel: Level): Tier {
     throw new Error(`there's no artifact tier with id ${afxId} and level ${afxLevel}`);
   }
   if (tier.afx_id !== afxId || tier.afx_level !== afxLevel) {
-    throw new Error(
-      `the impossible happened: getArtifactTierProps(${afxId}, ${afxLevel}) returned wrong item`
-    );
+    throw new Error(`the impossible happened: getArtifactTierProps(${afxId}, ${afxLevel}) returned wrong item`);
   }
   return tier;
 }
@@ -147,20 +140,22 @@ export function getArtifactTierPropsFromId(id: string): Tier {
 export function validateCraftingLevel(level: number) {
   if (level >= afxCraftingLevelInfos.length) {
     return afxCraftingLevelInfos.length;
-  }
-  else if (level <= 0) {
+  } else if (level <= 0) {
     return 1;
-  }
-  else {
+  } else {
     return level;
   }
 }
 
 export function getXPFromCraftingLevel(level: number) {
-  if (level > afxCraftingLevelInfos.length) { return 0; }
-  if (level <= 0) { return afxCraftingLevelInfos[0].xpRequired!; }
+  if (level > afxCraftingLevelInfos.length) {
+    return 0;
+  }
+  if (level <= 0) {
+    return afxCraftingLevelInfos[0].xpRequired!;
+  }
 
-  const levels = afxCraftingLevelInfos.slice(0,level - 1);
+  const levels = afxCraftingLevelInfos.slice(0, level - 1);
   return levels.map(x => x.xpRequired!).reduce((sum, levelXp) => sum + levelXp);
 }
 
@@ -169,11 +164,11 @@ export function getCraftingLevelFromXp(craftingXp: number): PlayerCraftingLevel 
   const numLevels = afxCraftingLevelInfos.length;
 
   for (let level = 1; level <= numLevels; ++level) {
-    const { xpRequired, rarityMult } = afxCraftingLevelInfos[level-1];
+    const { xpRequired, rarityMult } = afxCraftingLevelInfos[level - 1];
 
     if (xpRequired == null || rarityMult == null) {
-      console.error(`crafting level ${level} doesn't have valid xpRequired and rarityMult data`)
-      return { level: 1, rarityMult: 1}
+      console.error(`crafting level ${level} doesn't have valid xpRequired and rarityMult data`);
+      return { level: 1, rarityMult: 1 };
     }
 
     const levelTargetXp = levelBaseXp + xpRequired;
@@ -185,17 +180,18 @@ export function getCraftingLevelFromXp(craftingXp: number): PlayerCraftingLevel 
     levelBaseXp += xpRequired;
   }
 
-  return { level: 1, rarityMult: 1}
+  return { level: 1, rarityMult: 1 };
 }
 
 export function updateData(newconfig: configType) {
   const newdata = data;
-  for ( const fam of newdata.artifact_families) {
-    for ( let tier of fam.tiers) {
-      const artis = newconfig.artifactParameters.filter(x => (tier.afx_id == Name[x.spec.name] && tier.afx_level == Level[x.spec.level]));
+  for (const fam of newdata.artifact_families) {
+    for (let tier of fam.tiers) {
+      const artis = newconfig.artifactParameters.filter(
+        x => tier.afx_id == Name[x.spec.name] && tier.afx_level == Level[x.spec.level]
+      );
       console.log(artis.length);
       tier = artifactsToTier(artis, tier);
-
     }
   }
   return newdata;
@@ -206,13 +202,12 @@ function artifactsToTier(artis: ArtifactParameters[], tier: Tier): Tier {
   if (tier.effects != null) {
     for (let i = 0; i < artis.length; i++) {
       if (i < tier.effects?.length) {
-        tier.effects[i].odds_multiplier = artis[i].oddsMultiplier
-      }
-      else if (i > 0) {
+        tier.effects[i].odds_multiplier = artis[i].oddsMultiplier;
+      } else if (i > 0) {
         tier.effects[i] = {
-          ...tier.effects[i-1],
+          ...tier.effects[i - 1],
           odds_multiplier: artis[i].oddsMultiplier,
-        }
+        };
       }
     }
   }
@@ -223,8 +218,8 @@ function artifactsToTier(artis: ArtifactParameters[], tier: Tier): Tier {
       domain: arti.craftingPriceDomain,
       curve: arti.craftingPriceCurve,
       initial: Math.floor(arti.craftingPrice),
-      minimum: Math.floor(arti.craftingPriceLow)
-    }
+      minimum: Math.floor(arti.craftingPriceLow),
+    };
   }
   tier.available_from_missions = arti.baseQuality < 16.48;
   tier.base_crafting_prices = artis.map(x => x.craftingPrice);
@@ -235,4 +230,4 @@ function artifactsToTier(artis: ArtifactParameters[], tier: Tier): Tier {
   tier.crafting_xp = arti.craftingXp;
 
   return tier;
- }
+}

@@ -24775,5 +24775,50 @@
     "startTimestamp": 1768582800,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1768755600,
+    "id": "event-1-17",
+    "message": "DOUBLE PRESTIGE!",
+    "multiplier": 2,
+    "startTimestamp": 1768669200,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1768842000,
+    "id": "event-1-17-2",
+    "message": "4x PIGGY GROWTH!!",
+    "multiplier": 4,
+    "startTimestamp": 1768669200,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1768842000,
+    "id": "event-1-18",
+    "message": "35% OFF EPIC RESEARCH!",
+    "multiplier": 0.65,
+    "startTimestamp": 1768755600,
+    "type": "epic-research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1768842000,
+    "id": "ultra-1-18",
+    "message": "2x GIFTS!!",
+    "multiplier": 2,
+    "startTimestamp": 1768755600,
+    "type": "gift-boost",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1768928400,
+    "id": "event-1-19",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1768842000,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]

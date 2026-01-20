@@ -1,4 +1,4 @@
-import { ei, allModifiersFromColleggtibles, fmtApprox, eggName } from '@/lib';
+import { ei, allModifiersFromColleggtibles, getNumTruthEggs } from '@/lib';
 import {
   farmHabs,
   farmHabSpaceResearches,
@@ -9,7 +9,6 @@ import {
   farmEggLayingRate,
   homeFarmArtifacts,
 } from '@/lib';
-import dayjs from 'dayjs';
 
 export function projectEggsLaid(backup: ei.IBackup, targetEggAmount: number, active = true, eggOverride?: ei.Egg) {
   const farm = backup.farms![0];
@@ -23,7 +22,7 @@ export function projectEggsLaid(backup: ei.IBackup, targetEggAmount: number, act
   const perChickenPerMinuteLayingRate = eggLayingRate / (farm.numChickens! || 1);
   const shippingCapacity = 60 * farmShippingCapacity(farm, backup.game!, artifacts, modifiers.shippingCap);
   const effectivePopulationCap = shippingCapacity / perChickenPerMinuteLayingRate;
-  const totalTruthEggs = backup.virtue?.eovEarned?.reduce((a, b) => a + b, 0) || 0;
+  const totalTruthEggs = getNumTruthEggs(backup);
 
   const { offlineRate: offlineIHR } = farmInternalHatcheryRates(
     farmInternalHatcheryResearches(farm, backup.game!),
@@ -70,7 +69,7 @@ export function projectEggsLaidOverTime(backup: ei.IBackup, timeInSeconds: numbe
   const perChickenPerMinuteLayingRate = eggLayingRate / lastRefreshedPopulation;
   const shippingCapacity = 60 * farmShippingCapacity(farm, backup.game!, artifacts, modifiers.shippingCap);
   const effectivePopulationCap = shippingCapacity / perChickenPerMinuteLayingRate;
-  const totalTruthEggs = backup.virtue?.eovEarned?.reduce((a, b) => a + b, 0) || 0;
+  const totalTruthEggs = getNumTruthEggs(backup);
 
   const { offlineRate: offlineIHR } = ihr
     ? { offlineRate: ihr }

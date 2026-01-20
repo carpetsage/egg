@@ -1,19 +1,19 @@
 <template>
   <div v-if="unfinishedResearches.length > 0">
-    <p>Unfinished researches:</p>
-    <table class="tabular-nums">
+    <p class="text-xs text-gray-600 mb-1">Unfinished research:</p>
+    <table class="tabular-nums text-xs w-auto">
       <tbody>
         <tr v-for="research in unfinishedResearches" :key="research.id">
-          <td class="text-blue-500">{{ research.level }}/{{ research.maxLevel }}</td>
-          <td class="pl-2" :class="research.epic ? 'text-purple-700' : null">
+          <td class="text-blue-500 pr-2">{{ research.level }}/{{ research.maxLevel }}</td>
+          <td class="text-gray-700" :class="research.epic ? 'text-purple-700' : null">
             {{ research.name }}
-            <template v-if="research.epic">(Epic)</template>
+            <template v-if="research.epic"> (Epic)</template>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
-  <div v-else>All related researches finished.</div>
+  <div v-else class="text-xs text-green-600">All related researches complete</div>
 </template>
 
 <script lang="ts">
