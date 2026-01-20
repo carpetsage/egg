@@ -1182,19 +1182,6 @@ objects.sort((o1, o2) => {
 const chickens = objects.filter((o: ShellObject): o is Chicken => o.type === AssetType.CHICKEN);
 const hats = objects.filter((o: ShellObject): o is Hat => o.type === AssetType.HAT);
 
-const hatIds = new Set(hats.map(hat => hat.id));
-const rawHatInventory = (save.backup.shellDb?.shellObjectInventory ?? []).filter(
-  status => status?.identifier && hatIds.has(status.identifier)
-);
-console.log(
-  '[Shell Company] raw shellObjectInventory (hats only, full objects)',
-  rawHatInventory.map(status => JSON.parse(JSON.stringify(status)))
-);
-const rawHatSpecs = (config.dlcCatalog?.shellObjects ?? []).filter(
-  obj => obj?.assetType === AssetType.HAT
-);
-console.log('[Shell Company] raw hat specs from config', rawHatSpecs);
-
 function sum(arr: number[]) {
   return arr.reduce((acc, cur) => acc + cur, 0);
 }
