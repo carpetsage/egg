@@ -1,0 +1,139 @@
+syntax = "proto3";
+
+// Ascension Planner schema for serializing/deserializing ascension plans
+
+// Forward declarations - put these first so interfaces are generated before usage
+
+message Stone {
+  uint32 afx_id = 1;
+  uint32 afx_level = 2;
+}
+
+message Artifact {
+  uint32 afx_id = 1;
+  uint32 afx_level = 2;
+  uint32 afx_rarity = 3;
+  repeated Stone stones = 10;
+}
+
+message FuelTankState {
+  double capacity = 1;
+  double curiosity_stored = 10;
+  double integrity_stored = 11;
+  double kindness_stored = 12;
+  double humility_stored = 13;
+  double resilience_stored = 14;
+}
+
+// Main messages
+
+message AscensionPlan {
+  InitialState initial_state = 1;
+  repeated AscensionStep steps = 2;
+}
+
+message InitialState {
+  // Starting resources
+  double soul_eggs = 1;
+  string soul_eggs_input = 2;  // String form as entered by user
+  uint32 truth_eggs = 3;
+  uint32 shifts_used = 4;
+
+  // Virtue eggs laid counts
+  double curiosity_laid = 10;
+  double integrity_laid = 11;
+  double kindness_laid = 12;
+  double humility_laid = 13;
+  double resilience_laid = 14;
+
+  // Fuel tank state
+  FuelTankState fuel_tank = 20;
+
+  // Timestamp for planning
+  int64 start_timestamp = 30;  // Unix timestamp in milliseconds
+
+  // Artifacts equipped (for earnings calculation)
+  repeated Artifact earnings_artifacts = 40;
+}
+
+message AscensionStep {
+  string id = 1;
+  VirtueEgg egg_type = 2;
+  bool expanded = 3;
+
+  // Purchases made on this step (to be defined per egg type)
+  StepPurchases purchases = 10;
+
+  // Fuel tank actions during this step
+  repeated FuelTankAction fuel_actions = 20;
+
+  // Duration to wait before next shift
+  int64 duration_seconds = 30;
+
+  // Artifact loadout (only applicable for Humility)
+  repeated Artifact artifacts = 40;
+}
+
+message StepPurchases {
+  // Curiosity - Research
+  repeated ResearchPurchase research = 1;
+
+  // Integrity - Habs
+  repeated HabPurchase habs = 2;
+
+  // Kindness - Vehicles
+  repeated VehiclePurchase vehicles = 3;
+
+  // Resilience - Silos
+  uint32 silos_purchased = 4;
+
+  // Humility - Rockets
+  repeated RocketLaunch rockets = 5;
+}
+
+message ResearchPurchase {
+  string research_id = 1;
+  uint32 levels = 2;
+}
+
+message HabPurchase {
+  uint32 hab_index = 1;  // 0-3 for the 4 hab slots
+  uint32 hab_type = 2;   // Hab type enum value
+}
+
+message VehiclePurchase {
+  uint32 vehicle_index = 1;
+  uint32 vehicle_type = 2;
+}
+
+message RocketLaunch {
+  uint32 ship_type = 1;
+  uint32 mission_type = 2;
+  // Fuel used from tank
+  double curiosity_fuel = 10;
+  double integrity_fuel = 11;
+  double kindness_fuel = 12;
+  double humility_fuel = 13;
+  double resilience_fuel = 14;
+}
+
+message FuelTankAction {
+  FuelActionType action_type = 1;
+  VirtueEgg egg_type = 2;
+  double amount = 3;
+}
+
+enum FuelActionType {
+  FUEL_ACTION_UNKNOWN = 0;
+  FUEL_ACTION_FILL = 1;     // Fill tank with current egg
+  FUEL_ACTION_USE = 2;      // Use fuel for rocket
+}
+
+enum VirtueEgg {
+  VIRTUE_EGG_UNKNOWN = 0;
+  CURIOSITY = 1;
+  INTEGRITY = 2;
+  KINDNESS = 3;
+  HUMILITY = 4;
+  RESILIENCE = 5;
+}
