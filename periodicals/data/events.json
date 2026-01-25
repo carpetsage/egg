@@ -24894,6 +24894,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1769360400,
+    "id": "ultra-1-24",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1769274000,
+    "type": "shell-sale",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1769446800,
     "id": "event-1-24-2",
     "message": "4x PIGGY GROWTH!",
@@ -24903,12 +24912,21 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1769360400,
-    "id": "ultra-1-24",
-    "message": "15% OFF SHELLS!",
-    "multiplier": 0.85,
-    "startTimestamp": 1769274000,
-    "type": "shell-sale",
-    "ultra": true
+    "endTimestamp": 1769446800,
+    "id": "event-1-25",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1769360400,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1769533200,
+    "id": "event-1-25-2",
+    "message": "DOUBLE CAPACITY!",
+    "multiplier": 2,
+    "startTimestamp": 1769360400,
+    "type": "mission-capacity",
+    "ultra": false
   }
 ]
