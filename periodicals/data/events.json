@@ -25054,5 +25054,23 @@
     "startTimestamp": 1770051600,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1770224400,
+    "id": "event-2-3",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1770138000,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1770224400,
+    "id": "ultra-2-3",
+    "message": "3x FUELING!",
+    "multiplier": 3,
+    "startTimestamp": 1770138000,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
