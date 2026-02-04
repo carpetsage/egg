@@ -29,7 +29,7 @@ const router = createRouter({
       component: Coop,
       props: true,
       meta: {
-        title: (route) => {
+        title: route => {
           const contractId = route.params.contractId as string;
           const coopCode = route.params.coopCode as string;
           return `${coopCode}@${contractId} - CoopTracker`;
@@ -38,7 +38,16 @@ const router = createRouter({
     },
     {
       name: 'dashboard',
-      path: '/u/:userId/',
+      path: '/dashboard/:userId?',
+      component: Dashboard,
+      props: true,
+      meta: {
+        title: 'Dashboard - CoopTracker',
+      },
+    },
+    {
+      name: 'dashboard-legacy',
+      path: '/u/:userId?',
       component: Dashboard,
       props: true,
       meta: {
