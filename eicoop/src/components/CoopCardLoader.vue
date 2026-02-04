@@ -49,8 +49,7 @@
         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Load Coop Status?</h3>
         <div class="mt-2">
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Checking coop status with your EID will intercept any tokens you've been sent but haven't received yet. They
-            usually show up 30 minutes later, but may never reappear.
+            Checking coop status with your EID will intercept any tokens you've been sent but haven't received yet. While they may show up after 30 minutes, they often never reappear.
           </p>
         </div>
         <div class="mt-4 flex gap-3 justify-end">

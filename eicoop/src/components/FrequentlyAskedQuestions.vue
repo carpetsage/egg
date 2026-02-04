@@ -36,8 +36,8 @@
         <dt class="text-green-700 dark:text-green-300">Why do I need to click a button to load coop status?</dt>
         <dd class="mt-1 text-gray-900 dark:text-gray-100">
           The game's API now requires your EID to check coop status. When eicoop does that, it intercepts any tokens
-          sent to you that haven't been received yet. These typically show up 30 minutes later, but occasionally they
-          may not appear at all. Since checking coop status can interfere with your incoming tokens, it now requires
+          sent to you that haven't been received yet. While they may show up after 30 minutes, they often never reappear.
+          Since checking coop status can interfere with your incoming tokens, it now requires
           manual action, unless you enable the "Auto-load coops" checkbox
         </dd>
       </div>
