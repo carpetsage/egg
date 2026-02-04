@@ -70,10 +70,8 @@ export default defineComponent({
       userId.value = newUserId;
       savePlayerID(newUserId);
       eidsStore.addEid(newUserId);
-      // Navigate to /dashboard without userId in URL
-      if (router.currentRoute.value.params.userId) {
-        router.replace({ name: 'dashboard' });
-      }
+      // Navigate to /dashboard with userId in URL
+      router.replace({ name: 'dashboard', params: { userId: newUserId } });
     };
 
     // If URL has userId but differs from localStorage, use URL (legacy link support)
