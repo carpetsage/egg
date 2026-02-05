@@ -79,16 +79,17 @@
             >
               ✎
             </button>
-            <router-link
-              :to="{ name: 'dashboard', params: { userId: eid } }"
+            <button
+              type="button"
               class="hover:underline mr-1"
               style="text-decoration-thickness: 1.5px"
               @click="
                 userId = eid;
                 submit();
               "
-              >{{ name || eid }}
-            </router-link>
+            >
+              {{ name || eid }}
+            </button>
             <button
               type="button"
               class="ml-1 text-gray-400 hover:text-red-500 focus:outline-none"
@@ -108,12 +109,18 @@
 import { computed, defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { checkIfShouldOnboardUserDashboardFeature, getLocalStorage, setLocalStorage, useEidsStore } from '@/lib';
+import {
+  checkIfShouldOnboardUserDashboardFeature,
+  getSavedPlayerID,
+  savePlayerID,
+  useEidsStore,
+  getLocalStorage,
+  setLocalStorage,
+} from '@/lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseInput from 'ui/components/BaseInput.vue';
 import { PlayerIdSchema } from 'lib/schema';
 
-const USER_ID_LOCALSTORAGE_KEY = 'userId';
 const COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY = 'collapseRecentEids';
 
 export default defineComponent({
@@ -121,10 +128,13 @@ export default defineComponent({
     BaseInfo,
     BaseInput,
   },
-  setup() {
+  emits: {
+    submit: (_userId: string) => true,
+  },
+  setup(_, { emit }) {
     const router = useRouter();
     const onboarding = checkIfShouldOnboardUserDashboardFeature();
-    const userId = ref(getLocalStorage(USER_ID_LOCALSTORAGE_KEY) || '');
+    const userId = ref(getSavedPlayerID() || '');
     const eidsStore = ref(useEidsStore());
     const eids = eidsStore.value.eids;
     const collapsed = ref(getLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY) === 'true');
@@ -134,9 +144,14 @@ export default defineComponent({
     });
 
     const submit = () => {
-      setLocalStorage(USER_ID_LOCALSTORAGE_KEY, userId.value);
-      eidsStore.value.addEid(userId.value);
-      router.push({ name: 'dashboard', params: { userId: userId.value } });
+      const trimmedUserId = userId.value.trim();
+      savePlayerID(trimmedUserId);
+      eidsStore.value.addEid(trimmedUserId);
+      emit('submit', trimmedUserId);
+      // Only navigate if not already on dashboard
+      if (router.currentRoute.value.name !== 'dashboard' && router.currentRoute.value.name !== 'dashboard-legacy') {
+        router.push({ name: 'dashboard' });
+      }
     };
 
     const toggleCollapse = () => {

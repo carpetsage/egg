@@ -33,7 +33,7 @@ export const donors = [
   'Minty',
   'Owen#0805',
   'Quail',
-  'sentient_ent',
+  'sentient_ent 🦥',
   'sgilliam',
   'shen',
   'synthparadox',
@@ -41,4 +41,6 @@ export const donors = [
   'TortugaSheriff',
   'Vijay',
   'WorldlyRedNeck',
+  'nick_drake',
+  'leeroyjenkees',
 ];

@@ -1,6 +1,6 @@
 <template>
   <api-requester
-    api-endpoint="/ei/coop_status"
+    api-endpoint="/ei/coop_status_bot"
     request-message="ContractCoopStatusRequest"
     response-message="ContractCoopStatusResponse"
     :persist-form-data="persistFormData"
@@ -14,12 +14,7 @@
         placeholder="Ex: graviton-project"
         :required="true"
       />
-      <parameter-input
-        v-model.trim="coopCode"
-        name="coop_code"
-        label="Coop code"
-        :required="true"
-      />
+      <parameter-input v-model.trim="coopCode" name="coop_code" label="Coop code" :required="true" />
       <parameter-input
         v-model.trim="userId"
         name="user_id"
