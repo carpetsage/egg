@@ -116,7 +116,7 @@ export const tools = [
     whatsNew: 'New Tool: Virtue Companion!',
   }),
   new Tool({
-    id: 'ascension-planner',
+    id: 'ascension-planner2',
     title: 'Ascension Planner',
     url: '/ascension-planner/',
     iconUrl: iconURL('egginc/egg_truth.png', 64),
