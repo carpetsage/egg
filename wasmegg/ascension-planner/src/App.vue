@@ -1,5 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
+  <the-nav-bar active-entry-id="ascension-planner" />
+
+  <div class="min-h-screen bg-gray-100 pb-6">
     <div class="max-w-6xl mx-auto p-4">
       <h1 class="mx-4 mt-4 mb-2 text-center text-2xl font-bold text-gray-900">
         Ascension Planner
@@ -101,6 +103,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import TheNavBar from 'ui/components/NavBar.vue';
 import { getSavedPlayerID, savePlayerID, requestFirstContact } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';

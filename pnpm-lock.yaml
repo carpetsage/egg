@@ -407,7 +407,7 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(typescript@5.7.3)
 
-  wasmegg/ascension-planner2:
+  wasmegg/ascension-planner:
     dependencies:
       '@heroicons/vue':
         specifier: ^1.0.6

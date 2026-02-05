@@ -2,10 +2,10 @@
 
 ## Scope
 
-Unless explicitly told otherwise, or a file is imported from ascension-planner2, only work in `wasmegg/ascension-planner2`. Do not explore or modify files in other workspaces.
+Unless explicitly told otherwise, or a file is imported from ascension-planner, only work in `wasmegg/ascension-planner`. Do not explore or modify files in other workspaces.
 
 ## Project Structure
-Monorepo using pnpm workspaces. Key workspace: wasmegg/ascension-planner2
+Monorepo using pnpm workspaces. Key workspace: wasmegg/ascension-planner
 
 ## Commands
 - Build: `pnpm build` (in workspace directory)
