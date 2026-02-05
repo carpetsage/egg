@@ -8,7 +8,7 @@ import {
   requestQueryCoop,
   soulPowerToFarmerRole,
   requestCoopStatusBasic,
-  getSavedPlayerID,
+  getLocalStorage,
   getContractGoals,
 } from 'lib';
 import { ContractLeagueStatus, getContractFromPlayerSave } from './contract';
@@ -18,13 +18,6 @@ import { SortedContractList } from './contractList';
 const COOP_LEAGUE_DIVIDER_EB = 1e13; // 10T%
 const COOP_LEAGUE_DEFINITELY_STANDARD_EB = 1e12;
 const COOP_LEAGUE_DEFINITELY_ELITE_EB = 1e16;
-
-export class InvalidCoopMembershipError extends Error {
-  constructor(contractId: string, coopCode: string) {
-    super(`You are not a member of coop ${contractId}:${coopCode}`);
-    this.name = 'InvalidCoopMembershipError';
-  }
-}
 
 export class CoopStatus {
   contractId: string;
@@ -55,18 +48,9 @@ export class CoopStatus {
   allGoalsAchieved: boolean;
   secondsSinceAllGoalsAchieved?: number | null;
   status: string;
-  responseStatus?: ei.ContractCoopStatusResponse.ResponseStatus | null;
 
   constructor(cs: ei.IContractCoopStatusResponse) {
     this.contractId = cs.contractIdentifier!;
-    this.responseStatus = cs.responseStatus;
-
-    const ResponseStatus = ei.ContractCoopStatusResponse.ResponseStatus;
-    // Check for invalid membership before processing other fields
-    if ([ResponseStatus.INVALID_MEMBERSHIP].includes(cs.responseStatus!)) {
-      throw new InvalidCoopMembershipError(this.contractId, cs.coopIdentifier || '');
-    }
-
     this.contract = null;
     this.coopCode = cs.coopIdentifier!;
     this.isPublic = cs.public!;
@@ -136,12 +120,7 @@ export class CoopStatus {
       if (this.contributors.length === 0) {
         throw new Error(`No contributors found in ${this.contractId}:${this.coopCode}, cannot resolve contract info.`);
       }
-      const userId = getSavedPlayerID();
-      if (!userId) {
-        throw new Error(
-          'Unable to load contract information: Player ID is required. Please enter your Player ID on the home page to continue.'
-        );
-      }
+      const userId = getLocalStorage('userId', '/_') || '';
       const result = await getContractFromPlayerSave(userId, this.contractId);
       if (!result) {
         throw new Error(`Contract ${this.contractId} not found in user's save.`);
@@ -177,16 +156,12 @@ export class CoopStatus {
       this.grade = ei.Contract.PlayerGrade.GRADE_C;
       return this.grade;
     }
-    const userId = getSavedPlayerID();
-    if (!userId) {
-      throw new Error(
-        'Unable to determine contract grade: Player ID is required. Please enter your Player ID on the home page to continue.'
-      );
-    }
     try {
-      const { grade, status } = await requestCoopStatusBasic(this.contractId, this.coopCode, userId);
+      const { grade, status } = await requestCoopStatusBasic(this.contractId, this.coopCode);
       // grade from response or AAA
       this.grade = grade ? grade : ei.Contract.PlayerGrade.GRADE_AAA;
+      // status from response or ACTIVE
+      console.log(status);
       if (this.secondsRemaining > 0) {
         this.status = status ? ei.ContractCoopStatusResponse.Status[status] : 'ACTIVE';
       } else {
@@ -234,16 +209,9 @@ export class CoopStatus {
     }
     const heuristicLeague = aboveThresholdCount > belowThresholdCount ? ContractLeague.Elite : ContractLeague.Standard;
 
-    const userId = getSavedPlayerID();
-    if (!userId) {
-      throw new Error(
-        'Unable to determine contract league: Player ID is required. Please enter your Player ID on the home page to continue.'
-      );
-    }
-
     try {
       // Query /ei/query_coop to see if elite league is the wrong league.
-      const queryCoopResponse = await requestQueryCoop(this.contractId, this.coopCode, 0, undefined, userId);
+      const queryCoopResponse = await requestQueryCoop(this.contractId, this.coopCode, 0, undefined, undefined);
       this.league = queryCoopResponse.differentLeague ? ContractLeague.Standard : ContractLeague.Elite;
       return this.league;
     } catch (e) {

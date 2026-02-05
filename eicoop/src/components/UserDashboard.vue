@@ -167,6 +167,45 @@
     </div>
   </div>
 
+  <div v-if="eids.size > 1" class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg mb-4">
+    <div class="px-4 sm:px-6 py-3 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-sm font-medium">
+      Recent IDs
+    </div>
+    <div class="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3">
+      <div class="flex flex-wrap gap-2">
+        <span
+          v-for="[eid, name] in eids"
+          :key="eid"
+          class="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-xs text-gray-800 dark:text-gray-200"
+        >
+          <button
+            type="button"
+            class="mr-1 text-gray-400 hover:text-blue-500 focus:outline-none"
+            aria-label="Edit name"
+            @click="eidsStore.editName(eid, name)"
+          >
+            ✎
+          </button>
+          <router-link
+            :to="{ name: 'dashboard', params: { userId: eid } }"
+            class="hover:underline mr-1"
+            style="text-decoration-thickness: 1.5px"
+            @click="setLocalStorage(USER_ID_LOCALSTORAGE_KEY, eid, '/_')"
+            >{{ name || eid }}
+          </router-link>
+          <button
+            type="button"
+            class="ml-1 text-gray-400 hover:text-red-500 focus:outline-none"
+            aria-label="Remove"
+            @click="eidsStore.removeEid(eid)"
+          >
+            &times;
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
+
   <div class="my-4 bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg mb-4">
     <season-progress-bar
       v-if="backup.contracts?.lastCpi?.seasonProgress != null"
@@ -188,7 +227,6 @@
       :known-grade="params.grade"
       :refresh-key="coopRefreshKey"
       :user-id="userId"
-      :auto-load="autoLoadCoops"
       :from-dashboard="true"
     />
   </template>
@@ -206,7 +244,7 @@ import {
   getProphecyEggsProgress,
   getUserActiveSoloContracts,
   getUserBackupTime,
-  getLocalStorageNoPrefix,
+  setLocalStorage,
   SoloStatus,
   useEidsStore,
 } from '@/lib';
@@ -282,9 +320,6 @@ export default defineComponent({
     const soloStatuses = computed(() =>
       getUserActiveSoloContracts(backup.value).map(solo => new SoloStatus(solo, backup.value))
     );
-
-    const autoLoadCoops = ref(getLocalStorageNoPrefix('autoLoadCoops') === 'true');
-
     const housekeeping = () => {
       coopParams.value.forEach(coop => contractStore.addContract(coop.contract));
       soloStatuses.value.forEach(solo => contractStore.addContract(solo.contract));
@@ -315,8 +350,8 @@ export default defineComponent({
       triggerRefresh,
       eids,
       eidsStore,
+      setLocalStorage,
       USER_ID_LOCALSTORAGE_KEY,
-      autoLoadCoops,
     };
   },
 });

@@ -63,16 +63,6 @@
         <span class="text-xs text-gray-500 dark:text-gray-400">Where do I find my ID?</span>
       </span>
 
-      <label class="mt-3 flex items-center space-x-2 cursor-pointer">
-        <input
-          v-model="autoLoadCoops"
-          type="checkbox"
-          class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          @change="saveAutoLoadCoops"
-        />
-        <span class="text-xs text-gray-700 dark:text-gray-300">Auto-load coops</span>
-      </label>
-
       <div v-if="eids.size > 1" class="mt-3">
         <div class="text-xs text-gray-900 dark:text-gray-100 mb-1">Recent IDs:</div>
         <div class="flex flex-wrap gap-2">
@@ -89,17 +79,16 @@
             >
               ✎
             </button>
-            <button
-              type="button"
+            <router-link
+              :to="{ name: 'dashboard', params: { userId: eid } }"
               class="hover:underline mr-1"
               style="text-decoration-thickness: 1.5px"
               @click="
                 userId = eid;
                 submit();
               "
-            >
-              {{ name || eid }}
-            </button>
+              >{{ name || eid }}
+            </router-link>
             <button
               type="button"
               class="ml-1 text-gray-400 hover:text-red-500 focus:outline-none"
@@ -112,31 +101,6 @@
         </div>
       </div>
     </div>
-
-    <base-modal :should-show="showAutoLoadWarning" :hide="hideAutoLoadWarning">
-      <div>
-        <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Auto-load coops?</h3>
-        <div class="mt-2">
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            Checking coop status with your EID will intercept any tokens you've been sent but haven't received yet. While they may show up after 30 minutes, they often never reappear.
-          </p>
-        </div>
-        <div class="mt-4 flex gap-3 justify-end">
-          <button
-            @click="declineAutoLoad"
-            class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-          >
-            Turn Off
-          </button>
-          <button
-            @click="confirmAutoLoad"
-            class="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Keep Enabled
-          </button>
-        </div>
-      </div>
-    </base-modal>
   </div>
 </template>
 
@@ -144,85 +108,35 @@
 import { computed, defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import {
-  checkIfShouldOnboardUserDashboardFeature,
-  getSavedPlayerID,
-  savePlayerID,
-  useEidsStore,
-  getLocalStorage,
-  setLocalStorage,
-  getLocalStorageNoPrefix,
-  setLocalStorageNoPrefix,
-} from '@/lib';
+import { checkIfShouldOnboardUserDashboardFeature, getLocalStorage, setLocalStorage, useEidsStore } from '@/lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseInput from 'ui/components/BaseInput.vue';
-import BaseModal from '@/components/BaseModal.vue';
 import { PlayerIdSchema } from 'lib/schema';
 
+const USER_ID_LOCALSTORAGE_KEY = 'userId';
 const COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY = 'collapseRecentEids';
 
 export default defineComponent({
   components: {
     BaseInfo,
     BaseInput,
-    BaseModal,
   },
-  emits: {
-    submit: (_userId: string) => true,
-  },
-  setup(_, { emit }) {
+  setup() {
     const router = useRouter();
     const onboarding = checkIfShouldOnboardUserDashboardFeature();
-    const userId = ref(getSavedPlayerID() || '');
+    const userId = ref(getLocalStorage(USER_ID_LOCALSTORAGE_KEY) || '');
     const eidsStore = ref(useEidsStore());
     const eids = eidsStore.value.eids;
     const collapsed = ref(getLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY) === 'true');
-    
-    const AUTO_LOAD_COOPS_KEY = 'autoLoadCoops';
-    const AUTOLOAD_WARNING_ACKNOWLEDGED_KEY = 'autoLoadWarningAcknowledged';
-    const autoLoadCoops = ref(getLocalStorageNoPrefix(AUTO_LOAD_COOPS_KEY) === 'true');
-    const showAutoLoadWarning = ref(false);
-
-    const saveAutoLoadCoops = () => {
-      const wasEnabled = getLocalStorageNoPrefix(AUTO_LOAD_COOPS_KEY) === 'true';
-      const isNowEnabled = autoLoadCoops.value;
-      
-      if (!wasEnabled && isNowEnabled && getLocalStorageNoPrefix(AUTOLOAD_WARNING_ACKNOWLEDGED_KEY) !== 'true') {
-        showAutoLoadWarning.value = true;
-        // Don't save yet, wait for confirmation
-      } else {
-        setLocalStorageNoPrefix(AUTO_LOAD_COOPS_KEY, autoLoadCoops.value.toString());
-      }
-    };
-
-    const hideAutoLoadWarning = () => {
-      showAutoLoadWarning.value = false;
-    };
-
-    const confirmAutoLoad = () => {
-      setLocalStorageNoPrefix(AUTOLOAD_WARNING_ACKNOWLEDGED_KEY, 'true');
-      setLocalStorageNoPrefix(AUTO_LOAD_COOPS_KEY, 'true');
-      hideAutoLoadWarning();
-    };
-
-    const declineAutoLoad = () => {
-      autoLoadCoops.value = false;
-      setLocalStorageNoPrefix(AUTO_LOAD_COOPS_KEY, 'false');
-      hideAutoLoadWarning();
-    };
 
     const submittable = computed(() => {
       return PlayerIdSchema.safeParse(userId.value.trim()).success;
     });
 
     const submit = () => {
-      const trimmedUserId = userId.value.trim();
-      savePlayerID(trimmedUserId);
-      emit('submit', trimmedUserId);
-      // Only navigate if not already on dashboard
-      if (router.currentRoute.value.name !== 'dashboard' && router.currentRoute.value.name !== 'dashboard-legacy') {
-        router.push({ name: 'dashboard' });
-      }
+      setLocalStorage(USER_ID_LOCALSTORAGE_KEY, userId.value);
+      eidsStore.value.addEid(userId.value);
+      router.push({ name: 'dashboard', params: { userId: userId.value } });
     };
 
     const toggleCollapse = () => {
@@ -239,12 +153,6 @@ export default defineComponent({
       eidsStore,
       collapsed,
       toggleCollapse,
-      autoLoadCoops,
-      saveAutoLoadCoops,
-      showAutoLoadWarning,
-      hideAutoLoadWarning,
-      confirmAutoLoad,
-      declineAutoLoad,
     };
   },
 });
