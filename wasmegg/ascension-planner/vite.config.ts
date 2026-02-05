@@ -6,7 +6,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/ascension-planner2/',
+  base: '/ascension-planner/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
