@@ -8,3 +8,5 @@ dist.frozen
 .vscode
 __target__
 *.swp
+.agent
+lib/.claude
