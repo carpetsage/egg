@@ -1,40 +1,48 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <div v-if="backup" class="flex-1 relative -my-px py-px">
-    <main class="flex-1 max-w-ultrawide w-full mx-auto mt-6 ultrawide:px-4">
-      <user-dashboard :backup="backup" />
+  <div class="flex-1 max-w-ultrawide w-full mx-auto mt-6 ultrawide:px-4">
+    <user-dashboard-entry-form @submit="setUserId" />
+    <div v-if="!userId">
       <frequently-asked-questions />
-    </main>
-    <div
-      v-if="loading || error"
-      class="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 bg-opacity-80 dark:bg-opacity-80"
-    >
-      <div class="pt-6 flex items-center justify-center">
-        <base-loading v-if="loading" />
-        <div v-else-if="error" class="overflow-y-scroll">
-          <error-message :error="error" />
+    </div>
+    <div v-else-if="backup" class="relative -my-px py-px">
+      <main>
+        <user-dashboard :backup="backup" />
+        <frequently-asked-questions />
+      </main>
+      <div
+        v-if="loading || error"
+        class="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 bg-opacity-80 dark:bg-opacity-80"
+      >
+        <div class="pt-6 flex items-center justify-center">
+          <base-loading v-if="loading" />
+          <div v-else-if="error" class="overflow-y-scroll">
+            <error-message :error="error" />
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <div v-else class="flex items-center justify-center">
-    <base-loading v-if="loading" class="mt-6" />
-    <div v-else-if="error" class="mt-6">
-      <error-message :error="error" />
+    <div v-else class="flex items-center justify-center">
+      <base-loading v-if="loading" class="mt-6" />
+      <div v-else-if="error" class="mt-6">
+        <error-message :error="error" />
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, provide, Ref, ref, toRefs, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
-import { ei, getUserBackup, recordUserDashboardFeatureUsage } from '@/lib';
+import { ei, getUserBackup, recordUserDashboardFeatureUsage, getSavedPlayerID, savePlayerID } from '@/lib';
 import { refreshCallbackKey } from '@/symbols';
 import BaseLoading from '@/components/BaseLoading.vue';
 import ErrorMessage from '@/components/ErrorMessage.vue';
 import FrequentlyAskedQuestions from '@/components/FrequentlyAskedQuestions.vue';
 import UserDashboard from '@/components/UserDashboard.vue';
 import useEidsStore from 'lib/stores/eids';
+import UserDashboardEntryForm from '@/components/UserDashboardEntryForm.vue';
 
 export default defineComponent({
   components: {
@@ -42,21 +50,46 @@ export default defineComponent({
     ErrorMessage,
     FrequentlyAskedQuestions,
     UserDashboard,
+    UserDashboardEntryForm,
   },
   props: {
     userId: {
       type: String,
-      required: true,
+      default: '',
     },
   },
   setup(props) {
-    const { userId } = toRefs(props);
+    const { userId: userIdProp } = toRefs(props);
+    const router = useRouter();
     const eidsStore = useEidsStore();
+
+    // Load from localStorage, fallback to URL userId
+    const userId = ref(getSavedPlayerID() || userIdProp.value || '');
+
+    const setUserId = (newUserId: string) => {
+      userId.value = newUserId;
+      savePlayerID(newUserId);
+      eidsStore.addEid(newUserId);
+      // Navigate to /dashboard without userId in URL
+      if (router.currentRoute.value.params.userId) {
+        router.replace({ name: 'dashboard' });
+      }
+    };
+
+    // If URL has userId but differs from localStorage, use URL (legacy link support)
+    if (userIdProp.value && userIdProp.value !== userId.value) {
+      setUserId(userIdProp.value);
+    }
 
     const loading = ref(true);
     const backup: Ref<ei.IBackup | undefined> = ref(undefined);
     const error: Ref<Error | undefined> = ref(undefined);
+
     const refreshBackup = async () => {
+      if (!userId.value) {
+        loading.value = false;
+        return;
+      }
       loading.value = true;
       error.value = undefined;
       try {
@@ -69,6 +102,7 @@ export default defineComponent({
       }
       loading.value = false;
     };
+
     refreshBackup();
     provide(refreshCallbackKey, () => {
       refreshBackup();
@@ -79,9 +113,11 @@ export default defineComponent({
     });
 
     return {
+      userId,
       loading,
       backup,
       error,
+      setUserId,
     };
   },
 });
