@@ -1,36 +1,26 @@
-.PHONY: dev build preview type-check install clean help
+.PHONY: all init build dist fastbuild clean dev serve
 
-# Default target
-all: dev
+all: clean
+	$(MAKE) dist
 
-## dev: Start development server
-dev:
-	npm run dev
+init:
+	pnpm install
 
-## build: Build for production
 build:
-	npm run build
+	pnpm build
 
-## preview: Preview production build locally
-preview:
-	npm run preview
+dist: build
+	../_tools/build.py dist --additional assets --additional static
 
-## type-check: Run typescript type checking
-type-check:
-	npx vue-tsc --noEmit
+fastbuild: clean
+	pnpm fastbuild
+	../_tools/build.py dist --additional assets --additional static
 
-## install: Install dependencies
-install:
-	npm install
-
-## clean: Remove build artifacts
 clean:
-	rm -rf dist
-	rm -rf node_modules/.vite
+	@$(RM) -r dist src/lib/catalog.json
 
-## help: Show this help message
-help:
-	@echo "Usage: make [target]"
-	@echo ""
-	@echo "Targets:"
-	@grep -E '^##' Makefile | sed -e 's/## //g' | column -t -s ':'
+dev:
+	pnpm dev
+
+serve:
+	pnpm serve
