@@ -1,0 +1,275 @@
+<template>
+  <div
+    class="px-4 py-3 flex items-start gap-3"
+    :class="isStartAction ? 'bg-blue-50' : 'hover:bg-gray-50'"
+  >
+    <!-- Index -->
+    <span class="text-xs text-gray-400 w-6 pt-1">{{ action.index + 1 }}.</span>
+
+    <!-- Action info -->
+    <div class="flex-1 min-w-0 flex items-center gap-2">
+      <!-- Action Icon -->
+      <div 
+        v-if="actionIconPath" 
+        class="w-6 h-6 flex-shrink-0 bg-white rounded-full border border-gray-100 p-0.5 shadow-sm overflow-hidden"
+      >
+        <img
+          :src="actionIconPath.startsWith('static/') ? `${baseUrl}${actionIconPath}` : iconURL(actionIconPath, 64)"
+          class="w-full h-full object-contain"
+          :alt="action.type"
+        />
+      </div>
+
+      <div class="flex-1 min-w-0">
+        <div 
+          class="font-medium truncate flex items-center gap-1.5" 
+          :class="isStartAction ? 'text-blue-800' : 'text-gray-900'"
+        >
+          <span v-if="eggType" class="opacity-60 font-normal">
+            {{ action.type === 'start_ascension' ? 'Start Ascension:' : 'Shift to' }}
+          </span>
+          <span :class="{ 'font-bold': eggType }">
+            {{ eggName || displayName }}
+          </span>
+        </div>
+        <div class="text-[10px] uppercase tracking-wider font-semibold opacity-70" :class="isStartAction ? 'text-blue-600' : 'text-gray-500'">
+          {{ effectDescription }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost, time to save, and deltas (hidden for start_ascension) -->
+    <div v-if="!isStartAction" class="text-right shrink-0">
+      <div class="flex items-baseline justify-end gap-2">
+        <span class="text-sm font-mono text-amber-600">
+          {{ formatNumber(action.cost, 0) }}
+        </span>
+        <span class="text-xs text-gray-400" :title="timeToSaveTitle">
+          ({{ timeToSaveFormatted }})
+        </span>
+      </div>
+      <div class="text-xs space-x-2">
+        <span :class="deltaClass(action.elrDelta)">
+          ELR: {{ formatDelta(action.elrDelta) }}
+        </span>
+        <span :class="deltaClass(action.offlineEarningsDelta)">
+          $/s: {{ formatDelta(action.offlineEarningsDelta) }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex items-center gap-1 shrink-0">
+      <!-- Details button -->
+      <button
+        class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+        title="View calculation details"
+        @click="$emit('show-details')"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+
+      <!-- Undo button (hidden for start_ascension) -->
+      <button
+        v-if="!isStartAction"
+        class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+        title="Undo this action"
+        @click="$emit('undo')"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+        </svg>
+      </button>
+
+      <!-- Edit button for start_ascension -->
+      <button
+        v-if="isStartAction"
+        class="p-1.5 text-blue-400 hover:text-blue-600 hover:bg-blue-100 rounded"
+        title="Edit initial state"
+        @click="$emit('edit')"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import { iconURL } from 'lib';
+import type { Action, StartAscensionPayload, ShiftPayload, BuyHabPayload, BuyVehiclePayload, StoreFuelPayload, WaitForTEPayload, BuyResearchPayload } from '@/types';
+import { VIRTUE_EGG_NAMES } from '@/types';
+import { getHabById } from '@/lib/habs';
+import { getVehicleType } from '@/lib/vehicles';
+import { getExecutor } from '@/lib/actions';
+import { formatNumber } from '@/lib/format';
+import { getColleggtibleIconPath } from '@/lib/assets';
+
+const props = defineProps<{
+  action: Action;
+  previousOfflineEarnings: number;
+}>();
+
+defineEmits<{
+  'show-details': [];
+  'undo': [];
+  'edit': [];
+}>();
+
+const isStartAction = computed(() => props.action.type === 'start_ascension');
+
+const baseUrl = import.meta.env.BASE_URL;
+
+const eggType = computed(() => {
+  if (props.action.type === 'start_ascension') {
+    return (props.action.payload as StartAscensionPayload).initialEgg;
+  }
+  if (props.action.type === 'shift') {
+    return (props.action.payload as ShiftPayload).toEgg;
+  }
+  return null;
+});
+
+const actionIconPath = computed(() => {
+  if (eggType.value) {
+    return `egginc/egg_${eggType.value}.png`;
+  }
+  if (props.action.type === 'buy_hab') {
+    const payload = props.action.payload as BuyHabPayload;
+    return getHabById(payload.habId as any)?.iconPath;
+  }
+  if (props.action.type === 'buy_vehicle') {
+    const payload = props.action.payload as BuyVehiclePayload;
+    return getVehicleType(payload.vehicleId)?.iconPath;
+  }
+  if (props.action.type === 'buy_research') {
+    const payload = props.action.payload as BuyResearchPayload;
+    return getColleggtibleIconPath(payload.researchId);
+  }
+  if (props.action.type === 'buy_train_car') {
+    return 'egginc/ei_vehicle_icon_hyperloop_engine.png';
+  }
+  if (props.action.type === 'buy_silo') {
+    return 'egginc/r_icon_silo_capacity.png';
+  }
+  if (props.action.type === 'store_fuel') {
+    const payload = props.action.payload as StoreFuelPayload;
+    return `egginc/egg_${payload.egg}.png`;
+  }
+  if (props.action.type === 'wait_for_te') {
+    // Show truth egg icon for wait_for_te actions
+    return 'egginc/egg_truth.png';
+  }
+  return null;
+});
+
+const eggName = computed(() => {
+  if (eggType.value) {
+    return VIRTUE_EGG_NAMES[eggType.value];
+  }
+  return null;
+});
+
+const displayName = computed(() => {
+  const executor = getExecutor(props.action.type);
+  return executor.getDisplayName(props.action.payload);
+});
+
+const effectDescription = computed(() => {
+  const executor = getExecutor(props.action.type);
+  return executor.getEffectDescription(props.action.payload);
+});
+
+/**
+ * Calculate time to save in seconds based on cost and previous offline earnings rate.
+ */
+const timeToSaveSeconds = computed(() => {
+  if (props.action.cost <= 0 || props.previousOfflineEarnings <= 0) {
+    return 0;
+  }
+  return props.action.cost / props.previousOfflineEarnings;
+});
+
+/**
+ * Format the time to save duration.
+ * Rules:
+ * - Less than 1 minute: "<1m"
+ * - Less than 1 day: "Xh Ym" (e.g., "2h12m")
+ * - 1+ days: "Xd Yh" (e.g., "1d4h", no minutes)
+ */
+const timeToSaveFormatted = computed(() => {
+  const totalSeconds = timeToSaveSeconds.value;
+
+  if (totalSeconds <= 0) {
+    return 'free';
+  }
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
+
+  const minutes = totalMinutes % 60;
+  const hours = totalHours % 24;
+
+  if (totalMinutes < 1) {
+    return '<1m';
+  }
+
+  if (totalDays === 0) {
+    // Less than a day: show hours and minutes
+    if (totalHours === 0) {
+      return `${minutes}m`;
+    }
+    return `${totalHours}h${minutes}m`;
+  }
+
+  // 1+ days: show days and hours, no minutes
+  if (hours === 0) {
+    return `${totalDays}d`;
+  }
+  return `${totalDays}d${hours}h`;
+});
+
+/**
+ * Detailed title for hover tooltip.
+ */
+const timeToSaveTitle = computed(() => {
+  const totalSeconds = timeToSaveSeconds.value;
+  if (totalSeconds <= 0) {
+    return 'Free action';
+  }
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
+
+  const minutes = totalMinutes % 60;
+  const hours = totalHours % 24;
+
+  const parts: string[] = [];
+  if (totalDays > 0) parts.push(`${totalDays} day${totalDays !== 1 ? 's' : ''}`);
+  if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+  if (minutes > 0 && totalDays === 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+
+  return `Time to save: ${parts.join(', ')}`;
+});
+
+function deltaClass(delta: number): string {
+  if (delta > 0) return 'text-green-600';
+  if (delta < 0) return 'text-red-600';
+  return 'text-gray-400';
+}
+
+function formatDelta(delta: number): string {
+  if (delta === 0) return '—';
+  const sign = delta > 0 ? '+' : '';
+  return `${sign}${formatNumber(delta, 2)}`;
+}
+</script>

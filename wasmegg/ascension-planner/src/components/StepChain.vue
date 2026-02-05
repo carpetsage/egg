@@ -57,11 +57,11 @@
         </template>
 
         <!-- Dynamic step content based on egg type -->
-        <curiosity-step v-if="step.eggType === 'curiosity'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" />
-        <integrity-step v-else-if="step.eggType === 'integrity'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" />
-        <kindness-step v-else-if="step.eggType === 'kindness'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" />
-        <humility-step v-else-if="step.eggType === 'humility'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" />
-        <resilience-step v-else-if="step.eggType === 'resilience'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" />
+        <curiosity-step v-if="step.eggType === 'curiosity'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" :arrival-time="getArrivalTime(index)" :departure-time="getDepartureTime(index)" />
+        <integrity-step v-else-if="step.eggType === 'integrity'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" :arrival-time="getArrivalTime(index)" :departure-time="getDepartureTime(index)" />
+        <kindness-step v-else-if="step.eggType === 'kindness'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" :arrival-time="getArrivalTime(index)" :departure-time="getDepartureTime(index)" />
+        <humility-step v-else-if="step.eggType === 'humility'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" :arrival-time="getArrivalTime(index)" :departure-time="getDepartureTime(index)" />
+        <resilience-step v-else-if="step.eggType === 'resilience'" :step="step" :previous-steps="steps.slice(0, index)" :initial-data="initialData" :arrival-time="getArrivalTime(index)" :departure-time="getDepartureTime(index)" />
       </step-card>
     </div>
 
@@ -95,6 +95,12 @@
         Import Plan
       </button>
     </div>
+
+    <!-- Completion Summary -->
+    <completion-summary
+      :steps="steps"
+      :initial-data="initialData"
+    />
   </div>
 </template>
 
@@ -102,7 +108,7 @@
 import { defineComponent, ref, watch, computed } from 'vue';
 import { XIcon } from '@heroicons/vue/solid';
 import { iconURL } from 'lib';
-import type { AscensionStep, VirtueEgg, InitialData } from '@/types';
+import type { AscensionStep, VirtueEgg, InitialData, StepMetrics } from '@/types';
 import {
   VIRTUE_EGG_ABBREV,
   VIRTUE_EGG_NAMES,
@@ -111,6 +117,8 @@ import {
   type Modifiers,
 } from '@/types';
 import { encodePlan, decodePlan } from '@/lib/serialization';
+import { computeTimeline, type StepTimeline } from '@/lib/duration_calculations';
+import { computeStepMetrics, determineFinalVisits } from '@/lib/step_metrics';
 
 const ABBREV_TO_EGG: Record<string, VirtueEgg> = {
   C: 'curiosity',
@@ -121,6 +129,7 @@ const ABBREV_TO_EGG: Record<string, VirtueEgg> = {
 };
 import StepCard from '@/components/StepCard.vue';
 import InitialStateStep from '@/components/InitialStateStep.vue';
+import CompletionSummary from '@/components/CompletionSummary.vue';
 import CuriosityStep from '@/components/steps/CuriosityStep.vue';
 import IntegrityStep from '@/components/steps/IntegrityStep.vue';
 import KindnessStep from '@/components/steps/KindnessStep.vue';
@@ -166,6 +175,7 @@ export default defineComponent({
     XIcon,
     StepCard,
     InitialStateStep,
+    CompletionSummary,
     CuriosityStep,
     IntegrityStep,
     KindnessStep,
@@ -222,6 +232,10 @@ export default defineComponent({
       steps,
       (newSteps) => {
         calculateVisitNumbers(newSteps);
+        // Determine which steps are final visits (for duration calculations)
+        if (props.initialData) {
+          determineFinalVisits(newSteps, props.initialData);
+        }
         // Update sequence input to match steps
         updatingFromSteps = true;
         sequenceInput.value = stepsToSequence(newSteps);
@@ -317,6 +331,27 @@ export default defineComponent({
       dropTargetIndex.value = null;
     };
 
+    // Compute timeline for all steps
+    const timeline = computed<StepTimeline[]>(() => {
+      if (!props.initialData || steps.value.length === 0) {
+        return [];
+      }
+      // getMetrics function for computeTimeline
+      const getMetrics = (step: AscensionStep, previousSteps: AscensionStep[]) =>
+        computeStepMetrics(step, previousSteps, props.initialData!);
+      return computeTimeline(steps.value, props.initialData, getMetrics);
+    });
+
+    // Helper to get arrival time for a step by index
+    const getArrivalTime = (index: number): number | undefined => {
+      return timeline.value[index]?.arrivalTimestamp;
+    };
+
+    // Helper to get departure time for a step by index
+    const getDepartureTime = (index: number): number | undefined => {
+      return timeline.value[index]?.departureTimestamp;
+    };
+
     return {
       steps,
       sequenceInput,
@@ -343,6 +378,10 @@ export default defineComponent({
       onDragLeave,
       onDrop,
       onDragEnd,
+      // Timeline
+      timeline,
+      getArrivalTime,
+      getDepartureTime,
     };
   },
 });

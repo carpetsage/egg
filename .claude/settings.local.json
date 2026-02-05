@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm exec vue-tsc:*)",
+      "Bash(pnpm run type-check:*)",
+      "Bash(timeout 10 pnpm run dev:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm vue-tsc:*)",
+      "Bash(pnpm install:*)",
+      "Bash(timeout:*)",
+      "Bash(python3:*)",
+      "Bash(pnpm build:*)",
+      "Bash(grep:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}

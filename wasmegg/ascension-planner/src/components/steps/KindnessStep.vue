@@ -1,5 +1,14 @@
 <template>
   <div class="space-y-6">
+    <!-- Step Header with Metrics -->
+    <step-header
+      :step="step"
+      :previous-steps="previousSteps"
+      :initial-data="initialData"
+      :arrival-time="arrivalTime"
+      :departure-time="departureTime"
+    />
+
     <!-- Header / Stats -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="bg-blue-50 rounded-xl p-4 border border-blue-100 relative overflow-hidden">
@@ -14,7 +23,7 @@
         </p>
         <div v-if="(step.modifiers?.shippingCap ?? 1) > 1" class="mt-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold">
           <span class="opacity-70">Colleggtibles:</span>
-          +{{ ((step.modifiers.shippingCap - 1) * 100).toFixed(0) }}%
+          +{{ (((step.modifiers?.shippingCap ?? 1) - 1) * 100).toFixed(0) }}%
         </div>
       </div>
 
@@ -121,7 +130,10 @@
           </div>
           <div class="flex items-center gap-3">
             <span class="text-gray-500 font-mono">{{ formatEIValue(entry.cost) }} gems</span>
-            <button 
+            <span v-if="entry.timeToEarn" class="text-blue-500 font-mono">
+              {{ formatStepDuration(entry.timeToEarn) }}
+            </span>
+            <button
               class="text-gray-300 hover:text-red-500 transition-colors"
               title="Revert this action"
               @click="revertLogEntry(entry)"
@@ -252,24 +264,27 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, type PropType } from 'vue';
-import { 
-  XIcon, 
-  PlusCircleIcon, 
-  MinusIcon, 
-  PlusIcon 
+import {
+  XIcon,
+  PlusCircleIcon,
+  MinusIcon,
+  PlusIcon
 } from '@heroicons/vue/solid';
-import { 
-  iconURL, 
-  formatEIValue, 
-  vehicleTypes, 
-  type Vehicle, 
-  commonResearches, 
-  getResearchLevelFromLog 
+import {
+  iconURL,
+  formatEIValue,
+  vehicleTypes,
+  type Vehicle,
+  commonResearches,
+  getResearchLevelFromLog
 } from '@/lib';
+import { computeIncrementalPurchaseTimes } from '@/lib/duration_calculations';
+import { formatStepDuration } from '@/lib/step_metrics';
 import type { AscensionStep, VehicleLogEntry, InitialData } from '@/types';
 import FuelTank from '@/components/FuelTank.vue';
 import ResearchSection from '@/components/ResearchSection.vue';
 import CollapsibleSection from '@/components/CollapsibleSection.vue';
+import StepHeader from '@/components/StepHeader.vue';
 
 // Derived from documented Virtue patterns
 const VEHICLE_VIRTUE_COSTS = [0, 100, 1000, 10000, 100000, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12];
@@ -285,6 +300,7 @@ export default defineComponent({
     FuelTank,
     ResearchSection,
     CollapsibleSection,
+    StepHeader,
   },
   props: {
     step: {
@@ -297,6 +313,14 @@ export default defineComponent({
     },
     initialData: {
       type: Object as PropType<InitialData>,
+      default: undefined,
+    },
+    arrivalTime: {
+      type: Number,
+      default: undefined,
+    },
+    departureTime: {
+      type: Number,
       default: undefined,
     },
   },
@@ -428,6 +452,20 @@ export default defineComponent({
         timestamp: Date.now()
       };
       props.step.vehicleLog.push(newEntry);
+
+      // Compute and store timeToEarn for this purchase (only for purchases with cost)
+      if (props.initialData && entry.cost > 0) {
+        const purchaseTimes = computeIncrementalPurchaseTimes(
+          props.step,
+          props.previousSteps,
+          props.initialData
+        );
+        // Find the purchase time for this entry (last one added)
+        const lastPurchaseTime = purchaseTimes[purchaseTimes.length - 1];
+        if (lastPurchaseTime) {
+          newEntry.timeToEarn = lastPurchaseTime.timeToEarn;
+        }
+      }
     };
 
     const buyVehicle = (slotIndex: number, vehicleId: number) => {
@@ -501,6 +539,7 @@ export default defineComponent({
       reversedLog: computed(() => props.step.vehicleLog ? [...props.step.vehicleLog].reverse() : []),
       iconURL,
       formatEIValue,
+      formatStepDuration,
       getVehicleAtSlot: (idx: number) => currentFleet.value[idx],
       getModifiedCapacity,
       getVehicleName: (id: number) => vehicleTypes.find(v => v.id === id)?.name || 'Unknown',

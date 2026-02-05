@@ -1,5 +1,14 @@
 <template>
   <div class="space-y-4">
+    <!-- Step Header with Metrics -->
+    <step-header
+      :step="step"
+      :previous-steps="previousSteps"
+      :initial-data="initialData"
+      :arrival-time="arrivalTime"
+      :departure-time="departureTime"
+    />
+
     <div class="text-sm text-gray-600">
       <p class="font-medium text-gray-900 mb-2">Habitats</p>
       <p>Click a slot to upgrade or add a habitat.</p>
@@ -37,7 +46,7 @@
         <p class="text-3xl font-bold text-green-700">{{ formatEIValue(totalHabSpace) }}</p>
         <div v-if="(step.modifiers?.habCap ?? 1) > 1" class="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded bg-green-100 text-green-700 text-[10px] font-bold">
           <span class="opacity-70">Colleggtibles:</span>
-          +{{ ((step.modifiers.habCap - 1) * 100).toFixed(0) }}%
+          +{{ (((step.modifiers?.habCap ?? 1) - 1) * 100).toFixed(0) }}%
         </div>
       </div>
     </div>
@@ -75,6 +84,9 @@
             </div>
             <div class="ml-6 text-xs text-gray-500">
               Cost: <span class="font-medium">{{ formatEIValue(safeEntryCost(entry)) }}</span> gems
+              <span v-if="entry.timeToEarn" class="text-blue-500 font-medium ml-1">
+                ({{ formatStepDuration(entry.timeToEarn) }})
+              </span>
               · Space: {{ formatEIValue(safeEntrySpaceBefore(entry)) }} → {{ formatEIValue(safeEntrySpaceAfter(entry)) }}
               <span class="text-green-600">(+{{ formatPercent(safeEntryPercentGain(entry)) }})</span>
             </div>
@@ -190,13 +202,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, type PropType } from 'vue';
+import { defineComponent, ref, computed, watch, type PropType } from 'vue';
 import { XIcon } from '@heroicons/vue/solid';
 import { iconURL, formatEIValue, habTypes, type Hab, commonResearches, getResearchLevelFromLog } from '@/lib';
-import type { AscensionStep, InitialData } from '@/types';
+import { computeIncrementalPurchaseTimes } from '@/lib/duration_calculations';
+import { formatStepDuration } from '@/lib/step_metrics';
+import type { AscensionStep, InitialData, HabUpgradeLogEntry } from '@/types';
 import FuelTank from '@/components/FuelTank.vue';
 import ResearchSection from '@/components/ResearchSection.vue';
 import CollapsibleSection from '@/components/CollapsibleSection.vue';
+import StepHeader from '@/components/StepHeader.vue';
 
 interface UpgradeLogEntry {
   id: string;
@@ -206,6 +221,7 @@ interface UpgradeLogEntry {
   cost: number;
   spaceBefore: number;
   spaceAfter: number;
+  timeToEarn?: number;  // Seconds to earn cost for this purchase
 }
 
 export default defineComponent({
@@ -214,6 +230,7 @@ export default defineComponent({
     FuelTank,
     ResearchSection,
     CollapsibleSection,
+    StepHeader,
   },
   props: {
     step: {
@@ -228,13 +245,66 @@ export default defineComponent({
       type: Object as PropType<InitialData>,
       default: undefined,
     },
+    arrivalTime: {
+      type: Number,
+      default: undefined,
+    },
+    departureTime: {
+      type: Number,
+      default: undefined,
+    },
   },
   setup(props) {
-    // Start with one Coop in slot 0, rest empty
-    const habs = ref<(Hab | null)[]>([habTypes[0], null, null, null]);
-    const upgradeLog = ref<UpgradeLogEntry[]>([]);
+    // Initialize habs from step.habState if it exists, otherwise start with one Coop
+    const initializeHabs = (): (Hab | null)[] => {
+      if (props.step.habState) {
+        return props.step.habState.map(id =>
+          id !== null && id >= 0 && id < habTypes.length ? habTypes[id] : null
+        );
+      }
+      return [habTypes[0], null, null, null];
+    };
+
+    const habs = ref<(Hab | null)[]>(initializeHabs());
+
+    // Initialize upgradeLog from step.habUpgradeLog if it exists
+    const initializeUpgradeLog = (): UpgradeLogEntry[] => {
+      if (props.step.habUpgradeLog && props.step.habUpgradeLog.length > 0) {
+        return props.step.habUpgradeLog.map(entry => ({
+          id: entry.id,
+          slotIndex: entry.slotIndex,
+          fromHab: entry.fromHabId !== null ? habTypes[entry.fromHabId] : null,
+          toHab: habTypes[entry.toHabId],
+          cost: entry.cost,
+          spaceBefore: 0,  // Not stored, computed at runtime
+          spaceAfter: 0,   // Not stored, computed at runtime
+          timeToEarn: entry.timeToEarn,
+        }));
+      }
+      return [];
+    };
+
+    const upgradeLog = ref<UpgradeLogEntry[]>(initializeUpgradeLog());
     const pickerSlotIndex = ref<number | null>(null);
     const isResearchVisible = ref(false);
+
+    // Persist hab state to step whenever it changes
+    watch(habs, (newHabs) => {
+      props.step.habState = newHabs.map(hab => hab?.id ?? null);
+    }, { deep: true, immediate: true });
+
+    // Persist upgradeLog to step.habUpgradeLog whenever it changes
+    watch(upgradeLog, (newLog) => {
+      props.step.habUpgradeLog = newLog.map(entry => ({
+        id: entry.id,
+        slotIndex: entry.slotIndex,
+        fromHabId: entry.fromHab?.id ?? null,
+        toHabId: entry.toHab.id,
+        cost: entry.cost,
+        timestamp: Date.now(),
+        timeToEarn: entry.timeToEarn,
+      }));
+    }, { deep: true });
 
     // Epic research: Cheaper Contractors (-5% hab cost per level, max 10)
     const cheaperContractorsLevel = computed(() => props.initialData?.epicResearch?.cheaperContractors || 0);
@@ -337,8 +407,22 @@ export default defineComponent({
         spaceBefore,
         spaceAfter,
       };
-      
+
       upgradeLog.value.push(newEntry);
+
+      // Compute and store timeToEarn for this purchase
+      if (props.initialData) {
+        const purchaseTimes = computeIncrementalPurchaseTimes(
+          props.step,
+          props.previousSteps,
+          props.initialData
+        );
+        // Find the purchase time for this entry (last one added)
+        const lastPurchaseTime = purchaseTimes[purchaseTimes.length - 1];
+        if (lastPurchaseTime) {
+          newEntry.timeToEarn = lastPurchaseTime.timeToEarn;
+        }
+      }
 
       closePicker();
     };
@@ -409,6 +493,7 @@ export default defineComponent({
       iconURL,
       formatEIValue,
       formatPercent,
+      formatStepDuration,
       canRemoveEntry,
       removeEntry,
       safeEntryCost,

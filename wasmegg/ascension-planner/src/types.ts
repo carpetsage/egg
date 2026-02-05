@@ -60,6 +60,8 @@ export interface ResearchLogEntry {
   level: number;
   cost: number;
   timestamp: number;
+  timeToEarn?: number;  // Seconds to earn cost for this purchase
+  earningsAtPurchase?: number;  // Debug: earnings/sec at time of purchase
 }
 
 export interface VehicleLogEntry {
@@ -70,6 +72,17 @@ export interface VehicleLogEntry {
   trainLength: number;
   cost: number;
   timestamp: number;
+  timeToEarn?: number;  // Seconds to earn cost for this purchase
+}
+
+export interface HabUpgradeLogEntry {
+  id: string;
+  slotIndex: number;
+  fromHabId: number | null;  // null if empty slot
+  toHabId: number;
+  cost: number;
+  timestamp: number;
+  timeToEarn?: number;  // Seconds to earn cost for this purchase
 }
 
 export interface ArtifactSlot {
@@ -91,7 +104,17 @@ export interface AscensionStep {
   artifacts?: ArtifactLoadout;
   modifiers?: Modifiers;
   scheduledLaunches?: ScheduledLaunch[];  // All scheduled rocket launches for Humility visits
-  // TODO: Add duration, fuel actions, etc.
+
+  // Hab state tracking for Integrity steps
+  // Array of 4 slots, each containing hab ID (0=Coop, 1=Shack, etc.) or null if empty
+  habState?: (number | null)[];
+  habUpgradeLog?: HabUpgradeLogEntry[];  // Persisted hab upgrades with timing
+
+  // Timeline fields (computed)
+  arrivalTimestamp?: number;    // Computed arrival time (Unix ms)
+  departureTimestamp?: number;  // Computed departure time (Unix ms)
+  duration?: number;            // Duration in seconds
+  isFinalVisit?: boolean;       // Final visit = farming to target; intermediate = purchases only
 }
 
 export interface AscensionPlan {
@@ -152,6 +175,45 @@ export interface InitialData {
   artifacts: ArtifactLoadout;
   modifiers?: Modifiers;
   epicResearch: EpicResearchLevels;
+
+  // Dual artifact support
+  earningsArtifacts: ArtifactLoadout;    // Artifact set optimized for earnings
+  elrArtifacts: ArtifactLoadout;         // Artifact set optimized for egg laying rate
+  activeArtifactSet: 'earnings' | 'elr'; // Which set is active initially
+
+  // Target goals
+  targetTotalTE: number;                  // Overall TE goal
+  targetGains: Record<VirtueEgg, number>; // TE to gain per virtue egg
+
+  // Timeline start
+  startTime: number;                      // Unix timestamp (ms) for ascension start
+}
+
+// Step metrics for display in step headers
+export interface StepMetrics {
+  elr: number;                     // Effective Lay Rate (eggs/sec)
+  offlineIHR: number;              // Offline IHR (chickens/min)
+  timeToFillHabs: number;          // Seconds to fill hab capacity
+  offlineEarningsInitial: number;  // Earnings/sec at pop=1 (minimum 1 chicken)
+  offlineEarningsProjected: number;// Earnings/sec at max population
+  habCapacity: number;
+  shippingCapacity: number;
+}
+
+// Helper to create empty virtue egg record
+export function createEmptyVirtueEggRecord<T>(defaultValue: T): Record<VirtueEgg, T> {
+  return {
+    curiosity: defaultValue,
+    integrity: defaultValue,
+    kindness: defaultValue,
+    humility: defaultValue,
+    resilience: defaultValue,
+  };
+}
+
+// Helper to create empty artifact loadout (4 slots)
+export function createEmptyArtifactLoadout(): ArtifactLoadout {
+  return [null, null, null, null];
 }
 
 // Serialization helpers moved to lib/serialization.ts (using protobuf)

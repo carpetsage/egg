@@ -106,32 +106,51 @@
         Purchase History
       </div>
       <div class="max-h-40 overflow-y-auto p-0">
-        <div 
-          v-for="(entry, index) in reversedLog" 
+        <div
+          v-for="(entry, index) in reversedLog"
           :key="entry.timestamp"
-          class="px-3 py-1.5 border-b border-gray-100 last:border-0 text-[10px] flex justify-between items-center bg-white"
+          class="px-3 py-1.5 border-b border-gray-100 last:border-0 text-[10px] bg-white"
         >
-          <div class="flex items-center gap-2">
-            <span class="text-gray-400 font-mono">#{{ step.researchLog.length - index }}</span>
-            <span class="font-medium text-gray-700">{{ getResearchName(entry.id) }}</span>
-            <span class="text-gray-400">L{{ entry.level }}</span>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-400 font-mono">#{{ step.researchLog.length - index }}</span>
+              <span class="font-medium text-gray-700">{{ getResearchName(entry.id) }}</span>
+              <span class="text-gray-400">L{{ entry.level }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-gray-500 font-mono">{{ formatEIValue(entry.cost) }}</span>
+              <span v-if="entry.timeToEarn" class="text-blue-500 font-mono">
+                {{ formatStepDuration(entry.timeToEarn) }}
+              </span>
+              <button
+                class="text-gray-300 hover:text-red-500 transition-colors disabled:opacity-20"
+                :disabled="!canRemoveEntry(entry)"
+                title="Remove last entry for this research"
+                @click="removeLogEntry(entry)"
+              >
+                <XIcon class="h-3 w-3" />
+              </button>
+            </div>
           </div>
-          <div class="flex items-center gap-3">
-            <span class="text-gray-500 font-mono">{{ formatEIValue(entry.cost) }}</span>
-            <button 
-              class="text-gray-300 hover:text-red-500 transition-colors disabled:opacity-20"
-              :disabled="!canRemoveEntry(entry)"
-              title="Remove last entry for this research"
-              @click="removeLogEntry(entry)"
-            >
-              <XIcon class="h-3 w-3" />
-            </button>
+          <div class="text-[9px] text-gray-400 mt-0.5 ml-6">
+            <template v-if="getCalculatedTimeForEntry(step.researchLog.length - 1 - index)">
+              Earnings: {{ formatEIValue(getCalculatedTimeForEntry(step.researchLog.length - 1 - index)!.earningsPerSecBefore * 3600) }}/hr
+              · Time: {{ formatStepDuration(getCalculatedTimeForEntry(step.researchLog.length - 1 - index)!.timeToEarn) }}
+            </template>
+            <template v-else-if="entry.earningsAtPurchase">
+              Earnings: {{ formatEIValue(entry.earningsAtPurchase * 3600) }}/hr
+            </template>
           </div>
         </div>
       </div>
       <div class="px-3 py-2 border-t border-gray-200 bg-gray-100 flex justify-between items-center text-[10px] font-bold">
         <span class="text-gray-500 uppercase tracking-widest">Total Cost</span>
-        <span class="text-gray-900 tabular-nums">{{ formatEIValue(totalHistoryCost) }} gems</span>
+        <div class="flex items-center gap-3">
+          <span class="text-gray-900 tabular-nums">{{ formatEIValue(totalHistoryCost) }} gems</span>
+          <span v-if="totalCalculatedTime > 0" class="text-blue-600 tabular-nums">
+            {{ formatStepDuration(totalCalculatedTime) }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -141,7 +160,9 @@
 import { defineComponent, computed, type PropType } from 'vue';
 import { PlusSmIcon, XIcon } from '@heroicons/vue/solid';
 import { commonResearches, formatEIValue, getResearchById } from '@/lib';
-import type { AscensionStep, ResearchLogEntry } from '@/types';
+import { computeIncrementalPurchaseTimes } from '@/lib/duration_calculations';
+import { formatStepDuration } from '@/lib/step_metrics';
+import type { AscensionStep, ResearchLogEntry, InitialData } from '@/types';
 
 // Tier thresholds provided by user
 const TIER_THRESHOLDS = [0, 30, 80, 160, 280, 400, 520, 650, 800, 980, 1185, 1390, 1655];
@@ -165,6 +186,10 @@ export default defineComponent({
     previousSteps: {
       type: Array as PropType<AscensionStep[]>,
       default: () => [],
+    },
+    initialData: {
+      type: Object as PropType<InitialData>,
+      default: undefined,
     },
     readOnly: {
       type: Boolean,
@@ -326,14 +351,22 @@ export default defineComponent({
       // If `IntegrityStep` uses a local ref, it's NOT PERSISTED to the plan.
       // I should fix that in IntegrityStep too likely, but for Research, I MUST attach to `step.researchLog`.
       
-      if (!props.step.researchLog) {
-        // This relies on the parent initializing it, OR we force it.
-        // TypeScript complains if we assign to readonly prop.
-        // But the OBJECT inside the prop is mutable.
-        // However, if the key is missing... 
-        // I'll assume I can push.
-      }
       props.step.researchLog.push(entry);
+
+      // Compute and store timeToEarn for this purchase
+      if (props.initialData) {
+        const purchaseTimes = computeIncrementalPurchaseTimes(
+          props.step,
+          props.previousSteps,
+          props.initialData
+        );
+        // Find the purchase time for this entry (last one added)
+        const lastPurchaseTime = purchaseTimes[purchaseTimes.length - 1];
+        if (lastPurchaseTime) {
+          entry.timeToEarn = lastPurchaseTime.timeToEarn;
+          entry.earningsAtPurchase = lastPurchaseTime.earningsPerSecBefore;
+        }
+      }
     };
 
     const getResearchName = (id: string) => {
@@ -347,6 +380,34 @@ export default defineComponent({
     const totalHistoryCost = computed(() => {
       if (!props.step.researchLog) return 0;
       return props.step.researchLog.reduce((sum, entry) => sum + entry.cost, 0);
+    });
+
+    // Debug: Recalculate all purchase times for the current step
+    const calculatedPurchaseTimes = computed(() => {
+      if (!props.initialData || !props.step.researchLog || props.step.researchLog.length === 0) {
+        return [];
+      }
+      return computeIncrementalPurchaseTimes(props.step, props.previousSteps, props.initialData);
+    });
+
+    // Map purchase times back to research entries by index
+    const getCalculatedTimeForEntry = (entryIndex: number) => {
+      // entryIndex is the index in researchLog (not reversed)
+      // Find the purchase time for this research entry
+      const times = calculatedPurchaseTimes.value;
+      for (const pt of times) {
+        if (pt.purchase.type === 'research') {
+          if (pt.purchase.index === entryIndex) {
+            return pt;
+          }
+        }
+      }
+      return null;
+    };
+
+    // Total calculated time for all purchases in this step
+    const totalCalculatedTime = computed(() => {
+      return calculatedPurchaseTimes.value.reduce((sum, pt) => sum + pt.timeToEarn, 0);
     });
 
     // Only allow removing an entry if it's the LATEST level for that specific research
@@ -480,6 +541,7 @@ export default defineComponent({
       getCurrentLevel,
       getNextCost,
       formatEIValue,
+      formatStepDuration,
       buyResearch,
       getResearchName,
       reversedLog,
@@ -491,6 +553,8 @@ export default defineComponent({
       getEffectDisplay,
       totalHistoryCost,
       simplifiedResearches,
+      getCalculatedTimeForEntry,
+      totalCalculatedTime,
     };
   },
 });

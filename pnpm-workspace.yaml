@@ -23,6 +23,7 @@ packages:
   - wasmegg/virtue-companion
   - wasmegg/virtue-sandbox
   - wasmegg/ascension-planner
+  - wasmegg/ascension-planner2
 
 onlyBuiltDependencies:
   - esbuild

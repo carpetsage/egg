@@ -1,5 +1,14 @@
 <template>
   <div class="space-y-4">
+    <!-- Step Header with Metrics -->
+    <step-header
+      :step="step"
+      :previous-steps="previousSteps"
+      :initial-data="initialData"
+      :arrival-time="arrivalTime"
+      :departure-time="departureTime"
+    />
+
     <div class="text-sm text-gray-600">
       <p class="font-medium text-gray-900 mb-2">Research</p>
       <p>Configure research purchases for this Curiosity visit.</p>
@@ -37,7 +46,7 @@
     <!-- Hidden for now --><fuel-tank v-if="false" :step="step" />
 
     <!-- Research selection UI -->
-    <research-section :step="step" :previous-steps="previousSteps" />
+    <research-section :step="step" :previous-steps="previousSteps" :initial-data="initialData" />
   </div>
 </template>
 
@@ -46,11 +55,13 @@ import { defineComponent, computed, type PropType } from 'vue';
 import type { AscensionStep, InitialData } from '@/types';
 import FuelTank from '@/components/FuelTank.vue';
 import ResearchSection from '@/components/ResearchSection.vue';
+import StepHeader from '@/components/StepHeader.vue';
 
 export default defineComponent({
   components: {
     FuelTank,
     ResearchSection,
+    StepHeader,
   },
   props: {
     step: {
@@ -63,6 +74,14 @@ export default defineComponent({
     },
     initialData: {
       type: Object as PropType<InitialData>,
+      default: undefined,
+    },
+    arrivalTime: {
+      type: Number,
+      default: undefined,
+    },
+    departureTime: {
+      type: Number,
       default: undefined,
     },
   },

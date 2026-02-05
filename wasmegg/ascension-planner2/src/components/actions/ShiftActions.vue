@@ -1,0 +1,226 @@
+<template>
+  <div class="space-y-4">
+    <!-- Current Shift Summary -->
+    <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
+      <div class="flex justify-between items-start mb-3">
+        <div>
+          <h4 class="text-sm font-medium text-gray-700">Current Shift Summary</h4>
+          <p class="text-xs text-gray-500">Since {{ lastShiftLabel }}</p>
+        </div>
+        <span class="text-sm text-gray-500">
+          Shifts: {{ virtueStore.shiftCount }}
+          <span v-if="virtueStore.plannedShifts > 0" class="text-blue-600">
+            (+{{ virtueStore.plannedShifts }} planned)
+          </span>
+        </span>
+      </div>
+
+      <!-- Time spent this shift -->
+      <div class="bg-white rounded-lg p-3 border border-purple-100">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Time spent this shift:</span>
+          <span class="text-lg font-bold text-purple-700">{{ timeSinceLastShiftFormatted }}</span>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">
+          Sum of save times for {{ actionsSinceLastShift }} action{{ actionsSinceLastShift !== 1 ? 's' : '' }}
+        </p>
+      </div>
+
+      <!-- Current egg display -->
+      <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200 mt-3">
+        <div
+          class="w-12 h-12 flex-shrink-0 bg-gray-50 rounded-full border border-gray-100 p-1 flex items-center justify-center shadow-sm"
+        >
+          <img
+            :src="iconURL(`egginc/egg_${virtueStore.currentEgg}.png`, 64)"
+            class="w-full h-full object-contain"
+            :alt="virtueStore.currentEgg"
+          />
+        </div>
+        <div>
+          <div class="font-bold text-gray-900">{{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}</div>
+          <div class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Current Phase</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shift Options -->
+    <div>
+      <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Shift to another egg</h4>
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          v-for="egg in availableEggs"
+          :key="egg"
+          class="group relative flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 shadow-sm"
+          :class="egg === virtueStore.currentEgg
+            ? 'border-gray-200 bg-gray-50/50 opacity-50 grayscale cursor-not-allowed'
+            : 'border-gray-200 bg-white hover:border-blue-400 hover:shadow-md hover:bg-blue-50/30'"
+          :disabled="egg === virtueStore.currentEgg"
+          @click="handleShift(egg)"
+        >
+          <div
+            class="w-10 h-10 flex-shrink-0 bg-gray-50 rounded-full p-1 border border-gray-100 group-hover:bg-white transition-colors"
+          >
+            <img
+              :src="iconURL(`egginc/egg_${egg}.png`, 64)"
+              class="w-full h-full object-contain"
+              :alt="egg"
+            />
+          </div>
+          <div class="text-left overflow-hidden">
+            <span class="block text-sm font-bold text-gray-800 truncate group-hover:text-blue-700 transition-colors">
+              {{ VIRTUE_EGG_NAMES[egg] }}
+            </span>
+            <span class="block text-[10px] font-semibold text-gray-400 uppercase group-hover:text-blue-400 transition-colors">
+              {{ eggActionLabel(egg) }}
+            </span>
+          </div>
+          
+          <!-- Hover arrow -->
+          <div v-if="egg !== virtueStore.currentEgg" class="absolute right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+      <p class="text-[11px] text-blue-600 font-medium leading-relaxed">
+        <span class="font-bold">Info:</span> Shifting is free but increases your shift count. Each egg phase unlocks mission-critical components for your ascension.
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import { iconURL } from 'lib';
+import { VIRTUE_EGG_NAMES, VIRTUE_EGGS, type VirtueEgg, generateActionId } from '@/types';
+import { useVirtueStore } from '@/stores/virtue';
+import { useActionsStore } from '@/stores/actions';
+import { computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
+
+const virtueStore = useVirtueStore();
+const actionsStore = useActionsStore();
+
+const availableEggs = VIRTUE_EGGS;
+
+// Map egg to its action type
+function eggActionLabel(egg: VirtueEgg): string {
+  switch (egg) {
+    case 'curiosity': return 'Research';
+    case 'integrity': return 'Habs';
+    case 'kindness': return 'Vehicles';
+    case 'humility': return 'Artifacts';
+    case 'resilience': return 'Silos';
+  }
+}
+
+// Find the index of the last shift action (or start_ascension if no shifts)
+const lastShiftIndex = computed(() => {
+  for (let i = actionsStore.actions.length - 1; i >= 0; i--) {
+    const action = actionsStore.actions[i];
+    if (action.type === 'shift' || action.type === 'start_ascension') {
+      return i;
+    }
+  }
+  return 0;
+});
+
+// Label for what we're measuring from
+const lastShiftLabel = computed(() => {
+  const lastAction = actionsStore.actions[lastShiftIndex.value];
+  if (lastAction?.type === 'start_ascension') {
+    return 'start of ascension';
+  }
+  return 'last shift';
+});
+
+// Count of actions since last shift (excluding the shift/start itself)
+const actionsSinceLastShift = computed(() => {
+  return actionsStore.actions.length - lastShiftIndex.value - 1;
+});
+
+// Calculate total time since last shift
+// This is the sum of (cost / previousOfflineEarnings) for each action since last shift
+const timeSinceLastShiftSeconds = computed(() => {
+  let totalSeconds = 0;
+  const actions = actionsStore.actions;
+
+  for (let i = lastShiftIndex.value + 1; i < actions.length; i++) {
+    const action = actions[i];
+    // Get the offline earnings from the previous action's end state
+    const prevAction = actions[i - 1];
+    const prevOfflineEarnings = prevAction?.endState?.offlineEarnings ?? 0;
+
+    if (action.cost > 0 && prevOfflineEarnings > 0) {
+      totalSeconds += action.cost / prevOfflineEarnings;
+    }
+  }
+
+  return totalSeconds;
+});
+
+// Format the time
+const timeSinceLastShiftFormatted = computed(() => {
+  const totalSeconds = timeSinceLastShiftSeconds.value;
+
+  if (totalSeconds <= 0) return '0m';
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
+
+  if (totalDays > 0) {
+    const remainingHours = totalHours % 24;
+    return `${totalDays}d ${remainingHours}h`;
+  }
+
+  if (totalHours > 0) {
+    const remainingMinutes = totalMinutes % 60;
+    return `${totalHours}h ${remainingMinutes}m`;
+  }
+
+  if (totalMinutes > 0) {
+    return `${totalMinutes}m`;
+  }
+
+  return '<1m';
+});
+
+function handleShift(toEgg: VirtueEgg) {
+  if (toEgg === virtueStore.currentEgg) return;
+
+  const fromEgg = virtueStore.currentEgg;
+  const newShiftCount = virtueStore.shiftCount + 1;
+
+  // Get state before action
+  const beforeSnapshot = actionsStore.currentSnapshot;
+
+  // Apply the shift to the store
+  virtueStore.shift(toEgg);
+
+  // Get state after action
+  const afterSnapshot = computeCurrentSnapshot();
+  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
+
+  // Add action to history
+  actionsStore.pushAction({
+    id: generateActionId(),
+    timestamp: Date.now(),
+    type: 'shift',
+    payload: {
+      fromEgg,
+      toEgg,
+      newShiftCount,
+    },
+    cost: 0, // Shifting is free
+    elrDelta: deltas.elrDelta,
+    offlineEarningsDelta: deltas.offlineEarningsDelta,
+    endState: afterSnapshot,
+    dependsOn: [],
+  });
+}
+</script>

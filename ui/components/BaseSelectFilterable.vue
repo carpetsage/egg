@@ -324,7 +324,7 @@ class BaseSelectFilterableFactory<T = unknown> {
                   class="absolute inset-y-0 right-7 flex items-center cursor-pointer"
                   onClick={this.clearItem}
                 >
-                  <x-icon class="h-4 w-4 text-gray-400" />
+                  <XIcon class="h-4 w-4 text-gray-400" />
                 </div>
               )}
             </div>

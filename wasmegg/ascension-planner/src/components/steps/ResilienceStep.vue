@@ -1,5 +1,14 @@
 <template>
   <div class="space-y-4">
+    <!-- Step Header with Metrics -->
+    <step-header
+      :step="step"
+      :previous-steps="previousSteps"
+      :initial-data="initialData"
+      :arrival-time="arrivalTime"
+      :departure-time="departureTime"
+    />
+
     <div class="text-sm text-gray-600">
       <p class="font-medium text-gray-900 mb-2">Silos</p>
       <p>Purchase silos to extend your away time.</p>
@@ -122,6 +131,7 @@ import { defineComponent, ref, computed, type PropType } from 'vue';
 import { formatEIValue, nextSiloCost, totalAwayTime, formatSiloDuration, awayTimePerSilo } from 'lib';
 import type { AscensionStep, InitialData } from '@/types';
 import FuelTank from '@/components/FuelTank.vue';
+import StepHeader from '@/components/StepHeader.vue';
 
 interface PurchaseLogEntry {
   siloNumber: number;
@@ -133,6 +143,7 @@ interface PurchaseLogEntry {
 export default defineComponent({
   components: {
     FuelTank,
+    StepHeader,
   },
   props: {
     step: {
@@ -145,6 +156,14 @@ export default defineComponent({
     },
     initialData: {
       type: Object as PropType<InitialData>,
+      default: undefined,
+    },
+    arrivalTime: {
+      type: Number,
+      default: undefined,
+    },
+    departureTime: {
+      type: Number,
       default: undefined,
     },
   },

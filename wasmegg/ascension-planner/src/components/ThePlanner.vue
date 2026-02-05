@@ -148,6 +148,19 @@ export default defineComponent({
       artifacts: [null, null, null, null], // Default empty loadout
       modifiers,
       epicResearch,
+      // New timeline-related fields
+      earningsArtifacts: [null, null, null, null], // Earnings-optimized artifact set
+      elrArtifacts: [null, null, null, null], // ELR-optimized artifact set
+      activeArtifactSet: 'earnings' as const, // Which set is active initially
+      targetTotalTE: 0, // Overall TE goal (user sets this)
+      targetGains: {
+        curiosity: 0,
+        integrity: 0,
+        kindness: 0,
+        humility: 0,
+        resilience: 0,
+      }, // TE to gain per virtue egg
+      startTime: Date.now(), // Ascension start time defaults to now
     };
 
     return {
