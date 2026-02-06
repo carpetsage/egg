@@ -7,7 +7,7 @@
     </div>
 
     <!-- Vehicle slots -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 gap-3">
       <div
         v-for="(slot, index) in displaySlots"
         :key="index"
@@ -32,6 +32,9 @@
           :item-from-id="id => getVehicleType(parseInt(id))!"
           :search-items="(query) => searchVehicles(getAvailableVehicles(slot.vehicleId), query)"
           placeholder="Select vehicle..."
+          icon-class="h-[14px] w-12"
+          input-padding-class="pl-[60px]"
+          container-class="max-w-none"
           class="w-full"
           @update:model-value="handleVehicleChange(index, $event ? parseInt($event) : undefined)"
         />
@@ -105,9 +108,9 @@ import { useShippingCapacity } from '@/composables/useShippingCapacity';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useActionsStore } from '@/stores/actions';
-import { computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
+import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const VehicleSelect = GenericBaseSelectFilterable<VehicleType>();
 
@@ -116,6 +119,7 @@ const initialStateStore = useInitialStateStore();
 const commonResearchStore = useCommonResearchStore();
 const actionsStore = useActionsStore();
 const { output } = useShippingCapacity();
+const { prepareExecution, completeExecution } = useActionExecutor();
 
 // Cost modifiers
 const costModifiers = computed<VehicleCostModifiers>(() => ({
@@ -177,14 +181,15 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
   const currentSlot = shippingStore.vehicles[slotIndex];
   if (currentSlot && currentSlot.vehicleId === vehicleId) return;
 
-  // Get state before action
-  const beforeSnapshot = actionsStore.currentSnapshot;
+  // Prepare execution (restores stores if editing past group)
+  const beforeSnapshot = prepareExecution();
 
-  // Calculate cost
-  const existingCount = countVehiclesOfTypeBefore(shippingStore.vehicles, vehicleId, slotIndex);
+  // Calculate cost based on effective state
+  const effectiveVehicles = beforeSnapshot.vehicles;
+  const existingCount = countVehiclesOfTypeBefore(effectiveVehicles, vehicleId, slotIndex);
   const cost = getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value);
 
-  // Build payload first to compute dependencies
+  // Build payload
   const payload = {
     slotIndex,
     vehicleId,
@@ -197,22 +202,15 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
   // Apply to store
   shippingStore.setVehicle(slotIndex, vehicleId);
 
-  // Get state after action
-  const afterSnapshot = computeCurrentSnapshot();
-  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
-
-  // Add action to history
-  actionsStore.pushAction({
+  // Complete execution
+  completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'buy_vehicle',
     payload,
     cost,
-    elrDelta: deltas.elrDelta,
-    offlineEarningsDelta: deltas.offlineEarningsDelta,
-    endState: afterSnapshot,
     dependsOn: dependencies,
-  });
+  }, beforeSnapshot);
 }
 
 // ============================================================================
@@ -296,8 +294,8 @@ function handleMaxTrainCars(slotIndex: number) {
  * Add a train car action.
  */
 function addTrainCarAction(slotIndex: number, fromLength: number, toLength: number) {
-  // Get state before action
-  const beforeSnapshot = actionsStore.currentSnapshot;
+  // Prepare execution (restores stores if editing past group)
+  const beforeSnapshot = prepareExecution();
 
   // Calculate cost
   const cost = getDiscountedTrainCarPrice(toLength - 1, costModifiers.value);
@@ -315,21 +313,14 @@ function addTrainCarAction(slotIndex: number, fromLength: number, toLength: numb
   // Apply to store
   shippingStore.setTrainLength(slotIndex, toLength);
 
-  // Get state after action
-  const afterSnapshot = computeCurrentSnapshot();
-  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
-
-  // Add action to history
-  actionsStore.pushAction({
+  // Complete execution
+  completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'buy_train_car',
     payload,
     cost,
-    elrDelta: deltas.elrDelta,
-    offlineEarningsDelta: deltas.offlineEarningsDelta,
-    endState: afterSnapshot,
     dependsOn: dependencies,
-  });
+  }, beforeSnapshot);
 }
 </script>

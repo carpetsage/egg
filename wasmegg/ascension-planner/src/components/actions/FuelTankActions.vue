@@ -121,16 +121,17 @@ import { useFuelTankStore, timeToStore } from '@/stores/fuelTank';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
 import { useLayRate } from '@/composables/useLayRate';
-import { computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatDuration, parseNumber } from '@/lib/format';
 import { generateActionId, VIRTUE_EGG_NAMES } from '@/types';
 import { VIRTUE_FUEL_ORDER } from '@/stores/fuelTank';
+import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const fuelTankStore = useFuelTankStore();
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
 const { output: layRateOutput } = useLayRate();
+const { prepareExecution, completeExecution } = useActionExecutor();
 
 const amountInput = ref('');
 
@@ -158,10 +159,11 @@ const canStore = computed(() =>
 function handleStoreFuel() {
   if (!canStore.value) return;
 
-  const beforeSnapshot = actionsStore.currentSnapshot;
+  // Prepare execution (restores stores if editing past group)
+  const beforeSnapshot = prepareExecution();
 
   const payload = {
-    egg: virtueStore.currentEgg,
+    egg: beforeSnapshot.currentEgg,
     amount: parsedAmount.value,
     timeSeconds: timeToStoreSeconds.value,
   };
@@ -171,20 +173,15 @@ function handleStoreFuel() {
   // Apply to store
   fuelTankStore.addFuel(payload.egg, payload.amount);
 
-  const afterSnapshot = computeCurrentSnapshot();
-  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
-
-  actionsStore.pushAction({
+  // Complete execution
+  completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'store_fuel',
     payload,
     cost: 0, // Free action
-    elrDelta: deltas.elrDelta,
-    offlineEarningsDelta: deltas.offlineEarningsDelta,
-    endState: afterSnapshot,
     dependsOn: dependencies,
-  });
+  }, beforeSnapshot);
 
   // Clear input
   amountInput.value = '';

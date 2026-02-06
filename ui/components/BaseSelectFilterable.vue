@@ -95,6 +95,18 @@ class BaseSelectFilterableFactory<T = unknown> {
           type: Boolean,
           default: false,
         },
+        iconClass: {
+          type: String,
+          default: 'h-6 w-6',
+        },
+        inputPaddingClass: {
+          type: String,
+          default: 'pl-11',
+        },
+        containerClass: {
+          type: String,
+          default: 'max-w-sm',
+        },
       },
       emits: {
         'update:modelValue': (_payload: string | null) => true,
@@ -285,17 +297,17 @@ class BaseSelectFilterableFactory<T = unknown> {
       },
       render() {
         return (
-          <div ref="dropdownRef" class="relative max-w-sm">
+          <div ref="dropdownRef" class={['relative', this.containerClass]}>
             <div class="relative rounded-md shadow-sm">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 {this.selected && this.searchFilter === this.getItemDisplay(this.selected) ? (
                   <BaseIcon
                     iconRelPath={this.getItemIconPath(this.selected)}
                     size={64}
-                    class="flex-shrink-0 h-6 w-6"
+                    class={['flex-shrink-0', this.iconClass]}
                   />
                 ) : (
-                  <QuestionMarkCircleIcon class="flex-shrink-0 h-6 w-6 p-px text-gray-400" />
+                  <QuestionMarkCircleIcon class={['flex-shrink-0 p-px text-gray-400', this.iconClass]} />
                 )}
               </div>
               <input
@@ -303,7 +315,8 @@ class BaseSelectFilterableFactory<T = unknown> {
                 value={this.searchFilter}
                 type="text"
                 class={[
-                  'Select__input bg-gray-50 focus:ring-blue-500 focus:border-blue-500 block w-full pl-11 pr-10 sm:text-sm border-gray-300 rounded-md',
+                  'Select__input bg-gray-50 focus:ring-blue-500 focus:border-blue-500 block w-full pr-10 sm:text-sm border-gray-300 rounded-md',
+                  this.inputPaddingClass,
                   this.selected && this.searchFilter === this.getItemDisplay(this.selected)
                     ? this.itemColorClass(this.selected)
                     : null,
@@ -353,7 +366,7 @@ class BaseSelectFilterableFactory<T = unknown> {
                     <BaseIcon
                       iconRelPath={this.getItemIconPath(item)}
                       size={64}
-                      class="flex-shrink-0 h-6 w-6"
+                      class={['flex-shrink-0', this.iconClass]}
                     />
                     <span
                       class={[

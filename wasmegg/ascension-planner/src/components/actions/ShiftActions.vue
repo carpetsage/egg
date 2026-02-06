@@ -100,10 +100,11 @@ import { iconURL } from 'lib';
 import { VIRTUE_EGG_NAMES, VIRTUE_EGGS, type VirtueEgg, generateActionId } from '@/types';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
-import { computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
+import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
+const { prepareExecution, completeExecution } = useActionExecutor();
 
 const availableEggs = VIRTUE_EGGS;
 
@@ -193,21 +194,17 @@ const timeSinceLastShiftFormatted = computed(() => {
 function handleShift(toEgg: VirtueEgg) {
   if (toEgg === virtueStore.currentEgg) return;
 
-  const fromEgg = virtueStore.currentEgg;
-  const newShiftCount = virtueStore.shiftCount + 1;
+  // Prepare execution (restores stores if editing past group)
+  const beforeSnapshot = prepareExecution();
 
-  // Get state before action
-  const beforeSnapshot = actionsStore.currentSnapshot;
+  const fromEgg = beforeSnapshot.currentEgg;
+  const newShiftCount = beforeSnapshot.shiftCount + 1;
 
   // Apply the shift to the store
   virtueStore.shift(toEgg);
 
-  // Get state after action
-  const afterSnapshot = computeCurrentSnapshot();
-  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
-
-  // Add action to history
-  actionsStore.pushAction({
+  // Complete execution
+  completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'shift',
@@ -217,10 +214,7 @@ function handleShift(toEgg: VirtueEgg) {
       newShiftCount,
     },
     cost: 0, // Shifting is free
-    elrDelta: deltas.elrDelta,
-    offlineEarningsDelta: deltas.offlineEarningsDelta,
-    endState: afterSnapshot,
     dependsOn: [],
-  });
+  }, beforeSnapshot);
 }
 </script>

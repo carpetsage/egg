@@ -1,9 +1,12 @@
 <template>
-  <div class="border-l-4 border-purple-300 bg-purple-50/50">
+  <div
+    class="border-l-4 transition-colors"
+    :class="groupClasses"
+  >
     <!-- Collapsible header -->
     <button
       class="w-full px-4 py-3 flex items-center gap-3 hover:bg-purple-100/50 transition-colors"
-      @click="isExpanded = !isExpanded"
+      @click="toggleExpanded"
     >
       <!-- Expand/collapse icon -->
       <svg
@@ -49,6 +52,22 @@
       >
         #{{ (headerAction as Action<'shift'>).payload.newShiftCount }}
       </span>
+
+      <!-- Current badge -->
+      <span
+        v-if="isCurrent && !isEditing"
+        class="text-xs font-bold text-green-600 bg-green-200 px-2 py-0.5 rounded-full"
+      >
+        Current
+      </span>
+
+      <!-- Editing badge -->
+      <span
+        v-if="isEditing"
+        class="text-xs font-bold text-blue-600 bg-blue-200 px-2 py-0.5 rounded-full"
+      >
+        Editing
+      </span>
     </button>
 
     <!-- Egg Summary (for the egg we were ON during this period) -->
@@ -67,7 +86,6 @@
         :previous-offline-earnings="getPreviousOfflineEarnings(idx)"
         @show-details="$emit('show-details', action)"
         @undo="$emit('undo', action)"
-        @edit="$emit('edit')"
       />
     </div>
   </div>
@@ -101,20 +119,65 @@ const props = defineProps<{
   previousActionsOfflineEarnings: number[];
   timeElapsedSeconds: number;
   periodEndTimestamp: Date;
+  isEditing?: boolean;
+  isCurrent?: boolean;  // Whether this is the current (last) period
+  forceCollapsed?: boolean;  // Force collapse when another group is being edited
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   'show-details': [action: Action];
   'undo': [action: Action];
-  'edit': [];
+  'start-editing': [groupId: string];
+  'stop-editing': [];
 }>();
 
-const isExpanded = ref(false);
+// Internal state for manually collapsing/expanding the current group
+const manuallyCollapsed = ref(false);
+
+/**
+ * Determine if the group should be expanded.
+ * - If editing this group: expanded
+ * - If force collapsed (another group being edited): collapsed
+ * - If current period: expanded by default, but can be manually collapsed
+ * - Otherwise: collapsed
+ */
+const isExpanded = computed(() => {
+  if (props.isEditing) return true;
+  if (props.forceCollapsed) return false;
+  if (props.isCurrent) return !manuallyCollapsed.value;
+  return false;
+});
+
+function toggleExpanded() {
+  if (props.isEditing) {
+    // Currently editing this group, stop editing
+    emit('stop-editing');
+  } else if (props.isCurrent) {
+    // Current group: just toggle expand/collapse without entering edit mode
+    manuallyCollapsed.value = !manuallyCollapsed.value;
+  } else {
+    // Past group: start editing
+    emit('start-editing', props.headerAction.id);
+  }
+}
 
 /**
  * Whether the header is a shift action (vs start_ascension).
  */
 const isShiftAction = computed(() => props.headerAction.type === 'shift');
+
+/**
+ * CSS classes for the group container based on state.
+ */
+const groupClasses = computed(() => {
+  if (props.isEditing) {
+    return 'border-blue-500 bg-blue-50/50';
+  }
+  if (props.isCurrent) {
+    return 'border-green-400 bg-green-50/50';
+  }
+  return 'border-purple-300 bg-purple-50/50';
+});
 
 /**
  * The egg we're ON during this period.

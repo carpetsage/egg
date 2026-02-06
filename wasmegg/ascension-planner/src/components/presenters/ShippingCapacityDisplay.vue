@@ -78,7 +78,7 @@
             <div v-if="slot.vehicleId !== null" class="flex items-center gap-2 flex-1">
               <img
                 :src="iconURL(getVehicleType(slot.vehicleId)?.iconPath ?? '', 64)"
-                class="w-6 h-6 object-contain"
+                class="h-[14px] w-auto min-w-[2.5rem] object-contain"
                 :alt="getVehicleType(slot.vehicleId)?.name"
               />
               <span class="text-sm text-gray-900">{{ getVehicleType(slot.vehicleId)?.name }}</span>

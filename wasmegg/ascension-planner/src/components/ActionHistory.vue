@@ -24,7 +24,6 @@
           :class="{ 'border-t border-gray-100': idx > 0 }"
           @show-details="$emit('show-details', item.action)"
           @undo="handleUndoRequest(item.action)"
-          @edit="$emit('edit-start')"
         />
 
         <!-- Grouped actions (start or shift period) -->
@@ -35,10 +34,14 @@
           :previous-actions-offline-earnings="item.previousOfflineEarnings"
           :time-elapsed-seconds="item.timeElapsedSeconds"
           :period-end-timestamp="item.periodEndTimestamp"
+          :is-editing="actionsStore.editingGroupId === item.headerAction.id"
+          :is-current="item.isCurrent"
+          :force-collapsed="actionsStore.editingGroupId !== null && actionsStore.editingGroupId !== item.headerAction.id"
           :class="{ 'border-t border-gray-100': idx > 0 }"
           @show-details="$emit('show-details', $event)"
           @undo="handleUndoRequest($event)"
-          @edit="$emit('edit-start')"
+          @start-editing="handleStartEditing"
+          @stop-editing="handleStopEditing"
         />
       </template>
     </div>
@@ -68,7 +71,6 @@ const emit = defineEmits<{
   'show-details': [action: Action];
   'undo': [action: Action, dependentActions: Action[]];
   'clear-all': [];
-  'edit-start': [];
 }>();
 
 const actionsStore = useActionsStore();
@@ -119,6 +121,7 @@ interface GroupItem {
   previousOfflineEarnings: number[];
   timeElapsedSeconds: number;
   periodEndTimestamp: Date;  // When this period ended
+  isCurrent: boolean;  // Whether this is the current (last) period
 }
 
 type GroupedItem = SingleItem | GroupItem;
@@ -204,27 +207,37 @@ const groupedActions = computed<GroupedItem[]>(() => {
         previousOfflineEarnings,
         timeElapsedSeconds: periodTimeSeconds,
         periodEndTimestamp,
+        isCurrent: false,
       });
 
       cumulativeTimeSeconds = periodTimeSeconds;
     } else {
-      // No shifts yet - show start_ascension individually
-      result.push({
-        type: 'single',
-        key: startAction.id,
-        action: startAction,
-        previousOfflineEarnings: 0,
+      // No shifts yet - show start_ascension as a group (current period)
+      const groupActions = allActions.slice(1);
+      const previousOfflineEarnings = groupActions.map((_, idx) => {
+        const globalIdx = 1 + idx;
+        return getPreviousOfflineEarnings(globalIdx);
       });
 
-      // Show remaining actions individually (current work)
-      for (let i = 1; i < allActions.length; i++) {
-        result.push({
-          type: 'single',
-          key: allActions[i].id,
-          action: allActions[i],
-          previousOfflineEarnings: getPreviousOfflineEarnings(i),
-        });
-      }
+      let periodTimeSeconds = 0;
+      groupActions.forEach((action, idx) => {
+        periodTimeSeconds += getActionTimeSeconds(action, previousOfflineEarnings[idx]);
+      });
+
+      const periodEndTimestamp = new Date(
+        ascensionStartTime.value.getTime() + periodTimeSeconds * 1000
+      );
+
+      result.push({
+        type: 'group',
+        key: `group_start`,
+        headerAction: startAction,
+        actions: groupActions,
+        previousOfflineEarnings,
+        timeElapsedSeconds: periodTimeSeconds,
+        periodEndTimestamp,
+        isCurrent: true,
+      });
       return result;
     }
   }
@@ -252,42 +265,23 @@ const groupedActions = computed<GroupedItem[]>(() => {
       periodTimeSeconds += getActionTimeSeconds(action, previousOfflineEarnings[idx]);
     });
 
-    if (isLastShift) {
-      // Last shift - show shift and remaining actions individually (current work)
-      result.push({
-        type: 'single',
-        key: shiftAction.id,
-        action: shiftAction,
-        previousOfflineEarnings: getPreviousOfflineEarnings(shiftIdx),
-      });
+    // Create a group for this shift period (including the last/current one)
+    const periodEndTimestamp = new Date(
+      ascensionStartTime.value.getTime() + (cumulativeTimeSeconds + periodTimeSeconds) * 1000
+    );
 
-      // Show remaining actions individually
-      for (let j = 0; j < groupActions.length; j++) {
-        result.push({
-          type: 'single',
-          key: groupActions[j].id,
-          action: groupActions[j],
-          previousOfflineEarnings: previousOfflineEarnings[j],
-        });
-      }
-    } else {
-      // Not the last shift - create a group for this shift period
-      const periodEndTimestamp = new Date(
-        ascensionStartTime.value.getTime() + (cumulativeTimeSeconds + periodTimeSeconds) * 1000
-      );
+    result.push({
+      type: 'group',
+      key: `group_${shiftAction.id}`,
+      headerAction: shiftAction,
+      actions: groupActions,
+      previousOfflineEarnings,
+      timeElapsedSeconds: periodTimeSeconds,
+      periodEndTimestamp,
+      isCurrent: isLastShift,
+    });
 
-      result.push({
-        type: 'group',
-        key: `group_${shiftAction.id}`,
-        headerAction: shiftAction,
-        actions: groupActions,
-        previousOfflineEarnings,
-        timeElapsedSeconds: periodTimeSeconds,
-        periodEndTimestamp,
-      });
-
-      cumulativeTimeSeconds += periodTimeSeconds;
-    }
+    cumulativeTimeSeconds += periodTimeSeconds;
   }
 
   return result;
@@ -302,6 +296,14 @@ function handleUndoRequest(action: Action) {
 
 function handleClearAll() {
   emit('clear-all');
+}
+
+function handleStartEditing(groupId: string) {
+  actionsStore.setEditingGroup(groupId);
+}
+
+function handleStopEditing() {
+  actionsStore.setEditingGroup(null);
 }
 
 /**
