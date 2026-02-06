@@ -24,7 +24,7 @@
       <!-- Action History and Available Actions side-by-side -->
       <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Action History -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-visible">
           <div
             class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
             @click="expandedSections.actionHistory = !expandedSections.actionHistory"
@@ -43,7 +43,7 @@
         </div>
 
         <!-- Available Actions -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-visible">
           <div
             class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
             @click="expandedSections.availableActions = !expandedSections.availableActions"
