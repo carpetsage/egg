@@ -123,10 +123,16 @@ const costModifiers = computed<VehicleCostModifiers>(() => ({
   lithiumMultiplier: initialStateStore.colleggtibleModifiers.vehicleCost,
 }));
 
-// Display only available slots
-const displaySlots = computed(() =>
-  shippingStore.vehicles.slice(0, output.value.maxVehicleSlots)
-);
+// Display only available slots, padding with empty slots if vehicles array is shorter than maxVehicleSlots
+const displaySlots = computed(() => {
+  const max = output.value.maxVehicleSlots;
+  const slots = shippingStore.vehicles.slice(0, max);
+  // Pad with empty slots if vehicles array hasn't been resized yet
+  while (slots.length < max) {
+    slots.push({ vehicleId: null, trainLength: 1 });
+  }
+  return slots;
+});
 
 const maxVehicleSlots = computed(() => output.value.maxVehicleSlots);
 
@@ -167,8 +173,9 @@ function searchVehicles(items: VehicleType[], query: string): VehicleType[] {
 function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
   if (vehicleId === undefined) return;
 
-  // Don't add if it's already the same
-  if (shippingStore.vehicles[slotIndex].vehicleId === vehicleId) return;
+  // Don't add if it's already the same (check array bounds for slots unlocked by fleet research)
+  const currentSlot = shippingStore.vehicles[slotIndex];
+  if (currentSlot && currentSlot.vehicleId === vehicleId) return;
 
   // Get state before action
   const beforeSnapshot = actionsStore.currentSnapshot;
@@ -216,7 +223,7 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
  * Get the maximum train length based on graviton coupling research.
  */
 function getMaxTrainLength(): number {
-  const gravitonLevel = commonResearchStore.researchLevels['graviton_coupling'] ?? 0;
+  const gravitonLevel = commonResearchStore.researchLevels['micro_coupling'] ?? 0;
   return Math.min(BASE_TRAIN_LENGTH + gravitonLevel, MAX_TRAIN_LENGTH);
 }
 

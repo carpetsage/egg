@@ -228,7 +228,7 @@ function findGravitonCouplingAction(
   // Find the earliest action that gave us at least this level
   return actions.find(
     a => a.type === 'buy_research' &&
-         (a.payload as BuyResearchPayload).researchId === 'graviton_coupling' &&
+         (a.payload as BuyResearchPayload).researchId === 'micro_coupling' &&
          (a.payload as BuyResearchPayload).toLevel >= minLevel
   );
 }

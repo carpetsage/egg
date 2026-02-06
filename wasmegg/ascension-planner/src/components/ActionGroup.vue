@@ -1,11 +1,5 @@
 <template>
   <div class="border-l-4 border-purple-300 bg-purple-50/50">
-    <!-- Egg Summary (for the egg we just left) - shown above shift line -->
-    <component
-      :is="summaryComponent"
-      :actions="actions"
-    />
-
     <!-- Collapsible header -->
     <button
       class="w-full px-4 py-3 flex items-center gap-3 hover:bg-purple-100/50 transition-colors"
@@ -22,37 +16,46 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
 
-      <!-- Shift icon (shows egg we're shifting TO) -->
+      <!-- Egg icon (shows the egg we're ON during this period) -->
       <div class="w-6 h-6 flex-shrink-0 bg-white rounded-full border border-purple-200 p-0.5 shadow-sm overflow-hidden">
         <img
-          :src="iconURL(`egginc/egg_${shiftAction.payload.toEgg}.png`, 64)"
+          :src="iconURL(`egginc/egg_${currentEgg}.png`, 64)"
           class="w-full h-full object-contain"
-          :alt="shiftAction.payload.toEgg"
+          :alt="currentEgg"
         />
       </div>
 
-      <!-- Summary -->
+      <!-- Header text -->
       <div class="flex-1 text-left">
         <div class="font-medium text-purple-900">
-          Shift to {{ VIRTUE_EGG_NAMES[shiftAction.payload.toEgg] }}
+          {{ headerText }}
         </div>
       </div>
 
       <!-- Time info -->
       <div class="text-right shrink-0">
         <div class="text-xs font-medium text-purple-700">
-          {{ formattedShiftTime }}
+          {{ formattedPeriodEndTime }}
         </div>
         <div class="text-[10px] text-purple-500">
           {{ formattedTimeElapsed }} elapsed
         </div>
       </div>
 
-      <!-- Shift number badge -->
-      <span class="text-xs font-bold text-purple-600 bg-purple-200 px-2 py-0.5 rounded-full">
-        #{{ shiftAction.payload.newShiftCount }}
+      <!-- Shift number badge (only for shift actions) -->
+      <span
+        v-if="isShiftAction"
+        class="text-xs font-bold text-purple-600 bg-purple-200 px-2 py-0.5 rounded-full"
+      >
+        #{{ (headerAction as Action<'shift'>).payload.newShiftCount }}
       </span>
     </button>
+
+    <!-- Egg Summary (for the egg we were ON during this period) -->
+    <component
+      :is="summaryComponent"
+      :actions="actions"
+    />
 
     <!-- Expanded content (action details) -->
     <div v-if="isExpanded" class="border-t border-purple-200">
@@ -73,9 +76,8 @@
 <script setup lang="ts">
 import { ref, computed, defineAsyncComponent } from 'vue';
 import { iconURL } from 'lib';
-import type { Action, VirtueEgg } from '@/types';
+import type { Action, VirtueEgg, StartAscensionPayload, ShiftPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
-import { formatNumber } from '@/lib/format';
 import ActionHistoryItem from './ActionHistoryItem.vue';
 
 // Lazy load summary components
@@ -94,11 +96,11 @@ const summaryComponents: Record<VirtueEgg, ReturnType<typeof defineAsyncComponen
 };
 
 const props = defineProps<{
-  shiftAction: Action<'shift'>;
+  headerAction: Action<'start_ascension'> | Action<'shift'>;
   actions: Action[];
   previousActionsOfflineEarnings: number[];
   timeElapsedSeconds: number;
-  shiftTimestamp: Date;
+  periodEndTimestamp: Date;
 }>();
 
 defineEmits<{
@@ -109,20 +111,45 @@ defineEmits<{
 
 const isExpanded = ref(false);
 
-const actionCount = computed(() => props.actions.length);
-const totalCost = computed(() => props.actions.reduce((sum, a) => sum + a.cost, 0));
-
-// The egg we just left (fromEgg in the shift payload)
-const fromEgg = computed(() => props.shiftAction.payload.fromEgg);
-
-// Get the appropriate summary component
-const summaryComponent = computed(() => summaryComponents[fromEgg.value]);
+/**
+ * Whether the header is a shift action (vs start_ascension).
+ */
+const isShiftAction = computed(() => props.headerAction.type === 'shift');
 
 /**
- * Format the shift timestamp as "Mon Jan 5, 2:30 PM"
+ * The egg we're ON during this period.
+ * - For start_ascension: the initial egg
+ * - For shift: the egg we shifted TO
  */
-const formattedShiftTime = computed(() => {
-  const date = props.shiftTimestamp;
+const currentEgg = computed<VirtueEgg>(() => {
+  if (props.headerAction.type === 'start_ascension') {
+    return (props.headerAction.payload as StartAscensionPayload).initialEgg;
+  } else {
+    return (props.headerAction.payload as ShiftPayload).toEgg;
+  }
+});
+
+/**
+ * The header text to display.
+ */
+const headerText = computed(() => {
+  if (props.headerAction.type === 'start_ascension') {
+    return `Start: ${VIRTUE_EGG_NAMES[currentEgg.value]}`;
+  } else {
+    return `Shift to ${VIRTUE_EGG_NAMES[currentEgg.value]}`;
+  }
+});
+
+/**
+ * Get the appropriate summary component for the current egg.
+ */
+const summaryComponent = computed(() => summaryComponents[currentEgg.value]);
+
+/**
+ * Format the period end timestamp as "Mon Jan 5, 2:30 PM"
+ */
+const formattedPeriodEndTime = computed(() => {
+  const date = props.periodEndTimestamp;
   return date.toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
