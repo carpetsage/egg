@@ -1,14 +1,22 @@
 <template>
   <div class="space-y-4">
     <!-- Current Egg Indicator -->
-    <div class="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded-lg border border-gray-100">
-      <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Current Egg</span>
+    <div
+      class="flex items-center gap-2 text-sm p-2 rounded-lg border transition-colors"
+      :class="isEditingPastGroup ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-100'"
+    >
+      <span
+        class="text-[10px] font-bold uppercase tracking-widest px-1"
+        :class="isEditingPastGroup ? 'text-blue-500' : 'text-gray-400'"
+      >
+        {{ isEditingPastGroup ? 'Editing' : 'Current Egg' }}
+      </span>
       <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-full border border-gray-200 shadow-sm">
         <div class="w-5 h-5 flex-shrink-0">
           <img
-            :src="iconURL(`egginc/egg_${virtueStore.currentEgg}.png`, 64)"
+            :src="iconURL(`egginc/egg_${effectiveEgg}.png`, 64)"
             class="w-full h-full object-contain"
-            :alt="virtueStore.currentEgg"
+            :alt="effectiveEgg"
           />
         </div>
         <span
@@ -43,6 +51,7 @@
 
     <!-- Tab content -->
     <div class="min-h-[200px]">
+      <InitialStateContainer v-if="activeTab === 'initial'" />
       <VehicleActions v-if="activeTab === 'vehicles'" />
       <HabActions v-if="activeTab === 'habs'" />
       <ResearchActions v-if="activeTab === 'research'" />
@@ -66,21 +75,34 @@ import ArtifactActions from './actions/ArtifactActions.vue';
 import SiloActions from './actions/SiloActions.vue';
 import FuelTankActions from './actions/FuelTankActions.vue';
 import WaitForTEActions from './actions/WaitForTEActions.vue';
-import { useVirtueStore } from '@/stores/virtue';
+import InitialStateContainer from './containers/InitialStateContainer.vue';
+import { useActionsStore } from '@/stores/actions';
 import { VIRTUE_EGG_NAMES, type VirtueEgg } from '@/types';
 
-const virtueStore = useVirtueStore();
+const actionsStore = useActionsStore();
+
+// Check if any shifts have been made
+const hasShifts = computed(() => {
+  return actionsStore.actions.some(action => action.type === 'shift');
+});
+
+// Check if we're editing a past group
+const isEditingPastGroup = computed(() => actionsStore.editingGroupId !== null);
+
+// The effective egg to use (from effective snapshot when editing, otherwise current)
+const effectiveEgg = computed(() => actionsStore.effectiveSnapshot.currentEgg);
 
 // All available tabs
 const allTabs = [
-  { id: 'research', label: 'Research', egg: 'curiosity' as VirtueEgg },
-  { id: 'habs', label: 'Habs', egg: 'integrity' as VirtueEgg },
-  { id: 'vehicles', label: 'Vehicles', egg: 'kindness' as VirtueEgg },
-  { id: 'artifacts', label: 'Artifacts', egg: 'humility' as VirtueEgg },
-  { id: 'silos', label: 'Silos', egg: 'resilience' as VirtueEgg },
-  { id: 'fuel', label: 'Fuel Tank', egg: null }, // Always available
-  { id: 'te', label: 'Wait for TE', egg: null }, // Always available
-  { id: 'shift', label: 'Shift', egg: null }, // Always available
+  { id: 'initial', label: 'Initial State', egg: null, beforeShiftsOnly: true },
+  { id: 'research', label: 'Research', egg: 'curiosity' as VirtueEgg, beforeShiftsOnly: false },
+  { id: 'habs', label: 'Habs', egg: 'integrity' as VirtueEgg, beforeShiftsOnly: false },
+  { id: 'vehicles', label: 'Vehicles', egg: 'kindness' as VirtueEgg, beforeShiftsOnly: false },
+  { id: 'artifacts', label: 'Artifacts', egg: 'humility' as VirtueEgg, beforeShiftsOnly: false },
+  { id: 'silos', label: 'Silos', egg: 'resilience' as VirtueEgg, beforeShiftsOnly: false },
+  { id: 'fuel', label: 'Fuel Tank', egg: null, beforeShiftsOnly: false },
+  { id: 'te', label: 'Wait for TE', egg: null, beforeShiftsOnly: false },
+  { id: 'shift', label: 'Shift', egg: null, beforeShiftsOnly: false },
 ] as const;
 
 type TabId = typeof allTabs[number]['id'];
@@ -103,12 +125,12 @@ const eggToActionLabel: Record<VirtueEgg, string> = {
   resilience: 'Silos available',
 };
 
-// Current egg display
-const currentEggName = computed(() => VIRTUE_EGG_NAMES[virtueStore.currentEgg]);
-const availableActionLabel = computed(() => eggToActionLabel[virtueStore.currentEgg]);
+// Current egg display (uses effective egg when editing past group)
+const currentEggName = computed(() => VIRTUE_EGG_NAMES[effectiveEgg.value]);
+const availableActionLabel = computed(() => eggToActionLabel[effectiveEgg.value]);
 
 const eggTextColorClass = computed(() => {
-  switch (virtueStore.currentEgg) {
+  switch (effectiveEgg.value) {
     case 'curiosity': return 'text-purple-600';
     case 'integrity': return 'text-blue-600';
     case 'kindness': return 'text-pink-600';
@@ -117,21 +139,30 @@ const eggTextColorClass = computed(() => {
   }
 });
 
-// Filter tabs based on current egg
+// Filter tabs based on effective egg and shift state
 const availableTabs = computed(() => {
   return allTabs.filter(tab => {
-    // Shift is always available
+    // Initial state tab is only available before the first shift (and not when editing past group)
+    if (tab.beforeShiftsOnly) return !hasShifts.value && !isEditingPastGroup.value;
+    // Shift/fuel/te are always available (egg === null)
     if (tab.egg === null) return true;
-    // Only show the tab for the current egg
-    return tab.egg === virtueStore.currentEgg;
+    // Only show the tab for the effective egg
+    return tab.egg === effectiveEgg.value;
   });
 });
 
-// Active tab - defaults to the egg's action tab
-const activeTab = ref<TabId>(eggToTab[virtueStore.currentEgg]);
+// Active tab - defaults to initial if no shifts, otherwise the egg's action tab
+const activeTab = ref<TabId>(hasShifts.value ? eggToTab[effectiveEgg.value] : 'initial');
 
-// When egg changes, switch to that egg's tab
-watch(() => virtueStore.currentEgg, (newEgg) => {
+// When effective egg changes (including when editing state changes), switch to that egg's tab
+watch(effectiveEgg, (newEgg) => {
   activeTab.value = eggToTab[newEgg];
+});
+
+// When shifts state changes, switch away from initial tab if needed
+watch(hasShifts, (hasShiftsNow) => {
+  if (hasShiftsNow && activeTab.value === 'initial') {
+    activeTab.value = eggToTab[effectiveEgg.value];
+  }
 });
 </script>

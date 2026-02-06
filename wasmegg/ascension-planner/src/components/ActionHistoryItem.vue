@@ -11,11 +11,12 @@
       <!-- Action Icon -->
       <div 
         v-if="actionIconPath" 
-        class="w-6 h-6 flex-shrink-0 bg-white rounded-full border border-gray-100 p-0.5 shadow-sm overflow-hidden"
+        class="h-6 flex-shrink-0 bg-white border border-gray-100 p-0.5 shadow-sm overflow-hidden"
+        :class="isVehicleAction ? 'w-auto min-w-[1.5rem] rounded-md' : 'w-6 rounded-full'"
       >
         <img
           :src="actionIconPath.startsWith('static/') ? `${baseUrl}${actionIconPath}` : iconURL(actionIconPath, 64)"
-          class="w-full h-full object-contain"
+          :class="isVehicleAction ? 'h-[14px] w-auto min-w-[2.5rem] object-contain' : 'w-full h-full object-contain'"
           :alt="action.type"
         />
       </div>
@@ -85,18 +86,6 @@
         </svg>
       </button>
 
-      <!-- Edit button for start_ascension -->
-      <button
-        v-if="isStartAction"
-        class="p-1.5 text-blue-400 hover:text-blue-600 hover:bg-blue-100 rounded"
-        title="Edit initial state"
-        @click="$emit('edit')"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-      </button>
     </div>
   </div>
 </template>
@@ -120,12 +109,15 @@ const props = defineProps<{
 defineEmits<{
   'show-details': [];
   'undo': [];
-  'edit': [];
 }>();
 
 const isStartAction = computed(() => props.action.type === 'start_ascension');
 
 const baseUrl = import.meta.env.BASE_URL;
+
+const isVehicleAction = computed(() => 
+  props.action.type === 'buy_vehicle' || props.action.type === 'buy_train_car'
+);
 
 const eggType = computed(() => {
   if (props.action.type === 'start_ascension') {

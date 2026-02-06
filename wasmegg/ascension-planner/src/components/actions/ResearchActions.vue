@@ -123,13 +123,14 @@ import { iconURL } from 'lib';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
-import { computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
+import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const commonResearchStore = useCommonResearchStore();
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
+const { prepareExecution, completeExecution } = useActionExecutor();
 
 // Track expanded tiers
 const expandedTiers = ref(new Set<number>([1]));
@@ -200,41 +201,35 @@ function buyOneLevel(research: CommonResearch): boolean {
   const currentLevel = getCurrentLevel(research.id);
   if (currentLevel >= research.levels) return false;
 
-  // Get state before action
-  const beforeSnapshot = actionsStore.currentSnapshot;
+  // Prepare execution (restores stores if editing past group)
+  const beforeSnapshot = prepareExecution();
 
-  // Calculate cost
-  const cost = getDiscountedVirtuePrice(research, currentLevel, costModifiers.value);
+  // Calculate cost based on current state (after restore if editing)
+  const effectiveLevel = beforeSnapshot.researchLevels[research.id] || 0;
+  const cost = getDiscountedVirtuePrice(research, effectiveLevel, costModifiers.value);
 
-  // Build payload first to compute dependencies
+  // Build payload
   const payload = {
     researchId: research.id,
-    fromLevel: currentLevel,
-    toLevel: currentLevel + 1,
+    fromLevel: effectiveLevel,
+    toLevel: effectiveLevel + 1,
   };
 
   // Compute dependencies (level N depends on the action that bought level N-1)
   const dependencies = computeDependencies('buy_research', payload, actionsStore.actions);
 
   // Apply to store
-  commonResearchStore.setResearchLevel(research.id, currentLevel + 1);
+  commonResearchStore.setResearchLevel(research.id, effectiveLevel + 1);
 
-  // Get state after action
-  const afterSnapshot = computeCurrentSnapshot();
-  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
-
-  // Add action to history
-  actionsStore.pushAction({
+  // Complete execution (computes snapshot, inserts/pushes action, replays if needed)
+  completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'buy_research',
     payload,
     cost,
-    elrDelta: deltas.elrDelta,
-    offlineEarningsDelta: deltas.offlineEarningsDelta,
-    endState: afterSnapshot,
     dependsOn: dependencies,
-  });
+  }, beforeSnapshot);
 
   return true;
 }

@@ -176,6 +176,7 @@ const entries: ({
   idToTool.get('artifact-sandbox')!,
   idToTool.get('rockets-tracker')!,
   idToTool.get('virtue-companion')!,
+  idToTool.get('ascension-planner')!,
   idToTool.get('past-contracts')!,
   idToTool.get('inventory-visualizer')!,
   idToTool.get('enlightenment')!,

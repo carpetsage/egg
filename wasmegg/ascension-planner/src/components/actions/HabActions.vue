@@ -55,15 +55,16 @@ import { formatNumber } from '@/lib/format';
 import { useHabCapacityStore } from '@/stores/habCapacity';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
-import { computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
+import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const HabSelect = GenericBaseSelectFilterable<Hab>();
 
 const habCapacityStore = useHabCapacityStore();
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
+const { prepareExecution, completeExecution } = useActionExecutor();
 
 // Cost modifiers
 const costModifiers = computed<HabCostModifiers>(() => ({
@@ -120,18 +121,19 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
   // Don't add if it's already the same
   if (habIds.value[slotIndex] === habId) return;
 
-  // Get state before action
-  const beforeSnapshot = actionsStore.currentSnapshot;
+  // Prepare execution (restores stores if editing past group)
+  const beforeSnapshot = prepareExecution();
 
-  // Calculate cost
+  // Calculate cost based on effective state
   const hab = getHabById(habId);
   if (!hab) return;
 
-  const habsBeforeSlot = habIds.value.slice(0, slotIndex);
+  const effectiveHabIds = beforeSnapshot.habIds;
+  const habsBeforeSlot = effectiveHabIds.slice(0, slotIndex);
   const existingCount = countHabsOfType(habsBeforeSlot, habId);
   const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value);
 
-  // Build payload first to compute dependencies
+  // Build payload
   const payload = {
     slotIndex,
     habId,
@@ -143,21 +145,14 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
   // Apply to store
   habCapacityStore.setHab(slotIndex, habId);
 
-  // Get state after action
-  const afterSnapshot = computeCurrentSnapshot();
-  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
-
-  // Add action to history
-  actionsStore.pushAction({
+  // Complete execution
+  completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'buy_hab',
     payload,
     cost,
-    elrDelta: deltas.elrDelta,
-    offlineEarningsDelta: deltas.offlineEarningsDelta,
-    endState: afterSnapshot,
     dependsOn: dependencies,
-  });
+  }, beforeSnapshot);
 }
 </script>

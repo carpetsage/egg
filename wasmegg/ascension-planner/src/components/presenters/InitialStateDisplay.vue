@@ -128,7 +128,7 @@
     </div>
 
     <!-- Artifact Loadout -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-visible shadow-sm">
       <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
         <h3 class="font-bold text-xs uppercase tracking-widest text-gray-500">Artifact Loadout</h3>
       </div>

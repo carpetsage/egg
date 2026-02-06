@@ -96,27 +96,28 @@
 import { useSiloTime } from '@/composables/useSiloTime';
 import { useSilosStore } from '@/stores/silos';
 import { useActionsStore } from '@/stores/actions';
-import { computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { generateActionId } from '@/types';
+import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const silosStore = useSilosStore();
 const actionsStore = useActionsStore();
 const { output: siloOutput } = useSiloTime();
+const { prepareExecution, completeExecution } = useActionExecutor();
 
 const baseUrl = import.meta.env.BASE_URL;
 
 function handleBuySilo() {
   if (!siloOutput.value.canBuyMore) return;
 
-  const fromCount = siloOutput.value.siloCount;
-  const toCount = fromCount + 1;
+  // Prepare execution (restores stores if editing past group)
+  const beforeSnapshot = prepareExecution();
 
-  // Get state before action
-  const beforeSnapshot = actionsStore.currentSnapshot;
+  const fromCount = beforeSnapshot.siloCount;
+  const toCount = fromCount + 1;
 
   // Build payload
   const payload = {
@@ -130,24 +131,17 @@ function handleBuySilo() {
   // Apply to store
   silosStore.buySilo();
 
-  // Get state after action
-  const afterSnapshot = computeCurrentSnapshot();
-  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
-
   // Cost is calculated based on fromCount (silos owned before purchase)
   const cost = siloOutput.value.nextSiloCost;
 
-  // Add action to history
-  actionsStore.pushAction({
+  // Complete execution
+  completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'buy_silo',
     payload,
     cost,
-    elrDelta: deltas.elrDelta,
-    offlineEarningsDelta: deltas.offlineEarningsDelta,
-    endState: afterSnapshot,
     dependsOn: dependencies,
-  });
+  }, beforeSnapshot);
 }
 </script>

@@ -56,22 +56,29 @@ export const useShippingCapacityStore = defineStore('shippingCapacity', {
      * Set vehicle in a slot
      */
     setVehicle(slotIndex: number, vehicleId: number | null) {
-      if (slotIndex >= 0 && slotIndex < this.vehicles.length) {
-        this.vehicles[slotIndex] = {
-          vehicleId,
-          trainLength: vehicleId === 11 ? 1 : 1, // Default train length of 1
-        };
+      if (slotIndex < 0) return;
+      // Extend vehicles array if needed (for slots unlocked by fleet research)
+      while (this.vehicles.length <= slotIndex) {
+        this.vehicles.push({ vehicleId: null, trainLength: 1 });
       }
+      this.vehicles[slotIndex] = {
+        vehicleId,
+        trainLength: vehicleId === 11 ? 1 : 1, // Default train length of 1
+      };
     },
 
     /**
      * Set train length for a hyperloop vehicle
+     * Note: Max length validation is done by the UI using commonResearchStore,
+     * not this store's researchLevels (which aren't updated when research is bought).
      */
     setTrainLength(slotIndex: number, length: number) {
-      if (slotIndex >= 0 && slotIndex < this.vehicles.length) {
-        const maxLength = this.maxTrainLength;
-        this.vehicles[slotIndex].trainLength = Math.max(1, Math.min(length, maxLength));
+      if (slotIndex < 0) return;
+      // Extend vehicles array if needed (for slots unlocked by fleet research)
+      while (this.vehicles.length <= slotIndex) {
+        this.vehicles.push({ vehicleId: null, trainLength: 1 });
       }
+      this.vehicles[slotIndex].trainLength = Math.max(1, length);
     },
 
     /**

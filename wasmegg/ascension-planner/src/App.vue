@@ -1,5 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
+  <the-nav-bar active-entry-id="ascension-planner" />
+
+  <div class="min-h-screen bg-gray-100 pb-6">
     <div class="max-w-6xl mx-auto p-4">
       <h1 class="mx-4 mt-4 mb-2 text-center text-2xl font-bold text-gray-900">
         Ascension Planner
@@ -22,7 +24,7 @@
       <!-- Action History and Available Actions side-by-side -->
       <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Action History -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-visible">
           <div
             class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
             @click="expandedSections.actionHistory = !expandedSections.actionHistory"
@@ -35,13 +37,12 @@
               @show-details="showActionDetails"
               @undo="showUndoConfirmation"
               @clear-all="handleClearAll"
-              @edit-start="showInitialStateModal = true"
             />
           </div>
         </div>
 
         <!-- Available Actions -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-lg border border-gray-200 overflow-visible">
           <div
             class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
             @click="expandedSections.availableActions = !expandedSections.availableActions"
@@ -72,35 +73,13 @@
       @cancel="cancelUndo"
     />
 
-    <!-- Initial State Modal -->
-    <Teleport to="body">
-      <div v-if="showInitialStateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/50" @click="showInitialStateModal = false" />
-        <div class="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
-          <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-            <h2 class="text-lg font-semibold text-gray-900">Edit Initial State</h2>
-            <button
-              class="p-1 text-gray-400 hover:text-gray-600"
-              @click="showInitialStateModal = false"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div class="p-4">
-            <InitialStateContainer />
-          </div>
-        </div>
-      </div>
-    </Teleport>
-
     <AssetBrowser />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import TheNavBar from 'ui/components/NavBar.vue';
 import { getSavedPlayerID, savePlayerID, requestFirstContact } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';
@@ -108,7 +87,6 @@ import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
-import InitialStateContainer from '@/components/containers/InitialStateContainer.vue';
 import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
 import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
@@ -155,7 +133,6 @@ const actionCount = computed(() => actionsStore.actionCount);
 const detailsModalAction = ref<Action | null>(null);
 const undoAction = ref<Action | null>(null);
 const undoDependentActions = ref<Action[]>([]);
-const showInitialStateModal = ref(false);
 
 // Modal handlers
 function showActionDetails(action: Action) {

@@ -136,16 +136,17 @@ import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
 import { useLayRate } from '@/composables/useLayRate';
-import { computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatDuration } from '@/lib/format';
 import { generateActionId, VIRTUE_EGG_NAMES } from '@/types';
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
+import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const truthEggsStore = useTruthEggsStore();
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
 const { output: layRateOutput } = useLayRate();
+const { prepareExecution, completeExecution } = useActionExecutor();
 
 // Current egg state
 const currentEggsDelivered = computed(() => truthEggsStore.eggsDelivered[virtueStore.currentEgg]);
@@ -193,10 +194,11 @@ const canWait = computed(() =>
 function handleWaitForTE() {
   if (!canWait.value) return;
 
-  const beforeSnapshot = actionsStore.currentSnapshot;
+  // Prepare execution (restores stores if editing past group)
+  const beforeSnapshot = prepareExecution();
 
   const payload = {
-    egg: virtueStore.currentEgg,
+    egg: beforeSnapshot.currentEgg,
     targetTE: targetTE.value,
     teGained: teGained.value,
     eggsToLay: eggsToLay.value,
@@ -208,20 +210,15 @@ function handleWaitForTE() {
   // Apply to store - add eggs delivered (TE is calculated from thresholds)
   truthEggsStore.addEggsDelivered(payload.egg, payload.eggsToLay);
 
-  const afterSnapshot = computeCurrentSnapshot();
-  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
-
-  actionsStore.pushAction({
+  // Complete execution
+  completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'wait_for_te',
     payload,
     cost: 0, // Free action
-    elrDelta: deltas.elrDelta,
-    offlineEarningsDelta: deltas.offlineEarningsDelta,
-    endState: afterSnapshot,
     dependsOn: dependencies,
-  });
+  }, beforeSnapshot);
 
   // Reset target for next action
   targetTE.value = Math.min(98, currentTE.value + 1);

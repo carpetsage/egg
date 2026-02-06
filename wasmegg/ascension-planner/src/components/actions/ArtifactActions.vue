@@ -21,12 +21,13 @@ import { computed } from 'vue';
 import ArtifactSelector from '@/components/ArtifactSelector.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
-import { computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
 import { generateActionId, type ArtifactSlotPayload } from '@/types';
 import type { EquippedArtifact } from '@/lib/artifacts';
+import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
+const { prepareExecution, completeExecution } = useActionExecutor();
 
 // Current loadout from the store
 const currentLoadout = computed(() => initialStateStore.artifactLoadout);
@@ -58,18 +59,14 @@ function handleLoadoutChange(newLoadout: EquippedArtifact[]) {
 
   if (!hasChanged) return;
 
-  // Get state before action
-  const beforeSnapshot = actionsStore.currentSnapshot;
+  // Prepare execution (restores stores if editing past group)
+  const beforeSnapshot = prepareExecution();
 
   // Apply the change to the store
   initialStateStore.setArtifactLoadout(newLoadout);
 
-  // Get state after action
-  const afterSnapshot = computeCurrentSnapshot();
-  const deltas = computeDeltas(beforeSnapshot, afterSnapshot);
-
-  // Add action to history
-  actionsStore.pushAction({
+  // Complete execution
+  completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'change_artifacts',
@@ -78,10 +75,7 @@ function handleLoadoutChange(newLoadout: EquippedArtifact[]) {
       toLoadout,
     },
     cost: 0, // Changing artifacts is free
-    elrDelta: deltas.elrDelta,
-    offlineEarningsDelta: deltas.offlineEarningsDelta,
-    endState: afterSnapshot,
     dependsOn: [],
-  });
+  }, beforeSnapshot);
 }
 </script>
