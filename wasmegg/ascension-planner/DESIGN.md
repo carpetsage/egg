@@ -1,4 +1,4 @@
-# Ascension Planner 2 - Component Architecture Design
+# Ascension Planner - Component Architecture Design
 
 ## Overview
 
