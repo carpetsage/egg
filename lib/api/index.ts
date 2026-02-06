@@ -191,7 +191,7 @@ export async function requestCoopStatus(
     clientVersion: CLIENT_VERSION,
   };
   const encodedRequestPayload = encodeMessage(ei.ContractCoopStatusRequest, requestPayload);
-  const encodedResponsePayload = await request('/ei/coop_status', encodedRequestPayload);
+  const encodedResponsePayload = await request('/ei/coop_status_bot', encodedRequestPayload);
   const status = decodeMessage(
     ei.ContractCoopStatusResponse,
     encodedResponsePayload,
