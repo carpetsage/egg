@@ -25108,5 +25108,14 @@
     "startTimestamp": 1770310800,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1770483600,
+    "id": "event-2-6",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1770397200,
+    "type": "research-sale",
+    "ultra": false
   }
 ]
