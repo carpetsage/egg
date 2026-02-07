@@ -17,14 +17,14 @@
     :eggs-delivered="truthEggsStore.eggsDelivered"
     :te-earned="truthEggsStore.teEarned"
     :total-te="truthEggsStore.totalTE"
-    @set-epic-research-level="store.setEpicResearchLevel"
-    @update:artifact-loadout="store.setArtifactLoadout"
+    @set-epic-research-level="handleSetEpicResearchLevel"
+    @update:artifact-loadout="handleArtifactLoadout"
     @set-initial-egg="handleSetInitialEgg"
-    @set-te="virtueStore.setTE"
-    @set-initial-shift-count="virtueStore.setInitialShiftCount"
-    @set-ascension-date="virtueStore.setAscensionDate"
-    @set-ascension-time="virtueStore.setAscensionTime"
-    @set-ascension-timezone="virtueStore.setAscensionTimezone"
+    @set-te="handleSetTE"
+    @set-initial-shift-count="handleSetInitialShiftCount"
+    @set-ascension-date="handleSetAscensionDate"
+    @set-ascension-time="handleSetAscensionTime"
+    @set-ascension-timezone="handleSetAscensionTimezone"
     @set-tank-level="handleSetTankLevel"
     @set-fuel-amount="handleSetFuelAmount"
     @set-eggs-delivered="handleSetEggsDelivered"
@@ -57,6 +57,24 @@ const startAction = computed(() =>
   actionsStore.getStartAction() as Action<'start_ascension'> | undefined
 );
 
+function updateInitialSnapshotAndRecalculate() {
+  // Recompute and update the initial snapshot
+  const newSnapshot = computeCurrentSnapshot();
+  actionsStore.setInitialSnapshot(newSnapshot);
+  // Recalculate all history
+  actionsStore.recalculateAll();
+}
+
+function handleSetEpicResearchLevel(id: string, level: number) {
+  store.setEpicResearchLevel(id, level);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleArtifactLoadout(loadout: any[]) {
+  store.setArtifactLoadout(loadout);
+  updateInitialSnapshotAndRecalculate();
+}
+
 function handleSetInitialEgg(egg: VirtueEgg) {
   // Update the actions store
   actionsStore.setInitialEgg(egg);
@@ -64,25 +82,17 @@ function handleSetInitialEgg(egg: VirtueEgg) {
   // Update the virtue store's current egg
   virtueStore.setCurrentEgg(egg);
 
-  // Recompute and update the initial snapshot
-  const newSnapshot = computeCurrentSnapshot();
-  actionsStore.setInitialSnapshot(newSnapshot);
+  updateInitialSnapshotAndRecalculate();
 }
 
 function handleSetTankLevel(level: number) {
   fuelTankStore.setTankLevel(level);
-
-  // Recompute and update the initial snapshot
-  const newSnapshot = computeCurrentSnapshot();
-  actionsStore.setInitialSnapshot(newSnapshot);
+  updateInitialSnapshotAndRecalculate();
 }
 
 function handleSetFuelAmount(egg: VirtueEgg, amount: number) {
   fuelTankStore.setFuelAmount(egg, amount);
-
-  // Recompute and update the initial snapshot
-  const newSnapshot = computeCurrentSnapshot();
-  actionsStore.setInitialSnapshot(newSnapshot);
+  updateInitialSnapshotAndRecalculate();
 }
 
 function handleSetEggsDelivered(egg: VirtueEgg, amount: number) {
@@ -92,9 +102,7 @@ function handleSetEggsDelivered(egg: VirtueEgg, amount: number) {
   // Also update the virtue store's total TE
   virtueStore.setTE(truthEggsStore.totalTE);
 
-  // Recompute and update the initial snapshot
-  const newSnapshot = computeCurrentSnapshot();
-  actionsStore.setInitialSnapshot(newSnapshot);
+  updateInitialSnapshotAndRecalculate();
 }
 
 function handleSetTEEarned(egg: VirtueEgg, count: number) {
@@ -104,8 +112,31 @@ function handleSetTEEarned(egg: VirtueEgg, count: number) {
   // Also update the virtue store's total TE
   virtueStore.setTE(truthEggsStore.totalTE);
 
-  // Recompute and update the initial snapshot
-  const newSnapshot = computeCurrentSnapshot();
-  actionsStore.setInitialSnapshot(newSnapshot);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetTE(te: number) {
+  virtueStore.setTE(te);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetInitialShiftCount(count: number) {
+  virtueStore.setInitialShiftCount(count);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetAscensionDate(date: string) {
+  virtueStore.setAscensionDate(date);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetAscensionTime(time: string) {
+  virtueStore.setAscensionTime(time);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetAscensionTimezone(timezone: string) {
+  virtueStore.setAscensionTimezone(timezone);
+  updateInitialSnapshotAndRecalculate();
 }
 </script>

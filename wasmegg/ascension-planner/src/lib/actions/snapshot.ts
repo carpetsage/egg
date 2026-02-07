@@ -119,10 +119,23 @@ export function computeFullOutputs(): CalculationsFullOutputs {
 export function computeDeltas(
   before: CalculationsSnapshot,
   after: CalculationsSnapshot
-): { elrDelta: number; offlineEarningsDelta: number } {
+): {
+  elrDelta: number;
+  offlineEarningsDelta: number;
+  eggValueDelta: number;
+  habCapacityDelta: number;
+  layRateDelta: number;
+  shippingCapacityDelta: number;
+  ihrDelta: number;
+} {
   return {
     elrDelta: after.elr - before.elr,
     offlineEarningsDelta: after.offlineEarnings - before.offlineEarnings,
+    eggValueDelta: after.eggValue - before.eggValue,
+    habCapacityDelta: after.habCapacity - before.habCapacity,
+    layRateDelta: after.layRate - before.layRate,
+    shippingCapacityDelta: after.shippingCapacity - before.shippingCapacity,
+    ihrDelta: after.offlineIHR - before.offlineIHR,
   };
 }
 

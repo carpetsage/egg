@@ -10,6 +10,8 @@ import {
   createEmptyUndoValidation,
   generateActionId,
 } from '@/types';
+import { replayActionsFromIndex } from '@/lib/actions/replay';
+import { computeDeltas } from '@/lib/actions/snapshot';
 
 /**
  * Actions store - THE source of truth for calculation state.
@@ -40,6 +42,11 @@ function createDefaultStartAction(initialEgg: VirtueEgg = 'curiosity'): Action<'
     cost: 0,
     elrDelta: 0,
     offlineEarningsDelta: 0,
+    eggValueDelta: 0,
+    habCapacityDelta: 0,
+    layRateDelta: 0,
+    shippingCapacityDelta: 0,
+    ihrDelta: 0,
     endState: createEmptySnapshot(),
     dependsOn: [],
     dependents: [],
@@ -384,10 +391,23 @@ export const useActionsStore = defineStore('actions', {
 
         // Compute deltas
         const prevActionSnapshot = i > 0 ? this.actions[i - 1].endState : this._initialSnapshot ?? createEmptySnapshot();
-        this.actions[i].elrDelta = newSnapshot.elr - prevActionSnapshot.elr;
-        this.actions[i].offlineEarningsDelta = newSnapshot.offlineEarnings - prevActionSnapshot.offlineEarnings;
-        this.actions[i].endState = newSnapshot;
+        const deltas = computeDeltas(prevActionSnapshot, newSnapshot);
+
+        // Update action
+        Object.assign(this.actions[i], {
+          ...deltas,
+          endState: newSnapshot,
+        });
       }
+    },
+
+    /**
+     * Recalculate all actions from the beginning.
+     * Useful when global state (e.g. initial state, epic research) changes.
+     */
+    recalculateAll() {
+      if (this.actions.length <= 1) return;
+      replayActionsFromIndex(this.actions, 1);
     },
   },
 });

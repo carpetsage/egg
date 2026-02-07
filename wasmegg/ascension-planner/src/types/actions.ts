@@ -251,6 +251,11 @@ export interface BaseAction {
   // Computed after action executes
   elrDelta: number;              // Change in ELR (eggs/sec) vs previous
   offlineEarningsDelta: number;  // Change in offline earnings ($/sec) vs previous
+  eggValueDelta: number;         // Change in egg value
+  habCapacityDelta: number;      // Change in hab capacity
+  layRateDelta: number;          // Change in lay rate
+  shippingCapacityDelta: number; // Change in shipping capacity
+  ihrDelta: number;              // Change in IHR (offline)
 
   // Snapshot of full state AFTER this action
   endState: CalculationsSnapshot;

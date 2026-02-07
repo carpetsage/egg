@@ -19,7 +19,7 @@
             v-if="!tierSummaries[tier]?.isUnlocked"
             class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded"
           >
-            Locked
+            Locked ({{ tierSummaries[tier]?.purchasesNeeded ?? '?' }} more)
           </span>
           <span
             v-else
@@ -65,6 +65,8 @@
               <div class="text-sm font-medium text-gray-900 truncate">{{ research.name }}</div>
               <div class="text-xs text-gray-500">
                 Level {{ getCurrentLevel(research.id) }} / {{ research.levels }}
+                <span class="mx-1 text-gray-300">|</span>
+                <span class="text-gray-500">{{ research.description }}</span>
               </div>
             </div>
           </div>

@@ -111,6 +111,8 @@ import { useActionsStore } from '@/stores/actions';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import { calculateShippingMultipliers, calculateMaxVehicleSlots, calculateMaxTrainLength } from '@/calculations/shippingCapacity';
+import { calculateArtifactModifiers } from '@/lib/artifacts';
 
 const VehicleSelect = GenericBaseSelectFilterable<VehicleType>();
 
@@ -127,25 +129,56 @@ const costModifiers = computed<VehicleCostModifiers>(() => ({
   lithiumMultiplier: initialStateStore.colleggtibleModifiers.vehicleCost,
 }));
 
+// Compute effective state for accurate capacity and cost calculations
+const effectiveSnapshot = computed(() => actionsStore.effectiveSnapshot);
+
+// Compute multipliers based on effective state
+const effectiveMultipliers = computed(() => {
+  const researchLevels = effectiveSnapshot.value.researchLevels;
+  const artifactLoadout = effectiveSnapshot.value.artifactLoadout;
+  const transportationLobbyistLevel = initialStateStore.epicResearchLevels['transportation_lobbyist'] || 0;
+  
+  // Calculate artifact modifiers
+  const artifactMods = calculateArtifactModifiers(artifactLoadout).shippingRate;
+
+  // Calculate research multipliers
+  const { universalMultiplier, hoverMultiplier, hyperloopMultiplier, epicMultiplier } = calculateShippingMultipliers(
+    researchLevels,
+    transportationLobbyistLevel
+  );
+
+  return {
+    universalMultiplier,
+    hoverMultiplier,
+    hyperloopMultiplier,
+    epicMultiplier,
+    colleggtibleMultiplier: initialStateStore.colleggtibleModifiers.shippingCap,
+    artifactMultiplier: artifactMods.totalMultiplier,
+  };
+});
+
 // Display only available slots, padding with empty slots if vehicles array is shorter than maxVehicleSlots
 const displaySlots = computed(() => {
-  const max = output.value.maxVehicleSlots;
-  const slots = shippingStore.vehicles.slice(0, max);
-  // Pad with empty slots if vehicles array hasn't been resized yet
+  const max = calculateMaxVehicleSlots(effectiveSnapshot.value.researchLevels);
+  // Clone the effective vehicles to avoid mutation
+  const slots = effectiveSnapshot.value.vehicles ? [...effectiveSnapshot.value.vehicles].slice(0, max) : [];
+  
+  // Pad with empty slots
   while (slots.length < max) {
     slots.push({ vehicleId: null, trainLength: 1 });
   }
   return slots;
 });
 
-const maxVehicleSlots = computed(() => output.value.maxVehicleSlots);
+const maxVehicleSlots = computed(() => calculateMaxVehicleSlots(effectiveSnapshot.value.researchLevels));
 
 const activeVehicleCount = computed(() =>
   displaySlots.value.filter(v => v.vehicleId !== null).length
 );
 
 function getVehiclePrice(vehicleId: number, slotIndex: number): number {
-  const existingCount = countVehiclesOfTypeBefore(shippingStore.vehicles, vehicleId, slotIndex);
+  const effectiveVehicles = effectiveSnapshot.value.vehicles || [];
+  const existingCount = countVehiclesOfTypeBefore(effectiveVehicles, vehicleId, slotIndex);
   return getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value);
 }
 
@@ -153,8 +186,23 @@ function getVehicleCapacity(slot: { vehicleId: number | null; trainLength: numbe
   if (slot.vehicleId === null) return 0;
   const vt = getVehicleType(slot.vehicleId);
   if (!vt) return 0;
-  const multiplier = vt.isHyperloop ? slot.trainLength : 1;
-  return vt.baseCapacityPerSecond * multiplier;
+
+  const {
+    universalMultiplier,
+    hoverMultiplier,
+    hyperloopMultiplier,
+    epicMultiplier,
+    colleggtibleMultiplier,
+    artifactMultiplier
+  } = effectiveMultipliers.value;
+
+  const trainLength = vt.isHyperloop ? slot.trainLength : 1;
+  const baseCapacity = vt.baseCapacityPerSecond * trainLength;
+
+  const vehicleHoverMult = vt.isHover ? hoverMultiplier : 1;
+  const vehicleHyperloopMult = vt.isHyperloop ? hyperloopMultiplier : 1;
+
+  return baseCapacity * universalMultiplier * epicMultiplier * vehicleHoverMult * vehicleHyperloopMult * colleggtibleMultiplier * artifactMultiplier;
 }
 
 /**
@@ -178,7 +226,7 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
   if (vehicleId === undefined) return;
 
   // Don't add if it's already the same (check array bounds for slots unlocked by fleet research)
-  const currentSlot = shippingStore.vehicles[slotIndex];
+  const currentSlot = displaySlots.value[slotIndex];
   if (currentSlot && currentSlot.vehicleId === vehicleId) return;
 
   // Prepare execution (restores stores if editing past group)
@@ -221,8 +269,7 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
  * Get the maximum train length based on graviton coupling research.
  */
 function getMaxTrainLength(): number {
-  const gravitonLevel = commonResearchStore.researchLevels['micro_coupling'] ?? 0;
-  return Math.min(BASE_TRAIN_LENGTH + gravitonLevel, MAX_TRAIN_LENGTH);
+  return calculateMaxTrainLength(effectiveSnapshot.value.researchLevels);
 }
 
 /**
@@ -260,7 +307,7 @@ function getNextCarCost(slot: { vehicleId: number | null; trainLength: number })
  * Handle adding a single train car.
  */
 function handleAddTrainCar(slotIndex: number) {
-  const slot = shippingStore.vehicles[slotIndex];
+  const slot = displaySlots.value[slotIndex];
   if (!slot || slot.vehicleId !== 11) return;
 
   const fromLength = slot.trainLength;
@@ -275,7 +322,7 @@ function handleAddTrainCar(slotIndex: number) {
  * Handle adding all remaining train cars.
  */
 function handleMaxTrainCars(slotIndex: number) {
-  const slot = shippingStore.vehicles[slotIndex];
+  const slot = displaySlots.value[slotIndex];
   if (!slot || slot.vehicleId !== 11) return;
 
   const maxLength = getMaxTrainLength();

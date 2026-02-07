@@ -36,6 +36,30 @@
         <div class="text-[10px] uppercase tracking-wider font-semibold opacity-70" :class="isStartAction ? 'text-blue-600' : 'text-gray-500'">
           {{ effectDescription }}
         </div>
+        <!-- Deltas -->
+        <div v-if="!isStartAction" class="text-[10px] mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-gray-500">
+          <span v-if="action.eggValueDelta" :class="deltaClass(action.eggValueDelta)">
+            Val: {{ formatDelta(action.eggValueDelta) }}
+          </span>
+          <span v-if="action.habCapacityDelta" :class="deltaClass(action.habCapacityDelta)">
+            Hab: {{ formatDelta(action.habCapacityDelta) }}
+          </span>
+          <span v-if="action.ihrDelta" :class="deltaClass(action.ihrDelta)">
+            IHR: {{ formatDelta(action.ihrDelta) }}
+          </span>
+          <span v-if="action.layRateDelta" :class="deltaClass(action.layRateDelta)">
+            Lay: {{ formatDelta(action.layRateDelta) }}
+          </span>
+          <span v-if="action.shippingCapacityDelta" :class="deltaClass(action.shippingCapacityDelta)">
+            Ship: {{ formatDelta(action.shippingCapacityDelta) }}
+          </span>
+          <span v-if="action.elrDelta" :class="deltaClass(action.elrDelta)">
+            ELR: {{ formatDelta(action.elrDelta) }}
+          </span>
+          <span v-if="action.offlineEarningsDelta" :class="deltaClass(action.offlineEarningsDelta)">
+            gems/s: {{ formatDelta(action.offlineEarningsDelta) }}
+          </span>
+        </div>
       </div>
     </div>
 
@@ -47,14 +71,6 @@
         </span>
         <span class="text-xs text-gray-400" :title="timeToSaveTitle">
           ({{ timeToSaveFormatted }})
-        </span>
-      </div>
-      <div class="text-xs space-x-2">
-        <span :class="deltaClass(action.elrDelta)">
-          ELR: {{ formatDelta(action.elrDelta) }}
-        </span>
-        <span :class="deltaClass(action.offlineEarningsDelta)">
-          $/s: {{ formatDelta(action.offlineEarningsDelta) }}
         </span>
       </div>
     </div>
@@ -100,6 +116,7 @@ import { getVehicleType } from '@/lib/vehicles';
 import { getExecutor } from '@/lib/actions';
 import { formatNumber } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
+import { getResearchById } from '@/calculations/commonResearch';
 
 const props = defineProps<{
   action: Action;
@@ -175,6 +192,13 @@ const displayName = computed(() => {
 });
 
 const effectDescription = computed(() => {
+  if (props.action.type === 'buy_research') {
+    const payload = props.action.payload as BuyResearchPayload;
+    const research = getResearchById(payload.researchId);
+    if (research) {
+      return research.description;
+    }
+  }
   const executor = getExecutor(props.action.type);
   return executor.getEffectDescription(props.action.payload);
 });
@@ -223,6 +247,9 @@ const timeToSaveFormatted = computed(() => {
   }
 
   // 1+ days: show days and hours, no minutes
+  if (totalDays > 999) {
+    return '>999d';
+  }
   if (hours === 0) {
     return `${totalDays}d`;
   }

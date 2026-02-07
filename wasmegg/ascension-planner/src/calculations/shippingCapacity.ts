@@ -119,11 +119,17 @@ export function calculateMaxTrainLength(researchLevels: ResearchLevels): number 
 }
 
 /**
- * Main calculation: compute shipping capacity with full breakdown.
+ * Calculate shipping capacity multipliers from research.
  */
-export function calculateShippingCapacity(input: ShippingCapacityInput): ShippingCapacityOutput {
-  const { vehicles, researchLevels, transportationLobbyistLevel, colleggtibleMultiplier, artifactMultiplier, artifactEffects } = input;
-
+export function calculateShippingMultipliers(
+  researchLevels: ResearchLevels,
+  transportationLobbyistLevel: number
+): {
+  universalMultiplier: number;
+  hoverMultiplier: number;
+  hyperloopMultiplier: number;
+  epicMultiplier: number;
+} {
   // Calculate multipliers from capacity research
   let universalMultiplier = 1;
   let hoverMultiplier = 1;
@@ -143,6 +149,28 @@ export function calculateShippingCapacity(input: ShippingCapacityInput): Shippin
 
   // Epic multiplier (Transportation Lobbyists: +5% per level, max 30 levels)
   const epicMultiplier = 1 + (Math.min(30, Math.max(0, transportationLobbyistLevel)) * 0.05);
+
+  return {
+    universalMultiplier,
+    hoverMultiplier,
+    hyperloopMultiplier,
+    epicMultiplier,
+  };
+}
+
+/**
+ * Main calculation: compute shipping capacity with full breakdown.
+ */
+export function calculateShippingCapacity(input: ShippingCapacityInput): ShippingCapacityOutput {
+  const { vehicles, researchLevels, transportationLobbyistLevel, colleggtibleMultiplier, artifactMultiplier, artifactEffects } = input;
+
+  // Calculate multipliers
+  const {
+    universalMultiplier,
+    hoverMultiplier,
+    hyperloopMultiplier,
+    epicMultiplier
+  } = calculateShippingMultipliers(researchLevels, transportationLobbyistLevel);
 
   // Calculate max slots and train length
   const maxVehicleSlots = calculateMaxVehicleSlots(researchLevels);

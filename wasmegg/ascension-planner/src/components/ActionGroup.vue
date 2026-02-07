@@ -73,6 +73,7 @@
     <!-- Egg Summary (for the egg we were ON during this period) -->
     <component
       :is="summaryComponent"
+      :header-action="headerAction"
       :actions="actions"
     />
 
@@ -245,6 +246,10 @@ const formattedTimeElapsed = computed(() => {
       return `${minutes}m`;
     }
     return `${totalHours}h ${minutes}m`;
+  }
+
+  if (totalDays > 999) {
+    return '>999d';
   }
 
   if (hours === 0) {
