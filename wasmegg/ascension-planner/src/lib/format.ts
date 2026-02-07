@@ -72,18 +72,25 @@ export function formatDuration(seconds: number): string {
     return `${Math.round(seconds)}s`;
   }
 
-  const minutes = seconds / 60;
+  const minutes = Math.floor(seconds / 60);
   if (minutes < 60) {
-    return `${minutes.toFixed(1)}m`;
+    const remainingSeconds = Math.round(seconds % 60);
+    return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`;
   }
 
-  const hours = minutes / 60;
+  const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return `${hours.toFixed(1)}h`;
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   }
 
-  const days = hours / 24;
-  return `${days.toFixed(1)}d`;
+  const days = Math.floor(hours / 24);
+  if (days > 999) {
+    return '>999d';
+  }
+
+  const remainingHours = hours % 24;
+  return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
 }
 
 /**
