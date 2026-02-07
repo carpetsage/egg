@@ -3,7 +3,7 @@
  */
 
 import type { Research, ResearchLevels } from '@/types';
-import { researches as allResearches } from 'lib';
+import { allResearches } from 'lib';
 
 /**
  * Common research entry with full data
