@@ -10,7 +10,7 @@ import type {
   HabCapacityOutput
 } from '@/types';
 import { habTypes, isPortalHab, type Hab } from '@/lib/habs';
-import allResearches from '@/researches.json';
+import { researches as allResearches } from 'lib';
 
 /**
  * Hab capacity research with portal-only flag.

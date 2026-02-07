@@ -9,7 +9,7 @@ import type {
   IHRInput,
   IHROutput
 } from '@/types';
-import allResearches from '@/researches.json';
+import { researches as allResearches } from 'lib';
 
 /**
  * IHR research with additional flags for multiplicative/offline behavior.
