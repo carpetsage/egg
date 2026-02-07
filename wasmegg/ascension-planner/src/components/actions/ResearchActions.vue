@@ -75,6 +75,9 @@
           <div class="text-right w-24">
             <div v-if="getCurrentLevel(research.id) < research.levels" class="text-xs text-amber-600 font-mono">
               {{ formatNumber(getNextLevelPrice(research), 0) }}
+              <div class="text-[10px] text-gray-400 mt-0.5">
+                {{ getTimeToBuy(research) }}
+              </div>
             </div>
             <div v-else class="text-xs text-green-600">
               Maxed
@@ -119,7 +122,7 @@ import {
   type CommonResearch,
   type ResearchCostModifiers,
 } from '@/calculations/commonResearch';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatDuration } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { useCommonResearchStore } from '@/stores/commonResearch';
@@ -179,6 +182,18 @@ function getNextLevelPrice(research: CommonResearch): number {
   const currentLevel = getCurrentLevel(research.id);
   if (currentLevel >= research.levels) return 0;
   return getDiscountedVirtuePrice(research, currentLevel, costModifiers.value);
+}
+
+function getTimeToBuy(research: CommonResearch): string {
+  const price = getNextLevelPrice(research);
+  if (price <= 0) return '';
+
+  const offlineEarnings = actionsStore.effectiveSnapshot.offlineEarnings;
+  if (offlineEarnings <= 0) return '∞';
+
+  const seconds = price / offlineEarnings;
+  if (seconds < 1) return 'Instant';
+  return formatDuration(seconds);
 }
 
 function canBuyResearch(research: CommonResearch, tier: number): boolean {
