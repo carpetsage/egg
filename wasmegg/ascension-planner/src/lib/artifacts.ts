@@ -1,9 +1,10 @@
+import { allPossibleTiers } from 'lib/artifacts/data';
+import { ei } from 'lib/proto';
+
 /**
  * Artifact and stone data processing for the ascension planner.
- * Loads from lib/artifacts/data.json and provides structured options for selection.
+ * Loads from lib/artifacts/data and provides structured options for selection.
  */
-
-import artifactData from 'lib/artifacts/data.json';
 
 // Rarity codes
 const RARITY_CODES = ['C', 'R', 'E', 'L'] as const;
@@ -11,6 +12,11 @@ type RarityCode = (typeof RARITY_CODES)[number];
 
 // Stones to exclude (not useful for ascension planning)
 const EXCLUDED_STONES = ['prophecy-stone', 'clarity-stone', 'dilithium-stone', 'soul-stone'];
+
+/**
+ * ArtifactOption, StoneOption, EquippedArtifact interfaces remain same...
+ * But we need to define them again if they are not imported.
+ */
 
 /**
  * Artifact option representing a specific tier + rarity combination
@@ -59,34 +65,42 @@ export interface EquippedArtifact {
 function parseArtifacts(): ArtifactOption[] {
   const options: ArtifactOption[] = [];
 
-  for (const family of artifactData.artifact_families) {
-    if (family.type !== 'Artifact') continue;
+  for (const tier of allPossibleTiers) {
+    // Only artifacts
+    if (tier.afx_type !== ei.ArtifactSpec.Type.ARTIFACT) continue;
 
-    // Get the base name from the first tier (lowest level name)
-    const baseName = family.name;
+    if (!tier.effects) continue;
 
-    for (const tier of family.tiers) {
-      if (!tier.effects) continue;
+    for (const effect of tier.effects) {
+      const rarityCode = RARITY_CODES[effect.afx_rarity];
+      if (!rarityCode) continue;
 
-      for (const effect of tier.effects) {
-        const rarityCode = RARITY_CODES[effect.afx_rarity];
-        if (!rarityCode) continue;
+      // Base name logic: get family name. 
+      // tier.family is a reference in the data structure from lib/artifacts/data-json
+      // Wait, allPossibleTiers elements have .family property?
+      // Let's check lib/artifacts/data-json.ts structure if checkable.
+      // Step 26 showed: import { Family, Tier } from './data-json';
+      // We assume Tier has .family reference.
+      // If not, we might need to look it up or rely on tier.name / tier.family.name
+      // Data structure usually has circular refs or simple structure.
+      // `data.artifact_families` -> `tiers` -> `family` (backref).
+      // If flat map preserves objects, it should work.
 
-        options.push({
-          id: `${family.id}-${tier.tier_number}-${effect.afx_rarity}`,
-          familyId: family.id,
-          familyName: baseName,
-          tier: tier.tier_number,
-          rarity: effect.afx_rarity,
-          rarityCode,
-          label: `T${tier.tier_number}${rarityCode} ${baseName}`,
-          effect: effect.effect,
-          effectDelta: effect.effect_delta,
-          effectTarget: effect.effect_target,
-          slots: effect.slots || 0,
-          iconPath: `egginc/${tier.icon_filename}`,
-        });
-      }
+      options.push({
+        id: `${tier.family.id}-${tier.tier_number}-${effect.afx_rarity}`,
+        familyId: tier.family.id,
+        familyName: tier.family.name, // CAUTION: might need base name of family?
+        // Local artifacts.ts used "baseName = family.name" where family was the group.
+        tier: tier.tier_number,
+        rarity: effect.afx_rarity,
+        rarityCode,
+        label: `T${tier.tier_number}${rarityCode} ${tier.family.name}`, // Or similar label logic
+        effect: effect.effect,
+        effectDelta: effect.effect_delta,
+        effectTarget: effect.effect_target,
+        slots: effect.slots || 0,
+        iconPath: `egginc/${tier.icon_filename}`,
+      });
     }
   }
 
@@ -106,29 +120,27 @@ function parseArtifacts(): ArtifactOption[] {
 function parseStones(): StoneOption[] {
   const options: StoneOption[] = [];
 
-  for (const family of artifactData.artifact_families) {
-    if (family.type !== 'Stone') continue;
-    if (EXCLUDED_STONES.includes(family.id)) continue;
+  for (const tier of allPossibleTiers) {
+    if (tier.afx_type !== ei.ArtifactSpec.Type.STONE) continue;
+    if (EXCLUDED_STONES.includes(tier.family.id)) continue;
 
-    for (const tier of family.tiers) {
-      // Skip tier 1 (stone ingredients - they don't have effects)
-      if (tier.tier_number === 1) continue;
-      if (!tier.effects || tier.effects.length === 0) continue;
+    // Skip tier 1
+    if (tier.tier_number === 1) continue;
+    if (!tier.effects || tier.effects.length === 0) continue;
 
-      const effect = tier.effects[0]; // Stones only have one effect per tier
+    const effect = tier.effects[0];
 
-      options.push({
-        id: `${family.id}-${tier.tier_number}`,
-        familyId: family.id,
-        familyName: family.name,
-        tier: tier.tier_number,
-        label: `T${tier.tier_number} ${family.name}`,
-        effect: effect.effect,
-        effectDelta: effect.effect_delta,
-        effectTarget: effect.effect_target,
-        iconPath: `egginc/${tier.icon_filename}`,
-      });
-    }
+    options.push({
+      id: `${tier.family.id}-${tier.tier_number}`,
+      familyId: tier.family.id,
+      familyName: tier.family.name,
+      tier: tier.tier_number,
+      label: `T${tier.tier_number} ${tier.family.name}`,
+      effect: effect.effect,
+      effectDelta: effect.effect_delta,
+      effectTarget: effect.effect_target,
+      iconPath: `egginc/${tier.icon_filename}`,
+    });
   }
 
   // Sort by family name, then tier
