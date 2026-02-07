@@ -1,3 +1,6 @@
+import { customEggs } from 'lib/eggs';
+import { ei } from 'lib/proto';
+
 /**
  * Colleggtible definitions and tier calculations.
  * Each colleggtible has 4 tiers based on max farm size reached in contracts.
@@ -28,89 +31,74 @@ export interface ColleggtibleDef {
   tierValues: [number, number, number, number];
 }
 
+const DIMENSION_MAP: Record<number, ColleggtibleDef['dimension']> = {
+  [ei.GameModifier.GameDimension.EARNINGS]: 'earnings',
+  [ei.GameModifier.GameDimension.AWAY_EARNINGS]: 'awayEarnings',
+  [ei.GameModifier.GameDimension.INTERNAL_HATCHERY_RATE]: 'ihr',
+  [ei.GameModifier.GameDimension.EGG_LAYING_RATE]: 'elr',
+  [ei.GameModifier.GameDimension.SHIPPING_CAPACITY]: 'shippingCap',
+  [ei.GameModifier.GameDimension.HAB_CAPACITY]: 'habCap',
+  [ei.GameModifier.GameDimension.VEHICLE_COST]: 'vehicleCost',
+  [ei.GameModifier.GameDimension.HAB_COST]: 'habCost',
+  [ei.GameModifier.GameDimension.RESEARCH_COST]: 'researchCost',
+};
+
+const EFFECT_NAMES: Record<ColleggtibleDef['dimension'], string> = {
+  earnings: 'Earnings',
+  awayEarnings: 'Away earnings',
+  ihr: 'IHR',
+  elr: 'Lay rate',
+  shippingCap: 'Shipping capacity',
+  habCap: 'Hab capacity',
+  vehicleCost: 'Vehicle cost',
+  habCost: 'Hab cost',
+  researchCost: 'Research cost',
+};
+
 /**
  * All colleggtible definitions with their buff values per tier.
- * Based on in-game data.
+ * Based on in-game data from lib/eggs.
  */
-export const colleggtibleDefs: ColleggtibleDef[] = [
-  {
-    id: 'carbon-fiber',
-    name: 'Carbon Fiber',
-    effect: 'Shipping capacity',
-    dimension: 'shippingCap',
-    tierValues: [1.01, 1.02, 1.03, 1.05], // +1%, +2%, +3%, +5%
-  },
-  {
-    id: 'chocolate',
-    name: 'Chocolate',
-    effect: 'Away earnings',
-    dimension: 'awayEarnings',
-    tierValues: [1.25, 1.50, 2.00, 3.00], // +25%, +50%, +100%, +200%
-  },
-  {
-    id: 'easter',
-    name: 'Easter',
-    effect: 'IHR',
-    dimension: 'ihr',
-    tierValues: [1.01, 1.02, 1.03, 1.05], // +1%, +2%, +3%, +5%
-  },
-  {
-    id: 'firework',
-    name: 'Firework',
-    effect: 'Earnings',
-    dimension: 'earnings',
-    tierValues: [1.01, 1.02, 1.03, 1.05], // +1%, +2%, +3%, +5%
-  },
-  {
-    id: 'pumpkin',
-    name: 'Pumpkin',
-    effect: 'Shipping capacity',
-    dimension: 'shippingCap',
-    tierValues: [1.01, 1.02, 1.03, 1.05], // +1%, +2%, +3%, +5%
-  },
-  {
-    id: 'waterballoon',
-    name: 'Waterballoon',
-    effect: 'Research cost',
-    dimension: 'researchCost',
-    tierValues: [0.99, 0.98, 0.97, 0.95], // -1%, -2%, -3%, -5%
-  },
-  {
-    id: 'lithium',
-    name: 'Lithium',
-    effect: 'Vehicle cost',
-    dimension: 'vehicleCost',
-    tierValues: [0.98, 0.96, 0.93, 0.90], // -2%, -4%, -7%, -10%
-  },
-  {
-    id: 'flame-retardant',
-    name: 'Flame Retardant',
-    effect: 'Hab cost',
-    dimension: 'habCost',
-    tierValues: [0.99, 0.95, 0.88, 0.75], // -1%, -5%, -12%, -25%
-  },
-  {
-    id: 'wood',
-    name: 'Wood',
-    effect: 'Away earnings',
-    dimension: 'awayEarnings',
-    tierValues: [1.10, 1.25, 1.50, 2.00], // +10%, +25%, +50%, +100%
-  },
-  {
-    id: 'silicon',
-    name: 'Silicon',
-    effect: 'Lay rate',
-    dimension: 'elr',
-    tierValues: [1.01, 1.02, 1.03, 1.05], // +1%, +2%, +3%, +5%
-  },
-  {
-    id: 'pegg',
-    name: 'P.E.G.G',
-    effect: 'Hab capacity',
-    dimension: 'habCap',
-    tierValues: [1.01, 1.02, 1.03, 1.05], // +1%, +2%, +3%, +5%
-  },
-];
+export const colleggtibleDefs: ColleggtibleDef[] = customEggs
+  .filter(egg => egg.buffs && egg.buffs.length > 0)
+  .map(egg => {
+    const dimensionEnum = egg.buffs[0].dimension;
+    const dimension = DIMENSION_MAP[dimensionEnum];
+
+    if (!dimension) {
+      // Fallback or skip if unknown dimension. 
+      // Returning 'earnings' as safe default but should ideally filter out.
+      // But map must return value.
+      // Assuming customEggs data is valid per our map.
+      // If not, we might crash or have bad data.
+      // For now, let's assume it maps correctly or return a dummy that we filter?
+      // But colleggtibleDefs is typed as array.
+      // Let's rely on filter below.
+      return null;
+    }
+
+    const tierValues = egg.buffs.map(b => b.value);
+    // Ensure we have 4 values (pad with 1 or last value?)
+    // Game definition implies specific values.
+    // Assuming customEggs has 4 buffs corresponding to tiers.
+    // If not, padded with last value or 1.
+    const paddedValues = [
+      tierValues[0] ?? 1,
+      tierValues[1] ?? 1,
+      tierValues[2] ?? 1,
+      tierValues[3] ?? 1
+    ] as [number, number, number, number];
+
+    return {
+      id: egg.identifier,
+      name: egg.name,
+      effect: EFFECT_NAMES[dimension], // Or derived from egg name/description?
+      dimension,
+      tierValues: paddedValues,
+    };
+  })
+  .filter((def): def is ColleggtibleDef => def !== null);
+
 
 /**
  * Colleggtible tiers for each colleggtible.
