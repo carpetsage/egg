@@ -174,6 +174,10 @@ const timeSinceLastShiftFormatted = computed(() => {
   const totalHours = Math.floor(totalMinutes / 60);
   const totalDays = Math.floor(totalHours / 24);
 
+  if (totalDays > 999) {
+    return '>999d';
+  }
+
   if (totalDays > 0) {
     const remainingHours = totalHours % 24;
     return `${totalDays}d ${remainingHours}h`;
