@@ -9,7 +9,7 @@ import type {
   LayRateInput,
   LayRateOutput
 } from '@/types';
-import { researches as allResearches } from 'lib';
+import { allResearches } from 'lib';
 
 /**
  * Lay rate research definition.

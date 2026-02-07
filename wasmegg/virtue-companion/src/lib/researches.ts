@@ -1,4 +1,4 @@
-import { researches as researchesRaw } from 'lib';
+import { allResearches as researchesRaw } from 'lib';
 
 type ResearchType = 'common' | 'epic';
 type ResearchCategory =
