@@ -7,7 +7,7 @@
     </div>
 
     <!-- Hab slots -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="grid grid-cols-1 gap-3">
       <div
         v-for="(habId, index) in habIds"
         :key="index"
@@ -27,7 +27,7 @@
           :model-value="habId !== null ? String(habId) : undefined"
           :items="getAvailableHabs(habId)"
           :get-item-id="item => String(item.id)"
-          :get-item-display="item => `${item.name} (${formatNumber(getHabPrice(item.id, index), 0)} gems)`"
+          :get-item-display="item => `${item.name} (${formatNumber(item.baseCapacity, 0)} cap, ${formatNumber(getHabPrice(item.id, index), 0)} gems)`"
           :get-item-icon-path="item => item.iconPath"
           :item-from-id="id => getHabById(parseInt(id) as HabId)"
           :search-items="(query) => searchHabs(getAvailableHabs(habId), query)"
@@ -41,7 +41,7 @@
     <!-- Note about slots -->
     <div class="flex items-center justify-between px-1">
       <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-        Fleet Status: {{ purchasedCount }}/4 habs active
+        {{ purchasedCount }}/4 habs active
       </p>
     </div>
   </div>
@@ -58,6 +58,8 @@ import { useActionsStore } from '@/stores/actions';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import { calculateHabCapacity, calculateTotalResearchMultipliers } from '@/calculations/habCapacity';
+import { calculateArtifactModifiers } from '@/lib/artifacts';
 
 const HabSelect = GenericBaseSelectFilterable<Hab>();
 
@@ -72,7 +74,30 @@ const costModifiers = computed<HabCostModifiers>(() => ({
   flameRetardantMultiplier: initialStateStore.colleggtibleModifiers.habCost,
 }));
 
-const habIds = computed(() => habCapacityStore.habIds);
+// Compute effective state for accurate capacity and cost calculations
+const effectiveSnapshot = computed(() => actionsStore.effectiveSnapshot);
+
+// Compute multipliers based on effective state
+const effectiveMultipliers = computed(() => {
+  const researchLevels = effectiveSnapshot.value.researchLevels;
+  const artifactLoadout = effectiveSnapshot.value.artifactLoadout;
+  
+  // Calculate artifact modifiers
+  const artifactMods = calculateArtifactModifiers(artifactLoadout).habCapacity;
+
+  // Calculate research multipliers
+  const { universal, portalOnly } = calculateTotalResearchMultipliers(researchLevels);
+
+  return {
+    universalMultiplier: universal,
+    portalMultiplier: portalOnly,
+    peggMultiplier: initialStateStore.colleggtibleModifiers.habCap,
+    artifactMultiplier: artifactMods.totalMultiplier,
+  };
+});
+
+// Use habIds from the effective snapshot
+const habIds = computed(() => effectiveSnapshot.value.habIds);
 
 const purchasedCount = computed(() =>
   habIds.value.filter(id => id !== null).length
@@ -94,7 +119,17 @@ function getHabPrice(habId: number, slotIndex: number): number {
 function getHabCapacity(habId: number): number {
   if (!isHabId(habId)) return 0;
   const hab = getHabById(habId);
-  return hab?.baseCapacity ?? 0;
+  if (!hab) return 0;
+
+  const { universalMultiplier, portalMultiplier, peggMultiplier, artifactMultiplier } = effectiveMultipliers.value;
+  
+  return calculateHabCapacity(
+    hab,
+    universalMultiplier,
+    portalMultiplier,
+    peggMultiplier,
+    artifactMultiplier
+  );
 }
 
 /**

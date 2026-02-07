@@ -19,7 +19,33 @@ import type {
   WaitForTEPayload,
   VirtueEgg,
 } from '@/types';
-import { restoreFromSnapshot, computeCurrentSnapshot } from './snapshot';
+import { restoreFromSnapshot, computeCurrentSnapshot, computeDeltas } from './snapshot';
+
+// ... (existing imports)
+
+/**
+ * Replay all actions from a starting index after an insertion.
+ * Updates each action's endState in place.
+ */
+export function replayActionsFromIndex(
+  actions: Action[],
+  startIndex: number
+): void {
+  for (let i = startIndex; i < actions.length; i++) {
+    const prevSnapshot = actions[i - 1].endState;
+    const newSnapshot = replayAction(actions[i], prevSnapshot);
+
+    // Update the action's endState and deltas
+    const prevActionSnapshot = actions[i - 1].endState;
+    const deltas = computeDeltas(prevActionSnapshot, newSnapshot);
+
+    // Assign new properties
+    Object.assign(actions[i], {
+      ...deltas,
+      endState: newSnapshot
+    });
+  }
+}
 import { useHabCapacityStore } from '@/stores/habCapacity';
 import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useCommonResearchStore } from '@/stores/commonResearch';
@@ -142,18 +168,4 @@ function applyActionEffect(action: Action): void {
  * Replay all actions from a starting index after an insertion.
  * Updates each action's endState in place.
  */
-export function replayActionsFromIndex(
-  actions: Action[],
-  startIndex: number
-): void {
-  for (let i = startIndex; i < actions.length; i++) {
-    const prevSnapshot = actions[i - 1].endState;
-    const newSnapshot = replayAction(actions[i], prevSnapshot);
 
-    // Update the action's endState and deltas
-    const prevActionSnapshot = actions[i - 1].endState;
-    actions[i].elrDelta = newSnapshot.elr - prevActionSnapshot.elr;
-    actions[i].offlineEarningsDelta = newSnapshot.offlineEarnings - prevActionSnapshot.offlineEarnings;
-    actions[i].endState = newSnapshot;
-  }
-}

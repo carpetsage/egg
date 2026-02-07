@@ -20,7 +20,7 @@ export function useEffectiveLayRate(): {
 
   const output = computed<EffectiveLayRateOutput>(() =>
     calculateEffectiveLayRate(
-      layRateOutput.value.totalRate,
+      layRateOutput.value.totalRatePerSecond,
       shippingOutput.value.totalFinalCapacity
     )
   );
