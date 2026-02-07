@@ -10,7 +10,7 @@ import type {
   ShippingCapacityOutput
 } from '@/types';
 import { vehicleTypes, getVehicleType, BASE_FLEET_SIZE, BASE_TRAIN_LENGTH } from '@/lib/vehicles';
-import allResearches from '@/researches.json';
+import { researches as allResearches } from 'lib';
 
 /**
  * Shipping capacity research with flags for hover/hyperloop-only effects.

@@ -9,7 +9,7 @@ import type {
   EggValueInput,
   EggValueOutput
 } from '@/types';
-import allResearches from '@/researches.json';
+import { researches as allResearches } from 'lib';
 
 // Filter to only egg value researches
 const eggValueResearches = (allResearches as Research[]).filter(
