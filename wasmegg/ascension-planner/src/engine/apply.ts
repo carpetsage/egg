@@ -9,6 +9,7 @@ import type {
     BuySiloPayload,
     StoreFuelPayload,
     WaitForTEPayload,
+    StartAscensionPayload,
 } from '@/types';
 import type { EngineState } from './types';
 
@@ -19,11 +20,13 @@ import type { EngineState } from './types';
  */
 export function applyAction(state: EngineState, action: Action): EngineState {
     switch (action.type) {
-        case 'start_ascension':
+        case 'start_ascension': {
+            const payload = action.payload as StartAscensionPayload;
             return {
                 ...state,
-                currentEgg: action.payload.initialEgg,
+                currentEgg: payload.initialEgg,
             };
+        }
 
         case 'buy_vehicle': {
             const payload = action.payload as BuyVehiclePayload;
