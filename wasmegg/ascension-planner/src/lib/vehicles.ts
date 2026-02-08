@@ -1,4 +1,5 @@
 import { vehicleTypes as libVehicleTypes, type VehicleType as LibVehicleType, isVehicleId } from 'lib/farm/shipping_capacity';
+import { calculateCostMultiplier, applyDiscount } from '@/utils/pricing';
 
 export type VehicleId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
 export { isVehicleId };
@@ -75,8 +76,7 @@ export interface VehicleCostModifiers {
  * Calculate the total cost multiplier from all sources.
  */
 export function getVehicleCostMultiplier(modifiers: VehicleCostModifiers): number {
-  const epicDiscount = 1 - (0.05 * modifiers.bustUnionsLevel);
-  return epicDiscount * modifiers.lithiumMultiplier;
+  return calculateCostMultiplier(modifiers.bustUnionsLevel, 0.05, modifiers.lithiumMultiplier);
 }
 
 /**
@@ -107,7 +107,7 @@ export function getDiscountedVehiclePrice(
   if (purchaseIndex < 0 || purchaseIndex >= vehicle.virtueCost.length) return 0;
 
   const basePrice = vehicle.virtueCost[purchaseIndex];
-  return Math.floor(basePrice * getVehicleCostMultiplier(modifiers));
+  return applyDiscount(basePrice, getVehicleCostMultiplier(modifiers));
 }
 
 /**
@@ -123,5 +123,5 @@ export function getDiscountedTrainCarPrice(
   if (carIndex < 0 || carIndex >= HYPERLOOP_CAR_VIRTUE_COSTS.length) return 0;
 
   const basePrice = HYPERLOOP_CAR_VIRTUE_COSTS[carIndex];
-  return Math.floor(basePrice * getVehicleCostMultiplier(modifiers));
+  return applyDiscount(basePrice, getVehicleCostMultiplier(modifiers));
 }

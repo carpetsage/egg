@@ -1,4 +1,5 @@
 import { habTypes as libHabTypes, type Hab as LibHab, isHabId } from 'lib/farm/hab_space';
+import { calculateCostMultiplier, applyDiscount } from '@/utils/pricing';
 
 export type HabId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 export { isHabId };
@@ -39,8 +40,7 @@ export interface HabCostModifiers {
  * Calculate the total cost multiplier from all sources.
  */
 export function getHabCostMultiplier(modifiers: HabCostModifiers): number {
-  const epicDiscount = 1 - (0.05 * modifiers.cheaperContractorsLevel);
-  return epicDiscount * modifiers.flameRetardantMultiplier;
+  return calculateCostMultiplier(modifiers.cheaperContractorsLevel, 0.05, modifiers.flameRetardantMultiplier);
 }
 
 /**
@@ -57,7 +57,7 @@ export function getDiscountedHabPrice(
 ): number {
   if (purchaseIndex < 0 || purchaseIndex > 3) return 0;
   const basePrice = hab.virtueCost[purchaseIndex];
-  return Math.floor(basePrice * getHabCostMultiplier(modifiers));
+  return applyDiscount(basePrice, getHabCostMultiplier(modifiers));
 }
 
 /**

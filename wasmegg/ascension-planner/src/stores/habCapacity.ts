@@ -74,18 +74,15 @@ export const useHabCapacityStore = defineStore('habCapacity', {
     setResearchLevel(researchId: string, level: number) {
       const research = habCapacityResearches.find(r => r.id === researchId);
       if (research) {
-        this.researchLevels[researchId] = Math.max(0, Math.min(level, research.levels));
+        this.researchLevels[researchId] = Math.max(0, Math.min(level, research.maxLevel));
       }
     },
 
-    /**
-     * Increment research level by 1
-     */
-    incrementResearch(researchId: string) {
-      const research = habCapacityResearches.find(r => r.id === researchId);
+    incrementResearchLevel(researchId: string) {
+      const current = this.researchLevels[researchId] || 0;
+      const research = getHabCapacityResearches().find(r => r.id === researchId);
       if (research) {
-        const current = this.researchLevels[researchId] || 0;
-        this.researchLevels[researchId] = Math.min(current + 1, research.levels);
+        this.researchLevels[researchId] = Math.min(current + 1, research.maxLevel);
       }
     },
 
@@ -101,8 +98,8 @@ export const useHabCapacityStore = defineStore('habCapacity', {
      * Set all researches to max level
      */
     maxAllResearch() {
-      for (const research of habCapacityResearches) {
-        this.researchLevels[research.id] = research.levels;
+      for (const research of getHabCapacityResearches()) {
+        this.researchLevels[research.id] = research.maxLevel;
       }
     },
 

@@ -10,6 +10,7 @@ import type {
   LayRateOutput
 } from '@/types';
 import { allResearches } from 'lib';
+import { calculateLinearEffect, selectResearches } from '@/utils/research';
 
 /**
  * Lay rate research definition.
@@ -37,16 +38,17 @@ const commonLayRateResearchIds = [
 ];
 
 // Build common researches from JSON
-const commonLayRateResearches: LayRateResearch[] = (allResearches as Research[])
-  .filter(r => commonLayRateResearchIds.includes(r.id))
-  .map(r => ({
+const commonLayRateResearches: LayRateResearch[] = selectResearches(
+  commonLayRateResearchIds,
+  r => ({
     id: r.id,
     name: r.name,
     description: r.description,
     maxLevel: r.levels,
     perLevel: r.per_level,
     isEpic: false,
-  }));
+  })
+);
 
 // Epic research (not in researches.json, defined manually)
 const epicLayRateResearch: LayRateResearch = {
@@ -66,9 +68,7 @@ const allLayRateResearches: LayRateResearch[] = [...commonLayRateResearches, epi
  * All lay rate researches are multiplicative: (1 + perLevel * level)
  */
 export function calculateResearchMultiplier(research: LayRateResearch, level: number): number {
-  if (level <= 0) return 1;
-  const clampedLevel = Math.min(level, research.maxLevel);
-  return 1 + (research.perLevel * clampedLevel);
+  return calculateLinearEffect(level, research.maxLevel, research.perLevel);
 }
 
 /**

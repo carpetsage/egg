@@ -4,6 +4,7 @@
 
 import type { Research, ResearchLevels } from '@/types';
 import { allResearches } from 'lib';
+import { calculateCostMultiplier as calculateBaseCostMultiplier, applyDiscountCeil } from '@/utils/pricing';
 
 /**
  * Common research entry with full data
@@ -156,16 +157,12 @@ export interface ResearchCostModifiers {
  * All discounts are multiplicative.
  */
 export function calculateCostMultiplier(modifiers: ResearchCostModifiers): number {
-  // Lab Upgrade: -5% per level (1 - 0.05 * level)
-  const labUpgradeMultiplier = 1 - (0.05 * Math.min(10, Math.max(0, modifiers.labUpgradeLevel)));
-
-  // Waterballoon colleggtible (already a multiplier like 0.95)
-  const waterballoonMultiplier = modifiers.waterballoonMultiplier;
-
-  // Puzzle cube artifact (already a multiplier like 0.5 for -50%)
-  const puzzleCubeMultiplier = modifiers.puzzleCubeMultiplier;
-
-  return labUpgradeMultiplier * waterballoonMultiplier * puzzleCubeMultiplier;
+  return calculateBaseCostMultiplier(
+    modifiers.labUpgradeLevel,
+    0.05,
+    modifiers.waterballoonMultiplier,
+    modifiers.puzzleCubeMultiplier
+  );
 }
 
 /**
@@ -188,7 +185,8 @@ export function getDiscountedVirtuePrice(
 ): number {
   const basePrice = getBaseVirtuePrice(research, currentLevel);
   if (!isFinite(basePrice)) return Infinity;
-  return Math.ceil(basePrice * calculateCostMultiplier(modifiers));
+  if (!isFinite(basePrice)) return Infinity;
+  return applyDiscountCeil(basePrice, calculateCostMultiplier(modifiers));
 }
 
 /**
@@ -204,7 +202,7 @@ export function getTotalCostToMax(
 
   for (let level = currentLevel; level < research.levels; level++) {
     const basePrice = research.virtue_prices[level] || 0;
-    total += Math.ceil(basePrice * multiplier);
+    total += applyDiscountCeil(basePrice, multiplier);
   }
 
   return total;
