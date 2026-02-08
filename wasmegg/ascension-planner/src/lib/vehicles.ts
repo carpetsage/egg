@@ -80,7 +80,18 @@ export function getVehicleCostMultiplier(modifiers: VehicleCostModifiers): numbe
 }
 
 /**
+ * Count how many of a specific vehicle type are in the current fleet.
+ */
+export function countVehiclesOfType(
+  vehicles: { vehicleId: number | null }[],
+  targetVehicleId: number
+): number {
+  return vehicles.filter(v => v.vehicleId === targetVehicleId).length;
+}
+
+/**
  * Count how many of a specific vehicle type are in slots before a given index.
+ * Used for displaying what was likely paid for a vehicle in a specific slot.
  */
 export function countVehiclesOfTypeBefore(
   vehicles: { vehicleId: number | null }[],

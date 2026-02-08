@@ -26,6 +26,7 @@ export const waitForTEExecutor: ActionExecutor<'wait_for_te'> = {
   },
 
   getEffectDescription(payload: WaitForTEPayload): string {
-    return `+${payload.teGained} TE (${formatDuration(payload.timeSeconds)})`;
+    const fromStr = payload.startTE > 0 ? ` (from #${payload.startTE})` : '';
+    return `+${payload.teGained} TE${fromStr} — ${formatDuration(payload.timeSeconds)}`;
   },
 };

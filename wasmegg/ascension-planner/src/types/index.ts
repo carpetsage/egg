@@ -341,6 +341,14 @@ export interface ShippingCapacityOutput {
 }
 
 /**
+ * Input for Effective Lay Rate calculation
+ */
+export interface EffectiveLayRateInput {
+  layRate: number;
+  shippingCapacity: number;
+}
+
+/**
  * Output from Effective Lay Rate calculation
  */
 export interface EffectiveLayRateOutput {

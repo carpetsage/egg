@@ -19,7 +19,7 @@ export function formatNumber(value: number, decimals: number = 2): string {
   if (value === 0) return '0';
   if (!isFinite(value)) return '∞';
 
-  if (value < 1000) {
+  if (Math.abs(value) < 1000) {
     return value.toFixed(decimals);
   }
 

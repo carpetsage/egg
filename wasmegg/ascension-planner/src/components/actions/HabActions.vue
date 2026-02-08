@@ -27,7 +27,7 @@
           :model-value="habId !== null ? String(habId) : undefined"
           :items="getAvailableHabs(habId)"
           :get-item-id="item => String(item.id)"
-          :get-item-display="item => `${item.name} (${formatNumber(item.baseCapacity, 0)} cap, ${formatNumber(getHabPrice(item.id, index), 0)} gems)`"
+          :get-item-display="item => `${item.name} (${formatNumber(getHabCapacity(item.id), 0)} cap, ${formatNumber(getHabPrice(item.id, index), 0)} gems) — ${getTimeToBuy(item.id, index)}`"
           :get-item-icon-path="item => item.iconPath"
           :item-from-id="id => getHabById(parseInt(id) as HabId)"
           :search-items="(query) => searchHabs(getAvailableHabs(habId), query)"
@@ -51,7 +51,7 @@
 import { computed } from 'vue';
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
 import { habTypes, getHabById, getDiscountedHabPrice, countHabsOfType, isHabId, type HabCostModifiers, type Hab, type HabId } from '@/lib/habs';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatDuration } from '@/lib/format';
 import { useHabCapacityStore } from '@/stores/habCapacity';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -114,6 +114,20 @@ function getHabPrice(habId: number, slotIndex: number): number {
   const existingCount = countHabsOfType(habsBeforeSlot, habId);
 
   return getDiscountedHabPrice(hab, existingCount, costModifiers.value);
+}
+
+function getTimeToBuy(habId: number, slotIndex: number): string {
+  const price = getHabPrice(habId, slotIndex);
+  if (price <= 0) return 'Free';
+
+  const snapshot = actionsStore.effectiveSnapshot;
+  const offlineEarnings = snapshot.offlineEarnings;
+
+  if (offlineEarnings <= 0) return '∞';
+
+  const seconds = price / offlineEarnings;
+  if (seconds < 1) return 'Instant';
+  return formatDuration(seconds);
 }
 
 function getHabCapacity(habId: number): number {

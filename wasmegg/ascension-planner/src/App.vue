@@ -142,8 +142,8 @@ function showActionDetails(action: Action) {
 }
 
 function closeActionDetails() {
-  // Restore stores to current state (last action's end state)
-  restoreFromSnapshot(actionsStore.currentSnapshot);
+  // Restore stores to current state (last action's end state) or effective state if editing
+  restoreFromSnapshot(actionsStore.effectiveSnapshot);
   detailsModalAction.value = null;
 }
 
