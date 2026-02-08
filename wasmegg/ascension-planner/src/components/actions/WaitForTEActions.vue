@@ -23,27 +23,47 @@
       </div>
 
       <!-- Current TE State -->
-      <div class="grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <span class="text-gray-500">Eggs Delivered:</span>
-          <span class="ml-2 font-mono">{{ formatNumber(currentEggsDelivered, 3) }}</span>
+      <div class="space-y-2">
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          <div class="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Metric</div>
+          <div class="text-gray-500 text-[10px] uppercase tracking-wider font-semibold text-right">Value (Initial → Current)</div>
+          
+          <div class="text-gray-700">Eggs Delivered:</div>
+          <div class="font-mono text-right">
+            <span class="text-gray-400">{{ formatNumber(initialEggsDelivered, 2) }}</span>
+            <span class="mx-1">→</span>
+            <span>{{ formatNumber(currentEggsDelivered, 2) }}</span>
+          </div>
+          
+          <div class="text-gray-700">Thresholds Passed:</div>
+          <div class="font-mono text-right">
+            <span class="text-gray-400">{{ initialTECount }}</span>
+            <span class="mx-1">→</span>
+            <span>{{ currentTE }}</span>
+          </div>
+
+          <div class="text-gray-700 pt-1 font-medium border-t border-gray-50 flex items-center">
+            Shipped in Plan:
+          </div>
+          <div class="font-mono text-right text-blue-600 font-bold pt-1 border-t border-gray-50">
+            {{ formatNumber(Math.max(0, currentEggsDelivered - initialEggsDelivered), 2) }}
+          </div>
         </div>
-        <div>
-          <span class="text-gray-500">TE Earned:</span>
-          <span class="ml-2 font-mono">{{ currentTE }} / 98</span>
-        </div>
-        <div>
-          <span class="text-gray-500">Pending TE:</span>
-          <span class="ml-2 font-mono text-amber-600">{{ pendingTE }}</span>
-        </div>
-        <div>
-          <span class="text-gray-500">Total TE:</span>
-          <span class="ml-2 font-mono">{{ truthEggsStore.totalTE }} / 490</span>
+
+        <div class="grid grid-cols-2 gap-4 text-xs pt-2 border-t border-gray-100">
+          <div>
+            <span class="text-gray-500">Pending TE:</span>
+            <span class="ml-2 font-mono text-amber-600 font-bold">{{ pendingTE }}</span>
+          </div>
+          <div class="text-right">
+            <span class="text-gray-500">Total Progress:</span>
+            <span class="ml-2 font-mono font-medium">{{ truthEggsStore.totalTE }} / 490</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Target TE Selection -->
+      <!-- Target TE Selection -->
     <div class="bg-white border border-gray-200 rounded-lg p-4">
       <div class="flex items-center gap-2 mb-3">
         <img
@@ -52,33 +72,33 @@
           alt="Truth Egg"
         />
         <span class="text-sm font-medium text-gray-700">
-          Target TE for {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}
+          Gain Additional TE on {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}
         </span>
       </div>
 
       <!-- Target TE input with +/- buttons -->
       <div class="flex items-center gap-3 mb-4">
-        <span class="text-sm text-gray-500">Target TE:</span>
+        <span class="text-sm text-gray-500">Add how many TE?</span>
         <div class="flex items-center">
           <button
             class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-l border border-gray-300 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :disabled="targetTE <= currentTE + 1"
-            @click="targetTE = Math.max(currentTE + 1, targetTE - 1)"
+            :disabled="teToGain <= 1"
+            @click="teToGain = Math.max(1, teToGain - 1)"
           >
             −
           </button>
           <input
-            v-model.number="targetTE"
+            v-model.number="teToGain"
             type="number"
-            :min="currentTE + 1"
-            :max="98"
+            :min="1"
+            :max="98 - currentTE"
             class="w-16 text-center text-sm border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-blue-500 outline-none"
             :disabled="currentTE >= 98"
           />
           <button
             class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-r border border-gray-300 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :disabled="targetTE >= 98"
-            @click="targetTE = Math.min(98, targetTE + 1)"
+            :disabled="teToGain >= 98 - currentTE"
+            @click="teToGain = Math.min(98 - currentTE, teToGain + 1)"
           >
             +
           </button>
@@ -86,14 +106,26 @@
       </div>
 
       <!-- Calculated values -->
-      <div v-if="teGained > 0" class="space-y-2 text-sm border-t border-gray-100 pt-3">
+      <div v-if="teToGain > 0" class="space-y-2 text-sm border-t border-gray-100 pt-3">
         <div class="flex justify-between">
-          <span class="text-gray-600">TE Gained:</span>
-          <span class="font-mono font-medium text-amber-600">+{{ teGained }} TE</span>
+          <span class="text-gray-600">Total Result:</span>
+          <span class="font-mono font-medium text-blue-600">TE #{{ targetTENumber }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">TE to Gain:</span>
+          <span class="font-mono font-medium text-amber-600">+{{ teToGain }} TE</span>
         </div>
         <div class="flex justify-between">
           <span class="text-gray-600">Eggs to Lay:</span>
           <span class="font-mono">{{ formatNumber(eggsToLay, 3) }}</span>
+        </div>
+        <div class="flex justify-between text-xs text-gray-500">
+          <span>ELR per hour:</span>
+          <span class="font-mono">{{ formatNumber(elrPerHour, 2) }}</span>
+        </div>
+        <div class="flex justify-between text-xs text-gray-500">
+          <span>ELR per day:</span>
+          <span class="font-mono">{{ formatNumber(elrPerDay, 2) }}</span>
         </div>
         <div class="flex justify-between">
           <span class="text-gray-600">Time Required:</span>
@@ -150,30 +182,43 @@ const { prepareExecution, completeExecution } = useActionExecutor();
 
 // Current egg state
 const currentEggsDelivered = computed(() => truthEggsStore.eggsDelivered[virtueStore.currentEgg]);
-const currentTE = computed(() => countTEThresholdsPassed(currentEggsDelivered.value));
+const currentTE = computed(() => {
+  // Use the higher of thresholds passed (for pending TE) and claimed TE (for baseline)
+  const claimed = truthEggsStore.teEarned[virtueStore.currentEgg] || 0;
+  const passed = countTEThresholdsPassed(currentEggsDelivered.value);
+  return Math.max(claimed, passed);
+});
 const pendingTE = computed(() => truthEggsStore.pendingTEForEgg(virtueStore.currentEgg));
 
-// Target TE selection
-const targetTE = ref(Math.min(98, currentTE.value + 1));
-
-// Reset target when egg changes
-watch(() => virtueStore.currentEgg, () => {
-  targetTE.value = Math.min(98, currentTE.value + 1);
+// Initial state from backup (for comparative display)
+const initialEggsDelivered = computed(() => 
+  actionsStore.initialSnapshot.eggsDelivered[virtueStore.currentEgg]
+);
+const initialTECount = computed(() => {
+  const claimed = actionsStore.initialSnapshot.teEarned[virtueStore.currentEgg] || 0;
+  const passed = countTEThresholdsPassed(initialEggsDelivered.value);
+  return Math.max(claimed, passed);
 });
 
-// Ensure target is valid
+// Additional TE selection (user wants relative target)
+const teToGain = ref(1);
+const targetTENumber = computed(() => Math.min(98, currentTE.value + teToGain.value));
+
+// Reset selection when egg changes
+watch(() => virtueStore.currentEgg, () => {
+  teToGain.value = 1;
+});
+
+// Ensure selection is valid if currentTE changes (e.g. from previous actions)
 watch(currentTE, (newCurrentTE) => {
-  if (targetTE.value <= newCurrentTE) {
-    targetTE.value = Math.min(98, newCurrentTE + 1);
+  if (teToGain.value > 98 - newCurrentTE) {
+    teToGain.value = Math.max(1, 98 - newCurrentTE);
   }
 });
 
-// Calculated values
-const teGained = computed(() => Math.max(0, targetTE.value - currentTE.value));
-
 const eggsToLay = computed(() => {
-  if (teGained.value <= 0) return 0;
-  return eggsNeededForTE(currentEggsDelivered.value, targetTE.value);
+  if (teToGain.value <= 0) return 0;
+  return eggsNeededForTE(currentEggsDelivered.value, targetTENumber.value);
 });
 
 const timeToLaySeconds = computed(() => {
@@ -183,12 +228,15 @@ const timeToLaySeconds = computed(() => {
   return eggsToLay.value / ratePerSecond;
 });
 
+const elrPerHour = computed(() => layRateOutput.value.totalRatePerSecond * 3600);
+const elrPerDay = computed(() => layRateOutput.value.totalRatePerSecond * 86400);
+
 // Validation
 const canWait = computed(() =>
-  teGained.value > 0 &&
+  teToGain.value > 0 &&
   eggsToLay.value > 0 &&
   isFinite(timeToLaySeconds.value) &&
-  targetTE.value <= 98
+  targetTENumber.value <= 98
 );
 
 function handleWaitForTE() {
@@ -199,10 +247,12 @@ function handleWaitForTE() {
 
   const payload = {
     egg: beforeSnapshot.currentEgg,
-    targetTE: targetTE.value,
-    teGained: teGained.value,
+    targetTE: targetTENumber.value,
+    teGained: teToGain.value,
     eggsToLay: eggsToLay.value,
     timeSeconds: timeToLaySeconds.value,
+    startEggsDelivered: currentEggsDelivered.value,
+    startTE: currentTE.value,
   };
 
   const dependencies = computeDependencies('wait_for_te', payload, actionsStore.actions);
@@ -220,7 +270,7 @@ function handleWaitForTE() {
     dependsOn: dependencies,
   }, beforeSnapshot);
 
-  // Reset target for next action
-  targetTE.value = Math.min(98, currentTE.value + 1);
+  // Reset selection for next action
+  teToGain.value = 1;
 }
 </script>

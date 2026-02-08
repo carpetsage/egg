@@ -74,9 +74,16 @@
         @click="handleBuySilo"
       >
         <img :src="`${baseUrl}static/img/silo.png`" class="w-6 h-6 object-contain brightness-0 invert" alt="silo" />
-        <span>Buy Silo #{{ siloOutput.siloCount + 1 }}</span>
-        <span class="text-purple-200">·</span>
-        <span class="font-medium">{{ formatNumber(siloOutput.nextSiloCost, 0) }} bocks</span>
+        <div class="flex flex-col items-center">
+          <div class="flex items-center gap-2">
+            <span>Buy Silo #{{ siloOutput.siloCount + 1 }}</span>
+            <span class="text-purple-200">·</span>
+            <span class="font-medium">{{ formatNumber(siloOutput.nextSiloCost, 0) }} gems</span>
+          </div>
+          <span v-if="timeToBuy" class="text-[10px] text-purple-200 font-mono">
+            {{ timeToBuy }}
+          </span>
+        </div>
       </button>
       <p class="text-xs text-gray-400 mt-2 text-center">
         +{{ siloOutput.minutesPerSilo }}m away time
@@ -97,11 +104,12 @@ import { useSiloTime } from '@/composables/useSiloTime';
 import { useSilosStore } from '@/stores/silos';
 import { useActionsStore } from '@/stores/actions';
 import { computeDependencies } from '@/lib/actions/executor';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatDuration } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import { computed } from 'vue';
 
 const silosStore = useSilosStore();
 const actionsStore = useActionsStore();
@@ -109,6 +117,20 @@ const { output: siloOutput } = useSiloTime();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const baseUrl = import.meta.env.BASE_URL;
+
+const timeToBuy = computed(() => {
+  const price = siloOutput.value.nextSiloCost;
+  if (price <= 0) return 'Free';
+
+  const snapshot = actionsStore.effectiveSnapshot;
+  const offlineEarnings = snapshot.offlineEarnings;
+
+  if (offlineEarnings <= 0) return '∞';
+
+  const seconds = price / offlineEarnings;
+  if (seconds < 1) return 'Instant';
+  return formatDuration(seconds);
+});
 
 function handleBuySilo() {
   if (!siloOutput.value.canBuyMore) return;

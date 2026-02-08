@@ -79,7 +79,7 @@ export const useSilosStore = defineStore('silos', {
  * Calculate cost of the next silo.
  * Formula: 100M * n^(3*n+15) where n = current silos owned
  * @param silosOwned Current number of silos owned
- * @returns Cost of next silo in bocks (cash)
+ * @returns Cost of next silo in gems (cash)
  */
 export function nextSiloCost(silosOwned: number): number {
   if (silosOwned <= 0) {

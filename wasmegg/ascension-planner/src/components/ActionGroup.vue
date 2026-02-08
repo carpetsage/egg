@@ -78,7 +78,11 @@
     />
 
     <!-- Expanded content (action details) -->
-    <div v-if="isExpanded" class="border-t border-purple-200">
+    <div
+      v-if="isExpanded"
+      ref="scrollContainer"
+      class="border-t border-purple-200 max-h-[400px] overflow-y-auto"
+    >
       <!-- Action list -->
       <ActionHistoryItem
         v-for="(action, idx) in actions"
@@ -93,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineAsyncComponent } from 'vue';
+import { ref, computed, defineAsyncComponent, watch, nextTick } from 'vue';
 import { iconURL } from 'lib';
 import type { Action, VirtueEgg, StartAscensionPayload, ShiftPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
@@ -147,6 +151,18 @@ const isExpanded = computed(() => {
   if (props.forceCollapsed) return false;
   if (props.isCurrent) return !manuallyCollapsed.value;
   return false;
+});
+
+const scrollContainer = ref<HTMLElement | null>(null);
+
+// Scroll to bottom when actions change and we are expanded
+watch(() => props.actions.length, async () => {
+  if (isExpanded.value) {
+    await nextTick();
+    if (scrollContainer.value) {
+      scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight;
+    }
+  }
 });
 
 function toggleExpanded() {

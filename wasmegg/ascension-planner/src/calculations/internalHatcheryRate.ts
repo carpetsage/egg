@@ -10,6 +10,7 @@ import type {
   IHROutput
 } from '@/types';
 import { allResearches } from 'lib';
+import { calculateLinearEffect, selectResearches } from '@/utils/research';
 
 /**
  * IHR research with additional flags for multiplicative/offline behavior.
@@ -36,18 +37,19 @@ const commonIHRResearchIds = [
 ];
 
 // Build common researches from JSON
-const commonIHRResearches: IHRResearch[] = (allResearches as Research[])
-  .filter(r => commonIHRResearchIds.includes(r.id))
-  .map(r => ({
+const commonIHRResearches: IHRResearch[] = selectResearches(
+  commonIHRResearchIds,
+  r => ({
     id: r.id,
     name: r.name,
     description: r.description,
     maxLevel: r.levels,
     perLevel: r.per_level,
-    isMultiplicative: false,
-    isOfflineOnly: false,
+    isMultiplicative: r.levels_compound === 'multiplicative',
+    isOfflineOnly: r.id === 'int_hatch_calm',
     isEpic: false,
-  }));
+  })
+);
 
 // Epic researches (not in researches.json, defined manually)
 const epicIHRResearches: IHRResearch[] = [
@@ -82,14 +84,8 @@ const allIHRResearches: IHRResearch[] = [...commonIHRResearches, ...epicIHRResea
  * For multiplicative: returns the multiplier value
  */
 export function calculateResearchContribution(research: IHRResearch, level: number): number {
-  if (level <= 0) return research.isMultiplicative ? 1 : 0;
-  const clampedLevel = Math.min(level, research.maxLevel);
-
-  if (research.isMultiplicative) {
-    return 1 + (research.perLevel * clampedLevel);
-  } else {
-    return research.perLevel * clampedLevel;
-  }
+  const base = research.isMultiplicative ? 1 : 0;
+  return calculateLinearEffect(level, research.maxLevel, research.perLevel, base);
 }
 
 /**

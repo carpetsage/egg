@@ -4,7 +4,7 @@
 
 import type { ActionExecutor, ExecutorContext } from '../executor';
 import type { BuyVehiclePayload } from '@/types';
-import { getVehicleType, getDiscountedVehiclePrice, countVehiclesOfTypeBefore } from '@/lib/vehicles';
+import { getVehicleType, getDiscountedVehiclePrice, countVehiclesOfType } from '@/lib/vehicles';
 import { formatNumber } from '@/lib/format';
 
 export const buyVehicleExecutor: ActionExecutor<'buy_vehicle'> = {
@@ -13,7 +13,7 @@ export const buyVehicleExecutor: ActionExecutor<'buy_vehicle'> = {
 
     // Get current vehicles to determine purchase index
     const vehicles = context.getVehicles();
-    const purchaseIndex = countVehiclesOfTypeBefore(vehicles, vehicleId, slotIndex);
+    const purchaseIndex = countVehiclesOfType(vehicles, vehicleId);
 
     // Calculate cost with modifiers
     const modifiers = context.getVehicleCostModifiers();

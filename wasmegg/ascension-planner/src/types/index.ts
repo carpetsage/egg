@@ -42,6 +42,17 @@ export interface ResearchLevels {
 }
 
 /**
+ * Shared research definition for calculations.
+ */
+export interface BaseCalculationResearch {
+  id: string;
+  name: string;
+  description: string;
+  maxLevel: number;
+  perLevel: number;
+}
+
+/**
  * Colleggtible modifiers - multiplicative bonuses from colleggtibles
  * Values are multipliers (1.0 = no bonus, 1.1 = +10%, 0.9 = -10%)
  */
@@ -327,6 +338,14 @@ export interface ShippingCapacityOutput {
   // Artifact breakdown for display
   artifactMultiplier: number;
   artifactBreakdown: ArtifactEffectDisplay[];
+}
+
+/**
+ * Input for Effective Lay Rate calculation
+ */
+export interface EffectiveLayRateInput {
+  layRate: number;
+  shippingCapacity: number;
 }
 
 /**

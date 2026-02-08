@@ -188,7 +188,9 @@ function getTimeToBuy(research: CommonResearch): string {
   const price = getNextLevelPrice(research);
   if (price <= 0) return '';
 
-  const offlineEarnings = actionsStore.effectiveSnapshot.offlineEarnings;
+  const snapshot = actionsStore.effectiveSnapshot;
+  const offlineEarnings = snapshot.offlineEarnings;
+
   if (offlineEarnings <= 0) return '∞';
 
   const seconds = price / offlineEarnings;

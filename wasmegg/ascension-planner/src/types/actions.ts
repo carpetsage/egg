@@ -156,6 +156,8 @@ export interface WaitForTEPayload {
   teGained: number;       // How many TE gained in this action
   eggsToLay: number;      // Eggs to lay to reach target
   timeSeconds: number;    // Time required
+  startEggsDelivered: number; // Eggs delivered before this action
+  startTE: number;            // TE thresholds passed before this action
 }
 
 /**
@@ -378,8 +380,8 @@ export function createEmptySnapshot(): CalculationsSnapshot {
       resilience: 0,
       kindness: 0,
     },
-    vehicles: [],
-    habIds: [0, null, null, null], // Start with one Coop (id=0)
+    vehicles: [{ vehicleId: 0, trainLength: 1 }], // Every player starts with 1 trike
+    habIds: [0, null, null, null], // Every player starts with 1 Coop (id=0)
     researchLevels: {},
     artifactLoadout: [
       { artifactId: null, stones: [] },

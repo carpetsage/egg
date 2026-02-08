@@ -10,12 +10,14 @@ import type {
   HabCapacityOutput
 } from '@/types';
 import { habTypes, isPortalHab, type Hab } from '@/lib/habs';
-import { allResearches } from 'lib';
+import { calculateLinearEffect, selectResearches } from '@/utils/research';
+
+import { BaseCalculationResearch } from '@/types';
 
 /**
  * Hab capacity research with portal-only flag.
  */
-export interface HabCapacityResearch extends Research {
+export interface HabCapacityResearch extends BaseCalculationResearch {
   portalOnly: boolean;
 }
 
@@ -28,21 +30,24 @@ const habCapacityResearchIds = [
 ];
 
 // Filter and annotate researches
-const habCapacityResearches: HabCapacityResearch[] = (allResearches as Research[])
-  .filter(r => habCapacityResearchIds.includes(r.id))
-  .map(r => ({
-    ...r,
+const habCapacityResearches: HabCapacityResearch[] = selectResearches(
+  habCapacityResearchIds,
+  r => ({
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    maxLevel: r.levels,
+    perLevel: r.per_level,
     portalOnly: r.id === 'wormhole_dampening'
-  }));
+  })
+);
 
 /**
  * Calculate the multiplier from a single research at a given level.
  * All hab capacity researches use additive compounding.
  */
 export function calculateResearchMultiplier(research: HabCapacityResearch, level: number): number {
-  if (level <= 0) return 1;
-  const clampedLevel = Math.min(level, research.levels);
-  return 1 + (research.per_level * clampedLevel);
+  return calculateLinearEffect(level, research.maxLevel, research.perLevel);
 }
 
 /**
@@ -139,7 +144,7 @@ export function calculateHabCapacity_Full(input: HabCapacityInput): HabCapacityO
     name: research.name,
     description: research.description,
     level: researchLevels[research.id] || 0,
-    maxLevel: research.levels,
+    maxLevel: research.maxLevel,
     multiplier: calculateResearchMultiplier(research, researchLevels[research.id] || 0),
     portalOnly: research.portalOnly,
   }));

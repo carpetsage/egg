@@ -7,33 +7,25 @@ import type {
   Research,
   ResearchLevels,
   ShippingCapacityInput,
-  ShippingCapacityOutput
+  ShippingCapacityOutput,
+  BaseCalculationResearch
 } from '@/types';
 import { vehicleTypes, getVehicleType, BASE_FLEET_SIZE, BASE_TRAIN_LENGTH } from '@/lib/vehicles';
 import { allResearches } from 'lib';
+import { calculateLinearEffect, selectResearches } from '@/utils/research';
 
 /**
  * Shipping capacity research with flags for hover/hyperloop-only effects.
  */
-export interface ShippingCapacityResearch {
-  id: string;
-  name: string;
-  description: string;
-  maxLevel: number;
-  perLevel: number;
+interface ShippingCapacityResearch extends BaseCalculationResearch {
   hoverOnly: boolean;
   hyperloopOnly: boolean;
 }
 
 /**
- * Fleet size research (adds vehicle slots).
+ * Fleet size research (+1 slot per level).
  */
-export interface FleetSizeResearch {
-  id: string;
-  name: string;
-  maxLevel: number;
-  perLevel: number;  // slots per level (always 1)
-}
+interface FleetSizeResearch extends BaseCalculationResearch { }
 
 // Shipping capacity research IDs (from researches.json)
 // Note: transportation_lobbyist is an EPIC research and is handled separately
@@ -62,9 +54,9 @@ const fleetSizeResearchIds = [
 const GRAVITON_COUPLING_ID = 'micro_coupling';
 
 // Build capacity researches from JSON
-const capacityResearches: ShippingCapacityResearch[] = (allResearches as Research[])
-  .filter(r => shippingCapacityResearchIds.includes(r.id))
-  .map(r => ({
+const capacityResearches: ShippingCapacityResearch[] = selectResearches(
+  shippingCapacityResearchIds,
+  r => ({
     id: r.id,
     name: r.name,
     description: r.description,
@@ -72,17 +64,20 @@ const capacityResearches: ShippingCapacityResearch[] = (allResearches as Researc
     perLevel: r.per_level,
     hoverOnly: r.id === 'hover_upgrades',
     hyperloopOnly: r.id === 'hyper_portalling',
-  }));
+  })
+);
 
 // Build fleet size researches from JSON
-const fleetSizeResearches: FleetSizeResearch[] = (allResearches as Research[])
-  .filter(r => fleetSizeResearchIds.includes(r.id))
-  .map(r => ({
+const fleetSizeResearches: FleetSizeResearch[] = selectResearches(
+  fleetSizeResearchIds,
+  r => ({
     id: r.id,
     name: r.name,
+    description: r.description,
     maxLevel: r.levels,
     perLevel: r.per_level,
-  }));
+  })
+);
 
 // Get graviton coupling research from JSON
 const gravitonCouplingResearch = (allResearches as Research[]).find(r => r.id === GRAVITON_COUPLING_ID);
@@ -91,8 +86,7 @@ const gravitonCouplingResearch = (allResearches as Research[]).find(r => r.id ==
  * Calculate research multiplier (1 + perLevel * level).
  */
 function calculateResearchMultiplier(perLevel: number, level: number, maxLevel: number): number {
-  const clampedLevel = Math.max(0, Math.min(level, maxLevel));
-  return 1 + (perLevel * clampedLevel);
+  return calculateLinearEffect(level, maxLevel, perLevel);
 }
 
 /**

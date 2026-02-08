@@ -26,8 +26,16 @@
         <VehicleSelect
           :model-value="slot.vehicleId !== null ? String(slot.vehicleId) : undefined"
           :items="getAvailableVehicles(slot.vehicleId)"
-          :get-item-id="item => String(item.id)"
-          :get-item-display="item => `${item.name} (${formatNumber(getVehiclePrice(item.id, index), 0)} gems)`"
+           :get-item-id="item => String(item.id)"
+          :get-item-display="item => {
+            const currentSlot = displaySlots[index];
+            if (currentSlot && currentSlot.vehicleId === item.id) {
+              return `${item.name} (Owned)`;
+            }
+            const price = getVehiclePrice(item.id, index);
+            const capacity = getVehicleCapacity({ vehicleId: item.id, trainLength: 1 }, index);
+            return `${item.name} (${formatNumber(capacity * 3600, 0)}/hr, ${formatNumber(price, 0)} gems) — ${getVehicleTimeToBuy(item.id, index)}`;
+          }"
           :get-item-icon-path="item => item.iconPath"
           :item-from-id="id => getVehicleType(parseInt(id))!"
           :search-items="(query) => searchVehicles(getAvailableVehicles(slot.vehicleId), query)"
@@ -47,23 +55,25 @@
               <span class="text-xs font-bold text-blue-600">{{ slot.trainLength }} / {{ getMaxTrainLength() }}</span>
             </div>
 
-            <div class="flex gap-1.5">
+            <div class="flex gap-1.5 items-end">
               <!-- Add car button -->
               <button
                 v-if="canAddTrainCar(slot, index)"
-                class="text-[10px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-md border border-blue-100 transition-all shadow-sm"
+                class="text-[10px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-md border border-blue-100 transition-all shadow-sm flex flex-col items-center min-w-[80px]"
                 @click="handleAddTrainCar(index)"
               >
-                +1 ({{ formatNumber(getNextCarCost(slot), 0) }})
+                <span>+1 Car ({{ formatNumber(getNextCarCost(slot), 0) }})</span>
+                <span class="text-[9px] font-medium opacity-70">{{ getCarTimeToBuy(slot) }}</span>
               </button>
 
               <!-- Max cars button -->
               <button
                 v-if="canAddMultipleTrainCars(slot, index)"
-                class="text-[10px] font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white px-2 py-1 rounded-md border border-indigo-100 transition-all shadow-sm"
+                class="text-[10px] font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white px-2 py-1 rounded-md border border-indigo-100 transition-all shadow-sm flex flex-col items-center min-w-[80px]"
                 @click="handleMaxTrainCars(index)"
               >
-                Max (+{{ getRemainingCars(slot, index) }})
+                <span>Max (+{{ getRemainingCars(slot, index) }}) ({{ formatNumber(getTotalCarsCost(slot), 0) }})</span>
+                <span class="text-[9px] font-medium opacity-70">{{ getMaxCarsTimeToBuy(slot) }}</span>
               </button>
             </div>
           </div>
@@ -96,13 +106,13 @@ import {
   getVehicleType,
   getDiscountedVehiclePrice,
   getDiscountedTrainCarPrice,
-  countVehiclesOfTypeBefore,
+  countVehiclesOfType,
   BASE_TRAIN_LENGTH,
   MAX_TRAIN_LENGTH,
   type VehicleCostModifiers,
   type VehicleType,
 } from '@/lib/vehicles';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatDuration } from '@/lib/format';
 import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useShippingCapacity } from '@/composables/useShippingCapacity';
 import { useInitialStateStore } from '@/stores/initialState';
@@ -177,9 +187,42 @@ const activeVehicleCount = computed(() =>
 );
 
 function getVehiclePrice(vehicleId: number, slotIndex: number): number {
+  const currentSlot = displaySlots.value[slotIndex];
+  if (currentSlot && currentSlot.vehicleId === vehicleId) {
+    return 0;
+  }
+  
   const effectiveVehicles = effectiveSnapshot.value.vehicles || [];
-  const existingCount = countVehiclesOfTypeBefore(effectiveVehicles, vehicleId, slotIndex);
+  const existingCount = countVehiclesOfType(effectiveVehicles, vehicleId);
   return getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value);
+}
+
+function getTimeToBuyFromPrice(price: number): string {
+  if (price <= 0) return 'Free';
+
+  const snapshot = actionsStore.effectiveSnapshot;
+  const offlineEarnings = snapshot.offlineEarnings;
+
+  if (offlineEarnings <= 0) return '∞';
+
+  const seconds = price / offlineEarnings;
+  if (seconds < 1) return 'Instant';
+  return formatDuration(seconds);
+}
+
+function getVehicleTimeToBuy(vehicleId: number, slotIndex: number): string {
+  const price = getVehiclePrice(vehicleId, slotIndex);
+  return getTimeToBuyFromPrice(price);
+}
+
+function getCarTimeToBuy(slot: { vehicleId: number | null; trainLength: number }): string {
+  const price = getNextCarCost(slot);
+  return getTimeToBuyFromPrice(price);
+}
+
+function getMaxCarsTimeToBuy(slot: { vehicleId: number | null; trainLength: number }): string {
+  const price = getTotalCarsCost(slot);
+  return getTimeToBuyFromPrice(price);
 }
 
 function getVehicleCapacity(slot: { vehicleId: number | null; trainLength: number }, _index: number): number {
@@ -234,7 +277,7 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
 
   // Calculate cost based on effective state
   const effectiveVehicles = beforeSnapshot.vehicles;
-  const existingCount = countVehiclesOfTypeBefore(effectiveVehicles, vehicleId, slotIndex);
+  const existingCount = countVehiclesOfType(effectiveVehicles, vehicleId);
   const cost = getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value);
 
   // Build payload
@@ -301,6 +344,20 @@ function getRemainingCars(slot: { vehicleId: number | null; trainLength: number 
 function getNextCarCost(slot: { vehicleId: number | null; trainLength: number }): number {
   // trainLength is current, so next car index is trainLength (0-indexed would be trainLength)
   return getDiscountedTrainCarPrice(slot.trainLength, costModifiers.value);
+}
+
+/**
+ * Get the total cost for all remaining train cars.
+ */
+function getTotalCarsCost(slot: { vehicleId: number | null; trainLength: number }): number {
+  if (slot.vehicleId !== 11) return 0;
+  let total = 0;
+  const currentLength = slot.trainLength;
+  const maxLength = getMaxTrainLength();
+  for (let i = currentLength; i < maxLength; i++) {
+    total += getDiscountedTrainCarPrice(i, costModifiers.value);
+  }
+  return total;
 }
 
 /**

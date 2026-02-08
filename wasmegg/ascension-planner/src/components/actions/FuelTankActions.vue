@@ -121,6 +121,7 @@ import { useFuelTankStore, timeToStore } from '@/stores/fuelTank';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
 import { useLayRate } from '@/composables/useLayRate';
+import { useTruthEggsStore } from '@/stores/truthEggs';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatDuration, parseNumber } from '@/lib/format';
 import { generateActionId, VIRTUE_EGG_NAMES } from '@/types';
@@ -128,6 +129,7 @@ import { VIRTUE_FUEL_ORDER } from '@/stores/fuelTank';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const fuelTankStore = useFuelTankStore();
+const truthEggsStore = useTruthEggsStore();
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
 const { output: layRateOutput } = useLayRate();
@@ -172,6 +174,7 @@ function handleStoreFuel() {
 
   // Apply to store
   fuelTankStore.addFuel(payload.egg, payload.amount);
+  truthEggsStore.addEggsDelivered(payload.egg, payload.amount);
 
   // Complete execution
   completeExecution({

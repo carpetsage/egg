@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { markRaw } from 'vue';
 import type {
   Action,
   CalculationsSnapshot,
@@ -10,15 +11,20 @@ import {
   createEmptyUndoValidation,
   generateActionId,
 } from '@/types';
-import { replayActionsFromIndex } from '@/lib/actions/replay';
 import { computeDeltas } from '@/lib/actions/snapshot';
+
+// Engine imports
+import { simulate } from '@/engine/simulate';
+import { applyAction } from '@/engine/apply';
+import { computeSnapshot } from '@/engine/compute';
+import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
 
 /**
  * Actions store - THE source of truth for calculation state.
  *
  * Current state = Initial State + All Actions applied in order.
- * The existing calculation stores are mutated by actions, and snapshots
- * capture the state after each action.
+ * Uses a pure simulation engine to compute state history without mutating
+ * Pinia stores during history traversal.
  */
 
 export interface ActionsState {
@@ -47,7 +53,7 @@ function createDefaultStartAction(initialEgg: VirtueEgg = 'curiosity'): Action<'
     layRateDelta: 0,
     shippingCapacityDelta: 0,
     ihrDelta: 0,
-    endState: createEmptySnapshot(),
+    endState: createEmptySnapshot(), // Placeholder, will be computed by engine
     dependsOn: [],
     dependents: [],
   };
@@ -110,13 +116,12 @@ export const useActionsStore = defineStore('actions', {
       }
 
       // Find the editing group's header action
-      const headerAction = this.actions.find(a => a.id === this.editingGroupId);
-      if (!headerAction) {
+      const headerIndex = this.actions.findIndex(a => a.id === this.editingGroupId);
+      if (headerIndex === -1) {
         return this.currentSnapshot;
       }
 
       // Find the next shift after this header
-      const headerIndex = this.actions.findIndex(a => a.id === this.editingGroupId);
       const nextShiftIndex = this.actions.findIndex(
         (a, idx) => idx > headerIndex && a.type === 'shift'
       );
@@ -159,16 +164,19 @@ export const useActionsStore = defineStore('actions', {
   actions: {
     /**
      * Set the initial snapshot (called when player data is loaded or initial state changes).
-     * Updates the start_ascension action's endState.
+     * Updates the start_ascension action's endState via simulation.
      */
     setInitialSnapshot(snapshot: CalculationsSnapshot) {
       this._initialSnapshot = snapshot;
 
-      // Update the start_ascension action's endState
-      const startAction = this.actions.find(a => a.type === 'start_ascension');
-      if (startAction) {
-        startAction.endState = snapshot;
+      // Ensure we have a start_ascension action
+      if (this.actions.length === 0) {
+        this.actions.push(createDefaultStartAction());
       }
+
+      // Re-run simulation to update start_ascension and all subsequent actions
+      // This ensures everything is in sync with the new initial conditions
+      this.recalculateAll();
     },
 
     /**
@@ -198,31 +206,61 @@ export const useActionsStore = defineStore('actions', {
 
     /**
      * Add a new action.
-     * This is called by the action executors after they've computed
-     * the cost, applied changes to stores, and created the snapshot.
+     * Uses the pure engine to compute the result and updates history.
      */
     pushAction(action: Omit<Action, 'index' | 'dependents'> & { dependsOn: string[] }) {
-      const fullAction: Action = {
+      // 1. Get Context
+      const context = getSimulationContext();
+
+      // 2. Get Previous State
+      // If no actions, start from base. If actions exist, use last one's endState (which behaves as EngineState)
+      let prevState = this.actions.length > 0
+        ? this.actions[this.actions.length - 1].endState
+        : createBaseEngineState(this.initialSnapshot);
+
+      // 3. Compute new state pure
+      const fullAction = {
         ...action,
         index: this.actions.length,
         dependents: [],
+        // Temporary placeholder, will be overwritten
+        endState: createEmptySnapshot(),
       } as Action;
 
-      // Update dependents on referenced actions
+      const newState = applyAction(prevState, fullAction);
+      const newSnapshot = computeSnapshot(newState, context);
+
+      // 4. Compute deltas
+      const prevSnapshot = this.actions.length > 0
+        ? this.actions[this.actions.length - 1].endState
+        : (this._initialSnapshot ?? createEmptySnapshot());
+
+      const deltas = computeDeltas(prevSnapshot, newSnapshot);
+
+      // 5. Update Action with result
+      const finalAction: Action = {
+        ...fullAction,
+        ...deltas,
+        endState: markRaw(newSnapshot),
+      };
+
+      // 6. Update dependents
       for (const depId of action.dependsOn) {
         const depAction = this.actions.find(a => a.id === depId);
         if (depAction) {
-          depAction.dependents.push(fullAction.id);
+          depAction.dependents.push(finalAction.id);
         }
       }
 
-      this.actions.push(fullAction);
+      this.actions.push(finalAction);
+
+      // 7. Sync stores to match the new reality
+      // This ensures the rest of the app (which relies on stores) sees the update
+      syncStoresToSnapshot(newSnapshot);
     },
 
     /**
      * Validate an undo operation.
-     * Returns info about dependent actions for UI confirmation.
-     * start_ascension cannot be undone.
      */
     prepareUndo(actionId: string): UndoValidation {
       const action = this.actions.find(a => a.id === actionId);
@@ -230,7 +268,6 @@ export const useActionsStore = defineStore('actions', {
         return createEmptyUndoValidation();
       }
 
-      // Cannot undo start_ascension
       if (action.type === 'start_ascension') {
         return createEmptyUndoValidation();
       }
@@ -246,14 +283,11 @@ export const useActionsStore = defineStore('actions', {
 
     /**
      * Execute undo after user confirmation.
-     * @param actionId - The action to undo
-     * @param includeDependents - Whether to also undo dependent actions
-     * @param restoreCallback - Function to restore stores to a snapshot
      */
     executeUndo(
       actionId: string,
       includeDependents: boolean,
-      restoreCallback: (snapshot: CalculationsSnapshot) => void
+      restoreCallback?: (snapshot: CalculationsSnapshot) => void // Optional now as we handle it
     ) {
       const validation = this.prepareUndo(actionId);
       if (!validation.valid) return;
@@ -266,36 +300,61 @@ export const useActionsStore = defineStore('actions', {
         }
       }
 
-      // Filter to remaining actions and re-index them
-      this.actions = this.actions
-        .filter(a => !toRemove.has(a.id))
-        .map((a, idx) => ({ ...a, index: idx }));
+      // Filter to remaining actions
+      const newActions = this.actions.filter(a => !toRemove.has(a.id));
 
-      // Clear dependents references for remaining actions
-      for (const action of this.actions) {
+      // Clean up dependents references
+      for (const action of newActions) {
         action.dependents = action.dependents.filter(depId => !toRemove.has(depId));
       }
 
-      // Restore stores to the state of the last remaining action
-      const lastAction = this.actions[this.actions.length - 1];
-      if (lastAction) {
-        restoreCallback(lastAction.endState);
+      // We need to re-simulate everything to ensure indices and states are correct
+      // (Removing an action might change the state of subsequent independent actions if we're not careful,
+      //  but assuming independence, they might be fine. BUT safe bet is to re-sim).
+      // However, re-simulating everything from scratch is safest.
+
+      // Reset actions to the new list (temporarily) so recalculateAll picks them up
+      this.actions = newActions;
+
+      // Recalculate everything to fix indices and states
+      this.recalculateAll();
+
+      // Restore stores to the end state
+      if (this.actions.length > 0) {
+        const lastSnapshot = this.actions[this.actions.length - 1].endState;
+        syncStoresToSnapshot(lastSnapshot);
+        if (restoreCallback) restoreCallback(lastSnapshot);
+      } else {
+        // Should not happen as start_ascension is kept
       }
     },
 
     /**
      * Clear all actions except start_ascension.
-     * @param resetCallback - Function to reset stores to initial state
      */
-    clearAll(resetCallback: () => void) {
-      // Keep only start_ascension
+    clearAll(resetCallback?: () => void) {
       const startAction = this.actions.find(a => a.type === 'start_ascension');
-      this.actions = startAction ? [startAction] : [];
-      resetCallback();
+
+      // Reset to just the start action
+      if (startAction) {
+        this.actions = [startAction];
+        // Re-calculate to reset start action state if needed
+        this.recalculateAll();
+      } else {
+        this.actions = [createDefaultStartAction()];
+        this.recalculateAll();
+      }
+
+      // Restore stores
+      if (this.actions.length > 0) {
+        syncStoresToSnapshot(this.actions[0].endState);
+      }
+
+      if (resetCallback) resetCallback();
     },
 
     /**
-     * Get the start_ascension action (always the first action).
+     * Get the start_ascension action.
      */
     getStartAction(): Action<'start_ascension'> | undefined {
       return this.actions.find(a => a.type === 'start_ascension') as Action<'start_ascension'> | undefined;
@@ -309,66 +368,64 @@ export const useActionsStore = defineStore('actions', {
       return action !== undefined && action.type !== 'start_ascension';
     },
 
-    /**
-     * Get action by ID.
-     */
     getAction(actionId: string): Action | undefined {
       return this.actions.find(a => a.id === actionId);
     },
 
-    /**
-     * Get action by index.
-     */
     getActionByIndex(index: number): Action | undefined {
       return this.actions[index];
     },
 
     /**
-     * Update the initial egg for the start_ascension action.
-     * Also updates the snapshot's currentEgg.
+     * Update the initial egg.
      */
     setInitialEgg(egg: VirtueEgg) {
       const startAction = this.actions.find(a => a.type === 'start_ascension') as Action<'start_ascension'> | undefined;
       if (startAction) {
         startAction.payload.initialEgg = egg;
-        startAction.endState.currentEgg = egg;
+        // Re-simulate to propagate change
+        this.recalculateAll();
+      }
+    },
+
+    setEditingGroup(groupId: string | null) {
+      this.editingGroupId = groupId;
+      // When entering edit mode, we might want to restore state to that point?
+      // For now, let's leave it as is. The UI handles "effectiveSnapshot".
+      if (groupId === null) {
+        // When leaving edit mode, restore to current head
+        syncStoresToSnapshot(this.currentSnapshot);
+      } else {
+        // When entering edit mode, sync to effective snapshot
+        syncStoresToSnapshot(this.effectiveSnapshot);
       }
     },
 
     /**
-     * Set the group being edited.
-     * Pass null to stop editing and return to current state.
-     */
-    setEditingGroup(groupId: string | null) {
-      this.editingGroupId = groupId;
-    },
-
-    /**
-     * Insert an action at the editing position and recompute subsequent snapshots.
-     * If not editing a past group, this behaves like pushAction.
-     * @param action - The action to insert (without index and dependents)
-     * @param replayCallback - Function to replay an action and return its new snapshot
+     * Insert an action at the editing position.
+     * Uses pure engine simulation for re-calculation.
      */
     insertAction(
       action: Omit<Action, 'index' | 'dependents'> & { dependsOn: string[] },
-      replayCallback: (action: Action, previousSnapshot: CalculationsSnapshot) => CalculationsSnapshot
+      replayCallback?: any // unused now, kept for signature partial compat if needed
     ) {
       const insertIndex = this.editingInsertIndex;
 
       if (insertIndex === -1) {
-        // Not editing a past group, just push normally
+        // Cast to satisfy TS if needed, though they should match now
         this.pushAction(action);
         return;
       }
 
-      // Create the full action
+      // Create full action
       const fullAction: Action = {
         ...action,
         index: insertIndex,
         dependents: [],
+        endState: createEmptySnapshot(), // Placeholder
       } as Action;
 
-      // Update dependents on referenced actions
+      // Update dependents
       for (const depId of action.dependsOn) {
         const depAction = this.actions.find(a => a.id === depId);
         if (depAction) {
@@ -376,38 +433,45 @@ export const useActionsStore = defineStore('actions', {
         }
       }
 
-      // Insert the action at the correct position
+      // Insert
       this.actions.splice(insertIndex, 0, fullAction);
 
-      // Re-index all actions after the insertion point
-      for (let i = insertIndex; i < this.actions.length; i++) {
-        this.actions[i].index = i;
-      }
+      // Re-calculate everything from insertion point (or just all for simplicity)
+      // RecalculateAll uses the optimized Engine, so it's fast (O(N) non-reactive).
+      this.recalculateAll();
 
-      // Replay all subsequent actions to recompute their snapshots
-      for (let i = insertIndex + 1; i < this.actions.length; i++) {
-        const prevSnapshot = this.actions[i - 1].endState;
-        const newSnapshot = replayCallback(this.actions[i], prevSnapshot);
-
-        // Compute deltas
-        const prevActionSnapshot = i > 0 ? this.actions[i - 1].endState : this._initialSnapshot ?? createEmptySnapshot();
-        const deltas = computeDeltas(prevActionSnapshot, newSnapshot);
-
-        // Update action
-        Object.assign(this.actions[i], {
-          ...deltas,
-          endState: newSnapshot,
-        });
-      }
+      // Update stores to effective snapshot (since we are still editing)
+      syncStoresToSnapshot(this.effectiveSnapshot);
     },
 
     /**
-     * Recalculate all actions from the beginning.
-     * Useful when global state (e.g. initial state, epic research) changes.
+     * Recalculate all actions using the Engine.
+     * Non-blocking, pure calculation.
      */
     recalculateAll() {
-      if (this.actions.length <= 1) return;
-      replayActionsFromIndex(this.actions, 1);
+      const context = getSimulationContext();
+      const baseState = createBaseEngineState(this.initialSnapshot);
+
+      // Run simulation on entire history
+      const newActions = simulate(this.actions, context, baseState);
+
+      // Update actions with new results (preserving reactivity of the array, but replacing objects)
+      // To avoid full array replacement if possible (Vue behavior), we can map.
+      // But simulate returns new objects.
+
+      // Mark snapshots as raw to avoid Vue deep reactivity cost
+      newActions.forEach(a => {
+        a.endState = markRaw(a.endState);
+      });
+
+      this.actions = newActions;
+
+      // Sync stores to the new head state if not editing
+      if (!this.editingGroupId) {
+        if (this.actions.length > 0) {
+          syncStoresToSnapshot(this.actions[this.actions.length - 1].endState);
+        }
+      }
     },
   },
 });
