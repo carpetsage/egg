@@ -134,6 +134,15 @@ export function computeDependencies(
 ): string[] {
   const deps: string[] = [];
 
+  // 1. Every action depends on the most recent shift/start_ascension (the "group header")
+  // This ensures that undoing a shift also undoes all actions performed during that shift.
+  const lastHeader = [...existingActions].reverse().find(
+    a => a.type === 'shift' || a.type === 'start_ascension'
+  );
+  if (lastHeader) {
+    deps.push(lastHeader.id);
+  }
+
   // Research level dependencies
   // Level N depends on the action that bought level N-1
   if (type === 'buy_research') {
@@ -213,8 +222,8 @@ function findResearchLevelAction(
 ): Action | undefined {
   return actions.find(
     a => a.type === 'buy_research' &&
-         (a.payload as BuyResearchPayload).researchId === researchId &&
-         (a.payload as BuyResearchPayload).toLevel === toLevel
+      (a.payload as BuyResearchPayload).researchId === researchId &&
+      (a.payload as BuyResearchPayload).toLevel === toLevel
   );
 }
 
@@ -228,8 +237,8 @@ function findGravitonCouplingAction(
   // Find the earliest action that gave us at least this level
   return actions.find(
     a => a.type === 'buy_research' &&
-         (a.payload as BuyResearchPayload).researchId === 'micro_coupling' &&
-         (a.payload as BuyResearchPayload).toLevel >= minLevel
+      (a.payload as BuyResearchPayload).researchId === 'micro_coupling' &&
+      (a.payload as BuyResearchPayload).toLevel >= minLevel
   );
 }
 
@@ -242,8 +251,8 @@ function findHyperloopPurchase(
 ): Action | undefined {
   return actions.find(
     a => a.type === 'buy_vehicle' &&
-         (a.payload as BuyVehiclePayload).slotIndex === slotIndex &&
-         (a.payload as BuyVehiclePayload).vehicleId === 11
+      (a.payload as BuyVehiclePayload).slotIndex === slotIndex &&
+      (a.payload as BuyVehiclePayload).vehicleId === 11
   );
 }
 
@@ -257,8 +266,8 @@ function findTrainCarAction(
 ): Action | undefined {
   return actions.find(
     a => a.type === 'buy_train_car' &&
-         (a.payload as BuyTrainCarPayload).slotIndex === slotIndex &&
-         (a.payload as BuyTrainCarPayload).toLength === toLength
+      (a.payload as BuyTrainCarPayload).slotIndex === slotIndex &&
+      (a.payload as BuyTrainCarPayload).toLength === toLength
   );
 }
 
@@ -272,7 +281,7 @@ function findSiloPurchaseAction(
 ): Action | undefined {
   return actions.find(
     a => a.type === 'buy_silo' &&
-         (a.payload as BuySiloPayload).toCount === toCount
+      (a.payload as BuySiloPayload).toCount === toCount
   );
 }
 

@@ -235,7 +235,7 @@ function buyOneLevel(research: CommonResearch): boolean {
   };
 
   // Compute dependencies (level N depends on the action that bought level N-1)
-  const dependencies = computeDependencies('buy_research', payload, actionsStore.actions);
+  const dependencies = computeDependencies('buy_research', payload, actionsStore.actionsBeforeInsertion);
 
   // Apply to store
   commonResearchStore.setResearchLevel(research.id, effectiveLevel + 1);

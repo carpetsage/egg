@@ -159,6 +159,18 @@ export const useActionsStore = defineStore('actions', {
       // Insert before the next shift, or at end if no next shift
       return nextShiftIndex === -1 ? -1 : nextShiftIndex;
     },
+
+    /**
+     * Get the actions that exist before the current insertion point.
+     * Used for dependency computation.
+     */
+    actionsBeforeInsertion(): Action[] {
+      const index = this.editingInsertIndex;
+      if (index === -1) {
+        return this.actions;
+      }
+      return this.actions.slice(0, index);
+    },
   },
 
   actions: {

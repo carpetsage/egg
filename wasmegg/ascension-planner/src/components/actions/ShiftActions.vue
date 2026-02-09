@@ -100,6 +100,7 @@ import { iconURL } from 'lib';
 import { VIRTUE_EGG_NAMES, VIRTUE_EGGS, type VirtueEgg, generateActionId } from '@/types';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
+import { computeDependencies } from '@/lib/actions/executor';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 
 const virtueStore = useVirtueStore();
@@ -204,6 +205,13 @@ function handleShift(toEgg: VirtueEgg) {
   const fromEgg = beforeSnapshot.currentEgg;
   const newShiftCount = beforeSnapshot.shiftCount + 1;
 
+  // Compute dependencies (shift depends on previous shift or start_ascension)
+  const dependencies = computeDependencies('shift', {
+    fromEgg,
+    toEgg,
+    newShiftCount,
+  }, actionsStore.actionsBeforeInsertion);
+
   // Apply the shift to the store
   virtueStore.shift(toEgg);
 
@@ -218,7 +226,7 @@ function handleShift(toEgg: VirtueEgg) {
       newShiftCount,
     },
     cost: 0, // Shifting is free
-    dependsOn: [],
+    dependsOn: dependencies,
   }, beforeSnapshot);
 }
 </script>

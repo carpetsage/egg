@@ -24,6 +24,7 @@ import { useActionsStore } from '@/stores/actions';
 import { generateActionId, type ArtifactSlotPayload } from '@/types';
 import type { EquippedArtifact } from '@/lib/artifacts';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import { computeDependencies } from '@/lib/actions/executor';
 
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
@@ -62,6 +63,12 @@ function handleLoadoutChange(newLoadout: EquippedArtifact[]) {
   // Prepare execution (restores stores if editing past group)
   const beforeSnapshot = prepareExecution();
 
+  // Compute dependencies
+  const dependencies = computeDependencies('change_artifacts', {
+    fromLoadout,
+    toLoadout,
+  }, actionsStore.actionsBeforeInsertion);
+
   // Apply the change to the store
   initialStateStore.setArtifactLoadout(newLoadout);
 
@@ -75,7 +82,7 @@ function handleLoadoutChange(newLoadout: EquippedArtifact[]) {
       toLoadout,
     },
     cost: 0, // Changing artifacts is free
-    dependsOn: [],
+    dependsOn: dependencies,
   }, beforeSnapshot);
 }
 </script>

@@ -68,6 +68,19 @@
       >
         Editing
       </span>
+
+      <!-- Undo button (only for shift actions) -->
+      <button
+        v-if="isShiftAction"
+        class="p-1.5 text-purple-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+        title="Undo this shift and all its actions"
+        @click.stop="$emit('undo', headerAction)"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+        </svg>
+      </button>
     </button>
 
     <!-- Egg Summary (for the egg we were ON during this period) -->
