@@ -261,6 +261,13 @@ export const useInitialStateStore = defineStore('initialState', {
     },
 
     /**
+     * Set soul eggs
+     */
+    setSoulEggs(count: number) {
+      this.soulEggs = count;
+    },
+
+    /**
      * Clear all initial state data
      */
     clear() {

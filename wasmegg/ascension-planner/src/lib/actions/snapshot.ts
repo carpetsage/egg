@@ -66,6 +66,7 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
     currentEgg: virtueStore.currentEgg,
     shiftCount: virtueStore.shiftCount,
     te: virtueStore.te,
+    soulEggs: initialStateStore.soulEggs,
 
     // Silo state
     siloCount: silosStore.siloCount,
@@ -180,6 +181,7 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
   virtueStore.setCurrentEgg(snapshot.currentEgg);
   virtueStore.setShiftCount(snapshot.shiftCount);
   virtueStore.setTE(snapshot.te);
+  initialStateStore.setSoulEggs(snapshot.soulEggs);
 
   // Restore silo state
   if (snapshot.siloCount !== undefined) {
