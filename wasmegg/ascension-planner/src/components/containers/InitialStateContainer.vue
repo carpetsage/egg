@@ -161,8 +161,9 @@ function handleSetEggsDelivered(egg: VirtueEgg, amount: number) {
   // Use sync version to auto-update TE based on thresholds
   truthEggsStore.setEggsDeliveredWithSync(egg, amount);
 
-  // Also update the virtue store's total TE
+  // Also update the virtue store's total TE and initial TE baseline
   virtueStore.setTE(truthEggsStore.totalTE);
+  virtueStore.setInitialTE(truthEggsStore.totalTE);
 
   updateInitialSnapshotAndRecalculate();
 }
@@ -171,14 +172,16 @@ function handleSetTEEarned(egg: VirtueEgg, count: number) {
   // Use sync version to auto-update eggs delivered to minimum threshold
   truthEggsStore.setTEEarnedWithSync(egg, count);
 
-  // Also update the virtue store's total TE
+  // Also update the virtue store's total TE and initial TE baseline
   virtueStore.setTE(truthEggsStore.totalTE);
+  virtueStore.setInitialTE(truthEggsStore.totalTE);
 
   updateInitialSnapshotAndRecalculate();
 }
 
 function handleSetTE(te: number) {
   virtueStore.setTE(te);
+  virtueStore.setInitialTE(te);
   updateInitialSnapshotAndRecalculate();
 }
 

@@ -121,6 +121,14 @@ export const useVirtueStore = defineStore('virtue', {
     },
 
     /**
+     * Set the initial TE value explicitly (baseline for plan).
+     */
+    setInitialTE(value: number) {
+      const newValue = Math.max(0, Math.min(490, Math.round(value)));
+      this.initialTE = newValue;
+    },
+
+    /**
      * Set the initial shift count (editable by user)
      */
     setInitialShiftCount(value: number) {

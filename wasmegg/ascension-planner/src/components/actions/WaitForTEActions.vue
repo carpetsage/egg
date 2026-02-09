@@ -34,14 +34,6 @@
             <span class="mx-1">→</span>
             <span>{{ formatNumber(currentEggsDelivered, 2) }}</span>
           </div>
-          
-          <div class="text-gray-700">Thresholds Passed:</div>
-          <div class="font-mono text-right">
-            <span class="text-gray-400">{{ initialTECount }}</span>
-            <span class="mx-1">→</span>
-            <span>{{ currentTE }}</span>
-          </div>
-
           <div class="text-gray-700 pt-1 font-medium border-t border-gray-50 flex items-center">
             Shipped in Plan:
           </div>
@@ -52,8 +44,14 @@
 
         <div class="grid grid-cols-2 gap-4 text-xs pt-2 border-t border-gray-100">
           <div>
-            <span class="text-gray-500">Pending TE:</span>
-            <span class="ml-2 font-mono text-amber-600 font-bold">{{ pendingTE }}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500">Claimed TE:</span>
+              <span class="font-mono text-gray-700 font-medium">{{ claimedTE }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500">Pending TE:</span>
+              <span class="font-mono text-amber-600 font-bold">{{ pendingTE }}</span>
+            </div>
           </div>
           <div class="text-right">
             <span class="text-gray-500">Total Progress:</span>
@@ -217,16 +215,12 @@ const currentTE = computed(() => {
   return Math.max(claimed, passed);
 });
 const pendingTE = computed(() => truthEggsStore.pendingTEForEgg(virtueStore.currentEgg));
+const claimedTE = computed(() => truthEggsStore.teEarned[virtueStore.currentEgg] || 0);
 
 // Initial state from backup (for comparative display)
 const initialEggsDelivered = computed(() => 
   actionsStore.initialSnapshot.eggsDelivered[virtueStore.currentEgg]
 );
-const initialTECount = computed(() => {
-  const claimed = actionsStore.initialSnapshot.teEarned[virtueStore.currentEgg] || 0;
-  const passed = countTEThresholdsPassed(initialEggsDelivered.value);
-  return Math.max(claimed, passed);
-});
 
 // Additional TE selection (user wants relative target)
 const teToGain = ref(1);
