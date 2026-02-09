@@ -20,7 +20,7 @@
         </div>
       </div>
       <div class="text-3xl font-bold text-blue-900">
-        {{ formatNumber(convertedCapacity, 2) }}/{{ timeUnitLabel }}
+        {{ formatNumber(convertedCapacity, 3) }}/{{ timeUnitLabel }}
       </div>
       <div class="text-sm text-blue-600 mt-1">
         Fleet: {{ activeVehicleCount }}/{{ output.maxVehicleSlots }} vehicles

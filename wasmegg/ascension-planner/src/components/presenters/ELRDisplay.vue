@@ -20,7 +20,7 @@
         </div>
       </div>
       <div class="text-3xl font-bold text-emerald-900">
-        {{ formatNumber(convertedELR, 2) }}/{{ timeUnitLabel }}
+        {{ formatNumber(convertedELR, 3) }}/{{ timeUnitLabel }}
       </div>
       <div class="text-sm mt-1" :class="limitedByClass">
         {{ limitedByText }}
@@ -39,7 +39,7 @@
             class="font-mono"
             :class="output.limitedBy === 'laying' ? 'text-red-600 font-semibold' : 'text-gray-700'"
           >
-            {{ formatNumber(convertedLayRate, 2) }}/{{ timeUnitLabel }}
+            {{ formatNumber(convertedLayRate, 3) }}/{{ timeUnitLabel }}
           </span>
         </div>
         <div class="px-4 py-3 flex justify-between items-center">
@@ -48,7 +48,7 @@
             class="font-mono"
             :class="output.limitedBy === 'shipping' ? 'text-red-600 font-semibold' : 'text-gray-700'"
           >
-            {{ formatNumber(convertedShipping, 2) }}/{{ timeUnitLabel }}
+            {{ formatNumber(convertedShipping, 3) }}/{{ timeUnitLabel }}
           </span>
         </div>
       </div>

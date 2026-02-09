@@ -270,8 +270,7 @@ export interface ArtifactModifiers {
   researchCost: ArtifactModifier;
 }
 
-// Effect targets that use multiplicative stacking (lunar stones)
-const MULTIPLICATIVE_TARGETS = ['away earnings'];
+// Note: All artifact and stone effects stack multiplicatively in Egg Inc (product of (1 + delta))
 
 /**
  * Calculate all artifact modifiers from an equipped loadout
@@ -315,22 +314,15 @@ export function calculateArtifactModifiers(loadout: EquippedArtifact[]): Artifac
   // Helper to calculate modifier for a target
   function calcModifier(target: string): ArtifactModifier {
     const effects = effectsByTarget[target] || [];
-    const isMultiplicative = MULTIPLICATIVE_TARGETS.includes(target);
 
-    let totalMultiplier: number;
-    if (isMultiplicative) {
-      // Multiplicative: (1 + delta1) * (1 + delta2) * ...
-      totalMultiplier = effects.reduce((acc, e) => acc * (1 + e.effectDelta), 1);
-    } else {
-      // Additive: 1 + delta1 + delta2 + ...
-      totalMultiplier = 1 + effects.reduce((acc, e) => acc + e.effectDelta, 0);
-    }
+    // All artifact/stone effects stack multiplicatively in Egg Inc (product of (1 + delta))
+    const totalMultiplier = effects.reduce((acc, e) => acc * (1 + e.effectDelta), 1);
 
     return {
       effectTarget: target,
       effects,
       totalMultiplier,
-      isMultiplicative,
+      isMultiplicative: true,
     };
   }
 
