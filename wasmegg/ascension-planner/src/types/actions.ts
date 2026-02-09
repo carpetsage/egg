@@ -46,7 +46,7 @@ export const VIRTUE_EGG_NAMES: Record<VirtueEgg, string> = {
 /**
  * All virtue eggs in order.
  */
-export const VIRTUE_EGGS: VirtueEgg[] = ['curiosity', 'integrity', 'kindness', 'resilience', 'humility'];
+export const VIRTUE_EGGS: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
 
 // ============================================================================
 // Action Types

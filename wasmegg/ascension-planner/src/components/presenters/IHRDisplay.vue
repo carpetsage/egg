@@ -7,18 +7,18 @@
         <div>
           <div class="text-xs text-orange-600">Online</div>
           <div class="text-2xl font-bold text-orange-900">
-            {{ formatNumber(output.onlineRate, 0) }}/min
+            {{ formatNumber(output.onlineRate, 3) }}/min
           </div>
         </div>
         <div>
           <div class="text-xs text-orange-600">Offline</div>
           <div class="text-2xl font-bold text-orange-900">
-            {{ formatNumber(output.offlineRate, 0) }}/min
+            {{ formatNumber(output.offlineRate, 3) }}/min
           </div>
         </div>
       </div>
       <div class="text-sm text-orange-600 mt-2">
-        Base: {{ formatNumber(output.baseRatePerHab, 0) }}/min per hab
+        Base: {{ formatNumber(output.baseRatePerHab, 3) }}/min per hab
       </div>
     </div>
 
@@ -30,7 +30,7 @@
       <div class="divide-y divide-gray-100">
         <div class="px-4 py-2 flex justify-between items-center">
           <span class="text-gray-600">Base Rate (per hab)</span>
-          <span class="font-mono text-gray-900">{{ formatNumber(output.baseRatePerHab, 0) }}/min</span>
+          <span class="font-mono text-gray-900">{{ formatNumber(output.baseRatePerHab, 3) }}/min</span>
         </div>
         <div class="px-4 py-2 flex justify-between items-center">
           <span class="text-gray-600">TE Bonus (1.1^{{ te }})</span>

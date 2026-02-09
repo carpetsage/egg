@@ -23,13 +23,13 @@
         <div>
           <div class="text-xs text-yellow-600">Per Chicken</div>
           <div class="text-2xl font-bold text-yellow-900">
-            {{ formatNumber(output.ratePerChicken, 2) }}/{{ timeUnitLabel }}
+            {{ formatNumber(output.ratePerChicken, 3) }}/{{ timeUnitLabel }}
           </div>
         </div>
         <div>
           <div class="text-xs text-yellow-600">Total (max hab: {{ formatNumber(output.population, 0) }})</div>
           <div class="text-2xl font-bold text-yellow-900">
-            {{ formatNumber(output.totalRate, 2) }}/{{ timeUnitLabel }}
+            {{ formatNumber(output.totalRate, 3) }}/{{ timeUnitLabel }}
           </div>
         </div>
       </div>

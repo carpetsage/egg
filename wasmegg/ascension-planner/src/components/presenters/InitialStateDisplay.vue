@@ -124,6 +124,24 @@
           </div>
         </div>
 
+        <!-- Silo Count -->
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm font-medium text-gray-700">Initial Silos</div>
+            <div class="text-xs text-gray-500">Number of silos owned at start</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <input
+              type="number"
+              :value="siloCount"
+              :min="1"
+              :max="10"
+              class="w-20 text-center text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              @change="$emit('set-silo-count', parseInt(($event.target as HTMLInputElement).value) || 1)"
+            />
+          </div>
+        </div>
+
         <!-- Eggs of Truth -->
         <div class="flex items-center justify-between">
           <div>
@@ -405,6 +423,7 @@ const props = defineProps<{
   eggsDelivered: Record<VirtueEgg, number>;
   teEarned: Record<VirtueEgg, number>;
   totalTe: number;
+  siloCount: number;
   canContinue: boolean;
   currentEggName: string;
 }>();
@@ -415,6 +434,7 @@ const emit = defineEmits<{
   'set-initial-egg': [egg: VirtueEgg];
   'set-te': [value: number];
   'set-initial-shift-count': [value: number];
+  'set-silo-count': [value: number];
   'set-ascension-date': [value: string];
   'set-ascension-time': [value: string];
   'set-ascension-timezone': [value: string];

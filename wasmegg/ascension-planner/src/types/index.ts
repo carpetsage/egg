@@ -268,6 +268,7 @@ export interface LayRateOutput {
 export interface CurrentFarmState {
   eggType: number;
   cash: number;
+  numSilos: number;
   commonResearches: ResearchLevels;
   habs: (number | null)[];
   vehicles: VehicleSlot[];

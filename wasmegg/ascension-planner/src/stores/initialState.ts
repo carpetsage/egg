@@ -207,6 +207,7 @@ export const useInitialStateStore = defineStore('initialState', {
           this.currentFarmState = {
             eggType: farm.eggType,
             cash: farm.cashAmount || 0,
+            numSilos: farm.silosOwned || 1,
             commonResearches,
             habs,
             vehicles,

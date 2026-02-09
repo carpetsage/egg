@@ -35,6 +35,18 @@ export function formatNumber(value: number, decimals: number = 2): string {
 }
 
 /**
+ * Format a number with thousands separators, showing the full value without suffixes or rounding.
+ *
+ * @param value - The number to format
+ * @returns Formatted string (e.g., "1,234,567")
+ */
+export function formatFullNumber(value: number): string {
+  if (value === 0) return '0';
+  if (!isFinite(value)) return '∞';
+  return Math.round(value).toLocaleString();
+}
+
+/**
  * Format a multiplier for display.
  *
  * @param value - The multiplier value (1.0 = no change)

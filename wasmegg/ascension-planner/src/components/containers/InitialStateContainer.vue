@@ -17,6 +17,7 @@
     :eggs-delivered="truthEggsStore.eggsDelivered"
     :te-earned="truthEggsStore.teEarned"
     :total-te="truthEggsStore.totalTE"
+    :silo-count="silosStore.siloCount"
     :can-continue="!!store.currentFarmState"
     :current-egg-name="currentEggName"
     @set-epic-research-level="handleSetEpicResearchLevel"
@@ -24,6 +25,7 @@
     @set-initial-egg="handleSetInitialEgg"
     @set-te="handleSetTE"
     @set-initial-shift-count="handleSetInitialShiftCount"
+    @set-silo-count="handleSetSiloCount"
     @set-ascension-date="handleSetAscensionDate"
     @set-ascension-time="handleSetAscensionTime"
     @set-ascension-timezone="handleSetAscensionTimezone"
@@ -46,6 +48,10 @@ import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
+import { useCommonResearchStore } from '@/stores/commonResearch';
+import { useHabCapacityStore } from '@/stores/habCapacity';
+import { useShippingCapacityStore } from '@/stores/shippingCapacity';
+import { useSilosStore } from '@/stores/silos';
 import { computeCurrentSnapshot } from '@/lib/actions/snapshot';
 import InitialStateDisplay from '@/components/presenters/InitialStateDisplay.vue';
 import type { VirtueEgg, Action } from '@/types';
@@ -56,6 +62,10 @@ const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
 const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
+const commonResearchStore = useCommonResearchStore();
+const habCapacityStore = useHabCapacityStore();
+const shippingCapacityStore = useShippingCapacityStore();
+const silosStore = useSilosStore();
 
 const startAction = computed(() =>
   actionsStore.getStartAction() as Action<'start_ascension'> | undefined
@@ -90,13 +100,30 @@ function handleContinueAscension() {
 
   // 2. Sync virtue store
   virtueStore.setCurrentEgg(egg);
-  // Note: shift count logic might need care if we are continuing an ongoing plan
-  // but usually "Continue" means this is the base state.
   
   // 3. Sync other stores for the initial snapshot creation
-  // Although start_ascension will apply it, we need stores to match for InitialStateDisplay
-  // to avoid confusion before re-sim.
+  // This ensures computeCurrentSnapshot() captures the correct state
+  silosStore.setSiloCount(farm.numSilos);
   
+  // Sync research
+  commonResearchStore.resetAll();
+  for (const [id, level] of Object.entries(farm.commonResearches)) {
+    commonResearchStore.setResearchLevel(id, level);
+  }
+
+  // Sync habs
+  farm.habs.forEach((habId, idx) => {
+    habCapacityStore.setHab(idx, habId as any);
+  });
+
+  // Sync vehicles
+  farm.vehicles.forEach((v, idx) => {
+    shippingCapacityStore.setVehicle(idx, v.vehicleId as any);
+    if (v.vehicleId === 11) {
+      shippingCapacityStore.setTrainLength(idx, v.trainLength);
+    }
+  });
+
   updateInitialSnapshotAndRecalculate();
 }
 
@@ -157,6 +184,11 @@ function handleSetTE(te: number) {
 
 function handleSetInitialShiftCount(count: number) {
   virtueStore.setInitialShiftCount(count);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetSiloCount(count: number) {
+  silosStore.setSiloCount(count);
   updateInitialSnapshotAndRecalculate();
 }
 

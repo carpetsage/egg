@@ -15,8 +15,17 @@
             <h2 class="font-semibold text-gray-900">
               {{ action ? `State After Action #${action.index + 1}` : 'Current Calculation Details' }}
             </h2>
-            <p v-if="action" class="text-sm text-gray-500">{{ displayName }}</p>
-            <p v-else class="text-sm text-gray-500">Full breakdown of current multipliers and rates</p>
+            <div class="flex items-center gap-2">
+              <p v-if="action" class="text-sm text-gray-500">{{ displayName }}</p>
+              <p v-else class="text-sm text-gray-500">Full breakdown of current multipliers and rates</p>
+              <button
+                class="text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200 transition-colors"
+                title="Dump all calculation data to console for debugging"
+                @click="dumpCalculationData"
+              >
+                Dump Data
+              </button>
+            </div>
           </div>
           <button
             class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
@@ -74,6 +83,18 @@ import { getExecutor } from '@/lib/actions';
 import { formatNumber } from '@/lib/format';
 import CalculationSummary from './CalculationSummary.vue';
 
+// Composables and Stores for dumping data
+import { useEggValue } from '@/composables/useEggValue';
+import { useHabCapacity } from '@/composables/useHabCapacity';
+import { useInternalHatcheryRate } from '@/composables/useInternalHatcheryRate';
+import { useLayRate } from '@/composables/useLayRate';
+import { useShippingCapacity } from '@/composables/useShippingCapacity';
+import { useEffectiveLayRate } from '@/composables/useEffectiveLayRate';
+import { useEarnings } from '@/composables/useEarnings';
+import { useSiloTime } from '@/composables/useSiloTime';
+import { useInitialStateStore } from '@/stores/initialState';
+import { useCommonResearchStore } from '@/stores/commonResearch';
+
 const props = defineProps<{
   action?: Action | null;
 }>();
@@ -98,5 +119,47 @@ function formatDelta(delta: number): string {
   if (Math.abs(delta) < 0.001) return '—';
   const sign = delta > 0 ? '+' : '';
   return `${sign}${formatNumber(delta, 2)}`;
+}
+
+// Data dump functionality for debugging
+const { input: evInput, output: evOutput } = useEggValue();
+const { input: hcInput, output: hcOutput } = useHabCapacity();
+const { input: ihrInput, output: ihrOutput } = useInternalHatcheryRate();
+const { input: lrInput, output: lrOutput } = useLayRate();
+const { input: scInput, output: scOutput } = useShippingCapacity();
+const { output: elrOutput } = useEffectiveLayRate();
+const { input: ernInput, output: ernOutput } = useEarnings();
+const { output: stOutput } = useSiloTime();
+const initialStateStore = useInitialStateStore();
+const commonResearchStore = useCommonResearchStore();
+
+function dumpCalculationData() {
+  const dump = {
+    timestamp: new Date().toISOString(),
+    context: props.action ? `State after Action #${props.action.index + 1}` : 'Current State',
+    action: props.action,
+    initialState: {
+      colleggtibleModifiers: initialStateStore.colleggtibleModifiers,
+      artifactModifiers: initialStateStore.artifactModifiers,
+      epicResearchLevels: initialStateStore.epicResearchLevels,
+      activeEgg: initialStateStore.currentFarmState?.eggType,
+    },
+    commonResearch: commonResearchStore.researchLevels,
+    calculations: {
+      eggValue: { input: evInput.value, output: evOutput.value },
+      habCapacity: { input: hcInput.value, output: hcOutput.value },
+      ihr: { input: ihrInput.value, output: ihrOutput.value },
+      layRate: { input: lrInput.value, output: lrOutput.value },
+      shipping: { input: scInput.value, output: scOutput.value },
+      elr: { output: elrOutput.value },
+      earnings: { input: ernInput.value, output: ernOutput.value },
+      siloTime: { output: stOutput.value },
+    }
+  };
+
+  console.log('CALCULATION_DUMP_START');
+  console.log(JSON.stringify(dump, null, 2));
+  console.log('CALCULATION_DUMP_END');
+  alert('Calculation data dumped to console. Please share the output (between START and END markers) with the developer.');
 }
 </script>

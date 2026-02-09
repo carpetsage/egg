@@ -26,7 +26,7 @@
         <span class="font-medium text-gray-700">Egg Value</span>
         <div class="flex items-center gap-2">
           <span class="font-mono text-lg text-yellow-700">
-            {{ formatNumber(eggValueOutput.finalValue, 2) }} gems/egg
+            {{ formatNumber(eggValueOutput.finalValue, 3) }} gems/egg
           </span>
           <ChevronIcon :expanded="expandedSections.eggValue" />
         </div>
@@ -45,7 +45,7 @@
         <span class="font-medium text-gray-700">Hab Capacity</span>
         <div class="flex items-center gap-2">
           <span class="font-mono text-lg text-blue-700">
-            {{ formatNumber(habCapacityOutput.totalFinalCapacity, 0) }} chickens
+            {{ formatNumber(habCapacityOutput.totalFinalCapacity, 3) }} chickens
           </span>
           <ChevronIcon :expanded="expandedSections.habCapacity" />
         </div>
@@ -64,8 +64,8 @@
         <span class="font-medium text-gray-700">IHR</span>
         <div class="flex items-center gap-2">
           <span class="font-mono text-lg text-green-700">
-            {{ formatNumber(ihrOutput.onlineRate, 0) }}/min online,
-            {{ formatNumber(ihrOutput.offlineRate, 0) }}/min offline
+            {{ formatNumber(ihrOutput.onlineRate, 3) }}/min online,
+            {{ formatNumber(ihrOutput.offlineRate, 3) }}/min offline
           </span>
           <ChevronIcon :expanded="expandedSections.ihr" />
         </div>
@@ -84,7 +84,7 @@
         <span class="font-medium text-gray-700">Lay Rate</span>
         <div class="flex items-center gap-2">
           <span class="font-mono text-lg text-yellow-700">
-            {{ formatNumber(convertedLayRate, 2) }}/{{ timeUnitLabel }}
+            {{ formatNumber(convertedLayRate, 3) }}/{{ timeUnitLabel }}
             <span class="text-xs text-gray-500">(at max habs)</span>
           </span>
           <ChevronIcon :expanded="expandedSections.layRate" />
@@ -104,7 +104,7 @@
         <span class="font-medium text-gray-700">Shipping Capacity</span>
         <div class="flex items-center gap-2">
           <span class="font-mono text-lg text-blue-700">
-            {{ formatNumber(convertedShipping, 2) }}/{{ timeUnitLabel }}
+            {{ formatNumber(convertedShipping, 3) }}/{{ timeUnitLabel }}
           </span>
           <ChevronIcon :expanded="expandedSections.shippingCapacity" />
         </div>
@@ -123,7 +123,7 @@
         <span class="font-medium text-gray-700">Effective Lay Rate</span>
         <div class="flex items-center gap-2">
           <span class="font-mono text-lg text-emerald-700">
-            {{ formatNumber(convertedELR, 2) }}/{{ timeUnitLabel }}
+            {{ formatNumber(convertedELR, 3) }}/{{ timeUnitLabel }}
             <span class="text-xs text-gray-500">(at max habs)</span>
           </span>
           <ChevronIcon :expanded="expandedSections.elr" />
@@ -143,8 +143,8 @@
         <span class="font-medium text-gray-700">Earnings</span>
         <div class="flex items-center gap-2">
           <span class="font-mono text-lg text-amber-700">
-            {{ formatNumber(convertedOnlineEarnings, 2) }}/{{ timeUnitLabel }} online,
-            {{ formatNumber(convertedOfflineEarnings, 2) }}/{{ timeUnitLabel }} offline
+            {{ formatNumber(convertedOnlineEarnings, 3) }}/{{ timeUnitLabel }} online,
+            {{ formatNumber(convertedOfflineEarnings, 3) }}/{{ timeUnitLabel }} offline
           </span>
           <ChevronIcon :expanded="expandedSections.earnings" />
         </div>

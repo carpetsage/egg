@@ -33,6 +33,7 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 newState.researchLevels = { ...farm.commonResearches };
                 newState.habIds = [...farm.habs];
                 newState.vehicles = [...farm.vehicles];
+                newState.siloCount = farm.numSilos;
                 newState.eggsDelivered = { ...newState.eggsDelivered };
                 newState.eggsDelivered[payload.initialEgg] = farm.deliveredEggs;
             }

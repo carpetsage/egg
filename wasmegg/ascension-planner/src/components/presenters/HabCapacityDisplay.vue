@@ -4,7 +4,7 @@
     <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
       <div class="text-sm text-green-700 font-medium">Total Hab Capacity</div>
       <div class="text-3xl font-bold text-green-900">
-        {{ formatNumber(output.totalFinalCapacity, 0) }} chickens
+        {{ formatFullNumber(output.totalFinalCapacity) }} chickens
       </div>
       <div class="text-sm text-green-600 mt-1">
         {{ formatMultiplier(output.totalFinalCapacity / output.totalBaseCapacity) }} total multiplier
@@ -207,7 +207,7 @@
 <script setup lang="ts">
 import type { HabCapacityOutput } from '@/types';
 import { getHabById, getDiscountedHabPrice, getHabCostMultiplier, countHabsOfType, type HabCostModifiers } from '@/lib/habs';
-import { formatNumber, formatMultiplier, formatPercent } from '@/lib/format';
+import { formatNumber, formatFullNumber, formatMultiplier, formatPercent } from '@/lib/format';
 import { formatTier, formatColleggtibleBonus } from '@/lib/colleggtibles';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
