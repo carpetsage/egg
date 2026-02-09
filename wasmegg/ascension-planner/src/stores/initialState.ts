@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { InitialState, ResearchLevels, VirtueEgg } from '@/types';
+import type { InitialState, ResearchLevels, VirtueEgg, CurrentFarmState, VehicleSlot } from '@/types';
 import { epicResearchDefs } from '@/lib/epicResearch';
 import {
   type ColleggtibleTiers,
@@ -13,6 +13,7 @@ import {
   type ArtifactModifiers,
   createEmptyLoadout,
   calculateArtifactModifiers,
+  getArtifactLoadoutFromBackup,
 } from '@/lib/artifacts';
 
 export interface InitialStateStoreState {
@@ -32,6 +33,9 @@ export interface InitialStateStoreState {
 
   // Artifact loadout (4 slots)
   artifactLoadout: EquippedArtifact[];
+
+  // Current farm state (only if on a virtue egg)
+  currentFarmState: CurrentFarmState | null;
 }
 
 function initializeEpicResearchLevels(): ResearchLevels {
@@ -51,6 +55,7 @@ export const useInitialStateStore = defineStore('initialState', {
     epicResearchLevels: initializeEpicResearchLevels(),
     colleggtibleTiers: getDefaultColleggtibleTiers(),
     artifactLoadout: createEmptyLoadout(),
+    currentFarmState: null,
   }),
 
   getters: {
@@ -87,32 +92,7 @@ export const useInitialStateStore = defineStore('initialState', {
      */
     loadFromBackup(
       playerId: string,
-      backup: {
-        userName?: string | null;
-        settings?: { lastBackupTime?: number | null } | null;
-        game?: { epicResearch?: Array<{ id?: string | null; level?: number | null }> | null } | null;
-        contracts?: {
-          archive?: Array<{
-            contract?: { customEggId?: string | null } | null;
-            maxFarmSizeReached?: number | null;
-          }> | null;
-          contracts?: Array<{
-            contract?: { customEggId?: string | null } | null;
-            maxFarmSizeReached?: number | null;
-          }> | null;
-        } | null;
-        artifacts?: {
-          tankLevel?: number | null;
-        } | null;
-        virtue?: {
-          shiftCount?: number | null;
-          eovEarned?: number[] | null;
-          eggsDelivered?: number[] | null;
-          afx?: {
-            tankFuels?: number[] | null;
-          } | null;
-        } | null;
-      }
+      backup: any
     ): {
       initialShiftCount: number;
       initialTE: number;
@@ -138,6 +118,9 @@ export const useInitialStateStore = defineStore('initialState', {
 
       // Load colleggtible tiers from contracts
       this.colleggtibleTiers = getColleggtibleTiersFromBackup(backup.contracts ?? null);
+
+      // Load artifact loadout from backup
+      this.artifactLoadout = getArtifactLoadoutFromBackup(backup);
 
       // Parse TE data from eovEarned array
       // Indices 0-4 map to: Curiosity, Integrity, Humility, Resilience, Kindness
@@ -176,6 +159,64 @@ export const useInitialStateStore = defineStore('initialState', {
         kindness: tankFuels[24] ?? 0,
       };
 
+      // Load current farm state if on a virtue egg (IDs 50-54)
+      this.currentFarmState = null;
+      if (backup.farms && backup.farms.length > 0) {
+        const farm = backup.farms[0];
+        if (farm.eggType && farm.eggType >= 50 && farm.eggType <= 54) {
+          const commonResearches: ResearchLevels = {};
+          const rawResearch = farm.commonResearches || farm.commonResearch || [];
+          for (const r of rawResearch) {
+            if (r.id && r.level !== null && r.level !== undefined) {
+              commonResearches[r.id] = r.level;
+            }
+          }
+
+          // Parse habs (can be numbers or objects with type field)
+          const habs: (number | null)[] = (farm.habs || []).map((h: any) => {
+            if (typeof h === 'number') {
+              return h === 19 ? null : h;
+            }
+            if (h && typeof h === 'object') {
+              return (h.type !== undefined && h.type !== null) ? h.type : 0;
+            }
+            return null;
+          });
+          // Ensure at least 4 slots for consistency
+          while (habs.length < 4) habs.push(null);
+
+          // Parse vehicles (can be numbers with farm.trainLength or objects)
+          const rawVehicles = farm.vehicles || [];
+          const trainLength = farm.trainLength || [];
+          const vehicles: VehicleSlot[] = rawVehicles.map((v: any, idx: number) => {
+            if (typeof v === 'number') {
+              return {
+                vehicleId: v,
+                trainLength: trainLength[idx] || 1,
+              };
+            }
+            if (v && typeof v === 'object') {
+              return {
+                vehicleId: (v.type !== undefined && v.type !== null) ? v.type : null,
+                trainLength: v.count || 1,
+              };
+            }
+            return { vehicleId: null, trainLength: 1 };
+          });
+
+          this.currentFarmState = {
+            eggType: farm.eggType,
+            cash: farm.cashAmount || 0,
+            commonResearches,
+            habs,
+            vehicles,
+            population: farm.numChickens || 0,
+            deliveredEggs: farm.eggsLaid || 0,
+            lastStepTime: farm.lastStepTime || 0,
+          };
+        }
+      }
+
       // Return virtue and tank data
       return {
         initialShiftCount: backup.virtue?.shiftCount ?? 0,
@@ -183,7 +224,7 @@ export const useInitialStateStore = defineStore('initialState', {
         tankLevel,
         virtueFuelAmounts,
         eggsDelivered,
-        teEarnedPerEgg,
+        teEarnedPerEgg: teEarnedPerEgg,
       };
     },
 

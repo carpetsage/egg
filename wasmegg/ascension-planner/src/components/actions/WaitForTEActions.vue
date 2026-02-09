@@ -119,12 +119,36 @@
           <span class="text-gray-600">Eggs to Lay:</span>
           <span class="font-mono">{{ formatNumber(eggsToLay, 3) }}</span>
         </div>
-        <div class="flex justify-between text-xs text-gray-500">
-          <span>ELR per hour:</span>
+        <div class="flex justify-between text-xs text-gray-500 group">
+          <div class="flex items-center gap-1">
+            <span>ELR per hour:</span>
+            <button
+              class="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              title="View calculation details"
+              @click="$emit('show-current-details')"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          </div>
           <span class="font-mono">{{ formatNumber(elrPerHour, 2) }}</span>
         </div>
         <div class="flex justify-between text-xs text-gray-500">
-          <span>ELR per day:</span>
+          <div class="flex items-center gap-1">
+            <span>ELR per day:</span>
+            <button
+              class="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              title="View calculation details"
+              @click="$emit('show-current-details')"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          </div>
           <span class="font-mono">{{ formatNumber(elrPerDay, 2) }}</span>
         </div>
         <div class="flex justify-between">
@@ -179,6 +203,10 @@ const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
 const { output: layRateOutput } = useLayRate();
 const { prepareExecution, completeExecution } = useActionExecutor();
+
+defineEmits<{
+  'show-current-details': [];
+}>();
 
 // Current egg state
 const currentEggsDelivered = computed(() => truthEggsStore.eggsDelivered[virtueStore.currentEgg]);

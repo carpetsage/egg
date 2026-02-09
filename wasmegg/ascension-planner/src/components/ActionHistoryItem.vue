@@ -30,14 +30,14 @@
             {{ action.type === 'start_ascension' ? 'Start Ascension:' : 'Shift to' }}
           </span>
           <span :class="{ 'font-bold': eggType }">
-            {{ eggName || displayName }}
+            {{ eggName || displayName }}{{ isContinued ? ' (from Backup)' : '' }}
           </span>
         </div>
         <div class="text-[10px] uppercase tracking-wider font-semibold opacity-70" :class="isStartAction ? 'text-blue-600' : 'text-gray-500'">
           {{ effectDescription }}
         </div>
         <!-- Deltas -->
-        <div v-if="!isStartAction" class="text-[10px] mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-gray-500">
+        <div v-if="!isStartAction || isContinued" class="text-[10px] mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-gray-500">
           <span v-if="action.eggValueDelta" :class="deltaClass(action.eggValueDelta)">
             Val: {{ formatDelta(action.eggValueDelta) }}
           </span>
@@ -129,6 +129,11 @@ defineEmits<{
 }>();
 
 const isStartAction = computed(() => props.action.type === 'start_ascension');
+const isContinued = computed(() => {
+  if (props.action.type !== 'start_ascension') return false;
+  const payload = props.action.payload as StartAscensionPayload;
+  return !!payload.initialFarmState;
+});
 
 const baseUrl = import.meta.env.BASE_URL;
 

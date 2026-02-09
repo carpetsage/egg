@@ -86,6 +86,8 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
       artifactId: slot.artifactId,
       stones: [...slot.stones],
     })),
+    population: 0,
+    lastStepTime: 0,
   };
 }
 

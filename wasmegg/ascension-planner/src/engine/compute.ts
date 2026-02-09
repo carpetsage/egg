@@ -57,34 +57,7 @@ export function computeSnapshot(
     };
     const habCapacityOutput = calculateHabCapacity(habCapacityInput);
 
-    // 4. Lay Rate
-    // Note: uses total capacity as population (assuming full habs)
-    const layRateInput: LayRateInput = {
-        researchLevels: state.researchLevels,
-        epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
-        siliconMultiplier: colleggtibleModifiers.elr,
-        population: habCapacityOutput.totalFinalCapacity,
-        artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
-        artifactEffects: artifactMods.eggLayingRate.effects,
-    };
-    const layRateOutput = calculateLayRate(layRateInput);
 
-    // 5. Shipping Capacity
-    const shippingInput: ShippingCapacityInput = {
-        vehicles: state.vehicles,
-        researchLevels: state.researchLevels,
-        transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
-        colleggtibleMultiplier: colleggtibleModifiers.shippingCap,
-        artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
-        artifactEffects: artifactMods.shippingRate.effects,
-    };
-    const shippingOutput = calculateShippingCapacity(shippingInput);
-
-    // 6. Effective Lay Rate (ELR)
-    const elrOutput = calculateEffectiveLayRate(
-        layRateOutput.totalRatePerSecond,
-        shippingOutput.totalFinalCapacity
-    );
 
     // 7. Internal Hatchery Rate (IHR)
     const ihrInput: IHRInput = {
@@ -100,7 +73,45 @@ export function computeSnapshot(
     };
     const ihrOutput = calculateIHR(ihrInput);
 
-    // 8. Earnings
+    // 8. Population growth (catch-up if starting from a backup)
+    let population = state.population;
+    if (state.lastStepTime > 0 && context.ascensionStartTime > state.lastStepTime) {
+        const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
+        const growthRatePerSecond = ihrOutput.offlineRate / 60;
+        const growth = Math.floor(growthRatePerSecond * elapsedSeconds);
+        population = Math.min(habCapacityOutput.totalFinalCapacity, population + growth);
+    }
+
+    // 9. Lay Rate
+    // Use the projected population for total eggs calculation, or hab capacity if pop is 0 (fallback)
+    const layRateInput: LayRateInput = {
+        researchLevels: state.researchLevels,
+        epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
+        siliconMultiplier: colleggtibleModifiers.elr,
+        population: population || habCapacityOutput.totalFinalCapacity,
+        artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
+        artifactEffects: artifactMods.eggLayingRate.effects,
+    };
+    const layRateOutput = calculateLayRate(layRateInput);
+
+    // 10. Shipping Capacity
+    const shippingInput: ShippingCapacityInput = {
+        vehicles: state.vehicles,
+        researchLevels: state.researchLevels,
+        transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
+        colleggtibleMultiplier: colleggtibleModifiers.shippingCap,
+        artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
+        artifactEffects: artifactMods.shippingRate.effects,
+    };
+    const shippingOutput = calculateShippingCapacity(shippingInput);
+
+    // 11. Effective Lay Rate (ELR)
+    const elrOutput = calculateEffectiveLayRate(
+        layRateOutput.totalRatePerSecond,
+        shippingOutput.totalFinalCapacity
+    );
+
+    // 12. Earnings
     const earningsInput: EarningsInput = {
         eggValue: eggValueOutput.finalValue,
         effectiveLayRate: elrOutput.effectiveLayRate,
@@ -112,7 +123,7 @@ export function computeSnapshot(
     };
     const earningsOutput = calculateEarnings(earningsInput);
 
-    // 9. Silo Time
+    // 13. Silo Time
     const siloTimeMinutes = totalAwayTime(
         state.siloCount,
         epicResearchLevels['silo_capacity'] || 0
@@ -144,5 +155,7 @@ export function computeSnapshot(
         habIds: state.habIds,
         researchLevels: state.researchLevels,
         artifactLoadout: state.artifactLoadout,
+        population,
+        lastStepTime: state.lastStepTime,
     };
 }

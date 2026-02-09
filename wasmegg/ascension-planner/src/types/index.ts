@@ -263,6 +263,20 @@ export interface LayRateOutput {
 }
 
 /**
+ * Current farm state from player backup
+ */
+export interface CurrentFarmState {
+  eggType: number;
+  cash: number;
+  commonResearches: ResearchLevels;
+  habs: (number | null)[];
+  vehicles: VehicleSlot[];
+  population: number;
+  deliveredEggs: number;
+  lastStepTime: number;
+}
+
+/**
  * Vehicle slot configuration
  */
 export interface VehicleSlot {

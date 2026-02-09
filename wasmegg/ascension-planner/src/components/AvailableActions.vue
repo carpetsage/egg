@@ -59,7 +59,7 @@
       <ArtifactActions v-if="activeTab === 'artifacts'" />
       <SiloActions v-if="activeTab === 'silos'" />
       <FuelTankActions v-if="activeTab === 'fuel'" />
-      <WaitForTEActions v-if="activeTab === 'te'" />
+      <WaitForTEActions v-if="activeTab === 'te'" @show-current-details="$emit('show-current-details')" />
     </div>
   </div>
 </template>
@@ -81,6 +81,10 @@ import { VIRTUE_EGG_NAMES, type VirtueEgg } from '@/types';
 
 const actionsStore = useActionsStore();
 
+defineEmits<{
+  'show-current-details': [];
+}>();
+
 // Check if any shifts have been made
 const hasShifts = computed(() => {
   return actionsStore.actions.some(action => action.type === 'shift');
@@ -88,6 +92,12 @@ const hasShifts = computed(() => {
 
 // Check if we're editing a past group
 const isEditingPastGroup = computed(() => actionsStore.editingGroupId !== null);
+
+// Check if we're specifically editing the first group (start_ascension)
+const isEditingStartGroup = computed(() => {
+  const startAction = actionsStore.getStartAction();
+  return actionsStore.editingGroupId !== null && actionsStore.editingGroupId === startAction?.id;
+});
 
 // The effective egg to use (from effective snapshot when editing, otherwise current)
 const effectiveEgg = computed(() => actionsStore.effectiveSnapshot.currentEgg);
@@ -142,8 +152,8 @@ const eggTextColorClass = computed(() => {
 // Filter tabs based on effective egg and shift state
 const availableTabs = computed(() => {
   return allTabs.filter(tab => {
-    // Initial state tab is only available before the first shift (and not when editing past group)
-    if (tab.beforeShiftsOnly) return !hasShifts.value && !isEditingPastGroup.value;
+    // Initial state tab is available before the first shift OR when editing the start group
+    if (tab.beforeShiftsOnly) return (!hasShifts.value && !isEditingPastGroup.value) || isEditingStartGroup.value;
     // Shift/fuel/te are always available (egg === null)
     if (tab.egg === null) return true;
     // Only show the tab for the effective egg
@@ -151,17 +161,31 @@ const availableTabs = computed(() => {
   });
 });
 
-// Active tab - defaults to initial if no shifts, otherwise the egg's action tab
-const activeTab = ref<TabId>(hasShifts.value ? eggToTab[effectiveEgg.value] : 'initial');
+// Active tab - defaults to initial if no shifts or if editing the start group
+const activeTab = ref<TabId>(
+  (hasShifts.value && !isEditingStartGroup.value) ? eggToTab[effectiveEgg.value] : 'initial'
+);
 
 // When effective egg changes (including when editing state changes), switch to that egg's tab
 watch(effectiveEgg, (newEgg) => {
-  activeTab.value = eggToTab[newEgg];
+  // If we just switched to editing the start group, default to 'initial'
+  // otherwise default to the egg's tab.
+  activeTab.value = isEditingStartGroup.value ? 'initial' : eggToTab[newEgg];
+});
+
+// Watch isEditingStartGroup specifically to handle switching when eggs are same
+watch(isEditingStartGroup, (editingStart) => {
+  if (editingStart) {
+    activeTab.value = 'initial';
+  } else if (!actionsStore.editingGroupId && hasShifts.value && activeTab.value === 'initial') {
+    // Left edit mode and back to head where initial is hidden
+    activeTab.value = eggToTab[effectiveEgg.value];
+  }
 });
 
 // When shifts state changes, switch away from initial tab if needed
 watch(hasShifts, (hasShiftsNow) => {
-  if (hasShiftsNow && activeTab.value === 'initial') {
+  if (hasShiftsNow && activeTab.value === 'initial' && !isEditingStartGroup.value) {
     activeTab.value = eggToTab[effectiveEgg.value];
   }
 });

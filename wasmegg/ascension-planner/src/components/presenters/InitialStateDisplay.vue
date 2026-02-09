@@ -18,6 +18,23 @@
       </template>
     </div>
 
+    <!-- Continue Ascension Button -->
+    <div v-if="hasData && canContinue" class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
+      <div>
+        <div class="text-sm font-bold text-blue-900">Resume Progress</div>
+        <div class="text-xs text-blue-700">Continue from your current {{ currentEggName }} state</div>
+      </div>
+      <button 
+        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow transition-colors flex items-center gap-2"
+        @click="$emit('continue-ascension')"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+        </svg>
+        Continue Ascension
+      </button>
+    </div>
+
     <!-- Ascension Settings -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
@@ -388,6 +405,8 @@ const props = defineProps<{
   eggsDelivered: Record<VirtueEgg, number>;
   teEarned: Record<VirtueEgg, number>;
   totalTe: number;
+  canContinue: boolean;
+  currentEggName: string;
 }>();
 
 const emit = defineEmits<{
@@ -403,6 +422,7 @@ const emit = defineEmits<{
   'set-fuel-amount': [egg: VirtueEgg, amount: number];
   'set-eggs-delivered': [egg: VirtueEgg, amount: number];
   'set-te-earned': [egg: VirtueEgg, count: number];
+  'continue-ascension': [];
 }>();
 
 // Collapsible state

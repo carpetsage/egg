@@ -17,6 +17,8 @@
     :eggs-delivered="truthEggsStore.eggsDelivered"
     :te-earned="truthEggsStore.teEarned"
     :total-te="truthEggsStore.totalTE"
+    :can-continue="!!store.currentFarmState"
+    :current-egg-name="currentEggName"
     @set-epic-research-level="handleSetEpicResearchLevel"
     @update:artifact-loadout="handleArtifactLoadout"
     @set-initial-egg="handleSetInitialEgg"
@@ -29,6 +31,7 @@
     @set-fuel-amount="handleSetFuelAmount"
     @set-eggs-delivered="handleSetEggsDelivered"
     @set-te-earned="handleSetTEEarned"
+    @continue-ascension="handleContinueAscension"
   />
 </template>
 
@@ -46,6 +49,7 @@ import { useTruthEggsStore } from '@/stores/truthEggs';
 import { computeCurrentSnapshot } from '@/lib/actions/snapshot';
 import InitialStateDisplay from '@/components/presenters/InitialStateDisplay.vue';
 import type { VirtueEgg, Action } from '@/types';
+import { VIRTUE_EGGS, VIRTUE_EGG_NAMES } from '@/types';
 
 const store = useInitialStateStore();
 const virtueStore = useVirtueStore();
@@ -63,6 +67,37 @@ function updateInitialSnapshotAndRecalculate() {
   actionsStore.setInitialSnapshot(newSnapshot);
   // Recalculate all history
   actionsStore.recalculateAll();
+}
+
+const currentEggName = computed(() => {
+  if (!store.currentFarmState) return '';
+  const egg = VIRTUE_EGGS[store.currentFarmState.eggType - 50];
+  return VIRTUE_EGG_NAMES[egg] || '';
+});
+
+function handleContinueAscension() {
+  if (!store.currentFarmState) return;
+
+  const farm = store.currentFarmState;
+  const egg = VIRTUE_EGGS[farm.eggType - 50];
+
+  // 1. Update start_ascension action with initial farm state
+  const startAction = actionsStore.getStartAction();
+  if (startAction) {
+    startAction.payload.initialEgg = egg;
+    startAction.payload.initialFarmState = farm;
+  }
+
+  // 2. Sync virtue store
+  virtueStore.setCurrentEgg(egg);
+  // Note: shift count logic might need care if we are continuing an ongoing plan
+  // but usually "Continue" means this is the base state.
+  
+  // 3. Sync other stores for the initial snapshot creation
+  // Although start_ascension will apply it, we need stores to match for InitialStateDisplay
+  // to avoid confusion before re-sim.
+  
+  updateInitialSnapshotAndRecalculate();
 }
 
 function handleSetEpicResearchLevel(id: string, level: number) {
