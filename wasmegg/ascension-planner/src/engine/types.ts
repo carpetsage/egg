@@ -16,6 +16,7 @@ export interface EngineState {
     currentEgg: VirtueEgg;
     shiftCount: number;
     te: number;
+    soulEggs: number;
 
     // Farm State
     habIds: (number | null)[];

@@ -36,6 +36,9 @@ export interface InitialStateStoreState {
 
   // Current farm state (only if on a virtue egg)
   currentFarmState: CurrentFarmState | null;
+
+  // Soul Eggs from backup
+  soulEggs: number;
 }
 
 function initializeEpicResearchLevels(): ResearchLevels {
@@ -56,6 +59,7 @@ export const useInitialStateStore = defineStore('initialState', {
     colleggtibleTiers: getDefaultColleggtibleTiers(),
     artifactLoadout: createEmptyLoadout(),
     currentFarmState: null,
+    soulEggs: 0,
   }),
 
   getters: {
@@ -105,6 +109,7 @@ export const useInitialStateStore = defineStore('initialState', {
       this.playerId = playerId;
       this.nickname = backup.userName || playerId;
       this.lastBackupTime = backup.settings?.lastBackupTime || 0;
+      this.soulEggs = backup.game?.soulEggsD || 0;
 
       // Load epic research levels
       this.epicResearchLevels = initializeEpicResearchLevels();

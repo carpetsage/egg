@@ -45,13 +45,18 @@
         </div>
       </div>
 
-      <!-- Shift number badge (only for shift actions) -->
-      <span
-        v-if="isShiftAction"
-        class="text-xs font-bold text-purple-600 bg-purple-200 px-2 py-0.5 rounded-full"
-      >
-        #{{ (headerAction as Action<'shift'>).payload.newShiftCount }}
-      </span>
+      <!-- Shift info (only for shift actions) -->
+      <div v-if="isShiftAction && headerAction.cost > 0" class="flex items-center gap-2">
+        <!-- Cost badge -->
+        <div 
+          class="flex items-center gap-1 bg-white/60 px-2 py-0.5 rounded border border-purple-200 shadow-sm"
+        >
+          <span class="text-[10px] font-bold text-purple-700">
+            {{ formatNumber(headerAction.cost, 3) }}
+          </span>
+          <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
+        </div>
+      </div>
 
       <!-- Current badge -->
       <span
@@ -114,6 +119,7 @@ import { ref, computed, defineAsyncComponent, watch, nextTick } from 'vue';
 import { iconURL } from 'lib';
 import type { Action, VirtueEgg, StartAscensionPayload, ShiftPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
+import { formatNumber } from '@/lib/format';
 import ActionHistoryItem from './ActionHistoryItem.vue';
 
 // Lazy load summary components

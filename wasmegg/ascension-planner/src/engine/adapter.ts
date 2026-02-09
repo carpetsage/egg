@@ -46,6 +46,7 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot): E
         currentEgg: base.currentEgg || 'curiosity',
         shiftCount: base.shiftCount || virtueStore.initialShiftCount,
         te: base.te || virtueStore.initialTE,
+        soulEggs: base.soulEggs || initialStateStore.soulEggs,
 
         // Farm starts with default equipment
         // Note: index 0 is Coop and Trike.

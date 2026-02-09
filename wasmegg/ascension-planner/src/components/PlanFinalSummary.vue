@@ -22,10 +22,14 @@
         <span class="text-sm font-medium text-gray-900">{{ formatDateTime(endDate) }}</span>
       </div>
 
-      <!-- Shifts -->
       <div class="flex flex-col">
         <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Shifts</span>
-        <span class="text-sm font-mono font-bold text-purple-600">{{ shiftCount }}</span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm font-mono font-bold text-purple-600">{{ shiftCount }}</span>
+          <span v-if="totalShiftCost > 0" class="text-xs text-gray-400 font-medium whitespace-nowrap">
+            ({{ formatNumber(totalShiftCost, 3) }} SE <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3 h-3 inline-block -mt-1" alt="SE" />)
+          </span>
+        </div>
       </div>
 
       <!-- TE Gained -->
@@ -47,6 +51,8 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { formatNumber } from '@/lib/format';
+import { iconURL } from 'lib';
 
 const actionsStore = useActionsStore();
 const initialStateStore = useInitialStateStore();
@@ -103,6 +109,12 @@ const endDate = computed(() => {
 
 const shiftCount = computed(() => {
   return actionsStore.actions.filter(a => a.type === 'shift').length;
+});
+
+const totalShiftCost = computed(() => {
+  return actionsStore.actions
+    .filter(a => a.type === 'shift')
+    .reduce((sum, a) => sum + a.cost, 0);
 });
 
 const currentTE = computed(() => calculateTotalPotentialTE(actionsStore.currentSnapshot));
