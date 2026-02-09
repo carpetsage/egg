@@ -51,7 +51,7 @@
             <ChevronIcon :expanded="expandedSections.availableActions" />
           </div>
           <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50">
-            <AvailableActions />
+            <AvailableActions @show-current-details="showCurrentDetails" />
           </div>
         </div>
       </div>
@@ -59,7 +59,7 @@
 
     <!-- Action Details Modal -->
     <ActionDetailsModal
-      v-if="detailsModalAction"
+      v-if="showDetailsModal"
       :action="detailsModalAction"
       @close="closeActionDetails"
     />
@@ -130,6 +130,7 @@ const totalCost = computed(() => actionsStore.totalCost);
 const actionCount = computed(() => actionsStore.actionCount);
 
 // Modal state
+const showDetailsModal = ref(false);
 const detailsModalAction = ref<Action | null>(null);
 const undoAction = ref<Action | null>(null);
 const undoDependentActions = ref<Action[]>([]);
@@ -139,12 +140,21 @@ function showActionDetails(action: Action) {
   // Temporarily restore stores to this action's end state so CalculationSummary shows correct values
   restoreFromSnapshot(action.endState);
   detailsModalAction.value = action;
+  showDetailsModal.value = true;
+}
+
+function showCurrentDetails() {
+  // Ensure we're in the effective snapshot
+  restoreFromSnapshot(actionsStore.effectiveSnapshot);
+  detailsModalAction.value = null;
+  showDetailsModal.value = true;
 }
 
 function closeActionDetails() {
   // Restore stores to current state (last action's end state) or effective state if editing
   restoreFromSnapshot(actionsStore.effectiveSnapshot);
   detailsModalAction.value = null;
+  showDetailsModal.value = false;
 }
 
 function showUndoConfirmation(action: Action, dependentActions: Action[]) {

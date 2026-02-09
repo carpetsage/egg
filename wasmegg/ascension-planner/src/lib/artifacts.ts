@@ -366,3 +366,55 @@ export function createEmptyArtifactModifiers(): ArtifactModifiers {
     researchCost: emptyModifier('research cost'),
   };
 }
+
+/**
+ * Parse equipped artifacts and stones from a player backup.
+ * Specifically looks at the virtueAfxDb which is used for virtue eggs.
+ */
+export function getArtifactLoadoutFromBackup(backup: any): EquippedArtifact[] {
+  const loadout = createEmptyLoadout();
+
+  // Virtue eggs use a separate artifact database and active set
+  const db = backup.artifactsDb?.virtueAfxDb;
+  if (!db || !db.inventoryItems || !db.activeArtifacts?.slots) {
+    return loadout;
+  }
+
+  const inventoryItems = db.inventoryItems || [];
+  const activeArtifacts = db.activeArtifacts;
+  const itemIdToArtifact = new Map<any, any>(inventoryItems.map((item: any) => [item.itemId, item.artifact]));
+
+  for (let i = 0; i < Math.min(4, activeArtifacts.slots.length); i++) {
+    const slot = activeArtifacts.slots[i];
+    if (slot.occupied && slot.itemId !== undefined && slot.itemId !== null) {
+      const artifact = itemIdToArtifact.get(slot.itemId);
+      if (artifact && artifact.spec) {
+        const spec = artifact.spec;
+
+        // Find matching tier in allPossibleTiers
+        const tier = allPossibleTiers.find(t => t.afx_id === spec.name && t.afx_level === spec.level);
+        if (tier) {
+          const artifactId = `${tier.family.id}-${tier.tier_number}-${spec.rarity || 0}`;
+
+          // Parse stones
+          const stones: (string | null)[] = [];
+          if (artifact.stones) {
+            for (const stoneSpec of artifact.stones) {
+              const stoneTier = allPossibleTiers.find(t => t.afx_id === stoneSpec.name && t.afx_level === stoneSpec.level);
+              if (stoneTier) {
+                stones.push(`${stoneTier.family.id}-${stoneTier.tier_number}`);
+              }
+            }
+          }
+
+          loadout[i] = {
+            artifactId,
+            stones,
+          };
+        }
+      }
+    }
+  }
+
+  return loadout;
+}

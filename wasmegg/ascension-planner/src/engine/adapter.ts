@@ -17,10 +17,16 @@ import { restoreFromSnapshot } from '@/lib/actions/snapshot';
  */
 export function getSimulationContext(): SimulationContext {
     const initialStateStore = useInitialStateStore();
+    const virtueStore = useVirtueStore();
+
+    // Convert ascension date/time/timezone to Unix timestamp (seconds)
+    const startDateTime = new Date(`${virtueStore.ascensionDate}T${virtueStore.ascensionTime}:00`);
+    const ascensionStartTime = Math.floor(startDateTime.getTime() / 1000);
 
     return {
         epicResearchLevels: initialStateStore.epicResearchLevels,
         colleggtibleModifiers: initialStateStore.colleggtibleModifiers,
+        ascensionStartTime,
     };
 }
 
@@ -63,6 +69,9 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot): E
         fuelTankAmounts: { ...(base.fuelTankAmounts || {}) },
         eggsDelivered: { ...(base.eggsDelivered || {}) },
         teEarned: { ...(base.teEarned || {}) },
+
+        population: base.population || 0,
+        lastStepTime: base.lastStepTime || 0,
     };
 }
 

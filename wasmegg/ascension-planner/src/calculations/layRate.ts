@@ -24,8 +24,8 @@ export interface LayRateResearch {
   isEpic: boolean;
 }
 
-// Base egg laying rate: 0.25 eggs per minute per chicken
-const BASE_RATE_PER_SECOND = 0.25 / 60;
+// Base egg laying rate: 2 eggs per minute per chicken
+const BASE_RATE_PER_SECOND = 2 / 60;
 
 // Common research IDs for lay rate (from researches.json)
 const commonLayRateResearchIds = [

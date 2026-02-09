@@ -30,6 +30,9 @@ export interface EngineState {
     fuelTankAmounts: Record<VirtueEgg, number>;
     eggsDelivered: Record<VirtueEgg, number>;
     teEarned: Record<VirtueEgg, number>;
+
+    population: number;
+    lastStepTime: number;
 }
 
 /**
@@ -38,6 +41,7 @@ export interface EngineState {
 export interface SimulationContext {
     epicResearchLevels: ResearchLevels;
     colleggtibleModifiers: ColleggtibleModifiers;
+    ascensionStartTime: number; // Unix timestamp in seconds
     // TODO: Add any other global context needed (e.g. events?)
 }
 

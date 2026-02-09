@@ -22,10 +22,22 @@ export function applyAction(state: EngineState, action: Action): EngineState {
     switch (action.type) {
         case 'start_ascension': {
             const payload = action.payload as StartAscensionPayload;
-            return {
+            const newState = {
                 ...state,
                 currentEgg: payload.initialEgg,
             };
+
+            // If initial farm state provided, initialize engine state from it
+            if (payload.initialFarmState) {
+                const farm = payload.initialFarmState;
+                newState.researchLevels = { ...farm.commonResearches };
+                newState.habIds = [...farm.habs];
+                newState.vehicles = [...farm.vehicles];
+                newState.eggsDelivered = { ...newState.eggsDelivered };
+                newState.eggsDelivered[payload.initialEgg] = farm.deliveredEggs;
+            }
+
+            return newState;
         }
 
         case 'buy_vehicle': {

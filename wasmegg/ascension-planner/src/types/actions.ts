@@ -94,6 +94,7 @@ export interface BuyResearchPayload {
  */
 export interface StartAscensionPayload {
   initialEgg: VirtueEgg; // The egg chosen to start the ascension
+  initialFarmState?: import('./index').CurrentFarmState;
 }
 
 /**
@@ -212,6 +213,10 @@ export interface CalculationsSnapshot {
   // Truth Eggs state (per-egg)
   eggsDelivered: Record<VirtueEgg, number>;
   teEarned: Record<VirtueEgg, number>;
+
+  // Farm state
+  population: number;
+  lastStepTime: number;
 
   // Store state for reconstruction
   vehicles: VehicleSlot[];
@@ -380,6 +385,8 @@ export function createEmptySnapshot(): CalculationsSnapshot {
       resilience: 0,
       kindness: 0,
     },
+    population: 0,
+    lastStepTime: 0,
     vehicles: [{ vehicleId: 0, trainLength: 1 }], // Every player starts with 1 trike
     habIds: [0, null, null, null], // Every player starts with 1 Coop (id=0)
     researchLevels: {},

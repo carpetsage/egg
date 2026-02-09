@@ -12,8 +12,11 @@
         <!-- Header -->
         <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center z-10">
           <div>
-            <h2 class="font-semibold text-gray-900">State After Action #{{ action.index + 1 }}</h2>
-            <p class="text-sm text-gray-500">{{ displayName }}</p>
+            <h2 class="font-semibold text-gray-900">
+              {{ action ? `State After Action #${action.index + 1}` : 'Current Calculation Details' }}
+            </h2>
+            <p v-if="action" class="text-sm text-gray-500">{{ displayName }}</p>
+            <p v-else class="text-sm text-gray-500">Full breakdown of current multipliers and rates</p>
           </div>
           <button
             class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
@@ -28,7 +31,7 @@
         <!-- Content -->
         <div class="flex-1 overflow-auto p-4">
           <!-- Deltas from previous (only show for non-start actions) -->
-          <div v-if="action.type !== 'start_ascension'" class="bg-gray-50 rounded-lg p-4 mb-6">
+          <div v-if="action && action.type !== 'start_ascension'" class="bg-gray-50 rounded-lg p-4 mb-6">
             <h3 class="text-sm font-medium text-gray-700 mb-2">Change from Previous State</h3>
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div class="flex justify-between">
@@ -72,7 +75,7 @@ import { formatNumber } from '@/lib/format';
 import CalculationSummary from './CalculationSummary.vue';
 
 const props = defineProps<{
-  action: Action;
+  action?: Action | null;
 }>();
 
 defineEmits<{
@@ -80,6 +83,7 @@ defineEmits<{
 }>();
 
 const displayName = computed(() => {
+  if (!props.action) return '';
   const executor = getExecutor(props.action.type);
   return executor.getDisplayName(props.action.payload);
 });

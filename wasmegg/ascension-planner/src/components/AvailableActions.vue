@@ -59,7 +59,7 @@
       <ArtifactActions v-if="activeTab === 'artifacts'" />
       <SiloActions v-if="activeTab === 'silos'" />
       <FuelTankActions v-if="activeTab === 'fuel'" />
-      <WaitForTEActions v-if="activeTab === 'te'" />
+      <WaitForTEActions v-if="activeTab === 'te'" @show-current-details="$emit('show-current-details')" />
     </div>
   </div>
 </template>
@@ -80,6 +80,10 @@ import { useActionsStore } from '@/stores/actions';
 import { VIRTUE_EGG_NAMES, type VirtueEgg } from '@/types';
 
 const actionsStore = useActionsStore();
+
+defineEmits<{
+  'show-current-details': [];
+}>();
 
 // Check if any shifts have been made
 const hasShifts = computed(() => {
