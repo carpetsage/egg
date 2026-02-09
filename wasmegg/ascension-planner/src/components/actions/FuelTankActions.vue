@@ -170,7 +170,7 @@ function handleStoreFuel() {
     timeSeconds: timeToStoreSeconds.value,
   };
 
-  const dependencies = computeDependencies('store_fuel', payload, actionsStore.actions);
+  const dependencies = computeDependencies('store_fuel', payload, actionsStore.actionsBeforeInsertion);
 
   // Apply to store
   fuelTankStore.addFuel(payload.egg, payload.amount);

@@ -46,7 +46,18 @@
 
     <!-- Shift Options -->
     <div>
-      <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Shift to another egg</h4>
+      <div class="flex justify-between items-center mb-3 ml-1">
+        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Shift to another egg</h4>
+        <div class="flex items-center gap-1.5 opacity-80">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Next shift:</span>
+          <div class="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+            <span class="text-xs font-bold text-gray-700">
+              {{ formatNumber(nextShiftCostValue, 3) }}
+            </span>
+            <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
+          </div>
+        </div>
+      </div>
       <div class="grid grid-cols-2 gap-3">
         <button
           v-for="egg in availableEggs"
@@ -75,20 +86,13 @@
               {{ eggActionLabel(egg) }}
             </span>
           </div>
-          
-          <!-- Hover arrow -->
-          <div v-if="egg !== virtueStore.currentEgg" class="absolute right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
         </button>
       </div>
     </div>
 
     <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
       <p class="text-[11px] text-blue-600 font-medium leading-relaxed">
-        <span class="font-bold">Info:</span> Shifting is free but increases your shift count. Each egg phase unlocks mission-critical components for your ascension.
+        <span class="font-bold">Info:</span> Shifting costs <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3 h-3 inline-block -mt-1" alt="SE" /> Soul Eggs and increases your shift count.
       </p>
     </div>
   </div>
@@ -100,10 +104,15 @@ import { iconURL } from 'lib';
 import { VIRTUE_EGG_NAMES, VIRTUE_EGGS, type VirtueEgg, generateActionId } from '@/types';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
+import { useInitialStateStore } from '@/stores/initialState';
+import { computeDependencies } from '@/lib/actions/executor';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import { shiftCost } from 'lib';
+import { formatNumber } from '@/lib/format';
 
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
+const initialStateStore = useInitialStateStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const availableEggs = VIRTUE_EGGS;
@@ -195,14 +204,28 @@ const timeSinceLastShiftFormatted = computed(() => {
   return '<1m';
 });
 
+const nextShiftCostValue = computed(() => {
+  return shiftCost(initialStateStore.soulEggs, virtueStore.shiftCount);
+});
+
 function handleShift(toEgg: VirtueEgg) {
   if (toEgg === virtueStore.currentEgg) return;
 
   // Prepare execution (restores stores if editing past group)
   const beforeSnapshot = prepareExecution();
 
+  // Calculate cost after store is prepared/synced
+  const cost = nextShiftCostValue.value;
+
   const fromEgg = beforeSnapshot.currentEgg;
   const newShiftCount = beforeSnapshot.shiftCount + 1;
+
+  // Compute dependencies (shift depends on previous shift or start_ascension)
+  const dependencies = computeDependencies('shift', {
+    fromEgg,
+    toEgg,
+    newShiftCount,
+  }, actionsStore.actionsBeforeInsertion);
 
   // Apply the shift to the store
   virtueStore.shift(toEgg);
@@ -217,8 +240,8 @@ function handleShift(toEgg: VirtueEgg) {
       toEgg,
       newShiftCount,
     },
-    cost: 0, // Shifting is free
-    dependsOn: [],
+    cost,
+    dependsOn: dependencies,
   }, beforeSnapshot);
 }
 </script>

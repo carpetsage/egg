@@ -45,13 +45,18 @@
         </div>
       </div>
 
-      <!-- Shift number badge (only for shift actions) -->
-      <span
-        v-if="isShiftAction"
-        class="text-xs font-bold text-purple-600 bg-purple-200 px-2 py-0.5 rounded-full"
-      >
-        #{{ (headerAction as Action<'shift'>).payload.newShiftCount }}
-      </span>
+      <!-- Shift info (only for shift actions) -->
+      <div v-if="isShiftAction && headerAction.cost > 0" class="flex items-center gap-2">
+        <!-- Cost badge -->
+        <div 
+          class="flex items-center gap-1 bg-white/60 px-2 py-0.5 rounded border border-purple-200 shadow-sm"
+        >
+          <span class="text-[10px] font-bold text-purple-700">
+            {{ formatNumber(headerAction.cost, 3) }}
+          </span>
+          <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
+        </div>
+      </div>
 
       <!-- Current badge -->
       <span
@@ -68,6 +73,19 @@
       >
         Editing
       </span>
+
+      <!-- Undo button (only for shift actions) -->
+      <button
+        v-if="isShiftAction"
+        class="p-1.5 text-purple-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+        title="Undo this shift and all its actions"
+        @click.stop="$emit('undo', headerAction)"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+        </svg>
+      </button>
     </button>
 
     <!-- Egg Summary (for the egg we were ON during this period) -->
@@ -101,6 +119,7 @@ import { ref, computed, defineAsyncComponent, watch, nextTick } from 'vue';
 import { iconURL } from 'lib';
 import type { Action, VirtueEgg, StartAscensionPayload, ShiftPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
+import { formatNumber } from '@/lib/format';
 import ActionHistoryItem from './ActionHistoryItem.vue';
 
 // Lazy load summary components

@@ -189,7 +189,7 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
   };
 
   // Compute dependencies
-  const dependencies = computeDependencies('buy_hab', payload, actionsStore.actions);
+  const dependencies = computeDependencies('buy_hab', payload, actionsStore.actionsBeforeInsertion);
 
   // Apply to store
   habCapacityStore.setHab(slotIndex, habId);

@@ -148,7 +148,7 @@ function handleBuySilo() {
   };
 
   // Compute dependencies
-  const dependencies = computeDependencies('buy_silo', payload, actionsStore.actions);
+  const dependencies = computeDependencies('buy_silo', payload, actionsStore.actionsBeforeInsertion);
 
   // Apply to store
   silosStore.buySilo();

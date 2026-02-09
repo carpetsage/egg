@@ -1,4 +1,4 @@
-import type {
+import {
     Action,
     BuyVehiclePayload,
     BuyHabPayload,
@@ -10,8 +10,10 @@ import type {
     StoreFuelPayload,
     WaitForTEPayload,
     StartAscensionPayload,
+    VirtueEgg,
 } from '@/types';
 import type { EngineState } from './types';
+import { countTEThresholdsPassed } from '@/lib/truthEggs';
 
 /**
  * Purely apply an action to the engine state.
@@ -34,9 +36,18 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 newState.habIds = [...farm.habs];
                 newState.vehicles = [...farm.vehicles];
                 newState.siloCount = farm.numSilos;
-                newState.eggsDelivered = { ...newState.eggsDelivered };
-                newState.eggsDelivered[payload.initialEgg] = farm.deliveredEggs;
+                newState.population = farm.population;
+                newState.lastStepTime = farm.lastStepTime;
+
+                // Note: We DO NOT add farm.deliveredEggs to eggsDelivered here
+                // because eggsDelivered in the engine (from initialSnapshot) 
+                // already represents the cumulative total from the backup.
             }
+
+            // Re-calculate total TE (claimed + pending) based on current eggs delivered
+            newState.te = Object.values(newState.eggsDelivered).reduce((sum, amount) => {
+                return sum + countTEThresholdsPassed(amount);
+            }, 0);
 
             return newState;
         }
@@ -124,10 +135,16 @@ export function applyAction(state: EngineState, action: Action): EngineState {
             const newEggsDelivered = { ...state.eggsDelivered };
             newEggsDelivered[payload.egg] = (newEggsDelivered[payload.egg] || 0) + payload.amount;
 
+            // Update total TE count
+            const newTotalTE = Object.values(newEggsDelivered).reduce((sum, amount) => {
+                return sum + countTEThresholdsPassed(amount);
+            }, 0);
+
             return {
                 ...state,
                 fuelTankAmounts: newFuelAmounts,
                 eggsDelivered: newEggsDelivered,
+                te: newTotalTE,
             };
         }
 
@@ -138,9 +155,14 @@ export function applyAction(state: EngineState, action: Action): EngineState {
             const newEggsDelivered = { ...state.eggsDelivered };
             newEggsDelivered[payload.egg] = (newEggsDelivered[payload.egg] || 0) + payload.eggsToLay;
 
+            // Update total TE count
+            const newTotalTE = Object.values(newEggsDelivered).reduce((sum, amount) => {
+                return sum + countTEThresholdsPassed(amount);
+            }, 0);
+
             return {
                 ...state,
-                te: state.te + payload.teGained,
+                te: newTotalTE,
                 eggsDelivered: newEggsDelivered,
             };
         }

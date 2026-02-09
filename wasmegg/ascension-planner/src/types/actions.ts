@@ -202,6 +202,7 @@ export interface CalculationsSnapshot {
   currentEgg: VirtueEgg;
   shiftCount: number;
   te: number;
+  soulEggs: number;
 
   // Silo state
   siloCount: number;
@@ -362,6 +363,7 @@ export function createEmptySnapshot(): CalculationsSnapshot {
     currentEgg: 'curiosity', // Default starting egg
     shiftCount: 0,
     te: 0,
+    soulEggs: 0,
     siloCount: 1, // Everyone starts with 1 silo for free
     siloTimeMinutes: 60, // 1 hour base (without silo capacity research)
     fuelTankAmounts: {

@@ -10,9 +10,13 @@ export function getNumTruthEggs(backup: ei.IBackup) {
   return backup.virtue?.eovEarned?.reduce((a, b) => a + b, 0) || 0;
 }
 
-export function nextShiftCost(backup: ei.IBackup) {
-  const basis = getNumSoulEggs(backup) * (0.02 * Math.pow((backup.virtue?.shiftCount || 0) / 120, 3) + 0.0001);
+export function shiftCost(numSoulEggs: number, shiftCount: number) {
+  const basis = numSoulEggs * (0.02 * Math.pow(shiftCount / 120, 3) + 0.0001);
   return 10 ** 11 + 0.6 * basis + (0.4 * basis) ** 0.9;
+}
+
+export function nextShiftCost(backup: ei.IBackup) {
+  return shiftCost(getNumSoulEggs(backup), backup.virtue?.shiftCount || 0);
 }
 
 export function getSoulFoodLevel(backup: ei.IBackup): number {
@@ -44,9 +48,9 @@ export function getNakedEarningBonus(backup: ei.IBackup, virtue = false): number
   return virtue
     ? truthEggBonus ** getNumTruthEggs(backup)
     : getNumSoulEggs(backup) *
-        soulEggBonus *
-        (1 + prophecyEggBonus) ** getNumProphecyEggs(backup) *
-        truthEggBonus ** getNumTruthEggs(backup);
+    soulEggBonus *
+    (1 + prophecyEggBonus) ** getNumProphecyEggs(backup) *
+    truthEggBonus ** getNumTruthEggs(backup);
 }
 
 // Implements farmer roles from the Egg, Inc. Discord.
@@ -124,9 +128,9 @@ export function soulPowerToFarmerRole(soulPower: number): FarmerRole {
     oom < roles.length
       ? roles[oom]
       : {
-          ...roles[roles.length - 1],
-          oom,
-        };
+        ...roles[roles.length - 1],
+        oom,
+      };
   const now = dayjs();
   const end = dayjs(1712089800 * 1000); // 24 hours later
   if (now < end) {

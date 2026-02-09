@@ -65,13 +65,21 @@
 
     <!-- Cost, time to save, and deltas (hidden for start_ascension) -->
     <div v-if="!isStartAction" class="text-right shrink-0">
-      <div class="flex items-baseline justify-end gap-2">
-        <span class="text-sm font-mono text-amber-600">
-          {{ formatNumber(action.cost, 0) }}
-        </span>
-        <span class="text-xs text-gray-400" :title="timeToSaveTitle">
-          ({{ timeToSaveFormatted }})
-        </span>
+      <div class="flex items-baseline justify-end gap-1.5">
+        <template v-if="action.type === 'shift'">
+          <span class="text-sm font-mono text-purple-600">
+            {{ formatNumber(action.cost, 3) }}
+          </span>
+          <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-4 h-4" alt="SE" />
+        </template>
+        <template v-else>
+          <span class="text-sm font-mono text-amber-600">
+            {{ formatNumber(action.cost, 0) }}
+          </span>
+          <span class="text-xs text-gray-400" :title="timeToSaveTitle">
+            ({{ timeToSaveFormatted }})
+          </span>
+        </template>
       </div>
     </div>
 

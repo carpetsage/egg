@@ -1,7 +1,7 @@
 <template>
   <the-nav-bar active-entry-id="ascension-planner" />
 
-  <div class="min-h-screen bg-gray-100 pb-6">
+  <div class="min-h-screen bg-gray-100 pb-24">
     <div class="max-w-6xl mx-auto p-4">
       <h1 class="mx-4 mt-4 mb-2 text-center text-2xl font-bold text-gray-900">
         Ascension Planner
@@ -74,6 +74,7 @@
     />
 
     <AssetBrowser />
+    <PlanFinalSummary />
   </div>
 </template>
 
@@ -91,6 +92,7 @@ import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
 import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
 import UndoConfirmationDialog from '@/components/UndoConfirmationDialog.vue';
+import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import AssetBrowser from '@/components/AssetBrowser.vue';
 import { formatNumber } from '@/lib/format';
 import { restoreFromSnapshot, computeCurrentSnapshot } from '@/lib/actions/snapshot';

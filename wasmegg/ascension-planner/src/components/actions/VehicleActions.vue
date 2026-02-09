@@ -288,7 +288,7 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
   };
 
   // Compute dependencies (hyperloop train cars depend on graviton coupling)
-  const dependencies = computeDependencies('buy_vehicle', payload, actionsStore.actions);
+  const dependencies = computeDependencies('buy_vehicle', payload, actionsStore.actionsBeforeInsertion);
 
   // Apply to store
   shippingStore.setVehicle(slotIndex, vehicleId);
@@ -412,7 +412,7 @@ function addTrainCarAction(slotIndex: number, fromLength: number, toLength: numb
   };
 
   // Compute dependencies
-  const dependencies = computeDependencies('buy_train_car', payload, actionsStore.actions);
+  const dependencies = computeDependencies('buy_train_car', payload, actionsStore.actionsBeforeInsertion);
 
   // Apply to store
   shippingStore.setTrainLength(slotIndex, toLength);
