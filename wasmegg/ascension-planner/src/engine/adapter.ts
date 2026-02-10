@@ -34,45 +34,67 @@ export function getSimulationContext(): SimulationContext {
  * Create the base engine state from initial conditions.
  * This represents the state BEFORE the first action (start_ascension).
  */
-export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot): EngineState {
+export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | null): EngineState {
     const virtueStore = useVirtueStore();
     const initialStateStore = useInitialStateStore();
+    const silosStore = useSilosStore();
+    const fuelTankStore = useFuelTankStore();
+    const truthEggsStore = useTruthEggsStore();
+    const habCapacityStore = useHabCapacityStore();
+    const shippingCapacityStore = useShippingCapacityStore();
+    const commonResearchStore = useCommonResearchStore();
 
-    // Use provide snapshot or current state of stores as fallback
-    const base = initialSnapshot || createEmptySnapshot();
-
-    return {
-        // Virtue state starts at initial values from backup
-        currentEgg: base.currentEgg || 'curiosity',
-        shiftCount: base.shiftCount || virtueStore.initialShiftCount,
-        te: base.te || virtueStore.initialTE,
-        soulEggs: base.soulEggs || initialStateStore.soulEggs,
-
-        // Farm starts with default equipment
-        // Note: index 0 is Coop and Trike.
-        vehicles: base.vehicles.length > 0 ? [...base.vehicles] : [{ vehicleId: 0, trainLength: 1 }],
-        habIds: base.habIds.length > 0 ? [...base.habIds] : [0, null, null, null],
-        researchLevels: { ...(base.researchLevels || {}) },
-        siloCount: base.siloCount || 1,
-
-        // Artifacts from loadout
-        artifactLoadout: base.artifactLoadout ?
-            base.artifactLoadout.map(slot => ({
-                artifactId: slot.artifactId,
-                stones: [...slot.stones],
-            })) :
-            initialStateStore.artifactLoadout.map(slot => ({
+    // If a specific snapshot is provided (e.g. from existing action history), use it.
+    // Otherwise, read the current "base" state from the hydrated stores.
+    if (initialSnapshot) {
+        return {
+            currentEgg: initialSnapshot.currentEgg,
+            shiftCount: initialSnapshot.shiftCount,
+            te: initialSnapshot.te,
+            soulEggs: initialSnapshot.soulEggs,
+            vehicles: [...initialSnapshot.vehicles],
+            habIds: [...initialSnapshot.habIds],
+            researchLevels: { ...initialSnapshot.researchLevels },
+            siloCount: initialSnapshot.siloCount,
+            artifactLoadout: initialSnapshot.artifactLoadout.map(slot => ({
                 artifactId: slot.artifactId,
                 stones: [...slot.stones],
             })),
+            fuelTankAmounts: { ...initialSnapshot.fuelTankAmounts },
+            eggsDelivered: { ...initialSnapshot.eggsDelivered },
+            teEarned: { ...initialSnapshot.teEarned },
+            population: initialSnapshot.population,
+            lastStepTime: initialSnapshot.lastStepTime,
+        };
+    }
 
-        // Progress state from backup
-        fuelTankAmounts: { ...(base.fuelTankAmounts || {}) },
-        eggsDelivered: { ...(base.eggsDelivered || {}) },
-        teEarned: { ...(base.teEarned || {}) },
+    // Fallback to reading from stores (used when importing plan or starting fresh)
+    return {
 
-        population: base.population || 0,
-        lastStepTime: base.lastStepTime || 0,
+        currentEgg: 'curiosity', // Always start at curiosity for base unless user overrides?
+        // Wait, if we imported a plan that starts on Resilience, applyAction(start_ascension) will fix it.
+        // But base state needs to be valid.
+
+        shiftCount: virtueStore.initialShiftCount,
+        te: virtueStore.initialTE,
+        soulEggs: initialStateStore.soulEggs,
+
+        vehicles: shippingCapacityStore.vehicles.map(v => ({ ...v })),
+        habIds: [...habCapacityStore.habIds],
+        researchLevels: { ...commonResearchStore.researchLevels },
+        siloCount: silosStore.siloCount,
+
+        artifactLoadout: initialStateStore.artifactLoadout.map(slot => ({
+            artifactId: slot.artifactId,
+            stones: [...slot.stones],
+        })),
+
+        fuelTankAmounts: { ...fuelTankStore.fuelAmounts },
+        eggsDelivered: { ...truthEggsStore.eggsDelivered },
+        teEarned: { ...truthEggsStore.teEarned },
+
+        population: initialStateStore.currentFarmState?.population || 0,
+        lastStepTime: initialStateStore.currentFarmState?.lastStepTime || 0,
     };
 }
 

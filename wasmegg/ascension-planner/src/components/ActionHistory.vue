@@ -46,9 +46,41 @@
     </div>
 
     <!-- Clear all button (only show if there are actions beyond start_ascension) -->
-    <div v-if="actionCount > 0" class="flex justify-end">
+    <!-- Footer Actions -->
+    <div class="flex justify-between items-center px-2 pt-4 border-t border-gray-100">
+      <div class="flex gap-2">
+        <button
+          class="text-sm px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 text-gray-700 flex items-center gap-1 transition-colors"
+          title="Export Plan to JSON"
+          @click="handleExport"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Export
+        </button>
+        <button
+          class="text-sm px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 text-gray-700 flex items-center gap-1 transition-colors"
+          title="Import Plan from JSON"
+          @click="triggerImport"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          Import
+        </button>
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".json"
+          class="hidden"
+          @change="handleImport"
+        />
+      </div>
+
       <button
-        class="text-sm text-red-600 hover:text-red-800 px-3 py-1"
+        v-if="actionCount > 0"
+        class="text-sm text-red-600 hover:text-red-800 px-3 py-1 transition-colors"
         @click="handleClearAll"
       >
         Clear All
@@ -58,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { Action, StoreFuelPayload, WaitForTEPayload } from '@/types';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
@@ -303,6 +335,48 @@ function handleStartEditing(groupId: string) {
 
 function handleStopEditing() {
   actionsStore.setEditingGroup(null);
+}
+
+// Import/Export Logic
+const fileInput = ref<HTMLInputElement | null>(null);
+
+function handleExport() {
+  actionsStore.exportPlan();
+}
+
+function triggerImport() {
+  fileInput.value?.click();
+}
+
+function handleImport(event: Event) {
+  const input = event.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+
+  const file = input.files[0];
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    try {
+      const jsonString = e.target?.result as string;
+      
+      if (actionsStore.actionCount > 0) {
+        if (!confirm('Importing a plan will overwrite your current actions. Continue?')) {
+          input.value = ''; // Reset input
+          return;
+        }
+      }
+
+      actionsStore.importPlan(jsonString);
+      // alert('Plan imported successfully!');
+    } catch (error) {
+      console.error(error);
+      alert('Failed to import plan: Invalid file format.');
+    } finally {
+      input.value = ''; // Reset for next use
+    }
+  };
+
+  reader.readAsText(file);
 }
 
 /**

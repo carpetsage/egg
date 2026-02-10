@@ -268,6 +268,28 @@ export const useInitialStateStore = defineStore('initialState', {
     },
 
     /**
+     * Hydrate store from exported data.
+     */
+    hydrate(data: any) {
+      this.hasData = true;
+      this.playerId = data.playerId || '';
+      this.nickname = data.nickname || 'Redacted';
+      this.lastBackupTime = data.lastBackupTime || 0;
+      this.soulEggs = data.soulEggs || 1e21;
+
+      if (data.epicResearchLevels) {
+        this.epicResearchLevels = { ...data.epicResearchLevels };
+      }
+      if (data.colleggtibleTiers) {
+        this.colleggtibleTiers = { ...data.colleggtibleTiers };
+      }
+      if (data.artifactLoadout) {
+        this.artifactLoadout = [...data.artifactLoadout];
+      }
+      this.currentFarmState = data.currentFarmState || null;
+    },
+
+    /**
      * Clear all initial state data
      */
     clear() {

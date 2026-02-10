@@ -540,7 +540,9 @@ const allTimezones = computed(() => {
 });
 
 const lastBackupFormatted = computed(() => {
-  if (!props.lastBackupTime) return '';
+  if (props.lastBackupTime === 0) {
+    return props.hasData ? 'Imported Plan' : '';
+  }
   const date = new Date(props.lastBackupTime * 1000);
   return date.toLocaleDateString(undefined, {
     month: 'short',
