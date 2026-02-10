@@ -112,11 +112,7 @@ const calculateTotalPotentialTE = (snapshot: any) => {
 };
 
 const startDate = computed(() => {
-  if (initialStateStore.hasData) {
-    // lastBackupTime is in seconds
-    return new Date(initialStateStore.lastBackupTime * 1000);
-  }
-  // Fallback to ascension date/time from virtue store
+  // Use ascension date/time from virtue store as source of truth
   const dateStr = `${virtueStore.ascensionDate}T${virtueStore.ascensionTime}`;
   const date = new Date(dateStr);
   return isNaN(date.getTime()) ? new Date() : date;

@@ -3,6 +3,7 @@
     :output="output"
     :egg-value="input.eggValue"
     :effective-lay-rate="input.effectiveLayRate"
+    :te="input.te"
     :colleggtible-tiers="colleggtibleTiers"
     :time-unit="store.timeUnit"
     @set-time-unit="store.setTimeUnit"

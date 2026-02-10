@@ -162,6 +162,24 @@ export const useVirtueStore = defineStore('virtue', {
     },
 
     /**
+     * Set ascension start from a Unix timestamp (seconds).
+     */
+    setAscensionStartFromTimestamp(timestampSeconds: number) {
+      if (!timestampSeconds) return;
+      const date = new Date(timestampSeconds * 1000);
+
+      // Use local time for the input fields
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+
+      this.ascensionDate = `${year}-${month}-${day}`;
+      this.ascensionTime = `${hours}:${minutes}`;
+    },
+
+    /**
      * Reset to initial state.
      */
     reset() {
