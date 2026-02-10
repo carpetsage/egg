@@ -25171,5 +25171,14 @@
     "startTimestamp": 1770656400,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1770829200,
+    "id": "event-2-10",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1770742800,
+    "type": "hab-sale",
+    "ultra": false
   }
 ]
