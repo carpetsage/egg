@@ -119,6 +119,7 @@ export function computeSnapshot(
         fireworkMultiplier: colleggtibleModifiers.earnings,
         awayEarningsMultiplier: colleggtibleModifiers.awayEarnings,
         artifactAwayMultiplier: artifactMods.awayEarnings.totalMultiplier,
+        videoDoublerMultiplier: context.assumeDoubleEarnings ? 2 : 1,
         artifactEffects: artifactMods.awayEarnings.effects,
     };
     const earningsOutput = calculateEarnings(earningsInput);
