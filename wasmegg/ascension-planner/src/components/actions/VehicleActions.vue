@@ -78,7 +78,7 @@
             </div>
           </div>
 
-          <!-- Capacity per car hint -->
+          <!-- Capacity per car hints -->
           <div v-if="slot.trainLength < getMaxTrainLength()" class="mt-1.5 text-[9px] text-gray-400 italic">
             Each car adds +{{ formatNumber((getVehicleType(11)?.baseCapacityPerSecond ?? 0) * 3600, 0) }} eggs/hr
           </div>
