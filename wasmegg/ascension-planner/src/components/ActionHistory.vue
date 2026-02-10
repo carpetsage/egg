@@ -36,7 +36,6 @@
           :period-end-timestamp="item.periodEndTimestamp"
           :is-editing="actionsStore.editingGroupId === item.headerAction.id"
           :is-current="item.isCurrent"
-          :force-collapsed="actionsStore.editingGroupId !== null && actionsStore.editingGroupId !== item.headerAction.id"
           :class="{ 'border-t border-gray-100': idx > 0 }"
           @show-details="$emit('show-details', $event)"
           @undo="handleUndoRequest($event)"

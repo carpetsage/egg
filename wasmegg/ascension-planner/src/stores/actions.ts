@@ -32,6 +32,8 @@ export interface ActionsState {
   _initialSnapshot: CalculationsSnapshot | null;
   // ID of the group (header action) currently being edited, or null if editing current period
   editingGroupId: string | null;
+  // IDs of groups that are currently expanded
+  expandedGroupIds: Set<string>;
 }
 
 /**
@@ -64,6 +66,7 @@ export const useActionsStore = defineStore('actions', {
     actions: [createDefaultStartAction()],
     _initialSnapshot: null,
     editingGroupId: null,
+    expandedGroupIds: new Set(),
   }),
 
   getters: {
@@ -266,7 +269,13 @@ export const useActionsStore = defineStore('actions', {
 
       this.actions.push(finalAction);
 
-      // 7. Sync stores to match the new reality
+      // 7. Auto-expand new shifts and collapse others if needed
+      if (finalAction.type === 'shift' || finalAction.type === 'start_ascension') {
+        this.expandedGroupIds.clear();
+        this.expandedGroupIds.add(finalAction.id);
+      }
+
+      // 8. Sync stores to match the new reality
       // This ensures the rest of the app (which relies on stores) sees the update
       syncStoresToSnapshot(newSnapshot);
     },
@@ -402,6 +411,11 @@ export const useActionsStore = defineStore('actions', {
 
     setEditingGroup(groupId: string | null) {
       this.editingGroupId = groupId;
+      // When entering edit mode, ensure the group is expanded
+      if (groupId) {
+        this.expandedGroupIds.add(groupId);
+      }
+
       // When entering edit mode, we might want to restore state to that point?
       // For now, let's leave it as is. The UI handles "effectiveSnapshot".
       if (groupId === null) {
@@ -448,6 +462,12 @@ export const useActionsStore = defineStore('actions', {
       // Insert
       this.actions.splice(insertIndex, 0, fullAction);
 
+      // Auto-expand/collapse if it's a shift
+      if (fullAction.type === 'shift') {
+        this.expandedGroupIds.clear();
+        this.expandedGroupIds.add(fullAction.id);
+      }
+
       // Re-calculate everything from insertion point (or just all for simplicity)
       // RecalculateAll uses the optimized Engine, so it's fast (O(N) non-reactive).
       this.recalculateAll();
@@ -483,6 +503,22 @@ export const useActionsStore = defineStore('actions', {
         if (this.actions.length > 0) {
           syncStoresToSnapshot(this.actions[this.actions.length - 1].endState);
         }
+      }
+    },
+
+    toggleGroupExpansion(groupId: string) {
+      if (this.expandedGroupIds.has(groupId)) {
+        this.expandedGroupIds.delete(groupId);
+      } else {
+        this.expandedGroupIds.add(groupId);
+      }
+    },
+
+    setGroupExpanded(groupId: string, expanded: boolean) {
+      if (expanded) {
+        this.expandedGroupIds.add(groupId);
+      } else {
+        this.expandedGroupIds.delete(groupId);
       }
     },
   },
