@@ -39,6 +39,9 @@ export interface InitialStateStoreState {
 
   // Soul Eggs from backup
   soulEggs: number;
+
+  // Assume double earnings (video doubler)
+  assumeDoubleEarnings: boolean;
 }
 
 function initializeEpicResearchLevels(): ResearchLevels {
@@ -59,7 +62,8 @@ export const useInitialStateStore = defineStore('initialState', {
     colleggtibleTiers: getDefaultColleggtibleTiers(),
     artifactLoadout: createEmptyLoadout(),
     currentFarmState: null,
-    soulEggs: 0,
+    soulEggs: 1e21, // Default to 1s
+    assumeDoubleEarnings: true,
   }),
 
   getters: {
@@ -268,6 +272,40 @@ export const useInitialStateStore = defineStore('initialState', {
     },
 
     /**
+     * Set assume double earnings
+     */
+    setAssumeDoubleEarnings(enabled: boolean) {
+      this.assumeDoubleEarnings = enabled;
+    },
+
+    /**
+     * Hydrate store from exported data.
+     */
+    hydrate(data: any) {
+      this.hasData = true;
+      this.playerId = data.playerId || '';
+      this.nickname = data.nickname || 'Redacted';
+      this.lastBackupTime = data.lastBackupTime || 0;
+      this.soulEggs = data.soulEggs || 1e21;
+
+      if (data.epicResearchLevels) {
+        this.epicResearchLevels = { ...data.epicResearchLevels };
+      }
+      if (data.colleggtibleTiers) {
+        this.colleggtibleTiers = { ...data.colleggtibleTiers };
+      }
+      if (data.artifactLoadout) {
+        this.artifactLoadout = [...data.artifactLoadout];
+      }
+      if (data.assumeDoubleEarnings !== undefined) {
+        this.assumeDoubleEarnings = data.assumeDoubleEarnings;
+      } else {
+        this.assumeDoubleEarnings = true;
+      }
+      this.currentFarmState = data.currentFarmState || null;
+    },
+
+    /**
      * Clear all initial state data
      */
     clear() {
@@ -278,6 +316,8 @@ export const useInitialStateStore = defineStore('initialState', {
       this.epicResearchLevels = initializeEpicResearchLevels();
       this.colleggtibleTiers = getDefaultColleggtibleTiers();
       this.artifactLoadout = createEmptyLoadout();
+      this.soulEggs = 1e21;
+      this.assumeDoubleEarnings = true;
     },
   },
 });

@@ -74,7 +74,7 @@
     />
 
     <AssetBrowser />
-    <PlanFinalSummary />
+    <PlanFinalSummary @show-details="showCurrentDetails" />
   </div>
 </template>
 

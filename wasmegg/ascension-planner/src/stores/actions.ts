@@ -12,6 +12,11 @@ import {
   generateActionId,
 } from '@/types';
 import { computeDeltas } from '@/lib/actions/snapshot';
+import { downloadFile } from '@/utils/export';
+import { useInitialStateStore } from '@/stores/initialState';
+import { useVirtueStore } from '@/stores/virtue';
+import { useFuelTankStore } from '@/stores/fuelTank';
+import { useTruthEggsStore } from '@/stores/truthEggs';
 
 // Engine imports
 import { simulate } from '@/engine/simulate';
@@ -32,6 +37,8 @@ export interface ActionsState {
   _initialSnapshot: CalculationsSnapshot | null;
   // ID of the group (header action) currently being edited, or null if editing current period
   editingGroupId: string | null;
+  // IDs of groups that are currently expanded
+  expandedGroupIds: Set<string>;
 }
 
 /**
@@ -64,6 +71,7 @@ export const useActionsStore = defineStore('actions', {
     actions: [createDefaultStartAction()],
     _initialSnapshot: null,
     editingGroupId: null,
+    expandedGroupIds: new Set(),
   }),
 
   getters: {
@@ -266,7 +274,13 @@ export const useActionsStore = defineStore('actions', {
 
       this.actions.push(finalAction);
 
-      // 7. Sync stores to match the new reality
+      // 7. Auto-expand new shifts and collapse others if needed
+      if (finalAction.type === 'shift' || finalAction.type === 'start_ascension') {
+        this.expandedGroupIds.clear();
+        this.expandedGroupIds.add(finalAction.id);
+      }
+
+      // 8. Sync stores to match the new reality
       // This ensures the rest of the app (which relies on stores) sees the update
       syncStoresToSnapshot(newSnapshot);
     },
@@ -402,6 +416,11 @@ export const useActionsStore = defineStore('actions', {
 
     setEditingGroup(groupId: string | null) {
       this.editingGroupId = groupId;
+      // When entering edit mode, ensure the group is expanded
+      if (groupId) {
+        this.expandedGroupIds.add(groupId);
+      }
+
       // When entering edit mode, we might want to restore state to that point?
       // For now, let's leave it as is. The UI handles "effectiveSnapshot".
       if (groupId === null) {
@@ -448,6 +467,12 @@ export const useActionsStore = defineStore('actions', {
       // Insert
       this.actions.splice(insertIndex, 0, fullAction);
 
+      // Auto-expand/collapse if it's a shift
+      if (fullAction.type === 'shift') {
+        this.expandedGroupIds.clear();
+        this.expandedGroupIds.add(fullAction.id);
+      }
+
       // Re-calculate everything from insertion point (or just all for simplicity)
       // RecalculateAll uses the optimized Engine, so it's fast (O(N) non-reactive).
       this.recalculateAll();
@@ -462,7 +487,7 @@ export const useActionsStore = defineStore('actions', {
      */
     recalculateAll() {
       const context = getSimulationContext();
-      const baseState = createBaseEngineState(this.initialSnapshot);
+      const baseState = createBaseEngineState(this._initialSnapshot);
 
       // Run simulation on entire history
       const newActions = simulate(this.actions, context, baseState);
@@ -483,6 +508,129 @@ export const useActionsStore = defineStore('actions', {
         if (this.actions.length > 0) {
           syncStoresToSnapshot(this.actions[this.actions.length - 1].endState);
         }
+      }
+    },
+
+    toggleGroupExpansion(groupId: string) {
+      if (this.expandedGroupIds.has(groupId)) {
+        this.expandedGroupIds.delete(groupId);
+      } else {
+        this.expandedGroupIds.add(groupId);
+      }
+    },
+
+    setGroupExpanded(groupId: string, expanded: boolean) {
+      if (expanded) {
+        this.expandedGroupIds.add(groupId);
+      } else {
+        this.expandedGroupIds.delete(groupId);
+      }
+    },
+
+    /**
+     * Export the current plan to a JSON file.
+     */
+    exportPlan() {
+      const initialStateStore = useInitialStateStore();
+      const virtueStore = useVirtueStore();
+      const fuelTankStore = useFuelTankStore();
+      const truthEggsStore = useTruthEggsStore();
+
+      const exportData = {
+        version: 1,
+        timestamp: Date.now(),
+        initialState: {
+          playerId: 'EIxxxxxxxxxx', // Redacted
+          nickname: 'Redacted',
+          lastBackupTime: 0, // Set to 0 for imported plans
+          soulEggs: initialStateStore.soulEggs,
+          epicResearchLevels: initialStateStore.epicResearchLevels,
+          colleggtibleTiers: initialStateStore.colleggtibleTiers,
+          artifactLoadout: initialStateStore.artifactLoadout,
+          currentFarmState: initialStateStore.currentFarmState,
+          assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
+        },
+        virtueState: {
+          shiftCount: virtueStore.initialShiftCount,
+          initialTE: virtueStore.initialTE,
+          ascensionDate: virtueStore.ascensionDate,
+          ascensionTime: virtueStore.ascensionTime,
+          ascensionTimezone: virtueStore.ascensionTimezone,
+        },
+        fuelTankState: {
+          tankLevel: fuelTankStore.tankLevel,
+          fuelAmounts: fuelTankStore.fuelAmounts,
+        },
+        truthEggsState: {
+          eggsDelivered: truthEggsStore.eggsDelivered,
+          teEarned: truthEggsStore.teEarned,
+        },
+        actions: this.actions,
+      };
+
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const filename = `ascension-plan-${new Date().toISOString().split('T')[0]}.json`;
+      downloadFile(filename, jsonString, 'application/json');
+    },
+
+    /**
+     * Import a plan from a JSON string.
+     */
+    importPlan(jsonString: string) {
+      try {
+        const data = JSON.parse(jsonString);
+
+        // Basic validation
+        if (!data.version || !data.actions || !data.initialState) {
+          throw new Error('Invalid plan file format');
+        }
+
+        const initialStateStore = useInitialStateStore();
+        const virtueStore = useVirtueStore();
+        const fuelTankStore = useFuelTankStore();
+        const truthEggsStore = useTruthEggsStore();
+
+        // 1. Hydrate Initial State
+        initialStateStore.hydrate(data.initialState);
+
+        // 2. Hydrate Virtue Store
+        if (data.virtueState) {
+          virtueStore.setInitialState(data.virtueState.shiftCount || 0, data.virtueState.initialTE || 0);
+          if (data.virtueState.ascensionDate) virtueStore.setAscensionDate(data.virtueState.ascensionDate);
+          if (data.virtueState.ascensionTime) virtueStore.setAscensionTime(data.virtueState.ascensionTime);
+          if (data.virtueState.ascensionTimezone) virtueStore.setAscensionTimezone(data.virtueState.ascensionTimezone);
+        }
+
+        // 3. Hydrate Fuel Tank
+        if (data.fuelTankState) {
+          fuelTankStore.setTankLevel(data.fuelTankState.tankLevel || 0);
+          for (const [egg, amount] of Object.entries((data.fuelTankState.fuelAmounts || {}) as Record<string, number>)) {
+            fuelTankStore.setFuelAmount(egg as VirtueEgg, amount);
+          }
+        }
+
+        // 4. Hydrate Truth Eggs
+        if (data.truthEggsState) {
+          for (const [egg, amount] of Object.entries((data.truthEggsState.eggsDelivered || {}) as Record<string, number>)) {
+            truthEggsStore.setEggsDelivered(egg as VirtueEgg, amount);
+          }
+          for (const [egg, count] of Object.entries((data.truthEggsState.teEarned || {}) as Record<string, number>)) {
+            truthEggsStore.setTEEarned(egg as VirtueEgg, count);
+          }
+        }
+
+        // 5. Hydrate Actions
+        this.actions = data.actions;
+        // Reset initial snapshot so that recalculateAll uses the hydrated stores as base
+        this._initialSnapshot = null;
+
+        // 6. Recalculate everything
+        this.recalculateAll();
+
+        return true;
+      } catch (error) {
+        console.error('Failed to import plan:', error);
+        throw error;
       }
     },
   },

@@ -72,6 +72,15 @@
           </span>
         </div>
         <div class="px-4 py-2 flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <img :src="iconURL('egginc/r_icon_video_doubler_time.png', 64)" class="w-4 h-4 object-contain" alt="Video Doubler" />
+            <span class="text-gray-600">Video Doubler (all earnings)</span>
+          </div>
+          <span class="font-mono" :class="output.videoDoublerMultiplier > 1 ? 'text-blue-600' : 'text-gray-400'">
+            {{ formatMultiplier(output.videoDoublerMultiplier) }}
+          </span>
+        </div>
+        <div class="px-4 py-2 flex justify-between items-center">
           <span class="text-gray-600">Away Earnings (offline)</span>
           <span class="font-mono" :class="output.awayEarningsMultiplier !== 1 ? 'text-amber-600' : 'text-gray-400'">
             {{ formatMultiplier(output.awayEarningsMultiplier) }}

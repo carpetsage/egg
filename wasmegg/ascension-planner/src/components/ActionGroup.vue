@@ -58,58 +58,88 @@
         </div>
       </div>
 
-      <!-- Current badge -->
-      <span
-        v-if="isCurrent && !isEditing"
-        class="text-xs font-bold text-green-600 bg-green-200 px-2 py-0.5 rounded-full"
-      >
-        Current
-      </span>
+      <!-- Status/Editor Actions -->
+      <div class="flex items-center gap-2" @click.stop>
+        <!-- Status Badges -->
+        <span
+          v-if="isEditing || (isCurrent && !actionsStore.editingGroupId)"
+          class="text-[10px] font-black uppercase tracking-wider text-green-700 bg-green-200 px-2 py-0.5 rounded"
+        >
+          {{ isEditing ? 'Editing' : 'Current' }}
+        </span>
 
-      <!-- Editing badge -->
-      <span
-        v-if="isEditing"
-        class="text-xs font-bold text-blue-600 bg-blue-200 px-2 py-0.5 rounded-full"
-      >
-        Editing
-      </span>
+        <span
+          v-else-if="isCurrent"
+          class="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-100 px-2 py-0.5 rounded"
+        >
+          Current
+        </span>
 
-      <!-- Undo button (only for shift actions) -->
-      <button
-        v-if="isShiftAction"
-        class="p-1.5 text-purple-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-        title="Undo this shift and all its actions"
-        @click.stop="$emit('undo', headerAction)"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-        </svg>
-      </button>
+        <!-- Edit/Done toggle -->
+        <button
+          v-if="!isEditing && !(isCurrent && !actionsStore.editingGroupId)"
+          class="p-1 px-2 text-purple-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors flex items-center gap-1 border border-transparent hover:border-blue-200"
+          title="Edit this shift"
+          @click="$emit('start-editing', headerAction.id)"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </button>
+
+        <button
+          v-if="isEditing"
+          class="p-1 px-2 text-green-700 hover:text-white hover:bg-green-600 rounded transition-colors flex items-center gap-1 border border-green-300"
+          title="Finish editing"
+          @click="$emit('stop-editing')"
+        >
+          <span class="text-[10px] font-bold uppercase">Done</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </button>
+
+        <!-- Undo button (only for shift actions) -->
+        <button
+          v-if="isShiftAction"
+          class="p-1.5 text-purple-300 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+          title="Undo this shift and all its actions"
+          @click="$emit('undo', headerAction)"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          </svg>
+        </button>
+      </div>
     </button>
 
-    <!-- Egg Summary (for the egg we were ON during this period) -->
-    <component
-      :is="summaryComponent"
-      :header-action="headerAction"
-      :actions="actions"
-    />
-
-    <!-- Expanded content (action details) -->
+    <!-- Expanded content (summary + action details) -->
     <div
       v-if="isExpanded"
-      ref="scrollContainer"
-      class="border-t border-purple-200 max-h-[400px] overflow-y-auto"
+      class="border-t border-purple-200"
     >
-      <!-- Action list -->
-      <ActionHistoryItem
-        v-for="(action, idx) in actions"
-        :key="action.id"
-        :action="action"
-        :previous-offline-earnings="getPreviousOfflineEarnings(idx)"
-        @show-details="$emit('show-details', action)"
-        @undo="$emit('undo', action)"
+      <!-- Egg Summary (for the egg we were ON during this period) -->
+      <component
+        :is="summaryComponent"
+        :header-action="headerAction"
+        :actions="actions"
       />
+
+      <div
+        ref="scrollContainer"
+        class="max-h-[400px] overflow-y-auto bg-white/30"
+      >
+        <!-- Action list -->
+        <ActionHistoryItem
+          v-for="(action, idx) in actions"
+          :key="action.id"
+          :action="action"
+          :previous-offline-earnings="getPreviousOfflineEarnings(idx)"
+          @show-details="$emit('show-details', action)"
+          @undo="$emit('undo', action)"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -117,6 +147,7 @@
 <script setup lang="ts">
 import { ref, computed, defineAsyncComponent, watch, nextTick } from 'vue';
 import { iconURL } from 'lib';
+import { useActionsStore } from '@/stores/actions';
 import type { Action, VirtueEgg, StartAscensionPayload, ShiftPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { formatNumber } from '@/lib/format';
@@ -145,7 +176,6 @@ const props = defineProps<{
   periodEndTimestamp: Date;
   isEditing?: boolean;
   isCurrent?: boolean;  // Whether this is the current (last) period
-  forceCollapsed?: boolean;  // Force collapse when another group is being edited
 }>();
 
 const emit = defineEmits<{
@@ -155,8 +185,10 @@ const emit = defineEmits<{
   'stop-editing': [];
 }>();
 
+const actionsStore = useActionsStore();
+
 // Internal state for manually collapsing/expanding the current group
-const manuallyCollapsed = ref(false);
+// This is now managed by the store, but we keep the ref if needed for transition (actually we can remove it)
 
 /**
  * Determine if the group should be expanded.
@@ -167,9 +199,7 @@ const manuallyCollapsed = ref(false);
  */
 const isExpanded = computed(() => {
   if (props.isEditing) return true;
-  if (props.forceCollapsed) return false;
-  if (props.isCurrent) return !manuallyCollapsed.value;
-  return false;
+  return actionsStore.expandedGroupIds.has(props.headerAction.id);
 });
 
 const scrollContainer = ref<HTMLElement | null>(null);
@@ -185,16 +215,7 @@ watch(() => props.actions.length, async () => {
 });
 
 function toggleExpanded() {
-  if (props.isEditing) {
-    // Currently editing this group, stop editing
-    emit('stop-editing');
-  } else if (props.isCurrent) {
-    // Current group: just toggle expand/collapse without entering edit mode
-    manuallyCollapsed.value = !manuallyCollapsed.value;
-  } else {
-    // Past group: start editing
-    emit('start-editing', props.headerAction.id);
-  }
+  actionsStore.toggleGroupExpansion(props.headerAction.id);
 }
 
 /**
@@ -206,13 +227,11 @@ const isShiftAction = computed(() => props.headerAction.type === 'shift');
  * CSS classes for the group container based on state.
  */
 const groupClasses = computed(() => {
-  if (props.isEditing) {
-    return 'border-blue-500 bg-blue-50/50';
+  const isBeingEdited = props.isEditing || (props.isCurrent && !actionsStore.editingGroupId);
+  if (isBeingEdited) {
+    return 'border-green-500 bg-green-50/50';
   }
-  if (props.isCurrent) {
-    return 'border-green-400 bg-green-50/50';
-  }
-  return 'border-purple-300 bg-purple-50/50';
+  return 'border-purple-200 bg-purple-50/30';
 });
 
 /**

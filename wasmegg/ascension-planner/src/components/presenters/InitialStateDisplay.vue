@@ -124,39 +124,146 @@
           </div>
         </div>
 
-        <!-- Silo Count -->
+
+
+        <!-- Soul Eggs -->
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-sm font-medium text-gray-700">Initial Silos</div>
-            <div class="text-xs text-gray-500">Number of silos owned at start</div>
+            <div class="flex items-center gap-1">
+              <div class="text-sm font-medium text-gray-700">Soul Eggs (SE)</div>
+              <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
+            </div>
+            <div class="text-xs text-gray-500">Baseline soul eggs for earnings bonus</div>
           </div>
           <div class="flex items-center gap-2">
             <input
-              type="number"
-              :value="siloCount"
-              :min="1"
-              :max="10"
-              class="w-20 text-center text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              @change="$emit('set-silo-count', parseInt(($event.target as HTMLInputElement).value) || 1)"
+              type="text"
+              :value="formatNumber(soulEggs, 3)"
+              class="w-32 text-right text-sm font-mono border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              @blur="handleSoulEggsChange(($event.target as HTMLInputElement).value)"
+              @keydown.enter="($event.target as HTMLInputElement).blur()"
             />
           </div>
         </div>
-
-        <!-- Eggs of Truth -->
+        
+        <!-- Assume Double Earnings -->
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-sm font-medium text-gray-700">Eggs of Truth (TE)</div>
+            <div class="text-sm font-medium text-gray-700">Assume Double Earnings</div>
+            <div class="text-xs text-gray-500">2x earnings from video doubler or ultra always-on double earnings</div>
+          </div>
+          <div class="flex items-center">
+            <button
+              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              :class="[assumeDoubleEarnings ? 'bg-blue-600' : 'bg-gray-200']"
+              role="switch"
+              :aria-checked="assumeDoubleEarnings"
+              @click="$emit('set-assume-double-earnings', !assumeDoubleEarnings)"
+            >
+              <span class="sr-only">Use video doubler</span>
+              <span
+                aria-hidden="true"
+                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                :class="[assumeDoubleEarnings ? 'translate-x-5' : 'translate-x-0']"
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Virtue Progress (collapsible) -->
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <button
+        class="w-full px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center hover:bg-gray-100 transition-colors"
+        @click="truthEggsExpanded = !truthEggsExpanded"
+      >
+        <div class="flex items-center gap-2">
+          <img
+            :src="iconURL('egginc/egg_truth.png', 64)"
+            class="w-5 h-5 object-contain"
+            alt="Truth Egg"
+          />
+          <h3 class="font-bold text-xs uppercase tracking-widest text-gray-500">Virtue Progress</h3>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-gray-500">
+            {{ totalTe }} / 490 TE
+          </span>
+          <svg
+            class="w-5 h-5 text-gray-400 transition-transform"
+            :class="{ 'rotate-180': truthEggsExpanded }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7 7" />
+          </svg>
+        </div>
+      </button>
+      <div v-if="truthEggsExpanded" class="p-4 space-y-4">
+        <!-- Eggs of Truth (Moved) -->
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+          <div>
+            <div class="text-sm font-medium text-gray-700">Total Eggs of Truth</div>
             <div class="text-xs text-gray-500">Multiplier to IHR and Earnings Bonus (1.1^TE)</div>
           </div>
           <div class="flex items-center gap-2">
             <input
               type="number"
-              :value="te"
-              :min="0"
-              :max="490"
-              class="w-20 text-center text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              @change="$emit('set-te', parseInt(($event.target as HTMLInputElement).value) || 0)"
+              :value="totalTe"
+              readonly
+              class="w-20 text-center text-sm border border-gray-300 bg-gray-100 text-gray-600 rounded px-2 py-1 outline-none"
             />
+            <span class="text-xs text-gray-400 font-medium">/ 490</span>
+          </div>
+        </div>
+
+        <div class="text-xs text-gray-500 mb-3">
+          TE are earned by shipping eggs. Each egg can have 0-98 TE. When editing Eggs Delivered, TE is auto-synced based on thresholds. When editing TE, Eggs Delivered is set to the minimum for that threshold.
+        </div>
+
+        <!-- Per-Egg TE Progress -->
+        <div class="space-y-3">
+          <div
+            v-for="egg in VIRTUE_FUEL_ORDER"
+            :key="egg"
+            class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+          >
+            <img
+              :src="iconURL(`egginc/egg_${egg}.png`, 64)"
+              class="w-8 h-8 object-contain"
+              :alt="egg"
+            />
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-gray-700">{{ VIRTUE_EGG_NAMES[egg] }}</div>
+              <div class="flex items-center gap-4 mt-1">
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">Delivered:</span>
+                  <input
+                    type="text"
+                    :value="formatNumber(eggsDelivered[egg], 3)"
+                    class="w-24 text-right text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
+                    placeholder="0"
+                    @blur="handleEggsDeliveredChange(egg, ($event.target as HTMLInputElement).value)"
+                    @keydown.enter="($event.target as HTMLInputElement).blur()"
+                  />
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">TE:</span>
+                  <input
+                    type="number"
+                    :value="teEarned[egg]"
+                    :min="0"
+                    :max="98"
+                    class="w-16 text-center text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
+                    @blur="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
+                    @keydown.enter="($event.target as HTMLInputElement).blur()"
+                  />
+                  <span class="text-xs text-gray-400">/ 98</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -259,85 +366,7 @@
       </div>
     </div>
 
-    <!-- Truth Eggs Progress (collapsible) -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-      <button
-        class="w-full px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center hover:bg-gray-100 transition-colors"
-        @click="truthEggsExpanded = !truthEggsExpanded"
-      >
-        <div class="flex items-center gap-2">
-          <img
-            :src="iconURL('egginc/egg_truth.png', 64)"
-            class="w-5 h-5 object-contain"
-            alt="Truth Egg"
-          />
-          <h3 class="font-bold text-xs uppercase tracking-widest text-gray-500">Truth Eggs Progress</h3>
-        </div>
-        <div class="flex items-center gap-3">
-          <span class="text-xs text-gray-500">
-            {{ totalTe }} / 490 TE
-          </span>
-          <svg
-            class="w-5 h-5 text-gray-400 transition-transform"
-            :class="{ 'rotate-180': truthEggsExpanded }"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </button>
-      <div v-if="truthEggsExpanded" class="p-4 space-y-4">
-        <div class="text-xs text-gray-500 mb-3">
-          TE are earned by shipping eggs. Each egg can have 0-98 TE. When editing Eggs Delivered, TE is auto-synced based on thresholds. When editing TE, Eggs Delivered is set to the minimum for that threshold.
-        </div>
 
-        <!-- Per-Egg TE Progress -->
-        <div class="space-y-3">
-          <div
-            v-for="egg in VIRTUE_FUEL_ORDER"
-            :key="egg"
-            class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-          >
-            <img
-              :src="iconURL(`egginc/egg_${egg}.png`, 64)"
-              class="w-8 h-8 object-contain"
-              :alt="egg"
-            />
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium text-gray-700">{{ VIRTUE_EGG_NAMES[egg] }}</div>
-              <div class="flex items-center gap-4 mt-1">
-                <div class="flex items-center gap-1">
-                  <span class="text-xs text-gray-500">Delivered:</span>
-                  <input
-                    type="text"
-                    :value="formatNumber(eggsDelivered[egg], 3)"
-                    class="w-24 text-right text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
-                    placeholder="0"
-                    @blur="handleEggsDeliveredChange(egg, ($event.target as HTMLInputElement).value)"
-                    @keydown.enter="($event.target as HTMLInputElement).blur()"
-                  />
-                </div>
-                <div class="flex items-center gap-1">
-                  <span class="text-xs text-gray-500">TE:</span>
-                  <input
-                    type="number"
-                    :value="teEarned[egg]"
-                    :min="0"
-                    :max="98"
-                    class="w-16 text-center text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
-                    @blur="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
-                    @keydown.enter="($event.target as HTMLInputElement).blur()"
-                  />
-                  <span class="text-xs text-gray-400">/ 98</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Epic Research (collapsible) -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
@@ -423,9 +452,10 @@ const props = defineProps<{
   eggsDelivered: Record<VirtueEgg, number>;
   teEarned: Record<VirtueEgg, number>;
   totalTe: number;
-  siloCount: number;
   canContinue: boolean;
   currentEggName: string;
+  soulEggs: number;
+  assumeDoubleEarnings: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -434,7 +464,6 @@ const emit = defineEmits<{
   'set-initial-egg': [egg: VirtueEgg];
   'set-te': [value: number];
   'set-initial-shift-count': [value: number];
-  'set-silo-count': [value: number];
   'set-ascension-date': [value: string];
   'set-ascension-time': [value: string];
   'set-ascension-timezone': [value: string];
@@ -443,12 +472,14 @@ const emit = defineEmits<{
   'set-eggs-delivered': [egg: VirtueEgg, amount: number];
   'set-te-earned': [egg: VirtueEgg, count: number];
   'continue-ascension': [];
+  'set-soul-eggs': [count: number];
+  'set-assume-double-earnings': [enabled: boolean];
 }>();
 
 // Collapsible state
 const epicResearchExpanded = ref(false);
 const fuelTankExpanded = ref(false);
-const truthEggsExpanded = ref(false);
+const truthEggsExpanded = ref(true);
 
 // Total fuel in tank
 const totalFuel = computed(() =>
@@ -492,6 +523,14 @@ function handleTEEarnedChange(egg: VirtueEgg, inputValue: string) {
   }
 }
 
+// Handle soul eggs input change
+function handleSoulEggsChange(inputValue: string) {
+  const parsed = parseNumber(inputValue);
+  if (parsed !== null && !isNaN(parsed)) {
+    emit('set-soul-eggs', parsed);
+  }
+}
+
 // Get all available timezones grouped by region
 const allTimezones = computed(() => {
   try {
@@ -529,7 +568,9 @@ const allTimezones = computed(() => {
 });
 
 const lastBackupFormatted = computed(() => {
-  if (!props.lastBackupTime) return '';
+  if (props.lastBackupTime === 0) {
+    return props.hasData ? 'Imported Plan' : '';
+  }
   const date = new Date(props.lastBackupTime * 1000);
   return date.toLocaleDateString(undefined, {
     month: 'short',

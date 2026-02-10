@@ -36,7 +36,6 @@
           :period-end-timestamp="item.periodEndTimestamp"
           :is-editing="actionsStore.editingGroupId === item.headerAction.id"
           :is-current="item.isCurrent"
-          :force-collapsed="actionsStore.editingGroupId !== null && actionsStore.editingGroupId !== item.headerAction.id"
           :class="{ 'border-t border-gray-100': idx > 0 }"
           @show-details="$emit('show-details', $event)"
           @undo="handleUndoRequest($event)"
@@ -47,9 +46,11 @@
     </div>
 
     <!-- Clear all button (only show if there are actions beyond start_ascension) -->
-    <div v-if="actionCount > 0" class="flex justify-end">
+    <!-- Footer Actions -->
+    <div class="flex justify-end items-center px-2 pt-4 border-t border-gray-100">
       <button
-        class="text-sm text-red-600 hover:text-red-800 px-3 py-1"
+        v-if="actionCount > 0"
+        class="text-sm text-red-600 hover:text-red-800 px-3 py-1 transition-colors"
         @click="handleClearAll"
       >
         Clear All

@@ -1,7 +1,6 @@
 <template>
   <div
-    v-if="hasData"
-    class="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] transition-all duration-300"
+    class="fixed bottom-0 left-0 right-0 z-[5] bg-white/90 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] transition-all duration-300"
   >
     <div class="max-w-6xl mx-auto px-6 py-3 flex flex-wrap justify-between items-center gap-4">
       <!-- Start Date -->
@@ -40,12 +39,55 @@
           <span class="text-xs text-gray-400 font-medium">(Total: {{ currentTE }})</span>
         </div>
       </div>
+
+      <!-- Actions Group -->
+      <div class="flex items-center gap-1">
+        <button
+          class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+          title="Export Plan to JSON"
+          @click="handleExport"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </button>
+        <button
+          class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+          title="Import Plan from JSON"
+          @click="triggerImport"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+        </button>
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".json"
+          class="hidden"
+          @change="handleImport"
+        />
+
+        <div class="w-px h-6 bg-gray-200 mx-1"></div>
+
+        <!-- Details Button -->
+        <button
+          class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+          title="View final state calculation details"
+          @click="$emit('show-details')"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useActionsStore } from '@/stores/actions';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
@@ -58,7 +100,9 @@ const actionsStore = useActionsStore();
 const initialStateStore = useInitialStateStore();
 const virtueStore = useVirtueStore();
 
-const hasData = computed(() => initialStateStore.hasData);
+defineEmits<{
+  'show-details': [];
+}>();
 
 const calculateTotalPotentialTE = (snapshot: any) => {
   if (!snapshot || !snapshot.eggsDelivered) return 0;
@@ -68,8 +112,14 @@ const calculateTotalPotentialTE = (snapshot: any) => {
 };
 
 const startDate = computed(() => {
-  // lastBackupTime is in seconds
-  return new Date(initialStateStore.lastBackupTime * 1000);
+  if (initialStateStore.hasData) {
+    // lastBackupTime is in seconds
+    return new Date(initialStateStore.lastBackupTime * 1000);
+  }
+  // Fallback to ascension date/time from virtue store
+  const dateStr = `${virtueStore.ascensionDate}T${virtueStore.ascensionTime}`;
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? new Date() : date;
 });
 
 const totalDurationSeconds = computed(() => {
@@ -128,8 +178,48 @@ function formatDateTime(date: Date): string {
     day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
-    minute: '2-digit',
   });
+}
+
+// Import/Export Logic
+const fileInput = ref<HTMLInputElement | null>(null);
+
+function handleExport() {
+  actionsStore.exportPlan();
+}
+
+function triggerImport() {
+  fileInput.value?.click();
+}
+
+function handleImport(event: Event) {
+  const input = event.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+
+  const file = input.files[0];
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    try {
+      const jsonString = e.target?.result as string;
+      
+      if (actionsStore.actionCount > 0) {
+        if (!confirm('Importing a plan will overwrite your current actions. Continue?')) {
+          input.value = ''; // Reset input
+          return;
+        }
+      }
+
+      actionsStore.importPlan(jsonString);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to import plan: Invalid file format.');
+    } finally {
+      input.value = ''; // Reset for next use
+    }
+  };
+
+  reader.readAsText(file);
 }
 </script>
 
