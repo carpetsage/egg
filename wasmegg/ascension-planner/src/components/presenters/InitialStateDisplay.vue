@@ -125,23 +125,6 @@
         </div>
 
 
-        <!-- Eggs of Truth -->
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="text-sm font-medium text-gray-700">Eggs of Truth (TE)</div>
-            <div class="text-xs text-gray-500">Multiplier to IHR and Earnings Bonus (1.1^TE)</div>
-          </div>
-          <div class="flex items-center gap-2">
-            <input
-              type="number"
-              :value="te"
-              :min="0"
-              :max="490"
-              class="w-20 text-center text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              @change="$emit('set-te', parseInt(($event.target as HTMLInputElement).value) || 0)"
-            />
-          </div>
-        </div>
 
         <!-- Soul Eggs -->
         <div class="flex items-center justify-between">
@@ -160,6 +143,103 @@
               @blur="handleSoulEggsChange(($event.target as HTMLInputElement).value)"
               @keydown.enter="($event.target as HTMLInputElement).blur()"
             />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Virtue Progress (collapsible) -->
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+      <button
+        class="w-full px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center hover:bg-gray-100 transition-colors"
+        @click="truthEggsExpanded = !truthEggsExpanded"
+      >
+        <div class="flex items-center gap-2">
+          <img
+            :src="iconURL('egginc/egg_truth.png', 64)"
+            class="w-5 h-5 object-contain"
+            alt="Truth Egg"
+          />
+          <h3 class="font-bold text-xs uppercase tracking-widest text-gray-500">Virtue Progress</h3>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-gray-500">
+            {{ totalTe }} / 490 TE
+          </span>
+          <svg
+            class="w-5 h-5 text-gray-400 transition-transform"
+            :class="{ 'rotate-180': truthEggsExpanded }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7 7" />
+          </svg>
+        </div>
+      </button>
+      <div v-if="truthEggsExpanded" class="p-4 space-y-4">
+        <!-- Eggs of Truth (Moved) -->
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+          <div>
+            <div class="text-sm font-medium text-gray-700">Total Eggs of Truth</div>
+            <div class="text-xs text-gray-500">Multiplier to IHR and Earnings Bonus (1.1^TE)</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <input
+              type="number"
+              :value="totalTe"
+              readonly
+              class="w-20 text-center text-sm border border-gray-300 bg-gray-100 text-gray-600 rounded px-2 py-1 outline-none"
+            />
+            <span class="text-xs text-gray-400 font-medium">/ 490</span>
+          </div>
+        </div>
+
+        <div class="text-xs text-gray-500 mb-3">
+          TE are earned by shipping eggs. Each egg can have 0-98 TE. When editing Eggs Delivered, TE is auto-synced based on thresholds. When editing TE, Eggs Delivered is set to the minimum for that threshold.
+        </div>
+
+        <!-- Per-Egg TE Progress -->
+        <div class="space-y-3">
+          <div
+            v-for="egg in VIRTUE_FUEL_ORDER"
+            :key="egg"
+            class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+          >
+            <img
+              :src="iconURL(`egginc/egg_${egg}.png`, 64)"
+              class="w-8 h-8 object-contain"
+              :alt="egg"
+            />
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-gray-700">{{ VIRTUE_EGG_NAMES[egg] }}</div>
+              <div class="flex items-center gap-4 mt-1">
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">Delivered:</span>
+                  <input
+                    type="text"
+                    :value="formatNumber(eggsDelivered[egg], 3)"
+                    class="w-24 text-right text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
+                    placeholder="0"
+                    @blur="handleEggsDeliveredChange(egg, ($event.target as HTMLInputElement).value)"
+                    @keydown.enter="($event.target as HTMLInputElement).blur()"
+                  />
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">TE:</span>
+                  <input
+                    type="number"
+                    :value="teEarned[egg]"
+                    :min="0"
+                    :max="98"
+                    class="w-16 text-center text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
+                    @blur="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
+                    @keydown.enter="($event.target as HTMLInputElement).blur()"
+                  />
+                  <span class="text-xs text-gray-400">/ 98</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -262,85 +342,7 @@
       </div>
     </div>
 
-    <!-- Truth Eggs Progress (collapsible) -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-      <button
-        class="w-full px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center hover:bg-gray-100 transition-colors"
-        @click="truthEggsExpanded = !truthEggsExpanded"
-      >
-        <div class="flex items-center gap-2">
-          <img
-            :src="iconURL('egginc/egg_truth.png', 64)"
-            class="w-5 h-5 object-contain"
-            alt="Truth Egg"
-          />
-          <h3 class="font-bold text-xs uppercase tracking-widest text-gray-500">Truth Eggs Progress</h3>
-        </div>
-        <div class="flex items-center gap-3">
-          <span class="text-xs text-gray-500">
-            {{ totalTe }} / 490 TE
-          </span>
-          <svg
-            class="w-5 h-5 text-gray-400 transition-transform"
-            :class="{ 'rotate-180': truthEggsExpanded }"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </button>
-      <div v-if="truthEggsExpanded" class="p-4 space-y-4">
-        <div class="text-xs text-gray-500 mb-3">
-          TE are earned by shipping eggs. Each egg can have 0-98 TE. When editing Eggs Delivered, TE is auto-synced based on thresholds. When editing TE, Eggs Delivered is set to the minimum for that threshold.
-        </div>
 
-        <!-- Per-Egg TE Progress -->
-        <div class="space-y-3">
-          <div
-            v-for="egg in VIRTUE_FUEL_ORDER"
-            :key="egg"
-            class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-          >
-            <img
-              :src="iconURL(`egginc/egg_${egg}.png`, 64)"
-              class="w-8 h-8 object-contain"
-              :alt="egg"
-            />
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium text-gray-700">{{ VIRTUE_EGG_NAMES[egg] }}</div>
-              <div class="flex items-center gap-4 mt-1">
-                <div class="flex items-center gap-1">
-                  <span class="text-xs text-gray-500">Delivered:</span>
-                  <input
-                    type="text"
-                    :value="formatNumber(eggsDelivered[egg], 3)"
-                    class="w-24 text-right text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
-                    placeholder="0"
-                    @blur="handleEggsDeliveredChange(egg, ($event.target as HTMLInputElement).value)"
-                    @keydown.enter="($event.target as HTMLInputElement).blur()"
-                  />
-                </div>
-                <div class="flex items-center gap-1">
-                  <span class="text-xs text-gray-500">TE:</span>
-                  <input
-                    type="number"
-                    :value="teEarned[egg]"
-                    :min="0"
-                    :max="98"
-                    class="w-16 text-center text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
-                    @blur="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
-                    @keydown.enter="($event.target as HTMLInputElement).blur()"
-                  />
-                  <span class="text-xs text-gray-400">/ 98</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Epic Research (collapsible) -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
@@ -451,7 +453,7 @@ const emit = defineEmits<{
 // Collapsible state
 const epicResearchExpanded = ref(false);
 const fuelTankExpanded = ref(false);
-const truthEggsExpanded = ref(false);
+const truthEggsExpanded = ref(true);
 
 // Total fuel in tank
 const totalFuel = computed(() =>
