@@ -548,6 +548,7 @@ export const useActionsStore = defineStore('actions', {
           colleggtibleTiers: initialStateStore.colleggtibleTiers,
           artifactLoadout: initialStateStore.artifactLoadout,
           currentFarmState: initialStateStore.currentFarmState,
+          assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
         },
         virtueState: {
           shiftCount: virtueStore.initialShiftCount,

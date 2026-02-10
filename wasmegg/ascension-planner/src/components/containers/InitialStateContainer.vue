@@ -20,6 +20,7 @@
     :can-continue="!!store.currentFarmState"
     :current-egg-name="currentEggName"
     :soul-eggs="store.soulEggs"
+    :assume-double-earnings="store.assumeDoubleEarnings"
     @set-epic-research-level="handleSetEpicResearchLevel"
     @update:artifact-loadout="handleArtifactLoadout"
     @set-initial-egg="handleSetInitialEgg"
@@ -34,6 +35,7 @@
     @set-te-earned="handleSetTEEarned"
     @continue-ascension="handleContinueAscension"
     @set-soul-eggs="handleSetSoulEggs"
+    @set-assume-double-earnings="handleSetAssumeDoubleEarnings"
   />
 </template>
 
@@ -207,6 +209,11 @@ function handleSetAscensionTimezone(timezone: string) {
 
 function handleSetSoulEggs(count: number) {
   store.setSoulEggs(count);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetAssumeDoubleEarnings(enabled: boolean) {
+  store.setAssumeDoubleEarnings(enabled);
   updateInitialSnapshotAndRecalculate();
 }
 </script>

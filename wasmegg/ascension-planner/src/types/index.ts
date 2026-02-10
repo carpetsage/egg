@@ -383,6 +383,7 @@ export interface EarningsInput {
   fireworkMultiplier: number;   // Multiplier for all earnings (from colleggtibles)
   awayEarningsMultiplier: number;  // Multiplier for offline earnings (chocolate * wood)
   artifactAwayMultiplier: number;  // Artifact multiplier for offline earnings (lunar totem/stone - MULTIPLICATIVE)
+  videoDoublerMultiplier: number;  // 2x multiplier for video doubler
   artifactEffects: ArtifactEffectDisplay[];  // Individual effects for display
 }
 
@@ -397,6 +398,7 @@ export interface EarningsOutput {
   artifactAwayMultiplier: number;   // From lunar totem/stone (offline only, MULTIPLICATIVE)
   onlineEarnings: number;    // $/second
   offlineEarnings: number;   // $/second
+  videoDoublerMultiplier: number; // 2x multiplier if enabled
   artifactBreakdown: ArtifactEffectDisplay[];  // Artifact effects for display
 }
 

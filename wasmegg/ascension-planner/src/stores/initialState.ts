@@ -39,6 +39,9 @@ export interface InitialStateStoreState {
 
   // Soul Eggs from backup
   soulEggs: number;
+
+  // Assume double earnings (video doubler)
+  assumeDoubleEarnings: boolean;
 }
 
 function initializeEpicResearchLevels(): ResearchLevels {
@@ -60,6 +63,7 @@ export const useInitialStateStore = defineStore('initialState', {
     artifactLoadout: createEmptyLoadout(),
     currentFarmState: null,
     soulEggs: 1e21, // Default to 1s
+    assumeDoubleEarnings: true,
   }),
 
   getters: {
@@ -268,6 +272,13 @@ export const useInitialStateStore = defineStore('initialState', {
     },
 
     /**
+     * Set assume double earnings
+     */
+    setAssumeDoubleEarnings(enabled: boolean) {
+      this.assumeDoubleEarnings = enabled;
+    },
+
+    /**
      * Hydrate store from exported data.
      */
     hydrate(data: any) {
@@ -286,6 +297,11 @@ export const useInitialStateStore = defineStore('initialState', {
       if (data.artifactLoadout) {
         this.artifactLoadout = [...data.artifactLoadout];
       }
+      if (data.assumeDoubleEarnings !== undefined) {
+        this.assumeDoubleEarnings = data.assumeDoubleEarnings;
+      } else {
+        this.assumeDoubleEarnings = true;
+      }
       this.currentFarmState = data.currentFarmState || null;
     },
 
@@ -301,6 +317,7 @@ export const useInitialStateStore = defineStore('initialState', {
       this.colleggtibleTiers = getDefaultColleggtibleTiers();
       this.artifactLoadout = createEmptyLoadout();
       this.soulEggs = 1e21;
+      this.assumeDoubleEarnings = true;
     },
   },
 });

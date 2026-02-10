@@ -145,6 +145,30 @@
             />
           </div>
         </div>
+        
+        <!-- Assume Double Earnings -->
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm font-medium text-gray-700">Assume Double Earnings</div>
+            <div class="text-xs text-gray-500">2x earnings from video doubler or ultra always-on double earnings</div>
+          </div>
+          <div class="flex items-center">
+            <button
+              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              :class="[assumeDoubleEarnings ? 'bg-blue-600' : 'bg-gray-200']"
+              role="switch"
+              :aria-checked="assumeDoubleEarnings"
+              @click="$emit('set-assume-double-earnings', !assumeDoubleEarnings)"
+            >
+              <span class="sr-only">Use video doubler</span>
+              <span
+                aria-hidden="true"
+                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                :class="[assumeDoubleEarnings ? 'translate-x-5' : 'translate-x-0']"
+              />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -431,6 +455,7 @@ const props = defineProps<{
   canContinue: boolean;
   currentEggName: string;
   soulEggs: number;
+  assumeDoubleEarnings: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -448,6 +473,7 @@ const emit = defineEmits<{
   'set-te-earned': [egg: VirtueEgg, count: number];
   'continue-ascension': [];
   'set-soul-eggs': [count: number];
+  'set-assume-double-earnings': [enabled: boolean];
 }>();
 
 // Collapsible state

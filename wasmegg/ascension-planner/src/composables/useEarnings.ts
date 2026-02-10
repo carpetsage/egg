@@ -35,6 +35,7 @@ export function useEarnings(): {
       fireworkMultiplier: initialStateStore.colleggtibleModifiers.earnings,
       awayEarningsMultiplier: initialStateStore.colleggtibleModifiers.awayEarnings,
       artifactAwayMultiplier: artifactMod.totalMultiplier,
+      videoDoublerMultiplier: initialStateStore.assumeDoubleEarnings ? 2 : 1,
       artifactEffects: artifactMod.effects,
     };
   });
