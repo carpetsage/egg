@@ -59,7 +59,7 @@ export const useInitialStateStore = defineStore('initialState', {
     colleggtibleTiers: getDefaultColleggtibleTiers(),
     artifactLoadout: createEmptyLoadout(),
     currentFarmState: null,
-    soulEggs: 0,
+    soulEggs: 1e21, // Default to 1s
   }),
 
   getters: {
@@ -278,6 +278,7 @@ export const useInitialStateStore = defineStore('initialState', {
       this.epicResearchLevels = initializeEpicResearchLevels();
       this.colleggtibleTiers = getDefaultColleggtibleTiers();
       this.artifactLoadout = createEmptyLoadout();
+      this.soulEggs = 1e21;
     },
   },
 });

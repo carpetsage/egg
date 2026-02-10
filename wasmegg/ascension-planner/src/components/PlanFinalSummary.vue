@@ -1,6 +1,5 @@
 <template>
   <div
-    v-if="hasData"
     class="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] transition-all duration-300"
   >
     <div class="max-w-6xl mx-auto px-6 py-3 flex flex-wrap justify-between items-center gap-4">
@@ -58,8 +57,6 @@ const actionsStore = useActionsStore();
 const initialStateStore = useInitialStateStore();
 const virtueStore = useVirtueStore();
 
-const hasData = computed(() => initialStateStore.hasData);
-
 const calculateTotalPotentialTE = (snapshot: any) => {
   if (!snapshot || !snapshot.eggsDelivered) return 0;
   return Object.values(snapshot.eggsDelivered).reduce((sum: number, delivered: any) => {
@@ -68,8 +65,14 @@ const calculateTotalPotentialTE = (snapshot: any) => {
 };
 
 const startDate = computed(() => {
-  // lastBackupTime is in seconds
-  return new Date(initialStateStore.lastBackupTime * 1000);
+  if (initialStateStore.hasData) {
+    // lastBackupTime is in seconds
+    return new Date(initialStateStore.lastBackupTime * 1000);
+  }
+  // Fallback to ascension date/time from virtue store
+  const dateStr = `${virtueStore.ascensionDate}T${virtueStore.ascensionTime}`;
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? new Date() : date;
 });
 
 const totalDurationSeconds = computed(() => {

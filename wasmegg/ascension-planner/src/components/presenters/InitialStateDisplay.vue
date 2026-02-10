@@ -124,23 +124,6 @@
           </div>
         </div>
 
-        <!-- Silo Count -->
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="text-sm font-medium text-gray-700">Initial Silos</div>
-            <div class="text-xs text-gray-500">Number of silos owned at start</div>
-          </div>
-          <div class="flex items-center gap-2">
-            <input
-              type="number"
-              :value="siloCount"
-              :min="1"
-              :max="10"
-              class="w-20 text-center text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              @change="$emit('set-silo-count', parseInt(($event.target as HTMLInputElement).value) || 1)"
-            />
-          </div>
-        </div>
 
         <!-- Eggs of Truth -->
         <div class="flex items-center justify-between">
@@ -156,6 +139,26 @@
               :max="490"
               class="w-20 text-center text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               @change="$emit('set-te', parseInt(($event.target as HTMLInputElement).value) || 0)"
+            />
+          </div>
+        </div>
+
+        <!-- Soul Eggs -->
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-1">
+              <div class="text-sm font-medium text-gray-700">Soul Eggs (SE)</div>
+              <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
+            </div>
+            <div class="text-xs text-gray-500">Baseline soul eggs for earnings bonus</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <input
+              type="text"
+              :value="formatNumber(soulEggs, 3)"
+              class="w-32 text-right text-sm font-mono border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              @blur="handleSoulEggsChange(($event.target as HTMLInputElement).value)"
+              @keydown.enter="($event.target as HTMLInputElement).blur()"
             />
           </div>
         </div>
@@ -423,9 +426,9 @@ const props = defineProps<{
   eggsDelivered: Record<VirtueEgg, number>;
   teEarned: Record<VirtueEgg, number>;
   totalTe: number;
-  siloCount: number;
   canContinue: boolean;
   currentEggName: string;
+  soulEggs: number;
 }>();
 
 const emit = defineEmits<{
@@ -434,7 +437,6 @@ const emit = defineEmits<{
   'set-initial-egg': [egg: VirtueEgg];
   'set-te': [value: number];
   'set-initial-shift-count': [value: number];
-  'set-silo-count': [value: number];
   'set-ascension-date': [value: string];
   'set-ascension-time': [value: string];
   'set-ascension-timezone': [value: string];
@@ -443,6 +445,7 @@ const emit = defineEmits<{
   'set-eggs-delivered': [egg: VirtueEgg, amount: number];
   'set-te-earned': [egg: VirtueEgg, count: number];
   'continue-ascension': [];
+  'set-soul-eggs': [count: number];
 }>();
 
 // Collapsible state
@@ -489,6 +492,14 @@ function handleTEEarnedChange(egg: VirtueEgg, inputValue: string) {
   const value = parseInt(inputValue);
   if (!isNaN(value)) {
     emit('set-te-earned', egg, value);
+  }
+}
+
+// Handle soul eggs input change
+function handleSoulEggsChange(inputValue: string) {
+  const parsed = parseNumber(inputValue);
+  if (parsed !== null && !isNaN(parsed)) {
+    emit('set-soul-eggs', parsed);
   }
 }
 

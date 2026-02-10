@@ -60,25 +60,24 @@
 
       <!-- Status/Editor Actions -->
       <div class="flex items-center gap-2" @click.stop>
-        <!-- Current badge -->
+        <!-- Status Badges -->
         <span
-          v-if="isCurrent && !isEditing"
-          class="text-xs font-bold text-green-600 bg-green-200 px-2 py-0.5 rounded-full"
+          v-if="isEditing || (isCurrent && !actionsStore.editingGroupId)"
+          class="text-[10px] font-black uppercase tracking-wider text-green-700 bg-green-200 px-2 py-0.5 rounded"
+        >
+          {{ isEditing ? 'Editing' : 'Current' }}
+        </span>
+
+        <span
+          v-else-if="isCurrent"
+          class="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-100 px-2 py-0.5 rounded"
         >
           Current
         </span>
 
-        <!-- Editing badge -->
-        <span
-          v-if="isEditing"
-          class="text-xs font-bold text-blue-600 bg-blue-200 px-2 py-0.5 rounded-full"
-        >
-          Editing
-        </span>
-
         <!-- Edit/Done toggle -->
         <button
-          v-if="!isEditing"
+          v-if="!isEditing && !(isCurrent && !actionsStore.editingGroupId)"
           class="p-1 px-2 text-purple-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors flex items-center gap-1 border border-transparent hover:border-blue-200"
           title="Edit this shift"
           @click="$emit('start-editing', headerAction.id)"
@@ -90,7 +89,7 @@
 
         <button
           v-if="isEditing"
-          class="p-1 px-2 text-blue-600 hover:text-white hover:bg-blue-600 rounded transition-colors flex items-center gap-1 border border-blue-200"
+          class="p-1 px-2 text-green-700 hover:text-white hover:bg-green-600 rounded transition-colors flex items-center gap-1 border border-green-300"
           title="Finish editing"
           @click="$emit('stop-editing')"
         >
@@ -228,13 +227,11 @@ const isShiftAction = computed(() => props.headerAction.type === 'shift');
  * CSS classes for the group container based on state.
  */
 const groupClasses = computed(() => {
-  if (props.isEditing) {
-    return 'border-blue-500 bg-blue-50/50';
+  const isBeingEdited = props.isEditing || (props.isCurrent && !actionsStore.editingGroupId);
+  if (isBeingEdited) {
+    return 'border-green-500 bg-green-50/50';
   }
-  if (props.isCurrent) {
-    return 'border-green-400 bg-green-50/50';
-  }
-  return 'border-purple-300 bg-purple-50/50';
+  return 'border-purple-200 bg-purple-50/30';
 });
 
 /**

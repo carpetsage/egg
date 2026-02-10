@@ -17,15 +17,14 @@
     :eggs-delivered="truthEggsStore.eggsDelivered"
     :te-earned="truthEggsStore.teEarned"
     :total-te="truthEggsStore.totalTE"
-    :silo-count="silosStore.siloCount"
     :can-continue="!!store.currentFarmState"
     :current-egg-name="currentEggName"
+    :soul-eggs="store.soulEggs"
     @set-epic-research-level="handleSetEpicResearchLevel"
     @update:artifact-loadout="handleArtifactLoadout"
     @set-initial-egg="handleSetInitialEgg"
     @set-te="handleSetTE"
     @set-initial-shift-count="handleSetInitialShiftCount"
-    @set-silo-count="handleSetSiloCount"
     @set-ascension-date="handleSetAscensionDate"
     @set-ascension-time="handleSetAscensionTime"
     @set-ascension-timezone="handleSetAscensionTimezone"
@@ -34,6 +33,7 @@
     @set-eggs-delivered="handleSetEggsDelivered"
     @set-te-earned="handleSetTEEarned"
     @continue-ascension="handleContinueAscension"
+    @set-soul-eggs="handleSetSoulEggs"
   />
 </template>
 
@@ -190,11 +190,6 @@ function handleSetInitialShiftCount(count: number) {
   updateInitialSnapshotAndRecalculate();
 }
 
-function handleSetSiloCount(count: number) {
-  silosStore.setSiloCount(count);
-  updateInitialSnapshotAndRecalculate();
-}
-
 function handleSetAscensionDate(date: string) {
   virtueStore.setAscensionDate(date);
   updateInitialSnapshotAndRecalculate();
@@ -207,6 +202,11 @@ function handleSetAscensionTime(time: string) {
 
 function handleSetAscensionTimezone(timezone: string) {
   virtueStore.setAscensionTimezone(timezone);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetSoulEggs(count: number) {
+  store.setSoulEggs(count);
   updateInitialSnapshotAndRecalculate();
 }
 </script>
