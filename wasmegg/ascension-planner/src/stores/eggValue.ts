@@ -4,7 +4,7 @@ import { allResearches } from 'lib';
 
 // Filter to only egg value researches
 const eggValueResearches = (allResearches as Research[]).filter(
-  r => r.categories === 'egg_value'
+  r => r.categories.split(',').includes('egg_value')
 );
 
 export interface EggValueState {
