@@ -43,6 +43,7 @@ export interface SimulationContext {
     epicResearchLevels: ResearchLevels;
     colleggtibleModifiers: ColleggtibleModifiers;
     ascensionStartTime: number; // Unix timestamp in seconds
+    assumeDoubleEarnings: boolean;
     // TODO: Add any other global context needed (e.g. events?)
 }
 

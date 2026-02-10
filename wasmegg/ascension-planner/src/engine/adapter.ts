@@ -27,6 +27,7 @@ export function getSimulationContext(): SimulationContext {
         epicResearchLevels: initialStateStore.epicResearchLevels,
         colleggtibleModifiers: initialStateStore.colleggtibleModifiers,
         ascensionStartTime,
+        assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
     };
 }
 
