@@ -64,6 +64,15 @@
       <div class="divide-y divide-gray-100">
         <div class="px-4 py-2 flex justify-between items-center">
           <div class="flex items-center gap-2">
+            <img :src="iconURL(getColleggtibleIconPath('truth'), 64)" class="w-4 h-4 object-contain" alt="Truth Egg" />
+            <span class="text-gray-600">Eggs of Truth (1.1^{{ te }})</span>
+          </div>
+          <span class="font-mono" :class="output.teMultiplier !== 1 ? 'text-amber-600' : 'text-gray-400'">
+            {{ formatMultiplier(output.teMultiplier) }}
+          </span>
+        </div>
+        <div class="px-4 py-2 flex justify-between items-center">
+          <div class="flex items-center gap-2">
             <img :src="iconURL(getColleggtibleIconPath('firework'), 64)" class="w-4 h-4 object-contain" alt="Firework" />
             <span class="text-gray-600">Firework (all earnings)</span>
           </div>
@@ -186,6 +195,7 @@ const props = defineProps<{
   output: EarningsOutput;
   eggValue: number;
   effectiveLayRate: number;
+  te: number;
   colleggtibleTiers: {
     firework: number;
     chocolate: number;

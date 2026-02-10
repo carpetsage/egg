@@ -13,7 +13,6 @@ import {
     VirtueEgg,
 } from '@/types';
 import type { EngineState } from './types';
-import { countTEThresholdsPassed } from '@/lib/truthEggs';
 
 /**
  * Purely apply an action to the engine state.
@@ -44,10 +43,9 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 // already represents the cumulative total from the backup.
             }
 
-            // Re-calculate total TE (claimed + pending) based on current eggs delivered
-            newState.te = Object.values(newState.eggsDelivered).reduce((sum, amount) => {
-                return sum + countTEThresholdsPassed(amount);
-            }, 0);
+            // Note: We DO NOT recalculate te or teEarned here. 
+            // They remain at their initial claimed values from the player backup.
+            // Pending TE gained during the ascension do not contribute to the multiplier.
 
             return newState;
         }
@@ -135,16 +133,13 @@ export function applyAction(state: EngineState, action: Action): EngineState {
             const newEggsDelivered = { ...state.eggsDelivered };
             newEggsDelivered[payload.egg] = (newEggsDelivered[payload.egg] || 0) + payload.amount;
 
-            // Update total TE count
-            const newTotalTE = Object.values(newEggsDelivered).reduce((sum, amount) => {
-                return sum + countTEThresholdsPassed(amount);
-            }, 0);
+            // Note: We DO NOT update te or teEarned here because shipping eggs 
+            // only adds to pending TE, which does not affect IHR/earnings.
 
             return {
                 ...state,
                 fuelTankAmounts: newFuelAmounts,
                 eggsDelivered: newEggsDelivered,
-                te: newTotalTE,
             };
         }
 
@@ -155,14 +150,11 @@ export function applyAction(state: EngineState, action: Action): EngineState {
             const newEggsDelivered = { ...state.eggsDelivered };
             newEggsDelivered[payload.egg] = (newEggsDelivered[payload.egg] || 0) + payload.eggsToLay;
 
-            // Update total TE count
-            const newTotalTE = Object.values(newEggsDelivered).reduce((sum, amount) => {
-                return sum + countTEThresholdsPassed(amount);
-            }, 0);
+            // Note: We DO NOT update te or teEarned here because shipping eggs 
+            // only adds to pending TE, which does not affect IHR/earnings.
 
             return {
                 ...state,
-                te: newTotalTE,
                 eggsDelivered: newEggsDelivered,
             };
         }
