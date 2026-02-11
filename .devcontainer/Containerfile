@@ -1,0 +1,18 @@
+FROM docker.io/redhat/ubi9:9.7
+
+RUN yum install -y \
+        unzip \
+        make \
+        git \
+        xz \
+        &&  \
+    mkdir /opt/node && \
+    curl -fsSL https://nodejs.org/dist/v24.13.1/node-v24.13.1-linux-x64.tar.xz | tar xJ -C /opt/node && \
+    mkdir /opt/protoc && cd /opt/protoc && \
+    curl -fsSL https://github.com/protocolbuffers/protobuf/releases/download/v33.5/protoc-33.5-linux-x86_64.zip -o protoc.zip && \
+    unzip protoc.zip && rm protoc.zip && \
+    curl -fsSL https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash - && \
+    mkdir /opt/ets && \
+    curl -fsSL https://github.com/zmwangx/ets/releases/download/v0.2.2/ets_0.2.2_linux_amd64.tar.gz | tar zx -C /opt/ets
+
+ENV PATH=$PATH:/opt/protoc/bin:/opt/ets:/opt/node/node-v24.13.1-linux-x64/bin
