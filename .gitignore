@@ -10,3 +10,4 @@ __target__
 *.swp
 .agent
 lib/.claude
+.pnpm-store/
