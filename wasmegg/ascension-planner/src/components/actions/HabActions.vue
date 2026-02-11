@@ -8,10 +8,10 @@
         </div>
         <span class="text-[10px] text-blue-600/70 font-bold uppercase tracking-tighter">80% Discount Active</span>
       </div>
-      <button 
-        @click="handleToggleSale"
+      <button
         class="relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none shadow-inner"
         :class="isHabSaleActive ? 'bg-blue-500' : 'bg-gray-200'"
+        @click="handleToggleSale"
       >
         <span
           class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm"
@@ -20,9 +20,37 @@
       </button>
     </div>
 
+    <!-- Quick Upgrade Action -->
+    <div v-if="canBuyMax" class="mb-6 -mt-2">
+      <button
+        class="group flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white p-2.5 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50/50 active:scale-[0.98]"
+        @click="handleBuyMax"
+      >
+        <div class="rounded-lg bg-blue-100/50 p-1 transition-colors group-hover:bg-blue-100">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 text-blue-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="13 17 18 12 13 7"></polyline>
+            <polyline points="6 17 11 12 6 7"></polyline>
+          </svg>
+        </div>
+        <span class="text-[11px] font-bold uppercase tracking-widest text-blue-800"
+          >Upgrade All to Chicken Universe</span
+        >
+      </button>
+    </div>
+
     <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
       <p class="text-[11px] text-blue-600 font-medium leading-relaxed">
-        <span class="font-bold">Habs:</span> Select a habitat to upgrade. Prices update automatically based on your current epic research and artifacts.
+        <span class="font-bold">Habs:</span> Select a habitat to upgrade. Prices update automatically based on your
+        current epic research and artifacts.
       </p>
     </div>
 
@@ -50,7 +78,7 @@
           :get-item-display="item => getHabDisplay(item, index)"
           :get-item-icon-path="item => item.iconPath"
           :item-from-id="id => getHabById(parseInt(id) as HabId)"
-          :search-items="(query) => searchHabs(getAvailableHabs(habId), query)"
+          :search-items="query => searchHabs(getAvailableHabs(habId), query)"
           placeholder="Select habitat..."
           class="w-full"
           @update:model-value="handleHabChange(index, $event ? parseInt($event) : undefined)"
@@ -60,9 +88,7 @@
 
     <!-- Note about slots -->
     <div class="flex items-center justify-between px-1">
-      <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-        {{ purchasedCount }}/4 habs active
-      </p>
+      <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{{ purchasedCount }}/4 habs active</p>
     </div>
   </div>
 </template>
@@ -70,7 +96,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
-import { habTypes, getHabById, getDiscountedHabPrice, countHabsOfType, isHabId, type HabCostModifiers, type Hab, type HabId } from '@/lib/habs';
+import {
+  habTypes,
+  getHabById,
+  getDiscountedHabPrice,
+  countHabsOfType,
+  isHabId,
+  type HabCostModifiers,
+  type Hab,
+  type HabId,
+} from '@/lib/habs';
 import { formatNumber, formatDuration } from '@/lib/format';
 import { useHabCapacityStore } from '@/stores/habCapacity';
 import { useInitialStateStore } from '@/stores/initialState';
@@ -105,7 +140,7 @@ const effectiveSnapshot = computed(() => actionsStore.effectiveSnapshot);
 const effectiveMultipliers = computed(() => {
   const researchLevels = effectiveSnapshot.value.researchLevels;
   const artifactLoadout = effectiveSnapshot.value.artifactLoadout;
-  
+
   // Calculate artifact modifiers
   const artifactMods = calculateArtifactModifiers(artifactLoadout).habCapacity;
 
@@ -123,9 +158,7 @@ const effectiveMultipliers = computed(() => {
 // Use habIds from the effective snapshot
 const habIds = computed(() => effectiveSnapshot.value.habIds);
 
-const purchasedCount = computed(() =>
-  habIds.value.filter(id => id !== null).length
-);
+const purchasedCount = computed(() => habIds.value.filter(id => id !== null).length);
 
 function getHabPrice(habId: number, slotIndex: number): number {
   if (!isHabId(habId)) return 0;
@@ -146,14 +179,14 @@ function getHabPrice(habId: number, slotIndex: number): number {
 function getHabDisplay(hab: Hab, slotIndex: number): string {
   const isCurrent = habIds.value[slotIndex] === hab.id;
   const capacity = formatNumber(getHabCapacity(hab.id), 0);
-  
+
   if (isCurrent) {
     return `${hab.name} (${capacity} cap) — Current`;
   }
 
   const price = getHabPrice(hab.id, slotIndex);
   const time = getTimeToBuy(hab.id, slotIndex);
-  
+
   return `${hab.name} (${capacity} cap, ${formatNumber(price, 0)} gems) — ${time}`;
 }
 
@@ -177,14 +210,8 @@ function getHabCapacity(habId: number): number {
   if (!hab) return 0;
 
   const { universalMultiplier, portalMultiplier, peggMultiplier, artifactMultiplier } = effectiveMultipliers.value;
-  
-  return calculateHabCapacity(
-    hab,
-    universalMultiplier,
-    portalMultiplier,
-    peggMultiplier,
-    artifactMultiplier
-  );
+
+  return calculateHabCapacity(hab, universalMultiplier, portalMultiplier, peggMultiplier, artifactMultiplier);
 }
 
 /**
@@ -237,14 +264,17 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
   habCapacityStore.setHab(slotIndex, habId);
 
   // Complete execution
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'buy_hab',
-    payload,
-    cost,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'buy_hab',
+      payload,
+      cost,
+      dependsOn: dependencies,
+    },
+    beforeSnapshot
+  );
 }
 
 function handleToggleSale() {
@@ -259,13 +289,31 @@ function handleToggleSale() {
   // Update store state
   salesStore.setSaleActive('hab', !currentlyActive);
 
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'toggle_sale',
-    payload,
-    cost: 0,
-    dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion),
-  }, beforeSnapshot);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'toggle_sale',
+      payload,
+      cost: 0,
+      dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion),
+    },
+    beforeSnapshot
+  );
+}
+
+const canBuyMax = computed(() => {
+  const CHICKEN_UNIVERSE_ID = 18;
+  return habIds.value.some(id => id !== CHICKEN_UNIVERSE_ID);
+});
+
+function handleBuyMax() {
+  const CHICKEN_UNIVERSE_ID = 18;
+  for (let i = 0; i < 4; i++) {
+    const currentId = habIds.value[i];
+    if (currentId !== CHICKEN_UNIVERSE_ID) {
+      handleHabChange(i, CHICKEN_UNIVERSE_ID);
+    }
+  }
 }
 </script>
