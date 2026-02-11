@@ -27,7 +27,7 @@
           :model-value="habId !== null ? String(habId) : undefined"
           :items="getAvailableHabs(habId)"
           :get-item-id="item => String(item.id)"
-          :get-item-display="item => `${item.name} (${formatNumber(getHabCapacity(item.id), 0)} cap, ${formatNumber(getHabPrice(item.id, index), 0)} gems) — ${getTimeToBuy(item.id, index)}`"
+          :get-item-display="item => getHabDisplay(item, index)"
           :get-item-icon-path="item => item.iconPath"
           :item-from-id="id => getHabById(parseInt(id) as HabId)"
           :search-items="(query) => searchHabs(getAvailableHabs(habId), query)"
@@ -106,14 +106,31 @@ const purchasedCount = computed(() =>
 function getHabPrice(habId: number, slotIndex: number): number {
   if (!isHabId(habId)) return 0;
 
+  // If this hab is already in this slot, it costs nothing to "buy" again
+  if (habIds.value[slotIndex] === habId) return 0;
+
   const hab = getHabById(habId);
   if (!hab) return 0;
 
-  // Count how many of this hab type are in slots before this one
-  const habsBeforeSlot = habIds.value.slice(0, slotIndex);
-  const existingCount = countHabsOfType(habsBeforeSlot, habId);
+  // Count how many of this hab type are in other slots
+  const otherHabs = habIds.value.filter((_, i) => i !== slotIndex);
+  const existingCount = countHabsOfType(otherHabs, habId);
 
   return getDiscountedHabPrice(hab, existingCount, costModifiers.value);
+}
+
+function getHabDisplay(hab: Hab, slotIndex: number): string {
+  const isCurrent = habIds.value[slotIndex] === hab.id;
+  const capacity = formatNumber(getHabCapacity(hab.id), 0);
+  
+  if (isCurrent) {
+    return `${hab.name} (${capacity} cap) — Current`;
+  }
+
+  const price = getHabPrice(hab.id, slotIndex);
+  const time = getTimeToBuy(hab.id, slotIndex);
+  
+  return `${hab.name} (${capacity} cap, ${formatNumber(price, 0)} gems) — ${time}`;
 }
 
 function getTimeToBuy(habId: number, slotIndex: number): string {
@@ -178,8 +195,8 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
   if (!hab) return;
 
   const effectiveHabIds = beforeSnapshot.habIds;
-  const habsBeforeSlot = effectiveHabIds.slice(0, slotIndex);
-  const existingCount = countHabsOfType(habsBeforeSlot, habId);
+  const otherHabs = effectiveHabIds.filter((_, i) => i !== slotIndex);
+  const existingCount = countHabsOfType(otherHabs, habId);
   const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value);
 
   // Build payload
