@@ -94,6 +94,7 @@ export const useRocketsStore = defineStore('rockets', () => {
   const isOverBudget = computed<boolean>(() => {
     const fuelTank = useFuelTankStore();
     for (const egg of VIRTUE_EGGS) {
+      if (egg === 'humility') continue;
       if (totalFuelCost.value[egg] > fuelTank.fuelAmounts[egg]) return true;
     }
     return false;
@@ -111,6 +112,8 @@ export const useRocketsStore = defineStore('rockets', () => {
 
     let maxCount = Infinity;
     for (const req of fuels) {
+      if (req.egg === 'humility') continue;
+
       // Budget = tank amount - (total committed for this egg EXCEPT this mission's own commitment)
       const othersCommitted = totalFuelCost.value[req.egg] - req.amount * currentCount;
       const available = fuelTank.fuelAmounts[req.egg] - othersCommitted;
