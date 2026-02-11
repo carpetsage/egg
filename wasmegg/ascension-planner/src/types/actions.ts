@@ -56,7 +56,7 @@ export const VIRTUE_EGGS: VirtueEgg[] = ['curiosity', 'integrity', 'humility', '
  * Union of all action types.
  * Add new action types here when extending the system.
  */
-export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'wait_for_te' | 'launch_missions';
+export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale';
 
 // ============================================================================
 // Action Payloads
@@ -181,6 +181,19 @@ export interface LaunchMissionsPayload {
 }
 
 /**
+ * Sale types for toggle_sale action.
+ */
+export type SaleType = 'research' | 'hab' | 'vehicle';
+
+/**
+ * Payload for toggling a sale on or off.
+ */
+export interface ToggleSalePayload {
+  saleType: SaleType;
+  active: boolean;
+}
+
+/**
  * Maps action types to their payload interfaces.
  * Add new mappings here when adding action types.
  */
@@ -196,6 +209,7 @@ export interface ActionPayloadMap {
   store_fuel: StoreFuelPayload;
   wait_for_te: WaitForTEPayload;
   launch_missions: LaunchMissionsPayload;
+  toggle_sale: ToggleSalePayload;
 }
 
 // ============================================================================
@@ -244,6 +258,13 @@ export interface CalculationsSnapshot {
   habIds: (number | null)[];
   researchLevels: ResearchLevels;
   artifactLoadout: ArtifactSlotPayload[];
+
+  // Active sales state
+  activeSales: {
+    research: boolean;
+    hab: boolean;
+    vehicle: boolean;
+  };
 
   // Full outputs for modal display (computed on-demand, not stored)
   fullOutputs?: CalculationsFullOutputs;
@@ -418,5 +439,10 @@ export function createEmptySnapshot(): CalculationsSnapshot {
       { artifactId: null, stones: [] },
       { artifactId: null, stones: [] },
     ],
+    activeSales: {
+      research: false,
+      hab: false,
+      vehicle: false,
+    },
   };
 }

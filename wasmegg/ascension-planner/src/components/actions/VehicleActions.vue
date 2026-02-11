@@ -1,5 +1,25 @@
 <template>
   <div class="space-y-4">
+    <div class="flex items-center justify-between bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 mb-6">
+      <div class="flex flex-col gap-0.5">
+        <div class="flex items-center gap-2">
+          <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
+          <span class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest leading-none">Vehicle Sale</span>
+        </div>
+        <span class="text-[10px] text-indigo-600/70 font-bold uppercase tracking-tighter">75% Discount Active</span>
+      </div>
+      <button 
+        @click="handleToggleSale"
+        class="relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none shadow-inner"
+        :class="isVehicleSaleActive ? 'bg-indigo-500' : 'bg-gray-200'"
+      >
+        <span
+          class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm"
+          :class="isVehicleSaleActive ? 'translate-x-[22px]' : 'translate-x-1'"
+        />
+      </button>
+    </div>
+
     <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
       <p class="text-[11px] text-blue-600 font-medium leading-relaxed">
         <span class="font-bold">Shipping:</span> Select a vehicle to upgrade your fleet. Hyperloop trains can be expanded with additional cars.
@@ -118,6 +138,7 @@ import { useShippingCapacity } from '@/composables/useShippingCapacity';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useActionsStore } from '@/stores/actions';
+import { useSalesStore } from '@/stores/sales';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -130,6 +151,7 @@ const shippingStore = useShippingCapacityStore();
 const initialStateStore = useInitialStateStore();
 const commonResearchStore = useCommonResearchStore();
 const actionsStore = useActionsStore();
+const salesStore = useSalesStore();
 const { output } = useShippingCapacity();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
@@ -138,6 +160,8 @@ const costModifiers = computed<VehicleCostModifiers>(() => ({
   bustUnionsLevel: initialStateStore.epicResearchLevels['bust_unions'] || 0,
   lithiumMultiplier: initialStateStore.colleggtibleModifiers.vehicleCost,
 }));
+
+const isVehicleSaleActive = computed(() => actionsStore.effectiveSnapshot.activeSales.vehicle);
 
 // Compute effective state for accurate capacity and cost calculations
 const effectiveSnapshot = computed(() => actionsStore.effectiveSnapshot);
@@ -194,7 +218,7 @@ function getVehiclePrice(vehicleId: number, slotIndex: number): number {
   
   const effectiveVehicles = effectiveSnapshot.value.vehicles || [];
   const existingCount = countVehiclesOfType(effectiveVehicles, vehicleId);
-  return getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value);
+  return getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value, isVehicleSaleActive.value);
 }
 
 function getTimeToBuyFromPrice(price: number): string {
@@ -278,7 +302,8 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
   // Calculate cost based on effective state
   const effectiveVehicles = beforeSnapshot.vehicles;
   const existingCount = countVehiclesOfType(effectiveVehicles, vehicleId);
-  const cost = getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value);
+  const isSaleActive = beforeSnapshot.activeSales.vehicle;
+  const cost = getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value, isSaleActive);
 
   // Build payload
   const payload = {
@@ -343,7 +368,7 @@ function getRemainingCars(slot: { vehicleId: number | null; trainLength: number 
  */
 function getNextCarCost(slot: { vehicleId: number | null; trainLength: number }): number {
   // trainLength is current, so next car index is trainLength (0-indexed would be trainLength)
-  return getDiscountedTrainCarPrice(slot.trainLength, costModifiers.value);
+  return getDiscountedTrainCarPrice(slot.trainLength, costModifiers.value, isVehicleSaleActive.value);
 }
 
 /**
@@ -355,7 +380,7 @@ function getTotalCarsCost(slot: { vehicleId: number | null; trainLength: number 
   const currentLength = slot.trainLength;
   const maxLength = getMaxTrainLength();
   for (let i = currentLength; i < maxLength; i++) {
-    total += getDiscountedTrainCarPrice(i, costModifiers.value);
+    total += getDiscountedTrainCarPrice(i, costModifiers.value, isVehicleSaleActive.value);
   }
   return total;
 }
@@ -402,7 +427,8 @@ function addTrainCarAction(slotIndex: number, fromLength: number, toLength: numb
   const beforeSnapshot = prepareExecution();
 
   // Calculate cost
-  const cost = getDiscountedTrainCarPrice(toLength - 1, costModifiers.value);
+  const isSaleActive = beforeSnapshot.activeSales.vehicle;
+  const cost = getDiscountedTrainCarPrice(toLength - 1, costModifiers.value, isSaleActive);
 
   // Build payload
   const payload = {
@@ -425,6 +451,28 @@ function addTrainCarAction(slotIndex: number, fromLength: number, toLength: numb
     payload,
     cost,
     dependsOn: dependencies,
+  }, beforeSnapshot);
+}
+
+function handleToggleSale() {
+  const beforeSnapshot = prepareExecution();
+  const currentlyActive = beforeSnapshot.activeSales.vehicle;
+
+  const payload = {
+    saleType: 'vehicle' as const,
+    active: !currentlyActive,
+  };
+
+  // Update store state
+  salesStore.setSaleActive('vehicle', !currentlyActive);
+
+  completeExecution({
+    id: generateActionId(),
+    timestamp: Date.now(),
+    type: 'toggle_sale',
+    payload,
+    cost: 0,
+    dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion),
   }, beforeSnapshot);
 }
 </script>

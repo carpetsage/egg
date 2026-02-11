@@ -117,7 +117,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { iconURL } from 'lib';
-import type { Action, StartAscensionPayload, ShiftPayload, BuyHabPayload, BuyVehiclePayload, StoreFuelPayload, WaitForTEPayload, BuyResearchPayload } from '@/types';
+import type { Action, StartAscensionPayload, ShiftPayload, BuyHabPayload, BuyVehiclePayload, StoreFuelPayload, WaitForTEPayload, BuyResearchPayload, ToggleSalePayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { getHabById } from '@/lib/habs';
 import { getVehicleType } from '@/lib/vehicles';
@@ -188,6 +188,14 @@ const actionIconPath = computed(() => {
   if (props.action.type === 'wait_for_te') {
     // Show truth egg icon for wait_for_te actions
     return 'egginc/egg_truth.png';
+  }
+  if (props.action.type === 'toggle_sale') {
+    const payload = props.action.payload as ToggleSalePayload;
+    switch (payload.saleType) {
+      case 'research': return 'egginc-extras/icon_research_sale.png';
+      case 'hab': return 'egginc-extras/icon_hab_sale.png';
+      case 'vehicle': return 'egginc-extras/icon_vehicle_sale.png';
+    }
   }
   return null;
 });

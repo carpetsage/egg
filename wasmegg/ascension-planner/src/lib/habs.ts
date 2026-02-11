@@ -39,8 +39,9 @@ export interface HabCostModifiers {
 /**
  * Calculate the total cost multiplier from all sources.
  */
-export function getHabCostMultiplier(modifiers: HabCostModifiers): number {
-  return calculateCostMultiplier(modifiers.cheaperContractorsLevel, 0.05, modifiers.flameRetardantMultiplier);
+export function getHabCostMultiplier(modifiers: HabCostModifiers, isActiveSale: boolean = false): number {
+  const multiplier = calculateCostMultiplier(modifiers.cheaperContractorsLevel, 0.05, modifiers.flameRetardantMultiplier);
+  return isActiveSale ? multiplier * 0.2 : multiplier;
 }
 
 /**
@@ -53,11 +54,12 @@ export function getHabCostMultiplier(modifiers: HabCostModifiers): number {
 export function getDiscountedHabPrice(
   hab: Hab,
   purchaseIndex: number,
-  modifiers: HabCostModifiers
+  modifiers: HabCostModifiers,
+  isActiveSale: boolean = false
 ): number {
   if (purchaseIndex < 0 || purchaseIndex > 3) return 0;
   const basePrice = hab.virtueCost[purchaseIndex];
-  return applyDiscount(basePrice, getHabCostMultiplier(modifiers));
+  return applyDiscount(basePrice, getHabCostMultiplier(modifiers, isActiveSale));
 }
 
 /**

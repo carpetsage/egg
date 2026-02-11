@@ -1,5 +1,25 @@
 <template>
   <div class="space-y-4">
+    <div class="flex items-center justify-between bg-blue-50/50 p-3 rounded-xl border border-blue-100 mb-6">
+      <div class="flex flex-col gap-0.5">
+        <div class="flex items-center gap-2">
+          <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></div>
+          <span class="text-[10px] font-bold text-blue-900 uppercase tracking-widest leading-none">Hab Sale</span>
+        </div>
+        <span class="text-[10px] text-blue-600/70 font-bold uppercase tracking-tighter">80% Discount Active</span>
+      </div>
+      <button 
+        @click="handleToggleSale"
+        class="relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none shadow-inner"
+        :class="isHabSaleActive ? 'bg-blue-500' : 'bg-gray-200'"
+      >
+        <span
+          class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm"
+          :class="isHabSaleActive ? 'translate-x-[22px]' : 'translate-x-1'"
+        />
+      </button>
+    </div>
+
     <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
       <p class="text-[11px] text-blue-600 font-medium leading-relaxed">
         <span class="font-bold">Habs:</span> Select a habitat to upgrade. Prices update automatically based on your current epic research and artifacts.
@@ -55,6 +75,7 @@ import { formatNumber, formatDuration } from '@/lib/format';
 import { useHabCapacityStore } from '@/stores/habCapacity';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
+import { useSalesStore } from '@/stores/sales';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -66,6 +87,7 @@ const HabSelect = GenericBaseSelectFilterable<Hab>();
 const habCapacityStore = useHabCapacityStore();
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
+const salesStore = useSalesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 // Cost modifiers
@@ -73,6 +95,8 @@ const costModifiers = computed<HabCostModifiers>(() => ({
   cheaperContractorsLevel: initialStateStore.epicResearchLevels['cheaper_contractors'] || 0,
   flameRetardantMultiplier: initialStateStore.colleggtibleModifiers.habCost,
 }));
+
+const isHabSaleActive = computed(() => actionsStore.effectiveSnapshot.activeSales.hab);
 
 // Compute effective state for accurate capacity and cost calculations
 const effectiveSnapshot = computed(() => actionsStore.effectiveSnapshot);
@@ -116,7 +140,7 @@ function getHabPrice(habId: number, slotIndex: number): number {
   const otherHabs = habIds.value.filter((_, i) => i !== slotIndex);
   const existingCount = countHabsOfType(otherHabs, habId);
 
-  return getDiscountedHabPrice(hab, existingCount, costModifiers.value);
+  return getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
 }
 
 function getHabDisplay(hab: Hab, slotIndex: number): string {
@@ -197,7 +221,8 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
   const effectiveHabIds = beforeSnapshot.habIds;
   const otherHabs = effectiveHabIds.filter((_, i) => i !== slotIndex);
   const existingCount = countHabsOfType(otherHabs, habId);
-  const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value);
+  const isSaleActive = beforeSnapshot.activeSales.hab;
+  const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isSaleActive);
 
   // Build payload
   const payload = {
@@ -219,6 +244,28 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
     payload,
     cost,
     dependsOn: dependencies,
+  }, beforeSnapshot);
+}
+
+function handleToggleSale() {
+  const beforeSnapshot = prepareExecution();
+  const currentlyActive = beforeSnapshot.activeSales.hab;
+
+  const payload = {
+    saleType: 'hab' as const,
+    active: !currentlyActive,
+  };
+
+  // Update store state
+  salesStore.setSaleActive('hab', !currentlyActive);
+
+  completeExecution({
+    id: generateActionId(),
+    timestamp: Date.now(),
+    type: 'toggle_sale',
+    payload,
+    cost: 0,
+    dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion),
   }, beforeSnapshot);
 }
 </script>

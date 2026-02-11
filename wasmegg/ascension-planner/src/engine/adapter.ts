@@ -60,6 +60,7 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
             teEarned: { ...initialSnapshot.teEarned },
             population: initialSnapshot.population,
             lastStepTime: initialSnapshot.lastStepTime,
+            activeSales: { ...initialSnapshot.activeSales },
         };
     }
 
@@ -107,6 +108,11 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
 
         population: farmBackup?.population || 0,
         lastStepTime: farmBackup?.lastStepTime || 0,
+        activeSales: {
+            research: false,
+            hab: false,
+            vehicle: false,
+        },
     };
 }
 
