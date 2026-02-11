@@ -9,10 +9,71 @@ import {
     BuySiloPayload,
     StoreFuelPayload,
     WaitForTEPayload,
+    LaunchMissionsPayload,
     StartAscensionPayload,
     VirtueEgg,
 } from '@/types';
 import type { EngineState } from './types';
+import type { CalculationsSnapshot } from '@/types';
+
+/**
+ * Calculate the number of eggs passively delivered during an action's duration.
+ * During any action that takes time, the farm continues shipping eggs at the ELR.
+ *
+ * Excluded:
+ * - store_fuel: eggs go to fuel tank, not regular delivery (already tracked separately)
+ * - wait_for_te: already explicitly tracks eggs delivered via eggsToLay
+ * - start_ascension, shift, change_artifacts: no meaningful duration
+ *
+ * Returns the number of eggs passively delivered, or 0 if not applicable.
+ */
+export function computePassiveEggsDelivered(
+    action: Action,
+    prevSnapshot: Pick<CalculationsSnapshot, 'elr' | 'offlineEarnings'>
+): number {
+    // These action types handle their own egg delivery or have no duration
+    if (
+        action.type === 'store_fuel' ||
+        action.type === 'wait_for_te' ||
+        action.type === 'start_ascension' ||
+        action.type === 'shift' ||
+        action.type === 'change_artifacts'
+    ) {
+        return 0;
+    }
+
+    let durationSeconds = 0;
+
+    if (action.type === 'launch_missions') {
+        durationSeconds = (action.payload as LaunchMissionsPayload).totalTimeSeconds;
+    } else if (action.cost > 0 && prevSnapshot.offlineEarnings > 0) {
+        // Cost-based actions: duration = cost / offlineEarnings
+        durationSeconds = action.cost / prevSnapshot.offlineEarnings;
+    }
+
+    if (durationSeconds > 0 && prevSnapshot.elr > 0) {
+        return prevSnapshot.elr * durationSeconds;
+    }
+
+    return 0;
+}
+
+/**
+ * Apply passive egg delivery to an engine state.
+ * Returns a new state with updated eggsDelivered if applicable.
+ */
+export function applyPassiveEggs(state: EngineState, passiveEggs: number): EngineState {
+    if (passiveEggs <= 0) return state;
+
+    const egg = state.currentEgg;
+    return {
+        ...state,
+        eggsDelivered: {
+            ...state.eggsDelivered,
+            [egg]: (state.eggsDelivered[egg] || 0) + passiveEggs,
+        },
+    };
+}
 
 /**
  * Purely apply an action to the engine state.
@@ -157,6 +218,17 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 ...state,
                 eggsDelivered: newEggsDelivered,
             };
+        }
+
+        case 'launch_missions': {
+            const payload = action.payload as LaunchMissionsPayload;
+            const newFuelAmounts = { ...state.fuelTankAmounts };
+            for (const [egg, amount] of Object.entries(payload.fuelConsumed)) {
+                if (amount > 0) {
+                    newFuelAmounts[egg as VirtueEgg] = Math.max(0, (newFuelAmounts[egg as VirtueEgg] || 0) - amount);
+                }
+            }
+            return { ...state, fuelTankAmounts: newFuelAmounts };
         }
 
         // Default case: return state unchanged

@@ -144,7 +144,7 @@ export function computeDeltas(
 
 /**
  * Restore store state from a snapshot.
- * Used when replaying actions after an undo.
+ * Used when replaying actions after an undo or when switching editing groups.
  */
 export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
   const habCapacityStore = useHabCapacityStore();
@@ -157,61 +157,61 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
   const truthEggsStore = useTruthEggsStore();
 
   // Restore hab state
-  for (let i = 0; i < snapshot.habIds.length; i++) {
-    habCapacityStore.setHab(i, snapshot.habIds[i] as any);
-  }
+  habCapacityStore.$patch((state) => {
+    state.habIds = [...snapshot.habIds] as any;
+    // Keep research levels in sync
+    state.researchLevels = { ...snapshot.researchLevels };
+  });
 
   // Restore vehicle state
-  for (let i = 0; i < snapshot.vehicles.length; i++) {
-    const vehicle = snapshot.vehicles[i];
-    shippingCapacityStore.setVehicle(i, vehicle.vehicleId);
-    if (vehicle.vehicleId === 11) {
-      shippingCapacityStore.setTrainLength(i, vehicle.trainLength);
-    }
-  }
+  shippingCapacityStore.$patch((state) => {
+    state.vehicles = snapshot.vehicles.map(v => ({ ...v }));
+    // Keep research levels in sync
+    state.researchLevels = { ...snapshot.researchLevels };
+  });
 
-  // Restore research levels - first reset all to 0, then apply snapshot values
-  // This handles the case where snapshot.researchLevels might be empty (e.g., start_ascension)
-  commonResearchStore.resetAll();
-  for (const [researchId, level] of Object.entries(snapshot.researchLevels)) {
-    commonResearchStore.setResearchLevel(researchId, level);
-  }
+  // Restore common research levels
+  commonResearchStore.$patch((state) => {
+    state.researchLevels = { ...snapshot.researchLevels };
+  });
 
   // Restore virtue state
-  virtueStore.setCurrentEgg(snapshot.currentEgg);
-  virtueStore.setShiftCount(snapshot.shiftCount);
-  virtueStore.setTE(snapshot.te);
-  initialStateStore.setSoulEggs(snapshot.soulEggs);
+  virtueStore.$patch((state) => {
+    state.currentEgg = snapshot.currentEgg;
+    state.shiftCount = snapshot.shiftCount;
+    state.te = snapshot.te;
+  });
+
+  // Restore initial state (soul eggs and artifacts)
+  initialStateStore.$patch((state) => {
+    state.soulEggs = snapshot.soulEggs;
+    if (snapshot.artifactLoadout) {
+      state.artifactLoadout = snapshot.artifactLoadout.map(slot => ({
+        artifactId: slot.artifactId,
+        stones: [...slot.stones],
+      }));
+    }
+  });
 
   // Restore silo state
   if (snapshot.siloCount !== undefined) {
     silosStore.setSiloCount(snapshot.siloCount);
   }
 
-  // Restore artifact loadout
-  if (snapshot.artifactLoadout) {
-    initialStateStore.setArtifactLoadout(snapshot.artifactLoadout.map(slot => ({
-      artifactId: slot.artifactId,
-      stones: [...slot.stones],
-    })));
-  }
-
   // Restore fuel tank state
   if (snapshot.fuelTankAmounts) {
-    for (const [egg, amount] of Object.entries(snapshot.fuelTankAmounts)) {
-      fuelTankStore.setFuelAmount(egg as any, amount);
-    }
+    fuelTankStore.$patch((state) => {
+      state.fuelAmounts = { ...snapshot.fuelTankAmounts };
+    });
   }
 
   // Restore truth eggs state
-  if (snapshot.eggsDelivered) {
-    for (const [egg, amount] of Object.entries(snapshot.eggsDelivered)) {
-      truthEggsStore.setEggsDelivered(egg as any, amount);
+  truthEggsStore.$patch((state) => {
+    if (snapshot.eggsDelivered) {
+      state.eggsDelivered = { ...snapshot.eggsDelivered };
     }
-  }
-  if (snapshot.teEarned) {
-    for (const [egg, count] of Object.entries(snapshot.teEarned)) {
-      truthEggsStore.setTEEarned(egg as any, count);
+    if (snapshot.teEarned) {
+      state.teEarned = { ...snapshot.teEarned };
     }
-  }
+  });
 }

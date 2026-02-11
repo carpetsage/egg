@@ -29,6 +29,7 @@ import { changeArtifactsExecutor } from './executors/changeArtifacts';
 import { buySiloExecutor } from './executors/buySilo';
 import { storeFuelExecutor } from './executors/storeFuel';
 import { waitForTEExecutor } from './executors/waitForTE';
+import { launchMissionsExecutor } from './executors/launchMissions';
 
 // ============================================================================
 // Executor Interface
@@ -104,6 +105,7 @@ const executorMap: { [K in ActionType]: ActionExecutor<K> } = {
   buy_silo: buySiloExecutor,
   store_fuel: storeFuelExecutor,
   wait_for_te: waitForTEExecutor,
+  launch_missions: launchMissionsExecutor,
 };
 
 /**

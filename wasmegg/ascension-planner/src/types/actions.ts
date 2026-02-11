@@ -56,7 +56,7 @@ export const VIRTUE_EGGS: VirtueEgg[] = ['curiosity', 'integrity', 'humility', '
  * Union of all action types.
  * Add new action types here when extending the system.
  */
-export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'wait_for_te';
+export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'wait_for_te' | 'launch_missions';
 
 // ============================================================================
 // Action Payloads
@@ -162,6 +162,25 @@ export interface WaitForTEPayload {
 }
 
 /**
+ * A single mission type entry in a launch_missions payload.
+ */
+export interface LaunchMissionEntry {
+  ship: number;       // Spaceship enum value
+  duration: number;   // DurationType enum value
+  count: number;
+}
+
+/**
+ * Payload for launching rocket missions.
+ */
+export interface LaunchMissionsPayload {
+  missions: LaunchMissionEntry[];
+  totalTimeSeconds: number;
+  totalMissions: number;
+  fuelConsumed: Record<VirtueEgg, number>;
+}
+
+/**
  * Maps action types to their payload interfaces.
  * Add new mappings here when adding action types.
  */
@@ -176,6 +195,7 @@ export interface ActionPayloadMap {
   buy_silo: BuySiloPayload;
   store_fuel: StoreFuelPayload;
   wait_for_te: WaitForTEPayload;
+  launch_missions: LaunchMissionsPayload;
 }
 
 // ============================================================================

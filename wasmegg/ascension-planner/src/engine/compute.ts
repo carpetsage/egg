@@ -74,21 +74,27 @@ export function computeSnapshot(
     const ihrOutput = calculateIHR(ihrInput);
 
     // 8. Population growth (catch-up if starting from a backup)
-    let population = state.population;
+    let population = state.population || 0;
+    let lastStepTime = state.lastStepTime;
+
     if (state.lastStepTime > 0 && context.ascensionStartTime > state.lastStepTime) {
         const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
         const growthRatePerSecond = ihrOutput.offlineRate / 60;
         const growth = Math.floor(growthRatePerSecond * elapsedSeconds);
         population = Math.min(habCapacityOutput.totalFinalCapacity, population + growth);
+        // Once growth is applied, we are at the start of the ascension
+        lastStepTime = context.ascensionStartTime;
     }
 
     // 9. Lay Rate
-    // Use the projected population for total eggs calculation, or hab capacity if pop is 0 (fallback)
+    // Use the farm's total final capacity for metric calculations.
+    // This ensures that metrics like ELR and Earnings reflect the farm's potential 
+    // at that stage, and avoids negative deltas when real population is low.
     const layRateInput: LayRateInput = {
         researchLevels: state.researchLevels,
         epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
         siliconMultiplier: colleggtibleModifiers.elr,
-        population: population || habCapacityOutput.totalFinalCapacity,
+        population: habCapacityOutput.totalFinalCapacity,
         artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
         artifactEffects: artifactMods.eggLayingRate.effects,
     };
@@ -158,6 +164,6 @@ export function computeSnapshot(
         researchLevels: state.researchLevels,
         artifactLoadout: state.artifactLoadout,
         population,
-        lastStepTime: state.lastStepTime,
+        lastStepTime,
     };
 }

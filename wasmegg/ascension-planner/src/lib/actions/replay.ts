@@ -17,6 +17,7 @@ import type {
   BuySiloPayload,
   StoreFuelPayload,
   WaitForTEPayload,
+  LaunchMissionsPayload,
   VirtueEgg,
 } from '@/types';
 import { restoreFromSnapshot, computeCurrentSnapshot, computeDeltas } from './snapshot';
@@ -156,6 +157,19 @@ function applyActionEffect(action: Action): void {
       truthEggsStore.addEggsDelivered(payload.egg, payload.eggsToLay);
       // Update TE
       virtueStore.setTE(virtueStore.te + payload.teGained);
+      break;
+    }
+
+    case 'launch_missions': {
+      const payload = action.payload as LaunchMissionsPayload;
+      const fuelTankStore = useFuelTankStore();
+      // Deduct fuel consumed from tank
+      for (const [egg, amount] of Object.entries(payload.fuelConsumed)) {
+        if (amount > 0) {
+          const current = fuelTankStore.fuelAmounts[egg as VirtueEgg];
+          fuelTankStore.setFuelAmount(egg as VirtueEgg, Math.max(0, current - amount));
+        }
+      }
       break;
     }
 

@@ -34,6 +34,7 @@
           :previous-actions-offline-earnings="item.previousOfflineEarnings"
           :time-elapsed-seconds="item.timeElapsedSeconds"
           :period-end-timestamp="item.periodEndTimestamp"
+          :eggs-delivered="item.eggsDelivered"
           :is-editing="actionsStore.editingGroupId === item.headerAction.id"
           :is-current="item.isCurrent"
           :class="{ 'border-t border-gray-100': idx > 0 }"
@@ -61,7 +62,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Action, StoreFuelPayload, WaitForTEPayload } from '@/types';
+import type { Action, StoreFuelPayload, WaitForTEPayload, LaunchMissionsPayload } from '@/types';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
 import { formatNumber } from '@/lib/format';
@@ -122,6 +123,7 @@ interface GroupItem {
   previousOfflineEarnings: number[];
   timeElapsedSeconds: number;
   periodEndTimestamp: Date;  // When this period ended
+  eggsDelivered: number;  // Total eggs delivered during this period (for the current egg)
   isCurrent: boolean;  // Whether this is the current (last) period
 }
 
@@ -139,6 +141,9 @@ function getActionTimeSeconds(action: Action, previousOfflineEarnings: number): 
   }
   if (action.type === 'wait_for_te') {
     return (action.payload as WaitForTEPayload).timeSeconds;
+  }
+  if (action.type === 'launch_missions') {
+    return (action.payload as LaunchMissionsPayload).totalTimeSeconds;
   }
 
   // For cost-based actions, calculate time to save
@@ -208,6 +213,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
         previousOfflineEarnings,
         timeElapsedSeconds: periodTimeSeconds,
         periodEndTimestamp,
+        eggsDelivered: computePeriodEggsDelivered(startAction, groupActions),
         isCurrent: false,
       });
 
@@ -237,6 +243,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
         previousOfflineEarnings,
         timeElapsedSeconds: periodTimeSeconds,
         periodEndTimestamp,
+        eggsDelivered: computePeriodEggsDelivered(startAction, groupActions),
         isCurrent: true,
       });
       return result;
@@ -279,6 +286,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
       previousOfflineEarnings,
       timeElapsedSeconds: periodTimeSeconds,
       periodEndTimestamp,
+      eggsDelivered: computePeriodEggsDelivered(shiftAction, groupActions),
       isCurrent: isLastShift,
     });
 
@@ -305,6 +313,21 @@ function handleStartEditing(groupId: string) {
 
 function handleStopEditing() {
   actionsStore.setEditingGroup(null);
+}
+
+/**
+ * Calculate eggs delivered during a period.
+ * Uses the delta of eggsDelivered[egg] between the header action and the last action in the group.
+ */
+function computePeriodEggsDelivered(
+  headerAction: Action<'start_ascension'> | Action<'shift'>,
+  groupActions: Action[]
+): number {
+  const egg = headerAction.endState.currentEgg;
+  const startDelivered = headerAction.endState.eggsDelivered[egg] || 0;
+  const lastAction = groupActions.length > 0 ? groupActions[groupActions.length - 1] : null;
+  const endDelivered = lastAction ? (lastAction.endState.eggsDelivered[egg] || 0) : startDelivered;
+  return Math.max(0, endDelivered - startDelivered);
 }
 
 /**
