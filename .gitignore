@@ -8,3 +8,4 @@ dist.frozen
 .vscode
 __target__
 *.swp
+.pnpm-store/
