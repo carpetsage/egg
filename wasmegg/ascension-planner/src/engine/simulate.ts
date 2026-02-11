@@ -49,9 +49,10 @@ export function simulate(
 
         const deltas = computeDeltas(prevSnap, newSnapshot);
 
-        // 4. Update action
+        // 4. Update action with new results and correct index
         results.push({
             ...action,
+            index: i,
             ...deltas,
             endState: newSnapshot, // Caller should markRaw this if using Vue
         });
