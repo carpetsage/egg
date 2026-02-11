@@ -80,6 +80,22 @@ export const ASSET_CATEGORIES: AssetCategory[] = [
         ],
     },*/
     {
+        name: 'Ships',
+        assets: [
+            { name: 'Chicken One', path: 'egginc/afx_ship_chicken_1.png' },
+            { name: 'Chicken Nine', path: 'egginc/afx_ship_chicken_9.png' },
+            { name: 'Chicken Heavy', path: 'egginc/afx_ship_chicken_heavy.png' },
+            { name: 'BCR', path: 'egginc/afx_ship_bcr.png' },
+            { name: 'Quintillion', path: 'egginc/afx_ship_millenium_chicken.png' },
+            { name: 'Corvette', path: 'egginc/afx_ship_corellihen_corvette.png' },
+            { name: 'Galeggtica', path: 'egginc/afx_ship_galeggtica.png' },
+            { name: 'Defihent', path: 'egginc/afx_ship_defihent.png' },
+            { name: 'Voyegger', path: 'egginc/afx_ship_voyegger.png' },
+            { name: 'Henerprise', path: 'egginc/afx_ship_henerprise.png' },
+            { name: 'Henliner', path: 'egginc/afx_ship_atreggies.png' },
+        ],
+    },
+    {
         name: 'Epic Research',
         assets: [
             { name: 'Hold to Hatch', path: 'egginc/r_icon_hold_to_hatch.png' },

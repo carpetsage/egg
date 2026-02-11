@@ -43,6 +43,9 @@
         <div class="text-[10px] text-purple-500">
           {{ formattedTimeElapsed }} elapsed
         </div>
+        <div v-if="props.eggsDelivered > 0" class="text-[10px] text-purple-500">
+          {{ formatNumber(props.eggsDelivered, 3) }} delivered
+        </div>
       </div>
 
       <!-- Shift info (only for shift actions) -->
@@ -174,6 +177,7 @@ const props = defineProps<{
   previousActionsOfflineEarnings: number[];
   timeElapsedSeconds: number;
   periodEndTimestamp: Date;
+  eggsDelivered: number;
   isEditing?: boolean;
   isCurrent?: boolean;  // Whether this is the current (last) period
 }>();

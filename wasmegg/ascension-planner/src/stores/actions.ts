@@ -20,7 +20,7 @@ import { useTruthEggsStore } from '@/stores/truthEggs';
 
 // Engine imports
 import { simulate } from '@/engine/simulate';
-import { applyAction } from '@/engine/apply';
+import { applyAction, computePassiveEggsDelivered, applyPassiveEggs } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
 
@@ -247,13 +247,20 @@ export const useActionsStore = defineStore('actions', {
         endState: createEmptySnapshot(),
       } as Action;
 
-      const newState = applyAction(prevState, fullAction);
-      const newSnapshot = computeSnapshot(newState, context);
-
-      // 4. Compute deltas
+      // 3b. Get previous snapshot for deltas and passive egg computation
       const prevSnapshot = this.actions.length > 0
         ? this.actions[this.actions.length - 1].endState
         : (this._initialSnapshot ?? createEmptySnapshot());
+
+      let newState = applyAction(prevState, fullAction);
+
+      // Add passively delivered eggs during this action's duration
+      const passiveEggs = computePassiveEggsDelivered(fullAction, prevSnapshot);
+      newState = applyPassiveEggs(newState, passiveEggs);
+
+      const newSnapshot = computeSnapshot(newState, context);
+
+      // 4. Compute deltas
 
       const deltas = computeDeltas(prevSnapshot, newSnapshot);
 

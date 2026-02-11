@@ -1,6 +1,6 @@
 import type { Action, CalculationsSnapshot } from '@/types';
 import type { EngineState, SimulationContext, SimulationResult } from './types';
-import { applyAction } from './apply';
+import { applyAction, computePassiveEggsDelivered, applyPassiveEggs } from './apply';
 import { computeSnapshot } from './compute';
 import { computeDeltas } from '@/lib/actions/snapshot';
 
@@ -32,6 +32,11 @@ export function simulate(
 
         // 1. Apply action to get new pure state
         currentState = applyAction(currentState, action);
+
+        // 1b. Add passively delivered eggs during this action's duration
+        // Uses the PREVIOUS snapshot's ELR (eggs are shipped at the old rate while saving for the action)
+        const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
+        currentState = applyPassiveEggs(currentState, passiveEggs);
 
         // 2. Compute full snapshot
         const newSnapshot = computeSnapshot(currentState, context);
