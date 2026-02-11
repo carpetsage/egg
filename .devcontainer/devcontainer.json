@@ -1,0 +1,15 @@
+{
+    "name": "WASMEGG",
+    "build": {
+        "dockerfile": "Containerfile",
+        "args":  {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "vue.volar",
+                "pbkit.vscode-pbkit"
+            ]
+        }
+    }
+}
