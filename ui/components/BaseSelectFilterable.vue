@@ -30,6 +30,7 @@ import {
   Ref,
   ref,
   toRefs,
+  watchEffect,
 } from 'vue';
 import {
   CheckIcon,
@@ -129,6 +130,7 @@ class BaseSelectFilterableFactory<T = unknown> {
         );
         const active: Ref<T | null> = ref(null);
 
+
         const dropdownListEntryIndex = (item: T): number => {
           for (let i = 0; i < filteredItems.value.length; i++) {
             if (isSameItem(filteredItems.value[i], item)) {
@@ -153,6 +155,14 @@ class BaseSelectFilterableFactory<T = unknown> {
         };
 
         const open = ref(false);
+
+        // Keep searchFilter in sync with selected item's display name when closed.
+        // This ensures the UI updates correctly when state changes externally (e.g. undo).
+        watchEffect(() => {
+          if (!open.value) {
+            searchFilter.value = selected.value !== null ? getItemDisplay.value(selected.value) : '';
+          }
+        });
         const openDropdown = () => {
           searchFilter.value = '';
           active.value = selected.value;

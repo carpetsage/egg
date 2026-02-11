@@ -287,8 +287,10 @@ export const useActionsStore = defineStore('actions', {
         this.expandedGroupIds.add(finalAction.id);
       }
 
-      // 8. Sync stores to match the new reality
-      // This ensures the rest of the app (which relies on stores) sees the update
+      // Syncing is now handled automatically by pushAction's logic 
+      // (Wait, pushAction actually needs to call recalculateAll or sync manually)
+      // Actually pushAction is one place where we DON'T call recalculateAll 
+      // because we already have the newSnapshot. So keeping it is fine.
       syncStoresToSnapshot(newSnapshot);
     },
 
@@ -352,14 +354,9 @@ export const useActionsStore = defineStore('actions', {
       // Recalculate everything to fix indices and states
       this.recalculateAll();
 
-      // Restore stores to the end state
-      if (this.actions.length > 0) {
-        const lastSnapshot = this.actions[this.actions.length - 1].endState;
-        syncStoresToSnapshot(lastSnapshot);
-        if (restoreCallback) restoreCallback(lastSnapshot);
-      } else {
-        // Should not happen as start_ascension is kept
-      }
+      // RecalculateAll now automatically syncs stores to effectiveSnapshot,
+      // which is what we want (it handles both normal and editing modes).
+      if (restoreCallback) restoreCallback(this.effectiveSnapshot);
     },
 
     /**
@@ -482,10 +479,8 @@ export const useActionsStore = defineStore('actions', {
 
       // Re-calculate everything from insertion point (or just all for simplicity)
       // RecalculateAll uses the optimized Engine, so it's fast (O(N) non-reactive).
+      // It also automatically syncs stores to effectiveSnapshot.
       this.recalculateAll();
-
-      // Update stores to effective snapshot (since we are still editing)
-      syncStoresToSnapshot(this.effectiveSnapshot);
     },
 
     /**
@@ -510,12 +505,11 @@ export const useActionsStore = defineStore('actions', {
 
       this.actions = newActions;
 
-      // Sync stores to the new head state if not editing
-      if (!this.editingGroupId) {
-        if (this.actions.length > 0) {
-          syncStoresToSnapshot(this.actions[this.actions.length - 1].endState);
-        }
-      }
+      // Sync stores to the effective snapshot.
+      // If NOT editing, effectiveSnapshot === currentSnapshot (the head).
+      // If editing, effectiveSnapshot is the end of the editing group.
+      // This ensures the rest of the app (UI) always sees the relevant state.
+      syncStoresToSnapshot(this.effectiveSnapshot);
     },
 
     toggleGroupExpansion(groupId: string) {

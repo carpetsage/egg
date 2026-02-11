@@ -120,6 +120,10 @@ const virtueStore = useVirtueStore();
 const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
 
+// Initial calculation to populate the default start_ascension action with correct metrics
+// based on default farm state (1 Coop, 1 Trike, etc.)
+actionsStore.recalculateAll();
+
 // Section expansion state
 const expandedSections = ref({
   actionHistory: true,

@@ -50,16 +50,27 @@ export function simulate(
         const deltas = computeDeltas(prevSnap, newSnapshot);
 
         // 4. Update action
-        // We create a new action object to avoid mutating the input array/objects in place if possible,
-        // but typically we want to update the store's action objects. 
-        // Here we return new objects. The caller can replace them in the store.
         results.push({
             ...action,
             ...deltas,
             endState: newSnapshot, // Caller should markRaw this if using Vue
         });
 
+        // 5. Update currentState for the next iteration.
+        // This is CRITICAL: simulation must propagate the computed state 
+        // (population, egg delivery, etc.) to the next action or else 
+        // subsequent actions will start from stale states.
+        currentState = {
+            ...currentState,
+            population: newSnapshot.population,
+            lastStepTime: newSnapshot.lastStepTime,
+            // Also ensure cumulative lifecycle eggs/fuel are preserved from computeSnapshot if they changed
+            eggsDelivered: { ...newSnapshot.eggsDelivered },
+            fuelTankAmounts: { ...newSnapshot.fuelTankAmounts },
+        };
+
         previousSnapshot = newSnapshot;
+        currentSnapshot = newSnapshot;
     }
 
     return results;
