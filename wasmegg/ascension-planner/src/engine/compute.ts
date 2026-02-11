@@ -165,5 +165,6 @@ export function computeSnapshot(
         artifactLoadout: state.artifactLoadout,
         population,
         lastStepTime,
+        activeSales: state.activeSales,
     };
 }

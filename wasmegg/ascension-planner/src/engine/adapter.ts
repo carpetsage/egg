@@ -38,12 +38,6 @@ export function getSimulationContext(): SimulationContext {
 export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | null): EngineState {
     const virtueStore = useVirtueStore();
     const initialStateStore = useInitialStateStore();
-    const silosStore = useSilosStore();
-    const fuelTankStore = useFuelTankStore();
-    const truthEggsStore = useTruthEggsStore();
-    const habCapacityStore = useHabCapacityStore();
-    const shippingCapacityStore = useShippingCapacityStore();
-    const commonResearchStore = useCommonResearchStore();
 
     // If a specific snapshot is provided (e.g. from existing action history), use it.
     // Otherwise, read the current "base" state from the hydrated stores.
@@ -66,36 +60,59 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
             teEarned: { ...initialSnapshot.teEarned },
             population: initialSnapshot.population,
             lastStepTime: initialSnapshot.lastStepTime,
+            activeSales: { ...initialSnapshot.activeSales },
         };
     }
 
-    // Fallback to reading from stores (used when importing plan or starting fresh)
-    return {
+    // Fallback to reading from InitialStateStore.
+    // IMPORTANT: We do NOT read from the live farm stores (commonResearchStore, etc.)
+    // because those represent the results of the current simulation.
+    // We only use the stores that hold the DEFINITION of the player (InitialStateStore, VirtueStore).
 
-        currentEgg: 'curiosity', // Always start at curiosity for base unless user overrides?
-        // Wait, if we imported a plan that starts on Resilience, applyAction(start_ascension) will fix it.
-        // But base state needs to be valid.
+    const farmBackup = initialStateStore.currentFarmState;
+
+    return {
+        // We always start curiosity by default; start_ascension will override this.
+        currentEgg: 'curiosity',
 
         shiftCount: virtueStore.initialShiftCount,
         te: virtueStore.initialTE,
         soulEggs: initialStateStore.soulEggs,
 
-        vehicles: shippingCapacityStore.vehicles.map(v => ({ ...v })),
-        habIds: [...habCapacityStore.habIds],
-        researchLevels: { ...commonResearchStore.researchLevels },
-        siloCount: silosStore.siloCount,
+        // If we have a farm backup, use its state. Otherwise, use empty defaults.
+        vehicles: farmBackup
+            ? farmBackup.vehicles.map(v => ({ ...v }))
+            : [{ vehicleId: 0, trainLength: 1 }], // Default Trike
+
+        habIds: farmBackup
+            ? [...farmBackup.habs]
+            : [0, null, null, null], // Default Coop
+
+        researchLevels: farmBackup
+            ? { ...farmBackup.commonResearches }
+            : {},
+
+        siloCount: farmBackup
+            ? farmBackup.numSilos
+            : 1,
 
         artifactLoadout: initialStateStore.artifactLoadout.map(slot => ({
             artifactId: slot.artifactId,
             stones: [...slot.stones],
         })),
 
-        fuelTankAmounts: { ...fuelTankStore.fuelAmounts },
-        eggsDelivered: { ...truthEggsStore.eggsDelivered },
-        teEarned: { ...truthEggsStore.teEarned },
+        // Progress state starts from what was in the backup
+        fuelTankAmounts: { ...initialStateStore.initialFuelAmounts },
+        eggsDelivered: { ...initialStateStore.initialEggsDelivered },
+        teEarned: { ...initialStateStore.initialTeEarned },
 
-        population: initialStateStore.currentFarmState?.population || 0,
-        lastStepTime: initialStateStore.currentFarmState?.lastStepTime || 0,
+        population: farmBackup?.population || 0,
+        lastStepTime: farmBackup?.lastStepTime || 0,
+        activeSales: {
+            research: false,
+            hab: false,
+            vehicle: false,
+        },
     };
 }
 

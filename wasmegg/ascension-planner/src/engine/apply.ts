@@ -11,6 +11,7 @@ import {
     WaitForTEPayload,
     LaunchMissionsPayload,
     StartAscensionPayload,
+    ToggleSalePayload,
     VirtueEgg,
 } from '@/types';
 import type { EngineState } from './types';
@@ -37,7 +38,8 @@ export function computePassiveEggsDelivered(
         action.type === 'wait_for_te' ||
         action.type === 'start_ascension' ||
         action.type === 'shift' ||
-        action.type === 'change_artifacts'
+        action.type === 'change_artifacts' ||
+        action.type === 'toggle_sale'
     ) {
         return 0;
     }
@@ -229,6 +231,17 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 }
             }
             return { ...state, fuelTankAmounts: newFuelAmounts };
+        }
+
+        case 'toggle_sale': {
+            const payload = action.payload as ToggleSalePayload;
+            return {
+                ...state,
+                activeSales: {
+                    ...state.activeSales,
+                    [payload.saleType]: payload.active,
+                },
+            };
         }
 
         // Default case: return state unchanged

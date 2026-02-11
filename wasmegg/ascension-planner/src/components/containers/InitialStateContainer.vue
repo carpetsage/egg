@@ -12,11 +12,11 @@
     :ascension-time="virtueStore.ascensionTime"
     :ascension-timezone="virtueStore.ascensionTimezone"
     :tank-level="fuelTankStore.tankLevel"
-    :fuel-amounts="fuelTankStore.fuelAmounts"
+    :fuel-amounts="store.initialFuelAmounts"
     :tank-capacity="fuelTankStore.tankCapacity"
-    :eggs-delivered="truthEggsStore.eggsDelivered"
-    :te-earned="truthEggsStore.teEarned"
-    :total-te="truthEggsStore.totalTE"
+    :eggs-delivered="store.initialEggsDelivered"
+    :te-earned="store.initialTeEarned"
+    :total-te="initialTotalTe"
     :can-continue="!!store.currentFarmState"
     :current-egg-name="currentEggName"
     :soul-eggs="store.soulEggs"
@@ -73,13 +73,23 @@ const startAction = computed(() =>
   actionsStore.getStartAction() as Action<'start_ascension'> | undefined
 );
 
+import { computeSnapshot } from '@/engine/compute';
+import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
+
 function updateInitialSnapshotAndRecalculate() {
-  // Recompute and update the initial snapshot
-  const newSnapshot = computeCurrentSnapshot();
-  actionsStore.setInitialSnapshot(newSnapshot);
+  // Recompute the pure initial snapshot from base conditions (ignoring simulated head state)
+  const context = getSimulationContext();
+  const baseState = createBaseEngineState(null);
+  const initialSnapshot = computeSnapshot(baseState, context);
+  
+  actionsStore.setInitialSnapshot(initialSnapshot);
   // Recalculate all history
   actionsStore.recalculateAll();
 }
+
+const initialTotalTe = computed(() =>
+  Object.values(store.initialTeEarned).reduce((sum, val) => sum + val, 0)
+);
 
 const currentEggName = computed(() => {
   if (!store.currentFarmState) return '';
@@ -155,13 +165,25 @@ function handleSetTankLevel(level: number) {
 }
 
 function handleSetFuelAmount(egg: VirtueEgg, amount: number) {
-  fuelTankStore.setFuelAmount(egg, amount);
+  store.setInitialFuelAmount(egg, amount);
   updateInitialSnapshotAndRecalculate();
 }
 
 function handleSetEggsDelivered(egg: VirtueEgg, amount: number) {
-  // Use sync version to auto-update TE based on thresholds
+  // We still use truthEggsStore for the sync logic (detecting TE thresholds)
+  // but we must store the resulting initial values back into InitialStateStore
+  truthEggsStore.$patch(state => {
+    state.eggsDelivered = { ...store.initialEggsDelivered };
+    state.teEarned = { ...store.initialTeEarned };
+  });
+  
   truthEggsStore.setEggsDeliveredWithSync(egg, amount);
+
+  // Sync back to InitialStateStore
+  for (const e of VIRTUE_EGGS) {
+    store.setInitialEggsDelivered(e, truthEggsStore.eggsDelivered[e]);
+    store.setInitialTeEarned(e, truthEggsStore.teEarned[e]);
+  }
 
   // Also update the virtue store's total TE and initial TE baseline
   virtueStore.setTE(truthEggsStore.totalTE);
@@ -171,8 +193,18 @@ function handleSetEggsDelivered(egg: VirtueEgg, amount: number) {
 }
 
 function handleSetTEEarned(egg: VirtueEgg, count: number) {
-  // Use sync version to auto-update eggs delivered to minimum threshold
+  truthEggsStore.$patch(state => {
+    state.eggsDelivered = { ...store.initialEggsDelivered };
+    state.teEarned = { ...store.initialTeEarned };
+  });
+
   truthEggsStore.setTEEarnedWithSync(egg, count);
+
+  // Sync back to InitialStateStore
+  for (const e of VIRTUE_EGGS) {
+    store.setInitialEggsDelivered(e, truthEggsStore.eggsDelivered[e]);
+    store.setInitialTeEarned(e, truthEggsStore.teEarned[e]);
+  }
 
   // Also update the virtue store's total TE and initial TE baseline
   virtueStore.setTE(truthEggsStore.totalTE);

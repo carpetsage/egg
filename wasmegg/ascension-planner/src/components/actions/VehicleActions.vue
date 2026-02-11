@@ -1,8 +1,54 @@
 <template>
   <div class="space-y-4">
+    <div class="flex items-center justify-between bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 mb-6">
+      <div class="flex flex-col gap-0.5">
+        <div class="flex items-center gap-2">
+          <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
+          <span class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest leading-none">Vehicle Sale</span>
+        </div>
+        <span class="text-[10px] text-indigo-600/70 font-bold uppercase tracking-tighter">75% Discount Active</span>
+      </div>
+      <button
+        class="relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none shadow-inner"
+        :class="isVehicleSaleActive ? 'bg-indigo-500' : 'bg-gray-200'"
+        @click="handleToggleSale"
+      >
+        <span
+          class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm"
+          :class="isVehicleSaleActive ? 'translate-x-[22px]' : 'translate-x-1'"
+        />
+      </button>
+    </div>
+
+    <!-- Quick Upgrade Action -->
+    <div v-if="canBuyMax" class="mb-6 -mt-2">
+      <button
+        class="group flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white p-2.5 shadow-sm transition-all hover:border-indigo-400 hover:bg-indigo-50/50 active:scale-[0.98]"
+        @click="handleBuyMax"
+      >
+        <div class="rounded-lg bg-indigo-100/50 p-1 transition-colors group-hover:bg-indigo-100">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 text-indigo-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="13 17 18 12 13 7"></polyline>
+            <polyline points="6 17 11 12 6 7"></polyline>
+          </svg>
+        </div>
+        <span class="text-[11px] font-bold uppercase tracking-widest text-indigo-800">Max Out Fleet & Hyperloops</span>
+      </button>
+    </div>
+
     <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
       <p class="text-[11px] text-blue-600 font-medium leading-relaxed">
-        <span class="font-bold">Shipping:</span> Select a vehicle to upgrade your fleet. Hyperloop trains can be expanded with additional cars.
+        <span class="font-bold">Shipping:</span> Select a vehicle to upgrade your fleet. Hyperloop trains can be
+        expanded with additional cars.
       </p>
     </div>
 
@@ -26,19 +72,21 @@
         <VehicleSelect
           :model-value="slot.vehicleId !== null ? String(slot.vehicleId) : undefined"
           :items="getAvailableVehicles(slot.vehicleId)"
-           :get-item-id="item => String(item.id)"
-          :get-item-display="item => {
-            const currentSlot = displaySlots[index];
-            if (currentSlot && currentSlot.vehicleId === item.id) {
-              return `${item.name} (Owned)`;
+          :get-item-id="item => String(item.id)"
+          :get-item-display="
+            item => {
+              const currentSlot = displaySlots[index];
+              if (currentSlot && currentSlot.vehicleId === item.id) {
+                return `${item.name} (Owned)`;
+              }
+              const price = getVehiclePrice(item.id, index);
+              const capacity = getVehicleCapacity({ vehicleId: item.id, trainLength: 1 }, index);
+              return `${item.name} (${formatNumber(capacity * 3600, 0)}/hr, ${formatNumber(price, 0)} gems) — ${getVehicleTimeToBuy(item.id, index)}`;
             }
-            const price = getVehiclePrice(item.id, index);
-            const capacity = getVehicleCapacity({ vehicleId: item.id, trainLength: 1 }, index);
-            return `${item.name} (${formatNumber(capacity * 3600, 0)}/hr, ${formatNumber(price, 0)} gems) — ${getVehicleTimeToBuy(item.id, index)}`;
-          }"
+          "
           :get-item-icon-path="item => item.iconPath"
           :item-from-id="id => getVehicleType(parseInt(id))!"
-          :search-items="(query) => searchVehicles(getAvailableVehicles(slot.vehicleId), query)"
+          :search-items="query => searchVehicles(getAvailableVehicles(slot.vehicleId), query)"
           placeholder="Select vehicle..."
           icon-class="h-[14px] w-12"
           input-padding-class="pl-[60px]"
@@ -88,12 +136,12 @@
 
     <!-- Note about fleet size -->
     <div class="flex items-center justify-between px-1">
-      <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-        Fleet Capacity: {{ activeVehicleCount }}/{{ maxVehicleSlots }} active
-      </p>
-      <p class="text-[10px] text-blue-400 italic">
-        (upgrade fleet size research to unlock more slots)
-      </p>
+      <div class="flex flex-col">
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+          Fleet Capacity: {{ activeVehicleCount }}/{{ maxVehicleSlots }} active
+        </p>
+        <p class="text-[10px] text-blue-400 italic">(upgrade fleet size research to unlock more slots)</p>
+      </div>
     </div>
   </div>
 </template>
@@ -118,10 +166,15 @@ import { useShippingCapacity } from '@/composables/useShippingCapacity';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useActionsStore } from '@/stores/actions';
+import { useSalesStore } from '@/stores/sales';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
-import { calculateShippingMultipliers, calculateMaxVehicleSlots, calculateMaxTrainLength } from '@/calculations/shippingCapacity';
+import {
+  calculateShippingMultipliers,
+  calculateMaxVehicleSlots,
+  calculateMaxTrainLength,
+} from '@/calculations/shippingCapacity';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 
 const VehicleSelect = GenericBaseSelectFilterable<VehicleType>();
@@ -130,6 +183,7 @@ const shippingStore = useShippingCapacityStore();
 const initialStateStore = useInitialStateStore();
 const commonResearchStore = useCommonResearchStore();
 const actionsStore = useActionsStore();
+const salesStore = useSalesStore();
 const { output } = useShippingCapacity();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
@@ -139,6 +193,8 @@ const costModifiers = computed<VehicleCostModifiers>(() => ({
   lithiumMultiplier: initialStateStore.colleggtibleModifiers.vehicleCost,
 }));
 
+const isVehicleSaleActive = computed(() => actionsStore.effectiveSnapshot.activeSales.vehicle);
+
 // Compute effective state for accurate capacity and cost calculations
 const effectiveSnapshot = computed(() => actionsStore.effectiveSnapshot);
 
@@ -147,7 +203,7 @@ const effectiveMultipliers = computed(() => {
   const researchLevels = effectiveSnapshot.value.researchLevels;
   const artifactLoadout = effectiveSnapshot.value.artifactLoadout;
   const transportationLobbyistLevel = initialStateStore.epicResearchLevels['transportation_lobbyist'] || 0;
-  
+
   // Calculate artifact modifiers
   const artifactMods = calculateArtifactModifiers(artifactLoadout).shippingRate;
 
@@ -172,7 +228,7 @@ const displaySlots = computed(() => {
   const max = calculateMaxVehicleSlots(effectiveSnapshot.value.researchLevels);
   // Clone the effective vehicles to avoid mutation
   const slots = effectiveSnapshot.value.vehicles ? [...effectiveSnapshot.value.vehicles].slice(0, max) : [];
-  
+
   // Pad with empty slots
   while (slots.length < max) {
     slots.push({ vehicleId: null, trainLength: 1 });
@@ -182,19 +238,17 @@ const displaySlots = computed(() => {
 
 const maxVehicleSlots = computed(() => calculateMaxVehicleSlots(effectiveSnapshot.value.researchLevels));
 
-const activeVehicleCount = computed(() =>
-  displaySlots.value.filter(v => v.vehicleId !== null).length
-);
+const activeVehicleCount = computed(() => displaySlots.value.filter(v => v.vehicleId !== null).length);
 
 function getVehiclePrice(vehicleId: number, slotIndex: number): number {
   const currentSlot = displaySlots.value[slotIndex];
   if (currentSlot && currentSlot.vehicleId === vehicleId) {
     return 0;
   }
-  
+
   const effectiveVehicles = effectiveSnapshot.value.vehicles || [];
   const existingCount = countVehiclesOfType(effectiveVehicles, vehicleId);
-  return getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value);
+  return getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value, isVehicleSaleActive.value);
 }
 
 function getTimeToBuyFromPrice(price: number): string {
@@ -236,7 +290,7 @@ function getVehicleCapacity(slot: { vehicleId: number | null; trainLength: numbe
     hyperloopMultiplier,
     epicMultiplier,
     colleggtibleMultiplier,
-    artifactMultiplier
+    artifactMultiplier,
   } = effectiveMultipliers.value;
 
   const trainLength = vt.isHyperloop ? slot.trainLength : 1;
@@ -245,7 +299,15 @@ function getVehicleCapacity(slot: { vehicleId: number | null; trainLength: numbe
   const vehicleHoverMult = vt.isHover ? hoverMultiplier : 1;
   const vehicleHyperloopMult = vt.isHyperloop ? hyperloopMultiplier : 1;
 
-  return baseCapacity * universalMultiplier * epicMultiplier * vehicleHoverMult * vehicleHyperloopMult * colleggtibleMultiplier * artifactMultiplier;
+  return (
+    baseCapacity *
+    universalMultiplier *
+    epicMultiplier *
+    vehicleHoverMult *
+    vehicleHyperloopMult *
+    colleggtibleMultiplier *
+    artifactMultiplier
+  );
 }
 
 /**
@@ -278,7 +340,8 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
   // Calculate cost based on effective state
   const effectiveVehicles = beforeSnapshot.vehicles;
   const existingCount = countVehiclesOfType(effectiveVehicles, vehicleId);
-  const cost = getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value);
+  const isSaleActive = beforeSnapshot.activeSales.vehicle;
+  const cost = getDiscountedVehiclePrice(vehicleId, existingCount, costModifiers.value, isSaleActive);
 
   // Build payload
   const payload = {
@@ -294,14 +357,17 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
   shippingStore.setVehicle(slotIndex, vehicleId);
 
   // Complete execution
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'buy_vehicle',
-    payload,
-    cost,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'buy_vehicle',
+      payload,
+      cost,
+      dependsOn: dependencies,
+    },
+    beforeSnapshot
+  );
 }
 
 // ============================================================================
@@ -343,7 +409,7 @@ function getRemainingCars(slot: { vehicleId: number | null; trainLength: number 
  */
 function getNextCarCost(slot: { vehicleId: number | null; trainLength: number }): number {
   // trainLength is current, so next car index is trainLength (0-indexed would be trainLength)
-  return getDiscountedTrainCarPrice(slot.trainLength, costModifiers.value);
+  return getDiscountedTrainCarPrice(slot.trainLength, costModifiers.value, isVehicleSaleActive.value);
 }
 
 /**
@@ -355,7 +421,7 @@ function getTotalCarsCost(slot: { vehicleId: number | null; trainLength: number 
   const currentLength = slot.trainLength;
   const maxLength = getMaxTrainLength();
   for (let i = currentLength; i < maxLength; i++) {
-    total += getDiscountedTrainCarPrice(i, costModifiers.value);
+    total += getDiscountedTrainCarPrice(i, costModifiers.value, isVehicleSaleActive.value);
   }
   return total;
 }
@@ -402,7 +468,8 @@ function addTrainCarAction(slotIndex: number, fromLength: number, toLength: numb
   const beforeSnapshot = prepareExecution();
 
   // Calculate cost
-  const cost = getDiscountedTrainCarPrice(toLength - 1, costModifiers.value);
+  const isSaleActive = beforeSnapshot.activeSales.vehicle;
+  const cost = getDiscountedTrainCarPrice(toLength - 1, costModifiers.value, isSaleActive);
 
   // Build payload
   const payload = {
@@ -418,13 +485,70 @@ function addTrainCarAction(slotIndex: number, fromLength: number, toLength: numb
   shippingStore.setTrainLength(slotIndex, toLength);
 
   // Complete execution
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'buy_train_car',
-    payload,
-    cost,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'buy_train_car',
+      payload,
+      cost,
+      dependsOn: dependencies,
+    },
+    beforeSnapshot
+  );
+}
+
+function handleToggleSale() {
+  const beforeSnapshot = prepareExecution();
+  const currentlyActive = beforeSnapshot.activeSales.vehicle;
+
+  const payload = {
+    saleType: 'vehicle' as const,
+    active: !currentlyActive,
+  };
+
+  // Update store state
+  salesStore.setSaleActive('vehicle', !currentlyActive);
+
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'toggle_sale',
+      payload,
+      cost: 0,
+      dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion),
+    },
+    beforeSnapshot
+  );
+}
+
+const canBuyMax = computed(() => {
+  const HYPERLOOP_ID = 11;
+  const maxLength = getMaxTrainLength();
+  return displaySlots.value.some(slot => slot.vehicleId !== HYPERLOOP_ID || slot.trainLength < maxLength);
+});
+
+function handleBuyMax() {
+  const HYPERLOOP_ID = 11;
+  const maxSlots = maxVehicleSlots.value;
+  const maxLength = getMaxTrainLength();
+
+  for (let i = 0; i < maxSlots; i++) {
+    const slot = displaySlots.value[i];
+    let currentLength = 1;
+
+    // 1. Upgrade to Hyperloop if not already
+    if (slot.vehicleId !== HYPERLOOP_ID) {
+      handleVehicleChange(i, HYPERLOOP_ID);
+    } else {
+      currentLength = slot.trainLength;
+    }
+
+    // 2. Add remaining cars
+    for (let l = currentLength; l < maxLength; l++) {
+      addTrainCarAction(i, l, l + 1);
+    }
+  }
 }
 </script>

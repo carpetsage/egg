@@ -18,6 +18,7 @@ import type {
   StoreFuelPayload,
   WaitForTEPayload,
   LaunchMissionsPayload,
+  ToggleSalePayload,
   VirtueEgg,
 } from '@/types';
 import { restoreFromSnapshot, computeCurrentSnapshot, computeDeltas } from './snapshot';
@@ -55,6 +56,7 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useSilosStore } from '@/stores/silos';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
+import { useSalesStore } from '@/stores/sales';
 
 /**
  * Replay an action on top of a given snapshot state.
@@ -170,6 +172,13 @@ function applyActionEffect(action: Action): void {
           fuelTankStore.setFuelAmount(egg as VirtueEgg, Math.max(0, current - amount));
         }
       }
+      break;
+    }
+
+    case 'toggle_sale': {
+      const payload = action.payload as ToggleSalePayload;
+      const salesStore = useSalesStore();
+      salesStore.setSaleActive(payload.saleType, payload.active);
       break;
     }
 

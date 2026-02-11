@@ -42,6 +42,21 @@ export interface InitialStateStoreState {
 
   // Assume double earnings (video doubler)
   assumeDoubleEarnings: boolean;
+
+  // Global progress metrics at start of ascension
+  initialFuelAmounts: Record<VirtueEgg, number>;
+  initialEggsDelivered: Record<VirtueEgg, number>;
+  initialTeEarned: Record<VirtueEgg, number>;
+}
+
+function createEmptyVirtueMap(): Record<VirtueEgg, number> {
+  return {
+    curiosity: 0,
+    integrity: 0,
+    humility: 0,
+    resilience: 0,
+    kindness: 0,
+  };
 }
 
 function initializeEpicResearchLevels(): ResearchLevels {
@@ -64,6 +79,9 @@ export const useInitialStateStore = defineStore('initialState', {
     currentFarmState: null,
     soulEggs: 1e21, // Default to 1s
     assumeDoubleEarnings: true,
+    initialFuelAmounts: createEmptyVirtueMap(),
+    initialEggsDelivered: createEmptyVirtueMap(),
+    initialTeEarned: createEmptyVirtueMap(),
   }),
 
   getters: {
@@ -167,6 +185,9 @@ export const useInitialStateStore = defineStore('initialState', {
         resilience: tankFuels[23] ?? 0,
         kindness: tankFuels[24] ?? 0,
       };
+      this.initialFuelAmounts = { ...virtueFuelAmounts };
+      this.initialEggsDelivered = { ...eggsDelivered };
+      this.initialTeEarned = { ...teEarnedPerEgg };
 
       // Load current farm state if on a virtue egg (IDs 50-54)
       this.currentFarmState = null;
@@ -303,6 +324,37 @@ export const useInitialStateStore = defineStore('initialState', {
         this.assumeDoubleEarnings = true;
       }
       this.currentFarmState = data.currentFarmState || null;
+
+      if (data.initialFuelAmounts) {
+        this.initialFuelAmounts = { ...data.initialFuelAmounts };
+      }
+      if (data.initialEggsDelivered) {
+        this.initialEggsDelivered = { ...data.initialEggsDelivered };
+      }
+      if (data.initialTeEarned) {
+        this.initialTeEarned = { ...data.initialTeEarned };
+      }
+    },
+
+    /**
+     * Set initial fuel amount
+     */
+    setInitialFuelAmount(egg: VirtueEgg, amount: number) {
+      this.initialFuelAmounts[egg] = Math.max(0, amount);
+    },
+
+    /**
+     * Set initial eggs delivered
+     */
+    setInitialEggsDelivered(egg: VirtueEgg, amount: number) {
+      this.initialEggsDelivered[egg] = Math.max(0, amount);
+    },
+
+    /**
+     * Set initial TE earned
+     */
+    setInitialTeEarned(egg: VirtueEgg, count: number) {
+      this.initialTeEarned[egg] = Math.max(0, Math.min(98, count));
     },
 
     /**
@@ -318,6 +370,9 @@ export const useInitialStateStore = defineStore('initialState', {
       this.artifactLoadout = createEmptyLoadout();
       this.soulEggs = 1e21;
       this.assumeDoubleEarnings = true;
+      this.initialFuelAmounts = createEmptyVirtueMap();
+      this.initialEggsDelivered = createEmptyVirtueMap();
+      this.initialTeEarned = createEmptyVirtueMap();
     },
   },
 });

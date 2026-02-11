@@ -1,5 +1,22 @@
 <template>
   <div class="space-y-4">
+    <div class="flex items-center justify-between bg-amber-50 p-3 rounded-lg border border-amber-100 mb-4">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
+        <span class="text-xs font-bold text-amber-900 uppercase tracking-tight">Research Sale (70% OFF)</span>
+      </div>
+      <button 
+        @click="handleToggleSale"
+        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
+        :class="isResearchSaleActive ? 'bg-amber-500' : 'bg-gray-200'"
+      >
+        <span
+          class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+          :class="isResearchSaleActive ? 'translate-x-6' : 'translate-x-1'"
+        />
+      </button>
+    </div>
+
     <p class="text-sm text-gray-500 mb-4">
       Click + to buy one level, or Max to buy all remaining levels.
     </p>
@@ -128,6 +145,7 @@ import { iconURL } from 'lib';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
+import { useSalesStore } from '@/stores/sales';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -135,6 +153,7 @@ import { useActionExecutor } from '@/composables/useActionExecutor';
 const commonResearchStore = useCommonResearchStore();
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
+const salesStore = useSalesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 // Track expanded tiers
@@ -165,11 +184,13 @@ const costModifiers = computed<ResearchCostModifiers>(() => ({
   puzzleCubeMultiplier: initialStateStore.artifactModifiers.researchCost.totalMultiplier,
 }));
 
+const isResearchSaleActive = computed(() => actionsStore.effectiveSnapshot.activeSales.research);
+
 // Tier summaries
 const tierSummaries = computed(() => {
   const summaries: Record<number, ReturnType<typeof getTierSummary>> = {};
   for (const tier of tiers.value) {
-    summaries[tier] = getTierSummary(tier, commonResearchStore.researchLevels, costModifiers.value);
+    summaries[tier] = getTierSummary(tier, commonResearchStore.researchLevels, costModifiers.value, isResearchSaleActive.value);
   }
   return summaries;
 });
@@ -181,7 +202,7 @@ function getCurrentLevel(researchId: string): number {
 function getNextLevelPrice(research: CommonResearch): number {
   const currentLevel = getCurrentLevel(research.id);
   if (currentLevel >= research.levels) return 0;
-  return getDiscountedVirtuePrice(research, currentLevel, costModifiers.value);
+  return getDiscountedVirtuePrice(research, currentLevel, costModifiers.value, isResearchSaleActive.value);
 }
 
 function getTimeToBuy(research: CommonResearch): string {
@@ -225,7 +246,8 @@ function buyOneLevel(research: CommonResearch): boolean {
 
   // Calculate cost based on current state (after restore if editing)
   const effectiveLevel = beforeSnapshot.researchLevels[research.id] || 0;
-  const cost = getDiscountedVirtuePrice(research, effectiveLevel, costModifiers.value);
+  const isSaleActive = beforeSnapshot.activeSales.research;
+  const cost = getDiscountedVirtuePrice(research, effectiveLevel, costModifiers.value, isSaleActive);
 
   // Build payload
   const payload = {
@@ -279,5 +301,27 @@ function handleMaxTier(tier: number) {
       if (!buyOneLevel(research)) break;
     }
   }
+}
+
+function handleToggleSale() {
+  const beforeSnapshot = prepareExecution();
+  const currentlyActive = beforeSnapshot.activeSales.research;
+
+  const payload = {
+    saleType: 'research' as const,
+    active: !currentlyActive,
+  };
+
+  // Update store state
+  salesStore.setSaleActive('research', !currentlyActive);
+
+  completeExecution({
+    id: generateActionId(),
+    timestamp: Date.now(),
+    type: 'toggle_sale',
+    payload,
+    cost: 0,
+    dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion),
+  }, beforeSnapshot);
 }
 </script>

@@ -335,27 +335,18 @@ export const useActionsStore = defineStore('actions', {
         }
       }
 
-      // Filter to remaining actions
+      // Determine remaining actions and clean up dependents
       const newActions = this.actions.filter(a => !toRemove.has(a.id));
-
-      // Clean up dependents references
       for (const action of newActions) {
         action.dependents = action.dependents.filter(depId => !toRemove.has(depId));
       }
 
-      // We need to re-simulate everything to ensure indices and states are correct
-      // (Removing an action might change the state of subsequent independent actions if we're not careful,
-      //  but assuming independence, they might be fine. BUT safe bet is to re-sim).
-      // However, re-simulating everything from scratch is safest.
-
-      // Reset actions to the new list (temporarily) so recalculateAll picks them up
+      // We need to re-simulate everything to ensure indices and states are correct.
+      // We do this by updating the actions list and then calling recalculateAll.
       this.actions = newActions;
-
-      // Recalculate everything to fix indices and states
       this.recalculateAll();
 
-      // RecalculateAll now automatically syncs stores to effectiveSnapshot,
-      // which is what we want (it handles both normal and editing modes).
+      // RecalculateAll automatically syncs stores to the effective snapshot.
       if (restoreCallback) restoreCallback(this.effectiveSnapshot);
     },
 
@@ -363,22 +354,17 @@ export const useActionsStore = defineStore('actions', {
      * Clear all actions except start_ascension.
      */
     clearAll(resetCallback?: () => void) {
-      const startAction = this.actions.find(a => a.type === 'start_ascension');
+      const startAction = this.getStartAction();
 
-      // Reset to just the start action
+      // Reset to just the start action or a new default one
       if (startAction) {
         this.actions = [startAction];
-        // Re-calculate to reset start action state if needed
-        this.recalculateAll();
       } else {
         this.actions = [createDefaultStartAction()];
-        this.recalculateAll();
       }
 
-      // Restore stores
-      if (this.actions.length > 0) {
-        syncStoresToSnapshot(this.actions[0].endState);
-      }
+      // Force a full recalculation to reset everything cleanly
+      this.recalculateAll();
 
       if (resetCallback) resetCallback();
     },

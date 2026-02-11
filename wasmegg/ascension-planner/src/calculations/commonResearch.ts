@@ -156,13 +156,14 @@ export interface ResearchCostModifiers {
  * Calculate the total cost multiplier from all discounts.
  * All discounts are multiplicative.
  */
-export function calculateCostMultiplier(modifiers: ResearchCostModifiers): number {
-  return calculateBaseCostMultiplier(
+export function calculateCostMultiplier(modifiers: ResearchCostModifiers, isActiveSale: boolean = false): number {
+  const multiplier = calculateBaseCostMultiplier(
     modifiers.labUpgradeLevel,
     0.05,
     modifiers.waterballoonMultiplier,
     modifiers.puzzleCubeMultiplier
   );
+  return isActiveSale ? multiplier * 0.3 : multiplier;
 }
 
 /**
@@ -181,12 +182,12 @@ export function getBaseVirtuePrice(research: CommonResearch, currentLevel: numbe
 export function getDiscountedVirtuePrice(
   research: CommonResearch,
   currentLevel: number,
-  modifiers: ResearchCostModifiers
+  modifiers: ResearchCostModifiers,
+  isActiveSale: boolean = false
 ): number {
   const basePrice = getBaseVirtuePrice(research, currentLevel);
   if (!isFinite(basePrice)) return Infinity;
-  if (!isFinite(basePrice)) return Infinity;
-  return applyDiscountCeil(basePrice, calculateCostMultiplier(modifiers));
+  return applyDiscountCeil(basePrice, calculateCostMultiplier(modifiers, isActiveSale));
 }
 
 /**
@@ -195,10 +196,11 @@ export function getDiscountedVirtuePrice(
 export function getTotalCostToMax(
   research: CommonResearch,
   currentLevel: number,
-  modifiers: ResearchCostModifiers
+  modifiers: ResearchCostModifiers,
+  isActiveSale: boolean = false
 ): number {
   let total = 0;
-  const multiplier = calculateCostMultiplier(modifiers);
+  const multiplier = calculateCostMultiplier(modifiers, isActiveSale);
 
   for (let level = currentLevel; level < research.levels; level++) {
     const basePrice = research.virtue_prices[level] || 0;
@@ -214,14 +216,15 @@ export function getTotalCostToMax(
 export function getTotalCostToMaxTier(
   tier: number,
   researchLevels: ResearchLevels,
-  modifiers: ResearchCostModifiers
+  modifiers: ResearchCostModifiers,
+  isActiveSale: boolean = false
 ): number {
   const tierResearches = researchByTier.get(tier) || [];
   let total = 0;
 
   for (const research of tierResearches) {
     const currentLevel = researchLevels[research.id] || 0;
-    total += getTotalCostToMax(research, currentLevel, modifiers);
+    total += getTotalCostToMax(research, currentLevel, modifiers, isActiveSale);
   }
 
   return total;
@@ -243,7 +246,8 @@ export interface TierSummary {
 export function getTierSummary(
   tier: number,
   researchLevels: ResearchLevels,
-  modifiers: ResearchCostModifiers
+  modifiers: ResearchCostModifiers,
+  isActiveSale: boolean = false
 ): TierSummary {
   const tierResearches = researchByTier.get(tier) || [];
 
@@ -262,6 +266,6 @@ export function getTierSummary(
     purchasedLevels,
     isUnlocked: isTierUnlocked(researchLevels, tier),
     purchasesNeeded: purchasesNeededForTier(researchLevels, tier),
-    costToMax: getTotalCostToMaxTier(tier, researchLevels, modifiers),
+    costToMax: getTotalCostToMaxTier(tier, researchLevels, modifiers, isActiveSale),
   };
 }

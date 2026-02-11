@@ -75,8 +75,9 @@ export interface VehicleCostModifiers {
 /**
  * Calculate the total cost multiplier from all sources.
  */
-export function getVehicleCostMultiplier(modifiers: VehicleCostModifiers): number {
-  return calculateCostMultiplier(modifiers.bustUnionsLevel, 0.05, modifiers.lithiumMultiplier);
+export function getVehicleCostMultiplier(modifiers: VehicleCostModifiers, isActiveSale: boolean = false): number {
+  const multiplier = calculateCostMultiplier(modifiers.bustUnionsLevel, 0.05, modifiers.lithiumMultiplier);
+  return isActiveSale ? multiplier * 0.25 : multiplier;
 }
 
 /**
@@ -111,14 +112,15 @@ export function countVehiclesOfTypeBefore(
 export function getDiscountedVehiclePrice(
   vehicleId: number,
   purchaseIndex: number,
-  modifiers: VehicleCostModifiers
+  modifiers: VehicleCostModifiers,
+  isActiveSale: boolean = false
 ): number {
   const vehicle = getVehicleType(vehicleId);
   if (!vehicle) return 0;
   if (purchaseIndex < 0 || purchaseIndex >= vehicle.virtueCost.length) return 0;
 
   const basePrice = vehicle.virtueCost[purchaseIndex];
-  return applyDiscount(basePrice, getVehicleCostMultiplier(modifiers));
+  return applyDiscount(basePrice, getVehicleCostMultiplier(modifiers, isActiveSale));
 }
 
 /**
@@ -129,10 +131,11 @@ export function getDiscountedVehiclePrice(
  */
 export function getDiscountedTrainCarPrice(
   carIndex: number,
-  modifiers: VehicleCostModifiers
+  modifiers: VehicleCostModifiers,
+  isActiveSale: boolean = false
 ): number {
   if (carIndex < 0 || carIndex >= HYPERLOOP_CAR_VIRTUE_COSTS.length) return 0;
 
   const basePrice = HYPERLOOP_CAR_VIRTUE_COSTS[carIndex];
-  return applyDiscount(basePrice, getVehicleCostMultiplier(modifiers));
+  return applyDiscount(basePrice, getVehicleCostMultiplier(modifiers, isActiveSale));
 }

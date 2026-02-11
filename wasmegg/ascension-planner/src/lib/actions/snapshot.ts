@@ -21,6 +21,7 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useSilosStore, totalAwayTime } from '@/stores/silos';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
+import { useSalesStore } from '@/stores/sales';
 
 /**
  * Compute a CalculationsSnapshot from current store state.
@@ -45,6 +46,7 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
   const silosStore = useSilosStore();
   const fuelTankStore = useFuelTankStore();
   const truthEggsStore = useTruthEggsStore();
+  const salesStore = useSalesStore();
 
   // Calculate silo time
   const siloCapacityLevel = initialStateStore.epicResearchLevels['silo_capacity'] || 0;
@@ -89,6 +91,7 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
     })),
     population: 0,
     lastStepTime: 0,
+    activeSales: { ...salesStore.$state },
   };
 }
 
@@ -155,9 +158,10 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
   const silosStore = useSilosStore();
   const fuelTankStore = useFuelTankStore();
   const truthEggsStore = useTruthEggsStore();
+  const salesStore = useSalesStore();
 
   // Restore hab state
-  habCapacityStore.$patch((state) => {
+  habCapacityStore.$patch((state: any) => {
     state.habIds = [...snapshot.habIds] as any;
     // Keep research levels in sync
     state.researchLevels = { ...snapshot.researchLevels };
@@ -214,4 +218,13 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
       state.teEarned = { ...snapshot.teEarned };
     }
   });
+
+  // Restore sales state
+  if (snapshot.activeSales) {
+    salesStore.$patch((state) => {
+      state.research = !!snapshot.activeSales.research;
+      state.hab = !!snapshot.activeSales.hab;
+      state.vehicle = !!snapshot.activeSales.vehicle;
+    });
+  }
 }

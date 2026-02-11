@@ -23,7 +23,7 @@ export function formatNumber(value: number, decimals: number = 2): string {
     return value.toFixed(decimals);
   }
 
-  const suffixes = ['', 'K', 'M', 'B', 'T', 'q', 'Q', 's', 'S', 'o', 'N', 'd', 'U', 'D'];
+  const suffixes = ['', 'K', 'M', 'B', 'T', 'q', 'Q', 's', 'S', 'o', 'N', 'd', 'U', 'D', 'Td', 'qd', 'Qd', 'sd', 'Sd', 'Od', 'Nd', 'V', 'uV', 'dV', 'tV', 'qV', 'QV', 'sV', 'Sv', 'OV', 'NV', 'tT'];
   const magnitude = Math.floor(Math.log10(Math.abs(value)) / 3);
 
   if (magnitude >= suffixes.length) {
