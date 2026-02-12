@@ -1,5 +1,6 @@
 import { allPossibleTiers } from 'lib/artifacts/data';
 import { ei } from 'lib/proto';
+import { iconURL } from 'lib/utils';
 
 /**
  * Artifact and stone data processing for the ascension planner.
@@ -409,4 +410,54 @@ export function getArtifactLoadoutFromBackup(backup: any): EquippedArtifact[] {
   }
 
   return loadout;
+}
+
+/**
+ * Summarize an artifact loadout for display in action history.
+ * Format: "T4L {artifact}, T4R {artifact}, 4x {stone}, 2x {stone}"
+ */
+export function summarizeLoadout(loadout: EquippedArtifact[]): string {
+  const parts: string[] = [];
+
+  // 1. Add artifacts in slot order
+  for (const slot of loadout) {
+    const artifact = getArtifact(slot.artifactId);
+    if (artifact) {
+      parts.push(`T${artifact.tier}${artifact.rarityCode} <img src="${iconURL(artifact.iconPath, 32)}" class="h-4 w-4 inline-block align-middle -mt-0.5" title="${artifact.label}" />`);
+    }
+  }
+
+  // 2. Add stones grouped by type and count
+  const stoneCounts = new Map<string, { label: string; count: number; order: number; iconPath: string }>();
+
+  // Create a map to find the order of stones in the options
+  const stoneOrderMap = new Map(stoneOptions.map((s, i) => [s.id, i]));
+
+  for (const slot of loadout) {
+    for (const stoneId of slot.stones) {
+      if (!stoneId) continue;
+      const stone = getStone(stoneId);
+      if (stone) {
+        const existing = stoneCounts.get(stoneId);
+        if (existing) {
+          existing.count++;
+        } else {
+          stoneCounts.set(stoneId, {
+            label: stone.label,
+            count: 1,
+            order: stoneOrderMap.get(stoneId) ?? 999,
+            iconPath: stone.iconPath,
+          });
+        }
+      }
+    }
+  }
+
+  // Sort stones by their order in options
+  const sortedStones = Array.from(stoneCounts.values()).sort((a, b) => a.order - b.order);
+  for (const stone of sortedStones) {
+    parts.push(`${stone.count}x <img src="${iconURL(stone.iconPath, 32)}" class="h-3.5 w-3.5 inline-block align-middle -mt-0.5" title="${stone.label}" />`);
+  }
+
+  return parts.length > 0 ? parts.join(', ') : 'No artifacts equipped';
 }

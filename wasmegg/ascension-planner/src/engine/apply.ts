@@ -39,7 +39,9 @@ export function computePassiveEggsDelivered(
         action.type === 'start_ascension' ||
         action.type === 'shift' ||
         action.type === 'change_artifacts' ||
-        action.type === 'toggle_sale'
+        action.type === 'toggle_sale' ||
+        action.type === 'equip_artifact_set' ||
+        action.type === 'update_artifact_set'
     ) {
         return 0;
     }
@@ -242,6 +244,46 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                     [payload.saleType]: payload.active,
                 },
             };
+        }
+
+        case 'equip_artifact_set': {
+            const payload = action.payload as import('@/types').EquipArtifactSetPayload;
+            const setName = payload.setName;
+            const newLoadout = state.artifactSets[setName];
+
+            return {
+                ...state,
+                activeArtifactSet: setName,
+                artifactLoadout: newLoadout ? newLoadout.map(slot => ({
+                    artifactId: slot.artifactId,
+                    stones: [...slot.stones],
+                })) : state.artifactLoadout,
+            };
+        }
+
+        case 'update_artifact_set': {
+            const payload = action.payload as import('@/types').UpdateArtifactSetPayload;
+            const setName = payload.setName;
+            const newSets = { ...state.artifactSets };
+            newSets[setName] = payload.newLoadout.map(slot => ({
+                artifactId: slot.artifactId,
+                stones: [...slot.stones],
+            }));
+
+            const newState = {
+                ...state,
+                artifactSets: newSets,
+            };
+
+            // If updating currently active set, also update current loadout
+            if (state.activeArtifactSet === setName) {
+                newState.artifactLoadout = payload.newLoadout.map(slot => ({
+                    artifactId: slot.artifactId,
+                    stones: [...slot.stones],
+                }));
+            }
+
+            return newState;
         }
 
         // Default case: return state unchanged

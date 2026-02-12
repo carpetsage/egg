@@ -163,6 +163,8 @@ export function computeSnapshot(
         habIds: state.habIds,
         researchLevels: state.researchLevels,
         artifactLoadout: state.artifactLoadout,
+        activeArtifactSet: state.activeArtifactSet,
+        artifactSets: state.artifactSets,
         population,
         lastStepTime,
         activeSales: state.activeSales,

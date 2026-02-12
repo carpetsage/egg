@@ -287,8 +287,9 @@ function isTierMaxed(tier: number): boolean {
 const FLEET_RESEARCH_IDS = ['vehicle_reliablity', 'excoskeletons', 'traffic_management', 'egg_loading_bots', 'autonomous_vehicles'];
 const TRAIN_CAR_RESEARCH_ID = 'micro_coupling';
 
-// Research categories that do not impact ELR or immediate earnings
-const EXCLUDED_CATEGORIES = ['hatchery_capacity', 'internal_hatchery_rate', 'running_chicken_bonus', 'hatchery_refill_rate'];
+// Research categories to exclude from specific views
+const ROI_EXCLUDED_CATEGORIES = ['hatchery_capacity', 'internal_hatchery_rate', 'running_chicken_bonus', 'hatchery_refill_rate'];
+const ELR_EXCLUDED_CATEGORIES = ['hatchery_capacity', 'internal_hatchery_rate', 'running_chicken_bonus', 'hatchery_refill_rate', 'egg_value'];
 
 /**
  * Sorted Researches for Cheapest/ROI/ELR views
@@ -304,8 +305,11 @@ const sortedResearches = computed(() => {
   // Filter out excluded categories for ROI and ELR views
   const filterByCategories = (r: CommonResearch) => {
     if (currentView.value === 'game' || currentView.value === 'cheapest') return true;
+    
     const categories = r.categories.split(',').map(c => c.trim());
-    return !categories.some(c => EXCLUDED_CATEGORIES.includes(c));
+    const excluded = currentView.value === 'roi' ? ROI_EXCLUDED_CATEGORIES : ELR_EXCLUDED_CATEGORIES;
+    
+    return !categories.some(c => excluded.includes(c));
   };
 
   if (currentView.value === 'cheapest') {

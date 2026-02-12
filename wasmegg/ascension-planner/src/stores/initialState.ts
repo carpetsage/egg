@@ -33,6 +33,8 @@ export interface InitialStateStoreState {
 
   // Artifact loadout (4 slots)
   artifactLoadout: EquippedArtifact[];
+  artifactSets: Record<import('@/types').ArtifactSetName, EquippedArtifact[] | null>;
+  activeArtifactSet: import('@/types').ArtifactSetName | null;
 
   // Current farm state (only if on a virtue egg)
   currentFarmState: CurrentFarmState | null;
@@ -76,6 +78,11 @@ export const useInitialStateStore = defineStore('initialState', {
     epicResearchLevels: initializeEpicResearchLevels(),
     colleggtibleTiers: getDefaultColleggtibleTiers(),
     artifactLoadout: createEmptyLoadout(),
+    artifactSets: {
+      earnings: null,
+      elr: null,
+    },
+    activeArtifactSet: null,
     currentFarmState: null,
     soulEggs: 1e21, // Default to 1s
     assumeDoubleEarnings: true,
@@ -286,6 +293,35 @@ export const useInitialStateStore = defineStore('initialState', {
     },
 
     /**
+     * Set active artifact set and update current loadout
+     */
+    setActiveArtifactSet(setName: import('@/types').ArtifactSetName | null) {
+      this.activeArtifactSet = setName;
+      if (setName && this.artifactSets[setName]) {
+        this.artifactLoadout = JSON.parse(JSON.stringify(this.artifactSets[setName]));
+      }
+    },
+
+    /**
+     * Update an artifact set's content
+     */
+    updateArtifactSet(setName: import('@/types').ArtifactSetName, loadout: EquippedArtifact[]) {
+      this.artifactSets[setName] = JSON.parse(JSON.stringify(loadout));
+      // If updating the active set, also update current loadout
+      if (this.activeArtifactSet === setName) {
+        this.artifactLoadout = JSON.parse(JSON.stringify(loadout));
+      }
+    },
+
+    /**
+     * Save current loadout to a set
+     */
+    saveCurrentToSet(setName: import('@/types').ArtifactSetName) {
+      this.artifactSets[setName] = JSON.parse(JSON.stringify(this.artifactLoadout));
+      this.activeArtifactSet = setName;
+    },
+
+    /**
      * Set soul eggs
      */
     setSoulEggs(count: number) {
@@ -317,6 +353,12 @@ export const useInitialStateStore = defineStore('initialState', {
       }
       if (data.artifactLoadout) {
         this.artifactLoadout = [...data.artifactLoadout];
+      }
+      if (data.artifactSets) {
+        this.artifactSets = { ...data.artifactSets };
+      }
+      if (data.activeArtifactSet !== undefined) {
+        this.activeArtifactSet = data.activeArtifactSet;
       }
       if (data.assumeDoubleEarnings !== undefined) {
         this.assumeDoubleEarnings = data.assumeDoubleEarnings;
@@ -368,6 +410,8 @@ export const useInitialStateStore = defineStore('initialState', {
       this.epicResearchLevels = initializeEpicResearchLevels();
       this.colleggtibleTiers = getDefaultColleggtibleTiers();
       this.artifactLoadout = createEmptyLoadout();
+      this.artifactSets = { earnings: null, elr: null };
+      this.activeArtifactSet = null;
       this.soulEggs = 1e21;
       this.assumeDoubleEarnings = true;
       this.initialFuelAmounts = createEmptyVirtueMap();

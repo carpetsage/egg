@@ -21,6 +21,8 @@
     :current-egg-name="currentEggName"
     :soul-eggs="store.soulEggs"
     :assume-double-earnings="store.assumeDoubleEarnings"
+    :artifact-sets="store.artifactSets"
+    :active-artifact-set="store.activeArtifactSet"
     @set-epic-research-level="handleSetEpicResearchLevel"
     @update:artifact-loadout="handleArtifactLoadout"
     @set-initial-egg="handleSetInitialEgg"
@@ -36,6 +38,9 @@
     @continue-ascension="handleContinueAscension"
     @set-soul-eggs="handleSetSoulEggs"
     @set-assume-double-earnings="handleSetAssumeDoubleEarnings"
+    @save-current-to-set="handleSaveCurrentToSet"
+    @update-artifact-set="handleUpdateArtifactSet"
+    @set-active-artifact-set="handleSetActiveArtifactSet"
   />
 </template>
 
@@ -54,7 +59,6 @@ import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useHabCapacityStore } from '@/stores/habCapacity';
 import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useSilosStore } from '@/stores/silos';
-import { computeCurrentSnapshot } from '@/lib/actions/snapshot';
 import InitialStateDisplay from '@/components/presenters/InitialStateDisplay.vue';
 import type { VirtueEgg, Action } from '@/types';
 import { VIRTUE_EGGS, VIRTUE_EGG_NAMES } from '@/types';
@@ -246,6 +250,21 @@ function handleSetSoulEggs(count: number) {
 
 function handleSetAssumeDoubleEarnings(enabled: boolean) {
   store.setAssumeDoubleEarnings(enabled);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSaveCurrentToSet(setName: any) {
+  store.saveCurrentToSet(setName);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleUpdateArtifactSet(setName: any, loadout: any[]) {
+  store.updateArtifactSet(setName, loadout);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetActiveArtifactSet(setName: any) {
+  store.setActiveArtifactSet(setName);
   updateInitialSnapshotAndRecalculate();
 }
 </script>

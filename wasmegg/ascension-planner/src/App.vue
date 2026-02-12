@@ -95,7 +95,9 @@ import UndoConfirmationDialog from '@/components/UndoConfirmationDialog.vue';
 import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import AssetBrowser from '@/components/AssetBrowser.vue';
 import { formatNumber } from '@/lib/format';
-import { restoreFromSnapshot, computeCurrentSnapshot } from '@/lib/actions/snapshot';
+import { restoreFromSnapshot } from '@/lib/actions/snapshot';
+import { computeSnapshot } from '@/engine/compute';
+import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import type { Action } from '@/types';
 
 // Chevron icon component
@@ -232,7 +234,10 @@ async function submitPlayerId(id: string) {
     }
 
     // Create the start_ascension action with initial snapshot
-    const initialSnapshot = computeCurrentSnapshot();
+    // We compute this from base conditions (clean farm + player global stats)
+    const context = getSimulationContext();
+    const baseState = createBaseEngineState(null);
+    const initialSnapshot = computeSnapshot(baseState, context);
     actionsStore.setInitialSnapshot(initialSnapshot);
 
     loading.value = false;

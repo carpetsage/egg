@@ -534,6 +534,8 @@ export const useActionsStore = defineStore('actions', {
           epicResearchLevels: initialStateStore.epicResearchLevels,
           colleggtibleTiers: initialStateStore.colleggtibleTiers,
           artifactLoadout: initialStateStore.artifactLoadout,
+          artifactSets: initialStateStore.artifactSets,
+          activeArtifactSet: initialStateStore.activeArtifactSet,
           currentFarmState: initialStateStore.currentFarmState,
           assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
         },

@@ -58,6 +58,8 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
             fuelTankAmounts: { ...initialSnapshot.fuelTankAmounts },
             eggsDelivered: { ...initialSnapshot.eggsDelivered },
             teEarned: { ...initialSnapshot.teEarned },
+            activeArtifactSet: initialSnapshot.activeArtifactSet,
+            artifactSets: JSON.parse(JSON.stringify(initialSnapshot.artifactSets)),
             population: initialSnapshot.population,
             lastStepTime: initialSnapshot.lastStepTime,
             activeSales: { ...initialSnapshot.activeSales },
@@ -69,8 +71,9 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
     // because those represent the results of the current simulation.
     // We only use the stores that hold the DEFINITION of the player (InitialStateStore, VirtueStore).
 
-    const farmBackup = initialStateStore.currentFarmState;
-
+    // We always use empty defaults for the base state.
+    // Farm state (research, habs, vehicles) should only be populated via a 
+    // Start Ascension action if the user chooses to "Continue Ascension".
     return {
         // We always start curiosity by default; start_ascension will override this.
         currentEgg: 'curiosity',
@@ -79,22 +82,11 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
         te: virtueStore.initialTE,
         soulEggs: initialStateStore.soulEggs,
 
-        // If we have a farm backup, use its state. Otherwise, use empty defaults.
-        vehicles: farmBackup
-            ? farmBackup.vehicles.map(v => ({ ...v }))
-            : [{ vehicleId: 0, trainLength: 1 }], // Default Trike
-
-        habIds: farmBackup
-            ? [...farmBackup.habs]
-            : [0, null, null, null], // Default Coop
-
-        researchLevels: farmBackup
-            ? { ...farmBackup.commonResearches }
-            : {},
-
-        siloCount: farmBackup
-            ? farmBackup.numSilos
-            : 1,
+        // Defaults for a new farm
+        vehicles: [{ vehicleId: 0, trainLength: 1 }], // Default Trike
+        habIds: [0, null, null, null], // Default Coop
+        researchLevels: {},
+        siloCount: 1,
 
         artifactLoadout: initialStateStore.artifactLoadout.map(slot => ({
             artifactId: slot.artifactId,
@@ -105,9 +97,11 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
         fuelTankAmounts: { ...initialStateStore.initialFuelAmounts },
         eggsDelivered: { ...initialStateStore.initialEggsDelivered },
         teEarned: { ...initialStateStore.initialTeEarned },
+        activeArtifactSet: initialStateStore.activeArtifactSet,
+        artifactSets: JSON.parse(JSON.stringify(initialStateStore.artifactSets)),
 
-        population: farmBackup?.population || 0,
-        lastStepTime: farmBackup?.lastStepTime || 0,
+        population: 0,
+        lastStepTime: 0,
         activeSales: {
             research: false,
             hab: false,

@@ -19,6 +19,8 @@ import type {
   WaitForTEPayload,
   LaunchMissionsPayload,
   ToggleSalePayload,
+  EquipArtifactSetPayload,
+  UpdateArtifactSetPayload,
   VirtueEgg,
 } from '@/types';
 import { restoreFromSnapshot, computeCurrentSnapshot, computeDeltas } from './snapshot';
@@ -182,13 +184,24 @@ function applyActionEffect(action: Action): void {
       break;
     }
 
+    case 'equip_artifact_set': {
+      const payload = action.payload as EquipArtifactSetPayload;
+      const initialStateStore = useInitialStateStore();
+      initialStateStore.setActiveArtifactSet(payload.setName);
+      break;
+    }
+
+    case 'update_artifact_set': {
+      const payload = action.payload as UpdateArtifactSetPayload;
+      const initialStateStore = useInitialStateStore();
+      initialStateStore.updateArtifactSet(payload.setName, payload.newLoadout.map(slot => ({
+        artifactId: slot.artifactId,
+        stones: [...slot.stones],
+      })));
+      break;
+    }
+
     default:
       console.warn(`Unknown action type for replay: ${(action as Action).type}`);
   }
 }
-
-/**
- * Replay all actions from a starting index after an insertion.
- * Updates each action's endState in place.
- */
-
