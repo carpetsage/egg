@@ -70,8 +70,10 @@
               v-if="tierSummaries[tier]?.isUnlocked && !isTierMaxed(tier)"
               class="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded disabled:opacity-30 disabled:cursor-not-allowed font-medium transition-colors border border-blue-200"
               @click.stop="handleMaxTier(tier)"
+              :title="`Buy all remaining research in Tier ${tier}${gameViewTimes.tiers[tier] ? ' (Total: ' + gameViewTimes.tiers[tier] + ')' : ''}`"
             >
               Max Tier
+              <span v-if="gameViewTimes.tiers[tier]" class="ml-1 text-[9px] opacity-70">({{ gameViewTimes.tiers[tier] }})</span>
             </button>
             <svg
               class="w-5 h-5 text-gray-400 transition-transform cursor-pointer"
@@ -98,6 +100,7 @@
             :can-buy="canBuyResearch(research)"
             :is-maxed="getCurrentLevel(research.id) >= research.levels"
             :show-max="true"
+            :max-time="gameViewTimes.researches[research.id]"
             @buy="handleBuyResearch(research)"
             @max="handleMaxResearch(research)"
           />
@@ -247,6 +250,90 @@ const tierSummaries = computed(() => {
     summaries[tier] = getTierSummary(tier, commonResearchStore.researchLevels, costModifiers.value, isResearchSaleActive.value);
   }
   return summaries;
+});
+
+/**
+ * Calculate total time to max out researches, factoring in earnings changes.
+ */
+const gameViewTimes = computed(() => {
+  if (currentView.value !== 'game') return { tiers: {}, researches: {} };
+
+  const context = getSimulationContext();
+  const baseSnapshot = actionsStore.effectiveSnapshot;
+  const mods = costModifiers.value;
+
+  const resultResearches: Record<string, string> = {};
+  const resultTiers: Record<number, string> = {};
+
+  const levels = commonResearchStore.researchLevels;
+
+  for (const tier of tiers.value) {
+    const researches = getResearchesForTier(tier);
+    
+    // For individual research Max times (calculated from current state)
+    for (const r of researches) {
+      const currentLevel = levels[r.id] || 0;
+      if (currentLevel >= r.levels) continue;
+
+      let rState = createBaseEngineState(baseSnapshot);
+      let rSnapshot = baseSnapshot;
+      let rSeconds = 0;
+      let rInfinite = false;
+
+      for (let l = currentLevel; l < r.levels; l++) {
+        const price = getDiscountedVirtuePrice(r, l, mods, rSnapshot.activeSales.research);
+        if (rSnapshot.offlineEarnings <= 0) {
+          rInfinite = true;
+          break;
+        }
+        rSeconds += price / rSnapshot.offlineEarnings;
+        rState = {
+          ...rState,
+          researchLevels: {
+            ...rState.researchLevels,
+            [r.id]: l + 1
+          }
+        };
+        rSnapshot = computeSnapshot(rState, context);
+      }
+      resultResearches[r.id] = rInfinite ? '∞' : (rSeconds < 1 ? 'Instant' : formatDuration(rSeconds));
+    }
+
+    // For Tier Max time (calculate sequentially through all researches in the tier)
+    let tierState = createBaseEngineState(baseSnapshot);
+    let tierSnapshot = baseSnapshot;
+    let tierSeconds = 0;
+    let tierInfinite = false;
+    let anyUnpurchasedInTier = false;
+
+    for (const r of researches) {
+      const currentLevel = levels[r.id] || 0;
+      for (let l = currentLevel; l < r.levels; l++) {
+        anyUnpurchasedInTier = true;
+        const price = getDiscountedVirtuePrice(r, l, mods, tierSnapshot.activeSales.research);
+        if (tierSnapshot.offlineEarnings <= 0) {
+          tierInfinite = true;
+          break;
+        }
+        tierSeconds += price / tierSnapshot.offlineEarnings;
+        tierState = {
+          ...tierState,
+          researchLevels: {
+            ...tierState.researchLevels,
+            [r.id]: l + 1
+          }
+        };
+        tierSnapshot = computeSnapshot(tierState, context);
+      }
+      if (tierInfinite) break;
+    }
+
+    if (anyUnpurchasedInTier) {
+      resultTiers[tier] = tierInfinite ? '∞' : (tierSeconds < 1 ? 'Instant' : formatDuration(tierSeconds));
+    }
+  }
+
+  return { tiers: resultTiers, researches: resultResearches };
 });
 
 function getCurrentLevel(researchId: string): number {

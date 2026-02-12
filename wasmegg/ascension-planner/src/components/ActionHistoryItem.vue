@@ -105,7 +105,7 @@
         v-if="!isStartAction"
         class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
         title="Undo this action"
-        @click="$emit('undo')"
+        @click="handleUndo"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -134,9 +134,9 @@ const props = defineProps<{
   previousOfflineEarnings: number;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   'show-details': [];
-  'undo': [];
+  'undo': [options: { skipConfirmation: boolean }];
 }>();
 
 const isStartAction = computed(() => props.action.type === 'start_ascension');
@@ -318,5 +318,9 @@ function formatDelta(delta: number): string {
   if (delta === 0) return '—';
   const sign = delta > 0 ? '+' : '';
   return `${sign}${formatNumber(delta, 2)}`;
+}
+
+function handleUndo(event: MouseEvent) {
+  emit('undo', { skipConfirmation: event.shiftKey });
 }
 </script>

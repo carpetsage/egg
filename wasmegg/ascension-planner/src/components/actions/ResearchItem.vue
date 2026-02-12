@@ -69,14 +69,16 @@
       </button>
 
       <!-- Max button for individual research -->
+      <!-- Max button for individual research -->
       <button
         v-if="showMax"
         class="px-2 py-1 text-xs font-medium bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         :disabled="!canBuy || isMaxed"
-        title="Buy all remaining levels"
+        :title="`Buy all remaining levels${maxTime ? ' (Total: ' + maxTime + ')' : ''}`"
         @click.stop="$emit('max')"
       >
         Max
+        <span v-if="maxTime" class="ml-1 text-[9px] opacity-70">({{ maxTime }})</span>
       </button>
     </div>
   </div>
@@ -104,6 +106,7 @@ const props = defineProps<{
   showBuyToHere?: boolean;
   canBuyToHere?: boolean;
   buyToHereTime?: string;
+  maxTime?: string;
 }>();
 
 defineEmits<{

@@ -23,7 +23,7 @@
           :previous-offline-earnings="item.previousOfflineEarnings"
           :class="{ 'border-t border-gray-100': idx > 0 }"
           @show-details="$emit('show-details', item.action)"
-          @undo="handleUndoRequest(item.action)"
+          @undo="handleUndoRequest(item.action, $event)"
         />
 
         <!-- Grouped actions (start or shift period) -->
@@ -39,7 +39,7 @@
           :is-current="item.isCurrent"
           :class="{ 'border-t border-gray-100': idx > 0 }"
           @show-details="$emit('show-details', $event)"
-          @undo="handleUndoRequest($event)"
+          @undo="handleUndoRequest"
           @start-editing="handleStartEditing"
           @stop-editing="handleStopEditing"
         />
@@ -71,8 +71,8 @@ import ActionGroup from './ActionGroup.vue';
 
 const emit = defineEmits<{
   'show-details': [action: Action];
-  'undo': [action: Action, dependentActions: Action[]];
-  'clear-all': [];
+  'undo': [action: Action, dependentActions: Action[], options?: { skipConfirmation: boolean }];
+  'clear-all': [options?: { skipConfirmation: boolean }];
 }>();
 
 const actionsStore = useActionsStore();
@@ -296,15 +296,15 @@ const groupedActions = computed<GroupedItem[]>(() => {
   return result;
 });
 
-function handleUndoRequest(action: Action) {
+function handleUndoRequest(action: Action, options?: { skipConfirmation: boolean }) {
   const validation = actionsStore.prepareUndo(action.id);
   if (validation.valid && validation.action) {
-    emit('undo', validation.action, validation.dependentActions);
+    emit('undo', validation.action, validation.dependentActions, options);
   }
 }
 
-function handleClearAll() {
-  emit('clear-all');
+function handleClearAll(event: MouseEvent) {
+  emit('clear-all', { skipConfirmation: event.shiftKey });
 }
 
 function handleStartEditing(groupId: string) {
