@@ -18,6 +18,17 @@
           <span class="mx-1 text-gray-300">|</span>
           <span class="text-gray-500">{{ research.description }}</span>
         </div>
+        <div v-if="recommendationNote" class="mt-1.5 p-1.5 bg-blue-50 border border-blue-100 rounded text-[10px] text-blue-800 leading-tight">
+          <div class="flex items-start gap-1.5">
+            <svg class="w-3 h-3 mt-0.5 mt-px shrink-0 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            <span>
+              <span class="font-bold uppercase text-[9px] tracking-tight mr-1">Pair Suggestion:</span>
+              {{ recommendationNote }}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -106,6 +117,7 @@ const props = defineProps<{
   showBuyToHere?: boolean;
   canBuyToHere?: boolean;
   buyToHereTime?: string;
+  recommendationNote?: string;
   maxTime?: string;
 }>();
 

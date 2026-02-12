@@ -139,6 +139,7 @@
           :buy-to-here-time="item.buyToHereTime"
           :extra-stats="item.extraStats"
           :extra-label="item.extraLabel"
+          :recommendation-note="item.recommendationNote"
           @buy="handleBuyResearch(item.research)"
           @max="handleMaxResearch(item.research)"
           @buy-to-here="handleBuyToHere(idx)"
@@ -560,10 +561,14 @@ const sortedResearches = computed(() => {
     // Deduplicate by research ID to ensure only one entry per research
     const uniqueUnpurchased = Array.from(new Map(unpurchased.map(r => [r.id, r])).values());
     
-    const candidates = uniqueUnpurchased.map(r => {
+    // Pre-calculate individual ROIs and identify types
+    const basicCandidates = uniqueUnpurchased.map(r => {
       const level = researchLevels[r.id] || 0;
       const price = getDiscountedVirtuePrice(r, level, mods, isSale);
       const canBuy = isTierUnlocked(researchLevels, r.tier);
+      const categories = r.categories.split(',').map(c => c.trim());
+      const isLaying = categories.includes('egg_laying_rate');
+      const isShipping = categories.includes('shipping_capacity');
       
       // Simulate buying 1 level
       const tempAction = {
@@ -592,23 +597,92 @@ const sortedResearches = computed(() => {
         isMaxed: false,
         roiSeconds,
         roiLabel: delta > 0 ? formatDuration(roiSeconds) : 'No Impact',
+        isLaying,
+        isShipping,
+        nextSnapshot,
       };
-    })
-    .filter(c => c.roiSeconds !== Infinity)
-    .sort((a, b) => {
-      // Primary sort: Unlocked (canBuy) first
-      if (a.canBuy !== b.canBuy) {
-        return a.canBuy ? -1 : 1;
-      }
-      // Secondary sort: Ascending ROI
-      return a.roiSeconds - b.roiSeconds;
     });
 
-    return candidates.map(c => ({
-      ...c,
-      extraStats: c.roiLabel,
-      extraLabel: 'Payback',
-    }));
+    // Find best shipping and laying candidates to pair with
+    const bestLaying = [...basicCandidates]
+      .filter(c => c.isLaying && c.canBuy && c.roiSeconds !== Infinity)
+      .sort((a, b) => a.roiSeconds - b.roiSeconds)[0];
+    
+    const bestShipping = [...basicCandidates]
+      .filter(c => c.isShipping && c.canBuy && c.roiSeconds !== Infinity)
+      .sort((a, b) => a.roiSeconds - b.roiSeconds)[0];
+
+    const result = basicCandidates.map(c => {
+      let recommendationNote: string | undefined = undefined;
+
+      // Only check for pairs if this research is laying or shipping and has poor/no ROI
+      // and we have a potential partner of the other type.
+      const isBottlenecked = c.roiSeconds === Infinity || c.roiSeconds > 3600 * 24 * 7; // More than a week payback
+      
+      if (isBottlenecked && (c.isLaying || c.isShipping)) {
+        const partner = c.isLaying ? bestShipping : bestLaying;
+        if (partner && partner.research.id !== c.research.id) {
+          // Simulate buying BOTH
+          const level1 = researchLevels[c.research.id] || 0;
+          const level2 = researchLevels[partner.research.id] || 0;
+          
+          let pairState = applyAction(baseState, {
+            id: 'tmp1',
+            type: 'buy_research',
+            payload: { researchId: c.research.id, fromLevel: level1, toLevel: level1 + 1 },
+            cost: c.price,
+            timestamp: Date.now(),
+            dependsOn: [],
+          } as any);
+          
+          pairState = applyAction(pairState, {
+            id: 'tmp2',
+            type: 'buy_research',
+            payload: { researchId: partner.research.id, fromLevel: level2, toLevel: level2 + 1 },
+            cost: partner.price,
+            timestamp: Date.now(),
+            dependsOn: [],
+          } as any);
+
+          const pairSnapshot = computeSnapshot(pairState, context);
+          const pairEarnings = pairSnapshot.offlineEarnings;
+          const pairDelta = pairEarnings - currentEarnings;
+          
+          if (pairDelta > 0) {
+            const pairTotalCost = c.price + partner.price;
+            const pairRoiSeconds = pairTotalCost / pairDelta;
+            
+            // If the pair ROI is significantly better than Infinity (or the individual ROI)
+            if (pairRoiSeconds < c.roiSeconds) {
+              recommendationNote = `Buying this with "${partner.research.name}" would have a much better combined payback time of ${formatDuration(pairRoiSeconds)}.`;
+            }
+          }
+        }
+      }
+
+      return {
+        ...c,
+        extraStats: c.roiLabel,
+        extraLabel: 'Payback',
+        recommendationNote,
+      };
+    });
+
+    return result
+      .filter(c => c.roiSeconds !== Infinity || c.recommendationNote)
+      .sort((a, b) => {
+        // Primary sort: Unlocked (canBuy) first
+        if (a.canBuy !== b.canBuy) {
+          return a.canBuy ? -1 : 1;
+        }
+        
+        // Secondary sort: Effective ROI (using pair ROI for sort if present?)
+        // Actually, if it has a recommendation, maybe it should move up?
+        // User said: "vusually distinctive note so that the user sees it even if it's lower down"
+        // So I'll keep the sort as is, or maybe prioritize those with recommendations?
+        // Let's stick to individual ROI for now as per instructions.
+        return a.roiSeconds - b.roiSeconds;
+      });
   }
 
   if (currentView.value === 'elr') {
