@@ -73,6 +73,16 @@
       @cancel="cancelUndo"
     />
 
+    <!-- Clear All Confirmation Dialog -->
+    <ConfirmationDialog
+      v-if="showClearAllConfirmation"
+      title="Clear All Actions"
+      message="Are you sure you want to clear all actions? This cannot be undone."
+      confirm-label="Clear All"
+      @confirm="executeClearAll"
+      @cancel="showClearAllConfirmation = false"
+    />
+
     <AssetBrowser />
     <PlanFinalSummary @show-details="showCurrentDetails" />
   </div>
@@ -94,6 +104,7 @@ import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
 import UndoConfirmationDialog from '@/components/UndoConfirmationDialog.vue';
 import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import AssetBrowser from '@/components/AssetBrowser.vue';
+import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import { formatNumber } from '@/lib/format';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
@@ -142,6 +153,7 @@ const showDetailsModal = ref(false);
 const detailsModalAction = ref<Action | null>(null);
 const undoAction = ref<Action | null>(null);
 const undoDependentActions = ref<Action[]>([]);
+const showClearAllConfirmation = ref(false);
 
 // Modal handlers
 function showActionDetails(action: Action) {
@@ -165,9 +177,15 @@ function closeActionDetails() {
   showDetailsModal.value = false;
 }
 
-function showUndoConfirmation(action: Action, dependentActions: Action[]) {
-  undoAction.value = action;
-  undoDependentActions.value = dependentActions;
+function showUndoConfirmation(action: Action, dependentActions: Action[], options?: { skipConfirmation: boolean }) {
+  if (options?.skipConfirmation) {
+    undoAction.value = action;
+    undoDependentActions.value = dependentActions;
+    executeUndo();
+  } else {
+    undoAction.value = action;
+    undoDependentActions.value = dependentActions;
+  }
 }
 
 function cancelUndo() {
@@ -190,10 +208,19 @@ function executeUndo() {
   cancelUndo();
 }
 
-function handleClearAll() {
+function handleClearAll(options?: { skipConfirmation: boolean }) {
+  if (options?.skipConfirmation) {
+    executeClearAll();
+  } else {
+    showClearAllConfirmation.value = true;
+  }
+}
+
+function executeClearAll() {
   actionsStore.clearAll(() => {
     restoreFromSnapshot(actionsStore.initialSnapshot);
   });
+  showClearAllConfirmation.value = false;
 }
 
 const playerId = ref(

@@ -107,7 +107,7 @@
           v-if="isShiftAction"
           class="p-1.5 text-purple-300 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
           title="Undo this shift and all its actions"
-          @click="$emit('undo', headerAction)"
+          @click="handleUndo($event, headerAction)"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -140,7 +140,7 @@
           :action="action"
           :previous-offline-earnings="getPreviousOfflineEarnings(idx)"
           @show-details="$emit('show-details', action)"
-          @undo="$emit('undo', action)"
+          @undo="handleUndo($event, action)"
         />
       </div>
     </div>
@@ -184,7 +184,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'show-details': [action: Action];
-  'undo': [action: Action];
+  'undo': [action: Action, options: { skipConfirmation: boolean }];
   'start-editing': [groupId: string];
   'stop-editing': [];
 }>();
@@ -318,5 +318,10 @@ const formattedTimeElapsed = computed(() => {
 
 function getPreviousOfflineEarnings(index: number): number {
   return props.previousActionsOfflineEarnings[index] ?? 0;
+}
+
+function handleUndo(event: MouseEvent | { skipConfirmation: boolean }, action: Action) {
+  const skipConfirmation = 'shiftKey' in event ? event.shiftKey : event.skipConfirmation;
+  emit('undo', action, { skipConfirmation });
 }
 </script>
