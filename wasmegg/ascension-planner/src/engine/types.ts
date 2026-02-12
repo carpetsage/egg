@@ -26,6 +26,8 @@ export interface EngineState {
 
     // Artifacts
     artifactLoadout: ArtifactSlotPayload[];
+    activeArtifactSet: import('@/types').ArtifactSetName | null;
+    artifactSets: Record<import('@/types').ArtifactSetName, ArtifactSlotPayload[] | null>;
 
     // Progress State
     fuelTankAmounts: Record<VirtueEgg, number>;

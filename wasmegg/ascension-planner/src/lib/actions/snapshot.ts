@@ -89,6 +89,8 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
       artifactId: slot.artifactId,
       stones: [...slot.stones],
     })),
+    activeArtifactSet: initialStateStore.activeArtifactSet,
+    artifactSets: JSON.parse(JSON.stringify(initialStateStore.artifactSets)),
     population: 0,
     lastStepTime: 0,
     activeSales: { ...salesStore.$state },
@@ -194,6 +196,10 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
         artifactId: slot.artifactId,
         stones: [...slot.stones],
       }));
+    }
+    state.activeArtifactSet = snapshot.activeArtifactSet || null;
+    if (snapshot.artifactSets) {
+      state.artifactSets = JSON.parse(JSON.stringify(snapshot.artifactSets));
     }
   });
 

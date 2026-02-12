@@ -58,6 +58,8 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
             fuelTankAmounts: { ...initialSnapshot.fuelTankAmounts },
             eggsDelivered: { ...initialSnapshot.eggsDelivered },
             teEarned: { ...initialSnapshot.teEarned },
+            activeArtifactSet: initialSnapshot.activeArtifactSet,
+            artifactSets: JSON.parse(JSON.stringify(initialSnapshot.artifactSets)),
             population: initialSnapshot.population,
             lastStepTime: initialSnapshot.lastStepTime,
             activeSales: { ...initialSnapshot.activeSales },
@@ -95,6 +97,8 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
         fuelTankAmounts: { ...initialStateStore.initialFuelAmounts },
         eggsDelivered: { ...initialStateStore.initialEggsDelivered },
         teEarned: { ...initialStateStore.initialTeEarned },
+        activeArtifactSet: initialStateStore.activeArtifactSet,
+        artifactSets: JSON.parse(JSON.stringify(initialStateStore.artifactSets)),
 
         population: 0,
         lastStepTime: 0,

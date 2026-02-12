@@ -33,8 +33,11 @@
             {{ eggName || displayName }}{{ isContinued ? ' (from Backup)' : '' }}
           </span>
         </div>
-        <div class="text-[10px] uppercase tracking-wider font-semibold opacity-70" :class="isStartAction ? 'text-blue-600' : 'text-gray-500'">
-          {{ effectDescription }}
+        <div 
+          class="text-[10px] uppercase tracking-wider font-semibold opacity-70" 
+          :class="isStartAction ? 'text-blue-600' : 'text-gray-500'"
+          v-html="effectDescription"
+        >
         </div>
         <!-- Deltas -->
         <div v-if="!isStartAction || isContinued" class="text-[10px] mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-gray-500">
@@ -117,7 +120,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { iconURL } from 'lib';
-import type { Action, StartAscensionPayload, ShiftPayload, BuyHabPayload, BuyVehiclePayload, StoreFuelPayload, WaitForTEPayload, BuyResearchPayload, ToggleSalePayload } from '@/types';
+import type { Action, StartAscensionPayload, ShiftPayload, BuyHabPayload, BuyVehiclePayload, StoreFuelPayload, WaitForTEPayload, BuyResearchPayload, ToggleSalePayload, EquipArtifactSetPayload, UpdateArtifactSetPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { getHabById } from '@/lib/habs';
 import { getVehicleType } from '@/lib/vehicles';
@@ -196,6 +199,10 @@ const actionIconPath = computed(() => {
       case 'hab': return 'egginc-extras/icon_hab_sale.png';
       case 'vehicle': return 'egginc-extras/icon_vehicle_sale.png';
     }
+  }
+  if (props.action.type === 'equip_artifact_set' || props.action.type === 'update_artifact_set') {
+    const payload = props.action.payload as (EquipArtifactSetPayload | UpdateArtifactSetPayload);
+    return payload.setName === 'elr' ? 'egginc/afx_quantum_metronome_4.png' : 'egginc/afx_lunar_totem_4.png';
   }
   return null;
 });

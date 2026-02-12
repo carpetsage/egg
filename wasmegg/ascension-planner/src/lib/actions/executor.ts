@@ -31,6 +31,8 @@ import { storeFuelExecutor } from './executors/storeFuel';
 import { waitForTEExecutor } from './executors/waitForTE';
 import { launchMissionsExecutor } from './executors/launchMissions';
 import { toggleSaleExecutor } from './executors/toggleSale';
+import { equipArtifactSetExecutor } from './executors/equipArtifactSet';
+import { updateArtifactSetExecutor } from './executors/updateArtifactSet';
 
 // ============================================================================
 // Executor Interface
@@ -108,6 +110,8 @@ const executorMap: { [K in ActionType]: ActionExecutor<K> } = {
   wait_for_te: waitForTEExecutor,
   launch_missions: launchMissionsExecutor,
   toggle_sale: toggleSaleExecutor,
+  equip_artifact_set: equipArtifactSetExecutor,
+  update_artifact_set: updateArtifactSetExecutor,
 };
 
 /**
@@ -211,6 +215,12 @@ export function computeDependencies(
         deps.push(previousSiloAction.id);
       }
     }
+  }
+
+  // Artifact Set Dependencies
+  if (type === 'update_artifact_set' || type === 'equip_artifact_set') {
+    // These actions are self-contained but follow the group header
+    // No additional specific dependencies needed for now
   }
 
   return deps;

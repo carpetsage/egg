@@ -49,14 +49,19 @@ export const VIRTUE_EGG_NAMES: Record<VirtueEgg, string> = {
 export const VIRTUE_EGGS: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
 
 // ============================================================================
-// Action Types
+// Artifact Sets
 // ============================================================================
+
+/**
+ * Valid names for artifact sets.
+ */
+export type ArtifactSetName = 'earnings' | 'elr';
 
 /**
  * Union of all action types.
  * Add new action types here when extending the system.
  */
-export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale';
+export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale' | 'equip_artifact_set' | 'update_artifact_set';
 
 // ============================================================================
 // Action Payloads
@@ -129,6 +134,21 @@ export interface ArtifactSlotPayload {
 export interface ChangeArtifactsPayload {
   fromLoadout: ArtifactSlotPayload[];
   toLoadout: ArtifactSlotPayload[];
+}
+
+/**
+ * Payload for equipping an artifact set.
+ */
+export interface EquipArtifactSetPayload {
+  setName: ArtifactSetName;
+}
+
+/**
+ * Payload for updating an artifact set.
+ */
+export interface UpdateArtifactSetPayload {
+  setName: ArtifactSetName;
+  newLoadout: ArtifactSlotPayload[];
 }
 
 /**
@@ -210,6 +230,8 @@ export interface ActionPayloadMap {
   wait_for_te: WaitForTEPayload;
   launch_missions: LaunchMissionsPayload;
   toggle_sale: ToggleSalePayload;
+  equip_artifact_set: EquipArtifactSetPayload;
+  update_artifact_set: UpdateArtifactSetPayload;
 }
 
 // ============================================================================
@@ -258,6 +280,8 @@ export interface CalculationsSnapshot {
   habIds: (number | null)[];
   researchLevels: ResearchLevels;
   artifactLoadout: ArtifactSlotPayload[];
+  activeArtifactSet: ArtifactSetName | null;
+  artifactSets: Record<ArtifactSetName, ArtifactSlotPayload[] | null>;
 
   // Active sales state
   activeSales: {
@@ -439,6 +463,11 @@ export function createEmptySnapshot(): CalculationsSnapshot {
       { artifactId: null, stones: [] },
       { artifactId: null, stones: [] },
     ],
+    activeArtifactSet: null,
+    artifactSets: {
+      earnings: null,
+      elr: null,
+    },
     activeSales: {
       research: false,
       hab: false,
