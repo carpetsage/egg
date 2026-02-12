@@ -17,112 +17,133 @@
       </button>
     </div>
 
-    <p class="text-sm text-gray-500 mb-4">
-      Click + to buy one level, or Max to buy all remaining levels.
+    <!-- View Selection Tags -->
+    <div class="flex flex-col gap-2 mb-4">
+      <div class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Sort Research By</div>
+      <div class="flex flex-wrap gap-1.5 p-1 bg-gray-100 rounded-lg shadow-inner">
+        <button
+          v-for="v in views"
+          :key="v.id"
+          @click="currentView = v.id"
+          class="px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap"
+          :class="currentView === v.id 
+            ? 'bg-white text-blue-600 shadow-sm' 
+            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'"
+        >
+          {{ v.label }}
+        </button>
+      </div>
+    </div>
+
+    <p class="text-sm text-gray-500 mb-4 px-1">
+      {{ viewDescription }}
     </p>
 
-    <!-- Research Tiers -->
-    <div v-for="tier in tiers" :key="tier" class="border border-gray-200 rounded-lg overflow-hidden">
-      <!-- Tier Header -->
-      <div
-        class="px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center"
-      >
+    <!-- Game View (Grouped by Tier) -->
+    <div v-if="currentView === 'game'" class="space-y-4">
+      <div v-for="tier in tiers" :key="tier" class="border border-gray-200 rounded-lg overflow-hidden transition-all duration-300">
+        <!-- Tier Header -->
         <div
-          class="flex items-center gap-2 flex-1 cursor-pointer"
-          @click="toggleTier(tier)"
+          class="px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center"
         >
-          <span class="font-medium text-gray-900">Tier {{ tier }}</span>
-          <span
-            v-if="!tierSummaries[tier]?.isUnlocked"
-            class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded"
-          >
-            Locked ({{ tierSummaries[tier]?.purchasesNeeded ?? '?' }} more)
-          </span>
-          <span
-            v-else
-            class="text-xs text-gray-500"
-          >
-            {{ tierSummaries[tier]?.purchasedLevels ?? 0 }} / {{ tierSummaries[tier]?.totalLevels ?? 0 }}
-          </span>
-        </div>
-        <div class="flex items-center gap-2">
-          <!-- Max Tier button -->
-          <button
-            v-if="tierSummaries[tier]?.isUnlocked && !isTierMaxed(tier)"
-            class="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
-            @click.stop="handleMaxTier(tier)"
-          >
-            Max Tier
-          </button>
-          <svg
-            class="w-5 h-5 text-gray-400 transition-transform cursor-pointer"
-            :class="{ 'rotate-180': expandedTiers.has(tier) }"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+          <div
+            class="flex items-center gap-2 flex-1 cursor-pointer"
             @click="toggleTier(tier)"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+            <span class="font-medium text-gray-900">Tier {{ tier }}</span>
+            <span
+              v-if="!tierSummaries[tier]?.isUnlocked"
+              class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold uppercase tracking-wide shadow-sm"
+            >
+              Locked ({{ tierSummaries[tier]?.purchasesNeeded ?? '?' }} more)
+            </span>
+            <span
+              v-else
+              class="text-[10px] text-gray-400 font-medium uppercase"
+            >
+              {{ tierSummaries[tier]?.purchasedLevels ?? 0 }} / {{ tierSummaries[tier]?.totalLevels ?? 0 }}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- Max Tier button -->
+            <button
+              v-if="tierSummaries[tier]?.isUnlocked && !isTierMaxed(tier)"
+              class="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded disabled:opacity-30 disabled:cursor-not-allowed font-medium transition-colors border border-blue-200"
+              @click.stop="handleMaxTier(tier)"
+            >
+              Max Tier
+            </button>
+            <svg
+              class="w-5 h-5 text-gray-400 transition-transform cursor-pointer"
+              :class="{ 'rotate-180': expandedTiers.has(tier) }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              @click="toggleTier(tier)"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Tier Research List -->
+        <div v-if="expandedTiers.has(tier)" class="divide-y divide-gray-100 bg-white">
+          <ResearchItem
+            v-for="research in getResearchesForTier(tier)"
+            :key="research.id"
+            :research="research"
+            :current-level="getCurrentLevel(research.id)"
+            :price="getNextLevelPrice(research)"
+            :time-to-buy="getTimeToBuy(research)"
+            :can-buy="canBuyResearch(research)"
+            :is-maxed="getCurrentLevel(research.id) >= research.levels"
+            :show-max="true"
+            @buy="handleBuyResearch(research)"
+            @max="handleMaxResearch(research)"
+          />
         </div>
       </div>
+    </div>
 
-      <!-- Tier Research List -->
-      <div v-if="expandedTiers.has(tier)" class="divide-y divide-gray-100">
-        <div
-          v-for="research in getResearchesForTier(tier)"
-          :key="research.id"
-          class="px-4 py-2 flex items-center gap-3"
-          :class="{ 'opacity-50': !tierSummaries[tier]?.isUnlocked }"
-        >
-          <!-- Research name and level -->
-          <div class="flex-1 min-w-0 flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath(research.id), 64)" class="w-6 h-6 object-contain" :alt="research.name" />
-            <div class="min-w-0">
-              <div class="text-sm font-medium text-gray-900 truncate">{{ research.name }}</div>
-              <div class="text-xs text-gray-500">
-                Level {{ getCurrentLevel(research.id) }} / {{ research.levels }}
-                <span class="mx-1 text-gray-300">|</span>
-                <span class="text-gray-500">{{ research.description }}</span>
-              </div>
-            </div>
+    <!-- Flat/Sorted Views -->
+    <div v-else class="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100 bg-white">
+      <template v-for="(item, idx) in sortedResearches" :key="`${item.research.id}-${item.targetLevel}`">
+        <!-- Tier Break Divider (Cheapest First) -->
+        <div v-if="item.showDivider" class="px-4 py-1.5 bg-blue-50 border-y border-blue-100 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+          <div class="flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+            <span class="text-[10px] font-black text-blue-800 uppercase tracking-widest">
+              Tier {{ item.unlockTier }} Unlocked
+            </span>
           </div>
-
-          <!-- Next level price -->
-          <div class="text-right w-24">
-            <div v-if="getCurrentLevel(research.id) < research.levels" class="text-xs text-amber-600 font-mono">
-              {{ formatNumber(getNextLevelPrice(research), 0) }}
-              <div class="text-[10px] text-gray-400 mt-0.5">
-                {{ getTimeToBuy(research) }}
-              </div>
-            </div>
-            <div v-else class="text-xs text-green-600">
-              Maxed
-            </div>
-          </div>
-
-          <!-- Buy one level button -->
-          <button
-            class="w-8 h-8 flex items-center justify-center rounded bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed"
-            :disabled="!canBuyResearch(research, tier)"
-            title="Buy one level"
-            @click="handleBuyResearch(research)"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
-
-          <!-- Max button for individual research -->
-          <button
-            class="px-2 py-1 text-xs bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 rounded disabled:opacity-30 disabled:cursor-not-allowed"
-            :disabled="!canBuyResearch(research, tier)"
-            title="Buy all remaining levels"
-            @click="handleMaxResearch(research)"
-          >
-            Max
-          </button>
+          <span class="text-[10px] text-blue-600 font-bold tracking-tighter uppercase">
+            {{ TIER_THRESHOLDS[item.unlockTier - 1] }} Purchases Reached
+          </span>
         </div>
+        
+        <ResearchItem
+          :research="item.research"
+          :current-level="item.currentLevel"
+          :target-level="item.targetLevel"
+          :price="item.price"
+          :time-to-buy="item.timeToBuy"
+          :can-buy="item.canBuy"
+          :is-maxed="item.isMaxed"
+          :show-max="false"
+          :show-tier="true"
+          :show-buy-to-here="currentView === 'cheapest'"
+          :can-buy-to-here="currentView === 'cheapest' ? true : item.canBuyToHere"
+          :buy-to-here-time="item.buyToHereTime"
+          :extra-stats="item.extraStats"
+          :extra-label="item.extraLabel"
+          @buy="handleBuyResearch(item.research)"
+          @max="handleMaxResearch(item.research)"
+          @buy-to-here="handleBuyToHere(idx)"
+        />
+      </template>
+      
+      <div v-if="sortedResearches.length === 0" class="px-4 py-8 text-center text-gray-500 italic bg-gray-50">
+        No researches match this criteria or all are maxed.
       </div>
     </div>
   </div>
@@ -136,12 +157,12 @@ import {
   getResearchByTier,
   getTierSummary,
   getDiscountedVirtuePrice,
+  isTierUnlocked,
+  TIER_UNLOCK_THRESHOLDS,
   type CommonResearch,
   type ResearchCostModifiers,
 } from '@/calculations/commonResearch';
 import { formatNumber, formatDuration } from '@/lib/format';
-import { getColleggtibleIconPath } from '@/lib/assets';
-import { iconURL } from 'lib';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -149,12 +170,45 @@ import { useSalesStore } from '@/stores/sales';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import ResearchItem from './ResearchItem.vue';
+
+// Engine imports for ROI calculations
+import { computeSnapshot } from '@/engine/compute';
+import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
+import { applyAction } from '@/engine/apply';
+
+// Calculation imports for potential impact
+import { calculateMaxVehicleSlots, calculateMaxTrainLength } from '@/calculations/shippingCapacity';
+
+type ViewType = 'game' | 'cheapest' | 'roi' | 'elr';
+
+const currentView = ref<ViewType>('game');
+
+const views = [
+  { id: 'game', label: 'Game View' },
+  { id: 'cheapest', label: 'Cheapest First' },
+  { id: 'roi', label: 'Earnings ROI' },
+  { id: 'elr', label: 'ELR Impact' },
+] as const;
+
+const viewDescription = computed(() => {
+  switch (currentView.value) {
+    case 'game': return 'Grouped by tier, exactly like the game. Best for familiar navigation.';
+    case 'cheapest': return 'All unpurchased researches sorted by price. Strategically unlock tiers with "Buy to here".';
+    case 'roi': return 'Prioritizes upgrades that pay for themselves fastest based on your current earnings.';
+    case 'elr': return 'Sorts by theoretical maximum potential impact to Egg Laying Rate, ignoring current bottlenecks.';
+    default: return '';
+  }
+});
 
 const commonResearchStore = useCommonResearchStore();
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
 const salesStore = useSalesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
+
+// Expose thresholds to template
+const TIER_THRESHOLDS = TIER_UNLOCK_THRESHOLDS;
 
 // Track expanded tiers
 const expandedTiers = ref(new Set<number>([1]));
@@ -219,12 +273,8 @@ function getTimeToBuy(research: CommonResearch): string {
   return formatDuration(seconds);
 }
 
-function canBuyResearch(research: CommonResearch, tier: number): boolean {
-  const summary = tierSummaries.value[tier];
-  if (!summary?.isUnlocked) return false;
-
-  const currentLevel = getCurrentLevel(research.id);
-  return currentLevel < research.levels;
+function canBuyResearch(research: CommonResearch): boolean {
+  return isTierUnlocked(commonResearchStore.researchLevels, research.tier);
 }
 
 function isTierMaxed(tier: number): boolean {
@@ -232,6 +282,301 @@ function isTierMaxed(tier: number): boolean {
   if (!summary) return true;
   return summary.purchasedLevels >= summary.totalLevels;
 }
+
+// Evaluation IDs for ELR Impact
+const FLEET_RESEARCH_IDS = ['vehicle_reliablity', 'excoskeletons', 'traffic_management', 'egg_loading_bots', 'autonomous_vehicles'];
+const TRAIN_CAR_RESEARCH_ID = 'micro_coupling';
+
+// Research categories that do not impact ELR or immediate earnings
+const EXCLUDED_CATEGORIES = ['hatchery_capacity', 'internal_hatchery_rate', 'running_chicken_bonus', 'hatchery_refill_rate'];
+
+/**
+ * Sorted Researches for Cheapest/ROI/ELR views
+ */
+const sortedResearches = computed(() => {
+  if (currentView.value === 'game') return [];
+
+  const all = getCommonResearches();
+  const researchLevels = commonResearchStore.researchLevels;
+  const isSale = isResearchSaleActive.value;
+  const mods = costModifiers.value;
+
+  // Filter out excluded categories for ROI and ELR views
+  const filterByCategories = (r: CommonResearch) => {
+    if (currentView.value === 'game' || currentView.value === 'cheapest') return true;
+    const categories = r.categories.split(',').map(c => c.trim());
+    return !categories.some(c => EXCLUDED_CATEGORIES.includes(c));
+  };
+
+  if (currentView.value === 'cheapest') {
+    // 1. Flatten EVERY unpurchased level
+    const unpurchased: any[] = [];
+    all.forEach(r => {
+      const currentLevel = researchLevels[r.id] || 0;
+      for (let lvl = currentLevel; lvl < r.levels; lvl++) {
+        unpurchased.push({
+          research: r,
+          targetLevel: lvl + 1,
+          price: getDiscountedVirtuePrice(r, lvl, mods, isSale),
+        });
+      }
+    });
+    // Sort all individual levels by price
+    unpurchased.sort((a, b) => a.price - b.price);
+
+    // 2. Iterative construction with tier stashing
+    const result: any[] = [];
+    const pool: any[] = [];
+    
+    // Simulation state for cumulative earnings
+    const context = getSimulationContext();
+    const baseSnapshot = actionsStore.effectiveSnapshot;
+    let currentSimState = createBaseEngineState(baseSnapshot);
+    let currentSimSnapshot = baseSnapshot;
+    let totalSeconds = 0;
+
+    const formatTimeToBuy = (price: number, earnings: number): string => {
+      if (price <= 0) return '';
+      if (earnings <= 0) return '∞';
+      const seconds = price / earnings;
+      if (seconds < 1) return 'Instant';
+      return formatDuration(seconds);
+    };
+
+    const processed = new Set<string>();
+
+    const processItem = (item: any) => {
+      const r = item.research;
+      const key = `${r.id}-${item.targetLevel}`;
+      if (processed.has(key)) return;
+
+      const actuallyUnlocked = isTierUnlocked(currentSimState.researchLevels, r.tier);
+
+      if (actuallyUnlocked) {
+        processed.add(key);
+        // Did we just unlock a new tier?
+        let highestUnlockedBefore = Array.from({length: 13}, (_, i) => i + 1)
+          .reverse().find(t => isTierUnlocked(currentSimState.researchLevels, t)) || 1;
+
+        const itemSeconds = currentSimSnapshot.offlineEarnings > 0 ? item.price / currentSimSnapshot.offlineEarnings : 0;
+        totalSeconds += itemSeconds;
+
+        // Add to result using the SITUATIONAL earnings (after previous purchases)
+        result.push({
+          research: r,
+          targetLevel: item.targetLevel,
+          price: item.price,
+          currentLevel: researchLevels[r.id] || 0,
+          timeToBuy: formatTimeToBuy(item.price, currentSimSnapshot.offlineEarnings),
+          buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : 'Instant',
+          canBuy: true, // Always allow sequential purchases in Cheapest view
+          isMaxed: false,
+          showDivider: item.showDivider || false,
+          unlockTier: item.unlockTier || 0,
+        });
+
+        // "Purchase" exactly 1 level for simulation
+        currentSimState = {
+          ...currentSimState,
+          researchLevels: {
+            ...currentSimState.researchLevels,
+            [r.id]: (currentSimState.researchLevels[r.id] || 0) + 1
+          }
+        };
+
+        // RE-COMPUTE snapshot to catch earnings/ELR updates
+        currentSimSnapshot = computeSnapshot(currentSimState, context);
+
+        // Check if new tiers unlocked
+        const getMaxUnlocked = () => Array.from({length: 13}, (_, i) => i + 1)
+          .reverse().find(t => isTierUnlocked(currentSimState.researchLevels, t)) || 1;
+        
+        let highestAfter = getMaxUnlocked();
+        
+        if (highestAfter > highestUnlockedBefore) {
+          // Re-check pool for any items that are now unlocked
+          for (let i = 0; i < pool.length; i++) {
+            const poolTier = pool[i].research.tier;
+            if (isTierUnlocked(currentSimState.researchLevels, poolTier)) {
+              const stashed = pool.splice(i, 1)[0];
+              
+              // If this item is from a tier we just "passed", show a divider
+              if (poolTier > highestUnlockedBefore) {
+                stashed.showDivider = true;
+                stashed.unlockTier = poolTier;
+                highestUnlockedBefore = poolTier; // Advance threshold so next items in this tier don't get dividers
+              }
+              
+              processItem(stashed);
+              i = -1; // Restart loop
+            }
+          }
+        }
+      } else {
+        pool.push(item);
+      }
+    };
+
+    unpurchased.forEach(item => {
+      processItem(item);
+    });
+
+    // Add remaining pool items (truly locked or beyond simulation scope)
+    pool.forEach(item => {
+      const r = item.research;
+      const key = `${r.id}-${item.targetLevel}`;
+      if (!processed.has(key)) {
+        processed.add(key);
+        const itemSeconds = currentSimSnapshot.offlineEarnings > 0 ? item.price / currentSimSnapshot.offlineEarnings : 0;
+        totalSeconds += itemSeconds;
+
+        result.push({
+          research: r,
+          targetLevel: item.targetLevel,
+          price: item.price,
+          currentLevel: researchLevels[r.id] || 0,
+          timeToBuy: formatTimeToBuy(item.price, currentSimSnapshot.offlineEarnings),
+          buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : 'Instant',
+          canBuy: true,
+          isMaxed: false,
+        });
+      }
+    });
+
+    // canBuyToHere logic: sequential connectivity from current state
+    let pathUnlocked = true;
+    for (const item of result) {
+      if (!isTierUnlocked(researchLevels, item.research.tier)) {
+        pathUnlocked = false;
+      }
+      item.canBuyToHere = pathUnlocked;
+    }
+
+    return result;
+  }
+
+  if (currentView.value === 'roi') {
+    // Earnings ROI
+    const context = getSimulationContext();
+    const effectiveSnapshot = actionsStore.effectiveSnapshot;
+    const baseState = createBaseEngineState(effectiveSnapshot);
+    const currentEarnings = effectiveSnapshot.offlineEarnings;
+
+    if (currentEarnings <= 0) return [];
+
+    const unpurchased = all.filter(r => (researchLevels[r.id] || 0) < r.levels && filterByCategories(r));
+    
+    // Deduplicate by research ID to ensure only one entry per research
+    const uniqueUnpurchased = Array.from(new Map(unpurchased.map(r => [r.id, r])).values());
+    
+    const candidates = uniqueUnpurchased.map(r => {
+      const level = researchLevels[r.id] || 0;
+      const price = getDiscountedVirtuePrice(r, level, mods, isSale);
+      const canBuy = isTierUnlocked(researchLevels, r.tier);
+      
+      // Simulate buying 1 level
+      const tempAction = {
+        id: 'tmp',
+        type: 'buy_research' as const,
+        payload: { researchId: r.id, fromLevel: level, toLevel: level + 1 },
+        cost: price,
+        timestamp: Date.now(),
+        dependsOn: [],
+      };
+      
+      const nextState = applyAction(baseState, tempAction as any);
+      const nextSnapshot = computeSnapshot(nextState, context);
+      const newEarnings = nextSnapshot.offlineEarnings;
+      
+      const delta = newEarnings - currentEarnings;
+      const roiSeconds = delta > 0 ? price / delta : Infinity;
+
+      return {
+        research: r,
+        price,
+        currentLevel: level,
+        targetLevel: level + 1,
+        timeToBuy: getTimeToBuy(r),
+        canBuy,
+        isMaxed: false,
+        roiSeconds,
+        roiLabel: delta > 0 ? formatDuration(roiSeconds) : 'No Impact',
+      };
+    })
+    .filter(c => c.roiSeconds !== Infinity)
+    .sort((a, b) => {
+      // Primary sort: Unlocked (canBuy) first
+      if (a.canBuy !== b.canBuy) {
+        return a.canBuy ? -1 : 1;
+      }
+      // Secondary sort: Ascending ROI
+      return a.roiSeconds - b.roiSeconds;
+    });
+
+    return candidates.map(c => ({
+      ...c,
+      extraStats: c.roiLabel,
+      extraLabel: 'Payback',
+    }));
+  }
+
+  if (currentView.value === 'elr') {
+    // ELR Impact (Relative Potential Max)
+    const effectiveSnapshot = actionsStore.effectiveSnapshot;
+    
+    const currentSlots = calculateMaxVehicleSlots(researchLevels);
+    const currentMaxCars = calculateMaxTrainLength(researchLevels);
+
+    const unpurchased = all.filter(r => (researchLevels[r.id] || 0) < r.levels && filterByCategories(r));
+    
+    // Deduplicate by research ID to ensure only one entry per research
+    const uniqueUnpurchased = Array.from(new Map(unpurchased.map(r => [r.id, r])).values());
+    
+    const candidates = uniqueUnpurchased.map(r => {
+      const level = researchLevels[r.id] || 0;
+      const price = getDiscountedVirtuePrice(r, level, mods, isSale);
+      let impact = 0;
+
+      if (FLEET_RESEARCH_IDS.includes(r.id)) {
+        impact = 1 / currentSlots;
+      } else if (r.id === TRAIN_CAR_RESEARCH_ID) {
+        impact = 1 / currentMaxCars;
+      } else {
+        // Lay Rate or Hab Capacity (Percentage increase)
+        // Formula: perLevel / (1 + currentLevel * perLevel)
+        impact = r.per_level / (1 + (level * r.per_level));
+      }
+
+      return {
+        research: r,
+        price,
+        currentLevel: level,
+        targetLevel: level + 1,
+        timeToBuy: getTimeToBuy(r),
+        canBuy: isTierUnlocked(researchLevels, r.tier),
+        isMaxed: false,
+        impact,
+      };
+    })
+    .filter(c => c.impact > 0)
+    .sort((a, b) => {
+      // Primary sort: Unlocked (canBuy) first
+      if (a.canBuy !== b.canBuy) {
+        return a.canBuy ? -1 : 1;
+      }
+      // Secondary sort: Descending impact
+      return b.impact - a.impact;
+    });
+
+    return candidates.map(c => ({
+      ...c,
+      extraStats: `+${(c.impact * 100).toFixed(3)}%`,
+      extraLabel: 'Impact',
+    }));
+  }
+
+  return [];
+});
 
 /**
  * Buy a single level of research and create the action.
@@ -300,6 +645,19 @@ function handleMaxTier(tier: number) {
     while (getCurrentLevel(research.id) < maxLevel) {
       if (!buyOneLevel(research)) break;
     }
+  }
+}
+
+/**
+ * Buy everything up to the selected index in the sorted list.
+ */
+function handleBuyToHere(index: number) {
+  const list = sortedResearches.value;
+  if (index < 0 || index >= list.length) return;
+
+  for (let i = 0; i <= index; i++) {
+    const item = list[i];
+    buyOneLevel(item.research);
   }
 }
 
