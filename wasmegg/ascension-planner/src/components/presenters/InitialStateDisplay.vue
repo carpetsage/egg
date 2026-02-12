@@ -245,7 +245,7 @@
                     :value="formatNumber(eggsDelivered[egg], 3)"
                     class="w-24 text-right text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
                     placeholder="0"
-                    @blur="handleEggsDeliveredChange(egg, ($event.target as HTMLInputElement).value)"
+                    @change="handleEggsDeliveredChange(egg, ($event.target as HTMLInputElement).value)"
                     @keydown.enter="($event.target as HTMLInputElement).blur()"
                   />
                 </div>
@@ -257,7 +257,7 @@
                     :min="0"
                     :max="98"
                     class="w-16 text-center text-xs font-mono border border-gray-300 rounded px-2 py-0.5 focus:ring-1 focus:ring-blue-500 outline-none"
-                    @blur="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
+                    @change="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
                     @keydown.enter="($event.target as HTMLInputElement).blur()"
                   />
                   <span class="text-xs text-gray-400">/ 98</span>
