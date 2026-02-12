@@ -646,10 +646,13 @@ const sortedResearches = computed(() => {
 
           const pairSnapshot = computeSnapshot(pairState, context);
           const pairEarnings = pairSnapshot.offlineEarnings;
-          const pairDelta = pairEarnings - currentEarnings;
+          const partnerEarnings = partner.nextSnapshot.offlineEarnings;
           
-          if (pairDelta > 0) {
+          // CRITICAL: Only suggest the pair if c actually ADDS value on top of the partner.
+          // This handles the user's case where one is already much higher than the other.
+          if (pairEarnings > partnerEarnings) {
             const pairTotalCost = c.price + partner.price;
+            const pairDelta = pairEarnings - currentEarnings;
             const pairRoiSeconds = pairTotalCost / pairDelta;
             
             // If the pair ROI is significantly better than Infinity (or the individual ROI)
@@ -669,7 +672,6 @@ const sortedResearches = computed(() => {
     });
 
     return result
-      .filter(c => c.roiSeconds !== Infinity || c.recommendationNote)
       .sort((a, b) => {
         // Primary sort: Unlocked (canBuy) first
         if (a.canBuy !== b.canBuy) {
