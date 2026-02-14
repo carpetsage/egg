@@ -44,11 +44,28 @@
         Not enough fuel in tank
       </span>
     </div>
+
+    <!-- Pre-shift Launch Option -->
+    <div v-if="schedule.totalMissions === 3" class="flex items-center gap-2 px-1">
+      <input
+        type="checkbox"
+        id="zero-time-launch"
+        v-model="isZeroTime"
+        class="rounded text-blue-600"
+      />
+      <label for="zero-time-launch" class="text-xs text-gray-600 font-medium cursor-pointer select-none">
+        Launch for 0 time (pre-shift sends)
+      </label>
+    </div>
+
+    <p class="text-[11px] text-gray-500 leading-relaxed italic border-l-2 border-gray-200 pl-3 py-0.5">
+      If you choose 3 launches, you will have the option to launch for 0 time. This is to handle the case where you send ships right before shifting, so it should not add time to the length of your ascension.
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useRocketsStore } from '@/stores/rockets';
 import { useActionsStore } from '@/stores/actions';
@@ -69,6 +86,8 @@ const actionsStore = useActionsStore();
 const initialStateStore = useInitialStateStore();
 const { output: earningsOutput } = useEarnings();
 const { prepareExecution, completeExecution } = useActionExecutor();
+
+const isZeroTime = ref(false);
 
 const ftlLevel = computed(() =>
   initialStateStore.epicResearchLevels['afx_mission_time'] || 0
@@ -102,10 +121,11 @@ function handleLaunch() {
   }
 
   const scheduleResult = schedule.value;
+  const isZeroTimeLaunch = isZeroTime.value && scheduleResult.totalMissions === 3;
 
   const payload = {
     missions,
-    totalTimeSeconds: scheduleResult.totalSeconds,
+    totalTimeSeconds: isZeroTimeLaunch ? 0 : scheduleResult.totalSeconds,
     totalMissions: scheduleResult.totalMissions,
     fuelConsumed,
   };
@@ -131,5 +151,6 @@ function handleLaunch() {
 
   // Clear the mission queue
   rocketsStore.clearAll();
+  isZeroTime.value = false;
 }
 </script>
