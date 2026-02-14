@@ -727,6 +727,9 @@ export const useActionsStore = defineStore('actions', {
           activeArtifactSet: initialStateStore.activeArtifactSet,
           currentFarmState: initialStateStore.currentFarmState,
           assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
+          initialFuelAmounts: initialStateStore.initialFuelAmounts,
+          initialEggsDelivered: initialStateStore.initialEggsDelivered,
+          initialTeEarned: initialStateStore.initialTeEarned,
         },
         virtueState: {
           shiftCount: virtueStore.initialShiftCount,

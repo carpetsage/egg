@@ -44,7 +44,7 @@
       <div class="flex items-center gap-1">
         <button
           class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-          title="Export Plan to JSON"
+          v-tippy="'Export and Download Plan'"
           @click="handleExport"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +53,7 @@
         </button>
         <button
           class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-          title="Import Plan from JSON"
+          v-tippy="'Upload and Import Plan'"
           @click="triggerImport"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +73,7 @@
         <!-- Details Button -->
         <button
           class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-          title="View final state calculation details"
+          v-tippy="'View final state calculation details'"
           @click="$emit('show-details')"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
