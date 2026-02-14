@@ -24,6 +24,9 @@ import { simulate } from '@/engine/simulate';
 import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, getActionDuration } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
+import { computeDependencies } from '@/lib/actions/executor';
+import { getResearchById, TIER_UNLOCK_THRESHOLDS } from '@/calculations/commonResearch';
+import type { BuyResearchPayload } from '@/types';
 
 /**
  * Actions store - THE source of truth for calculation state.
@@ -246,7 +249,7 @@ export const useActionsStore = defineStore('actions', {
             lastAction.dependents.length === 0
           ) {
             // It's a redundant toggle! Remove the last one instead of adding this one.
-            this.executeUndo(lastAction.id, false);
+            this.executeUndo(lastAction.id, 'dependents');
             return;
           }
         }
@@ -333,7 +336,9 @@ export const useActionsStore = defineStore('actions', {
         return createEmptyUndoValidation();
       }
 
-      const dependents = this.getDependentActions(actionId);
+      const toRemove = this.getActionsRequiringRemoval(new Set([actionId]));
+      const dependents = toRemove.filter(a => a.id !== actionId);
+
       return {
         valid: true,
         action,
@@ -343,19 +348,123 @@ export const useActionsStore = defineStore('actions', {
     },
 
     /**
+     * Validate an "undo until next shift" operation.
+     * Collects the target action and all actions after it up to (but not including) the next shift.
+     * Also recursively collects any dependents (like tier locks) even if they are in later shifts.
+     */
+    prepareUndoUntilShift(actionId: string): UndoValidation {
+      const action = this.actions.find(a => a.id === actionId);
+      if (!action) {
+        return createEmptyUndoValidation();
+      }
+
+      if (action.type === 'start_ascension') {
+        return createEmptyUndoValidation();
+      }
+
+      const index = this.actions.findIndex(a => a.id === actionId);
+      const initialToRemove = new Set<string>();
+
+      // Add the action itself and all actions after it until the next shift (or end of list)
+      for (let i = index; i < this.actions.length; i++) {
+        if (i > index && this.actions[i].type === 'shift') {
+          break;
+        }
+        initialToRemove.add(this.actions[i].id);
+      }
+
+      const toRemove = this.getActionsRequiringRemoval(initialToRemove);
+      const dependents = toRemove.filter(a => a.id !== actionId);
+
+      return {
+        valid: true,
+        action,
+        dependentActions: dependents,
+        needsRecursiveUndo: dependents.length > 0,
+      };
+    },
+
+    /**
+     * Given a set of actions to remove, find all other actions that MUST also be removed
+     * because they either explicitly depend on them or their requirements (like research tiers) 
+     * are no longer met after the removal.
+     */
+    getActionsRequiringRemoval(initialIds: Set<string>): Action[] {
+      const toRemove = new Set<string>(initialIds);
+      let changed = true;
+
+      while (changed) {
+        changed = false;
+        const currentCount = toRemove.size;
+
+        // 1. Explicit dependents (recursive)
+        // We do this by checking every action's dependsOn for anything currently in toRemove
+        for (const action of this.actions) {
+          if (toRemove.has(action.id)) continue;
+
+          for (const depId of action.dependsOn) {
+            if (toRemove.has(depId)) {
+              toRemove.add(action.id);
+              break;
+            }
+          }
+        }
+
+        // 2. Tier locks
+        // We need to count research purchases in chronological order, skipping actions to be removed
+        let researchPurchases = 0;
+        const sortedActions = [...this.actions].sort((a, b) => a.index - b.index);
+
+        for (const action of sortedActions) {
+          if (toRemove.has(action.id)) continue;
+
+          if (action.type === 'buy_research') {
+            const payload = action.payload as BuyResearchPayload;
+            const research = getResearchById(payload.researchId);
+
+            // Check tier unlock
+            if (research && research.tier > 1) {
+              const threshold = TIER_UNLOCK_THRESHOLDS[research.tier - 1];
+              if (researchPurchases < threshold) {
+                // Tier is LOCKED! Must remove this action.
+                toRemove.add(action.id);
+                // No need to check other conditions for this action
+                continue;
+              }
+            }
+
+            // Count purchases for unlocking future tiers
+            researchPurchases += (payload.toLevel - payload.fromLevel);
+          }
+        }
+
+        if (toRemove.size > currentCount) {
+          changed = true;
+        }
+      }
+
+      return this.actions
+        .filter(a => toRemove.has(a.id))
+        .sort((a, b) => a.index - b.index);
+    },
+
+    /**
      * Execute undo after user confirmation.
      */
     executeUndo(
       actionId: string,
-      includeDependents: boolean,
-      restoreCallback?: (snapshot: CalculationsSnapshot) => void // Optional now as we handle it
+      mode: 'dependents' | 'truncate' = 'dependents',
+      restoreCallback?: (snapshot: CalculationsSnapshot) => void
     ) {
-      const validation = this.prepareUndo(actionId);
+      const validation = mode === 'dependents'
+        ? this.prepareUndo(actionId)
+        : this.prepareUndoUntilShift(actionId);
+
       if (!validation.valid) return;
 
       // Collect all actions to remove
       const toRemove = new Set<string>([actionId]);
-      if (includeDependents && validation.dependentActions) {
+      if (validation.dependentActions) {
         for (const dep of validation.dependentActions) {
           toRemove.add(dep.id);
         }
@@ -479,7 +588,7 @@ export const useActionsStore = defineStore('actions', {
             prevAction.dependents.length === 0
           ) {
             // Redundant toggle! Remove the previous one instead of adding this one.
-            this.executeUndo(prevAction.id, false);
+            this.executeUndo(prevAction.id, 'dependents');
             return;
           }
         }
@@ -539,11 +648,43 @@ export const useActionsStore = defineStore('actions', {
 
       this.actions = newActions;
 
+      // Re-link dependencies to ensure tier locks and other dynamic deps are captured
+      this.relinkDependencies();
+
       // Sync stores to the effective snapshot.
       // If NOT editing, effectiveSnapshot === currentSnapshot (the head).
       // If editing, effectiveSnapshot is the end of the editing group.
       // This ensures the rest of the app (UI) always sees the relevant state.
       syncStoresToSnapshot(this.effectiveSnapshot);
+    },
+
+    /**
+     * Re-build the dependency graph for all actions.
+     * Tier locks and level requirements are captured here.
+     */
+    relinkDependencies() {
+      // 1. Clear existing linkages
+      for (const action of this.actions) {
+        action.dependsOn = [];
+        action.dependents = [];
+      }
+
+      // 2. Recompute and build
+      for (let i = 0; i < this.actions.length; i++) {
+        const action = this.actions[i];
+        const existingActions = this.actions.slice(0, i);
+
+        // Compute new dependsOn
+        action.dependsOn = computeDependencies(action.type, action.payload, existingActions);
+
+        // Update dependents on the parent actions
+        for (const depId of action.dependsOn) {
+          const depAction = this.actions.find(a => a.id === depId);
+          if (depAction) {
+            depAction.dependents.push(action.id);
+          }
+        }
+      }
     },
 
     toggleGroupExpansion(groupId: string) {

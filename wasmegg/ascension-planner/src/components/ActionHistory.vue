@@ -69,7 +69,7 @@ import ActionGroup from './ActionGroup.vue';
 
 const emit = defineEmits<{
   'show-details': [action: Action];
-  'undo': [action: Action, dependentActions: Action[], options?: { skipConfirmation: boolean }];
+  'undo': [action: Action, options?: { skipConfirmation: boolean }];
   'clear-all': [options?: { skipConfirmation: boolean }];
 }>();
 
@@ -242,10 +242,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
 });
 
 function handleUndoRequest(action: Action, options?: { skipConfirmation: boolean }) {
-  const validation = actionsStore.prepareUndo(action.id);
-  if (validation.valid && validation.action) {
-    emit('undo', validation.action, validation.dependentActions, options);
-  }
+  emit('undo', action, options);
 }
 
 function handleClearAll(event: MouseEvent) {
