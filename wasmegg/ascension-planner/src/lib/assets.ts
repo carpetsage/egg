@@ -20,12 +20,13 @@ export const ASSET_CATEGORIES: AssetCategory[] = [
         ],
     },
     {
-        name: 'Special Eggs',
+        name: 'Special Icons',
         assets: [
             { name: 'Truth', path: 'egginc/egg_truth.png' },
             { name: 'Soul', path: 'egginc/egg_soul.png' },
             { name: 'Prophecy', path: 'egginc/egg_of_prophecy.png' },
             { name: 'Enlightenment', path: 'egginc/egg_enlightenment.png' },
+            { name: 'Gem', path: 'egginc/icon_virtue_gem.png'},
         ],
     },
     {
