@@ -31,7 +31,7 @@
           :header-action="item.headerAction"
           :actions="item.actions"
           :time-elapsed-seconds="item.timeElapsedSeconds"
-          :period-end-timestamp="item.periodEndTimestamp"
+          :period-timestamp="item.periodTimestamp"
           :eggs-delivered="item.eggsDelivered"
           :is-editing="actionsStore.editingGroupId === item.headerAction.id"
           :is-current="item.isCurrent"
@@ -118,7 +118,7 @@ interface GroupItem {
   headerAction: Action<'start_ascension'> | Action<'shift'>;
   actions: Action[];  // Actions AFTER the header, until next shift
   timeElapsedSeconds: number;
-  periodEndTimestamp: Date;  // When this period ended
+  periodTimestamp: Date;  // When this period started
   eggsDelivered: number;  // Total eggs delivered during this period (for the current egg)
   isCurrent: boolean;  // Whether this is the current (last) period
 }
@@ -167,10 +167,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
         periodTimeSeconds += (action.totalTimeSeconds || 0);
       });
 
-      // The period end timestamp is when the first shift happened
-      const periodEndTimestamp = new Date(
-        ascensionStartTime.value.getTime() + periodTimeSeconds * 1000
-      );
+
 
       result.push({
         type: 'group',
@@ -178,7 +175,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
         headerAction: startAction,
         actions: groupActions,
         timeElapsedSeconds: periodTimeSeconds,
-        periodEndTimestamp,
+        periodTimestamp: ascensionStartTime.value,
         eggsDelivered: computePeriodEggsDelivered(startAction, groupActions),
         isCurrent: false,
       });
@@ -192,9 +189,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
         periodTimeSeconds += (action.totalTimeSeconds || 0);
       });
 
-      const periodEndTimestamp = new Date(
-        ascensionStartTime.value.getTime() + periodTimeSeconds * 1000
-      );
+
 
       result.push({
         type: 'group',
@@ -202,7 +197,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
         headerAction: startAction,
         actions: groupActions,
         timeElapsedSeconds: periodTimeSeconds,
-        periodEndTimestamp,
+        periodTimestamp: ascensionStartTime.value,
         eggsDelivered: computePeriodEggsDelivered(startAction, groupActions),
         isCurrent: true,
       });
@@ -227,10 +222,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
       periodTimeSeconds += (action.totalTimeSeconds || 0);
     });
 
-    // Create a group for this shift period (including the last/current one)
-    const periodEndTimestamp = new Date(
-      ascensionStartTime.value.getTime() + (cumulativeTimeSeconds + periodTimeSeconds) * 1000
-    );
+
 
     result.push({
       type: 'group',
@@ -238,7 +230,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
       headerAction: shiftAction,
       actions: groupActions,
       timeElapsedSeconds: periodTimeSeconds,
-      periodEndTimestamp,
+      periodTimestamp: new Date(ascensionStartTime.value.getTime() + cumulativeTimeSeconds * 1000),
       eggsDelivered: computePeriodEggsDelivered(shiftAction, groupActions),
       isCurrent: isLastShift,
     });

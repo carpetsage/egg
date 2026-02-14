@@ -38,7 +38,7 @@
       <!-- Time info -->
       <div class="text-right shrink-0">
         <div class="text-xs font-medium text-purple-700">
-          {{ formattedPeriodEndTime }}
+          {{ formattedTimestamp }}
         </div>
         <div class="text-[10px] text-purple-500">
           {{ formattedTimeElapsed }} elapsed
@@ -174,7 +174,7 @@ const props = defineProps<{
   headerAction: Action<'start_ascension'> | Action<'shift'>;
   actions: Action[];
   timeElapsedSeconds: number;
-  periodEndTimestamp: Date;
+  periodTimestamp: Date;
   eggsDelivered: number;
   isEditing?: boolean;
   isCurrent?: boolean;  // Whether this is the current (last) period
@@ -266,10 +266,10 @@ const headerText = computed(() => {
 const summaryComponent = computed(() => summaryComponents[currentEgg.value]);
 
 /**
- * Format the period end timestamp as "Mon Jan 5, 2:30 PM"
+ * Format the period timestamp as "Mon Jan 5, 2:30 PM"
  */
-const formattedPeriodEndTime = computed(() => {
-  const date = props.periodEndTimestamp;
+const formattedTimestamp = computed(() => {
+  const date = props.periodTimestamp;
   return date.toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',

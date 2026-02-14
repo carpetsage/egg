@@ -563,7 +563,11 @@ export const useActionsStore = defineStore('actions', {
       };
 
       const jsonString = JSON.stringify(exportData, null, 2);
-      const filename = `ascension-plan-${new Date().toISOString().split('T')[0]}.json`;
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const filename = `ascension-plan-${year}-${month}-${day}.json`;
       downloadFile(filename, jsonString, 'application/json');
     },
 
