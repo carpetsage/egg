@@ -22,36 +22,54 @@
 
     <!-- Quick Upgrade Action -->
     <div v-if="canBuyMax" class="mb-6 -mt-2">
-      <button
-        class="group flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white p-2.5 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50/50 active:scale-[0.98]"
-        @click="handleBuyMax"
-      >
-        <div class="rounded-lg bg-blue-100/50 p-1 transition-colors group-hover:bg-blue-100">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 text-blue-600"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="13 17 18 12 13 7"></polyline>
-            <polyline points="6 17 11 12 6 7"></polyline>
-          </svg>
-        </div>
-        <span class="text-[11px] font-bold uppercase tracking-widest text-blue-800"
-          >Upgrade All to Chicken Universe</span
+      <div class="flex flex-col gap-2">
+        <button
+          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white p-2.5 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50/50 active:scale-[0.98]"
+          @click="handleBuyMax"
         >
-      </button>
-    </div>
+          <div class="rounded-lg bg-blue-100/50 p-1 transition-colors group-hover:bg-blue-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 text-blue-600"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="13 17 18 12 13 7"></polyline>
+              <polyline points="6 17 11 12 6 7"></polyline>
+            </svg>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[11px] font-bold uppercase tracking-widest text-blue-800">Max Habs</span>
+            <span v-if="maxHabsTime" class="text-[9px] font-medium text-blue-500/80 -mt-0.5">{{ maxHabsTime }}</span>
+          </div>
+        </button>
 
-    <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-      <p class="text-[11px] text-blue-600 font-medium leading-relaxed">
-        <span class="font-bold">Habs:</span> Select a habitat to upgrade. Prices update automatically based on your
-        current epic research and artifacts.
-      </p>
+        <button
+          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-white p-2.5 shadow-sm transition-all hover:border-green-400 hover:bg-green-50/50 active:scale-[0.98]"
+          @click="handleBuy5MinSpace"
+        >
+          <div class="rounded-lg bg-green-100/50 p-1 transition-colors group-hover:bg-green-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 text-green-600"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <span class="text-[11px] font-bold uppercase tracking-widest text-green-800">5 Min Max Space</span>
+        </button>
+      </div>
     </div>
 
     <!-- Hab slots -->
@@ -302,6 +320,68 @@ function handleToggleSale() {
   );
 }
 
+const maxHabsTime = computed(() => {
+  const CHICKEN_UNIVERSE_ID = 18;
+  const snapshot = actionsStore.effectiveSnapshot;
+  const offlineEarnings = snapshot.offlineEarnings;
+
+  if (offlineEarnings <= 0) return '∞';
+
+  const shippingCapacity = snapshot.shippingCapacity;
+  const initialELR = snapshot.elr;
+  const initialLayRate = snapshot.layRate;
+  const initialCapacity = snapshot.habCapacity;
+
+  let totalSeconds = 0;
+  let virtualHabIds = [...snapshot.habIds];
+  let virtualLayRate = initialLayRate;
+  let virtualCapacity = initialCapacity;
+
+  for (let i = 0; i < 4; i++) {
+    const currentId = virtualHabIds[i];
+    if (currentId === CHICKEN_UNIVERSE_ID) continue;
+
+    const hab = getHabById(CHICKEN_UNIVERSE_ID);
+    if (!hab) continue;
+
+    // Calculate price given virtual state
+    const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
+    const existingCount = countHabsOfType(otherHabs, CHICKEN_UNIVERSE_ID);
+    const price = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
+
+    // Current virtual EPS
+    const virtualELR = Math.min(virtualLayRate, shippingCapacity);
+    const virtualEPS = initialELR > 0 ? (offlineEarnings / initialELR) * virtualELR : 0;
+
+    if (virtualEPS > 0) {
+      totalSeconds += price / virtualEPS;
+    } else {
+      if (price > 0) return '∞';
+    }
+
+    // Update virtual state for next hab
+    // We need the capacity of the OLD hab in this slot
+    const oldHabCap = currentId !== null ? getHabCapacity(currentId) : 0;
+    const newHabCap = getHabCapacity(CHICKEN_UNIVERSE_ID);
+
+    virtualHabIds[i] = CHICKEN_UNIVERSE_ID;
+
+    const deltaCap = newHabCap - oldHabCap;
+    if (deltaCap > 0) {
+      const oldTotalCap = virtualCapacity;
+      const newTotalCap = oldTotalCap + deltaCap;
+
+      if (oldTotalCap > 0) {
+        virtualLayRate = (virtualLayRate / oldTotalCap) * newTotalCap;
+      }
+      virtualCapacity = newTotalCap;
+    }
+  }
+
+  if (totalSeconds < 1) return 'Instant';
+  return formatDuration(totalSeconds);
+});
+
 const canBuyMax = computed(() => {
   const CHICKEN_UNIVERSE_ID = 18;
   return habIds.value.some(id => id !== CHICKEN_UNIVERSE_ID);
@@ -314,6 +394,58 @@ function handleBuyMax() {
     if (currentId !== CHICKEN_UNIVERSE_ID) {
       handleHabChange(i, CHICKEN_UNIVERSE_ID);
     }
+  }
+}
+
+function handleBuy5MinSpace() {
+  const snapshot = actionsStore.effectiveSnapshot;
+  const offlineEarnings = snapshot.offlineEarnings;
+  if (offlineEarnings <= 0) return;
+
+  const maxBudget = 5 * 60 * offlineEarnings;
+  let spent = 0;
+
+  // Track virtual state
+  const virtualHabIds = [...habIds.value];
+
+  while (spent < maxBudget) {
+    let bestAction: { slotIndex: number; habId: number; cost: number } | null = null;
+    let bestRoi = -1;
+
+    for (let i = 0; i < virtualHabIds.length; i++) {
+      const currentId = virtualHabIds[i];
+      const startId = currentId === null ? 0 : currentId + 1;
+
+      for (let nextId = startId; nextId <= 18; nextId++) {
+        const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
+        const existingCount = countHabsOfType(otherHabs, nextId);
+        const hab = getHabById(nextId as HabId);
+        if (!hab) continue;
+
+        const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
+
+        if (spent + cost <= maxBudget) {
+          const currentCap = currentId !== null ? getHabCapacity(currentId) : 0;
+          const nextCap = getHabCapacity(nextId);
+          const deltaCap = nextCap - currentCap;
+
+          if (deltaCap > 0) {
+            const roi = deltaCap / Math.max(cost, 1e-10);
+            if (roi > bestRoi) {
+              bestRoi = roi;
+              bestAction = { slotIndex: i, habId: nextId, cost };
+            }
+          }
+        }
+      }
+    }
+
+    if (!bestAction) break;
+
+    // Apply action
+    handleHabChange(bestAction.slotIndex, bestAction.habId);
+    virtualHabIds[bestAction.slotIndex] = bestAction.habId;
+    spent += bestAction.cost;
   }
 }
 </script>
