@@ -22,34 +22,54 @@
 
     <!-- Quick Upgrade Action -->
     <div v-if="canBuyMax" class="mb-6 -mt-2">
-      <button
-        class="group flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white p-2.5 shadow-sm transition-all hover:border-indigo-400 hover:bg-indigo-50/50 active:scale-[0.98]"
-        @click="handleBuyMax"
-      >
-        <div class="rounded-lg bg-indigo-100/50 p-1 transition-colors group-hover:bg-indigo-100">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 text-indigo-600"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="13 17 18 12 13 7"></polyline>
-            <polyline points="6 17 11 12 6 7"></polyline>
-          </svg>
-        </div>
-        <span class="text-[11px] font-bold uppercase tracking-widest text-indigo-800">Max Out Fleet & Hyperloops</span>
-      </button>
-    </div>
+      <div class="flex flex-col gap-2">
+        <button
+          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white p-2.5 shadow-sm transition-all hover:border-indigo-400 hover:bg-indigo-50/50 active:scale-[0.98]"
+          @click="handleBuyMax"
+        >
+          <div class="rounded-lg bg-indigo-100/50 p-1 transition-colors group-hover:bg-indigo-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 text-indigo-600"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="13 17 18 12 13 7"></polyline>
+              <polyline points="6 17 11 12 6 7"></polyline>
+            </svg>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[11px] font-bold uppercase tracking-widest text-indigo-800">Max Vehicles</span>
+            <span v-if="maxVehiclesTime" class="text-[9px] font-medium text-indigo-500/80 -mt-0.5">{{ maxVehiclesTime }}</span>
+          </div>
+        </button>
 
-    <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-      <p class="text-[11px] text-blue-600 font-medium leading-relaxed">
-        <span class="font-bold">Shipping:</span> Select a vehicle to upgrade your fleet. Hyperloop trains can be
-        expanded with additional cars.
-      </p>
+        <button
+          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white p-2.5 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50/50 active:scale-[0.98]"
+          @click="handleBuy5MinCap"
+        >
+          <div class="rounded-lg bg-blue-100/50 p-1 transition-colors group-hover:bg-blue-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 text-blue-600"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <span class="text-[11px] font-bold uppercase tracking-widest text-blue-800">5 Min Max Cap</span>
+        </button>
+      </div>
     </div>
 
     <!-- Vehicle slots -->
@@ -523,6 +543,80 @@ function handleToggleSale() {
   );
 }
 
+const maxVehiclesTime = computed(() => {
+  const HYPERLOOP_ID = 11;
+  const snapshot = actionsStore.effectiveSnapshot;
+  const offlineEarnings = snapshot.offlineEarnings;
+
+  if (offlineEarnings <= 0) return '∞';
+
+  const initialELR = snapshot.elr;
+  const initialLayRate = snapshot.layRate;
+  const initialShippingCapacity = snapshot.shippingCapacity;
+  const maxSlots = maxVehicleSlots.value;
+  const maxLength = getMaxTrainLength();
+
+  let totalSeconds = 0;
+  let virtualShippingCapacity = initialShippingCapacity;
+  let virtualVehicles = (snapshot.vehicles ? [...snapshot.vehicles] : []).slice(0, maxSlots);
+
+  // Pad to max slots
+  while (virtualVehicles.length < maxSlots) {
+    virtualVehicles.push({ vehicleId: null, trainLength: 1 });
+  }
+
+  for (let i = 0; i < maxSlots; i++) {
+    const slot = virtualVehicles[i];
+    let currentLength = 1;
+
+    // 1. Upgrade to Hyperloop
+    if (slot.vehicleId !== HYPERLOOP_ID) {
+      const price = getVehiclePrice(HYPERLOOP_ID, i);
+      
+      const virtualELR = Math.min(initialLayRate, virtualShippingCapacity);
+      const virtualEPS = initialELR > 0 ? (offlineEarnings / initialELR) * virtualELR : 0;
+
+      if (virtualEPS > 0) {
+        totalSeconds += price / virtualEPS;
+      } else if (price > 0) {
+        return '∞';
+      }
+
+      // Update virtual capacity
+      const oldCap = getVehicleCapacity(slot, i);
+      const newCap = getVehicleCapacity({ vehicleId: HYPERLOOP_ID, trainLength: 1 }, i);
+      virtualShippingCapacity += newCap - oldCap;
+      virtualVehicles[i] = { vehicleId: HYPERLOOP_ID, trainLength: 1 };
+    } else {
+      currentLength = slot.trainLength;
+    }
+
+    // 2. Add cars
+    for (let l = currentLength; l < maxLength; l++) {
+      const carPrice = getDiscountedTrainCarPrice(l, costModifiers.value, isVehicleSaleActive.value);
+
+      const virtualELR = Math.min(initialLayRate, virtualShippingCapacity);
+      const virtualEPS = initialELR > 0 ? (offlineEarnings / initialELR) * virtualELR : 0;
+
+      if (virtualEPS > 0) {
+        totalSeconds += carPrice / virtualEPS;
+      } else if (carPrice > 0) {
+        return '∞';
+      }
+
+      // Update virtual capacity (each car adds baseCapacityPerSecond * multipliers)
+      // Simpler: use the getVehicleCapacity helper by comparing lengths
+      const oldCap = getVehicleCapacity({ vehicleId: HYPERLOOP_ID, trainLength: l }, i);
+      const newCap = getVehicleCapacity({ vehicleId: HYPERLOOP_ID, trainLength: l + 1 }, i);
+      virtualShippingCapacity += newCap - oldCap;
+      virtualVehicles[i].trainLength = l + 1;
+    }
+  }
+
+  if (totalSeconds < 1) return 'Instant';
+  return formatDuration(totalSeconds);
+});
+
 const canBuyMax = computed(() => {
   const HYPERLOOP_ID = 11;
   const maxLength = getMaxTrainLength();
@@ -549,6 +643,95 @@ function handleBuyMax() {
     for (let l = currentLength; l < maxLength; l++) {
       addTrainCarAction(i, l, l + 1);
     }
+  }
+}
+
+function handleBuy5MinCap() {
+  const snapshot = actionsStore.effectiveSnapshot;
+  const offlineEarnings = snapshot.offlineEarnings;
+  if (offlineEarnings <= 0) return;
+
+  const maxBudget = 5 * 60 * offlineEarnings;
+  let spent = 0;
+
+  // Track virtual state to calculate costs and capacities correctly in the loop
+  const virtualSlots = displaySlots.value.map(s => ({ ...s }));
+
+  const maxTrainLength = getMaxTrainLength();
+
+  while (spent < maxBudget) {
+    let bestAction:
+      | { type: 'vehicle'; slotIndex: number; vehicleId: number; cost: number }
+      | { type: 'car'; slotIndex: number; cost: number }
+      | null = null;
+    let bestRoi = -1;
+
+    // Track current counts for virtue cost scaling
+    const vehicleCounts: Record<number, number> = {};
+    for (const slot of virtualSlots) {
+      if (slot.vehicleId !== null) {
+        vehicleCounts[slot.vehicleId] = (vehicleCounts[slot.vehicleId] || 0) + 1;
+      }
+    }
+
+    for (let i = 0; i < virtualSlots.length; i++) {
+      const slot = virtualSlots[i];
+
+      // 1. Consider upgrading vehicle
+      const currentId = slot.vehicleId;
+      const startId = currentId === null ? 0 : currentId + 1;
+
+      for (let nextId = startId; nextId <= 11; nextId++) {
+        const cost = getDiscountedVehiclePrice(
+          nextId,
+          vehicleCounts[nextId] || 0,
+          costModifiers.value,
+          isVehicleSaleActive.value
+        );
+
+        if (spent + cost <= maxBudget) {
+          const deltaCap = getVehicleCapacity({ vehicleId: nextId, trainLength: 1 }, i) - getVehicleCapacity(slot, i);
+          if (deltaCap > 0) {
+            const roi = deltaCap / Math.max(cost, 1e-10);
+            if (roi > bestRoi) {
+              bestRoi = roi;
+              bestAction = { type: 'vehicle', slotIndex: i, vehicleId: nextId, cost };
+            }
+          }
+        }
+      }
+
+      // 2. Consider adding Hyperloop car
+      if (slot.vehicleId === 11 && slot.trainLength < maxTrainLength) {
+        const cost = getDiscountedTrainCarPrice(slot.trainLength, costModifiers.value, isVehicleSaleActive.value);
+        if (spent + cost <= maxBudget) {
+          const currentCap = getVehicleCapacity(slot, i);
+          const nextCap = getVehicleCapacity({ ...slot, trainLength: slot.trainLength + 1 }, i);
+          const deltaCap = nextCap - currentCap;
+          if (deltaCap > 0) {
+            const roi = deltaCap / Math.max(cost, 1e-10);
+            if (roi > bestRoi) {
+              bestRoi = roi;
+              bestAction = { type: 'car', slotIndex: i, cost };
+            }
+          }
+        }
+      }
+    }
+
+    if (!bestAction) break;
+
+    // Apply action
+    if (bestAction.type === 'vehicle') {
+      handleVehicleChange(bestAction.slotIndex, bestAction.vehicleId);
+      virtualSlots[bestAction.slotIndex].vehicleId = bestAction.vehicleId;
+      virtualSlots[bestAction.slotIndex].trainLength = 1;
+    } else {
+      const fromLength = virtualSlots[bestAction.slotIndex].trainLength;
+      addTrainCarAction(bestAction.slotIndex, fromLength, fromLength + 1);
+      virtualSlots[bestAction.slotIndex].trainLength++;
+    }
+    spent += bestAction.cost;
   }
 }
 </script>

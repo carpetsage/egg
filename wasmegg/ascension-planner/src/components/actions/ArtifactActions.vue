@@ -87,7 +87,7 @@
         <div>
           <h4 class="text-xs font-bold text-blue-900 uppercase tracking-tight mb-1">Set Optimization</h4>
           <p class="text-[11px] text-blue-700 leading-relaxed">
-            <strong>Earnings:</strong> Focus on Necklaces, Ankhs, and Cubes (for research) with Soul/Shell/Terra stones.
+            <strong>Earnings:</strong> Focus on Necklaces, Ankhs, and Cubes (for research) with Lunar stones.
             <br/>
             <strong>ELR:</strong> Focus on Metronomes and Compasses with Tachyon/Quantum stones.
           </p>

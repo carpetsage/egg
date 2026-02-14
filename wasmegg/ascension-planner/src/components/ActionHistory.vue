@@ -20,7 +20,6 @@
         <ActionHistoryItem
           v-if="item.type === 'single'"
           :action="item.action"
-          :previous-offline-earnings="item.previousOfflineEarnings"
           :class="{ 'border-t border-gray-100': idx > 0 }"
           @show-details="$emit('show-details', item.action)"
           @undo="handleUndoRequest(item.action, $event)"
@@ -31,9 +30,8 @@
           v-else-if="item.type === 'group'"
           :header-action="item.headerAction"
           :actions="item.actions"
-          :previous-actions-offline-earnings="item.previousOfflineEarnings"
           :time-elapsed-seconds="item.timeElapsedSeconds"
-          :period-end-timestamp="item.periodEndTimestamp"
+          :period-timestamp="item.periodTimestamp"
           :eggs-delivered="item.eggsDelivered"
           :is-editing="actionsStore.editingGroupId === item.headerAction.id"
           :is-current="item.isCurrent"
@@ -71,7 +69,7 @@ import ActionGroup from './ActionGroup.vue';
 
 const emit = defineEmits<{
   'show-details': [action: Action];
-  'undo': [action: Action, dependentActions: Action[], options?: { skipConfirmation: boolean }];
+  'undo': [action: Action, options?: { skipConfirmation: boolean }];
   'clear-all': [options?: { skipConfirmation: boolean }];
 }>();
 
@@ -109,7 +107,6 @@ interface SingleItem {
   type: 'single';
   key: string;
   action: Action;
-  previousOfflineEarnings: number;
 }
 
 /**
@@ -120,39 +117,15 @@ interface GroupItem {
   key: string;
   headerAction: Action<'start_ascension'> | Action<'shift'>;
   actions: Action[];  // Actions AFTER the header, until next shift
-  previousOfflineEarnings: number[];
   timeElapsedSeconds: number;
-  periodEndTimestamp: Date;  // When this period ended
+  periodTimestamp: Date;  // When this period started
   eggsDelivered: number;  // Total eggs delivered during this period (for the current egg)
   isCurrent: boolean;  // Whether this is the current (last) period
 }
 
 type GroupedItem = SingleItem | GroupItem;
 
-/**
- * Calculate the time in seconds for an action.
- * - For time-based actions (store_fuel, wait_for_te): use the explicit timeSeconds
- * - For other actions: calculate from cost / previousOfflineEarnings
- */
-function getActionTimeSeconds(action: Action, previousOfflineEarnings: number): number {
-  // Time-based actions have explicit time in their payload
-  if (action.type === 'store_fuel') {
-    return (action.payload as StoreFuelPayload).timeSeconds;
-  }
-  if (action.type === 'wait_for_te') {
-    return (action.payload as WaitForTEPayload).timeSeconds;
-  }
-  if (action.type === 'launch_missions') {
-    return (action.payload as LaunchMissionsPayload).totalTimeSeconds;
-  }
-
-  // For cost-based actions, calculate time to save
-  if (action.cost > 0 && previousOfflineEarnings > 0) {
-    return action.cost / previousOfflineEarnings;
-  }
-
-  return 0;
-}
+// getActionTimeSeconds removed, usage replaced by action.totalTimeSeconds
 
 /**
  * Group actions by periods.
@@ -188,31 +161,21 @@ const groupedActions = computed<GroupedItem[]>(() => {
       // Actions between start_ascension (exclusive) and first shift (exclusive)
       const groupActions = allActions.slice(1, firstShiftIdx);
 
-      // Get previous offline earnings for each action in the group
-      const previousOfflineEarnings = groupActions.map((_, idx) => {
-        const globalIdx = 1 + idx;  // +1 because we start after start_ascension
-        return getPreviousOfflineEarnings(globalIdx);
-      });
-
       // Calculate time elapsed in this period
       let periodTimeSeconds = 0;
-      groupActions.forEach((action, idx) => {
-        periodTimeSeconds += getActionTimeSeconds(action, previousOfflineEarnings[idx]);
+      groupActions.forEach((action) => {
+        periodTimeSeconds += (action.totalTimeSeconds || 0);
       });
 
-      // The period end timestamp is when the first shift happened
-      const periodEndTimestamp = new Date(
-        ascensionStartTime.value.getTime() + periodTimeSeconds * 1000
-      );
+
 
       result.push({
         type: 'group',
         key: `group_start`,
         headerAction: startAction,
         actions: groupActions,
-        previousOfflineEarnings,
         timeElapsedSeconds: periodTimeSeconds,
-        periodEndTimestamp,
+        periodTimestamp: ascensionStartTime.value,
         eggsDelivered: computePeriodEggsDelivered(startAction, groupActions),
         isCurrent: false,
       });
@@ -221,28 +184,20 @@ const groupedActions = computed<GroupedItem[]>(() => {
     } else {
       // No shifts yet - show start_ascension as a group (current period)
       const groupActions = allActions.slice(1);
-      const previousOfflineEarnings = groupActions.map((_, idx) => {
-        const globalIdx = 1 + idx;
-        return getPreviousOfflineEarnings(globalIdx);
-      });
-
       let periodTimeSeconds = 0;
-      groupActions.forEach((action, idx) => {
-        periodTimeSeconds += getActionTimeSeconds(action, previousOfflineEarnings[idx]);
+      groupActions.forEach((action) => {
+        periodTimeSeconds += (action.totalTimeSeconds || 0);
       });
 
-      const periodEndTimestamp = new Date(
-        ascensionStartTime.value.getTime() + periodTimeSeconds * 1000
-      );
+
 
       result.push({
         type: 'group',
         key: `group_start`,
         headerAction: startAction,
         actions: groupActions,
-        previousOfflineEarnings,
         timeElapsedSeconds: periodTimeSeconds,
-        periodEndTimestamp,
+        periodTimestamp: ascensionStartTime.value,
         eggsDelivered: computePeriodEggsDelivered(startAction, groupActions),
         isCurrent: true,
       });
@@ -261,31 +216,21 @@ const groupedActions = computed<GroupedItem[]>(() => {
     const endIdx = isLastShift ? allActions.length : nextShiftIdx;
     const groupActions = allActions.slice(shiftIdx + 1, endIdx);
 
-    // Get previous offline earnings for each action in the group
-    const previousOfflineEarnings = groupActions.map((_, idx) => {
-      const globalIdx = shiftIdx + 1 + idx;
-      return getPreviousOfflineEarnings(globalIdx);
-    });
-
     // Calculate time elapsed in this period
     let periodTimeSeconds = 0;
-    groupActions.forEach((action, idx) => {
-      periodTimeSeconds += getActionTimeSeconds(action, previousOfflineEarnings[idx]);
+    groupActions.forEach((action) => {
+      periodTimeSeconds += (action.totalTimeSeconds || 0);
     });
 
-    // Create a group for this shift period (including the last/current one)
-    const periodEndTimestamp = new Date(
-      ascensionStartTime.value.getTime() + (cumulativeTimeSeconds + periodTimeSeconds) * 1000
-    );
+
 
     result.push({
       type: 'group',
       key: `group_${shiftAction.id}`,
       headerAction: shiftAction,
       actions: groupActions,
-      previousOfflineEarnings,
       timeElapsedSeconds: periodTimeSeconds,
-      periodEndTimestamp,
+      periodTimestamp: new Date(ascensionStartTime.value.getTime() + cumulativeTimeSeconds * 1000),
       eggsDelivered: computePeriodEggsDelivered(shiftAction, groupActions),
       isCurrent: isLastShift,
     });
@@ -297,10 +242,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
 });
 
 function handleUndoRequest(action: Action, options?: { skipConfirmation: boolean }) {
-  const validation = actionsStore.prepareUndo(action.id);
-  if (validation.valid && validation.action) {
-    emit('undo', validation.action, validation.dependentActions, options);
-  }
+  emit('undo', action, options);
 }
 
 function handleClearAll(event: MouseEvent) {
@@ -330,17 +272,5 @@ function computePeriodEggsDelivered(
   return Math.max(0, endDelivered - startDelivered);
 }
 
-/**
- * Get the offline earnings rate from the previous action's end state.
- * This is used to calculate how long it takes to save for the current action.
- */
-function getPreviousOfflineEarnings(index: number): number {
-  if (index === 0) {
-    // For start_ascension, return 0 (it has no cost anyway)
-    return 0;
-  }
-  // Get the previous action's end state offline earnings
-  const previousAction = actions.value[index - 1];
-  return previousAction?.endState?.offlineEarnings ?? 0;
-}
+// getPreviousOfflineEarnings removed
 </script>

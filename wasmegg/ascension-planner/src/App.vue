@@ -68,7 +68,8 @@
     <UndoConfirmationDialog
       v-if="undoAction"
       :action="undoAction"
-      :dependent-actions="undoDependentActions"
+      :dependents-a="undoDependentsA"
+      :dependents-b="undoDependentsB"
       @confirm="executeUndo"
       @cancel="cancelUndo"
     />
@@ -82,6 +83,9 @@
       @confirm="executeClearAll"
       @cancel="showClearAllConfirmation = false"
     />
+
+    <!-- Continuity Check Dialog -->
+    <ContinuityDialog />
 
     <AssetBrowser />
     <PlanFinalSummary @show-details="showCurrentDetails" />
@@ -104,6 +108,7 @@ import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
 import UndoConfirmationDialog from '@/components/UndoConfirmationDialog.vue';
 import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import AssetBrowser from '@/components/AssetBrowser.vue';
+import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import { formatNumber } from '@/lib/format';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
@@ -152,7 +157,8 @@ const actionCount = computed(() => actionsStore.actionCount);
 const showDetailsModal = ref(false);
 const detailsModalAction = ref<Action | null>(null);
 const undoAction = ref<Action | null>(null);
-const undoDependentActions = ref<Action[]>([]);
+const undoDependentsA = ref<Action[]>([]);
+const undoDependentsB = ref<Action[]>([]);
 const showClearAllConfirmation = ref(false);
 
 // Modal handlers
@@ -177,28 +183,31 @@ function closeActionDetails() {
   showDetailsModal.value = false;
 }
 
-function showUndoConfirmation(action: Action, dependentActions: Action[], options?: { skipConfirmation: boolean }) {
+function showUndoConfirmation(action: Action, options?: { skipConfirmation: boolean }) {
+  const validationA = actionsStore.prepareUndo(action.id);
+  const validationB = actionsStore.prepareUndoUntilShift(action.id);
+
+  undoAction.value = action;
+  undoDependentsA.value = validationA.dependentActions;
+  undoDependentsB.value = validationB.dependentActions;
+
   if (options?.skipConfirmation) {
-    undoAction.value = action;
-    undoDependentActions.value = dependentActions;
-    executeUndo();
-  } else {
-    undoAction.value = action;
-    undoDependentActions.value = dependentActions;
+    executeUndo('truncate');
   }
 }
 
 function cancelUndo() {
   undoAction.value = null;
-  undoDependentActions.value = [];
+  undoDependentsA.value = [];
+  undoDependentsB.value = [];
 }
 
-function executeUndo() {
+function executeUndo(mode: 'dependents' | 'truncate' = 'dependents') {
   if (!undoAction.value) return;
 
   actionsStore.executeUndo(
     undoAction.value.id,
-    undoDependentActions.value.length > 0,
+    mode,
     (snapshot) => {
       // Restore stores to the snapshot of the last remaining action
       restoreFromSnapshot(snapshot);

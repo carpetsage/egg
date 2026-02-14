@@ -42,7 +42,10 @@
     <div class="text-right w-24">
       <template v-if="!isMaxed">
         <div class="text-xs text-amber-600 font-mono">
-          {{ formatNumber(price, 0) }}
+          <div class="flex items-center justify-end gap-1">
+            {{ formatNumber(price, 0) }}
+            <img :src="iconURL('egginc/icon_virtue_gem.png', 64)" class="w-3 h-3 object-contain" alt="Gem" />
+          </div>
           <div v-if="timeToBuy" class="text-[10px] text-gray-400 mt-0.5">
             {{ timeToBuy }}
           </div>

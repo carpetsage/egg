@@ -19,6 +19,7 @@ import type {
   VirtueEgg,
 } from '@/types';
 import type { ArtifactSlotPayload } from '@/types';
+import { getResearchById, TIER_UNLOCK_THRESHOLDS } from '@/calculations/commonResearch';
 import { startAscensionExecutor } from './executors/startAscension';
 import { buyVehicleExecutor } from './executors/buyVehicle';
 import { buyHabExecutor } from './executors/buyHab';
@@ -223,7 +224,39 @@ export function computeDependencies(
     // No additional specific dependencies needed for now
   }
 
+  // Tier unlock dependencies
+  if (type === 'buy_research') {
+    const researchPayload = payload as BuyResearchPayload;
+    const research = getResearchById(researchPayload.researchId);
+    if (research && research.tier > 1) {
+      const threshold = TIER_UNLOCK_THRESHOLDS[research.tier - 1];
+      const thresholdAction = findNthResearchPurchase(existingActions, threshold);
+      if (thresholdAction) {
+        deps.push(thresholdAction.id);
+      }
+    }
+  }
+
   return deps;
+}
+
+/**
+ * Find the N-th research purchase in the entire history (across all tiers).
+ * This is the action that definitively unlocked a higher tier.
+ */
+function findNthResearchPurchase(actions: Action[], n: number): Action | undefined {
+  let count = 0;
+  for (const action of actions) {
+    if (action.type === 'buy_research') {
+      const payload = action.payload as BuyResearchPayload;
+      const levelsBought = payload.toLevel - payload.fromLevel;
+      count += levelsBought;
+      if (count >= n) {
+        return action;
+      }
+    }
+  }
+  return undefined;
 }
 
 /**

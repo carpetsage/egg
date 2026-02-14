@@ -10,6 +10,7 @@ import {
   createEmptySnapshot,
   createEmptyUndoValidation,
   generateActionId,
+  type ToggleSalePayload,
 } from '@/types';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { downloadFile } from '@/utils/export';
@@ -20,9 +21,12 @@ import { useTruthEggsStore } from '@/stores/truthEggs';
 
 // Engine imports
 import { simulate } from '@/engine/simulate';
-import { applyAction, computePassiveEggsDelivered, applyPassiveEggs } from '@/engine/apply';
+import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, getActionDuration } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
+import { computeDependencies } from '@/lib/actions/executor';
+import { getResearchById, TIER_UNLOCK_THRESHOLDS } from '@/calculations/commonResearch';
+import type { BuyResearchPayload } from '@/types';
 
 /**
  * Actions store - THE source of truth for calculation state.
@@ -60,6 +64,7 @@ function createDefaultStartAction(initialEgg: VirtueEgg = 'curiosity'): Action<'
     layRateDelta: 0,
     shippingCapacityDelta: 0,
     ihrDelta: 0,
+    totalTimeSeconds: 0,
     endState: createEmptySnapshot(), // Placeholder, will be computed by engine
     dependsOn: [],
     dependents: [],
@@ -228,7 +233,28 @@ export const useActionsStore = defineStore('actions', {
      * Add a new action.
      * Uses the pure engine to compute the result and updates history.
      */
-    pushAction(action: Omit<Action, 'index' | 'dependents'> & { dependsOn: string[] }) {
+    pushAction(action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds'> & { dependsOn: string[] }) {
+      // 0. Check for redundant sequential toggle_sale
+      if (action.type === 'toggle_sale') {
+        const payload = action.payload as ToggleSalePayload;
+        const lastAction = this.actions[this.actions.length - 1];
+        if (
+          lastAction &&
+          lastAction.type === 'toggle_sale'
+        ) {
+          const lastPayload = lastAction.payload as ToggleSalePayload;
+          if (
+            lastPayload.saleType === payload.saleType &&
+            lastPayload.active !== payload.active &&
+            lastAction.dependents.length === 0
+          ) {
+            // It's a redundant toggle! Remove the last one instead of adding this one.
+            this.executeUndo(lastAction.id, 'dependents');
+            return;
+          }
+        }
+      }
+
       // 1. Get Context
       const context = getSimulationContext();
 
@@ -243,6 +269,7 @@ export const useActionsStore = defineStore('actions', {
         ...action,
         index: this.actions.length,
         dependents: [],
+        totalTimeSeconds: 0,
         // Temporary placeholder, will be overwritten
         endState: createEmptySnapshot(),
       } as Action;
@@ -255,6 +282,7 @@ export const useActionsStore = defineStore('actions', {
       let newState = applyAction(prevState, fullAction);
 
       // Add passively delivered eggs during this action's duration
+      const durationSeconds = getActionDuration(fullAction, prevSnapshot);
       const passiveEggs = computePassiveEggsDelivered(fullAction, prevSnapshot);
       newState = applyPassiveEggs(newState, passiveEggs);
 
@@ -268,6 +296,7 @@ export const useActionsStore = defineStore('actions', {
       const finalAction: Action = {
         ...fullAction,
         ...deltas,
+        totalTimeSeconds: durationSeconds,
         endState: markRaw(newSnapshot),
       };
 
@@ -307,7 +336,9 @@ export const useActionsStore = defineStore('actions', {
         return createEmptyUndoValidation();
       }
 
-      const dependents = this.getDependentActions(actionId);
+      const toRemove = this.getActionsRequiringRemoval(new Set([actionId]));
+      const dependents = toRemove.filter(a => a.id !== actionId);
+
       return {
         valid: true,
         action,
@@ -317,19 +348,123 @@ export const useActionsStore = defineStore('actions', {
     },
 
     /**
+     * Validate an "undo until next shift" operation.
+     * Collects the target action and all actions after it up to (but not including) the next shift.
+     * Also recursively collects any dependents (like tier locks) even if they are in later shifts.
+     */
+    prepareUndoUntilShift(actionId: string): UndoValidation {
+      const action = this.actions.find(a => a.id === actionId);
+      if (!action) {
+        return createEmptyUndoValidation();
+      }
+
+      if (action.type === 'start_ascension') {
+        return createEmptyUndoValidation();
+      }
+
+      const index = this.actions.findIndex(a => a.id === actionId);
+      const initialToRemove = new Set<string>();
+
+      // Add the action itself and all actions after it until the next shift (or end of list)
+      for (let i = index; i < this.actions.length; i++) {
+        if (i > index && this.actions[i].type === 'shift') {
+          break;
+        }
+        initialToRemove.add(this.actions[i].id);
+      }
+
+      const toRemove = this.getActionsRequiringRemoval(initialToRemove);
+      const dependents = toRemove.filter(a => a.id !== actionId);
+
+      return {
+        valid: true,
+        action,
+        dependentActions: dependents,
+        needsRecursiveUndo: dependents.length > 0,
+      };
+    },
+
+    /**
+     * Given a set of actions to remove, find all other actions that MUST also be removed
+     * because they either explicitly depend on them or their requirements (like research tiers) 
+     * are no longer met after the removal.
+     */
+    getActionsRequiringRemoval(initialIds: Set<string>): Action[] {
+      const toRemove = new Set<string>(initialIds);
+      let changed = true;
+
+      while (changed) {
+        changed = false;
+        const currentCount = toRemove.size;
+
+        // 1. Explicit dependents (recursive)
+        // We do this by checking every action's dependsOn for anything currently in toRemove
+        for (const action of this.actions) {
+          if (toRemove.has(action.id)) continue;
+
+          for (const depId of action.dependsOn) {
+            if (toRemove.has(depId)) {
+              toRemove.add(action.id);
+              break;
+            }
+          }
+        }
+
+        // 2. Tier locks
+        // We need to count research purchases in chronological order, skipping actions to be removed
+        let researchPurchases = 0;
+        const sortedActions = [...this.actions].sort((a, b) => a.index - b.index);
+
+        for (const action of sortedActions) {
+          if (toRemove.has(action.id)) continue;
+
+          if (action.type === 'buy_research') {
+            const payload = action.payload as BuyResearchPayload;
+            const research = getResearchById(payload.researchId);
+
+            // Check tier unlock
+            if (research && research.tier > 1) {
+              const threshold = TIER_UNLOCK_THRESHOLDS[research.tier - 1];
+              if (researchPurchases < threshold) {
+                // Tier is LOCKED! Must remove this action.
+                toRemove.add(action.id);
+                // No need to check other conditions for this action
+                continue;
+              }
+            }
+
+            // Count purchases for unlocking future tiers
+            researchPurchases += (payload.toLevel - payload.fromLevel);
+          }
+        }
+
+        if (toRemove.size > currentCount) {
+          changed = true;
+        }
+      }
+
+      return this.actions
+        .filter(a => toRemove.has(a.id))
+        .sort((a, b) => a.index - b.index);
+    },
+
+    /**
      * Execute undo after user confirmation.
      */
     executeUndo(
       actionId: string,
-      includeDependents: boolean,
-      restoreCallback?: (snapshot: CalculationsSnapshot) => void // Optional now as we handle it
+      mode: 'dependents' | 'truncate' = 'dependents',
+      restoreCallback?: (snapshot: CalculationsSnapshot) => void
     ) {
-      const validation = this.prepareUndo(actionId);
+      const validation = mode === 'dependents'
+        ? this.prepareUndo(actionId)
+        : this.prepareUndoUntilShift(actionId);
+
       if (!validation.valid) return;
 
       // Collect all actions to remove
       const toRemove = new Set<string>([actionId]);
-      if (includeDependents && validation.dependentActions) {
+      if (validation.dependentActions) {
         for (const dep of validation.dependentActions) {
           toRemove.add(dep.id);
         }
@@ -348,6 +483,24 @@ export const useActionsStore = defineStore('actions', {
 
       // RecalculateAll automatically syncs stores to the effective snapshot.
       if (restoreCallback) restoreCallback(this.effectiveSnapshot);
+    },
+
+    /**
+     * Remove multiple actions by ID and their dependents.
+     */
+    removeActions(ids: string[]) {
+      const toRemove = new Set(ids);
+      const fullToRemove = this.getActionsRequiringRemoval(toRemove);
+      const fullIds = new Set(fullToRemove.map(a => a.id));
+
+      this.actions = this.actions.filter(a => !fullIds.has(a.id));
+
+      // Cleanup remaining dependents
+      this.actions.forEach(a => {
+        a.dependents = a.dependents.filter(d => !fullIds.has(d));
+      });
+
+      this.recalculateAll();
     },
 
     /**
@@ -427,7 +580,7 @@ export const useActionsStore = defineStore('actions', {
      * Uses pure engine simulation for re-calculation.
      */
     insertAction(
-      action: Omit<Action, 'index' | 'dependents'> & { dependsOn: string[] },
+      action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds'> & { dependsOn: string[] },
       replayCallback?: any // unused now, kept for signature partial compat if needed
     ) {
       const insertIndex = this.editingInsertIndex;
@@ -438,11 +591,33 @@ export const useActionsStore = defineStore('actions', {
         return;
       }
 
+      // 0. Check for redundant sequential toggle_sale
+      if (action.type === 'toggle_sale') {
+        const payload = action.payload as ToggleSalePayload;
+        const prevAction = this.actions[insertIndex - 1];
+        if (
+          prevAction &&
+          prevAction.type === 'toggle_sale'
+        ) {
+          const prevPayload = prevAction.payload as ToggleSalePayload;
+          if (
+            prevPayload.saleType === payload.saleType &&
+            prevPayload.active !== payload.active &&
+            prevAction.dependents.length === 0
+          ) {
+            // Redundant toggle! Remove the previous one instead of adding this one.
+            this.executeUndo(prevAction.id, 'dependents');
+            return;
+          }
+        }
+      }
+
       // Create full action
       const fullAction: Action = {
         ...action,
         index: insertIndex,
         dependents: [],
+        totalTimeSeconds: 0,
         endState: createEmptySnapshot(), // Placeholder
       } as Action;
 
@@ -491,11 +666,43 @@ export const useActionsStore = defineStore('actions', {
 
       this.actions = newActions;
 
+      // Re-link dependencies to ensure tier locks and other dynamic deps are captured
+      this.relinkDependencies();
+
       // Sync stores to the effective snapshot.
       // If NOT editing, effectiveSnapshot === currentSnapshot (the head).
       // If editing, effectiveSnapshot is the end of the editing group.
       // This ensures the rest of the app (UI) always sees the relevant state.
       syncStoresToSnapshot(this.effectiveSnapshot);
+    },
+
+    /**
+     * Re-build the dependency graph for all actions.
+     * Tier locks and level requirements are captured here.
+     */
+    relinkDependencies() {
+      // 1. Clear existing linkages
+      for (const action of this.actions) {
+        action.dependsOn = [];
+        action.dependents = [];
+      }
+
+      // 2. Recompute and build
+      for (let i = 0; i < this.actions.length; i++) {
+        const action = this.actions[i];
+        const existingActions = this.actions.slice(0, i);
+
+        // Compute new dependsOn
+        action.dependsOn = computeDependencies(action.type, action.payload, existingActions);
+
+        // Update dependents on the parent actions
+        for (const depId of action.dependsOn) {
+          const depAction = this.actions.find(a => a.id === depId);
+          if (depAction) {
+            depAction.dependents.push(action.id);
+          }
+        }
+      }
     },
 
     toggleGroupExpansion(groupId: string) {
@@ -538,6 +745,9 @@ export const useActionsStore = defineStore('actions', {
           activeArtifactSet: initialStateStore.activeArtifactSet,
           currentFarmState: initialStateStore.currentFarmState,
           assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
+          initialFuelAmounts: initialStateStore.initialFuelAmounts,
+          initialEggsDelivered: initialStateStore.initialEggsDelivered,
+          initialTeEarned: initialStateStore.initialTeEarned,
         },
         virtueState: {
           shiftCount: virtueStore.initialShiftCount,
@@ -558,7 +768,11 @@ export const useActionsStore = defineStore('actions', {
       };
 
       const jsonString = JSON.stringify(exportData, null, 2);
-      const filename = `ascension-plan-${new Date().toISOString().split('T')[0]}.json`;
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const filename = `ascension-plan-${year}-${month}-${day}.json`;
       downloadFile(filename, jsonString, 'application/json');
     },
 

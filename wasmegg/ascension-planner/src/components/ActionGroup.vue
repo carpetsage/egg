@@ -38,7 +38,7 @@
       <!-- Time info -->
       <div class="text-right shrink-0">
         <div class="text-xs font-medium text-purple-700">
-          {{ formattedPeriodEndTime }}
+          {{ formattedTimestamp }}
         </div>
         <div class="text-[10px] text-purple-500">
           {{ formattedTimeElapsed }} elapsed
@@ -138,7 +138,6 @@
           v-for="(action, idx) in actions"
           :key="action.id"
           :action="action"
-          :previous-offline-earnings="getPreviousOfflineEarnings(idx)"
           @show-details="$emit('show-details', action)"
           @undo="handleUndo($event, action)"
         />
@@ -174,9 +173,8 @@ const summaryComponents: Record<VirtueEgg, ReturnType<typeof defineAsyncComponen
 const props = defineProps<{
   headerAction: Action<'start_ascension'> | Action<'shift'>;
   actions: Action[];
-  previousActionsOfflineEarnings: number[];
   timeElapsedSeconds: number;
-  periodEndTimestamp: Date;
+  periodTimestamp: Date;
   eggsDelivered: number;
   isEditing?: boolean;
   isCurrent?: boolean;  // Whether this is the current (last) period
@@ -268,10 +266,10 @@ const headerText = computed(() => {
 const summaryComponent = computed(() => summaryComponents[currentEgg.value]);
 
 /**
- * Format the period end timestamp as "Mon Jan 5, 2:30 PM"
+ * Format the period timestamp as "Mon Jan 5, 2:30 PM"
  */
-const formattedPeriodEndTime = computed(() => {
-  const date = props.periodEndTimestamp;
+const formattedTimestamp = computed(() => {
+  const date = props.periodTimestamp;
   return date.toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -316,9 +314,7 @@ const formattedTimeElapsed = computed(() => {
   return `${totalDays}d ${hours}h`;
 });
 
-function getPreviousOfflineEarnings(index: number): number {
-  return props.previousActionsOfflineEarnings[index] ?? 0;
-}
+// getPreviousOfflineEarnings removed
 
 function handleUndo(event: MouseEvent | { skipConfirmation: boolean }, action: Action) {
   const skipConfirmation = 'shiftKey' in event ? event.shiftKey : event.skipConfirmation;

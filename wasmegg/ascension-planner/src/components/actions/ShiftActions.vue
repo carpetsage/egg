@@ -161,13 +161,7 @@ const timeSinceLastShiftSeconds = computed(() => {
 
   for (let i = lastShiftIndex.value + 1; i < actions.length; i++) {
     const action = actions[i];
-    // Get the offline earnings from the previous action's end state
-    const prevAction = actions[i - 1];
-    const prevOfflineEarnings = prevAction?.endState?.offlineEarnings ?? 0;
-
-    if (action.cost > 0 && prevOfflineEarnings > 0) {
-      totalSeconds += action.cost / prevOfflineEarnings;
-    }
+    totalSeconds += (action.totalTimeSeconds || 0);
   }
 
   return totalSeconds;

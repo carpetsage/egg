@@ -327,17 +327,21 @@ export function useResearchViews() {
 
                 const delta = newEarnings - currentEarnings;
                 const roiSeconds = delta > 0 ? price / delta : Infinity;
+                const timeToBuySeconds = currentEarnings > 0 ? price / currentEarnings : (price > 0 ? Infinity : 0);
+                const totalRoiSeconds = timeToBuySeconds + roiSeconds;
 
                 return {
                     research: r,
                     price,
                     currentLevel: level,
                     targetLevel: level + 1,
-                    timeToBuy: '', // Will be filled later or handled by component
+                    timeToBuy: timeToBuySeconds > 0 ? (timeToBuySeconds === Infinity ? '∞' : (timeToBuySeconds < 1 ? 'Instant' : formatDuration(timeToBuySeconds))) : '',
                     canBuy,
                     isMaxed: false,
                     roiSeconds,
+                    totalRoiSeconds,
                     roiLabel: delta > 0 ? formatDuration(roiSeconds) : 'No Impact',
+                    totalRoiLabel: totalRoiSeconds === Infinity ? 'No Impact' : (totalRoiSeconds < 1 ? 'Instant' : formatDuration(totalRoiSeconds)),
                     isLaying,
                     isShipping,
                     nextSnapshot,
@@ -398,13 +402,16 @@ export function useResearchViews() {
 
                 return {
                     ...c,
-                    extraStats: c.roiLabel,
-                    extraLabel: 'Payback',
+                    extraStats: c.totalRoiLabel,
+                    extraLabel: 'Achieve ROI',
                     recommendationNote,
                 };
             }).sort((a, b) => {
                 if (a.canBuy !== b.canBuy) return a.canBuy ? -1 : 1;
-                return a.roiSeconds - b.roiSeconds;
+                if (a.totalRoiSeconds === b.totalRoiSeconds) {
+                    return a.price - b.price;
+                }
+                return a.totalRoiSeconds - b.totalRoiSeconds;
             });
         }
 

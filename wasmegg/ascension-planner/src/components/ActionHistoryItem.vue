@@ -128,16 +128,20 @@ import { getExecutor } from '@/lib/actions';
 import { formatNumber } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { getResearchById } from '@/calculations/commonResearch';
+import { useActionsStore } from '@/stores/actions';
+import { useVirtueStore } from '@/stores/virtue';
 
 const props = defineProps<{
   action: Action;
-  previousOfflineEarnings: number;
 }>();
 
 const emit = defineEmits<{
   'show-details': [];
   'undo': [options: { skipConfirmation: boolean }];
 }>();
+
+const actionsStore = useActionsStore();
+const virtueStore = useVirtueStore();
 
 const isStartAction = computed(() => props.action.type === 'start_ascension');
 const isContinued = computed(() => {
@@ -235,10 +239,7 @@ const effectDescription = computed(() => {
  * Calculate time to save in seconds based on cost and previous offline earnings rate.
  */
 const timeToSaveSeconds = computed(() => {
-  if (props.action.cost <= 0 || props.previousOfflineEarnings <= 0) {
-    return 0;
-  }
-  return props.action.cost / props.previousOfflineEarnings;
+  return props.action.totalTimeSeconds || 0;
 });
 
 /**
@@ -285,27 +286,42 @@ const timeToSaveFormatted = computed(() => {
 });
 
 /**
+ * The absolute end time of this action, calculated from the ascension start time.
+ */
+const absoluteEndTime = computed(() => {
+  const { ascensionDate, ascensionTime } = virtueStore;
+  const dateTimeStr = `${ascensionDate}T${ascensionTime}:00`;
+  let startTime: Date;
+  try {
+    startTime = new Date(dateTimeStr);
+  } catch {
+    startTime = new Date();
+  }
+
+  const actions = actionsStore.actions;
+  const myIndex = props.action.index;
+  let totalSeconds = 0;
+  // Sum up all durations from the start to this action
+  for (let i = 0; i <= myIndex; i++) {
+    totalSeconds += actions[i].totalTimeSeconds || 0;
+  }
+  
+  return new Date(startTime.getTime() + totalSeconds * 1000);
+});
+
+/**
  * Detailed title for hover tooltip.
  */
 const timeToSaveTitle = computed(() => {
-  const totalSeconds = timeToSaveSeconds.value;
-  if (totalSeconds <= 0) {
-    return 'Free action';
-  }
-
-  const totalMinutes = Math.floor(totalSeconds / 60);
-  const totalHours = Math.floor(totalMinutes / 60);
-  const totalDays = Math.floor(totalHours / 24);
-
-  const minutes = totalMinutes % 60;
-  const hours = totalHours % 24;
-
-  const parts: string[] = [];
-  if (totalDays > 0) parts.push(`${totalDays} day${totalDays !== 1 ? 's' : ''}`);
-  if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
-  if (minutes > 0 && totalDays === 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
-
-  return `Time to save: ${parts.join(', ')}`;
+  const date = absoluteEndTime.value;
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: date.getMinutes() === 0 ? undefined : '2-digit',
+    hour12: true,
+  });
 });
 
 function deltaClass(delta: number): string {
