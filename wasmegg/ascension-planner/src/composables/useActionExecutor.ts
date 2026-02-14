@@ -42,12 +42,12 @@ export function useActionExecutor() {
    * Complete an action execution by computing the snapshot and adding to history.
    * Call this after applying changes to stores.
    */
-  function completeExecution(
+  async function completeExecution(
     action: Omit<Action, 'index' | 'dependents' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'endState' | 'totalTimeSeconds'> & {
       dependsOn: string[];
     },
     beforeSnapshotArg: CalculationsSnapshot
-  ): void {
+  ): Promise<void> {
     // Compute the new snapshot after the action
     const afterSnapshot = computeCurrentSnapshot();
     const deltas = computeDeltas(beforeSnapshotArg, afterSnapshot);
@@ -61,6 +61,24 @@ export function useActionExecutor() {
     };
 
     if (isEditingPastGroup.value) {
+      // Check for continuity conflicts
+      const { checkAndHandleContinuity } = await import('@/lib/continuity');
+
+      const shouldProceed = await checkAndHandleContinuity(
+        actionsStore.actions,
+        fullAction,
+        actionsStore.editingInsertIndex,
+        (idsToRemove) => {
+          actionsStore.removeActions(idsToRemove);
+        }
+      );
+
+      if (!shouldProceed) {
+        // User cancelled - revert stores
+        restoreFromSnapshot(beforeSnapshotArg);
+        return;
+      }
+
       // Insert at the correct position and replay subsequent actions
       actionsStore.insertAction(fullAction, replayAction);
 

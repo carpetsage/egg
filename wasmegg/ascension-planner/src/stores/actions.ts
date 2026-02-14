@@ -486,6 +486,24 @@ export const useActionsStore = defineStore('actions', {
     },
 
     /**
+     * Remove multiple actions by ID and their dependents.
+     */
+    removeActions(ids: string[]) {
+      const toRemove = new Set(ids);
+      const fullToRemove = this.getActionsRequiringRemoval(toRemove);
+      const fullIds = new Set(fullToRemove.map(a => a.id));
+
+      this.actions = this.actions.filter(a => !fullIds.has(a.id));
+
+      // Cleanup remaining dependents
+      this.actions.forEach(a => {
+        a.dependents = a.dependents.filter(d => !fullIds.has(d));
+      });
+
+      this.recalculateAll();
+    },
+
+    /**
      * Clear all actions except start_ascension.
      */
     clearAll(resetCallback?: () => void) {
