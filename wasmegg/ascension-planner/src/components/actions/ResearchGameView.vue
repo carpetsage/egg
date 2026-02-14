@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { type CommonResearch } from '@/calculations/commonResearch';
 import ResearchItem from './ResearchItem.vue';
 
@@ -85,23 +85,40 @@ const props = defineProps<{
 
 defineEmits(['buy', 'max', 'max-tier']);
 
-const expandedTiers = ref(new Set<number>([1]));
+const expandedTiers = ref(new Set<number>());
+const autoExpanded = new Set<number>();
+
+function isTierMaxed(tier: number): boolean {
+  const summary = props.tierSummaries[tier];
+  if (!summary) return true;
+  return summary.purchasedLevels >= summary.totalLevels;
+}
+
+// Auto-expand any tier that is unlocked and has research available.
+// We track autoExpanded to avoid re-expanding a tier the user manually collapsed.
+watch(() => props.tierSummaries, (summaries) => {
+  if (!summaries) return;
+  for (const tier of props.tiers) {
+    const summary = summaries[tier];
+    if (summary?.isUnlocked && !isTierMaxed(tier) && !autoExpanded.has(tier)) {
+      expandedTiers.value.add(tier);
+      autoExpanded.add(tier);
+    }
+  }
+}, { immediate: true });
 
 function toggleTier(tier: number) {
   if (expandedTiers.value.has(tier)) {
     expandedTiers.value.delete(tier);
   } else {
     expandedTiers.value.add(tier);
+    // If the user manually expands it, we should probably mark it as auto-expanded 
+    // to prevent any weird logic, though it shouldn't matter much.
+    autoExpanded.add(tier);
   }
 }
 
 function getResearchesForTier(tier: number): CommonResearch[] {
   return props.researchByTier.get(tier) || [];
-}
-
-function isTierMaxed(tier: number): boolean {
-  const summary = props.tierSummaries[tier];
-  if (!summary) return true;
-  return summary.purchasedLevels >= summary.totalLevels;
 }
 </script>
