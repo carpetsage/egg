@@ -10,6 +10,7 @@ import {
   createEmptySnapshot,
   createEmptyUndoValidation,
   generateActionId,
+  type ToggleSalePayload,
 } from '@/types';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { downloadFile } from '@/utils/export';
@@ -230,6 +231,27 @@ export const useActionsStore = defineStore('actions', {
      * Uses the pure engine to compute the result and updates history.
      */
     pushAction(action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds'> & { dependsOn: string[] }) {
+      // 0. Check for redundant sequential toggle_sale
+      if (action.type === 'toggle_sale') {
+        const payload = action.payload as ToggleSalePayload;
+        const lastAction = this.actions[this.actions.length - 1];
+        if (
+          lastAction &&
+          lastAction.type === 'toggle_sale'
+        ) {
+          const lastPayload = lastAction.payload as ToggleSalePayload;
+          if (
+            lastPayload.saleType === payload.saleType &&
+            lastPayload.active !== payload.active &&
+            lastAction.dependents.length === 0
+          ) {
+            // It's a redundant toggle! Remove the last one instead of adding this one.
+            this.executeUndo(lastAction.id, false);
+            return;
+          }
+        }
+      }
+
       // 1. Get Context
       const context = getSimulationContext();
 
@@ -440,6 +462,27 @@ export const useActionsStore = defineStore('actions', {
         // Cast to satisfy TS if needed, though they should match now
         this.pushAction(action);
         return;
+      }
+
+      // 0. Check for redundant sequential toggle_sale
+      if (action.type === 'toggle_sale') {
+        const payload = action.payload as ToggleSalePayload;
+        const prevAction = this.actions[insertIndex - 1];
+        if (
+          prevAction &&
+          prevAction.type === 'toggle_sale'
+        ) {
+          const prevPayload = prevAction.payload as ToggleSalePayload;
+          if (
+            prevPayload.saleType === payload.saleType &&
+            prevPayload.active !== payload.active &&
+            prevAction.dependents.length === 0
+          ) {
+            // Redundant toggle! Remove the previous one instead of adding this one.
+            this.executeUndo(prevAction.id, false);
+            return;
+          }
+        }
       }
 
       // Create full action
