@@ -20,7 +20,7 @@ import { useTruthEggsStore } from '@/stores/truthEggs';
 
 // Engine imports
 import { simulate } from '@/engine/simulate';
-import { applyAction, computePassiveEggsDelivered, applyPassiveEggs } from '@/engine/apply';
+import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, getActionDuration } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
 
@@ -60,6 +60,7 @@ function createDefaultStartAction(initialEgg: VirtueEgg = 'curiosity'): Action<'
     layRateDelta: 0,
     shippingCapacityDelta: 0,
     ihrDelta: 0,
+    totalTimeSeconds: 0,
     endState: createEmptySnapshot(), // Placeholder, will be computed by engine
     dependsOn: [],
     dependents: [],
@@ -228,7 +229,7 @@ export const useActionsStore = defineStore('actions', {
      * Add a new action.
      * Uses the pure engine to compute the result and updates history.
      */
-    pushAction(action: Omit<Action, 'index' | 'dependents'> & { dependsOn: string[] }) {
+    pushAction(action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds'> & { dependsOn: string[] }) {
       // 1. Get Context
       const context = getSimulationContext();
 
@@ -243,6 +244,7 @@ export const useActionsStore = defineStore('actions', {
         ...action,
         index: this.actions.length,
         dependents: [],
+        totalTimeSeconds: 0,
         // Temporary placeholder, will be overwritten
         endState: createEmptySnapshot(),
       } as Action;
@@ -255,6 +257,7 @@ export const useActionsStore = defineStore('actions', {
       let newState = applyAction(prevState, fullAction);
 
       // Add passively delivered eggs during this action's duration
+      const durationSeconds = getActionDuration(fullAction, prevSnapshot);
       const passiveEggs = computePassiveEggsDelivered(fullAction, prevSnapshot);
       newState = applyPassiveEggs(newState, passiveEggs);
 
@@ -268,6 +271,7 @@ export const useActionsStore = defineStore('actions', {
       const finalAction: Action = {
         ...fullAction,
         ...deltas,
+        totalTimeSeconds: durationSeconds,
         endState: markRaw(newSnapshot),
       };
 
@@ -427,7 +431,7 @@ export const useActionsStore = defineStore('actions', {
      * Uses pure engine simulation for re-calculation.
      */
     insertAction(
-      action: Omit<Action, 'index' | 'dependents'> & { dependsOn: string[] },
+      action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds'> & { dependsOn: string[] },
       replayCallback?: any // unused now, kept for signature partial compat if needed
     ) {
       const insertIndex = this.editingInsertIndex;
@@ -443,6 +447,7 @@ export const useActionsStore = defineStore('actions', {
         ...action,
         index: insertIndex,
         dependents: [],
+        totalTimeSeconds: 0,
         endState: createEmptySnapshot(), // Placeholder
       } as Action;
 

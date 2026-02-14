@@ -121,8 +121,7 @@ const startDate = computed(() => {
 
 const totalDurationSeconds = computed(() => {
   return actionsStore.actions.reduce((sum, action) => {
-    const payload = action.payload as any;
-    return sum + (payload.timeSeconds || payload.totalTimeSeconds || 0);
+    return sum + (action.totalTimeSeconds || 0);
   }, 0);
 });
 

@@ -138,7 +138,6 @@
           v-for="(action, idx) in actions"
           :key="action.id"
           :action="action"
-          :previous-offline-earnings="getPreviousOfflineEarnings(idx)"
           @show-details="$emit('show-details', action)"
           @undo="handleUndo($event, action)"
         />
@@ -174,7 +173,6 @@ const summaryComponents: Record<VirtueEgg, ReturnType<typeof defineAsyncComponen
 const props = defineProps<{
   headerAction: Action<'start_ascension'> | Action<'shift'>;
   actions: Action[];
-  previousActionsOfflineEarnings: number[];
   timeElapsedSeconds: number;
   periodEndTimestamp: Date;
   eggsDelivered: number;
@@ -316,9 +314,7 @@ const formattedTimeElapsed = computed(() => {
   return `${totalDays}d ${hours}h`;
 });
 
-function getPreviousOfflineEarnings(index: number): number {
-  return props.previousActionsOfflineEarnings[index] ?? 0;
-}
+// getPreviousOfflineEarnings removed
 
 function handleUndo(event: MouseEvent | { skipConfirmation: boolean }, action: Action) {
   const skipConfirmation = 'shiftKey' in event ? event.shiftKey : event.skipConfirmation;

@@ -1,6 +1,6 @@
 import type { Action, CalculationsSnapshot } from '@/types';
 import type { EngineState, SimulationContext, SimulationResult } from './types';
-import { applyAction, computePassiveEggsDelivered, applyPassiveEggs } from './apply';
+import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, getActionDuration } from './apply';
 import { computeSnapshot } from './compute';
 import { computeDeltas } from '@/lib/actions/snapshot';
 
@@ -49,11 +49,15 @@ export function simulate(
 
         const deltas = computeDeltas(prevSnap, newSnapshot);
 
+        // 3b. Calculate duration
+        const durationSeconds = getActionDuration(action, prevSnap);
+
         // 4. Update action with new results and correct index
         results.push({
             ...action,
             index: i,
             ...deltas,
+            totalTimeSeconds: durationSeconds,
             endState: newSnapshot, // Caller should markRaw this if using Vue
         });
 

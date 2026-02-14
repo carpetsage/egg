@@ -131,7 +131,6 @@ import { getResearchById } from '@/calculations/commonResearch';
 
 const props = defineProps<{
   action: Action;
-  previousOfflineEarnings: number;
 }>();
 
 const emit = defineEmits<{
@@ -235,10 +234,7 @@ const effectDescription = computed(() => {
  * Calculate time to save in seconds based on cost and previous offline earnings rate.
  */
 const timeToSaveSeconds = computed(() => {
-  if (props.action.cost <= 0 || props.previousOfflineEarnings <= 0) {
-    return 0;
-  }
-  return props.action.cost / props.previousOfflineEarnings;
+  return props.action.totalTimeSeconds || 0;
 });
 
 /**

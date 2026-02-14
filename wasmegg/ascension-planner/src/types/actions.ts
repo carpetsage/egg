@@ -333,6 +333,8 @@ export interface BaseAction {
   // Snapshot of full state AFTER this action
   endState: CalculationsSnapshot;
 
+  totalTimeSeconds: number; // Total time spent saving for or executing this action
+
   // Dependency tracking for smart undo
   dependsOn: string[];   // Action IDs this action depends on
   dependents: string[];  // Action IDs that depend on this action

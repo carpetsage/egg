@@ -43,7 +43,7 @@ export function useActionExecutor() {
    * Call this after applying changes to stores.
    */
   function completeExecution(
-    action: Omit<Action, 'index' | 'dependents' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'endState'> & {
+    action: Omit<Action, 'index' | 'dependents' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'endState' | 'totalTimeSeconds'> & {
       dependsOn: string[];
     },
     beforeSnapshotArg: CalculationsSnapshot
@@ -56,6 +56,7 @@ export function useActionExecutor() {
     const fullAction = {
       ...action,
       ...deltas,
+      totalTimeSeconds: 0, // Placeholder, will be computed by engine
       endState: afterSnapshot,
     };
 

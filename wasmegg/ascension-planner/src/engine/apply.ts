@@ -18,6 +18,40 @@ import type { EngineState } from './types';
 import type { CalculationsSnapshot } from '@/types';
 
 /**
+ * Calculate the duration of an action in seconds.
+ */
+export function getActionDuration(
+    action: Action,
+    prevSnapshot: Pick<CalculationsSnapshot, 'offlineEarnings'>
+): number {
+    if (
+        action.type === 'store_fuel' ||
+        action.type === 'wait_for_te'
+    ) {
+        return (action.payload as any).timeSeconds || 0;
+    }
+
+    if (action.type === 'launch_missions') {
+        return (action.payload as LaunchMissionsPayload).totalTimeSeconds;
+    }
+
+    const GEM_COSTING_TYPES = [
+        'buy_research',
+        'buy_hab',
+        'buy_vehicle',
+        'buy_train_car',
+        'buy_silo',
+    ];
+
+    if (GEM_COSTING_TYPES.includes(action.type) && action.cost > 0 && prevSnapshot.offlineEarnings > 0) {
+        // Cost-based actions: duration = cost / offlineEarnings
+        return action.cost / prevSnapshot.offlineEarnings;
+    }
+
+    return 0;
+}
+
+/**
  * Calculate the number of eggs passively delivered during an action's duration.
  * During any action that takes time, the farm continues shipping eggs at the ELR.
  *
@@ -46,14 +80,7 @@ export function computePassiveEggsDelivered(
         return 0;
     }
 
-    let durationSeconds = 0;
-
-    if (action.type === 'launch_missions') {
-        durationSeconds = (action.payload as LaunchMissionsPayload).totalTimeSeconds;
-    } else if (action.cost > 0 && prevSnapshot.offlineEarnings > 0) {
-        // Cost-based actions: duration = cost / offlineEarnings
-        durationSeconds = action.cost / prevSnapshot.offlineEarnings;
-    }
+    const durationSeconds = getActionDuration(action, prevSnapshot);
 
     if (durationSeconds > 0 && prevSnapshot.elr > 0) {
         return prevSnapshot.elr * durationSeconds;
