@@ -67,7 +67,7 @@
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
           </div>
-          <span class="text-[11px] font-bold uppercase tracking-widest text-blue-800">5 Min Max Cap</span>
+          <span class="text-[11px] font-bold uppercase tracking-widest text-blue-800">5 Min Max Shipping</span>
         </button>
       </div>
     </div>
@@ -558,7 +558,7 @@ const maxVehiclesTime = computed(() => {
 
   let totalSeconds = 0;
   let virtualShippingCapacity = initialShippingCapacity;
-  let virtualVehicles = (snapshot.vehicles ? [...snapshot.vehicles] : []).slice(0, maxSlots);
+  let virtualVehicles = (snapshot.vehicles ? snapshot.vehicles.map(v => ({ ...v })) : []).slice(0, maxSlots);
 
   // Pad to max slots
   while (virtualVehicles.length < maxSlots) {
@@ -681,7 +681,25 @@ function handleBuy5MinCap() {
       const currentId = slot.vehicleId;
       const startId = currentId === null ? 0 : currentId + 1;
 
+      // Find the highest "instant" vehicle (cost < 1s of earnings) to skip intermediate steps
+      let maxInstantId = -1;
+      for (let id = startId; id <= 11; id++) {
+        const cost = getDiscountedVehiclePrice(
+          id,
+          vehicleCounts[id] || 0,
+          costModifiers.value,
+          isVehicleSaleActive.value
+        );
+        if (cost <= offlineEarnings) {
+          maxInstantId = id;
+        } else {
+          break;
+        }
+      }
+
       for (let nextId = startId; nextId <= 11; nextId++) {
+        if (nextId < maxInstantId) continue;
+
         const cost = getDiscountedVehiclePrice(
           nextId,
           vehicleCounts[nextId] || 0,

@@ -75,6 +75,7 @@ import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId, VIRTUE_EGGS } from '@/types';
 import type { VirtueEgg, LaunchMissionEntry } from '@/types';
+import { SHIP_INFO, Spaceship } from '@/lib/missions';
 
 import FuelTankGraphic from './rockets/FuelTankGraphic.vue';
 import MissionGrid from './rockets/MissionGrid.vue';
@@ -94,7 +95,7 @@ const ftlLevel = computed(() =>
 );
 
 const earningsPerSecond = computed(() =>
-  earningsOutput.value.onlineEarnings
+  Math.max(earningsOutput.value.onlineEarnings, earningsOutput.value.offlineEarnings)
 );
 
 const schedule = computed(() => rocketsStore.getSchedule(ftlLevel.value));
@@ -140,12 +141,18 @@ function handleLaunch() {
     }
   }
 
+  // Calculate total cost (gems)
+  let totalCost = 0;
+  for (const m of missions) {
+    totalCost += SHIP_INFO[m.ship as Spaceship].price * m.count;
+  }
+
   completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
     type: 'launch_missions',
     payload,
-    cost: 0,
+    cost: totalCost,
     dependsOn: dependencies,
   }, beforeSnapshot);
 
