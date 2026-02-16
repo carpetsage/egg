@@ -11,6 +11,7 @@ import {
   createEmptyUndoValidation,
   generateActionId,
   type ToggleSalePayload,
+  type UpdateArtifactSetPayload,
 } from '@/types';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { downloadFile } from '@/utils/export';
@@ -251,6 +252,27 @@ export const useActionsStore = defineStore('actions', {
             // It's a redundant toggle! Remove the last one instead of adding this one.
             this.executeUndo(lastAction.id, 'dependents');
             return;
+          }
+        }
+      }
+
+      // 0b. Merge sequential update_artifact_set
+      if (action.type === 'update_artifact_set') {
+        const payload = action.payload as UpdateArtifactSetPayload;
+        const lastAction = this.actions[this.actions.length - 1];
+        if (
+          lastAction &&
+          lastAction.type === 'update_artifact_set'
+        ) {
+          const lastPayload = lastAction.payload as UpdateArtifactSetPayload;
+          if (
+            lastPayload.setName === payload.setName &&
+            lastAction.dependents.length === 0
+          ) {
+            // Sequential updates to the same set!
+            // Remove the previous one and let the new one replace it.
+            this.executeUndo(lastAction.id, 'dependents');
+            // Continue to push the new action...
           }
         }
       }
@@ -607,6 +629,28 @@ export const useActionsStore = defineStore('actions', {
           ) {
             // Redundant toggle! Remove the previous one instead of adding this one.
             this.executeUndo(prevAction.id, 'dependents');
+            return;
+          }
+        }
+      }
+
+      // 0b. Merge sequential update_artifact_set
+      if (action.type === 'update_artifact_set') {
+        const payload = action.payload as UpdateArtifactSetPayload;
+        const prevAction = this.actions[insertIndex - 1];
+        if (
+          prevAction &&
+          prevAction.type === 'update_artifact_set'
+        ) {
+          const prevPayload = prevAction.payload as UpdateArtifactSetPayload;
+          if (
+            prevPayload.setName === payload.setName &&
+            prevAction.dependents.length === 0
+          ) {
+            // Sequential updates to the same set!
+            // Remove the previous one and let the new one replace it.
+            this.executeUndo(prevAction.id, 'dependents');
+            this.insertAction(action);
             return;
           }
         }
