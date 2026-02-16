@@ -95,7 +95,7 @@ const ftlLevel = computed(() =>
 );
 
 const earningsPerSecond = computed(() =>
-  earningsOutput.value.onlineEarnings
+  Math.max(earningsOutput.value.onlineEarnings, earningsOutput.value.offlineEarnings)
 );
 
 const schedule = computed(() => rocketsStore.getSchedule(ftlLevel.value));
