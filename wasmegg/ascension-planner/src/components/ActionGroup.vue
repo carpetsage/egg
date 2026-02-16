@@ -178,6 +178,7 @@ const props = defineProps<{
   eggsDelivered: number;
   isEditing?: boolean;
   isCurrent?: boolean;  // Whether this is the current (last) period
+  visitCount?: number;
 }>();
 
 const emit = defineEmits<{
@@ -253,11 +254,10 @@ const currentEgg = computed<VirtueEgg>(() => {
  * The header text to display.
  */
 const headerText = computed(() => {
-  if (props.headerAction.type === 'start_ascension') {
-    return `Start: ${VIRTUE_EGG_NAMES[currentEgg.value]}`;
-  } else {
-    return `Shift to ${VIRTUE_EGG_NAMES[currentEgg.value]}`;
-  }
+  const name = VIRTUE_EGG_NAMES[currentEgg.value];
+  const letter = name.charAt(0).toUpperCase();
+  const count = props.visitCount || 1;
+  return `${letter}${count}`;
 });
 
 /**

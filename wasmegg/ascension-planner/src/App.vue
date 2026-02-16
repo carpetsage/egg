@@ -88,6 +88,8 @@
     <ContinuityDialog />
 
     <PlanFinalSummary @show-details="showCurrentDetails" />
+
+    <FloatingStats @show-details="showCurrentDetails" />
   </div>
 </template>
 
@@ -108,6 +110,7 @@ import UndoConfirmationDialog from '@/components/UndoConfirmationDialog.vue';
 import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
+import FloatingStats from '@/components/FloatingStats.vue';
 import { formatNumber } from '@/lib/format';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';

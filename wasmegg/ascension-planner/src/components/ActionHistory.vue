@@ -33,6 +33,7 @@
           :time-elapsed-seconds="item.timeElapsedSeconds"
           :period-timestamp="item.periodTimestamp"
           :eggs-delivered="item.eggsDelivered"
+          :visit-count="item.visitCount"
           :is-editing="actionsStore.editingGroupId === item.headerAction.id"
           :is-current="item.isCurrent"
           :class="{ 'border-t border-gray-100': idx > 0 }"
@@ -120,6 +121,7 @@ interface GroupItem {
   timeElapsedSeconds: number;
   periodTimestamp: Date;  // When this period started
   eggsDelivered: number;  // Total eggs delivered during this period (for the current egg)
+  visitCount: number;     // Which visit number this is for the egg (1st, 2nd, etc.)
   isCurrent: boolean;  // Whether this is the current (last) period
 }
 
@@ -139,7 +141,14 @@ const groupedActions = computed<GroupedItem[]>(() => {
   const result: GroupedItem[] = [];
   const allActions = actions.value;
 
-  if (allActions.length === 0) return result;
+
+  const visitCounts: Record<string, number> = {
+    curiosity: 0,
+    integrity: 0,
+    humility: 0,
+    resilience: 0,
+    kindness: 0,
+  };
 
   // Find all shift indices
   const shiftIndices: number[] = [];
@@ -169,6 +178,8 @@ const groupedActions = computed<GroupedItem[]>(() => {
 
 
 
+      visitCounts[startAction.payload.initialEgg]++;
+
       result.push({
         type: 'group',
         key: `group_start`,
@@ -177,6 +188,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
         timeElapsedSeconds: periodTimeSeconds,
         periodTimestamp: ascensionStartTime.value,
         eggsDelivered: computePeriodEggsDelivered(startAction, groupActions),
+        visitCount: visitCounts[startAction.payload.initialEgg],
         isCurrent: false,
       });
 
@@ -191,6 +203,8 @@ const groupedActions = computed<GroupedItem[]>(() => {
 
 
 
+      visitCounts[startAction.payload.initialEgg]++;
+
       result.push({
         type: 'group',
         key: `group_start`,
@@ -199,6 +213,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
         timeElapsedSeconds: periodTimeSeconds,
         periodTimestamp: ascensionStartTime.value,
         eggsDelivered: computePeriodEggsDelivered(startAction, groupActions),
+        visitCount: visitCounts[startAction.payload.initialEgg],
         isCurrent: true,
       });
       return result;
@@ -224,6 +239,8 @@ const groupedActions = computed<GroupedItem[]>(() => {
 
 
 
+    visitCounts[shiftAction.payload.toEgg]++;
+
     result.push({
       type: 'group',
       key: `group_${shiftAction.id}`,
@@ -232,6 +249,7 @@ const groupedActions = computed<GroupedItem[]>(() => {
       timeElapsedSeconds: periodTimeSeconds,
       periodTimestamp: new Date(ascensionStartTime.value.getTime() + cumulativeTimeSeconds * 1000),
       eggsDelivered: computePeriodEggsDelivered(shiftAction, groupActions),
+      visitCount: visitCounts[shiftAction.payload.toEgg],
       isCurrent: isLastShift,
     });
 
