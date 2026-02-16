@@ -558,7 +558,7 @@ const maxVehiclesTime = computed(() => {
 
   let totalSeconds = 0;
   let virtualShippingCapacity = initialShippingCapacity;
-  let virtualVehicles = (snapshot.vehicles ? [...snapshot.vehicles] : []).slice(0, maxSlots);
+  let virtualVehicles = (snapshot.vehicles ? snapshot.vehicles.map(v => ({ ...v })) : []).slice(0, maxSlots);
 
   // Pad to max slots
   while (virtualVehicles.length < maxSlots) {
