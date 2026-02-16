@@ -34,7 +34,7 @@
     </div>
 
     <!-- Active Set Editor -->
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible">
       <div class="px-4 py-3 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
         <div class="flex items-center gap-2">
           <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Configuration</span>

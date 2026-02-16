@@ -87,7 +87,6 @@
     <!-- Continuity Check Dialog -->
     <ContinuityDialog />
 
-    <AssetBrowser />
     <PlanFinalSummary @show-details="showCurrentDetails" />
   </div>
 </template>
@@ -107,7 +106,6 @@ import AvailableActions from '@/components/AvailableActions.vue';
 import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
 import UndoConfirmationDialog from '@/components/UndoConfirmationDialog.vue';
 import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
-import AssetBrowser from '@/components/AssetBrowser.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import { formatNumber } from '@/lib/format';
