@@ -95,7 +95,7 @@
         </div>
         <div class="flex items-center gap-3">
           <span v-if="tierSummaries[tier].costToMax > 0" class="text-sm text-gray-500">
-            {{ formatNumber(tierSummaries[tier].costToMax, 0) }} gems to max
+            {{ formatGemPrice(tierSummaries[tier].costToMax) }} gems to max
           </span>
           <div class="flex gap-1">
             <button
@@ -156,7 +156,7 @@
                 v-if="getResearchLevel(research.id) < research.levels"
                 class="text-xs text-amber-600 mt-1"
               >
-                Next level: {{ formatNumber(getNextLevelCost(research), 0) }} gems
+                Next level: {{ formatGemPrice(getNextLevelCost(research)) }} gems
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -214,7 +214,7 @@ import {
   type ResearchCostModifiers,
   type CommonResearch,
 } from '@/calculations/commonResearch';
-import { formatNumber, formatPercent } from '@/lib/format';
+import { formatNumber, formatGemPrice, formatPercent } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 

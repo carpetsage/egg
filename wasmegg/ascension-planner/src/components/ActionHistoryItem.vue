@@ -80,7 +80,7 @@
         </template>
         <template v-else>
           <span class="text-sm font-mono text-amber-600">
-            {{ formatNumber(action.cost, 0) }}
+            {{ formatGemPrice(action.cost) }}
           </span>
           <span class="text-xs text-gray-400" :title="timeToSaveTitle">
             ({{ timeToSaveFormatted }})
@@ -128,7 +128,7 @@ import { VIRTUE_EGG_NAMES } from '@/types';
 import { getHabById } from '@/lib/habs';
 import { getVehicleType } from '@/lib/vehicles';
 import { getExecutor } from '@/lib/actions';
-import { formatNumber, formatDuration } from '@/lib/format';
+import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { getResearchById } from '@/calculations/commonResearch';
 import { useActionsStore } from '@/stores/actions';

@@ -35,6 +35,15 @@ export function formatNumber(value: number, decimals: number = 2): string {
 }
 
 /**
+ * Format a gem price.
+ * If the cost is under 1,000, don't show any decimals.
+ * If the cost is 1,000 or more, show with 3 decimal places.
+ */
+export function formatGemPrice(price: number): string {
+  return formatNumber(price, price < 1000 ? 0 : 3);
+}
+
+/**
  * Format a number with thousands separators, showing the full value without suffixes or rounding.
  *
  * @param value - The number to format

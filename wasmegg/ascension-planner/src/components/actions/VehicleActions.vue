@@ -101,7 +101,7 @@
               }
               const price = getVehiclePrice(item.id, index);
               const capacity = getVehicleCapacity({ vehicleId: item.id, trainLength: 1 }, index);
-              return `${item.name} (${formatNumber(capacity * 3600, 0)}/hr, ${formatNumber(price, 0)} gems) — ${getVehicleTimeToBuy(item.id, index)}`;
+              return `${item.name} (${formatNumber(capacity * 3600, 0)}/hr, ${formatGemPrice(price)} gems) — ${getVehicleTimeToBuy(item.id, index)}`;
             }
           "
           :get-item-icon-path="item => item.iconPath"
@@ -130,7 +130,7 @@
                 class="text-[10px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-md border border-blue-100 transition-all shadow-sm flex flex-col items-center min-w-[80px]"
                 @click="handleAddTrainCar(index)"
               >
-                <span>+1 Car ({{ formatNumber(getNextCarCost(slot), 0) }})</span>
+                <span>+1 Car ({{ formatGemPrice(getNextCarCost(slot)) }})</span>
                 <span class="text-[9px] font-medium opacity-70">{{ getCarTimeToBuy(slot) }}</span>
               </button>
 
@@ -140,7 +140,7 @@
                 class="text-[10px] font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white px-2 py-1 rounded-md border border-indigo-100 transition-all shadow-sm flex flex-col items-center min-w-[80px]"
                 @click="handleMaxTrainCars(index)"
               >
-                <span>Max (+{{ getRemainingCars(slot, index) }}) ({{ formatNumber(getTotalCarsCost(slot), 0) }})</span>
+                <span>Max (+{{ getRemainingCars(slot, index) }}) ({{ formatGemPrice(getTotalCarsCost(slot)) }})</span>
                 <span class="text-[9px] font-medium opacity-70">{{ getMaxCarsTimeToBuy(slot) }}</span>
               </button>
             </div>
@@ -180,7 +180,7 @@ import {
   type VehicleCostModifiers,
   type VehicleType,
 } from '@/lib/vehicles';
-import { formatNumber, formatDuration } from '@/lib/format';
+import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
 import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useShippingCapacity } from '@/composables/useShippingCapacity';
 import { useInitialStateStore } from '@/stores/initialState';

@@ -124,7 +124,7 @@ import {
   type Hab,
   type HabId,
 } from '@/lib/habs';
-import { formatNumber, formatDuration } from '@/lib/format';
+import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
 import { useHabCapacityStore } from '@/stores/habCapacity';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -205,7 +205,7 @@ function getHabDisplay(hab: Hab, slotIndex: number): string {
   const price = getHabPrice(hab.id, slotIndex);
   const time = getTimeToBuy(hab.id, slotIndex);
 
-  return `${hab.name} (${capacity} cap, ${formatNumber(price, 0)} gems) — ${time}`;
+  return `${hab.name} (${capacity} cap, ${formatGemPrice(price)} gems) — ${time}`;
 }
 
 function getTimeToBuy(habId: number, slotIndex: number): string {
