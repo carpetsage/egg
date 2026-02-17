@@ -176,7 +176,7 @@ function handleSmartBuy(threshold: number) {
     let itemBought = true;
     // Limit iterations to prevent infinite loops in edge cases
     let iterations = 0;
-    const maxIterations = 1000;
+    const maxIterations = 2500;
 
     while (itemBought && iterations < maxIterations) {
     itemBought = false;
