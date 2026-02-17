@@ -16,6 +16,53 @@ import {
 } from '@/types';
 import type { EngineState } from './types';
 import type { CalculationsSnapshot } from '@/types';
+import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
+
+/**
+ * Recalculate an action's payload based on the state before it executes.
+ * This is used for "dynamic" actions whose effects or durations depend
+ * on the current state (like ELR-based waiting).
+ */
+export function refreshActionPayload(
+    action: Action,
+    prevSnapshot: CalculationsSnapshot
+): Action {
+    if (action.type === 'wait_for_te') {
+        const payload = { ...action.payload as WaitForTEPayload };
+        const egg = payload.egg;
+        const currentDelivered = prevSnapshot.eggsDelivered[egg] || 0;
+
+        // Recalculate eggs needed based on targetTE intent
+        payload.eggsToLay = eggsNeededForTE(currentDelivered, payload.targetTE);
+
+        // Recalculate time based on new eggsToLay and current ELR
+        payload.timeSeconds = prevSnapshot.elr > 0 ? payload.eggsToLay / prevSnapshot.elr : 0;
+
+        // Update tracking fields
+        payload.startEggsDelivered = currentDelivered;
+        payload.startTE = countTEThresholdsPassed(currentDelivered);
+        payload.teGained = Math.max(0, payload.targetTE - payload.startTE);
+
+        return {
+            ...action,
+            payload,
+        };
+    }
+
+    if (action.type === 'store_fuel') {
+        const payload = { ...action.payload as StoreFuelPayload };
+
+        // Recalculate time based on fixed amount and current ELR
+        payload.timeSeconds = prevSnapshot.elr > 0 ? payload.amount / prevSnapshot.elr : 0;
+
+        return {
+            ...action,
+            payload,
+        };
+    }
+
+    return action;
+}
 
 /**
  * Calculate the duration of an action in seconds.
