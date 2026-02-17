@@ -108,7 +108,7 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { computeDependencies } from '@/lib/actions/executor';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { shiftCost } from 'lib';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatDuration } from '@/lib/format';
 
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
@@ -169,33 +169,7 @@ const timeSinceLastShiftSeconds = computed(() => {
 
 // Format the time
 const timeSinceLastShiftFormatted = computed(() => {
-  const totalSeconds = timeSinceLastShiftSeconds.value;
-
-  if (totalSeconds <= 0) return '0m';
-
-  const totalMinutes = Math.floor(totalSeconds / 60);
-  const totalHours = Math.floor(totalMinutes / 60);
-  const totalDays = Math.floor(totalHours / 24);
-
-  if (totalDays > 999) {
-    return '>999d';
-  }
-
-  if (totalDays > 0) {
-    const remainingHours = totalHours % 24;
-    return `${totalDays}d ${remainingHours}h`;
-  }
-
-  if (totalHours > 0) {
-    const remainingMinutes = totalMinutes % 60;
-    return `${totalHours}h ${remainingMinutes}m`;
-  }
-
-  if (totalMinutes > 0) {
-    return `${totalMinutes}m`;
-  }
-
-  return '<1m';
+  return formatDuration(timeSinceLastShiftSeconds.value);
 });
 
 const nextShiftCostValue = computed(() => {

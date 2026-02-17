@@ -152,7 +152,7 @@ import { iconURL } from 'lib';
 import { useActionsStore } from '@/stores/actions';
 import type { Action, VirtueEgg, StartAscensionPayload, ShiftPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatDuration } from '@/lib/format';
 import ActionHistoryItem from './ActionHistoryItem.vue';
 
 // Lazy load summary components
@@ -284,34 +284,7 @@ const formattedTimestamp = computed(() => {
  * Format the time elapsed in a human-readable way.
  */
 const formattedTimeElapsed = computed(() => {
-  const totalSeconds = props.timeElapsedSeconds;
-
-  if (totalSeconds < 60) {
-    return '<1m';
-  }
-
-  const totalMinutes = Math.floor(totalSeconds / 60);
-  const totalHours = Math.floor(totalMinutes / 60);
-  const totalDays = Math.floor(totalHours / 24);
-
-  const minutes = totalMinutes % 60;
-  const hours = totalHours % 24;
-
-  if (totalDays === 0) {
-    if (totalHours === 0) {
-      return `${minutes}m`;
-    }
-    return `${totalHours}h ${minutes}m`;
-  }
-
-  if (totalDays > 999) {
-    return '>999d';
-  }
-
-  if (hours === 0) {
-    return `${totalDays}d`;
-  }
-  return `${totalDays}d ${hours}h`;
+  return formatDuration(props.timeElapsedSeconds);
 });
 
 // getPreviousOfflineEarnings removed
