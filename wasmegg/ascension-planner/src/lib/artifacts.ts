@@ -1,6 +1,22 @@
 import { allPossibleTiers } from 'lib/artifacts/data';
 import { ei } from 'lib/proto';
 import { iconURL } from 'lib/utils';
+import {
+  Artifact,
+  ArtifactSet,
+  Inventory,
+  recommendArtifactSet,
+  Strategy,
+  contenderToArtifactSet,
+  newItem,
+} from 'lib/artifacts';
+import { allModifiersFromColleggtibles, maxModifierFromColleggtibles } from 'lib/collegtibles';
+import { getNumTruthEggs } from 'lib/earning_bonus';
+import {
+  eggValueMultiplier,
+  awayEarningsMultiplier,
+  researchPriceMultiplierFromArtifacts,
+} from 'lib/artifacts/virtue_effects';
 
 /**
  * Artifact and stone data processing for the ascension planner.
@@ -461,3 +477,183 @@ export function summarizeLoadout(loadout: EquippedArtifact[]): string {
 
   return parts.length > 0 ? parts.join(', ') : 'No artifacts equipped';
 }
+
+/**
+ * Check if the currently equipped set is "mostly earnings" artifacts.
+ * If true, we should favor the optimal set for the earnings slot.
+ */
+export function isMostlyEarningsSet(loadout: EquippedArtifact[]): boolean {
+  if (!loadout || loadout.length === 0) return false;
+
+  let earningsScore = 0;
+  let totalArtifacts = 0;
+
+  for (const slot of loadout) {
+    if (!slot.artifactId) continue;
+
+    totalArtifacts++;
+    const artifactId = slot.artifactId.toLowerCase();
+
+    // Earnings Artifacts
+    if (
+      artifactId.includes('necklace') || // Demeter's Necklace
+      artifactId.includes('ankh') ||     // Tungsten Ankh
+      artifactId.includes('totem') ||    // Lunar Totem
+      artifactId.includes('cube') ||     // Puzzle Cube
+      artifactId.includes('phial')       // Mercury's Lens (sometimes used)
+    ) {
+      earningsScore++;
+    }
+
+    // Earnings Stones (Lunar, Shell, Terra)
+    for (const stone of slot.stones) {
+      if (!stone) continue;
+      const stoneId = stone.toLowerCase();
+      if (
+        stoneId.includes('lunar') ||
+        stoneId.includes('shell') ||
+        stoneId.includes('terra')
+      ) {
+        earningsScore += 0.34; // Stones contribute fractionally
+      }
+    }
+  }
+
+  if (totalArtifacts === 0) return false;
+
+  return earningsScore >= 1.5;
+}
+
+/**
+ * Convert a lib Artifact to the planner's EquippedArtifact format.
+ */
+export function libArtifactToEquippedArtifact(afx: Artifact): EquippedArtifact {
+  const tier = allPossibleTiers.find(t => t.afx_id === afx.afxId && t.afx_level === afx.afxLevel);
+  if (!tier) {
+    return { artifactId: null, stones: [] };
+  }
+
+  const artifactId = `${tier.family.id}-${tier.tier_number}-${afx.afxRarity}`;
+  const stones = afx.stones.map(s => {
+    const stoneTier = allPossibleTiers.find(t => t.afx_id === s.afxId && t.afx_level === s.afxLevel);
+    return stoneTier ? `${stoneTier.family.id}-${stoneTier.tier_number}` : null;
+  });
+
+  return { artifactId, stones };
+}
+
+/**
+ * Calculate "Clothed TE" - effective Truth Egg count adjusted for artifacts and missing bonuses.
+ * Reused from virtue-companion.
+ */
+/**
+ * Calculate Clothed TE (theoretical earnings metric).
+ * Reused from virtue-companion.
+ */
+export function calculateClothedTE(
+  truthEggs: number,
+  artifacts: Artifact[],
+  currentColleggtibleModifiers: { earnings: number; awayEarnings: number; researchCost: number },
+  maxColleggtibleModifiers: { earnings: number; awayEarnings: number; researchCost: number },
+  labUpgradeLevel: number,
+  permitLevel: number = 1
+): number {
+  const eggValueMult = eggValueMultiplier(artifacts);
+  const awayEarningsMult = awayEarningsMultiplier(artifacts);
+  const artifactResearchPriceMult = researchPriceMultiplierFromArtifacts(artifacts);
+
+  const epicResearchMult = 1 + labUpgradeLevel * -0.05;
+  const maxEpicResearchMult = 0.5; // Max level 10
+
+  const permitMult = permitLevel === 1 ? 1 : 0.5;
+
+  const earningsEffect = eggValueMult * awayEarningsMult;
+  const currentResearchPriceMult = artifactResearchPriceMult * epicResearchMult * currentColleggtibleModifiers.researchCost;
+  const researchDiscountEffect = 1 / currentResearchPriceMult;
+  const maxResearchDiscountEffect = 1 / (maxEpicResearchMult * maxColleggtibleModifiers.researchCost);
+
+  const earningsPenalty = currentColleggtibleModifiers.earnings / maxColleggtibleModifiers.earnings;
+  const awayEarningsPenalty = currentColleggtibleModifiers.awayEarnings / maxColleggtibleModifiers.awayEarnings;
+  const researchCostPenalty = researchDiscountEffect / maxResearchDiscountEffect;
+
+  const totalMultiplier = earningsEffect * permitMult * earningsPenalty * awayEarningsPenalty * researchCostPenalty;
+
+  const multiplierAsTE = Math.log(totalMultiplier) / Math.log(1.1);
+  return truthEggs + multiplierAsTE;
+}
+
+/**
+ * Wrapper for calculateClothedTE that extracts necessary data from backup.
+ */
+export function calculateClothedTEFromBackup(backup: ei.IBackup, artifacts: Artifact[]): number {
+  const truthEggs = getNumTruthEggs(backup);
+  const currentModifiers = allModifiersFromColleggtibles(backup);
+  const maxEarningsModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.EARNINGS);
+  const maxAwayEarningsModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.AWAY_EARNINGS);
+  const maxResearchCostModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.RESEARCH_COST);
+
+  const commonResearch = backup.farms?.[0]?.commonResearch || [];
+  const labUpgrade = commonResearch.find(r => r.id === 'cheaper_research');
+  const labUpgradeLevel = labUpgrade?.level || 0;
+
+  return calculateClothedTE(
+    truthEggs,
+    artifacts,
+    {
+      earnings: currentModifiers.earnings,
+      awayEarnings: currentModifiers.awayEarnings,
+      researchCost: currentModifiers.researchCost,
+    },
+    {
+      earnings: maxEarningsModifier,
+      awayEarnings: maxAwayEarningsModifier,
+      researchCost: maxResearchCostModifier,
+    },
+    labUpgradeLevel,
+    backup.game?.permitLevel ?? 1
+  );
+}
+
+/**
+ * Get the optimal artifact set for earnings (Clothed TE).
+ * Reused from virtue-companion.
+ */
+export function getOptimalEarningsSet(backup: ei.IBackup): EquippedArtifact[] {
+  if (!backup.artifactsDb) {
+    return createEmptyLoadout();
+  }
+
+  const inventory = new Inventory(backup.artifactsDb, { virtue: true });
+
+  // Manually recover currently equipped artifacts from backup to use as recommendation guide
+  const libArtifacts: Artifact[] = [];
+  const db = backup.artifactsDb?.virtueAfxDb;
+  if (db && db.inventoryItems && db.activeArtifacts?.slots) {
+    const itemIdToArtifact = new Map(
+      db.inventoryItems.map((item: any) => [item.itemId!, item.artifact!])
+    );
+    for (const slot of db.activeArtifacts.slots) {
+      if (slot.occupied && slot.itemId !== undefined && slot.itemId !== null) {
+        const artifact = itemIdToArtifact.get(slot.itemId);
+        if (artifact && artifact.spec) {
+          libArtifacts.push(
+            new Artifact(
+              newItem(artifact.spec),
+              (artifact.stones || []).map((s: any) => newItem(s))
+            )
+          );
+        }
+      }
+    }
+  }
+  const equipped = new ArtifactSet(libArtifacts, false);
+
+  const strategy =
+    backup.game?.permitLevel === 1 ? Strategy.PRO_PERMIT_VIRTUE_CTE : Strategy.STANDARD_PERMIT_VIRTUE_CTE;
+
+  const contender = recommendArtifactSet(backup, strategy);
+  const { artifactSet } = contenderToArtifactSet(contender, equipped, inventory);
+
+  return artifactSet.artifacts.map(libArtifactToEquippedArtifact);
+}
+
