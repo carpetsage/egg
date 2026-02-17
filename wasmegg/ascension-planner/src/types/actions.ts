@@ -291,6 +291,7 @@ export interface CalculationsSnapshot {
   offlineEarnings: number;
   onlineIHR: number;
   offlineIHR: number;
+  clothedTE: number;
 
   // Virtue state
   currentEgg: VirtueEgg;
@@ -465,6 +466,7 @@ export function createEmptySnapshot(): CalculationsSnapshot {
     offlineEarnings: 0,
     onlineIHR: 0,
     offlineIHR: 0,
+    clothedTE: 0,
     currentEgg: 'curiosity', // Default starting egg
     shiftCount: 0,
     te: 0,

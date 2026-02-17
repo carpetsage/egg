@@ -15,6 +15,8 @@ import {
   createEmptyLoadout,
   calculateArtifactModifiers,
   getArtifactLoadoutFromBackup,
+  getOptimalEarningsSet,
+  isMostlyEarningsSet,
 } from '@/lib/artifacts';
 
 export interface InitialStateStoreState {
@@ -193,6 +195,18 @@ export const useInitialStateStore = defineStore('initialState', {
 
       // Load artifact loadout from backup
       this.artifactLoadout = getArtifactLoadoutFromBackup(backup);
+
+      // Auto-populate optimal artifact sets
+      const optimalEarnings = getOptimalEarningsSet(backup);
+      this.artifactSets.earnings = optimalEarnings;
+
+      // Current set can be ELR set if it's not already mostly earnings artifacts
+      if (isMostlyEarningsSet(this.artifactLoadout)) {
+        this.activeArtifactSet = 'earnings';
+      } else {
+        this.activeArtifactSet = 'elr';
+        this.artifactSets.elr = JSON.parse(JSON.stringify(this.artifactLoadout));
+      }
 
       // Parse TE data from eovEarned array
       // Indices 0-4 map to: Curiosity, Integrity, Humility, Resilience, Kindness
