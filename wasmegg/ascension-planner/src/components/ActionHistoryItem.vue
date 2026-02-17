@@ -80,7 +80,7 @@
         </template>
         <template v-else>
           <span class="text-sm font-mono text-amber-600">
-            {{ formatNumber(action.cost, 0) }}
+            {{ formatGemPrice(action.cost) }}
           </span>
           <span class="text-xs text-gray-400" :title="timeToSaveTitle">
             ({{ timeToSaveFormatted }})
@@ -128,7 +128,7 @@ import { VIRTUE_EGG_NAMES } from '@/types';
 import { getHabById } from '@/lib/habs';
 import { getVehicleType } from '@/lib/vehicles';
 import { getExecutor } from '@/lib/actions';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { getResearchById } from '@/calculations/commonResearch';
 import { useActionsStore } from '@/stores/actions';
@@ -269,33 +269,7 @@ const timeToSaveFormatted = computed(() => {
     return 'free';
   }
 
-  const totalMinutes = Math.floor(totalSeconds / 60);
-  const totalHours = Math.floor(totalMinutes / 60);
-  const totalDays = Math.floor(totalHours / 24);
-
-  const minutes = totalMinutes % 60;
-  const hours = totalHours % 24;
-
-  if (totalMinutes < 1) {
-    return '<1m';
-  }
-
-  if (totalDays === 0) {
-    // Less than a day: show hours and minutes
-    if (totalHours === 0) {
-      return `${minutes}m`;
-    }
-    return `${totalHours}h${minutes}m`;
-  }
-
-  // 1+ days: show days and hours, no minutes
-  if (totalDays > 999) {
-    return '>999d';
-  }
-  if (hours === 0) {
-    return `${totalDays}d`;
-  }
-  return `${totalDays}d${hours}h`;
+  return formatDuration(totalSeconds);
 });
 
 /**

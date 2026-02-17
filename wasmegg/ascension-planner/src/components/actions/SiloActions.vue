@@ -78,7 +78,7 @@
           <div class="flex items-center gap-2">
             <span>Buy Silo #{{ siloOutput.siloCount + 1 }}</span>
             <span class="text-purple-200">·</span>
-            <span class="font-medium">{{ formatNumber(siloOutput.nextSiloCost, 0) }} gems</span>
+            <span class="font-medium">{{ formatGemPrice(siloOutput.nextSiloCost) }} gems</span>
           </div>
           <span v-if="timeToBuy" class="text-[10px] text-purple-200 font-mono">
             {{ timeToBuy }}
@@ -104,7 +104,7 @@ import { useSiloTime } from '@/composables/useSiloTime';
 import { useSilosStore } from '@/stores/silos';
 import { useActionsStore } from '@/stores/actions';
 import { computeDependencies } from '@/lib/actions/executor';
-import { formatNumber, formatDuration } from '@/lib/format';
+import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { generateActionId } from '@/types';

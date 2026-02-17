@@ -4,7 +4,7 @@
     <div class="flex justify-between items-center px-2">
       <span class="text-sm text-gray-600">{{ actionCount }} action{{ actionCount === 1 ? '' : 's' }}</span>
       <span class="text-sm font-mono text-amber-600">
-        Total: {{ formatNumber(totalCost, 0) }} gems
+        Total: {{ formatGemPrice(totalCost) }} gems
       </span>
     </div>
 
@@ -64,7 +64,7 @@ import { computed } from 'vue';
 import type { Action, StoreFuelPayload, WaitForTEPayload, LaunchMissionsPayload } from '@/types';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatGemPrice } from '@/lib/format';
 import ActionHistoryItem from './ActionHistoryItem.vue';
 import ActionGroup from './ActionGroup.vue';
 

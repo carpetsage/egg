@@ -29,7 +29,7 @@
               </span>
             </div>
             <div class="text-gray-500 pl-7.5">
-              {{ formatNumber(SHIP_INFO[ship].price, 1) }}
+              {{ formatGemPrice(SHIP_INFO[ship].price) }}
             </div>
             <div class="text-gray-400 pl-7.5">
               save: {{ formatDuration(saveTime(ship)) }}
@@ -99,7 +99,7 @@ import {
   type Spaceship,
   type DurationType,
 } from '@/lib/missions';
-import { formatNumber, formatDuration } from '@/lib/format';
+import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
 
 const props = defineProps<{
   ftlLevel: number;
