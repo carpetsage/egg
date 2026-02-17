@@ -4,7 +4,7 @@
     class="fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 p-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-purple-100 min-w-[120px]"
   >
     <!-- Header: Shift Name -->
-    <div class="text-xl font-bold text-purple-900 leading-none">
+    <div class="text-xl font-bold text-purple-900 leading-none mb-1">
       {{ shiftName }}
     </div>
 
@@ -15,6 +15,15 @@
         class="w-full h-full object-contain"
         :alt="currentEgg"
       />
+    </div>
+
+    <!-- Shift Timing & Duration -->
+    <div v-if="dates" class="flex flex-col items-center text-[10px] text-gray-400 font-medium leading-tight mb-2">
+      <div>{{ formatDateTime(dates.start) }}</div>
+      <div class="text-purple-600 font-bold text-xs my-0.5 tracking-tight">
+        {{ formatShiftDuration(dates.duration) }}
+      </div>
+      <div>{{ formatDateTime(dates.end) }}</div>
     </div>
 
     <!-- Active Set Badge -->
@@ -109,6 +118,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useActionsStore } from '@/stores/actions';
+import { useVirtueStore } from '@/stores/virtue';
 import { iconURL } from 'lib';
 import { formatNumber } from '@/lib/format';
 import { VIRTUE_EGG_NAMES } from '@/types';
@@ -117,6 +127,7 @@ import type { VirtueEgg, Action, StartAscensionPayload, ShiftPayload } from '@/t
 const emit = defineEmits(['show-details']);
 
 const actionsStore = useActionsStore();
+const virtueStore = useVirtueStore();
 
 // Get the effective snapshot (state at the end of the edited/current shift)
 const snapshot = computed(() => actionsStore.effectiveSnapshot);
@@ -195,4 +206,95 @@ const shiftName = computed(() => {
 
   return `${letter}${count || 1}`;
 });
+
+/**
+ * Calculate the timing and duration for the current shift.
+ */
+const dates = computed(() => {
+  const { ascensionDate, ascensionTime } = virtueStore;
+  const dateTimeStr = `${ascensionDate}T${ascensionTime}:00`;
+  let startTime: Date;
+  try {
+    startTime = new Date(dateTimeStr);
+  } catch {
+    startTime = new Date();
+  }
+
+  const actions = actionsStore.actions;
+  
+  // Find the 'header' action for the current group
+  let headerIndex = -1;
+  if (actionsStore.editingGroupId) {
+    headerIndex = actions.findIndex(a => a.id === actionsStore.editingGroupId);
+  } else {
+    for (let i = actions.length - 1; i >= 0; i--) {
+      if (actions[i].type === 'shift' || actions[i].type === 'start_ascension') {
+        headerIndex = i;
+        break;
+      }
+    }
+  }
+
+  if (headerIndex === -1) return null;
+
+  // Cumulative time before this shift starts
+  let timeBeforeShift = 0;
+  for (let i = 0; i < headerIndex; i++) {
+    timeBeforeShift += actions[i].totalTimeSeconds || 0;
+  }
+
+  // Find the end of this shift
+  let nextShiftIndex = actions.findIndex((a, idx) => idx > headerIndex && a.type === 'shift');
+  let endActionIndex = nextShiftIndex === -1 ? actions.length - 1 : nextShiftIndex - 1;
+
+  let shiftDuration = 0;
+  for (let i = headerIndex; i <= endActionIndex; i++) {
+    shiftDuration += actions[i].totalTimeSeconds || 0;
+  }
+
+  const startMs = startTime.getTime() + timeBeforeShift * 1000;
+  const endMs = startMs + shiftDuration * 1000;
+
+  return {
+    start: new Date(startMs),
+    end: new Date(endMs),
+    duration: shiftDuration,
+  };
+});
+
+/**
+ * Format date/time as: Feb 7, 9:14 PM
+ */
+function formatDateTime(date: Date): string {
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  };
+  return date.toLocaleString('en-US', options);
+}
+
+/**
+ * Format duration as: 12d22h or 5h30m
+ */
+function formatShiftDuration(seconds: number): string {
+  if (seconds <= 0) return '0m';
+
+  const totalMinutes = Math.floor(seconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
+
+  const hours = totalHours % 24;
+  const minutes = totalMinutes % 60;
+
+  if (totalDays > 0) {
+    return `${totalDays}d${hours}h`;
+  }
+  if (totalHours > 0) {
+    return `${totalHours}h${minutes}m`;
+  }
+  return `${totalMinutes}m`;
+}
 </script>
