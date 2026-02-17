@@ -1,6 +1,6 @@
 import type { Action, CalculationsSnapshot } from '@/types';
 import type { EngineState, SimulationContext, SimulationResult } from './types';
-import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, getActionDuration } from './apply';
+import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, getActionDuration, refreshActionPayload } from './apply';
 import { computeSnapshot } from './compute';
 import { computeDeltas } from '@/lib/actions/snapshot';
 
@@ -28,7 +28,10 @@ export function simulate(
     let currentSnapshot = baseSnapshot;
 
     for (let i = 0; i < actions.length; i++) {
-        const action = actions[i];
+        let action = actions[i];
+
+        // 0. Refresh dynamic payloads (e.g. wait_for_te duration based on new ELR)
+        action = refreshActionPayload(action, currentSnapshot);
 
         // 1. Apply action to get new pure state
         currentState = applyAction(currentState, action);
