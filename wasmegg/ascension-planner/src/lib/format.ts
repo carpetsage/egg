@@ -162,3 +162,46 @@ export function parseNumber(str: string): number {
 
   return parseFloat(str);
 }
+/**
+ * Parse a duration string into seconds.
+ * Supports:
+ * - Float numbers (interpreted as hours)
+ * - Compressed format: 1d2h3m4s
+ *
+ * @param str - The duration string to parse
+ * @returns Duration in seconds, or NaN if invalid
+ *
+ * @example
+ * parseDuration("1.5") // 5400 (1.5 hours)
+ * parseDuration("1d2h") // 93600 (26 hours)
+ */
+export function parseDuration(str: string): number {
+  if (!str) return NaN;
+  const trimmed = str.trim().toLowerCase();
+
+  // Try parsing as simple float (hours)
+  if (/^\d+(\.\d+)?$/.test(trimmed)) {
+    return parseFloat(trimmed) * 3600;
+  }
+
+  // Try parsing as duration string (e.g., 1d2h3m4s)
+  let totalSeconds = 0;
+  let hasMatch = false;
+
+  const patterns = [
+    { regex: /(\d+)d/, factor: 86400 },
+    { regex: /(\d+)h/, factor: 3600 },
+    { regex: /(\d+)m/, factor: 60 },
+    { regex: /(\d+)s/, factor: 1 },
+  ];
+
+  for (const { regex, factor } of patterns) {
+    const match = trimmed.match(regex);
+    if (match) {
+      totalSeconds += parseInt(match[1]) * factor;
+      hasMatch = true;
+    }
+  }
+
+  return hasMatch ? totalSeconds : NaN;
+}

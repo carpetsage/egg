@@ -78,8 +78,12 @@ export function getActionDuration(
         return (action.payload as any).timeSeconds || 0;
     }
 
-    if (action.type === 'launch_missions') {
-        return (action.payload as LaunchMissionsPayload).totalTimeSeconds;
+    if (
+        action.type === 'launch_missions' ||
+        action.type === 'wait_for_missions' ||
+        action.type === 'wait_for_sleep'
+    ) {
+        return (action.payload as any).totalTimeSeconds || 0;
     }
 
     const GEM_COSTING_TYPES = [
@@ -358,6 +362,10 @@ export function applyAction(state: EngineState, action: Action): EngineState {
             }
 
             return newState;
+        }
+
+        case 'wait_for_sleep': {
+            return state;
         }
 
         // Default case: return state unchanged
