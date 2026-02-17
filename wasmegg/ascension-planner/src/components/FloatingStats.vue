@@ -1,122 +1,152 @@
 <template>
   <div
     v-if="actionsStore.hasStartAction"
-    class="fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 p-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-purple-100 min-w-[120px]"
+    class="fixed right-4 top-20 z-50 flex flex-col items-center bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-purple-100 transition-all duration-300"
+    :class="[isCollapsed ? 'p-1.5' : 'p-3 min-w-[124px]']"
   >
-    <!-- Header: Shift Name -->
-    <div class="text-xl font-bold text-purple-900 leading-none mb-1">
-      {{ shiftName }}
-    </div>
-
-    <!-- Egg Icon -->
-    <div class="w-10 h-10 bg-white rounded-full border border-purple-200 p-1 shadow-sm overflow-hidden mb-1">
-      <img
-        :src="iconURL(`egginc/egg_${currentEgg}.png`, 64)"
-        class="w-full h-full object-contain"
-        :alt="currentEgg"
-      />
-    </div>
-
-    <!-- Shift Timing & Duration -->
-    <div v-if="dates" class="flex flex-col items-center text-[10px] text-gray-400 font-medium leading-tight mb-2">
-      <div>{{ formatDateTime(dates.start) }}</div>
-      <div class="text-purple-600 font-bold text-xs my-0.5 tracking-tight">
-        {{ formatShiftDuration(dates.duration) }}
-      </div>
-      <div>{{ formatDateTime(dates.end) }}</div>
-    </div>
-
-    <!-- Active Set Badge -->
-    <div
-      v-if="activeSet"
-      class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-2"
-      :class="activeSet === 'earnings' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'"
-    >
-      {{ activeSet === 'earnings' ? 'Earnings' : 'ELR' }} Set
-    </div>
-    <div
-      v-else
-      class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-2 bg-red-100 text-red-700"
-    >
-      No Active Set
-    </div>
-
-    <!-- Stats Stack -->
-    <div class="flex flex-col gap-2 w-full text-xs">
-      <!-- Habs -->
-      <div class="flex flex-col items-center gap-0.5">
-        <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">Habs</span>
-        <span class="font-mono text-gray-900">
-          {{ formatNumber(habCapacity, 0) }}
-        </span>
-      </div>
-
-      <div class="w-full border-t border-gray-100"></div>
-
-      <!-- IHR -->
-      <div class="flex flex-col items-center gap-0.5">
-        <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">IHR</span>
-        <span class="font-mono text-gray-900">
-          {{ formatNumber(offlineIhr) }}/min
-        </span>
-      </div>
-
-      <div class="w-full border-t border-gray-100"></div>
-
-      <!-- Lay Rate -->
-      <div class="flex flex-col items-center gap-0.5">
-        <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">Lay Rate</span>
-        <span class="font-mono text-gray-900 font-bold">
-          {{ formatRate(layRateHr) }}
-        </span>
-      </div>
-
-      <div class="w-full border-t border-gray-100"></div>
-
-      <!-- Shipping -->
-      <div class="flex flex-col items-center gap-0.5">
-        <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide text-center">Shipping<br />Rate</span>
-        <span class="font-mono text-gray-900" :class="{ 'text-red-600': isShippingLimited }">
-          {{ formatRate(shippingHr) }}
-        </span>
-      </div>
-
-      <div class="w-full border-t border-gray-100"></div>
-
-      <!-- ELR -->
-      <div class="flex flex-col items-center gap-0.5">
-        <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">ELR</span>
-        <span class="font-mono text-gray-900 font-bold">
-          {{ formatRate(elrHr) }}
-        </span>
-      </div>
-
-      <div class="w-full border-t border-gray-100"></div>
-
-      <!-- Offline Earnings -->
-      <div class="flex flex-col items-center gap-0.5">
-        <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide text-center">Offline<br />Earnings</span>
-        <span class="font-mono text-gray-900">
-          {{ formatMoney(offlineEarningsHr) }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Details Button -->
+    <!-- Toggle Handler (Unobtrusive) -->
     <button
-      class="mt-2 text-purple-400 hover:text-purple-600 transition-colors p-1"
-      title="View Full Details"
-      @click="$emit('show-details')"
+      @click="isCollapsed = !isCollapsed"
+      class="w-full flex flex-col items-center group/toggle transition-colors"
+      :title="isCollapsed ? 'Expand Stats' : 'Collapse Stats'"
     >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+      <!-- Chevron Indicator -->
+      <div class="text-purple-300 group-hover/toggle:text-purple-500 transition-colors">
+        <svg
+          class="w-4 h-4 transition-transform duration-300"
+          :class="{ 'rotate-180': isCollapsed }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+
+      <!-- Egg Icon (Always visible) -->
+      <div
+        class="bg-white rounded-full border border-purple-200 shadow-sm overflow-hidden transition-all duration-300"
+        :class="[isCollapsed ? 'w-8 h-8 p-0.5' : 'w-10 h-10 p-1 mb-1 group-hover/toggle:scale-105']"
+      >
+        <img
+          :src="iconURL(`egginc/egg_${currentEgg}.png`, 64)"
+          class="w-full h-full object-contain"
+          :alt="currentEgg"
+        />
+      </div>
+
+      <!-- Shift Name (Visible when expanded) -->
+      <div
+        v-if="!isCollapsed"
+        class="text-xl font-bold text-purple-900 leading-none mb-1"
+      >
+        {{ shiftName }}
+      </div>
     </button>
+
+    <!-- Collapsible Content -->
+    <div v-if="!isCollapsed" class="flex flex-col items-center w-full transition-all">
+      <!-- Shift Timing & Duration -->
+      <div v-if="dates" class="flex flex-col items-center text-[10px] text-gray-400 font-medium leading-tight mb-2">
+        <div>{{ formatDateTime(dates.start) }}</div>
+        <div class="text-purple-600 font-bold text-xs my-0.5 tracking-tight">
+          {{ formatShiftDuration(dates.duration) }}
+        </div>
+        <div>{{ formatDateTime(dates.end) }}</div>
+      </div>
+
+      <!-- Active Set Badge -->
+      <div
+        v-if="activeSet"
+        class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-2"
+        :class="activeSet === 'earnings' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'"
+      >
+        {{ activeSet === 'earnings' ? 'Earnings' : 'ELR' }} Set
+      </div>
+      <div
+        v-else
+        class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-2 bg-red-100 text-red-700"
+      >
+        No Active Set
+      </div>
+
+      <!-- Stats Stack -->
+      <div class="flex flex-col gap-2 w-full text-xs">
+        <!-- Habs -->
+        <div class="flex flex-col items-center gap-0.5">
+          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">Habs</span>
+          <span class="font-mono text-gray-900">
+            {{ formatNumber(habCapacity, 0) }}
+          </span>
+        </div>
+
+        <div class="w-full border-t border-gray-100"></div>
+
+        <!-- IHR -->
+        <div class="flex flex-col items-center gap-0.5">
+          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">IHR</span>
+          <span class="font-mono text-gray-900">
+            {{ formatNumber(offlineIhr) }}/min
+          </span>
+        </div>
+
+        <div class="w-full border-t border-gray-100"></div>
+
+        <!-- Lay Rate -->
+        <div class="flex flex-col items-center gap-0.5">
+          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">Lay Rate</span>
+          <span class="font-mono text-gray-900 font-bold">
+            {{ formatRate(layRateHr) }}
+          </span>
+        </div>
+
+        <div class="w-full border-t border-gray-100"></div>
+
+        <!-- Shipping -->
+        <div class="flex flex-col items-center gap-0.5">
+          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide text-center">Shipping<br />Rate</span>
+          <span class="font-mono text-gray-900" :class="{ 'text-red-600': isShippingLimited }">
+            {{ formatRate(shippingHr) }}
+          </span>
+        </div>
+
+        <div class="w-full border-t border-gray-100"></div>
+
+        <!-- ELR -->
+        <div class="flex flex-col items-center gap-0.5">
+          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">ELR</span>
+          <span class="font-mono text-gray-900 font-bold">
+            {{ formatRate(elrHr) }}
+          </span>
+        </div>
+
+        <div class="w-full border-t border-gray-100"></div>
+
+        <!-- Offline Earnings -->
+        <div class="flex flex-col items-center gap-0.5">
+          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide text-center">Offline<br />Earnings</span>
+          <span class="font-mono text-gray-900">
+            {{ formatMoney(offlineEarningsHr) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Details Button -->
+      <button
+        class="mt-2 text-purple-400 hover:text-purple-600 transition-colors p-1"
+        title="View Full Details"
+        @click="$emit('show-details')"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
 import { iconURL } from 'lib';
@@ -128,6 +158,8 @@ const emit = defineEmits(['show-details']);
 
 const actionsStore = useActionsStore();
 const virtueStore = useVirtueStore();
+
+const isCollapsed = ref(false);
 
 // Get the effective snapshot (state at the end of the edited/current shift)
 const snapshot = computed(() => actionsStore.effectiveSnapshot);
