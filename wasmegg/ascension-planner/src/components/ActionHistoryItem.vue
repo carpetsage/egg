@@ -11,8 +11,11 @@
       <!-- Action Icon -->
       <div 
         v-if="actionIconPath" 
-        class="h-6 flex-shrink-0 bg-white border border-gray-100 p-0.5 shadow-sm overflow-hidden"
-        :class="isVehicleAction ? 'w-auto min-w-[1.5rem] rounded-md' : 'w-6 rounded-full'"
+        class="h-6 flex-shrink-0 border border-gray-100 p-0.5 shadow-sm overflow-hidden"
+        :class="[
+          isVehicleAction ? 'w-auto min-w-[1.5rem] rounded-md' : 'w-6 rounded-full',
+          isMissionAction ? 'bg-black' : 'bg-white'
+        ]"
       >
         <img
           :src="actionIconPath.startsWith('static/') ? `${baseUrl}${actionIconPath}` : iconURL(actionIconPath, 64)"
@@ -156,6 +159,10 @@ const isVehicleAction = computed(() =>
   props.action.type === 'buy_vehicle' || props.action.type === 'buy_train_car'
 );
 
+const isMissionAction = computed(() => 
+  props.action.type === 'wait_for_missions' || props.action.type === 'launch_missions'
+);
+
 const eggType = computed(() => {
   if (props.action.type === 'start_ascension') {
     return (props.action.payload as StartAscensionPayload).initialEgg;
@@ -207,6 +214,12 @@ const actionIconPath = computed(() => {
   if (props.action.type === 'equip_artifact_set' || props.action.type === 'update_artifact_set') {
     const payload = props.action.payload as (EquipArtifactSetPayload | UpdateArtifactSetPayload);
     return payload.setName === 'elr' ? 'egginc/afx_quantum_metronome_4.png' : 'egginc/afx_lunar_totem_4.png';
+  }
+  if (props.action.type === 'wait_for_sleep') {
+    return 'egginc/tiny_indicator_waiting.png';
+  }
+  if (props.action.type === 'wait_for_missions') {
+    return 'egginc/icon_afx_mission.png';
   }
   return null;
 });

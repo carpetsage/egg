@@ -59,8 +59,7 @@
       <ArtifactActions v-if="activeTab === 'artifacts'" />
       <SiloActions v-if="activeTab === 'silos'" />
       <FuelTankActions v-if="activeTab === 'fuel'" />
-      <WaitForTEActions v-if="activeTab === 'te'" @show-current-details="$emit('show-current-details')" />
-      <WaitForMissionsActions v-if="activeTab === 'wait-missions'" />
+      <WaitActions v-if="activeTab === 'wait'" @show-current-details="$emit('show-current-details')" />
       <RocketActions v-if="activeTab === 'rockets'" />
     </div>
   </div>
@@ -76,8 +75,7 @@ import ShiftActions from './actions/ShiftActions.vue';
 import ArtifactActions from './actions/ArtifactActions.vue';
 import SiloActions from './actions/SiloActions.vue';
 import FuelTankActions from './actions/FuelTankActions.vue';
-import WaitForTEActions from './actions/WaitForTEActions.vue';
-import WaitForMissionsActions from './actions/WaitForMissionsActions.vue';
+import WaitActions from './actions/WaitActions.vue';
 import RocketActions from './actions/RocketActions.vue';
 import InitialStateContainer from './containers/InitialStateContainer.vue';
 import { useActionsStore } from '@/stores/actions';
@@ -115,8 +113,7 @@ const allTabs = [
   { id: 'artifacts', label: 'Artifacts', egg: 'humility' as VirtueEgg, beforeShiftsOnly: false },
   { id: 'silos', label: 'Silos', egg: 'resilience' as VirtueEgg, beforeShiftsOnly: false },
   { id: 'fuel', label: 'Fuel Tank', egg: null, beforeShiftsOnly: false },
-  { id: 'te', label: 'Wait for TE', egg: null, beforeShiftsOnly: false },
-  { id: 'wait-missions', label: 'Wait for Missions', egg: 'humility' as VirtueEgg, beforeShiftsOnly: false },
+  { id: 'wait', label: 'Wait', egg: null, beforeShiftsOnly: false },
   { id: 'rockets', label: 'Rockets', egg: 'humility' as VirtueEgg, beforeShiftsOnly: false },
   { id: 'shift', label: 'Shift', egg: null, beforeShiftsOnly: false },
 ] as const;
@@ -169,7 +166,7 @@ const availableTabs = computed(() => {
 
 // Active tab - defaults to initial if no shifts or if editing the start group
 const activeTab = ref<TabId>(
-  (hasShifts.value && !isEditingStartGroup.value) ? eggToTab[effectiveEgg.value] : 'initial'
+  (hasShifts.value && !isEditingStartGroup.value) ? (effectiveEgg.value === 'humility' ? 'wait' : eggToTab[effectiveEgg.value]) : 'initial'
 );
 
 // When effective egg changes (including when editing state changes), switch to that egg's tab

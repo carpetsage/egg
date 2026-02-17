@@ -80,7 +80,8 @@ export function getActionDuration(
 
     if (
         action.type === 'launch_missions' ||
-        action.type === 'wait_for_missions'
+        action.type === 'wait_for_missions' ||
+        action.type === 'wait_for_sleep'
     ) {
         return (action.payload as any).totalTimeSeconds || 0;
     }
@@ -361,6 +362,10 @@ export function applyAction(state: EngineState, action: Action): EngineState {
             }
 
             return newState;
+        }
+
+        case 'wait_for_sleep': {
+            return state;
         }
 
         // Default case: return state unchanged
