@@ -61,7 +61,7 @@ export type ArtifactSetName = 'earnings' | 'elr';
  * Union of all action types.
  * Add new action types here when extending the system.
  */
-export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale' | 'equip_artifact_set' | 'update_artifact_set';
+export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale' | 'equip_artifact_set' | 'update_artifact_set' | 'wait_for_missions';
 
 // ============================================================================
 // Action Payloads
@@ -201,6 +201,35 @@ export interface LaunchMissionsPayload {
 }
 
 /**
+ * Information about an active mission from the backup.
+ */
+export interface ActiveMissionInfo {
+  ship: number;       // Spaceship enum value
+  duration: number;   // DurationType enum value
+  shipName: string;
+  durationTypeName: string;
+  shipIconPath: string;
+  sensorTarget: string | null;
+  returnTimestamp: number | null; // Unix timestamp in seconds
+  statusIsFueling: boolean;
+  statusName: string;
+  capacity: number;
+  fuels: {
+    egg: number;
+    amount: number;
+    eggIconPath: string;
+  }[];
+}
+
+/**
+ * Payload for waiting for active missions to return.
+ */
+export interface WaitForMissionsPayload {
+  missions: ActiveMissionInfo[];
+  totalTimeSeconds: number;
+}
+
+/**
  * Sale types for toggle_sale action.
  */
 export type SaleType = 'research' | 'hab' | 'vehicle';
@@ -232,6 +261,7 @@ export interface ActionPayloadMap {
   toggle_sale: ToggleSalePayload;
   equip_artifact_set: EquipArtifactSetPayload;
   update_artifact_set: UpdateArtifactSetPayload;
+  wait_for_missions: WaitForMissionsPayload;
 }
 
 // ============================================================================

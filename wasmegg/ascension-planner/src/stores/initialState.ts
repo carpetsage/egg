@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import type { InitialState, ResearchLevels, VirtueEgg, CurrentFarmState, VehicleSlot } from '@/types';
+import type { InitialState, ResearchLevels, VirtueEgg, CurrentFarmState, VehicleSlot, ActiveMissionInfo } from '@/types';
+import { ei, Mission } from 'lib';
 import { epicResearchDefs } from '@/lib/epicResearch';
 import {
   type ColleggtibleTiers,
@@ -49,6 +50,9 @@ export interface InitialStateStoreState {
   initialFuelAmounts: Record<VirtueEgg, number>;
   initialEggsDelivered: Record<VirtueEgg, number>;
   initialTeEarned: Record<VirtueEgg, number>;
+
+  // Active missions from backup
+  activeMissions: ei.IMissionInfo[];
 }
 
 function createEmptyVirtueMap(): Record<VirtueEgg, number> {
@@ -89,6 +93,7 @@ export const useInitialStateStore = defineStore('initialState', {
     initialFuelAmounts: createEmptyVirtueMap(),
     initialEggsDelivered: createEmptyVirtueMap(),
     initialTeEarned: createEmptyVirtueMap(),
+    activeMissions: [],
   }),
 
   getters: {
@@ -116,6 +121,32 @@ export const useInitialStateStore = defineStore('initialState', {
     artifactModifiers(): ArtifactModifiers {
       return calculateArtifactModifiers(this.artifactLoadout);
     },
+
+    /**
+     * Get active virtue missions from backup
+     */
+    virtueMissions(): ActiveMissionInfo[] {
+      return this.activeMissions
+        .map(m => new Mission(m))
+        .filter(m => m.type === ei.MissionInfo.MissionType.VIRTUE)
+        .map(m => ({
+          ship: m.shipType,
+          duration: m.durationType,
+          shipName: m.shipName,
+          durationTypeName: m.durationTypeName,
+          shipIconPath: m.shipIconPath,
+          sensorTarget: m.sensorTarget,
+          returnTimestamp: m.returnTimestamp,
+          statusIsFueling: m.statusIsFueling,
+          statusName: m.statusName,
+          capacity: m.capacity,
+          fuels: m.fuels.map(f => ({
+            egg: f.egg,
+            amount: f.amount,
+            eggIconPath: f.eggIconPath,
+          })),
+        }));
+    },
   },
 
   actions: {
@@ -139,6 +170,13 @@ export const useInitialStateStore = defineStore('initialState', {
       this.nickname = backup.userName || playerId;
       this.lastBackupTime = backup.settings?.lastBackupTime || 0;
       this.soulEggs = backup.game?.soulEggsD || 0;
+
+      const artifactsDB = backup.artifactsDb || {};
+      this.activeMissions = [
+        ...(artifactsDB.missionInfos || []),
+        ...(artifactsDB.fuelingMission ? [artifactsDB.fuelingMission] : []),
+        ...(artifactsDB.virtueAfxDb?.fuelingMission ? [artifactsDB.virtueAfxDb.fuelingMission] : []),
+      ];
 
       // Load epic research levels
       this.epicResearchLevels = initializeEpicResearchLevels();
@@ -375,6 +413,9 @@ export const useInitialStateStore = defineStore('initialState', {
       }
       if (data.initialTeEarned) {
         this.initialTeEarned = { ...data.initialTeEarned };
+      }
+      if (data.activeMissions) {
+        this.activeMissions = [...data.activeMissions];
       }
     },
 

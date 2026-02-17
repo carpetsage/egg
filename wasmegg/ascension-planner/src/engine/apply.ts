@@ -78,8 +78,11 @@ export function getActionDuration(
         return (action.payload as any).timeSeconds || 0;
     }
 
-    if (action.type === 'launch_missions') {
-        return (action.payload as LaunchMissionsPayload).totalTimeSeconds;
+    if (
+        action.type === 'launch_missions' ||
+        action.type === 'wait_for_missions'
+    ) {
+        return (action.payload as any).totalTimeSeconds || 0;
     }
 
     const GEM_COSTING_TYPES = [

@@ -34,6 +34,7 @@ import { launchMissionsExecutor } from './executors/launchMissions';
 import { toggleSaleExecutor } from './executors/toggleSale';
 import { equipArtifactSetExecutor } from './executors/equipArtifactSet';
 import { updateArtifactSetExecutor } from './executors/updateArtifactSet';
+import { waitForMissionsExecutor } from './executors/wait_for_missions';
 
 // ============================================================================
 // Executor Interface
@@ -113,6 +114,7 @@ const executorMap: { [K in ActionType]: ActionExecutor<K> } = {
   toggle_sale: toggleSaleExecutor,
   equip_artifact_set: equipArtifactSetExecutor,
   update_artifact_set: updateArtifactSetExecutor,
+  wait_for_missions: waitForMissionsExecutor,
 };
 
 /**

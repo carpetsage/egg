@@ -60,6 +60,7 @@
       <SiloActions v-if="activeTab === 'silos'" />
       <FuelTankActions v-if="activeTab === 'fuel'" />
       <WaitForTEActions v-if="activeTab === 'te'" @show-current-details="$emit('show-current-details')" />
+      <WaitForMissionsActions v-if="activeTab === 'wait-missions'" />
       <RocketActions v-if="activeTab === 'rockets'" />
     </div>
   </div>
@@ -76,6 +77,7 @@ import ArtifactActions from './actions/ArtifactActions.vue';
 import SiloActions from './actions/SiloActions.vue';
 import FuelTankActions from './actions/FuelTankActions.vue';
 import WaitForTEActions from './actions/WaitForTEActions.vue';
+import WaitForMissionsActions from './actions/WaitForMissionsActions.vue';
 import RocketActions from './actions/RocketActions.vue';
 import InitialStateContainer from './containers/InitialStateContainer.vue';
 import { useActionsStore } from '@/stores/actions';
@@ -114,6 +116,7 @@ const allTabs = [
   { id: 'silos', label: 'Silos', egg: 'resilience' as VirtueEgg, beforeShiftsOnly: false },
   { id: 'fuel', label: 'Fuel Tank', egg: null, beforeShiftsOnly: false },
   { id: 'te', label: 'Wait for TE', egg: null, beforeShiftsOnly: false },
+  { id: 'wait-missions', label: 'Wait for Missions', egg: 'humility' as VirtueEgg, beforeShiftsOnly: false },
   { id: 'rockets', label: 'Rockets', egg: 'humility' as VirtueEgg, beforeShiftsOnly: false },
   { id: 'shift', label: 'Shift', egg: null, beforeShiftsOnly: false },
 ] as const;
