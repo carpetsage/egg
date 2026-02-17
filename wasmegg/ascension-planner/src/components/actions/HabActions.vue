@@ -67,7 +67,7 @@
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
           </div>
-          <span class="text-[11px] font-bold uppercase tracking-widest text-green-800">5 Min Max Space</span>
+          <span class="text-[11px] font-bold uppercase tracking-widest text-green-800">5 Min Max Habs</span>
         </button>
       </div>
     </div>
@@ -416,7 +416,24 @@ function handleBuy5MinSpace() {
       const currentId = virtualHabIds[i];
       const startId = currentId === null ? 0 : currentId + 1;
 
+      // Find the highest "instant" hab (cost < 1s of earnings) to skip intermediate steps
+      let maxInstantId = -1;
+      for (let id = startId; id <= 18; id++) {
+        const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
+        const existingCount = countHabsOfType(otherHabs, id);
+        const hab = getHabById(id as HabId);
+        if (!hab) continue;
+        const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
+        if (cost <= offlineEarnings) {
+          maxInstantId = id;
+        } else {
+          break;
+        }
+      }
+
       for (let nextId = startId; nextId <= 18; nextId++) {
+        if (nextId < maxInstantId) continue;
+
         const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
         const existingCount = countHabsOfType(otherHabs, nextId);
         const hab = getHabById(nextId as HabId);
