@@ -178,7 +178,7 @@
     </div>
 
     <p class="text-xs text-gray-400">
-      TE provides a 1.1× multiplier per egg to IHR and earnings. Time is based on your current lay rate at max hab capacity.
+      TE provides a 1.1× multiplier per egg to IHR and earnings. Time is based on your current effective lay rate at max hab capacity.
     </p>
   </div>
 </template>
@@ -189,7 +189,7 @@ import { iconURL } from 'lib';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
-import { useLayRate } from '@/composables/useLayRate';
+import { useEffectiveLayRate } from '@/composables/useEffectiveLayRate';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatDuration } from '@/lib/format';
 import { generateActionId, VIRTUE_EGG_NAMES } from '@/types';
@@ -199,7 +199,7 @@ import { useActionExecutor } from '@/composables/useActionExecutor';
 const truthEggsStore = useTruthEggsStore();
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
-const { output: layRateOutput } = useLayRate();
+const { output: effectiveLayRateOutput } = useEffectiveLayRate();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 defineEmits<{
@@ -245,13 +245,13 @@ const eggsToLay = computed(() => {
 
 const timeToLaySeconds = computed(() => {
   if (eggsToLay.value <= 0) return 0;
-  const ratePerSecond = layRateOutput.value.totalRatePerSecond;
+  const ratePerSecond = effectiveLayRateOutput.value.effectiveLayRate;
   if (ratePerSecond <= 0) return Infinity;
   return eggsToLay.value / ratePerSecond;
 });
 
-const elrPerHour = computed(() => layRateOutput.value.totalRatePerSecond * 3600);
-const elrPerDay = computed(() => layRateOutput.value.totalRatePerSecond * 86400);
+const elrPerHour = computed(() => effectiveLayRateOutput.value.effectiveLayRate * 3600);
+const elrPerDay = computed(() => effectiveLayRateOutput.value.effectiveLayRate * 86400);
 
 // Validation
 const canWait = computed(() =>

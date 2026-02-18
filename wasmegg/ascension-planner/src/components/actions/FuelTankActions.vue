@@ -109,7 +109,7 @@
     </div>
 
     <p class="text-xs text-gray-400">
-      Fuel is stored based on your current lay rate at max hab capacity.
+      Fuel is stored based on your current effective lay rate at max hab capacity.
     </p>
   </div>
 </template>
@@ -120,7 +120,7 @@ import { iconURL } from 'lib';
 import { useFuelTankStore, timeToStore } from '@/stores/fuelTank';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
-import { useLayRate } from '@/composables/useLayRate';
+import { useEffectiveLayRate } from '@/composables/useEffectiveLayRate';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatDuration, parseNumber } from '@/lib/format';
@@ -132,7 +132,7 @@ const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
-const { output: layRateOutput } = useLayRate();
+const { output: effectiveLayRateOutput } = useEffectiveLayRate();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const amountInput = ref('');
@@ -147,7 +147,7 @@ const parsedAmount = computed(() => {
 // Time calculation
 const timeToStoreSeconds = computed(() => {
   if (parsedAmount.value <= 0) return 0;
-  return timeToStore(parsedAmount.value, layRateOutput.value.totalRatePerSecond);
+  return timeToStore(parsedAmount.value, effectiveLayRateOutput.value.effectiveLayRate);
 });
 
 // Validation
