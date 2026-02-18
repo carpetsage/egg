@@ -1,69 +1,68 @@
 <template>
   <div
-    class="px-4 py-3 flex items-start gap-3"
-    :class="isStartAction ? 'bg-blue-50' : 'hover:bg-gray-50'"
+    class="px-5 py-4 flex items-start gap-4 transition-colors"
+    :class="isStartAction ? 'bg-slate-50/80 border-l-4 border-brand-primary' : 'hover:bg-slate-50/50'"
   >
     <!-- Index -->
-    <span class="text-xs text-gray-400 w-6 pt-1">{{ action.index + 1 }}.</span>
+    <span class="text-[10px] font-black text-slate-300 w-6 pt-1">{{ action.index + 1 }}</span>
 
     <!-- Action info -->
-    <div class="flex-1 min-w-0 flex items-center gap-2">
+    <div class="flex-1 min-w-0 flex items-center gap-3">
       <!-- Action Icon -->
       <div 
         v-if="actionIconPath" 
-        class="h-6 flex-shrink-0 border border-gray-100 p-0.5 shadow-sm overflow-hidden"
+        class="h-8 flex-shrink-0 border border-slate-100 p-1 shadow-inner overflow-hidden"
         :class="[
-          isVehicleAction ? 'w-auto min-w-[1.5rem] rounded-md' : 'w-6 rounded-full',
-          isMissionAction ? 'bg-black' : 'bg-white'
+          isVehicleAction ? 'w-auto min-w-[2rem] rounded-xl' : 'w-8 rounded-full',
+          isMissionAction ? 'bg-slate-900 shadow-lg' : 'bg-white shadow-sm'
         ]"
       >
         <img
           :src="actionIconPath.startsWith('static/') ? `${baseUrl}${actionIconPath}` : iconURL(actionIconPath, 64)"
-          :class="isVehicleAction ? 'h-[14px] w-auto min-w-[2.5rem] object-contain' : 'w-full h-full object-contain'"
+          :class="isVehicleAction ? 'h-[9px] w-auto min-w-[3rem] object-contain' : 'w-full h-full object-contain'"
           :alt="action.type"
         />
       </div>
 
       <div class="flex-1 min-w-0">
         <div 
-          class="font-medium truncate flex items-center gap-1.5" 
-          :class="isStartAction ? 'text-blue-800' : 'text-gray-900'"
+          class="font-bold truncate flex items-center gap-1.5" 
+          :class="isStartAction ? 'text-slate-800' : 'text-slate-700'"
         >
-          <span v-if="eggType" class="opacity-60 font-normal">
-            {{ action.type === 'start_ascension' ? 'Start Ascension:' : 'Shift to' }}
+          <span v-if="eggType" class="text-[10px] uppercase font-black text-slate-400 tracking-widest">
+            {{ action.type === 'start_ascension' ? 'Start:' : 'Egg:' }}
           </span>
-          <span :class="{ 'font-bold': eggType }">
-            {{ eggName || displayName }}{{ isContinued ? ' (from Backup)' : '' }}
+          <span :class="{ 'text-slate-900': eggType }">
+            {{ eggName || displayName }}{{ isContinued ? ' (continued)' : '' }}
           </span>
         </div>
         <div 
-          class="text-[10px] uppercase tracking-wider font-semibold opacity-70" 
-          :class="isStartAction ? 'text-blue-600' : 'text-gray-500'"
+          class="text-[10px] uppercase tracking-widest font-black opacity-60 text-slate-500" 
           v-html="effectDescription"
         >
         </div>
         <!-- Deltas -->
-        <div v-if="!isStartAction || isContinued" class="text-[10px] mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-gray-500">
+        <div v-if="!isStartAction || isContinued" class="text-[9px] mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-black uppercase tracking-wider">
           <span v-if="action.eggValueDelta" :class="deltaClass(action.eggValueDelta)">
-            Val: {{ formatDelta(action.eggValueDelta) }}
+            Val {{ formatDelta(action.eggValueDelta) }}
           </span>
           <span v-if="action.habCapacityDelta" :class="deltaClass(action.habCapacityDelta)">
-            Hab: {{ formatDelta(action.habCapacityDelta) }}
+            Hab {{ formatDelta(action.habCapacityDelta) }}
           </span>
           <span v-if="action.ihrDelta" :class="deltaClass(action.ihrDelta)">
-            IHR: {{ formatDelta(action.ihrDelta) }}
+            IHR {{ formatDelta(action.ihrDelta) }}
           </span>
           <span v-if="action.layRateDelta" :class="deltaClass(action.layRateDelta)">
-            Lay: {{ formatDelta(action.layRateDelta) }}
+            Lay {{ formatDelta(action.layRateDelta) }}
           </span>
           <span v-if="action.shippingCapacityDelta" :class="deltaClass(action.shippingCapacityDelta)">
-            Ship: {{ formatDelta(action.shippingCapacityDelta) }}
+            Ship {{ formatDelta(action.shippingCapacityDelta) }}
           </span>
           <span v-if="action.elrDelta" :class="deltaClass(action.elrDelta)">
-            ELR: {{ formatDelta(action.elrDelta) }}
+            ELR {{ formatDelta(action.elrDelta) }}
           </span>
           <span v-if="action.offlineEarningsDelta" :class="deltaClass(action.offlineEarningsDelta)">
-            gems/s: {{ formatDelta(action.offlineEarningsDelta) }}
+             Earn {{ formatDelta(action.offlineEarningsDelta) }}
           </span>
         </div>
       </div>
@@ -71,19 +70,21 @@
 
     <!-- Cost, time to save, and deltas (hidden for start_ascension) -->
     <div v-if="!isStartAction" class="text-right shrink-0">
-      <div class="flex items-baseline justify-end gap-1.5">
+      <div class="flex flex-col items-end gap-0.5">
         <template v-if="action.type === 'shift'">
-          <span class="text-sm font-mono text-purple-600">
-            {{ formatNumber(action.cost, 3) }}
-          </span>
-          <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-4 h-4" alt="SE" />
+          <div class="flex items-center gap-1">
+            <span class="text-sm font-bold text-slate-700 font-mono-premium">
+              {{ formatNumber(action.cost, 3) }}
+            </span>
+            <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3 h-3" alt="SE" />
+          </div>
         </template>
         <template v-else>
-          <span class="text-sm font-mono text-amber-600">
+          <span class="text-sm font-bold text-slate-800 font-mono-premium">
             {{ formatGemPrice(action.cost) }}
           </span>
-          <span class="text-xs text-gray-400" :title="timeToSaveTitle">
-            ({{ timeToSaveFormatted }})
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest" :title="timeToSaveTitle">
+            Save {{ timeToSaveFormatted }}
           </span>
         </template>
       </div>
@@ -266,7 +267,7 @@ const timeToSaveFormatted = computed(() => {
   const totalSeconds = timeToSaveSeconds.value;
 
   if (totalSeconds <= 0) {
-    return 'free';
+    return '0s';
   }
 
   return formatDuration(totalSeconds);
@@ -312,9 +313,8 @@ const timeToSaveTitle = computed(() => {
 });
 
 function deltaClass(delta: number): string {
-  if (delta > 0) return 'text-green-600';
-  if (delta < 0) return 'text-red-600';
-  return 'text-gray-400';
+  if (delta > 0) return 'text-slate-900';
+  return 'text-slate-400';
 }
 
 function formatDelta(delta: number): string {

@@ -3,7 +3,7 @@
 
   <div class="min-h-screen bg-gray-100 pb-24">
     <div class="max-w-6xl mx-auto p-4">
-      <h1 class="mx-4 mt-4 mb-2 text-center text-2xl font-bold text-gray-900">
+      <h1 class="mx-4 mt-8 mb-2 text-center heading-xl text-gradient">
         Ascension Planner
       </h1>
 
@@ -24,15 +24,15 @@
       <!-- Action History and Available Actions side-by-side -->
       <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Action History -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-visible">
+        <div class="section-premium overflow-visible">
           <div
-            class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+            class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer rounded-t-lg"
             @click="expandedSections.actionHistory = !expandedSections.actionHistory"
           >
             <h2 class="text-lg font-semibold text-gray-800">Action History</h2>
             <ChevronIcon :expanded="expandedSections.actionHistory" />
           </div>
-          <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50">
+          <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
             <ActionHistory
               @show-details="showActionDetails"
               @undo="showUndoConfirmation"
@@ -42,15 +42,15 @@
         </div>
 
         <!-- Available Actions -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-visible">
+        <div class="section-premium overflow-visible">
           <div
-            class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+            class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer rounded-t-lg"
             @click="expandedSections.availableActions = !expandedSections.availableActions"
           >
             <h2 class="text-lg font-semibold text-gray-800">Available Actions</h2>
             <ChevronIcon :expanded="expandedSections.availableActions" />
           </div>
-          <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50">
+          <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
             <AvailableActions @show-current-details="showCurrentDetails" />
           </div>
         </div>
@@ -88,8 +88,8 @@
     <ContinuityDialog />
 
     <PlanFinalSummary @show-details="showCurrentDetails" />
-
     <FloatingStats @show-details="showCurrentDetails" />
+
   </div>
 </template>
 

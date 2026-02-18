@@ -1,103 +1,115 @@
 <template>
   <div class="space-y-4">
     <!-- Earnings Results -->
-    <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
-      <div class="flex justify-between items-center mb-3">
-        <div class="text-sm text-amber-700 font-medium">Earnings</div>
+    <div class="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 shadow-inner">
+      <div class="flex justify-between items-center mb-6">
+        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Earnings</div>
         <!-- Time Unit Toggle -->
-        <div class="flex gap-1">
+        <div class="inline-flex p-1 bg-white rounded-xl border border-slate-200/50 shadow-sm">
           <button
             v-for="unit in timeUnits"
             :key="unit.value"
-            class="px-2 py-1 text-xs rounded"
+            class="px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all duration-200"
             :class="timeUnit === unit.value
-              ? 'bg-amber-600 text-white'
-              : 'bg-amber-100 text-amber-700 hover:bg-amber-200'"
+              ? 'bg-brand-primary text-white shadow-sm'
+              : 'text-slate-400 hover:text-slate-600'"
             @click="$emit('set-time-unit', unit.value)"
           >
             {{ unit.label }}
           </button>
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <div class="text-xs text-amber-600">Online</div>
-          <div class="text-2xl font-bold text-amber-900">
-            {{ formatNumber(convertedOnline, 2) }}/{{ timeUnitLabel }}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Online</div>
+          <div class="text-2xl font-bold text-slate-800 tracking-tight">
+            {{ formatNumber(convertedOnline, 2) }}<span class="text-xs text-slate-400 ml-1">/{{ timeUnitLabel }}</span>
           </div>
         </div>
-        <div>
-          <div class="text-xs text-amber-600">Offline</div>
-          <div class="text-2xl font-bold text-amber-900">
-            {{ formatNumber(convertedOffline, 2) }}/{{ timeUnitLabel }}
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Offline</div>
+          <div class="text-2xl font-bold text-slate-900 tracking-tight">
+            {{ formatNumber(convertedOffline, 2) }}<span class="text-xs text-slate-400 ml-1">/{{ timeUnitLabel }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Inputs Display -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Base Values</h3>
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Base Values</h3>
       </div>
-      <div class="divide-y divide-gray-100">
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Egg Value</span>
-          <span class="font-mono text-gray-700">{{ formatNumber(eggValue, 2) }}</span>
+      <div class="divide-y divide-slate-50">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Egg Value</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatNumber(eggValue, 2) }}</span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Effective Lay Rate</span>
-          <span class="font-mono text-gray-700">{{ formatNumber(convertedELR, 2) }}/{{ timeUnitLabel }}</span>
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Effective Lay Rate</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatNumber(convertedELR, 2) }}<span class="text-[10px] opacity-60 ml-0.5">/{{ timeUnitLabel }}</span></span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Base Earnings</span>
-          <span class="font-mono text-gray-700">{{ formatNumber(convertedBase, 2) }}/{{ timeUnitLabel }}</span>
+        <div class="px-5 py-3 flex justify-between items-center bg-slate-50/50">
+          <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Base Earnings</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatNumber(convertedBase, 2) }}<span class="text-[10px] opacity-60 ml-0.5">/{{ timeUnitLabel }}</span></span>
         </div>
       </div>
     </div>
 
     <!-- Multiplier Breakdown -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Multiplier Breakdown</h3>
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Multiplier Breakdown</h3>
       </div>
-      <div class="divide-y divide-gray-100">
-        <div class="px-4 py-2 flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('truth'), 64)" class="w-4 h-4 object-contain" alt="Truth Egg" />
-            <span class="text-gray-600">Eggs of Truth (1.1^{{ te }})</span>
+      <div class="divide-y divide-slate-50">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
+              <img :src="iconURL(getColleggtibleIconPath('truth'), 64)" class="w-5 h-5 object-contain" alt="Truth Egg" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">Eggs of Truth (1.1^{{ te }})</div>
+            </div>
           </div>
-          <span class="font-mono" :class="output.teMultiplier !== 1 ? 'text-amber-600' : 'text-gray-400'">
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
             {{ formatMultiplier(output.teMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('firework'), 64)" class="w-4 h-4 object-contain" alt="Firework" />
-            <span class="text-gray-600">Firework (all earnings)</span>
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
+              <img :src="iconURL(getColleggtibleIconPath('firework'), 64)" class="w-5 h-5 object-contain" alt="Firework" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">Firework (all earnings)</div>
+            </div>
           </div>
-          <span class="font-mono" :class="output.fireworkMultiplier !== 1 ? 'text-red-600' : 'text-gray-400'">
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
             {{ formatMultiplier(output.fireworkMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL('egginc/r_icon_video_doubler_time.png', 64)" class="w-4 h-4 object-contain" alt="Video Doubler" />
-            <span class="text-gray-600">Video Doubler (all earnings)</span>
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
+              <img :src="iconURL('egginc/r_icon_video_doubler_time.png', 64)" class="w-5 h-5 object-contain" alt="Video Doubler" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">Video Doubler (all earnings)</div>
+            </div>
           </div>
-          <span class="font-mono" :class="output.videoDoublerMultiplier > 1 ? 'text-blue-600' : 'text-gray-400'">
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
             {{ formatMultiplier(output.videoDoublerMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Away Earnings (offline)</span>
-          <span class="font-mono" :class="output.awayEarningsMultiplier !== 1 ? 'text-amber-600' : 'text-gray-400'">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Away Earnings (offline)</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
             {{ formatMultiplier(output.awayEarningsMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Artifacts (offline)</span>
-          <span class="font-mono" :class="output.artifactAwayMultiplier !== 1 ? 'text-purple-600' : 'text-gray-400'">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Artifacts (offline)</span>
+          <span class="font-mono-premium text-sm font-bold" :class="output.artifactAwayMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ formatMultiplier(output.artifactAwayMultiplier) }}
           </span>
         </div>
@@ -105,79 +117,82 @@
     </div>
 
     <!-- Artifact Breakdown -->
-    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Artifact Effects <span class="text-xs text-gray-500 font-normal">(from Initial State)</span></h3>
+    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Artifact Effects</h3>
       </div>
-      <div class="divide-y divide-gray-100">
+      <div class="divide-y divide-slate-50">
         <div
           v-for="(effect, index) in output.artifactBreakdown"
           :key="index"
-          class="px-4 py-2 flex justify-between items-center"
+          class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
-          <div>
-            <span class="text-sm text-gray-900">{{ effect.label }}</span>
-            <span class="ml-1 text-xs" :class="effect.source === 'artifact' ? 'text-purple-500' : 'text-blue-500'">
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-bold text-slate-700">{{ effect.label }}</span>
+            <span class="badge-premium py-0 text-[8px]" :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'">
               ({{ effect.source }})
             </span>
           </div>
-          <span class="font-mono text-purple-600">{{ effect.effect }}</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ effect.effect }}</span>
         </div>
       </div>
-      <div class="px-4 py-2 bg-gray-50 border-t border-gray-100">
-        <span class="text-xs text-gray-500">Lunar effects stack multiplicatively with each other</span>
+      <div class="px-5 py-3 bg-slate-50/30 border-t border-slate-100">
+        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Lunar effects stack multiplicatively with each other</p>
       </div>
     </div>
 
-    <!-- Colleggtibles (Read-only from Initial State) -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Colleggtibles <span class="text-xs text-gray-500 font-normal">(from Initial State)</span></h3>
+    <!-- Colleggtibles -->
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Colleggtibles</h3>
       </div>
-      <div class="px-4 py-3 space-y-3">
+      <div class="px-5 py-4 space-y-4">
         <!-- Firework -->
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('firework'), 64)" class="w-6 h-6 object-contain" alt="Firework" />
-            <span class="font-medium text-gray-900">Firework</span>
-            <span
-              class="ml-2 text-sm font-mono"
-              :class="colleggtibleTiers.firework >= 0 ? 'text-red-600' : 'text-gray-400'"
-            >
-              {{ formatColleggtibleBonus(fireworkMultiplier) }}
-            </span>
+        <div class="flex justify-between items-center p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
+              <img :src="iconURL(getColleggtibleIconPath('firework'), 64)" class="w-5 h-5 object-contain" alt="Firework" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">Firework</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatTier(colleggtibleTiers.firework) }}</div>
+            </div>
           </div>
-          <span class="text-sm text-gray-600">{{ formatTier(colleggtibleTiers.firework) }}</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
+            {{ formatColleggtibleBonus(fireworkMultiplier) }}
+          </span>
         </div>
         <!-- Chocolate -->
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('chocolate'), 64)" class="w-6 h-6 object-contain" alt="Chocolate" />
-            <span class="font-medium text-gray-900">Chocolate</span>
-            <span
-              class="ml-2 text-sm font-mono"
-              :class="colleggtibleTiers.chocolate >= 0 ? 'text-amber-600' : 'text-gray-400'"
-            >
-              {{ formatColleggtibleBonus(chocolateMultiplier) }}
-            </span>
+        <div class="flex justify-between items-center p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
+              <img :src="iconURL(getColleggtibleIconPath('chocolate'), 64)" class="w-5 h-5 object-contain" alt="Chocolate" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">Chocolate</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatTier(colleggtibleTiers.chocolate) }}</div>
+            </div>
           </div>
-          <span class="text-sm text-gray-600">{{ formatTier(colleggtibleTiers.chocolate) }}</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
+            {{ formatColleggtibleBonus(chocolateMultiplier) }}
+          </span>
         </div>
         <!-- Wood -->
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('wood'), 64)" class="w-6 h-6 object-contain" alt="Wood" />
-            <span class="font-medium text-gray-900">Wood</span>
-            <span
-              class="ml-2 text-sm font-mono"
-              :class="colleggtibleTiers.wood >= 0 ? 'text-yellow-700' : 'text-gray-400'"
-            >
-              {{ formatColleggtibleBonus(woodMultiplier) }}
-            </span>
+        <div class="flex justify-between items-center p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
+              <img :src="iconURL(getColleggtibleIconPath('wood'), 64)" class="w-5 h-5 object-contain" alt="Wood" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">Wood</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatTier(colleggtibleTiers.wood) }}</div>
+            </div>
           </div>
-          <span class="text-sm text-gray-600">{{ formatTier(colleggtibleTiers.wood) }}</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
+            {{ formatColleggtibleBonus(woodMultiplier) }}
+          </span>
         </div>
-        <div class="text-xs text-gray-500">Chocolate and Wood bonuses apply to offline earnings only</div>
+        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest px-1">Chocolate and Wood bonuses apply to offline earnings only</p>
       </div>
     </div>
   </div>

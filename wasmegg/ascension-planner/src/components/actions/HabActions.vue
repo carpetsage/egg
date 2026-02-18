@@ -1,91 +1,80 @@
 <template>
-  <div class="space-y-4">
-    <div class="flex items-center justify-between bg-blue-50/50 p-3 rounded-xl border border-blue-100 mb-6">
-      <div class="flex flex-col gap-0.5">
-        <div class="flex items-center gap-2">
-          <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></div>
-          <span class="text-[10px] font-bold text-blue-900 uppercase tracking-widest leading-none">Hab Sale</span>
+  <div class="space-y-6">
+    <!-- Sale Protocol -->
+    <div class="bg-gradient-to-r from-blue-50/80 via-white to-indigo-50/80 rounded-2xl p-5 border border-blue-100/50 shadow-sm relative overflow-hidden transition-all duration-300">
+      <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl"></div>
+      
+      <div class="flex items-center justify-between relative z-10">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></div>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Hab Sale</span>
+          </div>
+          <span class="text-[10px] font-black text-blue-600 uppercase tracking-tighter">80% Discount Active</span>
         </div>
-        <span class="text-[10px] text-blue-600/70 font-bold uppercase tracking-tighter">80% Discount Active</span>
+        <button
+          class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+          :class="isHabSaleActive ? 'bg-blue-500' : 'bg-slate-200'"
+          @click="handleToggleSale"
+        >
+          <span
+            class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
+            :class="isHabSaleActive ? 'translate-x-[22px]' : 'translate-x-1'"
+          />
+        </button>
       </div>
-      <button
-        class="relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none shadow-inner"
-        :class="isHabSaleActive ? 'bg-blue-500' : 'bg-gray-200'"
-        @click="handleToggleSale"
-      >
-        <span
-          class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm"
-          :class="isHabSaleActive ? 'translate-x-[22px]' : 'translate-x-1'"
-        />
-      </button>
     </div>
 
     <!-- Quick Upgrade Action -->
-    <div v-if="canBuyMax" class="mb-6 -mt-2">
-      <div class="flex flex-col gap-2">
-        <button
-          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white p-2.5 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50/50 active:scale-[0.98]"
-          @click="handleBuyMax"
-        >
-          <div class="rounded-lg bg-blue-100/50 p-1 transition-colors group-hover:bg-blue-100">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 text-blue-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="13 17 18 12 13 7"></polyline>
-              <polyline points="6 17 11 12 6 7"></polyline>
-            </svg>
-          </div>
-          <div class="flex flex-col items-center">
-            <span class="text-[11px] font-bold uppercase tracking-widest text-blue-800">Max Habs</span>
-            <span v-if="maxHabsTime" class="text-[9px] font-medium text-blue-500/80 -mt-0.5">{{ maxHabsTime }}</span>
-          </div>
-        </button>
+    <div v-if="canBuyMax" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+      <button
+        class="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden"
+        @click="handleBuyMax"
+      >
+        <div class="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/[0.02] transition-colors"></div>
+        <div class="rounded-xl bg-blue-50 border border-blue-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="13 17 18 12 13 7"></polyline>
+            <polyline points="6 17 11 12 6 7"></polyline>
+          </svg>
+        </div>
+        <div class="flex flex-col items-center relative z-10">
+          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-blue-700">Max Habs</span>
+          <span v-if="maxHabsTime" class="text-[9px] font-mono-premium font-black text-blue-500 mt-0.5">{{ maxHabsTime }}</span>
+        </div>
+      </button>
 
-        <button
-          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-white p-2.5 shadow-sm transition-all hover:border-green-400 hover:bg-green-50/50 active:scale-[0.98]"
-          @click="handleBuy5MinSpace"
-        >
-          <div class="rounded-lg bg-green-100/50 p-1 transition-colors group-hover:bg-green-100">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 text-green-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </div>
-          <span class="text-[11px] font-bold uppercase tracking-widest text-green-800">5 Min Max Habs</span>
-        </button>
-      </div>
+      <button
+        class="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-emerald-300 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden"
+        @click="handleBuy5MinSpace"
+      >
+        <div class="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/[0.02] transition-colors"></div>
+        <div class="rounded-xl bg-emerald-50 border border-emerald-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="flex flex-col items-center relative z-10">
+          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-emerald-700">5 Min Max Habs</span>
+        </div>
+      </button>
     </div>
 
     <!-- Hab slots -->
-    <div class="grid grid-cols-1 gap-3">
+    <div class="grid grid-cols-1 gap-4">
       <div
         v-for="(habId, index) in habIds"
         :key="index"
-        class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 group hover:border-blue-200 transition-colors"
+        class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-4 group hover:border-blue-200 transition-all duration-300 hover:shadow-md"
       >
         <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Slot {{ index + 1 }}</span>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Slot {{ index + 1 }}</span>
           <div v-if="habId !== null" class="flex flex-col items-end">
-            <span class="text-[11px] font-bold text-green-600">
+            <span class="text-sm font-mono-premium font-black text-slate-900">
               {{ formatNumber(getHabCapacity(habId), 0) }}
             </span>
-            <span class="text-[9px] text-gray-400 uppercase font-semibold">Capacity</span>
+            <span class="text-[9px] text-slate-400 uppercase font-black tracking-widest opacity-60">Capacity</span>
           </div>
         </div>
 
@@ -105,8 +94,8 @@
     </div>
 
     <!-- Note about slots -->
-    <div class="flex items-center justify-between px-1">
-      <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{{ purchasedCount }}/4 habs active</p>
+    <div class="flex items-center justify-between px-2">
+      <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{{ purchasedCount }}/4 habs active</p>
     </div>
   </div>
 </template>

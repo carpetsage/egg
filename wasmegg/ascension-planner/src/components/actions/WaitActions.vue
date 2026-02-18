@@ -3,20 +3,22 @@
     <WaitForTEActions @show-current-details="$emit('show-current-details')" />
   </div>
 
-  <div v-else class="space-y-3">
+  <div v-else class="space-y-4">
     <!-- Wait for TE Section -->
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm transition-all duration-200">
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
       <button
-        class="w-full px-4 py-3 bg-gray-50 flex justify-between items-center hover:bg-gray-100 transition-colors"
+        class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
         @click="teExpanded = !teExpanded"
       >
-        <div class="flex items-center gap-2.5">
-           <img :src="iconURL('egginc/egg_truth.png', 64)" class="w-5 h-5 object-contain" />
-           <h3 class="font-bold text-xs uppercase tracking-widest text-gray-600">Wait for TE</h3>
+        <div class="flex items-center gap-3">
+           <div class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform">
+             <img :src="iconURL('egginc/egg_truth.png', 64)" class="w-full h-full object-contain" />
+           </div>
+           <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for TE</h3>
         </div>
         <svg
-          class="w-5 h-5 text-gray-400 transition-transform duration-300"
-          :class="{ 'rotate-180': teExpanded }"
+          class="w-5 h-5 text-slate-300 transition-transform duration-300"
+          :class="{ 'rotate-180 text-slate-900': teExpanded }"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -24,26 +26,26 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      <div v-show="teExpanded" class="p-4 border-t border-gray-100">
+      <div v-show="teExpanded" class="p-6 border-t border-slate-50">
         <WaitForTEActions @show-current-details="$emit('show-current-details')" />
       </div>
     </div>
 
     <!-- Wait for Missions Section -->
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm transition-all duration-200">
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
       <button
-        class="w-full px-4 py-3 bg-gray-50 flex justify-between items-center hover:bg-gray-100 transition-colors"
+        class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
         @click="missionsExpanded = !missionsExpanded"
       >
-        <div class="flex items-center gap-2.5">
-            <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center p-0.5 overflow-hidden">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center p-1.5 overflow-hidden shadow-lg group-hover:scale-110 transition-transform border border-slate-800">
               <img :src="iconURL('egginc/icon_afx_mission.png', 64)" class="w-full h-full object-contain" />
             </div>
-           <h3 class="font-bold text-xs uppercase tracking-widest text-gray-600">Wait for Missions</h3>
+           <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for Missions</h3>
         </div>
         <svg
-          class="w-5 h-5 text-gray-400 transition-transform duration-300"
-          :class="{ 'rotate-180': missionsExpanded }"
+          class="w-5 h-5 text-slate-300 transition-transform duration-300"
+          :class="{ 'rotate-180 text-slate-900': missionsExpanded }"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -51,24 +53,26 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      <div v-show="missionsExpanded" class="p-4 border-t border-gray-100">
+      <div v-show="missionsExpanded" class="p-6 border-t border-slate-50">
         <WaitForMissionsActions />
       </div>
     </div>
 
     <!-- Wait for Sleep Section (Placeholder) -->
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm transition-all duration-200">
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
       <button
-        class="w-full px-4 py-3 bg-gray-50 flex justify-between items-center hover:bg-gray-100 transition-colors"
+        class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
         @click="sleepExpanded = !sleepExpanded"
       >
-        <div class="flex items-center gap-2.5">
-           <img :src="iconURL('egginc/tiny_indicator_waiting.png', 64)" class="w-5 h-5 object-contain" />
-           <h3 class="font-bold text-xs uppercase tracking-widest text-gray-600">Wait for Sleep</h3>
+        <div class="flex items-center gap-3">
+           <div class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform">
+             <img :src="iconURL('egginc/tiny_indicator_waiting.png', 64)" class="w-full h-full object-contain" />
+           </div>
+           <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for Sleep</h3>
         </div>
         <svg
-          class="w-5 h-5 text-gray-400 transition-transform duration-300"
-          :class="{ 'rotate-180': sleepExpanded }"
+          class="w-5 h-5 text-slate-300 transition-transform duration-300"
+          :class="{ 'rotate-180 text-slate-900': sleepExpanded }"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -76,7 +80,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      <div v-show="sleepExpanded" class="p-4 border-t border-gray-100">
+      <div v-show="sleepExpanded" class="p-6 border-t border-slate-50">
         <WaitForSleepActions />
       </div>
     </div>

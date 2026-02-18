@@ -1,17 +1,17 @@
 <template>
   <div
     v-if="actionsStore.hasStartAction"
-    class="fixed right-4 top-20 z-50 flex flex-col items-center bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-purple-100 transition-all duration-300"
-    :class="[isCollapsed ? 'p-1.5' : 'p-3 min-w-[124px]']"
+    class="fixed right-4 top-20 z-50 flex flex-col items-center card-glass p-1.5 shadow-2xl transition-all duration-300"
+    :class="[isCollapsed ? 'w-12' : 'p-4 min-w-[140px]']"
   >
-    <!-- Toggle Handler (Unobtrusive) -->
+    <!-- Toggle Handler -->
     <button
       @click="isCollapsed = !isCollapsed"
       class="w-full flex flex-col items-center group/toggle transition-colors"
       :title="isCollapsed ? 'Expand Stats' : 'Collapse Stats'"
     >
       <!-- Chevron Indicator -->
-      <div class="text-purple-300 group-hover/toggle:text-purple-500 transition-colors">
+      <div class="text-slate-300 group-hover/toggle:text-slate-500 transition-colors mb-1">
         <svg
           class="w-4 h-4 transition-transform duration-300"
           :class="{ 'rotate-180': isCollapsed }"
@@ -23,10 +23,10 @@
         </svg>
       </div>
 
-      <!-- Egg Icon (Always visible) -->
+      <!-- Egg Icon -->
       <div
-        class="bg-white rounded-full border border-purple-200 shadow-sm overflow-hidden transition-all duration-300"
-        :class="[isCollapsed ? 'w-8 h-8 p-0.5' : 'w-10 h-10 p-1 mb-1 group-hover/toggle:scale-105']"
+        class="bg-white/50 rounded-xl border border-slate-200/50 shadow-inner overflow-hidden transition-all duration-300"
+        :class="[isCollapsed ? 'w-9 h-9 p-1' : 'w-12 h-12 p-1.5 mb-2 group-hover/toggle:scale-105']"
       >
         <img
           :src="iconURL(`egginc/egg_${currentEgg}.png`, 64)"
@@ -35,10 +35,10 @@
         />
       </div>
 
-      <!-- Shift Name (Visible when expanded) -->
+      <!-- Shift Name -->
       <div
         v-if="!isCollapsed"
-        class="text-xl font-bold text-purple-900 leading-none mb-1"
+        class="text-lg font-bold text-slate-800 tracking-tight leading-none mb-1 shadow-sm"
       >
         {{ shiftName }}
       </div>
@@ -46,86 +46,85 @@
 
     <!-- Collapsible Content -->
     <div v-if="!isCollapsed" class="flex flex-col items-center w-full transition-all">
-      <!-- Shift Timing & Duration -->
-      <div v-if="dates" class="flex flex-col items-center text-[10px] text-gray-400 font-medium leading-tight mb-2">
-        <div>{{ formatDateTime(dates.start) }}</div>
-        <div class="text-purple-600 font-bold text-xs my-0.5 tracking-tight">
-          {{ formatShiftDuration(dates.duration) }}
-        </div>
-        <div>{{ formatDateTime(dates.end) }}</div>
-      </div>
-
       <!-- Active Set Badge -->
       <div
         v-if="activeSet"
-        class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-2"
-        :class="activeSet === 'earnings' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'"
+        class="badge-premium badge-brand py-0.5 mb-3 scale-90"
       >
         {{ activeSet === 'earnings' ? 'Earnings' : 'ELR' }} Set
       </div>
       <div
         v-else
-        class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-2 bg-red-100 text-red-700"
+        class="badge-premium py-0.5 mb-3 scale-90 bg-slate-100 text-slate-500"
       >
         No Active Set
       </div>
 
+      <!-- Shift Timing & Duration -->
+      <div v-if="dates" class="w-full bg-white/30 rounded-xl border border-white/40 p-2.5 mb-3 flex flex-col items-center shadow-inner">
+        <div class="text-[9px] font-black text-slate-900 uppercase tracking-widest text-center">{{ formatDateTime(dates.start) }}</div>
+        <div class="text-xs font-mono-premium font-bold text-slate-900 my-1 tracking-tight">
+          {{ formatShiftDuration(dates.duration) }}
+        </div>
+        <div class="text-[9px] font-black text-slate-900 uppercase tracking-widest text-center">{{ formatDateTime(dates.end) }}</div>
+      </div>
+
       <!-- Stats Stack -->
-      <div class="flex flex-col gap-2 w-full text-xs">
+      <div class="flex flex-col gap-2.5 w-full">
         <!-- Habs -->
-        <div class="flex flex-col items-center gap-0.5">
-          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">Habs</span>
-          <span class="font-mono text-gray-900">
+        <div class="flex flex-col items-center">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Habs</span>
+          <span class="font-mono-premium text-[11px] font-bold text-slate-700">
             {{ formatNumber(habCapacity, 0) }}
           </span>
         </div>
 
-        <div class="w-full border-t border-gray-100"></div>
+        <div class="w-full border-t border-slate-200/40"></div>
 
         <!-- IHR -->
-        <div class="flex flex-col items-center gap-0.5">
-          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">IHR</span>
-          <span class="font-mono text-gray-900">
-            {{ formatNumber(offlineIhr) }}/min
+        <div class="flex flex-col items-center">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">IHR</span>
+          <span class="font-mono-premium text-[11px] font-bold text-slate-700">
+            {{ formatRate(offlineIhrHr) }}
           </span>
         </div>
 
-        <div class="w-full border-t border-gray-100"></div>
+        <div class="w-full border-t border-slate-200/40"></div>
 
         <!-- Lay Rate -->
-        <div class="flex flex-col items-center gap-0.5">
-          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">Lay Rate</span>
-          <span class="font-mono text-gray-900 font-bold">
+        <div class="flex flex-col items-center">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Lay Rate</span>
+          <span class="font-mono-premium text-[11px] font-bold text-slate-700">
             {{ formatRate(layRateHr) }}
           </span>
         </div>
 
-        <div class="w-full border-t border-gray-100"></div>
+        <div class="w-full border-t border-slate-200/40"></div>
 
         <!-- Shipping -->
-        <div class="flex flex-col items-center gap-0.5">
-          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide text-center">Shipping<br />Rate</span>
-          <span class="font-mono text-gray-900" :class="{ 'text-red-600': isShippingLimited }">
+        <div class="flex flex-col items-center">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Shipping</span>
+          <span class="font-mono-premium text-[11px] font-bold text-slate-700">
             {{ formatRate(shippingHr) }}
           </span>
         </div>
 
-        <div class="w-full border-t border-gray-100"></div>
+        <div class="w-full border-t border-slate-200/40"></div>
 
         <!-- ELR -->
-        <div class="flex flex-col items-center gap-0.5">
-          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide">ELR</span>
-          <span class="font-mono text-gray-900 font-bold">
+        <div class="flex flex-col items-center">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">ELR</span>
+          <span class="font-mono-premium text-[11px] font-bold text-slate-700">
             {{ formatRate(elrHr) }}
           </span>
         </div>
 
-        <div class="w-full border-t border-gray-100"></div>
+        <div class="w-full border-t border-slate-200/40"></div>
 
         <!-- Offline Earnings -->
-        <div class="flex flex-col items-center gap-0.5">
-          <span class="text-gray-500 font-medium text-[10px] uppercase tracking-wide text-center">Offline<br />Earnings</span>
-          <span class="font-mono text-gray-900">
+        <div class="flex flex-col items-center">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-none mb-0.5">Offline Earnings</span>
+          <span class="font-mono-premium text-[11px] font-bold text-slate-700">
             {{ formatMoney(offlineEarningsHr) }}
           </span>
         </div>
@@ -133,7 +132,7 @@
 
       <!-- Details Button -->
       <button
-        class="mt-2 text-purple-400 hover:text-purple-600 transition-colors p-1"
+        class="mt-3 text-slate-400 hover:text-slate-900 transition-colors p-1"
         title="View Full Details"
         @click="$emit('show-details')"
       >
@@ -168,7 +167,7 @@ const snapshot = computed(() => actionsStore.effectiveSnapshot);
 const currentEgg = computed(() => snapshot.value.currentEgg);
 const activeSet = computed(() => snapshot.value.activeArtifactSet);
 const habCapacity = computed(() => snapshot.value.habCapacity);
-const offlineIhr = computed(() => snapshot.value.offlineIHR);
+const offlineIhrHr = computed(() => snapshot.value.offlineIHR * 60);
 
 // Rates (assume per second based on types, converting to per hour)
 const layRateHr = computed(() => snapshot.value.layRate * 3600);

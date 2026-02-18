@@ -1,26 +1,38 @@
 <template>
-  <div class="px-4 py-3 bg-blue-50 border-t border-blue-200 flex flex-wrap gap-x-6 gap-y-2 items-center">
-    <!-- Title and TE Badge -->
-    <div class="flex items-center gap-2">
-      <span class="text-sm text-blue-800 font-medium">Integrity Summary</span>
-      <span v-if="teGained > 0" class="flex items-center gap-1 text-xs text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded">
-        +{{ teGained }}
-        <img :src="iconURL('egginc/egg_truth.png', 32)" class="w-3.5 h-3.5" alt="TE" />
-      </span>
-    </div>
-
-    <!-- Hab Summary -->
-    <div class="flex items-center gap-4 text-xs">
-      <div class="flex items-center gap-1.5 text-blue-700">
-        <span v-if="isMaxHabs" class="font-bold">Max Habs</span>
-        <span v-else class="font-medium">{{ habSummaryText }}</span>
+  <div class="px-5 py-4 bg-slate-50/30 border-t border-slate-100/50">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <!-- Label and TE Badge -->
+      <div class="flex items-center gap-3">
+        <div class="w-5 h-5 rounded-lg bg-indigo-50 border border-indigo-100 shadow-sm flex items-center justify-center p-1">
+          <svg class="w-full h-full text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </div>
+        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Integrity Summary</span>
+        <div v-if="teGained > 0" class="badge-premium bg-indigo-100 text-indigo-700 border-indigo-200/50 flex items-center gap-1 py-0.5 px-2 text-[10px]" title="Truth Eggs gained in this period">
+          <span class="font-black">+{{ teGained }}</span>
+          <img :src="iconURL('egginc/egg_truth.png', 32)" class="w-3 h-3 object-contain" alt="TE" />
+        </div>
       </div>
-      
-      <div class="w-px h-3 bg-blue-300"></div>
 
-      <div class="flex items-center gap-1.5 text-blue-700">
-        <span class="opacity-80">Hab Cap:</span>
-        <span class="font-bold">{{ formattedHabCap }}</span>
+      <!-- Stats Grid -->
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <div class="flex flex-col items-end">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Habs</span>
+          <div class="flex items-center gap-1.5">
+            <template v-if="isMaxHabs">
+              <span class="badge-premium bg-indigo-50 text-indigo-600 border-indigo-100 py-0.5 px-2 text-[9px] font-black uppercase tracking-tight">Max Universes</span>
+            </template>
+            <template v-else>
+              <span class="text-[11px] font-bold text-slate-700 tracking-tight leading-none">{{ habSummaryText }}</span>
+            </template>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-end">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Hab Cap</span>
+          <span class="text-sm font-mono-premium font-black text-slate-900">{{ formattedHabCap }}</span>
+        </div>
       </div>
     </div>
   </div>

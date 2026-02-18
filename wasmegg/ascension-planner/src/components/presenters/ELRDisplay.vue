@@ -1,54 +1,59 @@
 <template>
   <div class="space-y-4">
     <!-- Final Result -->
-    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200">
-      <div class="flex justify-between items-center mb-2">
-        <div class="text-sm text-emerald-700 font-medium">Effective Lay Rate</div>
+    <div class="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 shadow-inner">
+      <div class="flex justify-between items-center mb-4">
+        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Effective Lay Rate</div>
         <!-- Time Unit Toggle -->
-        <div class="flex gap-1">
+        <div class="inline-flex p-1 bg-white rounded-xl border border-slate-200/50 shadow-sm">
           <button
             v-for="unit in timeUnits"
             :key="unit.value"
-            class="px-2 py-1 text-xs rounded"
+            class="px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all duration-200"
             :class="timeUnit === unit.value
-              ? 'bg-emerald-600 text-white'
-              : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'"
+              ? 'bg-brand-primary text-white shadow-sm'
+              : 'text-slate-400 hover:text-slate-600'"
             @click="$emit('set-time-unit', unit.value)"
           >
             {{ unit.label }}
           </button>
         </div>
       </div>
-      <div class="text-3xl font-bold text-emerald-900">
-        {{ formatNumber(convertedELR, 3) }}/{{ timeUnitLabel }}
+      <div class="text-3xl font-bold text-slate-800 tracking-tight">
+        {{ formatNumber(convertedELR, 3) }} <span class="text-sm font-medium text-slate-400">/{{ timeUnitLabel }}</span>
       </div>
-      <div class="text-sm mt-1" :class="limitedByClass">
-        {{ limitedByText }}
+      <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-slate-100 shadow-sm">
+        <div class="w-1.5 h-1.5 rounded-full" :class="statusIndicatorClass"></div>
+        <span class="text-[10px] font-black uppercase tracking-widest" :class="limitedByClass">{{ limitedByText }}</span>
       </div>
     </div>
 
     <!-- Rate Breakdown -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Rate Comparison</h3>
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Rate Comparison</h3>
       </div>
-      <div class="divide-y divide-gray-100">
-        <div class="px-4 py-3 flex justify-between items-center">
-          <span class="text-gray-600">Egg Laying Rate</span>
+      <div class="divide-y divide-slate-50">
+        <div class="px-5 py-4 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <div>
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Egg Laying Rate</div>
+          </div>
           <span
-            class="font-mono"
-            :class="output.limitedBy === 'laying' ? 'text-red-600 font-semibold' : 'text-gray-700'"
+            class="font-mono-premium text-sm font-bold"
+            :class="output.limitedBy === 'laying' ? 'text-slate-900' : 'text-slate-700'"
           >
-            {{ formatNumber(convertedLayRate, 3) }}/{{ timeUnitLabel }}
+            {{ formatNumber(convertedLayRate, 3) }}<span class="text-[10px] opacity-60 ml-0.5">/{{ timeUnitLabel }}</span>
           </span>
         </div>
-        <div class="px-4 py-3 flex justify-between items-center">
-          <span class="text-gray-600">Shipping Capacity</span>
+        <div class="px-5 py-4 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <div>
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Shipping Capacity</div>
+          </div>
           <span
-            class="font-mono"
-            :class="output.limitedBy === 'shipping' ? 'text-red-600 font-semibold' : 'text-gray-700'"
+            class="font-mono-premium text-sm font-bold"
+            :class="output.limitedBy === 'shipping' ? 'text-slate-900' : 'text-slate-700'"
           >
-            {{ formatNumber(convertedShipping, 3) }}/{{ timeUnitLabel }}
+            {{ formatNumber(convertedShipping, 3) }}<span class="text-[10px] opacity-60 ml-0.5">/{{ timeUnitLabel }}</span>
           </span>
         </div>
       </div>
@@ -106,9 +111,17 @@ const limitedByText = computed(() => {
 
 const limitedByClass = computed(() => {
   switch (props.output.limitedBy) {
-    case 'laying': return 'text-yellow-600';
-    case 'shipping': return 'text-blue-600';
-    case 'equal': return 'text-emerald-600';
+    case 'laying': return 'text-slate-900';
+    case 'shipping': return 'text-slate-900';
+    case 'equal': return 'text-slate-500';
+  }
+});
+
+const statusIndicatorClass = computed(() => {
+  switch (props.output.limitedBy) {
+    case 'laying': return 'bg-brand-primary shadow-[0_0_8px_rgba(244,63,94,0.4)]';
+    case 'shipping': return 'bg-brand-primary shadow-[0_0_8px_rgba(244,63,94,0.4)]';
+    case 'equal': return 'bg-slate-300';
   }
 });
 </script>

@@ -3,12 +3,12 @@
     <div
       v-for="(slot, slotIndex) in modelValue"
       :key="slotIndex"
-      class="rounded-lg border border-gray-200 p-2 shadow-sm"
+      class="section-premium p-3 mb-2 group-artifact"
       :style="getSlotBackgroundStyle(slot.artifactId)"
     >
-      <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-        <div class="flex items-center gap-1.5">
-          <span class="text-[11px] font-bold text-gray-400 w-4">{{ slotIndex + 1 }}</span>
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-black text-slate-400 w-5 h-5 flex items-center justify-center bg-white/50 rounded-full shadow-inner">{{ slotIndex + 1 }}</span>
         </div>
         
         <!-- Artifact Filterable Select -->
@@ -29,16 +29,16 @@
       </div>
 
       <!-- Artifact Effect Display & Stone Slots -->
-      <div v-if="slot.artifactId" class="ml-5 space-y-2">
-        <div class="text-[11px] font-medium text-blue-700 bg-blue-50/50 px-2 py-0.5 rounded flex items-center gap-1.5 border border-blue-100/50">
-          <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+      <div v-if="slot.artifactId" class="ml-8 space-y-3">
+        <div class="badge-premium badge-brand bg-white/60 backdrop-blur-sm border border-brand-primary/10 text-[10px] py-1 px-3 flex items-center gap-2 max-w-fit">
+          <div class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></div>
           {{ getArtifact(slot.artifactId)?.effect }}
         </div>
 
         <!-- Stone Slots -->
         <div
           v-if="getArtifact(slot.artifactId)?.slots"
-          class="flex flex-wrap gap-2 border-l border-gray-100 pl-3 py-1"
+          class="flex flex-wrap gap-2.5 p-2 bg-white/30 rounded-xl border border-white/40 shadow-inner"
         >
           <div
             v-for="stoneIndex in getArtifact(slot.artifactId)!.slots"

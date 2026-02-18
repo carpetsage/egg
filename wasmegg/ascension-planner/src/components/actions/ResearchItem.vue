@@ -61,7 +61,7 @@
       <!-- Buy to Here (Cheapest view only) -->
       <button
         v-if="showBuyToHere && !isMaxed"
-        class="px-2 py-1 text-[10px] font-bold uppercase bg-amber-100 hover:bg-amber-200 text-amber-700 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        class="btn-premium btn-secondary text-[10px] py-1 px-2"
         :disabled="!canBuyToHere"
         :title="`Buy all preceding and this research${buyToHereTime ? ' (Total: ' + buyToHereTime + ')' : ''}`"
         @click.stop="$emit('buyToHere')"
@@ -86,7 +86,7 @@
       <!-- Max button for individual research -->
       <button
         v-if="showMax"
-        class="px-2 py-1 text-xs font-medium bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        class="btn-premium btn-secondary text-xs py-1 px-2"
         :disabled="!canBuy || isMaxed"
         :title="`Buy all remaining levels${maxTime ? ' (Total: ' + maxTime + ')' : ''}`"
         @click.stop="$emit('max')"

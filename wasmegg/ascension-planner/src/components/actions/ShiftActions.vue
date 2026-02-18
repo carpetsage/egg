@@ -1,76 +1,85 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-6">
     <!-- Current Shift Summary -->
-    <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
-      <div class="flex justify-between items-start mb-3">
+    <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 rounded-2xl p-6 border border-indigo-100/50 shadow-sm relative overflow-hidden">
+      <!-- Decorative background element -->
+      <div class="absolute -right-8 -top-8 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl"></div>
+      
+      <div class="flex justify-between items-start mb-6 relative z-10">
         <div>
-          <h4 class="text-sm font-medium text-gray-700">Current Shift Summary</h4>
-          <p class="text-xs text-gray-500">Since {{ lastShiftLabel }}</p>
+          <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Shift Progress</h4>
+          <p class="text-[11px] font-medium text-slate-500">Since {{ lastShiftLabel }}</p>
         </div>
-        <span class="text-sm text-gray-500">
-          Shifts: {{ virtueStore.shiftCount }}
-          <span v-if="virtueStore.plannedShifts > 0" class="text-blue-600">
-            (+{{ virtueStore.plannedShifts }} planned)
+        <div class="badge-premium bg-white border-slate-100 shadow-sm px-3 py-1 flex items-center gap-2">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Shifts:</span>
+          <span class="text-sm font-mono-premium font-black text-slate-900">{{ virtueStore.shiftCount }}</span>
+          <span v-if="virtueStore.plannedShifts > 0" class="text-[10px] font-bold text-brand-primary">
+            +{{ virtueStore.plannedShifts }}
           </span>
-        </span>
+        </div>
       </div>
 
-      <!-- Time spent this shift -->
-      <div class="bg-white rounded-lg p-3 border border-purple-100">
-        <div class="flex justify-between items-center">
-          <span class="text-sm text-gray-600">Time spent this shift:</span>
-          <span class="text-lg font-bold text-purple-700">{{ timeSinceLastShiftFormatted }}</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+        <!-- Time spent this shift -->
+        <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-indigo-50 shadow-inner">
+          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Duration</div>
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-mono-premium font-black text-slate-900">{{ timeSinceLastShiftFormatted }}</span>
+            <div class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></div>
+          </div>
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mt-1 opacity-60">
+            {{ actionsSinceLastShift }} action{{ actionsSinceLastShift !== 1 ? 's' : '' }} recorded
+          </p>
         </div>
-        <p class="text-xs text-gray-400 mt-1">
-          Sum of save times for {{ actionsSinceLastShift }} action{{ actionsSinceLastShift !== 1 ? 's' : '' }}
-        </p>
-      </div>
 
-      <!-- Current egg display -->
-      <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200 mt-3">
-        <div
-          class="w-12 h-12 flex-shrink-0 bg-gray-50 rounded-full border border-gray-100 p-1 flex items-center justify-center shadow-sm"
-        >
-          <img
-            :src="iconURL(`egginc/egg_${virtueStore.currentEgg}.png`, 64)"
-            class="w-full h-full object-contain"
-            :alt="virtueStore.currentEgg"
-          />
-        </div>
-        <div>
-          <div class="font-bold text-gray-900">{{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}</div>
-          <div class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Current Phase</div>
+        <!-- Current phase display -->
+        <div class="bg-slate-900/5 backdrop-blur-sm rounded-2xl p-4 border border-slate-900/5 shadow-inner flex items-center gap-4">
+          <div class="w-12 h-12 flex-shrink-0 bg-white rounded-2xl border border-slate-200/50 p-2 shadow-sm">
+            <img
+              :src="iconURL(`egginc/egg_${virtueStore.currentEgg}.png`, 64)"
+              class="w-full h-full object-contain"
+              :alt="virtueStore.currentEgg"
+            />
+          </div>
+          <div>
+            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Active Phase</div>
+            <div class="text-sm font-black text-slate-900 uppercase tracking-tight">{{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Shift Options -->
     <div>
-      <div class="flex justify-between items-center mb-3 ml-1">
-        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Shift to another egg</h4>
-        <div class="flex items-center gap-1.5 opacity-80">
-          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Next shift:</span>
-          <div class="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
-            <span class="text-xs font-bold text-gray-700">
+      <div class="flex justify-between items-center mb-4 px-2">
+        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Select Target Egg</h4>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Next Cost:</span>
+          <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1 rounded-xl border border-slate-100 shadow-sm">
+            <span class="text-xs font-mono-premium font-black text-slate-900">
               {{ formatNumber(nextShiftCostValue, 3) }}
             </span>
             <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
           </div>
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-3">
+
+      <div class="grid grid-cols-2 gap-4">
         <button
           v-for="egg in availableEggs"
           :key="egg"
-          class="group relative flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 shadow-sm"
+          class="group relative flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 shadow-sm overflow-hidden"
           :class="egg === virtueStore.currentEgg
-            ? 'border-gray-200 bg-gray-50/50 opacity-50 grayscale cursor-not-allowed'
-            : 'border-gray-200 bg-white hover:border-blue-400 hover:shadow-md hover:bg-blue-50/30'"
+            ? 'border-slate-100 bg-slate-50/50 opacity-40 grayscale cursor-not-allowed'
+            : 'border-slate-100 bg-white hover:border-brand-primary/30 hover:shadow-lg hover:shadow-brand-primary/5 hover:-translate-y-0.5'"
           :disabled="egg === virtueStore.currentEgg"
           @click="handleShift(egg)"
         >
+          <!-- Hover background glow -->
+          <div v-if="egg !== virtueStore.currentEgg" class="absolute -right-4 -bottom-4 w-12 h-12 bg-brand-primary/5 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+
           <div
-            class="w-10 h-10 flex-shrink-0 bg-gray-50 rounded-full p-1 border border-gray-100 group-hover:bg-white transition-colors"
+            class="w-12 h-12 flex-shrink-0 bg-slate-50 rounded-2xl p-2 border border-slate-100 group-hover:bg-white transition-all group-hover:scale-110 shadow-sm"
           >
             <img
               :src="iconURL(`egginc/egg_${egg}.png`, 64)"
@@ -78,22 +87,16 @@
               :alt="egg"
             />
           </div>
-          <div class="text-left overflow-hidden">
-            <span class="block text-sm font-bold text-gray-800 truncate group-hover:text-blue-700 transition-colors">
+          <div class="text-left overflow-hidden relative z-10">
+            <span class="block text-sm font-black text-slate-900 uppercase tracking-tight group-hover:text-brand-primary transition-colors">
               {{ VIRTUE_EGG_NAMES[egg] }}
             </span>
-            <span class="block text-[10px] font-semibold text-gray-400 uppercase group-hover:text-blue-400 transition-colors">
+            <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
               {{ eggActionLabel(egg) }}
             </span>
           </div>
         </button>
       </div>
-    </div>
-
-    <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-      <p class="text-[11px] text-blue-600 font-medium leading-relaxed">
-        <span class="font-bold">Info:</span> Shifting costs <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3 h-3 inline-block -mt-1" alt="SE" /> Soul Eggs and increases your shift count.
-      </p>
     </div>
   </div>
 </template>

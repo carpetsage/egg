@@ -27,7 +27,7 @@
           <!-- Max Tier button -->
           <button
             v-if="tierSummaries[tier]?.isUnlocked && !isTierMaxed(tier)"
-            class="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded disabled:opacity-30 disabled:cursor-not-allowed font-medium transition-colors border border-blue-200"
+            class="btn-premium btn-secondary text-xs py-1 px-2"
             @click.stop="$emit('max-tier', tier)"
             :title="`Buy all remaining research in Tier ${tier}${viewTimes.tiers[tier] ? ' (Total: ' + viewTimes.tiers[tier] + ')' : ''}`"
           >

@@ -1,73 +1,70 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4">
     <!-- Final Result -->
-    <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-200">
-      <div class="text-sm text-orange-700 font-medium">Internal Hatchery Rate (4 habs)</div>
-      <div class="grid grid-cols-2 gap-4 mt-2">
-        <div>
-          <div class="text-xs text-orange-600">Online</div>
-          <div class="text-2xl font-bold text-orange-900">
-            {{ formatNumber(output.onlineRate, 3) }}/min
+    <div class="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 shadow-inner">
+      <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Internal Hatchery Rate</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Online</div>
+          <div class="text-2xl font-bold text-slate-800 tracking-tight">
+            {{ formatNumber(output.onlineRate, 1) }}<span class="text-xs text-slate-400 ml-1">/m</span>
           </div>
         </div>
-        <div>
-          <div class="text-xs text-orange-600">Offline</div>
-          <div class="text-2xl font-bold text-orange-900">
-            {{ formatNumber(output.offlineRate, 3) }}/min
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Offline</div>
+          <div class="text-2xl font-bold text-slate-900 tracking-tight">
+            {{ formatNumber(output.offlineRate, 1) }}<span class="text-xs text-slate-400 ml-1">/m</span>
           </div>
         </div>
       </div>
-      <div class="text-sm text-orange-600 mt-2">
-        Base: {{ formatNumber(output.baseRatePerHab, 3) }}/min per hab
+      <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center px-1">
+        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base Calibration</span>
+        <span class="font-mono-premium text-xs font-bold text-slate-700">{{ formatNumber(output.baseRatePerHab, 2) }}/min per module</span>
       </div>
     </div>
 
     <!-- Multiplier Breakdown -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Multiplier Breakdown</h3>
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Multiplier Breakdown</h3>
       </div>
-      <div class="divide-y divide-gray-100">
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Base Rate (per hab)</span>
-          <span class="font-mono text-gray-900">{{ formatNumber(output.baseRatePerHab, 3) }}/min</span>
-        </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">TE Bonus (1.1^{{ te }})</span>
-          <span class="font-mono" :class="output.teMultiplier !== 1 ? 'text-amber-600' : 'text-gray-400'">
+      <div class="divide-y divide-slate-50">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Eggs of Truth</span>
+          <span class="font-mono-premium text-sm font-bold" :class="output.teMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ formatMultiplier(output.teMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)" class="w-4 h-4 object-contain" alt="Epic Int. Hatcheries" />
-            <span class="text-gray-600">Epic Int. Hatcheries</span>
+            <img :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)" class="w-4 h-4 object-contain opacity-60" alt="Epic Int. Hatcheries" />
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Epic Internal Incubators</span>
           </div>
-          <span class="font-mono" :class="output.epicMultiplier !== 1 ? 'text-purple-600' : 'text-gray-400'">
+          <span class="font-mono-premium text-sm font-bold" :class="output.epicMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ formatMultiplier(output.epicMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('easter'), 64)" class="w-4 h-4 object-contain" alt="Easter" />
-            <span class="text-gray-600">Easter Egg Bonus</span>
+            <img :src="iconURL(getColleggtibleIconPath('easter'), 64)" class="w-4 h-4 object-contain opacity-60" alt="Easter" />
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Easter</span>
           </div>
-          <span class="font-mono" :class="output.easterEggMultiplier !== 1 ? 'text-blue-600' : 'text-gray-400'">
+          <span class="font-mono-premium text-sm font-bold" :class="output.easterEggMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ formatMultiplier(output.easterEggMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Artifacts</span>
-          <span class="font-mono" :class="output.artifactMultiplier !== 1 ? 'text-purple-600' : 'text-gray-400'">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Artifact Multiplier</span>
+          <span class="font-mono-premium text-sm font-bold" :class="output.artifactMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ formatMultiplier(output.artifactMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
+        <div class="px-5 py-3 flex justify-between items-center bg-slate-50/50">
           <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)" class="w-4 h-4 object-contain" alt="Internal Hatchery Calm" />
-            <span class="text-gray-600">Offline Multiplier</span>
+            <img :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)" class="w-4 h-4 object-contain opacity-60" alt="Internal Hatchery Calm" />
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Internal Hatchery Calm</span>
           </div>
-          <span class="font-mono" :class="output.offlineMultiplier !== 1 ? 'text-green-600' : 'text-gray-400'">
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
             {{ formatMultiplier(output.offlineMultiplier) }}
           </span>
         </div>
@@ -75,153 +72,109 @@
     </div>
 
     <!-- Artifact Breakdown -->
-    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Artifact Effects <span class="text-xs text-gray-500 font-normal">(from Initial State)</span></h3>
+    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Artifact Breakdown</h3>
       </div>
-      <div class="divide-y divide-gray-100">
+      <div class="divide-y divide-slate-50">
         <div
           v-for="(effect, index) in output.artifactBreakdown"
           :key="index"
-          class="px-4 py-2 flex justify-between items-center"
+          class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
-          <div>
-            <span class="text-sm text-gray-900">{{ effect.label }}</span>
-            <span class="ml-1 text-xs" :class="effect.source === 'artifact' ? 'text-purple-500' : 'text-blue-500'">
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-bold text-slate-700">{{ effect.label }}</span>
+            <span class="badge-premium py-0 text-[8px]" :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'">
               ({{ effect.source }})
             </span>
           </div>
-          <span class="font-mono text-purple-600">{{ effect.effect }}</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ effect.effect }}</span>
         </div>
       </div>
     </div>
 
     <!-- Eggs of Truth -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Eggs of Truth <span class="text-xs text-gray-500 font-normal">(from Initial State)</span></h3>
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Eggs of Truth</h3>
       </div>
-      <div class="px-4 py-3">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('truth'), 64)" class="w-6 h-6 object-contain" alt="Truth" />
-            <span class="text-gray-600">TE Count</span>
-            <span
-              class="ml-2 text-sm font-mono"
-              :class="te > 0 ? 'text-amber-600' : 'text-gray-400'"
-            >
-              {{ formatMultiplier(output.teMultiplier) }}
-            </span>
+      <div class="px-5 py-4">
+        <div class="flex justify-between items-center p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
+              <img :src="iconURL(getColleggtibleIconPath('truth'), 64)" class="w-5 h-5 object-contain" alt="Truth" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">Eggs of Truth</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ te }} Claimed</div>
+            </div>
           </div>
-          <div class="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">
-            {{ te }} <span class="text-xs text-gray-400">/ 490</span>
-          </div>
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
+            {{ formatMultiplier(output.teMultiplier) }}
+          </span>
         </div>
-        <p class="text-xs text-gray-500 mt-1">
-          Each TE provides 1.1x multiplier to IHR
-        </p>
+        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-3 px-1">Dimensional shift provides 1.1x hatchery boost per discovery</p>
       </div>
     </div>
 
-    <!-- Common Research (Read-only from Common Research) -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">IHR Research <span class="text-xs text-gray-500 font-normal">(from Common Research)</span></h3>
+    <!-- Research -->
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Common Research</h3>
       </div>
-      <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+      <div class="divide-y divide-slate-50 max-h-80 overflow-y-auto scrollbar-premium">
+        <!-- Common -->
         <div
           v-for="research in commonResearchBreakdown"
           :key="research.researchId"
-          class="px-4 py-2 flex justify-between items-center"
+          class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath(research.researchId), 64)" class="w-5 h-5 object-contain" :alt="research.name" />
-            <span class="font-medium text-gray-900">{{ research.name }}</span>
-            <span
-              class="ml-2 text-sm font-mono"
-              :class="research.contribution > 0 ? 'text-green-600' : 'text-gray-400'"
-            >
-              +{{ formatNumber(research.contribution, 0) }}/min
-            </span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-mono text-gray-700">{{ research.level }}</span>
-            <span class="text-xs text-gray-400">/ {{ research.maxLevel }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Epic Research (Read-only from Initial State) -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Epic Research <span class="text-xs text-gray-500 font-normal">(from Initial State)</span></h3>
-      </div>
-      <div class="px-4 py-3 space-y-4">
-        <!-- Epic Int. Hatcheries -->
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <div class="flex items-center gap-2">
-              <img :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)" class="w-6 h-6 object-contain" alt="Epic Int. Hatcheries" />
-              <span class="font-medium text-gray-900">Epic Int. Hatcheries</span>
-              <span
-                class="ml-2 text-sm font-mono"
-                :class="epicResearchLevels.epicInternalIncubators > 0 ? 'text-purple-600' : 'text-gray-400'"
-              >
-                {{ formatMultiplier(1 + epicResearchLevels.epicInternalIncubators * 0.05, true) }}
-              </span>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
+              <img :src="iconURL(getColleggtibleIconPath(research.researchId), 64)" class="w-5 h-5 object-contain" :alt="research.name" />
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-mono text-gray-700">{{ epicResearchLevels.epicInternalIncubators }}</span>
-              <span class="text-xs text-gray-400">/ 20</span>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700 leading-tight">{{ research.name }}</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                +{{ formatNumber(research.contribution, 0) }}/min
+              </div>
             </div>
           </div>
-          <div class="text-xs text-gray-500 ml-8">+5% IHR per level (online & offline)</div>
+          <div class="text-right">
+            <div class="font-mono-premium text-xs font-bold text-slate-700">{{ research.level }} <span class="text-slate-300 font-normal">/</span> {{ research.maxLevel }}</div>
+          </div>
         </div>
 
-        <!-- Internal Hatchery Calm -->
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <div class="flex items-center gap-2">
-              <img :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)" class="w-6 h-6 object-contain" alt="Internal Hatchery Calm" />
-              <span class="font-medium text-gray-900">Internal Hatchery Calm</span>
-              <span
-                class="ml-2 text-sm font-mono"
-                :class="epicResearchLevels.internalHatcheryCalm > 0 ? 'text-green-600' : 'text-gray-400'"
-              >
-                {{ formatMultiplier(1 + epicResearchLevels.internalHatcheryCalm * 0.10, true) }}
-              </span>
+        <!-- Epic (Hatchery specific) -->
+        <div class="px-5 py-1 bg-slate-50/30 text-[9px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100">Epic Research</div>
+        
+        <div class="px-5 py-4 space-y-4">
+          <!-- Epic Int. Hatcheries -->
+          <div class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm flex justify-between items-center group hover:shadow-md transition-shadow">
+            <div class="flex items-center gap-3">
+               <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner overflow-hidden">
+                <img :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)" class="w-5 h-5 object-contain" alt="Epic Int. Hatcheries" />
+              </div>
+              <div>
+                <div class="text-[11px] font-bold text-slate-700 leading-tight">Epic Internal Incubators</div>
+              </div>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-mono text-gray-700">{{ epicResearchLevels.internalHatcheryCalm }}</span>
-              <span class="text-xs text-gray-400">/ 20</span>
-            </div>
+            <span class="font-mono-premium text-xs font-bold text-slate-700">{{ epicResearchLevels.epicInternalIncubators }} <span class="text-slate-300">/</span> 20</span>
           </div>
-          <div class="text-xs text-gray-500 ml-8">+10% IHR per level (offline only)</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Colleggtibles (Read-only from Initial State) -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Colleggtibles <span class="text-xs text-gray-500 font-normal">(from Initial State)</span></h3>
-      </div>
-      <div class="px-4 py-3">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('easter'), 64)" class="w-6 h-6 object-contain" alt="Easter" />
-            <span class="font-medium text-gray-900">Easter</span>
-            <span
-              class="ml-2 text-sm font-mono"
-              :class="colleggtibleTier >= 0 ? 'text-blue-600' : 'text-gray-400'"
-            >
-              {{ formatColleggtibleBonus(output.easterEggMultiplier) }}
-            </span>
+          <!-- Internal Hatchery Calm -->
+          <div class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm flex justify-between items-center group hover:shadow-md transition-shadow">
+            <div class="flex items-center gap-3">
+               <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden">
+                <img :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)" class="w-5 h-5 object-contain" alt="Internal Hatchery Calm" />
+              </div>
+              <div>
+                <div class="text-[11px] font-bold text-slate-700 leading-tight">Internal Hatchery Calm</div>
+              </div>
+            </div>
+            <span class="font-mono-premium text-xs font-bold text-slate-700">{{ epicResearchLevels.internalHatcheryCalm }} <span class="text-slate-300">/</span> 20</span>
           </div>
-          <span class="text-sm text-gray-600">{{ formatTier(colleggtibleTier) }}</span>
         </div>
-        <div class="text-xs text-gray-500 mt-1">IHR bonus from colleggtibles</div>
       </div>
     </div>
   </div>

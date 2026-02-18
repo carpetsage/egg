@@ -11,6 +11,11 @@ export default {
         green: colors.emerald,
         yellow: colors.amber,
         purple: colors.violet,
+        brand: {
+          primary: 'var(--color-brand-primary)',
+          secondary: 'var(--color-brand-secondary)',
+          tertiary: 'var(--color-brand-tertiary)',
+        }
       },
     },
   },

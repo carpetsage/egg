@@ -1,26 +1,30 @@
 <template>
-  <div class="space-y-2">
+  <div class="space-y-4">
     <!-- Header with total cost -->
-    <div class="flex justify-between items-center px-2">
-      <span class="text-sm text-gray-600">{{ actionCount }} action{{ actionCount === 1 ? '' : 's' }}</span>
-      <span class="text-sm font-mono text-amber-600">
-        Total: {{ formatGemPrice(totalCost) }} gems
+    <div class="flex justify-between items-center px-4 py-2 bg-slate-50/50 rounded-xl border border-slate-100">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ actionCount }} Actions</span>
+      <span class="text-sm font-bold text-slate-800 font-mono-premium">
+        Total <span class="text-slate-900">{{ formatGemPrice(totalCost) }}</span> G
       </span>
     </div>
 
     <!-- Empty state (only show if no start_ascension exists) -->
-    <div v-if="!hasStartAction" class="text-center py-8 text-gray-500">
-      <p>Load player data to start planning.</p>
+    <div v-if="!hasStartAction" class="text-center py-12 bg-white rounded-2xl border border-slate-100 border-dashed">
+      <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+      </div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">No actions yet.</p>
     </div>
 
     <!-- Action list with grouping -->
-    <div v-else class="border border-gray-200 rounded-lg overflow-hidden">
+    <div v-else class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm divide-y divide-slate-100">
       <template v-for="(item, idx) in groupedActions" :key="item.key">
         <!-- Individual action (current work after last shift) -->
         <ActionHistoryItem
           v-if="item.type === 'single'"
           :action="item.action"
-          :class="{ 'border-t border-gray-100': idx > 0 }"
           @show-details="$emit('show-details', item.action)"
           @undo="handleUndoRequest(item.action, $event)"
         />
@@ -36,7 +40,6 @@
           :visit-count="item.visitCount"
           :is-editing="actionsStore.editingGroupId === item.headerAction.id"
           :is-current="item.isCurrent"
-          :class="{ 'border-t border-gray-100': idx > 0 }"
           @show-details="$emit('show-details', $event)"
           @undo="handleUndoRequest"
           @start-editing="handleStartEditing"
@@ -45,12 +48,10 @@
       </template>
     </div>
 
-    <!-- Clear all button (only show if there are actions beyond start_ascension) -->
     <!-- Footer Actions -->
-    <div class="flex justify-end items-center px-2 pt-4 border-t border-gray-100">
+    <div v-if="actionCount > 0" class="flex justify-center pt-2">
       <button
-        v-if="actionCount > 0"
-        class="text-sm text-red-600 hover:text-red-800 px-3 py-1 transition-colors"
+        class="text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest transition-colors py-2 px-4 rounded-xl hover:bg-red-50"
         @click="handleClearAll"
       >
         Clear All
