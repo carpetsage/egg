@@ -1,20 +1,34 @@
 <template>
-  <div class="px-4 py-3 bg-pink-50 border-t border-pink-200 flex flex-wrap gap-x-6 gap-y-2 items-center">
-    <!-- Title -->
-    <div class="text-sm text-pink-800 font-medium">Kindness Summary</div>
-
-    <!-- Vehicle Summary -->
-    <div class="flex items-center gap-4 text-xs">
-      <div class="flex items-center gap-1.5 text-pink-700">
-        <span v-if="isMaxed" class="font-bold">Max Vehicles</span>
-        <span v-else class="font-medium">{{ vehicleSummaryText }}</span>
+  <div class="px-5 py-4 bg-slate-50/30 border-t border-slate-100/50">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <!-- Label -->
+      <div class="flex items-center gap-3">
+        <div class="w-5 h-5 rounded-lg bg-pink-50 border border-pink-100 shadow-sm flex items-center justify-center p-1">
+          <svg class="w-full h-full text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+        </div>
+        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Kindness Summary</span>
       </div>
-      
-      <div class="w-px h-3 bg-pink-300"></div>
 
-      <div class="flex items-center gap-1.5 text-pink-700">
-        <span class="opacity-80">Shipping Cap:</span>
-        <span class="font-bold">{{ formattedShippingCap }}</span>
+      <!-- Stats Grid -->
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <div class="flex flex-col items-end">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Fleet</span>
+          <div class="flex items-center gap-1.5">
+            <template v-if="isMaxed">
+              <span class="badge-premium bg-pink-50 text-pink-600 border-pink-100 py-0.5 px-2 text-[9px] font-black uppercase tracking-tight">Full Hyperloop</span>
+            </template>
+            <template v-else>
+              <span class="text-[11px] font-bold text-slate-700 tracking-tight leading-none">{{ vehicleSummaryText }}</span>
+            </template>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-end">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Shipping Cap</span>
+          <span class="text-sm font-mono-premium font-black text-slate-900">{{ formattedShippingCap }}</span>
+        </div>
       </div>
     </div>
   </div>

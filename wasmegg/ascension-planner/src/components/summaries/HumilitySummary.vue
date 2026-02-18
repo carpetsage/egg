@@ -1,30 +1,37 @@
 <template>
-  <div class="px-4 py-3 bg-green-50 border-t border-green-200 flex flex-wrap gap-x-6 gap-y-2 items-center">
-    <!-- Title and TE Badge -->
-    <div class="flex items-center gap-2">
-      <span class="text-sm text-green-800 font-medium">Humility Summary</span>
-      <span v-if="teGained > 0" class="flex items-center gap-1 text-xs text-green-700 bg-green-200 px-1.5 py-0.5 rounded" title="Truth Eggs gained in this period">
-        +{{ teGained }}
-        <img :src="iconURL('egginc/egg_truth.png', 32)" class="w-3.5 h-3.5" alt="TE" />
-      </span>
-    </div>
-
-    <!-- Rockets Summary -->
-    <div class="flex items-center gap-4 text-xs">
-      <div v-if="shipsSent > 0" class="flex items-center gap-1.5 text-green-700">
-        <span class="font-bold">{{ shipsSent }}</span>
-        <span class="opacity-80">{{ shipsSent === 1 ? 'Ship' : 'Ships' }} Sent</span>
+  <div class="px-5 py-4 bg-slate-50/30 border-t border-slate-100/50">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <!-- Label and TE Badge -->
+      <div class="flex items-center gap-3">
+        <div class="w-5 h-5 rounded-lg bg-emerald-50 border border-emerald-100 shadow-sm flex items-center justify-center p-1">
+          <svg class="w-full h-full text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Humility Summary</span>
+        <div v-if="teGained > 0" class="badge-premium badge-success flex items-center gap-1 py-0.5 px-2 text-[10px]" title="Truth Eggs gained in this period">
+          <span class="font-black">+{{ teGained }}</span>
+          <img :src="iconURL('egginc/egg_truth.png', 32)" class="w-3 h-3 object-contain" alt="TE" />
+        </div>
       </div>
 
-      <div v-if="shipsSent > 0 && totalMissionTimeSeconds > 0" class="w-px h-3 bg-green-300"></div>
+      <!-- Stats Grid -->
+      <div v-if="shipsSent > 0 || totalMissionTimeSeconds > 0" class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <div v-if="shipsSent > 0" class="flex flex-col items-end">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Mission(s)</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm font-mono-premium font-black text-slate-900">{{ shipsSent }}</span>
+          </div>
+        </div>
 
-      <div v-if="totalMissionTimeSeconds > 0" class="flex items-center gap-1.5 text-green-700">
-        <span class="opacity-80">Total Mission Time:</span>
-        <span class="font-bold">{{ formattedMissionTime }}</span>
+        <div v-if="totalMissionTimeSeconds > 0" class="flex flex-col items-end">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Time Planned</span>
+          <span class="text-sm font-mono-premium font-black text-slate-900">{{ formattedMissionTime }}</span>
+        </div>
       </div>
-      
-      <div v-if="shipsSent === 0 && teGained === 0" class="text-xs text-green-600 italic">
-        No missions launched or TE gained
+
+      <div v-else class="text-[11px] text-slate-400 italic font-medium">
+        No missions launched or TE gained in this shift
       </div>
     </div>
   </div>

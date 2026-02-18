@@ -122,7 +122,7 @@
     <!-- Expanded content (summary + action details) -->
     <div
       v-if="isExpanded"
-      class="border-t border-purple-200"
+      class="border-t border-slate-100"
     >
       <!-- Egg Summary (for the egg we were ON during this period) -->
       <component
