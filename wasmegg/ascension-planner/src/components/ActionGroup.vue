@@ -66,20 +66,6 @@
 
       <!-- Status/Editor Actions -->
       <div class="flex items-center gap-2" @click.stop>
-        <!-- Status Badges -->
-        <span
-          v-if="isEditing"
-          class="badge-premium bg-brand-primary text-white border-brand-primary px-3 shadow-md"
-        >
-          Editing
-        </span>
-        <span
-          v-else-if="isCurrent"
-          class="badge-premium bg-slate-800 text-white border-slate-800 px-3 shadow-md"
-        >
-          Active
-        </span>
-
         <!-- Edit/Done toggle -->
         <button
           v-if="!isEditing && !(isCurrent && !actionsStore.editingGroupId)"

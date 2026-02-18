@@ -267,7 +267,7 @@ const timeToSaveFormatted = computed(() => {
   const totalSeconds = timeToSaveSeconds.value;
 
   if (totalSeconds <= 0) {
-    return 'free';
+    return '0s';
   }
 
   return formatDuration(totalSeconds);
