@@ -112,7 +112,7 @@ const allTabs = [
   { id: 'vehicles', label: 'Vehicles', egg: 'kindness' as VirtueEgg, beforeShiftsOnly: false },
   { id: 'artifacts', label: 'Artifacts', egg: 'humility' as VirtueEgg, beforeShiftsOnly: false },
   { id: 'silos', label: 'Silos', egg: 'resilience' as VirtueEgg, beforeShiftsOnly: false },
-  { id: 'fuel', label: 'Fuel Tank', egg: null, beforeShiftsOnly: false },
+  { id: 'fuel', label: 'Tank', egg: null, beforeShiftsOnly: false },
   { id: 'wait', label: 'Wait', egg: null, beforeShiftsOnly: false },
   { id: 'rockets', label: 'Rockets', egg: 'humility' as VirtueEgg, beforeShiftsOnly: false },
   { id: 'shift', label: 'Shift', egg: null, beforeShiftsOnly: false },
