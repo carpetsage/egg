@@ -90,8 +90,6 @@
     <PlanFinalSummary @show-details="showCurrentDetails" />
     <FloatingStats @show-details="showCurrentDetails" />
 
-    <!-- Design System Style Guide -->
-    <StyleGuide />
   </div>
 </template>
 
@@ -113,7 +111,6 @@ import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import FloatingStats from '@/components/FloatingStats.vue';
-import StyleGuide from '@/components/StyleGuide.vue';
 import { formatNumber } from '@/lib/format';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
