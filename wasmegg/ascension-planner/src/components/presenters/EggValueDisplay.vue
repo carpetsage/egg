@@ -1,33 +1,38 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4">
     <!-- Final Result -->
-    <div class="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-4 border border-yellow-200">
-      <div class="text-sm text-yellow-700 font-medium">Final Egg Value</div>
-      <div class="text-3xl font-bold text-yellow-900">
-        {{ formatNumber(output.finalValue) }} gems/egg
+    <div class="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 shadow-inner flex justify-between items-center">
+      <div>
+        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Final Egg Value</div>
+        <div class="text-3xl font-bold text-slate-800 tracking-tight">
+          {{ formatNumber(output.finalValue, 3) }} <span class="text-sm font-medium text-slate-400">gems/egg</span>
+        </div>
       </div>
-      <div class="text-sm text-yellow-600 mt-1">
-        {{ formatMultiplier(output.finalValue / output.baseValue) }} total multiplier
+      <div class="text-right">
+        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Power</div>
+        <div class="text-lg font-mono-premium font-bold text-slate-900">
+          {{ formatMultiplier(output.finalValue / output.baseValue) }}
+        </div>
       </div>
     </div>
 
     <!-- Multiplier Breakdown -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Multiplier Breakdown</h3>
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Multiplier Breakdown</h3>
       </div>
-      <div class="divide-y divide-gray-100">
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Base Value</span>
-          <span class="font-mono text-gray-900">{{ output.baseValue }} gem</span>
+      <div class="divide-y divide-slate-50">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base Value</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ output.baseValue }} G</span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Research Bonus</span>
-          <span class="font-mono text-green-600">{{ formatMultiplier(output.researchMultiplier) }}</span>
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Research Modifier</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatMultiplier(output.researchMultiplier) }}</span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Artifacts</span>
-          <span class="font-mono" :class="output.artifactMultiplier !== 1 ? 'text-purple-600' : 'text-gray-400'">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Artifact Potency</span>
+          <span class="font-mono-premium text-sm font-bold" :class="output.artifactMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ formatMultiplier(output.artifactMultiplier) }}
           </span>
         </div>
@@ -35,51 +40,51 @@
     </div>
 
     <!-- Artifact Breakdown -->
-    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Artifact Effects <span class="text-xs text-gray-500 font-normal">(from Initial State)</span></h3>
+    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Initial Loadout Effects</h3>
       </div>
-      <div class="divide-y divide-gray-100">
+      <div class="divide-y divide-slate-50">
         <div
           v-for="(effect, index) in output.artifactBreakdown"
           :key="index"
-          class="px-4 py-2 flex justify-between items-center"
+          class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
-          <div>
-            <span class="text-sm text-gray-900">{{ effect.label }}</span>
-            <span class="ml-1 text-xs" :class="effect.source === 'artifact' ? 'text-purple-500' : 'text-blue-500'">
-              ({{ effect.source }})
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-bold text-slate-700">{{ effect.label }}</span>
+            <span class="badge-premium py-0 text-[8px]" :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'">
+              {{ effect.source }}
             </span>
           </div>
-          <span class="font-mono text-purple-600">{{ effect.effect }}</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ effect.effect }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Research (Read-only from Common Research) -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Egg Value Research <span class="text-xs text-gray-500 font-normal">(from Common Research)</span></h3>
+    <!-- Research -->
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Contributing Research</h3>
       </div>
-      <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+      <div class="divide-y divide-slate-50 max-h-80 overflow-y-auto scrollbar-premium">
         <div
           v-for="research in output.researchBreakdown"
           :key="research.researchId"
-          class="px-4 py-2 flex justify-between items-center"
+          class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath(research.researchId), 64)" class="w-5 h-5 object-contain" :alt="research.name" />
-            <span class="font-medium text-gray-900">{{ research.name }}</span>
-            <span
-              class="ml-2 text-sm font-mono"
-              :class="research.multiplier > 1 ? 'text-green-600' : 'text-gray-400'"
-            >
-              {{ formatMultiplier(research.multiplier, true) }}
-            </span>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
+              <img :src="iconURL(getColleggtibleIconPath(research.researchId), 64)" class="w-5 h-5 object-contain" :alt="research.name" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700 leading-tight">{{ research.name }}</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                {{ formatMultiplier(research.multiplier, true) }}
+              </div>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-mono text-gray-700">{{ research.level }}</span>
-            <span class="text-xs text-gray-400">/ {{ research.maxLevel }}</span>
+          <div class="text-right">
+            <div class="font-mono-premium text-xs font-bold text-slate-700">{{ research.level }} <span class="text-slate-300 font-normal">/</span> {{ research.maxLevel }}</div>
           </div>
         </div>
       </div>

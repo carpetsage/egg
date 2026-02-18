@@ -132,7 +132,7 @@
 
       <!-- Details Button -->
       <button
-        class="mt-3 text-slate-400 hover:text-brand-primary transition-colors p-1"
+        class="mt-3 text-slate-400 hover:text-slate-900 transition-colors p-1"
         title="View Full Details"
         @click="$emit('show-details')"
       >

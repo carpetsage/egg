@@ -159,7 +159,7 @@
 
     .badge-brand {
         background-color: var(--color-brand-primary-glow);
-        color: var(--color-brand-primary-dark);
+        color: var(--color-slate-900);
     }
 
     .badge-success {

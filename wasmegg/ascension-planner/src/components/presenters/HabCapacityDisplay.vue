@@ -1,45 +1,58 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4">
     <!-- Final Result -->
-    <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
-      <div class="text-sm text-green-700 font-medium">Total Hab Capacity</div>
-      <div class="text-3xl font-bold text-green-900">
-        {{ formatFullNumber(output.totalFinalCapacity) }} chickens
+    <div class="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 shadow-inner flex justify-between items-center">
+      <div>
+        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Hab Capacity</div>
+        <div class="text-3xl font-bold text-slate-800 tracking-tight">
+          {{ formatFullNumber(output.totalFinalCapacity) }} <span class="text-sm font-medium text-slate-400">chickens</span>
+        </div>
       </div>
-      <div class="text-sm text-green-600 mt-1">
-        {{ formatMultiplier(output.totalFinalCapacity / output.totalBaseCapacity) }} total multiplier
+      <div class="text-right">
+        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Scale Power</div>
+        <div class="text-lg font-mono-premium font-bold text-slate-900">
+          {{ formatMultiplier(output.totalFinalCapacity / output.totalBaseCapacity) }}
+        </div>
       </div>
     </div>
 
-    <!-- Hab Cost Discounts Section -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Hab Cost Discounts</h3>
+    <!-- Hab Cost Discounts -->
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Habitat Infrastructure Costs</h3>
       </div>
-      <div class="divide-y divide-gray-100">
-        <div class="px-4 py-2 flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('cheaper_contractors'), 64)" class="w-6 h-6 object-contain" alt="Cheaper Contractors" />
-            <span class="text-gray-600">Cheaper Contractors</span>
-            <span class="text-xs text-gray-400 ml-1">(Epic Research)</span>
+      <div class="divide-y divide-slate-50">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
+              <img :src="iconURL(getColleggtibleIconPath('cheaper_contractors'), 64)" class="w-5 h-5 object-contain" alt="Cheaper Contractors" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">Contractor Rates</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Epic Research</div>
+            </div>
           </div>
-          <span class="font-mono" :class="cheaperContractorsLevel > 0 ? 'text-purple-600' : 'text-gray-400'">
+          <span class="font-mono-premium text-sm font-bold" :class="cheaperContractorsLevel > 0 ? 'text-slate-900' : 'text-slate-300'">
             {{ cheaperContractorsLevel > 0 ? `-${cheaperContractorsLevel * 5}%` : '—' }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('flame-retardant'), 64)" class="w-6 h-6 object-contain" alt="Flame Retardant" />
-            <span class="text-gray-600">Flame Retardant</span>
-            <span class="text-xs text-gray-400 ml-1">(Colleggtible)</span>
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
+              <img :src="iconURL(getColleggtibleIconPath('flame-retardant'), 64)" class="w-5 h-5 object-contain" alt="Flame Retardant" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">Shielding Efficiency</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Colleggtible</div>
+            </div>
           </div>
-          <span class="font-mono" :class="flameRetardantMultiplier < 1 ? 'text-orange-600' : 'text-gray-400'">
+          <span class="font-mono-premium text-sm font-bold" :class="flameRetardantMultiplier < 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ flameRetardantMultiplier < 1 ? formatPercent(flameRetardantMultiplier - 1, 0) : '—' }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center bg-gray-50">
-          <span class="font-medium text-gray-900">Total Discount</span>
-          <span class="font-mono font-medium" :class="totalCostMultiplier < 1 ? 'text-green-600' : 'text-gray-400'">
+        <div class="px-5 py-3 flex justify-between items-center bg-slate-50/80">
+          <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Total Cost Multiplier</span>
+          <span class="font-mono-premium text-sm font-bold" :class="totalCostMultiplier < 1 ? 'text-slate-900' : 'text-slate-400'">
             {{ totalCostMultiplier < 1 ? formatPercent(totalCostMultiplier - 1, 0) : '—' }}
           </span>
         </div>
@@ -47,37 +60,40 @@
     </div>
 
     <!-- Hab Slots -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Habs ({{ purchasedCount }}/4)</h3>
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Installed Habitats</h3>
+        <span class="badge-premium badge-brand py-0 text-[9px]">{{ purchasedCount }}/4 Slots</span>
       </div>
-      <div class="divide-y divide-gray-100">
+      <div class="divide-y divide-slate-50">
         <div
           v-for="(hab, index) in output.habBreakdown"
           :key="index"
-          class="px-4 py-3 flex justify-between items-center"
+          class="px-5 py-4 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
-          <div class="flex items-center gap-3">
-            <span class="text-gray-400 text-sm w-6">{{ index + 1 }}.</span>
-            <div v-if="hab.habId !== null" class="flex items-center gap-2">
-              <img
-                :src="iconURL(getHabById(hab.habId as any)?.iconPath ?? '', 64)"
-                class="w-6 h-6 object-contain"
-                :alt="getHabById(hab.habId as any)?.name"
-              />
-              <span class="text-sm text-gray-900">{{ getHabById(hab.habId as any)?.name }}</span>
+          <div class="flex items-center gap-4">
+            <span class="text-[10px] font-black text-slate-300 w-4">{{ index + 1 }}</span>
+            <div v-if="hab.habId !== null" class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-105 transition-transform">
+                <img
+                  :src="iconURL(getHabById(hab.habId as any)?.iconPath ?? '', 128)"
+                  class="w-full h-full object-contain p-1.5"
+                  :alt="getHabById(hab.habId as any)?.name"
+                />
+              </div>
+              <div>
+                <div class="text-[11px] font-bold text-slate-700 leading-tight">{{ getHabById(hab.habId as any)?.name }}</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Active Module</div>
+              </div>
             </div>
-            <span v-else class="text-sm text-gray-400 italic">Empty</span>
+            <span v-else class="text-[11px] font-bold text-slate-300 italic uppercase tracking-wider">Empty Bay</span>
           </div>
           <div class="text-right">
-            <div v-if="hab.habId !== null" class="font-mono text-gray-900">
+            <div v-if="hab.habId !== null" class="font-mono-premium text-sm font-bold text-slate-700">
               {{ formatNumber(hab.finalCapacity, 0) }}
             </div>
-            <div v-if="hab.habId !== null" class="text-xs text-gray-500">
-              base: {{ formatNumber(hab.baseCapacity, 0) }}
-            </div>
-            <div v-if="hab.habId !== null" class="text-xs text-amber-600">
-              cost: {{ formatNumber(getHabPriceForSlot(index), 0) }}
+            <div v-if="hab.habId !== null" class="text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-60">
+              Cost: {{ formatNumber(getHabPriceForSlot(index), 0) }}
             </div>
           </div>
         </div>
@@ -85,37 +101,37 @@
     </div>
 
     <!-- Multiplier Breakdown -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Multiplier Breakdown</h3>
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Capacity Modifiers</h3>
       </div>
-      <div class="divide-y divide-gray-100">
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Base Capacity</span>
-          <span class="font-mono text-gray-900">{{ formatNumber(output.totalBaseCapacity, 0) }}</span>
+      <div class="divide-y divide-slate-50">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base Physical Space</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatNumber(output.totalBaseCapacity, 0) }}</span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Research Bonus</span>
-          <span class="font-mono text-green-600">{{ formatMultiplier(output.researchMultiplier) }}</span>
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Internal Research</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatMultiplier(output.researchMultiplier) }}</span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Portal Research Bonus</span>
-          <span class="font-mono" :class="output.portalResearchMultiplier !== 1 ? 'text-purple-600' : 'text-gray-400'">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hyperdimensional Flux</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700" :class="output.portalResearchMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ formatMultiplier(output.portalResearchMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-2">
             <img :src="iconURL(getColleggtibleIconPath('pegg'), 64)" class="w-4 h-4 object-contain" alt="P.E.G.G" />
-            <span class="text-gray-600">PEGG Bonus</span>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Colleggtible Bonus</span>
           </div>
-          <span class="font-mono" :class="output.peggMultiplier !== 1 ? 'text-blue-600' : 'text-gray-400'">
+          <span class="font-mono-premium text-sm font-bold" :class="output.peggMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ formatMultiplier(output.peggMultiplier) }}
           </span>
         </div>
-        <div class="px-4 py-2 flex justify-between items-center">
-          <span class="text-gray-600">Artifacts</span>
-          <span class="font-mono" :class="output.artifactMultiplier !== 1 ? 'text-purple-600' : 'text-gray-400'">
+        <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Artifact Potency</span>
+          <span class="font-mono-premium text-sm font-bold" :class="output.artifactMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
             {{ formatMultiplier(output.artifactMultiplier) }}
           </span>
         </div>
@@ -123,82 +139,80 @@
     </div>
 
     <!-- Artifact Breakdown -->
-    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Artifact Effects <span class="text-xs text-gray-500 font-normal">(from Initial State)</span></h3>
+    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Initial Loadout Effects</h3>
       </div>
-      <div class="divide-y divide-gray-100">
+      <div class="divide-y divide-slate-50">
         <div
           v-for="(effect, index) in output.artifactBreakdown"
           :key="index"
-          class="px-4 py-2 flex justify-between items-center"
+          class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
-          <div>
-            <span class="text-sm text-gray-900">{{ effect.label }}</span>
-            <span class="ml-1 text-xs" :class="effect.source === 'artifact' ? 'text-purple-500' : 'text-blue-500'">
-              ({{ effect.source }})
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-bold text-slate-700">{{ effect.label }}</span>
+            <span class="badge-premium py-0 text-[8px]" :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'">
+              {{ effect.source }}
             </span>
           </div>
-          <span class="font-mono text-purple-600">{{ effect.effect }}</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ effect.effect }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Research (Read-only from Common Research) -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Hab Capacity Research <span class="text-xs text-gray-500 font-normal">(from Common Research)</span></h3>
+    <!-- Research -->
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Contributing Research</h3>
       </div>
-      <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+      <div class="divide-y divide-slate-50 max-h-80 overflow-y-auto scrollbar-premium">
         <div
           v-for="research in output.researchBreakdown"
           :key="research.researchId"
-          class="px-4 py-2 flex justify-between items-center"
+          class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath(research.researchId), 64)" class="w-5 h-5 object-contain" :alt="research.name" />
-            <span class="font-medium text-gray-900">{{ research.name }}</span>
-            <span
-              v-if="research.portalOnly"
-              class="ml-2 text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded"
-            >
-              Portal Only
-            </span>
-            <span
-              class="ml-2 text-sm font-mono"
-              :class="research.multiplier > 1 ? 'text-green-600' : 'text-gray-400'"
-            >
-              {{ formatMultiplier(research.multiplier, true) }}
-            </span>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
+              <img :src="iconURL(getColleggtibleIconPath(research.researchId), 64)" class="w-5 h-5 object-contain" :alt="research.name" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700 leading-tight">{{ research.name }}</div>
+              <div class="flex items-center gap-2">
+                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  {{ formatMultiplier(research.multiplier, true) }}
+                </div>
+                <span v-if="research.portalOnly" class="badge-premium py-0 text-[7px] bg-slate-100 text-slate-400">Portal Only</span>
+              </div>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-mono text-gray-700">{{ research.level }}</span>
-            <span class="text-xs text-gray-400">/ {{ research.maxLevel }}</span>
+          <div class="text-right">
+            <div class="font-mono-premium text-xs font-bold text-slate-700">{{ research.level }} <span class="text-slate-300 font-normal">/</span> {{ research.maxLevel }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Colleggtibles (Read-only from Initial State) -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 class="font-medium text-gray-900">Colleggtibles <span class="text-xs text-gray-500 font-normal">(from Initial State)</span></h3>
+    <!-- Colleggtibles -->
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Collection Bonus</h3>
       </div>
-      <div class="px-4 py-3">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('pegg'), 64)" class="w-6 h-6 object-contain" alt="P.E.G.G" />
-            <span class="font-medium text-gray-900">P.E.G.G</span>
-            <span
-              class="ml-2 text-sm font-mono"
-              :class="colleggtibleTier >= 0 ? 'text-blue-600' : 'text-gray-400'"
-            >
-              {{ formatColleggtibleBonus(output.peggMultiplier) }}
-            </span>
+      <div class="px-5 py-4">
+        <div class="flex justify-between items-center p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
+              <img :src="iconURL(getColleggtibleIconPath('pegg'), 64)" class="w-5 h-5 object-contain" alt="P.E.G.G" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-slate-700">P.E.G.G Collection</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatTier(colleggtibleTier) }}</div>
+            </div>
           </div>
-          <span class="text-sm text-gray-600">{{ formatTier(colleggtibleTier) }}</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-900">
+            {{ formatColleggtibleBonus(output.peggMultiplier) }}
+          </span>
         </div>
-        <div class="text-xs text-gray-500 mt-1">Hab capacity bonus from colleggtibles</div>
+        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-3 px-1">Hab capacity bonus from collection achievements</p>
       </div>
     </div>
   </div>

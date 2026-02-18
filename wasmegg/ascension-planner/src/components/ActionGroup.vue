@@ -1,17 +1,17 @@
 <template>
   <div
-    class="border-l-4 transition-colors"
+    class="border-l-4 transition-all duration-300"
     :class="groupClasses"
   >
     <!-- Collapsible header -->
     <button
-      class="w-full px-4 py-3 flex items-center gap-3 hover:bg-purple-100/50 transition-colors"
+      class="w-full px-5 py-4 flex items-center gap-4 hover:bg-white/50 transition-colors"
       @click="toggleExpanded"
     >
       <!-- Expand/collapse icon -->
       <svg
-        class="w-4 h-4 text-purple-500 transition-transform"
-        :class="{ 'rotate-90': isExpanded }"
+        class="w-4 h-4 text-slate-400 transition-transform duration-300"
+        :class="{ 'rotate-90 text-slate-900': isExpanded }"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -20,7 +20,7 @@
       </svg>
 
       <!-- Egg icon (shows the egg we're ON during this period) -->
-      <div class="w-6 h-6 flex-shrink-0 bg-white rounded-full border border-purple-200 p-0.5 shadow-sm overflow-hidden">
+      <div class="w-8 h-8 flex-shrink-0 bg-white rounded-xl border border-slate-100 p-1 shadow-sm overflow-hidden group-hover:scale-110 transition-transform">
         <img
           :src="iconURL(`egginc/egg_${currentEgg}.png`, 64)"
           class="w-full h-full object-contain"
@@ -30,21 +30,25 @@
 
       <!-- Header text -->
       <div class="flex-1 text-left">
-        <div class="font-medium text-purple-900">
-          {{ headerText }}
+        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Shift</div>
+        <div class="font-bold text-slate-800 flex items-center gap-2">
+          <span class="text-slate-900 uppercase tracking-tight">{{ eggName }}</span>
+          <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black tracking-widest">V{{ visitCount }}</span>
         </div>
       </div>
 
       <!-- Time info -->
       <div class="text-right shrink-0">
-        <div class="text-xs font-medium text-purple-700">
+        <div class="text-[10px] font-black text-slate-700 uppercase tracking-widest leading-none mb-1">
           {{ formattedTimestamp }}
         </div>
-        <div class="text-[10px] text-purple-500">
-          {{ formattedTimeElapsed }} elapsed
-        </div>
-        <div v-if="props.eggsDelivered > 0" class="text-[10px] text-purple-500">
-          {{ formatNumber(props.eggsDelivered, 3) }} delivered
+        <div class="flex flex-col items-end gap-0.5">
+          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+             Time: {{ formattedTimeElapsed }}
+          </div>
+          <div v-if="props.eggsDelivered > 0" class="text-[10px] font-black text-slate-900 uppercase tracking-widest">
+            {{ formatNumber(props.eggsDelivered, 3) }} Eggs
+          </div>
         </div>
       </div>
 
@@ -52,9 +56,9 @@
       <div v-if="isShiftAction && headerAction.cost > 0" class="flex items-center gap-2">
         <!-- Cost badge -->
         <div 
-          class="flex items-center gap-1 bg-white/60 px-2 py-0.5 rounded border border-purple-200 shadow-sm"
+          class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-xl border border-slate-100 shadow-sm"
         >
-          <span class="text-[10px] font-bold text-purple-700">
+          <span class="text-[10px] font-bold text-slate-700 font-mono-premium">
             {{ formatNumber(headerAction.cost, 3) }}
           </span>
           <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
@@ -65,47 +69,46 @@
       <div class="flex items-center gap-2" @click.stop>
         <!-- Status Badges -->
         <span
-          v-if="isEditing || (isCurrent && !actionsStore.editingGroupId)"
-          class="text-[10px] font-black uppercase tracking-wider text-green-700 bg-green-200 px-2 py-0.5 rounded"
+          v-if="isEditing"
+          class="badge-premium bg-brand-primary text-white border-brand-primary px-3 shadow-md"
         >
-          {{ isEditing ? 'Editing' : 'Current' }}
+          Editing
         </span>
-
         <span
           v-else-if="isCurrent"
-          class="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-100 px-2 py-0.5 rounded"
+          class="badge-premium bg-slate-800 text-white border-slate-800 px-3 shadow-md"
         >
-          Current
+          Active
         </span>
 
         <!-- Edit/Done toggle -->
         <button
           v-if="!isEditing && !(isCurrent && !actionsStore.editingGroupId)"
-          class="p-1 px-2 text-purple-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors flex items-center gap-1 border border-transparent hover:border-blue-200"
+          class="p-2 text-slate-400 hover:text-slate-900 hover:bg-brand-primary/5 rounded-xl transition-all active:scale-95"
           title="Edit this shift"
           @click="$emit('start-editing', headerAction.id)"
         >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
           </svg>
         </button>
 
         <button
           v-if="isEditing"
-          class="p-1 px-2 text-green-700 hover:text-white hover:bg-green-600 rounded transition-colors flex items-center gap-1 border border-green-300"
+          class="p-1 px-3 bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 border border-brand-primary/20"
           title="Finish editing"
           @click="$emit('stop-editing')"
         >
-          <span class="text-[10px] font-bold uppercase">Done</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          <span class="text-[9px] font-black uppercase tracking-widest">Done</span>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
           </svg>
         </button>
 
         <!-- Undo button (only for shift actions) -->
         <button
           v-if="isShiftAction"
-          class="p-1.5 text-purple-300 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+          class="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95"
           title="Undo this shift and all its actions"
           @click="handleUndo($event, headerAction)"
         >
@@ -226,15 +229,12 @@ function toggleExpanded() {
  */
 const isShiftAction = computed(() => props.headerAction.type === 'shift');
 
-/**
- * CSS classes for the group container based on state.
- */
 const groupClasses = computed(() => {
   const isBeingEdited = props.isEditing || (props.isCurrent && !actionsStore.editingGroupId);
   if (isBeingEdited) {
-    return 'border-green-500 bg-green-50/50';
+    return 'border-brand-primary bg-brand-primary/[0.02] shadow-sm';
   }
-  return 'border-purple-200 bg-purple-50/30';
+  return 'border-slate-100 bg-white';
 });
 
 /**
@@ -249,6 +249,8 @@ const currentEgg = computed<VirtueEgg>(() => {
     return (props.headerAction.payload as ShiftPayload).toEgg;
   }
 });
+
+const eggName = computed(() => VIRTUE_EGG_NAMES[currentEgg.value]);
 
 /**
  * The header text to display.

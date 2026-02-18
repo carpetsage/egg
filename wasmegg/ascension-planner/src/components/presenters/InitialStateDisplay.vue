@@ -106,7 +106,7 @@
               <!-- Active indicator dot -->
               <div 
                 v-if="initialEgg === egg"
-                class="absolute -top-1 -right-1 w-3 h-3 bg-brand-primary rounded-full border-2 border-white shadow-sm pointer-events-none"
+                class="absolute -top-1 -right-1 w-3 h-3 bg-slate-900 rounded-full border-2 border-white shadow-sm pointer-events-none"
               ></div>
             </button>
           </div>
@@ -193,7 +193,7 @@
         </div>
         <div class="flex items-center gap-4">
           <div class="px-2 py-0.5 bg-brand-primary/10 rounded-full">
-            <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest leading-none">
+            <span class="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-none">
               {{ totalTe }} <span class="opacity-50">/ 490</span> TE
             </span>
           </div>
@@ -230,7 +230,7 @@
         </div>
 
         <div class="flex items-start gap-3 p-3 bg-brand-primary/5 rounded-xl border border-brand-primary/10">
-          <svg class="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-slate-900 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p class="text-[10px] text-slate-500 font-medium leading-relaxed">
@@ -299,7 +299,7 @@
             class="px-4 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all"
             :class="[
               activeSetTab === setName
-                ? 'bg-white text-brand-primary shadow-sm'
+                ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
             ]"
             @click="activeSetTab = setName"
@@ -354,7 +354,7 @@
           </div>
           <div v-else class="mt-4 flex justify-end items-center gap-3 bg-brand-primary/5 p-2 rounded-xl border border-brand-primary/10">
             <div class="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
-            <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">Currently Active Loadout</span>
+            <span class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Currently Active Loadout</span>
           </div>
         </template>
       </div>

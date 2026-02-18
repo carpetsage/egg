@@ -9,8 +9,6 @@
     :time-unit="store.timeUnit"
     :bust-unions-level="bustUnionsLevel"
     :lithium-multiplier="lithiumMultiplier"
-    @add-train-car="store.addTrainCar"
-    @remove-train-car="store.removeTrainCar"
     @set-time-unit="store.setTimeUnit"
   />
 </template>
