@@ -1,6 +1,6 @@
 <template>
-  <div class="space-y-6">
-    <p class="text-sm text-gray-500">
+  <div class="space-y-3">
+    <p class="text-[11px] text-gray-500">
       Manage your artifact sets. You can have separate configurations for <strong>Earnings</strong> and <strong>ELR</strong>.
     </p>
 
@@ -9,7 +9,7 @@
       <button
         v-for="setName in (['earnings', 'elr'] as const)"
         :key="setName"
-        class="flex-1 py-3 px-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-1 shadow-sm relative"
+        class="flex-1 py-1.5 px-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-1 shadow-sm relative"
         :class="[
           selectedTab === setName
             ? 'border-blue-600 bg-blue-50/30'
@@ -35,7 +35,7 @@
 
     <!-- Active Set Editor -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible">
-      <div class="px-4 py-3 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
+      <div class="px-3 py-1.5 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
         <div class="flex items-center gap-2">
           <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Configuration</span>
           <span class="px-2 py-0.5 bg-gray-200 text-gray-600 rounded text-[9px] font-black uppercase tracking-tight">
@@ -69,7 +69,7 @@
         </div>
       </div>
 
-      <div class="p-4">
+      <div class="p-2">
         <ArtifactSelector
           :model-value="localLoadout"
           @update:model-value="localLoadout = $event"
@@ -77,19 +77,19 @@
       </div>
     </div>
 
-    <div class="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50">
-      <div class="flex items-start gap-3">
-        <div class="mt-0.5 text-blue-500">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-blue-50/30 rounded-xl p-2.5 border border-blue-100/50">
+      <div class="flex items-start gap-2.5">
+        <div class="mt-0.5 text-blue-400">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <div>
-          <h4 class="text-xs font-bold text-blue-900 uppercase tracking-tight mb-1">Set Optimization</h4>
-          <p class="text-[11px] text-blue-700 leading-relaxed">
-            <strong>Earnings:</strong> Focus on Necklaces, Ankhs, and Cubes (for research) with Lunar stones.
+          <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-tight mb-0.5">Set Optimization</h4>
+          <p class="text-[10px] text-blue-700 leading-tight">
+            <strong>Earnings:</strong> Necklaces, Ankhs, Cubes, Lunar stones.
             <br/>
-            <strong>ELR:</strong> Focus on Metronomes and Compasses with Tachyon/Quantum stones.
+            <strong>ELR:</strong> Metronomes, Compasses, Tachyon/Quantum stones.
           </p>
         </div>
       </div>
