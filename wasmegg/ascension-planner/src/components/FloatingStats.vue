@@ -299,6 +299,7 @@ const dates = computed(() => {
  */
 function formatDateTime(date: Date): string {
   const options: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',

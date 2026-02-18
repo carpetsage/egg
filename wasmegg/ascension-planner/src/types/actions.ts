@@ -61,7 +61,7 @@ export type ArtifactSetName = 'earnings' | 'elr';
  * Union of all action types.
  * Add new action types here when extending the system.
  */
-export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale' | 'equip_artifact_set' | 'update_artifact_set' | 'wait_for_missions' | 'wait_for_sleep';
+export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'remove_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale' | 'equip_artifact_set' | 'update_artifact_set' | 'wait_for_missions' | 'wait_for_sleep';
 
 // ============================================================================
 // Action Payloads
@@ -169,6 +169,14 @@ export interface StoreFuelPayload {
 }
 
 /**
+ * Payload for removing eggs from the fuel tank.
+ */
+export interface RemoveFuelPayload {
+  egg: VirtueEgg;       // Which virtue egg to remove
+  amount: number;       // Number of eggs to remove
+}
+
+/**
  * Payload for waiting to accumulate Truth Eggs (TE).
  */
 export interface WaitForTEPayload {
@@ -263,6 +271,7 @@ export interface ActionPayloadMap {
   change_artifacts: ChangeArtifactsPayload;
   buy_silo: BuySiloPayload;
   store_fuel: StoreFuelPayload;
+  remove_fuel: RemoveFuelPayload;
   wait_for_te: WaitForTEPayload;
   launch_missions: LaunchMissionsPayload;
   toggle_sale: ToggleSalePayload;

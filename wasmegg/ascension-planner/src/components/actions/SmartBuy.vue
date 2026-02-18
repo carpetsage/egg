@@ -13,9 +13,9 @@
         </div>
         <div 
           class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-colors duration-300"
-          :class="isAlwaysOn ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-200 text-gray-500'"
+          :class="alwaysOn ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-200 text-gray-500'"
         >
-          {{ isAlwaysOn ? 'Enabled' : 'Disabled' }}
+          {{ alwaysOn ? 'Enabled' : 'Disabled' }}
         </div>
       </div>
 
@@ -43,7 +43,7 @@
       <!-- Action Buttons -->
       <div class="flex gap-2 pt-0.5 uppercase tracking-wider">
         <button 
-          :disabled="isAlwaysOn || isInvalid"
+          :disabled="alwaysOn || isInvalid"
           @click="emit('buy', parsedSeconds)"
           class="flex-1 px-3 py-2 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all active:scale-[0.97] shadow-md hover:shadow-indigo-200 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed disabled:active:scale-100 disabled:shadow-none"
         >
@@ -51,9 +51,9 @@
         </button>
         <button 
           :disabled="isInvalid"
-          @click="isAlwaysOn = !isAlwaysOn"
+          @click="emit('update:alwaysOn', !alwaysOn)"
           class="flex-1 px-3 py-2 text-[10px] font-black border-2 rounded-lg transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-          :class="isAlwaysOn 
+          :class="alwaysOn 
             ? 'bg-indigo-100 border-indigo-600 text-indigo-700 shadow-inner' 
             : 'bg-white border-gray-200 text-gray-400 hover:border-indigo-300 hover:text-indigo-500 shadow-sm'"
         >
@@ -68,13 +68,17 @@
 import { ref, computed, watch } from 'vue';
 import { formatDuration, parseDuration } from '@/lib/format';
 
+const props = defineProps<{
+  alwaysOn: boolean;
+}>();
+
 const emit = defineEmits<{
   (e: 'buy', thresholdSeconds: number): void;
   (e: 'update', state: { threshold: number; alwaysOn: boolean }): void;
+  (e: 'update:alwaysOn', value: boolean): void;
 }>();
 
 const timeValue = ref('1s');
-const isAlwaysOn = ref(false);
 
 const parsedSeconds = computed(() => {
   const seconds = parseDuration(timeValue.value);
@@ -82,7 +86,7 @@ const parsedSeconds = computed(() => {
 });
 
 // Emit updates whenever state changes
-watch([parsedSeconds, isAlwaysOn], ([threshold, alwaysOn]) => {
+watch([parsedSeconds, () => props.alwaysOn], ([threshold, alwaysOn]) => {
   emit('update', { threshold, alwaysOn });
 }, { immediate: true });
 
@@ -95,6 +99,6 @@ const displayDuration = computed(() => {
 
 // Disable Always On whenever the user changes the threshold input
 watch(timeValue, () => {
-  isAlwaysOn.value = false;
+  emit('update:alwaysOn', false);
 });
 </script>

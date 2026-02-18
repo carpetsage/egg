@@ -126,7 +126,8 @@ export function computePassiveEggsDelivered(
         action.type === 'change_artifacts' ||
         action.type === 'toggle_sale' ||
         action.type === 'equip_artifact_set' ||
-        action.type === 'update_artifact_set'
+        action.type === 'update_artifact_set' ||
+        action.type === 'remove_fuel'
     ) {
         return 0;
     }
@@ -283,6 +284,16 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 ...state,
                 fuelTankAmounts: newFuelAmounts,
                 eggsDelivered: newEggsDelivered,
+            };
+        }
+
+        case 'remove_fuel': {
+            const payload = action.payload as import('@/types').RemoveFuelPayload;
+            const newFuelAmounts = { ...state.fuelTankAmounts };
+            newFuelAmounts[payload.egg] = Math.max(0, (newFuelAmounts[payload.egg] || 0) - payload.amount);
+            return {
+                ...state,
+                fuelTankAmounts: newFuelAmounts,
             };
         }
 

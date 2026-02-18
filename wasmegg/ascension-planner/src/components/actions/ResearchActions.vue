@@ -5,7 +5,11 @@
       @toggle="handleToggleSale" 
     />
 
-    <SmartBuy @buy="handleSmartBuy" @update="state => smartBuyState = state" />
+    <SmartBuy 
+      v-model:always-on="smartBuyState.alwaysOn"
+      @buy="handleSmartBuy" 
+      @update="state => smartBuyState = state" 
+    />
 
     <ResearchViewSelector 
       v-model="currentView" 
@@ -260,6 +264,9 @@ function handleToggleSale() {
 
   // Update store state
   salesStore.setSaleActive('research', !currentlyActive);
+
+  // Deactivate Smart Buy Always On whenever a sale is toggled
+  smartBuyState.value.alwaysOn = false;
 
   completeExecution({
     id: generateActionId(),

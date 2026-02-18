@@ -113,6 +113,13 @@ export const useFuelTankStore = defineStore('fuelTank', {
     },
 
     /**
+     * Remove fuel for a specific egg type.
+     */
+    removeFuel(egg: VirtueEgg, amount: number) {
+      this.fuelAmounts[egg] = Math.max(0, this.fuelAmounts[egg] - amount);
+    },
+
+    /**
      * Reset to empty state
      */
     reset() {
