@@ -17,6 +17,13 @@
         user-select: none;
     }
 
+    .btn-premium:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
     .btn-primary {
         background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-primary-dark));
         color: var(--text-white);

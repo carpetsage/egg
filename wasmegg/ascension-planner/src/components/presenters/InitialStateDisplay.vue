@@ -400,7 +400,7 @@
           </div>
           <select
             :value="tankLevel"
-            class="input-premium w-auto text-xs py-1.5 pr-8"
+            class="input-premium w-auto text-sm font-bold text-slate-900 py-2.5 pl-4 pr-12"
             @change="$emit('set-tank-level', parseInt(($event.target as HTMLSelectElement).value))"
           >
             <option v-for="opt in tankLevelOptions" :key="opt.level" :value="opt.level">
