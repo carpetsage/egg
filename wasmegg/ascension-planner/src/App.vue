@@ -277,6 +277,38 @@ async function submitPlayerId(id: string) {
     const initialSnapshot = computeSnapshot(baseState, context);
     actionsStore.setInitialSnapshot(initialSnapshot);
 
+    // Log everything used for Wait For Missions as a single object for easy copy/paste
+    const maxReturn = initialStateStore.virtueMissions.length > 0 
+      ? Math.max(...initialStateStore.virtueMissions.map(m => m.returnTimestamp || 0)) 
+      : 0;
+    const dateTimeStr = `${virtueStore.ascensionDate}T${virtueStore.ascensionTime}:00`;
+    const startUnix = new Date(dateTimeStr).getTime() / 1000;
+    const waitSeconds = maxReturn > 0 
+      ? Math.max(0, (maxReturn - startUnix) - actionsStore.effectiveSnapshot.lastStepTime)
+      : 0;
+
+    const missionsDebugInfo = {
+      rawMissions: initialStateStore.activeMissions.map(m => ({
+        ...JSON.parse(JSON.stringify(m)),
+        identifier: 'redacted'
+      })),
+      processedVirtueMissions: JSON.parse(JSON.stringify(initialStateStore.virtueMissions)),
+      timing: {
+        ascensionDate: virtueStore.ascensionDate,
+        ascensionTime: virtueStore.ascensionTime,
+        lastStepTime: actionsStore.effectiveSnapshot.lastStepTime,
+        isHumility: actionsStore.effectiveSnapshot.currentEgg === 'humility',
+      },
+      calculation: maxReturn > 0 ? {
+        maxReturnTimestamp: maxReturn,
+        maxReturnDate: new Date(maxReturn * 1000).toLocaleString(),
+        startUnix,
+        estimatedWaitTimeSeconds: waitSeconds,
+        estimatedWaitTimeFormatted: `${Math.floor(waitSeconds / 3600)}h ${Math.floor((waitSeconds % 3600) / 60)}m ${Math.floor(waitSeconds % 60)}s`,
+      } : null
+    };
+    console.log('Wait For Missions Debug Info:', missionsDebugInfo);
+
     loading.value = false;
   } catch (e) {
     loading.value = false;
