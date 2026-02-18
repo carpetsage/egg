@@ -1,24 +1,10 @@
 <template>
   <div class="space-y-6">
-    <!-- Header Info -->
-    <div class="bg-rose-50 border border-rose-100/50 rounded-2xl p-5 shadow-inner">
-      <div class="flex gap-3">
-        <div class="w-8 h-8 rounded-xl bg-white border border-rose-100 shadow-sm flex items-center justify-center p-1.5 flex-shrink-0">
-          <svg class="w-full h-full text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-        </div>
-        <p class="text-[11px] font-medium text-rose-700/80 leading-relaxed uppercase tracking-tight">
-          <span class="font-black block mb-0.5">Persistence Protocol</span>
-          Maintain presence through automated infrastructure. Silos extend your earnings window while offline.
-        </p>
-      </div>
-    </div>
 
     <!-- Current State -->
     <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
       <div class="flex justify-between items-center mb-5">
-        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Infrastructure Status</h4>
+        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Silos Owned</h4>
         <div class="badge-premium bg-slate-50 text-slate-600 border-slate-100 px-3 py-1 flex items-center gap-1.5">
           <span class="text-[10px] font-black opacity-60 uppercase tracking-widest">Active:</span>
           <span class="text-sm font-mono-premium font-black text-slate-900">{{ siloOutput.siloCount }}/{{ siloOutput.maxSilos }}</span>
@@ -52,21 +38,45 @@
         </div>
       </div>
 
-      <!-- Total Away Time -->
-      <div class="bg-slate-900 rounded-2xl p-5 text-center relative overflow-hidden shadow-lg shadow-indigo-900/10">
-        <!-- Decoration -->
-        <div class="absolute -left-4 -top-4 w-12 h-12 bg-indigo-500/10 rounded-full blur-xl"></div>
-        <div class="absolute -right-4 -bottom-4 w-12 h-12 bg-purple-500/10 rounded-full blur-xl"></div>
+      <!-- Buy Silo Section (Moved here) -->
+      <div class="mb-6">
+        <div v-if="siloOutput.canBuyMore">
+          <button
+            class="btn-premium btn-primary w-full py-3.5 flex flex-col items-center gap-1 shadow-lg shadow-brand-primary/10"
+            @click="handleBuySilo"
+          >
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-black uppercase tracking-tight">Buy Silo #{{ siloOutput.siloCount + 1 }}</span>
+            </div>
+            <div class="flex items-center gap-2 opacity-80">
+              <span class="text-[10px] font-black uppercase tracking-widest">{{ formatGemPrice(siloOutput.nextSiloCost) }} gems</span>
+              <template v-if="timeToBuy">
+                <div class="w-1 h-1 rounded-full bg-white/40"></div>
+                <span class="text-[10px] font-mono-premium font-black uppercase tracking-widest">Ready in {{ timeToBuy }}</span>
+              </template>
+            </div>
+          </button>
+        </div>
+        <div v-else class="flex flex-col items-center py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 border-dashed text-emerald-700/80">
+          <p class="text-[10px] font-black uppercase tracking-widest">Maximum silos reached (10/10)</p>
+        </div>
+      </div>
 
-        <p class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-2 leading-none">Max Persistence Window</p>
-        <p class="text-3xl font-mono-premium font-black text-white mb-2">{{ siloOutput.formatted }}</p>
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+      <!-- Total Away Time -->
+      <div class="bg-slate-50/50 border border-slate-100/50 rounded-2xl p-6 text-center relative overflow-hidden shadow-inner">
+        <!-- Simplified Decoration -->
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-50"></div>
+
+        <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3 leading-none relative z-10">Total Away Time</p>
+        <p class="text-4xl font-mono-premium font-black text-slate-900 mb-3 tracking-tight relative z-10">{{ siloOutput.formatted }}</p>
+        
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-100 shadow-sm relative z-10">
           <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-            {{ siloOutput.siloCount }} Unit{{ siloOutput.siloCount !== 1 ? 's' : '' }}
+            {{ siloOutput.siloCount }} silo{{ siloOutput.siloCount !== 1 ? 's' : '' }}
           </span>
-          <div class="w-1 h-1 rounded-full bg-slate-700"></div>
-          <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">
-            {{ siloOutput.minutesPerSilo }}m per unit
+          <div class="w-1 h-1 rounded-full bg-slate-200"></div>
+          <span class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">
+            {{ siloOutput.minutesPerSilo }}m each
           </span>
         </div>
       </div>
@@ -80,8 +90,8 @@
             <img :src="iconURL(getColleggtibleIconPath('silo_capacity'), 64)" class="w-full h-full object-contain" alt="Silo Capacity" />
           </div>
           <div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Epic Efficiency</p>
-            <p class="text-[11px] font-black text-indigo-900 uppercase">Silo Quality Research</p>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Silo Capacity</p>
+            <p class="text-[11px] font-black text-indigo-900 uppercase">Epic Research: +6 min/silo/level</p>
           </div>
         </div>
         <div class="text-right">
@@ -98,39 +108,6 @@
         <div class="w-1 h-px bg-slate-300"></div>
         <span class="text-slate-900">Total: {{ siloOutput.minutesPerSilo }}m</span>
       </div>
-    </div>
-
-    <!-- Buy Silo Button -->
-    <div v-if="siloOutput.canBuyMore" class="space-y-3">
-      <button
-        class="btn-premium btn-primary w-full py-4 flex flex-col items-center gap-1 shadow-lg shadow-brand-primary/20"
-        @click="handleBuySilo"
-      >
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-black uppercase tracking-tight">Expand Capacity (Silo #{{ siloOutput.siloCount + 1 }})</span>
-        </div>
-        <div class="flex items-center gap-2 opacity-80">
-          <span class="text-[10px] font-black uppercase tracking-widest">{{ formatGemPrice(siloOutput.nextSiloCost) }} Gems</span>
-          <template v-if="timeToBuy">
-            <div class="w-1 h-1 rounded-full bg-white/40"></div>
-            <span class="text-[10px] font-mono-premium font-black uppercase tracking-widest">Ready in {{ timeToBuy }}</span>
-          </template>
-        </div>
-      </button>
-      <div class="flex items-center justify-center gap-2 px-2">
-        <div class="flex-1 h-px bg-slate-100"></div>
-        <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">+{{ siloOutput.minutesPerSilo }}m window expansion</span>
-        <div class="flex-1 h-px bg-slate-100"></div>
-      </div>
-    </div>
-    <div v-else class="flex flex-col items-center py-5 bg-emerald-50/50 rounded-2xl border border-emerald-100 border-dashed">
-      <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
-        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      <p class="text-[11px] font-black text-emerald-700 uppercase tracking-widest">Maximum Strategic Capacity Reached</p>
-      <span class="text-[9px] font-bold text-emerald-600/60 uppercase mt-0.5 tracking-tighter">10 units online and active</span>
     </div>
   </div>
 </template>
