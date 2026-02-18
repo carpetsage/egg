@@ -31,9 +31,8 @@
       <!-- Header text -->
       <div class="flex-1 text-left">
         <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Shift</div>
-        <div class="font-bold text-slate-800 flex items-center gap-2">
-          <span class="text-slate-900 uppercase tracking-tight">{{ eggName }}</span>
-          <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black tracking-widest">V{{ visitCount }}</span>
+        <div class="font-bold text-slate-800">
+          <span class="text-slate-900 uppercase tracking-tight">{{ headerText }}</span>
         </div>
       </div>
 
@@ -250,7 +249,7 @@ const currentEgg = computed<VirtueEgg>(() => {
   }
 });
 
-const eggName = computed(() => VIRTUE_EGG_NAMES[currentEgg.value]);
+
 
 /**
  * The header text to display.

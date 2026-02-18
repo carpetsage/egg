@@ -95,7 +95,7 @@
         </div>
         <div class="flex justify-between items-center">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transit Time</span>
-          <span class="text-sm font-mono-premium font-bold text-brand-primary">{{ formatDuration(timeToStoreSeconds) }}</span>
+          <span class="text-sm font-mono-premium font-bold text-slate-900">{{ formatDuration(timeToStoreSeconds) }}</span>
         </div>
         <div v-if="exceedsCapacity" class="flex items-center gap-2 text-red-500 text-[10px] font-bold mt-1 bg-red-50 p-2 rounded-lg border border-red-100">
           <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
@@ -149,7 +149,7 @@
     <div class="bg-slate-50/80 rounded-2xl p-4 border border-slate-100 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm border border-slate-100">
-          <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+          <svg class="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
         </div>
         <div>
           <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Tier</div>
@@ -158,7 +158,7 @@
       </div>
       <div class="text-right">
         <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Capacity</div>
-        <div class="text-sm font-mono-premium font-bold text-brand-primary">{{ formatNumber(fuelTankStore.tankCapacity, 1) }}</div>
+        <div class="text-sm font-mono-premium font-bold text-slate-900">{{ formatNumber(fuelTankStore.tankCapacity, 1) }}</div>
       </div>
     </div>
 

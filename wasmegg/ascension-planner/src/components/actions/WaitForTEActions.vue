@@ -1,183 +1,183 @@
 <template>
-  <div class="space-y-4">
-    <p class="text-sm text-gray-500 mb-4">
+  <div class="space-y-6">
+    <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-6 leading-relaxed">
       Wait for Truth Eggs to accumulate by shipping eggs.
     </p>
 
     <!-- Current Egg Info -->
-    <div class="bg-gray-50 rounded-lg p-4">
-      <div class="flex items-center gap-3 mb-3">
-        <img
-          :src="iconURL(`egginc/egg_${virtueStore.currentEgg}.png`, 64)"
-          class="w-10 h-10 object-contain"
-          :alt="virtueStore.currentEgg"
-        />
+    <div class="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 shadow-inner">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-2">
+          <img
+            :src="iconURL(`egginc/egg_${virtueStore.currentEgg}.png`, 64)"
+            class="w-full h-full object-contain"
+            :alt="virtueStore.currentEgg"
+          />
+        </div>
         <div>
-          <div class="text-sm font-medium text-gray-700">
+          <div class="text-sm font-bold text-slate-800">
             {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}
           </div>
-          <div class="text-xs text-gray-500">
+          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Current Egg
           </div>
         </div>
       </div>
 
       <!-- Current TE State -->
-      <div class="space-y-2">
-        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-          <div class="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Metric</div>
-          <div class="text-gray-500 text-[10px] uppercase tracking-wider font-semibold text-right">Value (Initial → Current)</div>
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px]">
+          <div class="text-slate-400 uppercase tracking-[0.2em] font-black">Metric</div>
+          <div class="text-slate-400 uppercase tracking-[0.2em] font-black text-right">Value (Initial → Current)</div>
           
-          <div class="text-gray-700">Eggs Delivered:</div>
-          <div class="font-mono text-right">
-            <span class="text-gray-400">{{ formatNumber(initialEggsDelivered, 2) }}</span>
-            <span class="mx-1">→</span>
+          <div class="text-slate-600 font-bold uppercase tracking-tight">Eggs Delivered:</div>
+          <div class="font-mono-premium text-right text-slate-700 font-bold">
+            <span class="text-slate-300 font-normal">{{ formatNumber(initialEggsDelivered, 2) }}</span>
+            <span class="mx-1 text-slate-200 font-normal">→</span>
             <span>{{ formatNumber(currentEggsDelivered, 2) }}</span>
           </div>
-          <div class="text-gray-700 pt-1 font-medium border-t border-gray-50 flex items-center">
+          
+          <div class="text-slate-600 font-bold uppercase tracking-tight pt-2 border-t border-slate-100/50 flex items-center">
             Shipped in Plan:
           </div>
-          <div class="font-mono text-right text-blue-600 font-bold pt-1 border-t border-gray-50">
+          <div class="font-mono-premium text-right text-slate-900 font-black pt-2 border-t border-slate-100/50 text-xs">
             {{ formatNumber(Math.max(0, currentEggsDelivered - initialEggsDelivered), 2) }}
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 text-xs pt-2 border-t border-gray-100">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500">Claimed TE:</span>
-              <span class="font-mono text-gray-700 font-medium">{{ claimedTE }}</span>
+        <div class="grid grid-cols-2 gap-4 text-[10px] pt-3 border-t border-slate-100/50">
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 uppercase tracking-widest font-black">Claimed TE:</span>
+              <span class="font-mono-premium text-slate-700 font-bold">{{ claimedTE }}</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500">Pending TE:</span>
-              <span class="font-mono text-amber-600 font-bold">{{ pendingTE }}</span>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 uppercase tracking-widest font-black">Pending TE:</span>
+              <span class="font-mono-premium text-slate-900 font-black">{{ pendingTE }}</span>
             </div>
           </div>
-          <div class="text-right">
-            <span class="text-gray-500">Total Progress:</span>
-            <span class="ml-2 font-mono font-medium">{{ truthEggsStore.totalTE }} / 490</span>
+          <div class="flex flex-col justify-end text-right">
+            <span class="text-slate-400 uppercase tracking-widest font-black">Total Progress:</span>
+            <span class="font-mono-premium font-bold text-slate-900 text-sm tracking-tighter">{{ truthEggsStore.totalTE }} <span class="text-slate-300 font-normal">/ 490</span></span>
           </div>
         </div>
       </div>
     </div>
 
-      <!-- Target TE Selection -->
-    <div class="bg-white border border-gray-200 rounded-lg p-4">
-      <div class="flex items-center gap-2 mb-3">
-        <img
-          :src="iconURL('egginc/egg_truth.png', 64)"
-          class="w-6 h-6 object-contain"
-          alt="Truth Egg"
-        />
-        <span class="text-sm font-medium text-gray-700">
+    <!-- Target TE Selection -->
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <div class="flex items-center gap-3 mb-5 pb-4 border-b border-slate-50">
+        <div class="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center p-1.5 shadow-lg border border-slate-800">
+          <img
+            :src="iconURL('egginc/egg_truth.png', 64)"
+            class="w-full h-full object-contain"
+            alt="Truth Egg"
+          />
+        </div>
+        <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">
           Gain Additional TE on {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}
         </span>
       </div>
 
       <!-- Target TE input with +/- buttons -->
-      <div class="flex items-center gap-3 mb-4">
-        <span class="text-sm text-gray-500">Add how many TE?</span>
-        <div class="flex items-center">
+      <div class="flex flex-col gap-3 mb-6">
+        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add how many TE?</span>
+        <div class="flex items-center gap-1">
           <button
-            class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-l border border-gray-300 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-white hover:border-slate-200 transition-all active:scale-95 disabled:opacity-20 shadow-sm font-bold"
             :disabled="teToGain <= 1"
             @click="teToGain = Math.max(1, teToGain - 1)"
           >
-            −
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4" /></svg>
           </button>
           <input
             v-model.number="teToGain"
             type="number"
             :min="1"
             :max="98 - currentTE"
-            class="w-16 text-center text-sm border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-blue-500 outline-none"
+            class="flex-1 h-10 text-center text-sm font-mono-premium font-bold bg-slate-50/50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 outline-none transition-all"
             :disabled="currentTE >= 98"
           />
           <button
-            class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-r border border-gray-300 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-white hover:border-slate-200 transition-all active:scale-95 disabled:opacity-20 shadow-sm font-bold"
             :disabled="teToGain >= 98 - currentTE"
             @click="teToGain = Math.min(98 - currentTE, teToGain + 1)"
           >
-            +
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" /></svg>
           </button>
         </div>
       </div>
 
       <!-- Calculated values -->
-      <div v-if="teToGain > 0" class="space-y-2 text-sm border-t border-gray-100 pt-3">
-        <div class="flex justify-between">
-          <span class="text-gray-600">Total Result:</span>
-          <span class="font-mono font-medium text-blue-600">TE #{{ targetTENumber }}</span>
+      <div v-if="teToGain > 0" class="space-y-3 bg-slate-50/30 rounded-xl p-4 border border-slate-50">
+        <div class="flex justify-between items-center text-[10px]">
+          <span class="font-black text-slate-400 uppercase tracking-widest">Total Result:</span>
+          <span class="font-mono-premium font-black text-slate-900">TE #{{ targetTENumber }}</span>
         </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">TE to Gain:</span>
-          <span class="font-mono font-medium text-amber-600">+{{ teToGain }} TE</span>
+        <div class="flex justify-between items-center text-[10px]">
+          <span class="font-black text-slate-400 uppercase tracking-widest">TE to Gain:</span>
+          <span class="font-mono-premium font-black text-slate-900">+{{ teToGain }} TE</span>
         </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Eggs to Lay:</span>
-          <span class="font-mono">{{ formatNumber(eggsToLay, 3) }}</span>
+        <div class="flex justify-between items-center text-[10px]">
+          <span class="font-black text-slate-400 uppercase tracking-widest">Eggs to Lay:</span>
+          <span class="font-mono-premium font-bold text-slate-700">{{ formatNumber(eggsToLay, 3) }}</span>
         </div>
-        <div class="flex justify-between text-xs text-gray-500 group">
-          <div class="flex items-center gap-1">
-            <span>ELR per hour:</span>
-            <button
-              class="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-              title="View calculation details"
-              @click="$emit('show-current-details')"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
+        
+        <div class="pt-2 mt-1 border-t border-slate-100/50 space-y-2">
+          <div class="flex justify-between items-center text-[10px]">
+            <div class="flex items-center gap-1">
+              <span class="font-black text-slate-400 uppercase tracking-widest">ELR per hour:</span>
+              <button
+                class="p-0.5 text-slate-300 hover:text-slate-900 transition-colors"
+                title="View calculation details"
+                @click="$emit('show-current-details')"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </div>
+            <span class="font-mono-premium text-slate-500">{{ formatNumber(elrPerHour, 2) }}</span>
           </div>
-          <span class="font-mono">{{ formatNumber(elrPerHour, 2) }}</span>
-        </div>
-        <div class="flex justify-between text-xs text-gray-500">
-          <div class="flex items-center gap-1">
-            <span>ELR per day:</span>
-            <button
-              class="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-              title="View calculation details"
-              @click="$emit('show-current-details')"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
+          <div class="flex justify-between items-center text-[10px]">
+             <div class="flex items-center gap-1">
+              <span class="font-black text-slate-400 uppercase tracking-widest">ELR per day:</span>
+            </div>
+            <span class="font-mono-premium text-slate-500">{{ formatNumber(elrPerDay, 2) }}</span>
           </div>
-          <span class="font-mono">{{ formatNumber(elrPerDay, 2) }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Time Required:</span>
-          <span class="font-mono">{{ formatDuration(timeToLaySeconds) }}</span>
+          <div class="flex justify-between items-center pt-2 mt-1 border-t border-slate-100/50 text-[10px]">
+            <span class="font-black text-slate-400 uppercase tracking-widest">Time Required:</span>
+            <span class="font-mono-premium font-black text-slate-900">{{ formatDuration(timeToLaySeconds) }}</span>
+          </div>
         </div>
       </div>
 
       <!-- Wait button -->
       <button
-        class="mt-4 w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        class="btn-premium btn-primary w-full mt-6 py-4 flex items-center justify-center gap-2 group disabled:opacity-20 shadow-lg shadow-slate-900/10"
         :disabled="!canWait"
         @click="handleWaitForTE"
       >
         <img
           :src="iconURL('egginc/egg_truth.png', 64)"
-          class="w-5 h-5 object-contain"
+          class="w-5 h-5 object-contain group-hover:scale-110 transition-transform"
           alt="Truth Egg"
         />
-        Wait for TE
+        <span>Wait for TE</span>
       </button>
     </div>
 
     <!-- Max TE notice -->
-    <div v-if="currentTE >= 98" class="bg-green-50 border border-green-200 rounded-lg p-3">
-      <p class="text-sm text-green-700">
+    <div v-if="currentTE >= 98" class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-3">
+      <div class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+      </div>
+      <p class="text-[11px] font-bold text-emerald-700 uppercase tracking-tight">
         You have reached the maximum TE (98) for {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}!
       </p>
     </div>
 
-    <p class="text-xs text-gray-400">
+    <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest leading-relaxed opacity-60">
       TE provides a 1.1× multiplier per egg to IHR and earnings. Time is based on your current effective lay rate at max hab capacity.
     </p>
   </div>

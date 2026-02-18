@@ -28,7 +28,7 @@
             class="w-full h-full object-contain relative z-10"
             :alt="mission.shipName"
           />
-          <div class="absolute inset-0 bg-blue-50 rounded-full scale-110 opacity-50"></div>
+          <div class="absolute inset-0 bg-slate-50 rounded-full scale-110 opacity-50"></div>
           
           <!-- Virtue Badge -->
           <div class="absolute -top-1 -right-1 z-20">
@@ -80,7 +80,7 @@
               </div>
             </div>
             
-            <div v-if="mission.returnTimestamp" class="text-[11px] font-mono font-bold text-blue-600 flex items-center gap-1">
+            <div v-if="mission.returnTimestamp" class="text-[11px] font-mono-premium font-black text-slate-900 flex items-center gap-1">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -92,7 +92,7 @@
         <!-- Progress background (subtle) -->
         <div 
           v-if="!mission.statusIsFueling && mission.returnTimestamp"
-          class="absolute bottom-0 left-0 h-0.5 bg-blue-500 opacity-20 transition-all duration-1000"
+          class="absolute bottom-0 left-0 h-0.5 bg-slate-900 opacity-20 transition-all duration-1000"
           :style="{ width: getProgressWidth(mission) }"
         ></div>
       </div>
@@ -102,7 +102,7 @@
     <div class="pt-2 px-1">
       <button
         @click="$emit('wait-missions')"
-        class="w-full group relative flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:grayscale pointer-events-auto"
+        class="btn-premium btn-primary w-full py-4 flex items-center justify-center gap-2 group shadow-lg shadow-slate-900/10"
         :disabled="isWaitDisabled"
       >
         <div class="flex flex-col items-center">
@@ -117,7 +117,7 @@
           </span>
         </div>
       </button>
-      <p class="mt-2 text-[10px] text-gray-500 text-center italic">
+      <p class="mt-2 text-[10px] text-slate-400 text-center italic font-medium opacity-60">
         Adds a no-cost action to account for the duration of the ship that takes the longest to return.
       </p>
     </div>
