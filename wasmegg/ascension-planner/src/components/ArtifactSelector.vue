@@ -1,21 +1,20 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-2">
     <div
       v-for="(slot, slotIndex) in modelValue"
       :key="slotIndex"
-      class="rounded-lg border border-gray-200 p-4 shadow-sm"
+      class="rounded-lg border border-gray-200 p-2 shadow-sm"
       :style="getSlotBackgroundStyle(slot.artifactId)"
     >
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-bold text-gray-400 w-5">{{ slotIndex + 1 }}</span>
-          <span class="text-sm font-semibold text-gray-700 uppercase tracking-wider">Slot</span>
+      <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-[11px] font-bold text-gray-400 w-4">{{ slotIndex + 1 }}</span>
         </div>
         
         <!-- Artifact Filterable Select -->
         <ArtifactSelect
           :model-value="slot.artifactId"
-          placeholder="Select an artifact..."
+          placeholder="Select artifact..."
           :items="artifactOptions"
           :get-item-id="item => item.id"
           :get-item-display="item => item.label"
@@ -30,42 +29,52 @@
       </div>
 
       <!-- Artifact Effect Display & Stone Slots -->
-      <div v-if="slot.artifactId" class="ml-8 space-y-4">
-        <div class="text-sm font-medium text-blue-700 bg-blue-50 px-3 py-1.5 rounded-md inline-flex items-center gap-2 border border-blue-100">
-          <div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+      <div v-if="slot.artifactId" class="ml-5 space-y-2">
+        <div class="text-[11px] font-medium text-blue-700 bg-blue-50/50 px-2 py-0.5 rounded flex items-center gap-1.5 border border-blue-100/50">
+          <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
           {{ getArtifact(slot.artifactId)?.effect }}
         </div>
 
         <!-- Stone Slots -->
         <div
           v-if="getArtifact(slot.artifactId)?.slots"
-          class="grid grid-cols-1 gap-3 border-l-2 border-gray-100 pl-4 py-1"
+          class="flex flex-wrap gap-2 border-l border-gray-100 pl-3 py-1"
         >
           <div
             v-for="stoneIndex in getArtifact(slot.artifactId)!.slots"
             :key="stoneIndex"
-            class="flex items-center gap-3"
+            class="group relative"
           >
-            <span class="text-[10px] font-bold text-gray-300 uppercase w-4">{{ stoneIndex }}</span>
-            
             <!-- Stone Filterable Select -->
             <StoneSelect
               :model-value="slot.stones[stoneIndex - 1]"
-              placeholder="Select a stone..."
+              placeholder=""
               :items="stoneOptions"
               :get-item-id="item => item.id"
               :get-item-display="item => item.label"
               :get-item-icon-path="item => item.iconPath"
               :item-from-id="id => getStone(id)!"
               :search-items="searchStones"
+              :show-input-text="false"
+              :show-placeholder-icon="false"
+              :show-selector-icon="false"
+              icon-container-class="absolute inset-y-0 w-full flex justify-center"
+              input-padding-class="p-0"
+              icon-class="h-7 w-7"
+              container-class="w-8"
+              dropdown-width-class="w-64 -left-28"
               allow-clearing
               @update:model-value="onStoneChange(slotIndex, stoneIndex - 1, $event || '')"
-              class="flex-1"
+              :class="['stone-select-compact', { 'is-empty': !slot.stones[stoneIndex - 1] }]"
             />
+            <!-- Slot name/tier tooltip on hover -->
+            <div class="absolute -top-2 -right-2 bg-gray-800 text-white text-[8px] font-bold px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+              {{ getStone(slot.stones[stoneIndex - 1])?.label || stoneIndex }}
+            </div>
           </div>
         </div>
       </div>
-      <div v-else class="ml-8 text-xs text-gray-400 italic">
+      <div v-else class="ml-5 text-[10px] text-gray-400 italic">
         Select an artifact to configure stones
       </div>
     </div>
@@ -183,3 +192,28 @@ function getSlotBackgroundStyle(artifactId: string | null): Record<string, strin
   }
 }
 </script>
+
+<style scoped>
+:deep(.stone-select-compact .Select__input) {
+  height: 2rem !important;
+  min-height: 2rem !important;
+  padding: 0 !important;
+  border-style: solid;
+  transition: all 0.2s;
+}
+
+:deep(.stone-select-compact:not(.is-empty) .Select__input) {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+:deep(.stone-select-compact.is-empty .Select__input) {
+  background-color: transparent;
+  border-style: dashed;
+  border-color: #cbd5e1; /* gray-300 */
+}
+
+:deep(.stone-select-compact .Select__input:hover) {
+  border-color: #94a3b8; /* gray-400 */
+  background-color: rgba(255, 255, 255, 0.8);
+}
+</style>

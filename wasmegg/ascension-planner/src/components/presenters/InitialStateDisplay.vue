@@ -271,8 +271,8 @@
 
     <!-- Artifact Loadout -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-visible shadow-sm">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-        <h3 class="font-bold text-xs uppercase tracking-widest text-gray-500">Artifact Sets</h3>
+      <div class="px-3 py-1.5 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="font-bold text-[10px] uppercase tracking-widest text-gray-500">Artifact Sets</h3>
         <div v-if="hasArtifactSets" class="flex gap-1 bg-gray-200 p-0.5 rounded-md">
           <button
             v-for="setName in (['earnings', 'elr'] as const)"
@@ -289,7 +289,7 @@
           </button>
         </div>
       </div>
-      <div class="p-4">
+      <div class="p-2">
         <template v-if="!hasArtifactSets">
           <div class="mb-4">
             <ArtifactSelector
@@ -299,13 +299,13 @@
           </div>
           <div class="grid grid-cols-2 gap-3">
             <button
-              class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-widest rounded-md shadow-sm transition-colors"
+              class="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold uppercase tracking-widest rounded-md shadow-sm transition-colors"
               @click="$emit('save-current-to-set', 'earnings')"
             >
               Save as Earnings
             </button>
             <button
-              class="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-widest rounded-md shadow-sm transition-colors"
+              class="flex-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-widest rounded-md shadow-sm transition-colors"
               @click="$emit('save-current-to-set', 'elr')"
             >
               Save as ELR
@@ -325,15 +325,15 @@
               @update:model-value="$emit('update-artifact-set', 'elr', $event)"
             />
           </div>
-          <div v-if="activeArtifactSet !== activeSetTab" class="mt-4 flex justify-end">
+          <div v-if="activeArtifactSet !== activeSetTab" class="mt-2 flex justify-end">
             <button
-              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold uppercase tracking-widest rounded-md transition-colors border border-gray-200"
+              class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10px] font-bold uppercase tracking-widest rounded-md transition-colors border border-gray-200"
               @click="$emit('set-active-artifact-set', activeSetTab)"
             >
               Equip as Active
             </button>
           </div>
-          <div v-else class="mt-4 flex justify-end items-center gap-2">
+          <div v-else class="mt-2 flex justify-end items-center gap-2">
             <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
             <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Active Set</span>
           </div>
