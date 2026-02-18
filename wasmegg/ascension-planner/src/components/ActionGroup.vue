@@ -108,7 +108,7 @@
     <!-- Expanded content (summary + action details) -->
     <div
       v-if="isExpanded"
-      class="border-t border-slate-100"
+      class="border-t border-slate-300"
     >
       <!-- Egg Summary (for the egg we were ON during this period) -->
       <component
@@ -119,7 +119,7 @@
 
       <div
         ref="scrollContainer"
-        class="max-h-[400px] overflow-y-auto bg-white/30"
+        class="max-h-[400px] overflow-y-auto bg-white"
       >
         <!-- Action list -->
         <ActionHistoryItem
@@ -217,9 +217,9 @@ const isShiftAction = computed(() => props.headerAction.type === 'shift');
 const groupClasses = computed(() => {
   const isBeingEdited = props.isEditing || (props.isCurrent && !actionsStore.editingGroupId);
   if (isBeingEdited) {
-    return 'border-brand-primary bg-brand-primary/[0.02] shadow-sm';
+    return 'border-brand-primary bg-slate-200 shadow-sm';
   }
-  return 'border-slate-100 bg-white';
+  return 'border-slate-300 bg-slate-200';
 });
 
 /**
