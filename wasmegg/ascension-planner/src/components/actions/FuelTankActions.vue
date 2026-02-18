@@ -91,6 +91,48 @@
       </div>
     </div>
 
+    <!-- Remove Fuel Section -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-sm font-medium text-gray-700">
+          Remove Fuel
+        </span>
+      </div>
+
+      <div class="space-y-3">
+        <div
+          v-for="egg in VIRTUE_FUEL_ORDER"
+          :key="egg"
+          class="flex items-center gap-2"
+        >
+          <div class="w-6 h-6 flex-shrink-0">
+            <img
+              :src="iconURL(`egginc/egg_${egg}.png`, 64)"
+              class="w-full h-full object-contain"
+              :alt="egg"
+            />
+          </div>
+          <span class="text-xs text-gray-600 w-20">{{ VIRTUE_EGG_NAMES[egg] }}</span>
+          
+          <input
+            v-model="removeInputs[egg]"
+            type="text"
+            placeholder="Amount"
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+            @keyup.enter="handleRemoveFuel(egg)"
+          />
+          
+          <button
+            class="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="!canRemove(egg)"
+            @click="handleRemoveFuel(egg)"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Tank Level Info -->
     <div class="bg-gray-50 rounded-lg p-3">
       <div class="flex items-center justify-between">
@@ -124,7 +166,7 @@ import { useEffectiveLayRate } from '@/composables/useEffectiveLayRate';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatDuration, parseNumber } from '@/lib/format';
-import { generateActionId, VIRTUE_EGG_NAMES } from '@/types';
+import { generateActionId, VIRTUE_EGG_NAMES, type VirtueEgg } from '@/types';
 import { VIRTUE_FUEL_ORDER } from '@/stores/fuelTank';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 
@@ -136,6 +178,13 @@ const { output: effectiveLayRateOutput } = useEffectiveLayRate();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const amountInput = ref('');
+const removeInputs = ref<Record<string, string>>({
+  curiosity: '',
+  integrity: '',
+  humility: '',
+  resilience: '',
+  kindness: '',
+});
 
 // Parse input amount
 const parsedAmount = computed(() => {
@@ -157,6 +206,13 @@ const canStore = computed(() =>
   !exceedsCapacity.value &&
   isFinite(timeToStoreSeconds.value)
 );
+
+function canRemove(egg: VirtueEgg) {
+  const input = removeInputs.value[egg];
+  if (!input || !input.trim()) return false;
+  const amount = parseNumber(input);
+  return !isNaN(amount) && amount > 0 && fuelTankStore.fuelAmounts[egg] > 0;
+}
 
 function handleStoreFuel() {
   if (!canStore.value) return;
@@ -188,5 +244,46 @@ function handleStoreFuel() {
 
   // Clear input
   amountInput.value = '';
+}
+
+async function handleRemoveFuel(egg: VirtueEgg) {
+  if (!canRemove(egg)) return;
+
+  const input = removeInputs.value[egg];
+  const amount = parseNumber(input);
+  
+  // Cap at current amount and update UI
+  const currentAmount = fuelTankStore.fuelAmounts[egg];
+  let actualToRemove = amount;
+  if (amount > currentAmount) {
+    actualToRemove = currentAmount;
+    removeInputs.value[egg] = formatNumber(actualToRemove, 1);
+  }
+  
+  if (actualToRemove <= 0) return;
+
+  const beforeSnapshot = prepareExecution();
+
+  const payload = {
+    egg,
+    amount: actualToRemove,
+  };
+
+  const dependencies = computeDependencies('remove_fuel', payload, actionsStore.actionsBeforeInsertion);
+
+  // Apply to store
+  fuelTankStore.removeFuel(egg, actualToRemove);
+
+  // Complete execution
+  await completeExecution({
+    id: generateActionId(),
+    timestamp: Date.now(),
+    type: 'remove_fuel',
+    payload,
+    cost: 0,
+    dependsOn: dependencies,
+  }, beforeSnapshot);
+
+  removeInputs.value[egg] = '';
 }
 </script>

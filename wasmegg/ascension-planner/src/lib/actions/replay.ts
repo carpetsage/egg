@@ -153,6 +153,13 @@ function applyActionEffect(action: Action): void {
       break;
     }
 
+    case 'remove_fuel': {
+      const payload = action.payload as any; // RemoveFuelPayload
+      const fuelTankStore = useFuelTankStore();
+      fuelTankStore.removeFuel(payload.egg, payload.amount);
+      break;
+    }
+
     case 'wait_for_te': {
       const payload = action.payload as WaitForTEPayload;
       const truthEggsStore = useTruthEggsStore();

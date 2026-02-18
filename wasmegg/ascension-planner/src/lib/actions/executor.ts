@@ -36,6 +36,7 @@ import { equipArtifactSetExecutor } from './executors/equipArtifactSet';
 import { updateArtifactSetExecutor } from './executors/updateArtifactSet';
 import { waitForMissionsExecutor } from './executors/wait_for_missions';
 import { waitForSleepExecutor } from './executors/wait_for_sleep';
+import { removeFuelExecutor } from './executors/removeFuel';
 
 // ============================================================================
 // Executor Interface
@@ -74,6 +75,7 @@ export interface ExecutorContext {
   setArtifactLoadout(loadout: ArtifactSlotPayload[]): void;
   setSiloCount(count: number): void;
   addFuel(egg: VirtueEgg, amount: number): boolean;
+  removeFuel(egg: VirtueEgg, amount: number): void;
   addEggsDelivered(egg: VirtueEgg, amount: number): void;
 
   // Current state readers
@@ -110,6 +112,7 @@ const executorMap: { [K in ActionType]: ActionExecutor<K> } = {
   change_artifacts: changeArtifactsExecutor,
   buy_silo: buySiloExecutor,
   store_fuel: storeFuelExecutor,
+  remove_fuel: removeFuelExecutor,
   wait_for_te: waitForTEExecutor,
   launch_missions: launchMissionsExecutor,
   toggle_sale: toggleSaleExecutor,
