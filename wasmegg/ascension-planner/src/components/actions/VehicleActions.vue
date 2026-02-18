@@ -1,91 +1,98 @@
 <template>
-  <div class="space-y-4">
-    <div class="flex items-center justify-between bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 mb-6">
-      <div class="flex flex-col gap-0.5">
-        <div class="flex items-center gap-2">
-          <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
-          <span class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest leading-none">Vehicle Sale</span>
+  <div class="space-y-6">
+    <!-- Sale Protocol -->
+    <div class="bg-gradient-to-r from-indigo-50/80 via-white to-purple-50/80 rounded-2xl p-5 border border-indigo-100/50 shadow-sm relative overflow-hidden transition-all duration-300">
+      <div class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl"></div>
+      
+      <div class="flex items-center justify-between relative z-10">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Vehicle Sale</span>
+          </div>
+          <span class="text-[11px] font-black text-indigo-600 uppercase tracking-tighter">75% Discount Active</span>
         </div>
-        <span class="text-[10px] text-indigo-600/70 font-bold uppercase tracking-tighter">75% Discount Active</span>
+        <button
+          class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+          :class="isVehicleSaleActive ? 'bg-indigo-500' : 'bg-slate-200'"
+          @click="handleToggleSale"
+        >
+          <span
+            class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
+            :class="isVehicleSaleActive ? 'translate-x-[22px]' : 'translate-x-1'"
+          />
+        </button>
       </div>
-      <button
-        class="relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none shadow-inner"
-        :class="isVehicleSaleActive ? 'bg-indigo-500' : 'bg-gray-200'"
-        @click="handleToggleSale"
-      >
-        <span
-          class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm"
-          :class="isVehicleSaleActive ? 'translate-x-[22px]' : 'translate-x-1'"
-        />
-      </button>
     </div>
 
     <!-- Quick Upgrade Action -->
-    <div v-if="canBuyMax" class="mb-6 -mt-2">
-      <div class="flex flex-col gap-2">
-        <button
-          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white p-2.5 shadow-sm transition-all hover:border-indigo-400 hover:bg-indigo-50/50 active:scale-[0.98]"
-          @click="handleBuyMax"
-        >
-          <div class="rounded-lg bg-indigo-100/50 p-1 transition-colors group-hover:bg-indigo-100">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 text-indigo-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="13 17 18 12 13 7"></polyline>
-              <polyline points="6 17 11 12 6 7"></polyline>
-            </svg>
-          </div>
-          <div class="flex flex-col items-center">
-            <span class="text-[11px] font-bold uppercase tracking-widest text-indigo-800">Max Vehicles</span>
-            <span v-if="maxVehiclesTime" class="text-[9px] font-medium text-indigo-500/80 -mt-0.5">{{ maxVehiclesTime }}</span>
-          </div>
-        </button>
+    <div v-if="canBuyMax" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+      <button
+        class="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden"
+        @click="handleBuyMax"
+      >
+        <div class="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/[0.02] transition-colors"></div>
+        <div class="rounded-xl bg-indigo-50 border border-indigo-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 text-indigo-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="13 17 18 12 13 7"></polyline>
+            <polyline points="6 17 11 12 6 7"></polyline>
+          </svg>
+        </div>
+        <div class="flex flex-col items-center relative z-10">
+          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-indigo-700">Max Vehicles</span>
+          <span v-if="maxVehiclesTime" class="text-[9px] font-mono-premium font-black text-indigo-500 mt-0.5">{{ maxVehiclesTime }}</span>
+        </div>
+      </button>
 
-        <button
-          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white p-2.5 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50/50 active:scale-[0.98]"
-          @click="handleBuy5MinCap"
-        >
-          <div class="rounded-lg bg-blue-100/50 p-1 transition-colors group-hover:bg-blue-100">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 text-blue-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </div>
-          <span class="text-[11px] font-bold uppercase tracking-widest text-blue-800">5 Min Max Shipping</span>
-        </button>
-      </div>
+      <button
+        class="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden"
+        @click="handleBuy5MinCap"
+      >
+        <div class="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/[0.02] transition-colors"></div>
+        <div class="rounded-xl bg-blue-50 border border-blue-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 text-blue-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="flex flex-col items-center relative z-10">
+          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-blue-700">5 Min Max Shipping</span>
+        </div>
+      </button>
     </div>
 
     <!-- Vehicle slots -->
-    <div class="grid grid-cols-1 gap-3">
+    <div class="grid grid-cols-1 gap-4">
       <div
         v-for="(slot, index) in displaySlots"
         :key="index"
-        class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 group hover:border-blue-200 transition-colors"
+        class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-4 group hover:border-indigo-200 transition-all duration-300 hover:shadow-md"
       >
         <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Slot {{ index + 1 }}</span>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Slot {{ index + 1 }}</span>
           <div v-if="slot.vehicleId !== null" class="flex flex-col items-end">
-            <span class="text-[11px] font-bold text-blue-600">
+            <span class="text-sm font-mono-premium font-black text-slate-900">
               {{ formatNumber(getVehicleCapacity(slot, index) * 3600, 0) }}
             </span>
-            <span class="text-[9px] text-gray-400 uppercase font-semibold">Eggs/Hr</span>
+            <span class="text-[9px] text-slate-400 uppercase font-black tracking-widest opacity-60">Eggs/Hr</span>
           </div>
         </div>
 
@@ -116,38 +123,38 @@
         />
 
         <!-- Hyperloop train cars (only show for hyperloop trains) -->
-        <div v-if="slot.vehicleId === 11" class="mt-1 pt-2 border-t border-gray-50">
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex flex-col">
-              <span class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Train Length</span>
-              <span class="text-xs font-bold text-blue-600">{{ slot.trainLength }} / {{ getMaxTrainLength() }}</span>
+        <div v-if="slot.vehicleId === 11" class="mt-2 pt-3 border-t border-slate-50">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex flex-col gap-0.5">
+              <span class="text-[9px] text-slate-400 uppercase font-black tracking-widest">Train Length</span>
+              <span class="text-xs font-mono-premium font-black text-indigo-600">{{ slot.trainLength }} / {{ getMaxTrainLength() }}</span>
             </div>
 
-            <div class="flex gap-1.5 items-end">
+            <div class="flex gap-2 items-end">
               <!-- Add car button -->
               <button
                 v-if="canAddTrainCar(slot, index)"
-                class="text-[10px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-md border border-blue-100 transition-all shadow-sm flex flex-col items-center min-w-[80px]"
+                class="group flex flex-col items-center justify-center min-w-[80px] bg-white border border-blue-100 rounded-lg px-2 py-1.5 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50 active:scale-95"
                 @click="handleAddTrainCar(index)"
               >
-                <span>+1 Car ({{ formatGemPrice(getNextCarCost(slot)) }})</span>
-                <span class="text-[9px] font-medium opacity-70">{{ getCarTimeToBuy(slot) }}</span>
+                <span class="text-[10px] font-black text-blue-700 uppercase tracking-tight group-hover:text-blue-800">+1 Car ({{ formatGemPrice(getNextCarCost(slot)) }})</span>
+                <span class="text-[9px] font-medium text-slate-400 opacity-80">{{ getCarTimeToBuy(slot) }}</span>
               </button>
 
               <!-- Max cars button -->
               <button
                 v-if="canAddMultipleTrainCars(slot, index)"
-                class="text-[10px] font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white px-2 py-1 rounded-md border border-indigo-100 transition-all shadow-sm flex flex-col items-center min-w-[80px]"
+                class="group flex flex-col items-center justify-center min-w-[80px] bg-white border border-indigo-100 rounded-lg px-2 py-1.5 shadow-sm transition-all hover:border-indigo-300 hover:bg-indigo-50 active:scale-95"
                 @click="handleMaxTrainCars(index)"
               >
-                <span>Max (+{{ getRemainingCars(slot, index) }}) ({{ formatGemPrice(getTotalCarsCost(slot)) }})</span>
-                <span class="text-[9px] font-medium opacity-70">{{ getMaxCarsTimeToBuy(slot) }}</span>
+                <span class="text-[10px] font-black text-indigo-700 uppercase tracking-tight group-hover:text-indigo-800">Max (+{{ getRemainingCars(slot, index) }}) ({{ formatGemPrice(getTotalCarsCost(slot)) }})</span>
+                <span class="text-[9px] font-medium text-slate-400 opacity-80">{{ getMaxCarsTimeToBuy(slot) }}</span>
               </button>
             </div>
           </div>
 
           <!-- Capacity per car hints -->
-          <div v-if="slot.trainLength < getMaxTrainLength()" class="mt-1.5 text-[9px] text-gray-400 italic">
+          <div v-if="slot.trainLength < getMaxTrainLength()" class="mt-2 text-[9px] text-slate-400 italic font-medium">
             Each car adds +{{ formatNumber((getVehicleType(11)?.baseCapacityPerSecond ?? 0) * 3600, 0) }} eggs/hr
           </div>
         </div>
@@ -155,12 +162,12 @@
     </div>
 
     <!-- Note about fleet size -->
-    <div class="flex items-center justify-between px-1">
-      <div class="flex flex-col">
-        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+    <div class="flex items-center justify-between px-2">
+      <div class="flex flex-col gap-0.5">
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
           Fleet Capacity: {{ activeVehicleCount }}/{{ maxVehicleSlots }} active
         </p>
-        <p class="text-[10px] text-blue-400 italic">(upgrade fleet size research to unlock more slots)</p>
+        <p class="text-[10px] text-indigo-400 italic font-medium">(upgrade fleet size research to unlock more slots)</p>
       </div>
     </div>
   </div>

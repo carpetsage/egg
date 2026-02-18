@@ -19,7 +19,7 @@
       >
         <img
           :src="actionIconPath.startsWith('static/') ? `${baseUrl}${actionIconPath}` : iconURL(actionIconPath, 64)"
-          :class="isVehicleAction ? 'h-[18px] w-auto min-w-[3rem] object-contain' : 'w-full h-full object-contain'"
+          :class="isVehicleAction ? 'h-[9px] w-auto min-w-[3rem] object-contain' : 'w-full h-full object-contain'"
           :alt="action.type"
         />
       </div>
