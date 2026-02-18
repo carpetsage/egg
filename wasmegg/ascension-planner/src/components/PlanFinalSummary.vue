@@ -169,11 +169,13 @@ const teGained = computed(() => currentTE.value - initialClaimedTE.value);
 
 function formatDateTime(date: Date): string {
   if (isNaN(date.getTime())) return 'N/A';
-  return date.toLocaleString(undefined, {
+  return date.toLocaleString('en-US', {
+    weekday: 'short',
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
     hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
   });
 }
 
