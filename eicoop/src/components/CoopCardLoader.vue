@@ -61,10 +61,6 @@ export default defineComponent({
       type: Number,
       default: 0,
     },
-    userId: {
-      type: String as PropType<string | undefined>,
-      default: undefined,
-    },
   },
   emits: {
     success(_payload: CoopStatus) {
@@ -73,7 +69,7 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const contractStore = useContractsStore();
-    const { contractId, coopCode, knownContract, knownLeague, knownGrade, refreshKey, userId } = toRefs(props);
+    const { contractId, coopCode, knownContract, knownLeague, refreshKey } = toRefs(props);
 
     const loading = ref(true);
     const coopStatus: Ref<CoopStatus | undefined> = ref(undefined);
@@ -82,19 +78,13 @@ export default defineComponent({
     const refreshCoopStatus = async () => {
       loading.value = true;
       error.value = undefined;
-      const grade = knownGrade.value;
-      let validId = userId.value;
 
       try {
-        if (!userId.value?.startsWith('EI') || userId.value?.length != 19) {
-          validId = undefined;
-        }
-        const status = new CoopStatus(await requestCoopStatus(contractId.value, coopCode.value.toLowerCase(), validId));
+        const status = new CoopStatus(await requestCoopStatus(contractId.value, coopCode.value.toLowerCase()));
         await status.resolveContract({
           store: contractStore.list,
           knownContract: knownContract.value || coopStatus.value?.contract || undefined,
           knownLeague: knownLeague.value || coopStatus.value?.league || undefined,
-          knownGrade: grade || coopStatus.value?.grade || undefined,
         });
         contractStore.addContract(status.contract!);
         emit('success', status);
