@@ -88,7 +88,7 @@
           </svg>
         </button>
         
-        <span class="ml-4 text-[10px] text-slate-400 italic font-medium">Developed by <span @click="triggerCat" class="cursor-text select-text">joobrainie</span></span>
+        <span class="ml-4 text-[10px] text-slate-400 italic font-medium">Developed by <span @click="triggerCat" class="cursor-pointer select-none hover:text-slate-600 transition-colors">joobrainie</span></span>
       </div>
     </div>
 
