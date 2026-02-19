@@ -88,7 +88,23 @@
           </svg>
         </button>
         
-        <span class="ml-4 text-[10px] text-slate-400 italic font-medium">Developed by joobrainie</span>
+        <span class="ml-4 text-[10px] text-slate-400 italic font-medium">Developed by <span @click="triggerCat" class="cursor-text select-text">joobrainie</span></span>
+      </div>
+    </div>
+
+    <!-- Cat Gif Popup -->
+    <div 
+      v-if="showCat" 
+      class="fixed inset-x-0 bottom-24 z-[100] flex justify-center pointer-events-none transition-opacity duration-1000 ease-out"
+      :class="{ 'opacity-0': isFadingOut, 'opacity-100': !isFadingOut }"
+    >
+      <div class="bg-white p-2 rounded-2xl shadow-2xl border border-slate-100 transform rotate-2">
+        <img 
+          :src="catGifUrl" 
+          class="max-w-[200px] max-h-[200px] rounded-xl object-cover block" 
+          alt="Random Cat"
+          @error="showCat = false" 
+        />
       </div>
     </div>
   </div>
@@ -225,6 +241,35 @@ function handleImport(event: Event) {
   };
 
   reader.readAsText(file);
+}
+
+// Cat Gif Logic
+const showCat = ref(false);
+const isFadingOut = ref(false);
+const catGifUrl = ref('');
+let fadeTimer: ReturnType<typeof setTimeout>;
+let removeTimer: ReturnType<typeof setTimeout>;
+
+function triggerCat() {
+  clearTimeout(fadeTimer);
+  clearTimeout(removeTimer);
+
+  showCat.value = false;
+  
+  // Small delay to ensure DOM update if re-clicking
+  setTimeout(() => {
+    catGifUrl.value = `https://cataas.com/cat/gif?t=${Date.now()}`;
+    showCat.value = true;
+    isFadingOut.value = false;
+    
+    fadeTimer = setTimeout(() => {
+      isFadingOut.value = true;
+    }, 3000);
+
+    removeTimer = setTimeout(() => {
+      showCat.value = false;
+    }, 4000); // 3s display + 1s fade
+  }, 10);
 }
 </script>
 
