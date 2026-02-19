@@ -34,8 +34,17 @@
 
     <!-- Extra Stats (ROI, ELR Impact, etc) -->
     <div v-if="extraStats" class="text-right whitespace-nowrap hidden sm:block">
-      <div class="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">{{ extraLabel }}</div>
+      <div 
+        class="text-[10px] font-bold text-blue-600 uppercase tracking-tighter"
+        :class="{ 'cursor-help': hpp !== undefined }"
+        v-tippy="hpp !== undefined ? 'Estimated waiting time (hours) per 1% Egg Laying Rate impact based on current earnings. Lower is better.' : undefined"
+      >
+        {{ extraLabel }}
+      </div>
       <div class="text-xs font-mono text-gray-900">{{ extraStats }}</div>
+      <div v-if="hpp !== undefined" class="text-[10px] font-mono text-purple-600 mt-0.5">
+        {{ hpp === Infinity ? '∞' : hpp.toFixed(1) }} hr/%
+      </div>
     </div>
 
     <!-- Next level price -->
@@ -114,6 +123,7 @@ const props = defineProps<{
   isMaxed: boolean;
   extraStats?: string;
   extraLabel?: string;
+  hpp?: number;
   showMax: boolean;
   showTier?: boolean;
   targetLevel?: number;
