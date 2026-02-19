@@ -132,7 +132,6 @@ import type { ActiveMissionInfo } from '@/types';
 const props = defineProps<{
   missions: ActiveMissionInfo[];
   currentTimeSeconds: number;
-  startUnix: number;
 }>();
 
 defineEmits<{
@@ -142,7 +141,7 @@ defineEmits<{
 const maxWaitSeconds = computed(() => {
   if (props.missions.length === 0) return 0;
   const maxReturn = Math.max(...props.missions.map(m => m.returnTimestamp || 0));
-  const remaining = (maxReturn - props.startUnix) - props.currentTimeSeconds;
+  const remaining = maxReturn - props.currentTimeSeconds;
   return Math.max(0, remaining);
 });
 
@@ -167,7 +166,7 @@ function getProgressWidth(mission: ActiveMissionInfo) {
 }
 
 function formatRemaining(returnTimestamp: number): string {
-  const remaining = (returnTimestamp - props.startUnix) - props.currentTimeSeconds;
+  const remaining = returnTimestamp - props.currentTimeSeconds;
   return formatDuration(Math.max(0, Math.floor(remaining)));
 }
 

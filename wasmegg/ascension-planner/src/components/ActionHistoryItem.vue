@@ -4,7 +4,7 @@
     :class="isStartAction ? 'bg-slate-50/80 border-l-4 border-brand-primary' : 'hover:bg-slate-50/50'"
   >
     <!-- Index -->
-    <span class="text-[10px] font-black text-slate-300 w-6 pt-1">{{ action.index + 1 }}</span>
+    <span class="text-[9px] font-black text-slate-300 w-6 pt-1">{{ action.index + 1 }}</span>
 
     <!-- Action info -->
     <div class="flex-1 min-w-0 flex items-center gap-3">
@@ -26,10 +26,10 @@
 
       <div class="flex-1 min-w-0">
         <div 
-          class="font-bold truncate flex items-center gap-1.5" 
+          class="text-sm font-bold truncate flex items-center gap-1.5" 
           :class="isStartAction ? 'text-slate-800' : 'text-slate-700'"
         >
-          <span v-if="eggType" class="text-[10px] uppercase font-black text-slate-400 tracking-widest">
+          <span v-if="eggType" class="text-[9px] uppercase font-black text-slate-400 tracking-widest">
             {{ action.type === 'start_ascension' ? 'Start:' : 'Egg:' }}
           </span>
           <span :class="{ 'text-slate-900': eggType }">
@@ -37,12 +37,12 @@
           </span>
         </div>
         <div 
-          class="text-[10px] uppercase tracking-widest font-black opacity-60 text-slate-500" 
+          class="text-[9px] uppercase tracking-widest font-black opacity-60 text-slate-500" 
           v-html="effectDescription"
         >
         </div>
         <!-- Deltas -->
-        <div v-if="!isStartAction || isContinued" class="text-[9px] mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-black uppercase tracking-wider">
+        <div v-if="!isStartAction || isContinued" class="text-[8px] mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-black uppercase tracking-wider">
           <span v-if="action.eggValueDelta" :class="deltaClass(action.eggValueDelta)">
             Val {{ formatDelta(action.eggValueDelta) }}
           </span>
@@ -73,17 +73,17 @@
       <div class="flex flex-col items-end gap-0.5">
         <template v-if="action.type === 'shift'">
           <div class="flex items-center gap-1">
-            <span class="text-sm font-bold text-slate-700 font-mono-premium">
+            <span class="text-xs font-bold text-slate-700 font-mono-premium">
               {{ formatNumber(action.cost, 3) }}
             </span>
             <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3 h-3" alt="SE" />
           </div>
         </template>
         <template v-else>
-          <span class="text-sm font-bold text-slate-800 font-mono-premium">
+          <span class="text-xs font-bold text-slate-800 font-mono-premium">
             {{ formatGemPrice(action.cost) }}
           </span>
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest" :title="timeToSaveTitle">
+          <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest" :title="timeToSaveTitle">
             Save {{ timeToSaveFormatted }}
           </span>
         </template>

@@ -505,6 +505,7 @@ export const useActionsStore = defineStore('actions', {
       for (const action of newActions) {
         action.dependents = action.dependents.filter(depId => !toRemove.has(depId));
       }
+      this.actions = newActions;
 
       // We need to re-simulate everything from the first change point.
       // Since we filtered actions, the indices have shifted.
@@ -1015,10 +1016,13 @@ export const useActionsStore = defineStore('actions', {
 
         // 5. Hydrate Actions
         this.actions = data.actions;
-        // Reset initial snapshot so that recalculateAll uses the hydrated stores as base
-        this._initialSnapshot = null;
 
-        // 6. Recalculate everything
+        // 6. Initialize initial snapshot from the hydrated baseline
+        const context = getSimulationContext();
+        const baseState = createBaseEngineState(null);
+        this._initialSnapshot = markRaw(computeSnapshot(baseState, context));
+
+        // 7. Recalculate everything
         this.recalculateAll();
 
         return true;

@@ -26,7 +26,7 @@
             >
               <div class="flex justify-between items-start mb-2">
                 <span class="text-xs font-black text-slate-700 group-hover:text-blue-600 uppercase tracking-wide">
-                  {{ dependentsA.length > 0 ? 'Option A: Smart Undo' : 'Option A: Undo Action' }}
+                  {{ areOptionsIdentical ? (dependentsA.length > 0 ? 'Undo Action & Dependents' : 'Undo Action') : (dependentsA.length > 0 ? 'Option A: Smart Undo' : 'Option A: Undo Action') }}
                 </span>
                 <span class="badge-premium bg-amber-50 text-amber-700 border border-amber-100 font-mono-premium">Refund: {{ formatNumber(refundA, 0) }}</span>
               </div>
@@ -54,6 +54,7 @@
 
             <!-- Option B: Until Shift -->
             <button
+              v-if="!areOptionsIdentical"
               class="group relative w-full text-left p-4 rounded-xl border border-slate-200 bg-white transition-all hover:border-purple-400 hover:shadow-md hover:ring-1 hover:ring-purple-100 active:scale-[0.99]"
               @click="$emit('confirm', 'truncate')"
             >
@@ -139,4 +140,8 @@ function getActionName(action: Action): string {
   const executor = getExecutor(action.type);
   return executor.getDisplayName(action.payload);
 }
+
+const areOptionsIdentical = computed(() => {
+  return props.dependentsA.length === props.dependentsB.length;
+});
 </script>
