@@ -16,6 +16,7 @@
     :tank-capacity="fuelTankStore.tankCapacity"
     :eggs-delivered="store.initialEggsDelivered"
     :te-earned="store.initialTeEarned"
+    :te-pending="store.initialTePending"
     :total-te="initialTotalTe"
     :can-continue="!!store.currentFarmState"
     :current-egg-name="currentEggName"
@@ -34,7 +35,9 @@
     @set-tank-level="handleSetTankLevel"
     @set-fuel-amount="handleSetFuelAmount"
     @set-eggs-delivered="handleSetEggsDelivered"
+
     @set-te-earned="handleSetTEEarned"
+    @include-pending-te="handleIncludePendingTe"
     @continue-ascension="handleContinueAscension"
     @set-soul-eggs="handleSetSoulEggs"
     @set-assume-double-earnings="handleSetAssumeDoubleEarnings"
@@ -215,6 +218,45 @@ function handleSetTEEarned(egg: VirtueEgg, count: number) {
   virtueStore.setInitialTE(truthEggsStore.totalTE);
 
   updateInitialSnapshotAndRecalculate();
+}
+
+function handleIncludePendingTe() {
+  // Initialize truthEggsStore with current state for sync logic
+  truthEggsStore.$patch(state => {
+    state.eggsDelivered = { ...store.initialEggsDelivered };
+    state.teEarned = { ...store.initialTeEarned };
+  });
+
+  let changed = false;
+
+  for (const egg of VIRTUE_EGGS) {
+    const pending = store.initialTePending[egg];
+    if (pending > 0) {
+      const currentEarned = store.initialTeEarned[egg];
+      const newTotal = Math.min(98, currentEarned + pending);
+      
+      // Update via truthEggsStore to handle sync logic
+      truthEggsStore.setTEEarned(egg, newTotal);
+      
+      // Clear pending
+      store.setInitialTePending(egg, 0);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    // Sync back to InitialStateStore
+    for (const e of VIRTUE_EGGS) {
+      store.setInitialEggsDelivered(e, truthEggsStore.eggsDelivered[e]);
+      store.setInitialTeEarned(e, truthEggsStore.teEarned[e]);
+    }
+
+    // Update virtue store
+    virtueStore.setTE(truthEggsStore.totalTE);
+    virtueStore.setInitialTE(truthEggsStore.totalTE);
+
+    updateInitialSnapshotAndRecalculate();
+  }
 }
 
 function handleSetTE(te: number) {

@@ -279,6 +279,20 @@
             </div>
           </div>
         </div>
+        
+        <!-- Include Pending TE Button -->
+        <div class="mt-4 flex justify-end">
+          <button
+            class="btn-premium btn-primary px-4 py-2 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="!hasData || totalPendingTe === 0"
+            @click="$emit('include-pending-te')"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Include Pending TE <span v-if="totalPendingTe > 0">({{ totalPendingTe }})</span></span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -547,6 +561,7 @@ const props = defineProps<{
   tankCapacity: number;
   eggsDelivered: Record<VirtueEgg, number>;
   teEarned: Record<VirtueEgg, number>;
+  tePending: Record<VirtueEgg, number>;
   totalTe: number;
   canContinue: boolean;
   currentEggName: string;
@@ -569,6 +584,7 @@ const emit = defineEmits<{
   'set-fuel-amount': [egg: VirtueEgg, amount: number];
   'set-eggs-delivered': [egg: VirtueEgg, amount: number];
   'set-te-earned': [egg: VirtueEgg, count: number];
+  'include-pending-te': [];
   'continue-ascension': [];
   'set-soul-eggs': [count: number];
   'set-assume-double-earnings': [enabled: boolean];
@@ -589,6 +605,11 @@ const hasArtifactSets = computed(() => props.artifactSets.earnings || props.arti
 // Total fuel in tank
 const totalFuel = computed(() =>
   Object.values(props.fuelAmounts).reduce((sum, amt) => sum + amt, 0)
+);
+
+// Total pending TE
+const totalPendingTe = computed(() =>
+  Object.values(props.tePending).reduce((sum, val) => sum + val, 0)
 );
 
 // Fill percentage for visual bar

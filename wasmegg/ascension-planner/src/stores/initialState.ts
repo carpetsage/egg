@@ -18,6 +18,7 @@ import {
   getOptimalEarningsSet,
   isMostlyEarningsSet,
 } from '@/lib/artifacts';
+import { countTEThresholdsPassed } from '@/lib/truthEggs';
 
 export interface InitialStateStoreState {
   // Whether data has been loaded from a backup
@@ -52,6 +53,7 @@ export interface InitialStateStoreState {
   initialFuelAmounts: Record<VirtueEgg, number>;
   initialEggsDelivered: Record<VirtueEgg, number>;
   initialTeEarned: Record<VirtueEgg, number>;
+  initialTePending: Record<VirtueEgg, number>;
 
   // Active missions from backup
   activeMissions: ei.IMissionInfo[];
@@ -95,6 +97,7 @@ export const useInitialStateStore = defineStore('initialState', {
     initialFuelAmounts: createEmptyVirtueMap(),
     initialEggsDelivered: createEmptyVirtueMap(),
     initialTeEarned: createEmptyVirtueMap(),
+    initialTePending: createEmptyVirtueMap(),
     activeMissions: [],
   }),
 
@@ -247,6 +250,26 @@ export const useInitialStateStore = defineStore('initialState', {
       this.initialFuelAmounts = { ...virtueFuelAmounts };
       this.initialEggsDelivered = { ...eggsDelivered };
       this.initialTeEarned = { ...teEarnedPerEgg };
+
+
+
+      // Calculate pending TE based on delivered vs earned
+      // Pending = (Theoretical TE from delivered) - (Actual Earned TE)
+      const tePendingPerEgg: Record<VirtueEgg, number> = {
+        curiosity: 0,
+        integrity: 0,
+        humility: 0,
+        resilience: 0,
+        kindness: 0,
+      };
+
+      for (const [egg, delivered] of Object.entries(eggsDelivered) as [VirtueEgg, number][]) {
+        const theoreticalTE = countTEThresholdsPassed(delivered);
+        const earned = teEarnedPerEgg[egg];
+        tePendingPerEgg[egg] = Math.max(0, theoreticalTE - earned);
+      }
+
+      this.initialTePending = { ...tePendingPerEgg };
 
       // Load current farm state if on a virtue egg (IDs 50-54)
       this.currentFarmState = null;
@@ -428,6 +451,9 @@ export const useInitialStateStore = defineStore('initialState', {
       if (data.initialTeEarned) {
         this.initialTeEarned = { ...data.initialTeEarned };
       }
+      if (data.initialTePending) {
+        this.initialTePending = { ...data.initialTePending };
+      }
       if (data.activeMissions) {
         this.activeMissions = [...data.activeMissions];
       }
@@ -455,6 +481,13 @@ export const useInitialStateStore = defineStore('initialState', {
     },
 
     /**
+     * Set initial TE pending
+     */
+    setInitialTePending(egg: VirtueEgg, count: number) {
+      this.initialTePending[egg] = Math.max(0, count);
+    },
+
+    /**
      * Clear all initial state data
      */
     clear() {
@@ -472,6 +505,7 @@ export const useInitialStateStore = defineStore('initialState', {
       this.initialFuelAmounts = createEmptyVirtueMap();
       this.initialEggsDelivered = createEmptyVirtueMap();
       this.initialTeEarned = createEmptyVirtueMap();
+      this.initialTePending = createEmptyVirtueMap();
     },
   },
 });
