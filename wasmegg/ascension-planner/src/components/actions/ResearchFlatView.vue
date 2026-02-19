@@ -29,6 +29,7 @@
         :buy-to-here-time="item.buyToHereTime"
         :extra-stats="item.extraStats"
         :extra-label="item.extraLabel"
+        :hpp="item.hpp"
         :recommendation-note="item.recommendationNote"
         @buy="$emit('buy', item.research)"
         @max="$emit('max', item.research)"

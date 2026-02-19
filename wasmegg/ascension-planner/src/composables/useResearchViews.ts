@@ -423,6 +423,8 @@ export function useResearchViews() {
             const unpurchased = all.filter(r => (researchLevels[r.id] || 0) < r.levels && filterByCategories(r));
             const uniqueUnpurchased = Array.from(new Map(unpurchased.map(r => [r.id, r])).values());
 
+            const currentEarnings = actionsStore.effectiveSnapshot.offlineEarnings;
+
             const candidates = uniqueUnpurchased.map(r => {
                 const level = researchLevels[r.id] || 0;
                 const price = getDiscountedVirtuePrice(r, level, mods, isSale);
@@ -436,6 +438,13 @@ export function useResearchViews() {
                     impact = r.per_level / (1 + (level * r.per_level));
                 }
 
+                // Hours per percentage point
+                // (Price / Earnings) = Seconds to buy
+                // (Seconds / 3600) = Hours to buy
+                // HPP = Hours / (Impact * 100)
+                const hoursToBuy = currentEarnings > 0 ? (price / currentEarnings) / 3600 : Infinity;
+                const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
+
                 return {
                     research: r,
                     price,
@@ -445,11 +454,15 @@ export function useResearchViews() {
                     canBuy: isTierUnlocked(researchLevels, r.tier),
                     isMaxed: false,
                     impact,
+                    hpp,
                 };
             })
                 .filter(c => c.impact > 0)
                 .sort((a, b) => {
                     if (a.canBuy !== b.canBuy) return a.canBuy ? -1 : 1;
+                    if (isFinite(a.hpp) || isFinite(b.hpp)) {
+                        if (a.hpp !== b.hpp) return a.hpp - b.hpp;
+                    }
                     return b.impact - a.impact;
                 });
 
@@ -457,6 +470,7 @@ export function useResearchViews() {
                 ...c,
                 extraStats: `+${(c.impact * 100).toFixed(3)}%`,
                 extraLabel: 'Impact',
+                hpp: c.hpp,
             }));
         }
 
