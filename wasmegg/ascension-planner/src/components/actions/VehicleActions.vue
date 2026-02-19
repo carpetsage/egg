@@ -670,100 +670,102 @@ function handleBuy5MinCap() {
 
   const maxTrainLength = getMaxTrainLength();
 
-  while (spent < maxBudget) {
-    let bestAction:
-      | { type: 'vehicle'; slotIndex: number; vehicleId: number; cost: number }
-      | { type: 'car'; slotIndex: number; cost: number }
-      | null = null;
-    let bestRoi = -1;
+  batch(() => {
+    while (spent < maxBudget) {
+      let bestAction:
+        | { type: 'vehicle'; slotIndex: number; vehicleId: number; cost: number }
+        | { type: 'car'; slotIndex: number; cost: number }
+        | null = null;
+      let bestRoi = -1;
 
-    // Track current counts for virtue cost scaling
-    const vehicleCounts: Record<number, number> = {};
-    for (const slot of virtualSlots) {
-      if (slot.vehicleId !== null) {
-        vehicleCounts[slot.vehicleId] = (vehicleCounts[slot.vehicleId] || 0) + 1;
-      }
-    }
-
-    for (let i = 0; i < virtualSlots.length; i++) {
-      const slot = virtualSlots[i];
-
-      // 1. Consider upgrading vehicle
-      const currentId = slot.vehicleId;
-      const startId = currentId === null ? 0 : currentId + 1;
-
-      // Find the highest "instant" vehicle (cost < 1s of earnings) to skip intermediate steps
-      let maxInstantId = -1;
-      for (let id = startId; id <= 11; id++) {
-        const cost = getDiscountedVehiclePrice(
-          id,
-          vehicleCounts[id] || 0,
-          costModifiers.value,
-          isVehicleSaleActive.value
-        );
-        if (cost <= offlineEarnings) {
-          maxInstantId = id;
-        } else {
-          break;
+      // Track current counts for virtue cost scaling
+      const vehicleCounts: Record<number, number> = {};
+      for (const slot of virtualSlots) {
+        if (slot.vehicleId !== null) {
+          vehicleCounts[slot.vehicleId] = (vehicleCounts[slot.vehicleId] || 0) + 1;
         }
       }
 
-      for (let nextId = startId; nextId <= 11; nextId++) {
-        if (nextId < maxInstantId) continue;
+      for (let i = 0; i < virtualSlots.length; i++) {
+        const slot = virtualSlots[i];
 
-        const cost = getDiscountedVehiclePrice(
-          nextId,
-          vehicleCounts[nextId] || 0,
-          costModifiers.value,
-          isVehicleSaleActive.value
-        );
+        // 1. Consider upgrading vehicle
+        const currentId = slot.vehicleId;
+        const startId = currentId === null ? 0 : currentId + 1;
 
-        if (spent + cost <= maxBudget) {
-          const deltaCap = getVehicleCapacity({ vehicleId: nextId, trainLength: 1 }, i) - getVehicleCapacity(slot, i);
-          if (deltaCap > 0) {
-            const roi = deltaCap / Math.max(cost, 1e-10);
-            if (roi > bestRoi) {
-              bestRoi = roi;
-              bestAction = { type: 'vehicle', slotIndex: i, vehicleId: nextId, cost };
+        // Find the highest "instant" vehicle (cost < 1s of earnings) to skip intermediate steps
+        let maxInstantId = -1;
+        for (let id = startId; id <= 11; id++) {
+          const cost = getDiscountedVehiclePrice(
+            id,
+            vehicleCounts[id] || 0,
+            costModifiers.value,
+            isVehicleSaleActive.value
+          );
+          if (cost <= offlineEarnings) {
+            maxInstantId = id;
+          } else {
+            break;
+          }
+        }
+
+        for (let nextId = startId; nextId <= 11; nextId++) {
+          if (nextId < maxInstantId) continue;
+
+          const cost = getDiscountedVehiclePrice(
+            nextId,
+            vehicleCounts[nextId] || 0,
+            costModifiers.value,
+            isVehicleSaleActive.value
+          );
+
+          if (spent + cost <= maxBudget) {
+            const deltaCap = getVehicleCapacity({ vehicleId: nextId, trainLength: 1 }, i) - getVehicleCapacity(slot, i);
+            // Allow deltaCap >= 0 for vehicles because Tier 11 (Hyperloop) has same base as Tier 10 (Quantum)
+            // but unlocks train cars which provide more capacity.
+            if (deltaCap >= 0) {
+              const roi = deltaCap / Math.max(cost, 1e-10);
+              if (roi > bestRoi) {
+                bestRoi = roi;
+                bestAction = { type: 'vehicle', slotIndex: i, vehicleId: nextId, cost };
+              }
+            }
+          }
+        }
+
+        // 2. Consider adding Hyperloop car
+        if (slot.vehicleId === 11 && slot.trainLength < maxTrainLength) {
+          const cost = getDiscountedTrainCarPrice(slot.trainLength, costModifiers.value, isVehicleSaleActive.value);
+          if (spent + cost <= maxBudget) {
+            const currentCap = getVehicleCapacity(slot, i);
+            const nextCap = getVehicleCapacity({ ...slot, trainLength: slot.trainLength + 1 }, i);
+            const deltaCap = nextCap - currentCap;
+            if (deltaCap > 0) {
+              const roi = deltaCap / Math.max(cost, 1e-10);
+              if (roi > bestRoi) {
+                bestRoi = roi;
+                bestAction = { type: 'car', slotIndex: i, cost };
+              }
             }
           }
         }
       }
 
-      // 2. Consider adding Hyperloop car
-      if (slot.vehicleId === 11 && slot.trainLength < maxTrainLength) {
-        const cost = getDiscountedTrainCarPrice(slot.trainLength, costModifiers.value, isVehicleSaleActive.value);
-        if (spent + cost <= maxBudget) {
-          const currentCap = getVehicleCapacity(slot, i);
-          const nextCap = getVehicleCapacity({ ...slot, trainLength: slot.trainLength + 1 }, i);
-          const deltaCap = nextCap - currentCap;
-          if (deltaCap > 0) {
-            const roi = deltaCap / Math.max(cost, 1e-10);
-            if (roi > bestRoi) {
-              bestRoi = roi;
-              bestAction = { type: 'car', slotIndex: i, cost };
-            }
-          }
-        }
-      }
-    }
+      if (!bestAction) break;
 
-    if (!bestAction) break;
-
-    // Apply action
-    batch(() => {
-        if (bestAction!.type === 'vehicle') {
+      // Apply action
+      if (bestAction!.type === 'vehicle') {
         handleVehicleChange(bestAction!.slotIndex, bestAction!.vehicleId);
         virtualSlots[bestAction!.slotIndex].vehicleId = bestAction!.vehicleId;
         virtualSlots[bestAction!.slotIndex].trainLength = 1;
-        } else {
+      } else {
         const fromLength = virtualSlots[bestAction!.slotIndex].trainLength;
         addTrainCarAction(bestAction!.slotIndex, fromLength, fromLength + 1);
         virtualSlots[bestAction!.slotIndex].trainLength++;
-        }
-    });
+      }
 
-    spent += bestAction.cost;
-  }
+      spent += bestAction.cost;
+    }
+  });
 }
 </script>

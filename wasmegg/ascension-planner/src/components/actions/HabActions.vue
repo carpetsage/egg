@@ -401,64 +401,64 @@ function handleBuy5MinSpace() {
   // Track virtual state
   const virtualHabIds = [...habIds.value];
 
-  while (spent < maxBudget) {
-    let bestAction: { slotIndex: number; habId: number; cost: number } | null = null;
-    let bestRoi = -1;
+  batch(() => {
+    while (spent < maxBudget) {
+      let bestAction: { slotIndex: number; habId: number; cost: number } | null = null;
+      let bestRoi = -1;
 
-    for (let i = 0; i < virtualHabIds.length; i++) {
-      const currentId = virtualHabIds[i];
-      const startId = currentId === null ? 0 : currentId + 1;
+      for (let i = 0; i < virtualHabIds.length; i++) {
+        const currentId = virtualHabIds[i];
+        const startId = currentId === null ? 0 : currentId + 1;
 
-      // Find the highest "instant" hab (cost < 1s of earnings) to skip intermediate steps
-      let maxInstantId = -1;
-      for (let id = startId; id <= 18; id++) {
-        const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
-        const existingCount = countHabsOfType(otherHabs, id);
-        const hab = getHabById(id as HabId);
-        if (!hab) continue;
-        const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
-        if (cost <= offlineEarnings) {
-          maxInstantId = id;
-        } else {
-          break;
+        // Find the highest "instant" hab (cost < 1s of earnings) to skip intermediate steps
+        let maxInstantId = -1;
+        for (let id = startId; id <= 18; id++) {
+          const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
+          const existingCount = countHabsOfType(otherHabs, id);
+          const hab = getHabById(id as HabId);
+          if (!hab) continue;
+          const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
+          if (cost <= offlineEarnings) {
+            maxInstantId = id;
+          } else {
+            break;
+          }
         }
-      }
 
-      for (let nextId = startId; nextId <= 18; nextId++) {
-        if (nextId < maxInstantId) continue;
+        for (let nextId = startId; nextId <= 18; nextId++) {
+          if (nextId < maxInstantId) continue;
 
-        const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
-        const existingCount = countHabsOfType(otherHabs, nextId);
-        const hab = getHabById(nextId as HabId);
-        if (!hab) continue;
+          const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
+          const existingCount = countHabsOfType(otherHabs, nextId);
+          const hab = getHabById(nextId as HabId);
+          if (!hab) continue;
 
-        const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
+          const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
 
-        if (spent + cost <= maxBudget) {
-          const currentCap = currentId !== null ? getHabCapacity(currentId) : 0;
-          const nextCap = getHabCapacity(nextId);
-          const deltaCap = nextCap - currentCap;
+          if (spent + cost <= maxBudget) {
+            const currentCap = currentId !== null ? getHabCapacity(currentId) : 0;
+            const nextCap = getHabCapacity(nextId);
+            const deltaCap = nextCap - currentCap;
 
-          if (deltaCap > 0) {
-            const roi = deltaCap / Math.max(cost, 1e-10);
-            if (roi > bestRoi) {
-              bestRoi = roi;
-              bestAction = { slotIndex: i, habId: nextId, cost };
+            if (deltaCap >= 0) {
+              const roi = deltaCap / Math.max(cost, 1e-10);
+              if (roi > bestRoi) {
+                bestRoi = roi;
+                bestAction = { slotIndex: i, habId: nextId, cost };
+              }
             }
           }
         }
       }
-    }
 
-    if (!bestAction) break;
+      if (!bestAction) break;
 
-    // Apply action
-    batch(() => {
+      // Apply action
       handleHabChange(bestAction!.slotIndex, bestAction!.habId);
-    });
-    
-    virtualHabIds[bestAction.slotIndex] = bestAction.habId;
-    spent += bestAction.cost;
-  }
+      
+      virtualHabIds[bestAction.slotIndex] = bestAction.habId;
+      spent += bestAction.cost;
+    }
+  });
 }
 </script>
