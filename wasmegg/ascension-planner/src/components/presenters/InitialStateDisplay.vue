@@ -532,7 +532,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { iconURL } from 'lib';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import type { ResearchLevels, VirtueEgg } from '@/types';
@@ -598,7 +598,15 @@ const epicResearchExpanded = ref(false);
 const fuelTankExpanded = ref(false);
 const truthEggsExpanded = ref(true);
 
-const activeSetTab = ref<import('@/types').ArtifactSetName>('earnings');
+const activeSetTab = ref<import('@/types').ArtifactSetName>(props.activeArtifactSet || 'earnings');
+
+// Keep tab in sync with active set (important for imports)
+watch(() => props.activeArtifactSet, (newVal) => {
+  if (newVal) {
+    activeSetTab.value = newVal;
+  }
+});
+
 
 const hasArtifactSets = computed(() => props.artifactSets.earnings || props.artifactSets.elr);
 
