@@ -25315,5 +25315,23 @@
     "startTimestamp": 1771434000,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1771606800,
+    "id": "event-2-19",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1771520400,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1771606800,
+    "id": "ultra-2-19",
+    "message": "3x FUELING!",
+    "multiplier": 3,
+    "startTimestamp": 1771520400,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
