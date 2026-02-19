@@ -88,6 +88,8 @@
           :search-items="query => searchHabs(getAvailableHabs(habId), query)"
           placeholder="Select habitat..."
           class="w-full"
+          container-class="w-full"
+          dropdown-width-class="min-w-full w-max"
           @update:model-value="handleHabChange(index, $event ? parseInt($event) : undefined)"
         />
       </div>
