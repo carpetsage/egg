@@ -19,7 +19,6 @@
       <ActiveMissionsDisplay
         :missions="initialStateStore.virtueMissions"
         :current-time-seconds="currentTimeSeconds"
-        :start-unix="startUnix"
         @wait-missions="handleWaitMissions"
       />
     </div>
@@ -56,22 +55,14 @@ const { prepareExecution, completeExecution } = useActionExecutor();
 
 const currentTimeSeconds = computed(() => actionsStore.effectiveSnapshot.lastStepTime);
 
-const startUnix = computed(() => {
-  const { ascensionDate, ascensionTime } = virtueStore;
-  const dateTimeStr = `${ascensionDate}T${ascensionTime}:00`;
-  try {
-    return new Date(dateTimeStr).getTime() / 1000;
-  } catch {
-    return Date.now() / 1000;
-  }
-});
+
 
 function handleWaitMissions() {
   const missions = initialStateStore.virtueMissions;
   if (missions.length === 0) return;
 
   const maxReturn = Math.max(...missions.map(m => m.returnTimestamp || 0));
-  const waitSeconds = Math.max(0, (maxReturn - startUnix.value) - currentTimeSeconds.value);
+  const waitSeconds = Math.max(0, maxReturn - currentTimeSeconds.value);
 
   if (waitSeconds <= 0) return;
 

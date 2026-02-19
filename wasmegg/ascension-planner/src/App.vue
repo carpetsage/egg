@@ -288,7 +288,7 @@ async function submitPlayerId(id: string) {
     const dateTimeStr = `${virtueStore.ascensionDate}T${virtueStore.ascensionTime}:00`;
     const startUnix = new Date(dateTimeStr).getTime() / 1000;
     const waitSeconds = maxReturn > 0 
-      ? Math.max(0, (maxReturn - startUnix) - actionsStore.effectiveSnapshot.lastStepTime)
+      ? Math.max(0, maxReturn - actionsStore.effectiveSnapshot.lastStepTime)
       : 0;
 
     const missionsDebugInfo = {
