@@ -1,7 +1,17 @@
 <template>
   <div
-    class="fixed bottom-0 left-0 right-0 z-[5] bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] transition-all duration-300"
+    class="fixed bottom-0 left-0 right-0 z-[5] bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] transition-transform duration-500"
+    :class="[isCollapsed ? 'translate-y-full' : 'translate-y-0']"
   >
+    <button 
+      @click="toggleCollapse"
+      class="absolute -top-8 right-6 bg-white/95 backdrop-blur-xl border border-b-0 border-slate-100 px-3 py-1 rounded-t-lg shadow-sm text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-wider h-8"
+    >
+      <svg class="w-4 h-4 transition-transform duration-300" :class="{ 'rotate-180': !isCollapsed }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+      </svg>
+    </button>
+    
     <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-6">
       <!-- Start Date -->
       <div class="summary-item">
@@ -124,9 +134,17 @@ const actionsStore = useActionsStore();
 const initialStateStore = useInitialStateStore();
 const virtueStore = useVirtueStore();
 
-defineEmits<{
+const emit = defineEmits<{
   'show-details': [];
+  'update:collapsed': [value: boolean];
 }>();
+
+const isCollapsed = ref(false);
+
+function toggleCollapse() {
+  isCollapsed.value = !isCollapsed.value;
+  emit('update:collapsed', isCollapsed.value);
+}
 
 const calculateTotalPotentialTE = (snapshot: any) => {
   if (!snapshot || !snapshot.eggsDelivered) return 0;

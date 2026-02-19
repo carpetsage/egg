@@ -1,7 +1,7 @@
 <template>
   <the-nav-bar active-entry-id="ascension-planner" />
 
-  <div class="min-h-screen bg-gray-100 pb-24">
+  <div :class="['min-h-screen bg-gray-100 transition-all duration-300', isFooterCollapsed ? 'pb-8' : 'pb-24']">
     <div class="max-w-6xl mx-auto p-4">
       <h1 class="mx-4 mt-8 mb-2 text-center heading-xl text-gradient">
         Ascension Planner
@@ -89,7 +89,7 @@
 
     <RecalculationOverlay />
 
-    <PlanFinalSummary @show-details="showCurrentDetails" />
+    <PlanFinalSummary @show-details="showCurrentDetails" @update:collapsed="isFooterCollapsed = $event" />
     <FloatingStats @show-details="showCurrentDetails" />
 
   </div>
@@ -164,6 +164,7 @@ const undoAction = ref<Action | null>(null);
 const undoDependentsA = ref<Action[]>([]);
 const undoDependentsB = ref<Action[]>([]);
 const showClearAllConfirmation = ref(false);
+const isFooterCollapsed = ref(false);
 
 // Modal handlers
 function showActionDetails(action: Action) {
