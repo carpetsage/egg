@@ -505,6 +505,7 @@ export const useActionsStore = defineStore('actions', {
       for (const action of newActions) {
         action.dependents = action.dependents.filter(depId => !toRemove.has(depId));
       }
+      this.actions = newActions;
 
       // We need to re-simulate everything from the first change point.
       // Since we filtered actions, the indices have shifted.
