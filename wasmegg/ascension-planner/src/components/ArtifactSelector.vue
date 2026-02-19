@@ -38,7 +38,7 @@
         <!-- Stone Slots -->
         <div
           v-if="getArtifact(slot.artifactId)?.slots"
-          class="flex flex-wrap gap-2.5 p-2 bg-white/30 rounded-xl border border-white/40 shadow-inner"
+          class="flex flex-wrap gap-6 p-2 bg-white/30 rounded-xl border border-white/40 shadow-inner"
         >
           <div
             v-for="stoneIndex in getArtifact(slot.artifactId)!.slots"
@@ -215,5 +215,10 @@ function getSlotBackgroundStyle(artifactId: string | null): Record<string, strin
 :deep(.stone-select-compact .Select__input:hover) {
   border-color: #94a3b8; /* gray-400 */
   background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Move clear (X) icon to the right */
+:deep(.stone-select-compact div.cursor-pointer) {
+  right: -15px !important;
 }
 </style>
