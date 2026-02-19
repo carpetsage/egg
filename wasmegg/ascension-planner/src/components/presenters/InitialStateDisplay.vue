@@ -217,15 +217,9 @@
           </div>
           <div class="flex items-center gap-3">
             <div class="relative">
-              <input
-                type="number"
-                :value="totalTe"
-                readonly
-                class="input-premium w-24 text-center text-sm font-mono-premium font-bold bg-white text-slate-900"
-              />
-              <div class="absolute -right-1 -top-1 w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
+              <div class="text-lg font-mono-premium font-bold text-slate-900 px-3">{{ totalTe }}</div>
             </div>
-            <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-1">Cap: 490</span>
+            <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-1">Max: 490</span>
           </div>
         </div>
 
