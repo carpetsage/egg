@@ -130,7 +130,7 @@ const habCapacityStore = useHabCapacityStore();
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
 const salesStore = useSalesStore();
-const { prepareExecution, completeExecution } = useActionExecutor();
+const { prepareExecution, completeExecution, batch } = useActionExecutor();
 
 // Cost modifiers
 const costModifiers = computed<HabCostModifiers>(() => ({
@@ -378,12 +378,14 @@ const canBuyMax = computed(() => {
 
 function handleBuyMax() {
   const CHICKEN_UNIVERSE_ID = 18;
-  for (let i = 0; i < 4; i++) {
-    const currentId = habIds.value[i];
-    if (currentId !== CHICKEN_UNIVERSE_ID) {
-      handleHabChange(i, CHICKEN_UNIVERSE_ID);
+  batch(() => {
+    for (let i = 0; i < 4; i++) {
+        const currentId = habIds.value[i];
+        if (currentId !== CHICKEN_UNIVERSE_ID) {
+        handleHabChange(i, CHICKEN_UNIVERSE_ID);
+        }
     }
-  }
+  });
 }
 
 function handleBuy5MinSpace() {
@@ -449,7 +451,10 @@ function handleBuy5MinSpace() {
     if (!bestAction) break;
 
     // Apply action
-    handleHabChange(bestAction.slotIndex, bestAction.habId);
+    batch(() => {
+      handleHabChange(bestAction!.slotIndex, bestAction!.habId);
+    });
+    
     virtualHabIds[bestAction.slotIndex] = bestAction.habId;
     spent += bestAction.cost;
   }

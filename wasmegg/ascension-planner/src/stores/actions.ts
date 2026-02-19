@@ -21,7 +21,7 @@ import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 
 // Engine imports
-import { simulate } from '@/engine/simulate';
+import { simulate, simulateAsync } from '@/engine/simulate';
 import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, getActionDuration } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
@@ -44,6 +44,10 @@ export interface ActionsState {
   editingGroupId: string | null;
   // IDs of groups that are currently expanded
   expandedGroupIds: Set<string>;
+  isRecalculating: boolean;
+  recalculationProgress: { current: number; total: number };
+  batchMode: boolean;
+  minBatchIndex: number;
 }
 
 /**
@@ -78,6 +82,10 @@ export const useActionsStore = defineStore('actions', {
     _initialSnapshot: null,
     editingGroupId: null,
     expandedGroupIds: new Set(),
+    isRecalculating: false,
+    recalculationProgress: { current: 0, total: 0 },
+    batchMode: false,
+    minBatchIndex: Infinity,
   }),
 
   getters: {
@@ -192,7 +200,7 @@ export const useActionsStore = defineStore('actions', {
      * Set the initial snapshot (called when player data is loaded or initial state changes).
      * Updates the start_ascension action's endState via simulation.
      */
-    setInitialSnapshot(snapshot: CalculationsSnapshot) {
+    async setInitialSnapshot(snapshot: CalculationsSnapshot) {
       this._initialSnapshot = snapshot;
 
       // Ensure we have a start_ascension action
@@ -202,7 +210,7 @@ export const useActionsStore = defineStore('actions', {
 
       // Re-run simulation to update start_ascension and all subsequent actions
       // This ensures everything is in sync with the new initial conditions
-      this.recalculateAll();
+      await this.recalculateFrom(0);
     },
 
     /**
@@ -338,12 +346,12 @@ export const useActionsStore = defineStore('actions', {
         this.expandedGroupIds.add(finalAction.id);
       }
 
-      // Syncing is now handled automatically by pushAction's logic 
-      // (Wait, pushAction actually needs to call recalculateAll or sync manually)
-      // Actually pushAction is one place where we DON'T call recalculateAll 
-      // because we already have the newSnapshot. So keeping it is fine.
-      syncStoresToSnapshot(newSnapshot);
+      // Sync stores unless in batch mode
+      if (!this.batchMode) {
+        syncStoresToSnapshot(newSnapshot);
+      }
     },
+
 
     /**
      * Validate an undo operation.
@@ -473,7 +481,7 @@ export const useActionsStore = defineStore('actions', {
     /**
      * Execute undo after user confirmation.
      */
-    executeUndo(
+    async executeUndo(
       actionId: string,
       mode: 'dependents' | 'truncate' = 'dependents',
       restoreCallback?: (snapshot: CalculationsSnapshot) => void
@@ -498,10 +506,36 @@ export const useActionsStore = defineStore('actions', {
         action.dependents = action.dependents.filter(depId => !toRemove.has(depId));
       }
 
-      // We need to re-simulate everything to ensure indices and states are correct.
-      // We do this by updating the actions list and then calling recalculateAll.
-      this.actions = newActions;
-      this.recalculateAll();
+      // We need to re-simulate everything from the first change point.
+      // Since we filtered actions, the indices have shifted.
+      // We should find the lowest index that was modified or removed.
+      // Actually, since we replaced this.actions, we can just find the first point of divergence?
+      // Simpler: Find the index of the first action that was removed.
+      // But we already filtered them out.
+      // Improvement: The caller passes the ID. We can find its index BEFORE removal.
+      // However, we've already done removal in the lines above.
+
+      // Correct strategy:
+      // The `newActions` list is valid up to the point of the first removal.
+      // But `executeUndo` is complex because it can remove non-contiguous actions?
+      // Actually `prepareUndo` logic (dependent actions) usually means a tree of dependents.
+      // If we remove X at index 10, dependents are usually > 10.
+      // So effectively we need to recalc from the first removal index.
+
+      // Since we don't know the index easily after filtering, and this is an "undo" operation 
+      // (less frequent than bulk buy), we can search for the first action that doesn't match 
+      // the known state, OR just recalc from 0 to be safe for now, OR:
+      // We can optimize later. For now, let's assume undo might be dirty.
+      // BUT user specifically asked for "Undo option A or B" to be smooth.
+      // Option B (truncate) removes everything after X. No future actions to recalc!
+      // Option A (dependents) might remove X and Y (where Y > X).
+      // So effectively we need to recalc from the index where X was.
+
+      // Let's rely on finding the first action that has a different previous action than before?
+      // No, let's just use `recalculateAll` for `executeUndo` for safety unless we pass the index.
+      // Given the request specifically mentioned undo, let's stick to full recalc for Undo 
+      // UNLESS we are in batch mode? Undo isn't batched typically.
+      await this.recalculateFrom(0);
 
       // RecalculateAll automatically syncs stores to the effective snapshot.
       if (restoreCallback) restoreCallback(this.effectiveSnapshot);
@@ -510,7 +544,7 @@ export const useActionsStore = defineStore('actions', {
     /**
      * Remove multiple actions by ID and their dependents.
      */
-    removeActions(ids: string[]) {
+    async removeActions(ids: string[]) {
       const toRemove = new Set(ids);
       const fullToRemove = this.getActionsRequiringRemoval(toRemove);
       const fullIds = new Set(fullToRemove.map(a => a.id));
@@ -522,13 +556,13 @@ export const useActionsStore = defineStore('actions', {
         a.dependents = a.dependents.filter(d => !fullIds.has(d));
       });
 
-      this.recalculateAll();
+      await this.recalculateAll();
     },
 
     /**
      * Clear all actions except start_ascension.
      */
-    clearAll(resetCallback?: () => void) {
+    async clearAll(resetCallback?: () => void) {
       const startAction = this.getStartAction();
 
       // Reset to just the start action or a new default one
@@ -538,8 +572,8 @@ export const useActionsStore = defineStore('actions', {
         this.actions = [createDefaultStartAction()];
       }
 
-      // Force a full recalculation to reset everything cleanly
-      this.recalculateAll();
+      // Force a full calculation to reset everything cleanly
+      await this.recalculateFrom(0);
 
       if (resetCallback) resetCallback();
     },
@@ -570,12 +604,12 @@ export const useActionsStore = defineStore('actions', {
     /**
      * Update the initial egg.
      */
-    setInitialEgg(egg: VirtueEgg) {
+    async setInitialEgg(egg: VirtueEgg) {
       const startAction = this.actions.find(a => a.type === 'start_ascension') as Action<'start_ascension'> | undefined;
       if (startAction) {
         startAction.payload.initialEgg = egg;
-        // Re-simulate to propagate change
-        this.recalculateAll();
+        // Re-simulate from start since initial conditions changed
+        await this.recalculateFrom(0);
       }
     },
 
@@ -601,7 +635,7 @@ export const useActionsStore = defineStore('actions', {
      * Insert an action at the editing position.
      * Uses pure engine simulation for re-calculation.
      */
-    insertAction(
+    async insertAction(
       action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds'> & { dependsOn: string[] },
       replayCallback?: any // unused now, kept for signature partial compat if needed
     ) {
@@ -650,7 +684,7 @@ export const useActionsStore = defineStore('actions', {
             // Sequential updates to the same set!
             // Remove the previous one and let the new one replace it.
             this.executeUndo(prevAction.id, 'dependents');
-            this.insertAction(action);
+            await this.insertAction(action);
             return;
           }
         }
@@ -682,42 +716,155 @@ export const useActionsStore = defineStore('actions', {
         this.expandedGroupIds.add(fullAction.id);
       }
 
-      // Re-calculate everything from insertion point (or just all for simplicity)
-      // RecalculateAll uses the optimized Engine, so it's fast (O(N) non-reactive).
-      // It also automatically syncs stores to effectiveSnapshot.
-      this.recalculateAll();
+      if (this.batchMode) {
+        // Track the earliest insertion point (plus one, as that's where recalc starts)
+        // If we insert at 5, action 5 is NEW and VALID (locally computed).
+        // Action 6 (was 5) needs recalc. So start from insertIndex + 1.
+        this.minBatchIndex = Math.min(this.minBatchIndex, insertIndex + 1);
+
+        // In batch mode, we compute the state locally for THIS action so that subsequent
+        // actions in the batch can depend on it (via effectiveSnapshot/endState).
+        // depending actions *after* the insertion point will be stale until commitBatch()
+
+        const context = getSimulationContext();
+
+        // Logic similar to pushAction but we must find the correct prev state
+        const prevAction = this.actions[insertIndex - 1]; // This is the action before the one we just inserted
+        const prevSnapshot = prevAction
+          ? prevAction.endState
+          : (this._initialSnapshot ?? createEmptySnapshot());
+
+        // Compute state
+        // We need to re-apply logic because fullAction.endState is currently empty
+        // And we need the 'newState' (EngineState) to compute snapshot
+        const prevState = prevAction
+          ? prevAction.endState // Snapshots are compatible with EngineState
+          : createBaseEngineState(this.initialSnapshot);
+
+        let newState = applyAction(prevState, fullAction);
+
+        // Add passive eggs
+        const durationSeconds = getActionDuration(fullAction, prevSnapshot);
+        const passiveEggs = computePassiveEggsDelivered(fullAction, prevSnapshot);
+        newState = applyPassiveEggs(newState, passiveEggs);
+
+        const newSnapshot = computeSnapshot(newState, context);
+        const deltas = computeDeltas(prevSnapshot, newSnapshot);
+
+        // Update the action in-place
+        Object.assign(fullAction, {
+          ...deltas,
+          totalTimeSeconds: durationSeconds,
+          endState: markRaw(newSnapshot)
+        });
+
+      } else {
+        // Re-calculate everything from insertion point
+        // RecalculateAll uses the optimized Engine, so it's fast (O(N) non-reactive).
+        // It also automatically syncs stores to effectiveSnapshot.
+        await this.recalculateFrom(insertIndex + 1);
+      }
+    },
+
+    startBatch() {
+      if (this.batchMode) return;
+      this.batchMode = true;
+      this.minBatchIndex = Infinity;
+    },
+
+    async commitBatch() {
+      if (!this.batchMode) return;
+      this.batchMode = false;
+
+      // Optimization: if we have a recorded minimum modified index, recalc from there.
+      // If minBatchIndex is Infinity, we only appended, so no recalc needed for existing items.
+      if (this.minBatchIndex < Infinity) {
+        await this.recalculateFrom(this.minBatchIndex);
+      } else {
+        // Just sync if we only appended
+        syncStoresToSnapshot(this.currentSnapshot);
+      }
+    },
+
+
+
+    /**
+     * Recalculate all actions using the Engine.
+     * Async, yields to UI.
+     * @param candidateActions Optional list of actions to simulate (defaults to this.actions)
+     */
+    /**
+     * Recalculate actions starting from a specific index.
+     * Actions before this index are assumed to be valid and their endState is used as base.
+     */
+    async recalculateFrom(startIndex: number) {
+      if (startIndex >= this.actions.length) {
+        // Nothing to recalculate, just sync?
+        syncStoresToSnapshot(this.effectiveSnapshot);
+        return;
+      }
+
+      // Ensure startIndex is non-negative
+      startIndex = Math.max(0, startIndex);
+
+      if (this.isRecalculating) {
+        console.warn('Recalculation already in progress');
+        // In a real implementation we might queue this, but for now we assume blocking overlay prevents it.
+      }
+
+      this.isRecalculating = true;
+
+      try {
+        const context = getSimulationContext();
+
+        // Determine base state
+        let baseState: any; // EngineState
+        if (startIndex === 0) {
+          baseState = createBaseEngineState(this._initialSnapshot);
+        } else {
+          // Use the end state of the action immediately before startIndex
+          // We can cast the Snapshot to EngineState because they share structure
+          // (though we might want createBaseEngineState to be safe if types diverge)
+          baseState = this.actions[startIndex - 1].endState;
+        }
+
+        // Actions to simulate
+        const actionsToSimulate = this.actions.slice(startIndex);
+
+        this.recalculationProgress = { current: 0, total: actionsToSimulate.length };
+
+        const newActionsSegment = await simulateAsync(
+          actionsToSimulate,
+          context,
+          baseState,
+          (current, total) => {
+            this.recalculationProgress = { current, total };
+          },
+          startIndex // Pass offset so indices are correct
+        );
+
+        // Splice the new results back into the main array
+        // We replace everything from startIndex to the end with the new segment
+        // This relies on Vue 3 reactivity handling splice efficiently
+        this.actions.splice(startIndex, newActionsSegment.length, ...newActionsSegment);
+
+        // If the simulation produced fewer items than existed (unlikely unless we removed), 
+        // the splice handles it. If it produced same count, it replaces.
+
+        this.relinkDependencies();
+        syncStoresToSnapshot(this.effectiveSnapshot);
+      } finally {
+        this.isRecalculating = false;
+        this.batchMode = false; // Implicitly end batch mode if we recalc?
+        this.minBatchIndex = Infinity;
+      }
     },
 
     /**
      * Recalculate all actions using the Engine.
-     * Non-blocking, pure calculation.
      */
-    recalculateAll() {
-      const context = getSimulationContext();
-      const baseState = createBaseEngineState(this._initialSnapshot);
-
-      // Run simulation on entire history
-      const newActions = simulate(this.actions, context, baseState);
-
-      // Update actions with new results (preserving reactivity of the array, but replacing objects)
-      // To avoid full array replacement if possible (Vue behavior), we can map.
-      // But simulate returns new objects.
-
-      // Mark snapshots as raw to avoid Vue deep reactivity cost
-      newActions.forEach(a => {
-        a.endState = markRaw(a.endState);
-      });
-
-      this.actions = newActions;
-
-      // Re-link dependencies to ensure tier locks and other dynamic deps are captured
-      this.relinkDependencies();
-
-      // Sync stores to the effective snapshot.
-      // If NOT editing, effectiveSnapshot === currentSnapshot (the head).
-      // If editing, effectiveSnapshot is the end of the editing group.
-      // This ensures the rest of the app (UI) always sees the relevant state.
-      syncStoresToSnapshot(this.effectiveSnapshot);
+    async recalculateAll() {
+      return this.recalculateFrom(0);
     },
 
     /**

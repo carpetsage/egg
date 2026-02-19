@@ -274,7 +274,7 @@
                       :value="teEarned[egg]"
                       :min="0"
                       :max="98"
-                      class="input-premium w-[60px] text-center text-sm font-mono-premium font-bold text-slate-900"
+                      class="input-premium w-[90px] text-center text-sm font-mono-premium font-bold text-slate-900"
                       @change="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
                       @keydown.enter="($event.target as HTMLInputElement).blur()"
                     />
