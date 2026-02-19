@@ -76,7 +76,7 @@ import ResearchFlatView from './ResearchFlatView.vue';
 const commonResearchStore = useCommonResearchStore();
 const actionsStore = useActionsStore();
 const salesStore = useSalesStore();
-const { prepareExecution, completeExecution } = useActionExecutor();
+const { prepareExecution, completeExecution, batch } = useActionExecutor();
 
 const smartBuyState = ref({ threshold: 0, alwaysOn: false });
 let isSmartBuying = false;
@@ -176,81 +176,89 @@ function handleSmartBuy(threshold: number) {
   if (isSmartBuying) return;
   isSmartBuying = true;
 
-  try {
-    let itemBought = true;
-    // Limit iterations to prevent infinite loops in edge cases
-    let iterations = 0;
-    const maxIterations = 2500;
+  batch(() => {
+    try {
+        let itemBought = true;
+        // Limit iterations to prevent infinite loops in edge cases
+        let iterations = 0;
+        const maxIterations = 2500;
 
-    while (itemBought && iterations < maxIterations) {
-    itemBought = false;
-    iterations++;
+        while (itemBought && iterations < maxIterations) {
+        itemBought = false;
+        iterations++;
 
-    const all = getCommonResearches();
-    const levels = commonResearchStore.researchLevels;
-    const snapshot = actionsStore.effectiveSnapshot;
-    const earnings = snapshot.offlineEarnings;
-    const isSale = isResearchSaleActive.value;
-    const mods = costModifiers.value;
+        const all = getCommonResearches();
+        const levels = commonResearchStore.researchLevels;
+        const snapshot = actionsStore.effectiveSnapshot;
+        const earnings = snapshot.offlineEarnings;
+        const isSale = isResearchSaleActive.value;
+        const mods = costModifiers.value;
 
-    if (earnings <= 0) break;
+        if (earnings <= 0) break;
 
-    // Filter for unpurchased and unlocked
-    // We only care about the very next level of each research
-    const candidates = all.filter(r => {
-      const level = levels[r.id] || 0;
-      return level < r.levels && isTierUnlocked(levels, r.tier);
-    }).map(r => {
-      const level = levels[r.id] || 0;
-      const price = getDiscountedVirtuePrice(r, level, mods, isSale);
-      return {
-        research: r,
-        price,
-        seconds: price / earnings
-      };
-    });
+        // Filter for unpurchased and unlocked
+        // We only care about the very next level of each research
+        const candidates = all.filter(r => {
+        const level = levels[r.id] || 0;
+        return level < r.levels && isTierUnlocked(levels, r.tier);
+        }).map(r => {
+        const level = levels[r.id] || 0;
+        const price = getDiscountedVirtuePrice(r, level, mods, isSale);
+        return {
+            research: r,
+            price,
+            seconds: price / earnings
+        };
+        });
 
-    // Sort by price (Cheapest First order)
-    candidates.sort((a, b) => a.price - b.price);
+        // Sort by price (Cheapest First order)
+        candidates.sort((a, b) => a.price - b.price);
 
-    // Find the first one below threshold
-    const found = candidates.find(c => c.seconds <= threshold);
-      if (found) {
-        if (buyOneLevel(found.research)) {
-          itemBought = true;
+        // Find the first one below threshold
+        const found = candidates.find(c => c.seconds <= threshold);
+        if (found) {
+            if (buyOneLevel(found.research)) {
+                itemBought = true;
+            }
         }
-      }
+        }
+    } finally {
+        isSmartBuying = false;
     }
-  } finally {
-    isSmartBuying = false;
-  }
+  });
 }
 
 function handleMaxResearch(research: CommonResearch) {
-  const maxLevel = research.levels;
-  while ((commonResearchStore.researchLevels[research.id] || 0) < maxLevel) {
-    if (!buyOneLevel(research)) break;
-  }
+  batch(() => {
+    const maxLevel = research.levels;
+    while ((commonResearchStore.researchLevels[research.id] || 0) < maxLevel) {
+        if (!buyOneLevel(research)) break;
+    }
+  });
 }
 
 function handleMaxTier(tier: number) {
-  const researches = researchByTier.value.get(tier) || [];
-  for (const research of researches) {
-    const maxLevel = research.levels;
-    while ((commonResearchStore.researchLevels[research.id] || 0) < maxLevel) {
-      if (!buyOneLevel(research)) break;
+  batch(() => {
+    const researches = researchByTier.value.get(tier) || [];
+    for (const research of researches) {
+        const maxLevel = research.levels;
+        while ((commonResearchStore.researchLevels[research.id] || 0) < maxLevel) {
+        if (!buyOneLevel(research)) break;
+        }
     }
-  }
+  });
 }
 
 function handleBuyToHere(index: number) {
-  const list = sortedResearches.value;
-  if (index < 0 || index >= list.length) return;
+  batch(() => {
+    const list = sortedResearches.value;
+    if (index < 0 || index >= list.length) return;
 
-  for (let i = 0; i <= index; i++) {
-    const item = list[i];
-    buyOneLevel(item.research);
-  }
+    for (let i = 0; i <= index; i++) {
+        const item = list[i];
+        buyOneLevel(item.research);
+    }
+  });
 }
 
 function handleToggleSale() {

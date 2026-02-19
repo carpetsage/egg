@@ -212,7 +212,7 @@ const commonResearchStore = useCommonResearchStore();
 const actionsStore = useActionsStore();
 const salesStore = useSalesStore();
 const { output } = useShippingCapacity();
-const { prepareExecution, completeExecution } = useActionExecutor();
+const { prepareExecution, completeExecution, batch } = useActionExecutor();
 
 // Cost modifiers
 const costModifiers = computed<VehicleCostModifiers>(() => ({
@@ -479,12 +479,14 @@ function handleMaxTrainCars(slotIndex: number) {
   let currentLength = slot.trainLength;
 
   // Add each car as a separate action
-  while (currentLength < maxLength) {
-    const fromLength = currentLength;
-    const toLength = currentLength + 1;
-    addTrainCarAction(slotIndex, fromLength, toLength);
-    currentLength = toLength;
-  }
+  batch(() => {
+    while (currentLength < maxLength) {
+      const fromLength = currentLength;
+      const toLength = currentLength + 1;
+      addTrainCarAction(slotIndex, fromLength, toLength);
+      currentLength = toLength;
+    }
+  });
 }
 
 /**
@@ -635,22 +637,24 @@ function handleBuyMax() {
   const maxSlots = maxVehicleSlots.value;
   const maxLength = getMaxTrainLength();
 
-  for (let i = 0; i < maxSlots; i++) {
-    const slot = displaySlots.value[i];
-    let currentLength = 1;
+  batch(() => {
+    for (let i = 0; i < maxSlots; i++) {
+        const slot = displaySlots.value[i];
+        let currentLength = 1;
 
-    // 1. Upgrade to Hyperloop if not already
-    if (slot.vehicleId !== HYPERLOOP_ID) {
-      handleVehicleChange(i, HYPERLOOP_ID);
-    } else {
-      currentLength = slot.trainLength;
-    }
+        // 1. Upgrade to Hyperloop if not already
+        if (slot.vehicleId !== HYPERLOOP_ID) {
+        handleVehicleChange(i, HYPERLOOP_ID);
+        } else {
+        currentLength = slot.trainLength;
+        }
 
-    // 2. Add remaining cars
-    for (let l = currentLength; l < maxLength; l++) {
-      addTrainCarAction(i, l, l + 1);
+        // 2. Add remaining cars
+        for (let l = currentLength; l < maxLength; l++) {
+        addTrainCarAction(i, l, l + 1);
+        }
     }
-  }
+  });
 }
 
 function handleBuy5MinCap() {
@@ -747,15 +751,18 @@ function handleBuy5MinCap() {
     if (!bestAction) break;
 
     // Apply action
-    if (bestAction.type === 'vehicle') {
-      handleVehicleChange(bestAction.slotIndex, bestAction.vehicleId);
-      virtualSlots[bestAction.slotIndex].vehicleId = bestAction.vehicleId;
-      virtualSlots[bestAction.slotIndex].trainLength = 1;
-    } else {
-      const fromLength = virtualSlots[bestAction.slotIndex].trainLength;
-      addTrainCarAction(bestAction.slotIndex, fromLength, fromLength + 1);
-      virtualSlots[bestAction.slotIndex].trainLength++;
-    }
+    batch(() => {
+        if (bestAction!.type === 'vehicle') {
+        handleVehicleChange(bestAction!.slotIndex, bestAction!.vehicleId);
+        virtualSlots[bestAction!.slotIndex].vehicleId = bestAction!.vehicleId;
+        virtualSlots[bestAction!.slotIndex].trainLength = 1;
+        } else {
+        const fromLength = virtualSlots[bestAction!.slotIndex].trainLength;
+        addTrainCarAction(bestAction!.slotIndex, fromLength, fromLength + 1);
+        virtualSlots[bestAction!.slotIndex].trainLength++;
+        }
+    });
+
     spent += bestAction.cost;
   }
 }

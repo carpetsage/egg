@@ -87,6 +87,8 @@
     <!-- Continuity Check Dialog -->
     <ContinuityDialog />
 
+    <RecalculationOverlay />
+
     <PlanFinalSummary @show-details="showCurrentDetails" />
     <FloatingStats @show-details="showCurrentDetails" />
 
@@ -111,6 +113,7 @@ import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import FloatingStats from '@/components/FloatingStats.vue';
+import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
 import { formatNumber } from '@/lib/format';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
@@ -275,7 +278,7 @@ async function submitPlayerId(id: string) {
     const context = getSimulationContext();
     const baseState = createBaseEngineState(null);
     const initialSnapshot = computeSnapshot(baseState, context);
-    actionsStore.setInitialSnapshot(initialSnapshot);
+    await actionsStore.setInitialSnapshot(initialSnapshot);
 
     // Log everything used for Wait For Missions as a single object for easy copy/paste
     const maxReturn = initialStateStore.virtueMissions.length > 0 

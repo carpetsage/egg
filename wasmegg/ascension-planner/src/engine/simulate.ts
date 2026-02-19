@@ -11,10 +11,19 @@ import { computeDeltas } from '@/lib/actions/snapshot';
  * @param baseState The specific starting state (TE, shift count, empty farm)
  * @returns The list of actions with updated endState and deltas
  */
+/**
+ * Simulate a list of actions to produce a timeline of states.
+ * @param actions The list of actions to simulate (including start_ascension)
+ * @param context Global context (epic research, colleggtibles)
+ * @param baseState The specific starting state (TE, shift count, empty farm)
+ * @param startIndex The index offset for the first action in the list (default 0)
+ * @returns The list of actions with updated endState and deltas
+ */
 export function simulate(
     actions: Action[],
     context: SimulationContext,
-    baseState: EngineState
+    baseState: EngineState,
+    startIndex: number = 0
 ): Action[] {
     const results: Action[] = [];
     let previousSnapshot: CalculationsSnapshot | null = null;
@@ -29,6 +38,7 @@ export function simulate(
 
     for (let i = 0; i < actions.length; i++) {
         let action = actions[i];
+        const actualIndex = startIndex + i;
 
         // 0. Refresh dynamic payloads (e.g. wait_for_te duration based on new ELR)
         action = refreshActionPayload(action, currentSnapshot);
@@ -58,7 +68,7 @@ export function simulate(
         // 4. Update action with new results and correct index
         results.push({
             ...action,
-            index: i,
+            index: actualIndex,
             ...deltas,
             totalTimeSeconds: durationSeconds,
             endState: newSnapshot, // Caller should markRaw this if using Vue
@@ -80,6 +90,69 @@ export function simulate(
         previousSnapshot = newSnapshot;
         currentSnapshot = newSnapshot;
     }
+
+    return results;
+}
+
+/**
+ * Async version of simulate that yields to the event loop to allow UI updates.
+ */
+export async function simulateAsync(
+    actions: Action[],
+    context: SimulationContext,
+    baseState: EngineState,
+    onProgress?: (current: number, total: number) => void,
+    startIndex: number = 0
+): Promise<Action[]> {
+    const results: Action[] = [];
+    let previousSnapshot: CalculationsSnapshot | null = null;
+    const baseSnapshot = computeSnapshot(baseState, context);
+
+    let currentState = baseState;
+    let currentSnapshot = baseSnapshot;
+
+    // Yield every 20 actions to keep UI responsive
+    // A smaller number makes the UI smoother but total time slightly longer
+    const YIELD_INTERVAL = 20;
+
+    for (let i = 0; i < actions.length; i++) {
+        // Yield check
+        if (i % YIELD_INTERVAL === 0) {
+            if (onProgress) onProgress(i, actions.length);
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+
+        let action = actions[i];
+        const actualIndex = startIndex + i;
+
+        action = refreshActionPayload(action, currentSnapshot);
+        currentState = applyAction(currentState, action);
+        const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
+        currentState = applyPassiveEggs(currentState, passiveEggs);
+        const newSnapshot = computeSnapshot(currentState, context);
+        const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;
+        const deltas = computeDeltas(prevSnap, newSnapshot);
+        const durationSeconds = getActionDuration(action, prevSnap);
+        results.push({
+            ...action,
+            index: actualIndex,
+            ...deltas,
+            totalTimeSeconds: durationSeconds,
+            endState: newSnapshot,
+        });
+        currentState = {
+            ...currentState,
+            population: newSnapshot.population,
+            lastStepTime: newSnapshot.lastStepTime,
+            eggsDelivered: { ...newSnapshot.eggsDelivered },
+            fuelTankAmounts: { ...newSnapshot.fuelTankAmounts },
+        };
+        previousSnapshot = newSnapshot;
+        currentSnapshot = newSnapshot;
+    }
+
+    // Final progress update
+    if (onProgress) onProgress(actions.length, actions.length);
 
     return results;
 }

@@ -83,10 +83,31 @@ export function useActionExecutor() {
       actionsStore.insertAction(fullAction, replayAction);
 
       // Restore to the state after all replays (current state)
-      restoreFromSnapshot(actionsStore.currentSnapshot);
+      // SKIP restoration if in batch mode - we want to keep the virtual state
+      if (!actionsStore.batchMode) {
+        restoreFromSnapshot(actionsStore.currentSnapshot);
+      }
     } else {
       // Normal push to end
       actionsStore.pushAction(fullAction as Omit<Action, 'index' | 'dependents'> & { dependsOn: string[] });
+    }
+  }
+
+  /**
+   * Run a set of operations in batch mode.
+   * Defers recalculation until all operations are complete.
+   */
+  async function batch(callback: () => Promise<void> | void) {
+    if (actionsStore.batchMode) {
+      await callback();
+      return;
+    }
+
+    actionsStore.startBatch();
+    try {
+      await callback();
+    } finally {
+      await actionsStore.commitBatch();
     }
   }
 
@@ -95,5 +116,6 @@ export function useActionExecutor() {
     beforeSnapshot,
     prepareExecution,
     completeExecution,
+    batch,
   };
 }
