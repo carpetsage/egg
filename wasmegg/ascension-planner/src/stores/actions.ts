@@ -765,7 +765,7 @@ export const useActionsStore = defineStore('actions', {
         // Re-calculate everything from insertion point
         // RecalculateAll uses the optimized Engine, so it's fast (O(N) non-reactive).
         // It also automatically syncs stores to effectiveSnapshot.
-        await this.recalculateFrom(insertIndex + 1);
+        await this.recalculateFrom(insertIndex);
       }
     },
 
