@@ -22,7 +22,7 @@ import { useTruthEggsStore } from '@/stores/truthEggs';
 
 // Engine imports
 import { simulate, simulateAsync } from '@/engine/simulate';
-import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, getActionDuration } from '@/engine/apply';
+import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, applyTime, getActionDuration } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
 import { computeDependencies } from '@/lib/actions/executor';
@@ -315,6 +315,7 @@ export const useActionsStore = defineStore('actions', {
       const durationSeconds = getActionDuration(fullAction, prevSnapshot);
       const passiveEggs = computePassiveEggsDelivered(fullAction, prevSnapshot);
       newState = applyPassiveEggs(newState, passiveEggs);
+      newState = applyTime(newState, durationSeconds);
 
       const newSnapshot = computeSnapshot(newState, context);
 
@@ -748,6 +749,7 @@ export const useActionsStore = defineStore('actions', {
         const durationSeconds = getActionDuration(fullAction, prevSnapshot);
         const passiveEggs = computePassiveEggsDelivered(fullAction, prevSnapshot);
         newState = applyPassiveEggs(newState, passiveEggs);
+        newState = applyTime(newState, durationSeconds);
 
         const newSnapshot = computeSnapshot(newState, context);
         const deltas = computeDeltas(prevSnapshot, newSnapshot);

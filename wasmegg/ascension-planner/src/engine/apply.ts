@@ -61,6 +61,16 @@ export function refreshActionPayload(
         };
     }
 
+    if (action.type === 'wait_for_missions') {
+        const payload = { ...action.payload as import('@/types').WaitForMissionsPayload };
+        const maxReturn = Math.max(...payload.missions.map(m => m.returnTimestamp || 0));
+        payload.totalTimeSeconds = Math.max(0, maxReturn - prevSnapshot.lastStepTime);
+        return {
+            ...action,
+            payload,
+        };
+    }
+
     return action;
 }
 
@@ -155,6 +165,16 @@ export function applyPassiveEggs(state: EngineState, passiveEggs: number): Engin
             ...state.eggsDelivered,
             [egg]: (state.eggsDelivered[egg] || 0) + passiveEggs,
         },
+    };
+}
+/**
+ * Advance the simulation time in the engine state.
+ */
+export function applyTime(state: EngineState, seconds: number): EngineState {
+    if (seconds <= 0) return state;
+    return {
+        ...state,
+        lastStepTime: (state.lastStepTime || 0) + seconds,
     };
 }
 

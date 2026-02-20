@@ -1,6 +1,6 @@
 import type { Action, CalculationsSnapshot } from '@/types';
 import type { EngineState, SimulationContext, SimulationResult } from './types';
-import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, getActionDuration, refreshActionPayload } from './apply';
+import { applyAction, computePassiveEggsDelivered, applyPassiveEggs, applyTime, getActionDuration, refreshActionPayload } from './apply';
 import { computeSnapshot } from './compute';
 import { computeDeltas } from '@/lib/actions/snapshot';
 
@@ -48,8 +48,10 @@ export function simulate(
 
         // 1b. Add passively delivered eggs during this action's duration
         // Uses the PREVIOUS snapshot's ELR (eggs are shipped at the old rate while saving for the action)
+        const durationSeconds = getActionDuration(action, currentSnapshot);
         const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
         currentState = applyPassiveEggs(currentState, passiveEggs);
+        currentState = applyTime(currentState, durationSeconds);
 
         // 2. Compute full snapshot
         const newSnapshot = computeSnapshot(currentState, context);
@@ -60,10 +62,8 @@ export function simulate(
         // computeDeltas(baseSnapshot, newSnapshot) might show diffs if start_ascension changed the egg.
         const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;
 
+        // 3. Compute deltas vs previous state
         const deltas = computeDeltas(prevSnap, newSnapshot);
-
-        // 3b. Calculate duration
-        const durationSeconds = getActionDuration(action, prevSnap);
 
         // 4. Update action with new results and correct index
         results.push({
@@ -127,12 +127,14 @@ export async function simulateAsync(
 
         action = refreshActionPayload(action, currentSnapshot);
         currentState = applyAction(currentState, action);
+        const durationSeconds = getActionDuration(action, currentSnapshot);
         const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
         currentState = applyPassiveEggs(currentState, passiveEggs);
+        currentState = applyTime(currentState, durationSeconds);
+
         const newSnapshot = computeSnapshot(currentState, context);
         const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;
         const deltas = computeDeltas(prevSnap, newSnapshot);
-        const durationSeconds = getActionDuration(action, prevSnap);
         results.push({
             ...action,
             index: actualIndex,
