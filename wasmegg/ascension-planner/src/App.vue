@@ -119,6 +119,8 @@ import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import type { Action } from '@/types';
+import { VIRTUE_EGGS } from '@/types';
+import { countTEThresholdsPassed } from '@/lib/truthEggs';
 
 // Chevron icon component
 const ChevronIcon = {
@@ -255,7 +257,48 @@ async function submitPlayerId(id: string) {
     console.log('Player data:', backup);
 
     // Store the backup data in initial state
-    const { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } = initialStateStore.loadFromBackup(id, backup);
+    let { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } = initialStateStore.loadFromBackup(id, backup);
+
+    // Calculate extra eggs since backup if on a virtue egg
+    if (initialStateStore.currentFarmState && initialStateStore.lastBackupTime > 0) {
+      const farm = initialStateStore.currentFarmState;
+      const egg = VIRTUE_EGGS[farm.eggType - 50];
+      const now = Date.now() / 1000;
+      const elapsed = now - initialStateStore.lastBackupTime;
+
+      if (elapsed > 0) {
+        const context = getSimulationContext();
+        const tempState = createBaseEngineState(null);
+        tempState.currentEgg = egg;
+        tempState.habIds = farm.habs;
+        tempState.vehicles = farm.vehicles;
+        tempState.researchLevels = farm.commonResearches;
+        tempState.siloCount = farm.numSilos;
+        tempState.population = farm.population;
+        tempState.lastStepTime = farm.lastStepTime;
+
+        const snapshot = computeSnapshot(tempState, context);
+        const extraEggs = snapshot.elr * elapsed;
+
+        if (extraEggs > 0) {
+          // 1. Update farm state
+          farm.deliveredEggs += extraEggs;
+          
+          // 2. Update store's initial delivered eggs
+          const newDelivered = (eggsDelivered[egg] || 0) + extraEggs;
+          initialStateStore.setInitialEggsDelivered(egg, newDelivered);
+          
+          // 3. Update local eggsDelivered for later store initialization
+          eggsDelivered[egg] = newDelivered;
+
+          // 4. Recalculate pending TE for this egg
+          // (Theoretical from new delivered) - (Claimed from backup)
+          const theoreticalTE = countTEThresholdsPassed(newDelivered);
+          const earned = teEarnedPerEgg[egg];
+          initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - earned));
+        }
+      }
+    }
 
     // Initialize virtue store with player's shift count and TE
     virtueStore.setInitialState(initialShiftCount, initialTE);
