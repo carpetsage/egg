@@ -1,9 +1,5 @@
 <template>
-  <div v-if="!isHumility" class="space-y-4">
-    <WaitForTEActions @show-current-details="$emit('show-current-details')" />
-  </div>
-
-  <div v-else class="space-y-4">
+  <div class="space-y-4">
     <!-- Wait for TE Section -->
     <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
       <button
@@ -12,7 +8,7 @@
       >
         <div class="flex items-center gap-3">
            <div class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform">
-             <img :src="iconURL('egginc/egg_truth.png', 64)" class="w-full h-full object-contain" />
+             <img :src="iconURL(`egginc/egg_${actionsStore.effectiveSnapshot.currentEgg}.png`, 64)" class="w-full h-full object-contain" />
            </div>
            <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for TE</h3>
         </div>
@@ -32,7 +28,7 @@
     </div>
 
     <!-- Wait for Missions Section -->
-    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
+    <div v-if="isHumility" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
       <button
         class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
         @click="missionsExpanded = !missionsExpanded"
@@ -58,7 +54,7 @@
       </div>
     </div>
 
-    <!-- Wait for Sleep Section (Placeholder) -->
+    <!-- Wait for Sleep Section -->
     <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
       <button
         class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
@@ -99,7 +95,7 @@ const actionsStore = useActionsStore();
 
 const isHumility = computed(() => actionsStore.effectiveSnapshot.currentEgg === 'humility');
 
-const teExpanded = ref(false);
+const teExpanded = ref(!isHumility.value);
 const missionsExpanded = ref(false);
 const sleepExpanded = ref(false);
 
