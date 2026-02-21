@@ -37,6 +37,7 @@ import { updateArtifactSetExecutor } from './executors/updateArtifactSet';
 import { waitForMissionsExecutor } from './executors/wait_for_missions';
 import { waitForSleepExecutor } from './executors/wait_for_sleep';
 import { removeFuelExecutor } from './executors/removeFuel';
+import { waitForFullHabsExecutor } from './executors/wait_for_full_habs';
 
 // ============================================================================
 // Executor Interface
@@ -120,6 +121,7 @@ const executorMap: { [K in ActionType]: ActionExecutor<K> } = {
   update_artifact_set: updateArtifactSetExecutor,
   wait_for_missions: waitForMissionsExecutor,
   wait_for_sleep: waitForSleepExecutor,
+  wait_for_full_habs: waitForFullHabsExecutor,
 };
 
 /**

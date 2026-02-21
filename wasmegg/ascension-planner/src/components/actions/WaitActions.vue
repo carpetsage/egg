@@ -1,9 +1,5 @@
 <template>
-  <div v-if="!isHumility" class="space-y-4">
-    <WaitForTEActions @show-current-details="$emit('show-current-details')" />
-  </div>
-
-  <div v-else class="space-y-4">
+  <div class="space-y-4">
     <!-- Wait for TE Section -->
     <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
       <button
@@ -12,7 +8,7 @@
       >
         <div class="flex items-center gap-3">
            <div class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform">
-             <img :src="iconURL('egginc/egg_truth.png', 64)" class="w-full h-full object-contain" />
+             <img :src="iconURL(`egginc/egg_${actionsStore.effectiveSnapshot.currentEgg}.png`, 64)" class="w-full h-full object-contain" />
            </div>
            <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for TE</h3>
         </div>
@@ -31,8 +27,35 @@
       </div>
     </div>
 
-    <!-- Wait for Missions Section -->
+    <!-- Wait for Full Habs Section -->
     <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
+      <button
+        class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
+        @click="habsExpanded = !habsExpanded"
+      >
+        <div class="flex items-center gap-3">
+           <div class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform">
+             <img :src="iconURL('egginc/ei_hab_icon_chicken_universe.png', 64)" class="w-full h-full object-contain" />
+           </div>
+           <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for Full Habs</h3>
+        </div>
+        <svg
+          class="w-5 h-5 text-slate-300 transition-transform duration-300"
+          :class="{ 'rotate-180 text-slate-900': habsExpanded }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div v-show="habsExpanded" class="p-6 border-t border-slate-50">
+        <WaitForFullHabsActions />
+      </div>
+    </div>
+
+    <!-- Wait for Missions Section -->
+    <div v-if="isHumility" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
       <button
         class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
         @click="missionsExpanded = !missionsExpanded"
@@ -58,7 +81,7 @@
       </div>
     </div>
 
-    <!-- Wait for Sleep Section (Placeholder) -->
+    <!-- Wait for Sleep Section -->
     <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
       <button
         class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
@@ -94,12 +117,14 @@ import { useActionsStore } from '@/stores/actions';
 import WaitForTEActions from './WaitForTEActions.vue';
 import WaitForMissionsActions from './WaitForMissionsActions.vue';
 import WaitForSleepActions from './WaitForSleepActions.vue';
+import WaitForFullHabsActions from './WaitForFullHabsActions.vue';
 
 const actionsStore = useActionsStore();
 
 const isHumility = computed(() => actionsStore.effectiveSnapshot.currentEgg === 'humility');
 
-const teExpanded = ref(false);
+const teExpanded = ref(!isHumility.value);
+const habsExpanded = ref(false);
 const missionsExpanded = ref(false);
 const sleepExpanded = ref(false);
 

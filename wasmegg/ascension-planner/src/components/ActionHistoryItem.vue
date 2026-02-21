@@ -124,7 +124,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { iconURL } from 'lib';
-import type { Action, StartAscensionPayload, ShiftPayload, BuyHabPayload, BuyVehiclePayload, StoreFuelPayload, WaitForTEPayload, BuyResearchPayload, ToggleSalePayload, EquipArtifactSetPayload, UpdateArtifactSetPayload } from '@/types';
+import type { Action, StartAscensionPayload, ShiftPayload, BuyHabPayload, BuyVehiclePayload, StoreFuelPayload, WaitForTEPayload, BuyResearchPayload, ToggleSalePayload, EquipArtifactSetPayload, UpdateArtifactSetPayload, WaitForFullHabsPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { getHabById } from '@/lib/habs';
 import { getVehicleType } from '@/lib/vehicles';
@@ -221,6 +221,9 @@ const actionIconPath = computed(() => {
   }
   if (props.action.type === 'wait_for_missions') {
     return 'egginc/icon_afx_mission.png';
+  }
+  if (props.action.type === 'wait_for_full_habs') {
+    return 'egginc/ei_hab_icon_chicken_universe.png';
   }
   return null;
 });
