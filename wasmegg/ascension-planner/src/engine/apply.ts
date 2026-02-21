@@ -71,6 +71,19 @@ export function refreshActionPayload(
         };
     }
 
+    if (action.type === 'wait_for_full_habs') {
+        const payload = { ...action.payload as import('@/types').WaitForFullHabsPayload };
+        payload.habCapacity = prevSnapshot.habCapacity;
+        payload.currentPopulation = prevSnapshot.population;
+        payload.ihr = prevSnapshot.offlineIHR;
+        const chickensNeeded = Math.max(0, payload.habCapacity - payload.currentPopulation);
+        payload.totalTimeSeconds = payload.ihr > 0 ? (chickensNeeded / (payload.ihr / 60)) : 0;
+        return {
+            ...action,
+            payload,
+        };
+    }
+
     return action;
 }
 
@@ -91,7 +104,8 @@ export function getActionDuration(
     if (
         action.type === 'launch_missions' ||
         action.type === 'wait_for_missions' ||
-        action.type === 'wait_for_sleep'
+        action.type === 'wait_for_sleep' ||
+        action.type === 'wait_for_full_habs'
     ) {
         return (action.payload as any).totalTimeSeconds || 0;
     }
@@ -397,6 +411,14 @@ export function applyAction(state: EngineState, action: Action): EngineState {
 
         case 'wait_for_sleep': {
             return state;
+        }
+
+        case 'wait_for_full_habs': {
+            const payload = action.payload as import('@/types').WaitForFullHabsPayload;
+            return {
+                ...state,
+                population: payload.habCapacity,
+            };
         }
 
         // Default case: return state unchanged
