@@ -21,14 +21,18 @@
           </svg>
           <span class="font-bold">Quick Continue Ascension</span>
         </button>
-        
+
+        <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest text-center max-w-md">
+          Wipes current plan, fetches latest backup, and resumes from your current virtue farm state
+        </p>
+
         <!-- Active Event Slide Toggle (Earnings Boost) -->
         <div class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300">
           <div class="flex items-center gap-2 relative z-10">
             <div class="flex flex-col gap-0.5 text-left">
               <div class="flex items-center gap-2">
                 <div class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">2x Earnings</span>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Monday 2x Earnings Event</span>
               </div>
               <span class="text-[11px] font-black text-orange-600 uppercase tracking-tighter">
                 {{ isEarningsBoostActive ? 'Active' : 'Inactive' }}
@@ -48,9 +52,6 @@
           </button>
         </div>
 
-        <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest text-center max-w-md">
-          Wipes current plan, fetches latest backup, and resumes from your current virtue farm state
-        </p>
       </div>
 
       <div v-if="loading" class="text-center py-4 text-gray-600">
