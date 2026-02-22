@@ -534,6 +534,7 @@ function handleToggleSale() {
   const payload = {
     saleType: 'vehicle' as const,
     active: !currentlyActive,
+    multiplier: 0.25, // 75% off
   };
 
   // Update store state

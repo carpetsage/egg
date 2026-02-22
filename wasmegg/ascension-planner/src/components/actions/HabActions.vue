@@ -293,6 +293,7 @@ function handleToggleSale() {
   const payload = {
     saleType: 'hab' as const,
     active: !currentlyActive,
+    multiplier: 0.2, // 80% off
   };
 
   // Update store state
