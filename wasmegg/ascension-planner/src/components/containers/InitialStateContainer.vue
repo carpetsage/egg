@@ -104,46 +104,8 @@ const currentEggName = computed(() => {
   return VIRTUE_EGG_NAMES[egg] || '';
 });
 
-function handleContinueAscension() {
-  if (!store.currentFarmState) return;
-
-  const farm = store.currentFarmState;
-  const egg = VIRTUE_EGGS[farm.eggType - 50];
-
-  // 1. Update start_ascension action with initial farm state
-  const startAction = actionsStore.getStartAction();
-  if (startAction) {
-    startAction.payload.initialEgg = egg;
-    startAction.payload.initialFarmState = farm;
-  }
-
-  // 2. Sync virtue store
-  virtueStore.setCurrentEgg(egg);
-  
-  // 3. Sync other stores for the initial snapshot creation
-  // This ensures computeCurrentSnapshot() captures the correct state
-  silosStore.setSiloCount(farm.numSilos);
-  
-  // Sync research
-  commonResearchStore.resetAll();
-  for (const [id, level] of Object.entries(farm.commonResearches)) {
-    commonResearchStore.setResearchLevel(id, level);
-  }
-
-  // Sync habs
-  farm.habs.forEach((habId, idx) => {
-    habCapacityStore.setHab(idx, habId as any);
-  });
-
-  // Sync vehicles
-  farm.vehicles.forEach((v, idx) => {
-    shippingCapacityStore.setVehicle(idx, v.vehicleId as any);
-    if (v.vehicleId === 11) {
-      shippingCapacityStore.setTrainLength(idx, v.trainLength);
-    }
-  });
-
-  updateInitialSnapshotAndRecalculate();
+async function handleContinueAscension() {
+  await actionsStore.continueFromBackup();
 }
 
 function handleSetEpicResearchLevel(id: string, level: number) {

@@ -38,6 +38,8 @@ import { waitForMissionsExecutor } from './executors/wait_for_missions';
 import { waitForSleepExecutor } from './executors/wait_for_sleep';
 import { removeFuelExecutor } from './executors/removeFuel';
 import { waitForFullHabsExecutor } from './executors/wait_for_full_habs';
+import { toggleEarningsBoostExecutor } from './executors/toggleEarningsBoost';
+import { notificationExecutor } from './executors/notification';
 
 // ============================================================================
 // Executor Interface
@@ -122,6 +124,8 @@ const executorMap: { [K in ActionType]: ActionExecutor<K> } = {
   wait_for_missions: waitForMissionsExecutor,
   wait_for_sleep: waitForSleepExecutor,
   wait_for_full_habs: waitForFullHabsExecutor,
+  toggle_earnings_boost: toggleEarningsBoostExecutor,
+  notification: notificationExecutor,
 };
 
 /**

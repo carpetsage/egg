@@ -214,5 +214,8 @@ function handleShift(toEgg: VirtueEgg) {
     cost,
     dependsOn: dependencies,
   }, beforeSnapshot);
+
+  // Auto-activate relevant sales for the new egg
+  actionsStore.pushRelevantEvents(toEgg);
 }
 </script>

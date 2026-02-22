@@ -151,7 +151,9 @@ export function computePassiveEggsDelivered(
         action.type === 'toggle_sale' ||
         action.type === 'equip_artifact_set' ||
         action.type === 'update_artifact_set' ||
-        action.type === 'remove_fuel'
+        action.type === 'remove_fuel' ||
+        action.type === 'toggle_earnings_boost' ||
+        action.type === 'notification'
     ) {
         return 0;
     }
@@ -365,7 +367,7 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 activeSales: {
                     ...state.activeSales,
                     [payload.saleType]: payload.active,
-                },
+                }
             };
         }
 
@@ -419,6 +421,21 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 ...state,
                 population: payload.habCapacity,
             };
+        }
+
+        case 'toggle_earnings_boost': {
+            const payload = action.payload as import('@/types').ToggleEarningsBoostPayload;
+            return {
+                ...state,
+                earningsBoost: {
+                    active: payload.active,
+                    multiplier: payload.multiplier,
+                },
+            };
+        }
+
+        case 'notification': {
+            return state; // Notifications don't change state
         }
 
         // Default case: return state unchanged

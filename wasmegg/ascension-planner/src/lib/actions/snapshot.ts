@@ -94,6 +94,10 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
     population: 0,
     lastStepTime: 0,
     activeSales: { ...salesStore.$state },
+    earningsBoost: {
+      active: (salesStore as any).earningsBoostActive || false,
+      multiplier: (salesStore as any).earningsBoostMultiplier || 1,
+    },
   };
 }
 
@@ -227,10 +231,15 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
 
   // Restore sales state
   if (snapshot.activeSales) {
-    salesStore.$patch((state) => {
+    salesStore.$patch((state: any) => {
       state.research = !!snapshot.activeSales.research;
       state.hab = !!snapshot.activeSales.hab;
       state.vehicle = !!snapshot.activeSales.vehicle;
+
+      if (snapshot.earningsBoost) {
+        state.earningsBoostActive = snapshot.earningsBoost.active;
+        state.earningsBoostMultiplier = snapshot.earningsBoost.multiplier;
+      }
     });
   }
 }
