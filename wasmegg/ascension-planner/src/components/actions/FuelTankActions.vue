@@ -63,7 +63,7 @@
           />
         </div>
         <div>
-          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Market Production</div>
+          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Store Eggs in Tank</div>
           <div class="text-sm font-bold text-slate-700">
             Store {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }} Eggs
           </div>

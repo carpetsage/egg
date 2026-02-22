@@ -282,11 +282,11 @@ function triggerCat() {
     
     fadeTimer = setTimeout(() => {
       isFadingOut.value = true;
-    }, 3000);
+    }, 5000);
 
     removeTimer = setTimeout(() => {
       showCat.value = false;
-    }, 4000); // 3s display + 1s fade
+    }, 6000); // 5s display + 1s fade
   }, 10);
 }
 </script>

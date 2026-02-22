@@ -177,6 +177,10 @@ const groupedActions = computed<GroupedItem[]>(() => {
         periodTimeSeconds += (action.totalTimeSeconds || 0);
       });
 
+      // Add the duration of the shift that ENDS this period
+      const firstShift = allActions[firstShiftIdx] as Action<'shift'>;
+      periodTimeSeconds += (firstShift.totalTimeSeconds || 0);
+
 
 
       visitCounts[startAction.payload.initialEgg]++;
@@ -237,6 +241,12 @@ const groupedActions = computed<GroupedItem[]>(() => {
     groupActions.forEach((action) => {
       periodTimeSeconds += (action.totalTimeSeconds || 0);
     });
+
+    // Add the duration of the next shift that ENDS this period
+    if (nextShiftIdx !== undefined) {
+      const nextShiftAction = allActions[nextShiftIdx] as Action<'shift'>;
+      periodTimeSeconds += (nextShiftAction.totalTimeSeconds || 0);
+    }
 
 
 

@@ -330,6 +330,8 @@ export const useInitialStateStore = defineStore('initialState', {
             population: farm.numChickens || 0,
             deliveredEggs: farm.eggsLaid || 0,
             lastStepTime: farm.lastStepTime || 0,
+            cashEarned: farm.cashEarned || 0,
+            cashSpent: farm.cashSpent || 0,
           };
         }
       }

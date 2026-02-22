@@ -94,14 +94,20 @@ export function useResearchViews() {
                 let rSnapshot = baseSnapshot;
                 let rSeconds = 0;
                 let rInfinite = false;
+                let rVirtualBank = baseSnapshot.bankValue || 0;
 
                 for (let l = currentLevel; l < r.levels; l++) {
                     const price = getDiscountedVirtuePrice(r, l, mods, rSnapshot.activeSales.research);
-                    if (rSnapshot.offlineEarnings <= 0) {
-                        rInfinite = true;
-                        break;
+                    const effectivePrice = Math.max(0, price - rVirtualBank);
+                    rVirtualBank = Math.max(0, rVirtualBank - price);
+
+                    if (effectivePrice > 0) {
+                        if (rSnapshot.offlineEarnings <= 0) {
+                            rInfinite = true;
+                            break;
+                        }
+                        rSeconds += effectivePrice / rSnapshot.offlineEarnings;
                     }
-                    rSeconds += price / rSnapshot.offlineEarnings;
                     rState = {
                         ...rState,
                         researchLevels: {
@@ -111,7 +117,7 @@ export function useResearchViews() {
                     };
                     rSnapshot = computeSnapshot(rState, context);
                 }
-                resultResearches[r.id] = rInfinite ? '∞' : (rSeconds < 1 ? 'Instant' : formatDuration(rSeconds));
+                resultResearches[r.id] = rInfinite ? '∞' : (rSeconds < 1 ? '0s' : formatDuration(rSeconds));
             }
 
             let tierState = createBaseEngineState(baseSnapshot);
@@ -119,17 +125,23 @@ export function useResearchViews() {
             let tierSeconds = 0;
             let tierInfinite = false;
             let anyUnpurchasedInTier = false;
+            let tierVirtualBank = baseSnapshot.bankValue || 0;
 
             for (const r of researches) {
                 const currentLevel = levels[r.id] || 0;
                 for (let l = currentLevel; l < r.levels; l++) {
                     anyUnpurchasedInTier = true;
                     const price = getDiscountedVirtuePrice(r, l, mods, tierSnapshot.activeSales.research);
-                    if (tierSnapshot.offlineEarnings <= 0) {
-                        tierInfinite = true;
-                        break;
+                    const effectivePrice = Math.max(0, price - tierVirtualBank);
+                    tierVirtualBank = Math.max(0, tierVirtualBank - price);
+
+                    if (effectivePrice > 0) {
+                        if (tierSnapshot.offlineEarnings <= 0) {
+                            tierInfinite = true;
+                            break;
+                        }
+                        tierSeconds += effectivePrice / tierSnapshot.offlineEarnings;
                     }
-                    tierSeconds += price / tierSnapshot.offlineEarnings;
                     tierState = {
                         ...tierState,
                         researchLevels: {
@@ -143,7 +155,7 @@ export function useResearchViews() {
             }
 
             if (anyUnpurchasedInTier) {
-                resultTiers[tier] = tierInfinite ? '∞' : (tierSeconds < 1 ? 'Instant' : formatDuration(tierSeconds));
+                resultTiers[tier] = tierInfinite ? '∞' : (tierSeconds < 1 ? '0s' : formatDuration(tierSeconds));
             }
         }
 
@@ -186,12 +198,17 @@ export function useResearchViews() {
             let currentSimSnapshot = baseSnapshot;
             let totalSeconds = 0;
 
-            const formatTimeToBuy = (price: number, earnings: number): string => {
-                if (price <= 0) return '';
-                if (earnings <= 0) return '∞';
-                const seconds = price / earnings;
-                if (seconds < 1) return 'Instant';
-                return formatDuration(seconds);
+            const formatTimeToBuy = (price: number, earnings: number, currentBank: number): { timeToBuy: string, remainingBank: number } => {
+                if (price <= 0) return { timeToBuy: '', remainingBank: currentBank };
+                const effectivePrice = Math.max(0, price - currentBank);
+                const nextBank = Math.max(0, currentBank - price);
+                if (effectivePrice <= 0) return { timeToBuy: '0s', remainingBank: nextBank };
+                if (earnings <= 0) return { timeToBuy: '∞', remainingBank: nextBank };
+                const seconds = effectivePrice / earnings;
+                return {
+                    timeToBuy: seconds < 1 ? '0s' : formatDuration(seconds),
+                    remainingBank: nextBank
+                };
             };
 
             const processed = new Set<string>();
@@ -208,7 +225,8 @@ export function useResearchViews() {
                     let highestUnlockedBefore = Array.from({ length: 13 }, (_, i) => i + 1)
                         .reverse().find(t => isTierUnlocked(currentSimState.researchLevels, t)) || 1;
 
-                    const itemSeconds = currentSimSnapshot.offlineEarnings > 0 ? item.price / currentSimSnapshot.offlineEarnings : 0;
+                    const { timeToBuy } = formatTimeToBuy(item.price, currentSimSnapshot.offlineEarnings, currentSimSnapshot.bankValue);
+                    const itemSeconds = currentSimSnapshot.offlineEarnings > 0 ? Math.max(0, item.price - currentSimSnapshot.bankValue) / currentSimSnapshot.offlineEarnings : 0;
                     totalSeconds += itemSeconds;
 
                     result.push({
@@ -216,8 +234,8 @@ export function useResearchViews() {
                         targetLevel: item.targetLevel,
                         price: item.price,
                         currentLevel: researchLevels[r.id] || 0,
-                        timeToBuy: formatTimeToBuy(item.price, currentSimSnapshot.offlineEarnings),
-                        buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : 'Instant',
+                        timeToBuy: timeToBuy,
+                        buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : '0s',
                         canBuy: true,
                         isMaxed: false,
                         showDivider: item.showDivider || false,
@@ -266,7 +284,8 @@ export function useResearchViews() {
                 const key = `${r.id}-${item.targetLevel}`;
                 if (!processed.has(key)) {
                     processed.add(key);
-                    const itemSeconds = currentSimSnapshot.offlineEarnings > 0 ? item.price / currentSimSnapshot.offlineEarnings : 0;
+                    const { timeToBuy } = formatTimeToBuy(item.price, currentSimSnapshot.offlineEarnings, currentSimSnapshot.bankValue);
+                    const itemSeconds = currentSimSnapshot.offlineEarnings > 0 ? Math.max(0, item.price - currentSimSnapshot.bankValue) / currentSimSnapshot.offlineEarnings : 0;
                     totalSeconds += itemSeconds;
 
                     result.push({
@@ -274,8 +293,8 @@ export function useResearchViews() {
                         targetLevel: item.targetLevel,
                         price: item.price,
                         currentLevel: researchLevels[r.id] || 0,
-                        timeToBuy: formatTimeToBuy(item.price, currentSimSnapshot.offlineEarnings),
-                        buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : 'Instant',
+                        timeToBuy: timeToBuy,
+                        buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : '0s',
                         canBuy: true,
                         isMaxed: false,
                     });
@@ -326,8 +345,10 @@ export function useResearchViews() {
                 const newEarnings = nextSnapshot.offlineEarnings;
 
                 const delta = newEarnings - currentEarnings;
+                const bankValue = effectiveSnapshot.bankValue || 0;
+                const effectivePrice = Math.max(0, price - bankValue);
                 const roiSeconds = delta > 0 ? price / delta : Infinity;
-                const timeToBuySeconds = currentEarnings > 0 ? price / currentEarnings : (price > 0 ? Infinity : 0);
+                const timeToBuySeconds = currentEarnings > 0 ? effectivePrice / currentEarnings : (effectivePrice > 0 ? Infinity : 0);
                 const totalRoiSeconds = timeToBuySeconds + roiSeconds;
 
                 return {
@@ -335,13 +356,13 @@ export function useResearchViews() {
                     price,
                     currentLevel: level,
                     targetLevel: level + 1,
-                    timeToBuy: timeToBuySeconds > 0 ? (timeToBuySeconds === Infinity ? '∞' : (timeToBuySeconds < 1 ? 'Instant' : formatDuration(timeToBuySeconds))) : '',
+                    timeToBuy: timeToBuySeconds > 0 ? (timeToBuySeconds === Infinity ? '∞' : (timeToBuySeconds < 1 ? '0s' : formatDuration(timeToBuySeconds))) : '',
                     canBuy,
                     isMaxed: false,
                     roiSeconds,
                     totalRoiSeconds,
                     roiLabel: delta > 0 ? formatDuration(roiSeconds) : 'No Impact',
-                    totalRoiLabel: totalRoiSeconds === Infinity ? 'No Impact' : (totalRoiSeconds < 1 ? 'Instant' : formatDuration(totalRoiSeconds)),
+                    totalRoiLabel: totalRoiSeconds === Infinity ? 'No Impact' : (totalRoiSeconds < 1 ? '0s' : formatDuration(totalRoiSeconds)),
                     isLaying,
                     isShipping,
                     nextSnapshot,

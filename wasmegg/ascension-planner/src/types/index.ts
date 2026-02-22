@@ -275,6 +275,8 @@ export interface CurrentFarmState {
   population: number;
   deliveredEggs: number;
   lastStepTime: number;
+  cashEarned: number;
+  cashSpent: number;
 }
 
 /**

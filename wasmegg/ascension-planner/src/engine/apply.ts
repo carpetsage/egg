@@ -92,7 +92,7 @@ export function refreshActionPayload(
  */
 export function getActionDuration(
     action: Action,
-    prevSnapshot: Pick<CalculationsSnapshot, 'offlineEarnings'>
+    prevSnapshot: Pick<CalculationsSnapshot, 'offlineEarnings' | 'bankValue'>
 ): number {
     if (
         action.type === 'store_fuel' ||
@@ -102,7 +102,6 @@ export function getActionDuration(
     }
 
     if (
-        action.type === 'launch_missions' ||
         action.type === 'wait_for_missions' ||
         action.type === 'wait_for_time' ||
         action.type === 'wait_for_full_habs'
@@ -119,8 +118,16 @@ export function getActionDuration(
     ];
 
     if (GEM_COSTING_TYPES.includes(action.type) && action.cost > 0 && prevSnapshot.offlineEarnings > 0) {
-        // Cost-based actions: duration = cost / offlineEarnings
-        return action.cost / prevSnapshot.offlineEarnings;
+        // Cost-based actions: duration = effective cost / offlineEarnings
+        const effectiveCost = Math.max(0, action.cost - prevSnapshot.bankValue);
+        return effectiveCost / prevSnapshot.offlineEarnings;
+    }
+
+    if (action.type === 'launch_missions' && prevSnapshot.offlineEarnings > 0) {
+        const payload = action.payload as import('@/types').LaunchMissionsPayload;
+        const effectiveCost = Math.max(0, action.cost - prevSnapshot.bankValue);
+        const savingDuration = effectiveCost / prevSnapshot.offlineEarnings;
+        return savingDuration + (payload.totalTimeSeconds || 0);
     }
 
     return 0;
@@ -139,7 +146,7 @@ export function getActionDuration(
  */
 export function computePassiveEggsDelivered(
     action: Action,
-    prevSnapshot: Pick<CalculationsSnapshot, 'elr' | 'offlineEarnings'>
+    prevSnapshot: Pick<CalculationsSnapshot, 'elr' | 'offlineEarnings' | 'bankValue'>
 ): number {
     // These action types handle their own egg delivery or have no duration
     if (
@@ -184,13 +191,17 @@ export function applyPassiveEggs(state: EngineState, passiveEggs: number): Engin
     };
 }
 /**
- * Advance the simulation time in the engine state.
+ * Advance the simulation time in the engine state and add earned gems to the bank.
  */
-export function applyTime(state: EngineState, seconds: number): EngineState {
+export function applyTime(state: EngineState, seconds: number, offlineEarnings: number): EngineState {
     if (seconds <= 0) return state;
+
+    const earnedGems = seconds * offlineEarnings;
+
     return {
         ...state,
         lastStepTime: (state.lastStepTime || 0) + seconds,
+        bankValue: (state.bankValue || 0) + earnedGems,
     };
 }
 
@@ -217,10 +228,13 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 newState.siloCount = farm.numSilos;
                 newState.population = farm.population;
                 newState.lastStepTime = farm.lastStepTime;
+                newState.bankValue = farm.cashEarned - farm.cashSpent;
 
                 // Note: We DO NOT add farm.deliveredEggs to eggsDelivered here
                 // because eggsDelivered in the engine (from initialSnapshot) 
                 // already represents the cumulative total from the backup.
+            } else {
+                newState.bankValue = 0;
             }
 
             // Note: We DO NOT recalculate te or teEarned here. 
@@ -241,7 +255,11 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 vehicleId: payload.vehicleId,
                 trainLength: payload.trainLength || 1,
             };
-            return { ...state, vehicles: newVehicles };
+            return {
+                ...state,
+                vehicles: newVehicles,
+                bankValue: (state.bankValue || 0) - action.cost,
+            };
         }
 
         case 'buy_hab': {
@@ -251,7 +269,11 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 newHabs.push(null);
             }
             newHabs[payload.slotIndex] = payload.habId;
-            return { ...state, habIds: newHabs };
+            return {
+                ...state,
+                habIds: newHabs,
+                bankValue: (state.bankValue || 0) - action.cost,
+            };
         }
 
         case 'buy_research': {
@@ -262,6 +284,7 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                     ...state.researchLevels,
                     [payload.researchId]: payload.toLevel,
                 },
+                bankValue: (state.bankValue || 0) - action.cost,
             };
         }
 
@@ -271,6 +294,7 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 ...state,
                 currentEgg: payload.toEgg,
                 shiftCount: payload.newShiftCount,
+                bankValue: 0,
             };
         }
 
@@ -283,7 +307,11 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                     trainLength: payload.toLength,
                 };
             }
-            return { ...state, vehicles: newVehicles };
+            return {
+                ...state,
+                vehicles: newVehicles,
+                bankValue: (state.bankValue || 0) - action.cost,
+            };
         }
 
         case 'change_artifacts': {
@@ -299,7 +327,11 @@ export function applyAction(state: EngineState, action: Action): EngineState {
 
         case 'buy_silo': {
             const payload = action.payload as BuySiloPayload;
-            return { ...state, siloCount: payload.toCount };
+            return {
+                ...state,
+                siloCount: payload.toCount,
+                bankValue: (state.bankValue || 0) - action.cost,
+            };
         }
 
         case 'store_fuel': {
@@ -357,7 +389,11 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                     newFuelAmounts[egg as VirtueEgg] = Math.max(0, (newFuelAmounts[egg as VirtueEgg] || 0) - amount);
                 }
             }
-            return { ...state, fuelTankAmounts: newFuelAmounts };
+            return {
+                ...state,
+                fuelTankAmounts: newFuelAmounts,
+                bankValue: (state.bankValue || 0) - action.cost,
+            };
         }
 
         case 'toggle_sale': {
@@ -417,6 +453,20 @@ export function applyAction(state: EngineState, action: Action): EngineState {
 
         case 'wait_for_full_habs': {
             const payload = action.payload as import('@/types').WaitForFullHabsPayload;
+            const startPop = state.population;
+            const endPop = payload.habCapacity;
+
+            // Average earnings calculation:
+            // Earned = duration * (offlineEarnings * (startPop + endPop) / (2 * endPop))
+            // But applyTime will already add (duration * offlineEarnings).
+            // So we need to subtract the "missing" earnings because population was lower than max.
+
+            // Missing = duration * (offlineEarnings * (1 - (startPop + endPop) / (2 * endPop)))
+            // Actually, let's just NOT add gems in applyTime for this action, or handle it here.
+
+            // Refined plan: Add average earnings directly here, 
+            // and applyTime will be called with 0 earnings for this step.
+
             return {
                 ...state,
                 population: payload.habCapacity,

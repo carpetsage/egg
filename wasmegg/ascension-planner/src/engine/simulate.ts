@@ -51,7 +51,16 @@ export function simulate(
         const durationSeconds = getActionDuration(action, currentSnapshot);
         const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
         currentState = applyPassiveEggs(currentState, passiveEggs);
-        currentState = applyTime(currentState, durationSeconds);
+
+        // Use average earnings for Wait for Full Habs
+        let effectiveEarnings = currentSnapshot.offlineEarnings;
+        if (action.type === 'wait_for_full_habs' && currentSnapshot.habCapacity > 0) {
+            const startPop = currentSnapshot.population;
+            const endPop = currentSnapshot.habCapacity;
+            effectiveEarnings = currentSnapshot.offlineEarnings * (startPop + endPop) / (2 * endPop);
+        }
+
+        currentState = applyTime(currentState, durationSeconds, effectiveEarnings);
 
         // 2. Compute full snapshot
         const newSnapshot = computeSnapshot(currentState, context);
@@ -130,7 +139,16 @@ export async function simulateAsync(
         const durationSeconds = getActionDuration(action, currentSnapshot);
         const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
         currentState = applyPassiveEggs(currentState, passiveEggs);
-        currentState = applyTime(currentState, durationSeconds);
+
+        // Use average earnings for Wait for Full Habs
+        let effectiveEarnings = currentSnapshot.offlineEarnings;
+        if (action.type === 'wait_for_full_habs' && currentSnapshot.habCapacity > 0) {
+            const startPop = currentSnapshot.population;
+            const endPop = currentSnapshot.habCapacity;
+            effectiveEarnings = currentSnapshot.offlineEarnings * (startPop + endPop) / (2 * endPop);
+        }
+
+        currentState = applyTime(currentState, durationSeconds, effectiveEarnings);
 
         const newSnapshot = computeSnapshot(currentState, context);
         const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;

@@ -106,11 +106,13 @@ function getTimeToBuy(research: CommonResearch): string {
 
   const snapshot = actionsStore.effectiveSnapshot;
   const offlineEarnings = snapshot.offlineEarnings;
+  const bankValue = snapshot.bankValue || 0;
 
+  if (price <= bankValue) return '0s';
   if (offlineEarnings <= 0) return '∞';
 
-  const seconds = price / offlineEarnings;
-  if (seconds < 1) return 'Instant';
+  const seconds = (price - bankValue) / offlineEarnings;
+  if (seconds < 1) return '0s';
   return formatDuration(seconds);
 }
 

@@ -62,6 +62,7 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
             artifactSets: JSON.parse(JSON.stringify(initialSnapshot.artifactSets)),
             population: initialSnapshot.population,
             lastStepTime: initialSnapshot.lastStepTime,
+            bankValue: initialSnapshot.bankValue || 0,
             activeSales: { ...initialSnapshot.activeSales },
             earningsBoost: { ...initialSnapshot.earningsBoost },
         };
@@ -103,6 +104,7 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
 
         population: 0,
         lastStepTime: 0,
+        bankValue: 0,
         activeSales: {
             research: false,
             hab: false,

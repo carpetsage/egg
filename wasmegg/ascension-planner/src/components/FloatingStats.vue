@@ -128,6 +128,19 @@
             {{ formatMoney(offlineEarningsHr) }}
           </span>
         </div>
+
+        <div class="w-full border-t border-slate-200/40"></div>
+
+        <!-- Bank -->
+        <div class="flex flex-col items-center">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-none mb-0.5">Bank</span>
+          <div class="flex items-center gap-1">
+            <span class="font-mono-premium text-[11px] font-bold text-slate-700">
+              {{ formatNumber(snapshot.bankValue, 3) }}
+            </span>
+            <img :src="iconURL('egginc/icon_virtue_gem.png', 32)" class="w-3 h-3" alt="Gems" />
+          </div>
+        </div>
       </div>
 
       <!-- Details Button -->
