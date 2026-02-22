@@ -192,6 +192,15 @@ export const useVirtueStore = defineStore('virtue', {
     },
 
     /**
+     * Reset ascension timing to the user's current local date, time, and timezone.
+     */
+    resetToCurrentDateTime() {
+      this.ascensionDate = getCurrentDate();
+      this.ascensionTime = getCurrentTime();
+      this.ascensionTimezone = getDetectedTimezone();
+    },
+
+    /**
      * Reset to initial state.
      */
     reset() {
