@@ -23,18 +23,15 @@
         </button>
         
         <!-- Active Event Slide Toggle (Earnings Boost) -->
-        <div 
-          v-if="activeEarningsBoost"
-          class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
-        >
+        <div class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300">
           <div class="flex items-center gap-2 relative z-10">
             <div class="flex flex-col gap-0.5 text-left">
               <div class="flex items-center gap-2">
                 <div class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{{ activeEarningsBoost.message }}</span>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">2x Earnings</span>
               </div>
               <span class="text-[11px] font-black text-orange-600 uppercase tracking-tighter">
-                {{ isEarningsBoostActive ? 'Multiplier Active' : 'Event Disabled' }}
+                {{ isEarningsBoostActive ? 'Active' : 'Inactive' }}
               </span>
             </div>
           </div>
@@ -196,11 +193,6 @@ const salesStore = useSalesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
-
-const activeEarningsBoost = computed(() => {
-  const events = eventsStore.getActiveEvents(initialStateStore.isUltra);
-  return events.find(e => e.type === 'earnings-boost');
-});
 
 function handleToggleEarningsEvent() {
   const beforeSnapshot = prepareExecution();
