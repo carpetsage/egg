@@ -428,10 +428,13 @@ async function quickContinueAscension() {
     // 1. Wipe current plan
     await actionsStore.clearAll();
     
-    // 2. Refresh backup (submitPlayerId)
+    // 2. Reset date/time/TZ to current
+    virtueStore.resetToCurrentDateTime();
+    
+    // 3. Refresh backup (submitPlayerId)
     await submitPlayerId(playerId.value);
     
-    // 3. Trigger continue from backup
+    // 4. Trigger continue from backup
     await actionsStore.continueFromBackup();
     
     loading.value = false;
