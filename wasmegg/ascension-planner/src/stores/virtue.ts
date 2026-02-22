@@ -57,6 +57,7 @@ export interface VirtueState {
   ascensionDate: string;   // YYYY-MM-DD format
   ascensionTime: string;   // HH:MM format
   ascensionTimezone: string; // IANA timezone identifier
+  bankValue: number;       // Current gems in bank
 }
 
 export const useVirtueStore = defineStore('virtue', {
@@ -69,6 +70,7 @@ export const useVirtueStore = defineStore('virtue', {
     ascensionDate: getCurrentDate(),
     ascensionTime: getCurrentTime(),
     ascensionTimezone: getDetectedTimezone(),
+    bankValue: 0,
   }),
 
   getters: {
@@ -162,6 +164,13 @@ export const useVirtueStore = defineStore('virtue', {
      */
     setAscensionTimezone(timezone: string) {
       this.ascensionTimezone = timezone;
+    },
+
+    /**
+     * Set the current bank value.
+     */
+    setBankValue(value: number) {
+      this.bankValue = value;
     },
 
     /**

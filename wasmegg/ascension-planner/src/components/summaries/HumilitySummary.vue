@@ -63,8 +63,8 @@ const shipsSent = computed(() => {
  */
 const totalMissionTimeSeconds = computed(() => {
   return props.actions
-    .filter(a => a.type === 'launch_missions')
-    .reduce((sum, a) => sum + (a.payload as LaunchMissionsPayload).totalTimeSeconds, 0);
+    .filter(a => a.type === 'launch_missions' || a.type === 'wait_for_missions')
+    .reduce((sum, a) => sum + a.totalTimeSeconds, 0);
 });
 
 /**

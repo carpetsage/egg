@@ -205,11 +205,13 @@ function getTimeToBuy(habId: number, slotIndex: number): string {
 
   const snapshot = actionsStore.effectiveSnapshot;
   const offlineEarnings = snapshot.offlineEarnings;
+  const bankValue = snapshot.bankValue || 0;
 
+  if (price <= bankValue) return '0s';
   if (offlineEarnings <= 0) return '∞';
 
-  const seconds = price / offlineEarnings;
-  if (seconds < 1) return 'Instant';
+  const seconds = (price - bankValue) / offlineEarnings;
+  if (seconds < 1) return '0s';
   return formatDuration(seconds);
 }
 
@@ -328,6 +330,7 @@ const maxHabsTime = computed(() => {
   let virtualHabIds = [...snapshot.habIds];
   let virtualLayRate = initialLayRate;
   let virtualCapacity = initialCapacity;
+  let virtualBank = snapshot.bankValue || 0;
 
   for (let i = 0; i < 4; i++) {
     const currentId = virtualHabIds[i];
@@ -346,9 +349,12 @@ const maxHabsTime = computed(() => {
     const virtualEPS = initialELR > 0 ? (offlineEarnings / initialELR) * virtualELR : 0;
 
     if (virtualEPS > 0) {
-      totalSeconds += price / virtualEPS;
+      const effectivePrice = Math.max(0, price - virtualBank);
+      const bankUsed = Math.min(price, virtualBank);
+      virtualBank -= bankUsed;
+      totalSeconds += effectivePrice / virtualEPS;
     } else {
-      if (price > 0) return '∞';
+      if (price > virtualBank) return '∞';
     }
 
     // Update virtual state for next hab

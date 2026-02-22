@@ -46,7 +46,7 @@
     </div>
 
     <!-- Pre-shift Launch Option -->
-    <div v-if="schedule.totalMissions === 3" class="flex items-center gap-2 px-1">
+    <div v-if="schedule.totalMissions > 0" class="flex items-center gap-2 px-1">
       <input
         type="checkbox"
         id="zero-time-launch"
@@ -59,7 +59,7 @@
     </div>
 
     <p class="text-[11px] text-gray-500 leading-relaxed italic border-l-2 border-gray-200 pl-3 py-0.5">
-      If you choose 3 launches, you will have the option to launch for 0 time. This is to handle the case where you send ships right before shifting, so it should not add time to the length of your ascension.
+      If you choose this option, the missions will launch for 0 time. This is useful for "pre-shift" sends where you launch ships right before shifting, avoiding adding mission duration to your plan.
     </p>
   </div>
 </template>
@@ -122,13 +122,14 @@ function handleLaunch() {
   }
 
   const scheduleResult = schedule.value;
-  const isZeroTimeLaunch = isZeroTime.value && scheduleResult.totalMissions === 3;
+  const isZeroTimeLaunch = isZeroTime.value;
 
   const payload = {
     missions,
     totalTimeSeconds: isZeroTimeLaunch ? 0 : scheduleResult.totalSeconds,
     totalMissions: scheduleResult.totalMissions,
     fuelConsumed,
+    isZeroTime: isZeroTimeLaunch,
   };
 
   const dependencies = computeDependencies('launch_missions', payload, actionsStore.actionsBeforeInsertion);

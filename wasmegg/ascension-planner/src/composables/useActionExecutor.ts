@@ -43,7 +43,7 @@ export function useActionExecutor() {
    * Call this after applying changes to stores.
    */
   async function completeExecution(
-    action: Omit<Action, 'index' | 'dependents' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'endState' | 'totalTimeSeconds'> & {
+    action: Omit<Action, 'index' | 'dependents' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'bankDelta' | 'endState' | 'totalTimeSeconds'> & {
       dependsOn: string[];
     },
     beforeSnapshotArg: CalculationsSnapshot

@@ -17,6 +17,7 @@ export interface EngineState {
     shiftCount: number;
     te: number;
     soulEggs: number;
+    bankValue: number;
 
     // Farm State
     habIds: (number | null)[];

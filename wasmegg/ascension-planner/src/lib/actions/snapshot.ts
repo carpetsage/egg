@@ -63,6 +63,7 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
     offlineEarnings: earnings.value.offlineEarnings,
     onlineIHR: ihr.value.onlineRate,
     offlineIHR: ihr.value.offlineRate,
+    bankValue: virtueStore.bankValue,
 
     // Virtue state
     currentEgg: virtueStore.currentEgg,
@@ -139,6 +140,7 @@ export function computeDeltas(
   layRateDelta: number;
   shippingCapacityDelta: number;
   ihrDelta: number;
+  bankDelta: number;
 } {
   return {
     elrDelta: after.elr - before.elr,
@@ -148,6 +150,7 @@ export function computeDeltas(
     layRateDelta: after.layRate - before.layRate,
     shippingCapacityDelta: after.shippingCapacity - before.shippingCapacity,
     ihrDelta: after.offlineIHR - before.offlineIHR,
+    bankDelta: after.bankValue - before.bankValue,
   };
 }
 
@@ -190,6 +193,7 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
     state.currentEgg = snapshot.currentEgg;
     state.shiftCount = snapshot.shiftCount;
     state.te = snapshot.te;
+    state.bankValue = snapshot.bankValue;
   });
 
   // Restore initial state (soul eggs and artifacts)

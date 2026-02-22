@@ -206,6 +206,7 @@ export interface LaunchMissionsPayload {
   totalTimeSeconds: number;
   totalMissions: number;
   fuelConsumed: Record<VirtueEgg, number>;
+  isZeroTime?: boolean;
 }
 
 /**
@@ -332,6 +333,7 @@ export interface CalculationsSnapshot {
   offlineEarnings: number;
   onlineIHR: number;
   offlineIHR: number;
+  bankValue: number;
 
 
   // Virtue state
@@ -413,6 +415,7 @@ export interface BaseAction {
   layRateDelta: number;          // Change in lay rate
   shippingCapacityDelta: number; // Change in shipping capacity
   ihrDelta: number;              // Change in IHR (offline)
+  bankDelta: number;             // Change in gems
 
   // Snapshot of full state AFTER this action
   endState: CalculationsSnapshot;
@@ -511,6 +514,7 @@ export function createEmptySnapshot(): CalculationsSnapshot {
     offlineEarnings: 0,
     onlineIHR: 0,
     offlineIHR: 0,
+    bankValue: 0,
 
     currentEgg: 'curiosity', // Default starting egg
     shiftCount: 0,

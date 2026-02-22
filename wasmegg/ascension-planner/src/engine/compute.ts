@@ -86,6 +86,9 @@ export function computeSnapshot(
         lastStepTime = context.ascensionStartTime;
     }
 
+    // Capture bank value before potential catch-up/passive additions
+    let bankValue = state.bankValue || 0;
+
     // 9. Lay Rate
     // Use the farm's total final capacity for metric calculations.
     // This ensures that metrics like ELR and Earnings reflect the farm's potential 
@@ -131,6 +134,14 @@ export function computeSnapshot(
     };
     const earningsOutput = calculateEarnings(earningsInput);
 
+    // Apply catch-up earnings to bank if this is the start of the ascension 
+    // and we were offline.
+    if (state.lastStepTime > 0 && context.ascensionStartTime > state.lastStepTime) {
+        const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
+        const catchUpGems = earningsOutput.offlineEarnings * elapsedSeconds;
+        bankValue += catchUpGems;
+    }
+
     // 13. Silo Time
     const siloTimeMinutes = totalAwayTime(
         state.siloCount,
@@ -149,6 +160,7 @@ export function computeSnapshot(
         offlineEarnings: earningsOutput.offlineEarnings,
         onlineIHR: ihrOutput.onlineRate,
         offlineIHR: ihrOutput.offlineRate,
+        bankValue,
 
         // State (Pass through inputs for UI reconstruction)
         currentEgg: state.currentEgg,

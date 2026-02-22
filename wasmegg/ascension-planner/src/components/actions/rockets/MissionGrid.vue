@@ -89,6 +89,7 @@
 <script setup lang="ts">
 import { iconURL } from 'lib';
 import { useRocketsStore } from '@/stores/rockets';
+import { useActionsStore } from '@/stores/actions';
 import {
   ALL_SHIPS,
   ALL_DURATIONS,
@@ -107,6 +108,7 @@ const props = defineProps<{
 }>();
 
 const rocketsStore = useRocketsStore();
+const actionsStore = useActionsStore();
 
 function canAfford(ship: Spaceship): boolean {
   return props.earningsPerSecond > 0;
@@ -114,7 +116,10 @@ function canAfford(ship: Spaceship): boolean {
 
 function saveTime(ship: Spaceship): number {
   if (props.earningsPerSecond <= 0) return Infinity;
-  return SHIP_INFO[ship].price / props.earningsPerSecond;
+  const bankValue = actionsStore.effectiveSnapshot.bankValue || 0;
+  const price = SHIP_INFO[ship].price;
+  if (price <= bankValue) return 0;
+  return (price - bankValue) / props.earningsPerSecond;
 }
 
 function maxCount(ship: Spaceship, dur: DurationType): number {

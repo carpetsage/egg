@@ -283,11 +283,13 @@ function getTimeToBuyFromPrice(price: number): string {
 
   const snapshot = actionsStore.effectiveSnapshot;
   const offlineEarnings = snapshot.offlineEarnings;
+  const bankValue = snapshot.bankValue || 0;
 
+  if (price <= bankValue) return '0s';
   if (offlineEarnings <= 0) return '∞';
 
-  const seconds = price / offlineEarnings;
-  if (seconds < 1) return 'Instant';
+  const seconds = (price - bankValue) / offlineEarnings;
+  if (seconds < 1) return '0s';
   return formatDuration(seconds);
 }
 
@@ -565,10 +567,12 @@ const maxVehiclesTime = computed(() => {
   const initialShippingCapacity = snapshot.shippingCapacity;
   const maxSlots = maxVehicleSlots.value;
   const maxLength = getMaxTrainLength();
+  const bankValue = snapshot.bankValue || 0;
 
   let totalSeconds = 0;
   let virtualShippingCapacity = initialShippingCapacity;
   let virtualVehicles = (snapshot.vehicles ? snapshot.vehicles.map(v => ({ ...v })) : []).slice(0, maxSlots);
+  let virtualBank = bankValue;
 
   // Pad to max slots
   while (virtualVehicles.length < maxSlots) {
@@ -587,8 +591,11 @@ const maxVehiclesTime = computed(() => {
       const virtualEPS = initialELR > 0 ? (offlineEarnings / initialELR) * virtualELR : 0;
 
       if (virtualEPS > 0) {
-        totalSeconds += price / virtualEPS;
-      } else if (price > 0) {
+        const effectivePrice = Math.max(0, price - virtualBank);
+        const bankUsed = Math.min(price, virtualBank);
+        virtualBank -= bankUsed;
+        totalSeconds += effectivePrice / virtualEPS;
+      } else if (price > virtualBank) {
         return '∞';
       }
 
@@ -609,8 +616,11 @@ const maxVehiclesTime = computed(() => {
       const virtualEPS = initialELR > 0 ? (offlineEarnings / initialELR) * virtualELR : 0;
 
       if (virtualEPS > 0) {
-        totalSeconds += carPrice / virtualEPS;
-      } else if (carPrice > 0) {
+        const effectivePrice = Math.max(0, carPrice - virtualBank);
+        const bankUsed = Math.min(carPrice, virtualBank);
+        virtualBank -= bankUsed;
+        totalSeconds += effectivePrice / virtualEPS;
+      } else if (carPrice > virtualBank) {
         return '∞';
       }
 
