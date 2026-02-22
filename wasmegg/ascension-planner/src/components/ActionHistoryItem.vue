@@ -216,7 +216,7 @@ const actionIconPath = computed(() => {
     const payload = props.action.payload as (EquipArtifactSetPayload | UpdateArtifactSetPayload);
     return payload.setName === 'elr' ? 'egginc/afx_quantum_metronome_4.png' : 'egginc/afx_lunar_totem_4.png';
   }
-  if (props.action.type === 'wait_for_sleep') {
+  if (props.action.type === 'wait_for_time') {
     return 'egginc/tiny_indicator_waiting.png';
   }
   if (props.action.type === 'wait_for_missions') {

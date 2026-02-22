@@ -61,7 +61,7 @@ export type ArtifactSetName = 'earnings' | 'elr';
  * Union of all action types.
  * Add new action types here when extending the system.
  */
-export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'remove_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale' | 'equip_artifact_set' | 'update_artifact_set' | 'wait_for_missions' | 'wait_for_sleep' | 'wait_for_full_habs' | 'toggle_earnings_boost' | 'notification';
+export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'remove_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale' | 'equip_artifact_set' | 'update_artifact_set' | 'wait_for_missions' | 'wait_for_time' | 'wait_for_full_habs' | 'toggle_earnings_boost' | 'notification';
 
 // ============================================================================
 // Action Payloads
@@ -238,9 +238,9 @@ export interface WaitForMissionsPayload {
 }
 
 /**
- * Payload for waiting for sleep/rest.
+ * Payload for waiting for a fixed amount of time.
  */
-export interface WaitForSleepPayload {
+export interface WaitForTimePayload {
   totalTimeSeconds: number;
 }
 
@@ -307,7 +307,7 @@ export interface ActionPayloadMap {
   equip_artifact_set: EquipArtifactSetPayload;
   update_artifact_set: UpdateArtifactSetPayload;
   wait_for_missions: WaitForMissionsPayload;
-  wait_for_sleep: WaitForSleepPayload;
+  wait_for_time: WaitForTimePayload;
   wait_for_full_habs: WaitForFullHabsPayload;
   toggle_earnings_boost: ToggleEarningsBoostPayload;
   notification: NotificationPayload;

@@ -11,12 +11,12 @@
             type="text"
             placeholder="e.g. 8 or 8h30m"
             class="flex-1 px-4 py-2.5 text-sm font-mono-premium font-bold bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 outline-none transition-all placeholder:text-slate-300"
-            @keyup.enter="handleWaitSleep"
+            @keyup.enter="handleWaitTime"
           />
           <button
             class="btn-premium btn-primary px-6 py-2.5 text-xs flex-shrink-0"
             :disabled="!isValid"
-            @click="handleWaitSleep"
+            @click="handleWaitTime"
           >
             Add Wait
           </button>
@@ -57,7 +57,7 @@ const parsedSeconds = computed(() => {
 
 const isValid = computed(() => parsedSeconds.value > 0);
 
-function handleWaitSleep() {
+function handleWaitTime() {
   if (!isValid.value) return;
 
   const beforeSnapshot = prepareExecution();
@@ -66,12 +66,12 @@ function handleWaitSleep() {
     totalTimeSeconds: parsedSeconds.value,
   };
 
-  const dependencies = computeDependencies('wait_for_sleep', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('wait_for_time', payload, actionsStore.actionsBeforeInsertion);
 
   completeExecution({
     id: generateActionId(),
     timestamp: Date.now(),
-    type: 'wait_for_sleep',
+    type: 'wait_for_time',
     payload,
     cost: 0,
     dependsOn: dependencies,
