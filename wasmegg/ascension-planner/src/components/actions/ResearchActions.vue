@@ -268,6 +268,7 @@ function handleToggleSale() {
   const payload = {
     saleType: 'research' as const,
     active: !currentlyActive,
+    multiplier: 0.3, // 70% off
   };
 
   // Update store state

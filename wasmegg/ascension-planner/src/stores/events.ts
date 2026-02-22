@@ -50,46 +50,6 @@ export const useEventsStore = defineStore('events', {
             const now = Math.floor(Date.now() / 1000);
             const active: GameEvent[] = [];
 
-            // --- TEST EVENTS (REMOVE SOON) ---
-            const tomorrow = now + 86400;
-            active.push({
-                id: 'test-earnings-boost',
-                type: 'earnings-boost',
-                multiplier: 2,
-                message: '2x Earnings Boost (Test)',
-                startTimestamp: now - 3600,
-                endTimestamp: tomorrow,
-                ultra: false,
-            });
-            active.push({
-                id: 'test-research-sale',
-                type: 'research-sale',
-                multiplier: 0.3, // 70% off
-                message: '70% Off Common Research (Test)',
-                startTimestamp: now - 3600,
-                endTimestamp: tomorrow,
-                ultra: false,
-            });
-            active.push({
-                id: 'test-habs-sale',
-                type: 'hab-sale',
-                multiplier: 0.3, // 70% off
-                message: 'Some kind of hab sale (Test)',
-                startTimestamp: now - 3600,
-                endTimestamp: tomorrow,
-                ultra: false,
-            });
-            active.push({
-                id: 'test-vehicle-sale',
-                type: 'vehicle-sale',
-                multiplier: 0.3, // 70% off
-                message: 'Some vehicle sale (Test)',
-                startTimestamp: now - 3600,
-                endTimestamp: tomorrow,
-                ultra: false,
-            });
-            // --------------------------------
-
             // Any event starting more than 7 days ago is assumed to be finished (optimization)
             const threshold = now - (7 * 24 * 60 * 60);
 
