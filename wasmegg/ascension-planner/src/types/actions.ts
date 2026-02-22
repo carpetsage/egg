@@ -61,7 +61,7 @@ export type ArtifactSetName = 'earnings' | 'elr';
  * Union of all action types.
  * Add new action types here when extending the system.
  */
-export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'remove_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale' | 'equip_artifact_set' | 'update_artifact_set' | 'wait_for_missions' | 'wait_for_sleep' | 'wait_for_full_habs';
+export type ActionType = 'start_ascension' | 'buy_vehicle' | 'buy_hab' | 'buy_research' | 'shift' | 'buy_train_car' | 'change_artifacts' | 'buy_silo' | 'store_fuel' | 'remove_fuel' | 'wait_for_te' | 'launch_missions' | 'toggle_sale' | 'equip_artifact_set' | 'update_artifact_set' | 'wait_for_missions' | 'wait_for_sleep' | 'wait_for_full_habs' | 'toggle_earnings_boost' | 'notification';
 
 // ============================================================================
 // Action Payloads
@@ -265,6 +265,25 @@ export type SaleType = 'research' | 'hab' | 'vehicle';
 export interface ToggleSalePayload {
   saleType: SaleType;
   active: boolean;
+  multiplier: number;
+}
+
+/**
+ * Payload for toggling earnings boost.
+ */
+export interface ToggleEarningsBoostPayload {
+  active: boolean;
+  multiplier: number;
+  eventId?: string;
+}
+
+/**
+ * Payload for generic notifications or markers in history.
+ */
+export interface NotificationPayload {
+  message: string;
+  submessage?: string;
+  icon?: string;
 }
 
 /**
@@ -290,6 +309,8 @@ export interface ActionPayloadMap {
   wait_for_missions: WaitForMissionsPayload;
   wait_for_sleep: WaitForSleepPayload;
   wait_for_full_habs: WaitForFullHabsPayload;
+  toggle_earnings_boost: ToggleEarningsBoostPayload;
+  notification: NotificationPayload;
 }
 
 // ============================================================================
@@ -347,6 +368,10 @@ export interface CalculationsSnapshot {
     research: boolean;
     hab: boolean;
     vehicle: boolean;
+  };
+  earningsBoost: {
+    active: boolean;
+    multiplier: number;
   };
 
   // Full outputs for modal display (computed on-demand, not stored)
@@ -534,6 +559,10 @@ export function createEmptySnapshot(): CalculationsSnapshot {
       research: false,
       hab: false,
       vehicle: false,
+    },
+    earningsBoost: {
+      active: false,
+      multiplier: 1,
     },
   };
 }

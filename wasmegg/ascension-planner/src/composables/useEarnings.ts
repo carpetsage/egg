@@ -9,6 +9,7 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 import { useEggValue } from './useEggValue';
 import { useEffectiveLayRate } from './useEffectiveLayRate';
+import { useSalesStore } from '@/stores/sales';
 import { calculateEarnings } from '@/calculations/earnings';
 import type { EarningsInput, EarningsOutput } from '@/types';
 
@@ -21,6 +22,7 @@ export function useEarnings(): {
 } {
   const initialStateStore = useInitialStateStore();
   const virtueStore = useVirtueStore();
+  const salesStore = useSalesStore();
   const { output: eggValueOutput } = useEggValue();
   const { output: elrOutput } = useEffectiveLayRate();
 
@@ -36,6 +38,7 @@ export function useEarnings(): {
       awayEarningsMultiplier: initialStateStore.colleggtibleModifiers.awayEarnings,
       artifactAwayMultiplier: artifactMod.totalMultiplier,
       videoDoublerMultiplier: initialStateStore.assumeDoubleEarnings ? 2 : 1,
+      eventMultiplier: salesStore.earningsBoostActive ? salesStore.earningsBoostMultiplier : 1,
       artifactEffects: artifactMod.effects,
     };
   });

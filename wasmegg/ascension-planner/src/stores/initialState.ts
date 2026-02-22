@@ -27,6 +27,7 @@ export interface InitialStateStoreState {
   // Player info
   playerId: string;
   nickname: string;
+  isUltra: boolean;
   lastBackupTime: number;
 
   // Epic research levels
@@ -82,6 +83,7 @@ export const useInitialStateStore = defineStore('initialState', {
     hasData: false,
     playerId: '',
     nickname: '',
+    isUltra: false,
     lastBackupTime: 0,
     epicResearchLevels: initializeEpicResearchLevels(),
     colleggtibleTiers: getDefaultColleggtibleTiers(),
@@ -165,6 +167,7 @@ export const useInitialStateStore = defineStore('initialState', {
     ): {
       initialShiftCount: number;
       initialTE: number;
+      isUltra: boolean;
       tankLevel: number;
       virtueFuelAmounts: Record<VirtueEgg, number>;
       eggsDelivered: Record<VirtueEgg, number>;
@@ -173,6 +176,7 @@ export const useInitialStateStore = defineStore('initialState', {
       this.hasData = true;
       this.playerId = playerId;
       this.nickname = backup.userName || playerId;
+      this.isUltra = !!backup.game?.ultraSubscriptionAction;
       this.lastBackupTime = backup.settings?.lastBackupTime || 0;
       this.soulEggs = backup.game?.soulEggsD || 0;
 
@@ -334,6 +338,7 @@ export const useInitialStateStore = defineStore('initialState', {
       return {
         initialShiftCount: backup.virtue?.shiftCount ?? 0,
         initialTE,
+        isUltra: this.isUltra,
         tankLevel,
         virtueFuelAmounts,
         eggsDelivered,
@@ -417,6 +422,7 @@ export const useInitialStateStore = defineStore('initialState', {
       this.hasData = true;
       this.playerId = data.playerId || '';
       this.nickname = data.nickname || 'Redacted';
+      this.isUltra = data.isUltra || false;
       this.lastBackupTime = data.lastBackupTime || 0;
       this.soulEggs = data.soulEggs || 1e21;
 
@@ -494,6 +500,7 @@ export const useInitialStateStore = defineStore('initialState', {
       this.hasData = false;
       this.playerId = '';
       this.nickname = '';
+      this.isUltra = false;
       this.lastBackupTime = 0;
       this.epicResearchLevels = initializeEpicResearchLevels();
       this.colleggtibleTiers = getDefaultColleggtibleTiers();

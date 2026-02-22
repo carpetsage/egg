@@ -37,11 +37,14 @@ export interface EngineState {
     population: number;
     lastStepTime: number;
 
-    // Active sales state
     activeSales: {
         research: boolean;
         hab: boolean;
         vehicle: boolean;
+    };
+    earningsBoost: {
+        active: boolean;
+        multiplier: number;
     };
 }
 

@@ -126,6 +126,7 @@ export function computeSnapshot(
         awayEarningsMultiplier: colleggtibleModifiers.awayEarnings,
         artifactAwayMultiplier: artifactMods.awayEarnings.totalMultiplier,
         videoDoublerMultiplier: context.assumeDoubleEarnings ? 2 : 1,
+        eventMultiplier: state.earningsBoost.active ? state.earningsBoost.multiplier : 1,
         artifactEffects: artifactMods.awayEarnings.effects,
     };
     const earningsOutput = calculateEarnings(earningsInput);
@@ -168,5 +169,6 @@ export function computeSnapshot(
         population,
         lastStepTime,
         activeSales: state.activeSales,
+        earningsBoost: state.earningsBoost,
     };
 }

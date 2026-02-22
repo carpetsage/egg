@@ -12,6 +12,7 @@ import {
   generateActionId,
   type ToggleSalePayload,
   type UpdateArtifactSetPayload,
+  type ToggleEarningsBoostPayload,
 } from '@/types';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { downloadFile } from '@/utils/export';
@@ -19,6 +20,12 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
+import { useSilosStore } from '@/stores/silos';
+import { useCommonResearchStore } from '@/stores/commonResearch';
+import { useHabCapacityStore } from '@/stores/habCapacity';
+import { useShippingCapacityStore } from '@/stores/shippingCapacity';
+import { useEventsStore } from '@/stores/events';
+import { VIRTUE_EGGS } from '@/types'; // Removed duplicate generateActionId
 
 // Engine imports
 import { simulate, simulateAsync } from '@/engine/simulate';
@@ -242,24 +249,32 @@ export const useActionsStore = defineStore('actions', {
      * Add a new action.
      * Uses the pure engine to compute the result and updates history.
      */
-    pushAction(action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds'> & { dependsOn: string[] }) {
-      // 0. Check for redundant sequential toggle_sale
-      if (action.type === 'toggle_sale') {
-        const payload = action.payload as ToggleSalePayload;
+    pushAction(action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'endState'> & { dependsOn: string[] }) {
+      // 0. Check for redundant sequential toggle_sale or toggle_earnings_boost
+      if (action.type === 'toggle_sale' || action.type === 'toggle_earnings_boost') {
         const lastAction = this.actions[this.actions.length - 1];
-        if (
-          lastAction &&
-          lastAction.type === 'toggle_sale'
-        ) {
-          const lastPayload = lastAction.payload as ToggleSalePayload;
-          if (
-            lastPayload.saleType === payload.saleType &&
-            lastPayload.active !== payload.active &&
-            lastAction.dependents.length === 0
-          ) {
-            // It's a redundant toggle! Remove the last one instead of adding this one.
-            this.executeUndo(lastAction.id, 'dependents');
-            return;
+        if (lastAction && lastAction.type === action.type) {
+          if (action.type === 'toggle_sale') {
+            const payload = action.payload as ToggleSalePayload;
+            const lastPayload = lastAction.payload as ToggleSalePayload;
+            if (
+              lastPayload.saleType === payload.saleType &&
+              lastPayload.active !== payload.active &&
+              lastAction.dependents.length === 0
+            ) {
+              this.executeUndo(lastAction.id, 'dependents');
+              return;
+            }
+          } else if (action.type === 'toggle_earnings_boost') {
+            const payload = action.payload as ToggleEarningsBoostPayload;
+            const lastPayload = lastAction.payload as ToggleEarningsBoostPayload;
+            if (
+              lastPayload.active !== payload.active &&
+              lastAction.dependents.length === 0
+            ) {
+              this.executeUndo(lastAction.id, 'dependents');
+              return;
+            }
           }
         }
       }
@@ -302,6 +317,15 @@ export const useActionsStore = defineStore('actions', {
         totalTimeSeconds: 0,
         // Temporary placeholder, will be overwritten
         endState: createEmptySnapshot(),
+        // Deltas are computed later
+        cost: action.cost ?? 0,
+        elrDelta: 0,
+        offlineEarningsDelta: 0,
+        eggValueDelta: 0,
+        habCapacityDelta: 0,
+        layRateDelta: 0,
+        shippingCapacityDelta: 0,
+        ihrDelta: 0,
       } as Action;
 
       // 3b. Get previous snapshot for deltas and passive egg computation
@@ -320,7 +344,6 @@ export const useActionsStore = defineStore('actions', {
       const newSnapshot = computeSnapshot(newState, context);
 
       // 4. Compute deltas
-
       const deltas = computeDeltas(prevSnapshot, newSnapshot);
 
       // 5. Update Action with result
@@ -417,7 +440,7 @@ export const useActionsStore = defineStore('actions', {
 
     /**
      * Given a set of actions to remove, find all other actions that MUST also be removed
-     * because they either explicitly depend on them or their requirements (like research tiers) 
+     * because they either explicitly depend on them or their requirements (like research tiers)
      * are no longer met after the removal.
      */
     getActionsRequiringRemoval(initialIds: Set<string>): Action[] {
@@ -524,8 +547,8 @@ export const useActionsStore = defineStore('actions', {
       // If we remove X at index 10, dependents are usually > 10.
       // So effectively we need to recalc from the first removal index.
 
-      // Since we don't know the index easily after filtering, and this is an "undo" operation 
-      // (less frequent than bulk buy), we can search for the first action that doesn't match 
+      // Since we don't know the index easily after filtering, and this is an "undo" operation
+      // (less frequent than bulk buy), we can search for the first action that doesn't match
       // the known state, OR just recalc from 0 to be safe for now, OR:
       // We can optimize later. For now, let's assume undo might be dirty.
       // BUT user specifically asked for "Undo option A or B" to be smooth.
@@ -535,7 +558,7 @@ export const useActionsStore = defineStore('actions', {
 
       // Let's rely on finding the first action that has a different previous action than before?
       // No, let's just use `recalculateAll` for `executeUndo` for safety unless we pass the index.
-      // Given the request specifically mentioned undo, let's stick to full recalc for Undo 
+      // Given the request specifically mentioned undo, let's stick to full recalc for Undo
       // UNLESS we are in batch mode? Undo isn't batched typically.
       await this.recalculateFrom(0);
 
@@ -634,6 +657,119 @@ export const useActionsStore = defineStore('actions', {
     },
 
     /**
+     * Centralized logic to continue ascension from the current farm state in the backup.
+     * Replaces the logic previously in InitialStateContainer.vue.
+     */
+    async continueFromBackup() {
+      const initialStateStore = useInitialStateStore();
+      const virtueStore = useVirtueStore();
+      const silosStore = useSilosStore();
+      const commonResearchStore = useCommonResearchStore();
+      const habCapacityStore = useHabCapacityStore();
+      const shippingCapacityStore = useShippingCapacityStore();
+
+      if (!initialStateStore.currentFarmState) return;
+
+      const farm = initialStateStore.currentFarmState;
+      const egg = VIRTUE_EGGS[farm.eggType - 50];
+
+      // 1. Update start_ascension action with initial farm state
+      const startAction = this.getStartAction();
+      if (startAction) {
+        startAction.payload.initialEgg = egg;
+        startAction.payload.initialFarmState = farm;
+      }
+
+      // 2. Sync virtue store
+      virtueStore.setCurrentEgg(egg);
+
+      // 3. Sync other stores for the initial snapshot creation
+      silosStore.setSiloCount(farm.numSilos);
+
+      // Sync research
+      commonResearchStore.resetAll();
+      for (const [id, level] of Object.entries(farm.commonResearches)) {
+        commonResearchStore.setResearchLevel(id, level);
+      }
+
+      // Sync habs
+      farm.habs.forEach((habId: number | null, idx: number) => {
+        habCapacityStore.setHab(idx, habId as any);
+      });
+
+      // Sync vehicles
+      farm.vehicles.forEach((v: any, idx: number) => {
+        shippingCapacityStore.setVehicle(idx, v.vehicleId as any);
+        if (v.vehicleId === 11) {
+          shippingCapacityStore.setTrainLength(idx, v.trainLength);
+        }
+      });
+
+      // 4. Update initial snapshot and recalculate
+      const context = getSimulationContext();
+      const baseState = createBaseEngineState(null);
+      const initialSnapshot = computeSnapshot(baseState, context);
+
+      await this.setInitialSnapshot(initialSnapshot);
+
+      // 5. Automate active events if relevant to the current egg
+      this.pushRelevantEvents(egg, true);
+    },
+
+    /**
+     * Push event-based actions (sales, earnings boost) based on current active events.
+     */
+    pushRelevantEvents(egg: string, includeGlobal = false) {
+      const initialStateStore = useInitialStateStore();
+      const eventsStore = useEventsStore();
+      const activeEvents = eventsStore.getActiveEvents(initialStateStore.isUltra);
+
+      for (const event of activeEvents) {
+        if (includeGlobal && event.type === 'earnings-boost') {
+          if (!this.effectiveSnapshot.earningsBoost.active) {
+            this.pushAction({
+              id: generateActionId(),
+              type: 'toggle_earnings_boost',
+              timestamp: Date.now(),
+              cost: 0,
+              dependsOn: [],
+              payload: {
+                active: true,
+                multiplier: event.multiplier,
+                eventId: event.id,
+              },
+            } as Omit<Action<'toggle_earnings_boost'>, 'index' | 'dependents' | 'totalTimeSeconds' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'endState'>);
+          }
+        }
+
+        // Sales only if on the correct egg
+        const saleMap: Record<string, { type: 'research' | 'hab' | 'vehicle', egg: string }> = {
+          'research-sale': { type: 'research', egg: 'curiosity' },
+          'hab-sale': { type: 'hab', egg: 'integrity' },
+          'vehicle-sale': { type: 'vehicle', egg: 'kindness' },
+        };
+
+        const saleInfo = saleMap[event.type];
+        if (saleInfo && egg === saleInfo.egg) {
+          if (!this.effectiveSnapshot.activeSales[saleInfo.type]) {
+            this.pushAction({
+              id: generateActionId(),
+              type: 'toggle_sale',
+              timestamp: Date.now(),
+              cost: 0,
+              dependsOn: [],
+              payload: {
+                saleType: saleInfo.type,
+                active: true,
+                multiplier: event.multiplier,
+              },
+            } as Omit<Action<'toggle_sale'>, 'index' | 'dependents' | 'totalTimeSeconds' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'endState'>);
+          }
+        }
+      }
+    },
+
+    /**
      * Insert an action at the editing position.
      * Uses pure engine simulation for re-calculation.
      */
@@ -644,28 +780,35 @@ export const useActionsStore = defineStore('actions', {
       const insertIndex = this.editingInsertIndex;
 
       if (insertIndex === -1) {
-        // Cast to satisfy TS if needed, though they should match now
         this.pushAction(action);
         return;
       }
 
-      // 0. Check for redundant sequential toggle_sale
-      if (action.type === 'toggle_sale') {
-        const payload = action.payload as ToggleSalePayload;
+      // 0. Check for redundant sequential toggle_sale or toggle_earnings_boost
+      if (action.type === 'toggle_sale' || action.type === 'toggle_earnings_boost') {
         const prevAction = this.actions[insertIndex - 1];
-        if (
-          prevAction &&
-          prevAction.type === 'toggle_sale'
-        ) {
-          const prevPayload = prevAction.payload as ToggleSalePayload;
-          if (
-            prevPayload.saleType === payload.saleType &&
-            prevPayload.active !== payload.active &&
-            prevAction.dependents.length === 0
-          ) {
-            // Redundant toggle! Remove the previous one instead of adding this one.
-            this.executeUndo(prevAction.id, 'dependents');
-            return;
+        if (prevAction && prevAction.type === action.type) {
+          if (action.type === 'toggle_sale') {
+            const payload = action.payload as ToggleSalePayload;
+            const prevPayload = prevAction.payload as ToggleSalePayload;
+            if (
+              prevPayload.saleType === payload.saleType &&
+              prevPayload.active !== payload.active &&
+              prevAction.dependents.length === 0
+            ) {
+              this.executeUndo(prevAction.id, 'dependents');
+              return;
+            }
+          } else if (action.type === 'toggle_earnings_boost') {
+            const payload = action.payload as ToggleEarningsBoostPayload;
+            const prevPayload = prevAction.payload as ToggleEarningsBoostPayload;
+            if (
+              prevPayload.active !== payload.active &&
+              prevAction.dependents.length === 0
+            ) {
+              this.executeUndo(prevAction.id, 'dependents');
+              return;
+            }
           }
         }
       }
@@ -720,32 +863,19 @@ export const useActionsStore = defineStore('actions', {
 
       if (this.batchMode) {
         // Track the earliest insertion point (plus one, as that's where recalc starts)
-        // If we insert at 5, action 5 is NEW and VALID (locally computed).
-        // Action 6 (was 5) needs recalc. So start from insertIndex + 1.
         this.minBatchIndex = Math.min(this.minBatchIndex, insertIndex + 1);
 
-        // In batch mode, we compute the state locally for THIS action so that subsequent
-        // actions in the batch can depend on it (via effectiveSnapshot/endState).
-        // depending actions *after* the insertion point will be stale until commitBatch()
-
         const context = getSimulationContext();
-
-        // Logic similar to pushAction but we must find the correct prev state
-        const prevAction = this.actions[insertIndex - 1]; // This is the action before the one we just inserted
+        const prevAction = this.actions[insertIndex - 1];
         const prevSnapshot = prevAction
           ? prevAction.endState
           : (this._initialSnapshot ?? createEmptySnapshot());
 
-        // Compute state
-        // We need to re-apply logic because fullAction.endState is currently empty
-        // And we need the 'newState' (EngineState) to compute snapshot
         const prevState = prevAction
-          ? prevAction.endState // Snapshots are compatible with EngineState
+          ? prevAction.endState
           : createBaseEngineState(this.initialSnapshot);
 
         let newState = applyAction(prevState, fullAction);
-
-        // Add passive eggs
         const durationSeconds = getActionDuration(fullAction, prevSnapshot);
         const passiveEggs = computePassiveEggsDelivered(fullAction, prevSnapshot);
         newState = applyPassiveEggs(newState, passiveEggs);
@@ -754,17 +884,12 @@ export const useActionsStore = defineStore('actions', {
         const newSnapshot = computeSnapshot(newState, context);
         const deltas = computeDeltas(prevSnapshot, newSnapshot);
 
-        // Update the action in-place
         Object.assign(fullAction, {
           ...deltas,
           totalTimeSeconds: durationSeconds,
           endState: markRaw(newSnapshot)
         });
-
       } else {
-        // Re-calculate everything from insertion point
-        // RecalculateAll uses the optimized Engine, so it's fast (O(N) non-reactive).
-        // It also automatically syncs stores to effectiveSnapshot.
         await this.recalculateFrom(insertIndex);
       }
     },

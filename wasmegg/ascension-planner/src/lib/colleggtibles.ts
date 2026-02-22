@@ -210,8 +210,6 @@ export function getColleggtibleTiersFromBackup(
     tiers[def.id] = tierIndex;
   }
 
-  console.log(tiers);
-
   return tiers;
 }
 

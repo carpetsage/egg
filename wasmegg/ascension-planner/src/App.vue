@@ -7,11 +7,54 @@
         Ascension Planner
       </h1>
 
-      <p class="text-sm text-gray-600 text-center mb-4">
-        Plan your ascension journey: which eggs to visit, what to buy, and when to shift.
-      </p>
-
       <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
+
+      <!-- Quick Continue Ascension Button -->
+      <div class="mt-4 flex flex-col items-center gap-2">
+        <button
+          class="btn-premium btn-primary px-6 py-3 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+          @click="quickContinueAscension"
+          :disabled="loading || !playerId"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+          </svg>
+          <span class="font-bold">Quick Continue Ascension</span>
+        </button>
+        
+        <!-- Active Event Slide Toggle (Earnings Boost) -->
+        <div 
+          v-if="activeEarningsBoost"
+          class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
+        >
+          <div class="flex items-center gap-2 relative z-10">
+            <div class="flex flex-col gap-0.5 text-left">
+              <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{{ activeEarningsBoost.message }}</span>
+              </div>
+              <span class="text-[11px] font-black text-orange-600 uppercase tracking-tighter">
+                {{ isEarningsBoostActive ? 'Multiplier Active' : 'Event Disabled' }}
+              </span>
+            </div>
+          </div>
+
+          <button
+            @click="handleToggleEarningsEvent"
+            class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+            :class="isEarningsBoostActive ? 'bg-orange-500' : 'bg-slate-200'"
+          >
+            <span
+              class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
+              :class="isEarningsBoostActive ? 'translate-x-[22px]' : 'translate-x-1'"
+            />
+          </button>
+        </div>
+
+        <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest text-center max-w-md">
+          Wipes current plan, fetches latest backup, and resumes from your current virtue farm state
+        </p>
+      </div>
 
       <div v-if="loading" class="text-center py-4 text-gray-600">
         Loading player data...
@@ -96,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import TheNavBar from 'ui/components/NavBar.vue';
 import { getSavedPlayerID, savePlayerID, requestFirstContact } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
@@ -105,6 +148,7 @@ import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
+import { useEventsStore } from '@/stores/events';
 import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
 import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
@@ -114,6 +158,10 @@ import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import FloatingStats from '@/components/FloatingStats.vue';
 import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
+import { useSalesStore } from '@/stores/sales';
+import { useActionExecutor } from '@/composables/useActionExecutor';
+import { generateActionId } from '@/types';
+import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber } from '@/lib/format';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
@@ -143,6 +191,51 @@ const actionsStore = useActionsStore();
 const virtueStore = useVirtueStore();
 const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
+const eventsStore = useEventsStore();
+const salesStore = useSalesStore();
+const { prepareExecution, completeExecution } = useActionExecutor();
+
+const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
+
+const activeEarningsBoost = computed(() => {
+  const events = eventsStore.getActiveEvents(initialStateStore.isUltra);
+  return events.find(e => e.type === 'earnings-boost');
+});
+
+function handleToggleEarningsEvent() {
+  const beforeSnapshot = prepareExecution();
+  const currentlyActive = beforeSnapshot.earningsBoost.active;
+  
+  // Find the multiplier from the event store if turning ON
+  let multiplier = 2;
+  if (!currentlyActive) {
+      const event = eventsStore.getActiveEvents(initialStateStore.isUltra).find(e => e.type === 'earnings-boost');
+      if (event) multiplier = event.multiplier;
+  } else {
+      multiplier = 1;
+  }
+
+  const payload = {
+    active: !currentlyActive,
+    multiplier,
+  };
+
+  // Update store state
+  salesStore.setEarningsBoost(payload.active, payload.multiplier);
+
+  completeExecution({
+    id: generateActionId(),
+    timestamp: Date.now(),
+    type: 'toggle_earnings_boost',
+    payload,
+    cost: 0,
+    dependsOn: computeDependencies('toggle_earnings_boost', payload, actionsStore.actionsBeforeInsertion),
+  }, beforeSnapshot);
+}
+
+onMounted(() => {
+  eventsStore.fetchEvents();
+});
 
 // Initial calculation to populate the default start_ascension action with correct metrics
 // based on default farm state (1 Coop, 1 Trike, etc.)
@@ -324,43 +417,35 @@ async function submitPlayerId(id: string) {
     const initialSnapshot = computeSnapshot(baseState, context);
     await actionsStore.setInitialSnapshot(initialSnapshot);
 
-    // Log everything used for Wait For Missions as a single object for easy copy/paste
-    const maxReturn = initialStateStore.virtueMissions.length > 0 
-      ? Math.max(...initialStateStore.virtueMissions.map(m => m.returnTimestamp || 0)) 
-      : 0;
-    const dateTimeStr = `${virtueStore.ascensionDate}T${virtueStore.ascensionTime}:00`;
-    const startUnix = new Date(dateTimeStr).getTime() / 1000;
-    const waitSeconds = maxReturn > 0 
-      ? Math.max(0, maxReturn - actionsStore.effectiveSnapshot.lastStepTime)
-      : 0;
-
-    const missionsDebugInfo = {
-      rawMissions: initialStateStore.activeMissions.map(m => ({
-        ...JSON.parse(JSON.stringify(m)),
-        identifier: 'redacted'
-      })),
-      processedVirtueMissions: JSON.parse(JSON.stringify(initialStateStore.virtueMissions)),
-      timing: {
-        ascensionDate: virtueStore.ascensionDate,
-        ascensionTime: virtueStore.ascensionTime,
-        lastStepTime: actionsStore.effectiveSnapshot.lastStepTime,
-        isHumility: actionsStore.effectiveSnapshot.currentEgg === 'humility',
-      },
-      calculation: maxReturn > 0 ? {
-        maxReturnTimestamp: maxReturn,
-        maxReturnDate: new Date(maxReturn * 1000).toLocaleString(),
-        startUnix,
-        estimatedWaitTimeSeconds: waitSeconds,
-        estimatedWaitTimeFormatted: `${Math.floor(waitSeconds / 3600)}h ${Math.floor((waitSeconds % 3600) / 60)}m ${Math.floor(waitSeconds % 60)}s`,
-      } : null
-    };
-    console.log('Wait For Missions Debug Info:', missionsDebugInfo);
-
     loading.value = false;
   } catch (e) {
     loading.value = false;
     error.value = e instanceof Error ? e.message : 'Failed to load player data';
     console.error('Error fetching player data:', e);
+  }
+}
+
+async function quickContinueAscension() {
+  if (!playerId.value) return;
+  
+  error.value = '';
+  loading.value = true;
+  
+  try {
+    // 1. Wipe current plan
+    await actionsStore.clearAll();
+    
+    // 2. Refresh backup (submitPlayerId)
+    await submitPlayerId(playerId.value);
+    
+    // 3. Trigger continue from backup
+    await actionsStore.continueFromBackup();
+    
+    loading.value = false;
+  } catch (e) {
+    loading.value = false;
+    error.value = e instanceof Error ? e.message : 'Quick Continue failed';
+    console.error('Quick Continue error:', e);
   }
 }
 </script>
