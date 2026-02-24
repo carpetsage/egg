@@ -20,6 +20,7 @@
         :target-level="item.targetLevel"
         :price="item.price"
         :time-to-buy="item.timeToBuy || getResearchTimeToBuy(item.research)"
+        :time-to-buy-seconds="item.timeToBuySeconds ?? getResearchTimeToBuySeconds(item.research)"
         :can-buy="item.canBuy"
         :is-maxed="item.isMaxed"
         :show-max="false"
@@ -27,8 +28,10 @@
         :show-buy-to-here="view === 'cheapest'"
         :can-buy-to-here="view === 'cheapest' ? true : item.canBuyToHere"
         :buy-to-here-time="item.buyToHereTime"
+        :buy-to-here-seconds="item.buyToHereSeconds"
         :extra-stats="item.extraStats"
         :extra-label="item.extraLabel"
+        :extra-seconds="item.extraSeconds"
         :hpp="item.hpp"
         :recommendation-note="item.recommendationNote"
         @buy="$emit('buy', item.research)"
@@ -53,6 +56,7 @@ defineProps<{
   view: ViewType;
   thresholds: readonly number[];
   getResearchTimeToBuy: (r: CommonResearch) => string;
+  getResearchTimeToBuySeconds: (r: CommonResearch) => number;
 }>();
 
 defineEmits(['buy', 'max', 'buy-to-here']);

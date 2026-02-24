@@ -30,6 +30,7 @@
       :levels="commonResearchStore.researchLevels"
       :get-research-price="getNextLevelPrice"
       :get-research-time-to-buy="getTimeToBuy"
+      :get-research-time-to-buy-seconds="getTimeToBuySeconds"
       @buy="handleBuyResearch"
       @max="handleMaxResearch"
       @max-tier="handleMaxTier"
@@ -42,6 +43,7 @@
       :view="currentView"
       :thresholds="TIER_THRESHOLDS"
       :get-research-time-to-buy="getTimeToBuy"
+      :get-research-time-to-buy-seconds="getTimeToBuySeconds"
       @buy="handleBuyResearch"
       @max="handleMaxResearch"
       @buy-to-here="handleBuyToHere"
@@ -107,6 +109,11 @@ function getTimeToBuy(research: CommonResearch): string {
   if (seconds <= 0) return '0s';
   if (seconds === Infinity) return '∞';
   return formatDuration(seconds);
+}
+
+function getTimeToBuySeconds(research: CommonResearch): number {
+  const price = getNextLevelPrice(research);
+  return getTimeToSave(price, actionsStore.effectiveSnapshot);
 }
 
 /**

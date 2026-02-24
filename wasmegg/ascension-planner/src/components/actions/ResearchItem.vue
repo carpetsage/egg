@@ -41,7 +41,12 @@
       >
         {{ extraLabel }}
       </div>
-      <div class="text-xs font-mono text-gray-900">{{ extraStats }}</div>
+      <div 
+        class="text-xs font-mono text-gray-900"
+        v-tippy="extraLabel === 'Achieve ROI' && extraSeconds !== undefined ? formatAbsoluteTime(extraSeconds, baseTimestamp) : undefined"
+      >
+        {{ extraStats }}
+      </div>
       <div v-if="hpp !== undefined" class="text-[10px] font-mono text-purple-600 mt-0.5">
         {{ hpp === Infinity ? '∞' : hpp.toFixed(1) }} hr/%
       </div>
@@ -72,7 +77,7 @@
         v-if="showBuyToHere && !isMaxed"
         class="btn-premium btn-secondary text-[10px] py-1 px-2"
         :disabled="!canBuyToHere"
-        v-tippy="`Buy all preceding and this research${buyToHereTime ? ' (Total: ' + buyToHereTime + ')' : ''}`"
+        v-tippy="`${buyToHereSeconds !== undefined ? formatAbsoluteTime(buyToHereSeconds, baseTimestamp) : ''}`"
         @click.stop="$emit('buyToHere')"
       >
         Buy to here
@@ -83,7 +88,7 @@
       <button
         class="w-8 h-8 flex items-center justify-center rounded bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         :disabled="!canBuy || isMaxed || (targetLevel !== undefined && targetLevel !== currentLevel + 1)"
-        v-tippy="'Buy one level'"
+        v-tippy="timeToBuySeconds !== undefined ? formatAbsoluteTime(timeToBuySeconds, baseTimestamp) : ''"
         @click.stop="$emit('buy')"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +102,7 @@
         v-if="showMax"
         class="btn-premium btn-secondary text-xs py-1 px-2"
         :disabled="!canBuy || isMaxed"
-        v-tippy="`Buy all remaining levels${maxTime ? ' (Total: ' + maxTime + ')' : ''}`"
+        v-tippy="maxTimeSeconds !== undefined ? formatAbsoluteTime(maxTimeSeconds, baseTimestamp) : ''"
         @click.stop="$emit('max')"
       >
         Max
@@ -110,9 +115,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { CommonResearch } from '@/calculations/commonResearch';
-import { formatNumber, formatGemPrice } from '@/lib/format';
+import { formatNumber, formatGemPrice, formatAbsoluteTime } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
+import { useActionsStore } from '@/stores/actions';
 
 const props = defineProps<{
   research: CommonResearch;
@@ -132,7 +138,19 @@ const props = defineProps<{
   buyToHereTime?: string;
   recommendationNote?: string;
   maxTime?: string;
+  timeToBuySeconds?: number;
+  maxTimeSeconds?: number;
+  buyToHereSeconds?: number;
+  extraSeconds?: number;
 }>();
+
+const actionsStore = useActionsStore();
+
+const baseTimestamp = computed(() => {
+  const startAction = actionsStore.getStartAction();
+  if (!startAction) return Date.now();
+  return startAction.timestamp + (actionsStore.effectiveSnapshot.lastStepTime * 1000);
+});
 
 defineEmits<{
   (e: 'buy'): void;
