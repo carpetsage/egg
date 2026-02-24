@@ -5,7 +5,7 @@ import {
     WaitForTEPayload,
     StoreFuelPayload,
 } from '@/types';
-import { solveForTime, getTimeToSave } from './math';
+import { solveForTime, getTimeToSave, calculateEggsDeliveredForTime } from './math';
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
 
 /**
@@ -25,7 +25,8 @@ export function refreshActionPayload(
             prevSnapshot.population,
             prevSnapshot.offlineIHR / 60,
             prevSnapshot.ratePerChickenPerSecond,
-            prevSnapshot.shippingCapacity
+            prevSnapshot.shippingCapacity,
+            prevSnapshot.habCapacity
         );
         payload.startEggsDelivered = currentDelivered;
         payload.startTE = countTEThresholdsPassed(currentDelivered);
@@ -40,7 +41,8 @@ export function refreshActionPayload(
             prevSnapshot.population,
             prevSnapshot.offlineIHR / 60,
             prevSnapshot.ratePerChickenPerSecond,
-            prevSnapshot.shippingCapacity
+            prevSnapshot.shippingCapacity,
+            prevSnapshot.habCapacity
         );
         return { ...action, payload };
     }
@@ -112,8 +114,8 @@ export function computePassiveEggsDelivered(
     if (NO_PASSIVE_TYPES.includes(action.type)) return 0;
 
     const durationSeconds = getActionDuration(action, prevSnapshot);
-    if (durationSeconds > 0 && prevSnapshot.elr > 0) {
-        return prevSnapshot.elr * durationSeconds;
+    if (durationSeconds > 0) {
+        return calculateEggsDeliveredForTime(durationSeconds, prevSnapshot);
     }
     return 0;
 }
