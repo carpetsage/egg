@@ -128,6 +128,8 @@
     <!-- Continuity Check Dialog -->
     <ContinuityDialog />
 
+    <WarningDialog />
+
     <RecalculationOverlay />
 
     <PlanFinalSummary @show-details="showCurrentDetails" @update:collapsed="isFooterCollapsed = $event" />
@@ -155,6 +157,7 @@ import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import FloatingStats from '@/components/FloatingStats.vue';
+import WarningDialog from '@/components/WarningDialog.vue';
 import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
 import { useSalesStore } from '@/stores/sales';
 import { useActionExecutor } from '@/composables/useActionExecutor';

@@ -100,6 +100,7 @@ import { useEarnings } from '@/composables/useEarnings';
 import { useSiloTime } from '@/composables/useSiloTime';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useCommonResearchStore } from '@/stores/commonResearch';
+import { useWarningStore } from '@/stores/warning';
 
 const props = defineProps<{
   action?: Action | null;
@@ -137,6 +138,7 @@ const { input: ernInput, output: ernOutput } = useEarnings();
 const { output: stOutput } = useSiloTime();
 const initialStateStore = useInitialStateStore();
 const commonResearchStore = useCommonResearchStore();
+const warningStore = useWarningStore();
 
 function dumpCalculationData() {
   const dump = {
@@ -165,6 +167,9 @@ function dumpCalculationData() {
   console.log('CALCULATION_DUMP_START');
   console.log(JSON.stringify(dump, null, 2));
   console.log('CALCULATION_DUMP_END');
-  alert('Calculation data dumped to console. Please share the output (between START and END markers) with the developer.');
+  warningStore.showWarning(
+    'Data Dumped',
+    'Calculation data dumped to console. Please share the output (between START and END markers) with the developer.'
+  );
 }
 </script>

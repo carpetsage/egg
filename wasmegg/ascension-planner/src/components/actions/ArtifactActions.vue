@@ -102,13 +102,18 @@ import { ref, computed, watch } from 'vue';
 import ArtifactSelector from '@/components/ArtifactSelector.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
-import { generateActionId, type ArtifactSlotPayload, type ArtifactSetName } from '@/types';
-import { type EquippedArtifact, createEmptyLoadout, summarizeLoadout } from '@/lib/artifacts';
+import { useWarningStore } from '@/stores/warning';
+import { generateActionId, type ArtifactSlotPayload, type ArtifactSetName, type CalculationsSnapshot } from '@/types';
+import { type EquippedArtifact, createEmptyLoadout, summarizeLoadout, calculateArtifactModifiers } from '@/lib/artifacts';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computeDependencies } from '@/lib/actions/executor';
+import { calculateHabCapacity_Full } from '@/calculations/habCapacity';
+import { getSimulationContext } from '@/engine/adapter';
+import { formatNumber } from '@/lib/format';
 
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
+const warningStore = useWarningStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const activeArtifactSet = computed(() => actionsStore.effectiveSnapshot.activeArtifactSet);
@@ -159,6 +164,31 @@ function undoChanges() {
   }
 }
 
+function checkHabCapacityViolation(loadout: ArtifactSlotPayload[], snapshot: CalculationsSnapshot, actionName: string): boolean {
+  const context = getSimulationContext();
+  const artifactMods = calculateArtifactModifiers(loadout as EquippedArtifact[]);
+  const habCapacityOutput = calculateHabCapacity_Full({
+    habIds: snapshot.habIds,
+    researchLevels: snapshot.researchLevels,
+    peggMultiplier: context.colleggtibleModifiers.habCap,
+    artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
+    artifactEffects: artifactMods.habCapacity.effects,
+  });
+
+  const newHabCap = habCapacityOutput.totalFinalCapacity;
+  const population = snapshot.population;
+
+  if (newHabCap < population) {
+    warningStore.showWarning(
+      'Hab Capacity Violation',
+      `Cannot ${actionName}. The new habitat capacity (${formatNumber(newHabCap, 3)}) ` +
+      `would be lower than your current population (${formatNumber(population, 3)}).`
+    );
+    return true; // Violation found
+  }
+  return false;
+}
+
 function saveChanges() {
   const toLoadout: ArtifactSlotPayload[] = localLoadout.value.map(slot => ({
     artifactId: slot.artifactId,
@@ -166,6 +196,13 @@ function saveChanges() {
   }));
 
   const beforeSnapshot = prepareExecution();
+
+  // If saving to the CURRENTLY EQUIPPED set, validate capacity
+  if (selectedTab.value === activeArtifactSet.value) {
+    if (checkHabCapacityViolation(toLoadout, beforeSnapshot, 'save changes')) {
+      return;
+    }
+  }
   
   const dependencies = computeDependencies('update_artifact_set', {
     setName: selectedTab.value,
@@ -187,6 +224,12 @@ function saveChanges() {
 
 function equipSet() {
   const beforeSnapshot = prepareExecution();
+
+  // Validation: Check if new hab capacity is lower than current population
+  const targetLoadout = beforeSnapshot.artifactSets[selectedTab.value];
+  if (targetLoadout && checkHabCapacityViolation(targetLoadout, beforeSnapshot, 'equip this set')) {
+    return;
+  }
   
   const dependencies = computeDependencies('equip_artifact_set', {
     setName: selectedTab.value,
