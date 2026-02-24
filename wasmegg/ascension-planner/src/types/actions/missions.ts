@@ -34,6 +34,7 @@ export interface ActiveMissionInfo {
     statusIsFueling: boolean;
     statusName: string;
     capacity: number;
+    durationSeconds: number | null;
     fuels: {
         egg: number;
         amount: number;
