@@ -1,5 +1,6 @@
 import type { CalculationsSnapshot } from '@/types';
 import type { EngineState } from '../types';
+import { calculateEarningsForTime } from './math';
 
 /**
  * Advance the simulation time in the engine state and add earned gems to the bank.
@@ -23,22 +24,7 @@ export function applyTime(
 
     let earnedGems = 0;
     if (V > 0 && !skipBankUpdate) {
-        let Tship = Infinity;
-        if (I > 0) {
-            Tship = (S / R - P0) / I;
-        } else if (R * P0 >= S) {
-            Tship = 0;
-        }
-
-        if (Tship <= 0) {
-            earnedGems = V * S * seconds;
-        } else if (seconds <= Tship) {
-            earnedGems = V * R * (P0 * seconds + 0.5 * I * seconds * seconds);
-        } else {
-            const Gship = V * R * (P0 * Tship + 0.5 * I * Tship * Tship);
-            const Gafter = V * S * (seconds - Tship);
-            earnedGems = Gship + Gafter;
-        }
+        earnedGems = calculateEarningsForTime(seconds, prevSnapshot);
     }
 
     let newBankValue = (state.bankValue || 0) + earnedGems;
