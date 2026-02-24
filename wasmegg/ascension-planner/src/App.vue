@@ -234,7 +234,7 @@ function handleToggleEarningsEvent() {
     type: 'toggle_earnings_boost',
     payload,
     cost: 0,
-    dependsOn: computeDependencies('toggle_earnings_boost', payload, actionsStore.actionsBeforeInsertion),
+    dependsOn: computeDependencies('toggle_earnings_boost', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels),
   }, beforeSnapshot);
 }
 

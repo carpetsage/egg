@@ -213,7 +213,7 @@ export const useActionsStore = defineStore('actions', {
         prepareUndo(actionId: string): UndoValidation {
             const action = this.actions.find(a => a.id === actionId);
             if (!action || action.type === 'start_ascension') return createEmptyUndoValidation();
-            const toRemove = getActionsRequiringRemovalLogic(this.actions, new Set([actionId]));
+            const toRemove = getActionsRequiringRemovalLogic(this.actions, new Set([actionId]), this.initialSnapshot.researchLevels);
             const dependents = toRemove.filter(a => a.id !== actionId);
             return { valid: true, action, dependentActions: dependents, needsRecursiveUndo: dependents.length > 0 };
         },
@@ -227,7 +227,7 @@ export const useActionsStore = defineStore('actions', {
                 if (i > index && this.actions[i].type === 'shift') break;
                 initialToRemove.add(this.actions[i].id);
             }
-            const toRemove = getActionsRequiringRemovalLogic(this.actions, initialToRemove);
+            const toRemove = getActionsRequiringRemovalLogic(this.actions, initialToRemove, this.initialSnapshot.researchLevels);
             const dependents = toRemove.filter(a => a.id !== actionId);
             return { valid: true, action, dependentActions: dependents, needsRecursiveUndo: dependents.length > 0 };
         },
@@ -245,7 +245,7 @@ export const useActionsStore = defineStore('actions', {
         },
 
         async removeActions(ids: string[]) {
-            const fullToRemove = getActionsRequiringRemovalLogic(this.actions, new Set(ids));
+            const fullToRemove = getActionsRequiringRemovalLogic(this.actions, new Set(ids), this.initialSnapshot.researchLevels);
             const fullIds = new Set(fullToRemove.map(a => a.id));
             this.actions = this.actions.filter(a => !fullIds.has(a.id));
             this.actions.forEach(a => { a.dependents = a.dependents.filter(d => !fullIds.has(d)); });
@@ -442,7 +442,7 @@ export const useActionsStore = defineStore('actions', {
 
         async recalculateAll() { return this.recalculateFrom(0); },
 
-        relinkDependencies() { relinkDependenciesLogic(this.actions); },
+        relinkDependencies() { relinkDependenciesLogic(this.actions, this.initialSnapshot.researchLevels); },
 
         toggleGroupExpansion(groupId: string) {
             if (this.expandedGroupIds.has(groupId)) this.expandedGroupIds.delete(groupId);

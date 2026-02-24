@@ -1,11 +1,11 @@
-import type { Action, BuyResearchPayload } from '@/types';
+import type { Action, BuyResearchPayload, StartAscensionPayload } from '@/types';
 import { getResearchById, TIER_UNLOCK_THRESHOLDS } from '@/calculations/commonResearch';
 import { computeDependencies } from '@/lib/actions/executor';
 
 /**
  * Re-build the dependency graph for all actions.
  */
-export function relinkDependenciesLogic(actions: Action[]) {
+export function relinkDependenciesLogic(actions: Action[], initialResearchLevels: Record<string, number> = {}) {
     // 1. Clear existing linkages
     for (const action of actions) {
         action.dependsOn = [];
@@ -17,7 +17,7 @@ export function relinkDependenciesLogic(actions: Action[]) {
         const action = actions[i];
         const existingActions = actions.slice(0, i);
 
-        action.dependsOn = computeDependencies(action.type, action.payload, existingActions);
+        action.dependsOn = computeDependencies(action.type, action.payload, existingActions, initialResearchLevels);
 
         for (const depId of action.dependsOn) {
             const depAction = actions.find(a => a.id === depId);
@@ -31,7 +31,11 @@ export function relinkDependenciesLogic(actions: Action[]) {
 /**
  * Find all actions requiring removal due to dependencies.
  */
-export function getActionsRequiringRemovalLogic(actions: Action[], initialIds: Set<string>): Action[] {
+export function getActionsRequiringRemovalLogic(
+    actions: Action[],
+    initialIds: Set<string>,
+    initialResearchLevels: Record<string, number> = {}
+): Action[] {
     const toRemove = new Set<string>(initialIds);
     let changed = true;
 
@@ -51,7 +55,15 @@ export function getActionsRequiringRemovalLogic(actions: Action[], initialIds: S
         }
 
         // 2. Tier locks
-        let researchPurchases = 0;
+        const purchasesByTier = new Array(15).fill(0);
+        // Initialize with initialResearchLevels
+        for (const [id, level] of Object.entries(initialResearchLevels)) {
+            const research = getResearchById(id);
+            if (research) {
+                purchasesByTier[research.tier] = (purchasesByTier[research.tier] || 0) + level;
+            }
+        }
+
         const sortedActions = [...actions].sort((a, b) => a.index - b.index);
 
         for (const action of sortedActions) {
@@ -61,12 +73,30 @@ export function getActionsRequiringRemovalLogic(actions: Action[], initialIds: S
                 const research = getResearchById(payload.researchId);
                 if (research && research.tier > 1) {
                     const threshold = TIER_UNLOCK_THRESHOLDS[research.tier - 1];
-                    if (researchPurchases < threshold) {
+                    let purchasesBelow = 0;
+                    for (let t = 1; t < research.tier; t++) {
+                        purchasesBelow += (purchasesByTier[t] || 0);
+                    }
+
+                    if (purchasesBelow < threshold) {
                         toRemove.add(action.id);
                         continue;
                     }
                 }
-                researchPurchases += (payload.toLevel - payload.fromLevel);
+                // Update purchasesByTier after checking threshold
+                if (research) {
+                    purchasesByTier[research.tier] = (purchasesByTier[research.tier] || 0) + (payload.toLevel - payload.fromLevel);
+                }
+            } else if (action.type === 'start_ascension') {
+                const payload = action.payload as StartAscensionPayload;
+                if (payload.initialFarmState?.commonResearches) {
+                    for (const [id, level] of Object.entries(payload.initialFarmState.commonResearches)) {
+                        const research = getResearchById(id);
+                        if (research) {
+                            purchasesByTier[research.tier] = (purchasesByTier[research.tier] || 0) + (level as number);
+                        }
+                    }
+                }
             }
         }
 

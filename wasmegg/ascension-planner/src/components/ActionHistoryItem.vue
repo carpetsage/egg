@@ -342,11 +342,12 @@ const absoluteEndTime = computed(() => {
 const timeToSaveTitle = computed(() => {
   const date = absoluteEndTime.value;
   return date.toLocaleString('en-US', {
+    weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
-    minute: date.getMinutes() === 0 ? undefined : '2-digit',
+    minute: '2-digit',
     hour12: true,
   });
 });

@@ -262,7 +262,7 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
   };
 
   // Compute dependencies
-  const dependencies = computeDependencies('buy_hab', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('buy_hab', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   // Apply to store
   habCapacityStore.setHab(slotIndex, habId);
@@ -301,7 +301,7 @@ function handleToggleSale() {
       type: 'toggle_sale',
       payload,
       cost: 0,
-      dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion),
+      dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels),
     },
     beforeSnapshot
   );

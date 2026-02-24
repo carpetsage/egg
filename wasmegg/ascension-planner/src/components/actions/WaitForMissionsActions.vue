@@ -72,7 +72,7 @@ function handleWaitMissions(missionsToWait: ActiveMissionInfo[]) {
     totalTimeSeconds: waitSeconds,
   };
 
-  const dependencies = computeDependencies('wait_for_missions', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('wait_for_missions', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   completeExecution({
     id: generateActionId(),

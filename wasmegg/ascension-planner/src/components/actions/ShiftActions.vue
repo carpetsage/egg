@@ -196,7 +196,7 @@ function handleShift(toEgg: VirtueEgg) {
     fromEgg,
     toEgg,
     newShiftCount,
-  }, actionsStore.actionsBeforeInsertion);
+  }, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   // Apply the shift to the store
   virtueStore.shift(toEgg);

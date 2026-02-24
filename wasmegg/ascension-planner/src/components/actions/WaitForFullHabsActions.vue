@@ -117,7 +117,7 @@ function handleWaitForFullHabs() {
     totalTimeSeconds: timeToGrowSeconds.value,
   };
 
-  const dependencies = computeDependencies('wait_for_full_habs', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('wait_for_full_habs', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   completeExecution({
     id: generateActionId(),

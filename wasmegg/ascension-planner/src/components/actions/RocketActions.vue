@@ -132,7 +132,7 @@ function handleLaunch() {
     isZeroTime: isZeroTimeLaunch,
   };
 
-  const dependencies = computeDependencies('launch_missions', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('launch_missions', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   // Deduct fuel from tank
   for (const egg of VIRTUE_EGGS) {
