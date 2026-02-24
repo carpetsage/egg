@@ -182,10 +182,20 @@ import { generateActionId, VIRTUE_EGG_NAMES, type VirtueEgg } from '@/types';
 import { VIRTUE_FUEL_ORDER } from '@/stores/fuelTank';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 
+import { useLayRate } from '@/composables/useLayRate';
+import { useInternalHatcheryRate } from '@/composables/useInternalHatcheryRate';
+import { useShippingCapacity } from '@/composables/useShippingCapacity';
+import { useHabCapacity } from '@/composables/useHabCapacity';
+import { solveForTime } from '@/engine/apply/math';
+
 const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
+const { output: layRateOutput } = useLayRate();
+const { output: ihrOutput } = useInternalHatcheryRate();
+const { output: shippingOutput } = useShippingCapacity();
+const { output: habCapacityOutput } = useHabCapacity();
 const { output: effectiveLayRateOutput } = useEffectiveLayRate();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
@@ -208,7 +218,16 @@ const parsedAmount = computed(() => {
 // Time calculation
 const timeToStoreSeconds = computed(() => {
   if (parsedAmount.value <= 0) return 0;
-  return timeToStore(parsedAmount.value, effectiveLayRateOutput.value.effectiveLayRate);
+  const P0 = virtueStore.population;
+  const I = ihrOutput.value.offlineRate / 60; // chickens/sec
+  const R = layRateOutput.value.ratePerChickenPerSecond; // eggs/chicken/sec
+  const S = shippingOutput.value.totalFinalCapacity; // eggs/sec
+  const H = habCapacityOutput.value.totalFinalCapacity; // max chickens
+
+  const maxPossibleRate = Math.min(S, R * H);
+  
+  const time = solveForTime(parsedAmount.value, P0, I, R, maxPossibleRate);
+  return isFinite(time) ? time : Infinity;
 });
 
 // Validation
