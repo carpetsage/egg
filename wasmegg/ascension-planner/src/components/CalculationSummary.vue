@@ -45,9 +45,9 @@
         <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">Population / Capacity</span>
         <div class="flex items-center gap-4">
           <span class="font-mono-premium text-base font-bold text-slate-800">
-            {{ formatNumber(layRateOutput.population, 0) }}
+            {{ formatNumber(layRateOutput.population, 3) }}
             <span class="text-slate-300 font-normal mx-0.5">/</span>
-            {{ formatNumber(habCapacityOutput.totalFinalCapacity, 0) }}
+            {{ formatNumber(habCapacityOutput.totalFinalCapacity, 3) }}
             <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest ml-1">chickens</span>
           </span>
           <ChevronIcon :expanded="expandedSections.habCapacity" />
