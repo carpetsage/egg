@@ -1,7 +1,7 @@
 // Core types for the Ascension Planner
 
 // Re-export action types
-export * from './actions';
+export * from './actions/index';
 
 /**
  * Initial state data loaded from player backup
