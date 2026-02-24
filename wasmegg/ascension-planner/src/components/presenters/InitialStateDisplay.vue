@@ -93,7 +93,7 @@
                   ? 'border-brand-primary scale-110 shadow-lg shadow-brand-primary/20 bg-white'
                   : 'border-slate-100 bg-slate-50 opacity-60 hover:opacity-100 hover:border-slate-200'
               ]"
-              :title="VIRTUE_EGG_NAMES[egg]"
+              v-tippy="VIRTUE_EGG_NAMES[egg]"
               @click="$emit('set-initial-egg', egg)"
             >
               <img

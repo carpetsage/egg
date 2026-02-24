@@ -99,10 +99,10 @@
             <img v-if="action.cost >= 0.5 || action.bankDelta >= 0.5" :src="iconURL('egginc/icon_virtue_gem.png', 64)" class="w-2.5 h-2.5 opacity-60" />
           </div>
           <div class="flex flex-col items-end">
-            <span v-if="savingDuration > 0 || (isPurchaseAction && action.cost > 0)" class="text-[8px] font-black text-rose-500 uppercase tracking-widest" :title="timeToSaveTitle">
+            <span v-if="savingDuration > 0 || (isPurchaseAction && action.cost > 0)" class="text-[8px] font-black text-rose-500 uppercase tracking-widest" v-tippy="timeToSaveTitle">
               Save {{ savingDurationFormatted }}
             </span>
-            <span v-if="waitDuration > 0" class="text-[8px] font-black text-slate-400 uppercase tracking-widest" :title="timeToSaveTitle">
+            <span v-if="waitDuration > 0" class="text-[8px] font-black text-slate-400 uppercase tracking-widest" v-tippy="timeToSaveTitle">
               Wait {{ waitDurationFormatted }}
             </span>
             <span v-if="action.totalTimeSeconds < 1 && action.cost < 0.5 && Math.abs(action.bankDelta) < 0.5" class="text-[8px] font-black text-slate-300 uppercase tracking-widest">
@@ -118,7 +118,7 @@
       <!-- Details button -->
       <button
         class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-        title="View calculation details"
+        v-tippy="'View calculation details'"
         @click="$emit('show-details')"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@
       <button
         v-if="!isStartAction"
         class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-        title="Undo this action"
+        v-tippy="'Undo this action'"
         @click="handleUndo"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

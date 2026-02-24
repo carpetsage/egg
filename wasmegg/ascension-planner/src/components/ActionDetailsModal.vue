@@ -20,7 +20,7 @@
               <p v-else class="text-xs font-medium text-slate-500 italic">Full breakdown of current multipliers and rates</p>
               <button
                 class="badge-premium bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors py-0.5 px-2"
-                title="Dump all calculation data to console for debugging"
+                v-tippy="'Dump all calculation data to console for debugging'"
                 @click="dumpCalculationData"
               >
                 Dump Data

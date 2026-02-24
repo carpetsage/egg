@@ -8,7 +8,7 @@
     <button
       @click="isCollapsed = !isCollapsed"
       class="w-full flex flex-col items-center group/toggle transition-colors"
-      :title="isCollapsed ? 'Expand Stats' : 'Collapse Stats'"
+      v-tippy="isCollapsed ? 'Expand Stats' : 'Collapse Stats'"
     >
       <!-- Chevron Indicator -->
       <div class="text-slate-300 group-hover/toggle:text-slate-500 transition-colors mb-1">
@@ -146,7 +146,7 @@
       <!-- Details Button -->
       <button
         class="mt-3 text-slate-400 hover:text-slate-900 transition-colors p-1"
-        title="View Full Details"
+        v-tippy="'View Full Details'"
         @click="$emit('show-details')"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

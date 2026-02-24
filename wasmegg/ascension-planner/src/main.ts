@@ -12,6 +12,9 @@ const pinia = createPinia();
 
 app.use(pinia);
 app.use(VueTippy, {
-  defaultProps: { theme: 'translucent' },
+  defaultProps: {
+    theme: 'translucent',
+    delay: [0, 0],
+  },
 });
 app.mount('#app');

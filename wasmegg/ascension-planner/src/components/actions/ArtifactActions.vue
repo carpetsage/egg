@@ -21,7 +21,7 @@
         <div 
           v-if="activeArtifactSet === setName"
           class="absolute top-2 right-2 flex items-center gap-1"
-          title="This set is currently equipped"
+          v-tippy="'This set is currently equipped'"
         >
           <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
           <span class="text-[8px] font-black uppercase tracking-tighter text-emerald-600">Equipped</span>
