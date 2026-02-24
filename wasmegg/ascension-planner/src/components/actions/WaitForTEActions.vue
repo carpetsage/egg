@@ -129,7 +129,7 @@
               <span class="font-black text-slate-400 uppercase tracking-widest">ELR per hour:</span>
               <button
                 class="p-0.5 text-slate-300 hover:text-slate-900 transition-colors"
-                title="View calculation details"
+                v-tippy="'View calculation details'"
                 @click="$emit('show-current-details')"
               >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

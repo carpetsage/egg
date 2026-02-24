@@ -70,7 +70,7 @@
         <button
           v-if="!isEditing && !(isCurrent && !actionsStore.editingGroupId)"
           class="p-2 text-slate-400 hover:text-slate-900 hover:bg-brand-primary/5 rounded-xl transition-all active:scale-95"
-          title="Edit this shift"
+          v-tippy="'Edit this shift'"
           @click="$emit('start-editing', headerAction.id)"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,7 +81,7 @@
         <button
           v-if="isEditing"
           class="p-1 px-3 bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 border border-brand-primary/20"
-          title="Finish editing"
+          v-tippy="'Finish editing'"
           @click="$emit('stop-editing')"
         >
           <span class="text-[9px] font-black uppercase tracking-widest">Done</span>
@@ -94,7 +94,7 @@
         <button
           v-if="isShiftAction"
           class="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95"
-          title="Undo this shift and all its actions"
+          v-tippy="'Undo this shift and all its actions'"
           @click="handleUndo($event, headerAction)"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

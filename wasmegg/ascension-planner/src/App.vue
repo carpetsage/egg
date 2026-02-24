@@ -4,7 +4,7 @@
   <div :class="['min-h-screen bg-gray-100 transition-all duration-300', isFooterCollapsed ? 'pb-8' : 'pb-24']">
     <div class="max-w-6xl mx-auto p-4">
       <h1 class="mx-4 mt-8 mb-2 text-center heading-xl text-gradient">
-        Ascension Planner
+        {{ pageTitle }}
       </h1>
 
       <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
@@ -128,6 +128,8 @@
     <!-- Continuity Check Dialog -->
     <ContinuityDialog />
 
+    <WarningDialog />
+
     <RecalculationOverlay />
 
     <PlanFinalSummary @show-details="showCurrentDetails" @update:collapsed="isFooterCollapsed = $event" />
@@ -137,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import TheNavBar from 'ui/components/NavBar.vue';
 import { getSavedPlayerID, savePlayerID, requestFirstContact } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
@@ -155,6 +157,7 @@ import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import FloatingStats from '@/components/FloatingStats.vue';
+import WarningDialog from '@/components/WarningDialog.vue';
 import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
 import { useSalesStore } from '@/stores/sales';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -194,6 +197,15 @@ const salesStore = useSalesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
+
+const pageTitle = computed(() => {
+  const name = initialStateStore.nickname;
+  return name ? `Ascension Planner ${name}` : 'Ascension Planner';
+});
+
+watch(pageTitle, (newTitle) => {
+  document.title = newTitle;
+}, { immediate: true });
 
 function handleToggleEarningsEvent() {
   const beforeSnapshot = prepareExecution();
