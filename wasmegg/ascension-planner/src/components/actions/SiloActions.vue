@@ -123,6 +123,7 @@ import { iconURL } from 'lib';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computed } from 'vue';
+import { getTimeToSave } from '@/engine/apply';
 
 const silosStore = useSilosStore();
 const actionsStore = useActionsStore();
@@ -133,17 +134,9 @@ const baseUrl = import.meta.env.BASE_URL;
 
 const timeToBuy = computed(() => {
   const price = siloOutput.value.nextSiloCost;
-  if (price <= 0) return 'Free';
-
-  const snapshot = actionsStore.effectiveSnapshot;
-  const offlineEarnings = snapshot.offlineEarnings;
-  const bankValue = snapshot.bankValue || 0;
-
-  if (price <= bankValue) return '0s';
-  if (offlineEarnings <= 0) return '∞';
-
-  const seconds = (price - bankValue) / offlineEarnings;
-  if (seconds < 1) return '0s';
+  const seconds = getTimeToSave(price, actionsStore.effectiveSnapshot);
+  if (seconds <= 0) return '0s';
+  if (seconds === Infinity) return '∞';
   return formatDuration(seconds);
 });
 

@@ -28,7 +28,7 @@
                 <span class="text-xs font-black text-slate-700 group-hover:text-blue-600 uppercase tracking-wide">
                   {{ areOptionsIdentical ? (dependentsA.length > 0 ? 'Undo Action & Dependents' : 'Undo Action') : (dependentsA.length > 0 ? 'Option A: Smart Undo' : 'Option A: Undo Action') }}
                 </span>
-                <span class="badge-premium bg-amber-50 text-amber-700 border border-amber-100 font-mono-premium">Refund: {{ formatNumber(refundA, 0) }}</span>
+                <span class="badge-premium bg-amber-50 text-amber-700 border border-amber-100 font-mono-premium">Refund: {{ formatNumber(refundA, 3) }}</span>
               </div>
               <p class="text-xs text-slate-500 mb-3 leading-relaxed">
                 {{ dependentsA.length > 0 
@@ -60,7 +60,7 @@
             >
               <div class="flex justify-between items-start mb-2">
                 <span class="text-xs font-black text-slate-700 group-hover:text-purple-600 uppercase tracking-wide">Option B: Undo Until Shift</span>
-                <span class="badge-premium bg-amber-50 text-amber-700 border border-amber-100 font-mono-premium">Refund: {{ formatNumber(refundB, 0) }}</span>
+                <span class="badge-premium bg-amber-50 text-amber-700 border border-amber-100 font-mono-premium">Refund: {{ formatNumber(refundB, 3) }}</span>
               </div>
               <p class="text-xs text-slate-500 mb-3 leading-relaxed">
                 Undoes this action and EVERY action that follows it within the current egg period.

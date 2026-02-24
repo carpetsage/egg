@@ -338,9 +338,12 @@ async function submitPlayerId(id: string) {
   loading.value = true;
 
   try {
+    // Clear existing plan to ensure a fresh start with new player data
+    await actionsStore.clearAll();
+
     const data = await requestFirstContact(id);
     const backup = data.backup!;
-    console.log('Player data:', backup);
+    console.log('Player data (backup):', backup);
 
     // Store the backup data in initial state
     let { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } = initialStateStore.loadFromBackup(id, backup);
@@ -364,7 +367,20 @@ async function submitPlayerId(id: string) {
         tempState.lastStepTime = farm.lastStepTime;
 
         const snapshot = computeSnapshot(tempState, context);
-        const extraEggs = snapshot.elr * elapsed;
+        const startPop = farm.population;
+        const extraChickens = (snapshot.offlineIHR / 60) * elapsed;
+        const endPop = Math.min(snapshot.habCapacity, startPop + extraChickens);
+        
+        // Update population
+        farm.population = endPop;
+
+        // Recompute snapshot at end population to get accurate end-of-period ELR
+        tempState.population = endPop;
+        const endSnapshot = computeSnapshot(tempState, context);
+        
+        // Average ELR for catch-up (accurate linear approximation)
+        const avgELR = (snapshot.elr + endSnapshot.elr) / 2;
+        const extraEggs = avgELR * elapsed;
 
         if (extraEggs > 0) {
           // 1. Update farm state
@@ -378,7 +394,6 @@ async function submitPlayerId(id: string) {
           eggsDelivered[egg] = newDelivered;
 
           // 4. Recalculate pending TE for this egg
-          // (Theoretical from new delivered) - (Claimed from backup)
           const theoreticalTE = countTEThresholdsPassed(newDelivered);
           const earned = teEarnedPerEgg[egg];
           initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - earned));

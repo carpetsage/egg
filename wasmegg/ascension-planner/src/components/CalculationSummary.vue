@@ -42,10 +42,13 @@
         class="px-5 py-4 flex justify-between items-center hover:bg-slate-50/50 cursor-pointer transition-colors"
         @click="toggleSection('habCapacity')"
       >
-        <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">Hab Capacity</span>
+        <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">Population / Capacity</span>
         <div class="flex items-center gap-4">
           <span class="font-mono-premium text-base font-bold text-slate-800">
-            {{ formatNumber(habCapacityOutput.totalFinalCapacity, 0) }} <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest ml-1">chickens</span>
+            {{ formatNumber(layRateOutput.population, 3) }}
+            <span class="text-slate-300 font-normal mx-0.5">/</span>
+            {{ formatNumber(habCapacityOutput.totalFinalCapacity, 3) }}
+            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest ml-1">chickens</span>
           </span>
           <ChevronIcon :expanded="expandedSections.habCapacity" />
         </div>

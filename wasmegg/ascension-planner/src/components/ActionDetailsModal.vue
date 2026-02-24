@@ -52,7 +52,13 @@
               <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
                 <span class="text-xs font-bold text-slate-600 uppercase tracking-tight">Earnings delta</span>
                 <span :class="deltaClass(action.offlineEarningsDelta)" class="font-mono-premium font-bold text-sm">
-                  {{ formatDelta(action.offlineEarningsDelta * 3600) }}/hr
+                   {{ formatDelta(action.offlineEarningsDelta * 3600) }}/hr
+                </span>
+              </div>
+              <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
+                <span class="text-xs font-bold text-slate-600 uppercase tracking-tight">Population delta</span>
+                <span :class="deltaClass(action.populationDelta)" class="font-mono-premium font-bold text-sm">
+                   {{ formatDelta(action.populationDelta) }}
                 </span>
               </div>
             </div>

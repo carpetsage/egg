@@ -38,14 +38,14 @@
 
       <!-- Time info -->
       <div class="text-right shrink-0">
-        <div class="text-[10px] font-black text-slate-700 uppercase tracking-widest leading-none mb-1">
+        <div class="text-[10px] font-black text-slate-700 tracking-widest leading-none mb-1">
           {{ formattedTimestamp }}
         </div>
         <div class="flex flex-col items-end gap-0.5">
-          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+          <div class="text-[10px] font-bold text-slate-400 tracking-tight">
              Time: {{ formattedTimeElapsed }}
           </div>
-          <div v-if="props.eggsDelivered > 0" class="text-[10px] font-black text-slate-900 uppercase tracking-widest">
+          <div v-if="props.eggsDelivered > 0" class="text-[10px] font-black text-slate-900 tracking-widest">
             {{ formatNumber(props.eggsDelivered, 3) }} Eggs
           </div>
         </div>

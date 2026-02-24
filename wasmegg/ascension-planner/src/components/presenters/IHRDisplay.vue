@@ -18,8 +18,20 @@
         </div>
       </div>
       <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center px-1">
-        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base Calibration</span>
-        <span class="font-mono-premium text-xs font-bold text-slate-700">{{ formatNumber(output.baseRatePerHab, 2) }}/min per module</span>
+        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base IHR</span>
+        <span class="font-mono-premium text-xs font-bold text-slate-700">{{ formatNumber(output.baseRatePerHab, 2) }}/min per hab</span>
+      </div>
+
+      <!-- Min Rate Banner -->
+      <div v-if="output.isClampedByMinRate" class="mt-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 flex items-start gap-3">
+        <div class="w-5 h-5 rounded-full bg-white flex items-center justify-center border border-indigo-100 shadow-sm shrink-0 mt-0.5">
+          <svg class="w-3 h-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="text-[10px] text-indigo-600 leading-relaxed font-medium">
+          Rate boosted to <span class="font-bold">500/min</span> because players can create chickens manually in the game.
+        </div>
       </div>
     </div>
 

@@ -114,8 +114,22 @@ export function calculateIHR(input: IHRInput): IHROutput {
 
   // Calculate final rates (multiply by 4 for 4 habs)
   const numHabs = 4;
-  const onlineRate = baseRatePerHab * teMultiplier * epicMultiplier * easterEggMultiplier * artifactMultiplier * numHabs;
-  const offlineRate = onlineRate * offlineMultiplier;
+  let onlineRate = baseRatePerHab * teMultiplier * epicMultiplier * easterEggMultiplier * artifactMultiplier * numHabs;
+  let offlineRate = onlineRate * offlineMultiplier;
+
+  // Apply floor of 500/min (manual chicken creation)
+  const MIN_RATE = 500;
+  const isClampedByMinRate = onlineRate < MIN_RATE;
+  if (isClampedByMinRate) {
+    onlineRate = MIN_RATE;
+    // Note: manual creation is online only in logic, but for simplified simulation 
+    // we assume the player can keep it up or it represents a baseline.
+    // However, if online is 500, offline should probably be at least 500 too or scaled.
+    // User says "players can create chickens manually... use 500/minute instead".
+    if (offlineRate < MIN_RATE) {
+      offlineRate = MIN_RATE;
+    }
+  }
 
   // Build research breakdown for display
   const researchBreakdown = allIHRResearches.map(research => {
@@ -150,6 +164,7 @@ export function calculateIHR(input: IHRInput): IHROutput {
     offlineMultiplier,
     onlineRate,
     offlineRate,
+    isClampedByMinRate,
     researchBreakdown,
     artifactBreakdown: artifactEffects,
   };

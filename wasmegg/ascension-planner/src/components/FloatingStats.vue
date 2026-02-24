@@ -75,7 +75,7 @@
         <div class="flex flex-col items-center">
           <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Habs</span>
           <span class="font-mono-premium text-[11px] font-bold text-slate-700">
-            {{ formatNumber(habCapacity, 0) }}
+            {{ habsDisplay }}
           </span>
         </div>
 
@@ -136,7 +136,7 @@
           <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-none mb-0.5">Bank</span>
           <div class="flex items-center gap-1">
             <span class="font-mono-premium text-[11px] font-bold text-slate-700">
-              {{ formatNumber(snapshot.bankValue, 3) }}
+              {{ formatNumber(Math.max(0, snapshot.bankValue), 3) }}
             </span>
             <img :src="iconURL('egginc/icon_virtue_gem.png', 32)" class="w-3 h-3" alt="Gems" />
           </div>
@@ -180,6 +180,14 @@ const snapshot = computed(() => actionsStore.effectiveSnapshot);
 const currentEgg = computed(() => snapshot.value.currentEgg);
 const activeSet = computed(() => snapshot.value.activeArtifactSet);
 const habCapacity = computed(() => snapshot.value.habCapacity);
+const population = computed(() => snapshot.value.population);
+
+const habsDisplay = computed(() => {
+  const p = formatNumber(population.value, 3);
+  const c = formatNumber(habCapacity.value, 3);
+  return p === c ? c : `${p} / ${c}`;
+});
+
 const offlineIhrHr = computed(() => snapshot.value.offlineIHR * 60);
 
 // Rates (assume per second based on types, converting to per hour)

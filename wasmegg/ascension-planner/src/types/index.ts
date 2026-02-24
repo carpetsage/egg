@@ -1,7 +1,7 @@
 // Core types for the Ascension Planner
 
 // Re-export action types
-export * from './actions';
+export * from './actions/index';
 
 /**
  * Initial state data loaded from player backup
@@ -193,6 +193,7 @@ export interface IHROutput {
   // Final rates (for 4 habs)
   onlineRate: number;   // chickens/min when app is open
   offlineRate: number;  // chickens/min when app is closed
+  isClampedByMinRate: boolean;
 
   // Research breakdown for display
   researchBreakdown: {
