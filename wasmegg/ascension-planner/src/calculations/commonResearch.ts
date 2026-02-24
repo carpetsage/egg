@@ -112,6 +112,21 @@ export function calculatePurchasesUpToTier(
 }
 
 /**
+ * Calculate total purchases made in each tier.
+ * Returns a Map where key is tier number and value is total purchases.
+ */
+export function calculatePurchasesByTierMap(
+  researchLevels: ResearchLevels
+): Map<number, number> {
+  const map = new Map<number, number>();
+  for (const research of commonResearches) {
+    const current = map.get(research.tier) || 0;
+    map.set(research.tier, current + (researchLevels[research.id] || 0));
+  }
+  return map;
+}
+
+/**
  * Check if a tier is unlocked based on total purchases from previous tiers.
  */
 export function isTierUnlocked(

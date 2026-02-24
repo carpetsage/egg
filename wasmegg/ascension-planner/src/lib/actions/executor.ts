@@ -17,6 +17,7 @@ import type {
   BuyTrainCarPayload,
   BuySiloPayload,
   VirtueEgg,
+  StartAscensionPayload,
 } from '@/types';
 import type { ArtifactSlotPayload } from '@/types';
 import { getResearchById, TIER_UNLOCK_THRESHOLDS } from '@/calculations/commonResearch';
@@ -152,7 +153,8 @@ export function getExecutor<T extends ActionType>(type: T): ActionExecutor<T> {
 export function computeDependencies(
   type: ActionType,
   payload: ActionPayloadMap[ActionType],
-  existingActions: Action[]
+  existingActions: Action[],
+  initialResearchLevels: Record<string, number> = {}
 ): string[] {
   const deps: string[] = [];
 
@@ -243,7 +245,7 @@ export function computeDependencies(
     const research = getResearchById(researchPayload.researchId);
     if (research && research.tier > 1) {
       const threshold = TIER_UNLOCK_THRESHOLDS[research.tier - 1];
-      const thresholdAction = findNthResearchPurchase(existingActions, threshold);
+      const thresholdAction = findNthResearchPurchase(existingActions, threshold, initialResearchLevels);
       if (thresholdAction) {
         deps.push(thresholdAction.id);
       }
@@ -257,15 +259,69 @@ export function computeDependencies(
  * Find the N-th research purchase in the entire history (across all tiers).
  * This is the action that definitively unlocked a higher tier.
  */
-function findNthResearchPurchase(actions: Action[], n: number): Action | undefined {
+function findNthResearchPurchase(
+  actions: Action[],
+  n: number,
+  initialResearchLevels: Record<string, number> = {}
+): Action | undefined {
   let count = 0;
+  // Initialize count with levels already purchased in tiers 1 through n-1
+  // Wait, wait. The threshold is TOTAL purchases in tiers 1 to X-1.
+  // Actually, Egg Inc thresholds are cumulative. 
+  // If threshold is 1655, it means total research purchases MUST be >= 1655.
+  // Wait, let's verify if TIER_UNLOCK_THRESHOLDS is "purchases in previous tiers" or "total purchases".
+  // commonResearch.ts: Index 12 = tier 13 (requires 1655 purchases from tiers 1-12)
+
+  // So for threshold N, we only care about purchases in tiers that contributes to that threshold.
+  // But which tiers contribute to threshold for tier X? Tiers 1 to X-1.
+
+  // This findNthResearchPurchase is currently used for ANY threshold.
+  // It's a bit of an approximation in the original code (it just counted all research).
+
+  // Let's make it a bit better.
+  // Threshold n is for tier X if n = TIER_UNLOCK_THRESHOLDS[X-1].
+  // So we want to find the action that makes (T1..X-1 total) >= n.
+
+  // Let's find which tier this threshold belongs to.
+  let targetTier = TIER_UNLOCK_THRESHOLDS.indexOf(n as any);
+  if (targetTier === -1) targetTier = 13; // Fallback
+
+  // Start count with initial purchases in tiers < targetTier + 1 (i.e. Tiers 1 to targetTier)
+  // Wait, if targetTier 12 is for Tier 13. Threshold n is at index 12.
+  // So we need purchases in Tiers 1-12 to be >= n.
+
+  for (const [id, level] of Object.entries(initialResearchLevels)) {
+    const research = getResearchById(id);
+    if (research && research.tier <= targetTier) {
+      count += level;
+    }
+  }
+
+  if (count >= n) return undefined; // Already unlocked by backup or initial snapshot
+
   for (const action of actions) {
     if (action.type === 'buy_research') {
       const payload = action.payload as BuyResearchPayload;
-      const levelsBought = payload.toLevel - payload.fromLevel;
-      count += levelsBought;
-      if (count >= n) {
-        return action;
+      const research = getResearchById(payload.researchId);
+      if (research && research.tier <= targetTier) {
+        const levelsBought = payload.toLevel - payload.fromLevel;
+        count += levelsBought;
+        if (count >= n) {
+          return action;
+        }
+      }
+    } else if (action.type === 'start_ascension') {
+      const payload = action.payload as StartAscensionPayload;
+      if (payload.initialFarmState?.commonResearches) {
+        for (const [id, level] of Object.entries(payload.initialFarmState.commonResearches)) {
+          const research = getResearchById(id);
+          if (research && research.tier <= targetTier) {
+            count += level as number;
+            if (count >= n) {
+              return action;
+            }
+          }
+        }
       }
     }
   }

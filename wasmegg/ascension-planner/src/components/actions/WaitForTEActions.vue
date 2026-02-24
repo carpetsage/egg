@@ -296,7 +296,7 @@ function handleWaitForTE() {
     startTE: currentTE.value,
   };
 
-  const dependencies = computeDependencies('wait_for_te', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('wait_for_te', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   // Apply to store - add eggs delivered (TE is calculated from thresholds)
   truthEggsStore.addEggsDelivered(payload.egg, payload.eggsToLay);

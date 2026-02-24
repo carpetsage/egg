@@ -257,7 +257,7 @@ function handleStoreFuel() {
     timeSeconds: timeToStoreSeconds.value,
   };
 
-  const dependencies = computeDependencies('store_fuel', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('store_fuel', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   // Apply to store
   fuelTankStore.addFuel(payload.egg, payload.amount);
@@ -300,7 +300,7 @@ async function handleRemoveFuel(egg: VirtueEgg) {
     amount: actualToRemove,
   };
 
-  const dependencies = computeDependencies('remove_fuel', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('remove_fuel', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   // Apply to store
   fuelTankStore.removeFuel(egg, actualToRemove);

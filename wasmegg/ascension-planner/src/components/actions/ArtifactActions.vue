@@ -204,10 +204,11 @@ function saveChanges() {
     }
   }
   
-  const dependencies = computeDependencies('update_artifact_set', {
+  const payload = {
     setName: selectedTab.value,
     newLoadout: toLoadout,
-  }, actionsStore.actionsBeforeInsertion);
+  };
+  const dependencies = computeDependencies('update_artifact_set', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   completeExecution({
     id: generateActionId(),
@@ -231,9 +232,10 @@ function equipSet() {
     return;
   }
   
-  const dependencies = computeDependencies('equip_artifact_set', {
+  const payload = {
     setName: selectedTab.value,
-  }, actionsStore.actionsBeforeInsertion);
+  };
+  const dependencies = computeDependencies('equip_artifact_set', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   completeExecution({
     id: generateActionId(),

@@ -156,7 +156,7 @@ function handleBuySilo() {
   };
 
   // Compute dependencies
-  const dependencies = computeDependencies('buy_silo', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('buy_silo', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   // Cost is calculated based on fromCount (silos owned before purchase)
   const cost = siloOutput.value.nextSiloCost;

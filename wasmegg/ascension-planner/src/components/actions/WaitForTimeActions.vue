@@ -66,7 +66,7 @@ function handleWaitTime() {
     totalTimeSeconds: parsedSeconds.value,
   };
 
-  const dependencies = computeDependencies('wait_for_time', payload, actionsStore.actionsBeforeInsertion);
+  const dependencies = computeDependencies('wait_for_time', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
 
   completeExecution({
     id: generateActionId(),
