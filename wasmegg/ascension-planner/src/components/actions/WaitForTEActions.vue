@@ -196,9 +196,19 @@ import { generateActionId, VIRTUE_EGG_NAMES } from '@/types';
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 
+import { useLayRate } from '@/composables/useLayRate';
+import { useInternalHatcheryRate } from '@/composables/useInternalHatcheryRate';
+import { useShippingCapacity } from '@/composables/useShippingCapacity';
+import { useHabCapacity } from '@/composables/useHabCapacity';
+import { solveForTime } from '@/engine/apply/math';
+
 const truthEggsStore = useTruthEggsStore();
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
+const { output: layRateOutput } = useLayRate();
+const { output: ihrOutput } = useInternalHatcheryRate();
+const { output: shippingOutput } = useShippingCapacity();
+const { output: habCapacityOutput } = useHabCapacity();
 const { output: effectiveLayRateOutput } = useEffectiveLayRate();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
@@ -245,9 +255,18 @@ const eggsToLay = computed(() => {
 
 const timeToLaySeconds = computed(() => {
   if (eggsToLay.value <= 0) return 0;
-  const ratePerSecond = effectiveLayRateOutput.value.effectiveLayRate;
-  if (ratePerSecond <= 0) return Infinity;
-  return eggsToLay.value / ratePerSecond;
+  const P0 = virtueStore.population;
+  const I = ihrOutput.value.offlineRate / 60; // chickens/sec
+  const R = layRateOutput.value.ratePerChickenPerSecond; // eggs/chicken/sec
+  const S = shippingOutput.value.totalFinalCapacity; // eggs/sec
+  const H = habCapacityOutput.value.totalFinalCapacity; // max chickens
+
+  // The rate is capped by shipping capacity OR by the target population (hab capacity)
+  // If we reach hab capacity, the rate becomes constant at R * H (clamped by S).
+  const maxPossibleRate = Math.min(S, R * H);
+  
+  const time = solveForTime(eggsToLay.value, P0, I, R, maxPossibleRate);
+  return isFinite(time) ? time : Infinity;
 });
 
 const elrPerHour = computed(() => effectiveLayRateOutput.value.effectiveLayRate * 3600);
