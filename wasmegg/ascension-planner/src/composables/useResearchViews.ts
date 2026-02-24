@@ -72,7 +72,7 @@ export function useResearchViews() {
     });
 
     const gameViewTimes = computed(() => {
-        if (currentView.value !== 'game') return { tiers: {}, researches: {} };
+        if (currentView.value !== 'game') return { tiers: {}, researches: {}, tierSeconds: {}, researchSeconds: {} };
 
         const context = getSimulationContext();
         const baseSnapshot = actionsStore.effectiveSnapshot;
@@ -80,6 +80,8 @@ export function useResearchViews() {
 
         const resultResearches: Record<string, string> = {};
         const resultTiers: Record<number, string> = {};
+        const resultResearchSeconds: Record<string, number> = {};
+        const resultTierSeconds: Record<number, number> = {};
 
         const levels = commonResearchStore.researchLevels;
 
@@ -118,6 +120,7 @@ export function useResearchViews() {
                     rSnapshot = computeSnapshot(rState, context);
                 }
                 resultResearches[r.id] = rInfinite ? '∞' : (rSeconds < 0.1 ? '0s' : formatDuration(rSeconds));
+                resultResearchSeconds[r.id] = rInfinite ? Infinity : rSeconds;
             }
 
             let tierState = createBaseEngineState(baseSnapshot);
@@ -155,10 +158,16 @@ export function useResearchViews() {
 
             if (anyUnpurchasedInTier) {
                 resultTiers[tier] = tierInfinite ? '∞' : (tierSeconds < 1 ? '0s' : formatDuration(tierSeconds));
+                resultTierSeconds[tier] = tierInfinite ? Infinity : tierSeconds;
             }
         }
 
-        return { tiers: resultTiers, researches: resultResearches };
+        return {
+            tiers: resultTiers,
+            researches: resultResearches,
+            tierSeconds: resultTierSeconds,
+            researchSeconds: resultResearchSeconds
+        };
     });
 
     const sortedResearches = computed(() => {
@@ -229,7 +238,9 @@ export function useResearchViews() {
                         price: item.price,
                         currentLevel: researchLevels[r.id] || 0,
                         timeToBuy: timeToBuy,
+                        timeToBuySeconds: secondsToBuy,
                         buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : '0s',
+                        buyToHereSeconds: totalSeconds,
                         canBuy: true,
                         isMaxed: false,
                         showDivider: item.showDivider || false,
@@ -288,7 +299,9 @@ export function useResearchViews() {
                         price: item.price,
                         currentLevel: researchLevels[r.id] || 0,
                         timeToBuy: timeToBuy,
+                        timeToBuySeconds: secondsToBuy,
                         buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : '0s',
+                        buyToHereSeconds: totalSeconds,
                         canBuy: true,
                         isMaxed: false,
                     });
@@ -419,6 +432,7 @@ export function useResearchViews() {
                     ...c,
                     extraStats: c.totalRoiLabel,
                     extraLabel: 'Achieve ROI',
+                    extraSeconds: c.totalRoiSeconds,
                     recommendationNote,
                 };
             }).sort((a, b) => {

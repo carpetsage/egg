@@ -127,6 +127,30 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
+ * Format an absolute completion time based on a duration in seconds.
+ *
+ * @param seconds - Duration in seconds from the base timestamp
+ * @param baseTimestamp - Base Unix timestamp in milliseconds (defaults to Date.now())
+ * @returns Formatted absolute time string
+ *
+ * @example
+ * formatAbsoluteTime(3600) // e.g., "Tue, Feb 24, 5:43 PM"
+ */
+export function formatAbsoluteTime(seconds: number, baseTimestamp?: number): string {
+  if (!isFinite(seconds)) return '∞';
+  const start = baseTimestamp ?? Date.now();
+  const date = new Date(start + seconds * 1000);
+  return date.toLocaleString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+/**
  * Format a percentage value.
  *
  * @param value - The decimal value (0.5 = 50%)

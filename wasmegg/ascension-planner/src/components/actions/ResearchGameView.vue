@@ -29,7 +29,7 @@
             v-if="tierSummaries[tier]?.isUnlocked && !isTierMaxed(tier)"
             class="btn-premium btn-secondary text-xs py-1 px-2"
             @click.stop="$emit('max-tier', tier)"
-            v-tippy="`Buy all remaining research in Tier ${tier}${viewTimes.tiers[tier] ? ' (Total: ' + viewTimes.tiers[tier] + ')' : ''}`"
+            v-tippy="viewTimes.tiers[tier] ? formatAbsoluteTime(viewTimes.tierSeconds[tier], baseTimestamp) : ''"
           >
             Max Tier
             <span v-if="viewTimes.tiers[tier]" class="ml-1 text-[9px] opacity-70">({{ viewTimes.tiers[tier] }})</span>
@@ -56,10 +56,12 @@
           :current-level="levels[research.id] || 0"
           :price="getResearchPrice(research)"
           :time-to-buy="getResearchTimeToBuy(research)"
+          :time-to-buy-seconds="getResearchTimeToBuySeconds(research)"
           :can-buy="true"
           :is-maxed="(levels[research.id] || 0) >= research.levels"
           :show-max="true"
           :max-time="viewTimes.researches[research.id]"
+          :max-time-seconds="viewTimes.researchSeconds[research.id]"
           @buy="$emit('buy', research)"
           @max="$emit('max', research)"
         />
@@ -69,24 +71,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { type CommonResearch } from '@/calculations/commonResearch';
 import ResearchItem from './ResearchItem.vue';
+import { formatAbsoluteTime } from '@/lib/format';
+import { useActionsStore } from '@/stores/actions';
 
 const props = defineProps<{
   tiers: number[];
   researchByTier: Map<number, CommonResearch[]>;
   tierSummaries: Record<number, any>;
-  viewTimes: { tiers: Record<number, string>; researches: Record<string, string> };
+  viewTimes: { 
+    tiers: Record<number, string>; 
+    researches: Record<string, string>;
+    tierSeconds: Record<number, number>;
+    researchSeconds: Record<string, number>;
+  };
   levels: Record<string, number>;
   getResearchPrice: (r: CommonResearch) => number;
   getResearchTimeToBuy: (r: CommonResearch) => string;
+  getResearchTimeToBuySeconds: (r: CommonResearch) => number;
 }>();
 
 defineEmits(['buy', 'max', 'max-tier']);
 
 const expandedTiers = ref(new Set<number>());
 const autoExpanded = new Set<number>();
+
+const actionsStore = useActionsStore();
+
+const baseTimestamp = computed(() => {
+  const startAction = actionsStore.getStartAction();
+  if (!startAction) return Date.now();
+  return startAction.timestamp + (actionsStore.effectiveSnapshot.lastStepTime * 1000);
+});
 
 function isTierMaxed(tier: number): boolean {
   const summary = props.tierSummaries[tier];
