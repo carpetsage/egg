@@ -333,6 +333,7 @@ export interface CalculationsSnapshot {
   offlineEarnings: number;
   onlineIHR: number;
   offlineIHR: number;
+  ratePerChickenPerSecond: number;
   bankValue: number;
 
 
@@ -416,6 +417,7 @@ export interface BaseAction {
   shippingCapacityDelta: number; // Change in shipping capacity
   ihrDelta: number;              // Change in IHR (offline)
   bankDelta: number;             // Change in gems
+  populationDelta: number;       // Change in population
 
   // Snapshot of full state AFTER this action
   endState: CalculationsSnapshot;
@@ -514,6 +516,7 @@ export function createEmptySnapshot(): CalculationsSnapshot {
     offlineEarnings: 0,
     onlineIHR: 0,
     offlineIHR: 0,
+    ratePerChickenPerSecond: 0,
     bankValue: 0,
 
     currentEgg: 'curiosity', // Default starting egg
@@ -543,7 +546,7 @@ export function createEmptySnapshot(): CalculationsSnapshot {
       resilience: 0,
       kindness: 0,
     },
-    population: 0,
+    population: 1,
     lastStepTime: 0,
     vehicles: [{ vehicleId: 0, trainLength: 1 }], // Every player starts with 1 trike
     habIds: [0, null, null, null], // Every player starts with 1 Coop (id=0)

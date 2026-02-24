@@ -36,7 +36,7 @@
         <span class="summary-label">Shifts</span>
         <div class="flex items-center gap-2">
           <span class="summary-value font-mono-premium font-black text-slate-600">{{ shiftCount }}</span>
-          <span v-if="totalShiftCost > 0" class="badge-premium bg-slate-50 text-slate-700/70 border border-slate-100 px-2 py-0.5 whitespace-nowrap lowercase">
+          <span v-if="totalShiftCost > 0" class="badge-premium bg-slate-50 text-slate-700/70 border border-slate-100 px-2 py-0.5 whitespace-nowrap">
             ({{ formatNumber(totalShiftCost, 3) }} SE <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5 inline-block -mt-1 ml-0.5" alt="SE" />)
           </span>
         </div>

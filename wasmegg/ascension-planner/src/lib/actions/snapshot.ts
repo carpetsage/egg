@@ -63,6 +63,7 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
     offlineEarnings: earnings.value.offlineEarnings,
     onlineIHR: ihr.value.onlineRate,
     offlineIHR: ihr.value.offlineRate,
+    ratePerChickenPerSecond: layRate.value.ratePerChickenPerSecond,
     bankValue: virtueStore.bankValue,
 
     // Virtue state
@@ -92,7 +93,7 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
     })),
     activeArtifactSet: initialStateStore.activeArtifactSet,
     artifactSets: JSON.parse(JSON.stringify(initialStateStore.artifactSets)),
-    population: 0,
+    population: virtueStore.population,
     lastStepTime: 0,
     activeSales: { ...salesStore.$state },
     earningsBoost: {
@@ -141,6 +142,7 @@ export function computeDeltas(
   shippingCapacityDelta: number;
   ihrDelta: number;
   bankDelta: number;
+  populationDelta: number;
 } {
   return {
     elrDelta: after.elr - before.elr,
@@ -151,6 +153,7 @@ export function computeDeltas(
     shippingCapacityDelta: after.shippingCapacity - before.shippingCapacity,
     ihrDelta: after.offlineIHR - before.offlineIHR,
     bankDelta: after.bankValue - before.bankValue,
+    populationDelta: after.population - before.population,
   };
 }
 
@@ -194,6 +197,7 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
     state.shiftCount = snapshot.shiftCount;
     state.te = snapshot.te;
     state.bankValue = snapshot.bankValue;
+    state.population = snapshot.population;
   });
 
   // Restore initial state (soul eggs and artifacts)

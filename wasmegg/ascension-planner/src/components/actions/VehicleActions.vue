@@ -203,6 +203,7 @@ import {
   calculateMaxTrainLength,
 } from '@/calculations/shippingCapacity';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
+import { calculateEarningsForTime, getTimeToSave } from '@/engine/apply';
 
 const VehicleSelect = GenericBaseSelectFilterable<VehicleType>();
 
@@ -279,17 +280,9 @@ function getVehiclePrice(vehicleId: number, slotIndex: number): number {
 }
 
 function getTimeToBuyFromPrice(price: number): string {
-  if (price <= 0) return 'Free';
-
-  const snapshot = actionsStore.effectiveSnapshot;
-  const offlineEarnings = snapshot.offlineEarnings;
-  const bankValue = snapshot.bankValue || 0;
-
-  if (price <= bankValue) return '0s';
-  if (offlineEarnings <= 0) return '∞';
-
-  const seconds = (price - bankValue) / offlineEarnings;
-  if (seconds < 1) return '0s';
+  const seconds = getTimeToSave(price, actionsStore.effectiveSnapshot);
+  if (seconds <= 0) return '0s';
+  if (seconds === Infinity) return '∞';
   return formatDuration(seconds);
 }
 
@@ -574,6 +567,9 @@ const maxVehiclesTime = computed(() => {
   let virtualVehicles = (snapshot.vehicles ? snapshot.vehicles.map(v => ({ ...v })) : []).slice(0, maxSlots);
   let virtualBank = bankValue;
 
+  // Clone snapshot for virtual simulation
+  let virtualSnapshot = { ...snapshot, bankValue: virtualBank };
+
   // Pad to max slots
   while (virtualVehicles.length < maxSlots) {
     virtualVehicles.push({ vehicleId: null, trainLength: 1 });
@@ -586,23 +582,22 @@ const maxVehiclesTime = computed(() => {
     // 1. Upgrade to Hyperloop
     if (slot.vehicleId !== HYPERLOOP_ID) {
       const price = getVehiclePrice(HYPERLOOP_ID, i);
-      
-      const virtualELR = Math.min(initialLayRate, virtualShippingCapacity);
-      const virtualEPS = initialELR > 0 ? (offlineEarnings / initialELR) * virtualELR : 0;
+      const seconds = getTimeToSave(price, virtualSnapshot);
+      if (seconds === Infinity) return '∞';
 
-      if (virtualEPS > 0) {
-        const effectivePrice = Math.max(0, price - virtualBank);
-        const bankUsed = Math.min(price, virtualBank);
-        virtualBank -= bankUsed;
-        totalSeconds += effectivePrice / virtualEPS;
-      } else if (price > virtualBank) {
-        return '∞';
-      }
+      totalSeconds += seconds;
 
-      // Update virtual capacity
+      // Update virtual state
       const oldCap = getVehicleCapacity(slot, i);
       const newCap = getVehicleCapacity({ vehicleId: HYPERLOOP_ID, trainLength: 1 }, i);
-      virtualShippingCapacity += newCap - oldCap;
+      
+      const P0 = virtualSnapshot.population;
+      const I = virtualSnapshot.offlineIHR / 60;
+      virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, P0 + I * seconds);
+      virtualSnapshot.shippingCapacity += newCap - oldCap;
+      virtualSnapshot.elr = Math.min(virtualSnapshot.layRate, virtualSnapshot.shippingCapacity);
+      virtualSnapshot.bankValue = 0;
+      
       virtualVehicles[i] = { vehicleId: HYPERLOOP_ID, trainLength: 1 };
     } else {
       currentLength = slot.trainLength;
@@ -611,24 +606,22 @@ const maxVehiclesTime = computed(() => {
     // 2. Add cars
     for (let l = currentLength; l < maxLength; l++) {
       const carPrice = getDiscountedTrainCarPrice(l, costModifiers.value, isVehicleSaleActive.value);
+      const seconds = getTimeToSave(carPrice, virtualSnapshot);
+      if (seconds === Infinity) return '∞';
 
-      const virtualELR = Math.min(initialLayRate, virtualShippingCapacity);
-      const virtualEPS = initialELR > 0 ? (offlineEarnings / initialELR) * virtualELR : 0;
+      totalSeconds += seconds;
 
-      if (virtualEPS > 0) {
-        const effectivePrice = Math.max(0, carPrice - virtualBank);
-        const bankUsed = Math.min(carPrice, virtualBank);
-        virtualBank -= bankUsed;
-        totalSeconds += effectivePrice / virtualEPS;
-      } else if (carPrice > virtualBank) {
-        return '∞';
-      }
-
-      // Update virtual capacity (each car adds baseCapacityPerSecond * multipliers)
-      // Simpler: use the getVehicleCapacity helper by comparing lengths
+      // Update virtual state
       const oldCap = getVehicleCapacity({ vehicleId: HYPERLOOP_ID, trainLength: l }, i);
       const newCap = getVehicleCapacity({ vehicleId: HYPERLOOP_ID, trainLength: l + 1 }, i);
-      virtualShippingCapacity += newCap - oldCap;
+      
+      const P0 = virtualSnapshot.population;
+      const I = virtualSnapshot.offlineIHR / 60;
+      virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, P0 + I * seconds);
+      virtualSnapshot.shippingCapacity += newCap - oldCap;
+      virtualSnapshot.elr = Math.min(virtualSnapshot.layRate, virtualSnapshot.shippingCapacity);
+      virtualSnapshot.bankValue = 0;
+
       virtualVehicles[i].trainLength = l + 1;
     }
   }
@@ -673,7 +666,7 @@ function handleBuy5MinCap() {
   const offlineEarnings = snapshot.offlineEarnings;
   if (offlineEarnings <= 0) return;
 
-  const maxBudget = 5 * 60 * offlineEarnings;
+  const maxBudget = calculateEarningsForTime(5 * 60, snapshot);
   let spent = 0;
 
   // Track virtual state to calculate costs and capacities correctly in the loop
@@ -704,25 +697,7 @@ function handleBuy5MinCap() {
         const currentId = slot.vehicleId;
         const startId = currentId === null ? 0 : currentId + 1;
 
-        // Find the highest "instant" vehicle (cost < 1s of earnings) to skip intermediate steps
-        let maxInstantId = -1;
-        for (let id = startId; id <= 11; id++) {
-          const cost = getDiscountedVehiclePrice(
-            id,
-            vehicleCounts[id] || 0,
-            costModifiers.value,
-            isVehicleSaleActive.value
-          );
-          if (cost <= offlineEarnings) {
-            maxInstantId = id;
-          } else {
-            break;
-          }
-        }
-
         for (let nextId = startId; nextId <= 11; nextId++) {
-          if (nextId < maxInstantId) continue;
-
           const cost = getDiscountedVehiclePrice(
             nextId,
             vehicleCounts[nextId] || 0,
@@ -732,12 +707,11 @@ function handleBuy5MinCap() {
 
           if (spent + cost <= maxBudget) {
             const deltaCap = getVehicleCapacity({ vehicleId: nextId, trainLength: 1 }, i) - getVehicleCapacity(slot, i);
-            // Allow deltaCap >= 0 for vehicles because Tier 11 (Hyperloop) has same base as Tier 10 (Quantum)
-            // but unlocks train cars which provide more capacity.
             if (deltaCap >= 0) {
               const roi = deltaCap / Math.max(cost, 1e-10);
-              if (roi > bestRoi) {
-                bestRoi = roi;
+              const score = deltaCap > 1000 ? deltaCap * 1000 + roi : roi;
+              if (score > bestRoi) {
+                bestRoi = score;
                 bestAction = { type: 'vehicle', slotIndex: i, vehicleId: nextId, cost };
               }
             }
@@ -753,8 +727,9 @@ function handleBuy5MinCap() {
             const deltaCap = nextCap - currentCap;
             if (deltaCap > 0) {
               const roi = deltaCap / Math.max(cost, 1e-10);
-              if (roi > bestRoi) {
-                bestRoi = roi;
+              const score = deltaCap > 1000 ? deltaCap * 1000 + roi : roi;
+              if (score > bestRoi) {
+                bestRoi = score;
                 bestAction = { type: 'car', slotIndex: i, cost };
               }
             }

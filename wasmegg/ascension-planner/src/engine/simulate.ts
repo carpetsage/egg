@@ -52,15 +52,7 @@ export function simulate(
         const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
         currentState = applyPassiveEggs(currentState, passiveEggs);
 
-        // Use average earnings for Wait for Full Habs
-        let effectiveEarnings = currentSnapshot.offlineEarnings;
-        if (action.type === 'wait_for_full_habs' && currentSnapshot.habCapacity > 0) {
-            const startPop = currentSnapshot.population;
-            const endPop = currentSnapshot.habCapacity;
-            effectiveEarnings = currentSnapshot.offlineEarnings * (startPop + endPop) / (2 * endPop);
-        }
-
-        currentState = applyTime(currentState, durationSeconds, effectiveEarnings);
+        currentState = applyTime(currentState, durationSeconds, currentSnapshot, action.type === 'buy_hab');
 
         // 2. Compute full snapshot
         const newSnapshot = computeSnapshot(currentState, context);
@@ -140,15 +132,7 @@ export async function simulateAsync(
         const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
         currentState = applyPassiveEggs(currentState, passiveEggs);
 
-        // Use average earnings for Wait for Full Habs
-        let effectiveEarnings = currentSnapshot.offlineEarnings;
-        if (action.type === 'wait_for_full_habs' && currentSnapshot.habCapacity > 0) {
-            const startPop = currentSnapshot.population;
-            const endPop = currentSnapshot.habCapacity;
-            effectiveEarnings = currentSnapshot.offlineEarnings * (startPop + endPop) / (2 * endPop);
-        }
-
-        currentState = applyTime(currentState, durationSeconds, effectiveEarnings);
+        currentState = applyTime(currentState, durationSeconds, currentSnapshot, action.type === 'buy_hab');
 
         const newSnapshot = computeSnapshot(currentState, context);
         const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;

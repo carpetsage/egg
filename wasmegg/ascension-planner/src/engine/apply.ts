@@ -19,6 +19,40 @@ import type { CalculationsSnapshot } from '@/types';
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
 
 /**
+ * Solve for time T in: integral from 0 to T of min(R * (P0 + I*t), S) dt = targetAmount
+ */
+export function solveForTime(targetAmount: number, P0: number, I: number, R: number, S: number): number {
+    if (targetAmount <= 0) return 0;
+
+    // 1. If already shipping limited
+    if (R * P0 >= S) {
+        return S > 0 ? targetAmount / S : Infinity;
+    }
+
+    // 2. Laying limited (at least initially)
+    const Tship = (S / R - P0) / I;
+    // Cumulative amount at Tship: Integral of R * (P0 + I*t) dt from 0 to Tship
+    const Gship = (I > 0 && Tship !== Infinity) ? (R * (P0 * Tship + 0.5 * I * Tship * Tship)) : Infinity;
+
+    if (targetAmount <= Gship) {
+        // Solves 0.5*(RI)T^2 + (RP0)T - targetAmount = 0
+        const a = 0.5 * R * I;
+        const b = R * P0;
+        const c = -targetAmount;
+
+        if (a === 0) { // No growth (I=0 or R=0)
+            return b > 0 ? targetAmount / b : Infinity;
+        }
+
+        return (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+    } else {
+        // Reaches shipping limit first
+        const Tremaining = (targetAmount - Gship) / S;
+        return Tship + Tremaining;
+    }
+}
+
+/**
  * Recalculate an action's payload based on the state before it executes.
  * This is used for "dynamic" actions whose effects or durations depend
  * on the current state (like ELR-based waiting).
@@ -35,8 +69,14 @@ export function refreshActionPayload(
         // Recalculate eggs needed based on targetTE intent
         payload.eggsToLay = eggsNeededForTE(currentDelivered, payload.targetTE);
 
-        // Recalculate time based on new eggsToLay and current ELR
-        payload.timeSeconds = prevSnapshot.elr > 0 ? payload.eggsToLay / prevSnapshot.elr : 0;
+        // Recalculate time based on new eggsToLay and current growth
+        payload.timeSeconds = solveForTime(
+            payload.eggsToLay,
+            prevSnapshot.population,
+            prevSnapshot.offlineIHR / 60,
+            prevSnapshot.ratePerChickenPerSecond,
+            prevSnapshot.shippingCapacity
+        );
 
         // Update tracking fields
         payload.startEggsDelivered = currentDelivered;
@@ -52,8 +92,14 @@ export function refreshActionPayload(
     if (action.type === 'store_fuel') {
         const payload = { ...action.payload as StoreFuelPayload };
 
-        // Recalculate time based on fixed amount and current ELR
-        payload.timeSeconds = prevSnapshot.elr > 0 ? payload.amount / prevSnapshot.elr : 0;
+        // Recalculate time based on fixed amount and current growth
+        payload.timeSeconds = solveForTime(
+            payload.amount,
+            prevSnapshot.population,
+            prevSnapshot.offlineIHR / 60,
+            prevSnapshot.ratePerChickenPerSecond,
+            prevSnapshot.shippingCapacity
+        );
 
         return {
             ...action,
@@ -88,11 +134,63 @@ export function refreshActionPayload(
 }
 
 /**
+ * Calculate the total earnings integrated over a period of time [0, seconds].
+ * earnings = integral from 0 to T of V * min(R * (P0 + I*t), S) dt
+ */
+export function calculateEarningsForTime(seconds: number, prevSnapshot: CalculationsSnapshot): number {
+    if (seconds <= 0) return 0;
+
+    const P0 = prevSnapshot.population;
+    const I = prevSnapshot.offlineIHR / 60;
+    const R = prevSnapshot.ratePerChickenPerSecond;
+    const S = prevSnapshot.shippingCapacity;
+    const V = prevSnapshot.elr > 0 ? prevSnapshot.offlineEarnings / prevSnapshot.elr : 0;
+
+    if (V <= 0) return 0;
+
+    let Tship = Infinity;
+    if (I > 0) {
+        Tship = (S / R - P0) / I;
+    } else if (R * P0 >= S) {
+        Tship = 0;
+    }
+
+    if (Tship <= 0) {
+        return V * S * seconds;
+    } else if (seconds <= Tship) {
+        return V * R * (P0 * seconds + 0.5 * I * seconds * seconds);
+    } else {
+        const Gship = V * R * (P0 * Tship + 0.5 * I * Tship * Tship);
+        const Gafter = V * S * (seconds - Tship);
+        return Gship + Gafter;
+    }
+}
+
+/**
+ * Helper to get time to save for a cost, accounting for population growth.
+ */
+export function getTimeToSave(cost: number, prevSnapshot: CalculationsSnapshot): number {
+    const effectiveCost = Math.max(0, cost - (prevSnapshot.bankValue || 0));
+    if (effectiveCost <= 0) return 0;
+
+    const V = prevSnapshot.elr > 0 ? prevSnapshot.offlineEarnings / prevSnapshot.elr : 0;
+    if (V <= 0) return Infinity;
+
+    return solveForTime(
+        effectiveCost / V,
+        prevSnapshot.population,
+        prevSnapshot.offlineIHR / 60,
+        prevSnapshot.ratePerChickenPerSecond,
+        prevSnapshot.shippingCapacity
+    );
+}
+
+/**
  * Calculate the duration of an action in seconds.
  */
 export function getActionDuration(
     action: Action,
-    prevSnapshot: Pick<CalculationsSnapshot, 'offlineEarnings' | 'bankValue'>
+    prevSnapshot: CalculationsSnapshot
 ): number {
     if (
         action.type === 'store_fuel' ||
@@ -117,17 +215,13 @@ export function getActionDuration(
         'buy_silo',
     ];
 
-    if (GEM_COSTING_TYPES.includes(action.type) && action.cost > 0 && prevSnapshot.offlineEarnings > 0) {
-        // Cost-based actions: duration = effective cost / offlineEarnings
-        const effectiveCost = Math.max(0, action.cost - prevSnapshot.bankValue);
-        return effectiveCost / prevSnapshot.offlineEarnings;
+    if (action.type === 'launch_missions') {
+        const T = action.cost > 0 ? getTimeToSave(action.cost, prevSnapshot) : 0;
+        return T + ((action.payload as LaunchMissionsPayload).totalTimeSeconds || 0);
     }
 
-    if (action.type === 'launch_missions' && prevSnapshot.offlineEarnings > 0) {
-        const payload = action.payload as import('@/types').LaunchMissionsPayload;
-        const effectiveCost = Math.max(0, action.cost - prevSnapshot.bankValue);
-        const savingDuration = effectiveCost / prevSnapshot.offlineEarnings;
-        return savingDuration + (payload.totalTimeSeconds || 0);
+    if (GEM_COSTING_TYPES.includes(action.type) && action.cost > 0) {
+        return getTimeToSave(action.cost, prevSnapshot);
     }
 
     return 0;
@@ -146,7 +240,7 @@ export function getActionDuration(
  */
 export function computePassiveEggsDelivered(
     action: Action,
-    prevSnapshot: Pick<CalculationsSnapshot, 'elr' | 'offlineEarnings' | 'bankValue'>
+    prevSnapshot: CalculationsSnapshot
 ): number {
     // These action types handle their own egg delivery or have no duration
     if (
@@ -192,16 +286,65 @@ export function applyPassiveEggs(state: EngineState, passiveEggs: number): Engin
 }
 /**
  * Advance the simulation time in the engine state and add earned gems to the bank.
+ * Also advances population based on growth rate.
  */
-export function applyTime(state: EngineState, seconds: number, offlineEarnings: number): EngineState {
+export function applyTime(
+    state: EngineState,
+    seconds: number,
+    prevSnapshot: CalculationsSnapshot,
+    skipBankUpdate: boolean = false
+): EngineState {
     if (seconds <= 0) return state;
 
-    const earnedGems = seconds * offlineEarnings;
+    const P0 = prevSnapshot.population;
+    const I = prevSnapshot.offlineIHR / 60;
+    const R = prevSnapshot.ratePerChickenPerSecond;
+    const S = prevSnapshot.shippingCapacity;
+    const V = prevSnapshot.elr > 0 ? prevSnapshot.offlineEarnings / prevSnapshot.elr : 0;
+    const maxPop = prevSnapshot.habCapacity;
+
+    // 1. Advance population
+    const newPop = Math.min(maxPop, P0 + I * seconds);
+
+    // 2. Calculate earned gems using integral (average earnings)
+    let earnedGems = 0;
+    if (V > 0 && !skipBankUpdate) {
+        let Tship = Infinity;
+        if (I > 0) {
+            Tship = (S / R - P0) / I;
+        } else if (R * P0 >= S) {
+            Tship = 0;
+        }
+
+        if (Tship <= 0) {
+            // Already shipping-limited from the start
+            earnedGems = V * S * seconds;
+        } else if (seconds <= Tship) {
+            // Entirely in laying-limited phase (or shipping never reached)
+            earnedGems = V * R * (P0 * seconds + 0.5 * I * seconds * seconds);
+        } else {
+            // Crosses into shipping-limited phase
+            const Gship = V * R * (P0 * Tship + 0.5 * I * Tship * Tship);
+            const Gafter = V * S * (seconds - Tship);
+            earnedGems = Gship + Gafter;
+        }
+    }
+
+    let newBankValue = (state.bankValue || 0) + earnedGems;
+
+    // Normalize rounding errors: if bank is extremely small relative to current earnings rate, zero it out.
+    // This happens when buying things one-at-a-time where cost and bank are nearly identical.
+    if (prevSnapshot.offlineEarnings > 0) {
+        if (Math.abs(newBankValue) < prevSnapshot.offlineEarnings * 1e-6) {
+            newBankValue = 0;
+        }
+    }
 
     return {
         ...state,
+        population: newPop,
         lastStepTime: (state.lastStepTime || 0) + seconds,
-        bankValue: (state.bankValue || 0) + earnedGems,
+        bankValue: newBankValue,
     };
 }
 
@@ -235,6 +378,7 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 // already represents the cumulative total from the backup.
             } else {
                 newState.bankValue = 0;
+                newState.population = 1; // Start with 1 chicken (first tap)
             }
 
             // Note: We DO NOT recalculate te or teEarned here. 
@@ -295,6 +439,7 @@ export function applyAction(state: EngineState, action: Action): EngineState {
                 currentEgg: payload.toEgg,
                 shiftCount: payload.newShiftCount,
                 bankValue: 0,
+                population: 1, // Start with 1 chicken on shift
             };
         }
 
@@ -452,25 +597,8 @@ export function applyAction(state: EngineState, action: Action): EngineState {
         }
 
         case 'wait_for_full_habs': {
-            const payload = action.payload as import('@/types').WaitForFullHabsPayload;
-            const startPop = state.population;
-            const endPop = payload.habCapacity;
-
-            // Average earnings calculation:
-            // Earned = duration * (offlineEarnings * (startPop + endPop) / (2 * endPop))
-            // But applyTime will already add (duration * offlineEarnings).
-            // So we need to subtract the "missing" earnings because population was lower than max.
-
-            // Missing = duration * (offlineEarnings * (1 - (startPop + endPop) / (2 * endPop)))
-            // Actually, let's just NOT add gems in applyTime for this action, or handle it here.
-
-            // Refined plan: Add average earnings directly here, 
-            // and applyTime will be called with 0 earnings for this step.
-
-            return {
-                ...state,
-                population: payload.habCapacity,
-            };
+            // Logic handled by applyTime which advances population based on duration
+            return state;
         }
 
         case 'toggle_earnings_boost': {

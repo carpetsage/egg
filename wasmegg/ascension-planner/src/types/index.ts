@@ -193,6 +193,7 @@ export interface IHROutput {
   // Final rates (for 4 habs)
   onlineRate: number;   // chickens/min when app is open
   offlineRate: number;  // chickens/min when app is closed
+  isClampedByMinRate: boolean;
 
   // Research breakdown for display
   researchBreakdown: {

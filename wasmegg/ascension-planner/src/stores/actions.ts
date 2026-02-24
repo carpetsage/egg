@@ -77,6 +77,7 @@ function createDefaultStartAction(initialEgg: VirtueEgg = 'curiosity'): Action<'
     shippingCapacityDelta: 0,
     ihrDelta: 0,
     bankDelta: 0,
+    populationDelta: 0,
     totalTimeSeconds: 0,
     endState: createEmptySnapshot(), // Placeholder, will be computed by engine
     dependsOn: [],
@@ -250,7 +251,7 @@ export const useActionsStore = defineStore('actions', {
      * Add a new action.
      * Uses the pure engine to compute the result and updates history.
      */
-    pushAction(action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'bankDelta' | 'endState'> & { dependsOn: string[] }) {
+    pushAction(action: Omit<Action, 'index' | 'dependents' | 'totalTimeSeconds' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'bankDelta' | 'populationDelta' | 'endState'> & { dependsOn: string[] }) {
       // 0. Check for redundant sequential toggle_sale or toggle_earnings_boost
       if (action.type === 'toggle_sale' || action.type === 'toggle_earnings_boost') {
         const lastAction = this.actions[this.actions.length - 1];
@@ -316,6 +317,7 @@ export const useActionsStore = defineStore('actions', {
         index: this.actions.length,
         dependents: [],
         totalTimeSeconds: 0,
+        populationDelta: 0,
         // Temporary placeholder, will be overwritten
         endState: createEmptySnapshot(),
         // Deltas are computed later
@@ -342,15 +344,7 @@ export const useActionsStore = defineStore('actions', {
       const passiveEggs = computePassiveEggsDelivered(fullAction, prevSnapshot);
       newState = applyPassiveEggs(newState, passiveEggs);
 
-      // Use average earnings for Wait for Full Habs
-      let effectiveEarnings = prevSnapshot.offlineEarnings;
-      if (fullAction.type === 'wait_for_full_habs' && prevSnapshot.habCapacity > 0) {
-        const startPop = prevSnapshot.population;
-        const endPop = prevSnapshot.habCapacity;
-        effectiveEarnings = prevSnapshot.offlineEarnings * (startPop + endPop) / (2 * endPop);
-      }
-
-      newState = applyTime(newState, durationSeconds, effectiveEarnings);
+      newState = applyTime(newState, durationSeconds, prevSnapshot);
 
       const newSnapshot = computeSnapshot(newState, context);
 
@@ -603,6 +597,8 @@ export const useActionsStore = defineStore('actions', {
 
       // Reset to just the start action or a new default one
       if (startAction) {
+        // Reset the start action payload to a clean state
+        startAction.payload = { initialEgg: startAction.payload.initialEgg || 'curiosity' };
         this.actions = [startAction];
       } else {
         this.actions = [createDefaultStartAction()];
@@ -681,6 +677,11 @@ export const useActionsStore = defineStore('actions', {
 
       if (!initialStateStore.currentFarmState) return;
 
+      // 0. Re-equip ELR set (which contains backup loadout) if we are continuing
+      if (initialStateStore.artifactSets.elr) {
+        initialStateStore.setActiveArtifactSet('elr');
+      }
+
       const farm = initialStateStore.currentFarmState;
       const egg = VIRTUE_EGGS[farm.eggType - 50];
 
@@ -749,7 +750,7 @@ export const useActionsStore = defineStore('actions', {
                 multiplier: event.multiplier,
                 eventId: event.id,
               },
-            } as Omit<Action<'toggle_earnings_boost'>, 'index' | 'dependents' | 'totalTimeSeconds' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'bankDelta' | 'endState'>);
+            } as Omit<Action<'toggle_earnings_boost'>, 'index' | 'dependents' | 'totalTimeSeconds' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'bankDelta' | 'populationDelta' | 'endState'>);
           }
         }
 
@@ -774,7 +775,7 @@ export const useActionsStore = defineStore('actions', {
                 active: true,
                 multiplier: event.multiplier,
               },
-            } as Omit<Action<'toggle_sale'>, 'index' | 'dependents' | 'totalTimeSeconds' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'bankDelta' | 'endState'>);
+            } as Omit<Action<'toggle_sale'>, 'index' | 'dependents' | 'totalTimeSeconds' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'bankDelta' | 'populationDelta' | 'endState'>);
           }
         }
       }
@@ -891,15 +892,7 @@ export const useActionsStore = defineStore('actions', {
         const passiveEggs = computePassiveEggsDelivered(fullAction, prevSnapshot);
         newState = applyPassiveEggs(newState, passiveEggs);
 
-        // Use average earnings for Wait for Full Habs
-        let effectiveEarnings = prevSnapshot.offlineEarnings;
-        if (fullAction.type === 'wait_for_full_habs' && prevSnapshot.habCapacity > 0) {
-          const startPop = prevSnapshot.population;
-          const endPop = prevSnapshot.habCapacity;
-          effectiveEarnings = prevSnapshot.offlineEarnings * (startPop + endPop) / (2 * endPop);
-        }
-
-        newState = applyTime(newState, durationSeconds, effectiveEarnings);
+        newState = applyTime(newState, durationSeconds, prevSnapshot);
 
         const newSnapshot = computeSnapshot(newState, context);
         const deltas = computeDeltas(prevSnapshot, newSnapshot);

@@ -101,6 +101,7 @@ import {
   type DurationType,
 } from '@/lib/missions';
 import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
+import { getTimeToSave } from '@/engine/apply';
 
 const props = defineProps<{
   ftlLevel: number;
@@ -115,11 +116,9 @@ function canAfford(ship: Spaceship): boolean {
 }
 
 function saveTime(ship: Spaceship): number {
-  if (props.earningsPerSecond <= 0) return Infinity;
-  const bankValue = actionsStore.effectiveSnapshot.bankValue || 0;
   const price = SHIP_INFO[ship].price;
-  if (price <= bankValue) return 0;
-  return (price - bankValue) / props.earningsPerSecond;
+  const snapshot = actionsStore.effectiveSnapshot;
+  return getTimeToSave(price, snapshot);
 }
 
 function maxCount(ship: Spaceship, dur: DurationType): number {

@@ -125,6 +125,7 @@ import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { calculateHabCapacity, calculateTotalResearchMultipliers } from '@/calculations/habCapacity';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
+import { calculateEarningsForTime, getTimeToSave } from '@/engine/apply';
 
 const HabSelect = GenericBaseSelectFilterable<Hab>();
 
@@ -201,17 +202,9 @@ function getHabDisplay(hab: Hab, slotIndex: number): string {
 
 function getTimeToBuy(habId: number, slotIndex: number): string {
   const price = getHabPrice(habId, slotIndex);
-  if (price <= 0) return 'Free';
-
-  const snapshot = actionsStore.effectiveSnapshot;
-  const offlineEarnings = snapshot.offlineEarnings;
-  const bankValue = snapshot.bankValue || 0;
-
-  if (price <= bankValue) return '0s';
-  if (offlineEarnings <= 0) return '∞';
-
-  const seconds = (price - bankValue) / offlineEarnings;
-  if (seconds < 1) return '0s';
+  const seconds = getTimeToSave(price, actionsStore.effectiveSnapshot);
+  if (seconds <= 0) return '0s';
+  if (seconds === Infinity) return '∞';
   return formatDuration(seconds);
 }
 
@@ -328,9 +321,10 @@ const maxHabsTime = computed(() => {
 
   let totalSeconds = 0;
   let virtualHabIds = [...snapshot.habIds];
-  let virtualLayRate = initialLayRate;
-  let virtualCapacity = initialCapacity;
   let virtualBank = snapshot.bankValue || 0;
+  
+  // Clone snapshot for virtual simulation
+  let virtualSnapshot = { ...snapshot, bankValue: virtualBank };
 
   for (let i = 0; i < 4; i++) {
     const currentId = virtualHabIds[i];
@@ -339,41 +333,37 @@ const maxHabsTime = computed(() => {
     const hab = getHabById(CHICKEN_UNIVERSE_ID);
     if (!hab) continue;
 
-    // Calculate price given virtual state
     const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
     const existingCount = countHabsOfType(otherHabs, CHICKEN_UNIVERSE_ID);
     const price = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
 
-    // Current virtual EPS
-    const virtualELR = Math.min(virtualLayRate, shippingCapacity);
-    const virtualEPS = initialELR > 0 ? (offlineEarnings / initialELR) * virtualELR : 0;
+    const seconds = getTimeToSave(price, virtualSnapshot);
+    if (seconds === Infinity) return '∞';
 
-    if (virtualEPS > 0) {
-      const effectivePrice = Math.max(0, price - virtualBank);
-      const bankUsed = Math.min(price, virtualBank);
-      virtualBank -= bankUsed;
-      totalSeconds += effectivePrice / virtualEPS;
-    } else {
-      if (price > virtualBank) return '∞';
-    }
+    totalSeconds += seconds;
+    
+    // Advance virtual state during wait
+    const I = virtualSnapshot.offlineIHR / 60;
+    virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, virtualSnapshot.population + I * seconds);
+    
+    // Update bank after wait and purchase (if seconds > 0, we waited until we had exactly price)
+    virtualSnapshot.bankValue = seconds > 0 ? 0 : Math.max(0, virtualSnapshot.bankValue - price);
 
-    // Update virtual state for next hab
-    // We need the capacity of the OLD hab in this slot
+    // Apply outcome of purchase
     const oldHabCap = currentId !== null ? getHabCapacity(currentId) : 0;
     const newHabCap = getHabCapacity(CHICKEN_UNIVERSE_ID);
-
-    virtualHabIds[i] = CHICKEN_UNIVERSE_ID;
-
     const deltaCap = newHabCap - oldHabCap;
-    if (deltaCap > 0) {
-      const oldTotalCap = virtualCapacity;
-      const newTotalCap = oldTotalCap + deltaCap;
+    
+    virtualHabIds[i] = CHICKEN_UNIVERSE_ID;
+    virtualSnapshot.habCapacity += deltaCap;
 
-      if (oldTotalCap > 0) {
-        virtualLayRate = (virtualLayRate / oldTotalCap) * newTotalCap;
-      }
-      virtualCapacity = newTotalCap;
-    }
+    // Update earnings metrics based on new population (population grew during wait)
+    const layRatePerChicken = snapshot.population > 0 ? (snapshot.layRate / snapshot.population) : 0;
+    virtualSnapshot.layRate = virtualSnapshot.population * layRatePerChicken;
+    virtualSnapshot.elr = Math.min(virtualSnapshot.layRate, virtualSnapshot.shippingCapacity);
+    
+    const earningsPerEgg = (snapshot.elr > 0) ? (snapshot.offlineEarnings / snapshot.elr) : 0;
+    virtualSnapshot.offlineEarnings = virtualSnapshot.elr * earningsPerEgg;
   }
 
   if (totalSeconds < 1) return 'Instant';
@@ -402,7 +392,7 @@ function handleBuy5MinSpace() {
   const offlineEarnings = snapshot.offlineEarnings;
   if (offlineEarnings <= 0) return;
 
-  const maxBudget = 5 * 60 * offlineEarnings;
+  const maxBudget = calculateEarningsForTime(5 * 60, snapshot);
   let spent = 0;
 
   // Track virtual state
@@ -417,24 +407,7 @@ function handleBuy5MinSpace() {
         const currentId = virtualHabIds[i];
         const startId = currentId === null ? 0 : currentId + 1;
 
-        // Find the highest "instant" hab (cost < 1s of earnings) to skip intermediate steps
-        let maxInstantId = -1;
-        for (let id = startId; id <= 18; id++) {
-          const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
-          const existingCount = countHabsOfType(otherHabs, id);
-          const hab = getHabById(id as HabId);
-          if (!hab) continue;
-          const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
-          if (cost <= offlineEarnings) {
-            maxInstantId = id;
-          } else {
-            break;
-          }
-        }
-
         for (let nextId = startId; nextId <= 18; nextId++) {
-          if (nextId < maxInstantId) continue;
-
           const otherHabs = virtualHabIds.filter((_, idx) => idx !== i);
           const existingCount = countHabsOfType(otherHabs, nextId);
           const hab = getHabById(nextId as HabId);
@@ -447,10 +420,11 @@ function handleBuy5MinSpace() {
             const nextCap = getHabCapacity(nextId);
             const deltaCap = nextCap - currentCap;
 
-            if (deltaCap >= 0) {
+            if (deltaCap > 0) {
               const roi = deltaCap / Math.max(cost, 1e-10);
-              if (roi > bestRoi) {
-                bestRoi = roi;
+              const score = deltaCap > 1000 ? deltaCap * 1000 + roi : roi;
+              if (score > bestRoi) {
+                bestRoi = score;
                 bestAction = { slotIndex: i, habId: nextId, cost };
               }
             }

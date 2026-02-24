@@ -19,19 +19,31 @@ export function formatNumber(value: number, decimals: number = 2): string {
   if (value === 0) return '0';
   if (!isFinite(value)) return '∞';
 
+  let result: string;
   if (Math.abs(value) < 1000) {
-    return value.toFixed(decimals);
+    result = value.toFixed(decimals);
+  } else {
+    const suffixes = ['', 'K', 'M', 'B', 'T', 'q', 'Q', 's', 'S', 'o', 'N', 'd', 'U', 'D', 'Td', 'qd', 'Qd', 'sd', 'Sd', 'Od', 'Nd', 'V', 'uV', 'dV', 'tV', 'qV', 'QV', 'sV', 'Sv', 'OV', 'NV', 'tT'];
+    const magnitude = Math.floor(Math.log10(Math.abs(value)) / 3);
+
+    if (magnitude >= suffixes.length) {
+      result = value.toExponential(decimals);
+    } else {
+      const scaled = value / Math.pow(1000, magnitude);
+      result = scaled.toFixed(decimals) + suffixes[magnitude];
+    }
   }
 
-  const suffixes = ['', 'K', 'M', 'B', 'T', 'q', 'Q', 's', 'S', 'o', 'N', 'd', 'U', 'D', 'Td', 'qd', 'Qd', 'sd', 'Sd', 'Od', 'Nd', 'V', 'uV', 'dV', 'tV', 'qV', 'QV', 'sV', 'Sv', 'OV', 'NV', 'tT'];
-  const magnitude = Math.floor(Math.log10(Math.abs(value)) / 3);
-
-  if (magnitude >= suffixes.length) {
-    return value.toExponential(decimals);
+  // Handle -0.000 case: if the result starts with a minus but evaluates to zero
+  if (result.startsWith('-')) {
+    // Strip everything except numbers, decimal point, and minus
+    const numPart = result.replace(/[^-0-9.]/g, '');
+    if (parseFloat(numPart) === 0) {
+      return result.substring(1); // Return the positive version (e.g. "0.000")
+    }
   }
 
-  const scaled = value / Math.pow(1000, magnitude);
-  return scaled.toFixed(decimals) + suffixes[magnitude];
+  return result;
 }
 
 /**

@@ -65,6 +65,7 @@ import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { useResearchViews, VIEWS } from '@/composables/useResearchViews';
+import { getTimeToSave } from '@/engine/apply';
 
 // Sub-components
 import ResearchSaleToggle from './ResearchSaleToggle.vue';
@@ -102,17 +103,9 @@ function getNextLevelPrice(research: CommonResearch): number {
 
 function getTimeToBuy(research: CommonResearch): string {
   const price = getNextLevelPrice(research);
-  if (price <= 0) return '';
-
-  const snapshot = actionsStore.effectiveSnapshot;
-  const offlineEarnings = snapshot.offlineEarnings;
-  const bankValue = snapshot.bankValue || 0;
-
-  if (price <= bankValue) return '0s';
-  if (offlineEarnings <= 0) return '∞';
-
-  const seconds = (price - bankValue) / offlineEarnings;
-  if (seconds < 1) return '0s';
+  const seconds = getTimeToSave(price, actionsStore.effectiveSnapshot);
+  if (seconds <= 0) return '0s';
+  if (seconds === Infinity) return '∞';
   return formatDuration(seconds);
 }
 
@@ -209,7 +202,7 @@ function handleSmartBuy(threshold: number) {
         return {
             research: r,
             price,
-            seconds: price / earnings
+            seconds: getTimeToSave(price, snapshot)
         };
         });
 

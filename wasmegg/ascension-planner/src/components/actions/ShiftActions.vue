@@ -52,7 +52,7 @@
     <!-- Shift Options -->
     <div>
       <div class="flex justify-between items-center mb-4 px-2">
-        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Select Target Egg</h4>
+        <h4 class="text-[10px] font-black text-slate-400 tracking-[0.2em]">Select Target Egg</h4>
         <div class="flex items-center gap-2">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Next Cost:</span>
           <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1 rounded-xl border border-slate-100 shadow-sm">

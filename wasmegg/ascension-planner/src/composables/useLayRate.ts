@@ -9,6 +9,7 @@ import { storeToRefs } from 'pinia';
 import { useLayRateStore } from '@/stores/layRate';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useCommonResearchStore } from '@/stores/commonResearch';
+import { useVirtueStore } from '@/stores/virtue';
 import { useHabCapacity } from '@/composables/useHabCapacity';
 import { calculateLayRate, convertRate } from '@/calculations/layRate';
 import type { LayRateInput, LayRateOutput, TimeUnit } from '@/types';
@@ -32,6 +33,7 @@ export function useLayRate(): {
   input: ComputedRef<LayRateInput>;
   output: ComputedRef<LayRateDisplayOutput>;
 } {
+  const virtueStore = useVirtueStore();
   const store = useLayRateStore();
   const initialStateStore = useInitialStateStore();
   const commonResearchStore = useCommonResearchStore();
@@ -39,8 +41,9 @@ export function useLayRate(): {
   const { timeUnit } = storeToRefs(store);
   const { researchLevels } = storeToRefs(commonResearchStore);
   const { epicResearchLevels } = storeToRefs(initialStateStore);
+  const { population } = storeToRefs(virtueStore);
 
-  // Get population from hab capacity
+  // Get hab capacity for clamping or reference
   const { output: habCapacityOutput } = useHabCapacity();
 
   // Build the calculation input reactively
@@ -50,7 +53,7 @@ export function useLayRate(): {
       researchLevels: researchLevels.value,
       epicComfyNestsLevel: epicResearchLevels.value['epic_egg_laying'] || 0,
       siliconMultiplier: initialStateStore.colleggtibleModifiers.elr,
-      population: habCapacityOutput.value.totalFinalCapacity,
+      population: population.value,
       artifactMultiplier: artifactMod.totalMultiplier,
       artifactEffects: artifactMod.effects,
     };
@@ -64,7 +67,7 @@ export function useLayRate(): {
       ratePerChicken: convertRate(baseOutput.ratePerChickenPerSecond, timeUnit.value),
       totalRate: convertRate(baseOutput.totalRatePerSecond, timeUnit.value),
       timeUnit: timeUnit.value,
-      population: habCapacityOutput.value.totalFinalCapacity,
+      population: population.value,
     };
   });
 

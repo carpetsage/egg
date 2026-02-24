@@ -58,6 +58,7 @@ export interface VirtueState {
   ascensionTime: string;   // HH:MM format
   ascensionTimezone: string; // IANA timezone identifier
   bankValue: number;       // Current gems in bank
+  population: number;      // Current chickens on farm
 }
 
 export const useVirtueStore = defineStore('virtue', {
@@ -71,6 +72,7 @@ export const useVirtueStore = defineStore('virtue', {
     ascensionTime: getCurrentTime(),
     ascensionTimezone: getDetectedTimezone(),
     bankValue: 0,
+    population: 1,
   }),
 
   getters: {
@@ -174,6 +176,13 @@ export const useVirtueStore = defineStore('virtue', {
     },
 
     /**
+     * Set the current population.
+     */
+    setPopulation(value: number) {
+      this.population = value;
+    },
+
+    /**
      * Set ascension start from a Unix timestamp (seconds).
      */
     setAscensionStartFromTimestamp(timestampSeconds: number) {
@@ -207,6 +216,7 @@ export const useVirtueStore = defineStore('virtue', {
       this.shiftCount = this.initialShiftCount;
       this.currentEgg = 'curiosity';
       this.te = this.initialTE;
+      this.population = 1;
     },
   },
 });

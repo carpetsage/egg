@@ -64,8 +64,11 @@
           <span v-if="action.offlineEarningsDelta" :class="deltaClass(action.offlineEarningsDelta)">
              Earn {{ formatDelta(action.offlineEarningsDelta) }}
           </span>
-          <span v-if="action.bankDelta !== 0" :class="action.bankDelta > 0 ? 'text-emerald-600' : 'text-slate-400'">
-             Gems {{ action.bankDelta > 0 ? '+' : '' }}{{ formatGemPrice(action.bankDelta) }}
+          <span v-if="action.populationDelta" :class="deltaClass(action.populationDelta)">
+            Pop {{ formatDelta(action.populationDelta) }}
+          </span>
+          <span v-if="Math.abs(action.bankDelta) >= 0.5 && (!isPurchaseAction || action.type === 'launch_missions')" :class="action.bankDelta >= 0.5 ? 'text-emerald-600' : 'text-slate-400'">
+             Gems {{ action.bankDelta >= 0.5 ? '+' : '' }}{{ formatGemPrice(action.bankDelta) }}
           </span>
         </div>
       </div>
@@ -87,13 +90,13 @@
             <span 
               class="text-xs font-bold font-mono-premium"
               :class="[
-                action.cost > 0 ? 'text-slate-800' : 
-                (action.bankDelta > 0 ? 'text-emerald-600 font-black' : 'text-slate-300')
+                action.cost >= 0.5 ? 'text-slate-800' : 
+                (action.bankDelta >= 0.5 ? 'text-emerald-600 font-black' : 'text-slate-300')
               ]"
             >
-              {{ action.bankDelta > 0 && action.cost === 0 ? '+' : '' }}{{ formatGemPrice(action.cost > 0 ? action.cost : (action.bankDelta > 0 ? action.bankDelta : 0)) }}
+              {{ action.bankDelta >= 0.5 && action.cost < 0.5 ? '+' : '' }}{{ formatGemPrice(action.cost >= 0.5 ? action.cost : (action.bankDelta >= 0.5 ? action.bankDelta : 0)) }}
             </span>
-            <img v-if="action.cost > 0 || action.bankDelta > 0" :src="iconURL('egginc/icon_virtue_gem.png', 64)" class="w-2.5 h-2.5 opacity-60" />
+            <img v-if="action.cost >= 0.5 || action.bankDelta >= 0.5" :src="iconURL('egginc/icon_virtue_gem.png', 64)" class="w-2.5 h-2.5 opacity-60" />
           </div>
           <div class="flex flex-col items-end">
             <span v-if="savingDuration > 0 || (isPurchaseAction && action.cost > 0)" class="text-[8px] font-black text-rose-500 uppercase tracking-widest" :title="timeToSaveTitle">
@@ -102,7 +105,7 @@
             <span v-if="waitDuration > 0" class="text-[8px] font-black text-slate-400 uppercase tracking-widest" :title="timeToSaveTitle">
               Wait {{ waitDurationFormatted }}
             </span>
-            <span v-if="action.totalTimeSeconds === 0 && action.cost === 0 && action.bankDelta === 0" class="text-[8px] font-black text-slate-300 uppercase tracking-widest">
+            <span v-if="action.totalTimeSeconds < 1 && action.cost < 0.5 && Math.abs(action.bankDelta) < 0.5" class="text-[8px] font-black text-slate-300 uppercase tracking-widest">
               0s
             </span>
           </div>

@@ -201,19 +201,20 @@ export const useInitialStateStore = defineStore('initialState', {
       this.colleggtibleTiers = getColleggtibleTiersFromBackup(backup.contracts ?? null);
 
       // Load artifact loadout from backup
-      this.artifactLoadout = getArtifactLoadoutFromBackup(backup);
+      const backupLoadout = getArtifactLoadoutFromBackup(backup);
+      this.artifactLoadout = backupLoadout;
 
       // Auto-populate optimal artifact sets
       const optimalEarnings = getOptimalEarningsSet(backup);
       this.artifactSets.earnings = optimalEarnings;
 
-      // Current set can be ELR set if it's not already mostly earnings artifacts
-      if (isMostlyEarningsSet(this.artifactLoadout)) {
-        this.activeArtifactSet = 'earnings';
-      } else {
-        this.activeArtifactSet = 'elr';
-        this.artifactSets.elr = JSON.parse(JSON.stringify(this.artifactLoadout));
-      }
+      // Use the backup loadout as the default ELR set
+      this.artifactSets.elr = JSON.parse(JSON.stringify(backupLoadout));
+
+      // Always equip site's optimal earnings set by default when loading backup
+      // This satisfies the requirement to auto-equip earnings set for new plans,
+      // while actionsStore.continueFromBackup will re-equip the ELR set if continuing.
+      this.setActiveArtifactSet('earnings');
 
       // Parse TE data from eovEarned array
       // Indices 0-4 map to: Curiosity, Integrity, Humility, Resilience, Kindness
@@ -320,6 +321,12 @@ export const useInitialStateStore = defineStore('initialState', {
             return { vehicleId: null, trainLength: 1 };
           });
 
+          // Calculate population from hab populations if available, otherwise use numChickens
+          let population = farm.numChickens || 0;
+          if (farm.habPopulation && Array.isArray(farm.habPopulation)) {
+            population = farm.habPopulation.reduce((sum: number, p: number) => sum + (p || 0), 0);
+          }
+
           this.currentFarmState = {
             eggType: farm.eggType,
             cash: farm.cashAmount || 0,
@@ -327,7 +334,7 @@ export const useInitialStateStore = defineStore('initialState', {
             commonResearches,
             habs,
             vehicles,
-            population: farm.numChickens || 0,
+            population,
             deliveredEggs: farm.eggsLaid || 0,
             lastStepTime: farm.lastStepTime || 0,
             cashEarned: farm.cashEarned || 0,

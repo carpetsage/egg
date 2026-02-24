@@ -77,7 +77,7 @@ export function computeSnapshot(
     let population = state.population || 0;
     let lastStepTime = state.lastStepTime;
 
-    if (state.lastStepTime > 0 && context.ascensionStartTime > state.lastStepTime) {
+    if (state.lastStepTime > 1e9 && context.ascensionStartTime > state.lastStepTime) {
         const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
         const growthRatePerSecond = ihrOutput.offlineRate / 60;
         const growth = Math.floor(growthRatePerSecond * elapsedSeconds);
@@ -97,7 +97,7 @@ export function computeSnapshot(
         researchLevels: state.researchLevels,
         epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
         siliconMultiplier: colleggtibleModifiers.elr,
-        population: habCapacityOutput.totalFinalCapacity,
+        population: population,
         artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
         artifactEffects: artifactMods.eggLayingRate.effects,
     };
@@ -135,11 +135,20 @@ export function computeSnapshot(
     const earningsOutput = calculateEarnings(earningsInput);
 
     // Apply catch-up earnings to bank if this is the start of the ascension 
-    // and we were offline.
-    if (state.lastStepTime > 0 && context.ascensionStartTime > state.lastStepTime) {
+    // and we were offline. 
+    // We use 1e9 as a threshold to distinguish between 0-based simulation time
+    // and absolute Unix timestamps from a backup.
+    if (state.lastStepTime > 1e9 && context.ascensionStartTime > state.lastStepTime) {
         const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
         const catchUpGems = earningsOutput.offlineEarnings * elapsedSeconds;
         bankValue += catchUpGems;
+    }
+
+    // Normalize rounding errors
+    if (earningsOutput.offlineEarnings > 0) {
+        if (Math.abs(bankValue) < earningsOutput.offlineEarnings * 1e-6) {
+            bankValue = 0;
+        }
     }
 
     // 13. Silo Time
@@ -160,6 +169,7 @@ export function computeSnapshot(
         offlineEarnings: earningsOutput.offlineEarnings,
         onlineIHR: ihrOutput.onlineRate,
         offlineIHR: ihrOutput.offlineRate,
+        ratePerChickenPerSecond: layRateOutput.ratePerChickenPerSecond,
         bankValue,
 
         // State (Pass through inputs for UI reconstruction)
