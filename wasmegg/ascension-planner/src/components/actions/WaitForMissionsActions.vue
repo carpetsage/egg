@@ -43,7 +43,7 @@ import { computed } from 'vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useActionExecutor } from '@/composables/useActionExecutor';
-import { generateActionId } from '@/types';
+import { generateActionId, type ActiveMissionInfo } from '@/types';
 import { computeDependencies } from '@/lib/actions/executor';
 import { useVirtueStore } from '@/stores/virtue';
 import ActiveMissionsDisplay from './rockets/ActiveMissionsDisplay.vue';
@@ -57,11 +57,10 @@ const currentTimeSeconds = computed(() => actionsStore.effectiveSnapshot.lastSte
 
 
 
-function handleWaitMissions() {
-  const missions = initialStateStore.virtueMissions;
-  if (missions.length === 0) return;
+function handleWaitMissions(missionsToWait: ActiveMissionInfo[]) {
+  if (missionsToWait.length === 0) return;
 
-  const maxReturn = Math.max(...missions.map(m => m.returnTimestamp || 0));
+  const maxReturn = Math.max(...missionsToWait.map(m => m.returnTimestamp || 0));
   const waitSeconds = Math.max(0, maxReturn - currentTimeSeconds.value);
 
   if (waitSeconds <= 0) return;
@@ -69,7 +68,7 @@ function handleWaitMissions() {
   const beforeSnapshot = prepareExecution();
 
   const payload = {
-    missions: JSON.parse(JSON.stringify(missions)),
+    missions: JSON.parse(JSON.stringify(missionsToWait)),
     totalTimeSeconds: waitSeconds,
   };
 

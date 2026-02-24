@@ -77,8 +77,13 @@ export function computeSnapshot(
     let population = state.population || 0;
     let lastStepTime = state.lastStepTime;
 
-    if (state.lastStepTime > 1e9 && context.ascensionStartTime > state.lastStepTime) {
-        const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
+    // If time is not initialized (e.g. fresh ascension), base it on the planned start time
+    if (lastStepTime < 1e9 && context.ascensionStartTime > 1e9) {
+        lastStepTime = context.ascensionStartTime;
+    }
+
+    if (lastStepTime > 1e9 && context.ascensionStartTime > lastStepTime) {
+        const elapsedSeconds = context.ascensionStartTime - lastStepTime;
         const growthRatePerSecond = ihrOutput.offlineRate / 60;
         const growth = Math.floor(growthRatePerSecond * elapsedSeconds);
         population = Math.min(habCapacityOutput.totalFinalCapacity, population + growth);

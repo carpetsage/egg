@@ -147,6 +147,7 @@ export const useInitialStateStore = defineStore('initialState', {
           statusIsFueling: m.statusIsFueling,
           statusName: m.statusName,
           capacity: m.capacity,
+          durationSeconds: m.durationSeconds,
           fuels: m.fuels.map(f => ({
             egg: f.egg,
             amount: f.amount,

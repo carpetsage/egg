@@ -40,12 +40,22 @@
         <div class="flex-grow min-w-0">
           <div class="flex items-center justify-between mb-0.5">
             <h4 class="text-sm font-bold text-gray-900 truncate">{{ mission.shipName }}</h4>
-            <span 
-              class="text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase"
-              :class="getDurationClass(mission.duration)"
-            >
-              {{ mission.durationTypeName }}
-            </span>
+            <div class="flex items-center gap-2">
+              <span 
+                class="text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase"
+                :class="getDurationClass(mission.duration)"
+              >
+                {{ mission.durationTypeName }}
+              </span>
+              <button
+                v-if="!mission.statusIsFueling && mission.returnTimestamp"
+                @click="$emit('wait-missions', [mission])"
+                class="btn-premium btn-primary !px-2 !py-0.5 !text-[9px] !font-black uppercase tracking-wider !rounded-lg flex items-center gap-1"
+                :disabled="mission.returnTimestamp <= currentTimeSeconds"
+              >
+                Wait
+              </button>
+            </div>
           </div>
 
           <div class="flex items-center gap-3 text-[11px] text-gray-500 font-medium">
@@ -89,37 +99,12 @@
           </div>
         </div>
 
-        <!-- Progress background (subtle) -->
         <div 
           v-if="!mission.statusIsFueling && mission.returnTimestamp"
-          class="absolute bottom-0 left-0 h-0.5 bg-slate-900 opacity-20 transition-all duration-1000"
+          class="absolute bottom-0 left-0 h-0.5 bg-indigo-600 opacity-20 transition-all duration-1000"
           :style="{ width: getProgressWidth(mission) }"
         ></div>
       </div>
-    </div>
-
-    <!-- Wait Action Button -->
-    <div class="pt-2 px-1">
-      <button
-        @click="$emit('wait-missions')"
-        class="btn-premium btn-primary w-full py-4 flex items-center justify-center gap-2 group shadow-lg shadow-slate-900/10"
-        :disabled="isWaitDisabled"
-      >
-        <div class="flex flex-col items-center">
-          <span class="text-sm font-bold flex items-center gap-2">
-            <svg class="w-4 h-4 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Wait for In-flight Missions
-          </span>
-          <span class="text-[10px] font-medium opacity-80" v-if="maxWaitSeconds > 0">
-            Passes {{ formatDuration(maxWaitSeconds) }} in-simulation time
-          </span>
-        </div>
-      </button>
-      <p class="mt-2 text-[10px] text-slate-400 text-center italic font-medium opacity-60">
-        Adds a no-cost action to account for the duration of the ship that takes the longest to return.
-      </p>
     </div>
   </div>
 </template>
@@ -135,19 +120,10 @@ const props = defineProps<{
 }>();
 
 defineEmits<{
-  'wait-missions': [];
+  'wait-missions': [missions: ActiveMissionInfo[]];
 }>();
 
-const maxWaitSeconds = computed(() => {
-  if (props.missions.length === 0) return 0;
-  const maxReturn = Math.max(...props.missions.map(m => m.returnTimestamp || 0));
-  const remaining = maxReturn - props.currentTimeSeconds;
-  return Math.max(0, remaining);
-});
-
-const isWaitDisabled = computed(() => {
-  return props.missions.length === 0 || maxWaitSeconds.value <= 10;
-});
+// No longer using maxWaitSeconds since buttons are individual now.
 
 function getDurationClass(duration: number) {
   switch (duration) {
@@ -159,10 +135,11 @@ function getDurationClass(duration: number) {
 }
 
 function getProgressWidth(mission: ActiveMissionInfo) {
-  // We don't have mission start time here easily, so this is just a placeholder logic
-  // if we wanted a real progress bar. For now, since it's just display, we'll keep it simple
-  // or omit it if it's too complex without more data.
-  return '100%';
+  if (!mission.durationSeconds || !mission.returnTimestamp) return '0%';
+  const startTime = mission.returnTimestamp - mission.durationSeconds;
+  const elapsed = props.currentTimeSeconds - startTime;
+  const progress = Math.max(0, Math.min(100, (elapsed / mission.durationSeconds) * 100));
+  return `${progress}%`;
 }
 
 function formatRemaining(returnTimestamp: number): string {
