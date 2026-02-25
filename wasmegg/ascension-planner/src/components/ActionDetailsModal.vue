@@ -164,6 +164,6 @@ function dumpCalculationData() {
     }
   };
 
-  console.log(dump);
+  console.log(JSON.parse(JSON.stringify(dump)));
 }
 </script>
