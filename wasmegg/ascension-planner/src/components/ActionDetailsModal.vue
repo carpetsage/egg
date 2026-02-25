@@ -164,12 +164,6 @@ function dumpCalculationData() {
     }
   };
 
-  console.log('CALCULATION_DUMP_START');
-  console.log(JSON.stringify(dump, null, 2));
-  console.log('CALCULATION_DUMP_END');
-  warningStore.showWarning(
-    'Data Dumped',
-    'Calculation data dumped to console. Please share the output (between START and END markers) with the developer.'
-  );
+  console.log(JSON.parse(JSON.stringify(dump)));
 }
 </script>

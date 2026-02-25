@@ -8,8 +8,7 @@ import { calculateEarningsForTime } from './math';
 export function applyTime(
     state: EngineState,
     seconds: number,
-    prevSnapshot: CalculationsSnapshot,
-    skipBankUpdate: boolean = false
+    prevSnapshot: CalculationsSnapshot
 ): EngineState {
     if (seconds <= 0) return state;
 
@@ -23,7 +22,7 @@ export function applyTime(
     const newPop = Math.min(maxPop, P0 + I * seconds);
 
     let earnedGems = 0;
-    if (V > 0 && !skipBankUpdate) {
+    if (V > 0) {
         earnedGems = calculateEarningsForTime(seconds, prevSnapshot);
     }
 

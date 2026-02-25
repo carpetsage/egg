@@ -52,7 +52,7 @@ export function simulate(
         const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
         currentState = applyPassiveEggs(currentState, passiveEggs);
 
-        currentState = applyTime(currentState, durationSeconds, currentSnapshot, action.type === 'buy_hab');
+        currentState = applyTime(currentState, durationSeconds, currentSnapshot);
 
         // 2. Compute full snapshot
         const newSnapshot = computeSnapshot(currentState, context);
@@ -133,7 +133,7 @@ export async function simulateAsync(
         const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
         currentState = applyPassiveEggs(currentState, passiveEggs);
 
-        currentState = applyTime(currentState, durationSeconds, currentSnapshot, action.type === 'buy_hab');
+        currentState = applyTime(currentState, durationSeconds, currentSnapshot);
 
         const newSnapshot = computeSnapshot(currentState, context);
         const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;
