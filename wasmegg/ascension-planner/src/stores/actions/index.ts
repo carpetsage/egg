@@ -295,7 +295,7 @@ export const useActionsStore = defineStore('actions', {
             syncStoresToSnapshot(groupId === null ? this.currentSnapshot : this.effectiveSnapshot);
         },
 
-        async continueFromBackup() {
+        async continueFromBackup(applyEvents = false) {
             const initialStateStore = useInitialStateStore();
             const virtueStore = useVirtueStore();
             const silosStore = useSilosStore();
@@ -326,7 +326,9 @@ export const useActionsStore = defineStore('actions', {
             const context = getSimulationContext();
             const initialSnapshot = computeSnapshot(createBaseEngineState(null), context);
             await this.setInitialSnapshot(initialSnapshot);
-            this.pushRelevantEvents(egg, true);
+            if (applyEvents) {
+                this.pushRelevantEvents(egg, true);
+            }
         },
 
         pushRelevantEvents(egg: string, includeGlobal = false) {
