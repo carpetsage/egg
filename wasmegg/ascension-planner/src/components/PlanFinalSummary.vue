@@ -153,17 +153,12 @@ const calculateTotalPotentialTE = (snapshot: any) => {
   }, 0);
 };
 
-const startDate = computed(() => {
-  // Use ascension date/time from virtue store as source of truth
-  const dateStr = `${virtueStore.ascensionDate}T${virtueStore.ascensionTime}`;
-  const date = new Date(dateStr);
-  return isNaN(date.getTime()) ? new Date() : date;
-});
+const startDate = computed(() => virtueStore.planStartTime);
 
 const totalDurationSeconds = computed(() => {
-  return actionsStore.actions.reduce((sum, action) => {
-    return sum + (action.totalTimeSeconds || 0);
-  }, 0);
+  const currentSimTime = actionsStore.currentSnapshot.lastStepTime || 0;
+  const offset = actionsStore.planStartOffset;
+  return Math.max(0, currentSimTime - offset);
 });
 
 const formattedDuration = computed(() => {

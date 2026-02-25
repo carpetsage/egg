@@ -82,6 +82,17 @@ export const useVirtueStore = defineStore('virtue', {
     plannedShifts(): number {
       return this.shiftCount - this.initialShiftCount;
     },
+
+    /**
+     * Get the base start time for the planning session as a Date object.
+     */
+    planStartTime(): Date {
+      try {
+        return new Date(`${this.ascensionDate}T${this.ascensionTime}:00`);
+      } catch {
+        return new Date();
+      }
+    },
   },
 
   actions: {

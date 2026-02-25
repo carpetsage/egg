@@ -119,6 +119,7 @@ import { formatNumber, formatGemPrice, formatAbsoluteTime } from '@/lib/format';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { useActionsStore } from '@/stores/actions';
+import { useVirtueStore } from '@/stores/virtue';
 
 const props = defineProps<{
   research: CommonResearch;
@@ -145,11 +146,13 @@ const props = defineProps<{
 }>();
 
 const actionsStore = useActionsStore();
+const virtueStore = useVirtueStore();
 
 const baseTimestamp = computed(() => {
-  const startAction = actionsStore.getStartAction();
-  if (!startAction) return Date.now();
-  return startAction.timestamp + (actionsStore.effectiveSnapshot.lastStepTime * 1000);
+  const startTime = virtueStore.planStartTime.getTime();
+  const offset = actionsStore.planStartOffset;
+  // Wall clock time = (Plan Start) + (Current Sim Time - Initial Sim Time)
+  return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
 });
 
 defineEmits<{

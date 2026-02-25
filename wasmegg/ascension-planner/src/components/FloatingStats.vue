@@ -263,15 +263,8 @@ const shiftName = computed(() => {
  * Calculate the timing and duration for the current shift.
  */
 const dates = computed(() => {
-  const { ascensionDate, ascensionTime } = virtueStore;
-  const dateTimeStr = `${ascensionDate}T${ascensionTime}:00`;
-  let startTime: Date;
-  try {
-    startTime = new Date(dateTimeStr);
-  } catch {
-    startTime = new Date();
-  }
-
+  const startTime = virtueStore.planStartTime.getTime();
+  const offset = actionsStore.planStartOffset;
   const actions = actionsStore.actions;
   
   // Find the 'header' action for the current group
@@ -289,22 +282,21 @@ const dates = computed(() => {
 
   if (headerIndex === -1) return null;
 
-  // Cumulative time before this shift starts
-  let timeBeforeShift = 0;
-  for (let i = 0; i < headerIndex; i++) {
-    timeBeforeShift += actions[i].totalTimeSeconds || 0;
-  }
-
+  const headerAction = actions[headerIndex];
+  
   // Find the end of this shift
   let nextShiftIndex = actions.findIndex((a, idx) => idx > headerIndex && a.type === 'shift');
   let endActionIndex = nextShiftIndex === -1 ? actions.length - 1 : nextShiftIndex - 1;
 
-  let shiftDuration = 0;
-  for (let i = headerIndex; i <= endActionIndex; i++) {
-    shiftDuration += actions[i].totalTimeSeconds || 0;
-  }
+  // Time before shift = header end simulation time - header duration - start offset
+  const timeBeforeShift = (headerAction.endState.lastStepTime || 0) - (headerAction.totalTimeSeconds || 0) - offset;
+  
+  // Total duration of shift group = end action end simulation time - (header end sim time - header duration)
+  const shiftGroupEndSimTime = actions[endActionIndex].endState.lastStepTime || 0;
+  const shiftGroupStartSimTime = (headerAction.endState.lastStepTime || 0) - (headerAction.totalTimeSeconds || 0);
+  const shiftDuration = shiftGroupEndSimTime - shiftGroupStartSimTime;
 
-  const startMs = startTime.getTime() + timeBeforeShift * 1000;
+  const startMs = startTime + timeBeforeShift * 1000;
   const endMs = startMs + shiftDuration * 1000;
 
   return {
