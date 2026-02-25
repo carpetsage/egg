@@ -462,7 +462,7 @@ async function quickContinueAscension() {
     await submitPlayerId(playerId.value);
     
     // 4. Trigger continue from backup
-    await actionsStore.continueFromBackup();
+    await actionsStore.continueFromBackup(true);
     
     loading.value = false;
   } catch (e) {
