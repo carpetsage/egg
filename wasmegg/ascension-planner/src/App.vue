@@ -331,9 +331,7 @@ function handleClearAll(options?: { skipConfirmation: boolean }) {
 }
 
 function executeClearAll() {
-  actionsStore.clearAll(() => {
-    restoreFromSnapshot(actionsStore.initialSnapshot);
-  });
+  actionsStore.clearAll();
   showClearAllConfirmation.value = false;
 }
 
