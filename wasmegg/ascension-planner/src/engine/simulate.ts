@@ -82,6 +82,7 @@ export function simulate(
         currentState = {
             ...currentState,
             population: newSnapshot.population,
+            bankValue: newSnapshot.bankValue,
             lastStepTime: newSnapshot.lastStepTime,
             // Also ensure cumulative lifecycle eggs/fuel are preserved from computeSnapshot if they changed
             eggsDelivered: { ...newSnapshot.eggsDelivered },
@@ -147,6 +148,7 @@ export async function simulateAsync(
         currentState = {
             ...currentState,
             population: newSnapshot.population,
+            bankValue: newSnapshot.bankValue,
             lastStepTime: newSnapshot.lastStepTime,
             eggsDelivered: { ...newSnapshot.eggsDelivered },
             fuelTankAmounts: { ...newSnapshot.fuelTankAmounts },
