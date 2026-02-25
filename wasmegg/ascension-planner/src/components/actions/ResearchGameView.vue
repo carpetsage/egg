@@ -76,6 +76,7 @@ import { type CommonResearch } from '@/calculations/commonResearch';
 import ResearchItem from './ResearchItem.vue';
 import { formatAbsoluteTime } from '@/lib/format';
 import { useActionsStore } from '@/stores/actions';
+import { useVirtueStore } from '@/stores/virtue';
 
 const props = defineProps<{
   tiers: number[];
@@ -99,11 +100,13 @@ const expandedTiers = ref(new Set<number>());
 const autoExpanded = new Set<number>();
 
 const actionsStore = useActionsStore();
+const virtueStore = useVirtueStore();
 
 const baseTimestamp = computed(() => {
-  const startAction = actionsStore.getStartAction();
-  if (!startAction) return Date.now();
-  return startAction.timestamp + (actionsStore.effectiveSnapshot.lastStepTime * 1000);
+  const startTime = virtueStore.planStartTime.getTime();
+  const offset = actionsStore.planStartOffset;
+  // Wall clock time = (Plan Start) + (Current Sim Time - Initial Sim Time)
+  return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
 });
 
 function isTierMaxed(tier: number): boolean {

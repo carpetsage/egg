@@ -110,6 +110,12 @@ export const useActionsStore = defineStore('actions', {
             const index = this.editingInsertIndex;
             return index === -1 ? this.actions : this.actions.slice(0, index);
         },
+
+        planStartOffset(): number {
+            const startAction = this.actions.find(a => a.type === 'start_ascension');
+            if (!startAction) return 0;
+            return startAction.endState.lastStepTime || 0;
+        },
     },
 
     actions: {

@@ -316,24 +316,11 @@ const waitDurationFormatted = computed(() => formatDuration(waitDuration.value))
  * The absolute end time of this action, calculated from the ascension start time.
  */
 const absoluteEndTime = computed(() => {
-  const { ascensionDate, ascensionTime } = virtueStore;
-  const dateTimeStr = `${ascensionDate}T${ascensionTime}:00`;
-  let startTime: Date;
-  try {
-    startTime = new Date(dateTimeStr);
-  } catch {
-    startTime = new Date();
-  }
-
-  const actions = actionsStore.actions;
-  const myIndex = props.action.index;
-  let totalSeconds = 0;
-  // Sum up all durations from the start to this action
-  for (let i = 0; i <= myIndex; i++) {
-    totalSeconds += actions[i].totalTimeSeconds || 0;
-  }
+  const startTime = virtueStore.planStartTime.getTime();
+  const offset = actionsStore.planStartOffset;
+  const simTime = props.action.endState.lastStepTime || 0;
   
-  return new Date(startTime.getTime() + totalSeconds * 1000);
+  return new Date(startTime + (simTime - offset) * 1000);
 });
 
 /**
