@@ -528,6 +528,65 @@
         </div>
       </div>
     </div>
+
+    <!-- Colleggtibles (collapsible) -->
+    <div class="section-premium overflow-hidden">
+      <button
+        class="w-full px-5 py-3 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center hover:bg-slate-100 transition-colors group"
+        @click="colleggtiblesExpanded = !colleggtiblesExpanded"
+      >
+        <div class="flex items-center gap-3">
+          <div class="p-1.5 bg-white rounded-lg shadow-sm group-hover:scale-110 transition-transform">
+            <img :src="iconURL('egginc/egg_unknown.png', 32)" class="w-5 h-5 opacity-60" alt="" />
+          </div>
+          <h3 class="style-guide-label mb-0">Colleggtibles</h3>
+        </div>
+        <svg
+          class="w-4 h-4 text-slate-400 transition-transform duration-300"
+          :class="{ 'rotate-180': colleggtiblesExpanded }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div v-if="colleggtiblesExpanded" class="divide-y divide-slate-50 max-h-80 overflow-y-auto custom-scrollbar">
+        <div
+          v-for="egg in colleggtiblesList"
+          :key="egg.id"
+          class="px-5 py-4 hover:bg-slate-50/50 transition-colors group"
+        >
+          <div class="flex justify-between items-center gap-4">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+              <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center p-1.5 group-hover:bg-white group-hover:shadow-sm transition-all">
+                <img
+                  :src="iconURL(getColleggtibleIconPath(egg.id), 64)"
+                  class="w-full h-full object-contain"
+                  :alt="egg.name"
+                />
+              </div>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-slate-800 uppercase tracking-tight">{{ egg.name }}</div>
+                <div class="text-[10px] text-slate-400 font-medium truncate italic leading-relaxed">{{ egg.bonusText }} {{ egg.effect.toLowerCase() }}</div>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <select
+                :value="egg.tierIndex"
+                class="input-premium py-1 pl-3 pr-10 text-xs font-bold text-slate-900 border-none bg-slate-100 hover:bg-slate-200 transition-colors w-auto"
+                @change="$emit('set-colleggtible-tier', egg.id, parseInt(($event.target as HTMLSelectElement).value))"
+              >
+                <option v-for="opt in TIER_OPTIONS" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -543,6 +602,12 @@ import { TANK_CAPACITIES, VIRTUE_FUEL_ORDER } from '@/stores/fuelTank';
 import { formatNumber, parseNumber } from '@/lib/format';
 import ArtifactSelector from '@/components/ArtifactSelector.vue';
 import { createEmptyLoadout } from '@/lib/artifacts';
+import { 
+  colleggtibleDefs, 
+  formatColleggtibleBonus, 
+  getColleggtibleMultiplier,
+  FARM_SIZE_TIERS
+} from '@/lib/colleggtibles';
 
 const props = defineProps<{
   hasData: boolean;
@@ -569,6 +634,7 @@ const props = defineProps<{
   assumeDoubleEarnings: boolean;
   artifactSets: Record<import('@/types').ArtifactSetName, EquippedArtifact[] | null>;
   activeArtifactSet: import('@/types').ArtifactSetName | null;
+  colleggtibleTiers: import('@/lib/colleggtibles').ColleggtibleTiers;
 }>();
 
 const emit = defineEmits<{
@@ -591,10 +657,12 @@ const emit = defineEmits<{
   'update-artifact-set': [setName: import('@/types').ArtifactSetName, loadout: EquippedArtifact[]];
   'save-current-to-set': [setName: import('@/types').ArtifactSetName];
   'set-active-artifact-set': [setName: import('@/types').ArtifactSetName];
+  'set-colleggtible-tier': [id: string, tierIndex: number];
 }>();
 
 // Collapsible state
 const epicResearchExpanded = ref(false);
+const colleggtiblesExpanded = ref(false);
 const fuelTankExpanded = ref(false);
 const truthEggsExpanded = ref(true);
 
@@ -723,4 +791,26 @@ const epicResearchList = computed(() =>
     level: props.epicResearchLevels[def.id] || 0,
   }))
 );
+
+const colleggtiblesList = computed(() =>
+  colleggtibleDefs.map(def => {
+    const tierIndex = props.colleggtibleTiers[def.id] ?? -1;
+    const multiplier = getColleggtibleMultiplier(def.id, tierIndex);
+    return {
+      id: def.id,
+      name: def.name,
+      effect: def.effect,
+      tierIndex,
+      bonusText: formatColleggtibleBonus(multiplier, def.id),
+    };
+  })
+);
+
+const TIER_OPTIONS = [
+  { value: -1, label: '<10M' },
+  { value: 0, label: '10M' },
+  { value: 1, label: '100M' },
+  { value: 2, label: '1B' },
+  { value: 3, label: '10B' },
+];
 </script>
