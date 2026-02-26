@@ -224,9 +224,16 @@ export function formatTier(tierIndex: number): string {
 /**
  * Format multiplier as percentage bonus/discount
  */
-export function formatColleggtibleBonus(multiplier: number): string {
-  if (multiplier === 1) return '—';
+export function formatColleggtibleBonus(multiplier: number, id?: string): string {
+  if (multiplier === 1) return 'No bonus to';
+
+  // Special formatting for specific eggs: show as Nx modifier (e.g., 3x instead of +200%)
+  if (id === 'chocolate' || id === 'wood') {
+    return `${multiplier.toFixed(1)}x`;
+  }
+
   const percent = (multiplier - 1) * 100;
   if (percent > 0) return `+${percent.toFixed(0)}%`;
-  return `${percent.toFixed(0)}%`;
+  // Show discounts as percentage of base (e.g., 0.95 => 95%)
+  return `${(multiplier * 100).toFixed(0)}%`;
 }

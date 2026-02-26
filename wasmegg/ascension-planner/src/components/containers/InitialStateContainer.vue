@@ -24,6 +24,7 @@
     :assume-double-earnings="store.assumeDoubleEarnings"
     :artifact-sets="store.artifactSets"
     :active-artifact-set="store.activeArtifactSet"
+    :colleggtible-tiers="store.colleggtibleTiers"
     @set-epic-research-level="handleSetEpicResearchLevel"
     @update:artifact-loadout="handleArtifactLoadout"
     @set-initial-egg="handleSetInitialEgg"
@@ -44,6 +45,7 @@
     @save-current-to-set="handleSaveCurrentToSet"
     @update-artifact-set="handleUpdateArtifactSet"
     @set-active-artifact-set="handleSetActiveArtifactSet"
+    @set-colleggtible-tier="handleSetColleggtibleTier"
   />
 </template>
 
@@ -110,6 +112,11 @@ async function handleContinueAscension() {
 
 function handleSetEpicResearchLevel(id: string, level: number) {
   store.setEpicResearchLevel(id, level);
+  updateInitialSnapshotAndRecalculate();
+}
+
+function handleSetColleggtibleTier(id: string, tierIndex: number) {
+  store.setColleggtibleTier(id, tierIndex);
   updateInitialSnapshotAndRecalculate();
 }
 
