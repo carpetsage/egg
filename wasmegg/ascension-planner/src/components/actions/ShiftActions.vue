@@ -216,6 +216,9 @@ function handleShift(toEgg: VirtueEgg) {
   }, beforeSnapshot);
 
   // Auto-activate relevant sales for the new egg
-  actionsStore.pushRelevantEvents(toEgg);
+  const startAction = actionsStore.getStartAction();
+  if (startAction?.payload.isQuickContinue) {
+    actionsStore.pushRelevantEvents(toEgg);
+  }
 }
 </script>
