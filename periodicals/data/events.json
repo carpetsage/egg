@@ -25432,5 +25432,23 @@
     "startTimestamp": 1772038800,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1772211600,
+    "id": "event-2-26",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1772125200,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1772211600,
+    "id": "ultra-2-26",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1772125200,
+    "type": "hab-sale",
+    "ultra": true
   }
 ]
