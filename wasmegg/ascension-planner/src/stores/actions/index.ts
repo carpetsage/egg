@@ -312,6 +312,7 @@ export const useActionsStore = defineStore('actions', {
             if (startAction) {
                 startAction.payload.initialEgg = egg;
                 startAction.payload.initialFarmState = farm;
+                startAction.payload.isQuickContinue = applyEvents;
             }
             virtueStore.setCurrentEgg(egg);
             silosStore.setSiloCount(farm.numSilos);

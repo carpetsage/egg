@@ -7,6 +7,7 @@ import type { ArtifactSlotPayload, ArtifactSetName } from './artifacts';
 export interface StartAscensionPayload {
     initialEgg: VirtueEgg;
     initialFarmState?: import('../index').CurrentFarmState;
+    isQuickContinue?: boolean;
 }
 
 /**
