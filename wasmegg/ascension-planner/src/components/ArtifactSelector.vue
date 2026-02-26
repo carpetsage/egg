@@ -123,12 +123,26 @@ const searchStones = (query: string) => {
 
 function onArtifactChange(slotIndex: number, artifactId: string) {
   const newValue = [...props.modelValue];
+  const oldSlot = props.modelValue[slotIndex];
   const artifact = getArtifact(artifactId || null);
+  const newSlotCount = artifact?.slots || 0;
+
+  // Preserve as many stones as possible from the current slot
+  let newStones = [...oldSlot.stones];
+
+  if (newStones.length > newSlotCount) {
+    // Keep stones from left to right, truncating from the right
+    newStones = newStones.slice(0, newSlotCount);
+  } else if (newStones.length < newSlotCount) {
+    // Add empty slots if needed
+    while (newStones.length < newSlotCount) {
+      newStones.push(null);
+    }
+  }
 
   newValue[slotIndex] = {
     artifactId: artifactId || null,
-    // Reset stones when artifact changes, sized to new slot count
-    stones: artifact ? Array(artifact.slots).fill(null) : [],
+    stones: newStones,
   };
 
   emit('update:modelValue', newValue);
