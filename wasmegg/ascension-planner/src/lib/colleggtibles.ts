@@ -227,8 +227,6 @@ export function formatTier(tierIndex: number): string {
 export function formatColleggtibleBonus(multiplier: number, id?: string): string {
   if (multiplier === 1) return 'No bonus to';
 
-  console.log(id, multiplier);
-
   // Special formatting for specific eggs: show as Nx modifier (e.g., 3x instead of +200%)
   if (id === 'chocolate' || id === 'wood') {
     return `${multiplier.toFixed(1)}x`;
