@@ -41,7 +41,7 @@ export function simulate(
         const actualIndex = startIndex + i;
 
         // 0. Refresh dynamic payloads (e.g. wait_for_te duration based on new ELR)
-        action = refreshActionPayload(action, currentSnapshot);
+        action = refreshActionPayload(action, currentSnapshot, context);
 
         // 1. Apply action to get new pure state
         currentState = applyAction(currentState, action);
@@ -127,7 +127,7 @@ export async function simulateAsync(
         let action = actions[i];
         const actualIndex = startIndex + i;
 
-        action = refreshActionPayload(action, currentSnapshot);
+        action = refreshActionPayload(action, currentSnapshot, context);
         currentState = applyAction(currentState, action);
         const durationSeconds = getActionDuration(action, currentSnapshot);
         const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
