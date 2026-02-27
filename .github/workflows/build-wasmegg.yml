@@ -36,10 +36,11 @@ jobs:
       - uses: actions/checkout@v6
       - name: Set up protoc
         run: |
-          sudo apt-get update && sudo apt-get install -y --no-install-recommends protobuf-compiler
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends protobuf-compiler
           # Install protoc-gen-doc
-          basename=protoc-gen-doc_1.5.1_linux_amd64
-          wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.5.1/$basename.tar.gz
+          basename=protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
+          wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.4.1/$basename.tar.gz
           tar xf $basename.tar.gz
           echo "$PWD/$basename" >> $GITHUB_PATH
       - name: Set up ets
@@ -117,6 +118,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Set up protoc
         run: |
+          sudo apt-get update
           sudo apt-get install -y --no-install-recommends protobuf-compiler
           # Install protoc-gen-doc
           basename=protoc-gen-doc-1.4.1.linux-amd64.go1.15.2

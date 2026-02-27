@@ -28,6 +28,7 @@ jobs:
           go-version: '>=1.24'
       - name: Install dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install -y imagemagick optipng zsh
       - name: Download custom egg icons
         working-directory: egg/periodicals
