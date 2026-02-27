@@ -226,7 +226,7 @@ const actionIconPath = computed(() => {
     return 'egginc/ei_vehicle_icon_hyperloop_engine.png';
   }
   if (props.action.type === 'buy_silo') {
-    return 'static/img/silo.png';
+    return 'egginc-extras/silo.png';
   }
   if (props.action.type === 'store_fuel') {
     const payload = props.action.payload as StoreFuelPayload;
