@@ -84,7 +84,7 @@ export class CoopStatus {
       this.cannotDetermineCreator = !isEncrypted(cs.creatorId) && this.contributors.some(c => isEncrypted(c.id));
     }
 
-    this.grade = null;
+    this.grade = cs.grade ?? null;
     this.league = null;
     this.goals = null;
     this.leagueStatus = null;
@@ -110,10 +110,6 @@ export class CoopStatus {
     const contract = knownContract || store.get(this.contractId, this.expirationTime.unix());
     if (contract) {
       this.contract = contract;
-
-      // set grade if there is grade config
-      this.grade = contract.gradeSpecs?.length ? await this.resolveGrade(knownGrade) : null;
-
       // set league if we didn't set grade
       this.league = this.grade ? null : await this.resolveLeague(knownLeague);
     } else {
