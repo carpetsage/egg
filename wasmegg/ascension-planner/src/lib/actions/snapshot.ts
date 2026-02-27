@@ -5,6 +5,7 @@
  */
 
 import type { CalculationsSnapshot, CalculationsFullOutputs, VehicleSlot, ResearchLevels } from '@/types';
+import { type HabId } from '@/lib/habs';
 import { useEggValue } from '@/composables/useEggValue';
 import { useHabCapacity } from '@/composables/useHabCapacity';
 import { useLayRate } from '@/composables/useLayRate';
@@ -97,8 +98,8 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
     lastStepTime: 0,
     activeSales: { ...salesStore.$state },
     earningsBoost: {
-      active: (salesStore as any).earningsBoostActive || false,
-      multiplier: (salesStore as any).earningsBoostMultiplier || 1,
+      active: salesStore.earningsBoostActive || false,
+      multiplier: salesStore.earningsBoostMultiplier || 1,
     },
   };
 }
@@ -173,8 +174,8 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
   const salesStore = useSalesStore();
 
   // Restore hab state
-  habCapacityStore.$patch((state: any) => {
-    state.habIds = [...snapshot.habIds] as any;
+  habCapacityStore.$patch((state) => {
+    state.habIds = [...snapshot.habIds] as (HabId | null)[];
     // Keep research levels in sync
     state.researchLevels = { ...snapshot.researchLevels };
   });
@@ -239,7 +240,7 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
 
   // Restore sales state
   if (snapshot.activeSales) {
-    salesStore.$patch((state: any) => {
+    salesStore.$patch((state) => {
       state.research = !!snapshot.activeSales.research;
       state.hab = !!snapshot.activeSales.hab;
       state.vehicle = !!snapshot.activeSales.vehicle;

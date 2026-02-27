@@ -4,7 +4,7 @@ import { computed, onBeforeUnmount, onMounted, ref, Ref, watch } from 'vue';
 export function useCountdown(deadline: Ref<number>): { secondsRemaining: Ref<number> } {
     const currentTimestamp = ref(Date.now() / 1000);
     const secondsRemaining = computed(() => Math.max(deadline.value - currentTimestamp.value, 0));
-    let refreshIntervalId: any;
+    let refreshIntervalId: ReturnType<typeof setInterval> | undefined;
     const startCountdown = () => {
         clearInterval(refreshIntervalId);
         if (secondsRemaining.value > 0) {

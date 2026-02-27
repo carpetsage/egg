@@ -126,6 +126,7 @@ import { useActionsStore } from '@/stores/actions';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 
+import { type CalculationsSnapshot } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { formatNumber } from '@/lib/format';
 import { iconURL } from 'lib';
@@ -146,10 +147,10 @@ function toggleCollapse() {
   emit('update:collapsed', isCollapsed.value);
 }
 
-const calculateTotalPotentialTE = (snapshot: any) => {
+const calculateTotalPotentialTE = (snapshot: CalculationsSnapshot) => {
   if (!snapshot || !snapshot.eggsDelivered) return 0;
-  return Object.values(snapshot.eggsDelivered).reduce((sum: number, delivered: any) => {
-    return sum + countTEThresholdsPassed(delivered as number);
+  return Object.values(snapshot.eggsDelivered).reduce((sum: number, delivered: number) => {
+    return sum + countTEThresholdsPassed(delivered);
   }, 0);
 };
 

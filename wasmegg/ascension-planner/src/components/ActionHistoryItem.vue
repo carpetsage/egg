@@ -149,7 +149,7 @@ import { computed } from 'vue';
 import { iconURL } from 'lib';
 import type { Action, StartAscensionPayload, ShiftPayload, BuyHabPayload, BuyVehiclePayload, StoreFuelPayload, WaitForTEPayload, BuyResearchPayload, ToggleSalePayload, EquipArtifactSetPayload, UpdateArtifactSetPayload, WaitForFullHabsPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
-import { getHabById } from '@/lib/habs';
+import { getHabById, type HabId } from '@/lib/habs';
 import { getVehicleType } from '@/lib/vehicles';
 import { getExecutor } from '@/lib/actions';
 import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
@@ -212,7 +212,7 @@ const actionIconPath = computed(() => {
   }
   if (props.action.type === 'buy_hab') {
     const payload = props.action.payload as BuyHabPayload;
-    return getHabById(payload.habId as any)?.iconPath;
+    return getHabById(payload.habId as HabId)?.iconPath;
   }
   if (props.action.type === 'buy_vehicle') {
     const payload = props.action.payload as BuyVehiclePayload;
@@ -295,7 +295,7 @@ const effectDescription = computed(() => {
  */
 const savingDuration = computed(() => {
   if (props.action.cost <= 0) return 0;
-  const payloadTime = (props.action.payload as any).totalTimeSeconds || 0;
+  const payloadTime = (props.action.payload as { totalTimeSeconds?: number }).totalTimeSeconds || 0;
   return Math.max(0, props.action.totalTimeSeconds - payloadTime);
 });
 
@@ -303,7 +303,7 @@ const savingDuration = computed(() => {
  * Calculate wait duration (inherent action time)
  */
 const waitDuration = computed(() => {
-  const payload = props.action.payload as any;
+  const payload = props.action.payload as { totalTimeSeconds?: number, isZeroTime?: boolean };
   if (props.action.type === 'launch_missions' && payload.isZeroTime) return 0;
   if (props.action.cost <= 0) return props.action.totalTimeSeconds || 0;
   return payload.totalTimeSeconds || 0;

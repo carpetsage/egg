@@ -167,7 +167,7 @@ import { formatNumber } from '@/lib/format';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
-import type { Action } from '@/types';
+import type { Action, VirtueEgg } from '@/types';
 import { VIRTUE_EGGS } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 
@@ -417,15 +417,15 @@ async function submitPlayerId(id: string) {
     // Initialize fuel tank store with player's tank data
     fuelTankStore.setTankLevel(tankLevel);
     for (const [egg, amount] of Object.entries(virtueFuelAmounts)) {
-      fuelTankStore.setFuelAmount(egg as any, amount);
+      fuelTankStore.setFuelAmount(egg as VirtueEgg, amount);
     }
 
     // Initialize truth eggs store with player's TE data
     for (const [egg, amount] of Object.entries(eggsDelivered)) {
-      truthEggsStore.setEggsDelivered(egg as any, amount);
+      truthEggsStore.setEggsDelivered(egg as VirtueEgg, amount);
     }
     for (const [egg, count] of Object.entries(teEarnedPerEgg)) {
-      truthEggsStore.setTEEarned(egg as any, count);
+      truthEggsStore.setTEEarned(egg as VirtueEgg, count);
     }
 
     // Create the start_ascension action with initial snapshot
