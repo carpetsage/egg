@@ -22,7 +22,9 @@ import type {
   EquipArtifactSetPayload,
   UpdateArtifactSetPayload,
   VirtueEgg,
+  RemoveFuelPayload,
 } from '@/types';
+import { type HabId } from '@/lib/habs';
 import { restoreFromSnapshot, computeCurrentSnapshot, computeDeltas } from './snapshot';
 
 // ... (existing imports)
@@ -99,7 +101,7 @@ function applyActionEffect(action: Action): void {
     case 'buy_hab': {
       const payload = action.payload as BuyHabPayload;
       const habStore = useHabCapacityStore();
-      habStore.setHab(payload.slotIndex, payload.habId as any);
+      habStore.setHab(payload.slotIndex, payload.habId as HabId);
       break;
     }
 
@@ -154,7 +156,7 @@ function applyActionEffect(action: Action): void {
     }
 
     case 'remove_fuel': {
-      const payload = action.payload as any; // RemoveFuelPayload
+      const payload = action.payload as RemoveFuelPayload;
       const fuelTankStore = useFuelTankStore();
       fuelTankStore.removeFuel(payload.egg, payload.amount);
       break;

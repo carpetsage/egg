@@ -283,7 +283,7 @@ function findNthResearchPurchase(
   // So we want to find the action that makes (T1..X-1 total) >= n.
 
   // Let's find which tier this threshold belongs to.
-  let targetTier = TIER_UNLOCK_THRESHOLDS.indexOf(n as any);
+  let targetTier = (TIER_UNLOCK_THRESHOLDS as readonly number[]).indexOf(n);
   if (targetTier === -1) targetTier = 13; // Fallback
 
   // Start count with initial purchases in tiers < targetTier + 1 (i.e. Tiers 1 to targetTier)

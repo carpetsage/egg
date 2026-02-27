@@ -8,7 +8,9 @@ import type {
     ToggleSalePayload,
     ToggleEarningsBoostPayload,
     UpdateArtifactSetPayload,
+    VehicleSlot,
 } from '@/types';
+import { type HabId } from '@/lib/habs';
 import {
     createEmptySnapshot,
     createEmptyUndoValidation,
@@ -318,8 +320,8 @@ export const useActionsStore = defineStore('actions', {
             silosStore.setSiloCount(farm.numSilos);
             commonResearchStore.resetAll();
             for (const [id, level] of Object.entries(farm.commonResearches)) commonResearchStore.setResearchLevel(id, level);
-            farm.habs.forEach((habId: any, idx: number) => habCapacityStore.setHab(idx, habId));
-            farm.vehicles.forEach((v: any, idx: number) => {
+            (farm.habs as (HabId | null)[]).forEach((habId, idx) => habCapacityStore.setHab(idx, habId));
+            farm.vehicles.forEach((v: VehicleSlot, idx: number) => {
                 shippingCapacityStore.setVehicle(idx, v.vehicleId);
                 if (v.vehicleId === 11) shippingCapacityStore.setTrainLength(idx, v.trainLength);
             });

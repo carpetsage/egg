@@ -9,7 +9,7 @@ import { solveForTime, getTimeToSave, calculateEggsDeliveredForTime } from './ma
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { getResearchById, getDiscountedVirtuePrice } from '@/calculations/commonResearch';
-import { getHabById, getDiscountedHabPrice, countHabsOfType } from '@/lib/habs';
+import { getHabById, getDiscountedHabPrice, countHabsOfType, type HabId } from '@/lib/habs';
 import { getDiscountedVehiclePrice, countVehiclesOfType, getDiscountedTrainCarPrice } from '@/lib/vehicles';
 import { nextSiloCost } from '@/stores/silos';
 import type { SimulationContext } from '../types';
@@ -42,7 +42,7 @@ export function refreshActionPayload(
                 cheaperContractorsLevel: context.epicResearchLevels['cheaper_contractors'] || 0,
                 flameRetardantMultiplier: context.colleggtibleModifiers.habCost || 1
             };
-            const hab = getHabById(payload.habId as any);
+            const hab = getHabById(payload.habId as HabId);
             if (hab) {
                 const habIds = prevSnapshot.habIds.slice(0, payload.slotIndex);
                 const purchaseIndex = countHabsOfType(habIds, payload.habId);
@@ -56,7 +56,7 @@ export function refreshActionPayload(
                 lithiumMultiplier: context.colleggtibleModifiers.vehicleCost || 1
             };
             const vehicles = prevSnapshot.vehicles.slice(0, payload.slotIndex);
-            const purchaseIndex = countVehiclesOfType(vehicles as any, payload.vehicleId);
+            const purchaseIndex = countVehiclesOfType(vehicles as { vehicleId: number | null }[], payload.vehicleId);
             const refreshedCost = getDiscountedVehiclePrice(payload.vehicleId, purchaseIndex, modifiers, prevSnapshot.activeSales.vehicle);
             if (action.cost !== refreshedCost) action = { ...action, cost: refreshedCost };
         } else if (action.type === 'buy_train_car') {
@@ -135,7 +135,7 @@ export function getActionDuration(
     prevSnapshot: CalculationsSnapshot
 ): number {
     if (action.type === 'store_fuel' || action.type === 'wait_for_te') {
-        return (action.payload as any).timeSeconds || 0;
+        return (action.payload as { timeSeconds?: number }).timeSeconds || 0;
     }
 
     if (
@@ -143,7 +143,7 @@ export function getActionDuration(
         action.type === 'wait_for_time' ||
         action.type === 'wait_for_full_habs'
     ) {
-        return (action.payload as any).totalTimeSeconds || 0;
+        return (action.payload as { totalTimeSeconds?: number }).totalTimeSeconds || 0;
     }
 
     if (action.type === 'launch_missions') {

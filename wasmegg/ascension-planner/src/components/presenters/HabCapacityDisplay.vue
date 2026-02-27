@@ -76,13 +76,13 @@
             <div v-if="hab.habId !== null" class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-105 transition-transform">
                 <img
-                  :src="iconURL(getHabById(hab.habId as any)?.iconPath ?? '', 128)"
+                  :src="iconURL(getHabById(hab.habId as HabId)?.iconPath ?? '', 128)"
                   class="w-full h-full object-contain p-1.5"
-                  :alt="getHabById(hab.habId as any)?.name"
+                  :alt="getHabById(hab.habId as HabId)?.name"
                 />
               </div>
               <div>
-                <div class="text-[11px] font-bold text-slate-700 leading-tight">{{ getHabById(hab.habId as any)?.name }}</div>
+                <div class="text-[11px] font-bold text-slate-700 leading-tight">{{ getHabById(hab.habId as HabId)?.name }}</div>
                 <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Active Module</div>
               </div>
             </div>
@@ -220,7 +220,7 @@
 
 <script setup lang="ts">
 import type { HabCapacityOutput } from '@/types';
-import { getHabById, getDiscountedHabPrice, getHabCostMultiplier, countHabsOfType, type HabCostModifiers } from '@/lib/habs';
+import { getHabById, getDiscountedHabPrice, getHabCostMultiplier, countHabsOfType, type HabCostModifiers, type HabId } from '@/lib/habs';
 import { formatNumber, formatFullNumber, formatMultiplier, formatPercent } from '@/lib/format';
 import { formatTier, formatColleggtibleBonus } from '@/lib/colleggtibles';
 import { getColleggtibleIconPath } from '@/lib/assets';
@@ -259,7 +259,7 @@ function getHabPriceForSlot(slotIndex: number): number {
   const habId = currentHabIds.value[slotIndex];
   if (habId === null) return 0;
 
-  const hab = getHabById(habId as any);
+  const hab = getHabById(habId as HabId);
   if (!hab) return 0;
 
   // Count how many of this hab type are in slots before this one

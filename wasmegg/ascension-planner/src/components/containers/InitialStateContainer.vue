@@ -65,8 +65,9 @@ import { useHabCapacityStore } from '@/stores/habCapacity';
 import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useSilosStore } from '@/stores/silos';
 import InitialStateDisplay from '@/components/presenters/InitialStateDisplay.vue';
-import type { VirtueEgg, Action } from '@/types';
+import type { VirtueEgg, Action, ArtifactSetName } from '@/types';
 import { VIRTUE_EGGS, VIRTUE_EGG_NAMES } from '@/types';
+import type { EquippedArtifact } from '@/lib/artifacts';
 
 const store = useInitialStateStore();
 const virtueStore = useVirtueStore();
@@ -120,7 +121,7 @@ function handleSetColleggtibleTier(id: string, tierIndex: number) {
   updateInitialSnapshotAndRecalculate();
 }
 
-function handleArtifactLoadout(loadout: any[]) {
+function handleArtifactLoadout(loadout: EquippedArtifact[]) {
   store.setArtifactLoadout(loadout);
   updateInitialSnapshotAndRecalculate();
 }
@@ -264,17 +265,17 @@ function handleSetAssumeDoubleEarnings(enabled: boolean) {
   updateInitialSnapshotAndRecalculate();
 }
 
-function handleSaveCurrentToSet(setName: any) {
+function handleSaveCurrentToSet(setName: ArtifactSetName) {
   store.saveCurrentToSet(setName);
   updateInitialSnapshotAndRecalculate();
 }
 
-function handleUpdateArtifactSet(setName: any, loadout: any[]) {
+function handleUpdateArtifactSet(setName: ArtifactSetName, loadout: EquippedArtifact[]) {
   store.updateArtifactSet(setName, loadout);
   updateInitialSnapshotAndRecalculate();
 }
 
-function handleSetActiveArtifactSet(setName: any) {
+function handleSetActiveArtifactSet(setName: ArtifactSetName) {
   store.setActiveArtifactSet(setName);
   updateInitialSnapshotAndRecalculate();
 }

@@ -10,7 +10,7 @@
           </span>
         </div>
         <span class="text-[10px] text-blue-600 font-bold tracking-tighter uppercase">
-          {{ thresholds[item.unlockTier - 1] }} Purchases Reached
+          {{ thresholds[(item.unlockTier ?? 1) - 1] }} Purchases Reached
         </span>
       </div>
       
@@ -51,8 +51,29 @@ import { type CommonResearch } from '@/calculations/commonResearch';
 import { type ViewType } from '@/composables/useResearchViews';
 import ResearchItem from './ResearchItem.vue';
 
+interface SortedResearchItem {
+  research: CommonResearch;
+  targetLevel: number;
+  price: number;
+  currentLevel: number;
+  canBuy: boolean;
+  isMaxed: boolean;
+  timeToBuy?: string;
+  timeToBuySeconds?: number;
+  buyToHereTime?: string;
+  buyToHereSeconds?: number;
+  canBuyToHere?: boolean;
+  showDivider?: boolean;
+  unlockTier?: number;
+  extraStats?: string;
+  extraLabel?: string;
+  extraSeconds?: number;
+  hpp?: number;
+  recommendationNote?: string;
+}
+
 defineProps<{
-  sortedResearches: any[];
+  sortedResearches: SortedResearchItem[];
   view: ViewType;
   thresholds: readonly number[];
   getResearchTimeToBuy: (r: CommonResearch) => string;

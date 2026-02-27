@@ -28,7 +28,7 @@
           
           <img 
             v-if="index <= siloOutput.siloCount" 
-            :src="`${baseUrl}static/img/silo.png`" 
+            :src="iconURL('egginc-extras/silo.png', 64)" 
             class="w-7 h-7 object-contain relative z-10 drop-shadow-sm group-hover:scale-110 transition-transform"
             alt="silo"
           />

@@ -41,6 +41,7 @@ import {
     createBaseEngineState,
     syncStoresToSnapshot,
 } from '@/engine/adapter';
+import { type EngineState } from '@/engine/types';
 
 /**
  * Create default start action.
@@ -75,7 +76,7 @@ export function createDefaultStartAction(initialEgg: VirtueEgg = 'curiosity'): A
 export function calculateActionResult(
     action: Action,
     prevSnapshot: CalculationsSnapshot,
-    prevState: any // EngineState
+    prevState: EngineState // EngineState
 ): { newSnapshot: CalculationsSnapshot; durationSeconds: number } {
     const context = getSimulationContext();
 

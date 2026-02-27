@@ -17,6 +17,7 @@ import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength } from '@/calculations/shippingCapacity';
+import { type CalculationsSnapshot } from '@/types';
 
 export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr';
 
@@ -184,8 +185,16 @@ export function useResearchViews() {
             return !categories.some(c => excluded.includes(c));
         };
 
+        interface UnpurchasedResearch {
+            research: CommonResearch;
+            targetLevel: number;
+            price: number;
+            showDivider?: boolean;
+            unlockTier?: number;
+        }
+
         if (currentView.value === 'cheapest') {
-            const unpurchased: any[] = [];
+            const unpurchased: UnpurchasedResearch[] = [];
             all.forEach(r => {
                 const currentLevel = researchLevels[r.id] || 0;
                 for (let lvl = currentLevel; lvl < r.levels; lvl++) {
@@ -199,14 +208,14 @@ export function useResearchViews() {
             unpurchased.sort((a, b) => a.price - b.price);
 
             const result: any[] = [];
-            const pool: any[] = [];
+            const pool: UnpurchasedResearch[] = [];
             const context = getSimulationContext();
             const baseSnapshot = actionsStore.effectiveSnapshot;
             let currentSimState = createBaseEngineState(baseSnapshot);
             let currentSimSnapshot = baseSnapshot;
             let totalSeconds = 0;
 
-            const formatTimeToBuy = (price: number, snapshot: any): { timeToBuy: string, secondsToBuy: number } => {
+            const formatTimeToBuy = (price: number, snapshot: CalculationsSnapshot): { timeToBuy: string, secondsToBuy: number } => {
                 const seconds = getTimeToSave(price, snapshot);
                 if (seconds === Infinity) return { timeToBuy: '∞', secondsToBuy: Infinity };
                 return {
@@ -217,7 +226,7 @@ export function useResearchViews() {
 
             const processed = new Set<string>();
 
-            const processItem = (item: any) => {
+            const processItem = (item: UnpurchasedResearch) => {
                 const r = item.research;
                 const key = `${r.id}-${item.targetLevel}`;
                 if (processed.has(key)) return;
