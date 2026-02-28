@@ -65,6 +65,13 @@
         "
       >
         {{ extraStats }}
+        <span
+          v-if="showSaleWarning"
+          class="ml-1 cursor-help text-amber-500"
+          v-tippy="'This research won\'t earn back 70% of its cost before the next Friday sale. It is likely better to wait.'"
+        >
+          ⚠️
+        </span>
       </div>
       <div v-if="hpp !== undefined" class="text-[10px] font-mono text-purple-600 mt-0.5">
         {{ hpp === Infinity ? '∞' : hpp.toFixed(1) }} hr/%
@@ -160,6 +167,7 @@ const props = defineProps<{
   maxTimeSeconds?: number;
   buyToHereSeconds?: number;
   extraSeconds?: number;
+  showSaleWarning?: boolean;
 }>();
 
 const actionsStore = useActionsStore();

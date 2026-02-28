@@ -351,7 +351,7 @@ async function submitPlayerId(id: string) {
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
-    console.log('Player data (backup):', backup);
+    // console.log('Player data (backup):', backup);
 
     // Store the backup data in initial state
     let { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
