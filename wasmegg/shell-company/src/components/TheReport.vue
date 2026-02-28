@@ -244,25 +244,56 @@
           <template v-for="shell in shells[shellType]" :key="shell.id">
             <div
               v-if="showShellThingy(shell)"
-              class="flex items-center text-sm"
+              class="text-sm"
               :class="{ 'opacity-40': !shell.owned, 'text-red-600': isUnavailable(shell) }"
             >
+              <div class="flex items-center">
+                <div
+                  v-if="shell.setId && shellSetIds.includes(shell.setId)"
+                  v-tippy="{ content: `This is a piece in the ${shell.setName ?? '?'} set.` }"
+                  class="flex-0 h-4 w-4 rounded-full mr-1.5 border-[0.5px] border-[#cacacc]"
+                  :class="{ 'set-unknown': !getShellSetBaseColor(shell.setId) }"
+                  :style="
+                    getShellSetBaseColor(shell.setId)
+                      ? { backgroundColor: getShellSetBaseColor(shell.setId) }
+                      : undefined
+                  "
+                ></div>
+                <div class="truncate mr-1" v-tippy="{ content: shell.name }">{{ shell.name }} </div>
+                <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
+                <div class="flex-0 text-ticket -ml-px">{{ shell.price }}</div>
+                <template v-if="shell.ownedVariationValue">
+                  <div class="mx-1 text-[0.65rem] text-gray-500">+</div>
+                  <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
+                  <div class="flex-0 text-ticket -ml-px">{{ shell.ownedVariationValue }}</div>
+                </template>
+                <sup v-if="shell.isNew" class="flex-0 text-[.6rem] text-red-600 ml-0.5">NEW!</sup>
+                <div class="flex-0 w-4"></div>
+              </div>
               <div
-                v-if="shell.setId && shellSetIds.includes(shell.setId)"
-                v-tippy="{ content: `This is a piece in the ${shell.setName ?? '?'} set.` }"
-                class="flex-0 h-4 w-4 rounded-full mr-1.5 border-[0.5px] border-[#cacacc]"
-                :class="{ 'set-unknown': !getShellSetBaseColor(shell.setId) }"
-                :style="
-                  getShellSetBaseColor(shell.setId)
-                    ? { backgroundColor: getShellSetBaseColor(shell.setId) }
-                    : undefined
-                "
-              ></div>
-              <div class="truncate mr-1">{{ shell.name }} </div>
-              <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
-              <div class="flex-0 text-ticket -ml-px">{{ shell.price }}</div>
-              <sup v-if="shell.isNew" class="flex-0 text-[.6rem] text-red-600 ml-0.5">NEW!</sup>
-              <div class="flex-0 w-4"></div>
+                v-if="shell.variations.length"
+                class="mt-1 flex flex-wrap gap-1.5"
+                :class="{ 'pl-5': shell.setId && shellSetIds.includes(shell.setId) }"
+              >
+                <div
+                  v-for="variation in shell.variations"
+                  :key="variation.id"
+                  class="flex items-center space-x-1 rounded-full border border-gray-200 px-2 py-0.5 text-[0.65rem]"
+                  :class="{ 'opacity-40': !variation.owned }"
+                >
+                  <div
+                    class="h-3 w-3 rounded-full border border-white/60 bg-gray-200 shrink-0"
+                    :style="variation.hexColor ? { backgroundColor: variation.hexColor } : undefined"
+                  ></div>
+                  <div class="max-w-[76px] truncate" v-tippy="{ content: variation.name }">
+                    {{ variation.name }}
+                  </div>
+                  <div class="flex items-center space-x-0.5">
+                    <img :src="ticketImageURL" class="h-3 w-3" />
+                    <span class="text-ticket">{{ variation.price }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </template>
         </div>
@@ -283,7 +314,13 @@
               class="flex items-center text-sm"
               :class="{ 'opacity-40': !obj.owned, 'text-red-600': isUnavailable(obj) }"
             >
-              <div class="truncate mr-1">{{ obj.name }}</div>
+              <div
+                v-if="obj.iconColors.length"
+                class="flex-0 h-4 w-4 rounded-full mr-1.5 border-[0.5px] border-[#cacacc]"
+                :style="obj.iconStripeStyle"
+                aria-hidden="true"
+              ></div>
+              <div class="truncate mr-1" v-tippy="{ content: obj.name }">{{ obj.name }}</div>
               <img :src="ticketImageURL" class="flex-0 h-4 w-4" />
               <div class="flex-0 text-ticket -ml-px">{{ obj.price }}</div>
               <sup v-if="obj.isNew" class="flex-0 text-[.6rem] text-red-600 ml-0.5">NEW!</sup>
@@ -361,6 +398,8 @@ type Shell = {
   owned: boolean;
   isNew: boolean;
   spec: ei.IShellSpec;
+  variations: ShellSetVariation[];
+  ownedVariationValue: number;
 };
 
 type ShellObject = {
@@ -372,6 +411,8 @@ type ShellObject = {
   owned: boolean;
   isNew: boolean;
   spec: ei.IShellObjectSpec;
+  iconColors: string[];
+  iconStripeStyle?: Record<string, string>;
 };
 
 type Chicken = ShellObject & { type: AssetType.CHICKEN };
@@ -402,6 +443,32 @@ const normalizeHexColor = (raw?: string | null): string | undefined => {
     return `#${hex.slice(-6)}`;
   }
   return undefined;
+};
+
+const normalizeHexPalette = (raw?: Array<string | null> | null): string[] => {
+  if (!raw || raw.length === 0) {
+    return [];
+  }
+  return raw
+    .map(color => normalizeHexColor(color ?? undefined))
+    .filter((color): color is string => !!color);
+};
+
+const buildStripeStyle = (colors: string[]): Record<string, string> | undefined => {
+  if (!colors.length) {
+    return undefined;
+  }
+  if (colors.length === 1) {
+    return { backgroundColor: colors[0] };
+  }
+  const stops = colors
+    .map((color, index) => {
+      const start = (index / colors.length) * 100;
+      const end = ((index + 1) / colors.length) * 100;
+      return `${color} ${start}%, ${color} ${end}%`;
+    })
+    .join(', ');
+  return { backgroundImage: `linear-gradient(to right, ${stops})` };
 };
 
 const unavailableShellIds = new Set<string>(['ei_mailbox_empty_brick']);
@@ -585,6 +652,7 @@ const shellSets: ShellSet[] = [];
 const decorators: ShellSet[] = [];
 const shellSetNames: Record<string, string> = {};
 const shellSetSpecs = config.dlcCatalog?.shellSets ?? [];
+const shellSetSpecsById = new Map<string, ei.IShellSetSpec>();
 const decoratorSpecs = config.dlcCatalog?.decorators ?? [];
 for (const set of shellSetSpecs) {
   const id = set.identifier;
@@ -592,6 +660,7 @@ for (const set of shellSetSpecs) {
     console.warn(`shell set has no id`);
     continue;
   }
+  shellSetSpecsById.set(id, set);
   const name = set.name;
   if (!name) {
     console.warn(`shell set ${id} has no name`);
@@ -812,7 +881,22 @@ for (const shellConfig of shellConfigs) {
     owned,
     isNew,
     spec: shellConfig,
+    variations: [],
+    ownedVariationValue: 0,
   };
+  if (setId) {
+    const variationSource = shellSetSpecsById.get(setId);
+    const shouldAttachStandaloneVariations = !!(
+      variationSource?.variations?.length &&
+      !belongsToShellSet &&
+      !belongsToDecorator
+    );
+    if (shouldAttachStandaloneVariations && variationSource) {
+      const { variations, ownedValue } = buildShellSetVariations(setId, variationSource, owned);
+      shell.variations = variations;
+      shell.ownedVariationValue = ownedValue;
+    }
+  }
   if (shouldCountTowardsSummary && setId) {
     const set = shellSetsById.get(setId);
     if (set) {
@@ -1008,6 +1092,11 @@ for (const shellType of shellTypes) {
     } else if (!s1.isPartOfSet && s2.isPartOfSet) {
       return 1;
     }
+    const s1HasVariations = s1.variations.length > 0;
+    const s2HasVariations = s2.variations.length > 0;
+    if (s1HasVariations !== s2HasVariations) {
+      return s1HasVariations ? 1 : -1;
+    }
     if ((s1.spec.requiredEop ?? 0) !== (s2.spec.requiredEop ?? 0)) {
       return (s1.spec.requiredEop ?? 0) - (s2.spec.requiredEop ?? 0);
     }
@@ -1061,6 +1150,8 @@ for (const objectConfig of config.dlcCatalog?.shellObjects ?? []) {
   const isNew = !!objectConfig.isNew;
   const expires = !!objectConfig.expires;
   const released = (objectConfig.secondsUntilAvailable ?? 0) <= 0;
+  const iconColors = normalizeHexPalette(objectConfig.iconColors ?? []);
+  const iconStripeStyle = buildStripeStyle(iconColors);
   if (released) {
     objects.push({
       id,
@@ -1071,6 +1162,8 @@ for (const objectConfig of config.dlcCatalog?.shellObjects ?? []) {
       owned,
       isNew,
       spec: objectConfig,
+      iconColors,
+      iconStripeStyle,
     });
   }
 }
@@ -1098,20 +1191,30 @@ const shellsFlatOwned = shellsFlat.filter(shell => shell.owned);
 const unavailableShellCount = shellsFlat.filter(shell => isUnavailable(shell)).length;
 const totalShells = shellsFlat.length - unavailableShellCount;
 const decoratorValueOwned = sum(decorators.filter(d => d.owned).map(d => d.totalPrice));
-const variationValueOwned = sum(shellSets.map(set => set.ownedVariationValue));
-const variationPriceToComplete = shellSets.reduce((acc, set) => {
+const setVariationValueOwned = sum(shellSets.map(set => set.ownedVariationValue));
+const shellVariationValueOwned = sum(shellsFlat.map(shell => shell.ownedVariationValue));
+const variationValueOwned = setVariationValueOwned + shellVariationValueOwned;
+const setVariationPriceToComplete = shellSets.reduce((acc, set) => {
   const missingVariationValue = set.variations
     .filter(variation => !variation.owned)
     .reduce((variationAcc, variation) => variationAcc + variation.price, 0);
   return acc + missingVariationValue;
 }, 0);
+const shellVariationPriceToComplete = shellsFlat.reduce((acc, shell) => {
+  const missingVariationValue = shell.variations
+    .filter(variation => !variation.owned)
+    .reduce((variationAcc, variation) => variationAcc + variation.price, 0);
+  return acc + missingVariationValue;
+}, 0);
+const variationPriceToComplete = setVariationPriceToComplete + shellVariationPriceToComplete;
 const totalDecorators = decorators.length;
 const totalDecoratorsOwned = decorators.filter(d => d.owned).length;
-const totalVariations = shellSets.reduce((acc, set) => acc + set.variations.length, 0);
-const totalVariationsOwned = shellSets.reduce(
-  (acc, set) => acc + set.variations.filter(variation => variation.owned).length,
-  0
-);
+const totalVariations =
+  shellSets.reduce((acc, set) => acc + set.variations.length, 0) +
+  shellsFlat.reduce((acc, shell) => acc + shell.variations.length, 0);
+const totalVariationsOwned =
+  shellSets.reduce((acc, set) => acc + set.variations.filter(variation => variation.owned).length, 0) +
+  shellsFlat.reduce((acc, shell) => acc + shell.variations.filter(variation => variation.owned).length, 0);
 const totalPieces = totalShells + objects.length + decorators.length + totalVariations;
 const totalPiecesOwned =
   shellsFlatOwned.length +
@@ -1130,11 +1233,29 @@ const costToPurchaseEverything =
   sum(decorators.map(decorator => decorator.priceToComplete)) +
   variationPriceToComplete;
 
+const shellThingyHasVariations = (
+  shellThingy: Shell | ShellObject | ShellSet
+): shellThingy is Shell | ShellSet => {
+  return Array.isArray((shellThingy as Shell | ShellSet).variations);
+};
+
+const hasUnownedVariations = (shellThingy: Shell | ShellObject | ShellSet): boolean => {
+  if (!shellThingyHasVariations(shellThingy)) {
+    return false;
+  }
+  return shellThingy.variations.some(variation => !variation.owned);
+};
+
 const showShellThingy = (shellThingy: Shell | ShellObject | ShellSet): boolean => {
-  return (
-    ((showOwned.value && shellThingy.owned) || (showUnowned.value && !shellThingy.owned)) &&
-    ((showExclusive.value && shellThingy.expires) || (showNonExclusive.value && !shellThingy.expires))
-  );
+  const missingVariations = hasUnownedVariations(shellThingy);
+  const matchesOwnershipFilter =
+    (showOwned.value && shellThingy.owned) ||
+    (showUnowned.value && (!shellThingy.owned || missingVariations));
+  const matchesExclusivityFilter =
+    (showExclusive.value && shellThingy.expires) ||
+    (showNonExclusive.value && !shellThingy.expires);
+
+  return matchesOwnershipFilter && matchesExclusivityFilter;
 };
 </script>
 
