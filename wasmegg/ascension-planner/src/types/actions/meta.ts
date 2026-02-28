@@ -29,10 +29,65 @@ export interface BaseAction {
 
 /**
  * Typed action with payload.
+ * Defined as a union of all possible action types to ensure payload type safety.
  */
-export type Action<T extends ActionType = ActionType> = BaseAction & {
-  type: T;
-  payload: ActionPayloadMap[T];
+export type Action<T extends ActionType = ActionType> = {
+  [K in T]: BaseAction & {
+    type: K;
+    payload: ActionPayloadMap[K];
+  };
+}[T];
+
+/**
+ * A minimal action structure used for temporary simulations.
+ * Uses a mapped type to ensure the payload matches the action type.
+ */
+export type SimulatedAction = {
+  [T in ActionType]: Pick<BaseAction, 'type' | 'cost'> & {
+    type: T;
+    payload: ActionPayloadMap[T];
+  } & Partial<BaseAction>;
+}[ActionType];
+
+/**
+ * Create a minimal action for simulation purposes.
+ */
+export function createSimAction<T extends ActionType>(
+  type: T,
+  payload: ActionPayloadMap[T],
+  cost: number = 0
+): SimulatedAction {
+  return {
+    id: `sim_${Math.random().toString(36).substring(2, 9)}`,
+    type,
+    payload,
+    cost,
+    timestamp: Math.floor(Date.now() / 1000),
+    dependsOn: [],
+  } as unknown as SimulatedAction;
+}
+
+/**
+ * An action structure used when creating new actions.
+ * It contains the core data but lacks the calculated fields like index, endState, and deltas.
+ */
+export type DraftAction = Omit<
+  Action,
+  | 'index'
+  | 'dependents'
+  | 'elrDelta'
+  | 'offlineEarningsDelta'
+  | 'eggValueDelta'
+  | 'habCapacityDelta'
+  | 'layRateDelta'
+  | 'shippingCapacityDelta'
+  | 'ihrDelta'
+  | 'bankDelta'
+  | 'populationDelta'
+  | 'endState'
+  | 'totalTimeSeconds'
+> & {
+  dependsOn: string[];
 };
 
 /**

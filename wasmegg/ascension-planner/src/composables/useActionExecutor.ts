@@ -43,24 +43,7 @@ export function useActionExecutor() {
    * Call this after applying changes to stores.
    */
   async function completeExecution(
-    action: Omit<
-      Action,
-      | 'index'
-      | 'dependents'
-      | 'elrDelta'
-      | 'offlineEarningsDelta'
-      | 'eggValueDelta'
-      | 'habCapacityDelta'
-      | 'layRateDelta'
-      | 'shippingCapacityDelta'
-      | 'ihrDelta'
-      | 'bankDelta'
-      | 'populationDelta'
-      | 'endState'
-      | 'totalTimeSeconds'
-    > & {
-      dependsOn: string[];
-    },
+    action: import('@/types').DraftAction,
     beforeSnapshotArg: CalculationsSnapshot
   ): Promise<void> {
     // Compute the new snapshot after the action
@@ -104,7 +87,7 @@ export function useActionExecutor() {
       }
     } else {
       // Normal push to end
-      actionsStore.pushAction(fullAction as Omit<Action, 'index' | 'dependents'> & { dependsOn: string[] });
+      actionsStore.pushAction(fullAction);
     }
   }
 

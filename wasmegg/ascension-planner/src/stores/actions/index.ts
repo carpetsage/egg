@@ -122,7 +122,7 @@ export const useActionsStore = defineStore('actions', {
       return collectDependentActions(this.actions, actionId);
     },
 
-    pushAction(action: any) {
+    pushAction(action: import('@/types').DraftAction) {
       // Logic for redundant actions
       if (action.type === 'toggle_sale' || action.type === 'toggle_earnings_boost') {
         const lastAction = this.actions[this.actions.length - 1];
@@ -181,7 +181,7 @@ export const useActionsStore = defineStore('actions', {
         shippingCapacityDelta: 0,
         ihrDelta: 0,
         bankDelta: 0,
-      } as Action;
+      } as unknown as Action;
 
       const { newSnapshot, durationSeconds } = calculateActionResult(fullAction, prevSnapshot, prevState);
       const deltas = computeDeltas(prevSnapshot, newSnapshot);
@@ -382,7 +382,10 @@ export const useActionsStore = defineStore('actions', {
       }
     },
 
-    async insertAction(action: any, _replayCallback?: any) {
+    async insertAction(
+      action: import('@/types').DraftAction,
+      _replayCallback?: (action: Action, previousSnapshot: CalculationsSnapshot) => CalculationsSnapshot
+    ) {
       const insertIndex = this.editingInsertIndex;
       if (insertIndex === -1) {
         this.pushAction(action);
@@ -398,7 +401,7 @@ export const useActionsStore = defineStore('actions', {
         dependents: [],
         totalTimeSeconds: 0,
         endState: createEmptySnapshot(),
-      } as Action;
+      } as unknown as Action;
 
       for (const depId of action.dependsOn) {
         const depAction = this.actions.find(a => a.id === depId);

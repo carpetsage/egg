@@ -1,5 +1,7 @@
 import {
-  Action,
+  SimulatedAction,
+  ActionType,
+  ActionPayloadMap,
   BuyVehiclePayload,
   BuyHabPayload,
   BuyResearchPayload,
@@ -19,7 +21,10 @@ import type { EngineState } from '../types';
 /**
  * Purely apply an action to the engine state.
  */
-export function applyAction(state: EngineState, action: Action): EngineState {
+export function applyAction(
+  state: EngineState,
+  action: { [T in ActionType]: { type: T; payload: ActionPayloadMap[T]; cost: number } }[ActionType]
+): EngineState {
   switch (action.type) {
     case 'start_ascension': {
       const payload = action.payload as StartAscensionPayload;
@@ -160,9 +165,9 @@ export function applyAction(state: EngineState, action: Action): EngineState {
         activeArtifactSet: setName,
         artifactLoadout: newLoadout
           ? newLoadout.map(slot => ({
-              artifactId: slot.artifactId,
-              stones: [...slot.stones],
-            }))
+            artifactId: slot.artifactId,
+            stones: [...slot.stones],
+          }))
           : state.artifactLoadout,
       };
     }

@@ -18,8 +18,46 @@ import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength } from '@/calculations/shippingCapacity';
 import { type CalculationsSnapshot } from '@/types';
+import { createSimAction } from '@/types/actions/meta';
 
 export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr';
+
+/**
+ * Common interface for research items across different views.
+ */
+export interface ResearchViewItem {
+  research: CommonResearch;
+  targetLevel: number;
+  currentLevel: number;
+  price: number;
+  timeToBuy: string;
+  timeToBuySeconds: number;
+  canBuy: boolean;
+  isMaxed: boolean;
+  canBuyToHere?: boolean;
+
+  // ROI specific
+  roiSeconds?: number;
+  totalRoiSeconds?: number;
+  roiLabel?: string;
+  totalRoiLabel?: string;
+  isLaying?: boolean;
+  isShipping?: boolean;
+  recommendationNote?: string;
+
+  // ELR specific
+  impact?: number;
+  hpp?: number;
+
+  // Cheapest specific / generic
+  buyToHereTime?: string;
+  buyToHereSeconds?: number;
+  showDivider?: boolean;
+  unlockTier?: number;
+  extraStats?: string;
+  extraLabel?: string;
+  extraSeconds?: number;
+}
 
 export const VIEWS = [
   { id: 'game', label: 'Game View' },
@@ -237,7 +275,7 @@ export function useResearchViews() {
       });
       unpurchased.sort((a, b) => a.price - b.price);
 
-      const result: any[] = [];
+      const result: ResearchViewItem[] = [];
       const pool: UnpurchasedResearch[] = [];
       const context = getSimulationContext();
       const baseSnapshot = actionsStore.effectiveSnapshot;
@@ -296,7 +334,7 @@ export function useResearchViews() {
             population: Math.min(
               currentSimSnapshot.habCapacity,
               currentSimSnapshot.population +
-                (currentSimSnapshot.offlineIHR / 60) * (secondsToBuy === Infinity ? 0 : secondsToBuy)
+              (currentSimSnapshot.offlineIHR / 60) * (secondsToBuy === Infinity ? 0 : secondsToBuy)
             ),
             bankValue: 0,
             researchLevels: {
@@ -388,16 +426,13 @@ export function useResearchViews() {
         const isLaying = categories.includes('egg_laying_rate');
         const isShipping = categories.includes('shipping_capacity');
 
-        const tempAction = {
-          id: 'tmp',
-          type: 'buy_research' as const,
-          payload: { researchId: r.id, fromLevel: level, toLevel: level + 1 },
-          cost: price,
-          timestamp: Date.now(),
-          dependsOn: [],
-        };
+        const tempAction = createSimAction('buy_research', {
+          researchId: r.id,
+          fromLevel: level,
+          toLevel: level + 1,
+        }, price);
 
-        const nextState = applyAction(baseState, tempAction as any);
+        const nextState = applyAction(baseState, tempAction);
         const nextSnapshot = computeSnapshot(nextState, context);
         const newEarnings = nextSnapshot.offlineEarnings;
 
@@ -453,23 +488,17 @@ export function useResearchViews() {
               const level1 = researchLevels[c.research.id] || 0;
               const level2 = researchLevels[partner.research.id] || 0;
 
-              let pairState = applyAction(baseState, {
-                id: 'tmp1',
-                type: 'buy_research',
-                payload: { researchId: c.research.id, fromLevel: level1, toLevel: level1 + 1 },
-                cost: c.price,
-                timestamp: Date.now(),
-                dependsOn: [],
-              } as any);
+              let pairState = applyAction(baseState, createSimAction('buy_research', {
+                researchId: c.research.id,
+                fromLevel: level1,
+                toLevel: level1 + 1,
+              }, c.price));
 
-              pairState = applyAction(pairState, {
-                id: 'tmp2',
-                type: 'buy_research',
-                payload: { researchId: partner.research.id, fromLevel: level2, toLevel: level2 + 1 },
-                cost: partner.price,
-                timestamp: Date.now(),
-                dependsOn: [],
-              } as any);
+              pairState = applyAction(pairState, createSimAction('buy_research', {
+                researchId: partner.research.id,
+                fromLevel: level2,
+                toLevel: level2 + 1,
+              }, partner.price));
 
               const pairSnapshot = computeSnapshot(pairState, context);
               const pairEarnings = pairSnapshot.offlineEarnings;

@@ -1,6 +1,7 @@
 import { iconURL } from 'lib/utils';
 import { allPossibleTiers } from 'lib/artifacts/data';
 import { Artifact, newItem } from 'lib/artifacts';
+import { ei } from 'lib';
 import { EquippedArtifact } from './types';
 import { getArtifact, getStone, stoneOptions } from './data';
 import { createEmptyLoadout } from './calculator';
@@ -107,16 +108,22 @@ export function libArtifactToEquippedArtifact(afx: Artifact): EquippedArtifact {
 /**
  * Parse equipped artifacts and stones from a player backup.
  */
-export function getArtifactLoadoutFromBackup(backup: any): EquippedArtifact[] {
+export function getArtifactLoadoutFromBackup(backup: ei.IBackup): EquippedArtifact[] {
   const loadout = createEmptyLoadout();
   const db = backup.artifactsDb?.virtueAfxDb;
-  if (!db || !db.inventoryItems || !db.activeArtifacts?.slots) {
+  if (!db) {
     return loadout;
   }
-
   const inventoryItems = db.inventoryItems || [];
   const activeArtifacts = db.activeArtifacts;
-  const itemIdToArtifact = new Map<any, any>(inventoryItems.map((item: any) => [item.itemId, item.artifact]));
+  if (!activeArtifacts || !activeArtifacts.slots) {
+    return loadout;
+  }
+  const itemIdToArtifact = new Map<number, ei.ICompleteArtifact>(
+    inventoryItems
+      .filter(item => item.itemId !== undefined && item.itemId !== null && item.artifact)
+      .map(item => [item.itemId!, item.artifact!])
+  );
 
   for (let i = 0; i < Math.min(4, activeArtifacts.slots.length); i++) {
     const slot = activeArtifacts.slots[i];

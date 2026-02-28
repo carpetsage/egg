@@ -99,7 +99,7 @@ export function getOptimalEarningsSet(backup: ei.IBackup): EquippedArtifact[] {
   const libArtifacts: Artifact[] = [];
   const db = backup.artifactsDb?.virtueAfxDb;
   if (db && db.inventoryItems && db.activeArtifacts?.slots) {
-    const itemIdToArtifact = new Map(db.inventoryItems.map((item: any) => [item.itemId!, item.artifact!]));
+    const itemIdToArtifact = new Map(db.inventoryItems.map(item => [item.itemId!, item.artifact!]));
     for (const slot of db.activeArtifacts.slots) {
       if (slot.occupied && slot.itemId !== undefined && slot.itemId !== null) {
         const artifact = itemIdToArtifact.get(slot.itemId);
@@ -107,7 +107,7 @@ export function getOptimalEarningsSet(backup: ei.IBackup): EquippedArtifact[] {
           libArtifacts.push(
             new Artifact(
               newItem(artifact.spec),
-              (artifact.stones || []).map((s: any) => newItem(s))
+              (artifact.stones || []).map(s => newItem(s))
             )
           );
         }
