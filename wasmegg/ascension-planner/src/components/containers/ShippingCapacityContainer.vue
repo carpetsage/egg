@@ -36,8 +36,8 @@ const gravitonCouplingLevel = computed(() => {
 });
 
 // Get transportation lobbyist level from initial state (read-only)
-const transportationLobbyistLevel = computed(() =>
-  initialStateStore.epicResearchLevels['transportation_lobbyist'] || 0
+const transportationLobbyistLevel = computed(
+  () => initialStateStore.epicResearchLevels['transportation_lobbyist'] || 0
 );
 
 // Get colleggtible tiers from initial state (read-only)
@@ -47,12 +47,8 @@ const colleggtibleTiers = computed(() => ({
 }));
 
 // Get Bust Unions epic research level from initial state (read-only)
-const bustUnionsLevel = computed(() =>
-  initialStateStore.epicResearchLevels['bust_unions'] || 0
-);
+const bustUnionsLevel = computed(() => initialStateStore.epicResearchLevels['bust_unions'] || 0);
 
 // Get Lithium colleggtible multiplier from initial state (read-only)
-const lithiumMultiplier = computed(() =>
-  initialStateStore.colleggtibleModifiers.vehicleCost
-);
+const lithiumMultiplier = computed(() => initialStateStore.colleggtibleModifiers.vehicleCost);
 </script>

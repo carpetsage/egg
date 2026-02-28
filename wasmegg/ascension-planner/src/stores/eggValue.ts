@@ -3,9 +3,7 @@ import type { ResearchLevels, Research } from '@/types';
 import { allResearches } from 'lib';
 
 // Filter to only egg value researches
-const eggValueResearches = (allResearches as Research[]).filter(
-  r => r.categories.split(',').includes('egg_value')
-);
+const eggValueResearches = (allResearches as Research[]).filter(r => r.categories.split(',').includes('egg_value'));
 
 export interface EggValueState {
   // Base egg value (1 gem for virtue eggs)

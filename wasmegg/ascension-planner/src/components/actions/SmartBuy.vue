@@ -23,10 +23,13 @@
       <div class="space-y-2">
         <p class="text-[11px] text-slate-700 leading-relaxed font-medium">
           Smart-buy will auto-buy any research that requires less than
-          <span class="font-mono font-bold text-brand-primary bg-white px-1.5 py-0.5 rounded border border-slate-200 shadow-sm mx-0.5">{{ displayDuration }}</span>
+          <span
+            class="font-mono font-bold text-brand-primary bg-white px-1.5 py-0.5 rounded border border-slate-200 shadow-sm mx-0.5"
+            >{{ displayDuration }}</span
+          >
           time to save.
         </p>
-        
+
         <div class="relative group">
           <input
             v-model="timeValue"
@@ -34,7 +37,9 @@
             placeholder="Threshold (e.g. 1h 30m or 100s)"
             class="input-premium pl-3 pr-10"
           />
-          <div class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-300 group-focus-within:text-brand-primary transition-colors uppercase tracking-widest pointer-events-none">
+          <div
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-300 group-focus-within:text-brand-primary transition-colors uppercase tracking-widest pointer-events-none"
+          >
             Time
           </div>
         </div>
@@ -84,9 +89,13 @@ const parsedSeconds = computed(() => {
 });
 
 // Emit updates whenever state changes
-watch([parsedSeconds, () => props.alwaysOn], ([threshold, alwaysOn]) => {
-  emit('update', { threshold, alwaysOn });
-}, { immediate: true });
+watch(
+  [parsedSeconds, () => props.alwaysOn],
+  ([threshold, alwaysOn]) => {
+    emit('update', { threshold, alwaysOn });
+  },
+  { immediate: true }
+);
 
 const isInvalid = computed(() => parsedSeconds.value <= 0 && timeValue.value !== '');
 

@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="border-l-4 transition-all duration-300"
-    :class="groupClasses"
-  >
+  <div class="border-l-4 transition-all duration-300" :class="groupClasses">
     <!-- Collapsible header -->
     <button
       class="w-full px-5 py-4 flex items-center gap-4 hover:bg-white/50 transition-colors"
@@ -20,7 +17,9 @@
       </svg>
 
       <!-- Egg icon (shows the egg we're ON during this period) -->
-      <div class="w-8 h-8 flex-shrink-0 bg-white rounded-xl border border-slate-100 p-1 shadow-sm overflow-hidden group-hover:scale-110 transition-transform">
+      <div
+        class="w-8 h-8 flex-shrink-0 bg-white rounded-xl border border-slate-100 p-1 shadow-sm overflow-hidden group-hover:scale-110 transition-transform"
+      >
         <img
           :src="iconURL(`egginc/egg_${currentEgg}.png`, 64)"
           class="w-full h-full object-contain"
@@ -42,9 +41,7 @@
           {{ formattedTimestamp }}
         </div>
         <div class="flex flex-col items-end gap-0.5">
-          <div class="text-[10px] font-bold text-slate-400 tracking-tight">
-             Time: {{ formattedTimeElapsed }}
-          </div>
+          <div class="text-[10px] font-bold text-slate-400 tracking-tight">Time: {{ formattedTimeElapsed }}</div>
           <div v-if="props.eggsDelivered > 0" class="text-[10px] font-black text-slate-900 tracking-widest">
             {{ formatNumber(props.eggsDelivered, 3) }} Eggs
           </div>
@@ -54,9 +51,7 @@
       <!-- Shift info (only for shift actions) -->
       <div v-if="isShiftAction && headerAction.cost > 0" class="flex items-center gap-2">
         <!-- Cost badge -->
-        <div 
-          class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-xl border border-slate-100 shadow-sm"
-        >
+        <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-xl border border-slate-100 shadow-sm">
           <span class="text-[10px] font-bold text-slate-700 font-mono-premium">
             {{ formatNumber(headerAction.cost, 3) }}
           </span>
@@ -74,7 +69,12 @@
           @click="$emit('start-editing', headerAction.id)"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            />
           </svg>
         </button>
 
@@ -98,29 +98,23 @@
           @click="handleUndo($event, headerAction)"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+            />
           </svg>
         </button>
       </div>
     </button>
 
     <!-- Expanded content (summary + action details) -->
-    <div
-      v-if="isExpanded"
-      class="border-t border-slate-300"
-    >
+    <div v-if="isExpanded" class="border-t border-slate-300">
       <!-- Egg Summary (for the egg we were ON during this period) -->
-      <component
-        :is="summaryComponent"
-        :header-action="headerAction"
-        :actions="actions"
-      />
+      <component :is="summaryComponent" :header-action="headerAction" :actions="actions" />
 
-      <div
-        ref="scrollContainer"
-        class="max-h-[400px] overflow-y-auto bg-white"
-      >
+      <div ref="scrollContainer" class="max-h-[400px] overflow-y-auto bg-white">
         <!-- Action list -->
         <ActionHistoryItem
           v-for="(action, idx) in actions"
@@ -165,13 +159,13 @@ const props = defineProps<{
   periodTimestamp: Date;
   eggsDelivered: number;
   isEditing?: boolean;
-  isCurrent?: boolean;  // Whether this is the current (last) period
+  isCurrent?: boolean; // Whether this is the current (last) period
   visitCount?: number;
 }>();
 
 const emit = defineEmits<{
   'show-details': [action: Action];
-  'undo': [action: Action, options: { skipConfirmation: boolean }];
+  undo: [action: Action, options: { skipConfirmation: boolean }];
   'start-editing': [groupId: string];
   'stop-editing': [];
 }>();
@@ -196,14 +190,17 @@ const isExpanded = computed(() => {
 const scrollContainer = ref<HTMLElement | null>(null);
 
 // Scroll to bottom when actions change and we are expanded
-watch(() => props.actions.length, async () => {
-  if (isExpanded.value) {
-    await nextTick();
-    if (scrollContainer.value) {
-      scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight;
+watch(
+  () => props.actions.length,
+  async () => {
+    if (isExpanded.value) {
+      await nextTick();
+      if (scrollContainer.value) {
+        scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight;
+      }
     }
   }
-});
+);
 
 function toggleExpanded() {
   actionsStore.toggleGroupExpansion(props.headerAction.id);
@@ -234,8 +231,6 @@ const currentEgg = computed<VirtueEgg>(() => {
     return (props.headerAction.payload as ShiftPayload).toEgg;
   }
 });
-
-
 
 /**
  * The header text to display.

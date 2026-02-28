@@ -8,10 +8,7 @@ import type { EffectiveLayRateOutput } from '@/types';
 /**
  * Calculate effective lay rate as the minimum of lay rate and shipping capacity.
  */
-export function calculateEffectiveLayRate(
-  layRate: number,
-  shippingCapacity: number
-): EffectiveLayRateOutput {
+export function calculateEffectiveLayRate(layRate: number, shippingCapacity: number): EffectiveLayRateOutput {
   const effectiveLayRate = Math.min(layRate, shippingCapacity);
 
   let limitedBy: 'laying' | 'shipping' | 'equal';

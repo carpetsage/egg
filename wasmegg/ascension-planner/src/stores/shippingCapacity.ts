@@ -128,7 +128,10 @@ export const useShippingCapacityStore = defineStore('shippingCapacity', {
      */
     setGravitonCouplingLevel(level: number) {
       if (gravitonCouplingResearch) {
-        this.researchLevels[gravitonCouplingResearch.id] = Math.max(0, Math.min(level, gravitonCouplingResearch.maxLevel));
+        this.researchLevels[gravitonCouplingResearch.id] = Math.max(
+          0,
+          Math.min(level, gravitonCouplingResearch.maxLevel)
+        );
         // Clamp existing train lengths to new max
         const maxLength = this.maxTrainLength;
         for (const vehicle of this.vehicles) {

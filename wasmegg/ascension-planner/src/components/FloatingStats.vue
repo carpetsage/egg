@@ -36,10 +36,7 @@
       </div>
 
       <!-- Shift Name -->
-      <div
-        v-if="!isCollapsed"
-        class="text-lg font-bold text-slate-800 tracking-tight leading-none mb-1 shadow-sm"
-      >
+      <div v-if="!isCollapsed" class="text-lg font-bold text-slate-800 tracking-tight leading-none mb-1 shadow-sm">
         {{ shiftName }}
       </div>
     </button>
@@ -47,26 +44,25 @@
     <!-- Collapsible Content -->
     <div v-if="!isCollapsed" class="flex flex-col items-center w-full transition-all">
       <!-- Active Set Badge -->
-      <div
-        v-if="activeSet"
-        class="badge-premium badge-brand py-0.5 mb-3 scale-90"
-      >
+      <div v-if="activeSet" class="badge-premium badge-brand py-0.5 mb-3 scale-90">
         {{ activeSet === 'earnings' ? 'Earnings' : 'ELR' }} Set
       </div>
-      <div
-        v-else
-        class="badge-premium py-0.5 mb-3 scale-90 bg-slate-100 text-slate-500"
-      >
-        No Active Set
-      </div>
+      <div v-else class="badge-premium py-0.5 mb-3 scale-90 bg-slate-100 text-slate-500">No Active Set</div>
 
       <!-- Shift Timing & Duration -->
-      <div v-if="dates" class="w-full bg-white/30 rounded-xl border border-white/40 p-2.5 mb-3 flex flex-col items-center shadow-inner">
-        <div class="text-[9px] font-black text-slate-900 uppercase tracking-widest text-center">{{ formatDateTime(dates.start) }}</div>
+      <div
+        v-if="dates"
+        class="w-full bg-white/30 rounded-xl border border-white/40 p-2.5 mb-3 flex flex-col items-center shadow-inner"
+      >
+        <div class="text-[9px] font-black text-slate-900 uppercase tracking-widest text-center">
+          {{ formatDateTime(dates.start) }}
+        </div>
         <div class="text-xs font-mono-premium font-bold text-slate-900 my-1 tracking-tight">
           {{ formatShiftDuration(dates.duration) }}
         </div>
-        <div class="text-[9px] font-black text-slate-900 uppercase tracking-widest text-center">{{ formatDateTime(dates.end) }}</div>
+        <div class="text-[9px] font-black text-slate-900 uppercase tracking-widest text-center">
+          {{ formatDateTime(dates.end) }}
+        </div>
       </div>
 
       <!-- Stats Stack -->
@@ -123,7 +119,9 @@
 
         <!-- Offline Earnings -->
         <div class="flex flex-col items-center">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-none mb-0.5">Offline Earnings</span>
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-none mb-0.5"
+            >Offline Earnings</span
+          >
           <span class="font-mono-premium text-[11px] font-bold text-slate-700">
             {{ formatMoney(offlineEarningsHr) }}
           </span>
@@ -133,7 +131,9 @@
 
         <!-- Bank -->
         <div class="flex flex-col items-center">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-none mb-0.5">Bank</span>
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-none mb-0.5"
+            >Bank</span
+          >
           <div class="flex items-center gap-1">
             <span class="font-mono-premium text-[11px] font-bold text-slate-700">
               {{ formatNumber(Math.max(0, snapshot.bankValue), 3) }}
@@ -150,7 +150,12 @@
         @click="$emit('show-details')"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       </button>
     </div>
@@ -223,7 +228,7 @@ const shiftName = computed(() => {
 
   // Find the 'header' action for the current group
   let headerAction: Action | undefined;
-  
+
   if (actionsStore.editingGroupId) {
     headerAction = actionsStore.getAction(actionsStore.editingGroupId);
   } else {
@@ -266,7 +271,7 @@ const dates = computed(() => {
   const startTime = virtueStore.planStartTime.getTime();
   const offset = actionsStore.planStartOffset;
   const actions = actionsStore.actions;
-  
+
   // Find the 'header' action for the current group
   let headerIndex = -1;
   if (actionsStore.editingGroupId) {
@@ -283,14 +288,14 @@ const dates = computed(() => {
   if (headerIndex === -1) return null;
 
   const headerAction = actions[headerIndex];
-  
+
   // Find the end of this shift
   let nextShiftIndex = actions.findIndex((a, idx) => idx > headerIndex && a.type === 'shift');
   let endActionIndex = nextShiftIndex === -1 ? actions.length - 1 : nextShiftIndex - 1;
 
   // Time before shift = header end simulation time - header duration - start offset
   const timeBeforeShift = (headerAction.endState.lastStepTime || 0) - (headerAction.totalTimeSeconds || 0) - offset;
-  
+
   // Total duration of shift group = end action end simulation time - (header end sim time - header duration)
   const shiftGroupEndSimTime = actions[endActionIndex].endState.lastStepTime || 0;
   const shiftGroupStartSimTime = (headerAction.endState.lastStepTime || 0) - (headerAction.totalTimeSeconds || 0);

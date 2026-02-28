@@ -1,13 +1,14 @@
 <template>
   <div class="space-y-6">
-
     <!-- Current State -->
     <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
       <div class="flex justify-between items-center mb-5">
         <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Silos Owned</h4>
         <div class="badge-premium bg-slate-50 text-slate-600 border-slate-100 px-3 py-1 flex items-center gap-1.5">
           <span class="text-[10px] font-black opacity-60 uppercase tracking-widest">Active:</span>
-          <span class="text-sm font-mono-premium font-black text-slate-900">{{ siloOutput.siloCount }}/{{ siloOutput.maxSilos }}</span>
+          <span class="text-sm font-mono-premium font-black text-slate-900"
+            >{{ siloOutput.siloCount }}/{{ siloOutput.maxSilos }}</span
+          >
         </div>
       </div>
 
@@ -24,16 +25,19 @@
           "
         >
           <!-- Active Glow -->
-          <div v-if="index <= siloOutput.siloCount" class="absolute inset-0 bg-indigo-500/5 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          
-          <img 
-            v-if="index <= siloOutput.siloCount" 
-            :src="iconURL('egginc-extras/silo.png', 64)" 
+          <div
+            v-if="index <= siloOutput.siloCount"
+            class="absolute inset-0 bg-indigo-500/5 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity"
+          ></div>
+
+          <img
+            v-if="index <= siloOutput.siloCount"
+            :src="iconURL('egginc-extras/silo.png', 64)"
             class="w-7 h-7 object-contain relative z-10 drop-shadow-sm group-hover:scale-110 transition-transform"
             alt="silo"
           />
           <div v-else class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-          
+
           <span class="absolute bottom-1 right-1.5 text-[8px] font-black text-slate-300 uppercase">#{{ index }}</span>
         </div>
       </div>
@@ -49,28 +53,43 @@
               <span class="text-sm font-black uppercase tracking-tight">Buy Silo #{{ siloOutput.siloCount + 1 }}</span>
             </div>
             <div class="flex items-center gap-2 opacity-80">
-              <span class="text-[10px] font-black uppercase tracking-widest">{{ formatGemPrice(siloOutput.nextSiloCost) }} gems</span>
+              <span class="text-[10px] font-black uppercase tracking-widest"
+                >{{ formatGemPrice(siloOutput.nextSiloCost) }} gems</span
+              >
               <template v-if="timeToBuy">
                 <div class="w-1 h-1 rounded-full bg-white/40"></div>
-                <span class="text-[10px] font-mono-premium font-black uppercase tracking-widest">Ready in {{ timeToBuy }}</span>
+                <span class="text-[10px] font-mono-premium font-black uppercase tracking-widest"
+                  >Ready in {{ timeToBuy }}</span
+                >
               </template>
             </div>
           </button>
         </div>
-        <div v-else class="flex flex-col items-center py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 border-dashed text-emerald-700/80">
+        <div
+          v-else
+          class="flex flex-col items-center py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 border-dashed text-emerald-700/80"
+        >
           <p class="text-[10px] font-black uppercase tracking-widest">Maximum silos reached (10/10)</p>
         </div>
       </div>
 
       <!-- Total Away Time -->
-      <div class="bg-slate-50/50 border border-slate-100/50 rounded-2xl p-6 text-center relative overflow-hidden shadow-inner">
+      <div
+        class="bg-slate-50/50 border border-slate-100/50 rounded-2xl p-6 text-center relative overflow-hidden shadow-inner"
+      >
         <!-- Simplified Decoration -->
         <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-50"></div>
 
-        <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3 leading-none relative z-10">Total Away Time</p>
-        <p class="text-4xl font-mono-premium font-black text-slate-900 mb-3 tracking-tight relative z-10">{{ siloOutput.formatted }}</p>
-        
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-100 shadow-sm relative z-10">
+        <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3 leading-none relative z-10">
+          Total Away Time
+        </p>
+        <p class="text-4xl font-mono-premium font-black text-slate-900 mb-3 tracking-tight relative z-10">
+          {{ siloOutput.formatted }}
+        </p>
+
+        <div
+          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-100 shadow-sm relative z-10"
+        >
           <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
             {{ siloOutput.siloCount }} silo{{ siloOutput.siloCount !== 1 ? 's' : '' }}
           </span>
@@ -83,11 +102,19 @@
     </div>
 
     <!-- Silo Capacity Epic Research -->
-    <div class="bg-indigo-50/30 border border-indigo-100/50 rounded-2xl p-4 transition-all hover:bg-indigo-50/50 hover:shadow-md hover:shadow-indigo-500/5">
+    <div
+      class="bg-indigo-50/30 border border-indigo-100/50 rounded-2xl p-4 transition-all hover:bg-indigo-50/50 hover:shadow-md hover:shadow-indigo-500/5"
+    >
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center p-1.5 shadow-sm">
-            <img :src="iconURL(getColleggtibleIconPath('silo_capacity'), 64)" class="w-full h-full object-contain" alt="Silo Capacity" />
+          <div
+            class="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center p-1.5 shadow-sm"
+          >
+            <img
+              :src="iconURL(getColleggtibleIconPath('silo_capacity'), 64)"
+              class="w-full h-full object-contain"
+              alt="Silo Capacity"
+            />
           </div>
           <div>
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Silo Capacity</p>
@@ -95,13 +122,17 @@
           </div>
         </div>
         <div class="text-right">
-          <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-0.5">Current Rank</span>
+          <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-0.5"
+            >Current Rank</span
+          >
           <span class="text-xs font-mono-premium font-black text-indigo-700">
             Lvl {{ siloOutput.siloCapacityLevel }}/20
           </span>
         </div>
       </div>
-      <div class="mt-3 flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-tight bg-white/50 p-2 rounded-lg border border-indigo-50/50 shadow-inner">
+      <div
+        class="mt-3 flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-tight bg-white/50 p-2 rounded-lg border border-indigo-50/50 shadow-inner"
+      >
         <span class="opacity-60">Base: 60m</span>
         <div class="w-1 h-px bg-slate-300"></div>
         <span class="text-indigo-600">+ {{ siloOutput.siloCapacityLevel * 6 }}m research</span>
@@ -156,7 +187,12 @@ function handleBuySilo() {
   };
 
   // Compute dependencies
-  const dependencies = computeDependencies('buy_silo', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
+  const dependencies = computeDependencies(
+    'buy_silo',
+    payload,
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
 
   // Cost is calculated based on fromCount (silos owned before purchase)
   const cost = siloOutput.value.nextSiloCost;
@@ -165,13 +201,16 @@ function handleBuySilo() {
   silosStore.buySilo();
 
   // Complete execution
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'buy_silo',
-    payload,
-    cost,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'buy_silo',
+      payload,
+      cost,
+      dependsOn: dependencies,
+    },
+    beforeSnapshot
+  );
 }
 </script>

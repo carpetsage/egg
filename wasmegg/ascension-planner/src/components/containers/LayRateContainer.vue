@@ -24,9 +24,7 @@ const initialStateStore = useInitialStateStore();
 const { output } = useLayRate();
 
 // Get epic comfy nests level from initial state (read-only)
-const epicComfyNestsLevel = computed(() =>
-  initialStateStore.epicResearchLevels['epic_egg_laying'] || 0
-);
+const epicComfyNestsLevel = computed(() => initialStateStore.epicResearchLevels['epic_egg_laying'] || 0);
 
 // Get Silicon colleggtible tier from initial state (read-only)
 const colleggtibleTier = computed(() => initialStateStore.colleggtibleTiers['silicon'] ?? -1);

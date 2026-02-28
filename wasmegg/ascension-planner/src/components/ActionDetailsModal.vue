@@ -2,22 +2,23 @@
   <Teleport to="body">
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <!-- Backdrop -->
-      <div
-        class="absolute inset-0 bg-black/50"
-        @click="$emit('close')"
-      />
+      <div class="absolute inset-0 bg-black/50" @click="$emit('close')" />
 
       <!-- Modal -->
-      <div class="relative card-glass shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-white/40">
+      <div
+        class="relative card-glass shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-white/40"
+      >
         <!-- Header -->
-        <div class="sticky top-0 bg-white/70 backdrop-blur-md border-b border-slate-200/50 px-6 py-4 flex justify-between items-center z-10">
+        <div
+          class="sticky top-0 bg-white/70 backdrop-blur-md border-b border-slate-200/50 px-6 py-4 flex justify-between items-center z-10"
+        >
           <div>
-            <h2 class="text-lg font-bold text-slate-800 tracking-tight">
-              Action Details
-            </h2>
+            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Action Details</h2>
             <div class="flex items-center gap-3 mt-0.5">
               <p v-if="action" class="text-xs font-medium text-slate-500 italic">{{ displayName }}</p>
-              <p v-else class="text-xs font-medium text-slate-500 italic">Full breakdown of current multipliers and rates</p>
+              <p v-else class="text-xs font-medium text-slate-500 italic">
+                Full breakdown of current multipliers and rates
+              </p>
               <button
                 class="badge-premium bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors py-0.5 px-2"
                 v-tippy="'Dump all calculation data to console for debugging'"
@@ -41,7 +42,9 @@
         <div class="flex-1 overflow-auto p-6 scrollbar-premium">
           <!-- Deltas from previous (only show for non-start actions) -->
           <div v-if="action && action.type !== 'start_ascension'" class="section-premium p-5 mb-8 bg-slate-50/50">
-            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Deltas from previous state</div>
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
+              Deltas from previous state
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
                 <span class="text-xs font-bold text-slate-600 uppercase tracking-tight">ELR delta</span>
@@ -52,13 +55,13 @@
               <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
                 <span class="text-xs font-bold text-slate-600 uppercase tracking-tight">Earnings delta</span>
                 <span :class="deltaClass(action.offlineEarningsDelta)" class="font-mono-premium font-bold text-sm">
-                   {{ formatDelta(action.offlineEarningsDelta * 3600) }}/hr
+                  {{ formatDelta(action.offlineEarningsDelta * 3600) }}/hr
                 </span>
               </div>
               <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
                 <span class="text-xs font-bold text-slate-600 uppercase tracking-tight">Population delta</span>
                 <span :class="deltaClass(action.populationDelta)" class="font-mono-premium font-bold text-sm">
-                   {{ formatDelta(action.populationDelta) }}
+                  {{ formatDelta(action.populationDelta) }}
                 </span>
               </div>
             </div>
@@ -70,12 +73,7 @@
 
         <!-- Footer -->
         <div class="border-t border-slate-200/50 px-6 py-4 bg-slate-50/50 flex justify-end">
-          <button
-            class="btn-premium btn-secondary px-6"
-            @click="$emit('close')"
-          >
-            Close
-          </button>
+          <button class="btn-premium btn-secondary px-6" @click="$emit('close')">Close</button>
         </div>
       </div>
     </div>
@@ -107,7 +105,7 @@ const props = defineProps<{
 }>();
 
 defineEmits<{
-  'close': [];
+  close: [];
 }>();
 
 const displayName = computed(() => {
@@ -161,7 +159,7 @@ function dumpCalculationData() {
       elr: { output: elrOutput.value },
       earnings: { input: ernInput.value, output: ernOutput.value },
       siloTime: { output: stOutput.value },
-    }
+    },
   };
 
   console.log(JSON.parse(JSON.stringify(dump)));

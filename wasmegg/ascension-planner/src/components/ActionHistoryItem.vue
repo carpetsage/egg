@@ -9,12 +9,12 @@
     <!-- Action info -->
     <div class="flex-1 min-w-0 flex items-center gap-3">
       <!-- Action Icon -->
-      <div 
-        v-if="actionIconPath" 
+      <div
+        v-if="actionIconPath"
         class="h-8 flex-shrink-0 border border-slate-100 p-1 shadow-inner overflow-hidden"
         :class="[
           isVehicleAction ? 'w-auto min-w-[2rem] rounded-xl' : 'w-8 rounded-full',
-          isMissionAction ? 'bg-slate-900 shadow-lg' : 'bg-white shadow-sm'
+          isMissionAction ? 'bg-slate-900 shadow-lg' : 'bg-white shadow-sm',
         ]"
       >
         <img
@@ -25,8 +25,8 @@
       </div>
 
       <div class="flex-1 min-w-0">
-        <div 
-          class="text-sm font-bold truncate flex items-center gap-1.5" 
+        <div
+          class="text-sm font-bold truncate flex items-center gap-1.5"
           :class="isStartAction ? 'text-slate-800' : 'text-slate-700'"
         >
           <span v-if="eggType" class="text-[9px] uppercase font-black text-slate-400 tracking-widest">
@@ -36,13 +36,15 @@
             {{ eggName || displayName }}{{ isContinued ? ' (continued)' : '' }}
           </span>
         </div>
-        <div 
-          class="text-[9px] uppercase tracking-widest font-black opacity-60 text-slate-500" 
+        <div
+          class="text-[9px] uppercase tracking-widest font-black opacity-60 text-slate-500"
           v-html="effectDescription"
-        >
-        </div>
+        ></div>
         <!-- Deltas -->
-        <div v-if="!isStartAction || isContinued" class="text-[8px] mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-black uppercase tracking-wider">
+        <div
+          v-if="!isStartAction || isContinued"
+          class="text-[8px] mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-black uppercase tracking-wider"
+        >
           <span v-if="action.eggValueDelta" :class="deltaClass(action.eggValueDelta)">
             Val {{ formatDelta(action.eggValueDelta) }}
           </span>
@@ -62,13 +64,16 @@
             ELR {{ formatDelta(action.elrDelta) }}
           </span>
           <span v-if="action.offlineEarningsDelta" :class="deltaClass(action.offlineEarningsDelta)">
-             Earn {{ formatDelta(action.offlineEarningsDelta) }}
+            Earn {{ formatDelta(action.offlineEarningsDelta) }}
           </span>
           <span v-if="action.populationDelta" :class="deltaClass(action.populationDelta)">
             Pop {{ formatDelta(action.populationDelta) }}
           </span>
-          <span v-if="Math.abs(action.bankDelta) >= 0.5 && (!isPurchaseAction || action.type === 'launch_missions')" :class="action.bankDelta >= 0.5 ? 'text-emerald-600' : 'text-slate-400'">
-             Gems {{ action.bankDelta >= 0.5 ? '+' : '' }}{{ formatGemPrice(action.bankDelta) }}
+          <span
+            v-if="Math.abs(action.bankDelta) >= 0.5 && (!isPurchaseAction || action.type === 'launch_missions')"
+            :class="action.bankDelta >= 0.5 ? 'text-emerald-600' : 'text-slate-400'"
+          >
+            Gems {{ action.bankDelta >= 0.5 ? '+' : '' }}{{ formatGemPrice(action.bankDelta) }}
           </span>
         </div>
       </div>
@@ -87,25 +92,44 @@
         </template>
         <template v-else>
           <div class="flex items-center gap-0.5">
-            <span 
+            <span
               class="text-xs font-bold font-mono-premium"
               :class="[
-                action.cost >= 0.5 ? 'text-slate-800' : 
-                (action.bankDelta >= 0.5 ? 'text-emerald-600 font-black' : 'text-slate-300')
+                action.cost >= 0.5
+                  ? 'text-slate-800'
+                  : action.bankDelta >= 0.5
+                    ? 'text-emerald-600 font-black'
+                    : 'text-slate-300',
               ]"
             >
-              {{ action.bankDelta >= 0.5 && action.cost < 0.5 ? '+' : '' }}{{ formatGemPrice(action.cost >= 0.5 ? action.cost : (action.bankDelta >= 0.5 ? action.bankDelta : 0)) }}
+              {{ action.bankDelta >= 0.5 && action.cost < 0.5 ? '+' : ''
+              }}{{ formatGemPrice(action.cost >= 0.5 ? action.cost : action.bankDelta >= 0.5 ? action.bankDelta : 0) }}
             </span>
-            <img v-if="action.cost >= 0.5 || action.bankDelta >= 0.5" :src="iconURL('egginc/icon_virtue_gem.png', 64)" class="w-2.5 h-2.5 opacity-60" />
+            <img
+              v-if="action.cost >= 0.5 || action.bankDelta >= 0.5"
+              :src="iconURL('egginc/icon_virtue_gem.png', 64)"
+              class="w-2.5 h-2.5 opacity-60"
+            />
           </div>
           <div class="flex flex-col items-end">
-            <span v-if="savingDuration > 0 || (isPurchaseAction && action.cost > 0)" class="text-[8px] font-black text-rose-500 uppercase tracking-widest" v-tippy="timeToSaveTitle">
+            <span
+              v-if="savingDuration > 0 || (isPurchaseAction && action.cost > 0)"
+              class="text-[8px] font-black text-rose-500 uppercase tracking-widest"
+              v-tippy="timeToSaveTitle"
+            >
               Save {{ savingDurationFormatted }}
             </span>
-            <span v-if="waitDuration > 0" class="text-[8px] font-black text-slate-400 uppercase tracking-widest" v-tippy="timeToSaveTitle">
+            <span
+              v-if="waitDuration > 0"
+              class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
+              v-tippy="timeToSaveTitle"
+            >
               Wait {{ waitDurationFormatted }}
             </span>
-            <span v-if="action.totalTimeSeconds < 1 && action.cost < 0.5 && Math.abs(action.bankDelta) < 0.5" class="text-[8px] font-black text-slate-300 uppercase tracking-widest">
+            <span
+              v-if="action.totalTimeSeconds < 1 && action.cost < 0.5 && Math.abs(action.bankDelta) < 0.5"
+              class="text-[8px] font-black text-slate-300 uppercase tracking-widest"
+            >
               0s
             </span>
           </div>
@@ -122,8 +146,12 @@
         @click="$emit('show-details')"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       </button>
 
@@ -135,11 +163,14 @@
         @click="handleUndo"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+          />
         </svg>
       </button>
-
     </div>
   </div>
 </template>
@@ -147,7 +178,20 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { iconURL } from 'lib';
-import type { Action, StartAscensionPayload, ShiftPayload, BuyHabPayload, BuyVehiclePayload, StoreFuelPayload, WaitForTEPayload, BuyResearchPayload, ToggleSalePayload, EquipArtifactSetPayload, UpdateArtifactSetPayload, WaitForFullHabsPayload } from '@/types';
+import type {
+  Action,
+  StartAscensionPayload,
+  ShiftPayload,
+  BuyHabPayload,
+  BuyVehiclePayload,
+  StoreFuelPayload,
+  WaitForTEPayload,
+  BuyResearchPayload,
+  ToggleSalePayload,
+  EquipArtifactSetPayload,
+  UpdateArtifactSetPayload,
+  WaitForFullHabsPayload,
+} from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { getHabById, type HabId } from '@/lib/habs';
 import { getVehicleType } from '@/lib/vehicles';
@@ -164,7 +208,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'show-details': [];
-  'undo': [options: { skipConfirmation: boolean }];
+  undo: [options: { skipConfirmation: boolean }];
 }>();
 
 const actionsStore = useActionsStore();
@@ -179,22 +223,15 @@ const isContinued = computed(() => {
 
 const baseUrl = import.meta.env.BASE_URL;
 
-const isVehicleAction = computed(() => 
-  props.action.type === 'buy_vehicle' || props.action.type === 'buy_train_car'
+const isVehicleAction = computed(() => props.action.type === 'buy_vehicle' || props.action.type === 'buy_train_car');
+
+const isMissionAction = computed(
+  () => props.action.type === 'wait_for_missions' || props.action.type === 'launch_missions'
 );
 
-const isMissionAction = computed(() => 
-  props.action.type === 'wait_for_missions' || props.action.type === 'launch_missions'
+const isPurchaseAction = computed(() =>
+  ['buy_research', 'buy_hab', 'buy_vehicle', 'buy_train_car', 'buy_silo', 'launch_missions'].includes(props.action.type)
 );
-
-const isPurchaseAction = computed(() => [
-  'buy_research',
-  'buy_hab',
-  'buy_vehicle',
-  'buy_train_car',
-  'buy_silo',
-  'launch_missions'
-].includes(props.action.type));
 
 const eggType = computed(() => {
   if (props.action.type === 'start_ascension') {
@@ -239,13 +276,16 @@ const actionIconPath = computed(() => {
   if (props.action.type === 'toggle_sale') {
     const payload = props.action.payload as ToggleSalePayload;
     switch (payload.saleType) {
-      case 'research': return 'egginc-extras/icon_research_sale.png';
-      case 'hab': return 'egginc-extras/icon_hab_sale.png';
-      case 'vehicle': return 'egginc-extras/icon_vehicle_sale.png';
+      case 'research':
+        return 'egginc-extras/icon_research_sale.png';
+      case 'hab':
+        return 'egginc-extras/icon_hab_sale.png';
+      case 'vehicle':
+        return 'egginc-extras/icon_vehicle_sale.png';
     }
   }
   if (props.action.type === 'equip_artifact_set' || props.action.type === 'update_artifact_set') {
-    const payload = props.action.payload as (EquipArtifactSetPayload | UpdateArtifactSetPayload);
+    const payload = props.action.payload as EquipArtifactSetPayload | UpdateArtifactSetPayload;
     return payload.setName === 'elr' ? 'egginc/afx_quantum_metronome_4.png' : 'egginc/afx_lunar_totem_4.png';
   }
   if (props.action.type === 'wait_for_time') {
@@ -303,7 +343,7 @@ const savingDuration = computed(() => {
  * Calculate wait duration (inherent action time)
  */
 const waitDuration = computed(() => {
-  const payload = props.action.payload as { totalTimeSeconds?: number, isZeroTime?: boolean };
+  const payload = props.action.payload as { totalTimeSeconds?: number; isZeroTime?: boolean };
   if (props.action.type === 'launch_missions' && payload.isZeroTime) return 0;
   if (props.action.cost <= 0) return props.action.totalTimeSeconds || 0;
   return payload.totalTimeSeconds || 0;
@@ -319,7 +359,7 @@ const absoluteEndTime = computed(() => {
   const startTime = virtueStore.planStartTime.getTime();
   const offset = actionsStore.planStartOffset;
   const simTime = props.action.endState.lastStepTime || 0;
-  
+
   return new Date(startTime + (simTime - offset) * 1000);
 });
 

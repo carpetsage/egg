@@ -70,7 +70,11 @@ export const useRocketsStore = defineStore('rockets', () => {
   /** Total fuel cost per virtue egg across all queued missions. */
   const totalFuelCost = computed<Record<VirtueEgg, number>>(() => {
     const costs: Record<VirtueEgg, number> = {
-      curiosity: 0, integrity: 0, humility: 0, resilience: 0, kindness: 0,
+      curiosity: 0,
+      integrity: 0,
+      humility: 0,
+      resilience: 0,
+      kindness: 0,
     };
     for (const { ship, duration, count } of queuedMissions.value) {
       for (const req of VIRTUE_FUEL_REQUIREMENTS[ship][duration]) {

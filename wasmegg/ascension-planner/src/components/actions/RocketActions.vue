@@ -13,53 +13,37 @@
     />
 
     <!-- Mission Grid -->
-    <MissionGrid
-      :ftl-level="ftlLevel"
-      :earnings-per-second="earningsPerSecond"
-    />
+    <MissionGrid :ftl-level="ftlLevel" :earnings-per-second="earningsPerSecond" />
 
     <!-- Mission Summary -->
-    <MissionSummary
-      :summary="summary"
-      :schedule="schedule"
-    />
+    <MissionSummary :summary="summary" :schedule="schedule" />
 
     <!-- Launch Button -->
     <div v-if="rocketsStore.queuedMissions.length > 0" class="flex items-center gap-3">
       <button
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors
-               disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
         :disabled="rocketsStore.isOverBudget"
         @click="handleLaunch"
       >
         Launch {{ schedule.totalMissions }} Missions
       </button>
-      <button
-        class="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm"
-        @click="rocketsStore.clearAll()"
-      >
+      <button class="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm" @click="rocketsStore.clearAll()">
         Clear All
       </button>
-      <span v-if="rocketsStore.isOverBudget" class="text-red-500 text-xs">
-        Not enough fuel in tank
-      </span>
+      <span v-if="rocketsStore.isOverBudget" class="text-red-500 text-xs"> Not enough fuel in tank </span>
     </div>
 
     <!-- Pre-shift Launch Option -->
     <div v-if="schedule.totalMissions > 0" class="flex items-center gap-2 px-1">
-      <input
-        type="checkbox"
-        id="zero-time-launch"
-        v-model="isZeroTime"
-        class="rounded text-blue-600"
-      />
+      <input type="checkbox" id="zero-time-launch" v-model="isZeroTime" class="rounded text-blue-600" />
       <label for="zero-time-launch" class="text-xs text-gray-600 font-medium cursor-pointer select-none">
         Launch for 0 time (pre-shift sends)
       </label>
     </div>
 
     <p class="text-[11px] text-gray-500 leading-relaxed italic border-l-2 border-gray-200 pl-3 py-0.5">
-      If you choose this option, the missions will launch for 0 time. This is useful for "pre-shift" sends where you launch ships right before shifting, avoiding adding mission duration to your plan.
+      If you choose this option, the missions will launch for 0 time. This is useful for "pre-shift" sends where you
+      launch ships right before shifting, avoiding adding mission duration to your plan.
     </p>
   </div>
 </template>
@@ -90,9 +74,7 @@ const { prepareExecution, completeExecution } = useActionExecutor();
 
 const isZeroTime = ref(false);
 
-const ftlLevel = computed(() =>
-  initialStateStore.epicResearchLevels['afx_mission_time'] || 0
-);
+const ftlLevel = computed(() => initialStateStore.epicResearchLevels['afx_mission_time'] || 0);
 
 const earningsPerSecond = computed(() =>
   Math.max(earningsOutput.value.onlineEarnings, earningsOutput.value.offlineEarnings)
@@ -115,7 +97,11 @@ function handleLaunch() {
 
   // Calculate total fuel consumed
   const fuelConsumed: Record<VirtueEgg, number> = {
-    curiosity: 0, integrity: 0, humility: 0, resilience: 0, kindness: 0,
+    curiosity: 0,
+    integrity: 0,
+    humility: 0,
+    resilience: 0,
+    kindness: 0,
   };
   for (const egg of VIRTUE_EGGS) {
     fuelConsumed[egg] = rocketsStore.totalFuelCost[egg];
@@ -132,7 +118,12 @@ function handleLaunch() {
     isZeroTime: isZeroTimeLaunch,
   };
 
-  const dependencies = computeDependencies('launch_missions', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
+  const dependencies = computeDependencies(
+    'launch_missions',
+    payload,
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
 
   // Deduct fuel from tank
   for (const egg of VIRTUE_EGGS) {
@@ -148,14 +139,17 @@ function handleLaunch() {
     totalCost += SHIP_INFO[m.ship as Spaceship].price * m.count;
   }
 
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'launch_missions',
-    payload,
-    cost: totalCost,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'launch_missions',
+      payload,
+      cost: totalCost,
+      dependsOn: dependencies,
+    },
+    beforeSnapshot
+  );
 
   // Clear the mission queue
   rocketsStore.clearAll();

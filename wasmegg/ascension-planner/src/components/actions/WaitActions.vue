@@ -1,16 +1,23 @@
 <template>
   <div class="space-y-4">
     <!-- Wait for TE Section -->
-    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
+    <div
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md"
+    >
       <button
         class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
         @click="teExpanded = !teExpanded"
       >
         <div class="flex items-center gap-3">
-           <div class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform">
-             <img :src="iconURL(`egginc/egg_${actionsStore.effectiveSnapshot.currentEgg}.png`, 64)" class="w-full h-full object-contain" />
-           </div>
-           <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for TE</h3>
+          <div
+            class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform"
+          >
+            <img
+              :src="iconURL(`egginc/egg_${actionsStore.effectiveSnapshot.currentEgg}.png`, 64)"
+              class="w-full h-full object-contain"
+            />
+          </div>
+          <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for TE</h3>
         </div>
         <svg
           class="w-5 h-5 text-slate-300 transition-transform duration-300"
@@ -28,16 +35,20 @@
     </div>
 
     <!-- Wait for Full Habs Section -->
-    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
+    <div
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md"
+    >
       <button
         class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
         @click="habsExpanded = !habsExpanded"
       >
         <div class="flex items-center gap-3">
-           <div class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform">
-             <img :src="iconURL('egginc/ei_hab_icon_chicken_universe.png', 64)" class="w-full h-full object-contain" />
-           </div>
-           <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for Full Habs</h3>
+          <div
+            class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform"
+          >
+            <img :src="iconURL('egginc/ei_hab_icon_chicken_universe.png', 64)" class="w-full h-full object-contain" />
+          </div>
+          <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for Full Habs</h3>
         </div>
         <svg
           class="w-5 h-5 text-slate-300 transition-transform duration-300"
@@ -55,16 +66,21 @@
     </div>
 
     <!-- Wait for Missions Section -->
-    <div v-if="isHumility" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
+    <div
+      v-if="isHumility"
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md"
+    >
       <button
         class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
         @click="missionsExpanded = !missionsExpanded"
       >
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center p-1.5 overflow-hidden shadow-lg group-hover:scale-110 transition-transform border border-slate-800">
-              <img :src="iconURL('egginc/icon_afx_mission.png', 64)" class="w-full h-full object-contain" />
-            </div>
-           <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for Missions</h3>
+          <div
+            class="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center p-1.5 overflow-hidden shadow-lg group-hover:scale-110 transition-transform border border-slate-800"
+          >
+            <img :src="iconURL('egginc/icon_afx_mission.png', 64)" class="w-full h-full object-contain" />
+          </div>
+          <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for Missions</h3>
         </div>
         <svg
           class="w-5 h-5 text-slate-300 transition-transform duration-300"
@@ -82,16 +98,20 @@
     </div>
 
     <!-- Wait for Time Section -->
-    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
+    <div
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md"
+    >
       <button
         class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
         @click="timeExpanded = !timeExpanded"
       >
         <div class="flex items-center gap-3">
-           <div class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform">
-             <img :src="iconURL('egginc/tiny_indicator_waiting.png', 64)" class="w-full h-full object-contain" />
-           </div>
-           <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for Time</h3>
+          <div
+            class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform"
+          >
+            <img :src="iconURL('egginc/tiny_indicator_waiting.png', 64)" class="w-full h-full object-contain" />
+          </div>
+          <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait for Time</h3>
         </div>
         <svg
           class="w-5 h-5 text-slate-300 transition-transform duration-300"

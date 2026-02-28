@@ -3,18 +3,11 @@
  * These have no Vue dependencies and are fully testable.
  */
 
-import type {
-  Research,
-  ResearchLevels,
-  EggValueInput,
-  EggValueOutput
-} from '@/types';
+import type { Research, ResearchLevels, EggValueInput, EggValueOutput } from '@/types';
 import { allResearches } from 'lib';
 
 // Filter to only egg value researches
-const eggValueResearches = (allResearches as Research[]).filter(
-  r => r.categories.split(',').includes('egg_value')
-);
+const eggValueResearches = (allResearches as Research[]).filter(r => r.categories.split(',').includes('egg_value'));
 
 /**
  * Calculate the multiplier from a single research at a given level.
@@ -30,7 +23,7 @@ export function calculateResearchMultiplier(research: Research, level: number): 
   if (research.levels_compound === 'additive') {
     // Each level adds per_level to the bonus
     // e.g., 25% per level at level 10 = 1 + (0.25 * 10) = 3.5x
-    return 1 + (research.per_level * clampedLevel);
+    return 1 + research.per_level * clampedLevel;
   } else {
     // Each level multiplies by per_level
     // e.g., 2x per level at level 3 = 2^3 = 8x
@@ -57,12 +50,7 @@ export function calculateTotalResearchMultiplier(researchLevels: ResearchLevels)
  * Main calculation: compute final egg value with full breakdown.
  */
 export function calculateEggValue(input: EggValueInput): EggValueOutput {
-  const {
-    baseValue,
-    researchLevels,
-    artifactMultiplier,
-    artifactEffects,
-  } = input;
+  const { baseValue, researchLevels, artifactMultiplier, artifactEffects } = input;
 
   // Calculate research multiplier
   const researchMultiplier = calculateTotalResearchMultiplier(researchLevels);

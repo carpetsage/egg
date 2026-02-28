@@ -1,18 +1,27 @@
 <template>
   <div class="px-5 py-4 bg-slate-50/30 border-t border-slate-100/50">
     <div class="flex items-center gap-2 mb-4">
-      <div class="w-5 h-5 rounded-lg bg-amber-50 border border-amber-100 shadow-sm flex items-center justify-center p-1">
+      <div
+        class="w-5 h-5 rounded-lg bg-amber-50 border border-amber-100 shadow-sm flex items-center justify-center p-1"
+      >
         <svg class="w-full h-full text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.675.337a4 4 0 01-2.574.338L6.5 15.1l-1.5-1.5 1.5-1.5 2.414.483a2 2 0 001.287-.169l.675-.337a8 8 0 015.147-.69l2.387.477a2 2 0 001.022.547l1.718.344a2 2 0 011.414 1.414l.344 1.718a2 2 0 01-.547 1.022l-1.5 1.5-1.5-1.5.483-2.414a2 2 0 00-.169-1.287l-.337-.675a8 8 0 00-.69-5.147l.477-2.387a2 2 0 00-.547-1.022l-1.718-.344a2 2 0 00-1.414-1.414l-1.718-.344a2 2 0 00-1.022.547l-1.5 1.5 1.5 1.5.483-2.414a2 2 0 011.287.169l.675.337a8 8 0 01.69 5.147l-.477 2.387a2 2 0 01.547 1.022l1.718.344a2 2 0 011.414 1.414l.344 1.718a2 2 0 01-.547 1.022l-1.5 1.5z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.675.337a4 4 0 01-2.574.338L6.5 15.1l-1.5-1.5 1.5-1.5 2.414.483a2 2 0 001.287-.169l.675-.337a8 8 0 015.147-.69l2.387.477a2 2 0 001.022.547l1.718.344a2 2 0 011.414 1.414l.344 1.718a2 2 0 01-.547 1.022l-1.5 1.5-1.5-1.5.483-2.414a2 2 0 00-.169-1.287l-.337-.675a8 8 0 00-.69-5.147l.477-2.387a2 2 0 00-.547-1.022l-1.718-.344a2 2 0 00-1.414-1.414l-1.718-.344a2 2 0 00-1.022.547l-1.5 1.5 1.5 1.5.483-2.414a2 2 0 011.287.169l.675.337a8 8 0 01.69 5.147l-.477 2.387a2 2 0 01.547 1.022l1.718.344a2 2 0 011.414 1.414l.344 1.718a2 2 0 01-.547 1.022l-1.5 1.5z"
+          />
         </svg>
       </div>
       <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Research Summary</span>
     </div>
-    
+
     <div v-if="summaryItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div v-for="(item, index) in summaryItems" :key="index" class="flex items-center gap-2.5">
         <template v-if="item.startsWith('Max')">
-          <span class="badge-premium bg-amber-50 text-amber-700 border-amber-100 flex-shrink-0 text-[10px] py-0.5 font-black uppercase tracking-tight">
+          <span
+            class="badge-premium bg-amber-50 text-amber-700 border-amber-100 flex-shrink-0 text-[10px] py-0.5 font-black uppercase tracking-tight"
+          >
             {{ item }}
           </span>
         </template>
@@ -48,7 +57,7 @@ const endState = computed(() => {
 
 const summaryItems = computed(() => {
   const items: string[] = [];
-  
+
   // 1. Identify modified researches and tiers involved in this block
   const modifiedResearchIds = new Set<string>();
   const modifiedTiers = new Set<number>();
@@ -57,7 +66,7 @@ const summaryItems = computed(() => {
     if (action.type === 'buy_research') {
       const payload = action.payload as BuyResearchPayload;
       modifiedResearchIds.add(payload.researchId);
-      
+
       const research = getResearchById(payload.researchId);
       if (research) {
         modifiedTiers.add(research.tier);
@@ -97,7 +106,7 @@ const summaryItems = computed(() => {
 
     // Loop through 1 to length; when i == length, curr is undefined, triggering the strictly "else" logic
     for (let i = 1; i <= maxedTiers.length; i++) {
-      const curr = maxedTiers[i]; 
+      const curr = maxedTiers[i];
       if (curr === prev + 1) {
         prev = curr;
       } else {

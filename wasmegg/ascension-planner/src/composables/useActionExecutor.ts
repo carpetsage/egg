@@ -43,7 +43,22 @@ export function useActionExecutor() {
    * Call this after applying changes to stores.
    */
   async function completeExecution(
-    action: Omit<Action, 'index' | 'dependents' | 'elrDelta' | 'offlineEarningsDelta' | 'eggValueDelta' | 'habCapacityDelta' | 'layRateDelta' | 'shippingCapacityDelta' | 'ihrDelta' | 'bankDelta' | 'populationDelta' | 'endState' | 'totalTimeSeconds'> & {
+    action: Omit<
+      Action,
+      | 'index'
+      | 'dependents'
+      | 'elrDelta'
+      | 'offlineEarningsDelta'
+      | 'eggValueDelta'
+      | 'habCapacityDelta'
+      | 'layRateDelta'
+      | 'shippingCapacityDelta'
+      | 'ihrDelta'
+      | 'bankDelta'
+      | 'populationDelta'
+      | 'endState'
+      | 'totalTimeSeconds'
+    > & {
       dependsOn: string[];
     },
     beforeSnapshotArg: CalculationsSnapshot
@@ -68,7 +83,7 @@ export function useActionExecutor() {
         actionsStore.actions,
         fullAction,
         actionsStore.editingInsertIndex,
-        (idsToRemove) => {
+        idsToRemove => {
           actionsStore.removeActions(idsToRemove);
         }
       );

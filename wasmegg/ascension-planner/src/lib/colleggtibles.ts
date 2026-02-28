@@ -11,9 +11,9 @@ import { ei } from 'lib/proto';
  * Index 0 = Tier 1 (10M), Index 3 = Tier 4 (10B)
  */
 export const FARM_SIZE_TIERS = [
-  10_000_000,     // Tier 1: 10M chickens
-  100_000_000,    // Tier 2: 100M chickens
-  1_000_000_000,  // Tier 3: 1B chickens
+  10_000_000, // Tier 1: 10M chickens
+  100_000_000, // Tier 2: 100M chickens
+  1_000_000_000, // Tier 3: 1B chickens
   10_000_000_000, // Tier 4: 10B chickens
 ] as const;
 
@@ -25,7 +25,16 @@ export interface ColleggtibleDef {
   id: string;
   name: string;
   effect: string;
-  dimension: 'earnings' | 'awayEarnings' | 'ihr' | 'elr' | 'shippingCap' | 'habCap' | 'vehicleCost' | 'habCost' | 'researchCost';
+  dimension:
+    | 'earnings'
+    | 'awayEarnings'
+    | 'ihr'
+    | 'elr'
+    | 'shippingCap'
+    | 'habCap'
+    | 'vehicleCost'
+    | 'habCost'
+    | 'researchCost';
   // Buff values for each tier (index 0 = tier 1, index 3 = tier 4)
   // Values are multipliers: >1 = bonus, <1 = discount
   tierValues: [number, number, number, number];
@@ -66,7 +75,7 @@ export const colleggtibleDefs: ColleggtibleDef[] = customEggs
     const dimension = DIMENSION_MAP[dimensionEnum];
 
     if (!dimension) {
-      // Fallback or skip if unknown dimension. 
+      // Fallback or skip if unknown dimension.
       // Returning 'earnings' as safe default but should ideally filter out.
       // But map must return value.
       // Assuming customEggs data is valid per our map.
@@ -82,12 +91,12 @@ export const colleggtibleDefs: ColleggtibleDef[] = customEggs
     // Game definition implies specific values.
     // Assuming customEggs has 4 buffs corresponding to tiers.
     // If not, padded with last value or 1.
-    const paddedValues = [
-      tierValues[0] ?? 1,
-      tierValues[1] ?? 1,
-      tierValues[2] ?? 1,
-      tierValues[3] ?? 1
-    ] as [number, number, number, number];
+    const paddedValues = [tierValues[0] ?? 1, tierValues[1] ?? 1, tierValues[2] ?? 1, tierValues[3] ?? 1] as [
+      number,
+      number,
+      number,
+      number,
+    ];
 
     return {
       id: egg.identifier,
@@ -98,7 +107,6 @@ export const colleggtibleDefs: ColleggtibleDef[] = customEggs
     };
   })
   .filter((def): def is ColleggtibleDef => def !== null);
-
 
 /**
  * Colleggtible tiers for each colleggtible.
@@ -191,17 +199,12 @@ export function getColleggtibleTiersFromBackup(
 
   if (!contracts) return tiers;
 
-  const allContracts = [
-    ...(contracts.archive ?? []),
-    ...(contracts.contracts ?? []),
-  ];
+  const allContracts = [...(contracts.archive ?? []), ...(contracts.contracts ?? [])];
 
   // For each colleggtible, find the max farm size reached across all contracts
   for (const def of colleggtibleDefs) {
     const maxFarmSize = Math.max(
-      ...allContracts
-        .filter(c => c.contract?.customEggId === def.id)
-        .map(c => c.maxFarmSizeReached ?? 0),
+      ...allContracts.filter(c => c.contract?.customEggId === def.id).map(c => c.maxFarmSizeReached ?? 0),
       0
     );
 

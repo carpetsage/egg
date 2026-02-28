@@ -2,7 +2,10 @@
   <div class="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100 bg-white">
     <template v-for="(item, idx) in sortedResearches" :key="`${item.research.id}-${item.targetLevel}`">
       <!-- Tier Break Divider (Cheapest First) -->
-      <div v-if="item.showDivider" class="px-4 py-1.5 bg-blue-50 border-y border-blue-100 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <div
+        v-if="item.showDivider"
+        class="px-4 py-1.5 bg-blue-50 border-y border-blue-100 flex items-center justify-between sticky top-0 z-10 shadow-sm"
+      >
         <div class="flex items-center gap-2">
           <div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
           <span class="text-[10px] font-black text-blue-800 uppercase tracking-widest">
@@ -13,7 +16,7 @@
           {{ thresholds[(item.unlockTier ?? 1) - 1] }} Purchases Reached
         </span>
       </div>
-      
+
       <ResearchItem
         :research="item.research"
         :current-level="item.currentLevel"
@@ -39,7 +42,7 @@
         @buy-to-here="$emit('buy-to-here', idx)"
       />
     </template>
-    
+
     <div v-if="sortedResearches.length === 0" class="px-4 py-8 text-center text-gray-500 italic bg-gray-50">
       No researches match this criteria or all are maxed.
     </div>

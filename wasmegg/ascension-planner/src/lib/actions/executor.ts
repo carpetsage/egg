@@ -160,9 +160,7 @@ export function computeDependencies(
 
   // 1. Every action depends on the most recent shift/start_ascension (the "group header")
   // This ensures that undoing a shift also undoes all actions performed during that shift.
-  const lastHeader = [...existingActions].reverse().find(
-    a => a.type === 'shift' || a.type === 'start_ascension'
-  );
+  const lastHeader = [...existingActions].reverse().find(a => a.type === 'shift' || a.type === 'start_ascension');
   if (lastHeader) {
     deps.push(lastHeader.id);
   }
@@ -267,7 +265,7 @@ function findNthResearchPurchase(
   let count = 0;
   // Initialize count with levels already purchased in tiers 1 through n-1
   // Wait, wait. The threshold is TOTAL purchases in tiers 1 to X-1.
-  // Actually, Egg Inc thresholds are cumulative. 
+  // Actually, Egg Inc thresholds are cumulative.
   // If threshold is 1655, it means total research purchases MUST be >= 1655.
   // Wait, let's verify if TIER_UNLOCK_THRESHOLDS is "purchases in previous tiers" or "total purchases".
   // commonResearch.ts: Index 12 = tier 13 (requires 1655 purchases from tiers 1-12)
@@ -331,13 +329,10 @@ function findNthResearchPurchase(
 /**
  * Find the research action that purchased a specific level of a research.
  */
-function findResearchLevelAction(
-  actions: Action[],
-  researchId: string,
-  toLevel: number
-): Action | undefined {
+function findResearchLevelAction(actions: Action[], researchId: string, toLevel: number): Action | undefined {
   return actions.find(
-    a => a.type === 'buy_research' &&
+    a =>
+      a.type === 'buy_research' &&
       (a.payload as BuyResearchPayload).researchId === researchId &&
       (a.payload as BuyResearchPayload).toLevel === toLevel
   );
@@ -346,13 +341,11 @@ function findResearchLevelAction(
 /**
  * Find the graviton coupling research action that unlocked a specific train length.
  */
-function findGravitonCouplingAction(
-  actions: Action[],
-  minLevel: number
-): Action | undefined {
+function findGravitonCouplingAction(actions: Action[], minLevel: number): Action | undefined {
   // Find the earliest action that gave us at least this level
   return actions.find(
-    a => a.type === 'buy_research' &&
+    a =>
+      a.type === 'buy_research' &&
       (a.payload as BuyResearchPayload).researchId === 'micro_coupling' &&
       (a.payload as BuyResearchPayload).toLevel >= minLevel
   );
@@ -361,12 +354,10 @@ function findGravitonCouplingAction(
 /**
  * Find the action that bought the hyperloop train in a specific slot.
  */
-function findHyperloopPurchase(
-  actions: Action[],
-  slotIndex: number
-): Action | undefined {
+function findHyperloopPurchase(actions: Action[], slotIndex: number): Action | undefined {
   return actions.find(
-    a => a.type === 'buy_vehicle' &&
+    a =>
+      a.type === 'buy_vehicle' &&
       (a.payload as BuyVehiclePayload).slotIndex === slotIndex &&
       (a.payload as BuyVehiclePayload).vehicleId === 11
   );
@@ -375,13 +366,10 @@ function findHyperloopPurchase(
 /**
  * Find the action that bought a specific train car in a slot.
  */
-function findTrainCarAction(
-  actions: Action[],
-  slotIndex: number,
-  toLength: number
-): Action | undefined {
+function findTrainCarAction(actions: Action[], slotIndex: number, toLength: number): Action | undefined {
   return actions.find(
-    a => a.type === 'buy_train_car' &&
+    a =>
+      a.type === 'buy_train_car' &&
       (a.payload as BuyTrainCarPayload).slotIndex === slotIndex &&
       (a.payload as BuyTrainCarPayload).toLength === toLength
   );
@@ -391,14 +379,8 @@ function findTrainCarAction(
  * Find the action that bought a specific silo number.
  * @param toCount The silo count after the purchase (e.g., 3 for silo #3)
  */
-function findSiloPurchaseAction(
-  actions: Action[],
-  toCount: number
-): Action | undefined {
-  return actions.find(
-    a => a.type === 'buy_silo' &&
-      (a.payload as BuySiloPayload).toCount === toCount
-  );
+function findSiloPurchaseAction(actions: Action[], toCount: number): Action | undefined {
+  return actions.find(a => a.type === 'buy_silo' && (a.payload as BuySiloPayload).toCount === toCount);
 }
 
 /**

@@ -13,25 +13,24 @@ import type { Research, BaseCalculationResearch } from '@/types';
  *               If not provided, returns BaseCalculationResearch.
  */
 export function selectResearches<T extends BaseCalculationResearch = BaseCalculationResearch>(
-    ids: string[],
-    mapper?: (r: Research) => T
+  ids: string[],
+  mapper?: (r: Research) => T
 ): T[] {
-    return (allResearches as Research[])
-        .filter(r => ids.includes(r.id))
-        .map(r => {
-            if (mapper) {
-                return mapper(r);
-            }
-            return {
-                id: r.id,
-                name: r.name,
-                description: r.description,
-                maxLevel: r.levels,
-                perLevel: r.per_level,
-            } as unknown as T;
-        });
+  return (allResearches as Research[])
+    .filter(r => ids.includes(r.id))
+    .map(r => {
+      if (mapper) {
+        return mapper(r);
+      }
+      return {
+        id: r.id,
+        name: r.name,
+        description: r.description,
+        maxLevel: r.levels,
+        perLevel: r.per_level,
+      } as unknown as T;
+    });
 }
-
 
 /**
  * Calculate the linear effect of a research item.
@@ -42,9 +41,9 @@ export function selectResearches<T extends BaseCalculationResearch = BaseCalcula
  * @returns The calculated effect
  */
 export function calculateLinearEffect(level: number, maxLevel: number, perLevel: number, base: number = 1): number {
-    if (level <= 0) return base;
-    const clampedLevel = clamp(level, 0, maxLevel);
-    return base + (perLevel * clampedLevel);
+  if (level <= 0) return base;
+  const clampedLevel = clamp(level, 0, maxLevel);
+  return base + perLevel * clampedLevel;
 }
 
 /**
@@ -54,5 +53,5 @@ export function calculateLinearEffect(level: number, maxLevel: number, perLevel:
  * @returns The clamped level
  */
 export function clampLevel(level: number, maxLevel: number): number {
-    return clamp(level, 0, maxLevel);
+  return clamp(level, 0, maxLevel);
 }

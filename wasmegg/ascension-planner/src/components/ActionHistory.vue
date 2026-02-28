@@ -19,7 +19,10 @@
     </div>
 
     <!-- Action list with grouping -->
-    <div v-else class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm divide-y divide-slate-100">
+    <div
+      v-else
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm divide-y divide-slate-100"
+    >
       <template v-for="(item, idx) in groupedActions" :key="item.key">
         <!-- Individual action (current work after last shift) -->
         <ActionHistoryItem
@@ -71,7 +74,7 @@ import ActionGroup from './ActionGroup.vue';
 
 const emit = defineEmits<{
   'show-details': [action: Action];
-  'undo': [action: Action, options?: { skipConfirmation: boolean }];
+  undo: [action: Action, options?: { skipConfirmation: boolean }];
   'clear-all': [options?: { skipConfirmation: boolean }];
 }>();
 
@@ -118,12 +121,12 @@ interface GroupItem {
   type: 'group';
   key: string;
   headerAction: Action<'start_ascension'> | Action<'shift'>;
-  actions: Action[];  // Actions AFTER the header, until next shift
+  actions: Action[]; // Actions AFTER the header, until next shift
   timeElapsedSeconds: number;
-  periodTimestamp: Date;  // When this period started
-  eggsDelivered: number;  // Total eggs delivered during this period (for the current egg)
-  visitCount: number;     // Which visit number this is for the egg (1st, 2nd, etc.)
-  isCurrent: boolean;  // Whether this is the current (last) period
+  periodTimestamp: Date; // When this period started
+  eggsDelivered: number; // Total eggs delivered during this period (for the current egg)
+  visitCount: number; // Which visit number this is for the egg (1st, 2nd, etc.)
+  isCurrent: boolean; // Whether this is the current (last) period
 }
 
 type GroupedItem = SingleItem | GroupItem;
@@ -141,7 +144,6 @@ type GroupedItem = SingleItem | GroupItem;
 const groupedActions = computed<GroupedItem[]>(() => {
   const result: GroupedItem[] = [];
   const allActions = actions.value;
-
 
   const visitCounts: Record<string, number> = {
     curiosity: 0,
@@ -173,15 +175,13 @@ const groupedActions = computed<GroupedItem[]>(() => {
 
       // Calculate time elapsed in this period
       let periodTimeSeconds = 0;
-      groupActions.forEach((action) => {
-        periodTimeSeconds += (action.totalTimeSeconds || 0);
+      groupActions.forEach(action => {
+        periodTimeSeconds += action.totalTimeSeconds || 0;
       });
 
       // Add the duration of the shift that ENDS this period
       const firstShift = allActions[firstShiftIdx] as Action<'shift'>;
-      periodTimeSeconds += (firstShift.totalTimeSeconds || 0);
-
-
+      periodTimeSeconds += firstShift.totalTimeSeconds || 0;
 
       visitCounts[startAction.payload.initialEgg]++;
 
@@ -202,11 +202,9 @@ const groupedActions = computed<GroupedItem[]>(() => {
       // No shifts yet - show start_ascension as a group (current period)
       const groupActions = allActions.slice(1);
       let periodTimeSeconds = 0;
-      groupActions.forEach((action) => {
-        periodTimeSeconds += (action.totalTimeSeconds || 0);
+      groupActions.forEach(action => {
+        periodTimeSeconds += action.totalTimeSeconds || 0;
       });
-
-
 
       visitCounts[startAction.payload.initialEgg]++;
 
@@ -238,17 +236,15 @@ const groupedActions = computed<GroupedItem[]>(() => {
 
     // Calculate time elapsed in this period
     let periodTimeSeconds = 0;
-    groupActions.forEach((action) => {
-      periodTimeSeconds += (action.totalTimeSeconds || 0);
+    groupActions.forEach(action => {
+      periodTimeSeconds += action.totalTimeSeconds || 0;
     });
 
     // Add the duration of the next shift that ENDS this period
     if (nextShiftIdx !== undefined) {
       const nextShiftAction = allActions[nextShiftIdx] as Action<'shift'>;
-      periodTimeSeconds += (nextShiftAction.totalTimeSeconds || 0);
+      periodTimeSeconds += nextShiftAction.totalTimeSeconds || 0;
     }
-
-
 
     visitCounts[shiftAction.payload.toEgg]++;
 
@@ -297,7 +293,7 @@ function computePeriodEggsDelivered(
   const egg = headerAction.endState.currentEgg;
   const startDelivered = headerAction.endState.eggsDelivered[egg] || 0;
   const lastAction = groupActions.length > 0 ? groupActions[groupActions.length - 1] : null;
-  const endDelivered = lastAction ? (lastAction.endState.eggsDelivered[egg] || 0) : startDelivered;
+  const endDelivered = lastAction ? lastAction.endState.eggsDelivered[egg] || 0 : startDelivered;
   return Math.max(0, endDelivered - startDelivered);
 }
 

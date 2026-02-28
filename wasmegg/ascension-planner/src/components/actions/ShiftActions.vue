@@ -1,10 +1,12 @@
 <template>
   <div class="space-y-6">
     <!-- Current Shift Summary -->
-    <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 rounded-2xl p-6 border border-indigo-100/50 shadow-sm relative overflow-hidden">
+    <div
+      class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 rounded-2xl p-6 border border-indigo-100/50 shadow-sm relative overflow-hidden"
+    >
       <!-- Decorative background element -->
       <div class="absolute -right-8 -top-8 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl"></div>
-      
+
       <div class="flex justify-between items-start mb-6 relative z-10">
         <div>
           <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Shift Progress</h4>
@@ -33,7 +35,9 @@
         </div>
 
         <!-- Current phase display -->
-        <div class="bg-slate-900/5 backdrop-blur-sm rounded-2xl p-4 border border-slate-900/5 shadow-inner flex items-center gap-4">
+        <div
+          class="bg-slate-900/5 backdrop-blur-sm rounded-2xl p-4 border border-slate-900/5 shadow-inner flex items-center gap-4"
+        >
           <div class="w-12 h-12 flex-shrink-0 bg-white rounded-2xl border border-slate-200/50 p-2 shadow-sm">
             <img
               :src="iconURL(`egginc/egg_${virtueStore.currentEgg}.png`, 64)"
@@ -42,8 +46,12 @@
             />
           </div>
           <div>
-            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Active Phase</div>
-            <div class="text-sm font-black text-slate-900 uppercase tracking-tight">{{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}</div>
+            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+              Active Phase
+            </div>
+            <div class="text-sm font-black text-slate-900 uppercase tracking-tight">
+              {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}
+            </div>
           </div>
         </div>
       </div>
@@ -69,26 +77,29 @@
           v-for="egg in availableEggs"
           :key="egg"
           class="group relative flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 shadow-sm overflow-hidden"
-          :class="egg === virtueStore.currentEgg
-            ? 'border-slate-100 bg-slate-50/50 opacity-40 grayscale cursor-not-allowed'
-            : 'border-slate-100 bg-white hover:border-brand-primary/30 hover:shadow-lg hover:shadow-brand-primary/5 hover:-translate-y-0.5'"
+          :class="
+            egg === virtueStore.currentEgg
+              ? 'border-slate-100 bg-slate-50/50 opacity-40 grayscale cursor-not-allowed'
+              : 'border-slate-100 bg-white hover:border-brand-primary/30 hover:shadow-lg hover:shadow-brand-primary/5 hover:-translate-y-0.5'
+          "
           :disabled="egg === virtueStore.currentEgg"
           @click="handleShift(egg)"
         >
           <!-- Hover background glow -->
-          <div v-if="egg !== virtueStore.currentEgg" class="absolute -right-4 -bottom-4 w-12 h-12 bg-brand-primary/5 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+          <div
+            v-if="egg !== virtueStore.currentEgg"
+            class="absolute -right-4 -bottom-4 w-12 h-12 bg-brand-primary/5 rounded-full blur-xl group-hover:scale-150 transition-transform"
+          ></div>
 
           <div
             class="w-12 h-12 flex-shrink-0 bg-slate-50 rounded-2xl p-2 border border-slate-100 group-hover:bg-white transition-all group-hover:scale-110 shadow-sm"
           >
-            <img
-              :src="iconURL(`egginc/egg_${egg}.png`, 64)"
-              class="w-full h-full object-contain"
-              :alt="egg"
-            />
+            <img :src="iconURL(`egginc/egg_${egg}.png`, 64)" class="w-full h-full object-contain" :alt="egg" />
           </div>
           <div class="text-left overflow-hidden relative z-10">
-            <span class="block text-sm font-black text-slate-900 uppercase tracking-tight group-hover:text-brand-primary transition-colors">
+            <span
+              class="block text-sm font-black text-slate-900 uppercase tracking-tight group-hover:text-brand-primary transition-colors"
+            >
               {{ VIRTUE_EGG_NAMES[egg] }}
             </span>
             <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
@@ -123,11 +134,16 @@ const availableEggs = VIRTUE_EGGS;
 // Map egg to its action type
 function eggActionLabel(egg: VirtueEgg): string {
   switch (egg) {
-    case 'curiosity': return 'Research';
-    case 'integrity': return 'Habs';
-    case 'kindness': return 'Vehicles';
-    case 'humility': return 'Artifacts';
-    case 'resilience': return 'Silos';
+    case 'curiosity':
+      return 'Research';
+    case 'integrity':
+      return 'Habs';
+    case 'kindness':
+      return 'Vehicles';
+    case 'humility':
+      return 'Artifacts';
+    case 'resilience':
+      return 'Silos';
   }
 }
 
@@ -164,7 +180,7 @@ const timeSinceLastShiftSeconds = computed(() => {
 
   for (let i = lastShiftIndex.value + 1; i < actions.length; i++) {
     const action = actions[i];
-    totalSeconds += (action.totalTimeSeconds || 0);
+    totalSeconds += action.totalTimeSeconds || 0;
   }
 
   return totalSeconds;
@@ -192,28 +208,36 @@ function handleShift(toEgg: VirtueEgg) {
   const newShiftCount = beforeSnapshot.shiftCount + 1;
 
   // Compute dependencies (shift depends on previous shift or start_ascension)
-  const dependencies = computeDependencies('shift', {
-    fromEgg,
-    toEgg,
-    newShiftCount,
-  }, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
+  const dependencies = computeDependencies(
+    'shift',
+    {
+      fromEgg,
+      toEgg,
+      newShiftCount,
+    },
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
 
   // Apply the shift to the store
   virtueStore.shift(toEgg);
 
   // Complete execution
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'shift',
-    payload: {
-      fromEgg,
-      toEgg,
-      newShiftCount,
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'shift',
+      payload: {
+        fromEgg,
+        toEgg,
+        newShiftCount,
+      },
+      cost,
+      dependsOn: dependencies,
     },
-    cost,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+    beforeSnapshot
+  );
 
   // Auto-activate relevant sales for the new egg
   const startAction = actionsStore.getStartAction();

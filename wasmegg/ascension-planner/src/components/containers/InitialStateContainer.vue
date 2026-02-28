@@ -36,7 +36,6 @@
     @set-tank-level="handleSetTankLevel"
     @set-fuel-amount="handleSetFuelAmount"
     @set-eggs-delivered="handleSetEggsDelivered"
-
     @set-te-earned="handleSetTEEarned"
     @include-pending-te="handleIncludePendingTe"
     @continue-ascension="handleContinueAscension"
@@ -79,9 +78,7 @@ const habCapacityStore = useHabCapacityStore();
 const shippingCapacityStore = useShippingCapacityStore();
 const silosStore = useSilosStore();
 
-const startAction = computed(() =>
-  actionsStore.getStartAction() as Action<'start_ascension'> | undefined
-);
+const startAction = computed(() => actionsStore.getStartAction() as Action<'start_ascension'> | undefined);
 
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
@@ -91,15 +88,13 @@ function updateInitialSnapshotAndRecalculate() {
   const context = getSimulationContext();
   const baseState = createBaseEngineState(null);
   const initialSnapshot = computeSnapshot(baseState, context);
-  
+
   actionsStore.setInitialSnapshot(initialSnapshot);
   // Recalculate all history
   actionsStore.recalculateAll();
 }
 
-const initialTotalTe = computed(() =>
-  Object.values(store.initialTeEarned).reduce((sum, val) => sum + val, 0)
-);
+const initialTotalTe = computed(() => Object.values(store.initialTeEarned).reduce((sum, val) => sum + val, 0));
 
 const currentEggName = computed(() => {
   if (!store.currentFarmState) return '';
@@ -153,7 +148,7 @@ function handleSetEggsDelivered(egg: VirtueEgg, amount: number) {
     state.eggsDelivered = { ...store.initialEggsDelivered };
     state.teEarned = { ...store.initialTeEarned };
   });
-  
+
   truthEggsStore.setEggsDeliveredWithSync(egg, amount);
 
   // Sync back to InitialStateStore
@@ -204,10 +199,10 @@ function handleIncludePendingTe() {
     if (pending > 0) {
       const currentEarned = store.initialTeEarned[egg];
       const newTotal = Math.min(98, currentEarned + pending);
-      
+
       // Update via truthEggsStore to handle sync logic
       truthEggsStore.setTEEarned(egg, newTotal);
-      
+
       // Clear pending
       store.setInitialTePending(egg, 0);
       changed = true;

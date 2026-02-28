@@ -3,22 +3,14 @@
     <h4 class="text-sm font-medium text-gray-700 mb-2">Mission Summary</h4>
 
     <div class="space-y-0.5 mb-3">
-      <div
-        v-for="line in summary"
-        :key="`${line.ship}-${line.duration}`"
-        class="text-xs text-gray-600"
-      >
+      <div v-for="line in summary" :key="`${line.ship}-${line.duration}`" class="text-xs text-gray-600">
         {{ line.count }}× {{ line.durationName }} {{ line.shipName }}
       </div>
     </div>
 
     <div class="border-t border-gray-200 pt-2 space-y-0.5">
-      <div class="text-sm font-medium text-gray-800">
-        Total Time: {{ formatDuration(schedule.totalSeconds) }}
-      </div>
-      <div class="text-xs text-gray-500">
-        {{ schedule.totalMissions }} missions
-      </div>
+      <div class="text-sm font-medium text-gray-800">Total Time: {{ formatDuration(schedule.totalSeconds) }}</div>
+      <div class="text-xs text-gray-500">{{ schedule.totalMissions }} missions</div>
     </div>
   </div>
 </template>

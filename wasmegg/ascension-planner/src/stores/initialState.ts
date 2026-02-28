@@ -1,5 +1,12 @@
 import { defineStore } from 'pinia';
-import type { InitialState, ResearchLevels, VirtueEgg, CurrentFarmState, VehicleSlot, ActiveMissionInfo } from '@/types';
+import type {
+  InitialState,
+  ResearchLevels,
+  VirtueEgg,
+  CurrentFarmState,
+  VehicleSlot,
+  ActiveMissionInfo,
+} from '@/types';
 import { ei, Mission } from 'lib';
 import { epicResearchDefs } from '@/lib/epicResearch';
 import {
@@ -257,8 +264,6 @@ export const useInitialStateStore = defineStore('initialState', {
       this.initialEggsDelivered = { ...eggsDelivered };
       this.initialTeEarned = { ...teEarnedPerEgg };
 
-
-
       // Calculate pending TE based on delivered vs earned
       // Pending = (Theoretical TE from delivered) - (Actual Earned TE)
       const tePendingPerEgg: Record<VirtueEgg, number> = {
@@ -296,7 +301,7 @@ export const useInitialStateStore = defineStore('initialState', {
               return h === 19 ? null : h;
             }
             if (h && typeof h === 'object') {
-              return (h.type !== undefined && h.type !== null) ? h.type : 0;
+              return h.type !== undefined && h.type !== null ? h.type : 0;
             }
             return null;
           });
@@ -315,7 +320,7 @@ export const useInitialStateStore = defineStore('initialState', {
             }
             if (v && typeof v === 'object') {
               return {
-                vehicleId: (v.type !== undefined && v.type !== null) ? v.type : null,
+                vehicleId: v.type !== undefined && v.type !== null ? v.type : null,
                 trainLength: v.count || 1,
               };
             }

@@ -1,9 +1,5 @@
 <template>
-  <ELRDisplay
-    :output="output"
-    :time-unit="store.timeUnit"
-    @set-time-unit="store.setTimeUnit"
-  />
+  <ELRDisplay :output="output" :time-unit="store.timeUnit" @set-time-unit="store.setTimeUnit" />
 </template>
 
 <script setup lang="ts">
