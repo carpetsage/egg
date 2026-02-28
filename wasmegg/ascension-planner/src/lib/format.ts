@@ -164,12 +164,13 @@ export function formatDuration(seconds: number): string {
  *
  * @param seconds - Duration in seconds from the base timestamp
  * @param baseTimestamp - Base Unix timestamp in milliseconds (defaults to Date.now())
+ * @param timeZone - Optional IANA timezone identifier
  * @returns Formatted absolute time string
  *
  * @example
  * formatAbsoluteTime(3600) // e.g., "Tue, Feb 24, 5:43 PM"
  */
-export function formatAbsoluteTime(seconds: number, baseTimestamp?: number): string {
+export function formatAbsoluteTime(seconds: number, baseTimestamp?: number, timeZone?: string): string {
   if (!isFinite(seconds)) return '∞';
   const start = baseTimestamp ?? Date.now();
   const date = new Date(start + seconds * 1000);
@@ -180,6 +181,7 @@ export function formatAbsoluteTime(seconds: number, baseTimestamp?: number): str
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
+    timeZone,
   });
 }
 

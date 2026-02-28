@@ -60,7 +60,7 @@
         class="text-xs font-mono text-gray-900"
         v-tippy="
           extraLabel === 'Achieve ROI' && extraSeconds !== undefined
-            ? formatAbsoluteTime(extraSeconds, baseTimestamp)
+            ? formatAbsoluteTime(extraSeconds, baseTimestamp, virtueStore.ascensionTimezone)
             : undefined
         "
       >
@@ -101,7 +101,7 @@
         v-if="showBuyToHere && !isMaxed"
         class="btn-premium btn-secondary text-[10px] py-1 px-2"
         :disabled="!canBuyToHere"
-        v-tippy="`${buyToHereSeconds !== undefined ? formatAbsoluteTime(buyToHereSeconds, baseTimestamp) : ''}`"
+        v-tippy="`${buyToHereSeconds !== undefined ? formatAbsoluteTime(buyToHereSeconds, baseTimestamp, virtueStore.ascensionTimezone) : ''}`"
         @click.stop="$emit('buyToHere')"
       >
         Buy to here
@@ -112,7 +112,7 @@
       <button
         class="w-8 h-8 flex items-center justify-center rounded bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         :disabled="!canBuy || isMaxed || (targetLevel !== undefined && targetLevel !== currentLevel + 1)"
-        v-tippy="timeToBuySeconds !== undefined ? formatAbsoluteTime(timeToBuySeconds, baseTimestamp) : ''"
+        v-tippy="timeToBuySeconds !== undefined ? formatAbsoluteTime(timeToBuySeconds, baseTimestamp, virtueStore.ascensionTimezone) : ''"
         @click.stop="$emit('buy')"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,7 +126,7 @@
         v-if="showMax"
         class="btn-premium btn-secondary text-xs py-1 px-2"
         :disabled="!canBuy || isMaxed"
-        v-tippy="maxTimeSeconds !== undefined ? formatAbsoluteTime(maxTimeSeconds, baseTimestamp) : ''"
+        v-tippy="maxTimeSeconds !== undefined ? formatAbsoluteTime(maxTimeSeconds, baseTimestamp, virtueStore.ascensionTimezone) : ''"
         @click.stop="$emit('max')"
       >
         Max

@@ -25,7 +25,7 @@
             v-if="tierSummaries[tier]?.isUnlocked && !isTierMaxed(tier)"
             class="btn-premium btn-secondary text-xs py-1 px-2"
             @click.stop="$emit('max-tier', tier)"
-            v-tippy="viewTimes.tiers[tier] ? formatAbsoluteTime(viewTimes.tierSeconds[tier], baseTimestamp) : ''"
+            v-tippy="viewTimes.tiers[tier] ? formatAbsoluteTime(viewTimes.tierSeconds[tier], baseTimestamp, virtueStore.ascensionTimezone) : ''"
           >
             Max Tier
             <span v-if="viewTimes.tiers[tier]" class="ml-1 text-[9px] opacity-70">({{ viewTimes.tiers[tier] }})</span>
