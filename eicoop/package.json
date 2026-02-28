@@ -43,6 +43,7 @@
     "fastbuild": "vite build",
     "lint": "eslint --ext .js,.ts,.vue src",
     "serve": "vite preview",
-    "profile": "vite --profile"
+    "profile": "vite --profile",
+    "format": "prettier --write \"src/**/*.{js,ts,vue}\""
   }
 }
