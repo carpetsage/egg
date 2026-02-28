@@ -28,12 +28,25 @@
 
       <div
         v-if="parsedSeconds > 0"
-        class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center transition-all animate-in fade-in slide-in-from-top-2"
+        class="mt-2 space-y-2 animate-in fade-in slide-in-from-top-2"
       >
-        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Wait Duration:</span>
-        <span class="text-sm font-mono-premium font-black text-slate-900">
-          {{ formatDuration(parsedSeconds) }}
-        </span>
+        <!-- Duration Display -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center transition-all">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Wait Duration:</span>
+          <span class="text-sm font-mono-premium font-black text-slate-900">
+            {{ formatDuration(parsedSeconds) }}
+          </span>
+        </div>
+
+        <!-- End Date/Time Display -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center transition-all">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated End:</span>
+          <div class="text-right">
+            <div class="text-sm font-mono-premium font-black text-slate-900">
+              {{ formatAbsoluteTime(parsedSeconds, baseTimestamp, virtueStore.ascensionTimezone) }}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -43,12 +56,14 @@
 import { ref, computed } from 'vue';
 import { iconURL } from 'lib';
 import { useActionsStore } from '@/stores/actions';
+import { useVirtueStore } from '@/stores/virtue';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { generateActionId } from '@/types';
 import { computeDependencies } from '@/lib/actions/executor';
-import { formatDuration, parseDuration } from '@/lib/format';
+import { formatDuration, parseDuration, formatAbsoluteTime } from '@/lib/format';
 
 const actionsStore = useActionsStore();
+const virtueStore = useVirtueStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const inputDuration = ref('');
@@ -59,6 +74,13 @@ const parsedSeconds = computed(() => {
 });
 
 const isValid = computed(() => parsedSeconds.value > 0);
+
+const baseTimestamp = computed(() => {
+  const startTime = virtueStore.planStartTime.getTime();
+  const offset = actionsStore.planStartOffset;
+  // Wall clock time = (Plan Start) + (Current Sim Time - Initial Sim Time)
+  return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
+});
 
 function handleWaitTime() {
   if (!isValid.value) return;

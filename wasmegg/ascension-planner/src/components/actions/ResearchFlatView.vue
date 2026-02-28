@@ -37,6 +37,7 @@
         :extra-seconds="item.extraSeconds"
         :hpp="item.hpp"
         :recommendation-note="item.recommendationNote"
+        :show-sale-warning="item.showSaleWarning"
         @buy="$emit('buy', item.research)"
         @max="$emit('max', item.research)"
         @buy-to-here="$emit('buy-to-here', idx)"
@@ -73,6 +74,7 @@ interface SortedResearchItem {
   extraSeconds?: number;
   hpp?: number;
   recommendationNote?: string;
+  showSaleWarning?: boolean;
 }
 
 defineProps<{

@@ -13,10 +13,12 @@ import { formatDuration } from '@/lib/format';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
+import { useVirtueStore } from '@/stores/virtue';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength } from '@/calculations/shippingCapacity';
+import { getNextPacificTime } from '@/lib/events';
 import { type CalculationsSnapshot } from '@/types';
 import { createSimAction } from '@/types/actions/meta';
 
@@ -44,6 +46,7 @@ export interface ResearchViewItem {
   isLaying?: boolean;
   isShipping?: boolean;
   recommendationNote?: string;
+  showSaleWarning?: boolean;
 
   // ELR specific
   impact?: number;
@@ -95,6 +98,7 @@ export function useResearchViews() {
   const commonResearchStore = useCommonResearchStore();
   const initialStateStore = useInitialStateStore();
   const actionsStore = useActionsStore();
+  const virtueStore = useVirtueStore();
 
   const currentView = ref<ViewType>('game');
 
@@ -413,6 +417,11 @@ export function useResearchViews() {
       const baseState = createBaseEngineState(effectiveSnapshot);
       const currentEarnings = effectiveSnapshot.offlineEarnings;
 
+      const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+      const offset = actionsStore.planStartOffset;
+      const absoluteSimTime = baseTimestamp + (effectiveSnapshot.lastStepTime - offset);
+      const nextSaleStart = getNextPacificTime(5, 9, absoluteSimTime);
+
       if (currentEarnings <= 0) return [];
 
       const unpurchased = all.filter(r => (researchLevels[r.id] || 0) < r.levels && filterByCategories(r));
@@ -466,6 +475,10 @@ export function useResearchViews() {
           isLaying,
           isShipping,
           nextSnapshot,
+          showSaleWarning: !isSale && (
+            (absoluteSimTime + timeToBuySeconds >= nextSaleStart) ||
+            (delta * (nextSaleStart - (absoluteSimTime + timeToBuySeconds)) < 0.7 * price)
+          ),
         };
       });
 
