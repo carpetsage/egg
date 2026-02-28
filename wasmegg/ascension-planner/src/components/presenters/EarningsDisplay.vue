@@ -10,9 +10,9 @@
             v-for="unit in timeUnits"
             :key="unit.value"
             class="px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all duration-200"
-            :class="timeUnit === unit.value
-              ? 'bg-brand-primary text-white shadow-sm'
-              : 'text-slate-400 hover:text-slate-600'"
+            :class="
+              timeUnit === unit.value ? 'bg-brand-primary text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'
+            "
             @click="$emit('set-time-unit', unit.value)"
           >
             {{ unit.label }}
@@ -47,11 +47,17 @@
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Effective Lay Rate</span>
-          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatNumber(convertedELR, 2) }}<span class="text-[10px] opacity-60 ml-0.5">/{{ timeUnitLabel }}</span></span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700"
+            >{{ formatNumber(convertedELR, 2)
+            }}<span class="text-[10px] opacity-60 ml-0.5">/{{ timeUnitLabel }}</span></span
+          >
         </div>
         <div class="px-5 py-3 flex justify-between items-center bg-slate-50/50">
           <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Base Earnings</span>
-          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatNumber(convertedBase, 2) }}<span class="text-[10px] opacity-60 ml-0.5">/{{ timeUnitLabel }}</span></span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700"
+            >{{ formatNumber(convertedBase, 2)
+            }}<span class="text-[10px] opacity-60 ml-0.5">/{{ timeUnitLabel }}</span></span
+          >
         </div>
       </div>
     </div>
@@ -64,8 +70,14 @@
       <div class="divide-y divide-slate-50">
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
-              <img :src="iconURL(getColleggtibleIconPath('truth'), 64)" class="w-5 h-5 object-contain" alt="Truth Egg" />
+            <div
+              class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
+            >
+              <img
+                :src="iconURL(getColleggtibleIconPath('truth'), 64)"
+                class="w-5 h-5 object-contain"
+                alt="Truth Egg"
+              />
             </div>
             <div>
               <div class="text-[11px] font-bold text-slate-700">Eggs of Truth (1.1^{{ te }})</div>
@@ -77,8 +89,14 @@
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
-              <img :src="iconURL(getColleggtibleIconPath('firework'), 64)" class="w-5 h-5 object-contain" alt="Firework" />
+            <div
+              class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
+            >
+              <img
+                :src="iconURL(getColleggtibleIconPath('firework'), 64)"
+                class="w-5 h-5 object-contain"
+                alt="Firework"
+              />
             </div>
             <div>
               <div class="text-[11px] font-bold text-slate-700">Firework (all earnings)</div>
@@ -90,8 +108,14 @@
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
-              <img :src="iconURL('egginc/r_icon_video_doubler_time.png', 64)" class="w-5 h-5 object-contain" alt="Video Doubler" />
+            <div
+              class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
+            >
+              <img
+                :src="iconURL('egginc/r_icon_video_doubler_time.png', 64)"
+                class="w-5 h-5 object-contain"
+                alt="Video Doubler"
+              />
             </div>
             <div>
               <div class="text-[11px] font-bold text-slate-700">Video Doubler (all earnings)</div>
@@ -109,7 +133,10 @@
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Artifacts (offline)</span>
-          <span class="font-mono-premium text-sm font-bold" :class="output.artifactAwayMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
+          <span
+            class="font-mono-premium text-sm font-bold"
+            :class="output.artifactAwayMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'"
+          >
             {{ formatMultiplier(output.artifactAwayMultiplier) }}
           </span>
         </div>
@@ -117,7 +144,10 @@
     </div>
 
     <!-- Artifact Breakdown -->
-    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+    <div
+      v-if="output.artifactBreakdown.length > 0"
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
+    >
       <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Artifact Effects</h3>
       </div>
@@ -129,7 +159,10 @@
         >
           <div class="flex items-center gap-2">
             <span class="text-[11px] font-bold text-slate-700">{{ effect.label }}</span>
-            <span class="badge-premium py-0 text-[8px]" :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'">
+            <span
+              class="badge-premium py-0 text-[8px]"
+              :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'"
+            >
               ({{ effect.source }})
             </span>
           </div>
@@ -137,7 +170,9 @@
         </div>
       </div>
       <div class="px-5 py-3 bg-slate-50/30 border-t border-slate-100">
-        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Lunar effects stack multiplicatively with each other</p>
+        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+          Lunar effects stack multiplicatively with each other
+        </p>
       </div>
     </div>
 
@@ -151,11 +186,17 @@
         <div class="flex justify-between items-center p-3 bg-slate-50/50 rounded-xl border border-slate-100">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
-              <img :src="iconURL(getColleggtibleIconPath('firework'), 64)" class="w-5 h-5 object-contain" alt="Firework" />
+              <img
+                :src="iconURL(getColleggtibleIconPath('firework'), 64)"
+                class="w-5 h-5 object-contain"
+                alt="Firework"
+              />
             </div>
             <div>
               <div class="text-[11px] font-bold text-slate-700">Firework</div>
-              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatTier(colleggtibleTiers.firework) }}</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                {{ formatTier(colleggtibleTiers.firework) }}
+              </div>
             </div>
           </div>
           <span class="font-mono-premium text-sm font-bold text-slate-900">
@@ -166,11 +207,17 @@
         <div class="flex justify-between items-center p-3 bg-slate-50/50 rounded-xl border border-slate-100">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
-              <img :src="iconURL(getColleggtibleIconPath('chocolate'), 64)" class="w-5 h-5 object-contain" alt="Chocolate" />
+              <img
+                :src="iconURL(getColleggtibleIconPath('chocolate'), 64)"
+                class="w-5 h-5 object-contain"
+                alt="Chocolate"
+              />
             </div>
             <div>
               <div class="text-[11px] font-bold text-slate-700">Chocolate</div>
-              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatTier(colleggtibleTiers.chocolate) }}</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                {{ formatTier(colleggtibleTiers.chocolate) }}
+              </div>
             </div>
           </div>
           <span class="font-mono-premium text-sm font-bold text-slate-900">
@@ -185,14 +232,18 @@
             </div>
             <div>
               <div class="text-[11px] font-bold text-slate-700">Wood</div>
-              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatTier(colleggtibleTiers.wood) }}</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                {{ formatTier(colleggtibleTiers.wood) }}
+              </div>
             </div>
           </div>
           <span class="font-mono-premium text-sm font-bold text-slate-900">
             {{ formatColleggtibleBonus(woodMultiplier) }}
           </span>
         </div>
-        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest px-1">Chocolate and Wood bonuses apply to offline earnings only</p>
+        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest px-1">
+          Chocolate and Wood bonuses apply to offline earnings only
+        </p>
       </div>
     </div>
   </div>
@@ -236,17 +287,23 @@ const timeUnits = [
 
 const timeUnitLabel = computed(() => {
   switch (props.timeUnit) {
-    case 'minute': return 'min';
-    case 'hour': return 'hr';
-    case 'day': return 'day';
+    case 'minute':
+      return 'min';
+    case 'hour':
+      return 'hr';
+    case 'day':
+      return 'day';
   }
 });
 
 const timeMultiplier = computed(() => {
   switch (props.timeUnit) {
-    case 'minute': return 60;
-    case 'hour': return 3600;
-    case 'day': return 86400;
+    case 'minute':
+      return 60;
+    case 'hour':
+      return 3600;
+    case 'day':
+      return 86400;
   }
 });
 

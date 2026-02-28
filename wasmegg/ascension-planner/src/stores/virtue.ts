@@ -54,11 +54,11 @@ export interface VirtueState {
   initialTE: number;
 
   // Ascension start time
-  ascensionDate: string;   // YYYY-MM-DD format
-  ascensionTime: string;   // HH:MM format
+  ascensionDate: string; // YYYY-MM-DD format
+  ascensionTime: string; // HH:MM format
   ascensionTimezone: string; // IANA timezone identifier
-  bankValue: number;       // Current gems in bank
-  population: number;      // Current chickens on farm
+  bankValue: number; // Current gems in bank
+  population: number; // Current chickens on farm
 }
 
 export const useVirtueStore = defineStore('virtue', {

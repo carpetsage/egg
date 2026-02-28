@@ -174,26 +174,26 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
   const salesStore = useSalesStore();
 
   // Restore hab state
-  habCapacityStore.$patch((state) => {
+  habCapacityStore.$patch(state => {
     state.habIds = [...snapshot.habIds] as (HabId | null)[];
     // Keep research levels in sync
     state.researchLevels = { ...snapshot.researchLevels };
   });
 
   // Restore vehicle state
-  shippingCapacityStore.$patch((state) => {
+  shippingCapacityStore.$patch(state => {
     state.vehicles = snapshot.vehicles.map(v => ({ ...v }));
     // Keep research levels in sync
     state.researchLevels = { ...snapshot.researchLevels };
   });
 
   // Restore common research levels
-  commonResearchStore.$patch((state) => {
+  commonResearchStore.$patch(state => {
     state.researchLevels = { ...snapshot.researchLevels };
   });
 
   // Restore virtue state
-  virtueStore.$patch((state) => {
+  virtueStore.$patch(state => {
     state.currentEgg = snapshot.currentEgg;
     state.shiftCount = snapshot.shiftCount;
     state.te = snapshot.te;
@@ -202,7 +202,7 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
   });
 
   // Restore initial state (soul eggs and artifacts)
-  initialStateStore.$patch((state) => {
+  initialStateStore.$patch(state => {
     state.soulEggs = snapshot.soulEggs;
     if (snapshot.artifactLoadout) {
       state.artifactLoadout = snapshot.artifactLoadout.map(slot => ({
@@ -223,13 +223,13 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
 
   // Restore fuel tank state
   if (snapshot.fuelTankAmounts) {
-    fuelTankStore.$patch((state) => {
+    fuelTankStore.$patch(state => {
       state.fuelAmounts = { ...snapshot.fuelTankAmounts };
     });
   }
 
   // Restore truth eggs state
-  truthEggsStore.$patch((state) => {
+  truthEggsStore.$patch(state => {
     if (snapshot.eggsDelivered) {
       state.eggsDelivered = { ...snapshot.eggsDelivered };
     }
@@ -240,7 +240,7 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
 
   // Restore sales state
   if (snapshot.activeSales) {
-    salesStore.$patch((state) => {
+    salesStore.$patch(state => {
       state.research = !!snapshot.activeSales.research;
       state.hab = !!snapshot.activeSales.hab;
       state.vehicle = !!snapshot.activeSales.vehicle;

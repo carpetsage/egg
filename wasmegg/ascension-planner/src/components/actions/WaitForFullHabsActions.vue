@@ -7,7 +7,9 @@
     <!-- Current State Info -->
     <div class="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 shadow-inner">
       <div class="flex items-center gap-4 mb-4">
-        <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-2">
+        <div
+          class="w-12 h-12 rounded-2xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-2"
+        >
           <img
             :src="iconURL('egginc/ei_hab_icon_chicken_universe.png', 64)"
             class="w-full h-full object-contain"
@@ -15,9 +17,7 @@
           />
         </div>
         <div>
-          <div class="text-sm font-bold text-slate-800">
-            Habitat Capacity
-          </div>
+          <div class="text-sm font-bold text-slate-800">Habitat Capacity</div>
           <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Filling to {{ formatNumber(habCapacity, 3) }}
           </div>
@@ -28,18 +28,20 @@
         <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px]">
           <div class="text-slate-400 uppercase tracking-[0.2em] font-black">Metric</div>
           <div class="text-slate-400 uppercase tracking-[0.2em] font-black text-right">Value</div>
-          
+
           <div class="text-slate-600 font-bold uppercase tracking-tight">Current Pop:</div>
           <div class="font-mono-premium text-right text-slate-700 font-bold">
             {{ formatNumber(currentPopulation, 3) }}
           </div>
-          
+
           <div class="text-slate-600 font-bold uppercase tracking-tight">Remaining:</div>
           <div class="font-mono-premium text-right text-slate-900 font-black">
             {{ formatNumber(chickensToGrow, 3) }}
           </div>
 
-          <div class="text-slate-600 font-bold uppercase tracking-tight pt-2 border-t border-slate-100/50">IHR (Offline):</div>
+          <div class="text-slate-600 font-bold uppercase tracking-tight pt-2 border-t border-slate-100/50">
+            IHR (Offline):
+          </div>
           <div class="font-mono-premium text-right text-slate-700 font-bold pt-2 border-t border-slate-100/50">
             {{ formatNumber(ihr, 3) }} / min
           </div>
@@ -48,7 +50,9 @@
         <div class="pt-3 border-t border-slate-100/50">
           <div class="flex justify-between items-center text-[10px]">
             <span class="font-black text-slate-400 uppercase tracking-widest">Time Required:</span>
-            <span class="font-mono-premium font-black text-slate-900 text-sm">{{ formatDuration(timeToGrowSeconds) }}</span>
+            <span class="font-mono-premium font-black text-slate-900 text-sm">{{
+              formatDuration(timeToGrowSeconds)
+            }}</span>
           </div>
         </div>
       </div>
@@ -69,7 +73,8 @@
     </button>
 
     <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest leading-relaxed opacity-60">
-      Time is based on your current offline internal hatchery rate. This action will advance time and set your population to maximum capacity.
+      Time is based on your current offline internal hatchery rate. This action will advance time and set your
+      population to maximum capacity.
     </p>
   </div>
 </template>
@@ -99,10 +104,8 @@ const timeToGrowSeconds = computed(() => {
   return chickensToGrow.value / (ihr.value / 60);
 });
 
-const canWait = computed(() => 
-  chickensToGrow.value > 0 && 
-  isFinite(timeToGrowSeconds.value) && 
-  timeToGrowSeconds.value > 0
+const canWait = computed(
+  () => chickensToGrow.value > 0 && isFinite(timeToGrowSeconds.value) && timeToGrowSeconds.value > 0
 );
 
 function handleWaitForFullHabs() {
@@ -117,15 +120,23 @@ function handleWaitForFullHabs() {
     totalTimeSeconds: timeToGrowSeconds.value,
   };
 
-  const dependencies = computeDependencies('wait_for_full_habs', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
-
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'wait_for_full_habs',
+  const dependencies = computeDependencies(
+    'wait_for_full_habs',
     payload,
-    cost: 0,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
+
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'wait_for_full_habs',
+      payload,
+      cost: 0,
+      dependsOn: dependencies,
+    },
+    beforeSnapshot
+  );
 }
 </script>

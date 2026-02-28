@@ -19,18 +19,31 @@
       </div>
       <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center px-1">
         <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base IHR</span>
-        <span class="font-mono-premium text-xs font-bold text-slate-700">{{ formatNumber(output.baseRatePerHab, 2) }}/min per hab</span>
+        <span class="font-mono-premium text-xs font-bold text-slate-700"
+          >{{ formatNumber(output.baseRatePerHab, 2) }}/min per hab</span
+        >
       </div>
 
       <!-- Min Rate Banner -->
-      <div v-if="output.isClampedByMinRate" class="mt-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 flex items-start gap-3">
-        <div class="w-5 h-5 rounded-full bg-white flex items-center justify-center border border-indigo-100 shadow-sm shrink-0 mt-0.5">
+      <div
+        v-if="output.isClampedByMinRate"
+        class="mt-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 flex items-start gap-3"
+      >
+        <div
+          class="w-5 h-5 rounded-full bg-white flex items-center justify-center border border-indigo-100 shadow-sm shrink-0 mt-0.5"
+        >
           <svg class="w-3 h-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
         <div class="text-[10px] text-indigo-600 leading-relaxed font-medium">
-          Rate boosted to <span class="font-bold">500/min</span> because players can create chickens manually in the game.
+          Rate boosted to <span class="font-bold">500/min</span> because players can create chickens manually in the
+          game.
         </div>
       </div>
     </div>
@@ -43,37 +56,63 @@
       <div class="divide-y divide-slate-50">
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Eggs of Truth</span>
-          <span class="font-mono-premium text-sm font-bold" :class="output.teMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
+          <span
+            class="font-mono-premium text-sm font-bold"
+            :class="output.teMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'"
+          >
             {{ formatMultiplier(output.teMultiplier) }}
           </span>
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)" class="w-4 h-4 object-contain opacity-60" alt="Epic Int. Hatcheries" />
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Epic Internal Incubators</span>
+            <img
+              :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)"
+              class="w-4 h-4 object-contain opacity-60"
+              alt="Epic Int. Hatcheries"
+            />
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest"
+              >Epic Internal Incubators</span
+            >
           </div>
-          <span class="font-mono-premium text-sm font-bold" :class="output.epicMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
+          <span
+            class="font-mono-premium text-sm font-bold"
+            :class="output.epicMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'"
+          >
             {{ formatMultiplier(output.epicMultiplier) }}
           </span>
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('easter'), 64)" class="w-4 h-4 object-contain opacity-60" alt="Easter" />
+            <img
+              :src="iconURL(getColleggtibleIconPath('easter'), 64)"
+              class="w-4 h-4 object-contain opacity-60"
+              alt="Easter"
+            />
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Easter</span>
           </div>
-          <span class="font-mono-premium text-sm font-bold" :class="output.easterEggMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
+          <span
+            class="font-mono-premium text-sm font-bold"
+            :class="output.easterEggMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'"
+          >
             {{ formatMultiplier(output.easterEggMultiplier) }}
           </span>
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Artifact Multiplier</span>
-          <span class="font-mono-premium text-sm font-bold" :class="output.artifactMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
+          <span
+            class="font-mono-premium text-sm font-bold"
+            :class="output.artifactMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'"
+          >
             {{ formatMultiplier(output.artifactMultiplier) }}
           </span>
         </div>
         <div class="px-5 py-3 flex justify-between items-center bg-slate-50/50">
           <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)" class="w-4 h-4 object-contain opacity-60" alt="Internal Hatchery Calm" />
+            <img
+              :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)"
+              class="w-4 h-4 object-contain opacity-60"
+              alt="Internal Hatchery Calm"
+            />
             <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Internal Hatchery Calm</span>
           </div>
           <span class="font-mono-premium text-sm font-bold text-slate-900">
@@ -84,7 +123,10 @@
     </div>
 
     <!-- Artifact Breakdown -->
-    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+    <div
+      v-if="output.artifactBreakdown.length > 0"
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
+    >
       <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Artifact Breakdown</h3>
       </div>
@@ -96,7 +138,10 @@
         >
           <div class="flex items-center gap-2">
             <span class="text-[11px] font-bold text-slate-700">{{ effect.label }}</span>
-            <span class="badge-premium py-0 text-[8px]" :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'">
+            <span
+              class="badge-premium py-0 text-[8px]"
+              :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'"
+            >
               ({{ effect.source }})
             </span>
           </div>
@@ -125,7 +170,9 @@
             {{ formatMultiplier(output.teMultiplier) }}
           </span>
         </div>
-        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-3 px-1">Dimensional shift provides 1.1x hatchery boost per discovery</p>
+        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-3 px-1">
+          Dimensional shift provides 1.1x hatchery boost per discovery
+        </p>
       </div>
     </div>
 
@@ -142,8 +189,14 @@
           class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
-              <img :src="iconURL(getColleggtibleIconPath(research.researchId), 64)" class="w-5 h-5 object-contain" :alt="research.name" />
+            <div
+              class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
+            >
+              <img
+                :src="iconURL(getColleggtibleIconPath(research.researchId), 64)"
+                class="w-5 h-5 object-contain"
+                :alt="research.name"
+              />
             </div>
             <div>
               <div class="text-[11px] font-bold text-slate-700 leading-tight">{{ research.name }}</div>
@@ -153,38 +206,64 @@
             </div>
           </div>
           <div class="text-right">
-            <div class="font-mono-premium text-xs font-bold text-slate-700">{{ research.level }} <span class="text-slate-300 font-normal">/</span> {{ research.maxLevel }}</div>
+            <div class="font-mono-premium text-xs font-bold text-slate-700">
+              {{ research.level }} <span class="text-slate-300 font-normal">/</span> {{ research.maxLevel }}
+            </div>
           </div>
         </div>
 
         <!-- Epic (Hatchery specific) -->
-        <div class="px-5 py-1 bg-slate-50/30 text-[9px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100">Epic Research</div>
-        
+        <div
+          class="px-5 py-1 bg-slate-50/30 text-[9px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100"
+        >
+          Epic Research
+        </div>
+
         <div class="px-5 py-4 space-y-4">
           <!-- Epic Int. Hatcheries -->
-          <div class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm flex justify-between items-center group hover:shadow-md transition-shadow">
+          <div
+            class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm flex justify-between items-center group hover:shadow-md transition-shadow"
+          >
             <div class="flex items-center gap-3">
-               <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner overflow-hidden">
-                <img :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)" class="w-5 h-5 object-contain" alt="Epic Int. Hatcheries" />
+              <div
+                class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner overflow-hidden"
+              >
+                <img
+                  :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)"
+                  class="w-5 h-5 object-contain"
+                  alt="Epic Int. Hatcheries"
+                />
               </div>
               <div>
                 <div class="text-[11px] font-bold text-slate-700 leading-tight">Epic Internal Incubators</div>
               </div>
             </div>
-            <span class="font-mono-premium text-xs font-bold text-slate-700">{{ epicResearchLevels.epicInternalIncubators }} <span class="text-slate-300">/</span> 20</span>
+            <span class="font-mono-premium text-xs font-bold text-slate-700"
+              >{{ epicResearchLevels.epicInternalIncubators }} <span class="text-slate-300">/</span> 20</span
+            >
           </div>
 
           <!-- Internal Hatchery Calm -->
-          <div class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm flex justify-between items-center group hover:shadow-md transition-shadow">
+          <div
+            class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm flex justify-between items-center group hover:shadow-md transition-shadow"
+          >
             <div class="flex items-center gap-3">
-               <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden">
-                <img :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)" class="w-5 h-5 object-contain" alt="Internal Hatchery Calm" />
+              <div
+                class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden"
+              >
+                <img
+                  :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)"
+                  class="w-5 h-5 object-contain"
+                  alt="Internal Hatchery Calm"
+                />
               </div>
               <div>
                 <div class="text-[11px] font-bold text-slate-700 leading-tight">Internal Hatchery Calm</div>
               </div>
             </div>
-            <span class="font-mono-premium text-xs font-bold text-slate-700">{{ epicResearchLevels.internalHatcheryCalm }} <span class="text-slate-300">/</span> 20</span>
+            <span class="font-mono-premium text-xs font-bold text-slate-700"
+              >{{ epicResearchLevels.internalHatcheryCalm }} <span class="text-slate-300">/</span> 20</span
+            >
           </div>
         </div>
       </div>
@@ -213,7 +292,5 @@ const props = defineProps<{
 defineEmits<{}>();
 
 // Filter to only show common (non-epic) researches in the main list
-const commonResearchBreakdown = computed(() =>
-  props.output.researchBreakdown.filter(r => !r.isEpic)
-);
+const commonResearchBreakdown = computed(() => props.output.researchBreakdown.filter(r => !r.isEpic));
 </script>

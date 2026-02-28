@@ -27,12 +27,16 @@
         </p>
 
         <!-- Active Event Slide Toggle (Earnings Boost) -->
-        <div class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300">
+        <div
+          class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
+        >
           <div class="flex items-center gap-2 relative z-10">
             <div class="flex flex-col gap-0.5 text-left">
               <div class="flex items-center gap-2">
                 <div class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Monday 2x Earnings Event</span>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none"
+                  >Monday 2x Earnings Event</span
+                >
               </div>
               <span class="text-[11px] font-black text-orange-600 uppercase tracking-tighter">
                 {{ isEarningsBoostActive ? 'Active' : 'Inactive' }}
@@ -51,12 +55,9 @@
             />
           </button>
         </div>
-
       </div>
 
-      <div v-if="loading" class="text-center py-4 text-gray-600">
-        Loading player data...
-      </div>
+      <div v-if="loading" class="text-center py-4 text-gray-600">Loading player data...</div>
 
       <div v-if="error" class="text-center py-4 text-red-600">
         {{ error }}
@@ -74,11 +75,7 @@
             <ChevronIcon :expanded="expandedSections.actionHistory" />
           </div>
           <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-            <ActionHistory
-              @show-details="showActionDetails"
-              @undo="showUndoConfirmation"
-              @clear-all="handleClearAll"
-            />
+            <ActionHistory @show-details="showActionDetails" @undo="showUndoConfirmation" @clear-all="handleClearAll" />
           </div>
         </div>
 
@@ -99,11 +96,7 @@
     </div>
 
     <!-- Action Details Modal -->
-    <ActionDetailsModal
-      v-if="showDetailsModal"
-      :action="detailsModalAction"
-      @close="closeActionDetails"
-    />
+    <ActionDetailsModal v-if="showDetailsModal" :action="detailsModalAction" @close="closeActionDetails" />
 
     <!-- Undo Confirmation Dialog -->
     <UndoConfirmationDialog
@@ -134,7 +127,6 @@
 
     <PlanFinalSummary @show-details="showCurrentDetails" @update:collapsed="isFooterCollapsed = $event" />
     <FloatingStats @show-details="showCurrentDetails" />
-
   </div>
 </template>
 
@@ -203,21 +195,25 @@ const pageTitle = computed(() => {
   return name ? `Ascension Planner ${name}` : 'Ascension Planner';
 });
 
-watch(pageTitle, (newTitle) => {
-  document.title = newTitle;
-}, { immediate: true });
+watch(
+  pageTitle,
+  newTitle => {
+    document.title = newTitle;
+  },
+  { immediate: true }
+);
 
 function handleToggleEarningsEvent() {
   const beforeSnapshot = prepareExecution();
   const currentlyActive = beforeSnapshot.earningsBoost.active;
-  
+
   // Find the multiplier from the event store if turning ON
   let multiplier = 2;
   if (!currentlyActive) {
-      const event = eventsStore.getActiveEvents(initialStateStore.isUltra).find(e => e.type === 'earnings-boost');
-      if (event) multiplier = event.multiplier;
+    const event = eventsStore.getActiveEvents(initialStateStore.isUltra).find(e => e.type === 'earnings-boost');
+    if (event) multiplier = event.multiplier;
   } else {
-      multiplier = 1;
+    multiplier = 1;
   }
 
   const payload = {
@@ -228,14 +224,22 @@ function handleToggleEarningsEvent() {
   // Update store state
   salesStore.setEarningsBoost(payload.active, payload.multiplier);
 
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'toggle_earnings_boost',
-    payload,
-    cost: 0,
-    dependsOn: computeDependencies('toggle_earnings_boost', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels),
-  }, beforeSnapshot);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'toggle_earnings_boost',
+      payload,
+      cost: 0,
+      dependsOn: computeDependencies(
+        'toggle_earnings_boost',
+        payload,
+        actionsStore.actionsBeforeInsertion,
+        actionsStore.initialSnapshot.researchLevels
+      ),
+    },
+    beforeSnapshot
+  );
 }
 
 onMounted(() => {
@@ -310,14 +314,10 @@ function cancelUndo() {
 function executeUndo(mode: 'dependents' | 'truncate' = 'dependents') {
   if (!undoAction.value) return;
 
-  actionsStore.executeUndo(
-    undoAction.value.id,
-    mode,
-    (snapshot) => {
-      // Restore stores to the snapshot of the last remaining action
-      restoreFromSnapshot(snapshot);
-    }
-  );
+  actionsStore.executeUndo(undoAction.value.id, mode, snapshot => {
+    // Restore stores to the snapshot of the last remaining action
+    restoreFromSnapshot(snapshot);
+  });
 
   cancelUndo();
 }
@@ -335,9 +335,7 @@ function executeClearAll() {
   showClearAllConfirmation.value = false;
 }
 
-const playerId = ref(
-  new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || ''
-);
+const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
 const loading = ref(false);
 const error = ref('');
 
@@ -356,7 +354,8 @@ async function submitPlayerId(id: string) {
     console.log('Player data (backup):', backup);
 
     // Store the backup data in initial state
-    let { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } = initialStateStore.loadFromBackup(id, backup);
+    let { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
+      initialStateStore.loadFromBackup(id, backup);
 
     // Calculate extra eggs since backup if on a virtue egg
     if (initialStateStore.currentFarmState && initialStateStore.lastBackupTime > 0) {
@@ -380,14 +379,14 @@ async function submitPlayerId(id: string) {
         const startPop = farm.population;
         const extraChickens = (snapshot.offlineIHR / 60) * elapsed;
         const endPop = Math.min(snapshot.habCapacity, startPop + extraChickens);
-        
+
         // Update population
         farm.population = endPop;
 
         // Recompute snapshot at end population to get accurate end-of-period ELR
         tempState.population = endPop;
         const endSnapshot = computeSnapshot(tempState, context);
-        
+
         // Average ELR for catch-up (accurate linear approximation)
         const avgELR = (snapshot.elr + endSnapshot.elr) / 2;
         const extraEggs = avgELR * elapsed;
@@ -395,11 +394,11 @@ async function submitPlayerId(id: string) {
         if (extraEggs > 0) {
           // 1. Update farm state
           farm.deliveredEggs += extraEggs;
-          
+
           // 2. Update store's initial delivered eggs
           const newDelivered = (eggsDelivered[egg] || 0) + extraEggs;
           initialStateStore.setInitialEggsDelivered(egg, newDelivered);
-          
+
           // 3. Update local eggsDelivered for later store initialization
           eggsDelivered[egg] = newDelivered;
 
@@ -445,23 +444,23 @@ async function submitPlayerId(id: string) {
 
 async function quickContinueAscension() {
   if (!playerId.value) return;
-  
+
   error.value = '';
   loading.value = true;
-  
+
   try {
     // 1. Wipe current plan
     await actionsStore.clearAll();
-    
+
     // 2. Reset date/time/TZ to current
     virtueStore.resetToCurrentDateTime();
-    
+
     // 3. Refresh backup (submitPlayerId)
     await submitPlayerId(playerId.value);
-    
+
     // 4. Trigger continue from backup
     await actionsStore.continueFromBackup(true);
-    
+
     loading.value = false;
   } catch (e) {
     loading.value = false;

@@ -26,12 +26,8 @@ const { output } = useHabCapacity();
 const colleggtibleTier = computed(() => initialStateStore.colleggtibleTiers['pegg'] ?? -1);
 
 // Get Cheaper Contractors epic research level from initial state (read-only)
-const cheaperContractorsLevel = computed(() =>
-  initialStateStore.epicResearchLevels['cheaper_contractors'] || 0
-);
+const cheaperContractorsLevel = computed(() => initialStateStore.epicResearchLevels['cheaper_contractors'] || 0);
 
 // Get Flame Retardant colleggtible multiplier from initial state (read-only)
-const flameRetardantMultiplier = computed(() =>
-  initialStateStore.colleggtibleModifiers.habCost
-);
+const flameRetardantMultiplier = computed(() => initialStateStore.colleggtibleModifiers.habCost);
 </script>

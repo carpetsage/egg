@@ -1,10 +1,4 @@
-import type {
-    CalculationsSnapshot,
-    VehicleSlot,
-    ResearchLevels,
-    ArtifactSlotPayload,
-    VirtueEgg,
-} from '@/types';
+import type { CalculationsSnapshot, VehicleSlot, ResearchLevels, ArtifactSlotPayload, VirtueEgg } from '@/types';
 import type { ColleggtibleModifiers } from '@/lib/colleggtibles';
 
 /**
@@ -12,52 +6,52 @@ import type { ColleggtibleModifiers } from '@/lib/colleggtibles';
  * This corresponds to the "input" fields of CalculationsSnapshot.
  */
 export interface EngineState {
-    // Virtue State
-    currentEgg: VirtueEgg;
-    shiftCount: number;
-    te: number;
-    soulEggs: number;
-    bankValue: number;
+  // Virtue State
+  currentEgg: VirtueEgg;
+  shiftCount: number;
+  te: number;
+  soulEggs: number;
+  bankValue: number;
 
-    // Farm State
-    habIds: (number | null)[];
-    vehicles: VehicleSlot[];
-    researchLevels: ResearchLevels;
-    siloCount: number;
+  // Farm State
+  habIds: (number | null)[];
+  vehicles: VehicleSlot[];
+  researchLevels: ResearchLevels;
+  siloCount: number;
 
-    // Artifacts
-    artifactLoadout: ArtifactSlotPayload[];
-    activeArtifactSet: import('@/types').ArtifactSetName | null;
-    artifactSets: Record<import('@/types').ArtifactSetName, ArtifactSlotPayload[] | null>;
+  // Artifacts
+  artifactLoadout: ArtifactSlotPayload[];
+  activeArtifactSet: import('@/types').ArtifactSetName | null;
+  artifactSets: Record<import('@/types').ArtifactSetName, ArtifactSlotPayload[] | null>;
 
-    // Progress State
-    fuelTankAmounts: Record<VirtueEgg, number>;
-    eggsDelivered: Record<VirtueEgg, number>;
-    teEarned: Record<VirtueEgg, number>;
+  // Progress State
+  fuelTankAmounts: Record<VirtueEgg, number>;
+  eggsDelivered: Record<VirtueEgg, number>;
+  teEarned: Record<VirtueEgg, number>;
 
-    population: number;
-    lastStepTime: number;
+  population: number;
+  lastStepTime: number;
 
-    activeSales: {
-        research: boolean;
-        hab: boolean;
-        vehicle: boolean;
-    };
-    earningsBoost: {
-        active: boolean;
-        multiplier: number;
-    };
+  activeSales: {
+    research: boolean;
+    hab: boolean;
+    vehicle: boolean;
+  };
+  earningsBoost: {
+    active: boolean;
+    multiplier: number;
+  };
 }
 
 /**
  * Context that remains constant during a simulation run.
  */
 export interface SimulationContext {
-    epicResearchLevels: ResearchLevels;
-    colleggtibleModifiers: ColleggtibleModifiers;
-    ascensionStartTime: number; // Unix timestamp in seconds
-    assumeDoubleEarnings: boolean;
-    // TODO: Add any other global context needed (e.g. events?)
+  epicResearchLevels: ResearchLevels;
+  colleggtibleModifiers: ColleggtibleModifiers;
+  ascensionStartTime: number; // Unix timestamp in seconds
+  assumeDoubleEarnings: boolean;
+  // TODO: Add any other global context needed (e.g. events?)
 }
 
 /**

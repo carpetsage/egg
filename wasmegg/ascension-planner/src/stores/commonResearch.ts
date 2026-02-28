@@ -32,9 +32,11 @@ export const useCommonResearchStore = defineStore('commonResearch', {
     /**
      * Get the current level of a specific research
      */
-    getLevel: (state) => (researchId: string): number => {
-      return state.researchLevels[researchId] || 0;
-    },
+    getLevel:
+      state =>
+      (researchId: string): number => {
+        return state.researchLevels[researchId] || 0;
+      },
 
     /**
      * Get total purchases across all research

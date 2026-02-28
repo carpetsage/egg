@@ -3,12 +3,7 @@
  * These have no Vue dependencies and are fully testable.
  */
 
-import type {
-  Research,
-  ResearchLevels,
-  HabCapacityInput,
-  HabCapacityOutput
-} from '@/types';
+import type { Research, ResearchLevels, HabCapacityInput, HabCapacityOutput } from '@/types';
 import { habTypes, isPortalHab, type Hab } from '@/lib/habs';
 import { calculateLinearEffect, selectResearches } from '@/utils/research';
 
@@ -23,24 +18,21 @@ export interface HabCapacityResearch extends BaseCalculationResearch {
 
 // Research IDs relevant to hab capacity
 const habCapacityResearchIds = [
-  'hab_capacity1',    // Hen House Remodel
-  'microlux',         // Microlux™ Chicken Suites
-  'grav_plating',     // Grav Plating
-  'wormhole_dampening' // Wormhole Dampening (portal habs only)
+  'hab_capacity1', // Hen House Remodel
+  'microlux', // Microlux™ Chicken Suites
+  'grav_plating', // Grav Plating
+  'wormhole_dampening', // Wormhole Dampening (portal habs only)
 ];
 
 // Filter and annotate researches
-const habCapacityResearches: HabCapacityResearch[] = selectResearches(
-  habCapacityResearchIds,
-  r => ({
-    id: r.id,
-    name: r.name,
-    description: r.description,
-    maxLevel: r.levels,
-    perLevel: r.per_level,
-    portalOnly: r.id === 'wormhole_dampening'
-  })
-);
+const habCapacityResearches: HabCapacityResearch[] = selectResearches(habCapacityResearchIds, r => ({
+  id: r.id,
+  name: r.name,
+  description: r.description,
+  maxLevel: r.levels,
+  perLevel: r.per_level,
+  portalOnly: r.id === 'wormhole_dampening',
+}));
 
 /**
  * Calculate the multiplier from a single research at a given level.
@@ -86,9 +78,7 @@ export function calculateHabCapacity(
   artifactMultiplier: number
 ): number {
   const baseMultiplier = universalMultiplier * peggMultiplier * artifactMultiplier;
-  const finalMultiplier = isPortalHab(hab)
-    ? baseMultiplier * portalMultiplier
-    : baseMultiplier;
+  const finalMultiplier = isPortalHab(hab) ? baseMultiplier * portalMultiplier : baseMultiplier;
 
   // Capacity rounds up (ceiling)
   return Math.ceil(hab.baseCapacity * finalMultiplier);

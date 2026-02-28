@@ -1,9 +1,11 @@
 <template>
   <div class="space-y-6">
     <!-- Sale Protocol -->
-    <div class="bg-gradient-to-r from-blue-50/80 via-white to-indigo-50/80 rounded-2xl p-5 border border-blue-100/50 shadow-sm relative overflow-hidden transition-all duration-300">
+    <div
+      class="bg-gradient-to-r from-blue-50/80 via-white to-indigo-50/80 rounded-2xl p-5 border border-blue-100/50 shadow-sm relative overflow-hidden transition-all duration-300"
+    >
       <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl"></div>
-      
+
       <div class="flex items-center justify-between relative z-10">
         <div class="flex flex-col gap-1">
           <div class="flex items-center gap-2">
@@ -32,15 +34,30 @@
         @click="handleBuyMax"
       >
         <div class="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/[0.02] transition-colors"></div>
-        <div class="rounded-xl bg-blue-50 border border-blue-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <div
+          class="rounded-xl bg-blue-50 border border-blue-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 text-blue-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <polyline points="13 17 18 12 13 7"></polyline>
             <polyline points="6 17 11 12 6 7"></polyline>
           </svg>
         </div>
         <div class="flex flex-col items-center relative z-10">
-          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-blue-700">Max Habs</span>
-          <span v-if="maxHabsTime" class="text-[9px] font-mono-premium font-black text-blue-500 mt-0.5">{{ maxHabsTime }}</span>
+          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-blue-700"
+            >Max Habs</span
+          >
+          <span v-if="maxHabsTime" class="text-[9px] font-mono-premium font-black text-blue-500 mt-0.5">{{
+            maxHabsTime
+          }}</span>
         </div>
       </button>
 
@@ -49,14 +66,27 @@
         @click="handleBuy5MinSpace"
       >
         <div class="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/[0.02] transition-colors"></div>
-        <div class="rounded-xl bg-emerald-50 border border-emerald-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <div
+          class="rounded-xl bg-emerald-50 border border-emerald-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 text-emerald-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
         </div>
         <div class="flex flex-col items-center relative z-10">
-          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-emerald-700">5 Min Max Habs</span>
+          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-emerald-700"
+            >5 Min Max Habs</span
+          >
         </div>
       </button>
     </div>
@@ -262,7 +292,12 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
   };
 
   // Compute dependencies
-  const dependencies = computeDependencies('buy_hab', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
+  const dependencies = computeDependencies(
+    'buy_hab',
+    payload,
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
 
   // Apply to store
   habCapacityStore.setHab(slotIndex, habId);
@@ -301,7 +336,12 @@ function handleToggleSale() {
       type: 'toggle_sale',
       payload,
       cost: 0,
-      dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels),
+      dependsOn: computeDependencies(
+        'toggle_sale',
+        payload,
+        actionsStore.actionsBeforeInsertion,
+        actionsStore.initialSnapshot.researchLevels
+      ),
     },
     beforeSnapshot
   );
@@ -322,7 +362,7 @@ const maxHabsTime = computed(() => {
   let totalSeconds = 0;
   let virtualHabIds = [...snapshot.habIds];
   let virtualBank = snapshot.bankValue || 0;
-  
+
   // Clone snapshot for virtual simulation
   let virtualSnapshot = { ...snapshot, bankValue: virtualBank };
 
@@ -341,11 +381,11 @@ const maxHabsTime = computed(() => {
     if (seconds === Infinity) return '∞';
 
     totalSeconds += seconds;
-    
+
     // Advance virtual state during wait
     const I = virtualSnapshot.offlineIHR / 60;
     virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, virtualSnapshot.population + I * seconds);
-    
+
     // Update bank after wait and purchase (if seconds > 0, we waited until we had exactly price)
     virtualSnapshot.bankValue = seconds > 0 ? 0 : Math.max(0, virtualSnapshot.bankValue - price);
 
@@ -353,16 +393,16 @@ const maxHabsTime = computed(() => {
     const oldHabCap = currentId !== null ? getHabCapacity(currentId) : 0;
     const newHabCap = getHabCapacity(CHICKEN_UNIVERSE_ID);
     const deltaCap = newHabCap - oldHabCap;
-    
+
     virtualHabIds[i] = CHICKEN_UNIVERSE_ID;
     virtualSnapshot.habCapacity += deltaCap;
 
     // Update earnings metrics based on new population (population grew during wait)
-    const layRatePerChicken = snapshot.population > 0 ? (snapshot.layRate / snapshot.population) : 0;
+    const layRatePerChicken = snapshot.population > 0 ? snapshot.layRate / snapshot.population : 0;
     virtualSnapshot.layRate = virtualSnapshot.population * layRatePerChicken;
     virtualSnapshot.elr = Math.min(virtualSnapshot.layRate, virtualSnapshot.shippingCapacity);
-    
-    const earningsPerEgg = (snapshot.elr > 0) ? (snapshot.offlineEarnings / snapshot.elr) : 0;
+
+    const earningsPerEgg = snapshot.elr > 0 ? snapshot.offlineEarnings / snapshot.elr : 0;
     virtualSnapshot.offlineEarnings = virtualSnapshot.elr * earningsPerEgg;
   }
 
@@ -379,10 +419,10 @@ function handleBuyMax() {
   const CHICKEN_UNIVERSE_ID = 18;
   batch(() => {
     for (let i = 0; i < 4; i++) {
-        const currentId = habIds.value[i];
-        if (currentId !== CHICKEN_UNIVERSE_ID) {
+      const currentId = habIds.value[i];
+      if (currentId !== CHICKEN_UNIVERSE_ID) {
         handleHabChange(i, CHICKEN_UNIVERSE_ID);
-        }
+      }
     }
   });
 }
@@ -436,7 +476,7 @@ function handleBuy5MinSpace() {
 
       // Apply action
       handleHabChange(bestAction!.slotIndex, bestAction!.habId);
-      
+
       virtualHabIds[bestAction.slotIndex] = bestAction.habId;
       spent += bestAction.cost;
     }

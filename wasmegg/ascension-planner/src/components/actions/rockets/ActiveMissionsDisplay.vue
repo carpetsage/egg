@@ -29,7 +29,7 @@
             :alt="mission.shipName"
           />
           <div class="absolute inset-0 bg-slate-50 rounded-full scale-110 opacity-50"></div>
-          
+
           <!-- Virtue Badge -->
           <div class="absolute -top-1 -right-1 z-20">
             <img :src="iconURL('egginc/icon_virtue_gem.png', 64)" class="w-4 h-4 shadow-sm" />
@@ -41,7 +41,7 @@
           <div class="flex items-center justify-between mb-0.5">
             <h4 class="text-sm font-bold text-gray-900 truncate">{{ mission.shipName }}</h4>
             <div class="flex items-center gap-2">
-              <span 
+              <span
                 class="text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase"
                 :class="getDurationClass(mission.duration)"
               >
@@ -73,11 +73,14 @@
           <!-- Status & Countdown -->
           <div class="mt-2 flex items-center justify-between bg-gray-50 rounded-lg px-2 py-1.5">
             <div class="flex items-center gap-1.5">
-              <div 
+              <div
                 class="w-1.5 h-1.5 rounded-full animate-pulse"
                 :class="mission.statusIsFueling ? 'bg-orange-500' : 'bg-green-500'"
               ></div>
-              <span class="text-[11px] font-bold" :class="mission.statusIsFueling ? 'text-orange-600' : 'text-green-600'">
+              <span
+                class="text-[11px] font-bold"
+                :class="mission.statusIsFueling ? 'text-orange-600' : 'text-green-600'"
+              >
                 {{ mission.statusName }}
               </span>
               <div v-if="mission.statusIsFueling" class="flex items-center gap-0.5 ml-1">
@@ -89,17 +92,25 @@
                 />
               </div>
             </div>
-            
-            <div v-if="mission.returnTimestamp" class="text-[11px] font-mono-premium font-black text-slate-900 flex items-center gap-1">
+
+            <div
+              v-if="mission.returnTimestamp"
+              class="text-[11px] font-mono-premium font-black text-slate-900 flex items-center gap-1"
+            >
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               {{ formatRemaining(mission.returnTimestamp) }}
             </div>
           </div>
         </div>
 
-        <div 
+        <div
           v-if="!mission.statusIsFueling && mission.returnTimestamp"
           class="absolute bottom-0 left-0 h-0.5 bg-indigo-600 opacity-20 transition-all duration-1000"
           :style="{ width: getProgressWidth(mission) }"
@@ -127,10 +138,14 @@ defineEmits<{
 
 function getDurationClass(duration: number) {
   switch (duration) {
-    case 1: return 'bg-blue-100 text-blue-700'; // Short
-    case 2: return 'bg-purple-100 text-purple-700'; // Standard/Long
-    case 3: return 'bg-amber-100 text-amber-700'; // Extended/Epic
-    default: return 'bg-gray-100 text-gray-700';
+    case 1:
+      return 'bg-blue-100 text-blue-700'; // Short
+    case 2:
+      return 'bg-purple-100 text-purple-700'; // Standard/Long
+    case 3:
+      return 'bg-amber-100 text-amber-700'; // Extended/Epic
+    default:
+      return 'bg-gray-100 text-gray-700';
   }
 }
 
@@ -152,12 +167,12 @@ function formatDuration(seconds: number): string {
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  
+
   const parts = [];
   if (d > 0) parts.push(`${d}d`);
   if (h > 0) parts.push(`${h}h`);
   if (m > 0) parts.push(`${m}m`);
-  
+
   return parts.join(' ');
 }
 </script>

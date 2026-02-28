@@ -2,9 +2,7 @@
   <div class="space-y-6">
     <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
       <div>
-        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-          Duration
-        </label>
+        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3"> Duration </label>
         <div class="flex gap-2">
           <input
             v-model="inputDuration"
@@ -22,11 +20,16 @@
           </button>
         </div>
         <p class="mt-3 text-[10px] text-slate-400 font-medium leading-relaxed">
-          Enter hours (e.g. <span class="font-mono-premium text-slate-600 bg-slate-100 px-1 py-0.5 rounded">8</span> for 8h) or format like <span class="font-mono-premium text-slate-600 bg-slate-100 px-1 py-0.5 rounded">1d12h</span>.
+          Enter hours (e.g. <span class="font-mono-premium text-slate-600 bg-slate-100 px-1 py-0.5 rounded">8</span> for
+          8h) or format like
+          <span class="font-mono-premium text-slate-600 bg-slate-100 px-1 py-0.5 rounded">1d12h</span>.
         </p>
       </div>
 
-      <div v-if="parsedSeconds > 0" class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center transition-all animate-in fade-in slide-in-from-top-2">
+      <div
+        v-if="parsedSeconds > 0"
+        class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center transition-all animate-in fade-in slide-in-from-top-2"
+      >
         <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Wait Duration:</span>
         <span class="text-sm font-mono-premium font-black text-slate-900">
           {{ formatDuration(parsedSeconds) }}
@@ -66,16 +69,24 @@ function handleWaitTime() {
     totalTimeSeconds: parsedSeconds.value,
   };
 
-  const dependencies = computeDependencies('wait_for_time', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
-
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'wait_for_time',
+  const dependencies = computeDependencies(
+    'wait_for_time',
     payload,
-    cost: 0,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
+
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'wait_for_time',
+      payload,
+      cost: 0,
+      dependsOn: dependencies,
+    },
+    beforeSnapshot
+  );
 
   inputDuration.value = '';
 }

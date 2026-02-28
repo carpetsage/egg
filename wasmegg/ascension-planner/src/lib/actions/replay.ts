@@ -33,10 +33,7 @@ import { restoreFromSnapshot, computeCurrentSnapshot, computeDeltas } from './sn
  * Replay all actions from a starting index after an insertion.
  * Updates each action's endState in place.
  */
-export function replayActionsFromIndex(
-  actions: Action[],
-  startIndex: number
-): void {
+export function replayActionsFromIndex(actions: Action[], startIndex: number): void {
   for (let i = startIndex; i < actions.length; i++) {
     const prevSnapshot = actions[i - 1].endState;
     const newSnapshot = replayAction(actions[i], prevSnapshot);
@@ -48,7 +45,7 @@ export function replayActionsFromIndex(
     // Assign new properties
     Object.assign(actions[i], {
       ...deltas,
-      endState: newSnapshot
+      endState: newSnapshot,
     });
   }
 }
@@ -130,10 +127,12 @@ function applyActionEffect(action: Action): void {
     case 'change_artifacts': {
       const payload = action.payload as ChangeArtifactsPayload;
       const initialStateStore = useInitialStateStore();
-      initialStateStore.setArtifactLoadout(payload.toLoadout.map(slot => ({
-        artifactId: slot.artifactId,
-        stones: [...slot.stones],
-      })));
+      initialStateStore.setArtifactLoadout(
+        payload.toLoadout.map(slot => ({
+          artifactId: slot.artifactId,
+          stones: [...slot.stones],
+        }))
+      );
       break;
     }
 
@@ -203,10 +202,13 @@ function applyActionEffect(action: Action): void {
     case 'update_artifact_set': {
       const payload = action.payload as UpdateArtifactSetPayload;
       const initialStateStore = useInitialStateStore();
-      initialStateStore.updateArtifactSet(payload.setName, payload.newLoadout.map(slot => ({
-        artifactId: slot.artifactId,
-        stones: [...slot.stones],
-      })));
+      initialStateStore.updateArtifactSet(
+        payload.setName,
+        payload.newLoadout.map(slot => ({
+          artifactId: slot.artifactId,
+          stones: [...slot.stones],
+        }))
+      );
       break;
     }
 

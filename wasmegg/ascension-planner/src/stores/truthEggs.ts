@@ -22,13 +22,7 @@ import {
 } from '@/lib/truthEggs';
 
 // Order of virtue eggs (matches backup virtue.eggsDelivered and virtue.eovEarned indices 0-4)
-export const VIRTUE_TE_ORDER: VirtueEgg[] = [
-  'curiosity',
-  'integrity',
-  'humility',
-  'resilience',
-  'kindness',
-];
+export const VIRTUE_TE_ORDER: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
 
 export interface TruthEggsState {
   // Per-egg lifetime eggs delivered (from backup, editable)

@@ -9,10 +9,14 @@
  * @param otherMultipliers Any other multipliers to apply (e.g., artifact discounts)
  * @returns The total cost multiplier
  */
-export function calculateCostMultiplier(epicLevel: number, discountPerLevel: number = 0.05, ...otherMultipliers: number[]): number {
-    const epicMultiplier = 1 - (discountPerLevel * Math.max(0, Math.min(epicLevel, 10))); // Assuming max 10 levels for epic discount
-    const combinedOtherMultipliers = otherMultipliers.reduce((acc, curr) => acc * curr, 1);
-    return epicMultiplier * combinedOtherMultipliers;
+export function calculateCostMultiplier(
+  epicLevel: number,
+  discountPerLevel: number = 0.05,
+  ...otherMultipliers: number[]
+): number {
+  const epicMultiplier = 1 - discountPerLevel * Math.max(0, Math.min(epicLevel, 10)); // Assuming max 10 levels for epic discount
+  const combinedOtherMultipliers = otherMultipliers.reduce((acc, curr) => acc * curr, 1);
+  return epicMultiplier * combinedOtherMultipliers;
 }
 
 /**
@@ -22,7 +26,7 @@ export function calculateCostMultiplier(epicLevel: number, discountPerLevel: num
  * @returns The discounted price (floored)
  */
 export function applyDiscount(basePrice: number, multiplier: number): number {
-    return Math.floor(basePrice * multiplier);
+  return Math.floor(basePrice * multiplier);
 }
 
 /**
@@ -32,5 +36,5 @@ export function applyDiscount(basePrice: number, multiplier: number): number {
  * @returns The discounted price (ceiled)
  */
 export function applyDiscountCeil(basePrice: number, multiplier: number): number {
-    return Math.ceil(basePrice * multiplier);
+  return Math.ceil(basePrice * multiplier);
 }

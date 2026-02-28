@@ -3,15 +3,21 @@
     class="fixed bottom-0 left-0 right-0 z-[1000] bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] transition-transform duration-500"
     :class="[isCollapsed ? 'translate-y-full' : 'translate-y-0']"
   >
-    <button 
+    <button
       @click="toggleCollapse"
       class="absolute -top-8 right-6 bg-white/95 backdrop-blur-xl border border-b-0 border-slate-100 px-3 py-1 rounded-t-lg shadow-sm text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-wider h-8"
     >
-      <svg class="w-4 h-4 transition-transform duration-300" :class="{ 'rotate-180': !isCollapsed }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        class="w-4 h-4 transition-transform duration-300"
+        :class="{ 'rotate-180': !isCollapsed }"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
       </svg>
     </button>
-    
+
     <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-6">
       <!-- Start Date -->
       <div class="summary-item">
@@ -36,8 +42,12 @@
         <span class="summary-label">Shifts</span>
         <div class="flex items-center gap-2">
           <span class="summary-value font-mono-premium font-black text-slate-600">{{ shiftCount }}</span>
-          <span v-if="totalShiftCost > 0" class="badge-premium bg-slate-50 text-slate-700/70 border border-slate-100 px-2 py-0.5 whitespace-nowrap">
-            ({{ formatNumber(totalShiftCost, 3) }} SE <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5 inline-block -mt-1 ml-0.5" alt="SE" />)
+          <span
+            v-if="totalShiftCost > 0"
+            class="badge-premium bg-slate-50 text-slate-700/70 border border-slate-100 px-2 py-0.5 whitespace-nowrap"
+          >
+            ({{ formatNumber(totalShiftCost, 3) }} SE
+            <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5 inline-block -mt-1 ml-0.5" alt="SE" />)
           </span>
         </div>
       </div>
@@ -47,7 +57,9 @@
         <span class="summary-label">TE Gained</span>
         <div class="flex items-center gap-2">
           <span class="summary-value font-mono-premium font-black text-slate-600">+{{ teGained }}</span>
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
+          <span
+            class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100"
+          >
             (Total: {{ currentTE }})
           </span>
         </div>
@@ -56,33 +68,29 @@
       <!-- Actions Group -->
       <div class="flex items-center gap-2">
         <div class="flex items-center rounded-2xl bg-slate-50 border border-slate-100 p-1 shadow-inner">
-          <button
-            class="btn-icon-premium"
-            v-tippy="'Export and Download Plan'"
-            @click="handleExport"
-          >
+          <button class="btn-icon-premium" v-tippy="'Export and Download Plan'" @click="handleExport">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
             </svg>
           </button>
-          <button
-            class="btn-icon-premium"
-            v-tippy="'Upload and Import Plan'"
-            @click="triggerImport"
-          >
+          <button class="btn-icon-premium" v-tippy="'Upload and Import Plan'" @click="triggerImport">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
             </svg>
           </button>
         </div>
-        
-        <input
-          ref="fileInput"
-          type="file"
-          accept=".json"
-          class="hidden"
-          @change="handleImport"
-        />
+
+        <input ref="fileInput" type="file" accept=".json" class="hidden" @change="handleImport" />
 
         <div class="w-px h-8 bg-slate-100 mx-1"></div>
 
@@ -93,27 +101,36 @@
           @click="$emit('show-details')"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </button>
-        
-        <span class="ml-4 text-[10px] text-slate-400 italic font-medium">Developed by <span @click="triggerCat" class="cursor-pointer select-none hover:text-slate-600 transition-colors">joobrainie</span></span>
+
+        <span class="ml-4 text-[10px] text-slate-400 italic font-medium"
+          >Developed by
+          <span @click="triggerCat" class="cursor-pointer select-none hover:text-slate-600 transition-colors"
+            >joobrainie</span
+          ></span
+        >
       </div>
     </div>
 
     <!-- Cat Gif Popup -->
-    <div 
-      v-if="showCat" 
+    <div
+      v-if="showCat"
       class="fixed inset-x-0 bottom-24 z-[100] flex justify-center pointer-events-none transition-opacity duration-1000 ease-out"
       :class="{ 'opacity-0': isFadingOut, 'opacity-100': !isFadingOut }"
     >
       <div class="bg-white p-2 rounded-2xl shadow-2xl border border-slate-100 transform rotate-2">
-        <img 
-          :src="catGifUrl" 
-          class="max-w-[200px] max-h-[200px] rounded-xl object-cover block" 
+        <img
+          :src="catGifUrl"
+          class="max-w-[200px] max-h-[200px] rounded-xl object-cover block"
           alt="Random Cat"
-          @error="showCat = false" 
+          @error="showCat = false"
         />
       </div>
     </div>
@@ -195,9 +212,7 @@ const shiftCount = computed(() => {
 });
 
 const totalShiftCost = computed(() => {
-  return actionsStore.actions
-    .filter(a => a.type === 'shift')
-    .reduce((sum, a) => sum + a.cost, 0);
+  return actionsStore.actions.filter(a => a.type === 'shift').reduce((sum, a) => sum + a.cost, 0);
 });
 
 const currentTE = computed(() => calculateTotalPotentialTE(actionsStore.currentSnapshot));
@@ -234,10 +249,10 @@ function handleImport(event: Event) {
   const file = input.files[0];
   const reader = new FileReader();
 
-  reader.onload = (e) => {
+  reader.onload = e => {
     try {
       const jsonString = e.target?.result as string;
-      
+
       if (actionsStore.actionCount > 0) {
         if (!confirm('Importing a plan will overwrite your current actions. Continue?')) {
           input.value = ''; // Reset input
@@ -269,13 +284,13 @@ function triggerCat() {
   clearTimeout(removeTimer);
 
   showCat.value = false;
-  
+
   // Small delay to ensure DOM update if re-clicking
   setTimeout(() => {
     catGifUrl.value = `https://cataas.com/cat/gif?t=${Date.now()}`;
     showCat.value = true;
     isFadingOut.value = false;
-    
+
     fadeTimer = setTimeout(() => {
       isFadingOut.value = true;
     }, 5000);

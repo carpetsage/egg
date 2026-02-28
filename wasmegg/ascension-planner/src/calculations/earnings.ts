@@ -19,7 +19,7 @@ export function calculateEarnings(input: EarningsInput): EarningsOutput {
     artifactAwayMultiplier,
     videoDoublerMultiplier,
     eventMultiplier,
-    artifactEffects
+    artifactEffects,
   } = input;
 
   // TE multiplier: 1.1^TE (clamped to 0-490)

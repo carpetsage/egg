@@ -1,5 +1,12 @@
 import { defineStore } from 'pinia';
-import type { InitialState, ResearchLevels, VirtueEgg, CurrentFarmState, VehicleSlot, ActiveMissionInfo } from '@/types';
+import type {
+  InitialState,
+  ResearchLevels,
+  VirtueEgg,
+  CurrentFarmState,
+  VehicleSlot,
+  ActiveMissionInfo,
+} from '@/types';
 import { ei, Mission } from 'lib';
 import { epicResearchDefs } from '@/lib/epicResearch';
 import {
@@ -164,7 +171,7 @@ export const useInitialStateStore = defineStore('initialState', {
      */
     loadFromBackup(
       playerId: string,
-      backup: any
+      backup: ei.IBackup
     ): {
       initialShiftCount: number;
       initialTE: number;
@@ -177,7 +184,7 @@ export const useInitialStateStore = defineStore('initialState', {
       this.hasData = true;
       this.playerId = playerId;
       this.nickname = backup.userName || playerId;
-      this.isUltra = !!backup.game?.ultraSubscriptionAction;
+      this.isUltra = !!(backup.game as any)?.ultraSubscriptionAction;
       this.lastBackupTime = backup.settings?.lastBackupTime || 0;
       this.soulEggs = backup.game?.soulEggsD || 0;
 
@@ -257,8 +264,6 @@ export const useInitialStateStore = defineStore('initialState', {
       this.initialEggsDelivered = { ...eggsDelivered };
       this.initialTeEarned = { ...teEarnedPerEgg };
 
-
-
       // Calculate pending TE based on delivered vs earned
       // Pending = (Theoretical TE from delivered) - (Actual Earned TE)
       const tePendingPerEgg: Record<VirtueEgg, number> = {
@@ -283,7 +288,7 @@ export const useInitialStateStore = defineStore('initialState', {
         const farm = backup.farms[0];
         if (farm.eggType && farm.eggType >= 50 && farm.eggType <= 54) {
           const commonResearches: ResearchLevels = {};
-          const rawResearch = farm.commonResearches || farm.commonResearch || [];
+          const rawResearch = farm.commonResearch || [];
           for (const r of rawResearch) {
             if (r.id && r.level !== null && r.level !== undefined) {
               commonResearches[r.id] = r.level;
@@ -291,14 +296,8 @@ export const useInitialStateStore = defineStore('initialState', {
           }
 
           // Parse habs (can be numbers or objects with type field)
-          const habs: (number | null)[] = (farm.habs || []).map((h: any) => {
-            if (typeof h === 'number') {
-              return h === 19 ? null : h;
-            }
-            if (h && typeof h === 'object') {
-              return (h.type !== undefined && h.type !== null) ? h.type : 0;
-            }
-            return null;
+          const habs: (number | null)[] = (farm.habs || []).map(h => {
+            return h === 19 ? null : h;
           });
           // Ensure at least 4 slots for consistency
           while (habs.length < 4) habs.push(null);
@@ -306,20 +305,11 @@ export const useInitialStateStore = defineStore('initialState', {
           // Parse vehicles (can be numbers with farm.trainLength or objects)
           const rawVehicles = farm.vehicles || [];
           const trainLength = farm.trainLength || [];
-          const vehicles: VehicleSlot[] = rawVehicles.map((v: any, idx: number) => {
-            if (typeof v === 'number') {
-              return {
-                vehicleId: v,
-                trainLength: trainLength[idx] || 1,
-              };
-            }
-            if (v && typeof v === 'object') {
-              return {
-                vehicleId: (v.type !== undefined && v.type !== null) ? v.type : null,
-                trainLength: v.count || 1,
-              };
-            }
-            return { vehicleId: null, trainLength: 1 };
+          const vehicles: VehicleSlot[] = rawVehicles.map((v, idx: number) => {
+            return {
+              vehicleId: v,
+              trainLength: trainLength[idx] || 1,
+            };
           });
 
           // Calculate population from hab populations if available, otherwise use numChickens
@@ -330,7 +320,7 @@ export const useInitialStateStore = defineStore('initialState', {
 
           this.currentFarmState = {
             eggType: farm.eggType,
-            cash: farm.cashAmount || 0,
+            cash: farm.unclaimedCash || 0,
             numSilos: farm.silosOwned || 1,
             commonResearches,
             habs,
@@ -428,7 +418,7 @@ export const useInitialStateStore = defineStore('initialState', {
     /**
      * Hydrate store from exported data.
      */
-    hydrate(data: any) {
+    hydrate(data: Partial<InitialStateStoreState>) {
       this.hasData = true;
       this.playerId = data.playerId || '';
       this.nickname = data.nickname || 'Redacted';

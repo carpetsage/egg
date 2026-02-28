@@ -41,9 +41,7 @@ export const epicResearchDefs: EpicResearchDef[] = [
 /**
  * Map of epic research ID to definition for quick lookup.
  */
-export const epicResearchById = new Map<string, EpicResearchDef>(
-  epicResearchDefs.map(r => [r.id, r])
-);
+export const epicResearchById = new Map<string, EpicResearchDef>(epicResearchDefs.map(r => [r.id, r]));
 
 /**
  * Get epic research definition by ID.

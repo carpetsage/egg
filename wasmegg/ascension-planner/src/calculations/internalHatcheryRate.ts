@@ -3,12 +3,7 @@
  * These have no Vue dependencies and are fully testable.
  */
 
-import type {
-  Research,
-  ResearchLevels,
-  IHRInput,
-  IHROutput
-} from '@/types';
+import type { Research, ResearchLevels, IHRInput, IHROutput } from '@/types';
 import { allResearches } from 'lib';
 import { calculateLinearEffect, selectResearches } from '@/utils/research';
 
@@ -28,28 +23,25 @@ export interface IHRResearch {
 
 // Common research IDs for IHR (from researches.json)
 const commonIHRResearchIds = [
-  'internal_hatchery1',  // Internal Hatcheries
-  'internal_hatchery2',  // Internal Hatchery Upgrades
-  'internal_hatchery3',  // Internal Hatchery Expansion
-  'internal_hatchery4',  // Internal Hatchery Expansion
-  'internal_hatchery5',  // Machine Learning Incubators
-  'neural_linking',      // Neural Linking
+  'internal_hatchery1', // Internal Hatcheries
+  'internal_hatchery2', // Internal Hatchery Upgrades
+  'internal_hatchery3', // Internal Hatchery Expansion
+  'internal_hatchery4', // Internal Hatchery Expansion
+  'internal_hatchery5', // Machine Learning Incubators
+  'neural_linking', // Neural Linking
 ];
 
 // Build common researches from JSON
-const commonIHRResearches: IHRResearch[] = selectResearches(
-  commonIHRResearchIds,
-  r => ({
-    id: r.id,
-    name: r.name,
-    description: r.description,
-    maxLevel: r.levels,
-    perLevel: r.per_level,
-    isMultiplicative: r.levels_compound === 'multiplicative',
-    isOfflineOnly: r.id === 'int_hatch_calm',
-    isEpic: false,
-  })
-);
+const commonIHRResearches: IHRResearch[] = selectResearches(commonIHRResearchIds, r => ({
+  id: r.id,
+  name: r.name,
+  description: r.description,
+  maxLevel: r.levels,
+  perLevel: r.per_level,
+  isMultiplicative: r.levels_compound === 'multiplicative',
+  isOfflineOnly: r.id === 'int_hatch_calm',
+  isEpic: false,
+}));
 
 // Epic researches (not in researches.json, defined manually)
 const epicIHRResearches: IHRResearch[] = [
@@ -68,7 +60,7 @@ const epicIHRResearches: IHRResearch[] = [
     name: 'Internal Hatchery Calm',
     description: 'Increases internal hatchery rate by 10% per level when away',
     maxLevel: 20,
-    perLevel: 0.10,
+    perLevel: 0.1,
     isMultiplicative: true,
     isOfflineOnly: true,
     isEpic: true,
@@ -107,10 +99,10 @@ export function calculateIHR(input: IHRInput): IHROutput {
   const teMultiplier = Math.pow(1.1, clampedTE);
 
   // Calculate epic multiplier (Epic Int. Hatcheries)
-  const epicMultiplier = 1 + (epicResearchLevels.epicInternalIncubators * 0.05);
+  const epicMultiplier = 1 + epicResearchLevels.epicInternalIncubators * 0.05;
 
   // Calculate offline multiplier (Internal Hatchery Calm)
-  const offlineMultiplier = 1 + (epicResearchLevels.internalHatcheryCalm * 0.10);
+  const offlineMultiplier = 1 + epicResearchLevels.internalHatcheryCalm * 0.1;
 
   // Calculate final rates (multiply by 4 for 4 habs)
   const numHabs = 4;
@@ -122,7 +114,7 @@ export function calculateIHR(input: IHRInput): IHROutput {
   const isClampedByMinRate = onlineRate < MIN_RATE;
   if (isClampedByMinRate) {
     onlineRate = MIN_RATE;
-    // Note: manual creation is online only in logic, but for simplified simulation 
+    // Note: manual creation is online only in logic, but for simplified simulation
     // we assume the player can keep it up or it represents a baseline.
     // However, if online is 500, offline should probably be at least 500 too or scaled.
     // User says "players can create chickens manually... use 500/minute instead".

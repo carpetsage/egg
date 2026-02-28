@@ -19,10 +19,10 @@ import type { LayRateInput, LayRateOutput, TimeUnit } from '@/types';
  */
 export interface LayRateDisplayOutput extends LayRateOutput {
   // Rates converted to the selected time unit
-  ratePerChicken: number;  // eggs/chicken/[timeUnit]
-  totalRate: number;        // eggs/[timeUnit]
+  ratePerChicken: number; // eggs/chicken/[timeUnit]
+  totalRate: number; // eggs/[timeUnit]
   timeUnit: TimeUnit;
-  population: number;       // Max hab capacity used for calculation
+  population: number; // Max hab capacity used for calculation
 }
 
 /**

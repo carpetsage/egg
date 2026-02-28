@@ -7,7 +7,9 @@
     <!-- Current Egg Info -->
     <div class="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 shadow-inner">
       <div class="flex items-center gap-4 mb-4">
-        <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-2">
+        <div
+          class="w-12 h-12 rounded-2xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-2"
+        >
           <img
             :src="iconURL(`egginc/egg_${virtueStore.currentEgg}.png`, 64)"
             class="w-full h-full object-contain"
@@ -18,9 +20,7 @@
           <div class="text-sm font-bold text-slate-800">
             {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}
           </div>
-          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Current Egg
-          </div>
+          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Egg</div>
         </div>
       </div>
 
@@ -29,15 +29,17 @@
         <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px]">
           <div class="text-slate-400 uppercase tracking-[0.2em] font-black">Metric</div>
           <div class="text-slate-400 uppercase tracking-[0.2em] font-black text-right">Value (Initial → Current)</div>
-          
+
           <div class="text-slate-600 font-bold uppercase tracking-tight">Eggs Delivered:</div>
           <div class="font-mono-premium text-right text-slate-700 font-bold">
             <span class="text-slate-300 font-normal">{{ formatNumber(initialEggsDelivered, 2) }}</span>
             <span class="mx-1 text-slate-200 font-normal">→</span>
             <span>{{ formatNumber(currentEggsDelivered, 2) }}</span>
           </div>
-          
-          <div class="text-slate-600 font-bold uppercase tracking-tight pt-2 border-t border-slate-100/50 flex items-center">
+
+          <div
+            class="text-slate-600 font-bold uppercase tracking-tight pt-2 border-t border-slate-100/50 flex items-center"
+          >
             Shipped in Plan:
           </div>
           <div class="font-mono-premium text-right text-slate-900 font-black pt-2 border-t border-slate-100/50 text-xs">
@@ -58,7 +60,9 @@
           </div>
           <div class="flex flex-col justify-end text-right">
             <span class="text-slate-400 uppercase tracking-widest font-black">Total Progress:</span>
-            <span class="font-mono-premium font-bold text-slate-900 text-sm tracking-tighter">{{ truthEggsStore.totalTE }} <span class="text-slate-300 font-normal">/ 490</span></span>
+            <span class="font-mono-premium font-bold text-slate-900 text-sm tracking-tighter"
+              >{{ truthEggsStore.totalTE }} <span class="text-slate-300 font-normal">/ 490</span></span
+            >
           </div>
         </div>
       </div>
@@ -67,12 +71,10 @@
     <!-- Target TE Selection -->
     <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
       <div class="flex items-center gap-3 mb-5 pb-4 border-b border-slate-50">
-        <div class="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center p-1.5 shadow-lg border border-slate-800">
-          <img
-            :src="iconURL('egginc/egg_truth.png', 64)"
-            class="w-full h-full object-contain"
-            alt="Truth Egg"
-          />
+        <div
+          class="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center p-1.5 shadow-lg border border-slate-800"
+        >
+          <img :src="iconURL('egginc/egg_truth.png', 64)" class="w-full h-full object-contain" alt="Truth Egg" />
         </div>
         <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">
           Gain Additional TE on {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}
@@ -88,7 +90,9 @@
             :disabled="teToGain <= 1"
             @click="teToGain = Math.max(1, teToGain - 1)"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4" /></svg>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4" />
+            </svg>
           </button>
           <input
             v-model.number="teToGain"
@@ -103,7 +107,9 @@
             :disabled="teToGain >= 98 - currentTE"
             @click="teToGain = Math.min(98 - currentTE, teToGain + 1)"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" /></svg>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+            </svg>
           </button>
         </div>
       </div>
@@ -122,7 +128,7 @@
           <span class="font-black text-slate-400 uppercase tracking-widest">Eggs to Lay:</span>
           <span class="font-mono-premium font-bold text-slate-700">{{ formatNumber(eggsToLay, 3) }}</span>
         </div>
-        
+
         <div class="pt-2 mt-1 border-t border-slate-100/50 space-y-2">
           <div class="flex justify-between items-center text-[10px]">
             <div class="flex items-center gap-1">
@@ -133,14 +139,19 @@
                 @click="$emit('show-current-details')"
               >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </button>
             </div>
             <span class="font-mono-premium text-slate-500">{{ formatNumber(elrPerHour, 2) }}</span>
           </div>
           <div class="flex justify-between items-center text-[10px]">
-             <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1">
               <span class="font-black text-slate-400 uppercase tracking-widest">ELR per day:</span>
             </div>
             <span class="font-mono-premium text-slate-500">{{ formatNumber(elrPerDay, 2) }}</span>
@@ -170,7 +181,9 @@
     <!-- Max TE notice -->
     <div v-if="currentTE >= 98" class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-3">
       <div class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
       </div>
       <p class="text-[11px] font-bold text-emerald-700 uppercase tracking-tight">
         You have reached the maximum TE (98) for {{ VIRTUE_EGG_NAMES[virtueStore.currentEgg] }}!
@@ -178,7 +191,8 @@
     </div>
 
     <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest leading-relaxed opacity-60">
-      TE provides a 1.1× multiplier per egg to IHR and earnings. Time is based on your current effective lay rate at max hab capacity.
+      TE provides a 1.1× multiplier per egg to IHR and earnings. Time is based on your current effective lay rate at max
+      hab capacity.
     </p>
   </div>
 </template>
@@ -228,21 +242,22 @@ const pendingTE = computed(() => truthEggsStore.pendingTEForEgg(virtueStore.curr
 const claimedTE = computed(() => truthEggsStore.teEarned[virtueStore.currentEgg] || 0);
 
 // Initial state from backup (for comparative display)
-const initialEggsDelivered = computed(() => 
-  actionsStore.initialSnapshot.eggsDelivered[virtueStore.currentEgg]
-);
+const initialEggsDelivered = computed(() => actionsStore.initialSnapshot.eggsDelivered[virtueStore.currentEgg]);
 
 // Additional TE selection (user wants relative target)
 const teToGain = ref(1);
 const targetTENumber = computed(() => Math.min(98, currentTE.value + teToGain.value));
 
 // Reset selection when egg changes
-watch(() => virtueStore.currentEgg, () => {
-  teToGain.value = 1;
-});
+watch(
+  () => virtueStore.currentEgg,
+  () => {
+    teToGain.value = 1;
+  }
+);
 
 // Ensure selection is valid if currentTE changes (e.g. from previous actions)
-watch(currentTE, (newCurrentTE) => {
+watch(currentTE, newCurrentTE => {
   if (teToGain.value > 98 - newCurrentTE) {
     teToGain.value = Math.max(1, 98 - newCurrentTE);
   }
@@ -264,7 +279,7 @@ const timeToLaySeconds = computed(() => {
   // The rate is capped by shipping capacity OR by the target population (hab capacity)
   // If we reach hab capacity, the rate becomes constant at R * H (clamped by S).
   const maxPossibleRate = Math.min(S, R * H);
-  
+
   const time = solveForTime(eggsToLay.value, P0, I, R, maxPossibleRate);
   return isFinite(time) ? time : Infinity;
 });
@@ -273,11 +288,8 @@ const elrPerHour = computed(() => effectiveLayRateOutput.value.effectiveLayRate 
 const elrPerDay = computed(() => effectiveLayRateOutput.value.effectiveLayRate * 86400);
 
 // Validation
-const canWait = computed(() =>
-  teToGain.value > 0 &&
-  eggsToLay.value > 0 &&
-  isFinite(timeToLaySeconds.value) &&
-  targetTENumber.value <= 98
+const canWait = computed(
+  () => teToGain.value > 0 && eggsToLay.value > 0 && isFinite(timeToLaySeconds.value) && targetTENumber.value <= 98
 );
 
 function handleWaitForTE() {
@@ -296,20 +308,28 @@ function handleWaitForTE() {
     startTE: currentTE.value,
   };
 
-  const dependencies = computeDependencies('wait_for_te', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
+  const dependencies = computeDependencies(
+    'wait_for_te',
+    payload,
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
 
   // Apply to store - add eggs delivered (TE is calculated from thresholds)
   truthEggsStore.addEggsDelivered(payload.egg, payload.eggsToLay);
 
   // Complete execution
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'wait_for_te',
-    payload,
-    cost: 0, // Free action
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'wait_for_te',
+      payload,
+      cost: 0, // Free action
+      dependsOn: dependencies,
+    },
+    beforeSnapshot
+  );
 
   // Reset selection for next action
   teToGain.value = 1;

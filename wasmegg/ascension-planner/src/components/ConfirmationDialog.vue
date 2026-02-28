@@ -2,17 +2,23 @@
   <Teleport to="body">
     <div class="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       <!-- Backdrop -->
-      <div
-        class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-all"
-        @click="$emit('cancel')"
-      />
+      <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-all" @click="$emit('cancel')" />
 
       <!-- Dialog -->
-      <div class="card-glass relative w-full max-w-md overflow-hidden shadow-2xl border border-white/50 bg-white/95 transition-all duration-300 animate-in fade-in zoom-in-95">
-        <div class="bg-gradient-to-r from-slate-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+      <div
+        class="card-glass relative w-full max-w-md overflow-hidden shadow-2xl border border-white/50 bg-white/95 transition-all duration-300 animate-in fade-in zoom-in-95"
+      >
+        <div
+          class="bg-gradient-to-r from-slate-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3"
+        >
           <div class="p-1.5 bg-slate-100 rounded-lg text-slate-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">{{ title }}</h3>
@@ -58,8 +64,8 @@ withDefaults(defineProps<Props>(), {
 });
 
 defineEmits<{
-  'confirm': [];
-  'cancel': [];
+  confirm: [];
+  cancel: [];
 }>();
 </script>
 

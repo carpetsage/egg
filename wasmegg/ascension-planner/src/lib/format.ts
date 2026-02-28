@@ -23,7 +23,40 @@ export function formatNumber(value: number, decimals: number = 2): string {
   if (Math.abs(value) < 1000) {
     result = value.toFixed(decimals);
   } else {
-    const suffixes = ['', 'K', 'M', 'B', 'T', 'q', 'Q', 's', 'S', 'o', 'N', 'd', 'U', 'D', 'Td', 'qd', 'Qd', 'sd', 'Sd', 'Od', 'Nd', 'V', 'uV', 'dV', 'tV', 'qV', 'QV', 'sV', 'Sv', 'OV', 'NV', 'tT'];
+    const suffixes = [
+      '',
+      'K',
+      'M',
+      'B',
+      'T',
+      'q',
+      'Q',
+      's',
+      'S',
+      'o',
+      'N',
+      'd',
+      'U',
+      'D',
+      'Td',
+      'qd',
+      'Qd',
+      'sd',
+      'Sd',
+      'Od',
+      'Nd',
+      'V',
+      'uV',
+      'dV',
+      'tV',
+      'qV',
+      'QV',
+      'sV',
+      'Sv',
+      'OV',
+      'NV',
+      'tT',
+    ];
     const magnitude = Math.floor(Math.log10(Math.abs(value)) / 3);
 
     if (magnitude >= suffixes.length) {
@@ -186,8 +219,8 @@ export function parseNumber(str: string): number {
     B: 1e9,
     t: 1e12,
     T: 1e12,
-    q: 1e15,  // quadrillion (lowercase)
-    Q: 1e18,  // quintillion (uppercase)
+    q: 1e15, // quadrillion (lowercase)
+    Q: 1e18, // quintillion (uppercase)
     s: 1e21,
     S: 1e24,
     o: 1e27,

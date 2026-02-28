@@ -3,13 +3,24 @@
     <div class="flex flex-wrap items-center justify-between gap-4">
       <!-- Label and TE Badge -->
       <div class="flex items-center gap-3">
-        <div class="w-5 h-5 rounded-lg bg-indigo-50 border border-indigo-100 shadow-sm flex items-center justify-center p-1">
+        <div
+          class="w-5 h-5 rounded-lg bg-indigo-50 border border-indigo-100 shadow-sm flex items-center justify-center p-1"
+        >
           <svg class="w-full h-full text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            />
           </svg>
         </div>
         <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Integrity Summary</span>
-        <div v-if="teGained > 0" class="badge-premium bg-indigo-100 text-indigo-700 border-indigo-200/50 flex items-center gap-1 py-0.5 px-2 text-[10px]" v-tippy="'Truth Eggs gained in this period'">
+        <div
+          v-if="teGained > 0"
+          class="badge-premium bg-indigo-100 text-indigo-700 border-indigo-200/50 flex items-center gap-1 py-0.5 px-2 text-[10px]"
+          v-tippy="'Truth Eggs gained in this period'"
+        >
           <span class="font-black">+{{ teGained }}</span>
           <img :src="iconURL('egginc/egg_truth.png', 32)" class="w-3 h-3 object-contain" alt="TE" />
         </div>
@@ -21,7 +32,10 @@
           <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Habs</span>
           <div class="flex items-center gap-1.5">
             <template v-if="isMaxHabs">
-              <span class="badge-premium bg-indigo-50 text-indigo-600 border-indigo-100 py-0.5 px-2 text-[9px] font-black uppercase tracking-tight">Max Universes</span>
+              <span
+                class="badge-premium bg-indigo-50 text-indigo-600 border-indigo-100 py-0.5 px-2 text-[9px] font-black uppercase tracking-tight"
+                >Max Universes</span
+              >
             </template>
             <template v-else>
               <span class="text-[11px] font-bold text-slate-700 tracking-tight leading-none">{{ habSummaryText }}</span>
@@ -80,7 +94,7 @@ const habSummaryText = computed(() => {
   if (activeHabs.length === 0) return 'No habs';
 
   const counts = new Map<string, number>();
-  
+
   for (const id of activeHabs) {
     const hab = getHabById(id as HabId);
     if (hab) {
@@ -91,7 +105,7 @@ const habSummaryText = computed(() => {
 
   // Sort by count descending
   const sorted = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
-  
+
   return sorted.map(([name, count]) => `${count}x ${name}`).join(', ');
 });
 

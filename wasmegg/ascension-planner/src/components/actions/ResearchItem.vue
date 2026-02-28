@@ -5,7 +5,11 @@
   >
     <!-- Research name and level -->
     <div class="flex-1 min-w-0 flex items-center gap-2">
-      <img :src="iconURL(getColleggtibleIconPath(research.id), 64)" class="w-6 h-6 object-contain" :alt="research.name" />
+      <img
+        :src="iconURL(getColleggtibleIconPath(research.id), 64)"
+        class="w-6 h-6 object-contain"
+        :alt="research.name"
+      />
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-900 truncate">
           <span v-if="showTier" class="text-gray-400 font-mono text-[10px] mr-1">T{{ research.tier }}</span>
@@ -18,10 +22,17 @@
           <span class="mx-1 text-gray-300">|</span>
           <span class="text-gray-500">{{ research.description }}</span>
         </div>
-        <div v-if="recommendationNote" class="mt-1.5 p-1.5 bg-blue-50 border border-blue-100 rounded text-[10px] text-blue-800 leading-tight">
+        <div
+          v-if="recommendationNote"
+          class="mt-1.5 p-1.5 bg-blue-50 border border-blue-100 rounded text-[10px] text-blue-800 leading-tight"
+        >
           <div class="flex items-start gap-1.5">
             <svg class="w-3 h-3 mt-0.5 mt-px shrink-0 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clip-rule="evenodd"
+              />
             </svg>
             <span>
               <span class="font-bold uppercase text-[9px] tracking-tight mr-1">Pair Suggestion:</span>
@@ -34,16 +45,24 @@
 
     <!-- Extra Stats (ROI, ELR Impact, etc) -->
     <div v-if="extraStats" class="text-right whitespace-nowrap hidden sm:block">
-      <div 
+      <div
         class="text-[10px] font-bold text-blue-600 uppercase tracking-tighter"
         :class="{ 'cursor-help': hpp !== undefined }"
-        v-tippy="hpp !== undefined ? 'Estimated waiting time (hours) per 1% Egg Laying Rate impact based on current earnings. Lower is better.' : undefined"
+        v-tippy="
+          hpp !== undefined
+            ? 'Estimated waiting time (hours) per 1% Egg Laying Rate impact based on current earnings. Lower is better.'
+            : undefined
+        "
       >
         {{ extraLabel }}
       </div>
-      <div 
+      <div
         class="text-xs font-mono text-gray-900"
-        v-tippy="extraLabel === 'Achieve ROI' && extraSeconds !== undefined ? formatAbsoluteTime(extraSeconds, baseTimestamp) : undefined"
+        v-tippy="
+          extraLabel === 'Achieve ROI' && extraSeconds !== undefined
+            ? formatAbsoluteTime(extraSeconds, baseTimestamp)
+            : undefined
+        "
       >
         {{ extraStats }}
       </div>
@@ -65,9 +84,7 @@
           </div>
         </div>
       </template>
-      <div v-else class="text-xs text-green-600 font-medium">
-        Maxed
-      </div>
+      <div v-else class="text-xs text-green-600 font-medium">Maxed</div>
     </div>
 
     <!-- Actions -->

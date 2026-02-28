@@ -8,7 +8,7 @@ import type {
   ResearchLevels,
   ShippingCapacityInput,
   ShippingCapacityOutput,
-  BaseCalculationResearch
+  BaseCalculationResearch,
 } from '@/types';
 import { vehicleTypes, getVehicleType, BASE_FLEET_SIZE, BASE_TRAIN_LENGTH } from '@/lib/vehicles';
 import { allResearches } from 'lib';
@@ -25,59 +25,53 @@ interface ShippingCapacityResearch extends BaseCalculationResearch {
 /**
  * Fleet size research (+1 slot per level).
  */
-interface FleetSizeResearch extends BaseCalculationResearch { }
+interface FleetSizeResearch extends BaseCalculationResearch {}
 
 // Shipping capacity research IDs (from researches.json)
 // Note: transportation_lobbyist is an EPIC research and is handled separately
 const shippingCapacityResearchIds = [
-  'leafsprings',        // Improved Leafsprings
-  'lightweight_boxes',  // Lightweight Boxes
-  'driver_training',    // Driver Training
-  'super_alloy',        // Super Alloy Frames
-  'quantum_storage',    // Quantum Egg Storage
-  'hover_upgrades',     // Hover Upgrades (hover only)
-  'dark_containment',   // Dark Containment
-  'neural_net_refine',  // Neural Net Refinement
-  'hyper_portalling',   // Hyper Portalling (hyperloop only)
+  'leafsprings', // Improved Leafsprings
+  'lightweight_boxes', // Lightweight Boxes
+  'driver_training', // Driver Training
+  'super_alloy', // Super Alloy Frames
+  'quantum_storage', // Quantum Egg Storage
+  'hover_upgrades', // Hover Upgrades (hover only)
+  'dark_containment', // Dark Containment
+  'neural_net_refine', // Neural Net Refinement
+  'hyper_portalling', // Hyper Portalling (hyperloop only)
 ];
 
 // Fleet size research IDs
 const fleetSizeResearchIds = [
-  'vehicle_reliablity',   // Vehicle Reliability
-  'excoskeletons',        // Depot Worker Exoskeletons
-  'traffic_management',   // Traffic Management
-  'egg_loading_bots',     // Egg Loading Bots
-  'autonomous_vehicles',  // Autonomous Vehicles
+  'vehicle_reliablity', // Vehicle Reliability
+  'excoskeletons', // Depot Worker Exoskeletons
+  'traffic_management', // Traffic Management
+  'egg_loading_bots', // Egg Loading Bots
+  'autonomous_vehicles', // Autonomous Vehicles
 ];
 
 // Graviton coupling research ID (increases train length)
 const GRAVITON_COUPLING_ID = 'micro_coupling';
 
 // Build capacity researches from JSON
-const capacityResearches: ShippingCapacityResearch[] = selectResearches(
-  shippingCapacityResearchIds,
-  r => ({
-    id: r.id,
-    name: r.name,
-    description: r.description,
-    maxLevel: r.levels,
-    perLevel: r.per_level,
-    hoverOnly: r.id === 'hover_upgrades',
-    hyperloopOnly: r.id === 'hyper_portalling',
-  })
-);
+const capacityResearches: ShippingCapacityResearch[] = selectResearches(shippingCapacityResearchIds, r => ({
+  id: r.id,
+  name: r.name,
+  description: r.description,
+  maxLevel: r.levels,
+  perLevel: r.per_level,
+  hoverOnly: r.id === 'hover_upgrades',
+  hyperloopOnly: r.id === 'hyper_portalling',
+}));
 
 // Build fleet size researches from JSON
-const fleetSizeResearches: FleetSizeResearch[] = selectResearches(
-  fleetSizeResearchIds,
-  r => ({
-    id: r.id,
-    name: r.name,
-    description: r.description,
-    maxLevel: r.levels,
-    perLevel: r.per_level,
-  })
-);
+const fleetSizeResearches: FleetSizeResearch[] = selectResearches(fleetSizeResearchIds, r => ({
+  id: r.id,
+  name: r.name,
+  description: r.description,
+  maxLevel: r.levels,
+  perLevel: r.per_level,
+}));
 
 // Get graviton coupling research from JSON
 const gravitonCouplingResearch = (allResearches as Research[]).find(r => r.id === GRAVITON_COUPLING_ID);
@@ -142,7 +136,7 @@ export function calculateShippingMultipliers(
   }
 
   // Epic multiplier (Transportation Lobbyists: +5% per level, max 30 levels)
-  const epicMultiplier = 1 + (Math.min(30, Math.max(0, transportationLobbyistLevel)) * 0.05);
+  const epicMultiplier = 1 + Math.min(30, Math.max(0, transportationLobbyistLevel)) * 0.05;
 
   return {
     universalMultiplier,
@@ -156,15 +150,20 @@ export function calculateShippingMultipliers(
  * Main calculation: compute shipping capacity with full breakdown.
  */
 export function calculateShippingCapacity(input: ShippingCapacityInput): ShippingCapacityOutput {
-  const { vehicles, researchLevels, transportationLobbyistLevel, colleggtibleMultiplier, artifactMultiplier, artifactEffects } = input;
+  const {
+    vehicles,
+    researchLevels,
+    transportationLobbyistLevel,
+    colleggtibleMultiplier,
+    artifactMultiplier,
+    artifactEffects,
+  } = input;
 
   // Calculate multipliers
-  const {
-    universalMultiplier,
-    hoverMultiplier,
-    hyperloopMultiplier,
-    epicMultiplier
-  } = calculateShippingMultipliers(researchLevels, transportationLobbyistLevel);
+  const { universalMultiplier, hoverMultiplier, hyperloopMultiplier, epicMultiplier } = calculateShippingMultipliers(
+    researchLevels,
+    transportationLobbyistLevel
+  );
 
   // Calculate max slots and train length
   const maxVehicleSlots = calculateMaxVehicleSlots(researchLevels);
@@ -209,9 +208,7 @@ export function calculateShippingCapacity(input: ShippingCapacityInput): Shippin
     }
 
     // Train length only applies to hyperloop
-    const trainLength = vehicleType.isHyperloop
-      ? Math.min(slot.trainLength, maxTrainLength)
-      : 1;
+    const trainLength = vehicleType.isHyperloop ? Math.min(slot.trainLength, maxTrainLength) : 1;
 
     // Base capacity (multiplied by train length for hyperloop)
     const baseCapacity = vehicleType.baseCapacityPerSecond * trainLength;
@@ -220,7 +217,14 @@ export function calculateShippingCapacity(input: ShippingCapacityInput): Shippin
     const vehicleHoverMult = vehicleType.isHover ? hoverMultiplier : 1;
     const vehicleHyperloopMult = vehicleType.isHyperloop ? hyperloopMultiplier : 1;
 
-    const finalCapacity = baseCapacity * universalMultiplier * epicMultiplier * vehicleHoverMult * vehicleHyperloopMult * colleggtibleMultiplier * artifactMultiplier;
+    const finalCapacity =
+      baseCapacity *
+      universalMultiplier *
+      epicMultiplier *
+      vehicleHoverMult *
+      vehicleHyperloopMult *
+      colleggtibleMultiplier *
+      artifactMultiplier;
 
     totalBaseCapacity += baseCapacity;
     totalFinalCapacity += finalCapacity;

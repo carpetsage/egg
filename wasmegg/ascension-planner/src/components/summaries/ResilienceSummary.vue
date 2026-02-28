@@ -3,9 +3,16 @@
     <div class="flex flex-wrap items-center justify-between gap-4">
       <!-- Label -->
       <div class="flex items-center gap-3">
-        <div class="w-5 h-5 rounded-lg bg-rose-50 border border-rose-100 shadow-sm flex items-center justify-center p-1">
+        <div
+          class="w-5 h-5 rounded-lg bg-rose-50 border border-rose-100 shadow-sm flex items-center justify-center p-1"
+        >
           <svg class="w-full h-full text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
           </svg>
         </div>
         <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resilience Summary</span>
@@ -17,19 +24,21 @@
           <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Silos</span>
           <div class="flex items-center gap-1.5">
             <span class="text-sm font-mono-premium font-black text-slate-900">{{ silosPurchased }}</span>
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{{ silosPurchased === 1 ? 'Silo' : 'Silos' }}</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{{
+              silosPurchased === 1 ? 'Silo' : 'Silos'
+            }}</span>
           </div>
         </div>
 
         <div class="flex flex-col items-end">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Offline Time</span>
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1"
+            >Offline Time</span
+          >
           <span class="text-sm font-mono-premium font-black text-slate-900">{{ formattedAwayTime }}</span>
         </div>
       </div>
-      
-      <div v-else class="text-[11px] text-slate-400 italic font-medium">
-        No silos purchased in this shift
-      </div>
+
+      <div v-else class="text-[11px] text-slate-400 italic font-medium">No silos purchased in this shift</div>
     </div>
   </div>
 </template>

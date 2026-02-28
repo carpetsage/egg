@@ -1,7 +1,5 @@
 <template>
-  <egg-value-display
-    :output="output"
-  />
+  <egg-value-display :output="output" />
 </template>
 
 <script setup lang="ts">

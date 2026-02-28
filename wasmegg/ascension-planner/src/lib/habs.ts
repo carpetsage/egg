@@ -32,7 +32,7 @@ export function isPortalHab(hab: { id: number }): boolean {
  * Cost modifiers for hab purchases.
  */
 export interface HabCostModifiers {
-  cheaperContractorsLevel: number;  // Epic research: -5% per level (max 10)
+  cheaperContractorsLevel: number; // Epic research: -5% per level (max 10)
   flameRetardantMultiplier: number; // Colleggtible: 0.75-1.0
 }
 
@@ -40,7 +40,11 @@ export interface HabCostModifiers {
  * Calculate the total cost multiplier from all sources.
  */
 export function getHabCostMultiplier(modifiers: HabCostModifiers, isActiveSale: boolean = false): number {
-  const multiplier = calculateCostMultiplier(modifiers.cheaperContractorsLevel, 0.05, modifiers.flameRetardantMultiplier);
+  const multiplier = calculateCostMultiplier(
+    modifiers.cheaperContractorsLevel,
+    0.05,
+    modifiers.flameRetardantMultiplier
+  );
   return isActiveSale ? multiplier * 0.2 : multiplier;
 }
 

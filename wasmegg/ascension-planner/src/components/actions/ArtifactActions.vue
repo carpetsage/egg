@@ -1,24 +1,23 @@
 <template>
   <div class="space-y-3">
     <p class="text-[11px] text-gray-500">
-      Manage your artifact sets. You can have separate configurations for <strong>Earnings</strong> and <strong>ELR</strong>.
+      Manage your artifact sets. You can have separate configurations for <strong>Earnings</strong> and
+      <strong>ELR</strong>.
     </p>
 
     <!-- Set Selector Tabs -->
     <div class="flex gap-2">
       <button
-        v-for="setName in (['earnings', 'elr'] as const)"
+        v-for="setName in ['earnings', 'elr'] as const"
         :key="setName"
         class="flex-1 py-1.5 px-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-1 shadow-sm relative"
         :class="[
-          selectedTab === setName
-            ? 'border-blue-600 bg-blue-50/30'
-            : 'border-gray-100 bg-white hover:border-gray-200'
+          selectedTab === setName ? 'border-blue-600 bg-blue-50/30' : 'border-gray-100 bg-white hover:border-gray-200',
         ]"
         @click="selectedTab = setName"
       >
         <!-- Equipped Indicator -->
-        <div 
+        <div
           v-if="activeArtifactSet === setName"
           class="absolute top-2 right-2 flex items-center gap-1"
           v-tippy="'This set is currently equipped'"
@@ -27,7 +26,10 @@
           <span class="text-[8px] font-black uppercase tracking-tighter text-emerald-600">Equipped</span>
         </div>
 
-        <span class="text-[10px] font-black uppercase tracking-[0.2em]" :class="selectedTab === setName ? 'text-blue-700' : 'text-gray-400'">
+        <span
+          class="text-[10px] font-black uppercase tracking-[0.2em]"
+          :class="selectedTab === setName ? 'text-blue-700' : 'text-gray-400'"
+        >
           {{ setName }}
         </span>
       </button>
@@ -42,7 +44,7 @@
             {{ selectedTab }}
           </span>
         </div>
-        
+
         <div class="flex items-center gap-2">
           <template v-if="isDirty">
             <button
@@ -70,10 +72,7 @@
       </div>
 
       <div class="p-2">
-        <ArtifactSelector
-          :model-value="localLoadout"
-          @update:model-value="localLoadout = $event"
-        />
+        <ArtifactSelector :model-value="localLoadout" @update:model-value="localLoadout = $event" />
       </div>
     </div>
 
@@ -81,14 +80,19 @@
       <div class="flex items-start gap-2.5">
         <div class="mt-0.5 text-blue-400">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
         <div>
           <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-tight mb-0.5">Set Optimization</h4>
           <p class="text-[10px] text-blue-700 leading-tight">
             <strong>Earnings:</strong> Necklaces, Ankhs, Cubes, Lunar stones.
-            <br/>
+            <br />
             <strong>ELR:</strong> Metronomes, Compasses, Tachyon/Quantum stones.
           </p>
         </div>
@@ -104,7 +108,12 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useWarningStore } from '@/stores/warning';
 import { generateActionId, type ArtifactSlotPayload, type ArtifactSetName, type CalculationsSnapshot } from '@/types';
-import { type EquippedArtifact, createEmptyLoadout, summarizeLoadout, calculateArtifactModifiers } from '@/lib/artifacts';
+import {
+  type EquippedArtifact,
+  createEmptyLoadout,
+  summarizeLoadout,
+  calculateArtifactModifiers,
+} from '@/lib/artifacts';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computeDependencies } from '@/lib/actions/executor';
 import { calculateHabCapacity_Full } from '@/calculations/habCapacity';
@@ -125,17 +134,21 @@ const selectedTab = ref<ArtifactSetName>('earnings');
 const localLoadout = ref<EquippedArtifact[]>(createEmptyLoadout());
 
 // Sync local loadout when tab or store state changes
-watch([selectedTab, () => actionsStore.effectiveSnapshot], () => {
-  const setLoadout = artifactSets.value[selectedTab.value];
-  if (setLoadout) {
-    localLoadout.value = setLoadout.map(slot => ({
-      artifactId: slot.artifactId,
-      stones: [...slot.stones],
-    }));
-  } else {
-    localLoadout.value = createEmptyLoadout();
-  }
-}, { immediate: true });
+watch(
+  [selectedTab, () => actionsStore.effectiveSnapshot],
+  () => {
+    const setLoadout = artifactSets.value[selectedTab.value];
+    if (setLoadout) {
+      localLoadout.value = setLoadout.map(slot => ({
+        artifactId: slot.artifactId,
+        stones: [...slot.stones],
+      }));
+    } else {
+      localLoadout.value = createEmptyLoadout();
+    }
+  },
+  { immediate: true }
+);
 
 const isDirty = computed(() => {
   const currentSet = artifactSets.value[selectedTab.value];
@@ -164,7 +177,11 @@ function undoChanges() {
   }
 }
 
-function checkHabCapacityViolation(loadout: ArtifactSlotPayload[], snapshot: CalculationsSnapshot, actionName: string): boolean {
+function checkHabCapacityViolation(
+  loadout: ArtifactSlotPayload[],
+  snapshot: CalculationsSnapshot,
+  actionName: string
+): boolean {
   const context = getSimulationContext();
   const artifactMods = calculateArtifactModifiers(loadout as EquippedArtifact[]);
   const habCapacityOutput = calculateHabCapacity_Full({
@@ -182,7 +199,7 @@ function checkHabCapacityViolation(loadout: ArtifactSlotPayload[], snapshot: Cal
     warningStore.showWarning(
       'Hab Capacity Violation',
       `Cannot ${actionName}. The new habitat capacity (${formatNumber(newHabCap, 3)}) ` +
-      `would be lower than your current population (${formatNumber(population, 3)}).`
+        `would be lower than your current population (${formatNumber(population, 3)}).`
     );
     return true; // Violation found
   }
@@ -203,24 +220,32 @@ function saveChanges() {
       return;
     }
   }
-  
+
   const payload = {
     setName: selectedTab.value,
     newLoadout: toLoadout,
   };
-  const dependencies = computeDependencies('update_artifact_set', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
+  const dependencies = computeDependencies(
+    'update_artifact_set',
+    payload,
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
 
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'update_artifact_set',
-    payload: {
-      setName: selectedTab.value,
-      newLoadout: toLoadout,
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'update_artifact_set',
+      payload: {
+        setName: selectedTab.value,
+        newLoadout: toLoadout,
+      },
+      cost: 0,
+      dependsOn: dependencies,
     },
-    cost: 0,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+    beforeSnapshot
+  );
 }
 
 function equipSet() {
@@ -231,21 +256,29 @@ function equipSet() {
   if (targetLoadout && checkHabCapacityViolation(targetLoadout, beforeSnapshot, 'equip this set')) {
     return;
   }
-  
+
   const payload = {
     setName: selectedTab.value,
   };
-  const dependencies = computeDependencies('equip_artifact_set', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
+  const dependencies = computeDependencies(
+    'equip_artifact_set',
+    payload,
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
 
-  completeExecution({
-    id: generateActionId(),
-    timestamp: Date.now(),
-    type: 'equip_artifact_set',
-    payload: {
-      setName: selectedTab.value,
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'equip_artifact_set',
+      payload: {
+        setName: selectedTab.value,
+      },
+      cost: 0,
+      dependsOn: dependencies,
     },
-    cost: 0,
-    dependsOn: dependencies,
-  }, beforeSnapshot);
+    beforeSnapshot
+  );
 }
 </script>

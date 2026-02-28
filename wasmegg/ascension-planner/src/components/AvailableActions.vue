@@ -19,10 +19,7 @@
             :alt="effectiveEgg"
           />
         </div>
-        <span
-          class="text-xs font-bold"
-          :class="eggTextColorClass"
-        >
+        <span class="text-xs font-bold" :class="eggTextColorClass">
           {{ currentEggName }}
         </span>
       </div>
@@ -36,16 +33,11 @@
         v-for="tab in availableTabs"
         :key="tab.id"
         class="px-4 py-2 text-sm font-medium transition-colors relative"
-        :class="activeTab === tab.id
-          ? 'text-blue-600'
-          : 'text-gray-500 hover:text-gray-700'"
+        :class="activeTab === tab.id ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
         @click="activeTab = tab.id"
       >
         {{ tab.label }}
-        <span
-          v-if="activeTab === tab.id"
-          class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
-        />
+        <span v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
       </button>
     </div>
 
@@ -118,7 +110,7 @@ const allTabs = [
   { id: 'shift', label: 'Shift', egg: null, beforeShiftsOnly: false },
 ] as const;
 
-type TabId = typeof allTabs[number]['id'];
+type TabId = (typeof allTabs)[number]['id'];
 
 // Map egg to its action tab
 const eggToTab: Record<VirtueEgg, TabId> = {
@@ -144,11 +136,16 @@ const availableActionLabel = computed(() => eggToActionLabel[effectiveEgg.value]
 
 const eggTextColorClass = computed(() => {
   switch (effectiveEgg.value) {
-    case 'curiosity': return 'text-purple-600';
-    case 'integrity': return 'text-blue-600';
-    case 'kindness': return 'text-pink-600';
-    case 'resilience': return 'text-orange-600';
-    case 'humility': return 'text-green-600';
+    case 'curiosity':
+      return 'text-purple-600';
+    case 'integrity':
+      return 'text-blue-600';
+    case 'kindness':
+      return 'text-pink-600';
+    case 'resilience':
+      return 'text-orange-600';
+    case 'humility':
+      return 'text-green-600';
   }
 });
 
@@ -166,18 +163,22 @@ const availableTabs = computed(() => {
 
 // Active tab - defaults to initial if no shifts or if editing the start group
 const activeTab = ref<TabId>(
-  (hasShifts.value && !isEditingStartGroup.value) ? (effectiveEgg.value === 'humility' ? 'wait' : eggToTab[effectiveEgg.value]) : 'initial'
+  hasShifts.value && !isEditingStartGroup.value
+    ? effectiveEgg.value === 'humility'
+      ? 'wait'
+      : eggToTab[effectiveEgg.value]
+    : 'initial'
 );
 
 // When effective egg changes (including when editing state changes), switch to that egg's tab
-watch(effectiveEgg, (newEgg) => {
+watch(effectiveEgg, newEgg => {
   // If we just switched to editing the start group, default to 'initial'
   // otherwise default to the egg's tab.
   activeTab.value = isEditingStartGroup.value ? 'initial' : eggToTab[newEgg];
 });
 
 // Watch isEditingStartGroup specifically to handle switching when eggs are same
-watch(isEditingStartGroup, (editingStart) => {
+watch(isEditingStartGroup, editingStart => {
   if (editingStart) {
     activeTab.value = 'initial';
   } else if (!actionsStore.editingGroupId && hasShifts.value && activeTab.value === 'initial') {
@@ -187,7 +188,7 @@ watch(isEditingStartGroup, (editingStart) => {
 });
 
 // When shifts state changes, switch away from initial tab if needed
-watch(hasShifts, (hasShiftsNow) => {
+watch(hasShifts, hasShiftsNow => {
   if (hasShiftsNow && activeTab.value === 'initial' && !isEditingStartGroup.value) {
     activeTab.value = eggToTab[effectiveEgg.value];
   }

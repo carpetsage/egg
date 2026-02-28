@@ -6,19 +6,19 @@ import { useInitialStateStore } from '@/stores/initialState';
  * Executor for equipping an artifact set.
  */
 export const equipArtifactSetExecutor: ActionExecutor<'equip_artifact_set'> = {
-    execute(payload) {
-        const initialStateStore = useInitialStateStore();
-        initialStateStore.setActiveArtifactSet(payload.setName);
-        return 0; // Free action
-    },
+  execute(payload) {
+    const initialStateStore = useInitialStateStore();
+    initialStateStore.setActiveArtifactSet(payload.setName);
+    return 0; // Free action
+  },
 
-    getDisplayName(payload) {
-        const name = payload.setName === 'earnings' ? 'Earnings' : 'ELR';
-        return `Equip ${name} Set`;
-    },
+  getDisplayName(payload) {
+    const name = payload.setName === 'earnings' ? 'Earnings' : 'ELR';
+    return `Equip ${name} Set`;
+  },
 
-    getEffectDescription(payload) {
-        const name = payload.setName === 'earnings' ? 'Earnings' : 'ELR';
-        return `Switched to ${name} artifact loadout.`;
-    },
+  getEffectDescription(payload) {
+    const name = payload.setName === 'earnings' ? 'Earnings' : 'ELR';
+    return `Switched to ${name} artifact loadout.`;
+  },
 };

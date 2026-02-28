@@ -8,7 +8,11 @@
       <div class="divide-y divide-gray-100">
         <div class="px-4 py-2 flex justify-between items-center">
           <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('cheaper_research'), 64)" class="w-6 h-6 object-contain" alt="Lab Upgrade" />
+            <img
+              :src="iconURL(getColleggtibleIconPath('cheaper_research'), 64)"
+              class="w-6 h-6 object-contain"
+              alt="Lab Upgrade"
+            />
             <span class="text-gray-600">Lab Upgrade</span>
             <span class="text-xs text-gray-400 ml-1">(Epic Research)</span>
           </div>
@@ -18,7 +22,11 @@
         </div>
         <div class="px-4 py-2 flex justify-between items-center">
           <div class="flex items-center gap-2">
-            <img :src="iconURL(getColleggtibleIconPath('waterballoon'), 64)" class="w-6 h-6 object-contain" alt="Waterballoon" />
+            <img
+              :src="iconURL(getColleggtibleIconPath('waterballoon'), 64)"
+              class="w-6 h-6 object-contain"
+              alt="Waterballoon"
+            />
             <span class="text-gray-600">Waterballoon</span>
             <span class="text-xs text-gray-400 ml-1">(Colleggtible)</span>
           </div>
@@ -50,21 +58,11 @@
       <div class="flex justify-between items-center">
         <div>
           <div class="text-sm text-indigo-700 font-medium">Research Progress</div>
-          <div class="text-2xl font-bold text-indigo-900">
-            {{ totalPurchases }} / {{ totalLevels }} levels
-          </div>
+          <div class="text-2xl font-bold text-indigo-900">{{ totalPurchases }} / {{ totalLevels }} levels</div>
         </div>
         <div class="flex gap-2">
-          <button
-            class="px-3 py-1.5 text-sm bg-gray-200 hover:bg-gray-300 rounded"
-            @click="resetAll"
-          >
-            Reset All
-          </button>
-          <button
-            class="px-3 py-1.5 text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded"
-            @click="maxAll"
-          >
+          <button class="px-3 py-1.5 text-sm bg-gray-200 hover:bg-gray-300 rounded" @click="resetAll">Reset All</button>
+          <button class="px-3 py-1.5 text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded" @click="maxAll">
             Max All
           </button>
         </div>
@@ -80,16 +78,10 @@
       >
         <div class="flex items-center gap-3">
           <span class="text-lg font-semibold text-gray-900">Tier {{ tier }}</span>
-          <span
-            v-if="!tierSummaries[tier].isUnlocked"
-            class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded"
-          >
+          <span v-if="!tierSummaries[tier].isUnlocked" class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
             🔒 {{ tierSummaries[tier].purchasesNeeded }} more purchases needed
           </span>
-          <span
-            v-else
-            class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded"
-          >
+          <span v-else class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
             {{ tierSummaries[tier].purchasedLevels }} / {{ tierSummaries[tier].totalLevels }}
           </span>
         </div>
@@ -138,7 +130,11 @@
           <div class="flex justify-between items-start">
             <div class="flex-1 min-w-0 mr-4">
               <div class="flex items-center gap-3">
-                <img :src="iconURL(getColleggtibleIconPath(research.id), 64)" class="w-8 h-8 object-contain" :alt="research.name" />
+                <img
+                  :src="iconURL(getColleggtibleIconPath(research.id), 64)"
+                  class="w-8 h-8 object-contain"
+                  :alt="research.name"
+                />
                 <div class="min-w-0">
                   <div class="flex items-center gap-2">
                     <span class="font-medium text-gray-900 truncate">{{ research.name }}</span>
@@ -152,10 +148,7 @@
                   <div class="text-xs text-gray-500 mt-0.5">{{ research.description }}</div>
                 </div>
               </div>
-              <div
-                v-if="getResearchLevel(research.id) < research.levels"
-                class="text-xs text-amber-600 mt-1"
-              >
+              <div v-if="getResearchLevel(research.id) < research.levels" class="text-xs text-amber-600 mt-1">
                 Next level: {{ formatGemPrice(getNextLevelCost(research)) }} gems
               </div>
             </div>
@@ -245,7 +238,7 @@ const costModifiers = computed<ResearchCostModifiers>(() => ({
 }));
 
 const totalMultiplier = computed(() => {
-  const labMult = 1 - (0.05 * labUpgradeLevel.value);
+  const labMult = 1 - 0.05 * labUpgradeLevel.value;
   return labMult * waterballoonMultiplier.value * puzzleCubeMultiplier.value;
 });
 

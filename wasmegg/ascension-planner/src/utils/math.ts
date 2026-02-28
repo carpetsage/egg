@@ -10,7 +10,7 @@
  * @returns The clamped value
  */
 export function clamp(value: number, min: number, max: number): number {
-    return Math.max(min, Math.min(value, max));
+  return Math.max(min, Math.min(value, max));
 }
 
 /**
@@ -20,7 +20,7 @@ export function clamp(value: number, min: number, max: number): number {
  * @returns The clamped value
  */
 export function min(value: number, min: number = 0): number {
-    return Math.max(value, min);
+  return Math.max(value, min);
 }
 
 /**
@@ -30,5 +30,5 @@ export function min(value: number, min: number = 0): number {
  * @returns The clamped value
  */
 export function max(value: number, max: number): number {
-    return Math.min(value, max);
+  return Math.min(value, max);
 }

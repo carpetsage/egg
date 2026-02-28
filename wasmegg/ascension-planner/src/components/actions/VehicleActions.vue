@@ -1,14 +1,18 @@
 <template>
   <div class="space-y-6">
     <!-- Sale Protocol -->
-    <div class="bg-gradient-to-r from-indigo-50/80 via-white to-purple-50/80 rounded-2xl p-5 border border-indigo-100/50 shadow-sm relative overflow-hidden transition-all duration-300">
+    <div
+      class="bg-gradient-to-r from-indigo-50/80 via-white to-purple-50/80 rounded-2xl p-5 border border-indigo-100/50 shadow-sm relative overflow-hidden transition-all duration-300"
+    >
       <div class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl"></div>
-      
+
       <div class="flex items-center justify-between relative z-10">
         <div class="flex flex-col gap-1">
           <div class="flex items-center gap-2">
             <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Vehicle Sale</span>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none"
+              >Vehicle Sale</span
+            >
           </div>
           <span class="text-[11px] font-black text-indigo-600 uppercase tracking-tighter">75% Discount Active</span>
         </div>
@@ -32,7 +36,9 @@
         @click="handleBuyMax"
       >
         <div class="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/[0.02] transition-colors"></div>
-        <div class="rounded-xl bg-indigo-50 border border-indigo-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10">
+        <div
+          class="rounded-xl bg-indigo-50 border border-indigo-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-4 w-4 text-indigo-600"
@@ -48,8 +54,12 @@
           </svg>
         </div>
         <div class="flex flex-col items-center relative z-10">
-          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-indigo-700">Max Vehicles</span>
-          <span v-if="maxVehiclesTime" class="text-[9px] font-mono-premium font-black text-indigo-500 mt-0.5">{{ maxVehiclesTime }}</span>
+          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-indigo-700"
+            >Max Vehicles</span
+          >
+          <span v-if="maxVehiclesTime" class="text-[9px] font-mono-premium font-black text-indigo-500 mt-0.5">{{
+            maxVehiclesTime
+          }}</span>
         </div>
       </button>
 
@@ -58,7 +68,9 @@
         @click="handleBuy5MinCap"
       >
         <div class="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/[0.02] transition-colors"></div>
-        <div class="rounded-xl bg-blue-50 border border-blue-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10">
+        <div
+          class="rounded-xl bg-blue-50 border border-blue-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-4 w-4 text-blue-600"
@@ -74,7 +86,9 @@
           </svg>
         </div>
         <div class="flex flex-col items-center relative z-10">
-          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-blue-700">5 Min Max Shipping</span>
+          <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-blue-700"
+            >5 Min Max Shipping</span
+          >
         </div>
       </button>
     </div>
@@ -127,7 +141,9 @@
           <div class="flex items-center justify-between gap-3">
             <div class="flex flex-col gap-0.5">
               <span class="text-[9px] text-slate-400 uppercase font-black tracking-widest">Train Length</span>
-              <span class="text-xs font-mono-premium font-black text-indigo-600">{{ slot.trainLength }} / {{ getMaxTrainLength() }}</span>
+              <span class="text-xs font-mono-premium font-black text-indigo-600"
+                >{{ slot.trainLength }} / {{ getMaxTrainLength() }}</span
+              >
             </div>
 
             <div class="flex gap-2 items-end">
@@ -137,7 +153,9 @@
                 class="group flex flex-col items-center justify-center min-w-[80px] bg-white border border-blue-100 rounded-lg px-2 py-1.5 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50 active:scale-95"
                 @click="handleAddTrainCar(index)"
               >
-                <span class="text-[10px] font-black text-blue-700 uppercase tracking-tight group-hover:text-blue-800">+1 Car ({{ formatGemPrice(getNextCarCost(slot)) }})</span>
+                <span class="text-[10px] font-black text-blue-700 uppercase tracking-tight group-hover:text-blue-800"
+                  >+1 Car ({{ formatGemPrice(getNextCarCost(slot)) }})</span
+                >
                 <span class="text-[9px] font-medium text-slate-400 opacity-80">{{ getCarTimeToBuy(slot) }}</span>
               </button>
 
@@ -147,7 +165,10 @@
                 class="group flex flex-col items-center justify-center min-w-[80px] bg-white border border-indigo-100 rounded-lg px-2 py-1.5 shadow-sm transition-all hover:border-indigo-300 hover:bg-indigo-50 active:scale-95"
                 @click="handleMaxTrainCars(index)"
               >
-                <span class="text-[10px] font-black text-indigo-700 uppercase tracking-tight group-hover:text-indigo-800">Max (+{{ getRemainingCars(slot, index) }}) ({{ formatGemPrice(getTotalCarsCost(slot)) }})</span>
+                <span
+                  class="text-[10px] font-black text-indigo-700 uppercase tracking-tight group-hover:text-indigo-800"
+                  >Max (+{{ getRemainingCars(slot, index) }}) ({{ formatGemPrice(getTotalCarsCost(slot)) }})</span
+                >
                 <span class="text-[9px] font-medium text-slate-400 opacity-80">{{ getMaxCarsTimeToBuy(slot) }}</span>
               </button>
             </div>
@@ -373,7 +394,12 @@ function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {
   };
 
   // Compute dependencies (hyperloop train cars depend on graviton coupling)
-  const dependencies = computeDependencies('buy_vehicle', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
+  const dependencies = computeDependencies(
+    'buy_vehicle',
+    payload,
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
 
   // Apply to store
   shippingStore.setVehicle(slotIndex, vehicleId);
@@ -503,7 +529,12 @@ function addTrainCarAction(slotIndex: number, fromLength: number, toLength: numb
   };
 
   // Compute dependencies
-  const dependencies = computeDependencies('buy_train_car', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels);
+  const dependencies = computeDependencies(
+    'buy_train_car',
+    payload,
+    actionsStore.actionsBeforeInsertion,
+    actionsStore.initialSnapshot.researchLevels
+  );
 
   // Apply to store
   shippingStore.setTrainLength(slotIndex, toLength);
@@ -542,7 +573,12 @@ function handleToggleSale() {
       type: 'toggle_sale',
       payload,
       cost: 0,
-      dependsOn: computeDependencies('toggle_sale', payload, actionsStore.actionsBeforeInsertion, actionsStore.initialSnapshot.researchLevels),
+      dependsOn: computeDependencies(
+        'toggle_sale',
+        payload,
+        actionsStore.actionsBeforeInsertion,
+        actionsStore.initialSnapshot.researchLevels
+      ),
     },
     beforeSnapshot
   );
@@ -590,14 +626,14 @@ const maxVehiclesTime = computed(() => {
       // Update virtual state
       const oldCap = getVehicleCapacity(slot, i);
       const newCap = getVehicleCapacity({ vehicleId: HYPERLOOP_ID, trainLength: 1 }, i);
-      
+
       const P0 = virtualSnapshot.population;
       const I = virtualSnapshot.offlineIHR / 60;
       virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, P0 + I * seconds);
       virtualSnapshot.shippingCapacity += newCap - oldCap;
       virtualSnapshot.elr = Math.min(virtualSnapshot.layRate, virtualSnapshot.shippingCapacity);
       virtualSnapshot.bankValue = 0;
-      
+
       virtualVehicles[i] = { vehicleId: HYPERLOOP_ID, trainLength: 1 };
     } else {
       currentLength = slot.trainLength;
@@ -614,7 +650,7 @@ const maxVehiclesTime = computed(() => {
       // Update virtual state
       const oldCap = getVehicleCapacity({ vehicleId: HYPERLOOP_ID, trainLength: l }, i);
       const newCap = getVehicleCapacity({ vehicleId: HYPERLOOP_ID, trainLength: l + 1 }, i);
-      
+
       const P0 = virtualSnapshot.population;
       const I = virtualSnapshot.offlineIHR / 60;
       virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, P0 + I * seconds);
@@ -643,20 +679,20 @@ function handleBuyMax() {
 
   batch(() => {
     for (let i = 0; i < maxSlots; i++) {
-        const slot = displaySlots.value[i];
-        let currentLength = 1;
+      const slot = displaySlots.value[i];
+      let currentLength = 1;
 
-        // 1. Upgrade to Hyperloop if not already
-        if (slot.vehicleId !== HYPERLOOP_ID) {
+      // 1. Upgrade to Hyperloop if not already
+      if (slot.vehicleId !== HYPERLOOP_ID) {
         handleVehicleChange(i, HYPERLOOP_ID);
-        } else {
+      } else {
         currentLength = slot.trainLength;
-        }
+      }
 
-        // 2. Add remaining cars
-        for (let l = currentLength; l < maxLength; l++) {
+      // 2. Add remaining cars
+      for (let l = currentLength; l < maxLength; l++) {
         addTrainCarAction(i, l, l + 1);
-        }
+      }
     }
   });
 }

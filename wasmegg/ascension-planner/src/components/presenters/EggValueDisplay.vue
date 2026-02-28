@@ -28,11 +28,16 @@
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Research Modifier</span>
-          <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatMultiplier(output.researchMultiplier) }}</span>
+          <span class="font-mono-premium text-sm font-bold text-slate-700">{{
+            formatMultiplier(output.researchMultiplier)
+          }}</span>
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Artifact Potency</span>
-          <span class="font-mono-premium text-sm font-bold" :class="output.artifactMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'">
+          <span
+            class="font-mono-premium text-sm font-bold"
+            :class="output.artifactMultiplier !== 1 ? 'text-slate-900' : 'text-slate-300'"
+          >
             {{ formatMultiplier(output.artifactMultiplier) }}
           </span>
         </div>
@@ -40,7 +45,10 @@
     </div>
 
     <!-- Artifact Breakdown -->
-    <div v-if="output.artifactBreakdown.length > 0" class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+    <div
+      v-if="output.artifactBreakdown.length > 0"
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
+    >
       <div class="px-5 py-3 bg-slate-50/50 border-b border-slate-100">
         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-tight">Initial Loadout Effects</h3>
       </div>
@@ -52,7 +60,10 @@
         >
           <div class="flex items-center gap-2">
             <span class="text-[11px] font-bold text-slate-700">{{ effect.label }}</span>
-            <span class="badge-premium py-0 text-[8px]" :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'">
+            <span
+              class="badge-premium py-0 text-[8px]"
+              :class="effect.source === 'artifact' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'badge-slate'"
+            >
               {{ effect.source }}
             </span>
           </div>
@@ -73,8 +84,14 @@
           class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors"
         >
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">
-              <img :src="iconURL(getColleggtibleIconPath(research.researchId), 64)" class="w-5 h-5 object-contain" :alt="research.name" />
+            <div
+              class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
+            >
+              <img
+                :src="iconURL(getColleggtibleIconPath(research.researchId), 64)"
+                class="w-5 h-5 object-contain"
+                :alt="research.name"
+              />
             </div>
             <div>
               <div class="text-[11px] font-bold text-slate-700 leading-tight">{{ research.name }}</div>
@@ -84,7 +101,9 @@
             </div>
           </div>
           <div class="text-right">
-            <div class="font-mono-premium text-xs font-bold text-slate-700">{{ research.level }} <span class="text-slate-300 font-normal">/</span> {{ research.maxLevel }}</div>
+            <div class="font-mono-premium text-xs font-bold text-slate-700">
+              {{ research.level }} <span class="text-slate-300 font-normal">/</span> {{ research.maxLevel }}
+            </div>
           </div>
         </div>
       </div>

@@ -1,14 +1,13 @@
 <template>
   <div class="space-y-4">
-    <div v-for="tier in tiers" :key="tier" class="border border-gray-200 rounded-lg overflow-hidden transition-all duration-300">
+    <div
+      v-for="tier in tiers"
+      :key="tier"
+      class="border border-gray-200 rounded-lg overflow-hidden transition-all duration-300"
+    >
       <!-- Tier Header -->
-      <div
-        class="px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center"
-      >
-        <div
-          class="flex items-center gap-2 flex-1 cursor-pointer"
-          @click="toggleTier(tier)"
-        >
+      <div class="px-4 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+        <div class="flex items-center gap-2 flex-1 cursor-pointer" @click="toggleTier(tier)">
           <span class="font-medium text-gray-900">Tier {{ tier }}</span>
           <span
             v-if="!tierSummaries[tier]?.isUnlocked"
@@ -16,10 +15,7 @@
           >
             Locked ({{ tierSummaries[tier]?.purchasesNeeded ?? '?' }} more)
           </span>
-          <span
-            v-else
-            class="text-[10px] text-gray-400 font-medium uppercase"
-          >
+          <span v-else class="text-[10px] text-gray-400 font-medium uppercase">
             {{ tierSummaries[tier]?.purchasedLevels ?? 0 }} / {{ tierSummaries[tier]?.totalLevels ?? 0 }}
           </span>
         </div>
@@ -82,8 +78,8 @@ const props = defineProps<{
   tiers: number[];
   researchByTier: Map<number, CommonResearch[]>;
   tierSummaries: Record<number, any>;
-  viewTimes: { 
-    tiers: Record<number, string>; 
+  viewTimes: {
+    tiers: Record<number, string>;
     researches: Record<string, string>;
     tierSeconds: Record<number, number>;
     researchSeconds: Record<string, number>;
@@ -117,23 +113,27 @@ function isTierMaxed(tier: number): boolean {
 
 // Auto-expand any tier that is unlocked and has research available.
 // We track autoExpanded to avoid re-expanding a tier the user manually collapsed.
-watch(() => props.tierSummaries, (summaries) => {
-  if (!summaries) return;
-  for (const tier of props.tiers) {
-    const summary = summaries[tier];
-    if (summary?.isUnlocked && !isTierMaxed(tier) && !autoExpanded.has(tier)) {
-      expandedTiers.value.add(tier);
-      autoExpanded.add(tier);
+watch(
+  () => props.tierSummaries,
+  summaries => {
+    if (!summaries) return;
+    for (const tier of props.tiers) {
+      const summary = summaries[tier];
+      if (summary?.isUnlocked && !isTierMaxed(tier) && !autoExpanded.has(tier)) {
+        expandedTiers.value.add(tier);
+        autoExpanded.add(tier);
+      }
     }
-  }
-}, { immediate: true });
+  },
+  { immediate: true }
+);
 
 function toggleTier(tier: number) {
   if (expandedTiers.value.has(tier)) {
     expandedTiers.value.delete(tier);
   } else {
     expandedTiers.value.add(tier);
-    // If the user manually expands it, we should probably mark it as auto-expanded 
+    // If the user manually expands it, we should probably mark it as auto-expanded
     // to prevent any weird logic, though it shouldn't matter much.
     autoExpanded.add(tier);
   }

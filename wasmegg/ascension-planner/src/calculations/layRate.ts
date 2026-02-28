@@ -3,12 +3,7 @@
  * These have no Vue dependencies and are fully testable.
  */
 
-import type {
-  Research,
-  ResearchLevels,
-  LayRateInput,
-  LayRateOutput
-} from '@/types';
+import type { Research, ResearchLevels, LayRateInput, LayRateOutput } from '@/types';
 import { allResearches } from 'lib';
 import { calculateLinearEffect, selectResearches } from '@/utils/research';
 
@@ -29,26 +24,23 @@ const BASE_RATE_PER_SECOND = 2 / 60;
 
 // Common research IDs for lay rate (from researches.json)
 const commonLayRateResearchIds = [
-  'comfy_nests',           // Comfortable Nests
-  'hen_house_ac',          // Hen House A/C
-  'improved_genetics',     // Improved Genetics
-  'time_compress',         // Time Compression
-  'timeline_diversion',    // Timeline Diversion
+  'comfy_nests', // Comfortable Nests
+  'hen_house_ac', // Hen House A/C
+  'improved_genetics', // Improved Genetics
+  'time_compress', // Time Compression
+  'timeline_diversion', // Timeline Diversion
   'relativity_optimization', // Relativity Optimization
 ];
 
 // Build common researches from JSON
-const commonLayRateResearches: LayRateResearch[] = selectResearches(
-  commonLayRateResearchIds,
-  r => ({
-    id: r.id,
-    name: r.name,
-    description: r.description,
-    maxLevel: r.levels,
-    perLevel: r.per_level,
-    isEpic: false,
-  })
-);
+const commonLayRateResearches: LayRateResearch[] = selectResearches(commonLayRateResearchIds, r => ({
+  id: r.id,
+  name: r.name,
+  description: r.description,
+  maxLevel: r.levels,
+  perLevel: r.per_level,
+  isEpic: false,
+}));
 
 // Epic research (not in researches.json, defined manually)
 const epicLayRateResearch: LayRateResearch = {
@@ -75,7 +67,8 @@ export function calculateResearchMultiplier(research: LayRateResearch, level: nu
  * Main calculation: compute lay rate with full breakdown.
  */
 export function calculateLayRate(input: LayRateInput): LayRateOutput {
-  const { researchLevels, epicComfyNestsLevel, siliconMultiplier, population, artifactMultiplier, artifactEffects } = input;
+  const { researchLevels, epicComfyNestsLevel, siliconMultiplier, population, artifactMultiplier, artifactEffects } =
+    input;
 
   // Calculate combined research multiplier from common researches
   let researchMultiplier = 1;
@@ -88,16 +81,15 @@ export function calculateLayRate(input: LayRateInput): LayRateOutput {
   const epicMultiplier = calculateResearchMultiplier(epicLayRateResearch, epicComfyNestsLevel);
 
   // Calculate final rate per chicken (eggs/second)
-  const ratePerChickenPerSecond = BASE_RATE_PER_SECOND * researchMultiplier * epicMultiplier * siliconMultiplier * artifactMultiplier;
+  const ratePerChickenPerSecond =
+    BASE_RATE_PER_SECOND * researchMultiplier * epicMultiplier * siliconMultiplier * artifactMultiplier;
 
   // Calculate total rate (eggs/second)
   const totalRatePerSecond = ratePerChickenPerSecond * Math.max(0, population);
 
   // Build research breakdown for display
   const researchBreakdown = allLayRateResearches.map(research => {
-    const level = research.isEpic
-      ? epicComfyNestsLevel
-      : (researchLevels[research.id] || 0);
+    const level = research.isEpic ? epicComfyNestsLevel : researchLevels[research.id] || 0;
 
     return {
       researchId: research.id,

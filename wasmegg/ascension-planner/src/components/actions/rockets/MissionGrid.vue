@@ -31,17 +31,11 @@
             <div class="text-gray-500 pl-7.5">
               {{ formatGemPrice(SHIP_INFO[ship].price) }}
             </div>
-            <div class="text-gray-400 pl-7.5">
-              save: {{ formatDuration(saveTime(ship)) }}
-            </div>
+            <div class="text-gray-400 pl-7.5">save: {{ formatDuration(saveTime(ship)) }}</div>
           </td>
 
           <!-- Duration cells -->
-          <td
-            v-for="dur in ALL_DURATIONS"
-            :key="dur"
-            class="p-2 align-top text-center"
-          >
+          <td v-for="dur in ALL_DURATIONS" :key="dur" class="p-2 align-top text-center">
             <!-- Duration -->
             <div class="font-mono text-gray-700 mb-0.5">
               {{ formatDuration(getEffectiveDuration(ship, dur, ftlLevel)) }}
@@ -72,9 +66,7 @@
                 :max="maxCount(ship, dur)"
                 :value="rocketsStore.getCount(ship, dur)"
                 :disabled="maxCount(ship, dur) === 0 && rocketsStore.getCount(ship, dur) === 0"
-                class="w-12 px-1 py-0.5 border border-gray-300 rounded text-center text-xs
-                       focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none
-                       disabled:opacity-40 disabled:cursor-not-allowed"
+                class="w-12 px-1 py-0.5 border border-gray-300 rounded text-center text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 :class="{ 'border-red-400 bg-red-50': isOverMax(ship, dur) }"
                 @input="handleInput(ship, dur, $event)"
               />
