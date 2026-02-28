@@ -17,7 +17,7 @@
     "@vue/runtime-core": "^3.5.13",
     "copy-text-to-clipboard": "^3.2.0",
     "dayjs": "^1.11.13",
-    "diff": "^5.2.0",
+    "diff": "^8.0.3",
     "diff2html": "^3.4.47",
     "js-sha256": "^0.11.0",
     "lib": "workspace:^",
