@@ -1,4 +1,5 @@
-import { Action, CalculationsSnapshot, LaunchMissionsPayload, WaitForTEPayload, StoreFuelPayload } from '@/types';
+import { Action, CalculationsSnapshot, LaunchMissionsPayload, WaitForTEPayload, StoreFuelPayload, WaitForResearchSalePayload, WaitForEarningsBoostPayload } from '@/types';
+import { getNextPacificTime } from '@/lib/events';
 import { solveForTime, getTimeToSave, calculateEggsDeliveredForTime } from './math';
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
@@ -128,6 +129,19 @@ export function refreshActionPayload(
     return { ...action, payload };
   }
 
+  if (action.type === 'wait_for_research_sale' || action.type === 'wait_for_earnings_boost') {
+    if (context) {
+      const payload = { ...(action.payload as any) };
+      const targetDay = action.type === 'wait_for_research_sale' ? 5 : 1; // Friday or Monday
+      const targetHour = 9; // 9 AM
+      // (Plan Start Time) + (Total Simulation Relative Seconds - Start Offset)
+      const absoluteSimTime = context.ascensionStartTime + (prevSnapshot.lastStepTime - context.planStartOffset);
+      const nextTime = getNextPacificTime(targetDay, targetHour, absoluteSimTime);
+      payload.totalTimeSeconds = Math.max(0, nextTime - absoluteSimTime);
+      return { ...action, payload };
+    }
+  }
+
   return action;
 }
 
@@ -139,7 +153,13 @@ export function getActionDuration(action: Action, prevSnapshot: CalculationsSnap
     return (action.payload as { timeSeconds?: number }).timeSeconds || 0;
   }
 
-  if (action.type === 'wait_for_missions' || action.type === 'wait_for_time' || action.type === 'wait_for_full_habs') {
+  if (
+    action.type === 'wait_for_missions' ||
+    action.type === 'wait_for_time' ||
+    action.type === 'wait_for_full_habs' ||
+    action.type === 'wait_for_research_sale' ||
+    action.type === 'wait_for_earnings_boost'
+  ) {
     return (action.payload as { totalTimeSeconds?: number }).totalTimeSeconds || 0;
   }
 

@@ -29,3 +29,17 @@ export interface WaitForFullHabsPayload {
   currentPopulation: number;
   totalTimeSeconds: number;
 }
+
+/**
+ * Payload for waiting for the next research sale.
+ */
+export interface WaitForResearchSalePayload {
+  totalTimeSeconds: number;
+}
+
+/**
+ * Payload for waiting for the next 2x earnings event.
+ */
+export interface WaitForEarningsBoostPayload {
+  totalTimeSeconds: number;
+}

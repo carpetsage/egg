@@ -297,6 +297,12 @@ const actionIconPath = computed(() => {
   if (props.action.type === 'wait_for_full_habs') {
     return 'egginc/ei_hab_icon_chicken_universe.png';
   }
+  if (props.action.type === 'wait_for_research_sale') {
+    return 'egginc-extras/icon_research_sale.png';
+  }
+  if (props.action.type === 'wait_for_earnings_boost') {
+    return 'egginc-extras/icon_earnings_boost.png';
+  }
   if (props.action.type === 'toggle_earnings_boost') {
     return 'egginc-extras/icon_earnings_boost.png';
   }

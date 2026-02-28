@@ -173,6 +173,7 @@ message Backup {
         optional Artifacts afx = 5;
         repeated ActiveArtifactSlot active_afx = 6;
         optional double last_sync = 7;
+        optional double past_sim_time = 8;
     }
 
     optional Shells shells = 25;
@@ -263,6 +264,7 @@ message Backup {
     optional ShellDB shell_db = 24;
     repeated string read_mail_ids = 23;
     optional MailState mail_state = 27;
+    optional UserSubscriptionInfo sub_info = 30;
     optional uint64 checksum = 100;
     optional string signature = 101;
 
@@ -2517,6 +2519,7 @@ message SyncPathOfVirtueResponse {
     enum Status {
         OK = 0;
         PROBLEM = 1;
+        HTTP_ERROR = 2;
     }
 
     optional double sim_debt = 2;
