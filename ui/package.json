@@ -10,5 +10,6 @@
     "lib": "workspace:^",
     "scroll-into-view-if-needed": "^3.1.0",
     "vue": "^3.5.13"
-  }
+  },
+  "scripts": null
 }

@@ -8,7 +8,8 @@
     "dev": "vite",
     "fastbuild": "vite build",
     "lint": "eslint --ext .js,.ts,.vue src",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "format": "prettier --write \"src/**/*.{js,ts,vue}\""
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",

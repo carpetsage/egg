@@ -28,7 +28,8 @@
   "license": "MIT",
   "main": "index.ts",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"./**/*.{js,ts,vue}\""
   },
   "sideEffects": false
 }
