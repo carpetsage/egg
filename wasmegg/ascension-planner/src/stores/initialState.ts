@@ -184,7 +184,11 @@ export const useInitialStateStore = defineStore('initialState', {
       this.hasData = true;
       this.playerId = playerId;
       this.nickname = backup.userName || playerId;
-      this.isUltra = !!(backup.game as any)?.ultraSubscriptionAction;
+      this.isUltra =
+        !!backup.subInfo &&
+        backup.subInfo.storeStatus === 'SUBSCRIPTION_STATE_ACTIVE' && // active subscription
+        (backup.subInfo.subscriptionLevel === 0 || backup.subInfo.subscriptionLevel === 1) && // ultra standard or ultra pro
+        backup.subInfo.status === 1; // active
       this.lastBackupTime = backup.settings?.lastBackupTime || 0;
       this.soulEggs = backup.game?.soulEggsD || 0;
 
