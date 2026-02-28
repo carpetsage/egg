@@ -30,6 +30,7 @@ import {
   Ref,
   ref,
   toRefs,
+  watchEffect,
 } from 'vue';
 import {
   CheckIcon,
@@ -95,6 +96,38 @@ class BaseSelectFilterableFactory<T = unknown> {
           type: Boolean,
           default: false,
         },
+        iconClass: {
+          type: String,
+          default: 'h-6 w-6',
+        },
+        inputPaddingClass: {
+          type: String,
+          default: 'pl-11',
+        },
+        containerClass: {
+          type: String,
+          default: 'max-w-sm',
+        },
+        showInputText: {
+          type: Boolean,
+          default: true,
+        },
+        showPlaceholderIcon: {
+          type: Boolean,
+          default: true,
+        },
+        dropdownWidthClass: {
+          type: String,
+          default: 'w-full',
+        },
+        showSelectorIcon: {
+          type: Boolean,
+          default: true,
+        },
+        iconContainerClass: {
+          type: String,
+          default: 'absolute inset-y-0 left-0 pl-3',
+        },
       },
       emits: {
         'update:modelValue': (_payload: string | null) => true,
@@ -116,6 +149,7 @@ class BaseSelectFilterableFactory<T = unknown> {
           searchFilter.value !== '' ? searchItems.value(searchFilter.value) : (items.value as T[])
         );
         const active: Ref<T | null> = ref(null);
+
 
         const dropdownListEntryIndex = (item: T): number => {
           for (let i = 0; i < filteredItems.value.length; i++) {
@@ -141,6 +175,14 @@ class BaseSelectFilterableFactory<T = unknown> {
         };
 
         const open = ref(false);
+
+        // Keep searchFilter in sync with selected item's display name when closed.
+        // This ensures the UI updates correctly when state changes externally (e.g. undo).
+        watchEffect(() => {
+          if (!open.value) {
+            searchFilter.value = selected.value !== null ? getItemDisplay.value(selected.value) : '';
+          }
+        });
         const openDropdown = () => {
           searchFilter.value = '';
           active.value = selected.value;
@@ -285,28 +327,30 @@ class BaseSelectFilterableFactory<T = unknown> {
       },
       render() {
         return (
-          <div ref="dropdownRef" class="relative max-w-sm">
+          <div ref="dropdownRef" class={['relative', this.containerClass]}>
             <div class="relative rounded-md shadow-sm">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div class={[this.iconContainerClass, 'flex items-center pointer-events-none']}>
                 {this.selected && this.searchFilter === this.getItemDisplay(this.selected) ? (
                   <BaseIcon
                     iconRelPath={this.getItemIconPath(this.selected)}
                     size={64}
-                    class="flex-shrink-0 h-6 w-6"
+                    class={['flex-shrink-0', this.iconClass]}
                   />
-                ) : (
-                  <QuestionMarkCircleIcon class="flex-shrink-0 h-6 w-6 p-px text-gray-400" />
-                )}
+                ) : this.showPlaceholderIcon ? (
+                  <QuestionMarkCircleIcon class={['flex-shrink-0 p-px text-gray-400', this.iconClass]} />
+                ) : null}
               </div>
               <input
                 ref="selectButtonRef"
-                value={this.searchFilter}
+                value={this.open || this.showInputText ? this.searchFilter : ''}
                 type="text"
                 class={[
-                  'Select__input bg-gray-50 focus:ring-blue-500 focus:border-blue-500 block w-full pl-11 pr-10 sm:text-sm border-gray-300 rounded-md',
+                  'Select__input bg-gray-50 focus:ring-blue-500 focus:border-blue-500 block w-full pr-10 sm:text-sm border-gray-300 rounded-md transition-all duration-200',
+                  this.inputPaddingClass,
                   this.selected && this.searchFilter === this.getItemDisplay(this.selected)
                     ? this.itemColorClass(this.selected)
                     : null,
+                  !this.showInputText && !this.open ? 'cursor-pointer' : '',
                 ]}
                 spellcheck="false"
                 placeholder={this.placeholder}
@@ -316,15 +360,17 @@ class BaseSelectFilterableFactory<T = unknown> {
                 onFocus={this.openDropdown}
                 onKeydown={this.handleKeydown}
               />
-              <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                <SelectorIcon class="h-5 w-5 text-gray-400" />
-              </div>
+              {this.showSelectorIcon && (
+                <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                  <SelectorIcon class="h-5 w-5 text-gray-400" />
+                </div>
+              )}
               {this.allowClearing && this.selected && (
                 <div
                   class="absolute inset-y-0 right-7 flex items-center cursor-pointer"
                   onClick={this.clearItem}
                 >
-                  <x-icon class="h-4 w-4 text-gray-400" />
+                  <XIcon class="h-4 w-4 text-gray-400" />
                 </div>
               )}
             </div>
@@ -332,7 +378,7 @@ class BaseSelectFilterableFactory<T = unknown> {
             <ul
               v-show={this.open}
               ref="dropdownListRef"
-              class="Select__dropdown absolute mt-1 w-full bg-white text-gray-900 shadow-lg rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm z-10"
+              class={['Select__dropdown absolute mt-1 bg-white text-gray-900 shadow-lg rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm z-50', this.dropdownWidthClass]}
               style={{ maxHeight: '21.5rem' }}
               tabindex="-1"
             >
@@ -353,7 +399,7 @@ class BaseSelectFilterableFactory<T = unknown> {
                     <BaseIcon
                       iconRelPath={this.getItemIconPath(item)}
                       size={64}
-                      class="flex-shrink-0 h-6 w-6"
+                      class={['flex-shrink-0', this.iconClass]}
                     />
                     <span
                       class={[

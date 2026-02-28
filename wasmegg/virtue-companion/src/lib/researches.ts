@@ -1,4 +1,4 @@
-import researchesRaw from '@/researches.json';
+import { allResearches as researchesRaw } from 'lib';
 
 type ResearchType = 'common' | 'epic';
 type ResearchCategory =

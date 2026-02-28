@@ -21,6 +21,7 @@ packages:
   - wasmegg/shell-company
   - wasmegg/smart-assistant
   - wasmegg/virtue-companion
+  - wasmegg/ascension-planner
 
 onlyBuiltDependencies:
   - esbuild
