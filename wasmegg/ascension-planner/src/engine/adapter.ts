@@ -8,8 +8,10 @@ import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useSilosStore } from '@/stores/silos';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
+import { useActionsStore } from '@/stores/actions';
 import { createEmptySnapshot } from '@/types';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
+import { getLocalTimestampInTimezone } from '@/lib/events';
 
 /**
  * Get the current simulation context from Pinia stores.
@@ -20,13 +22,17 @@ export function getSimulationContext(): SimulationContext {
   const virtueStore = useVirtueStore();
 
   // Convert ascension date/time/timezone to Unix timestamp (seconds)
-  const startDateTime = new Date(`${virtueStore.ascensionDate}T${virtueStore.ascensionTime}:00`);
-  const ascensionStartTime = Math.floor(startDateTime.getTime() / 1000);
+  const ascensionStartTime = getLocalTimestampInTimezone(
+    virtueStore.ascensionDate,
+    virtueStore.ascensionTime,
+    virtueStore.ascensionTimezone
+  );
 
   return {
     epicResearchLevels: initialStateStore.epicResearchLevels,
     colleggtibleModifiers: initialStateStore.colleggtibleModifiers,
     ascensionStartTime,
+    planStartOffset: (useActionsStore() as any).planStartOffset || 0,
     assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
   };
 }

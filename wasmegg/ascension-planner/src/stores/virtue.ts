@@ -4,6 +4,7 @@
 
 import { defineStore } from 'pinia';
 import type { VirtueEgg } from '@/types';
+import { getLocalTimestampInTimezone } from '@/lib/events';
 
 /**
  * Get the user's detected timezone.
@@ -88,7 +89,8 @@ export const useVirtueStore = defineStore('virtue', {
      */
     planStartTime(): Date {
       try {
-        return new Date(`${this.ascensionDate}T${this.ascensionTime}:00`);
+        const ts = getLocalTimestampInTimezone(this.ascensionDate, this.ascensionTime, this.ascensionTimezone);
+        return new Date(ts * 1000);
       } catch {
         return new Date();
       }
