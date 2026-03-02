@@ -49,6 +49,16 @@
         </div>
       </div>
     </div>
+
+    <EventExpiryDialog
+      v-if="showExpiryDialog"
+      :event-name="expiryData.eventName"
+      :end-time="expiryData.endTime"
+      :completion-time="expiryData.completionTime"
+      @confirm="handleExpiryConfirm"
+      @cancel="handleExpiryCancel"
+      @deactivate="handleExpiryDeactivate"
+    />
   </div>
 </template>
 
@@ -61,10 +71,20 @@ import { useActionExecutor } from '@/composables/useActionExecutor';
 import { generateActionId } from '@/types';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatDuration, parseDuration, formatAbsoluteTime } from '@/lib/format';
+import { useEventExpiry } from '@/composables/useEventExpiry';
+import EventExpiryDialog from '../EventExpiryDialog.vue';
 
 const actionsStore = useActionsStore();
 const virtueStore = useVirtueStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
+const {
+  showExpiryDialog,
+  expiryData,
+  withExpiryCheck,
+  confirm: handleExpiryConfirm,
+  cancel: handleExpiryCancel,
+  deactivateAndCancel: handleExpiryDeactivate,
+} = useEventExpiry();
 
 const inputDuration = ref('');
 
@@ -85,31 +105,36 @@ const baseTimestamp = computed(() => {
 function handleWaitTime() {
   if (!isValid.value) return;
 
-  const beforeSnapshot = prepareExecution();
+  const duration = parsedSeconds.value;
 
-  const payload = {
-    totalTimeSeconds: parsedSeconds.value,
-  };
+  // We check both events because any time addition could cross either
+  withExpiryCheck(duration, true, () => {
+    const beforeSnapshot = prepareExecution();
 
-  const dependencies = computeDependencies(
-    'wait_for_time',
-    payload,
-    actionsStore.actionsBeforeInsertion,
-    actionsStore.initialSnapshot.researchLevels
-  );
+    const payload = {
+      totalTimeSeconds: duration,
+    };
 
-  completeExecution(
-    {
-      id: generateActionId(),
-      timestamp: Date.now(),
-      type: 'wait_for_time',
+    const dependencies = computeDependencies(
+      'wait_for_time',
       payload,
-      cost: 0,
-      dependsOn: dependencies,
-    },
-    beforeSnapshot
-  );
+      actionsStore.actionsBeforeInsertion,
+      actionsStore.initialSnapshot.researchLevels
+    );
 
-  inputDuration.value = '';
+    completeExecution(
+      {
+        id: generateActionId(),
+        timestamp: Date.now(),
+        type: 'wait_for_time',
+        payload,
+        cost: 0,
+        dependsOn: dependencies,
+      },
+      beforeSnapshot
+    );
+
+    inputDuration.value = '';
+  });
 }
 </script>

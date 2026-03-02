@@ -33,6 +33,7 @@ import {
 } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
+import { computeDependencies } from '@/lib/actions/executor';
 
 import { ActionsState } from './types';
 import { createDefaultStartAction, calculateActionResult } from './simulation';
@@ -115,7 +116,59 @@ export const useActionsStore = defineStore('actions', {
         this.actions.push(startAction);
         this.expandedGroupIds.add(startAction.id);
       }
+
+      // Add default Wait for Full Habs for fresh start (no backup data/quick continue)
+      const startAction = this.getStartAction();
+      if (
+        this.actions.length === 1 &&
+        startAction &&
+        !startAction.payload.initialFarmState &&
+        !startAction.payload.isQuickContinue &&
+        !this.batchMode
+      ) {
+        this.pushWaitForFullHabsAction();
+      }
+
       await this.recalculateFrom(0);
+    },
+
+    pushWaitForFullHabsAction() {
+      const snapshot = this.effectiveSnapshot;
+      const habCapacity = snapshot.habCapacity;
+      const currentPopulation = snapshot.population;
+      const ihr = snapshot.offlineIHR;
+
+      const chickensToGrow = Math.max(0, habCapacity - currentPopulation);
+      if (chickensToGrow <= 0 || !isFinite(ihr) || ihr <= 0) return;
+
+      const timeToGrowSeconds = chickensToGrow / (ihr / 60);
+
+      const payload = {
+        habCapacity,
+        ihr,
+        currentPopulation,
+        totalTimeSeconds: timeToGrowSeconds,
+      };
+
+      const draftAction = {
+        id: generateActionId(),
+        timestamp: Date.now(),
+        type: 'wait_for_full_habs' as const,
+        payload,
+        cost: 0,
+        dependsOn: computeDependencies(
+          'wait_for_full_habs',
+          payload,
+          this.actionsBeforeInsertion,
+          this.initialSnapshot.researchLevels
+        ),
+      };
+
+      if (this.editingGroupId) {
+        this.insertAction(draftAction);
+      } else {
+        this.pushAction(draftAction);
+      }
     },
 
     getDependentActions(actionId: string): Action[] {
