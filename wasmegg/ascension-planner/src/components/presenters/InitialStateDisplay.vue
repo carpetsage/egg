@@ -1,46 +1,5 @@
 <template>
   <div class="space-y-4">
-    <!-- Player Info -->
-    <div class="section-premium p-5 flex items-center justify-between">
-      <template v-if="hasData">
-        <div>
-          <div class="text-xl font-bold text-slate-800 tracking-tight">{{ nickname }}</div>
-          <div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
-            <span class="badge-premium badge-brand py-0 rounded text-[9px]">Backup</span>
-            <span v-if="lastBackupFormatted"> Last synced: {{ lastBackupFormatted }} </span>
-          </div>
-        </div>
-        <div class="animate-float">
-          <img :src="iconURL('egginc/egg_truth.png', 64)" class="w-10 h-10 drop-shadow-xl" alt="" />
-        </div>
-      </template>
-      <template v-else>
-        <div class="text-slate-400 text-center py-2 w-full font-medium italic">
-          Load player data above to populate initial state
-        </div>
-      </template>
-    </div>
-
-    <!-- Continue Ascension Button -->
-    <div
-      v-if="hasData && canContinue"
-      class="section-premium p-5 flex items-center justify-between border-blue-200 bg-blue-50/30 overflow-hidden relative group"
-    >
-      <div
-        class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
-      ></div>
-      <div class="relative z-10">
-        <div class="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-1">Resume Progress</div>
-        <div class="text-sm font-semibold text-slate-700">Continue from Current {{ currentEggName }}</div>
-      </div>
-      <button class="btn-premium btn-primary px-5 py-2.5 relative z-10" @click="$emit('continue-ascension')">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-        </svg>
-        <span>Continue Ascension</span>
-      </button>
-    </div>
-
     <!-- Ascension Settings -->
     <div class="section-premium p-5 overflow-hidden">
       <h3 class="style-guide-label mb-6">Ascension Settings</h3>
@@ -670,8 +629,6 @@ import {
 
 const props = defineProps<{
   hasData: boolean;
-  nickname: string;
-  lastBackupTime: number;
   epicResearchLevels: ResearchLevels;
   artifactLoadout: EquippedArtifact[];
   initialShiftCount: number;
@@ -687,8 +644,7 @@ const props = defineProps<{
   teEarned: Record<VirtueEgg, number>;
   tePending: Record<VirtueEgg, number>;
   totalTe: number;
-  canContinue: boolean;
-  currentEggName: string;
+
   soulEggs: number;
   assumeDoubleEarnings: boolean;
   artifactSets: Record<import('@/types').ArtifactSetName, EquippedArtifact[] | null>;
@@ -710,7 +666,7 @@ const emit = defineEmits<{
   'set-eggs-delivered': [egg: VirtueEgg, amount: number];
   'set-te-earned': [egg: VirtueEgg, count: number];
   'include-pending-te': [];
-  'continue-ascension': [];
+
   'set-soul-eggs': [count: number];
   'set-assume-double-earnings': [enabled: boolean];
   'update-artifact-set': [setName: import('@/types').ArtifactSetName, loadout: EquippedArtifact[]];
@@ -828,18 +784,6 @@ const allTimezones = computed(() => {
   }
 });
 
-const lastBackupFormatted = computed(() => {
-  if (props.lastBackupTime === 0) {
-    return props.hasData ? 'Imported Plan' : '';
-  }
-  const date = new Date(props.lastBackupTime * 1000);
-  return date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-});
 
 const epicResearchList = computed(() =>
   epicResearchDefs.map(def => ({

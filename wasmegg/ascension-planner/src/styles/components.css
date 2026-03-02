@@ -122,9 +122,8 @@
         @apply input-premium text-center font-mono-premium text-lg tracking-wider font-bold text-brand-primary;
     }
 
-    form[submit="submitPlayerId"] button[type="submit"],
-    .the-player-id-form button[type="submit"] {
-        @apply btn-premium btn-primary w-full py-3 mt-4;
+    form:has(#playerId) button[type="submit"] {
+        display: none;
     }
 
     /* --- Custom Scrollbar --- */
