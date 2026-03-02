@@ -359,13 +359,21 @@ function handleToggleEarningsEvent() {
   );
 }
 
-onMounted(() => {
+onMounted(async () => {
   eventsStore.fetchEvents();
-});
+  await actionsStore.recalculateAll();
 
-// Initial calculation to populate the default start_ascension action with correct metrics
-// based on default farm state (1 Coop, 1 Trike, etc.)
-actionsStore.recalculateAll();
+  // Fresh start: if only start_ascension exists and no farm state is loaded, add initial Wait for Full Habs
+  const startAction = actionsStore.getStartAction();
+  if (
+    actionsStore.actions.length === 1 &&
+    startAction &&
+    !startAction.payload.initialFarmState &&
+    !startAction.payload.isQuickContinue
+  ) {
+    actionsStore.pushWaitForFullHabsAction();
+  }
+});
 
 // Section expansion state
 const expandedSections = ref({

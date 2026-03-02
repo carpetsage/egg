@@ -129,6 +129,16 @@
     <div class="flex items-center justify-between px-2">
       <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{{ purchasedCount }}/4 habs active</p>
     </div>
+
+    <EventExpiryDialog
+      v-if="showExpiryDialog"
+      :event-name="expiryData.eventName"
+      :end-time="expiryData.endTime"
+      :completion-time="expiryData.completionTime"
+      @confirm="handleExpiryConfirm"
+      @cancel="handleExpiryCancel"
+      @deactivate="handleExpiryDeactivate"
+    />
   </div>
 </template>
 
@@ -153,6 +163,8 @@ import { useSalesStore } from '@/stores/sales';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import { useEventExpiry } from '@/composables/useEventExpiry';
+import EventExpiryDialog from '../EventExpiryDialog.vue';
 import { calculateHabCapacity, calculateTotalResearchMultipliers } from '@/calculations/habCapacity';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { calculateEarningsForTime, getTimeToSave } from '@/engine/apply';
@@ -164,6 +176,14 @@ const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
 const salesStore = useSalesStore();
 const { prepareExecution, completeExecution, batch } = useActionExecutor();
+const {
+  showExpiryDialog,
+  expiryData,
+  withExpiryCheck,
+  confirm: handleExpiryConfirm,
+  cancel: handleExpiryCancel,
+  deactivateAndCancel: handleExpiryDeactivate,
+} = useEventExpiry();
 
 // Cost modifiers
 const costModifiers = computed<HabCostModifiers>(() => ({
@@ -272,48 +292,57 @@ function handleHabChange(slotIndex: number, habId: number | undefined) {
   // Don't add if it's already the same
   if (habIds.value[slotIndex] === habId) return;
 
-  // Prepare execution (restores stores if editing past group)
-  const beforeSnapshot = prepareExecution();
+  const duration = getTimeToBuySeconds(habId, slotIndex);
 
-  // Calculate cost based on effective state
-  const hab = getHabById(habId);
-  if (!hab) return;
+  withExpiryCheck(duration, false, () => {
+    // Prepare execution (restores stores if editing past group)
+    const beforeSnapshot = prepareExecution();
 
-  const effectiveHabIds = beforeSnapshot.habIds;
-  const otherHabs = effectiveHabIds.filter((_, i) => i !== slotIndex);
-  const existingCount = countHabsOfType(otherHabs, habId);
-  const isSaleActive = beforeSnapshot.activeSales.hab;
-  const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isSaleActive);
+    // Calculate cost based on effective state
+    const hab = getHabById(habId);
+    if (!hab) return;
 
-  // Build payload
-  const payload = {
-    slotIndex,
-    habId,
-  };
+    const effectiveHabIds = beforeSnapshot.habIds;
+    const otherHabs = effectiveHabIds.filter((_, i) => i !== slotIndex);
+    const existingCount = countHabsOfType(otherHabs, habId);
+    const isSaleActive = beforeSnapshot.activeSales.hab;
+    const cost = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isSaleActive);
 
-  // Compute dependencies
-  const dependencies = computeDependencies(
-    'buy_hab',
-    payload,
-    actionsStore.actionsBeforeInsertion,
-    actionsStore.initialSnapshot.researchLevels
-  );
+    // Build payload
+    const payload = {
+      slotIndex,
+      habId,
+    };
 
-  // Apply to store
-  habCapacityStore.setHab(slotIndex, habId);
-
-  // Complete execution
-  completeExecution(
-    {
-      id: generateActionId(),
-      timestamp: Date.now(),
-      type: 'buy_hab',
+    // Compute dependencies
+    const dependencies = computeDependencies(
+      'buy_hab',
       payload,
-      cost,
-      dependsOn: dependencies,
-    },
-    beforeSnapshot
-  );
+      actionsStore.actionsBeforeInsertion,
+      actionsStore.initialSnapshot.researchLevels
+    );
+
+    // Apply to store
+    habCapacityStore.setHab(slotIndex, habId);
+
+    // Complete execution
+    completeExecution(
+      {
+        id: generateActionId(),
+        timestamp: Date.now(),
+        type: 'buy_hab',
+        payload,
+        cost,
+        dependsOn: dependencies,
+      },
+      beforeSnapshot
+    );
+  });
+}
+
+function getTimeToBuySeconds(habId: number, slotIndex: number): number {
+  const price = getHabPrice(habId, slotIndex);
+  return getTimeToSave(price, actionsStore.effectiveSnapshot);
 }
 
 function handleToggleSale() {
@@ -347,18 +376,14 @@ function handleToggleSale() {
   );
 }
 
-const maxHabsTime = computed(() => {
+const maxHabsSeconds = computed(() => {
   const CHICKEN_UNIVERSE_ID = 18;
   const snapshot = actionsStore.effectiveSnapshot;
   const offlineEarnings = snapshot.offlineEarnings;
 
-  if (offlineEarnings <= 0) return '∞';
+  if (offlineEarnings <= 0) return Infinity;
 
   const shippingCapacity = snapshot.shippingCapacity;
-  const initialELR = snapshot.elr;
-  const initialLayRate = snapshot.layRate;
-  const initialCapacity = snapshot.habCapacity;
-
   let totalSeconds = 0;
   let virtualHabIds = [...snapshot.habIds];
   let virtualBank = snapshot.bankValue || 0;
@@ -378,7 +403,7 @@ const maxHabsTime = computed(() => {
     const price = getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
 
     const seconds = getTimeToSave(price, virtualSnapshot);
-    if (seconds === Infinity) return '∞';
+    if (seconds === Infinity) return Infinity;
 
     totalSeconds += seconds;
 
@@ -406,8 +431,14 @@ const maxHabsTime = computed(() => {
     virtualSnapshot.offlineEarnings = virtualSnapshot.elr * earningsPerEgg;
   }
 
-  if (totalSeconds < 1) return 'Instant';
-  return formatDuration(totalSeconds);
+  return totalSeconds;
+});
+
+const maxHabsTime = computed(() => {
+  const seconds = maxHabsSeconds.value;
+  if (seconds === Infinity) return '∞';
+  if (seconds < 1) return 'Instant';
+  return formatDuration(seconds);
 });
 
 const canBuyMax = computed(() => {
@@ -417,13 +448,15 @@ const canBuyMax = computed(() => {
 
 function handleBuyMax() {
   const CHICKEN_UNIVERSE_ID = 18;
-  batch(() => {
-    for (let i = 0; i < 4; i++) {
-      const currentId = habIds.value[i];
-      if (currentId !== CHICKEN_UNIVERSE_ID) {
-        handleHabChange(i, CHICKEN_UNIVERSE_ID);
+  withExpiryCheck(maxHabsSeconds.value, false, () => {
+    batch(() => {
+      for (let i = 0; i < 4; i++) {
+        const currentId = habIds.value[i];
+        if (currentId !== CHICKEN_UNIVERSE_ID) {
+          handleHabChange(i, CHICKEN_UNIVERSE_ID);
+        }
       }
-    }
+    });
   });
 }
 
