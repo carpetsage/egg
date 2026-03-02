@@ -25495,5 +25495,23 @@
     "startTimestamp": 1772384400,
     "type": "epic-research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1772557200,
+    "id": "event-3-2",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1772470800,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1772557200,
+    "id": "ultra-3-2",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1772470800,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
