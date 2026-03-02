@@ -6,27 +6,123 @@
       <h1 class="mx-4 mt-8 mb-2 text-center heading-xl text-gradient">
         {{ pageTitle }}
       </h1>
+      <div
+        v-if="initialStateStore.hasData && lastBackupFormatted"
+        class="text-center text-[10px] text-slate-500 font-medium uppercase tracking-wider mb-4 -mt-1"
+      >
+        Last synced: {{ lastBackupFormatted }}
+      </div>
 
-      <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
+      <the-player-id-form :player-id="playerId" @submit="submitPlayerId" @input="onFormInput" />
 
-      <!-- Quick Continue Ascension Button -->
+      <!-- Ascension Action Buttons -->
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+
+        <!-- Start from Scratch -->
+        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-20 h-20 bg-red-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+            <div class="p-2.5 bg-red-50 rounded-xl">
+              <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-slate-800">Start from Scratch</div>
+              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                Clear your entire plan, reset all settings, and begin with a clean slate
+              </p>
+            </div>
+            <button
+              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+              @click="startFromScratch"
+            >
+              Reset Everything
+            </button>
+          </div>
+        </div>
+
+        <!-- Import from Backup -->
+        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-20 h-20 bg-purple-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+            <div class="p-2.5 bg-purple-50 rounded-xl">
+              <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-slate-800">Import from Backup</div>
+              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                Load a previously exported plan file to restore your saved ascension
+              </p>
+            </div>
+            <button
+              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+              @click="triggerImport"
+            >
+              Import Plan
+            </button>
+          </div>
+        </div>
+
+        <!-- Plan Next Ascension -->
+        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden border-brand-primary/30">
+          <div class="absolute -right-6 -top-6 w-20 h-20 bg-brand-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+            <div class="p-2.5 bg-brand-primary/10 rounded-xl">
+              <svg class="w-6 h-6 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-slate-800">Plan Next Ascension</div>
+              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                Load your latest backup, include pending TE, reset the clock, and start planning fresh
+              </p>
+            </div>
+            <button
+              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+              :disabled="loading || !playerId"
+              @click="planNextAscension"
+            >
+              Plan Next
+            </button>
+          </div>
+        </div>
+
+        <!-- Continue Current Ascension -->
+        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-20 h-20 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+            <div class="p-2.5 bg-blue-50 rounded-xl">
+              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-slate-800">Continue Current Ascension</div>
+              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                Resume from your current in-game farm with all events applied
+              </p>
+            </div>
+            <button
+              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+              :disabled="loading || !playerId"
+              @click="quickContinueAscension"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Hidden file input for import -->
+      <input ref="fileInput" type="file" accept=".json" class="hidden" @change="handleImport" />
+
+      <!-- Active Event Slide Toggle (Earnings Boost) -->
       <div class="mt-4 flex flex-col items-center gap-2">
-        <button
-          class="btn-premium btn-primary px-6 py-3 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
-          @click="quickContinueAscension"
-          :disabled="loading || !playerId"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-          </svg>
-          <span class="font-bold">Quick Continue Ascension</span>
-        </button>
-
-        <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest text-center max-w-md">
-          Wipes current plan, fetches latest backup, and resumes from your current virtue farm state
-        </p>
-
-        <!-- Active Event Slide Toggle (Earnings Boost) -->
         <div
           class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
         >
@@ -133,7 +229,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import TheNavBar from 'ui/components/NavBar.vue';
-import { getSavedPlayerID, savePlayerID, requestFirstContact } from 'lib';
+import { getSavedPlayerID, savePlayerID, requestFirstContact, iconURL } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -141,6 +237,10 @@ import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useEventsStore } from '@/stores/events';
+import { useCommonResearchStore } from '@/stores/commonResearch';
+import { useHabCapacityStore } from '@/stores/habCapacity';
+import { useShippingCapacityStore } from '@/stores/shippingCapacity';
+import { useSilosStore } from '@/stores/silos';
 import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
 import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
@@ -186,9 +286,26 @@ const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
 const eventsStore = useEventsStore();
 const salesStore = useSalesStore();
+const commonResearchStore = useCommonResearchStore();
+const habCapacityStore = useHabCapacityStore();
+const shippingCapacityStore = useShippingCapacityStore();
+const silosStore = useSilosStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
+
+const lastBackupFormatted = computed(() => {
+  if (initialStateStore.lastBackupTime === 0) {
+    return initialStateStore.hasData ? 'Imported Plan' : '';
+  }
+  const date = new Date(initialStateStore.lastBackupTime * 1000);
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+});
 
 const pageTitle = computed(() => {
   const name = initialStateStore.nickname;
@@ -346,6 +463,88 @@ function executeClearAll() {
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
 const loading = ref(false);
 const error = ref('');
+const fileInput = ref<HTMLInputElement | null>(null);
+
+/**
+ * Start from Scratch: Full reset.
+ * Wipes the action history, clears player data from stores,
+ * and resets initial state to defaults — equivalent to a hard refresh.
+ */
+async function startFromScratch() {
+  error.value = '';
+
+  // 1. Wipe action history first to stop any ongoing simulations
+  // and clear the start action's carry-over state.
+  const startAction = actionsStore.getStartAction();
+  if (startAction) {
+    startAction.payload.initialFarmState = undefined;
+    startAction.payload.isQuickContinue = false;
+    startAction.payload.initialEgg = 'curiosity';
+  }
+  await actionsStore.clearAll();
+
+  // 2. Reset all definition stores to their default/clean states.
+  // We do this AFTER clearAll because clearAll's simulation sync
+  // would otherwise overwrite these stores with old snapshot data.
+  initialStateStore.$reset();
+  virtueStore.$reset();
+  fuelTankStore.$reset();
+  truthEggsStore.$reset();
+  commonResearchStore.$reset();
+  habCapacityStore.$reset();
+  shippingCapacityStore.$reset();
+  silosStore.$reset();
+
+  // 3. Recompute and set a clean initial snapshot from the reset stores.
+  const context = getSimulationContext();
+  const baseState = createBaseEngineState(null);
+  const initialSnapshot = computeSnapshot(baseState, context);
+  await actionsStore.setInitialSnapshot(initialSnapshot);
+}
+
+/**
+ * Import from Backup: Open a file picker to load a previously exported plan.
+ */
+function triggerImport() {
+  fileInput.value?.click();
+}
+
+function handleImport(event: Event) {
+  const input = event.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+
+  const file = input.files[0];
+  const reader = new FileReader();
+
+  reader.onload = e => {
+    try {
+      const jsonString = e.target?.result as string;
+
+      if (actionsStore.actionCount > 0) {
+        if (!confirm('Importing a plan will overwrite your current actions. Continue?')) {
+          input.value = '';
+          return;
+        }
+      }
+
+      actionsStore.importPlan(jsonString);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to import plan: Invalid file format.');
+    } finally {
+      input.value = '';
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+function onFormInput(e: Event) {
+  const target = e.target as HTMLInputElement;
+  if (target.id === 'playerId') {
+    playerId.value = target.value.trim();
+  }
+}
 
 async function submitPlayerId(id: string) {
   playerId.value = id;
@@ -474,6 +673,78 @@ async function quickContinueAscension() {
     loading.value = false;
     error.value = e instanceof Error ? e.message : 'Quick Continue failed';
     console.error('Quick Continue error:', e);
+  }
+}
+
+/**
+ * Plan Next Ascension:
+ * 1. Load latest player data (reuses submitPlayerId)
+ * 2. Include pending TE
+ * 3. Reset ascension date/time/timezone to current values
+ * 4. Clear action history (wipe old plan)
+ */
+async function planNextAscension() {
+  if (!playerId.value) return;
+
+  error.value = '';
+  loading.value = true;
+
+  try {
+    // 1. Wipe current plan
+    await actionsStore.clearAll();
+
+    // 2. Load latest backup
+    await submitPlayerId(playerId.value);
+
+    // 3. Include pending TE
+    for (const egg of Object.keys(initialStateStore.initialTePending) as VirtueEgg[]) {
+      const pending = initialStateStore.initialTePending[egg];
+      if (pending > 0) {
+        const currentEarned = initialStateStore.initialTeEarned[egg];
+        const newTotal = Math.min(98, currentEarned + pending);
+        truthEggsStore.setTEEarned(egg, newTotal);
+        initialStateStore.setInitialTePending(egg, 0);
+      }
+    }
+    // Sync back
+    for (const egg of Object.keys(initialStateStore.initialTeEarned) as VirtueEgg[]) {
+      initialStateStore.setInitialEggsDelivered(egg, truthEggsStore.eggsDelivered[egg]);
+      initialStateStore.setInitialTeEarned(egg, truthEggsStore.teEarned[egg]);
+    }
+    virtueStore.setTE(truthEggsStore.totalTE);
+    virtueStore.setInitialTE(truthEggsStore.totalTE);
+
+    // 4. Reset ascension date/time/timezone to current
+    virtueStore.resetToCurrentDateTime();
+
+    // 5. Clear any farm state from a previous Continue so the start action is clean
+    const startAction = actionsStore.getStartAction();
+    if (startAction) {
+      startAction.payload.initialFarmState = undefined;
+      startAction.payload.isQuickContinue = false;
+    }
+
+    // 6. Reset purchase state to defaults (fresh ascension)
+    commonResearchStore.$reset();
+    habCapacityStore.$reset();
+    shippingCapacityStore.$reset();
+    silosStore.$reset();
+
+    // 7. Set starting egg to Curiosity
+    virtueStore.setCurrentEgg('curiosity');
+    actionsStore.setInitialEgg('curiosity');
+
+    // 8. Recalculate initial snapshot with updated TE
+    const context = getSimulationContext();
+    const baseState = createBaseEngineState(null);
+    const initialSnapshot = computeSnapshot(baseState, context);
+    await actionsStore.setInitialSnapshot(initialSnapshot);
+
+    loading.value = false;
+  } catch (e) {
+    loading.value = false;
+    error.value = e instanceof Error ? e.message : 'Plan Next failed';
+    console.error('Plan Next Ascension error:', e);
   }
 }
 </script>
