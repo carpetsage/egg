@@ -97,11 +97,29 @@
     <!-- Actions -->
     <div class="flex items-center gap-1.5">
 
+      <!-- Buy to Here (Cheapest view only) -->
+      <button
+        v-if="showBuyToHere && !isMaxed"
+        class="btn-premium text-[10px] py-1 px-2"
+        :class="showDeadlineWarning ? 'btn-danger bg-amber-500 hover:bg-amber-600 border-amber-600' : 'btn-secondary'"
+        :disabled="!canBuyToHere"
+        v-tippy="deadlineWarningTooltip(buyToHereSeconds)"
+        @click.stop="$emit('buyToHere')"
+      >
+        Buy to here
+        <span v-if="buyToHereTime" class="ml-1 text-[9px] opacity-70">({{ buyToHereTime }})</span>
+      </button>
+
       <!-- Buy one level button -->
       <button
-        class="w-8 h-8 flex items-center justify-center rounded bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        class="w-8 h-8 flex items-center justify-center rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        :class="[
+          showDeadlineWarning
+            ? 'bg-amber-100/80 hover:bg-amber-200 text-amber-700 ring-1 ring-amber-400/50 shadow-sm'
+            : 'bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600'
+        ]"
         :disabled="!canBuy || isMaxed || (targetLevel !== undefined && targetLevel !== currentLevel + 1)"
-        v-tippy="timeToBuySeconds !== undefined ? formatAbsoluteTime(timeToBuySeconds, baseTimestamp, virtueStore.ascensionTimezone) : ''"
+        v-tippy="deadlineWarningTooltip(timeToBuySeconds)"
         @click.stop="$emit('buy')"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,25 +127,14 @@
         </svg>
       </button>
 
-      <!-- Buy to Here (Cheapest view only) -->
-      <button
-        v-if="showBuyToHere && !isMaxed"
-        class="btn-premium btn-secondary text-[10px] py-1 px-2"
-        :disabled="!canBuyToHere"
-        v-tippy="`${buyToHereSeconds !== undefined ? formatAbsoluteTime(buyToHereSeconds, baseTimestamp, virtueStore.ascensionTimezone) : ''}`"
-        @click.stop="$emit('buyToHere')"
-      >
-        Buy to here
-        <span v-if="buyToHereTime" class="ml-1 text-[9px] opacity-70">({{ buyToHereTime }})</span>
-      </button>
-
       <!-- Max button for individual research -->
       <!-- Max button for individual research -->
       <button
         v-if="showMax"
-        class="btn-premium btn-secondary text-xs py-1 px-2"
+        class="btn-premium text-xs py-1 px-2"
+        :class="showDeadlineWarning ? 'btn-danger bg-amber-500 hover:bg-amber-600 border-amber-600' : 'btn-secondary'"
         :disabled="!canBuy || isMaxed"
-        v-tippy="maxTimeSeconds !== undefined ? formatAbsoluteTime(maxTimeSeconds, baseTimestamp, virtueStore.ascensionTimezone) : ''"
+        v-tippy="deadlineWarningTooltip(maxTimeSeconds)"
         @click.stop="$emit('max')"
       >
         Max
@@ -169,6 +176,7 @@ const props = defineProps<{
   buyToHereSeconds?: number;
   extraSeconds?: number;
   showSaleWarning?: boolean;
+  showDeadlineWarning?: boolean;
 }>();
 
 const actionsStore = useActionsStore();
@@ -180,6 +188,15 @@ const baseTimestamp = computed(() => {
   // Wall clock time = (Plan Start) + (Current Sim Time - Initial Sim Time)
   return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
 });
+
+function deadlineWarningTooltip(seconds?: number) {
+  if (seconds === undefined) return '';
+  const timeStr = formatAbsoluteTime(seconds, baseTimestamp.value, virtueStore.ascensionTimezone);
+  if (props.showDeadlineWarning) {
+    return `${timeStr} is after next Saturday at +0. Turn off the research sale to see realistic prices.`;
+  }
+  return timeStr;
+}
 
 defineEmits<{
   (e: 'buy'): void;

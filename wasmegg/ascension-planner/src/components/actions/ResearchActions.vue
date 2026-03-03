@@ -25,6 +25,8 @@
       :get-research-price="getNextLevelPrice"
       :get-research-time-to-buy="getTimeToBuy"
       :get-research-time-to-buy-seconds="getTimeToBuySeconds"
+      :is-research-sale-active="isResearchSaleActive"
+      :research-sale-deadline="researchSaleDeadline"
       @buy="handleBuyResearch"
       @max="handleMaxResearch"
       @max-tier="handleMaxTier"
@@ -108,6 +110,7 @@ const {
   tierSummaries,
   gameViewTimes,
   sortedResearches,
+  researchSaleDeadline,
   TIER_THRESHOLDS,
 } = useResearchViews();
 
