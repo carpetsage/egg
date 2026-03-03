@@ -25459,5 +25459,59 @@
     "startTimestamp": 1772211600,
     "type": "research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1772384400,
+    "id": "event-2-28",
+    "message": "TRIPLE PRESTIGE!!!",
+    "multiplier": 3,
+    "startTimestamp": 1772298000,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1772384400,
+    "id": "ultra-2-28",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1772298000,
+    "type": "vehicle-sale",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1772470800,
+    "id": "event-2-28-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1772298000,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1772470800,
+    "id": "event-3-1",
+    "message": "35% OFF EPIC RESEARCH!!",
+    "multiplier": 0.65,
+    "startTimestamp": 1772384400,
+    "type": "epic-research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1772557200,
+    "id": "event-3-2",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1772470800,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1772557200,
+    "id": "ultra-3-2",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1772470800,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
