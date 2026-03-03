@@ -38,6 +38,7 @@
         :hpp="item.hpp"
         :recommendation-note="item.recommendationNote"
         :show-sale-warning="item.showSaleWarning"
+        :show-deadline-warning="item.showDeadlineWarning"
         @buy="$emit('buy', item.research)"
         @max="$emit('max', item.research)"
         @buy-to-here="$emit('buy-to-here', idx)"
@@ -75,6 +76,7 @@ interface SortedResearchItem {
   hpp?: number;
   recommendationNote?: string;
   showSaleWarning?: boolean;
+  showDeadlineWarning?: boolean;
 }
 
 defineProps<{

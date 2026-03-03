@@ -23,9 +23,10 @@
           <!-- Max Tier button -->
           <button
             v-if="tierSummaries[tier]?.isUnlocked && !isTierMaxed(tier)"
-            class="btn-premium btn-secondary text-xs py-1 px-2"
+            class="btn-premium text-xs py-1 px-2"
+            :class="isResearchSaleActive && (baseTimestamp / 1000 + viewTimes.tierSeconds[tier] > researchSaleDeadline) ? 'btn-danger bg-amber-500 hover:bg-amber-600 border-amber-600' : 'btn-secondary'"
             @click.stop="$emit('max-tier', tier)"
-            v-tippy="viewTimes.tiers[tier] ? formatAbsoluteTime(viewTimes.tierSeconds[tier], baseTimestamp, virtueStore.ascensionTimezone) : ''"
+            v-tippy="deadlineWarningTooltip(viewTimes.tierSeconds[tier])"
           >
             Max Tier
             <span v-if="viewTimes.tiers[tier]" class="ml-1 text-[9px] opacity-70">({{ viewTimes.tiers[tier] }})</span>
@@ -55,6 +56,7 @@
           :time-to-buy-seconds="getResearchTimeToBuySeconds(research)"
           :can-buy="true"
           :is-maxed="(levels[research.id] || 0) >= research.levels"
+          :show-deadline-warning="isResearchSaleActive && (baseTimestamp / 1000 + getResearchTimeToBuySeconds(research) > researchSaleDeadline)"
           :show-max="true"
           :max-time="viewTimes.researches[research.id]"
           :max-time-seconds="viewTimes.researchSeconds[research.id]"
@@ -88,6 +90,8 @@ const props = defineProps<{
   getResearchPrice: (r: CommonResearch) => number;
   getResearchTimeToBuy: (r: CommonResearch) => string;
   getResearchTimeToBuySeconds: (r: CommonResearch) => number;
+  isResearchSaleActive: boolean;
+  researchSaleDeadline: number;
 }>();
 
 defineEmits(['buy', 'max', 'max-tier']);
@@ -141,5 +145,14 @@ function toggleTier(tier: number) {
 
 function getResearchesForTier(tier: number): CommonResearch[] {
   return props.researchByTier.get(tier) || [];
+}
+
+function deadlineWarningTooltip(seconds?: number) {
+  if (seconds === undefined) return '';
+  const timeStr = formatAbsoluteTime(seconds, baseTimestamp.value, virtueStore.ascensionTimezone);
+  if (props.isResearchSaleActive && (baseTimestamp.value / 1000 + seconds > props.researchSaleDeadline)) {
+    return `${timeStr} is after next Saturday at +0. Turn off the research sale to see realistic prices.`;
+  }
+  return timeStr;
 }
 </script>

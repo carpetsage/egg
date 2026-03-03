@@ -47,6 +47,7 @@ export interface ResearchViewItem {
   isShipping?: boolean;
   recommendationNote?: string;
   showSaleWarning?: boolean;
+  showDeadlineWarning?: boolean;
 
   // ELR specific
   impact?: number;
@@ -139,6 +140,13 @@ export function useResearchViews() {
       );
     }
     return summaries;
+  });
+
+  const researchSaleDeadline = computed(() => {
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+    return getNextPacificTime(6, 9, absoluteSimTime);
   });
 
   const gameViewTimes = computed(() => {
@@ -251,6 +259,10 @@ export function useResearchViews() {
     const isSale = isResearchSaleActive.value;
     const mods = costModifiers.value;
 
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+
     const filterByCategories = (r: CommonResearch) => {
       const categories = r.categories.split(',').map(c => c.trim());
       const excluded = currentView.value === 'roi' ? ROI_EXCLUDED_CATEGORIES : ELR_EXCLUDED_CATEGORIES;
@@ -331,6 +343,7 @@ export function useResearchViews() {
             isMaxed: false,
             showDivider: item.showDivider || false,
             unlockTier: item.unlockTier || 0,
+            showDeadlineWarning: isSale && (absoluteSimTime + totalSeconds > researchSaleDeadline.value),
           });
 
           currentSimState = {
@@ -396,6 +409,7 @@ export function useResearchViews() {
             buyToHereSeconds: totalSeconds,
             canBuy: true,
             isMaxed: false,
+            showDeadlineWarning: isSale && (absoluteSimTime + totalSeconds > researchSaleDeadline.value),
           });
         }
       });
@@ -479,6 +493,7 @@ export function useResearchViews() {
             (absoluteSimTime + timeToBuySeconds >= nextSaleStart) ||
             (delta * (nextSaleStart - (absoluteSimTime + timeToBuySeconds)) < 0.7 * price)
           ),
+          showDeadlineWarning: isSale && (absoluteSimTime + timeToBuySeconds > researchSaleDeadline.value),
         };
       });
 
@@ -588,6 +603,7 @@ export function useResearchViews() {
             isMaxed: false,
             impact,
             hpp,
+            showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuy > researchSaleDeadline.value),
           };
         })
         .filter(c => c.impact > 0)
@@ -620,6 +636,7 @@ export function useResearchViews() {
     tierSummaries,
     gameViewTimes,
     sortedResearches,
+    researchSaleDeadline,
     TIER_THRESHOLDS: TIER_UNLOCK_THRESHOLDS,
   };
 }
