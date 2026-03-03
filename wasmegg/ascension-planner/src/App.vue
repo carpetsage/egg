@@ -37,7 +37,7 @@
               class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
               @click="startFromScratch"
             >
-              Reset Everything
+              Reset
             </button>
           </div>
         </div>
@@ -61,7 +61,7 @@
               class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
               @click="triggerImport"
             >
-              Import Plan
+              Import
             </button>
           </div>
         </div>
@@ -76,7 +76,7 @@
               </svg>
             </div>
             <div>
-              <div class="text-sm font-bold text-slate-800">Plan Next Ascension</div>
+              <div class="text-sm font-bold text-slate-800">Plan Future Ascension</div>
               <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
                 Load your latest backup, include pending TE, reset the clock, and start planning fresh
               </p>
@@ -86,7 +86,7 @@
               :disabled="loading || !playerId"
               @click="planNextAscension"
             >
-              Plan Next
+              Plan
             </button>
           </div>
         </div>
