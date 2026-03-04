@@ -23,7 +23,7 @@
       v-else
       class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm divide-y divide-slate-100"
     >
-      <template v-for="(item, idx) in groupedActions" :key="item.key">
+      <template v-for="(item, idx) in filteredGroupedActions" :key="item.key">
         <!-- Individual action (current work after last shift) -->
         <ActionHistoryItem
           v-if="item.type === 'single'"
@@ -264,6 +264,42 @@ const groupedActions = computed<GroupedItem[]>(() => {
   }
 
   return result;
+});
+
+/**
+ * Apply "Incomplete Only" filtering to the grouped actions list.
+ */
+const filteredGroupedActions = computed<GroupedItem[]>(() => {
+  const groups = groupedActions.value;
+  if (!actionsStore.isReconciling || !actionsStore.showIncompleteOnly) return groups;
+
+  return groups
+    .map(group => {
+      if (group.type === 'group') {
+        const auditedActions = [group.headerAction, ...group.actions];
+        const shiftStatus = actionsStore.getShiftReconciliationStatus(auditedActions);
+
+        // If the entire shift is completed, hide it
+        if (shiftStatus === 'completed') return null;
+
+        // Otherwise, filter actions to show only incomplete/NA
+        const filteredActions = group.actions.filter(a => {
+          const status = actionsStore.getActionReconciliationStatus(a);
+          return status !== 'completed';
+        });
+
+        // Special case: if it's the current period and we filtered everything out,
+        // we might still want to see the header? Actually, if it's completed, we hide it.
+        return {
+          ...group,
+          actions: filteredActions,
+        };
+      } else {
+        const status = actionsStore.getActionReconciliationStatus(group.action);
+        return status !== 'completed' ? group : null;
+      }
+    })
+    .filter((g): g is GroupedItem => g !== null);
 });
 
 function handleUndoRequest(action: Action, options?: { skipConfirmation: boolean }) {

@@ -11,4 +11,7 @@ export interface ActionsState {
   recalculationProgress: { current: number; total: number };
   batchMode: boolean;
   minBatchIndex: number;
+  isReconciling: boolean;
+  reconciledBackupTime: number;
+  showIncompleteOnly: boolean;
 }

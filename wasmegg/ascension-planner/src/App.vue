@@ -16,7 +16,7 @@
       <the-player-id-form :player-id="playerId" @submit="submitPlayerId" @input="onFormInput" />
 
       <!-- Ascension Action Buttons -->
-      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-3 max-w-6xl mx-auto">
 
         <!-- Start from Scratch -->
         <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
@@ -116,10 +116,47 @@
           </div>
         </div>
 
+        <!-- Reconcile Plan -->
+        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+            <div class="p-2.5 bg-emerald-50 rounded-xl">
+              <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-slate-800">Reconcile Plan</div>
+              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                Load a plan and compare against your current farm to track progress
+              </p>
+            </div>
+
+            <!-- Incomplete Only Toggle -->
+            <div class="h-6 flex items-center">
+              <div v-if="actionsStore.isReconciling" class="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
+                <label class="relative inline-flex items-center cursor-pointer group/toggle">
+                  <input type="checkbox" v-model="actionsStore.showIncompleteOnly" class="sr-only peer">
+                  <div class="w-7 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500 transition-colors"></div>
+                  <span class="ml-2 text-[8px] font-black text-slate-400 uppercase tracking-widest group-hover/toggle:text-slate-600 transition-colors">Incomplete Only</span>
+                </label>
+              </div>
+            </div>
+            <button
+              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+              :disabled="loading || !playerId"
+              @click="triggerReconcile"
+            >
+              Reconcile
+            </button>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Hidden file input for import -->
+      <!-- Hidden file inputs -->
       <input ref="fileInput" type="file" accept=".json" class="hidden" @change="handleImport" />
+      <input ref="reconcileFileInput" type="file" accept=".json" class="hidden" @change="handleReconcileImport" />
 
       <!-- Active Event Slide Toggle (Earnings Boost) -->
       <div class="mt-4 flex flex-col items-center gap-2">
@@ -464,6 +501,7 @@ const playerId = ref(new URLSearchParams(window.location.search).get('playerId')
 const loading = ref(false);
 const error = ref('');
 const fileInput = ref<HTMLInputElement | null>(null);
+const reconcileFileInput = ref<HTMLInputElement | null>(null);
 
 /**
  * Start from Scratch: Full reset.
@@ -481,6 +519,8 @@ async function startFromScratch() {
     startAction.payload.isQuickContinue = false;
     startAction.payload.initialEgg = 'curiosity';
   }
+  actionsStore.isReconciling = false;
+  actionsStore.showIncompleteOnly = false;
   await actionsStore.clearAll();
 
   // 2. Reset all definition stores to their default/clean states.
@@ -527,12 +567,58 @@ function handleImport(event: Event) {
         }
       }
 
+      actionsStore.isReconciling = false;
       actionsStore.importPlan(jsonString);
     } catch (err) {
       console.error(err);
       alert('Failed to import plan: Invalid file format.');
     } finally {
       input.value = '';
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+/**
+ * Reconcile Plan: Fetch latest backup AND load a plan file.
+ */
+function triggerReconcile() {
+  reconcileFileInput.value?.click();
+}
+
+function handleReconcileImport(event: Event) {
+  const input = event.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+
+  const file = input.files[0];
+  const reader = new FileReader();
+
+  reader.onload = async e => {
+    try {
+      const jsonString = e.target?.result as string;
+
+      loading.value = true;
+      error.value = '';
+
+      // 1. Fetch latest backup (same as submitPlayerId but keeps isReconciling true)
+      await submitPlayerId(playerId.value);
+
+      // 2. Set reconciliation mode and load the plan
+      actionsStore.isReconciling = true;
+      actionsStore.importPlan(jsonString);
+
+      // 3. Ensure we expanded the first group
+      if (actionsStore.actions.length > 0) {
+        actionsStore.expandedGroupIds.clear();
+        actionsStore.expandedGroupIds.add(actionsStore.actions[0].id);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to reconcile plan: Invalid file format.');
+    } finally {
+      input.value = '';
+      loading.value = false;
     }
   };
 
@@ -666,6 +752,7 @@ async function quickContinueAscension() {
     await submitPlayerId(playerId.value);
 
     // 4. Trigger continue from backup
+    actionsStore.isReconciling = false;
     await actionsStore.continueFromBackup(true);
 
     loading.value = false;
