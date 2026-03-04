@@ -182,10 +182,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { iconURL } from 'lib';
-import { useFuelTankStore, timeToStore } from '@/stores/fuelTank';
+import { useFuelTankStore } from '@/stores/fuelTank';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
-import { useEffectiveLayRate } from '@/composables/useEffectiveLayRate';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatDuration, parseNumber } from '@/lib/format';
@@ -195,7 +194,6 @@ import { useActionExecutor } from '@/composables/useActionExecutor';
 
 import { useLayRate } from '@/composables/useLayRate';
 import { useInternalHatcheryRate } from '@/composables/useInternalHatcheryRate';
-import { useShippingCapacity } from '@/composables/useShippingCapacity';
 import { useHabCapacity } from '@/composables/useHabCapacity';
 import { solveForTime } from '@/engine/apply/math';
 
@@ -205,9 +203,7 @@ const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
 const { output: layRateOutput } = useLayRate();
 const { output: ihrOutput } = useInternalHatcheryRate();
-const { output: shippingOutput } = useShippingCapacity();
 const { output: habCapacityOutput } = useHabCapacity();
-const { output: effectiveLayRateOutput } = useEffectiveLayRate();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const amountInput = ref('');
@@ -232,10 +228,9 @@ const timeToStoreSeconds = computed(() => {
   const P0 = virtueStore.population;
   const I = ihrOutput.value.offlineRate / 60; // chickens/sec
   const R = layRateOutput.value.ratePerChickenPerSecond; // eggs/chicken/sec
-  const S = shippingOutput.value.totalFinalCapacity; // eggs/sec
   const H = habCapacityOutput.value.totalFinalCapacity; // max chickens
 
-  const maxPossibleRate = Math.min(S, R * H);
+  const maxPossibleRate = R * H;
 
   const time = solveForTime(parsedAmount.value, P0, I, R, maxPossibleRate);
   return isFinite(time) ? time : Infinity;
