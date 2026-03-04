@@ -12,6 +12,7 @@ import type {
 } from '@/types';
 import { type HabId } from '@/lib/habs';
 import { createEmptySnapshot, createEmptyUndoValidation, generateActionId, VIRTUE_EGGS } from '@/types';
+import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
@@ -52,6 +53,9 @@ export const useActionsStore = defineStore('actions', {
       recalculationProgress: { current: 0, total: 0 },
       batchMode: false,
       minBatchIndex: Infinity,
+      isReconciling: false,
+      reconciledBackupTime: 0,
+      showIncompleteOnly: false,
     };
   },
 
@@ -105,6 +109,71 @@ export const useActionsStore = defineStore('actions', {
       const startAction = this.actions.find(a => a.type === 'start_ascension');
       if (!startAction) return 0;
       return startAction.endState.lastStepTime || 0;
+    },
+
+    getActionReconciliationStatus() {
+      return (action: Action): 'completed' | 'pending' | 'na' => {
+        if (!this.isReconciling) return 'na';
+
+        const auditedTypes = ['buy_research', 'buy_hab', 'buy_vehicle', 'buy_train_car', 'buy_silo', 'wait_for_te'];
+        if (!auditedTypes.includes(action.type)) return 'na';
+
+        const initialStateStore = useInitialStateStore();
+        const farm = initialStateStore.currentFarmState;
+
+        // Special case for Wait for TE: needs comparison against catch-up delivered eggs
+        if (action.type === 'wait_for_te') {
+          const { egg, targetTE } = action.payload;
+          const delivered = initialStateStore.initialEggsDelivered[egg] || 0;
+          const earned = initialStateStore.initialTeEarned[egg] || 0;
+          const theoretical = countTEThresholdsPassed(delivered);
+          const currentTE = Math.max(earned, theoretical);
+          return currentTE >= targetTE ? 'completed' : 'pending';
+        }
+
+        // Other audited actions require current farm state
+        if (!farm) return 'pending';
+
+        switch (action.type) {
+          case 'buy_research': {
+            const { researchId, toLevel } = action.payload;
+            const currentLevel = farm.commonResearches[researchId] || 0;
+            return currentLevel >= toLevel ? 'completed' : 'pending';
+          }
+          case 'buy_hab': {
+            const { slotIndex, habId } = action.payload;
+            const currentHabId = farm.habs[slotIndex] || 0;
+            return currentHabId >= habId ? 'completed' : 'pending';
+          }
+          case 'buy_vehicle': {
+            const { slotIndex, vehicleId } = action.payload;
+            const currentVehicleId = farm.vehicles[slotIndex]?.vehicleId || 0;
+            return currentVehicleId >= vehicleId ? 'completed' : 'pending';
+          }
+          case 'buy_train_car': {
+            const { slotIndex, toLength } = action.payload;
+            const vehicle = farm.vehicles[slotIndex];
+            if (vehicle?.vehicleId === 11 && vehicle.trainLength >= toLength) return 'completed';
+            return 'pending';
+          }
+          case 'buy_silo': {
+            const { toCount } = action.payload;
+            return farm.numSilos >= toCount ? 'completed' : 'pending';
+          }
+        }
+
+        return 'na';
+      };
+    },
+
+    getShiftReconciliationStatus() {
+      return (shiftActions: Action[]): 'completed' | 'pending' | 'na' => {
+        if (!this.isReconciling) return 'na';
+        const statuses = shiftActions.map(a => this.getActionReconciliationStatus(a));
+        if (statuses.some(s => s === 'pending')) return 'pending';
+        if (statuses.every(s => s === 'na')) return 'na';
+        return 'completed';
+      };
     },
   },
 
