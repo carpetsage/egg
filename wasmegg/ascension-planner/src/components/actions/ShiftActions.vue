@@ -238,6 +238,7 @@ function handleShift(toEgg: VirtueEgg) {
     },
     beforeSnapshot
   );
+  actionsStore.pushWaitForFullHabsAction();
 
   // Auto-activate relevant sales for the new egg
   const startAction = actionsStore.getStartAction();

@@ -25,6 +25,8 @@
       :get-research-price="getNextLevelPrice"
       :get-research-time-to-buy="getTimeToBuy"
       :get-research-time-to-buy-seconds="getTimeToBuySeconds"
+      :is-research-sale-active="isResearchSaleActive"
+      :research-sale-deadline="researchSaleDeadline"
       @buy="handleBuyResearch"
       @max="handleMaxResearch"
       @max-tier="handleMaxTier"
@@ -41,6 +43,16 @@
       @buy="handleBuyResearch"
       @max="handleMaxResearch"
       @buy-to-here="handleBuyToHere"
+    />
+
+    <EventExpiryDialog
+      v-if="showExpiryDialog"
+      :event-name="expiryData.eventName"
+      :end-time="expiryData.endTime"
+      :completion-time="expiryData.completionTime"
+      @confirm="handleExpiryConfirm"
+      @cancel="handleExpiryCancel"
+      @deactivate="handleExpiryDeactivate"
     />
   </div>
 </template>
@@ -69,11 +81,21 @@ import SmartBuy from './SmartBuy.vue';
 import ResearchViewSelector from './ResearchViewSelector.vue';
 import ResearchGameView from './ResearchGameView.vue';
 import ResearchFlatView from './ResearchFlatView.vue';
+import EventExpiryDialog from '../EventExpiryDialog.vue';
+import { useEventExpiry } from '@/composables/useEventExpiry';
 
 const commonResearchStore = useCommonResearchStore();
 const actionsStore = useActionsStore();
 const salesStore = useSalesStore();
 const { prepareExecution, completeExecution, batch } = useActionExecutor();
+const {
+  showExpiryDialog,
+  expiryData,
+  withExpiryCheck,
+  confirm: handleExpiryConfirm,
+  cancel: handleExpiryCancel,
+  deactivateAndCancel: handleExpiryDeactivate,
+} = useEventExpiry();
 
 const smartBuyState = ref({ threshold: 0, alwaysOn: false });
 let isSmartBuying = false;
@@ -88,6 +110,7 @@ const {
   tierSummaries,
   gameViewTimes,
   sortedResearches,
+  researchSaleDeadline,
   TIER_THRESHOLDS,
 } = useResearchViews();
 
@@ -176,7 +199,8 @@ watch(
 );
 
 function handleBuyResearch(research: CommonResearch) {
-  buyOneLevel(research);
+  const duration = getTimeToBuySeconds(research);
+  withExpiryCheck(duration, true, () => buyOneLevel(research));
 }
 
 function handleSmartBuy(threshold: number) {
@@ -238,11 +262,21 @@ function handleSmartBuy(threshold: number) {
 }
 
 function handleMaxResearch(research: CommonResearch) {
-  batch(() => {
-    const maxLevel = research.levels;
-    while ((commonResearchStore.researchLevels[research.id] || 0) < maxLevel) {
-      if (!buyOneLevel(research)) break;
-    }
+  // Estimate total duration for maxing
+  const currentLevels = commonResearchStore.researchLevels[research.id] || 0;
+  let totalDuration = 0;
+  for (let l = currentLevels; l < research.levels; l++) {
+    // This is an approximation as earnings might change, but good enough for warning
+    totalDuration += getTimeToBuySeconds(research);
+  }
+
+  withExpiryCheck(totalDuration, true, () => {
+    batch(() => {
+      const maxLevel = research.levels;
+      while ((commonResearchStore.researchLevels[research.id] || 0) < maxLevel) {
+        if (!buyOneLevel(research)) break;
+      }
+    });
   });
 }
 
@@ -259,14 +293,22 @@ function handleMaxTier(tier: number) {
 }
 
 function handleBuyToHere(index: number) {
-  batch(() => {
-    const list = sortedResearches.value;
-    if (index < 0 || index >= list.length) return;
+  const list = sortedResearches.value;
+  if (index < 0 || index >= list.length) return;
 
-    for (let i = 0; i <= index; i++) {
-      const item = list[i];
-      buyOneLevel(item.research);
-    }
+  // Estimate total duration
+  let totalDuration = 0;
+  for (let i = 0; i <= index; i++) {
+    totalDuration += getTimeToBuySeconds(list[i].research);
+  }
+
+  withExpiryCheck(totalDuration, true, () => {
+    batch(() => {
+      for (let i = 0; i <= index; i++) {
+        const item = list[i];
+        buyOneLevel(item.research);
+      }
+    });
   });
 }
 

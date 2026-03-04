@@ -36,6 +36,18 @@
         filter: brightness(1.1);
     }
 
+    .btn-emerald {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff;
+        box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39);
+    }
+
+    .btn-emerald:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.23);
+        filter: brightness(1.1);
+    }
+
     .btn-secondary {
         background-color: var(--bg-card);
         border-color: var(--color-slate-200);
@@ -122,9 +134,8 @@
         @apply input-premium text-center font-mono-premium text-lg tracking-wider font-bold text-brand-primary;
     }
 
-    form[submit="submitPlayerId"] button[type="submit"],
-    .the-player-id-form button[type="submit"] {
-        @apply btn-premium btn-primary w-full py-3 mt-4;
+    form:has(#playerId) button[type="submit"] {
+        display: none;
     }
 
     /* --- Custom Scrollbar --- */

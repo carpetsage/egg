@@ -18,6 +18,26 @@
     <!-- Mission Summary -->
     <MissionSummary :summary="summary" :schedule="schedule" />
 
+    <!-- Artifact Warning -->
+    <div
+      v-if="showArtifactWarning"
+      class="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3"
+    >
+      <div class="text-amber-500 mt-0.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path
+            fill-rule="evenodd"
+            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </div>
+      <div class="text-xs text-amber-800 leading-normal">
+        Saving for these ships will take <strong>{{ formatDuration(saveTimeSeconds) }}</strong>. Consider switching to your
+        <strong>earnings set</strong> while you wait.
+      </div>
+    </div>
+
     <!-- Launch Button -->
     <div v-if="rocketsStore.queuedMissions.length > 0" class="flex items-center gap-3">
       <button
@@ -34,17 +54,19 @@
     </div>
 
     <!-- Pre-shift Launch Option -->
-    <div v-if="schedule.totalMissions > 0" class="flex items-center gap-2 px-1">
-      <input type="checkbox" id="zero-time-launch" v-model="isZeroTime" class="rounded text-blue-600" />
-      <label for="zero-time-launch" class="text-xs text-gray-600 font-medium cursor-pointer select-none">
-        Launch for 0 time (pre-shift sends)
-      </label>
-    </div>
+    <div v-if="schedule.totalMissions >= 1 && schedule.totalMissions <= 3">
+      <div class="flex items-center gap-2 px-1">
+        <input type="checkbox" id="zero-time-launch" v-model="isZeroTime" class="rounded text-blue-600" />
+        <label for="zero-time-launch" class="text-xs text-gray-600 font-medium cursor-pointer select-none">
+          Launch for 0 time (pre-shift sends)
+        </label>
+      </div>
 
-    <p class="text-[11px] text-gray-500 leading-relaxed italic border-l-2 border-gray-200 pl-3 py-0.5">
-      If you choose this option, the missions will launch for 0 time. This is useful for "pre-shift" sends where you
-      launch ships right before shifting, avoiding adding mission duration to your plan.
-    </p>
+      <p class="text-[11px] text-gray-500 leading-relaxed italic border-l-2 border-gray-200 pl-3 py-0.5">
+        If you choose this option, the missions will launch for 0 time. This is useful for "pre-shift" sends where you
+        launch ships right before shifting, avoiding adding mission duration to your plan.
+      </p>
+    </div>
   </div>
 </template>
 
@@ -60,6 +82,7 @@ import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId, VIRTUE_EGGS } from '@/types';
 import type { VirtueEgg, LaunchMissionEntry } from '@/types';
 import { SHIP_INFO, Spaceship } from '@/lib/missions';
+import { formatDuration } from '@/lib/format';
 
 import FuelTankGraphic from './rockets/FuelTankGraphic.vue';
 import MissionGrid from './rockets/MissionGrid.vue';
@@ -82,6 +105,23 @@ const earningsPerSecond = computed(() =>
 
 const schedule = computed(() => rocketsStore.getSchedule(ftlLevel.value));
 const summary = computed(() => rocketsStore.getSummary(ftlLevel.value));
+
+const totalLaunchCost = computed(() => {
+  let cost = 0;
+  for (const m of rocketsStore.queuedMissions) {
+    cost += SHIP_INFO[m.ship].price * m.count;
+  }
+  return cost;
+});
+
+const saveTimeSeconds = computed(() => {
+  if (earningsPerSecond.value <= 0) return 0;
+  return totalLaunchCost.value / earningsPerSecond.value;
+});
+
+const showArtifactWarning = computed(() => {
+  return initialStateStore.activeArtifactSet === 'elr' && saveTimeSeconds.value > 10;
+});
 
 function handleLaunch() {
   if (rocketsStore.isOverBudget || rocketsStore.queuedMissions.length === 0) return;

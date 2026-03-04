@@ -12,6 +12,7 @@ import type {
 } from '@/types';
 import { type HabId } from '@/lib/habs';
 import { createEmptySnapshot, createEmptyUndoValidation, generateActionId, VIRTUE_EGGS } from '@/types';
+import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
@@ -33,6 +34,7 @@ import {
 } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
+import { computeDependencies } from '@/lib/actions/executor';
 
 import { ActionsState } from './types';
 import { createDefaultStartAction, calculateActionResult } from './simulation';
@@ -51,6 +53,9 @@ export const useActionsStore = defineStore('actions', {
       recalculationProgress: { current: 0, total: 0 },
       batchMode: false,
       minBatchIndex: Infinity,
+      isReconciling: false,
+      reconciledBackupTime: 0,
+      showIncompleteOnly: false,
     };
   },
 
@@ -105,6 +110,71 @@ export const useActionsStore = defineStore('actions', {
       if (!startAction) return 0;
       return startAction.endState.lastStepTime || 0;
     },
+
+    getActionReconciliationStatus() {
+      return (action: Action): 'completed' | 'pending' | 'na' => {
+        if (!this.isReconciling) return 'na';
+
+        const auditedTypes = ['buy_research', 'buy_hab', 'buy_vehicle', 'buy_train_car', 'buy_silo', 'wait_for_te'];
+        if (!auditedTypes.includes(action.type)) return 'na';
+
+        const initialStateStore = useInitialStateStore();
+        const farm = initialStateStore.currentFarmState;
+
+        // Special case for Wait for TE: needs comparison against catch-up delivered eggs
+        if (action.type === 'wait_for_te') {
+          const { egg, targetTE } = action.payload;
+          const delivered = initialStateStore.initialEggsDelivered[egg] || 0;
+          const earned = initialStateStore.initialTeEarned[egg] || 0;
+          const theoretical = countTEThresholdsPassed(delivered);
+          const currentTE = Math.max(earned, theoretical);
+          return currentTE >= targetTE ? 'completed' : 'pending';
+        }
+
+        // Other audited actions require current farm state
+        if (!farm) return 'pending';
+
+        switch (action.type) {
+          case 'buy_research': {
+            const { researchId, toLevel } = action.payload;
+            const currentLevel = farm.commonResearches[researchId] || 0;
+            return currentLevel >= toLevel ? 'completed' : 'pending';
+          }
+          case 'buy_hab': {
+            const { slotIndex, habId } = action.payload;
+            const currentHabId = farm.habs[slotIndex] || 0;
+            return currentHabId >= habId ? 'completed' : 'pending';
+          }
+          case 'buy_vehicle': {
+            const { slotIndex, vehicleId } = action.payload;
+            const currentVehicleId = farm.vehicles[slotIndex]?.vehicleId || 0;
+            return currentVehicleId >= vehicleId ? 'completed' : 'pending';
+          }
+          case 'buy_train_car': {
+            const { slotIndex, toLength } = action.payload;
+            const vehicle = farm.vehicles[slotIndex];
+            if (vehicle?.vehicleId === 11 && vehicle.trainLength >= toLength) return 'completed';
+            return 'pending';
+          }
+          case 'buy_silo': {
+            const { toCount } = action.payload;
+            return farm.numSilos >= toCount ? 'completed' : 'pending';
+          }
+        }
+
+        return 'na';
+      };
+    },
+
+    getShiftReconciliationStatus() {
+      return (shiftActions: Action[]): 'completed' | 'pending' | 'na' => {
+        if (!this.isReconciling) return 'na';
+        const statuses = shiftActions.map(a => this.getActionReconciliationStatus(a));
+        if (statuses.some(s => s === 'pending')) return 'pending';
+        if (statuses.every(s => s === 'na')) return 'na';
+        return 'completed';
+      };
+    },
   },
 
   actions: {
@@ -115,7 +185,59 @@ export const useActionsStore = defineStore('actions', {
         this.actions.push(startAction);
         this.expandedGroupIds.add(startAction.id);
       }
+
+      // Add default Wait for Full Habs for fresh start (no backup data/quick continue)
+      const startAction = this.getStartAction();
+      if (
+        this.actions.length === 1 &&
+        startAction &&
+        !startAction.payload.initialFarmState &&
+        !startAction.payload.isQuickContinue &&
+        !this.batchMode
+      ) {
+        this.pushWaitForFullHabsAction();
+      }
+
       await this.recalculateFrom(0);
+    },
+
+    pushWaitForFullHabsAction() {
+      const snapshot = this.effectiveSnapshot;
+      const habCapacity = snapshot.habCapacity;
+      const currentPopulation = snapshot.population;
+      const ihr = snapshot.offlineIHR;
+
+      const chickensToGrow = Math.max(0, habCapacity - currentPopulation);
+      if (chickensToGrow <= 0 || !isFinite(ihr) || ihr <= 0) return;
+
+      const timeToGrowSeconds = chickensToGrow / (ihr / 60);
+
+      const payload = {
+        habCapacity,
+        ihr,
+        currentPopulation,
+        totalTimeSeconds: timeToGrowSeconds,
+      };
+
+      const draftAction = {
+        id: generateActionId(),
+        timestamp: Date.now(),
+        type: 'wait_for_full_habs' as const,
+        payload,
+        cost: 0,
+        dependsOn: computeDependencies(
+          'wait_for_full_habs',
+          payload,
+          this.actionsBeforeInsertion,
+          this.initialSnapshot.researchLevels
+        ),
+      };
+
+      if (this.editingGroupId) {
+        this.insertAction(draftAction);
+      } else {
+        this.pushAction(draftAction);
+      }
     },
 
     getDependentActions(actionId: string): Action[] {

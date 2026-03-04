@@ -1,8 +1,6 @@
 <template>
   <InitialStateDisplay
     :has-data="store.hasData"
-    :nickname="store.nickname"
-    :last-backup-time="store.lastBackupTime"
     :epic-research-levels="store.epicResearchLevels"
     :artifact-loadout="store.artifactLoadout"
     :initial-shift-count="virtueStore.initialShiftCount"
@@ -18,8 +16,6 @@
     :te-earned="store.initialTeEarned"
     :te-pending="store.initialTePending"
     :total-te="initialTotalTe"
-    :can-continue="!!store.currentFarmState"
-    :current-egg-name="currentEggName"
     :soul-eggs="store.soulEggs"
     :assume-double-earnings="store.assumeDoubleEarnings"
     :artifact-sets="store.artifactSets"
@@ -38,7 +34,6 @@
     @set-eggs-delivered="handleSetEggsDelivered"
     @set-te-earned="handleSetTEEarned"
     @include-pending-te="handleIncludePendingTe"
-    @continue-ascension="handleContinueAscension"
     @set-soul-eggs="handleSetSoulEggs"
     @set-assume-double-earnings="handleSetAssumeDoubleEarnings"
     @save-current-to-set="handleSaveCurrentToSet"
@@ -65,7 +60,7 @@ import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useSilosStore } from '@/stores/silos';
 import InitialStateDisplay from '@/components/presenters/InitialStateDisplay.vue';
 import type { VirtueEgg, Action, ArtifactSetName } from '@/types';
-import { VIRTUE_EGGS, VIRTUE_EGG_NAMES } from '@/types';
+import { VIRTUE_EGGS } from '@/types';
 import type { EquippedArtifact } from '@/lib/artifacts';
 
 const store = useInitialStateStore();
@@ -96,15 +91,6 @@ function updateInitialSnapshotAndRecalculate() {
 
 const initialTotalTe = computed(() => Object.values(store.initialTeEarned).reduce((sum, val) => sum + val, 0));
 
-const currentEggName = computed(() => {
-  if (!store.currentFarmState) return '';
-  const egg = VIRTUE_EGGS[store.currentFarmState.eggType - 50];
-  return VIRTUE_EGG_NAMES[egg] || '';
-});
-
-async function handleContinueAscension() {
-  await actionsStore.continueFromBackup();
-}
 
 function handleSetEpicResearchLevel(id: string, level: number) {
   store.setEpicResearchLevel(id, level);
