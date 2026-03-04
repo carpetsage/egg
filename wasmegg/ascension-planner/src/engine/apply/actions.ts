@@ -192,6 +192,7 @@ export function applyAction(
 
     case 'wait_for_time':
     case 'wait_for_full_habs':
+    case 'wait_for_gems':
     case 'wait_for_research_sale':
     case 'wait_for_earnings_boost':
     case 'notification':

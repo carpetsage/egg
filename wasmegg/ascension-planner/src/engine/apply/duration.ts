@@ -1,4 +1,4 @@
-import { Action, CalculationsSnapshot, LaunchMissionsPayload, WaitForTEPayload, StoreFuelPayload, WaitForResearchSalePayload, WaitForEarningsBoostPayload } from '@/types';
+import { Action, CalculationsSnapshot, LaunchMissionsPayload, WaitForTEPayload, StoreFuelPayload, WaitForResearchSalePayload, WaitForEarningsBoostPayload, WaitForGemsPayload } from '@/types';
 import { getNextPacificTime } from '@/lib/events';
 import { solveForTime, getTimeToSave, calculateEggsDeliveredForTime } from './math';
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
@@ -142,6 +142,14 @@ export function refreshActionPayload(
     }
   }
 
+  if (action.type === 'wait_for_gems') {
+    const payload = { ...(action.payload as WaitForGemsPayload) };
+    payload.currentGems = prevSnapshot.bankValue;
+    payload.requiredGems = Math.max(0, payload.targetGems - payload.currentGems);
+    payload.timeSeconds = getTimeToSave(payload.targetGems, prevSnapshot);
+    return { ...action, payload };
+  }
+
   return action;
 }
 
@@ -149,7 +157,7 @@ export function refreshActionPayload(
  * Calculate the duration of an action in seconds.
  */
 export function getActionDuration(action: Action, prevSnapshot: CalculationsSnapshot): number {
-  if (action.type === 'store_fuel' || action.type === 'wait_for_te') {
+  if (action.type === 'store_fuel' || action.type === 'wait_for_te' || action.type === 'wait_for_gems') {
     return (action.payload as { timeSeconds?: number }).timeSeconds || 0;
   }
 

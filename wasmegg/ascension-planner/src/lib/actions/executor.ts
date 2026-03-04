@@ -42,6 +42,7 @@ import { waitForFullHabsExecutor } from './executors/wait_for_full_habs';
 import { toggleEarningsBoostExecutor } from './executors/toggleEarningsBoost';
 import { waitForResearchSaleExecutor } from './executors/waitForResearchSale';
 import { waitForEarningsBoostExecutor } from './executors/waitForEarningsBoost';
+import { waitForGemsExecutor } from './executors/waitForGems';
 import { notificationExecutor } from './executors/notification';
 
 // ============================================================================
@@ -129,6 +130,7 @@ const executorMap: { [K in ActionType]: ActionExecutor<K> } = {
   wait_for_full_habs: waitForFullHabsExecutor,
   wait_for_research_sale: waitForResearchSaleExecutor,
   wait_for_earnings_boost: waitForEarningsBoostExecutor,
+  wait_for_gems: waitForGemsExecutor,
   toggle_earnings_boost: toggleEarningsBoostExecutor,
   notification: notificationExecutor,
 };

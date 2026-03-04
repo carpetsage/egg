@@ -211,36 +211,116 @@ export function formatPercent(value: number, decimals: number = 0): string {
  * parseNumber("2.5e6") // 2500000
  */
 export function parseNumber(str: string): number {
-  // Case-sensitive suffix multipliers (q = quadrillion, Q = quintillion)
+  // Case-sensitive suffix multipliers matching Egg Inc standard units
   const suffixMultipliers: Record<string, number> = {
-    k: 1e3,
-    K: 1e3,
-    m: 1e6,
-    M: 1e6,
-    b: 1e9,
-    B: 1e9,
-    t: 1e12,
-    T: 1e12,
-    q: 1e15, // quadrillion (lowercase)
-    Q: 1e18, // quintillion (uppercase)
-    s: 1e21,
-    S: 1e24,
-    o: 1e27,
-    N: 1e30,
-    d: 1e33,
-    U: 1e36,
-    D: 1e39,
+    'K': 1e3,
+    'M': 1e6,
+    'B': 1e9,
+    'T': 1e12,
+    'q': 1e15,
+    'Q': 1e18,
+    's': 1e21,
+    'S': 1e24,
+    'o': 1e27,
+    'N': 1e30,
+    'd': 1e33,
+    'U': 1e36,
+    'D': 1e39,
+    'Td': 1e42,
+    'qd': 1e45,
+    'Qd': 1e48,
+    'sd': 1e51,
+    'Sd': 1e54,
+    'Od': 1e57,
+    'Nd': 1e60,
+    'V': 1e63,
+    'uV': 1e66,
+    'dV': 1e69,
+    'tV': 1e72,
+    'qV': 1e75,
+    'QV': 1e78,
+    'sV': 1e81,
+    'Sv': 1e84,
+    'OV': 1e87,
+    'NV': 1e90,
+    'tT': 1e93,
   };
 
   const trimmed = str.trim();
-  const lastChar = trimmed.slice(-1);
+  if (!trimmed) return NaN;
 
-  if (suffixMultipliers[lastChar] !== undefined) {
-    const numPart = parseFloat(trimmed.slice(0, -1));
-    return numPart * suffixMultipliers[lastChar];
+  // Find suffix (one or two letters at the end)
+  let numPartStr = trimmed;
+  let multiplier = 1;
+
+  // Check for multi-character suffixes first (e.g., Td, qd, Qd, sd, Sd, Od, Nd, uV, dV, tV, qV, QV, sV, Sv, OV, NV, tT)
+  // Actually, suffixMultipliers only has single char ones currently. 
+  // Let's check for the ones in suffixMultipliers.
+
+  // Heuristic for suffix: check last 2 chars, then last 1 char.
+  const last2 = trimmed.slice(-2);
+  const last1 = trimmed.slice(-1);
+
+  if (suffixMultipliers[last2] !== undefined) {
+    numPartStr = trimmed.slice(0, -2);
+    multiplier = suffixMultipliers[last2];
+  } else if (suffixMultipliers[last1] !== undefined) {
+    numPartStr = trimmed.slice(0, -1);
+    multiplier = suffixMultipliers[last1];
   }
 
-  return parseFloat(str);
+  // Clean numeric part: handle commas and multiple dots
+  numPartStr = numPartStr.trim().replace(/\s/g, '');
+
+  const lastDot = numPartStr.lastIndexOf('.');
+  const lastComma = numPartStr.lastIndexOf(',');
+
+  if (lastDot !== -1 && lastComma !== -1) {
+    if (lastDot > lastComma) {
+      // US style: 1,234.56
+      numPartStr = numPartStr.replace(/,/g, '');
+    } else {
+      // European style: 1.234,56
+      numPartStr = numPartStr.replace(/\./g, '').replace(',', '.');
+    }
+  } else if (lastComma !== -1) {
+    // Only comma present: is it thousands or decimal?
+    // In "Ascension Planner", if they say "9,123d", it's likely decimal.
+    // If they say "123,456", it's likely thousands.
+    // Heuristic: if comma is followed by exactly 3 digits and it's NOT the last char before suffix, it's likely thousands.
+    // Actually, "handle commas or decimals as a separator" suggests treating comma as decimal.
+    // Let's see if there's more than one comma.
+    const commaCount = (numPartStr.match(/,/g) || []).length;
+    if (commaCount > 1) {
+      numPartStr = numPartStr.replace(/,/g, '');
+    } else {
+      // Single comma. If it's 123,456 it's thousands. If it's 1,23 it's decimal.
+      // But if there's a suffix, it's almost always a decimal.
+      if (multiplier !== 1) {
+        numPartStr = numPartStr.replace(',', '.');
+      } else {
+        // No suffix. Compare with typical thousands vs decimal.
+        const parts = numPartStr.split(',');
+        if (parts[1].length === 3) {
+          numPartStr = numPartStr.replace(',', '');
+        } else {
+          numPartStr = numPartStr.replace(',', '.');
+        }
+      }
+    }
+  } else {
+    // Only dots or nothing. Just use standard float parsing.
+    // But remove multiple dots if they exist (though invalid).
+    const dotCount = (numPartStr.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      // Keep only last dot
+      const parts = numPartStr.split('.');
+      const decimal = parts.pop();
+      numPartStr = parts.join('') + '.' + decimal;
+    }
+  }
+
+  return parseFloat(numPartStr) * multiplier;
 }
 /**
  * Parse a duration string into seconds.

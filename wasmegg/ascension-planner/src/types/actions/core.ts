@@ -38,7 +38,7 @@ import type {
 } from './infrastructure';
 import type { BuyResearchPayload, ToggleSalePayload, ToggleEarningsBoostPayload } from './research';
 import type { LaunchMissionsPayload, WaitForMissionsPayload } from './missions';
-import type { WaitForTEPayload, WaitForTimePayload, WaitForFullHabsPayload } from './wait';
+import type { WaitForTEPayload, WaitForTimePayload, WaitForFullHabsPayload, WaitForGemsPayload } from './wait';
 import type {
   EggValueOutput,
   HabCapacityOutput,
@@ -71,6 +71,7 @@ export type ActionType =
   | 'wait_for_missions'
   | 'wait_for_time'
   | 'wait_for_full_habs'
+  | 'wait_for_gems'
   | 'wait_for_research_sale'
   | 'wait_for_earnings_boost'
   | 'toggle_earnings_boost'
@@ -98,6 +99,7 @@ export interface ActionPayloadMap {
   wait_for_missions: WaitForMissionsPayload;
   wait_for_time: WaitForTimePayload;
   wait_for_full_habs: WaitForFullHabsPayload;
+  wait_for_gems: WaitForGemsPayload;
   wait_for_research_sale: import('./wait').WaitForResearchSalePayload;
   wait_for_earnings_boost: import('./wait').WaitForEarningsBoostPayload;
   toggle_earnings_boost: ToggleEarningsBoostPayload;
