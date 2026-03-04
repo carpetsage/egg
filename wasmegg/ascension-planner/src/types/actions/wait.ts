@@ -43,3 +43,13 @@ export interface WaitForResearchSalePayload {
 export interface WaitForEarningsBoostPayload {
   totalTimeSeconds: number;
 }
+/**
+ * Payload for waiting to reach a target gem count.
+ */
+export interface WaitForGemsPayload {
+  targetGems: number;
+  currentGems: number;
+  requiredGems: number;
+  earningsPerSecond: number;
+  timeSeconds: number;
+}
