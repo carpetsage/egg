@@ -42,13 +42,19 @@
         <span class="summary-label">Shifts</span>
         <div class="flex items-center gap-2">
           <span class="summary-value font-mono-premium font-black text-slate-600">{{ shiftCount }}</span>
-          <span
+          <div
             v-if="totalShiftCost > 0"
-            class="badge-premium bg-slate-50 text-slate-700/70 border border-slate-100 px-2 py-0.5 whitespace-nowrap"
+            class="flex flex-col justify-center border-l border-slate-100 pl-2 h-7 opacity-80"
+            v-tippy="{ content: 'Spent • Remaining', placement: 'top' }"
           >
-            ({{ formatNumber(totalShiftCost, 3) }} SE
-            <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5 inline-block -mt-1 ml-0.5" alt="SE" />)
-          </span>
+            <div class="text-[8px] font-black leading-none text-slate-400 mb-1">
+              -{{ formatNumber(totalShiftCost, 1) }}
+            </div>
+            <div class="text-[9px] font-black leading-none text-slate-600 flex items-center gap-0.5">
+              {{ formatNumber(finalSE, 1) }}
+              <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-2.5 h-2.5" alt="SE" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -214,6 +220,8 @@ const shiftCount = computed(() => {
 const totalShiftCost = computed(() => {
   return actionsStore.actions.filter(a => a.type === 'shift').reduce((sum, a) => sum + a.cost, 0);
 });
+
+const finalSE = computed(() => actionsStore.currentSnapshot.soulEggs);
 
 const currentTE = computed(() => calculateTotalPotentialTE(actionsStore.currentSnapshot));
 const initialClaimedTE = computed(() => virtueStore.initialTE);

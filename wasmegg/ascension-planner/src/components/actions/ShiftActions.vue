@@ -72,17 +72,35 @@
         </div>
       </div>
 
+      <!-- Affordability Warning -->
+      <div
+        v-if="!isAffordable"
+        class="mb-6 p-4 bg-red-50/50 border border-red-100 rounded-2xl flex items-start gap-4 transition-all animate-in fade-in slide-in-from-top-2 duration-500"
+      >
+        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-red-50 rounded-xl text-red-500 shadow-sm border border-red-100">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h5 class="text-[10px] font-black text-red-800 uppercase tracking-widest mb-0.5">Insufficient SE</h5>
+          <p class="text-[11px] font-medium text-red-600/80 leading-relaxed">
+            Shift cost exceeds remaining Soul Eggs. Further progression requires more Soul Eggs.
+          </p>
+        </div>
+      </div>
+
       <div class="grid grid-cols-2 gap-4">
         <button
           v-for="egg in availableEggs"
           :key="egg"
           class="group relative flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 shadow-sm overflow-hidden"
           :class="
-            egg === virtueStore.currentEgg
+            egg === virtueStore.currentEgg || !isAffordable
               ? 'border-slate-100 bg-slate-50/50 opacity-40 grayscale cursor-not-allowed'
               : 'border-slate-100 bg-white hover:border-brand-primary/30 hover:shadow-lg hover:shadow-brand-primary/5 hover:-translate-y-0.5'
           "
-          :disabled="egg === virtueStore.currentEgg"
+          :disabled="egg === virtueStore.currentEgg || !isAffordable"
           @click="handleShift(egg)"
         >
           <!-- Hover background glow -->
@@ -193,6 +211,10 @@ const timeSinceLastShiftFormatted = computed(() => {
 
 const nextShiftCostValue = computed(() => {
   return shiftCost(actionsStore.effectiveSnapshot.soulEggs, virtueStore.shiftCount);
+});
+
+const isAffordable = computed(() => {
+  return actionsStore.effectiveSnapshot.soulEggs >= nextShiftCostValue.value;
 });
 
 function handleShift(toEgg: VirtueEgg) {
