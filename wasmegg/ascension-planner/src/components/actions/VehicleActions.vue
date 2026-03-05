@@ -643,6 +643,10 @@ const maxVehiclesSeconds = computed(() => {
   // Clone snapshot for virtual simulation
   let virtualSnapshot = { ...snapshot, bankValue: virtualBank };
 
+  // Track earnings per egg (this stays constant as long as no research is bought)
+  const earningsPerEgg = snapshot.elr > 0 ? (snapshot.offlineEarnings / snapshot.elr) : 0;
+  if (earningsPerEgg <= 0) return Infinity;
+
   // Pad to max slots
   while (virtualVehicles.length < maxSlots) {
     virtualVehicles.push({ vehicleId: null, trainLength: 1 });
@@ -654,7 +658,10 @@ const maxVehiclesSeconds = computed(() => {
 
     // 1. Upgrade to Hyperloop
     if (slot.vehicleId !== HYPERLOOP_ID) {
-      const price = getVehiclePrice(HYPERLOOP_ID, i);
+      // Calculate current price based on how many Hyperloops we already "bought" in this simulation
+      const currentHyperloopCount = virtualVehicles.filter(v => v.vehicleId === HYPERLOOP_ID).length;
+      const price = getDiscountedVehiclePrice(HYPERLOOP_ID, currentHyperloopCount, costModifiers.value, isVehicleSaleActive.value);
+      
       const seconds = getTimeToSave(price, virtualSnapshot);
       if (seconds === Infinity) return Infinity;
 
@@ -668,10 +675,17 @@ const maxVehiclesSeconds = computed(() => {
       const I = virtualSnapshot.offlineIHR / 60;
       virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, P0 + I * seconds);
       virtualSnapshot.shippingCapacity += newCap - oldCap;
+      
+      // Update derived metrics
+      virtualSnapshot.layRate = virtualSnapshot.population * virtualSnapshot.ratePerChickenPerSecond;
       virtualSnapshot.elr = Math.min(virtualSnapshot.layRate, virtualSnapshot.shippingCapacity);
-      virtualSnapshot.bankValue = 0;
+      virtualSnapshot.offlineEarnings = virtualSnapshot.elr * earningsPerEgg;
+      
+      // Update bank (getTimeToSave ensures we have at least 'price' at the end)
+      virtualSnapshot.bankValue = Math.max(0, virtualSnapshot.bankValue - price);
 
       virtualVehicles[i] = { vehicleId: HYPERLOOP_ID, trainLength: 1 };
+      virtualSnapshot.vehicles = [...virtualVehicles];
     } else {
       currentLength = slot.trainLength;
     }
@@ -692,10 +706,17 @@ const maxVehiclesSeconds = computed(() => {
       const I = virtualSnapshot.offlineIHR / 60;
       virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, P0 + I * seconds);
       virtualSnapshot.shippingCapacity += newCap - oldCap;
+      
+      // Update derived metrics
+      virtualSnapshot.layRate = virtualSnapshot.population * virtualSnapshot.ratePerChickenPerSecond;
       virtualSnapshot.elr = Math.min(virtualSnapshot.layRate, virtualSnapshot.shippingCapacity);
-      virtualSnapshot.bankValue = 0;
+      virtualSnapshot.offlineEarnings = virtualSnapshot.elr * earningsPerEgg;
+      
+      // Update bank
+      virtualSnapshot.bankValue = Math.max(0, virtualSnapshot.bankValue - carPrice);
 
       virtualVehicles[i].trainLength = l + 1;
+      virtualSnapshot.vehicles = [...virtualVehicles];
     }
   }
 
