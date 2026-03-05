@@ -192,7 +192,7 @@ const timeSinceLastShiftFormatted = computed(() => {
 });
 
 const nextShiftCostValue = computed(() => {
-  return shiftCost(initialStateStore.soulEggs, virtueStore.shiftCount);
+  return shiftCost(actionsStore.effectiveSnapshot.soulEggs, virtueStore.shiftCount);
 });
 
 function handleShift(toEgg: VirtueEgg) {
