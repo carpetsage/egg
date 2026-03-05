@@ -81,6 +81,7 @@ export function applyAction(
         ...state,
         currentEgg: payload.toEgg,
         shiftCount: payload.newShiftCount,
+        soulEggs: Math.max(0, state.soulEggs - action.cost),
         bankValue: 0,
         population: 1,
       };
