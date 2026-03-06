@@ -25549,5 +25549,32 @@
     "startTimestamp": 1772643600,
     "type": "gift-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1772816400,
+    "id": "event-3-5",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1772730000,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1772902800,
+    "id": "event-3-6",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1772816400,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1772902800,
+    "id": "ultra-3-6",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1772816400,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]

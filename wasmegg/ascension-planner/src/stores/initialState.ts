@@ -223,7 +223,8 @@ export const useInitialStateStore = defineStore('initialState', {
       // Always equip site's optimal earnings set by default when loading backup
       // This satisfies the requirement to auto-equip earnings set for new plans,
       // while actionsStore.continueFromBackup will re-equip the ELR set if continuing.
-      this.setActiveArtifactSet('earnings');
+      // We no longer force 'earnings' set here; we respect the hydrated data from plans.
+      // this.setActiveArtifactSet('earnings');
 
       // Parse TE data from eovEarned array
       // Indices 0-4 map to: Curiosity, Integrity, Humility, Resilience, Kindness
