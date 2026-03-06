@@ -14,4 +14,8 @@ export interface ActionsState {
   isReconciling: boolean;
   reconciledBackupTime: number;
   showIncompleteOnly: boolean;
+  // ID of the library plan currently being edited, or null if it's a new draft
+  activePlanId: string | null;
+  // JSON string of the actions when last saved/loaded to track "dirty" state
+  lastSavedActionsJson: string;
 }

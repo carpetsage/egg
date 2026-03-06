@@ -3,162 +3,204 @@
 
   <div :class="['min-h-screen bg-gray-100 transition-all duration-300', isFooterCollapsed ? 'pb-8' : 'pb-24']">
     <div class="max-w-6xl mx-auto p-4">
-      <h1 class="mx-4 mt-8 mb-2 text-center heading-xl text-gradient">
-        {{ pageTitle }}
-      </h1>
-      <div
-        v-if="initialStateStore.hasData && lastBackupFormatted"
-        class="text-center text-[10px] text-slate-500 font-medium uppercase tracking-wider mb-4 -mt-1"
-      >
-        Last synced: {{ lastBackupFormatted }}
-      </div>
-
-      <the-player-id-form :player-id="playerId" @submit="submitPlayerId" @input="onFormInput" />
-
-      <!-- Ascension Action Buttons -->
-      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-3 max-w-6xl mx-auto">
-
-        <!-- Start from Scratch -->
-        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
-          <div class="absolute -right-6 -top-6 w-20 h-20 bg-red-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
-            <div class="p-2.5 bg-red-50 rounded-xl">
-              <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-sm font-bold text-slate-800">Start from Scratch</div>
-              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
-                Clear your entire plan, reset all settings, and begin with a clean slate
-              </p>
-            </div>
-            <button
-              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
-              @click="startFromScratch"
+      <!-- Collapsible Header Region -->
+      <div class="bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-100 shadow-sm">
+        <div
+          class="grid transition-all duration-500 ease-in-out"
+          :class="isHeaderCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'"
+        >
+          <div class="overflow-hidden">
+            <h1 class="mx-4 mt-8 mb-2 text-center heading-xl text-gradient">
+              {{ pageTitle }}
+            </h1>
+            <div
+              v-if="initialStateStore.hasData && lastBackupFormatted"
+              class="text-center text-[10px] text-slate-500 font-medium uppercase tracking-wider mb-4 -mt-1"
             >
-              Reset
-            </button>
-          </div>
-        </div>
-
-        <!-- Import from Backup -->
-        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
-          <div class="absolute -right-6 -top-6 w-20 h-20 bg-purple-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
-            <div class="p-2.5 bg-purple-50 rounded-xl">
-              <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-sm font-bold text-slate-800">Import from Backup</div>
-              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
-                Load a previously exported plan file to restore your saved ascension
-              </p>
-            </div>
-            <button
-              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
-              @click="triggerImport"
-            >
-              Import
-            </button>
-          </div>
-        </div>
-
-        <!-- Plan Next Ascension -->
-        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden border-brand-primary/30">
-          <div class="absolute -right-6 -top-6 w-20 h-20 bg-brand-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
-            <div class="p-2.5 bg-brand-primary/10 rounded-xl">
-              <svg class="w-6 h-6 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-sm font-bold text-slate-800">Plan Future Ascension</div>
-              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
-                Load your latest backup, include pending TE, reset the clock, and start planning fresh
-              </p>
-            </div>
-            <button
-              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
-              :disabled="loading || !playerId"
-              @click="planNextAscension"
-            >
-              Plan
-            </button>
-          </div>
-        </div>
-
-        <!-- Continue Current Ascension -->
-        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
-          <div class="absolute -right-6 -top-6 w-20 h-20 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
-            <div class="p-2.5 bg-blue-50 rounded-xl">
-              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-sm font-bold text-slate-800">Continue Current Ascension</div>
-              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
-                Resume from your current in-game farm with all events applied
-              </p>
-            </div>
-            <button
-              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
-              :disabled="loading || !playerId"
-              @click="quickContinueAscension"
-            >
-              Continue
-            </button>
-          </div>
-        </div>
-
-        <!-- Reconcile Plan -->
-        <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
-          <div class="absolute -right-6 -top-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-          <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
-            <div class="p-2.5 bg-emerald-50 rounded-xl">
-              <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-sm font-bold text-slate-800">Reconcile Plan</div>
-              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
-                Load a plan and compare against your current farm to track progress
-              </p>
+              Last synced: {{ lastBackupFormatted }}
             </div>
 
-            <!-- Incomplete Only Toggle -->
-            <div class="h-6 flex items-center">
-              <div v-if="actionsStore.isReconciling" class="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
-                <label class="relative inline-flex items-center cursor-pointer group/toggle">
-                  <input type="checkbox" v-model="actionsStore.showIncompleteOnly" class="sr-only peer">
-                  <div class="w-7 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500 transition-colors"></div>
-                  <span class="ml-2 text-[8px] font-black text-slate-400 uppercase tracking-widest group-hover/toggle:text-slate-600 transition-colors">Incomplete Only</span>
-                </label>
+            <the-player-id-form :player-id="playerId" @submit="submitPlayerId" @input="onFormInput" />
+
+            <!-- Plan Library Section -->
+            <div v-if="playerId" class="max-w-6xl mx-auto mt-6">
+              <PlanLibrary @plan-loaded="handlePlanLoaded" />
+            </div>
+
+            <!-- Ascension Action Buttons -->
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-3 max-w-6xl mx-auto">
+              <!-- Start from Scratch -->
+              <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+                <div
+                  class="absolute -right-6 -top-6 w-20 h-20 bg-red-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
+                ></div>
+                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+                  <div class="p-2.5 bg-red-50 rounded-xl">
+                    <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-bold text-slate-800">Start from Scratch</div>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                      Clear your entire plan, reset all settings, and begin with a clean slate
+                    </p>
+                  </div>
+                  <button
+                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+                    @click="confirmUnsavedChanges(startFromScratch)"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              <!-- Plan Next Ascension -->
+              <div
+                class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden border-brand-primary/30"
+              >
+                <div
+                  class="absolute -right-6 -top-6 w-20 h-20 bg-brand-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
+                ></div>
+                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+                  <div class="p-2.5 bg-brand-primary/10 rounded-xl">
+                    <svg class="w-6 h-6 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-bold text-slate-800">Plan Future Ascension</div>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                      Load your latest backup, include pending TE, reset the clock, and start planning fresh
+                    </p>
+                  </div>
+                  <button
+                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+                    :disabled="loading || !playerId"
+                    @click="confirmUnsavedChanges(planNextAscension)"
+                  >
+                    Plan
+                  </button>
+                </div>
+              </div>
+
+              <!-- Continue Current Ascension -->
+              <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+                <div
+                  class="absolute -right-6 -top-6 w-20 h-20 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
+                ></div>
+                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+                  <div class="p-2.5 bg-blue-50 rounded-xl">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-bold text-slate-800">Continue Current Ascension</div>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                      Resume from your current in-game farm with all events applied
+                    </p>
+                  </div>
+                  <button
+                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+                    :disabled="loading || !playerId"
+                    @click="confirmUnsavedChanges(quickContinueAscension)"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+
+              <!-- Reconcile Plan -->
+              <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+                <div
+                  class="absolute -right-6 -top-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
+                ></div>
+                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+                  <div class="p-2.5 bg-emerald-50 rounded-xl">
+                    <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-bold text-slate-800">Reconcile Plan</div>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                      Load a plan and compare against your current farm to track progress
+                    </p>
+                  </div>
+
+                  <!-- Incomplete Only Toggle -->
+                  <div class="h-6 flex items-center">
+                    <div
+                      v-if="actionsStore.isReconciling"
+                      class="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300"
+                    >
+                      <label class="relative inline-flex items-center cursor-pointer group/toggle">
+                        <input v-model="actionsStore.showIncompleteOnly" type="checkbox" class="sr-only peer" />
+                        <div
+                          class="w-7 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500 transition-colors"
+                        ></div>
+                        <span
+                          class="ml-2 text-[8px] font-black text-slate-400 uppercase tracking-widest group-hover/toggle:text-slate-600 transition-colors"
+                          >Incomplete Only</span
+                        >
+                      </label>
+                    </div>
+                  </div>
+                  <button
+                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+                    :disabled="loading || !playerId"
+                    @click="triggerReconcile"
+                  >
+                    Reconcile
+                  </button>
+                </div>
               </div>
             </div>
-            <button
-              class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
-              :disabled="loading || !playerId"
-              @click="triggerReconcile"
-            >
-              Reconcile
-            </button>
+
           </div>
         </div>
-
       </div>
 
-      <!-- Hidden file inputs -->
-      <input ref="fileInput" type="file" accept=".json" class="hidden" @change="handleImport" />
-      <input ref="reconcileFileInput" type="file" accept=".json" class="hidden" @change="handleReconcileImport" />
+      <!-- Header Toggle Tab (PlanFinalSummary style) - normal flow, centered below card -->
+      <div v-if="playerId" class="flex justify-center -mt-px mb-2">
+        <button
+          class="bg-white/95 backdrop-blur-xl border border-t-0 border-slate-100 px-4 py-1 rounded-b-lg shadow-sm text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider h-7 cursor-pointer"
+          @click="isHeaderCollapsed = !isHeaderCollapsed"
+        >
+          <svg
+            class="w-3.5 h-3.5 transition-transform duration-300"
+            :class="{ 'rotate-180': isHeaderCollapsed }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+      </div>
 
-      <!-- Active Event Slide Toggle (Earnings Boost) -->
+      <!-- Active Event Slide Toggle (Earnings Boost) - always visible -->
       <div class="mt-4 flex flex-col items-center gap-2">
         <div
           class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
@@ -178,9 +220,9 @@
           </div>
 
           <button
-            @click="handleToggleEarningsEvent"
             class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
             :class="isEarningsBoostActive ? 'bg-orange-500' : 'bg-slate-200'"
+            @click="handleToggleEarningsEvent"
           >
             <span
               class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
@@ -251,6 +293,30 @@
       @cancel="showClearAllConfirmation = false"
     />
 
+    <!-- Unsaved Changes Protection Dialog -->
+    <ConfirmationDialog
+      v-if="showUnsavedConfirm"
+      title="Unsaved Changes"
+      message="You have unsaved changes in your current plan. If you continue, these changes will be lost. Would you like to save before proceeding?"
+      confirm-label="Continue Without Saving"
+      variant="danger"
+      @confirm="
+        showUnsavedConfirm = false;
+        pendingAction?.();
+      "
+      @cancel="
+        showUnsavedConfirm = false;
+        pendingAction = null;
+      "
+    />
+
+    <!-- Plan Selection Dialog (for Reconcile) -->
+    <PlanSelectionDialog
+      v-if="showReconcileLibraryModal"
+      @select="handleLibraryReconcile"
+      @cancel="showReconcileLibraryModal = false"
+    />
+
     <!-- Continuity Check Dialog -->
     <ContinuityDialog />
 
@@ -258,7 +324,12 @@
 
     <RecalculationOverlay />
 
-    <PlanFinalSummary @show-details="showCurrentDetails" @update:collapsed="isFooterCollapsed = $event" />
+    <PlanFinalSummary
+      @show-details="showCurrentDetails"
+      @update:collapsed="isFooterCollapsed = $event"
+      @save-plan="saveCurrentPlan"
+      @save-plan-as="savePlanAs"
+    />
     <FloatingStats @show-details="showCurrentDetails" />
   </div>
 </template>
@@ -288,11 +359,13 @@ import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import FloatingStats from '@/components/FloatingStats.vue';
 import WarningDialog from '@/components/WarningDialog.vue';
 import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
+import PlanLibrary from '@/components/PlanLibrary.vue';
+import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
 import { useSalesStore } from '@/stores/sales';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import { usePersistence } from '@/composables/usePersistence';
 import { generateActionId } from '@/types';
 import { computeDependencies } from '@/lib/actions/executor';
-import { formatNumber } from '@/lib/format';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
@@ -300,21 +373,9 @@ import type { Action, VirtueEgg } from '@/types';
 import { VIRTUE_EGGS } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 
-// Chevron icon component
-const ChevronIcon = {
-  props: { expanded: Boolean },
-  template: `
-    <svg
-      class="w-5 h-5 text-gray-400 transition-transform"
-      :class="{ 'rotate-180': expanded }"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-    </svg>
-  `,
-};
+const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
+const loading = ref(false);
+const error = ref('');
 
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
@@ -328,6 +389,7 @@ const habCapacityStore = useHabCapacityStore();
 const shippingCapacityStore = useShippingCapacityStore();
 const silosStore = useSilosStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
+const { partitionHash, saveActiveDraft, initPersistence } = usePersistence();
 
 const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
 
@@ -398,6 +460,11 @@ function handleToggleEarningsEvent() {
 
 onMounted(async () => {
   eventsStore.fetchEvents();
+
+  if (playerId.value) {
+    await initPersistence(playerId.value);
+  }
+
   await actionsStore.recalculateAll();
 
   // Fresh start: if only start_ascension exists and no farm state is loaded, add initial Wait for Full Habs
@@ -412,11 +479,35 @@ onMounted(async () => {
   }
 });
 
+// Auto-save logic
+let saveTimeout: ReturnType<typeof setTimeout>;
+actionsStore.$subscribe(() => {
+  if (!playerId.value) return;
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    saveActiveDraft();
+  }, 1000);
+});
+
+// Re-init persistence when player ID changes
+watch(playerId, async newId => {
+  if (newId) {
+    await initPersistence(newId);
+  }
+});
+
 // Section expansion state
 const expandedSections = ref({
   actionHistory: true,
   availableActions: true,
 });
+
+const isHeaderCollapsed = ref(false);
+
+function handlePlanLoaded() {
+  isHeaderCollapsed.value = true;
+  scrollToTop();
+}
 
 // Current state from actions store
 const currentSnapshot = computed(() => actionsStore.currentSnapshot);
@@ -431,6 +522,26 @@ const undoDependentsA = ref<Action[]>([]);
 const undoDependentsB = ref<Action[]>([]);
 const showClearAllConfirmation = ref(false);
 const isFooterCollapsed = ref(false);
+
+const showReconcileLibraryModal = ref(false);
+const showUnsavedConfirm = ref(false);
+const pendingAction = ref<(() => void) | null>(null);
+
+/**
+ * Confirm unsaved changes before potentially destructive actions.
+ */
+function confirmUnsavedChanges(action: () => void) {
+  if (actionsStore.isDirty) {
+    pendingAction.value = action;
+    showUnsavedConfirm.value = true;
+  } else {
+    action();
+  }
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 // Modal handlers
 function showActionDetails(action: Action) {
@@ -497,12 +608,6 @@ function executeClearAll() {
   showClearAllConfirmation.value = false;
 }
 
-const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
-const loading = ref(false);
-const error = ref('');
-const fileInput = ref<HTMLInputElement | null>(null);
-const reconcileFileInput = ref<HTMLInputElement | null>(null);
-
 /**
  * Start from Scratch: Full reset.
  * Wipes the action history, clears player data from stores,
@@ -540,96 +645,44 @@ async function startFromScratch() {
   const baseState = createBaseEngineState(null);
   const initialSnapshot = computeSnapshot(baseState, context);
   await actionsStore.setInitialSnapshot(initialSnapshot);
+  isHeaderCollapsed.value = true;
 }
 
 /**
- * Import from Backup: Open a file picker to load a previously exported plan.
- */
-function triggerImport() {
-  fileInput.value?.click();
-}
-
-function handleImport(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (!input.files || input.files.length === 0) return;
-
-  const file = input.files[0];
-  const reader = new FileReader();
-
-  reader.onload = e => {
-    try {
-      const jsonString = e.target?.result as string;
-
-      if (actionsStore.actionCount > 0) {
-        if (!confirm('Importing a plan will overwrite your current actions. Continue?')) {
-          input.value = '';
-          return;
-        }
-      }
-
-      actionsStore.isReconciling = false;
-      actionsStore.importPlan(jsonString);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to import plan: Invalid file format.');
-    } finally {
-      input.value = '';
-    }
-  };
-
-  reader.readAsText(file);
-}
-
-/**
- * Reconcile Plan: Fetch latest backup AND load a plan file.
+ * Reconcile Plan: Fetch latest backup AND load a plan from library.
  */
 function triggerReconcile() {
-  reconcileFileInput.value?.click();
+  actionsStore.showIncompleteOnly = true;
+  showReconcileLibraryModal.value = true;
 }
 
-function handleReconcileImport(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (!input.files || input.files.length === 0) return;
+async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData) {
+  showReconcileLibraryModal.value = false;
+  loading.value = true;
+  error.value = '';
 
-  const file = input.files[0];
-  const reader = new FileReader();
+  try {
+    // 1. Fetch latest backup
+    await submitPlayerId(playerId.value);
 
-  reader.onload = async e => {
-    try {
-      const jsonString = e.target?.result as string;
-
-      loading.value = true;
-      error.value = '';
-
-      // 1. Fetch latest backup (same as submitPlayerId but keeps isReconciling true)
-      await submitPlayerId(playerId.value);
-
-      // 2. Set reconciliation mode and load the plan
-      actionsStore.isReconciling = true;
-      actionsStore.importPlan(jsonString);
-
-      // 3. Ensure we expanded the first group
-      if (actionsStore.actions.length > 0) {
-        actionsStore.expandedGroupIds.clear();
-        actionsStore.expandedGroupIds.add(actionsStore.actions[0].id);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Failed to reconcile plan: Invalid file format.');
-    } finally {
-      input.value = '';
-      loading.value = false;
-    }
-  };
-
-  reader.readAsText(file);
+    // 2. Set reconciliation mode and load the plan
+    actionsStore.isReconciling = true;
+    await actionsStore.loadPlanFromLibrary(plan);
+    isHeaderCollapsed.value = true;
+  } catch (err) {
+    console.error(err);
+    alert('Failed to reconcile plan.');
+  } finally {
+    loading.value = false;
+  }
 }
 
 function onFormInput(e: Event) {
   const target = e.target as HTMLInputElement;
-  if (target.id === 'playerId') {
+  if (target?.id === 'playerId') {
     playerId.value = target.value.trim();
   }
+  error.value = '';
 }
 
 async function submitPlayerId(id: string) {
@@ -644,10 +697,9 @@ async function submitPlayerId(id: string) {
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
-    // console.log('Player data (backup):', backup);
 
     // Store the backup data in initial state
-    let { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
+    const { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
       initialStateStore.loadFromBackup(id, backup);
 
     // Calculate extra eggs since backup if on a virtue egg
@@ -721,7 +773,6 @@ async function submitPlayerId(id: string) {
     }
 
     // Create the start_ascension action with initial snapshot
-    // We compute this from base conditions (clean farm + player global stats)
     const context = getSimulationContext();
     const baseState = createBaseEngineState(null);
     const initialSnapshot = computeSnapshot(baseState, context);
@@ -755,6 +806,7 @@ async function quickContinueAscension() {
     actionsStore.isReconciling = false;
     await actionsStore.continueFromBackup(true);
 
+    isHeaderCollapsed.value = true;
     loading.value = false;
   } catch (e) {
     loading.value = false;
@@ -827,6 +879,7 @@ async function planNextAscension() {
     const initialSnapshot = computeSnapshot(baseState, context);
     await actionsStore.setInitialSnapshot(initialSnapshot);
 
+    isHeaderCollapsed.value = true;
     loading.value = false;
   } catch (e) {
     loading.value = false;
@@ -834,4 +887,78 @@ async function planNextAscension() {
     console.error('Plan Next Ascension error:', e);
   }
 }
+
+async function saveCurrentPlan() {
+  if (!partitionHash.value) return;
+
+  if (actionsStore.activePlanId) {
+    const plans = await import('@/lib/storage/db').then(m => m.loadLibraryPlans(partitionHash.value!));
+    const current = plans.find(p => p.id === actionsStore.activePlanId);
+    if (current) {
+      await actionsStore.savePlan(current.name, partitionHash.value);
+      return;
+    }
+  }
+
+  // Prompt for name if no active plan
+  const name = prompt('Enter a name for this plan:');
+  if (name) {
+    await actionsStore.savePlan(name, partitionHash.value);
+  }
+}
+
+async function savePlanAs() {
+  if (!partitionHash.value) return;
+  const name = prompt('Enter a new name for this plan:');
+  if (name) {
+    // Reset ID to trigger a new save
+    const tempId = actionsStore.activePlanId;
+    actionsStore.activePlanId = null;
+    try {
+      await actionsStore.savePlan(name, partitionHash.value);
+    } catch (err) {
+      actionsStore.activePlanId = tempId;
+      alert('Save failed: ' + err);
+    }
+  }
+}
+
+// Chevron icon component
+const ChevronIcon = {
+  props: { expanded: Boolean },
+  template: `
+    <svg
+      class="w-5 h-5 text-gray-400 transition-transform"
+      :class="{ 'rotate-180': expanded }"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  `,
+};
 </script>
+
+<style scoped>
+.heading-xl {
+  @apply text-3xl md:text-4xl font-black uppercase tracking-tighter;
+}
+.text-gradient {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.section-premium {
+  @apply bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 overflow-hidden;
+}
+.btn-premium {
+  @apply rounded-xl font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-2;
+}
+.btn-primary {
+  @apply bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95;
+}
+.btn-ghost {
+  @apply bg-transparent hover:bg-slate-50 border border-slate-100;
+}
+</style>

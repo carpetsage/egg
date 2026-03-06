@@ -10,25 +10,33 @@ import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import type { VirtueEgg, Action } from '@/types';
 
-export function exportPlanLogic(actions: Action[]) {
+export function exportPlanData(actions: Action[], initialSnapshot?: import('@/types').CalculationsSnapshot) {
   const initialStateStore = useInitialStateStore();
   const virtueStore = useVirtueStore();
   const fuelTankStore = useFuelTankStore();
   const truthEggsStore = useTruthEggsStore();
 
-  const exportData = {
+  const baseSoulEggs = initialSnapshot ? initialSnapshot.soulEggs : initialStateStore.soulEggs;
+  const baseLoadout = initialSnapshot ? initialSnapshot.artifactLoadout : initialStateStore.artifactLoadout;
+  const baseSets = initialSnapshot ? initialSnapshot.artifactSets : initialStateStore.artifactSets;
+  const baseActiveSet = initialSnapshot ? initialSnapshot.activeArtifactSet : initialStateStore.activeArtifactSet;
+  const baseFuelAmounts = initialSnapshot ? initialSnapshot.fuelTankAmounts : fuelTankStore.fuelAmounts;
+  const baseEggsDelivered = initialSnapshot ? initialSnapshot.eggsDelivered : truthEggsStore.eggsDelivered;
+  const baseTeEarned = initialSnapshot ? initialSnapshot.teEarned : truthEggsStore.teEarned;
+
+  return {
     version: 1,
     timestamp: Date.now(),
     initialState: {
       playerId: 'EIxxxxxxxxxx',
       nickname: 'Redacted',
       lastBackupTime: 0,
-      soulEggs: initialStateStore.soulEggs,
+      soulEggs: baseSoulEggs,
       epicResearchLevels: initialStateStore.epicResearchLevels,
       colleggtibleTiers: initialStateStore.colleggtibleTiers,
-      artifactLoadout: initialStateStore.artifactLoadout,
-      artifactSets: initialStateStore.artifactSets,
-      activeArtifactSet: initialStateStore.activeArtifactSet,
+      artifactLoadout: baseLoadout,
+      artifactSets: baseSets,
+      activeArtifactSet: baseActiveSet,
       currentFarmState: initialStateStore.currentFarmState,
       assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
       initialFuelAmounts: initialStateStore.initialFuelAmounts,
@@ -44,14 +52,21 @@ export function exportPlanLogic(actions: Action[]) {
     },
     fuelTankState: {
       tankLevel: fuelTankStore.tankLevel,
-      fuelAmounts: fuelTankStore.fuelAmounts,
+      fuelAmounts: baseFuelAmounts,
     },
     truthEggsState: {
-      eggsDelivered: truthEggsStore.eggsDelivered,
-      teEarned: truthEggsStore.teEarned,
+      eggsDelivered: baseEggsDelivered,
+      teEarned: baseTeEarned,
     },
     actions: actions,
   };
+}
+
+export function exportPlanLogic(actions: Action[], initialSnapshot?: import('@/types').CalculationsSnapshot) {
+  const exportData = exportPlanData(actions, initialSnapshot);
+
+  // Sanitization: Ensure any internal mapping IDs or partitions are NOT in the export
+  // (In this case, EIxxxxxxxxxx is already a placeholder, and we don't include storage keys)
 
   const jsonString = JSON.stringify(exportData, null, 2);
   const now = new Date();

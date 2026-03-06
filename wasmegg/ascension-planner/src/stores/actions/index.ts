@@ -16,8 +16,6 @@ import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
-import { useFuelTankStore } from '@/stores/fuelTank';
-import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useSilosStore } from '@/stores/silos';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useHabCapacityStore } from '@/stores/habCapacity';
@@ -25,13 +23,6 @@ import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useEventsStore } from '@/stores/events';
 
 import { simulateAsync } from '@/engine/simulate';
-import {
-  applyAction,
-  computePassiveEggsDelivered,
-  applyPassiveEggs,
-  applyTime,
-  getActionDuration,
-} from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
 import { computeDependencies } from '@/lib/actions/executor';
@@ -39,7 +30,7 @@ import { computeDependencies } from '@/lib/actions/executor';
 import { ActionsState } from './types';
 import { createDefaultStartAction, calculateActionResult } from './simulation';
 import { relinkDependenciesLogic, getActionsRequiringRemovalLogic, collectDependentActions } from './dependency';
-import { exportPlanLogic, importPlanLogic } from './io';
+import { exportPlanLogic, importPlanLogic, exportPlanData } from './io';
 
 export const useActionsStore = defineStore('actions', {
   state: (): ActionsState => {
@@ -55,7 +46,9 @@ export const useActionsStore = defineStore('actions', {
       minBatchIndex: Infinity,
       isReconciling: false,
       reconciledBackupTime: 0,
-      showIncompleteOnly: false,
+      showIncompleteOnly: true,
+      activePlanId: null,
+      lastSavedActionsJson: '[]',
     };
   },
 
@@ -174,6 +167,11 @@ export const useActionsStore = defineStore('actions', {
         if (statuses.every(s => s === 'na')) return 'na';
         return 'completed';
       };
+    },
+
+    isDirty(): boolean {
+      const currentActionsJson = JSON.stringify(this.actions);
+      return currentActionsJson !== this.lastSavedActionsJson;
     },
   },
 
@@ -392,6 +390,7 @@ export const useActionsStore = defineStore('actions', {
     },
 
     async clearAll(resetCallback?: () => void) {
+      this.activePlanId = null;
       let startAction = this.getStartAction();
       if (startAction) {
         startAction.payload.initialEgg = startAction.payload.initialEgg || 'curiosity';
@@ -403,6 +402,7 @@ export const useActionsStore = defineStore('actions', {
       this.expandedGroupIds.clear();
       this.expandedGroupIds.add(startAction.id);
       await this.recalculateFrom(0);
+      this.lastSavedActionsJson = JSON.stringify(this.actions);
       if (resetCallback) resetCallback();
     },
 
@@ -437,7 +437,8 @@ export const useActionsStore = defineStore('actions', {
       const shippingCapacityStore = useShippingCapacityStore();
 
       if (!initialStateStore.currentFarmState) return;
-      if (initialStateStore.artifactSets.elr) initialStateStore.setActiveArtifactSet('elr');
+      // We no longer force ELR set here; we respect the active set from the backup/plan.
+      // if (initialStateStore.artifactSets.elr) initialStateStore.setActiveArtifactSet('elr');
 
       const farm = initialStateStore.currentFarmState;
       const egg = VIRTUE_EGGS[farm.eggType - 50];
@@ -481,7 +482,7 @@ export const useActionsStore = defineStore('actions', {
             payload: { active: true, multiplier: event.multiplier, eventId: event.id },
           });
         }
-        const saleMap: Record<string, any> = {
+        const saleMap: Record<string, { type: 'research' | 'hab' | 'vehicle'; egg: string }> = {
           'research-sale': { type: 'research', egg: 'curiosity' },
           'hab-sale': { type: 'hab', egg: 'integrity' },
           'vehicle-sale': { type: 'vehicle', egg: 'kindness' },
@@ -573,7 +574,7 @@ export const useActionsStore = defineStore('actions', {
       this.isRecalculating = true;
       try {
         const context = getSimulationContext();
-        let baseState =
+        const baseState =
           startIndex === 0 ? createBaseEngineState(this._initialSnapshot) : this.actions[startIndex - 1].endState;
         const actionsToSimulate = this.actions.slice(startIndex);
         this.recalculationProgress = { current: 0, total: actionsToSimulate.length };
@@ -610,12 +611,13 @@ export const useActionsStore = defineStore('actions', {
     },
 
     exportPlan() {
-      exportPlanLogic(this.actions);
+      exportPlanLogic(this.actions, this.initialSnapshot);
     },
 
-    importPlan(jsonString: string) {
+    async importPlan(jsonString: string) {
       const data = importPlanLogic(jsonString);
       this.actions = data.actions;
+      this.lastSavedActionsJson = JSON.stringify(this.actions);
 
       // Expand first group by default
       if (this.actions.length > 0) {
@@ -625,8 +627,30 @@ export const useActionsStore = defineStore('actions', {
 
       const initialSnapshot = computeSnapshot(createBaseEngineState(null), getSimulationContext());
       this._initialSnapshot = markRaw(initialSnapshot);
-      this.recalculateAll();
+      await this.recalculateAll();
+      this.lastSavedActionsJson = JSON.stringify(this.actions);
       return true;
+    },
+
+    async savePlan(name: string, partitionHash: string) {
+      const planId = this.activePlanId || generateActionId();
+      const planData = {
+        id: planId,
+        name,
+        timestamp: Date.now(),
+        data: exportPlanData(this.actions, this.initialSnapshot),
+      };
+
+      const { savePlanToLibrary } = await import('@/lib/storage/db');
+      await savePlanToLibrary(partitionHash, planData);
+
+      this.activePlanId = planId;
+      this.lastSavedActionsJson = JSON.stringify(this.actions);
+    },
+
+    async loadPlanFromLibrary(plan: import('@/lib/storage/db').PlanData) {
+      this.activePlanId = plan.id;
+      this.importPlan(JSON.stringify(plan.data));
     },
   },
 });

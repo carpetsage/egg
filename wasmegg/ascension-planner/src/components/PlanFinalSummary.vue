@@ -74,27 +74,23 @@
       <!-- Actions Group -->
       <div class="flex items-center gap-2">
         <div class="flex items-center rounded-2xl bg-slate-50 border border-slate-100 p-1 shadow-inner">
-          <button class="btn-icon-premium" v-tippy="'Export and Download Plan'" @click="handleExport">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-          </button>
-          <button class="btn-icon-premium" v-tippy="'Upload and Import Plan'" @click="triggerImport">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-              />
-            </svg>
-          </button>
-        </div>
+           <button class="btn-icon-premium" v-tippy="'Save Plan'" @click="emit('save-plan')">
+             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+               <polyline points="17 21 17 13 7 13 7 21" />
+               <polyline points="7 3 7 8 15 8" />
+             </svg>
+           </button>
+           <button class="btn-icon-premium" v-tippy="'Save Plan As...'" @click="emit('save-plan-as')">
+             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+               <polyline points="17 21 17 13 7 13 7 21" />
+               <polyline points="7 3 7 8 15 8" />
+               <path d="M12 17h4" />
+               <path d="M14 15v4" />
+             </svg>
+           </button>
+         </div>
 
         <input ref="fileInput" type="file" accept=".json" class="hidden" @change="handleImport" />
 
@@ -161,6 +157,8 @@ const virtueStore = useVirtueStore();
 const emit = defineEmits<{
   'show-details': [];
   'update:collapsed': [value: boolean];
+  'save-plan': [];
+  'save-plan-as': [];
 }>();
 
 const isCollapsed = ref(false);
@@ -242,9 +240,7 @@ function formatDateTime(date: Date): string {
 // Import/Export Logic
 const fileInput = ref<HTMLInputElement | null>(null);
 
-function handleExport() {
-  actionsStore.exportPlan();
-}
+
 
 function triggerImport() {
   fileInput.value?.click();
