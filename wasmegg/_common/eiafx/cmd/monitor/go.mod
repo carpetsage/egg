@@ -9,7 +9,7 @@ require (
 	github.com/carpetsage/EggContractor v0.0.0-20240316032248-6f0d0d73bd97
 	github.com/fanaticscripter/EggContractor v0.0.0-20230901162103-3445bf9dd81a
 	github.com/google/go-cmp v0.7.0
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/pflag v1.0.6
 	google.golang.org/protobuf v1.36.10
 )
@@ -460,7 +460,7 @@ require (
 	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/spf13/viper v1.18.2 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/stretchr/testify v1.9.0 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tidwall/pretty v1.0.0 // indirect
 	github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926 // indirect
