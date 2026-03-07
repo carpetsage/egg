@@ -17,7 +17,21 @@ import {
 } from 'lib/artifacts/virtue_effects';
 import { EquippedArtifact } from './types';
 import { libArtifactToEquippedArtifact } from './utils';
-import { createEmptyLoadout } from './calculator';
+import {
+  calculateArtifactModifiers,
+  createEmptyLoadout,
+} from './calculator';
+import { calculateLayRate } from '@/calculations/layRate';
+import {
+  calculateShippingCapacity,
+  calculateMaxVehicleSlots,
+  calculateMaxTrainLength,
+} from '@/calculations/shippingCapacity';
+import { calculateEffectiveLayRate } from '@/calculations/effectiveLayRate';
+import { calculateHabCapacity_Full } from '@/calculations/habCapacity';
+import { getArtifact, getStone, artifactOptions } from './data';
+import { InventoryItem } from 'lib/artifacts';
+import { VehicleSlot } from '@/types';
 
 /**
  * Calculate Clothed TE (theoretical earnings metric).
@@ -123,4 +137,363 @@ export function getOptimalEarningsSet(backup: ei.IBackup): EquippedArtifact[] {
   const { artifactSet } = contenderToArtifactSet(contender, equipped, inventory);
 
   return artifactSet.artifacts.map(libArtifactToEquippedArtifact);
+}
+
+/**
+ * Get the optimal artifact set for ELR (Effective Lay Rate).
+ * Factors in Metronomes, Compasses, Gussets, and Tachyon/Quantum stones.
+ */
+export function getOptimalELRSet(
+  backup: ei.IBackup,
+  options: { assumeMaxHabsVehicles?: boolean, currentSet?: (EquippedArtifact | null)[] } = {}
+): EquippedArtifact[] {
+  if (!backup.artifactsDb) {
+    return createEmptyLoadout();
+  }
+
+  const assumeMax = options.assumeMaxHabsVehicles ?? false;
+  const inventory = new Inventory(backup.artifactsDb, { virtue: true });
+  const colleggtibles = allModifiersFromColleggtibles(backup);
+
+  // 1. Gather research levels
+  const commonResearch: Record<string, number> = {};
+  for (const r of backup.farms?.[0]?.commonResearch || []) {
+    if (r.id) commonResearch[r.id] = r.level || 0;
+  }
+
+  const epicResearchLevels: Record<string, number> = {};
+  for (const r of backup.game?.epicResearch || []) {
+    if (r.id) epicResearchLevels[r.id] = r.level || 0;
+  }
+
+  // 2. Identify top candidate artifacts
+  const name = ei.ArtifactSpec.Name;
+  const targetAfxIds = new Set([name.QUANTUM_METRONOME, name.INTERSTELLAR_COMPASS, name.ORNATE_GUSSET]);
+
+  // Candidate Wrapper
+  type Candidate = { item: InventoryItem; rarity: ei.ArtifactSpec.Rarity; slots: number; isTarget: boolean };
+  const afxGroups = new Map<number, Candidate[]>();
+
+  for (const item of inventory.items) {
+    if (item.have === 0 || !item.isArtifact) continue;
+
+    const afxId = item.afxId;
+    const isTarget = targetAfxIds.has(afxId);
+
+    // Find best rarity for this tier
+    for (const rarity of [
+      ei.ArtifactSpec.Rarity.LEGENDARY,
+      ei.ArtifactSpec.Rarity.EPIC,
+      ei.ArtifactSpec.Rarity.RARE,
+      ei.ArtifactSpec.Rarity.COMMON,
+    ]) {
+      if (item.haveRarity[rarity] > 0) {
+        const slots = item.stoneSlotCount(rarity);
+        const cand: Candidate = { item, rarity, slots, isTarget };
+
+        if (!afxGroups.has(afxId)) afxGroups.set(afxId, []);
+        afxGroups.get(afxId)!.push(cand);
+        break; // Only take best rarity of each tier
+      }
+    }
+  }
+
+  const finalCandidates: Candidate[] = [];
+
+  // Sort each AFX group by "goodness"
+  for (const [afxId, group] of afxGroups.entries()) {
+    const isTarget = targetAfxIds.has(afxId);
+
+    if (isTarget) {
+      group.sort((a, b) => {
+        if (a.item.tierNumber !== b.item.tierNumber) return b.item.tierNumber - a.item.tierNumber;
+        if (a.rarity !== b.rarity) return b.rarity - a.rarity;
+        return b.slots - a.slots;
+      });
+      // Take top 2 from each target family (e.g. T4L and T3L Gussets)
+      finalCandidates.push(...group.slice(0, 2));
+    } else {
+      group.sort((a, b) => {
+        if (a.slots !== b.slots) return b.slots - a.slots;
+        return b.item.tierNumber - a.item.tierNumber;
+      });
+      // For non-targets, we only care about the single best carrier from this family
+      finalCandidates.push(group[0]);
+    }
+  }
+
+  // Pick top 4 of the non-target leaders based on slots
+  const targetCands = finalCandidates.filter(c => c.isTarget);
+  const nonTargetCands = finalCandidates.filter(c => !c.isTarget).sort((a, b) => b.slots - a.slots).slice(0, 4);
+
+  const topCandidates = [...targetCands, ...nonTargetCands];
+
+  // 3. Gather available stones (Tachyon and Quantum)
+  const tachyonStones = inventory.items
+    .filter(i => i.isStone && i.props.family.id === 'tachyon-stone' && i.tierNumber >= 2)
+    .map(i => ({
+      id: i.id,
+      delta: i.props.effects?.[0]?.effect_delta || 0,
+      count: i.haveCommon,
+      tier: i.tierNumber,
+    }))
+    .sort((a, b) => b.tier - a.tier);
+
+  const quantumStones = inventory.items
+    .filter(i => i.isStone && i.props.family.id === 'quantum-stone' && i.tierNumber >= 2)
+    .map(i => ({
+      id: i.id,
+      delta: i.props.effects?.[0]?.effect_delta || 0,
+      count: i.haveCommon,
+      tier: i.tierNumber,
+    }))
+    .sort((a, b) => b.tier - a.tier);
+
+  // 4. Optimization Loop
+  let bestSet: EquippedArtifact[] = createEmptyLoadout();
+  let maxELR = -1;
+  let bestMetrics: any = null;
+
+  // Search through combinations of 1 to 4 artifacts
+  // 12C4 = 495, which is small enough.
+  function combinations<T>(array: T[], r: number): T[][] {
+    const result: T[][] = [];
+    function helper(start: number, combo: T[]) {
+      if (combo.length === r) {
+        result.push([...combo]);
+        return;
+      }
+      for (let i = start; i < array.length; i++) {
+        helper(i + 1, [...combo, array[i]]);
+      }
+    }
+    helper(0, []);
+    return result;
+  }
+
+  const combos = [
+    ...combinations(topCandidates, 1),
+    ...combinations(topCandidates, 2),
+    ...combinations(topCandidates, 3),
+    ...combinations(topCandidates, 4),
+  ];
+
+  for (const comboWrappers of combos) {
+    const hasTarget = comboWrappers.some((w: Candidate) => w.isTarget);
+
+    // Ensure all artifacts in the combination are from unique families
+    const families = new Set(comboWrappers.map((w: Candidate) => w.item.props.family.afx_id));
+    if (families.size !== comboWrappers.length) {
+      continue;
+    }
+
+    const loadout: EquippedArtifact[] = comboWrappers.map((wrapper: Candidate) => {
+      return {
+        // Use the family ID from props. This maps correctly to gusset-x-y instead of ornate-gusset-x-y
+        artifactId: `${wrapper.item.props.family.id}-${wrapper.item.tierNumber}-${wrapper.rarity}`,
+        stones: new Array(wrapper.slots).fill(null),
+      };
+    });
+
+    // Padding to 4 slots
+    while (loadout.length < 4) {
+      loadout.push({ artifactId: null, stones: [] });
+    }
+
+    // Balance stones
+    const totalStoneSlots = loadout.reduce((sum, slot) => sum + slot.stones.length, 0);
+
+    let bestStonesForThisLoadout: (string | null)[] = [];
+    let bestELRForThisLoadout = -1;
+    let bestMetricsForThisLoadout: any = null;
+
+    // To balance efficiently, we try all counts of Tachyon vs Quantum stones
+    for (let tCount = 0; tCount <= totalStoneSlots; tCount++) {
+      const qCount = totalStoneSlots - tCount;
+
+      // Fill with actual stones from inventory
+      const tStonesToUse: string[] = [];
+      let remT = tCount;
+      for (const s of tachyonStones) {
+        const take = Math.min(remT, s.count);
+        for (let i = 0; i < take; i++) tStonesToUse.push(s.id);
+        remT -= take;
+      }
+
+      const qStonesToUse: string[] = [];
+      let remQ = qCount;
+      for (const s of quantumStones) {
+        const take = Math.min(remQ, s.count);
+        for (let i = 0; i < take; i++) qStonesToUse.push(s.id);
+        remQ -= take;
+      }
+
+      // Create a temporary loadout with these stones
+      const tempLoadout: EquippedArtifact[] = JSON.parse(JSON.stringify(loadout));
+      let tIdx = 0;
+      let qIdx = 0;
+      for (const slot of tempLoadout) {
+        for (let i = 0; i < slot.stones.length; i++) {
+          if (tIdx < tStonesToUse.length) {
+            slot.stones[i] = tStonesToUse[tIdx++];
+          } else if (qIdx < qStonesToUse.length) {
+            slot.stones[i] = qStonesToUse[qIdx++];
+          }
+        }
+      }
+
+      // Calculate Metrics
+      const artifactMods = calculateArtifactModifiers(tempLoadout);
+
+      // Hab Capacity
+      const habIds = assumeMax
+        ? [18, 18, 18, 18]
+        : (backup.farms?.[0]?.habs || []).map(h => (h === 19 ? null : h));
+      while (!assumeMax && habIds.length < 4) habIds.push(null);
+
+      const habCapOutput = calculateHabCapacity_Full({
+        habIds: habIds as any,
+        researchLevels: commonResearch,
+        peggMultiplier: colleggtibles.habCap,
+        artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
+        artifactEffects: artifactMods.habCapacity.effects,
+      });
+      const population = habCapOutput.totalFinalCapacity;
+
+      // Lay Rate
+      const layRateOutput = calculateLayRate({
+        researchLevels: commonResearch,
+        epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
+        siliconMultiplier: colleggtibles.elr,
+        population,
+        artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
+        artifactEffects: artifactMods.eggLayingRate.effects,
+      });
+
+      // Shipping Capacity
+      let vehicles: VehicleSlot[] = [];
+      const farm = backup.farms?.[0];
+      if (farm) {
+        if (assumeMax) {
+          const totalSlots = calculateMaxVehicleSlots(commonResearch);
+          const maxTrainLen = calculateMaxTrainLength(commonResearch);
+          vehicles = new Array(totalSlots).fill(null).map(() => ({ vehicleId: 11, trainLength: maxTrainLen }));
+        } else {
+          // Map from backup number arrays
+          const vehicleTypes = farm.vehicles || [];
+          const trainLengths = farm.trainLength || [];
+          vehicles = vehicleTypes.map((type, i) => ({
+            vehicleId: type,
+            trainLength: trainLengths[i] || 1,
+          }));
+        }
+      } else {
+        vehicles = [{ vehicleId: 0, trainLength: 1 }];
+      }
+
+      const shippingOutput = calculateShippingCapacity({
+        vehicles,
+        researchLevels: commonResearch,
+        transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
+        colleggtibleMultiplier: colleggtibles.shippingCap,
+        artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
+        artifactEffects: artifactMods.shippingRate.effects,
+      });
+
+      const elr = calculateEffectiveLayRate(layRateOutput.totalRatePerSecond, shippingOutput.totalFinalCapacity);
+
+      // Tie-breaker: If ELR is the same, pick the one with higher raw lay rate
+      // This favors Gussets even when shipping is the bottleneck.
+      const currentLayRate = layRateOutput.totalRatePerSecond;
+      const bestLayRateSoFar = bestMetricsForThisLoadout?.layRate ?? -1;
+
+      const isBetter = elr.effectiveLayRate > bestELRForThisLoadout ||
+        (elr.effectiveLayRate === bestELRForThisLoadout && currentLayRate > bestLayRateSoFar);
+
+      if (isBetter) {
+        bestELRForThisLoadout = elr.effectiveLayRate;
+        bestStonesForThisLoadout = tempLoadout.map(s => s.stones).flat();
+        bestMetricsForThisLoadout = {
+          layRate: currentLayRate,
+          shipRate: shippingOutput.totalFinalCapacity,
+          population,
+          habs: habIds,
+          vehicles,
+        };
+      }
+    }
+
+    const currentBestLayRate = bestMetricsForThisLoadout?.layRate ?? -1;
+    const globalBestLayRate = bestMetrics?.layRate ?? -1;
+
+    const isGlobalBetter = bestELRForThisLoadout > maxELR ||
+      (bestELRForThisLoadout === maxELR && currentBestLayRate > globalBestLayRate);
+
+    if (isGlobalBetter) {
+      maxELR = bestELRForThisLoadout;
+      const optimizedLoadout = JSON.parse(JSON.stringify(loadout));
+      let sIdx = 0;
+      for (const slot of optimizedLoadout) {
+        for (let i = 0; i < slot.stones.length; i++) {
+          slot.stones[i] = bestStonesForThisLoadout[sIdx++];
+        }
+      }
+      bestSet = optimizedLoadout;
+      bestMetrics = bestMetricsForThisLoadout;
+    }
+  }
+
+  if (options.currentSet && isFunctionallyIdentical(bestSet, options.currentSet)) {
+    return options.currentSet as EquippedArtifact[];
+  }
+
+  return bestSet;
+}
+
+/**
+ * Compare two artifact sets for functional equivalence.
+ */
+function isFunctionallyIdentical(
+  setA: EquippedArtifact[],
+  setB: (EquippedArtifact | null)[] | undefined
+): boolean {
+  if (!setA || !setB) return false;
+
+  const targetAfxIds = [
+    ei.ArtifactSpec.Name.QUANTUM_METRONOME,
+    ei.ArtifactSpec.Name.INTERSTELLAR_COMPASS,
+    ei.ArtifactSpec.Name.ORNATE_GUSSET,
+  ];
+
+  const normalize = (set: (EquippedArtifact | null)[]) => {
+    const targets: string[] = []; // Target IDs (e.g. quantum-metronome-4-3)
+    const holderSlots: number[] = []; // Slot counts for non-target artifacts
+    const stoneCounts: Record<string, number> = {};
+
+    for (const slot of set) {
+      if (!slot?.artifactId) continue;
+      const artifact = getArtifact(slot.artifactId);
+      if (!artifact) continue;
+
+      if (targetAfxIds.includes(artifact.afxId as any)) {
+        targets.push(slot.artifactId);
+      } else {
+        holderSlots.push(artifact.slots);
+      }
+
+      for (const stoneId of slot.stones) {
+        if (stoneId) {
+          stoneCounts[stoneId] = (stoneCounts[stoneId] || 0) + 1;
+        }
+      }
+    }
+
+    return JSON.stringify({
+      targets: targets.sort(),
+      holders: holderSlots.sort((a, b) => a - b),
+      stones: Object.entries(stoneCounts).sort((a, b) => a[0].localeCompare(b[0])),
+    });
+  };
+
+  return normalize(setA) === normalize(setB);
 }

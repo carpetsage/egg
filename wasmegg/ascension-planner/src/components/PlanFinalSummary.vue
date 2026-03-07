@@ -42,13 +42,19 @@
         <span class="summary-label">Shifts</span>
         <div class="flex items-center gap-2">
           <span class="summary-value font-mono-premium font-black text-slate-600">{{ shiftCount }}</span>
-          <span
+          <div
             v-if="totalShiftCost > 0"
-            class="badge-premium bg-slate-50 text-slate-700/70 border border-slate-100 px-2 py-0.5 whitespace-nowrap"
+            class="flex flex-col justify-center border-l border-slate-100 pl-2 h-7 opacity-80"
+            v-tippy="{ content: 'Spent • Remaining', placement: 'top' }"
           >
-            ({{ formatNumber(totalShiftCost, 3) }} SE
-            <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5 inline-block -mt-1 ml-0.5" alt="SE" />)
-          </span>
+            <div class="text-[8px] font-black leading-none text-slate-400 mb-1">
+              -{{ formatNumber(totalShiftCost, 1) }}
+            </div>
+            <div class="text-[9px] font-black leading-none text-slate-600 flex items-center gap-0.5">
+              {{ formatNumber(finalSE, 1) }}
+              <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-2.5 h-2.5" alt="SE" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -68,27 +74,23 @@
       <!-- Actions Group -->
       <div class="flex items-center gap-2">
         <div class="flex items-center rounded-2xl bg-slate-50 border border-slate-100 p-1 shadow-inner">
-          <button class="btn-icon-premium" v-tippy="'Export and Download Plan'" @click="handleExport">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-          </button>
-          <button class="btn-icon-premium" v-tippy="'Upload and Import Plan'" @click="triggerImport">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-              />
-            </svg>
-          </button>
-        </div>
+           <button class="btn-icon-premium" v-tippy="'Save Plan'" @click="emit('save-plan')">
+             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+               <polyline points="17 21 17 13 7 13 7 21" />
+               <polyline points="7 3 7 8 15 8" />
+             </svg>
+           </button>
+           <button class="btn-icon-premium" v-tippy="'Save Plan As...'" @click="emit('save-plan-as')">
+             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+               <polyline points="17 21 17 13 7 13 7 21" />
+               <polyline points="7 3 7 8 15 8" />
+               <path d="M12 17h4" />
+               <path d="M14 15v4" />
+             </svg>
+           </button>
+         </div>
 
         <input ref="fileInput" type="file" accept=".json" class="hidden" @change="handleImport" />
 
@@ -155,6 +157,8 @@ const virtueStore = useVirtueStore();
 const emit = defineEmits<{
   'show-details': [];
   'update:collapsed': [value: boolean];
+  'save-plan': [];
+  'save-plan-as': [];
 }>();
 
 const isCollapsed = ref(false);
@@ -215,6 +219,8 @@ const totalShiftCost = computed(() => {
   return actionsStore.actions.filter(a => a.type === 'shift').reduce((sum, a) => sum + a.cost, 0);
 });
 
+const finalSE = computed(() => actionsStore.currentSnapshot.soulEggs);
+
 const currentTE = computed(() => calculateTotalPotentialTE(actionsStore.currentSnapshot));
 const initialClaimedTE = computed(() => virtueStore.initialTE);
 const teGained = computed(() => currentTE.value - initialClaimedTE.value);
@@ -234,9 +240,7 @@ function formatDateTime(date: Date): string {
 // Import/Export Logic
 const fileInput = ref<HTMLInputElement | null>(null);
 
-function handleExport() {
-  actionsStore.exportPlan();
-}
+
 
 function triggerImport() {
   fileInput.value?.click();

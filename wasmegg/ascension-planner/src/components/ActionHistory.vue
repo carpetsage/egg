@@ -1,13 +1,5 @@
 <template>
   <div class="space-y-4">
-    <!-- Header with total cost -->
-    <div class="flex justify-between items-center px-4 py-2 bg-slate-50/50 rounded-xl border border-slate-100">
-      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ actionCount }} Actions</span>
-      <span class="text-sm font-bold text-slate-800 font-mono-premium">
-        Total <span class="text-slate-900">{{ formatGemPrice(totalCost) }}</span> G
-      </span>
-    </div>
-
     <!-- Empty state (only show if no start_ascension exists) -->
     <div v-if="!hasStartAction" class="text-center py-12 bg-white rounded-2xl border border-slate-100 border-dashed">
       <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">

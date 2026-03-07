@@ -447,17 +447,34 @@
                   :alt="egg"
                 />
               </div>
-              <span class="flex-1 text-xs font-bold text-slate-700 uppercase tracking-tight">{{
-                VIRTUE_EGG_NAMES[egg]
-              }}</span>
-              <input
-                type="text"
-                :value="formatNumber(fuelAmounts[egg], 1)"
-                class="input-premium w-40 text-right text-sm font-mono-premium font-bold text-slate-900"
-                placeholder="0"
-                @blur="handleFuelAmountChange(egg, ($event.target as HTMLInputElement).value)"
-                @keydown.enter="($event.target as HTMLInputElement).blur()"
-              />
+              <div class="flex-1">
+                <div class="text-xs font-bold text-slate-700 uppercase tracking-tight">{{ VIRTUE_EGG_NAMES[egg] }}</div>
+              </div>
+              <div class="flex flex-col items-end">
+                <div class="flex items-center gap-2">
+                  <svg
+                    v-if="getRoundingShortfall(fuelAmounts[egg]) > 0"
+                    v-tippy="'Rounding is likely to cause a problem for you, since you are below the displayed number of eggs.'"
+                    class="w-4 h-4 text-warning"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <input
+                    type="text"
+                    :value="formatNumber(fuelAmounts[egg], 1)"
+                    class="input-premium w-40 text-right text-sm font-mono-premium font-bold text-slate-900"
+                    placeholder="0"
+                    @blur="handleFuelAmountChange(egg, ($event.target as HTMLInputElement).value)"
+                    @keydown.enter="($event.target as HTMLInputElement).blur()"
+                  />
+                </div>
+                <div v-if="getRoundingShortfall(fuelAmounts[egg]) > 0" class="text-[9px] text-danger font-bold uppercase tracking-widest mt-1">
+                  You're short by {{ formatFullNumber(getRoundingShortfall(fuelAmounts[egg])) }} eggs
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -617,7 +634,7 @@ import { VIRTUE_EGGS, VIRTUE_EGG_NAMES } from '@/types';
 import { epicResearchDefs } from '@/lib/epicResearch';
 import type { EquippedArtifact } from '@/lib/artifacts';
 import { TANK_CAPACITIES, VIRTUE_FUEL_ORDER } from '@/stores/fuelTank';
-import { formatNumber, parseNumber } from '@/lib/format';
+import { formatNumber, parseNumber, formatFullNumber } from '@/lib/format';
 import ArtifactSelector from '@/components/ArtifactSelector.vue';
 import { createEmptyLoadout } from '@/lib/artifacts';
 import {
@@ -744,6 +761,20 @@ function handleSoulEggsChange(inputValue: string) {
   if (parsed !== null && !isNaN(parsed)) {
     emit('set-soul-eggs', parsed);
   }
+}
+
+// Calculate rounding shortfall
+function getRoundingShortfall(actual: number): number {
+  if (!actual || actual <= 0) return 0;
+  const formatted = formatNumber(actual, 1);
+  const parsed = parseNumber(formatted);
+  if (parsed > actual) {
+    const diff = parsed - actual;
+    if (diff < 100) {
+      return Math.round(diff);
+    }
+  }
+  return 0;
 }
 
 // Get all available timezones grouped by region

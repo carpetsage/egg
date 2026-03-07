@@ -37,37 +37,73 @@
 
     <!-- Active Set Editor -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible">
-      <div class="px-3 py-1.5 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Configuration</span>
-          <span class="px-2 py-0.5 bg-gray-200 text-gray-600 rounded text-[9px] font-black uppercase tracking-tight">
-            {{ selectedTab }}
-          </span>
+      <div class="px-3 py-2 bg-gray-50/50 border-b border-gray-100 flex flex-col gap-2.5">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Configuration</span>
+            <span class="px-2 py-0.5 bg-gray-200 text-gray-600 rounded text-[9px] font-black uppercase tracking-tight">
+              {{ selectedTab }}
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <template v-if="activeArtifactSet !== selectedTab">
+              <button
+                class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg shadow-sm transition-colors"
+                @click="equipSet"
+              >
+                Equip Set
+              </button>
+            </template>
+
+            <template v-if="isDirty">
+              <button
+                class="text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase tracking-wider"
+                @click="undoChanges"
+              >
+                Undo
+              </button>
+              <button
+                class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg shadow-sm transition-colors"
+                @click="saveChanges"
+              >
+                Save Changes
+              </button>
+            </template>
+          </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <template v-if="isDirty">
-            <button
-              class="text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase tracking-wider"
-              @click="undoChanges"
+        <div v-if="selectedTab === 'elr'" class="flex items-center justify-end gap-3 border-t border-gray-200/60 pt-2 -mt-1">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-tight"
+              >Assume Max Habs/Vehicles</span
             >
-              Undo
-            </button>
             <button
-              class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg shadow-sm transition-colors"
-              @click="saveChanges"
+              @click="assumeMaxHabsVehicles = !assumeMaxHabsVehicles"
+              class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+              :class="assumeMaxHabsVehicles ? 'bg-amber-600' : 'bg-gray-200'"
             >
-              Save Changes
+              <span
+                class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                :class="assumeMaxHabsVehicles ? 'translate-x-4' : 'translate-x-0'"
+              ></span>
             </button>
-          </template>
-          <template v-else-if="activeArtifactSet !== selectedTab">
-            <button
-              class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg shadow-sm transition-colors"
-              @click="equipSet"
-            >
-              Equip Set
-            </button>
-          </template>
+          </div>
+
+          <button
+            class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+            @click="equipOptimalELR"
+            v-tippy="'Find and equip the best ELR set from your inventory'"
+          >
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Optimal ELR
+          </button>
         </div>
       </div>
 
@@ -77,25 +113,29 @@
     </div>
 
     <div class="bg-blue-50/30 rounded-xl p-2.5 border border-blue-100/50">
-      <div class="flex items-start gap-2.5">
-        <div class="mt-0.5 text-blue-400">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+      <div class="flex flex-col gap-2">
+        <div class="flex items-start gap-2.5">
+          <div class="mt-0.5 text-blue-400">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-tight mb-0.5">Set Optimization</h4>
+            <p class="text-[10px] text-blue-700 leading-tight">
+              <strong>Earnings:</strong> Necklaces, Ankhs, Cubes, Lunar stones.
+              <br />
+              <strong>ELR:</strong> Metronomes, Compasses, Tachyon/Quantum stones.
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 class="text-[10px] font-bold text-blue-900 uppercase tracking-tight mb-0.5">Set Optimization</h4>
-          <p class="text-[10px] text-blue-700 leading-tight">
-            <strong>Earnings:</strong> Necklaces, Ankhs, Cubes, Lunar stones.
-            <br />
-            <strong>ELR:</strong> Metronomes, Compasses, Tachyon/Quantum stones.
-          </p>
-        </div>
+
+
       </div>
     </div>
   </div>
@@ -114,6 +154,7 @@ import {
   summarizeLoadout,
   calculateArtifactModifiers,
 } from '@/lib/artifacts';
+import { getOptimalELRSet } from '@/lib/artifacts/virtue';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computeDependencies } from '@/lib/actions/executor';
 import { calculateHabCapacity_Full } from '@/calculations/habCapacity';
@@ -132,6 +173,38 @@ const selectedTab = ref<ArtifactSetName>('earnings');
 
 // Local state for the selected set (allows unsaved changes)
 const localLoadout = ref<EquippedArtifact[]>(createEmptyLoadout());
+const assumeMaxHabsVehicles = ref(true);
+
+function equipOptimalELR() {
+  console.log('Assume max habs/vehicles:', assumeMaxHabsVehicles.value);
+  if (!initialStateStore.rawBackup) return;
+
+  console.log('Current set:', artifactSets.value.elr);
+
+  const savedSet = artifactSets.value.elr;
+  const optimized = getOptimalELRSet(initialStateStore.rawBackup, {
+    assumeMaxHabsVehicles: assumeMaxHabsVehicles.value,
+    currentSet: savedSet || undefined,
+  });
+
+  // If functionally identical, don't change anything
+  if (optimized === savedSet) {
+    return;
+  }
+
+  localLoadout.value = optimized.map(slot => ({
+    artifactId: slot.artifactId,
+    stones: [...slot.stones],
+  }));
+
+  // Auto-save the new optimized loadout
+  saveChanges();
+
+  // If this set is not active, equip it (selectedTab is already 'elr')
+  if (activeArtifactSet.value !== 'elr') {
+    equipSet();
+  }
+}
 
 // Sync local loadout when tab or store state changes
 watch(

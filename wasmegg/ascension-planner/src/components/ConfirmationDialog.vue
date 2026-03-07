@@ -37,11 +37,12 @@
               {{ cancelLabel }}
             </button>
             <button
-              class="btn-premium btn-primary px-8 py-2 text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20"
-              @click="$emit('confirm')"
-            >
-              {{ confirmLabel }}
-            </button>
+               class="btn-premium px-8 py-2 text-xs font-black uppercase tracking-widest shadow-lg"
+               :class="variant === 'danger' ? 'bg-red-600 border-red-500 text-white hover:bg-red-700 shadow-red-500/20' : 'btn-primary shadow-blue-500/20'"
+               @click="$emit('confirm')"
+             >
+               {{ confirmLabel }}
+             </button>
           </div>
         </div>
       </div>
@@ -55,12 +56,14 @@ interface Props {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  variant?: 'primary' | 'danger';
 }
 
 withDefaults(defineProps<Props>(), {
   title: 'Confirm Action',
   confirmLabel: 'Confirm',
   cancelLabel: 'Cancel',
+  variant: 'primary',
 });
 
 defineEmits<{

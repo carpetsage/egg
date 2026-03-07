@@ -201,20 +201,15 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
     state.population = snapshot.population;
   });
 
-  // Restore initial state (soul eggs and artifacts)
+  // We explicitly do NOT sync baseline values (soul eggs, artifactLoadout, activeArtifactSet, or artifactSets) here.
+  // Those are part of the initial state definition and should not be overwritten by 
+  // simulation snapshots. Syncing them back to initialStateStore causes the "Initial State" 
+  // tab to be poisoned with later plan states.
+  /*
   initialStateStore.$patch(state => {
     state.soulEggs = snapshot.soulEggs;
-    if (snapshot.artifactLoadout) {
-      state.artifactLoadout = snapshot.artifactLoadout.map(slot => ({
-        artifactId: slot.artifactId,
-        stones: [...slot.stones],
-      }));
-    }
-    state.activeArtifactSet = snapshot.activeArtifactSet || null;
-    if (snapshot.artifactSets) {
-      state.artifactSets = JSON.parse(JSON.stringify(snapshot.artifactSets));
-    }
   });
+  */
 
   // Restore silo state
   if (snapshot.siloCount !== undefined) {
