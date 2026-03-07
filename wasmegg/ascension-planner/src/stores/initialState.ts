@@ -65,6 +65,9 @@ export interface InitialStateStoreState {
 
   // Active missions from backup
   activeMissions: ei.IMissionInfo[];
+
+  // Original backup data for re-calculating optimal sets
+  rawBackup: ei.IBackup | null;
 }
 
 function createEmptyVirtueMap(): Record<VirtueEgg, number> {
@@ -108,6 +111,7 @@ export const useInitialStateStore = defineStore('initialState', {
     initialTeEarned: createEmptyVirtueMap(),
     initialTePending: createEmptyVirtueMap(),
     activeMissions: [],
+    rawBackup: null,
   }),
 
   getters: {
@@ -182,6 +186,7 @@ export const useInitialStateStore = defineStore('initialState', {
       teEarnedPerEgg: Record<VirtueEgg, number>;
     } {
       this.hasData = true;
+      this.rawBackup = backup;
       this.playerId = playerId;
       this.nickname = backup.userName || playerId;
       this.isUltra =
@@ -217,8 +222,10 @@ export const useInitialStateStore = defineStore('initialState', {
       const optimalEarnings = getOptimalEarningsSet(backup);
       this.artifactSets.earnings = optimalEarnings;
 
-      // Use the backup loadout as the default ELR set
-      this.artifactSets.elr = JSON.parse(JSON.stringify(backupLoadout));
+      // Use the backup loadout as the default ELR set, unless it's mostly earnings artifacts
+      this.artifactSets.elr = isMostlyEarningsSet(backupLoadout)
+        ? null
+        : JSON.parse(JSON.stringify(backupLoadout));
 
       // Always equip site's optimal earnings set by default when loading backup
       // This satisfies the requirement to auto-equip earnings set for new plans,

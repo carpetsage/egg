@@ -362,6 +362,7 @@ import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
 import PlanLibrary from '@/components/PlanLibrary.vue';
 import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
 import { useSalesStore } from '@/stores/sales';
+import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { usePersistence } from '@/composables/usePersistence';
 import { generateActionId } from '@/types';
@@ -463,6 +464,16 @@ onMounted(async () => {
 
   if (playerId.value) {
     await initPersistence(playerId.value);
+
+    try {
+      const pHash = await hashID(playerId.value);
+      const savedBackup = await loadMetadata(pHash, 'rawBackup');
+      if (savedBackup) {
+        initialStateStore.rawBackup = savedBackup;
+      }
+    } catch (e) {
+      console.error('Failed to load raw backup from DB', e);
+    }
   }
 
   await actionsStore.recalculateAll();
@@ -697,6 +708,13 @@ async function submitPlayerId(id: string) {
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
+
+    try {
+      const pHash = await hashID(id);
+      await saveMetadata(pHash, 'rawBackup', backup);
+    } catch (dbErr) {
+      console.error('Failed to save raw backup to DB', dbErr);
+    }
 
     // Store the backup data in initial state
     const { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
