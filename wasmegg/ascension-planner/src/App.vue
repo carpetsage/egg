@@ -242,12 +242,14 @@
       <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Action History -->
         <div class="section-premium overflow-visible">
-          <div
-            class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer rounded-t-lg"
-            @click="expandedSections.actionHistory = !expandedSections.actionHistory"
-          >
+          <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
             <h2 class="text-lg font-semibold text-gray-800">Action History</h2>
-            <ChevronIcon :expanded="expandedSections.actionHistory" />
+            <button
+              class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+              @click="expandedSections.actionHistory = !expandedSections.actionHistory"
+            >
+              <ChevronIcon :expanded="expandedSections.actionHistory" />
+            </button>
           </div>
           <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
             <ActionHistory @show-details="showActionDetails" @undo="showUndoConfirmation" @clear-all="handleClearAll" />
@@ -256,12 +258,14 @@
 
         <!-- Available Actions -->
         <div class="section-premium overflow-visible">
-          <div
-            class="px-4 py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer rounded-t-lg"
-            @click="expandedSections.availableActions = !expandedSections.availableActions"
-          >
+          <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
             <h2 class="text-lg font-semibold text-gray-800">Available Actions</h2>
-            <ChevronIcon :expanded="expandedSections.availableActions" />
+            <button
+              class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+              @click="expandedSections.availableActions = !expandedSections.availableActions"
+            >
+              <ChevronIcon :expanded="expandedSections.availableActions" />
+            </button>
           </div>
           <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
             <AvailableActions @show-current-details="showCurrentDetails" />
@@ -362,6 +366,7 @@ import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
 import PlanLibrary from '@/components/PlanLibrary.vue';
 import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
 import { useSalesStore } from '@/stores/sales';
+import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { usePersistence } from '@/composables/usePersistence';
 import { generateActionId } from '@/types';
@@ -463,6 +468,16 @@ onMounted(async () => {
 
   if (playerId.value) {
     await initPersistence(playerId.value);
+
+    try {
+      const pHash = await hashID(playerId.value);
+      const savedBackup = await loadMetadata(pHash, 'rawBackup');
+      if (savedBackup) {
+        initialStateStore.rawBackup = savedBackup;
+      }
+    } catch (e) {
+      console.error('Failed to load raw backup from DB', e);
+    }
   }
 
   await actionsStore.recalculateAll();
@@ -697,6 +712,13 @@ async function submitPlayerId(id: string) {
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
+
+    try {
+      const pHash = await hashID(id);
+      await saveMetadata(pHash, 'rawBackup', backup);
+    } catch (dbErr) {
+      console.error('Failed to save raw backup to DB', dbErr);
+    }
 
     // Store the backup data in initial state
     const { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
@@ -950,7 +972,7 @@ const ChevronIcon = {
   -webkit-text-fill-color: transparent;
 }
 .section-premium {
-  @apply bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 overflow-hidden;
+  @apply bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500;
 }
 .btn-premium {
   @apply rounded-xl font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-2;

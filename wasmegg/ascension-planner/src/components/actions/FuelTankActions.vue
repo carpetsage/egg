@@ -44,9 +44,26 @@
             <img :src="iconURL(`egginc/egg_${egg}.png`, 64)" class="w-full h-full object-contain" :alt="egg" />
           </div>
           <span class="text-xs font-bold text-slate-600 uppercase tracking-tight">{{ VIRTUE_EGG_NAMES[egg] }}</span>
-          <span class="text-sm font-mono-premium font-bold text-slate-700 flex-1 text-right tracking-tight">
-            {{ formatNumber(fuelTankStore.fuelAmounts[egg], 1) }}
-          </span>
+          <div class="flex-1 flex flex-col items-end">
+            <div class="flex items-center gap-1.5">
+              <svg
+                v-if="getRoundingShortfall(fuelTankStore.fuelAmounts[egg]) > 0"
+                v-tippy="'Rounding is likely to cause a problem for you, since you are below the displayed number of eggs.'"
+                class="w-4 h-4 text-warning"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span class="text-sm font-mono-premium font-bold text-slate-700 tracking-tight">
+                {{ formatNumber(fuelTankStore.fuelAmounts[egg], 1) }}
+              </span>
+            </div>
+            <div v-if="getRoundingShortfall(fuelTankStore.fuelAmounts[egg]) > 0" class="text-[9px] text-danger font-bold uppercase tracking-widest mt-0.5">
+              You're short by {{ formatFullNumber(getRoundingShortfall(fuelTankStore.fuelAmounts[egg])) }} eggs
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -187,7 +204,7 @@ import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { computeDependencies } from '@/lib/actions/executor';
-import { formatNumber, formatDuration, parseNumber } from '@/lib/format';
+import { formatNumber, formatDuration, parseNumber, formatFullNumber } from '@/lib/format';
 import { generateActionId, VIRTUE_EGG_NAMES, type VirtueEgg } from '@/types';
 import { VIRTUE_FUEL_ORDER } from '@/stores/fuelTank';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -221,6 +238,20 @@ const parsedAmount = computed(() => {
   const parsed = parseNumber(amountInput.value);
   return isNaN(parsed) ? 0 : parsed;
 });
+
+// Calculate rounding shortfall
+function getRoundingShortfall(actual: number): number {
+  if (!actual || actual <= 0) return 0;
+  const formatted = formatNumber(actual, 1);
+  const parsed = parseNumber(formatted);
+  if (parsed > actual) {
+    const diff = parsed - actual;
+    if (diff < 100) {
+      return Math.round(diff);
+    }
+  }
+  return 0;
+}
 
 // Time calculation
 const timeToStoreSeconds = computed(() => {

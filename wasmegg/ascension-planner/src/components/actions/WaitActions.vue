@@ -208,7 +208,7 @@ const actionsStore = useActionsStore();
 const isHumility = computed(() => actionsStore.effectiveSnapshot.currentEgg === 'humility');
 const isCuriosity = computed(() => actionsStore.effectiveSnapshot.currentEgg === 'curiosity');
 
-const teExpanded = ref(!isHumility.value);
+const teExpanded = ref(false);
 const habsExpanded = ref(false);
 const missionsExpanded = ref(false);
 const gemsExpanded = ref(false);
