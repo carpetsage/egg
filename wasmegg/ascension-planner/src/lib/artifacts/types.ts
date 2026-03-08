@@ -7,6 +7,7 @@ export type RarityCode = (typeof RARITY_CODES)[number];
 
 export interface ArtifactOption {
   id: string; // Unique ID: "{familyId}-{tier}-{rarity}"
+  afxId: number; // AFX numeric ID
   familyId: string; // e.g., "puzzle-cube"
   familyName: string; // e.g., "Puzzle cube" (lowest tier name)
   tier: number; // 1-4

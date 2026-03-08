@@ -129,6 +129,14 @@
         background: var(--color-brand-primary) !important;
     }
 
+    .Select__dropdown {
+        z-index: 1050 !important;
+    }
+
+    .Select__dropdown .truncate {
+        white-space: normal !important;
+    }
+
     /* --- Player ID Form Premium Overrides --- */
     #playerId {
         @apply input-premium text-center font-mono-premium text-lg tracking-wider font-bold text-brand-primary;
