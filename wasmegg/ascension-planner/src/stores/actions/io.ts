@@ -8,9 +8,9 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
-import type { VirtueEgg, Action } from '@/types';
+import type { VirtueEgg, Action, CalculationsSnapshot } from '@/types';
 
-export function exportPlanData(actions: Action[], initialSnapshot?: import('@/types').CalculationsSnapshot) {
+export function exportPlanData(actions: Action[], initialSnapshot?: CalculationsSnapshot) {
   const initialStateStore = useInitialStateStore();
   const virtueStore = useVirtueStore();
   const fuelTankStore = useFuelTankStore();
@@ -62,7 +62,7 @@ export function exportPlanData(actions: Action[], initialSnapshot?: import('@/ty
   };
 }
 
-export function exportPlanLogic(actions: Action[], initialSnapshot?: import('@/types').CalculationsSnapshot) {
+export function exportPlanLogic(actions: Action[], initialSnapshot?: CalculationsSnapshot) {
   const exportData = exportPlanData(actions, initialSnapshot);
 
   // Sanitization: Ensure any internal mapping IDs or partitions are NOT in the export
