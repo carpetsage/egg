@@ -203,28 +203,22 @@ import { iconURL } from 'lib';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
-import { useEffectiveLayRate } from '@/composables/useEffectiveLayRate';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatDuration } from '@/lib/format';
 import { generateActionId, VIRTUE_EGG_NAMES } from '@/types';
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
 import { useActionExecutor } from '@/composables/useActionExecutor';
-
-import { useLayRate } from '@/composables/useLayRate';
-import { useInternalHatcheryRate } from '@/composables/useInternalHatcheryRate';
-import { useShippingCapacity } from '@/composables/useShippingCapacity';
-import { useHabCapacity } from '@/composables/useHabCapacity';
 import { solveForTime } from '@/engine/apply/math';
 
 const truthEggsStore = useTruthEggsStore();
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
-const { output: layRateOutput } = useLayRate();
-const { output: ihrOutput } = useInternalHatcheryRate();
-const { output: shippingOutput } = useShippingCapacity();
-const { output: habCapacityOutput } = useHabCapacity();
-const { output: effectiveLayRateOutput } = useEffectiveLayRate();
 const { prepareExecution, completeExecution } = useActionExecutor();
+
+// Read all rate values from the engine-computed snapshot, which is the same
+// source FloatingStats uses. This guarantees the two always agree and avoids
+// any desync between composable-derived values and the simulation engine.
+const snapshot = computed(() => actionsStore.effectiveSnapshot);
 
 defineEmits<{
   'show-current-details': [];
@@ -270,11 +264,12 @@ const eggsToLay = computed(() => {
 
 const timeToLaySeconds = computed(() => {
   if (eggsToLay.value <= 0) return 0;
-  const P0 = virtueStore.population;
-  const I = ihrOutput.value.offlineRate / 60; // chickens/sec
-  const R = layRateOutput.value.ratePerChickenPerSecond; // eggs/chicken/sec
-  const S = shippingOutput.value.totalFinalCapacity; // eggs/sec
-  const H = habCapacityOutput.value.totalFinalCapacity; // max chickens
+  const snap = snapshot.value;
+  const P0 = snap.population;
+  const I = snap.offlineIHR / 60; // chickens/sec
+  const R = snap.ratePerChickenPerSecond; // eggs/chicken/sec
+  const S = snap.shippingCapacity; // eggs/sec
+  const H = snap.habCapacity; // max chickens
 
   // The rate is capped by shipping capacity OR by the target population (hab capacity)
   // If we reach hab capacity, the rate becomes constant at R * H (clamped by S).
@@ -284,8 +279,8 @@ const timeToLaySeconds = computed(() => {
   return isFinite(time) ? time : Infinity;
 });
 
-const elrPerHour = computed(() => effectiveLayRateOutput.value.effectiveLayRate * 3600);
-const elrPerDay = computed(() => effectiveLayRateOutput.value.effectiveLayRate * 86400);
+const elrPerHour = computed(() => snapshot.value.elr * 3600);
+const elrPerDay = computed(() => snapshot.value.elr * 86400);
 
 // Validation
 const canWait = computed(

@@ -42,8 +42,12 @@ onMounted(refreshPlans);
 watch(partitionHash, refreshPlans);
 
 async function loadPlan(plan: PlanData) {
-  await actionsStore.loadPlanFromLibrary(plan);
-  emit('plan-loaded');
+  try {
+    await actionsStore.loadPlanFromLibrary(plan);
+    emit('plan-loaded');
+  } catch (err) {
+    alert('Failed to load plan: ' + err);
+  }
 }
 
 async function confirmDelete(plan: PlanData) {

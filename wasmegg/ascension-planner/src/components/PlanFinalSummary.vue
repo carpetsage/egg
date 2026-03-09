@@ -253,7 +253,7 @@ function handleImport(event: Event) {
   const file = input.files[0];
   const reader = new FileReader();
 
-  reader.onload = e => {
+  reader.onload = async e => {
     try {
       const jsonString = e.target?.result as string;
 
@@ -264,7 +264,7 @@ function handleImport(event: Event) {
         }
       }
 
-      actionsStore.importPlan(jsonString);
+      await actionsStore.importPlan(jsonString);
     } catch (error) {
       console.error(error);
       alert('Failed to import plan: Invalid file format.');
