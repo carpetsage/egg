@@ -25621,5 +25621,14 @@
     "startTimestamp": 1772989200,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1773158400,
+    "id": "event-3-9",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1773072000,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
