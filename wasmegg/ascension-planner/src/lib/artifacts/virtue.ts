@@ -307,42 +307,15 @@ export function getOptimalELRSet(
     let bestELRForThisLoadout = -1;
     let bestMetricsForThisLoadout: any = null;
 
-    // To balance efficiently, we try all counts of Tachyon vs Quantum stones
-    for (let tCount = 0; tCount <= totalStoneSlots; tCount++) {
-      const qCount = totalStoneSlots - tCount;
-
-      // Fill with actual stones from inventory
-      const tStonesToUse: string[] = [];
-      let remT = tCount;
-      for (const s of tachyonStones) {
-        const take = Math.min(remT, s.count);
-        for (let i = 0; i < take; i++) tStonesToUse.push(s.id);
-        remT -= take;
-      }
-
-      const qStonesToUse: string[] = [];
-      let remQ = qCount;
-      for (const s of quantumStones) {
-        const take = Math.min(remQ, s.count);
-        for (let i = 0; i < take; i++) qStonesToUse.push(s.id);
-        remQ -= take;
-      }
-
-      // Create a temporary loadout with these stones
+    const evaluateStones = (stones: (string | null)[]) => {
       const tempLoadout: EquippedArtifact[] = JSON.parse(JSON.stringify(loadout));
-      let tIdx = 0;
-      let qIdx = 0;
+      let sIdx = 0;
       for (const slot of tempLoadout) {
         for (let i = 0; i < slot.stones.length; i++) {
-          if (tIdx < tStonesToUse.length) {
-            slot.stones[i] = tStonesToUse[tIdx++];
-          } else if (qIdx < qStonesToUse.length) {
-            slot.stones[i] = qStonesToUse[qIdx++];
-          }
+          slot.stones[i] = stones[sIdx++];
         }
       }
 
-      // Calculate Metrics
       const artifactMods = calculateArtifactModifiers(tempLoadout);
 
       // Hab Capacity
@@ -402,26 +375,69 @@ export function getOptimalELRSet(
 
       const elr = calculateEffectiveLayRate(layRateOutput.totalRatePerSecond, shippingOutput.totalFinalCapacity);
 
-      // Tie-breaker: If ELR is the same, pick the one with higher raw lay rate
-      // This favors Gussets even when shipping is the bottleneck.
-      const currentLayRate = layRateOutput.totalRatePerSecond;
-      const bestLayRateSoFar = bestMetricsForThisLoadout?.layRate ?? -1;
+      return {
+        layRate: layRateOutput.totalRatePerSecond,
+        shipRate: shippingOutput.totalFinalCapacity,
+        elr: elr.effectiveLayRate,
+        population,
+        habs: habIds,
+        vehicles,
+      };
+    };
 
-      const isBetter = elr.effectiveLayRate > bestELRForThisLoadout ||
-        (elr.effectiveLayRate === bestELRForThisLoadout && currentLayRate > bestLayRateSoFar);
+    const remTachyonStones = tachyonStones.map(s => ({ ...s }));
+    const remQuantumStones = quantumStones.map(s => ({ ...s }));
+    const currentStones: (string | null)[] = new Array(totalStoneSlots).fill(null);
 
-      if (isBetter) {
-        bestELRForThisLoadout = elr.effectiveLayRate;
-        bestStonesForThisLoadout = tempLoadout.map(s => s.stones).flat();
-        bestMetricsForThisLoadout = {
-          layRate: currentLayRate,
-          shipRate: shippingOutput.totalFinalCapacity,
-          population,
-          habs: habIds,
-          vehicles,
-        };
+    for (let slotIdx = 0; slotIdx < totalStoneSlots; slotIdx++) {
+      const metrics = evaluateStones(currentStones);
+
+      if (metrics.layRate < metrics.shipRate) {
+        const bestTachyon = remTachyonStones.find(s => s.count > 0);
+        if (bestTachyon) {
+          currentStones[slotIdx] = bestTachyon.id;
+          bestTachyon.count--;
+        } else {
+          const bestQuantum = remQuantumStones.find(s => s.count > 0);
+          if (bestQuantum) {
+            currentStones[slotIdx] = bestQuantum.id;
+            bestQuantum.count--;
+          }
+        }
+      } else {
+        const bestQuantum = remQuantumStones.find(s => s.count > 0);
+        if (bestQuantum) {
+          currentStones[slotIdx] = bestQuantum.id;
+          bestQuantum.count--;
+        } else {
+          const bestTachyon = remTachyonStones.find(s => s.count > 0);
+          if (bestTachyon) {
+            currentStones[slotIdx] = bestTachyon.id;
+            bestTachyon.count--;
+          }
+        }
       }
     }
+
+    currentStones.sort((a, b) => {
+      if (a === null && b === null) return 0;
+      if (a === null) return 1;
+      if (b === null) return -1;
+
+      const isTa = a.indexOf('quantum') === 0;
+      const isTb = b.indexOf('quantum') === 0;
+      if (isTa && !isTb) return -1;
+      if (!isTa && isTb) return 1;
+
+      const tierA = parseInt(a.split('-').pop() || '0', 10);
+      const tierB = parseInt(b.split('-').pop() || '0', 10);
+      return tierB - tierA;
+    });
+
+    const finalMetrics = evaluateStones(currentStones);
+    bestELRForThisLoadout = finalMetrics.elr;
+    bestStonesForThisLoadout = currentStones;
+    bestMetricsForThisLoadout = finalMetrics;
 
     const currentBestLayRate = bestMetricsForThisLoadout?.layRate ?? -1;
     const globalBestLayRate = bestMetrics?.layRate ?? -1;
