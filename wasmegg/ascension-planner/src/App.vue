@@ -1,4 +1,5 @@
 <template>
+  
   <the-nav-bar active-entry-id="ascension-planner" />
 
   <div :class="['min-h-screen bg-gray-100 transition-all duration-300', isFooterCollapsed ? 'pb-8' : 'pb-24']">

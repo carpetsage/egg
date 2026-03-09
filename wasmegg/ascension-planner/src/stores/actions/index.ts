@@ -282,7 +282,7 @@ export const useActionsStore = defineStore('actions', {
           : (this._initialSnapshot ?? createEmptySnapshot());
       const prevState =
         this.actions.length > 0
-          ? this.actions[this.actions.length - 1].endState
+          ? createBaseEngineState(this.actions[this.actions.length - 1].endState)
           : createBaseEngineState(this.initialSnapshot);
 
       const fullAction = {
@@ -650,7 +650,7 @@ export const useActionsStore = defineStore('actions', {
 
     async loadPlanFromLibrary(plan: import('@/lib/storage/db').PlanData) {
       this.activePlanId = plan.id;
-      this.importPlan(JSON.stringify(plan.data));
+      await this.importPlan(JSON.stringify(plan.data));
     },
   },
 });
