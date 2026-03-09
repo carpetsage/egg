@@ -223,15 +223,16 @@ export const useInitialStateStore = defineStore('initialState', {
       this.artifactSets.earnings = optimalEarnings;
 
       // Use the backup loadout as the default ELR set, unless it's mostly earnings artifacts
-      this.artifactSets.elr = isMostlyEarningsSet(backupLoadout)
+      const isEarnings = isMostlyEarningsSet(backupLoadout);
+      this.artifactSets.elr = isEarnings
         ? null
         : JSON.parse(JSON.stringify(backupLoadout));
 
-      // Always equip site's optimal earnings set by default when loading backup
-      // This satisfies the requirement to auto-equip earnings set for new plans,
-      // while actionsStore.continueFromBackup will re-equip the ELR set if continuing.
-      // We no longer force 'earnings' set here; we respect the hydrated data from plans.
-      // this.setActiveArtifactSet('earnings');
+      // Activate the set that best matches the backup loadout.
+      // If the loadout is mostly earnings artifacts, activate earnings; otherwise ELR.
+      // Note: plan imports go through hydrate() which sets activeArtifactSet from the plan data,
+      // so this only affects fresh backup imports where no prior set was active.
+      this.setActiveArtifactSet(isEarnings ? 'earnings' : 'elr');
 
       // Parse TE data from eovEarned array
       // Indices 0-4 map to: Curiosity, Integrity, Humility, Resilience, Kindness
@@ -388,6 +389,9 @@ export const useInitialStateStore = defineStore('initialState', {
       this.activeArtifactSet = setName;
       if (setName && this.artifactSets[setName]) {
         this.artifactLoadout = JSON.parse(JSON.stringify(this.artifactSets[setName]));
+      } else if (setName) {
+        // Set exists but is empty/null — clear to empty loadout
+        this.artifactLoadout = createEmptyLoadout();
       }
     },
 
@@ -449,6 +453,12 @@ export const useInitialStateStore = defineStore('initialState', {
       }
       if (data.activeArtifactSet !== undefined) {
         this.activeArtifactSet = data.activeArtifactSet;
+      }
+      // Fallback: if activeArtifactSet is still null but the loadout has artifacts,
+      // auto-detect which set it matches. This handles plans exported before the fix
+      // that baked in activeArtifactSet: null despite having equipped artifacts.
+      if (this.activeArtifactSet === null && this.artifactLoadout.some(s => s.artifactId)) {
+        this.activeArtifactSet = isMostlyEarningsSet(this.artifactLoadout) ? 'earnings' : 'elr';
       }
       if (data.assumeDoubleEarnings !== undefined) {
         this.assumeDoubleEarnings = data.assumeDoubleEarnings;

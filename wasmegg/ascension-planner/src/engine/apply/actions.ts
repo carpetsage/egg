@@ -161,6 +161,12 @@ export function applyAction(
       const payload = action.payload as import('@/types').EquipArtifactSetPayload;
       const setName = payload.setName;
       const newLoadout = state.artifactSets[setName];
+      const emptyLoadout = [
+        { artifactId: null, stones: [] },
+        { artifactId: null, stones: [] },
+        { artifactId: null, stones: [] },
+        { artifactId: null, stones: [] },
+      ];
       return {
         ...state,
         activeArtifactSet: setName,
@@ -169,7 +175,7 @@ export function applyAction(
             artifactId: slot.artifactId,
             stones: [...slot.stones],
           }))
-          : state.artifactLoadout,
+          : emptyLoadout,
       };
     }
 
