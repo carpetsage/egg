@@ -25605,15 +25605,6 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1773162000,
-    "id": "event-3-8-2",
-    "message": "DOUBLE CAPACITY!",
-    "multiplier": 2,
-    "startTimestamp": 1772989200,
-    "type": "mission-capacity",
-    "ultra": false
-  },
-  {
     "endTimestamp": 1773075600,
     "id": "ultra-3-8",
     "message": "4x DRONE REWARDS!",
@@ -25621,6 +25612,15 @@
     "startTimestamp": 1772989200,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1773162000,
+    "id": "event-3-8-2",
+    "message": "DOUBLE CAPACITY!",
+    "multiplier": 2,
+    "startTimestamp": 1772989200,
+    "type": "mission-capacity",
+    "ultra": false
   },
   {
     "endTimestamp": 1773158400,
