@@ -650,7 +650,7 @@ export const useActionsStore = defineStore('actions', {
 
     async loadPlanFromLibrary(plan: import('@/lib/storage/db').PlanData) {
       this.activePlanId = plan.id;
-      this.importPlan(JSON.stringify(plan.data));
+      await this.importPlan(JSON.stringify(plan.data));
     },
   },
 });
