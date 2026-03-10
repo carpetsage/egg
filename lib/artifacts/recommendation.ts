@@ -491,10 +491,14 @@ export function recommendArtifactSet(
   // Determine which artifacts and stones are active for this strategy
   const necklaceFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
   const ankhFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
-  const totemFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
+  // Lunar totem only contributes away earnings — only active for lunar-prestige and virtue strategies.
+  const totemFunc =
+    isVirtue || strategy === Strategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? prestigeMultiplierFunc : inactiveMultiplierFunc;
   const cubeFunc = cubeMultiplierFunc;
   const shellStoneFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
-  const lunarStoneFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
+  // Lunar stones only contribute away earnings — only active for lunar-prestige and virtue strategies.
+  const lunarStoneFunc =
+    isVirtue || strategy === Strategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? prestigeMultiplierFunc : inactiveMultiplierFunc;
 
   // For prestige-specific artifacts
   let homeFarm: Farm | null = null;
