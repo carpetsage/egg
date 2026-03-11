@@ -472,7 +472,7 @@ export function getOptimalELRSet(
 /**
  * Compare two artifact sets for functional equivalence.
  */
-function isFunctionallyIdentical(
+export function isFunctionallyIdentical(
   setA: EquippedArtifact[],
   setB: (EquippedArtifact | null)[] | undefined
 ): boolean {
