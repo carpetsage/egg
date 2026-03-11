@@ -366,12 +366,13 @@ export const useActionsStore = defineStore('actions', {
       if (!validation.valid) return;
       const toRemove = new Set<string>([actionId]);
       if (validation.dependentActions) validation.dependentActions.forEach(dep => toRemove.add(dep.id));
+      const minIndex = Math.min(...this.actions.map((a, i) => toRemove.has(a.id) ? i : Infinity));
       const newActions = this.actions.filter(a => !toRemove.has(a.id));
       newActions.forEach(a => {
         a.dependents = a.dependents.filter(depId => !toRemove.has(depId));
       });
       this.actions = newActions;
-      await this.recalculateFrom(0);
+      await this.recalculateFrom(minIndex === Infinity ? 0 : minIndex);
       if (restoreCallback) restoreCallback(this.effectiveSnapshot);
     },
 
@@ -382,11 +383,12 @@ export const useActionsStore = defineStore('actions', {
         this.initialSnapshot.researchLevels
       );
       const fullIds = new Set(fullToRemove.map(a => a.id));
+      const minIndex = Math.min(...this.actions.map((a, i) => fullIds.has(a.id) ? i : Infinity));
       this.actions = this.actions.filter(a => !fullIds.has(a.id));
       this.actions.forEach(a => {
         a.dependents = a.dependents.filter(d => !fullIds.has(d));
       });
-      await this.recalculateAll();
+      await this.recalculateFrom(minIndex === Infinity ? 0 : minIndex);
     },
 
     async clearAll(resetCallback?: () => void) {

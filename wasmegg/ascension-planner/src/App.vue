@@ -481,7 +481,9 @@ onMounted(async () => {
     }
   }
 
-  await actionsStore.recalculateAll();
+  if (!actionsStore._initialSnapshot) {
+    await actionsStore.recalculateAll();
+  }
 
   // Fresh start: if only start_ascension exists and no farm state is loaded, add initial Wait for Full Habs
   const startAction = actionsStore.getStartAction();
