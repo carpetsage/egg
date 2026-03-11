@@ -23,7 +23,6 @@ import {
   calculateArtifactModifiers,
   getArtifactLoadoutFromBackup,
   getOptimalEarningsSet,
-  isMostlyEarningsSet,
 } from '@/lib/artifacts';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 
@@ -175,7 +174,8 @@ export const useInitialStateStore = defineStore('initialState', {
      */
     loadFromBackup(
       playerId: string,
-      backup: ei.IBackup
+      backup: ei.IBackup,
+      mode: 'scratch' | 'plan_next' | 'continue_earnings' | 'continue_elr' | 'reconcile' | 'default' = 'default'
     ): {
       initialShiftCount: number;
       initialTE: number;
@@ -218,21 +218,29 @@ export const useInitialStateStore = defineStore('initialState', {
       const backupLoadout = getArtifactLoadoutFromBackup(backup);
       this.artifactLoadout = backupLoadout;
 
-      // Auto-populate optimal artifact sets
-      const optimalEarnings = getOptimalEarningsSet(backup);
-      this.artifactSets.earnings = optimalEarnings;
-
-      // Use the backup loadout as the default ELR set, unless it's mostly earnings artifacts
-      const isEarnings = isMostlyEarningsSet(backupLoadout);
-      this.artifactSets.elr = isEarnings
-        ? null
-        : JSON.parse(JSON.stringify(backupLoadout));
-
-      // Activate the set that best matches the backup loadout.
-      // If the loadout is mostly earnings artifacts, activate earnings; otherwise ELR.
-      // Note: plan imports go through hydrate() which sets activeArtifactSet from the plan data,
-      // so this only affects fresh backup imports where no prior set was active.
-      this.setActiveArtifactSet(isEarnings ? 'earnings' : 'elr');
+      // Handle artifact sets based on mode
+      if (mode === 'scratch' || mode === 'plan_next') {
+        const optimalEarnings = getOptimalEarningsSet(backup);
+        this.artifactSets.earnings = optimalEarnings;
+        this.artifactSets.elr = null;
+        this.setActiveArtifactSet('earnings');
+      } else if (mode === 'continue_earnings') {
+        this.artifactSets.earnings = backupLoadout;
+        this.artifactSets.elr = null;
+        this.setActiveArtifactSet('earnings');
+      } else if (mode === 'continue_elr') {
+        this.artifactSets.earnings = getOptimalEarningsSet(backup);
+        this.artifactSets.elr = backupLoadout;
+        this.setActiveArtifactSet('elr');
+      } else if (mode === 'reconcile') {
+        // Do not update artifact sets from backup for reconcile
+      } else {
+        // Default behavior (e.g. initial load or form submit)
+        const optimalEarnings = getOptimalEarningsSet(backup);
+        this.artifactSets.earnings = optimalEarnings;
+        this.artifactSets.elr = JSON.parse(JSON.stringify(backupLoadout));
+        this.setActiveArtifactSet('elr');
+      }
 
       // Parse TE data from eovEarned array
       // Indices 0-4 map to: Curiosity, Integrity, Humility, Resilience, Kindness
@@ -455,10 +463,9 @@ export const useInitialStateStore = defineStore('initialState', {
         this.activeArtifactSet = data.activeArtifactSet;
       }
       // Fallback: if activeArtifactSet is still null but the loadout has artifacts,
-      // auto-detect which set it matches. This handles plans exported before the fix
-      // that baked in activeArtifactSet: null despite having equipped artifacts.
+      // stick to default rather than guessing.
       if (this.activeArtifactSet === null && this.artifactLoadout.some(s => s.artifactId)) {
-        this.activeArtifactSet = isMostlyEarningsSet(this.artifactLoadout) ? 'earnings' : 'elr';
+        this.activeArtifactSet = 'elr';
       }
       if (data.assumeDoubleEarnings !== undefined) {
         this.assumeDoubleEarnings = data.assumeDoubleEarnings;
