@@ -47,6 +47,17 @@
             </div>
           </div>
         </div>
+
+        <!-- Expected Gems Display -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center transition-all">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Expected Gems:</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-mono-premium font-black text-slate-900">
+              +{{ formatNumber(expectedGemsEarned, 3) }}
+            </span>
+            <img :src="iconURL('egginc/icon_virtue_gem.png', 64)" class="w-4 h-4 object-contain" alt="Gems" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -70,7 +81,8 @@ import { useVirtueStore } from '@/stores/virtue';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { generateActionId } from '@/types';
 import { computeDependencies } from '@/lib/actions/executor';
-import { formatDuration, parseDuration, formatAbsoluteTime } from '@/lib/format';
+import { formatDuration, parseDuration, formatAbsoluteTime, formatNumber } from '@/lib/format';
+import { calculateEarningsForTime } from '@/engine/apply/math';
 import { useEventExpiry } from '@/composables/useEventExpiry';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
 
@@ -91,6 +103,11 @@ const inputDuration = ref('');
 const parsedSeconds = computed(() => {
   const seconds = parseDuration(inputDuration.value);
   return isNaN(seconds) ? 0 : seconds;
+});
+
+const expectedGemsEarned = computed(() => {
+  if (parsedSeconds.value <= 0) return 0;
+  return calculateEarningsForTime(parsedSeconds.value, actionsStore.effectiveSnapshot);
 });
 
 const isValid = computed(() => parsedSeconds.value > 0);

@@ -76,6 +76,22 @@
         <div v-if="selectedTab === 'elr'" class="flex items-center justify-end gap-3 border-t border-gray-200/60 pt-2 -mt-1">
           <div class="flex items-center gap-2">
             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-tight"
+              >Exclude Gusset</span
+            >
+            <button
+              @click="excludeGusset = !excludeGusset"
+              class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+              :class="excludeGusset ? 'bg-amber-600' : 'bg-gray-200'"
+            >
+              <span
+                class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                :class="excludeGusset ? 'translate-x-4' : 'translate-x-0'"
+              ></span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-tight"
               >Assume Max Habs/Vehicles</span
             >
             <button
@@ -174,6 +190,7 @@ const selectedTab = ref<ArtifactSetName>('earnings');
 // Local state for the selected set (allows unsaved changes)
 const localLoadout = ref<EquippedArtifact[]>(createEmptyLoadout());
 const assumeMaxHabsVehicles = ref(true);
+const excludeGusset = ref(false);
 
 function equipOptimalELR() {
   console.log('Assume max habs/vehicles:', assumeMaxHabsVehicles.value);
@@ -185,6 +202,7 @@ function equipOptimalELR() {
   const optimized = getOptimalELRSet(initialStateStore.rawBackup, {
     assumeMaxHabsVehicles: assumeMaxHabsVehicles.value,
     currentSet: savedSet || undefined,
+    excludeGusset: excludeGusset.value,
   });
 
   // If functionally identical, don't change anything
