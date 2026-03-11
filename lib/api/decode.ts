@@ -4,19 +4,6 @@ import * as $protobuf from 'protobufjs/minimal';
 import { ProtobufType } from './types';
 import { uint8ArrayToBinaryString, binaryStringToUint8Array } from './utils';
 
-// Monkey-patch protobufjs to tolerate corrupt protobuf data from the game server.
-// Some backup mission_archive entries contain trailing bytes with mismatched wire
-// types, which causes the decoder to desynchronize and eventually encounter wire
-// type 4 (end-group) outside of a group context. The default skipType throws on
-// wire type 4; this patch makes it a no-op so decoding can continue.
-const _origSkipType = $protobuf.Reader.prototype.skipType;
-$protobuf.Reader.prototype.skipType = function (wireType: number) {
-  if (wireType === 4) {
-    return this;
-  }
-  return _origSkipType.call(this, wireType);
-};
-
 /**
  * Decode base64-encoded message.
  * @param message - Message type, e.g. ei.ContractCoopStatusResponse.
