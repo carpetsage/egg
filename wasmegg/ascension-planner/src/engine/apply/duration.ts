@@ -166,7 +166,8 @@ export function getActionDuration(action: Action, prevSnapshot: CalculationsSnap
     action.type === 'wait_for_time' ||
     action.type === 'wait_for_full_habs' ||
     action.type === 'wait_for_research_sale' ||
-    action.type === 'wait_for_earnings_boost'
+    action.type === 'wait_for_earnings_boost' ||
+    action.type === 'wait_for_no_earnings'
   ) {
     return (action.payload as { totalTimeSeconds?: number }).totalTimeSeconds || 0;
   }
@@ -200,6 +201,7 @@ export function computePassiveEggsDelivered(action: Action, prevSnapshot: Calcul
     'remove_fuel',
     'toggle_earnings_boost',
     'notification',
+    'wait_for_no_earnings',
   ];
   if (NO_PASSIVE_TYPES.includes(action.type)) return 0;
 

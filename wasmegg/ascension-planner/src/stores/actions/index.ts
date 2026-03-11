@@ -49,6 +49,7 @@ export const useActionsStore = defineStore('actions', {
       showIncompleteOnly: true,
       activePlanId: null,
       lastSavedActionsJson: '[]',
+      libraryUpdateTick: 0,
     };
   },
 
@@ -407,6 +408,7 @@ export const useActionsStore = defineStore('actions', {
         await this.recalculateFrom(0);
       }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
+      this.libraryUpdateTick++;
       if (resetCallback) resetCallback();
     },
 
@@ -655,6 +657,7 @@ export const useActionsStore = defineStore('actions', {
 
       this.activePlanId = planId;
       this.lastSavedActionsJson = JSON.stringify(this.actions);
+      this.libraryUpdateTick++;
     },
 
     async loadPlanFromLibrary(plan: import('@/lib/storage/db').PlanData) {

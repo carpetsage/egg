@@ -5,8 +5,22 @@ import { calculateEarningsForTime } from './math';
 /**
  * Advance the simulation time in the engine state and add earned gems to the bank.
  */
-export function applyTime(state: EngineState, seconds: number, prevSnapshot: CalculationsSnapshot): EngineState {
+export function applyTime(
+  state: EngineState,
+  seconds: number,
+  prevSnapshot: CalculationsSnapshot,
+  options: { skipGrowth?: boolean } = {}
+): EngineState {
   if (seconds <= 0) return state;
+
+  if (options.skipGrowth) {
+    return {
+      ...state,
+      lastStepTime: (state.lastStepTime || 0) + seconds,
+      population: prevSnapshot.population,
+      bankValue: prevSnapshot.bankValue,
+    };
+  }
 
   const P0 = prevSnapshot.population;
   const I = prevSnapshot.offlineIHR / 60;

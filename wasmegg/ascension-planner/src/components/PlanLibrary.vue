@@ -40,6 +40,7 @@ async function refreshPlans() {
 
 onMounted(refreshPlans);
 watch(partitionHash, refreshPlans);
+watch(() => actionsStore.libraryUpdateTick, refreshPlans);
 
 async function loadPlan(plan: PlanData) {
   try {

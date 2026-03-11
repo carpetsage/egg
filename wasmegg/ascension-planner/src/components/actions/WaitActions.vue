@@ -159,6 +159,37 @@
       </div>
     </div>
 
+    <!-- Wait WITHOUT Earnings Section -->
+    <div
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md"
+    >
+      <button
+        class="w-full px-5 py-4 bg-slate-50/50 flex justify-between items-center hover:bg-white transition-colors group"
+        @click="noEarningsExpanded = !noEarningsExpanded"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-xl bg-white border border-slate-200/50 shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 transition-transform"
+          >
+            <img :src="iconURL('egginc-extras/silo.png', 64)" class="w-full h-full object-contain" />
+          </div>
+          <h3 class="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">Wait with Empty Silos</h3>
+        </div>
+        <svg
+          class="w-5 h-5 text-slate-300 transition-transform duration-300"
+          :class="{ 'rotate-180 text-slate-900': noEarningsExpanded }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div v-show="noEarningsExpanded" class="p-6 border-t border-slate-50">
+        <WaitWithoutEarningsActions />
+      </div>
+    </div>
+
     <!-- Wait for Events Section (Social/Fixed) -->
     <div
       class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md"
@@ -201,6 +232,7 @@ import WaitForMissionsActions from './WaitForMissionsActions.vue';
 import WaitForTimeActions from './WaitForTimeActions.vue';
 import WaitForFullHabsActions from './WaitForFullHabsActions.vue';
 import WaitForGemsActions from './WaitForGemsActions.vue';
+import WaitWithoutEarningsActions from './WaitWithoutEarningsActions.vue';
 import WaitForEventActions from './WaitForEventActions.vue';
 
 const actionsStore = useActionsStore();
@@ -213,6 +245,7 @@ const habsExpanded = ref(false);
 const missionsExpanded = ref(false);
 const gemsExpanded = ref(false);
 const timeExpanded = ref(false);
+const noEarningsExpanded = ref(false);
 const eventsExpanded = ref(false);
 
 defineEmits<{

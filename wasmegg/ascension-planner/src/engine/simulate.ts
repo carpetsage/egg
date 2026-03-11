@@ -59,10 +59,14 @@ export function simulate(
     const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
     currentState = applyPassiveEggs(currentState, passiveEggs);
 
-    currentState = applyTime(currentState, durationSeconds, currentSnapshot);
+    currentState = applyTime(currentState, durationSeconds, currentSnapshot, {
+      skipGrowth: action.type === 'wait_for_no_earnings',
+    });
 
     // 2. Compute full snapshot
-    const newSnapshot = computeSnapshot(currentState, context);
+    const newSnapshot = computeSnapshot(currentState, context, {
+      skipGrowth: action.type === 'wait_for_no_earnings',
+    });
 
     // 3. Compute deltas vs previous state
     // For the first action, we compare against baseSnapshot (or should we?)
@@ -140,9 +144,13 @@ export async function simulateAsync(
     const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot);
     currentState = applyPassiveEggs(currentState, passiveEggs);
 
-    currentState = applyTime(currentState, durationSeconds, currentSnapshot);
+    currentState = applyTime(currentState, durationSeconds, currentSnapshot, {
+      skipGrowth: action.type === 'wait_for_no_earnings',
+    });
 
-    const newSnapshot = computeSnapshot(currentState, context);
+    const newSnapshot = computeSnapshot(currentState, context, {
+      skipGrowth: action.type === 'wait_for_no_earnings',
+    });
     const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;
     const deltas = computeDeltas(prevSnap, newSnapshot);
     results.push({
