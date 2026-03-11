@@ -391,7 +391,7 @@ export const useActionsStore = defineStore('actions', {
       await this.recalculateFrom(minIndex === Infinity ? 0 : minIndex);
     },
 
-    async clearAll(resetCallback?: () => void) {
+    async clearAll(resetCallback?: () => void, skipRecalculate = false) {
       this.activePlanId = null;
       let startAction = this.getStartAction();
       if (startAction) {
@@ -403,7 +403,9 @@ export const useActionsStore = defineStore('actions', {
       }
       this.expandedGroupIds.clear();
       this.expandedGroupIds.add(startAction.id);
-      await this.recalculateFrom(0);
+      if (!skipRecalculate) {
+        await this.recalculateFrom(0);
+      }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
       if (resetCallback) resetCallback();
     },
@@ -420,7 +422,6 @@ export const useActionsStore = defineStore('actions', {
       const startAction = this.getStartAction();
       if (startAction) {
         startAction.payload.initialEgg = egg;
-        await this.recalculateFrom(0);
       }
     },
 
@@ -616,7 +617,10 @@ export const useActionsStore = defineStore('actions', {
       exportPlanLogic(this.actions, this.initialSnapshot);
     },
 
-    async importPlan(jsonString: string) {
+    async importPlan(jsonString: string, skipRecalculate = false) {
+      if (this.lastSavedActionsJson === jsonString && this._initialSnapshot) {
+        return true;
+      }
       const data = importPlanLogic(jsonString);
       this.actions = data.actions;
       this.lastSavedActionsJson = JSON.stringify(this.actions);
@@ -629,7 +633,10 @@ export const useActionsStore = defineStore('actions', {
 
       const initialSnapshot = computeSnapshot(createBaseEngineState(null), getSimulationContext());
       this._initialSnapshot = markRaw(initialSnapshot);
-      await this.recalculateAll();
+
+      if (!skipRecalculate) {
+        await this.recalculateFrom(0);
+      }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
       return true;
     },

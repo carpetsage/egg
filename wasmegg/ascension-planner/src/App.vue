@@ -735,7 +735,8 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
 
   try {
     // Clear existing plan to ensure a fresh start with new player data
-    await actionsStore.clearAll();
+    // We skip recalculate because setInitialSnapshot will trigger it at the end of this function.
+    await actionsStore.clearAll(undefined, true);
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
@@ -851,10 +852,7 @@ async function quickContinueAscension(selection: 'earnings' | 'elr') {
   loading.value = true;
 
   try {
-    // 1. Wipe current plan
-    await actionsStore.clearAll();
-
-    // 2. Reset date/time/TZ to current
+    // 1. Reset date/time/TZ to current
     virtueStore.resetToCurrentDateTime();
 
     // 3. Refresh backup (submitPlayerId)
