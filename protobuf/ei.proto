@@ -1609,6 +1609,7 @@ message MissionInfo {
     optional double seconds_remaining = 6;
     optional double start_time_derived = 8;
     optional string mission_log = 10;
+    optional string identifier = 7;
 }
 
 message ArtifactSpec {
