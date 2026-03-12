@@ -6,8 +6,10 @@ import { computeDependencies } from '@/lib/actions/executor';
  * Re-build the dependency graph for all actions.
  */
 export function relinkDependenciesLogic(actions: Action[], initialResearchLevels: Record<string, number> = {}) {
-  // 1. Clear existing linkages
+  // 1. Create a map for fast lookups and clear existing linkages
+  const actionMap = new Map<string, Action>();
   for (const action of actions) {
+    actionMap.set(action.id, action);
     action.dependsOn = [];
     action.dependents = [];
   }
@@ -20,7 +22,7 @@ export function relinkDependenciesLogic(actions: Action[], initialResearchLevels
     action.dependsOn = computeDependencies(action.type, action.payload, existingActions, initialResearchLevels);
 
     for (const depId of action.dependsOn) {
-      const depAction = actions.find(a => a.id === depId);
+      const depAction = actionMap.get(depId);
       if (depAction) {
         depAction.dependents.push(action.id);
       }

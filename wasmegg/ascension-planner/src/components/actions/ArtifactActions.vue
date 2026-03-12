@@ -76,6 +76,22 @@
         <div v-if="selectedTab === 'elr'" class="flex items-center justify-end gap-3 border-t border-gray-200/60 pt-2 -mt-1">
           <div class="flex items-center gap-2">
             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-tight"
+              >Exclude Gusset</span
+            >
+            <button
+              @click="excludeGusset = !excludeGusset"
+              class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+              :class="excludeGusset ? 'bg-amber-600' : 'bg-gray-200'"
+            >
+              <span
+                class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                :class="excludeGusset ? 'translate-x-4' : 'translate-x-0'"
+              ></span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-tight"
               >Assume Max Habs/Vehicles</span
             >
             <button
@@ -91,7 +107,8 @@
           </div>
 
           <button
-            class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+            class="px-3 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+            :class="isOptimalELR ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'"
             @click="equipOptimalELR"
             v-tippy="'Find and equip the best ELR set from your inventory'"
           >
@@ -154,7 +171,7 @@ import {
   summarizeLoadout,
   calculateArtifactModifiers,
 } from '@/lib/artifacts';
-import { getOptimalELRSet } from '@/lib/artifacts/virtue';
+import { getOptimalELRSet, isFunctionallyIdentical } from '@/lib/artifacts/virtue';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computeDependencies } from '@/lib/actions/executor';
 import { calculateHabCapacity_Full } from '@/calculations/habCapacity';
@@ -174,34 +191,51 @@ const selectedTab = ref<ArtifactSetName>('earnings');
 // Local state for the selected set (allows unsaved changes)
 const localLoadout = ref<EquippedArtifact[]>(createEmptyLoadout());
 const assumeMaxHabsVehicles = ref(true);
+const excludeGusset = ref(false);
 
-function equipOptimalELR() {
-  console.log('Assume max habs/vehicles:', assumeMaxHabsVehicles.value);
-  if (!initialStateStore.rawBackup) return;
-
-  console.log('Current set:', artifactSets.value.elr);
+const isOptimalELR = computed(() => {
+  if (!initialStateStore.rawBackup) return false;
 
   const savedSet = artifactSets.value.elr;
   const optimized = getOptimalELRSet(initialStateStore.rawBackup, {
     assumeMaxHabsVehicles: assumeMaxHabsVehicles.value,
     currentSet: savedSet || undefined,
+    excludeGusset: excludeGusset.value,
   });
 
-  // If functionally identical, don't change anything
-  if (optimized === savedSet) {
-    return;
+  const currentArtifacts = actionsStore.effectiveSnapshot.artifactLoadout;
+  return isFunctionallyIdentical(optimized, currentArtifacts as any);
+});
+
+function equipOptimalELR() {
+  if (!initialStateStore.rawBackup) return;
+
+  const savedSet = artifactSets.value.elr;
+  const optimized = getOptimalELRSet(initialStateStore.rawBackup, {
+    assumeMaxHabsVehicles: assumeMaxHabsVehicles.value,
+    currentSet: savedSet || undefined,
+    excludeGusset: excludeGusset.value,
+  });
+
+  // If the optimized set is DIFFERENT from our saved ELR set, update it
+  if (optimized !== savedSet) {
+    localLoadout.value = optimized.map(slot => ({
+      artifactId: slot.artifactId,
+      stones: [...slot.stones],
+    }));
+
+    // Auto-save the new optimized loadout
+    saveChanges();
   }
 
-  localLoadout.value = optimized.map(slot => ({
-    artifactId: slot.artifactId,
-    stones: [...slot.stones],
-  }));
-
-  // Auto-save the new optimized loadout
-  saveChanges();
-
-  // If this set is not active, equip it (selectedTab is already 'elr')
-  if (activeArtifactSet.value !== 'elr') {
+  // If the optimized set is DIFFERENT from our currently active set, equip the ELR set
+  const currentArtifacts = actionsStore.effectiveSnapshot.artifactLoadout;
+  if (!isFunctionallyIdentical(optimized, currentArtifacts as any)) {
+    // If the tab is not 'elr', we need to switch to it before calling equipSet
+    // because equipSet uses selectedTab to decide what to equip.
+    if (selectedTab.value !== 'elr') {
+      selectedTab.value = 'elr';
+    }
     equipSet();
   }
 }

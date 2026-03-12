@@ -85,8 +85,6 @@ function updateInitialSnapshotAndRecalculate() {
   const initialSnapshot = computeSnapshot(baseState, context);
 
   actionsStore.setInitialSnapshot(initialSnapshot);
-  // Recalculate all history
-  actionsStore.recalculateAll();
 }
 
 const initialTotalTe = computed(() => Object.values(store.initialTeEarned).reduce((sum, val) => sum + val, 0));

@@ -25,7 +25,11 @@ const BASE_EGG_VALUE = 1;
  * Purely compute the full snapshot from engine state and context.
  * Bypasses Pinia stores and composables completely.
  */
-export function computeSnapshot(state: EngineState, context: SimulationContext): SimulationResult {
+export function computeSnapshot(
+  state: EngineState,
+  context: SimulationContext,
+  options: { skipGrowth?: boolean } = {}
+): SimulationResult {
   const { epicResearchLevels, colleggtibleModifiers } = context;
 
   // 1. Artifacts - Calculate first as they affect almost everything
@@ -66,24 +70,29 @@ export function computeSnapshot(state: EngineState, context: SimulationContext):
 
   // 8. Population growth (catch-up if starting from a backup)
   let population = state.population || 0;
+  let bankValue = state.bankValue || 0;
   let lastStepTime = state.lastStepTime;
 
-  // If time is not initialized (e.g. fresh ascension), base it on the planned start time
-  if (lastStepTime < 1e9 && context.ascensionStartTime > 1e9) {
-    lastStepTime = context.ascensionStartTime;
-  }
+  if (options.skipGrowth) {
+    // Force maintenance of state values
+    population = state.population || 0;
+    bankValue = state.bankValue || 0;
+  } else {
+    // 8. Population growth (catch-up if starting from a backup)
+    // If time is not initialized (e.g. fresh ascension), base it on the planned start time
+    if (lastStepTime < 1e9 && context.ascensionStartTime > 1e9) {
+      lastStepTime = context.ascensionStartTime;
+    }
 
-  if (lastStepTime > 1e9 && context.ascensionStartTime > lastStepTime) {
-    const elapsedSeconds = context.ascensionStartTime - lastStepTime;
-    const growthRatePerSecond = ihrOutput.offlineRate / 60;
-    const growth = Math.floor(growthRatePerSecond * elapsedSeconds);
-    population = Math.min(habCapacityOutput.totalFinalCapacity, population + growth);
-    // Once growth is applied, we are at the start of the ascension
-    lastStepTime = context.ascensionStartTime;
+    if (lastStepTime > 1e9 && context.ascensionStartTime > lastStepTime) {
+      const elapsedSeconds = context.ascensionStartTime - lastStepTime;
+      const growthRatePerSecond = ihrOutput.offlineRate / 60;
+      const growth = Math.floor(growthRatePerSecond * elapsedSeconds);
+      population = Math.min(habCapacityOutput.totalFinalCapacity, population + growth);
+      // Once growth is applied, we are at the start of the ascension
+      lastStepTime = context.ascensionStartTime;
+    }
   }
-
-  // Capture bank value before potential catch-up/passive additions
-  let bankValue = state.bankValue || 0;
 
   // 9. Lay Rate
   // Use the farm's total final capacity for metric calculations.
@@ -131,7 +140,7 @@ export function computeSnapshot(state: EngineState, context: SimulationContext):
   // and we were offline.
   // We use 1e9 as a threshold to distinguish between 0-based simulation time
   // and absolute Unix timestamps from a backup.
-  if (state.lastStepTime > 1e9 && context.ascensionStartTime > state.lastStepTime) {
+  if (state.lastStepTime > 1e9 && context.ascensionStartTime > state.lastStepTime && !options.skipGrowth) {
     const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
     const catchUpGems = earningsOutput.offlineEarnings * elapsedSeconds;
     bankValue += catchUpGems;

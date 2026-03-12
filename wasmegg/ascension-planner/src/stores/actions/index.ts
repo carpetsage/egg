@@ -49,6 +49,7 @@ export const useActionsStore = defineStore('actions', {
       showIncompleteOnly: true,
       activePlanId: null,
       lastSavedActionsJson: '[]',
+      libraryUpdateTick: 0,
     };
   },
 
@@ -366,12 +367,13 @@ export const useActionsStore = defineStore('actions', {
       if (!validation.valid) return;
       const toRemove = new Set<string>([actionId]);
       if (validation.dependentActions) validation.dependentActions.forEach(dep => toRemove.add(dep.id));
+      const minIndex = Math.min(...this.actions.map((a, i) => toRemove.has(a.id) ? i : Infinity));
       const newActions = this.actions.filter(a => !toRemove.has(a.id));
       newActions.forEach(a => {
         a.dependents = a.dependents.filter(depId => !toRemove.has(depId));
       });
       this.actions = newActions;
-      await this.recalculateFrom(0);
+      await this.recalculateFrom(minIndex === Infinity ? 0 : minIndex);
       if (restoreCallback) restoreCallback(this.effectiveSnapshot);
     },
 
@@ -382,14 +384,15 @@ export const useActionsStore = defineStore('actions', {
         this.initialSnapshot.researchLevels
       );
       const fullIds = new Set(fullToRemove.map(a => a.id));
+      const minIndex = Math.min(...this.actions.map((a, i) => fullIds.has(a.id) ? i : Infinity));
       this.actions = this.actions.filter(a => !fullIds.has(a.id));
       this.actions.forEach(a => {
         a.dependents = a.dependents.filter(d => !fullIds.has(d));
       });
-      await this.recalculateAll();
+      await this.recalculateFrom(minIndex === Infinity ? 0 : minIndex);
     },
 
-    async clearAll(resetCallback?: () => void) {
+    async clearAll(resetCallback?: () => void, skipRecalculate = false) {
       this.activePlanId = null;
       let startAction = this.getStartAction();
       if (startAction) {
@@ -401,8 +404,11 @@ export const useActionsStore = defineStore('actions', {
       }
       this.expandedGroupIds.clear();
       this.expandedGroupIds.add(startAction.id);
-      await this.recalculateFrom(0);
+      if (!skipRecalculate) {
+        await this.recalculateFrom(0);
+      }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
+      this.libraryUpdateTick++;
       if (resetCallback) resetCallback();
     },
 
@@ -418,7 +424,6 @@ export const useActionsStore = defineStore('actions', {
       const startAction = this.getStartAction();
       if (startAction) {
         startAction.payload.initialEgg = egg;
-        await this.recalculateFrom(0);
       }
     },
 
@@ -614,7 +619,10 @@ export const useActionsStore = defineStore('actions', {
       exportPlanLogic(this.actions, this.initialSnapshot);
     },
 
-    async importPlan(jsonString: string) {
+    async importPlan(jsonString: string, skipRecalculate = false) {
+      if (this.lastSavedActionsJson === jsonString && this._initialSnapshot) {
+        return true;
+      }
       const data = importPlanLogic(jsonString);
       this.actions = data.actions;
       this.lastSavedActionsJson = JSON.stringify(this.actions);
@@ -627,7 +635,10 @@ export const useActionsStore = defineStore('actions', {
 
       const initialSnapshot = computeSnapshot(createBaseEngineState(null), getSimulationContext());
       this._initialSnapshot = markRaw(initialSnapshot);
-      await this.recalculateAll();
+
+      if (!skipRecalculate) {
+        await this.recalculateFrom(0);
+      }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
       return true;
     },
@@ -646,6 +657,7 @@ export const useActionsStore = defineStore('actions', {
 
       this.activePlanId = planId;
       this.lastSavedActionsJson = JSON.stringify(this.actions);
+      this.libraryUpdateTick++;
     },
 
     async loadPlanFromLibrary(plan: import('@/lib/storage/db').PlanData) {
