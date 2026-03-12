@@ -491,10 +491,26 @@ export function recommendArtifactSet(
   // Determine which artifacts and stones are active for this strategy
   const necklaceFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
   const ankhFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
-  const totemFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
+  // Lunar totem only contributes away earnings — only active for lunar-prestige and virtue strategies.
+  const totemFunc =
+    isVirtue || strategy === Strategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? prestigeMultiplierFunc : inactiveMultiplierFunc;
   const cubeFunc = cubeMultiplierFunc;
+  // Chalice only contributes for all-in-one and multi strategies.
+  const chaliceFunc =
+    strategy === Strategy.PRO_PERMIT_MULTI || strategy === Strategy.PRO_PERMIT_LUNAR_PRELOAD_AIO
+      ? prestigeMultiplierFunc
+      : inactiveMultiplierFunc;
+  // Gusset only contributes for preload strategies.
+  const gussetFunc =
+    strategy === Strategy.STANDARD_PERMIT_SINGLE_PRELOAD ||
+    strategy === Strategy.PRO_PERMIT_SINGLE_PRELOAD ||
+    strategy === Strategy.PRO_PERMIT_LUNAR_PRELOAD_AIO
+      ? prestigeMultiplierFunc
+      : inactiveMultiplierFunc;
   const shellStoneFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
-  const lunarStoneFunc = isVirtue ? virtueMultiplierFunc : prestigeMultiplierFunc;
+  // Lunar stones only contribute away earnings — only active for lunar-prestige and virtue strategies.
+  const lunarStoneFunc =
+    isVirtue || strategy === Strategy.PRO_PERMIT_LUNAR_PRELOAD_AIO ? prestigeMultiplierFunc : inactiveMultiplierFunc;
 
   // For prestige-specific artifacts
   let homeFarm: Farm | null = null;
@@ -532,15 +548,9 @@ export function recommendArtifactSet(
     families.get(Name.QUANTUM_METRONOME),
     isVirtue ? inactiveMultiplierFunc : prestigeMultiplierFunc
   );
-  const bestChalices = contendersInArtifactFamily(
-    families.get(Name.THE_CHALICE),
-    isVirtue ? inactiveMultiplierFunc : prestigeMultiplierFunc
-  );
+  const bestChalices = contendersInArtifactFamily(families.get(Name.THE_CHALICE), chaliceFunc);
   // For virtue or when gusset is required, prioritize stone slots over effect
-  const bestGussets = contendersInArtifactFamily(
-    families.get(Name.ORNATE_GUSSET),
-    isVirtue ? inactiveMultiplierFunc : prestigeMultiplierFunc
-  );
+  const bestGussets = contendersInArtifactFamily(families.get(Name.ORNATE_GUSSET), gussetFunc);
   const bestTotems = contendersInArtifactFamily(families.get(Name.LUNAR_TOTEM), totemFunc);
   const bestCubes = contendersInArtifactFamily(families.get(Name.PUZZLE_CUBE), cubeFunc);
 
