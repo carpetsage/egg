@@ -323,6 +323,9 @@ const actionIconPath = computed(() => {
   if (props.action.type === 'toggle_earnings_boost') {
     return 'egginc-extras/icon_earnings_boost.png';
   }
+  if (props.action.type === 'wait_for_no_earnings') {
+    return 'egginc-extras/silo.png';
+  }
   if (props.action.type === 'notification') {
     return 'egginc/tiny_indicator_waiting.png';
   }

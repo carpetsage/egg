@@ -120,7 +120,7 @@
                   <button
                     class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
                     :disabled="loading || !playerId"
-                    @click="confirmUnsavedChanges(quickContinueAscension)"
+                    @click="confirmUnsavedChanges(triggerQuickContinue)"
                   >
                     Continue
                   </button>
@@ -322,6 +322,24 @@
       @cancel="showReconcileLibraryModal = false"
     />
 
+    <!-- Artifact Set Selection Dialog -->
+    <div v-if="showArtifactSetConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div class="px-6 py-5 border-b border-slate-100">
+          <h3 class="text-lg font-bold text-slate-800">Current Artifact Set</h3>
+          <p class="mt-2 text-sm text-slate-500">Which artifact set do you currently have equipped in game?</p>
+        </div>
+        <div class="px-6 py-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
+          <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('elr')">
+            ELR Set
+          </button>
+          <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('earnings')">
+            Earnings Set
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Continuity Check Dialog -->
     <ContinuityDialog />
 
@@ -481,7 +499,9 @@ onMounted(async () => {
     }
   }
 
-  await actionsStore.recalculateAll();
+  if (!actionsStore._initialSnapshot) {
+    await actionsStore.recalculateAll();
+  }
 
   // Fresh start: if only start_ascension exists and no farm state is loaded, add initial Wait for Full Habs
   const startAction = actionsStore.getStartAction();
@@ -541,6 +561,7 @@ const isFooterCollapsed = ref(false);
 
 const showReconcileLibraryModal = ref(false);
 const showUnsavedConfirm = ref(false);
+const showArtifactSetConfirm = ref(false);
 const pendingAction = ref<(() => void) | null>(null);
 
 /**
@@ -647,7 +668,12 @@ async function startFromScratch() {
   // 2. Reset all definition stores to their default/clean states.
   // We do this AFTER clearAll because clearAll's simulation sync
   // would otherwise overwrite these stores with old snapshot data.
+  const cachedBackup = initialStateStore.rawBackup;
+  const cachedPlayerId = initialStateStore.playerId;
   initialStateStore.$reset();
+  if (cachedPlayerId && cachedBackup) {
+    initialStateStore.loadFromBackup(cachedPlayerId, cachedBackup, 'scratch');
+  }
   virtueStore.$reset();
   fuelTankStore.$reset();
   truthEggsStore.$reset();
@@ -679,7 +705,7 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
 
   try {
     // 1. Fetch latest backup
-    await submitPlayerId(playerId.value);
+    await submitPlayerId(playerId.value, 'reconcile');
 
     // 2. Set reconciliation mode and load the plan
     actionsStore.isReconciling = true;
@@ -701,7 +727,7 @@ function onFormInput(e: Event) {
   error.value = '';
 }
 
-async function submitPlayerId(id: string) {
+async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'continue_earnings' | 'continue_elr' | 'reconcile' | 'default' = 'default') {
   playerId.value = id;
   savePlayerID(id);
   error.value = '';
@@ -709,7 +735,8 @@ async function submitPlayerId(id: string) {
 
   try {
     // Clear existing plan to ensure a fresh start with new player data
-    await actionsStore.clearAll();
+    // We skip recalculate because setInitialSnapshot will trigger it at the end of this function.
+    await actionsStore.clearAll(undefined, true);
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
@@ -723,7 +750,7 @@ async function submitPlayerId(id: string) {
 
     // Store the backup data in initial state
     const { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
-      initialStateStore.loadFromBackup(id, backup);
+      initialStateStore.loadFromBackup(id, backup, mode);
 
     // Calculate extra eggs since backup if on a virtue egg
     if (initialStateStore.currentFarmState && initialStateStore.lastBackupTime > 0) {
@@ -809,21 +836,27 @@ async function submitPlayerId(id: string) {
   }
 }
 
-async function quickContinueAscension() {
+function triggerQuickContinue() {
+  showArtifactSetConfirm.value = true;
+}
+
+function handleArtifactSetSelection(selection: 'earnings' | 'elr') {
+  showArtifactSetConfirm.value = false;
+  quickContinueAscension(selection);
+}
+
+async function quickContinueAscension(selection: 'earnings' | 'elr') {
   if (!playerId.value) return;
 
   error.value = '';
   loading.value = true;
 
   try {
-    // 1. Wipe current plan
-    await actionsStore.clearAll();
-
-    // 2. Reset date/time/TZ to current
+    // 1. Reset date/time/TZ to current
     virtueStore.resetToCurrentDateTime();
 
     // 3. Refresh backup (submitPlayerId)
-    await submitPlayerId(playerId.value);
+    await submitPlayerId(playerId.value, selection === 'earnings' ? 'continue_earnings' : 'continue_elr');
 
     // 4. Trigger continue from backup
     actionsStore.isReconciling = false;
@@ -856,7 +889,7 @@ async function planNextAscension() {
     await actionsStore.clearAll();
 
     // 2. Load latest backup
-    await submitPlayerId(playerId.value);
+    await submitPlayerId(playerId.value, 'plan_next');
 
     // 3. Include pending TE
     for (const egg of Object.keys(initialStateStore.initialTePending) as VirtueEgg[]) {

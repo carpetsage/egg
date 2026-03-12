@@ -53,3 +53,10 @@ export interface WaitForGemsPayload {
   earningsPerSecond: number;
   timeSeconds: number;
 }
+
+/**
+ * Payload for waiting without earnings, population growth, or egg shipping.
+ */
+export interface WaitWithoutEarningsPayload {
+  totalTimeSeconds: number;
+}

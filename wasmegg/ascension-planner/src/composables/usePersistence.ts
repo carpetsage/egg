@@ -19,7 +19,7 @@ async function loadActiveDraft() {
     isSyncing.value = true;
     try {
       const actionsStore = useActionsStore();
-      await actionsStore.importPlan(JSON.stringify(draft));
+      await actionsStore.importPlan(JSON.stringify(draft), true);
 
       const planData = exportPlanData(actionsStore.actions, actionsStore.initialSnapshot);
       const dataForComparison = { ...planData, timestamp: 0 };

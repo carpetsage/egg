@@ -53,39 +53,7 @@ export function summarizeLoadout(loadout: EquippedArtifact[]): string {
   return parts.length > 0 ? parts.join(', ') : 'No artifacts equipped';
 }
 
-/**
- * Check if the currently equipped set is "mostly earnings" artifacts.
- */
-export function isMostlyEarningsSet(loadout: EquippedArtifact[]): boolean {
-  if (!loadout || loadout.length === 0) return false;
-  let earningsScore = 0;
-  let totalArtifacts = 0;
 
-  for (const slot of loadout) {
-    if (!slot.artifactId) continue;
-    totalArtifacts++;
-    const artifactId = slot.artifactId.toLowerCase();
-    if (
-      artifactId.includes('necklace') ||
-      artifactId.includes('ankh') ||
-      artifactId.includes('totem') ||
-      artifactId.includes('cube') ||
-      artifactId.includes('phial')
-    ) {
-      earningsScore++;
-    }
-
-    for (const stone of slot.stones) {
-      if (!stone) continue;
-      const stoneId = stone.toLowerCase();
-      if (stoneId.includes('lunar') || stoneId.includes('shell') || stoneId.includes('terra')) {
-        earningsScore += 0.34;
-      }
-    }
-  }
-  if (totalArtifacts === 0) return false;
-  return earningsScore >= 1.5;
-}
 
 /**
  * Convert a lib Artifact to the planner's EquippedArtifact format.

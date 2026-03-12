@@ -18,4 +18,6 @@ export interface ActionsState {
   activePlanId: string | null;
   // JSON string of the actions when last saved/loaded to track "dirty" state
   lastSavedActionsJson: string;
+  // Monotonically increasing counter to trigger refreshes of the plan library UI
+  libraryUpdateTick: number;
 }

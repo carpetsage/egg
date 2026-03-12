@@ -7,6 +7,7 @@ init:
 
 proto/index.js: ../protobuf/*.proto
 	pnpm pbjs -p protobuf -t static-module -w es6 --force-number -o proto/index.js ../protobuf/*.proto
+	node proto/patch-missioninfo.js
 	pnpm pbts -o proto/index.d.ts proto/index.js
 
 sandbox/schema.js: sandbox/schema.proto

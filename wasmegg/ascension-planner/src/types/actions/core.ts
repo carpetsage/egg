@@ -74,6 +74,7 @@ export type ActionType =
   | 'wait_for_gems'
   | 'wait_for_research_sale'
   | 'wait_for_earnings_boost'
+  | 'wait_for_no_earnings'
   | 'toggle_earnings_boost'
   | 'notification';
 
@@ -102,6 +103,7 @@ export interface ActionPayloadMap {
   wait_for_gems: WaitForGemsPayload;
   wait_for_research_sale: import('./wait').WaitForResearchSalePayload;
   wait_for_earnings_boost: import('./wait').WaitForEarningsBoostPayload;
+  wait_for_no_earnings: import('./wait').WaitWithoutEarningsPayload;
   toggle_earnings_boost: ToggleEarningsBoostPayload;
   notification: NotificationPayload;
 }

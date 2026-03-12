@@ -145,13 +145,14 @@ export function getOptimalEarningsSet(backup: ei.IBackup): EquippedArtifact[] {
  */
 export function getOptimalELRSet(
   backup: ei.IBackup,
-  options: { assumeMaxHabsVehicles?: boolean, currentSet?: (EquippedArtifact | null)[] } = {}
+  options: { assumeMaxHabsVehicles?: boolean, currentSet?: (EquippedArtifact | null)[], excludeGusset?: boolean } = {}
 ): EquippedArtifact[] {
   if (!backup.artifactsDb) {
     return createEmptyLoadout();
   }
 
   const assumeMax = options.assumeMaxHabsVehicles ?? false;
+  const excludeGusset = options.excludeGusset ?? false;
   const inventory = new Inventory(backup.artifactsDb, { virtue: true });
   const colleggtibles = allModifiersFromColleggtibles(backup);
 
@@ -178,6 +179,8 @@ export function getOptimalELRSet(
     if (item.have === 0 || !item.isArtifact) continue;
 
     const afxId = item.afxId;
+    if (excludeGusset && afxId === name.ORNATE_GUSSET) continue;
+
     const isTarget = targetAfxIds.has(afxId);
 
     // Find best rarity for this tier
@@ -469,7 +472,7 @@ export function getOptimalELRSet(
 /**
  * Compare two artifact sets for functional equivalence.
  */
-function isFunctionallyIdentical(
+export function isFunctionallyIdentical(
   setA: EquippedArtifact[],
   setB: (EquippedArtifact | null)[] | undefined
 ): boolean {
