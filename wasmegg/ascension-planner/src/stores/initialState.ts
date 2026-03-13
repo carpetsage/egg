@@ -312,10 +312,6 @@ export const useInitialStateStore = defineStore('initialState', {
               commonResearches[r.id] = r.level;
             }
           }
-          console.group("[Reconcile Debug: Backup Loading]");
-          console.log("Farm Egg Type ID:", farm.eggType);
-          console.log("Common Research Sample:", Object.entries(commonResearches).slice(0, 5));
-          console.groupEnd();
 
           // Parse habs (can be numbers or objects with type field)
           const habs: (number | null)[] = (farm.habs || []).map(h => {
