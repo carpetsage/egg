@@ -46,6 +46,9 @@ export const useActionsStore = defineStore('actions', {
       minBatchIndex: Infinity,
       isReconciling: false,
       reconciledBackupTime: 0,
+      reconcileFarmState: null,
+      reconcileEggsDelivered: null,
+      reconcileTeEarned: null,
       showIncompleteOnly: true,
       activePlanId: null,
       lastSavedActionsJson: '[]',
@@ -112,21 +115,22 @@ export const useActionsStore = defineStore('actions', {
         const auditedTypes = ['buy_research', 'buy_hab', 'buy_vehicle', 'buy_train_car', 'buy_silo', 'wait_for_te'];
         if (!auditedTypes.includes(action.type)) return 'na';
 
-        const initialStateStore = useInitialStateStore();
-        const farm = initialStateStore.currentFarmState;
+        const farm = this.reconcileFarmState;
 
         // Special case for Wait for TE: needs comparison against catch-up delivered eggs
         if (action.type === 'wait_for_te') {
           const { egg, targetTE } = action.payload;
-          const delivered = initialStateStore.initialEggsDelivered[egg] || 0;
-          const earned = initialStateStore.initialTeEarned[egg] || 0;
+          const delivered = this.reconcileEggsDelivered ? this.reconcileEggsDelivered[egg] || 0 : 0;
+          const earned = this.reconcileTeEarned ? this.reconcileTeEarned[egg] || 0 : 0;
           const theoretical = countTEThresholdsPassed(delivered);
           const currentTE = Math.max(earned, theoretical);
           return currentTE >= targetTE ? 'completed' : 'pending';
         }
 
         // Other audited actions require current farm state
-        if (!farm) return 'pending';
+        if (!farm) {
+          return 'pending';
+        }
 
         switch (action.type) {
           case 'buy_research': {
@@ -394,6 +398,10 @@ export const useActionsStore = defineStore('actions', {
 
     async clearAll(resetCallback?: () => void, skipRecalculate = false) {
       this.activePlanId = null;
+      this.isReconciling = false;
+      this.reconcileFarmState = null;
+      this.reconcileEggsDelivered = null;
+      this.reconcileTeEarned = null;
       let startAction = this.getStartAction();
       if (startAction) {
         startAction.payload.initialEgg = startAction.payload.initialEgg || 'curiosity';
