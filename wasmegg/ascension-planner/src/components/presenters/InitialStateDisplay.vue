@@ -14,25 +14,29 @@
           <div class="flex flex-wrap items-center gap-2">
             <input
               type="date"
-              :value="ascensionDate"
+              v-model="localAscensionDate"
               class="input-premium w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
-              @change="$emit('set-ascension-date', ($event.target as HTMLInputElement).value)"
             />
             <input
               type="time"
-              :value="ascensionTime"
+              v-model="localAscensionTime"
               class="input-premium w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
-              @change="$emit('set-ascension-time', ($event.target as HTMLInputElement).value)"
             />
             <select
-              :value="ascensionTimezone"
+              v-model="localAscensionTimezone"
               class="input-premium w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 pl-4 pr-12"
-              @change="$emit('set-ascension-timezone', ($event.target as HTMLSelectElement).value)"
             >
               <option v-for="tz in allTimezones" :key="tz.value" :value="tz.value">
                 {{ tz.label }}
               </option>
             </select>
+            <button
+              class="btn-premium btn-primary px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all disabled:opacity-30"
+              :disabled="!hasAscensionChanges"
+              @click="applyAscensionChanges"
+            >
+              Apply
+            </button>
           </div>
         </div>
 
@@ -692,6 +696,33 @@ const emit = defineEmits<{
   'set-colleggtible-tier': [id: string, tierIndex: number];
 }>();
 
+// Ascension Start local state for staged updates
+const localAscensionDate = ref(props.ascensionDate);
+const localAscensionTime = ref(props.ascensionTime);
+const localAscensionTimezone = ref(props.ascensionTimezone);
+
+// Sync with props when they change externally
+watch(() => props.ascensionDate, val => (localAscensionDate.value = val));
+watch(() => props.ascensionTime, val => (localAscensionTime.value = val));
+watch(
+  () => props.ascensionTimezone,
+  val => (localAscensionTimezone.value = val)
+);
+
+const hasAscensionChanges = computed(() => {
+  return (
+    localAscensionDate.value !== props.ascensionDate ||
+    localAscensionTime.value !== props.ascensionTime ||
+    localAscensionTimezone.value !== props.ascensionTimezone
+  );
+});
+
+function applyAscensionChanges() {
+  emit('set-ascension-date', localAscensionDate.value);
+  emit('set-ascension-time', localAscensionTime.value);
+  emit('set-ascension-timezone', localAscensionTimezone.value);
+}
+
 // Collapsible state
 const epicResearchExpanded = ref(false);
 const colleggtiblesExpanded = ref(false);
@@ -836,6 +867,19 @@ const colleggtiblesList = computed(() =>
       effect: def.effect,
       tierIndex,
       bonusText: formatColleggtibleBonus(multiplier, def.id),
+    };
+  })
+);
+console.log(
+  colleggtiblesList.value.map(c => {
+    const def = colleggtibleDefs.find(d => d.id === c.id);
+    return {
+      ...c,
+      tiers: def?.tierValues.map((v, i) => ({
+        tier: i + 1,
+        bonus: formatColleggtibleBonus(v, def.id),
+        multiplier: v,
+      })),
     };
   })
 );

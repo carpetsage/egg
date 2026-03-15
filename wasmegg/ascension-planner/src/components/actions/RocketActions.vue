@@ -83,6 +83,7 @@ import { generateActionId, VIRTUE_EGGS } from '@/types';
 import type { VirtueEgg, LaunchMissionEntry } from '@/types';
 import { SHIP_INFO, Spaceship } from '@/lib/missions';
 import { formatDuration } from '@/lib/format';
+import { getTimeToSave } from '@/engine/apply';
 
 import FuelTankGraphic from './rockets/FuelTankGraphic.vue';
 import MissionGrid from './rockets/MissionGrid.vue';
@@ -115,8 +116,12 @@ const totalLaunchCost = computed(() => {
 });
 
 const saveTimeSeconds = computed(() => {
-  if (earningsPerSecond.value <= 0) return 0;
-  return totalLaunchCost.value / earningsPerSecond.value;
+  const cost = totalLaunchCost.value;
+  if (cost <= 0) return 0;
+
+  // Use the engine's timeToSave which correctly handles bank balance,
+  // population growth, and uses offline rates (consistent with the rest of the app).
+  return getTimeToSave(cost, actionsStore.effectiveSnapshot);
 });
 
 const showArtifactWarning = computed(() => {
