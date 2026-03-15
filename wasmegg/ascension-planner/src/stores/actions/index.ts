@@ -627,12 +627,15 @@ export const useActionsStore = defineStore('actions', {
       exportPlanLogic(this.actions, this.initialSnapshot);
     },
 
-    async importPlan(jsonString: string, skipRecalculate = false) {
+    async importPlan(jsonString: string, skipRecalculate = false, preserveId = false) {
       if (this.lastSavedActionsJson === jsonString && this._initialSnapshot) {
         return true;
       }
       const data = importPlanLogic(jsonString);
       this.actions = data.actions;
+      if (preserveId && data.activePlanId) {
+        this.activePlanId = data.activePlanId;
+      }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
 
       // Expand first group by default
@@ -657,7 +660,7 @@ export const useActionsStore = defineStore('actions', {
         id: planId,
         name,
         timestamp: Date.now(),
-        data: exportPlanData(this.actions, this.initialSnapshot),
+        data: exportPlanData(this.actions, this.initialSnapshot, planId),
       };
 
       const { savePlanToLibrary } = await import('@/lib/storage/db');

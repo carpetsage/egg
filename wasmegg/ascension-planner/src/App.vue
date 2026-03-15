@@ -18,7 +18,7 @@
               v-if="initialStateStore.hasData && lastBackupFormatted"
               class="text-center text-[10px] text-slate-500 font-medium uppercase tracking-wider mb-4 -mt-1"
             >
-              Last synced: {{ lastBackupFormatted }}
+              Player Backup From: {{ lastBackupFormatted }}
             </div>
 
             <the-player-id-form :player-id="playerId" @submit="submitPlayerId" @input="onFormInput" />
@@ -413,16 +413,18 @@ const habCapacityStore = useHabCapacityStore();
 const shippingCapacityStore = useShippingCapacityStore();
 const silosStore = useSilosStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
-const { partitionHash, saveActiveDraft, initPersistence } = usePersistence();
+const { partitionHash, saveActiveDraft, initPersistence, broadcastPresence } = usePersistence();
 
 const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
 
 const lastBackupFormatted = computed(() => {
-  if (initialStateStore.lastBackupTime === 0) {
-    return initialStateStore.hasData ? 'Imported Plan' : '';
-  }
-  const date = new Date(initialStateStore.lastBackupTime * 1000);
+
+  const approxTime = initialStateStore.rawBackup?.approxTime;
+  if (approxTime == null) return 'Unknown';
+  const date = new Date(approxTime * 1000);
+  
   return date.toLocaleDateString(undefined, {
+    weekday: 'short',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
@@ -431,7 +433,7 @@ const lastBackupFormatted = computed(() => {
 });
 
 const pageTitle = computed(() => {
-  const name = initialStateStore.nickname;
+  const name = initialStateStore.rawBackup?.userName;
   return name ? `Ascension Planner ${name}` : 'Ascension Planner';
 });
 
@@ -718,6 +720,7 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
 
     // 2. Set reconciliation mode and load the plan
     actionsStore.isReconciling = true;
+    broadcastPresence(plan.id); // Immediate heartbeat to block other tabs
     await actionsStore.loadPlanFromLibrary(plan);
     isHeaderCollapsed.value = true;
   } catch (err) {
