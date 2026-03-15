@@ -204,7 +204,8 @@ const isOptimalELR = computed(() => {
   });
 
   const currentArtifacts = actionsStore.effectiveSnapshot.artifactLoadout;
-  return isFunctionallyIdentical(optimized, currentArtifacts as any);
+  return isFunctionallyIdentical(optimized, currentArtifacts);
+
 });
 
 function equipOptimalELR() {
@@ -230,7 +231,7 @@ function equipOptimalELR() {
 
   // If the optimized set is DIFFERENT from our currently active set, equip the ELR set
   const currentArtifacts = actionsStore.effectiveSnapshot.artifactLoadout;
-  if (!isFunctionallyIdentical(optimized, currentArtifacts as any)) {
+  if (!isFunctionallyIdentical(optimized, currentArtifacts)) {
     // If the tab is not 'elr', we need to switch to it before calling equipSet
     // because equipSet uses selectedTab to decide what to equip.
     if (selectedTab.value !== 'elr') {

@@ -707,6 +707,15 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
     // 1. Fetch latest backup
     await submitPlayerId(playerId.value, 'reconcile');
 
+    // Capture the live state for reconciliation before the plan import overwrites initialStateStore
+    if (initialStateStore.currentFarmState) {
+      actionsStore.reconcileFarmState = JSON.parse(JSON.stringify(initialStateStore.currentFarmState));
+    } else {
+      actionsStore.reconcileFarmState = null;
+    }
+    actionsStore.reconcileEggsDelivered = JSON.parse(JSON.stringify(initialStateStore.initialEggsDelivered));
+    actionsStore.reconcileTeEarned = JSON.parse(JSON.stringify(initialStateStore.initialTeEarned));
+
     // 2. Set reconciliation mode and load the plan
     actionsStore.isReconciling = true;
     await actionsStore.loadPlanFromLibrary(plan);
