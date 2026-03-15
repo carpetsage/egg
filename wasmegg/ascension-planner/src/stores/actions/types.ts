@@ -1,4 +1,4 @@
-import type { Action, CalculationsSnapshot } from '@/types';
+import type { Action, CalculationsSnapshot, CurrentFarmState, VirtueEgg } from '@/types';
 
 export interface ActionsState {
   actions: Action[];
@@ -13,6 +13,9 @@ export interface ActionsState {
   minBatchIndex: number;
   isReconciling: boolean;
   reconciledBackupTime: number;
+  reconcileFarmState: CurrentFarmState | null;
+  reconcileEggsDelivered: Record<VirtueEgg, number> | null;
+  reconcileTeEarned: Record<VirtueEgg, number> | null;
   showIncompleteOnly: boolean;
   // ID of the library plan currently being edited, or null if it's a new draft
   activePlanId: string | null;
