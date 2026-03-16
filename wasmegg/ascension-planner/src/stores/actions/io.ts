@@ -10,7 +10,7 @@ import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import type { VirtueEgg, Action, CalculationsSnapshot } from '@/types';
 
-export function exportPlanData(actions: Action[], initialSnapshot?: CalculationsSnapshot) {
+export function exportPlanData(actions: Action[], initialSnapshot?: CalculationsSnapshot, activePlanId: string | null = null) {
   const initialStateStore = useInitialStateStore();
   const virtueStore = useVirtueStore();
   const fuelTankStore = useFuelTankStore();
@@ -59,6 +59,7 @@ export function exportPlanData(actions: Action[], initialSnapshot?: Calculations
       teEarned: baseTeEarned,
     },
     actions: actions,
+    activePlanId: activePlanId,
   };
 }
 

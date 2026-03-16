@@ -230,7 +230,7 @@
                 class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner"
               >
                 <img
-                  :src="iconURL(getColleggtibleIconPath('silo_capacity'), 64)"
+                  :src="iconURL(getResearchIconPath('silo_capacity'), 64)"
                   class="w-5 h-5 object-contain"
                   alt="Silo Capacity"
                 />
@@ -261,7 +261,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { formatNumber } from '@/lib/format';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import type { TimeUnit } from '@/types';
 

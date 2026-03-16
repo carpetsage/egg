@@ -111,7 +111,7 @@
             class="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center p-1.5 shadow-sm"
           >
             <img
-              :src="iconURL(getColleggtibleIconPath('silo_capacity'), 64)"
+              :src="iconURL(getResearchIconPath('silo_capacity'), 64)"
               class="w-full h-full object-contain"
               alt="Silo Capacity"
             />
@@ -149,7 +149,7 @@ import { useSilosStore } from '@/stores/silos';
 import { useActionsStore } from '@/stores/actions';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';

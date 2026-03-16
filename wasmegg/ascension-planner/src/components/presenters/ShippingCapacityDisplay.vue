@@ -42,7 +42,7 @@
               class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
             >
               <img
-                :src="iconURL(getColleggtibleIconPath('bust_unions'), 64)"
+                :src="iconURL(getResearchIconPath('bust_unions'), 64)"
                 class="w-5 h-5 object-contain"
                 alt="Bust Unions"
               />
@@ -175,7 +175,7 @@
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-2">
             <img
-              :src="iconURL(getColleggtibleIconPath('transportation_lobbyist'), 64)"
+              :src="iconURL(getResearchIconPath('transportation_lobbyist'), 64)"
               class="w-4 h-4 object-contain opacity-60"
               alt="Transportation Lobbyists"
             />
@@ -251,7 +251,7 @@
               class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
             >
               <img
-                :src="iconURL(getColleggtibleIconPath(research.researchId), 64)"
+                :src="iconURL(getResearchIconPath(research.researchId), 64)"
                 class="w-5 h-5 object-contain"
                 :alt="research.name"
               />
@@ -287,7 +287,7 @@
               class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
             >
               <img
-                :src="iconURL(getColleggtibleIconPath('micro_coupling'), 64)"
+                :src="iconURL(getResearchIconPath('micro_coupling'), 64)"
                 class="w-5 h-5 object-contain"
                 alt="Graviton Coupling"
               />
@@ -321,7 +321,7 @@
                 class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner overflow-hidden"
               >
                 <img
-                  :src="iconURL(getColleggtibleIconPath('transportation_lobbyist'), 64)"
+                  :src="iconURL(getResearchIconPath('transportation_lobbyist'), 64)"
                   class="w-5 h-5 object-contain"
                   alt="Transportation Lobbyists"
                 />
@@ -399,7 +399,7 @@ import type { ShippingCapacityOutput, VehicleSlot, TimeUnit } from '@/types';
 import { getVehicleType, getVehicleCostMultiplier, type VehicleCostModifiers } from '@/lib/vehicles';
 import { formatNumber, formatMultiplier, formatPercent } from '@/lib/format';
 import { formatTier, formatColleggtibleBonus, getColleggtibleMultiplier } from '@/lib/colleggtibles';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getColleggtibleIconPath, getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { computed } from 'vue';
 

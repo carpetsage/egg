@@ -66,7 +66,7 @@
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
           <div class="flex items-center gap-2">
             <img
-              :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)"
+              :src="iconURL(getResearchIconPath('epic_internal_incubators'), 64)"
               class="w-4 h-4 object-contain opacity-60"
               alt="Epic Int. Hatcheries"
             />
@@ -109,7 +109,7 @@
         <div class="px-5 py-3 flex justify-between items-center bg-slate-50/50">
           <div class="flex items-center gap-2">
             <img
-              :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)"
+              :src="iconURL(getResearchIconPath('int_hatch_calm'), 64)"
               class="w-4 h-4 object-contain opacity-60"
               alt="Internal Hatchery Calm"
             />
@@ -193,7 +193,7 @@
               class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
             >
               <img
-                :src="iconURL(getColleggtibleIconPath(research.researchId), 64)"
+                :src="iconURL(getResearchIconPath(research.researchId), 64)"
                 class="w-5 h-5 object-contain"
                 :alt="research.name"
               />
@@ -229,7 +229,7 @@
                 class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner overflow-hidden"
               >
                 <img
-                  :src="iconURL(getColleggtibleIconPath('epic_internal_incubators'), 64)"
+                  :src="iconURL(getResearchIconPath('epic_internal_incubators'), 64)"
                   class="w-5 h-5 object-contain"
                   alt="Epic Int. Hatcheries"
                 />
@@ -252,7 +252,7 @@
                 class="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden"
               >
                 <img
-                  :src="iconURL(getColleggtibleIconPath('int_hatch_calm'), 64)"
+                  :src="iconURL(getResearchIconPath('int_hatch_calm'), 64)"
                   class="w-5 h-5 object-contain"
                   alt="Internal Hatchery Calm"
                 />
@@ -275,7 +275,7 @@
 import type { IHROutput } from '@/types';
 import { formatNumber, formatMultiplier } from '@/lib/format';
 import { formatTier, formatColleggtibleBonus } from '@/lib/colleggtibles';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getColleggtibleIconPath, getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { computed } from 'vue';
 

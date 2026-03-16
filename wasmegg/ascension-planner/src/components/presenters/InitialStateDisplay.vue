@@ -14,25 +14,29 @@
           <div class="flex flex-wrap items-center gap-2">
             <input
               type="date"
-              :value="ascensionDate"
+              v-model="localAscensionDate"
               class="input-premium w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
-              @change="$emit('set-ascension-date', ($event.target as HTMLInputElement).value)"
             />
             <input
               type="time"
-              :value="ascensionTime"
+              v-model="localAscensionTime"
               class="input-premium w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
-              @change="$emit('set-ascension-time', ($event.target as HTMLInputElement).value)"
             />
             <select
-              :value="ascensionTimezone"
+              v-model="localAscensionTimezone"
               class="input-premium w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 pl-4 pr-12"
-              @change="$emit('set-ascension-timezone', ($event.target as HTMLSelectElement).value)"
             >
               <option v-for="tz in allTimezones" :key="tz.value" :value="tz.value">
                 {{ tz.label }}
               </option>
             </select>
+            <button
+              class="btn-premium btn-primary px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all disabled:opacity-30"
+              :disabled="!hasAscensionChanges"
+              @click="applyAscensionChanges"
+            >
+              Apply
+            </button>
           </div>
         </div>
 
@@ -522,7 +526,7 @@
                 class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center p-2 group-hover:bg-white group-hover:shadow-sm transition-all"
               >
                 <img
-                  :src="iconURL(getColleggtibleIconPath(research.id), 64)"
+                  :src="iconURL(getResearchIconPath(research.id), 64)"
                   class="w-full h-full object-contain opacity-80"
                   :alt="research.name"
                 />
@@ -628,7 +632,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { iconURL } from 'lib';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getResearchIconPath, getColleggtibleIconPath } from '@/lib/assets';
 import type { ResearchLevels, VirtueEgg } from '@/types';
 import { VIRTUE_EGGS, VIRTUE_EGG_NAMES } from '@/types';
 import { epicResearchDefs } from '@/lib/epicResearch';
@@ -691,6 +695,33 @@ const emit = defineEmits<{
   'set-active-artifact-set': [setName: import('@/types').ArtifactSetName];
   'set-colleggtible-tier': [id: string, tierIndex: number];
 }>();
+
+// Ascension Start local state for staged updates
+const localAscensionDate = ref(props.ascensionDate);
+const localAscensionTime = ref(props.ascensionTime);
+const localAscensionTimezone = ref(props.ascensionTimezone);
+
+// Sync with props when they change externally
+watch(() => props.ascensionDate, val => (localAscensionDate.value = val));
+watch(() => props.ascensionTime, val => (localAscensionTime.value = val));
+watch(
+  () => props.ascensionTimezone,
+  val => (localAscensionTimezone.value = val)
+);
+
+const hasAscensionChanges = computed(() => {
+  return (
+    localAscensionDate.value !== props.ascensionDate ||
+    localAscensionTime.value !== props.ascensionTime ||
+    localAscensionTimezone.value !== props.ascensionTimezone
+  );
+});
+
+function applyAscensionChanges() {
+  emit('set-ascension-date', localAscensionDate.value);
+  emit('set-ascension-time', localAscensionTime.value);
+  emit('set-ascension-timezone', localAscensionTimezone.value);
+}
 
 // Collapsible state
 const epicResearchExpanded = ref(false);

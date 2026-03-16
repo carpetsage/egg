@@ -9,7 +9,7 @@
         <div class="px-4 py-2 flex justify-between items-center">
           <div class="flex items-center gap-2">
             <img
-              :src="iconURL(getColleggtibleIconPath('cheaper_research'), 64)"
+              :src="iconURL(getResearchIconPath('cheaper_research'), 64)"
               class="w-6 h-6 object-contain"
               alt="Lab Upgrade"
             />
@@ -131,7 +131,7 @@
             <div class="flex-1 min-w-0 mr-4">
               <div class="flex items-center gap-3">
                 <img
-                  :src="iconURL(getColleggtibleIconPath(research.id), 64)"
+                  :src="iconURL(getResearchIconPath(research.id), 64)"
                   class="w-8 h-8 object-contain"
                   :alt="research.name"
                 />
@@ -208,7 +208,7 @@ import {
   type CommonResearch,
 } from '@/calculations/commonResearch';
 import { formatNumber, formatGemPrice, formatPercent } from '@/lib/format';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getColleggtibleIconPath, getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 
 const commonResearchStore = useCommonResearchStore();

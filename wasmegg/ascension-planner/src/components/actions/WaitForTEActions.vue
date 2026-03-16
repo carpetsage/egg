@@ -160,6 +160,10 @@
             <span class="font-black text-slate-400 uppercase tracking-widest">Time Required:</span>
             <span class="font-mono-premium font-black text-slate-900">{{ formatDuration(timeToLaySeconds) }}</span>
           </div>
+          <div class="flex justify-between items-center text-[10px]">
+            <span class="font-black text-slate-400 uppercase tracking-widest">Completion Time:</span>
+            <span class="font-mono-premium font-black text-slate-900">{{ absoluteEarnedTime }}</span>
+          </div>
         </div>
       </div>
 
@@ -204,7 +208,7 @@ import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
 import { computeDependencies } from '@/lib/actions/executor';
-import { formatNumber, formatDuration } from '@/lib/format';
+import { formatNumber, formatDuration, formatAbsoluteTime } from '@/lib/format';
 import { generateActionId, VIRTUE_EGG_NAMES } from '@/types';
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -281,6 +285,14 @@ const timeToLaySeconds = computed(() => {
 
 const elrPerHour = computed(() => snapshot.value.elr * 3600);
 const elrPerDay = computed(() => snapshot.value.elr * 86400);
+
+const absoluteEarnedTime = computed(() => {
+  const planStartSeconds = virtueStore.planStartTime.getTime() / 1000;
+  const currentStepTime = snapshot.value.lastStepTime || planStartSeconds;
+  const totalSeconds = currentStepTime + timeToLaySeconds.value;
+  const relativeSeconds = totalSeconds - planStartSeconds;
+  return formatAbsoluteTime(relativeSeconds, virtueStore.planStartTime.getTime(), virtueStore.ascensionTimezone);
+});
 
 // Validation
 const canWait = computed(

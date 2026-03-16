@@ -12,6 +12,12 @@ export const useWarningStore = defineStore('warning', () => {
     isOpen.value = true;
   }
 
+  function showRefreshPrompt() {
+    title.value = 'New Version Available';
+    message.value = 'A new version of the app has been deployed. Please refresh the page to continue.';
+    isOpen.value = true;
+  }
+
   function close() {
     isOpen.value = false;
   }
@@ -21,6 +27,7 @@ export const useWarningStore = defineStore('warning', () => {
     title,
     message,
     showWarning,
+    showRefreshPrompt,
     close,
   };
 });
