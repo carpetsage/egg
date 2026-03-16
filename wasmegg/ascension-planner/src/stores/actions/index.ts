@@ -638,11 +638,9 @@ export const useActionsStore = defineStore('actions', {
       }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
 
-      // Expand first group by default
-      if (this.actions.length > 0) {
-        this.expandedGroupIds.clear();
-        this.expandedGroupIds.add(this.actions[0].id);
-      }
+      // Clear expanded groups when importing. The user wants the initial shift
+      // collapsed when loading from the library or reconciling.
+      this.expandedGroupIds.clear();
 
       const initialSnapshot = computeSnapshot(createBaseEngineState(null), getSimulationContext());
       this._initialSnapshot = markRaw(initialSnapshot);
