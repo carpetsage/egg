@@ -1,6 +1,5 @@
 export function getColleggtibleIconPath(id: string): string {
   const sanitized = id.replace(/[^a-zA-Z0-9]/g, '');
-  console.log(sanitized);
   return `egginc/egg_${sanitized}.png`;
 }
 

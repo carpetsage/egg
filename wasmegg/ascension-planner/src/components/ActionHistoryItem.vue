@@ -14,7 +14,9 @@
         class="h-8 flex-shrink-0 border border-slate-100 p-1 shadow-inner overflow-hidden"
         :class="[
           isVehicleAction ? 'w-auto min-w-[2rem] rounded-xl' : 'w-8 rounded-full',
-          isMissionAction ? 'bg-slate-900 shadow-lg' : 'bg-white shadow-sm',
+          isMissionAction || actionIconPath === 'egginc-extras/icon_research_sale.png'
+            ? 'bg-slate-900 shadow-lg'
+            : 'bg-white shadow-sm',
         ]"
       >
         <img
@@ -318,10 +320,10 @@ const actionIconPath = computed(() => {
     return 'egginc-extras/icon_research_sale.png';
   }
   if (props.action.type === 'wait_for_earnings_boost') {
-    return 'egginc-extras/icon_earnings_boost.png';
+    return 'egginc/icon_bock.png';
   }
   if (props.action.type === 'toggle_earnings_boost') {
-    return 'egginc-extras/icon_earnings_boost.png';
+    return 'egginc/icon_bock.png';
   }
   if (props.action.type === 'wait_for_no_earnings') {
     return 'egginc-extras/silo.png';
