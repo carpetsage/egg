@@ -370,7 +370,10 @@ export const useInitialStateStore = defineStore('initialState', {
     setEpicResearchLevel(researchId: string, level: number) {
       const def = epicResearchDefs.find(r => r.id === researchId);
       if (def) {
-        this.epicResearchLevels[researchId] = Math.max(0, Math.min(level, def.maxLevel));
+        this.epicResearchLevels = {
+          ...this.epicResearchLevels,
+          [researchId]: Math.max(0, Math.min(level, def.maxLevel)),
+        };
       }
     },
 
@@ -379,7 +382,14 @@ export const useInitialStateStore = defineStore('initialState', {
      */
     setColleggtibleTier(id: string, tierIndex: number) {
       if (id in this.colleggtibleTiers) {
-        this.colleggtibleTiers[id] = Math.max(-1, Math.min(3, tierIndex));
+        // Replace the entire object to guarantee Vue reactivity propagation.
+        // In-place mutation (this.colleggtibleTiers[id] = x) can fail to trigger
+        // re-renders in child components that receive the whole object as a prop,
+        // because the object reference identity doesn't change.
+        this.colleggtibleTiers = {
+          ...this.colleggtibleTiers,
+          [id]: Math.max(-1, Math.min(3, tierIndex)),
+        };
       }
     },
 
