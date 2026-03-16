@@ -10,6 +10,7 @@ import type { Action, CalculationsSnapshot } from '@/types';
 import { useActionsStore } from '@/stores/actions';
 import { replayAction } from '@/lib/actions/replay';
 import { restoreFromSnapshot, computeCurrentSnapshot, computeDeltas } from '@/lib/actions/snapshot';
+import { safeImport } from '@/lib/import';
 
 export function useActionExecutor() {
   const actionsStore = useActionsStore();
@@ -60,7 +61,7 @@ export function useActionExecutor() {
 
     if (isEditingPastGroup.value) {
       // Check for continuity conflicts
-      const { checkAndHandleContinuity } = await import('@/lib/continuity');
+      const { checkAndHandleContinuity } = await safeImport(() => import('@/lib/continuity'));
 
       const shouldProceed = await checkAndHandleContinuity(
         actionsStore.actions,

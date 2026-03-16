@@ -29,13 +29,23 @@
             {{ message }}
           </p>
 
-          <div class="mt-8 flex justify-end">
-            <button
-              class="btn-premium btn-primary px-8 py-2 text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20"
-              @click="close"
-            >
-              Understood
-            </button>
+          <div class="mt-8 flex justify-end gap-3">
+            <template v-if="title === 'New Version Available'">
+              <button
+                class="btn-premium btn-primary px-8 py-2 text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20"
+                @click="reload"
+              >
+                Refresh Page
+              </button>
+            </template>
+            <template v-else>
+              <button
+                class="btn-premium btn-primary px-8 py-2 text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20"
+                @click="close"
+              >
+                Understood
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -50,6 +60,10 @@ import { useWarningStore } from '@/stores/warning';
 const warningStore = useWarningStore();
 const { isOpen, title, message } = storeToRefs(warningStore);
 const { close } = warningStore;
+
+function reload() {
+  window.location.reload();
+}
 </script>
 
 <style scoped>

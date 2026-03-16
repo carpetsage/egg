@@ -6,9 +6,10 @@ import { loadLibraryPlans, deletePlanFromLibrary, savePlanToLibrary, type PlanDa
 import { downloadFile } from '@/utils/export';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import ImportCollisionDialog from '@/components/ImportCollisionDialog.vue';
+import PlanAlreadyOpenWarning from '@/components/PlanAlreadyOpenWarning.vue';
 
 const actionsStore = useActionsStore();
-const { partitionHash } = usePersistence();
+const { partitionHash, broadcastLibraryUpdate, broadcastPresence, busyPlanIds } = usePersistence();
 
 const plans = ref<PlanData[]>([]);
 const isLoading = ref(true);
@@ -16,6 +17,11 @@ const showDeleteConfirm = ref(false);
 const planToDelete = ref<PlanData | null>(null);
 const editingPlanId = ref<string | null>(null);
 const newName = ref('');
+const showCopyPrompt = ref(false);
+const planToCopy = ref<PlanData | null>(null);
+const copyName = ref('');
+const showAlreadyOpenWarning = ref(false);
+const openPlanName = ref('');
 
 // Import collision state
 const showCollisionDialog = ref(false);
@@ -43,12 +49,43 @@ watch(partitionHash, refreshPlans);
 watch(() => actionsStore.libraryUpdateTick, refreshPlans);
 
 async function loadPlan(plan: PlanData) {
+  // Check if plan is already open in another tab
+  if (busyPlanIds.value.has(plan.id) && actionsStore.activePlanId !== plan.id) {
+    openPlanName.value = plan.name;
+    showAlreadyOpenWarning.value = true;
+    return;
+  }
+
   try {
+    broadcastPresence(plan.id); // Immediate heartbeat to block other tabs
     await actionsStore.loadPlanFromLibrary(plan);
     emit('plan-loaded');
   } catch (err) {
     alert('Failed to load plan: ' + err);
   }
+}
+
+function promptCopy(plan: PlanData) {
+  planToCopy.value = plan;
+  copyName.value = generateUniqueName(plan.name, plans.value.map(p => p.name));
+  showCopyPrompt.value = true;
+}
+
+async function executeCopy() {
+  if (!planToCopy.value || !copyName.value.trim() || !partitionHash.value) return;
+  
+  const newPlan: PlanData = {
+    id: Math.random().toString(36).substring(2, 15),
+    name: copyName.value.trim(),
+    timestamp: Date.now(),
+    data: JSON.parse(JSON.stringify(planToCopy.value.data)),
+  };
+  
+  await savePlanToLibrary(partitionHash.value, newPlan);
+  broadcastLibraryUpdate();
+  await refreshPlans();
+  showCopyPrompt.value = false;
+  planToCopy.value = null;
 }
 
 async function confirmDelete(plan: PlanData) {
@@ -62,6 +99,7 @@ async function executeDelete() {
     if (actionsStore.activePlanId === planToDelete.value.id) {
       actionsStore.activePlanId = null;
     }
+    broadcastLibraryUpdate();
     await refreshPlans();
   }
   showDeleteConfirm.value = false;
@@ -79,6 +117,7 @@ async function saveRename() {
   if (plan) {
     const updatedPlan = { ...plan, name: newName.value.trim(), timestamp: Date.now() };
     await savePlanToLibrary(partitionHash.value, updatedPlan);
+    broadcastLibraryUpdate();
     await refreshPlans();
   }
   editingPlanId.value = null;
@@ -271,7 +310,8 @@ async function handleImport(event: Event) {
           importedCount++;
         }
       }
-
+      
+      broadcastLibraryUpdate();
       await refreshPlans();
       importProgress.value = null;
 
@@ -362,7 +402,10 @@ const emit = defineEmits(['plan-loaded']);
           v-for="plan in plans"
           :key="plan.id"
           class="group flex items-center justify-between py-1.5 px-3 rounded-md hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all"
-          :class="{ 'bg-indigo-50 border-indigo-100': actionsStore.activePlanId === plan.id }"
+          :class="{
+            'bg-indigo-50 border-indigo-100': actionsStore.activePlanId === plan.id,
+            'bg-amber-50/50 border-amber-200 opacity-60': busyPlanIds.has(plan.id) && actionsStore.activePlanId !== plan.id,
+          }"
         >
           <div class="flex-1 min-w-0 mr-4">
             <div v-if="editingPlanId === plan.id" class="flex items-center">
@@ -383,6 +426,11 @@ const emit = defineEmits(['plan-loaded']);
                 v-if="actionsStore.activePlanId === plan.id"
                 class="ml-2 px-1 text-[10px] bg-indigo-100 text-indigo-700 rounded font-bold uppercase tracking-wider"
                 >Active</span
+              >
+              <span
+                v-else-if="busyPlanIds.has(plan.id)"
+                class="ml-2 px-1.5 py-0.5 text-[9px] bg-amber-100 text-amber-700 rounded font-black uppercase tracking-wider"
+                >Open in another tab</span
               >
             </div>
           </div>
@@ -419,6 +467,11 @@ const emit = defineEmits(['plan-loaded']);
                   stroke-width="2"
                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                 />
+              </svg>
+            </button>
+            <button class="p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Copy this plan'" @click="promptCopy(plan)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
               </svg>
             </button>
             <button class="p-1 text-gray-400 hover:text-red-600" v-tippy="'Delete this plan'" @click="confirmDelete(plan)">
@@ -474,4 +527,25 @@ const emit = defineEmits(['plan-loaded']);
     @resolve="handleCollisionResolve"
     @cancel="handleCollisionCancel"
   />
+
+  <!-- Copy Plan Dialog -->
+  <ConfirmationDialog
+    v-if="showCopyPrompt"
+    title="Copy Plan"
+    confirm-label="Create Copy"
+    @confirm="executeCopy"
+    @cancel="showCopyPrompt = false"
+  >
+    <div class="mt-3">
+      <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">New Plan Name</label>
+      <input
+        v-model="copyName"
+        class="block w-full text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-2 px-3 shadow-sm"
+        @keyup.enter="executeCopy"
+        placeholder="Enter name for copy..."
+      />
+    </div>
+  </ConfirmationDialog>
+
+  <PlanAlreadyOpenWarning v-if="showAlreadyOpenWarning" @dismiss="showAlreadyOpenWarning = false" />
 </template>

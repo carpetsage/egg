@@ -29,7 +29,7 @@
               class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
             >
               <img
-                :src="iconURL(getColleggtibleIconPath('cheaper_contractors'), 64)"
+                :src="iconURL(getResearchIconPath('cheaper_contractors'), 64)"
                 class="w-5 h-5 object-contain"
                 alt="Cheaper Contractors"
               />
@@ -224,7 +224,7 @@
               class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform"
             >
               <img
-                :src="iconURL(getColleggtibleIconPath(research.researchId), 64)"
+                :src="iconURL(getResearchIconPath(research.researchId), 64)"
                 class="w-5 h-5 object-contain"
                 :alt="research.name"
               />
@@ -292,7 +292,7 @@ import {
 } from '@/lib/habs';
 import { formatNumber, formatFullNumber, formatMultiplier, formatPercent } from '@/lib/format';
 import { formatTier, formatColleggtibleBonus } from '@/lib/colleggtibles';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getColleggtibleIconPath, getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { computed } from 'vue';
 

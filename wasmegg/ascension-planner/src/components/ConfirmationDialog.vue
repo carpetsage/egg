@@ -25,9 +25,11 @@
         </div>
 
         <div class="p-6">
-          <p class="text-sm font-medium text-slate-600 leading-relaxed">
+          <p v-if="message" class="text-sm font-medium text-slate-600 leading-relaxed">
             {{ message }}
           </p>
+          
+          <slot />
 
           <div class="mt-8 flex justify-end gap-3">
             <button
@@ -53,7 +55,7 @@
 <script setup lang="ts">
 interface Props {
   title?: string;
-  message: string;
+  message?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'primary' | 'danger';

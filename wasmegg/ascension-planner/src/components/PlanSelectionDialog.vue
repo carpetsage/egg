@@ -3,12 +3,27 @@ import { ref, onMounted } from 'vue';
 import { loadLibraryPlans, type PlanData } from '@/lib/storage/db';
 import { usePersistence } from '@/composables/usePersistence';
 import { useActionsStore } from '@/stores/actions';
+import PlanAlreadyOpenWarning from '@/components/PlanAlreadyOpenWarning.vue';
 
 const actionsStore = useActionsStore();
-
-const { partitionHash } = usePersistence();
+const { partitionHash, broadcastPresence, busyPlanIds } = usePersistence();
 const plans = ref<PlanData[]>([]);
 const isLoading = ref(true);
+
+const showAlreadyOpenWarning = ref(false);
+
+function isPlanBusy(plan: PlanData): boolean {
+  return busyPlanIds.value.has(plan.id) && actionsStore.activePlanId !== plan.id;
+}
+
+function selectPlan(plan: PlanData) {
+  if (isPlanBusy(plan)) {
+    showAlreadyOpenWarning.value = true;
+    return;
+  }
+  broadcastPresence(plan.id);
+  emit('select', plan);
+}
 
 onMounted(async () => {
   if (partitionHash.value) {
@@ -42,9 +57,17 @@ const emit = defineEmits(['select', 'cancel']);
 
         <div v-else class="space-y-2">
           <button v-for="plan in plans" :key="plan.id"
-                  @click="emit('select', plan)"
-                  class="w-full text-left p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 transition-all group">
-            <div class="font-bold text-slate-800 group-hover:text-emerald-900">{{ plan.name }}</div>
+                  @click="selectPlan(plan)"
+                  class="w-full text-left p-4 rounded-xl border transition-all group"
+                  :class="isPlanBusy(plan)
+                    ? 'border-amber-200 bg-amber-50/50 opacity-60 cursor-not-allowed'
+                    : 'border-slate-100 hover:border-emerald-200 hover:bg-emerald-50'">
+            <div class="flex items-center justify-between">
+              <div class="font-bold text-slate-800 group-hover:text-emerald-900">{{ plan.name }}</div>
+              <span v-if="isPlanBusy(plan)" class="px-1.5 py-0.5 text-[9px] bg-amber-100 text-amber-700 rounded font-black uppercase tracking-wider">
+                Open in another tab
+              </span>
+            </div>
             <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-tight">
               {{ new Date(plan.timestamp).toLocaleDateString() }} at {{ new Date(plan.timestamp).toLocaleTimeString() }}
             </div>
@@ -73,4 +96,6 @@ const emit = defineEmits(['select', 'cancel']);
       </div>
     </div>
   </div>
+
+  <PlanAlreadyOpenWarning v-if="showAlreadyOpenWarning" @dismiss="showAlreadyOpenWarning = false" />
 </template>

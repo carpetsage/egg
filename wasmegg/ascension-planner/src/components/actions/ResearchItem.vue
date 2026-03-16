@@ -6,7 +6,7 @@
     <!-- Research name and level -->
     <div class="flex-1 min-w-0 flex items-center gap-2">
       <img
-        :src="iconURL(getColleggtibleIconPath(research.id), 64)"
+        :src="iconURL(getResearchIconPath(research.id), 64)"
         class="w-6 h-6 object-contain"
         :alt="research.name"
       />
@@ -148,7 +148,7 @@
 import { computed } from 'vue';
 import type { CommonResearch } from '@/calculations/commonResearch';
 import { formatNumber, formatGemPrice, formatAbsoluteTime } from '@/lib/format';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
