@@ -59,12 +59,15 @@
       </div>
 
       <!-- TE Gained -->
-      <div class="summary-item">
-        <span class="summary-label">TE Gained</span>
+      <div 
+        class="summary-item cursor-pointer hover:bg-slate-50 p-2 -mx-2 -my-2 rounded-xl transition-colors duration-200 group"
+        @click="showTeModal = true"
+      >
+        <span class="summary-label group-hover:text-indigo-400 transition-colors">TE Gained</span>
         <div class="flex items-center gap-2">
-          <span class="summary-value font-mono-premium font-black text-slate-600">+{{ teGained }}</span>
+          <span class="summary-value font-mono-premium font-black text-slate-600 group-hover:text-indigo-600 transition-colors">+{{ teGained }}</span>
           <span
-            class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100"
+            class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 group-hover:bg-indigo-50 px-2 py-0.5 rounded-full border border-slate-100 group-hover:border-indigo-100 transition-colors"
           >
             (Total: {{ currentTE }})
           </span>
@@ -180,6 +183,71 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- TE Modal -->
+    <Teleport to="body">
+      <div v-if="showTeModal" class="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-all" @click="showTeModal = false" />
+
+        <!-- Dialog -->
+        <div class="card-glass relative w-full max-w-sm overflow-hidden shadow-2xl rounded-2xl border border-white/50 bg-white/95 transition-all duration-300 animate-in fade-in zoom-in-95">
+          <div class="bg-gradient-to-r from-slate-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="p-1.5 bg-slate-100 rounded-lg text-slate-600">
+              <img :src="iconURL('egginc/egg_truth.png', 64)" class="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" alt="Truth" />
+            </div>
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">TE Breakdown</h3>
+          </div>
+
+          <div class="p-4 flex flex-col gap-2">
+            <div
+              v-for="stat in teStatsList"
+              :key="stat.id"
+              class="flex items-center justify-between p-3 rounded-xl border transition-all"
+              :class="{
+                'bg-indigo-50/50 border-indigo-100 shadow-sm': stat.id === 'truth',
+                'bg-white border-slate-100': stat.id !== 'truth'
+              }"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm border border-slate-50 drop-shadow-sm">
+                  <img :src="stat.icon" class="w-6 h-6 object-contain" :alt="stat.name" />
+                </div>
+                <span class="text-sm font-black" :class="{ 'text-indigo-700': stat.id === 'truth', 'text-slate-700': stat.id !== 'truth' }">
+                  {{ stat.name }}
+                </span>
+              </div>
+              <div class="flex items-center gap-2 font-mono-premium text-sm">
+                <span class="text-slate-400">{{ stat.start }}</span>
+                <span class="text-slate-300">→</span>
+                <span class="font-bold" :class="{ 'text-indigo-900': stat.id === 'truth', 'text-slate-700': stat.id !== 'truth' }">
+                  {{ stat.end }}
+                </span>
+                <span 
+                  class="ml-1 w-10 text-right font-black text-[10px]"
+                  :class="{
+                    'text-indigo-600': stat.id === 'truth' && stat.delta > 0,
+                    'text-emerald-500': stat.id !== 'truth' && stat.delta > 0,
+                    'text-slate-300': stat.delta === 0
+                  }"
+                >
+                  <template v-if="stat.delta > 0">+</template>{{ stat.delta }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+            <button
+              class="px-6 py-2 text-[10px] font-black uppercase tracking-widest bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all rounded-xl hover:shadow-sm"
+              @click="showTeModal = false"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -189,7 +257,7 @@ import { useActionsStore } from '@/stores/actions';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 
-import { type CalculationsSnapshot } from '@/types';
+import { type CalculationsSnapshot, type VirtueEgg } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { formatNumber } from '@/lib/format';
 import { iconURL } from 'lib';
@@ -206,6 +274,7 @@ const emit = defineEmits<{
 
 const isCollapsed = ref(false);
 const showDonateModal = ref(false);
+const showTeModal = ref(false);
 
 function toggleCollapse() {
   isCollapsed.value = !isCollapsed.value;
@@ -268,6 +337,35 @@ const finalSE = computed(() => actionsStore.currentSnapshot.soulEggs);
 const currentTE = computed(() => calculateTotalPotentialTE(actionsStore.currentSnapshot));
 const initialClaimedTE = computed(() => virtueStore.initialTE);
 const teGained = computed(() => currentTE.value - initialClaimedTE.value);
+
+const teStatsList = computed(() => {
+  const stats: { id: string; name: string; start: number; end: number; delta: number; icon: string }[] = [];
+  
+  stats.push({
+    id: 'truth',
+    name: 'Total TE',
+    start: initialClaimedTE.value,
+    end: currentTE.value,
+    delta: teGained.value,
+    icon: iconURL('egginc/egg_truth.png', 64),
+  });
+
+  const virtueEggs: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
+  for (const egg of virtueEggs) {
+    const start = countTEThresholdsPassed(initialStateStore.initialEggsDelivered[egg] || 0);
+    const end = countTEThresholdsPassed(actionsStore.currentSnapshot.eggsDelivered?.[egg] || 0);
+    
+    stats.push({
+      id: egg,
+      name: egg.charAt(0).toUpperCase() + egg.slice(1),
+      start,
+      end,
+      delta: end - start,
+      icon: iconURL(`egginc/egg_${egg}.png`, 64),
+    });
+  }
+  return stats;
+});
 
 function formatDateTime(date: Date): string {
   if (isNaN(date.getTime())) return 'N/A';
