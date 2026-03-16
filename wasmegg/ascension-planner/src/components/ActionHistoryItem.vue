@@ -214,7 +214,7 @@ import { getHabById, type HabId } from '@/lib/habs';
 import { getVehicleType } from '@/lib/vehicles';
 import { getExecutor } from '@/lib/actions';
 import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getResearchIconPath } from '@/lib/assets';
 import { getResearchById } from '@/calculations/commonResearch';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
@@ -274,7 +274,7 @@ const actionIconPath = computed(() => {
   }
   if (props.action.type === 'buy_research') {
     const payload = props.action.payload as BuyResearchPayload;
-    return getColleggtibleIconPath(payload.researchId);
+    return getResearchIconPath(payload.researchId);
   }
   if (props.action.type === 'buy_train_car') {
     return 'egginc/ei_vehicle_icon_hyperloop_engine.png';

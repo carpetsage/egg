@@ -526,7 +526,7 @@
                 class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center p-2 group-hover:bg-white group-hover:shadow-sm transition-all"
               >
                 <img
-                  :src="iconURL(getColleggtibleIconPath(research.id), 64)"
+                  :src="iconURL(getResearchIconPath(research.id), 64)"
                   class="w-full h-full object-contain opacity-80"
                   :alt="research.name"
                 />
@@ -632,7 +632,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { iconURL } from 'lib';
-import { getColleggtibleIconPath } from '@/lib/assets';
+import { getResearchIconPath, getColleggtibleIconPath } from '@/lib/assets';
 import type { ResearchLevels, VirtueEgg } from '@/types';
 import { VIRTUE_EGGS, VIRTUE_EGG_NAMES } from '@/types';
 import { epicResearchDefs } from '@/lib/epicResearch';
@@ -867,19 +867,6 @@ const colleggtiblesList = computed(() =>
       effect: def.effect,
       tierIndex,
       bonusText: formatColleggtibleBonus(multiplier, def.id),
-    };
-  })
-);
-console.log(
-  colleggtiblesList.value.map(c => {
-    const def = colleggtibleDefs.find(d => d.id === c.id);
-    return {
-      ...c,
-      tiers: def?.tierValues.map((v, i) => ({
-        tier: i + 1,
-        bonus: formatColleggtibleBonus(v, def.id),
-        multiplier: v,
-      })),
     };
   })
 );
