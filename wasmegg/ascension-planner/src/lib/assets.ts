@@ -410,6 +410,7 @@ const COLLEGG_ICON_MAP: Record<string, string> = {
   chocolate: 'egginc/egg_chocolate.png',
   easter: 'egginc/egg_easter.png',
   firework: 'egginc/egg_firework.png',
+  ice: 'egginc/egg_ice.png',
   pumpkin: 'egginc/egg_pumpkin.png',
   waterballoon: 'egginc/egg_waterballoon.png',
   lithium: 'egginc/egg_lithium.png',
