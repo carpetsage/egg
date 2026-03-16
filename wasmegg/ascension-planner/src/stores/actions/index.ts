@@ -661,7 +661,8 @@ export const useActionsStore = defineStore('actions', {
         data: exportPlanData(this.actions, this.initialSnapshot, planId),
       };
 
-      const { savePlanToLibrary } = await import('@/lib/storage/db');
+      const { safeImport } = await import('@/lib/import');
+      const { savePlanToLibrary } = await safeImport(() => import('@/lib/storage/db'));
       await savePlanToLibrary(partitionHash, planData);
 
       this.activePlanId = planId;

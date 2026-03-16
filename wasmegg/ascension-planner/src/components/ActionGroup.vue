@@ -143,22 +143,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineAsyncComponent, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { iconURL } from 'lib';
 import { useActionsStore } from '@/stores/actions';
 import type { Action, VirtueEgg, StartAscensionPayload, ShiftPayload } from '@/types';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { formatNumber, formatDuration } from '@/lib/format';
+import { safeAsyncComponent } from '@/lib/import';
 import ActionHistoryItem from './ActionHistoryItem.vue';
 
 // Lazy load summary components
-const CuriositySummary = defineAsyncComponent(() => import('./summaries/CuriositySummary.vue'));
-const IntegritySummary = defineAsyncComponent(() => import('./summaries/IntegritySummary.vue'));
-const HumilitySummary = defineAsyncComponent(() => import('./summaries/HumilitySummary.vue'));
-const ResilienceSummary = defineAsyncComponent(() => import('./summaries/ResilienceSummary.vue'));
-const KindnessSummary = defineAsyncComponent(() => import('./summaries/KindnessSummary.vue'));
+const CuriositySummary = safeAsyncComponent(() => import('./summaries/CuriositySummary.vue'));
+const IntegritySummary = safeAsyncComponent(() => import('./summaries/IntegritySummary.vue'));
+const HumilitySummary = safeAsyncComponent(() => import('./summaries/HumilitySummary.vue'));
+const ResilienceSummary = safeAsyncComponent(() => import('./summaries/ResilienceSummary.vue'));
+const KindnessSummary = safeAsyncComponent(() => import('./summaries/KindnessSummary.vue'));
 
-const summaryComponents: Record<VirtueEgg, ReturnType<typeof defineAsyncComponent>> = {
+const summaryComponents: Record<VirtueEgg, any> = {
   curiosity: CuriositySummary,
   integrity: IntegritySummary,
   humility: HumilitySummary,

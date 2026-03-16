@@ -960,7 +960,8 @@ async function saveCurrentPlan() {
   if (!partitionHash.value) return;
 
   if (actionsStore.activePlanId) {
-    const plans = await import('@/lib/storage/db').then(m => m.loadLibraryPlans(partitionHash.value!));
+    const { safeImport } = await import('@/lib/import');
+    const plans = await (await safeImport(() => import('@/lib/storage/db'))).loadLibraryPlans(partitionHash.value!);
     const current = plans.find(p => p.id === actionsStore.activePlanId);
     if (current) {
       await actionsStore.savePlan(current.name, partitionHash.value);
