@@ -96,20 +96,13 @@
 
         <div class="w-px h-8 bg-slate-100 mx-1"></div>
 
-        <!-- Details Button -->
+        <!-- Donate Button -->
         <button
           class="btn-icon-premium bg-slate-900 border-slate-800 text-white hover:bg-slate-800 hover:scale-110 shadow-lg shadow-slate-200"
-          v-tippy="'View final state calculation details'"
-          @click="$emit('show-details')"
+          v-tippy="'Donate to joobrainie'"
+          @click="showDonateModal = true"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <img :src="iconURL('egginc/icon_gift.png', 64)" class="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" alt="Donate" />
         </button>
 
         <span class="ml-4 text-[10px] text-slate-400 italic font-medium"
@@ -136,6 +129,57 @@
         />
       </div>
     </div>
+
+    <!-- Donate Modal -->
+    <Teleport to="body">
+      <div v-if="showDonateModal" class="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-all" @click="showDonateModal = false" />
+
+        <!-- Dialog -->
+        <div class="card-glass relative w-full max-w-md overflow-hidden shadow-2xl rounded-2xl border border-white/50 bg-white/95 transition-all duration-300 animate-in fade-in zoom-in-95">
+          <div class="bg-gradient-to-r from-slate-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="p-1.5 bg-slate-100 rounded-lg text-slate-600">
+              <img :src="iconURL('egginc/icon_gift.png', 64)" class="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" alt="Gift" />
+            </div>
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Support the Developer</h3>
+          </div>
+
+          <div class="p-6">
+            <p class="text-sm font-medium text-slate-600 leading-relaxed mb-6">
+              If you find this tool helpful, you're welcome to buy me a coffee! No obligation at all, but it is deeply appreciated.
+            </p>
+            
+            <div class="flex flex-col gap-4">
+              <a href="https://ko-fi.com/joobrainie" target="_blank" rel="noopener noreferrer" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-300 hover:shadow-md transition-all bg-white group hover:-translate-y-0.5">
+                <img src="/static/kofi_logo.png" class="w-8 h-8 group-hover:scale-110 transition-transform" alt="Ko-fi" />
+                <div class="flex flex-col">
+                  <span class="text-sm font-black text-slate-800">Support on Ko-fi</span>
+                  <span class="text-xs font-medium text-slate-500">ko-fi.com/joobrainie</span>
+                </div>
+              </a>
+
+              <a href="https://paypal.me/joobrainie" target="_blank" rel="noopener noreferrer" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-300 hover:shadow-md transition-all bg-white group hover:-translate-y-0.5">
+                <img src="/static/paypal_logo.svg" class="w-8 h-8 group-hover:scale-110 transition-transform" alt="PayPal" />
+                <div class="flex flex-col">
+                  <span class="text-sm font-black text-slate-800">Support via PayPal</span>
+                  <span class="text-xs font-medium text-slate-500">paypal.me/joobrainie</span>
+                </div>
+              </a>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+              <button
+                class="px-8 py-2 text-xs font-black uppercase tracking-widest bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors rounded-xl font-mono-premium"
+                @click="showDonateModal = false"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -155,13 +199,13 @@ const initialStateStore = useInitialStateStore();
 const virtueStore = useVirtueStore();
 
 const emit = defineEmits<{
-  'show-details': [];
   'update:collapsed': [value: boolean];
   'save-plan': [];
   'save-plan-as': [];
 }>();
 
 const isCollapsed = ref(false);
+const showDonateModal = ref(false);
 
 function toggleCollapse() {
   isCollapsed.value = !isCollapsed.value;
@@ -325,5 +369,9 @@ function triggerCat() {
 
 .btn-icon-premium:not(.text-white) {
   @apply text-slate-400 hover:text-indigo-600 hover:bg-white hover:border-indigo-100 hover:shadow-sm;
+}
+
+.animate-in {
+  animation-duration: 200ms;
 }
 </style>
