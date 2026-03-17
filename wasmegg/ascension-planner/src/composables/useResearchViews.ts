@@ -435,6 +435,10 @@ export function useResearchViews() {
       const offset = actionsStore.planStartOffset;
       const absoluteSimTime = baseTimestamp + (effectiveSnapshot.lastStepTime - offset);
       const nextSaleStart = getNextPacificTime(5, 9, absoluteSimTime);
+      
+      // Every earnings event (2x, 3x, etc.) is currently assumed to end at the next 9AM Los Angeles time.
+      const upcoming9amDurations = Array.from({ length: 7 }, (_, i) => getNextPacificTime(i, 9, absoluteSimTime) - absoluteSimTime);
+      const eventExpirationSeconds = Math.min(...upcoming9amDurations);
 
       if (currentEarnings <= 0) return [];
 
@@ -449,18 +453,34 @@ export function useResearchViews() {
         const isLaying = categories.includes('egg_laying_rate');
         const isShipping = categories.includes('shipping_capacity');
 
+        const timeToBuySeconds = getTimeToSave(price, effectiveSnapshot);
+
         const tempAction = createSimAction('buy_research', {
           researchId: r.id,
           fromLevel: level,
           toLevel: level + 1,
         }, price);
 
-        const nextState = applyAction(baseState, tempAction);
-        const nextSnapshot = computeSnapshot(nextState, context);
+        // Project the farm state forward to the actual time of purchase to get accurate ROI 
+        // predictions based on expected population growth while saving.
+        const stateAtBuy = timeToBuySeconds > 0 && isFinite(timeToBuySeconds)
+          ? applyAction(baseState, createSimAction('wait_for_time', { totalTimeSeconds: timeToBuySeconds }))
+          : baseState;
+        const snapshotAtBuy = timeToBuySeconds > 0 && isFinite(timeToBuySeconds)
+          ? computeSnapshot(stateAtBuy, context)
+          : effectiveSnapshot;
+
+        const nextStateAtBuy = applyAction(stateAtBuy, tempAction);
+        const nextSnapshot = computeSnapshot(nextStateAtBuy, context);
         
+        const relativeExpirationAtBuy = eventExpirationSeconds - timeToBuySeconds;
+
         let roiSeconds = Infinity;
         const maxTime = 1e9; // ~31 years
-        const getExtra = (t: number) => calculateEarningsForTime(t, nextSnapshot) - calculateEarningsForTime(t, effectiveSnapshot);
+        const getExtra = (t: number) => 
+          calculateEarningsForTime(t, nextSnapshot, relativeExpirationAtBuy) - 
+          calculateEarningsForTime(t, snapshotAtBuy, relativeExpirationAtBuy);
+
         if (getExtra(maxTime) >= price) {
           let low = 0;
           let high = maxTime;
@@ -478,7 +498,6 @@ export function useResearchViews() {
         const delta = roiSeconds !== Infinity && roiSeconds > 0 ? price / roiSeconds : 0;
         const bankValue = effectiveSnapshot.bankValue || 0;
         const effectivePrice = Math.max(0, price - bankValue);
-        const timeToBuySeconds = getTimeToSave(price, effectiveSnapshot);
         const totalRoiSeconds = timeToBuySeconds + roiSeconds;
 
         return {
