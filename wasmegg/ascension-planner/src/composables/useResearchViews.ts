@@ -457,12 +457,27 @@ export function useResearchViews() {
 
         const nextState = applyAction(baseState, tempAction);
         const nextSnapshot = computeSnapshot(nextState, context);
-        const newEarnings = nextSnapshot.offlineEarnings;
+        
+        let roiSeconds = Infinity;
+        const maxTime = 1e9; // ~31 years
+        const getExtra = (t: number) => calculateEarningsForTime(t, nextSnapshot) - calculateEarningsForTime(t, effectiveSnapshot);
+        if (getExtra(maxTime) >= price) {
+          let low = 0;
+          let high = maxTime;
+          for (let i = 0; i < 60; i++) {
+            const mid = (low + high) / 2;
+            if (getExtra(mid) >= price) {
+              high = mid;
+            } else {
+              low = mid;
+            }
+          }
+          roiSeconds = high;
+        }
 
-        const delta = newEarnings - currentEarnings;
+        const delta = roiSeconds !== Infinity && roiSeconds > 0 ? price / roiSeconds : 0;
         const bankValue = effectiveSnapshot.bankValue || 0;
         const effectivePrice = Math.max(0, price - bankValue);
-        const roiSeconds = delta > 0 ? price / delta : Infinity;
         const timeToBuySeconds = getTimeToSave(price, effectiveSnapshot);
         const totalRoiSeconds = timeToBuySeconds + roiSeconds;
 
@@ -483,9 +498,9 @@ export function useResearchViews() {
           isMaxed: false,
           roiSeconds,
           totalRoiSeconds,
-          roiLabel: delta > 0 ? formatDuration(roiSeconds) : 'No Impact',
+          roiLabel: roiSeconds === Infinity || roiSeconds > 999 * 86400 ? '>999d' : formatDuration(roiSeconds),
           totalRoiLabel:
-            totalRoiSeconds === Infinity ? 'No Impact' : totalRoiSeconds < 1 ? '0s' : formatDuration(totalRoiSeconds),
+            totalRoiSeconds === Infinity || totalRoiSeconds > 999 * 86400 ? '>999d' : totalRoiSeconds < 1 ? '0s' : formatDuration(totalRoiSeconds),
           isLaying,
           isShipping,
           nextSnapshot,
