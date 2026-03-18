@@ -25756,5 +25756,32 @@
     "startTimestamp": 1773763200,
     "type": "vehicle-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1773936000,
+    "id": "event-3-18",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1773849600,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1773936000,
+    "id": "event-3-18-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1773849600,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1773936000,
+    "id": "ultra-3-18",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1773849600,
+    "type": "boost-duration",
+    "ultra": true
   }
 ]
