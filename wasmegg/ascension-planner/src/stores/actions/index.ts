@@ -288,7 +288,7 @@ export const useActionsStore = defineStore('actions', {
       const prevState =
         this.actions.length > 0
           ? createBaseEngineState(this.actions[this.actions.length - 1].endState)
-          : createBaseEngineState(this.initialSnapshot);
+          : createBaseEngineState(this._initialSnapshot);
 
       const fullAction = {
         ...action,
@@ -642,7 +642,8 @@ export const useActionsStore = defineStore('actions', {
       // collapsed when loading from the library or reconciling.
       this.expandedGroupIds.clear();
 
-      const initialSnapshot = computeSnapshot(createBaseEngineState(null), getSimulationContext());
+      const baseState = createBaseEngineState(null);
+      const initialSnapshot = computeSnapshot(baseState, getSimulationContext());
       this._initialSnapshot = markRaw(initialSnapshot);
 
       if (!skipRecalculate) {

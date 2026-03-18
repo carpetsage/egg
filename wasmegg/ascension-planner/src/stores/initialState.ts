@@ -23,8 +23,10 @@ import {
   calculateArtifactModifiers,
   getArtifactLoadoutFromBackup,
   getOptimalEarningsSet,
+  getOptimalELRSet,
 } from '@/lib/artifacts';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { useTruthEggsStore, VIRTUE_TE_ORDER } from './truthEggs';
 
 export interface InitialStateStoreState {
   // Whether data has been loaded from a backup
@@ -499,6 +501,11 @@ export const useInitialStateStore = defineStore('initialState', {
       if (data.activeMissions) {
         this.activeMissions = [...data.activeMissions];
       }
+
+      // Sync Truth Eggs Store if handled here
+      const truthEggsStore = useTruthEggsStore();
+      truthEggsStore.eggsDelivered = { ...this.initialEggsDelivered };
+      truthEggsStore.teEarned = { ...this.initialTeEarned };
     },
 
     /**

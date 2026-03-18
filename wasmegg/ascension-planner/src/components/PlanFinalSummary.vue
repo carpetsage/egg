@@ -335,7 +335,7 @@ const totalShiftCost = computed(() => {
 const finalSE = computed(() => actionsStore.currentSnapshot.soulEggs);
 
 const currentTE = computed(() => calculateTotalPotentialTE(actionsStore.currentSnapshot));
-const initialClaimedTE = computed(() => virtueStore.initialTE);
+const initialClaimedTE = computed(() => Object.values(initialStateStore.initialTeEarned).reduce((sum, val) => sum + val, 0));
 const teGained = computed(() => currentTE.value - initialClaimedTE.value);
 
 const teStatsList = computed(() => {
@@ -352,7 +352,7 @@ const teStatsList = computed(() => {
 
   const virtueEggs: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
   for (const egg of virtueEggs) {
-    const start = countTEThresholdsPassed(initialStateStore.initialEggsDelivered[egg] || 0);
+    const start = initialStateStore.initialTeEarned[egg] || 0;
     const end = countTEThresholdsPassed(actionsStore.currentSnapshot.eggsDelivered?.[egg] || 0);
     
     stats.push({
