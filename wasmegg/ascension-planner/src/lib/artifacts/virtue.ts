@@ -34,73 +34,6 @@ import { InventoryItem } from 'lib/artifacts';
 import { VehicleSlot } from '@/types';
 
 /**
- * Calculate Clothed TE (theoretical earnings metric).
- */
-export function calculateClothedTE(
-  truthEggs: number,
-  artifacts: Artifact[],
-  currentColleggtibleModifiers: { earnings: number; awayEarnings: number; researchCost: number },
-  maxColleggtibleModifiers: { earnings: number; awayEarnings: number; researchCost: number },
-  labUpgradeLevel: number,
-  permitLevel: number = 1
-): number {
-  const eggValueMult = eggValueMultiplier(artifacts);
-  const awayEarningsMult = awayEarningsMultiplier(artifacts);
-  const artifactResearchPriceMult = researchPriceMultiplierFromArtifacts(artifacts);
-
-  const epicResearchMult = 1 + labUpgradeLevel * -0.05;
-  const maxEpicResearchMult = 0.5;
-
-  const permitMult = permitLevel === 1 ? 1 : 0.5;
-
-  const earningsEffect = eggValueMult * awayEarningsMult;
-  const currentResearchPriceMult =
-    artifactResearchPriceMult * epicResearchMult * currentColleggtibleModifiers.researchCost;
-  const researchDiscountEffect = 1 / currentResearchPriceMult;
-  const maxResearchDiscountEffect = 1 / (maxEpicResearchMult * maxColleggtibleModifiers.researchCost);
-
-  const earningsPenalty = currentColleggtibleModifiers.earnings / maxColleggtibleModifiers.earnings;
-  const awayEarningsPenalty = currentColleggtibleModifiers.awayEarnings / maxColleggtibleModifiers.awayEarnings;
-  const researchCostPenalty = researchDiscountEffect / maxResearchDiscountEffect;
-
-  const totalMultiplier = earningsEffect * permitMult * earningsPenalty * awayEarningsPenalty * researchCostPenalty;
-  const multiplierAsTE = Math.log(totalMultiplier) / Math.log(1.1);
-  return truthEggs + multiplierAsTE;
-}
-
-/**
- * Wrapper for calculateClothedTE that extracts necessary data from backup.
- */
-export function calculateClothedTEFromBackup(backup: ei.IBackup, artifacts: Artifact[]): number {
-  const truthEggs = getNumTruthEggs(backup);
-  const currentModifiers = allModifiersFromColleggtibles(backup);
-  const maxEarningsModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.EARNINGS);
-  const maxAwayEarningsModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.AWAY_EARNINGS);
-  const maxResearchCostModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.RESEARCH_COST);
-
-  const commonResearch = backup.farms?.[0]?.commonResearch || [];
-  const labUpgrade = commonResearch.find(r => r.id === 'cheaper_research');
-  const labUpgradeLevel = labUpgrade?.level || 0;
-
-  return calculateClothedTE(
-    truthEggs,
-    artifacts,
-    {
-      earnings: currentModifiers.earnings,
-      awayEarnings: currentModifiers.awayEarnings,
-      researchCost: currentModifiers.researchCost,
-    },
-    {
-      earnings: maxEarningsModifier,
-      awayEarnings: maxAwayEarningsModifier,
-      researchCost: maxResearchCostModifier,
-    },
-    labUpgradeLevel,
-    backup.game?.permitLevel ?? 1
-  );
-}
-
-/**
  * Get the optimal artifact set for earnings (Clothed TE).
  */
 export function getOptimalEarningsSet(backup: ei.IBackup): EquippedArtifact[] {
@@ -145,7 +78,14 @@ export function getOptimalEarningsSet(backup: ei.IBackup): EquippedArtifact[] {
  */
 export function getOptimalELRSet(
   backup: ei.IBackup,
-  options: { assumeMaxHabsVehicles?: boolean, currentSet?: (EquippedArtifact | null)[], excludeGusset?: boolean } = {}
+  options: {
+    assumeMaxHabsVehicles?: boolean;
+    currentSet?: (EquippedArtifact | null)[];
+    excludeGusset?: boolean;
+    commonResearch?: Record<string, number>;
+    epicResearchLevels?: Record<string, number>;
+    colleggtibleModifiers?: any;
+  } = {}
 ): EquippedArtifact[] {
   if (!backup.artifactsDb) {
     return createEmptyLoadout();
@@ -154,17 +94,21 @@ export function getOptimalELRSet(
   const assumeMax = options.assumeMaxHabsVehicles ?? false;
   const excludeGusset = options.excludeGusset ?? false;
   const inventory = new Inventory(backup.artifactsDb, { virtue: true });
-  const colleggtibles = allModifiersFromColleggtibles(backup);
+  const colleggtibles = options.colleggtibleModifiers ?? allModifiersFromColleggtibles(backup);
 
   // 1. Gather research levels
-  const commonResearch: Record<string, number> = {};
-  for (const r of backup.farms?.[0]?.commonResearch || []) {
-    if (r.id) commonResearch[r.id] = r.level || 0;
+  const commonResearch: Record<string, number> = options.commonResearch ?? {};
+  if (!options.commonResearch) {
+    for (const r of backup.farms?.[0]?.commonResearch || []) {
+      if (r.id) commonResearch[r.id] = r.level || 0;
+    }
   }
 
-  const epicResearchLevels: Record<string, number> = {};
-  for (const r of backup.game?.epicResearch || []) {
-    if (r.id) epicResearchLevels[r.id] = r.level || 0;
+  const epicResearchLevels: Record<string, number> = options.epicResearchLevels ?? {};
+  if (!options.epicResearchLevels) {
+    for (const r of backup.game?.epicResearch || []) {
+      if (r.id) epicResearchLevels[r.id] = r.level || 0;
+    }
   }
 
   // 2. Identify top candidate artifacts

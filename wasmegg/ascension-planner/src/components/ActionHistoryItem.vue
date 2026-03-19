@@ -159,7 +159,7 @@
 
     <div class="flex items-center gap-1 shrink-0">
       <!-- Details button -->
-      <button
+      <!-- <button
         class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
         v-tippy="'View calculation details'"
         @click="$emit('show-details')"
@@ -172,7 +172,7 @@
             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-      </button>
+      </button> -->
 
       <!-- Undo button (hidden for start_ascension) -->
       <button
