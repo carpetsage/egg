@@ -38,9 +38,16 @@ export function applyAction(
         newState.population = farm.population;
         newState.lastStepTime = farm.lastStepTime;
         newState.bankValue = farm.cashEarned - farm.cashSpent;
+        // Progress state should already be in state from createBaseEngineState, 
+        // but we ensure it's explicitly carried over here if needed.
+        newState.teEarned = { ...state.teEarned };
+        newState.eggsDelivered = { ...state.eggsDelivered };
       } else {
         newState.bankValue = 0;
         newState.population = 1;
+        // Reset progress for fresh start if not continuation
+        newState.teEarned = { curiosity: 0, integrity: 0, humility: 0, resilience: 0, kindness: 0 };
+        newState.eggsDelivered = { curiosity: 0, integrity: 0, humility: 0, resilience: 0, kindness: 0 };
       }
       return newState;
     }

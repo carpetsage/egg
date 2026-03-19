@@ -66,12 +66,64 @@ export function integrateRate(seconds: number, P0: number, I: number, R: number,
 }
 
 /**
- * Calculate the total earnings integrated over a period of time [0, seconds].
+/**
+ * Calculate the total earnings integrated over a period of time [0, seconds],
+ * optionally accounting for an earnings boost expiration.
  */
-export function calculateEarningsForTime(seconds: number, prevSnapshot: CalculationsSnapshot): number {
-  const V = prevSnapshot.elr > 0 ? prevSnapshot.offlineEarnings / prevSnapshot.elr : 0;
-  if (V <= 0) return 0;
+export function calculateEarningsForTime(
+  seconds: number,
+  prevSnapshot: CalculationsSnapshot,
+  expirationSeconds?: number
+): number {
+  if (seconds <= 0) return 0;
+  const V1 = prevSnapshot.elr > 0 ? prevSnapshot.offlineEarnings / prevSnapshot.elr : 0;
+  if (V1 <= 0) return 0;
 
+  // Handle expiration
+  if (
+    expirationSeconds !== undefined &&
+    prevSnapshot.earningsBoost.active &&
+    expirationSeconds < seconds
+  ) {
+    const multiplier = prevSnapshot.earningsBoost.multiplier || 1;
+    const V2 = V1 / multiplier;
+
+    if (expirationSeconds <= 0) {
+      // Already expired before the period started
+      const totalEggs = integrateRate(
+        seconds,
+        prevSnapshot.population,
+        prevSnapshot.offlineIHR / 60,
+        prevSnapshot.ratePerChickenPerSecond,
+        prevSnapshot.shippingCapacity,
+        prevSnapshot.habCapacity
+      );
+      return V2 * totalEggs;
+    }
+
+    const eggsUntilExpire = integrateRate(
+      expirationSeconds,
+      prevSnapshot.population,
+      prevSnapshot.offlineIHR / 60,
+      prevSnapshot.ratePerChickenPerSecond,
+      prevSnapshot.shippingCapacity,
+      prevSnapshot.habCapacity
+    );
+
+    const totalEggs = integrateRate(
+      seconds,
+      prevSnapshot.population,
+      prevSnapshot.offlineIHR / 60,
+      prevSnapshot.ratePerChickenPerSecond,
+      prevSnapshot.shippingCapacity,
+      prevSnapshot.habCapacity
+    );
+
+    const eggsAfterExpire = totalEggs - eggsUntilExpire;
+    return V1 * eggsUntilExpire + V2 * eggsAfterExpire;
+  }
+
+  // No expiration or it's past the duration
   const totalEggs = integrateRate(
     seconds,
     prevSnapshot.population,
@@ -80,8 +132,7 @@ export function calculateEarningsForTime(seconds: number, prevSnapshot: Calculat
     prevSnapshot.shippingCapacity,
     prevSnapshot.habCapacity
   );
-
-  return V * totalEggs;
+  return V1 * totalEggs;
 }
 
 /**

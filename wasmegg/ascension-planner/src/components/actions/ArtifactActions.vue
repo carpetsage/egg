@@ -197,10 +197,14 @@ const isOptimalELR = computed(() => {
   if (!initialStateStore.rawBackup) return false;
 
   const savedSet = artifactSets.value.elr;
+  const context = getSimulationContext();
   const optimized = getOptimalELRSet(initialStateStore.rawBackup, {
     assumeMaxHabsVehicles: assumeMaxHabsVehicles.value,
     currentSet: savedSet || undefined,
     excludeGusset: excludeGusset.value,
+    commonResearch: actionsStore.effectiveSnapshot.researchLevels,
+    epicResearchLevels: context.epicResearchLevels,
+    colleggtibleModifiers: context.colleggtibleModifiers,
   });
 
   const currentArtifacts = actionsStore.effectiveSnapshot.artifactLoadout;
@@ -212,10 +216,14 @@ function equipOptimalELR() {
   if (!initialStateStore.rawBackup) return;
 
   const savedSet = artifactSets.value.elr;
+  const context = getSimulationContext();
   const optimized = getOptimalELRSet(initialStateStore.rawBackup, {
     assumeMaxHabsVehicles: assumeMaxHabsVehicles.value,
     currentSet: savedSet || undefined,
     excludeGusset: excludeGusset.value,
+    commonResearch: actionsStore.effectiveSnapshot.researchLevels,
+    epicResearchLevels: context.epicResearchLevels,
+    colleggtibleModifiers: context.colleggtibleModifiers,
   });
 
   // If the optimized set is DIFFERENT from our saved ELR set, update it

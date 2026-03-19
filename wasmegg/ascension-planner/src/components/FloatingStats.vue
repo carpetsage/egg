@@ -144,7 +144,7 @@
       </div>
 
       <!-- Details Button -->
-      <button
+      <!-- <button
         class="mt-3 text-slate-400 hover:text-slate-900 transition-colors p-1"
         v-tippy="'View Full Details'"
         @click="$emit('show-details')"
@@ -157,7 +157,7 @@
             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-      </button>
+      </button> -->
     </div>
   </div>
 </template>

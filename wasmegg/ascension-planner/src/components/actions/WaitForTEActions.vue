@@ -89,6 +89,7 @@
             class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-white hover:border-slate-200 transition-all active:scale-95 disabled:opacity-20 shadow-sm font-bold"
             :disabled="teToGain <= 1"
             @click="teToGain = Math.max(1, teToGain - 1)"
+            v-tippy="minusButtonTooltip"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4" />
@@ -106,6 +107,7 @@
             class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-white hover:border-slate-200 transition-all active:scale-95 disabled:opacity-20 shadow-sm font-bold"
             :disabled="teToGain >= 98 - currentTE"
             @click="teToGain = Math.min(98 - currentTE, teToGain + 1)"
+            v-tippy="plusButtonTooltip"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
@@ -266,8 +268,12 @@ const eggsToLay = computed(() => {
   return eggsNeededForTE(currentEggsDelivered.value, targetTENumber.value);
 });
 
-const timeToLaySeconds = computed(() => {
-  if (eggsToLay.value <= 0) return 0;
+function getTimeToLayForGain(gain: number): number {
+  if (gain <= 0) return 0;
+  const target = Math.min(98, currentTE.value + gain);
+  const eggsNeeded = eggsNeededForTE(currentEggsDelivered.value, target);
+  if (eggsNeeded <= 0) return 0;
+
   const snap = snapshot.value;
   const P0 = snap.population;
   const I = snap.offlineIHR / 60; // chickens/sec
@@ -279,19 +285,44 @@ const timeToLaySeconds = computed(() => {
   // If we reach hab capacity, the rate becomes constant at R * H (clamped by S).
   const maxPossibleRate = Math.min(S, R * H);
 
-  const time = solveForTime(eggsToLay.value, P0, I, R, maxPossibleRate);
+  const time = solveForTime(eggsNeeded, P0, I, R, maxPossibleRate);
   return isFinite(time) ? time : Infinity;
-});
+}
+
+const timeToLaySeconds = computed(() => getTimeToLayForGain(teToGain.value));
 
 const elrPerHour = computed(() => snapshot.value.elr * 3600);
 const elrPerDay = computed(() => snapshot.value.elr * 86400);
 
-const absoluteEarnedTime = computed(() => {
+function getAbsoluteEarnedTime(timeSecs: number): string {
+  if (!isFinite(timeSecs)) return 'Never';
   const planStartSeconds = virtueStore.planStartTime.getTime() / 1000;
   const currentStepTime = snapshot.value.lastStepTime || planStartSeconds;
-  const totalSeconds = currentStepTime + timeToLaySeconds.value;
+  const totalSeconds = currentStepTime + timeSecs;
   const relativeSeconds = totalSeconds - planStartSeconds;
   return formatAbsoluteTime(relativeSeconds, virtueStore.planStartTime.getTime(), virtueStore.ascensionTimezone);
+}
+
+const absoluteEarnedTime = computed(() => getAbsoluteEarnedTime(timeToLaySeconds.value));
+
+const minusButtonTooltip = computed(() => {
+  if (teToGain.value <= 1) return undefined;
+  const newGain = teToGain.value - 1;
+  const currentTime = timeToLaySeconds.value;
+  const newTime = getTimeToLayForGain(newGain);
+  const timeSaved = Math.max(0, currentTime - newTime);
+  const newDate = getAbsoluteEarnedTime(newTime);
+  return `Saves ${formatDuration(timeSaved)} (Finishes ${newDate})`;
+});
+
+const plusButtonTooltip = computed(() => {
+  if (teToGain.value >= 98 - currentTE.value) return undefined;
+  const newGain = teToGain.value + 1;
+  const currentTime = timeToLaySeconds.value;
+  const newTime = getTimeToLayForGain(newGain);
+  const timeAdded = Math.max(0, newTime - currentTime);
+  const newDate = getAbsoluteEarnedTime(newTime);
+  return `Adds ${formatDuration(timeAdded)} (Finishes ${newDate})`;
 });
 
 // Validation
