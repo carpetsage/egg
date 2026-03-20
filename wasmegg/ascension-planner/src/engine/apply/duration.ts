@@ -94,7 +94,9 @@ export function refreshActionPayload(
       prevSnapshot.habCapacity
     );
     payload.startEggsDelivered = currentDelivered;
-    payload.startTE = countTEThresholdsPassed(currentDelivered);
+    const thresholdsPassed = countTEThresholdsPassed(currentDelivered);
+    const claimedTE = prevSnapshot.teEarned?.[egg] || 0;
+    payload.startTE = Math.max(claimedTE, thresholdsPassed);
     payload.teGained = Math.max(0, payload.targetTE - payload.startTE);
     return { ...action, payload };
   }
