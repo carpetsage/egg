@@ -45,9 +45,9 @@ export function applyAction(
       } else {
         newState.bankValue = 0;
         newState.population = 1;
-        // Reset progress for fresh start if not continuation
-        newState.teEarned = { curiosity: 0, integrity: 0, humility: 0, resilience: 0, kindness: 0 };
-        newState.eggsDelivered = { curiosity: 0, integrity: 0, humility: 0, resilience: 0, kindness: 0 };
+        // Preserve lifetime metadata (teEarned and eggsDelivered) from prior ascensions/backup
+        newState.teEarned = { ...state.teEarned };
+        newState.eggsDelivered = { ...state.eggsDelivered };
       }
       return newState;
     }
