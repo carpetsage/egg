@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <!-- Current Egg Indicator -->
     <div
-      class="flex items-center gap-2 text-sm p-2 rounded-lg border transition-colors"
+      class="hidden sm:flex items-center gap-2 text-sm p-2 rounded-lg border transition-colors"
       :class="isEditingPastGroup ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-100'"
     >
       <span
@@ -28,17 +28,34 @@
     </div>
 
     <!-- Tab buttons -->
-    <div class="flex gap-1 border-b border-gray-200">
-      <button
-        v-for="tab in availableTabs"
-        :key="tab.id"
-        class="px-4 py-2 text-sm font-medium transition-colors relative"
-        :class="activeTab === tab.id ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
-        @click="activeTab = tab.id"
+    <div class="relative border-b border-gray-200">
+      <div 
+        ref="tabsContainer"
+        class="flex gap-1 overflow-x-auto flex-nowrap [&::-webkit-scrollbar]:hidden"
+        style="scrollbar-width: none;"
+        @scroll="checkScroll"
       >
-        {{ tab.label }}
-        <span v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
-      </button>
+        <button
+          v-for="tab in availableTabs"
+          :key="tab.id"
+          class="px-4 py-2 text-sm font-medium transition-colors relative whitespace-nowrap shrink-0"
+          :class="activeTab === tab.id ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+          @click="activeTab = tab.id"
+        >
+          {{ tab.label }}
+          <span v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
+        </button>
+      </div>
+
+      <!-- Scroll Overflow Indicators -->
+      <div
+        v-if="canScrollLeft"
+        class="absolute left-0 top-0 bottom-0 w-8 pointer-events-none bg-gradient-to-r from-white to-transparent"
+      />
+      <div
+        v-if="canScrollRight"
+        class="absolute right-0 top-0 bottom-0 w-8 pointer-events-none bg-gradient-to-l from-white to-transparent"
+      />
     </div>
 
     <!-- Tab content -->
@@ -58,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { iconURL } from 'lib';
 import VehicleActions from './actions/VehicleActions.vue';
 import HabActions from './actions/HabActions.vue';
@@ -74,6 +91,26 @@ import { useActionsStore } from '@/stores/actions';
 import { VIRTUE_EGG_NAMES, type VirtueEgg } from '@/types';
 
 const actionsStore = useActionsStore();
+
+const tabsContainer = ref<HTMLElement | null>(null);
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
+
+const checkScroll = () => {
+  if (!tabsContainer.value) return;
+  const { scrollLeft, scrollWidth, clientWidth } = tabsContainer.value;
+  canScrollLeft.value = scrollLeft > 0;
+  canScrollRight.value = Math.ceil(scrollLeft + clientWidth) < scrollWidth;
+};
+
+onMounted(() => {
+  setTimeout(checkScroll, 50);
+  window.addEventListener('resize', checkScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScroll);
+});
 
 defineEmits<{
   'show-current-details': [];
@@ -160,6 +197,10 @@ const availableTabs = computed(() => {
     return tab.egg === effectiveEgg.value;
   });
 });
+
+watch(availableTabs, () => {
+  nextTick(checkScroll);
+}, { deep: true });
 
 // Active tab - defaults to initial if no shifts or if editing the start group
 const activeTab = ref<TabId>(

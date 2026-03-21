@@ -2,124 +2,130 @@
   <div class="border-l-4 transition-all duration-300" :class="groupClasses">
     <!-- Collapsible header -->
     <button
-      class="w-full px-5 py-4 flex items-center gap-4 hover:bg-white/50 transition-colors"
+      class="w-full px-3 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 hover:bg-white/50 transition-colors"
       @click="toggleExpanded"
     >
-      <!-- Expand/collapse icon -->
-      <svg
-        class="w-4 h-4 text-slate-400 transition-transform duration-300 flex-shrink-0"
-        :class="{ 'rotate-90 text-slate-900': isExpanded }"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-      </svg>
+      <!-- Row 1 (Mobile) / Left Side (Desktop) -->
+      <div class="flex items-center gap-3 sm:gap-4 w-full sm:w-auto flex-1 min-w-0">
+        <!-- Expand/collapse icon -->
+        <svg
+          class="w-4 h-4 text-slate-400 transition-transform duration-300 flex-shrink-0"
+          :class="{ 'rotate-90 text-slate-900': isExpanded }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
 
-      <!-- Egg icon (shows the egg we're ON during this period) -->
-      <div
-        class="w-8 h-8 flex-shrink-0 bg-white rounded-xl border border-slate-100 p-1 shadow-sm overflow-hidden group-hover:scale-110 transition-transform"
-      >
-        <img
-          :src="iconURL(`egginc/egg_${currentEgg}.png`, 64)"
-          class="w-full h-full object-contain"
-          :alt="currentEgg"
-        />
-      </div>
-
-      <!-- Header text -->
-      <div class="flex-1 text-left">
-        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Shift</div>
-        <div class="font-bold text-slate-800">
-          <span class="text-slate-900 uppercase tracking-tight">{{ headerText }}</span>
+        <!-- Egg icon (shows the egg we're ON during this period) -->
+        <div
+          class="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 bg-white rounded-xl border border-slate-100 p-1 shadow-sm overflow-hidden group-hover:scale-110 transition-transform"
+        >
+          <img
+            :src="iconURL(`egginc/egg_${currentEgg}.png`, 64)"
+            class="w-full h-full object-contain"
+            :alt="currentEgg"
+          />
         </div>
-      </div>
 
-      <!-- Time info -->
-      <div class="text-right shrink-0">
-        <div class="text-[10px] font-black text-slate-700 tracking-widest leading-none mb-1">
-          {{ formattedTimestamp }}
+        <!-- Header text -->
+        <div class="flex-1 text-left min-w-0">
+          <div class="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Shift</div>
+          <div class="font-bold text-slate-800 truncate">
+            <span class="text-slate-900 uppercase tracking-tight">{{ headerText }}</span>
+          </div>
         </div>
-        <div class="flex flex-col items-end gap-0.5">
-          <div class="text-[10px] font-bold text-slate-400 tracking-tight">Time: {{ formattedTimeElapsed }}</div>
-          <div v-if="props.eggsDelivered > 0" class="text-[10px] font-black text-slate-900 tracking-widest">
-            {{ formatNumber(props.eggsDelivered, 3) }} Eggs
+
+        <!-- Time info -->
+        <div class="text-right shrink-0 ml-auto sm:ml-0">
+          <div class="text-[9px] sm:text-[10px] font-black text-slate-700 tracking-widest leading-none mb-1">
+            {{ formattedTimestamp }}
+          </div>
+          <div class="flex flex-col items-end gap-0.5">
+            <div class="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-tight">Time: {{ formattedTimeElapsed }}</div>
+            <div v-if="props.eggsDelivered > 0" class="text-[9px] sm:text-[10px] font-black text-slate-900 tracking-widest">
+              {{ formatNumber(props.eggsDelivered, 3) }} Eggs
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Shift info (only for shift actions) -->
-      <div v-if="isShiftAction && headerAction.cost > 0" class="flex items-center gap-2">
-        <!-- Cost badge -->
-        <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-xl border border-slate-100 shadow-sm">
-          <span class="text-[10px] font-bold text-slate-700 font-mono-premium">
-            {{ formatNumber(headerAction.cost, 3) }}
-          </span>
-          <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
+      <!-- Row 2 (Mobile) / Right Side (Desktop) -->
+      <div class="flex items-center justify-end w-full sm:w-auto gap-2 sm:gap-4 mt-1 sm:mt-0">
+        <!-- Shift info (only for shift actions) -->
+        <div v-if="isShiftAction && headerAction.cost > 0" class="flex items-center gap-2">
+          <!-- Cost badge -->
+          <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-xl border border-slate-100 shadow-sm">
+            <span class="text-[9px] sm:text-[10px] font-bold text-slate-700 font-mono-premium">
+              {{ formatNumber(headerAction.cost, 3) }}
+            </span>
+            <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
+          </div>
         </div>
-      </div>
 
-      <!-- Reconciliation Status for the whole shift -->
-      <div v-if="actionsStore.isReconciling" class="shrink-0 ml-2">
-        <div v-if="shiftReconciliationStatus === 'completed'" class="text-emerald-500" v-tippy="'Shift completed in-game'">
-          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-          </svg>
+        <!-- Reconciliation Status for the whole shift -->
+        <div v-if="actionsStore.isReconciling" class="shrink-0">
+          <div v-if="shiftReconciliationStatus === 'completed'" class="text-emerald-500" v-tippy="'Shift completed in-game'">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div v-else-if="shiftReconciliationStatus === 'pending'" class="text-amber-500 animate-pulse" v-tippy="'Shift pending in-game'">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
         </div>
-        <div v-else-if="shiftReconciliationStatus === 'pending'" class="text-amber-500 animate-pulse" v-tippy="'Shift pending in-game'">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+
+        <!-- Status/Editor Actions -->
+        <div class="flex items-center gap-1 sm:gap-2" @click.stop>
+          <!-- Edit/Done toggle -->
+          <button
+            v-if="!isEditing && !(isCurrent && !actionsStore.editingGroupId)"
+            class="p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 hover:bg-brand-primary/5 rounded-xl transition-all active:scale-95"
+            v-tippy="'Edit this shift'"
+            @click="$emit('start-editing', headerAction.id)"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+              />
+            </svg>
+          </button>
+
+          <button
+            v-if="isEditing"
+            class="p-1 px-3 bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 border border-brand-primary/20"
+            v-tippy="'Finish editing'"
+            @click="$emit('stop-editing')"
+          >
+            <span class="text-[9px] font-black uppercase tracking-widest">Done</span>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+          </button>
+
+          <!-- Undo button (only for shift actions) -->
+          <button
+            v-if="isShiftAction"
+            class="p-1.5 sm:p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95"
+            v-tippy="'Undo this shift and all its actions'"
+            @click="handleUndo($event, headerAction)"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+              />
+            </svg>
+          </button>
         </div>
-      </div>
-
-      <!-- Status/Editor Actions -->
-      <div class="flex items-center gap-2" @click.stop>
-        <!-- Edit/Done toggle -->
-        <button
-          v-if="!isEditing && !(isCurrent && !actionsStore.editingGroupId)"
-          class="p-2 text-slate-400 hover:text-slate-900 hover:bg-brand-primary/5 rounded-xl transition-all active:scale-95"
-          v-tippy="'Edit this shift'"
-          @click="$emit('start-editing', headerAction.id)"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-            />
-          </svg>
-        </button>
-
-        <button
-          v-if="isEditing"
-          class="p-1 px-3 bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 border border-brand-primary/20"
-          v-tippy="'Finish editing'"
-          @click="$emit('stop-editing')"
-        >
-          <span class="text-[9px] font-black uppercase tracking-widest">Done</span>
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-          </svg>
-        </button>
-
-        <!-- Undo button (only for shift actions) -->
-        <button
-          v-if="isShiftAction"
-          class="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95"
-          v-tippy="'Undo this shift and all its actions'"
-          @click="handleUndo($event, headerAction)"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-            />
-          </svg>
-        </button>
       </div>
     </button>
 

@@ -108,18 +108,9 @@
           </div>
         </div>
 
-        <HabSelect
+        <UpgradeDropdown
           :model-value="habId !== null ? String(habId) : undefined"
-          :items="getAvailableHabs(habId)"
-          :get-item-id="item => String(item.id)"
-          :get-item-display="item => getHabDisplay(item, index)"
-          :get-item-icon-path="item => item.iconPath"
-          :item-from-id="id => getHabById(parseInt(id) as HabId)"
-          :search-items="query => searchHabs(getAvailableHabs(habId), query)"
-          placeholder="Select habitat..."
-          class="w-full"
-          container-class="w-full"
-          dropdown-width-class="min-w-full w-max"
+          :options="getHabDropdownOptions(habId, index)"
           @update:model-value="handleHabChange(index, $event ? parseInt($event) : undefined)"
         />
       </div>
@@ -144,7 +135,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
+import UpgradeDropdown, { type UpgradeDropdownOption } from './UpgradeDropdown.vue';
 import {
   habTypes,
   getHabById,
@@ -168,8 +159,6 @@ import EventExpiryDialog from '../EventExpiryDialog.vue';
 import { calculateHabCapacity, calculateTotalResearchMultipliers } from '@/calculations/habCapacity';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { calculateEarningsForTime, getTimeToSave } from '@/engine/apply';
-
-const HabSelect = GenericBaseSelectFilterable<Hab>();
 
 const habCapacityStore = useHabCapacityStore();
 const initialStateStore = useInitialStateStore();
@@ -236,18 +225,28 @@ function getHabPrice(habId: number, slotIndex: number): number {
   return getDiscountedHabPrice(hab, existingCount, costModifiers.value, isHabSaleActive.value);
 }
 
-function getHabDisplay(hab: Hab, slotIndex: number): string {
-  const isCurrent = habIds.value[slotIndex] === hab.id;
-  const capacity = formatNumber(getHabCapacity(hab.id), 0);
+function getHabDropdownOptions(currentHabId: number | null, slotIndex: number): UpgradeDropdownOption[] {
+  const habs = getAvailableHabs(currentHabId);
+  return habs.map(hab => {
+    const isCurrent = habIds.value[slotIndex] === hab.id;
+    const capacity = formatNumber(getHabCapacity(hab.id), 0);
 
-  if (isCurrent) {
-    return `${hab.name} (${capacity} cap) — Current`;
-  }
+    let option: UpgradeDropdownOption = {
+      id: String(hab.id),
+      name: hab.name,
+      iconPath: hab.iconPath,
+    };
 
-  const price = getHabPrice(hab.id, slotIndex);
-  const time = getTimeToBuy(hab.id, slotIndex);
+    if (isCurrent) {
+      option.subtext = `${capacity} cap — Current`;
+    } else {
+      option.capacity = `${capacity} cap`;
+      option.price = getHabPrice(hab.id, slotIndex);
+      option.time = getTimeToBuy(hab.id, slotIndex);
+    }
 
-  return `${hab.name} (${capacity} cap, ${formatGemPrice(price)} gems) — ${time}`;
+    return option;
+  });
 }
 
 function getTimeToBuy(habId: number, slotIndex: number): string {
@@ -278,11 +277,6 @@ function getAvailableHabs(currentHabId: number | null) {
   }
   // Only show habs with higher id (upgrades only, no downgrades)
   return habTypes.filter(hab => hab.id >= currentHabId);
-}
-
-function searchHabs(items: Hab[], query: string): Hab[] {
-  const q = query.toLowerCase();
-  return items.filter(hab => hab.name.toLowerCase().includes(q));
 }
 
 function handleHabChange(slotIndex: number, habId: number | undefined) {

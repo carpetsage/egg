@@ -110,29 +110,10 @@
           </div>
         </div>
 
-        <VehicleSelect
+        <UpgradeDropdown
           :model-value="slot.vehicleId !== null ? String(slot.vehicleId) : undefined"
-          :items="getAvailableVehicles(slot.vehicleId)"
-          :get-item-id="item => String(item.id)"
-          :get-item-display="
-            item => {
-              const currentSlot = displaySlots[index];
-              if (currentSlot && currentSlot.vehicleId === item.id) {
-                return `${item.name} (Owned)`;
-              }
-              const price = getVehiclePrice(item.id, index);
-              const capacity = getVehicleCapacity({ vehicleId: item.id, trainLength: 1 }, index);
-              return `${item.name} (${formatNumber(capacity * 3600, 0)}/hr, ${formatGemPrice(price)} gems) — ${getVehicleTimeToBuy(item.id, index)}`;
-            }
-          "
-          :get-item-icon-path="item => item.iconPath"
-          :item-from-id="id => getVehicleType(parseInt(id))!"
-          :search-items="query => searchVehicles(getAvailableVehicles(slot.vehicleId), query)"
+          :options="getVehicleDropdownOptions(slot.vehicleId, index)"
           placeholder="Select vehicle..."
-          icon-class="h-[14px] w-12"
-          input-padding-class="pl-[60px]"
-          container-class="max-w-none"
-          class="w-full"
           @update:model-value="handleVehicleChange(index, $event ? parseInt($event) : undefined)"
         />
 
@@ -206,7 +187,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
+import UpgradeDropdown, { type UpgradeDropdownOption } from './UpgradeDropdown.vue';
 import {
   vehicleTypes,
   getVehicleType,
@@ -237,8 +218,6 @@ import {
 } from '@/calculations/shippingCapacity';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { calculateEarningsForTime, getTimeToSave } from '@/engine/apply';
-
-const VehicleSelect = GenericBaseSelectFilterable<VehicleType>();
 
 const shippingStore = useShippingCapacityStore();
 const initialStateStore = useInitialStateStore();
@@ -332,6 +311,32 @@ function getVehicleTimeToBuySeconds(vehicleId: number, slotIndex: number): numbe
   return getTimeToSave(price, actionsStore.effectiveSnapshot);
 }
 
+function getVehicleDropdownOptions(currentVehicleId: number | null, slotIndex: number): UpgradeDropdownOption[] {
+  const vehicles = getAvailableVehicles(currentVehicleId);
+  return vehicles.map(vt => {
+    const currentSlot = displaySlots.value[slotIndex];
+    const isCurrent = currentSlot && currentSlot.vehicleId === vt.id;
+    
+    let option: UpgradeDropdownOption = {
+      id: String(vt.id),
+      name: vt.name,
+      iconPath: vt.iconPath,
+    };
+
+    if (isCurrent) {
+      option.subtext = 'Owned';
+    } else {
+      const price = getVehiclePrice(vt.id, slotIndex);
+      const capacity = getVehicleCapacity({ vehicleId: vt.id, trainLength: 1 }, slotIndex);
+      option.capacity = `${formatNumber(capacity * 3600, 0)}/hr`;
+      option.price = price;
+      option.time = getVehicleTimeToBuy(vt.id, slotIndex);
+    }
+
+    return option;
+  });
+}
+
 function getVehicleTimeToBuy(vehicleId: number, slotIndex: number): string {
   const price = getVehiclePrice(vehicleId, slotIndex);
   return getTimeToBuyFromPrice(price);
@@ -388,11 +393,6 @@ function getAvailableVehicles(currentVehicleId: number | null) {
   }
   // Only show vehicles with higher id (upgrades only, no downgrades)
   return vehicleTypes.filter(vt => vt.id >= currentVehicleId);
-}
-
-function searchVehicles(items: VehicleType[], query: string): VehicleType[] {
-  const q = query.toLowerCase();
-  return items.filter(vt => vt.name.toLowerCase().includes(q));
 }
 
 function handleVehicleChange(slotIndex: number, vehicleId: number | undefined) {

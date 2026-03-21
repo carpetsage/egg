@@ -372,7 +372,7 @@ const emit = defineEmits(['plan-loaded']);
       </div>
     </div>
 
-    <div class="p-4">
+    <div class="p-2 sm:p-4">
       <!-- Import progress bar -->
       <div v-if="importProgress" class="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
         <div class="flex justify-between items-center mb-2">
@@ -401,13 +401,13 @@ const emit = defineEmits(['plan-loaded']);
         <div
           v-for="plan in plans"
           :key="plan.id"
-          class="group flex items-center justify-between py-1.5 px-3 rounded-md hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all"
+          class="group flex items-center justify-between py-1 px-1 sm:py-1.5 sm:px-3 rounded-md hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all"
           :class="{
             'bg-indigo-50 border-indigo-100': actionsStore.activePlanId === plan.id,
             'bg-amber-50/50 border-amber-200 opacity-60': busyPlanIds.has(plan.id) && actionsStore.activePlanId !== plan.id,
           }"
         >
-          <div class="flex-1 min-w-0 mr-4">
+          <div class="flex-1 min-w-0 mr-2 sm:mr-4">
             <div v-if="editingPlanId === plan.id" class="flex items-center">
               <input
                 v-model="newName"
@@ -435,11 +435,11 @@ const emit = defineEmits(['plan-loaded']);
             </div>
           </div>
 
-          <div class="flex items-center space-x-2">
-            <span class="text-[10px] text-gray-400 whitespace-nowrap mr-1">
+          <div class="flex items-center space-x-0 sm:space-x-2">
+            <span class="hidden sm:inline text-[10px] text-gray-400 whitespace-nowrap mr-1">
               Updated {{ new Date(plan.timestamp).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) }}
             </span>
-            <button class="p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Load this plan'" @click="loadPlan(plan)">
+            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Load this plan'" @click="loadPlan(plan)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
@@ -449,7 +449,7 @@ const emit = defineEmits(['plan-loaded']);
                 />
               </svg>
             </button>
-            <button class="p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Export this plan (JSON)'" @click="exportPlan(plan)">
+            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Export this plan (JSON)'" @click="exportPlan(plan)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
@@ -459,7 +459,7 @@ const emit = defineEmits(['plan-loaded']);
                 />
               </svg>
             </button>
-            <button class="p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Rename this plan'" @click="startRename(plan)">
+            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Rename this plan'" @click="startRename(plan)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
@@ -469,12 +469,12 @@ const emit = defineEmits(['plan-loaded']);
                 />
               </svg>
             </button>
-            <button class="p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Copy this plan'" @click="promptCopy(plan)">
+            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Copy this plan'" @click="promptCopy(plan)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
               </svg>
             </button>
-            <button class="p-1 text-gray-400 hover:text-red-600" v-tippy="'Delete this plan'" @click="confirmDelete(plan)">
+            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-red-600" v-tippy="'Delete this plan'" @click="confirmDelete(plan)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
