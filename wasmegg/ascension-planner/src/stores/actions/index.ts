@@ -399,6 +399,7 @@ export const useActionsStore = defineStore('actions', {
     async clearAll(resetCallback?: () => void, skipRecalculate = false) {
       this.activePlanId = null;
       this.isReconciling = false;
+      this.editingGroupId = null;
       this.reconcileFarmState = null;
       this.reconcileEggsDelivered = null;
       this.reconcileTeEarned = null;
@@ -636,11 +637,19 @@ export const useActionsStore = defineStore('actions', {
       if (preserveId && data.activePlanId) {
         this.activePlanId = data.activePlanId;
       }
-      this.lastSavedActionsJson = JSON.stringify(this.actions);
+      // Reset editing state when importing.
+      this.editingGroupId = null;
 
       // Clear expanded groups when importing. The user wants the initial shift
       // collapsed when loading from the library or reconciling.
       this.expandedGroupIds.clear();
+
+      // But we DO want the last shift (or the start action if no shifts) expanded
+      // so the user is "editing" it by default.
+      const lastGroupAction = [...this.actions].reverse().find(a => a.type === 'shift' || a.type === 'start_ascension');
+      if (lastGroupAction) {
+        this.expandedGroupIds.add(lastGroupAction.id);
+      }
 
       const baseState = createBaseEngineState(null);
       const initialSnapshot = computeSnapshot(baseState, getSimulationContext());
