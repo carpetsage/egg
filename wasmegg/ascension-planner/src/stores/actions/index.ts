@@ -633,7 +633,24 @@ export const useActionsStore = defineStore('actions', {
         return true;
       }
       const data = importPlanLogic(jsonString);
-      this.actions = data.actions;
+      
+      // NEW: Skip recalculation if the plan already contains calculated result data (endState).
+      // Since the user is in a long session, we trust the cached calculations in the library.
+      const isPreCalculated = data.actions && 
+                             data.actions.length > 0 && 
+                             data.actions.every((a: Action) => a.endState !== undefined);
+
+      if (isPreCalculated) {
+        skipRecalculate = true;
+        // Optimization: Ensure all imported endStates are marked as raw for Vue performance.
+        this.actions = data.actions.map((a: Action) => ({
+          ...a,
+          endState: markRaw(a.endState),
+        }));
+      } else {
+        this.actions = data.actions;
+      }
+
       if (preserveId && data.activePlanId) {
         this.activePlanId = data.activePlanId;
       }
