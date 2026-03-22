@@ -6,32 +6,32 @@
 
       <div class="space-y-6">
         <!-- Ascension Start Time -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div class="text-sm font-bold text-slate-700">Ascension Start</div>
-            <div class="text-[10px] uppercase font-black text-slate-400 tracking-wider">When this journey begins</div>
+            <div class="hidden md:block text-[10px] uppercase font-black text-slate-400 tracking-wider">When this journey begins</div>
           </div>
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto mt-1 md:mt-0">
             <input
               type="date"
               v-model="localAscensionDate"
-              class="input-premium w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
+              class="input-premium w-full md:w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
             />
             <input
               type="time"
               v-model="localAscensionTime"
-              class="input-premium w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
+              class="input-premium w-full md:w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
             />
             <select
               v-model="localAscensionTimezone"
-              class="input-premium w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 pl-4 pr-12"
+              class="input-premium w-full md:w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 pl-4 pr-12"
             >
               <option v-for="tz in allTimezones" :key="tz.value" :value="tz.value">
                 {{ tz.label }}
               </option>
             </select>
             <button
-              class="btn-premium btn-primary px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all disabled:opacity-30"
+              class="btn-premium btn-primary w-full md:w-auto px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all disabled:opacity-30"
               :disabled="!hasAscensionChanges"
               @click="applyAscensionChanges"
             >
@@ -41,12 +41,12 @@
         </div>
 
         <!-- Starting Egg -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
           <div>
             <div class="text-sm font-bold text-slate-700">Starting Egg</div>
-            <div class="text-[10px] uppercase font-black text-slate-400 tracking-wider">Initial virtue candidate</div>
+            <div class="hidden sm:block text-[10px] uppercase font-black text-slate-400 tracking-wider">Initial virtue candidate</div>
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-2 justify-between w-full sm:w-auto mt-1 sm:mt-0">
             <button
               v-for="egg in VIRTUE_EGGS"
               :key="egg"
@@ -76,38 +76,38 @@
         </div>
 
         <!-- Previous Shifts (editable) -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0">
           <div>
             <div class="text-sm font-bold text-slate-700">Previous Shifts</div>
-            <div class="text-[10px] uppercase font-black text-slate-400 tracking-wider">Experience baseline</div>
+            <div class="hidden sm:block text-[10px] uppercase font-black text-slate-400 tracking-wider">Experience baseline</div>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 w-full sm:w-auto mt-1 sm:mt-0">
             <input
               type="number"
               :value="initialShiftCount"
               :min="0"
-              class="input-premium w-40 text-right text-sm font-mono-premium font-bold text-slate-900"
+              class="input-premium w-full sm:w-40 text-right text-sm font-mono-premium font-bold text-slate-900"
               @change="$emit('set-initial-shift-count', parseInt(($event.target as HTMLInputElement).value) || 0)"
             />
           </div>
         </div>
 
         <!-- Soul Eggs -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0">
           <div>
             <div class="flex items-center gap-1.5">
               <div class="text-sm font-bold text-slate-700">Soul Eggs (SE)</div>
               <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-4 h-4 mb-0.5" alt="SE" />
             </div>
-            <div class="text-[10px] uppercase font-black text-slate-400 tracking-wider">
+            <div class="hidden sm:block text-[10px] uppercase font-black text-slate-400 tracking-wider">
               Earnings potential multiplier
             </div>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 w-full sm:w-auto mt-1 sm:mt-0">
             <input
               type="text"
               :value="formatNumber(soulEggs, 3)"
-              class="input-premium w-40 text-right text-sm font-mono-premium font-bold text-slate-900"
+              class="input-premium w-full sm:w-40 text-right text-sm font-mono-premium font-bold text-slate-900"
               @blur="handleSoulEggsChange(($event.target as HTMLInputElement).value)"
               @keydown.enter="($event.target as HTMLInputElement).blur()"
             />
@@ -121,7 +121,7 @@
           <div>
             <div class="text-sm font-bold text-slate-700">Assume Double Earnings</div>
             <div
-              class="text-[10px] uppercase font-black text-slate-400 tracking-wider group-hover:text-slate-500 transition-colors"
+              class="hidden sm:block text-[10px] uppercase font-black text-slate-400 tracking-wider group-hover:text-slate-500 transition-colors"
             >
               Active Video Doubler or Ultra
             </div>
@@ -192,73 +192,53 @@
           </div>
         </div>
 
-        <div class="flex items-start gap-3 p-3 bg-brand-primary/5 rounded-xl border border-brand-primary/10">
-          <svg
-            class="w-5 h-5 text-slate-900 flex-shrink-0 mt-0.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <p class="text-[10px] text-slate-500 font-medium leading-relaxed">
-            TE are earned through shipping. Levels are synced between
-            <strong class="text-slate-700">Delivered</strong> and <strong class="text-slate-700">TE Count</strong>.
-            Editing one updates the other to the corresponding threshold.
-          </p>
-        </div>
-
         <!-- Per-Egg TE Progress -->
         <div class="grid grid-cols-1 gap-3">
           <div
             v-for="egg in VIRTUE_FUEL_ORDER"
             :key="egg"
-            class="flex items-center gap-4 p-3 bg-white hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all group"
+            class="flex flex-col gap-3 p-3 bg-white hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all group"
           >
-            <div
-              class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center p-2 group-hover:bg-white group-hover:shadow-inner transition-all"
-            >
-              <img
-                :src="iconURL(`egginc/egg_${egg}.png`, 64)"
-                class="w-full h-full object-contain drop-shadow-sm"
-                :alt="egg"
-              />
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="text-xs font-bold text-slate-800 uppercase tracking-tight mb-2">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center p-1.5 group-hover:bg-white group-hover:shadow-inner transition-all"
+              >
+                <img
+                  :src="iconURL(`egginc/egg_${egg}.png`, 64)"
+                  class="w-full h-full object-contain drop-shadow-sm"
+                  :alt="egg"
+                />
+              </div>
+              <div class="text-xs font-bold text-slate-800 uppercase tracking-tight">
                 {{ VIRTUE_EGG_NAMES[egg] }}
               </div>
-              <div class="flex flex-wrap items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Delivered:</span>
+            </div>
+            <div class="flex-1 w-full">
+              <div class="grid grid-cols-2 gap-3 w-full">
+                <!-- Delivered -->
+                <div class="flex flex-col gap-1">
+                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Delivered</span>
                   <input
                     type="text"
                     :value="formatNumber(eggsDelivered[egg], 3)"
-                    class="input-premium w-[100px] text-right text-sm font-mono-premium font-bold text-slate-900"
+                    class="input-premium w-full text-right text-sm font-mono-premium font-bold text-slate-900"
                     placeholder="0"
                     @change="handleEggsDeliveredChange(egg, ($event.target as HTMLInputElement).value)"
                     @keydown.enter="($event.target as HTMLInputElement).blur()"
                   />
                 </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">TE:</span>
-                  <div class="flex items-center gap-1.5">
-                    <input
-                      type="number"
-                      :value="teEarned[egg]"
-                      :min="0"
-                      :max="98"
-                      class="input-premium w-[90px] text-center text-sm font-mono-premium font-bold text-slate-900"
-                      @change="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
-                      @keydown.enter="($event.target as HTMLInputElement).blur()"
-                    />
-                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">/ 98</span>
-                  </div>
+                <!-- TE -->
+                <div class="flex flex-col gap-1">
+                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">TE <span class="text-slate-300 font-bold ml-0.5">/ 98</span></span>
+                  <input
+                    type="number"
+                    :value="teEarned[egg]"
+                    :min="0"
+                    :max="98"
+                    class="input-premium w-full text-right text-sm font-mono-premium font-bold text-slate-900"
+                    @change="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
+                    @keydown.enter="($event.target as HTMLInputElement).blur()"
+                  />
                 </div>
               </div>
             </div>
@@ -518,12 +498,12 @@
         <div
           v-for="research in epicResearchList"
           :key="research.id"
-          class="px-5 py-3 hover:bg-slate-50/50 transition-colors group"
+          class="px-5 py-3 hover:bg-slate-50/50 transition-colors group flex flex-col gap-1.5"
         >
           <div class="flex justify-between items-center gap-4">
             <div class="flex items-center gap-4 flex-1 min-w-0">
               <div
-                class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center p-2 group-hover:bg-white group-hover:shadow-sm transition-all"
+                class="w-10 h-10 bg-slate-50 rounded-lg flex-shrink-0 flex items-center justify-center p-2 group-hover:bg-white group-hover:shadow-sm transition-all"
               >
                 <img
                   :src="iconURL(getResearchIconPath(research.id), 64)"
@@ -533,12 +513,9 @@
               </div>
               <div class="min-w-0">
                 <div class="text-xs font-bold text-slate-800 uppercase tracking-tight">{{ research.name }}</div>
-                <div class="text-[10px] text-slate-400 font-medium truncate italic leading-relaxed">
-                  {{ research.effect }}
-                </div>
               </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-shrink-0 items-center gap-2">
               <div class="flex items-center gap-1.5">
                 <input
                   type="number"
@@ -559,6 +536,9 @@
                 >
               </div>
             </div>
+          </div>
+          <div class="text-[10px] text-slate-500 font-medium italic leading-relaxed pl-14 pr-2 pb-1">
+            {{ research.effect }}
           </div>
         </div>
       </div>

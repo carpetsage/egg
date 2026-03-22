@@ -3,16 +3,16 @@
     <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
       <div>
         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3"> Duration </label>
-        <div class="flex gap-2">
+        <div class="flex flex-col sm:flex-row gap-2">
           <input
             v-model="inputDuration"
             type="text"
             placeholder="e.g. 8 or 8h30m"
-            class="flex-1 px-4 py-2.5 text-sm font-mono-premium font-bold bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 outline-none transition-all placeholder:text-slate-300"
+            class="w-full sm:flex-1 px-4 py-2.5 text-sm font-mono-premium font-bold bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 outline-none transition-all placeholder:text-slate-300"
             @keyup.enter="handleWaitTime"
           />
           <button
-            class="btn-premium btn-primary px-6 py-2.5 text-xs flex-shrink-0"
+            class="btn-premium btn-primary w-full sm:w-auto px-6 py-2.5 text-xs flex-shrink-0"
             :disabled="!isValid"
             @click="handleWaitTime"
           >
