@@ -272,7 +272,7 @@ const emit = defineEmits<{
   'save-plan-as': [];
 }>();
 
-const isCollapsed = ref(false);
+const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 const showDonateModal = ref(false);
 const showTeModal = ref(false);
 
