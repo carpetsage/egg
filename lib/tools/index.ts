@@ -116,6 +116,15 @@ export const tools = [
     whatsNew: 'New Tool: Virtue Companion!',
   }),
   new Tool({
+    id: 'virtue-tank-planner',
+    title: 'Virtue Tank Planner',
+    url: '/virtue-tank-planner/',
+    iconUrl: iconURL('egginc/egg_truth.png', 64),
+    description: 'Optimize Fuel Tank Load-out for Virtue',
+    iconCssClasses: 'h-5 w-5',
+    whatsNew: 'New Tool: Virtue Tank Planner!',
+  }),
+  new Tool({
     id: 'ascension-planner',
     title: 'Ascension Planner',
     url: '/ascension-planner/',
