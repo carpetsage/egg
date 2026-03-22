@@ -27,158 +27,6 @@
             <div v-if="playerId" class="max-w-6xl mx-auto mt-6">
               <PlanLibrary @plan-loaded="handlePlanLoaded" />
             </div>
-
-            <!-- Ascension Action Buttons -->
-            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-3 max-w-6xl mx-auto">
-              <!-- Start from Scratch -->
-              <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
-                <div
-                  class="absolute -right-6 -top-6 w-20 h-20 bg-red-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
-                ></div>
-                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
-                  <div class="p-2.5 bg-red-50 rounded-xl">
-                    <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="text-sm font-bold text-slate-800">Start from Scratch</div>
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
-                      Clear your entire plan, reset all settings, and begin with a clean slate
-                    </p>
-                  </div>
-                  <button
-                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
-                    @click="confirmUnsavedChanges(startFromScratch)"
-                  >
-                    Reset
-                  </button>
-                </div>
-              </div>
-
-              <!-- Plan Next Ascension -->
-              <div
-                class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden border-brand-primary/30"
-              >
-                <div
-                  class="absolute -right-6 -top-6 w-20 h-20 bg-brand-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
-                ></div>
-                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
-                  <div class="p-2.5 bg-brand-primary/10 rounded-xl">
-                    <svg class="w-6 h-6 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="text-sm font-bold text-slate-800">Plan Future Ascension</div>
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
-                      Load your latest backup, include pending TE, reset the clock, and start planning fresh
-                    </p>
-                  </div>
-                  <button
-                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
-                    :disabled="loading || !playerId"
-                    @click="confirmUnsavedChanges(planNextAscension)"
-                  >
-                    Plan
-                  </button>
-                </div>
-              </div>
-
-              <!-- Continue Current Ascension -->
-              <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
-                <div
-                  class="absolute -right-6 -top-6 w-20 h-20 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
-                ></div>
-                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
-                  <div class="p-2.5 bg-blue-50 rounded-xl">
-                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M13 5l7 7-7 7M5 5l7 7-7 7"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="text-sm font-bold text-slate-800">Continue Current Ascension</div>
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
-                      Resume from your current in-game farm with all events applied
-                    </p>
-                  </div>
-                  <button
-                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
-                    :disabled="loading || !playerId"
-                    @click="confirmUnsavedChanges(triggerQuickContinue)"
-                  >
-                    Continue
-                  </button>
-                </div>
-              </div>
-
-              <!-- Reconcile Plan -->
-              <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
-                <div
-                  class="absolute -right-6 -top-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
-                ></div>
-                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
-                  <div class="p-2.5 bg-emerald-50 rounded-xl">
-                    <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="text-sm font-bold text-slate-800">Reconcile Plan</div>
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
-                      Load a plan and compare against your current farm to track progress
-                    </p>
-                  </div>
-
-                  <!-- Incomplete Only Toggle -->
-                  <div class="h-6 flex items-center">
-                    <div
-                      v-if="actionsStore.isReconciling"
-                      class="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300"
-                    >
-                      <label class="relative inline-flex items-center cursor-pointer group/toggle">
-                        <input v-model="actionsStore.showIncompleteOnly" type="checkbox" class="sr-only peer" />
-                        <div
-                          class="w-7 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500 transition-colors"
-                        ></div>
-                        <span
-                          class="ml-2 text-[8px] font-black text-slate-400 uppercase tracking-widest group-hover/toggle:text-slate-600 transition-colors"
-                          >Incomplete Only</span
-                        >
-                      </label>
-                    </div>
-                  </div>
-                  <button
-                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
-                    :disabled="loading || !playerId"
-                    @click="triggerReconcile"
-                  >
-                    Reconcile
-                  </button>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
       </div>
@@ -200,77 +48,34 @@
           </svg>
         </button>
       </div>
+    </div>
 
-      <!-- Active Event Slide Toggle (Earnings Boost) - always visible -->
-      <div class="mt-4 flex flex-col items-center gap-2">
-        <div
-          class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
-        >
-          <div class="flex items-center gap-2 relative z-10">
-            <div class="flex flex-col gap-0.5 text-left">
-              <div class="flex items-center gap-2">
-                <div class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none"
-                  >Monday 2x Earnings Event</span
-                >
-              </div>
-              <span class="text-[11px] font-black text-orange-600 uppercase tracking-tighter">
-                {{ isEarningsBoostActive ? 'Active' : 'Inactive' }}
-              </span>
-            </div>
+    <!-- Migration Information Banner -->
+    <div class="max-w-6xl mx-auto px-4 mb-6 mt-2">
+      <div class="bg-indigo-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group">
+        <div class="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
+        <div class="flex flex-col md:flex-row items-center gap-6 relative">
+          <div class="bg-white/20 p-4 rounded-2xl backdrop-blur-md shadow-inner border border-white/20 flex-shrink-0">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+            </svg>
           </div>
-
-          <button
-            class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
-            :class="isEarningsBoostActive ? 'bg-orange-500' : 'bg-slate-200'"
-            @click="handleToggleEarningsEvent"
+          <div class="flex-1 text-center md:text-left">
+            <h2 class="text-xl font-black uppercase tracking-tighter mb-1">Notice: Page no longer maintained</h2>
+            <p class="text-indigo-100 text-sm md:text-base font-medium opacity-90 leading-relaxed">
+              This standalone instance of the Ascension Planner is no longer maintained. We recommend that you
+              <strong>export your plans or plan library</strong> and start using the version integrated into the main
+              Wasmegg page at
+              <a href="https://wasmegg-carpet.netlify.app/ascension-planner/" target="_blank" class="text-white underline underline-offset-4 decoration-indigo-400/50 hover:decoration-white transition-all font-bold whitespace-nowrap">wasmegg-carpet.netlify.app</a>.
+            </p>
+          </div>
+          <a
+            href="https://wasmegg-carpet.netlify.app/ascension-planner/"
+            target="_blank"
+            class="bg-white text-indigo-600 px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg hover:shadow-white/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex-shrink-0"
           >
-            <span
-              class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
-              :class="isEarningsBoostActive ? 'translate-x-[22px]' : 'translate-x-1'"
-            />
-          </button>
-        </div>
-      </div>
-
-      <div v-if="loading" class="text-center py-4 text-gray-600">Loading player data...</div>
-
-      <div v-if="error" class="text-center py-4 text-red-600">
-        {{ error }}
-      </div>
-
-      <!-- Action History and Available Actions side-by-side -->
-      <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Action History -->
-        <div class="section-premium overflow-visible">
-          <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
-            <h2 class="text-lg font-semibold text-gray-800">Action History</h2>
-            <button
-              class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-              @click="expandedSections.actionHistory = !expandedSections.actionHistory"
-            >
-              <ChevronIcon :expanded="expandedSections.actionHistory" />
-            </button>
-          </div>
-          <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-            <ActionHistory @show-details="showActionDetails" @undo="showUndoConfirmation" @clear-all="handleClearAll" />
-          </div>
-        </div>
-
-        <!-- Available Actions -->
-        <div class="section-premium overflow-visible">
-          <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
-            <h2 class="text-lg font-semibold text-gray-800">Available Actions</h2>
-            <button
-              class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-              @click="expandedSections.availableActions = !expandedSections.availableActions"
-            >
-              <ChevronIcon :expanded="expandedSections.availableActions" />
-            </button>
-          </div>
-          <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-            <AvailableActions @show-current-details="showCurrentDetails" />
-          </div>
+            Go to Main Page
+          </a>
         </div>
       </div>
     </div>
@@ -347,13 +152,6 @@
 
     <RecalculationOverlay />
 
-    <PlanFinalSummary
-      @show-details="showCurrentDetails"
-      @update:collapsed="isFooterCollapsed = $event"
-      @save-plan="saveCurrentPlan"
-      @save-plan-as="savePlanAs"
-    />
-    <FloatingStats @show-details="showCurrentDetails" />
   </div>
 </template>
 

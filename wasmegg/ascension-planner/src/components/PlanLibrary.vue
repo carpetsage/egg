@@ -49,6 +49,7 @@ watch(partitionHash, refreshPlans);
 watch(() => actionsStore.libraryUpdateTick, refreshPlans);
 
 async function loadPlan(plan: PlanData) {
+  return;
   // Check if plan is already open in another tab
   if (busyPlanIds.value.has(plan.id) && actionsStore.activePlanId !== plan.id) {
     openPlanName.value = plan.name;
@@ -439,16 +440,6 @@ const emit = defineEmits(['plan-loaded']);
             <span class="hidden sm:inline text-[10px] text-gray-400 whitespace-nowrap mr-1">
               Updated {{ new Date(plan.timestamp).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) }}
             </span>
-            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Load this plan'" @click="loadPlan(plan)">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
-                />
-              </svg>
-            </button>
             <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Export this plan (JSON)'" @click="exportPlan(plan)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
