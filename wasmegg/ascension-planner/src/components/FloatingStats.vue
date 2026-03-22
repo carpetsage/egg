@@ -176,7 +176,7 @@ const emit = defineEmits(['show-details']);
 const actionsStore = useActionsStore();
 const virtueStore = useVirtueStore();
 
-const isCollapsed = ref(false);
+const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
 // Get the effective snapshot (state at the end of the edited/current shift)
 const snapshot = computed(() => actionsStore.effectiveSnapshot);

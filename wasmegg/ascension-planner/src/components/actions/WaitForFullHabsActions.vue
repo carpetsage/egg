@@ -1,8 +1,5 @@
 <template>
   <div class="space-y-6">
-    <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-6 leading-relaxed">
-      Wait for your habitats to fill with chickens via internal hatcheries.
-    </p>
 
     <!-- Current State Info -->
     <div class="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 shadow-inner">
@@ -73,8 +70,7 @@
     </button>
 
     <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest leading-relaxed opacity-60">
-      Time is based on your current offline internal hatchery rate. This action will advance time and set your
-      population to maximum capacity.
+      Time is based on your current offline internal hatchery rate.
     </p>
   </div>
 </template>

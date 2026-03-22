@@ -196,10 +196,6 @@
       </p>
     </div>
 
-    <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest leading-relaxed opacity-60">
-      TE provides a 1.1× multiplier per egg to IHR and earnings. Time is based on your current effective lay rate at max
-      hab capacity.
-    </p>
   </div>
 </template>
 

@@ -399,6 +399,7 @@ export const useActionsStore = defineStore('actions', {
     async clearAll(resetCallback?: () => void, skipRecalculate = false) {
       this.activePlanId = null;
       this.isReconciling = false;
+      this.editingGroupId = null;
       this.reconcileFarmState = null;
       this.reconcileEggsDelivered = null;
       this.reconcileTeEarned = null;
@@ -632,15 +633,40 @@ export const useActionsStore = defineStore('actions', {
         return true;
       }
       const data = importPlanLogic(jsonString);
-      this.actions = data.actions;
+      
+      // NEW: Skip recalculation if the plan already contains calculated result data (endState).
+      // Since the user is in a long session, we trust the cached calculations in the library.
+      const isPreCalculated = data.actions && 
+                             data.actions.length > 0 && 
+                             data.actions.every((a: Action) => a.endState !== undefined);
+
+      if (isPreCalculated) {
+        skipRecalculate = true;
+        // Optimization: Ensure all imported endStates are marked as raw for Vue performance.
+        this.actions = data.actions.map((a: Action) => ({
+          ...a,
+          endState: markRaw(a.endState),
+        }));
+      } else {
+        this.actions = data.actions;
+      }
+
       if (preserveId && data.activePlanId) {
         this.activePlanId = data.activePlanId;
       }
-      this.lastSavedActionsJson = JSON.stringify(this.actions);
+      // Reset editing state when importing.
+      this.editingGroupId = null;
 
       // Clear expanded groups when importing. The user wants the initial shift
       // collapsed when loading from the library or reconciling.
       this.expandedGroupIds.clear();
+
+      // But we DO want the last shift (or the start action if no shifts) expanded
+      // so the user is "editing" it by default.
+      const lastGroupAction = [...this.actions].reverse().find(a => a.type === 'shift' || a.type === 'start_ascension');
+      if (lastGroupAction) {
+        this.expandedGroupIds.add(lastGroupAction.id);
+      }
 
       const baseState = createBaseEngineState(null);
       const initialSnapshot = computeSnapshot(baseState, getSimulationContext());

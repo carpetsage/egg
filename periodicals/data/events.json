@@ -25792,5 +25792,59 @@
     "startTimestamp": 1773936000,
     "type": "hab-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1774108800,
+    "id": "event-3-20",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1774022400,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1774108800,
+    "id": "ultra-3-20",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1774022400,
+    "type": "vehicle-sale",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1774195200,
+    "id": "event-3-21",
+    "message": "DOUBLE PRESTIGE!!",
+    "multiplier": 2,
+    "startTimestamp": 1774108800,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1774281600,
+    "id": "event-3-21-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1774108800,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1774281600,
+    "id": "event-3-22",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1774195200,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1774281600,
+    "id": "ultra-3-22",
+    "message": "2x GIFTS!",
+    "multiplier": 2,
+    "startTimestamp": 1774195200,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]

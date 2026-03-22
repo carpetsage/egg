@@ -272,7 +272,7 @@ const emit = defineEmits<{
   'save-plan-as': [];
 }>();
 
-const isCollapsed = ref(false);
+const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 const showDonateModal = ref(false);
 const showTeModal = ref(false);
 
@@ -353,7 +353,9 @@ const teStatsList = computed(() => {
   const virtueEggs: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
   for (const egg of virtueEggs) {
     const start = initialStateStore.initialTeEarned[egg] || 0;
-    const end = countTEThresholdsPassed(actionsStore.currentSnapshot.eggsDelivered?.[egg] || 0);
+    const thresholdsPassed = countTEThresholdsPassed(actionsStore.currentSnapshot.eggsDelivered?.[egg] || 0);
+    const claimed = actionsStore.currentSnapshot.teEarned?.[egg] || 0;
+    const end = Math.max(claimed, thresholdsPassed);
     
     stats.push({
       id: egg,

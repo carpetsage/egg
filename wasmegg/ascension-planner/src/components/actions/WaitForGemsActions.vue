@@ -93,11 +93,6 @@
         <span>Wait for Gems</span>
       </button>
     </div>
-
-    <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest leading-relaxed opacity-60">
-      Time is calculated based on your current online/offline earnings rate (whichever is configured in simulation)
-      integrated over time, accounting for population growth and shipping caps.
-    </p>
   </div>
 </template>
 
