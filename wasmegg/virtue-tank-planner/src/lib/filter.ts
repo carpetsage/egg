@@ -1,6 +1,6 @@
 import { useSearch } from 'lib';
-import { artifactTiers } from './artifacts';
-import { missions } from './missions';
+import { artifactTiers } from 'lib/loot';
+import { missions } from 'lib/loot';
 export { missions };
 
 export const artifacts = artifactTiers.filter((artifact => (artifact.name.indexOf("stone") == -1) && artifact.tier_number == 4)).map(artifact => ({

@@ -61,11 +61,8 @@
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { eggFromName, ei, iconURL, MissionType,getImageUrlFromId } from 'lib';
-import Rarity = ei.ArtifactSpec.Rarity;
-import { configWithCustomShipLevel } from '@/store';
-import { capitalize, formatToPrecision, rarityFgClass400, sum, ts } from '@/utils';
-import { missionDataNotEnough } from '@/lib';
+import { ei, iconURL, MissionType,getImageUrlFromId } from 'lib';
+import { formatToPrecision, rarityFgClass400, ts } from '@/utils';
 import { Ingredient, Tier } from 'lib/artifacts/data-json';
 
 export default defineComponent({

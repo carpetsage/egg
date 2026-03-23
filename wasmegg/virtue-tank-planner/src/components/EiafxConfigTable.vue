@@ -214,7 +214,7 @@ import {
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
 import Rarity = ei.ArtifactSpec.Rarity;
-import { artifacts, cmpArtifacts, missions } from '@/lib';
+import { artifacts, cmpArtifacts, missions } from 'lib/loot';
 import { SortDirection } from '@/types';
 
 import ArtifactName from '@/components/ArtifactName.vue';

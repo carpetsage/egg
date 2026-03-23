@@ -30,11 +30,12 @@ import {
   getImageUrlFromId as id2url,
   afxMatchesTarget,
   fuelTankSizes,
-  itemExpectedFullConsumption
+  itemExpectedFullConsumption,
+  MissionFuel
 } from 'lib';
 import { missionIds, missions, } from '@/lib/filter';
 
-import { ItemMissionLootStore, getMissionLootData, getTierLootData, missionDataNotEnough, } from '@/lib';
+import { ItemMissionLootStore, getMissionLootData, getTierLootData, missionDataNotEnough, } from 'lib/loot';
 import { config } from '@/store';
 import { sum } from '@/utils';
 import ConfigPrompt from '@/components/ConfigPrompt.vue';
@@ -72,7 +73,7 @@ export default defineComponent({
     );
     const afxId = computed(() => artifactProperties.value.afx_id);
 
-    const loot = computed(() => getTierLootData(artifactId.value));
+    const loot = computed(() => getTierLootData(artifactId.value, config.value));
 
     const recursiveIngredients = computed(() => {
 

@@ -6,7 +6,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/artifact-explorer/',
+  base: '/virtue-tank-planner/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

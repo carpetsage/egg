@@ -232,7 +232,7 @@ import {
   getMissionLevelLootAverageConsumptionValue,
   getMissionLootData,
   missionDataNotEnough,
-} from '@/lib';
+} from 'lib/loot';
 import { config, configWithCustomShipLevel } from '@/store';
 import { formatToPrecision, sum } from '@/utils';
 import BaseInfo from 'ui/components/BaseInfo.vue';

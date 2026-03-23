@@ -61,7 +61,7 @@ export default defineComponent({
     const { id, page } = toRefs(props);
     const copyLink = () => {
       // const baseUrl=window.location.origin;
-      copyTextToClipboard(`https://wasmegg-carpet.netlify.app/artifact-explorer/#/${page.value}/${id.value}`);
+      copyTextToClipboard(`https://wasmegg-carpet.netlify.app/virtue-tank-planner/#/${page.value}/${id.value}`);
     };
     return {
       copyLink,

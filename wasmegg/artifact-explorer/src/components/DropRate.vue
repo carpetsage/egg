@@ -64,11 +64,11 @@
 import { computed, defineComponent, PropType, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
-import { ei, iconURL, MissionType } from 'lib';
+import { ei, iconURL, MissionType, capitalize } from 'lib';
 import Rarity = ei.ArtifactSpec.Rarity;
 import { configWithCustomShipLevel } from '@/store';
-import { missionDataNotEnough } from '@/lib';
-import { capitalize, formatToPrecision, rarityFgClass400, sum, ts } from '@/utils';
+import { missionDataNotEnough } from 'lib/loot';
+import { formatToPrecision, rarityFgClass400, sum, ts } from '@/utils';
 
 export default defineComponent({
   components: {
