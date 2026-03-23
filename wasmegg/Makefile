@@ -16,7 +16,7 @@ fastbuild: $(fastbuild-targets)
 	netlify-headers-expander dist
 
 update-loot-data:
-	./artifact-explorer/update-loot-data.sh
+	./update-loot-data.sh
 
 clean: $(clean-targets)
 
