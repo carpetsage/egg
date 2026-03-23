@@ -115,3 +115,11 @@ export function calculateAndFormatDuration(target: number, rate: number): string
   }
   return formatDurationAuto(target / rate);
 }
+
+
+export function capitalize(s: string): string {
+  if (s === '') {
+    return '';
+  }
+  return s[0].toUpperCase() + s.slice(1).toLowerCase();
+}

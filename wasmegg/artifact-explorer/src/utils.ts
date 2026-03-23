@@ -42,13 +42,6 @@ export function durationBorderClass(durationType: DurationType) {
   }
 }
 
-export function capitalize(s: string): string {
-  if (s === '') {
-    return '';
-  }
-  return s[0].toUpperCase() + s.slice(1).toLowerCase();
-}
-
 export function sum(arr: number[]): number {
   return arr.reduce((s, x) => s + x);
 }

@@ -49,7 +49,7 @@ import { rarityFgClass500 } from '@/utils';
 
 import { iconURL } from 'lib';
 import { AfxTier } from 'lib/artifacts/data';
-import { ArtifactLike } from '@/lib';
+import { ArtifactLike } from 'lib/loot';
 
 export default defineComponent({
   props: {

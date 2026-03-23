@@ -241,7 +241,7 @@ import { computed, defineComponent, toRefs } from 'vue';
 
 import { ei, iconURL } from 'lib';
 import { AfxTier, allPossibleTiers, getArtifactTierPropsFromId as id2artifact } from 'lib/artifacts/data';
-import { cmpArtifactTiers } from '@/lib';
+import { cmpArtifactTiers } from 'lib/loot';
 import { rarityFgClass500 } from '@/utils';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import ArtifactName from '@/components/ArtifactName.vue';
