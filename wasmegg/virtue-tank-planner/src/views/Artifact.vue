@@ -111,7 +111,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, toRefs, ref, watch, } from 'vue';
+import { computed, defineComponent, toRefs, ref, } from 'vue';
 
 import { ei, iconURL } from 'lib';
 import { AfxTier, allPossibleTiers, getArtifactTierPropsFromId as id2artifact } from 'lib/artifacts/data';
