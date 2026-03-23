@@ -112,10 +112,36 @@ export const useActionsStore = defineStore('actions', {
       return (action: Action): 'completed' | 'pending' | 'na' => {
         if (!this.isReconciling) return 'na';
 
-        const auditedTypes = ['buy_research', 'buy_hab', 'buy_vehicle', 'buy_train_car', 'buy_silo', 'wait_for_te'];
+        const auditedTypes = [
+          'buy_research',
+          'buy_hab',
+          'buy_vehicle',
+          'buy_train_car',
+          'buy_silo',
+          'wait_for_te',
+          'wait_for_full_habs',
+          'shift',
+          'start_ascension',
+        ];
         if (!auditedTypes.includes(action.type)) return 'na';
 
         const farm = this.reconcileFarmState;
+
+        // Special case for Start: if we have farm data, we've started.
+        if (action.type === 'start_ascension') {
+          return farm ? 'completed' : 'pending';
+        }
+
+        // Shortcut: If the player's current egg is strictly AFTER this action's egg,
+        // then the action's goal must have been met (since they've progressed past it).
+        if (farm) {
+          const actionEggIndex = VIRTUE_EGGS.indexOf(action.endState.currentEgg);
+          const currentEggIndex = VIRTUE_EGGS.indexOf(VIRTUE_EGGS[farm.eggType - 50]);
+          
+          if (currentEggIndex > actionEggIndex) {
+            return 'completed';
+          }
+        }
 
         // Special case for Wait for TE: needs comparison against catch-up delivered eggs
         if (action.type === 'wait_for_te') {
@@ -133,6 +159,16 @@ export const useActionsStore = defineStore('actions', {
         }
 
         switch (action.type) {
+          case 'shift': {
+            const { toEgg } = action.payload;
+            const targetEggIndex = VIRTUE_EGGS.indexOf(toEgg);
+            const currentEggIndex = farm.eggType - 50;
+            return currentEggIndex >= targetEggIndex ? 'completed' : 'pending';
+          }
+          case 'wait_for_full_habs': {
+            const { habCapacity } = action.payload;
+            return farm.population >= habCapacity ? 'completed' : 'pending';
+          }
           case 'buy_research': {
             const { researchId, toLevel } = action.payload;
             const currentLevel = farm.commonResearches[researchId] || 0;

@@ -154,7 +154,7 @@ const summaryComponents: Record<VirtueEgg, any> = {
   resilience: ResilienceSummary,
   kindness: KindnessSummary,
 };
-
+``
 const props = defineProps<{
   headerAction: Action<'start_ascension'> | Action<'shift'>;
   actions: Action[];
