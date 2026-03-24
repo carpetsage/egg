@@ -192,11 +192,11 @@ const isExpanded = computed(() => {
 
 const scrollContainer = ref<HTMLElement | null>(null);
 
-// Scroll to bottom when actions change and we are expanded
+// Scroll to bottom when actions are added and we are expanded
 watch(
   () => props.actions.length,
-  async () => {
-    if (isExpanded.value) {
+  async (newLen, oldLen) => {
+    if (isExpanded.value && newLen > oldLen) {
       await nextTick();
       if (scrollContainer.value) {
         scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight;

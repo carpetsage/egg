@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { markRaw } from 'vue';
-import type {
+import {
   Action,
   CalculationsSnapshot,
   UndoValidation,
@@ -9,9 +9,13 @@ import type {
   ToggleEarningsBoostPayload,
   UpdateArtifactSetPayload,
   VehicleSlot,
+  VIRTUE_EGGS,
+  createEmptySnapshot,
+  createEmptyUndoValidation,
+  generateActionId,
 } from '@/types';
+import { evaluateAction } from '@/lib/actions/reconciliation';
 import { type HabId } from '@/lib/habs';
-import { createEmptySnapshot, createEmptyUndoValidation, generateActionId, VIRTUE_EGGS } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { useInitialStateStore } from '@/stores/initialState';
@@ -53,6 +57,7 @@ export const useActionsStore = defineStore('actions', {
       activePlanId: null,
       lastSavedActionsJson: '[]',
       libraryUpdateTick: 0,
+      manualOverrides: JSON.parse(localStorage.getItem('ascension_manual_overrides') || '{}') as Record<string, Record<string, boolean>>,
     };
   },
 
@@ -112,91 +117,21 @@ export const useActionsStore = defineStore('actions', {
       return (action: Action): 'completed' | 'pending' | 'na' => {
         if (!this.isReconciling) return 'na';
 
-        const auditedTypes = [
-          'buy_research',
-          'buy_hab',
-          'buy_vehicle',
-          'buy_train_car',
-          'buy_silo',
-          'wait_for_te',
-          'wait_for_full_habs',
-          'shift',
-          'start_ascension',
-        ];
-        if (!auditedTypes.includes(action.type)) return 'na';
-
-        const farm = this.reconcileFarmState;
-
-        // Special case for Start: if we have farm data, we've started.
-        if (action.type === 'start_ascension') {
-          return farm ? 'completed' : 'pending';
+        // Check manual overrides first
+        if (this.activePlanId && this.manualOverrides[this.activePlanId]?.[action.id]) {
+          return 'completed';
         }
 
-        // Shortcut: If the player's current egg is strictly AFTER this action's egg,
-        // then the action's goal must have been met (since they've progressed past it).
-        if (farm) {
-          const actionEggIndex = VIRTUE_EGGS.indexOf(action.endState.currentEgg);
-          const currentEggIndex = VIRTUE_EGGS.indexOf(VIRTUE_EGGS[farm.eggType - 50]);
-          
-          if (currentEggIndex > actionEggIndex) {
-            return 'completed';
-          }
-        }
+        const initialStateStore = useInitialStateStore();
+        const eventsStore = useEventsStore();
+        const vStore = useVirtueStore();
 
-        // Special case for Wait for TE: needs comparison against catch-up delivered eggs
-        if (action.type === 'wait_for_te') {
-          const { egg, targetTE } = action.payload;
-          const delivered = this.reconcileEggsDelivered ? this.reconcileEggsDelivered[egg] || 0 : 0;
-          const earned = this.reconcileTeEarned ? this.reconcileTeEarned[egg] || 0 : 0;
-          const theoretical = countTEThresholdsPassed(delivered);
-          const currentTE = Math.max(earned, theoretical);
-          return currentTE >= targetTE ? 'completed' : 'pending';
-        }
-
-        // Other audited actions require current farm state
-        if (!farm) {
-          return 'pending';
-        }
-
-        switch (action.type) {
-          case 'shift': {
-            const { toEgg } = action.payload;
-            const targetEggIndex = VIRTUE_EGGS.indexOf(toEgg);
-            const currentEggIndex = farm.eggType - 50;
-            return currentEggIndex >= targetEggIndex ? 'completed' : 'pending';
-          }
-          case 'wait_for_full_habs': {
-            const { habCapacity } = action.payload;
-            return farm.population >= habCapacity ? 'completed' : 'pending';
-          }
-          case 'buy_research': {
-            const { researchId, toLevel } = action.payload;
-            const currentLevel = farm.commonResearches[researchId] || 0;
-            return currentLevel >= toLevel ? 'completed' : 'pending';
-          }
-          case 'buy_hab': {
-            const { slotIndex, habId } = action.payload;
-            const currentHabId = farm.habs[slotIndex] || 0;
-            return currentHabId >= habId ? 'completed' : 'pending';
-          }
-          case 'buy_vehicle': {
-            const { slotIndex, vehicleId } = action.payload;
-            const currentVehicleId = farm.vehicles[slotIndex]?.vehicleId || 0;
-            return currentVehicleId >= vehicleId ? 'completed' : 'pending';
-          }
-          case 'buy_train_car': {
-            const { slotIndex, toLength } = action.payload;
-            const vehicle = farm.vehicles[slotIndex];
-            if (vehicle?.vehicleId === 11 && vehicle.trainLength >= toLength) return 'completed';
-            return 'pending';
-          }
-          case 'buy_silo': {
-            const { toCount } = action.payload;
-            return farm.numSilos >= toCount ? 'completed' : 'pending';
-          }
-        }
-
-        return 'na';
+        return evaluateAction(action, {
+          farm: this.reconcileFarmState,
+          initialState: initialStateStore.$state,
+          events: eventsStore.allEvents,
+          planStartTime: vStore.planStartTime.getTime() / 1000,
+        });
       };
     },
 
@@ -736,6 +671,19 @@ export const useActionsStore = defineStore('actions', {
     async loadPlanFromLibrary(plan: import('@/lib/storage/db').PlanData) {
       this.activePlanId = plan.id;
       await this.importPlan(JSON.stringify(plan.data));
+    },
+
+    toggleManualOverride(actionId: string) {
+      if (!this.activePlanId) return;
+      const currentOverrides = this.manualOverrides[this.activePlanId] || {};
+      this.manualOverrides = {
+        ...this.manualOverrides,
+        [this.activePlanId]: {
+          ...currentOverrides,
+          [actionId]: !currentOverrides[actionId],
+        },
+      };
+      localStorage.setItem('ascension_manual_overrides', JSON.stringify(this.manualOverrides));
     },
   },
 });

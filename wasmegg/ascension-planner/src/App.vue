@@ -150,24 +150,6 @@
                     </p>
                   </div>
 
-                  <!-- Incomplete Only Toggle -->
-                  <div class="h-6 flex items-center">
-                    <div
-                      v-if="actionsStore.isReconciling"
-                      class="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300"
-                    >
-                      <label class="relative inline-flex items-center cursor-pointer group/toggle">
-                        <input v-model="actionsStore.showIncompleteOnly" type="checkbox" class="sr-only peer" />
-                        <div
-                          class="w-7 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500 transition-colors"
-                        ></div>
-                        <span
-                          class="ml-2 text-[8px] font-black text-slate-400 uppercase tracking-widest group-hover/toggle:text-slate-600 transition-colors"
-                          >Incomplete Only</span
-                        >
-                      </label>
-                    </div>
-                  </div>
                   <button
                     class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
                     :disabled="loading || !playerId"
@@ -199,6 +181,62 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
           </svg>
         </button>
+      </div>
+
+      <!-- Reconciliation Status Banner -->
+      <div v-if="actionsStore.isReconciling" class="mt-4 flex flex-col items-center gap-2">
+        <div
+          class="w-full max-w-sm bg-gradient-to-r from-emerald-50/80 via-white to-green-50/80 rounded-2xl p-4 border border-emerald-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
+        >
+          <div class="flex items-center gap-3 relative z-10">
+            <!-- Icon/Status -->
+            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            
+            <div class="flex flex-col gap-0 text-left">
+              <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Reconciliation Mode</span>
+              <span class="text-[10px] font-bold text-emerald-600 tracking-tight">
+                Backup from {{ lastBackupFormatted }} <span class="text-emerald-400/80 font-medium">({{ lastBackupAge }})</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 relative z-10">
+            <!-- Incomplete Only Toggle -->
+            <div class="flex items-center gap-2">
+              <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Incomplete Only</span>
+              <button
+                class="relative inline-flex h-4 w-8 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+                :class="actionsStore.showIncompleteOnly ? 'bg-emerald-500' : 'bg-slate-200'"
+                @click="actionsStore.showIncompleteOnly = !actionsStore.showIncompleteOnly"
+              >
+                <span
+                  class="inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
+                  :class="actionsStore.showIncompleteOnly ? 'translate-x-[13px]' : 'translate-x-1'"
+                />
+              </button>
+            </div>
+
+            <!-- Refresh Button -->
+            <button
+              class="h-8 w-8 rounded-lg bg-white border border-emerald-100 shadow-sm flex items-center justify-center text-emerald-600 hover:bg-emerald-50 transition-colors"
+              title="Reload backup"
+              :disabled="loading"
+              @click="handleRefreshReconcile"
+            >
+              <svg 
+                class="w-4 h-4" 
+                :class="{ 'animate-spin': loading }"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Active Event Slide Toggle (Earnings Boost) - always visible -->
@@ -418,18 +456,33 @@ const { partitionHash, saveActiveDraft, initPersistence, broadcastPresence } = u
 const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
 
 const lastBackupFormatted = computed(() => {
-
   const approxTime = initialStateStore.rawBackup?.approxTime;
   if (approxTime == null) return 'Unknown';
   const date = new Date(approxTime * 1000);
   
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleTimeString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
   });
+});
+
+const lastBackupAge = computed(() => {
+  const approxTime = initialStateStore.rawBackup?.approxTime;
+  if (approxTime == null) return '';
+  const now = Date.now() / 1000;
+  const diff = Math.max(0, now - approxTime);
+  
+  if (diff < 60) return 'Just now';
+  
+  const minutes = Math.floor(diff / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h${remainingMinutes}m ago`;
 });
 
 const pageTitle = computed(() => {
@@ -726,6 +779,41 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
   } catch (err) {
     console.error(err);
     alert('Failed to reconcile plan.');
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleRefreshReconcile() {
+  if (!playerId.value || loading.value) return;
+  
+  loading.value = true;
+  error.value = '';
+  try {
+    const data = await requestFirstContact(playerId.value);
+    if (!data.backup) throw new Error('Could not fetch player backup');
+    const backup = data.backup;
+
+    // Save backup to DB
+    const pHash = await hashID(playerId.value);
+    await saveMetadata(pHash, 'rawBackup', backup);
+    
+    // Load into state store
+    initialStateStore.loadFromBackup(playerId.value, backup, 'reconcile');
+    
+    // Update reconciliation targets in actionsStore
+    if (initialStateStore.currentFarmState) {
+      actionsStore.reconcileFarmState = JSON.parse(JSON.stringify(initialStateStore.currentFarmState));
+    } else {
+      actionsStore.reconcileFarmState = null;
+    }
+    actionsStore.reconcileEggsDelivered = JSON.parse(JSON.stringify(initialStateStore.initialEggsDelivered));
+    actionsStore.reconcileTeEarned = JSON.parse(JSON.stringify(initialStateStore.initialTeEarned));
+
+    // No full recalculateAll() needed here, as reconciliation statuses are reactive getters.
+  } catch (err) {
+    console.error(err);
+    error.value = 'Failed to refresh backup.';
   } finally {
     loading.value = false;
   }
