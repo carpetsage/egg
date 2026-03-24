@@ -6,12 +6,12 @@
 
       <div class="space-y-6">
         <!-- Ascension Start Time -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 md:flex-wrap">
           <div>
             <div class="text-sm font-bold text-slate-700">Ascension Start</div>
             <div class="hidden md:block text-[10px] uppercase font-black text-slate-400 tracking-wider">When this journey begins</div>
           </div>
-          <div class="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto mt-1 md:mt-0">
+          <div class="flex flex-col md:flex-row md:items-center md:flex-wrap md:justify-end gap-2 w-full md:w-auto mt-1 md:mt-0">
             <input
               type="date"
               v-model="localAscensionDate"

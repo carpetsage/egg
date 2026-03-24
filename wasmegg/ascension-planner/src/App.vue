@@ -218,7 +218,7 @@
                   :class="actionsStore.showIncompleteOnly ? 'translate-x-[13px]' : 'translate-x-1'"
                 />
               </button>
-            </div>
+            </div> 
 
             <!-- Refresh Button -->
             <button
