@@ -172,15 +172,36 @@
     </div>
   </div>
 
+  <div class="max-w-4xl mx-auto mt-4 px-4 lg:px-0">
+    <calendar-navigation
+      :month="viewDate.month()"
+      :year="viewDate.year()"
+      :min-year="minYear"
+      :max-year="maxYear"
+      :can-go-prev="canGoPrev"
+      :can-go-next="canGoNext"
+      :view-count="viewCount"
+      :newest-first="newestFirst"
+      :show-nav="viewCount !== 0"
+      @prev="goToPrevMonth"
+      @next="goToNextMonth"
+      @today="goToToday"
+      @set-month="setMonth"
+      @set-year="setYear"
+      @set-view-count="setViewCount"
+      @toggle-order="toggleOrder"
+    />
+  </div>
+
   <div class="overflow-x-auto pb-6 mt-4">
     <div
       class="Calendar grid content-evenly gap-6 mx-auto"
       :class="[forceFullWidth ? 'Calendar--full-width' : null, forceSingleColumn ? 'Calendar--single-column' : null]"
     >
-      <template v-for="{ month, date2events } in months" :key="month.valueOf()">
+      <template v-for="vm in visibleMonths" :key="vm.month.valueOf()">
         <calendar-month
-          :month="month"
-          :date2events="date2events"
+          :month="vm.month"
+          :date2events="vm.date2events"
           :event-types-on="eventTypesOn"
           :force-full-width="forceFullWidth"
           :show-ultra-events="showUltraEvents"
@@ -195,10 +216,11 @@
 import TheNavBar from 'ui/components/NavBar.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import CalendarMonth from '@/components/CalendarMonth.vue';
+import CalendarNavigation from '@/components/CalendarNavigation.vue';
 import EventBadge from '@/components/EventBadge.vue';
 
 import { computed, defineComponent, ref, watch } from 'vue';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
 import { getLocalStorage, setLocalStorage } from 'lib';
@@ -212,6 +234,8 @@ const SHOW_NORMAL_EVENTS_LOCALSTORAGE_KEY = 'showNormalEvents';
 const USE_UTC_DATES_LOCALSTORAGE_KEY = 'useUtcDates';
 const FORCE_FULL_WIDTH_LOCALSTORAGE_KEY = 'forceFullWidth';
 const FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY = 'forceSingleColumn';
+const VIEW_COUNT_LOCALSTORAGE_KEY = 'viewCount';
+const NEWEST_FIRST_LOCALSTORAGE_KEY = 'newestFirst';
 
 const eventTypeOnLocalStorageKey = (id: EventTypeId) => `show-${id}`;
 const getEventTypesOn = (): EventTypeSwitches => {
@@ -246,6 +270,7 @@ export default defineComponent({
     TheNavBar,
     BaseInfo,
     CalendarMonth,
+    CalendarNavigation,
     EventBadge,
   },
   setup() {
@@ -276,37 +301,117 @@ export default defineComponent({
       }
     };
 
-    const months = computed(() => {
-      const months = [];
-      let currentMonth: Dayjs | undefined;
-      let date2events = new Map<number, GameEvent[]>();
+    // Build a lookup map of events by month key (YYYY-MM)
+    const eventsByMonth = computed(() => {
+      const map = new Map<string, Map<number, GameEvent[]>>();
       for (const event of events) {
         const startTime = useUtcDates.value ? event.startTime.utc() : event.startTime;
-        const month = startTime.startOf('month');
+        const monthKey = startTime.format('YYYY-MM');
         const date = startTime.date();
-        if (currentMonth === undefined || !month.isSame(currentMonth)) {
-          if (currentMonth !== undefined) {
-            months.push({
-              month: currentMonth,
-              date2events,
-            });
-          }
-          currentMonth = month;
-          date2events = new Map();
+        if (!map.has(monthKey)) {
+          map.set(monthKey, new Map());
         }
+        const date2events = map.get(monthKey)!;
         if (date2events.has(date)) {
           date2events.get(date)!.push(event);
         } else {
           date2events.set(date, [event]);
         }
       }
-      if (currentMonth != undefined) {
-        months.push({
-          month: currentMonth,
-          date2events,
+      return map;
+    });
+
+    // Find the range of months with events
+    const firstEventMonth = computed(() => {
+      if (events.length === 0) return dayjs();
+      const e = events[0];
+      return (useUtcDates.value ? e.startTime.utc() : e.startTime).startOf('month');
+    });
+    const lastEventMonth = computed(() => {
+      if (events.length === 0) return dayjs();
+      const e = events[events.length - 1];
+      return (useUtcDates.value ? e.startTime.utc() : e.startTime).startOf('month');
+    });
+
+    const minYear = computed(() => firstEventMonth.value.year());
+    const maxYear = computed(() => lastEventMonth.value.year());
+
+    // Current view date (start of month)
+    const viewDate = ref(dayjs().startOf('month'));
+
+    const canGoPrev = computed(() => viewDate.value.isAfter(firstEventMonth.value));
+    const canGoNext = computed(() => viewDate.value.isBefore(lastEventMonth.value));
+
+    const goToPrevMonth = () => {
+      if (canGoPrev.value) {
+        const step = viewCount.value >= 3 ? viewCount.value : 1;
+        viewDate.value = viewDate.value.subtract(step, 'month');
+      }
+    };
+    const goToNextMonth = () => {
+      if (canGoNext.value) {
+        const step = viewCount.value >= 3 ? viewCount.value : 1;
+        viewDate.value = viewDate.value.add(step, 'month');
+      }
+    };
+    const goToToday = () => {
+      viewDate.value = dayjs().startOf('month');
+    };
+    const setMonth = (m: number) => {
+      viewDate.value = viewDate.value.month(m);
+    };
+    const setYear = (y: number) => {
+      viewDate.value = viewDate.value.year(y);
+    };
+
+    const storedViewCount = parseInt(getLocalStorage(VIEW_COUNT_LOCALSTORAGE_KEY) ?? '0', 10);
+    const viewCount = ref([0, 1, 3, 6, 12].includes(storedViewCount) ? storedViewCount : 0);
+    const setViewCount = (count: number) => {
+      viewCount.value = count;
+      setLocalStorage(VIEW_COUNT_LOCALSTORAGE_KEY, count);
+    };
+
+    const newestFirst = ref(getLocalStorage(NEWEST_FIRST_LOCALSTORAGE_KEY) !== 'false');
+    const toggleOrder = () => {
+      newestFirst.value = !newestFirst.value;
+      setLocalStorage(NEWEST_FIRST_LOCALSTORAGE_KEY, newestFirst.value);
+    };
+
+    const allMonths = computed(() => {
+      const result = [];
+      const first = firstEventMonth.value;
+      const last = lastEventMonth.value;
+      for (let m = first; !m.isAfter(last); m = m.add(1, 'month')) {
+        const key = m.format('YYYY-MM');
+        result.push({
+          month: m,
+          date2events: eventsByMonth.value.get(key) ?? new Map(),
         });
       }
-      return months.reverse();
+      return result;
+    });
+
+    const visibleMonths = computed(() => {
+      if (viewCount.value === 0) {
+        const result = [...allMonths.value];
+        if (newestFirst.value) result.reverse();
+        return result;
+      }
+      const result = [];
+      const current = useUtcDates.value ? viewDate.value.utc() : viewDate.value;
+      const offset = viewCount.value - 1;
+      for (let i = 0; i < viewCount.value; i++) {
+        const month = current.subtract(offset - i, 'month');
+        const key = month.format('YYYY-MM');
+        result.push({
+          month,
+          date2events: eventsByMonth.value.get(key) ?? new Map(),
+        });
+      }
+      if (newestFirst.value) {
+        result.reverse();
+      }
+      return result;
     });
 
     return {
@@ -320,7 +425,21 @@ export default defineComponent({
       persistEventTypeOn,
       turnOnAllEventTypes,
       turnOffAllEventTypes,
-      months,
+      viewDate,
+      viewCount,
+      newestFirst,
+      toggleOrder,
+      visibleMonths,
+      minYear,
+      maxYear,
+      canGoPrev,
+      canGoNext,
+      goToPrevMonth,
+      goToNextMonth,
+      goToToday,
+      setMonth,
+      setYear,
+      setViewCount,
       capitalize: (s: string): string => s.charAt(0).toUpperCase() + s.slice(1),
     };
   },
@@ -328,9 +447,11 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.Calendar {
+  grid-template-columns: 1fr;
+}
+
 .Calendar.Calendar--full-width {
-  /* 744px * 3 + 24px * 2 */
-  max-width: 2280px;
   grid-template-columns: repeat(auto-fit, minmax(744px, 1fr));
 }
 
@@ -341,8 +462,7 @@ export default defineComponent({
 
 @media (min-width: 768px) {
   .Calendar {
-    max-width: 2280px;
-    grid-template-columns: repeat(auto-fit, minmax(744px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(744px, 100%), 1fr));
   }
 }
 </style>
