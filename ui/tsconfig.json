@@ -3,6 +3,7 @@
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "bundler",
+    "isolatedModules": true,
     "strict": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
@@ -11,6 +12,21 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "lib": ["esnext", "dom"],
-    "types": ["vite/client"]
-  }
+    "skipLibCheck": true,
+    "types": [],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "ui/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts",
+    "**/*.tsx",
+    "**/*.vue"
+  ]
 }

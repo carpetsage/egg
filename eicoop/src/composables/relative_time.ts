@@ -37,7 +37,7 @@ export function useAutoRefreshedRelativeTime(
 
   let refreshIntervalId: number;
   onMounted(() => {
-    refreshIntervalId = setInterval(refresh, opts?.refreshIntervalMs || 30000);
+    refreshIntervalId = window.setInterval(refresh, opts?.refreshIntervalMs || 30000);
     window.addEventListener('pageshow', refresh);
     window.addEventListener('visibilitychange', refresh);
   });

@@ -24,11 +24,7 @@
       </div>
     </div>
 
-    <div
-      v-show="decodedPayload !== null"
-      class="flex flex-col flex-1 relative"
-      :style="{ minHeight: '24rem' }"
-    >
+    <div v-show="decodedPayload !== null" class="flex flex-col flex-1 relative" :style="{ minHeight: '24rem' }">
       <div ref="editorRef" class="absolute h-full w-full border border-gray-300 rounded-md"></div>
       <copy-button
         class="absolute top-1 left-1 z-50"
@@ -37,10 +33,7 @@
       />
     </div>
 
-    <div
-      v-show="decodedPayload !== null"
-      class="text-sm text-gray-700 flex flex-row flex-wrap items-center"
-    >
+    <div v-show="decodedPayload !== null" class="text-sm text-gray-700 flex flex-row flex-wrap items-center">
       <label for="ei-raw-value" class="mr-2">Format EI value:</label>
       <div class="flex flex-row flex-1 min-w-full sm:min-w-max items-center">
         <input
@@ -57,17 +50,7 @@
 </template>
 
 <script lang="ts">
-import {
-  computed,
-  defineComponent,
-  onBeforeUnmount,
-  onMounted,
-  PropType,
-  Ref,
-  ref,
-  toRefs,
-  watch,
-} from 'vue';
+import { computed, defineComponent, onBeforeUnmount, onMounted, PropType, Ref, ref, toRefs, watch } from 'vue';
 import { Ace, config, edit } from 'ace-builds';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/ext-searchbox';
@@ -102,13 +85,13 @@ export default defineComponent({
     eiafxdataFormat: {
       type: Boolean,
       default: false,
-    }
+    },
   },
 
   setup(props) {
     const { messageName, authenticated, encodedPayload, eiafxdataFormat } = toRefs(props);
     const eiValue = ref('');
-    $protobuf.util.toJSONOptions = { enums: String }
+    $protobuf.util.toJSONOptions = { enums: String };
 
     const decodeResult = computed(() => {
       if (!messageName.value || !encodedPayload.value) {
@@ -187,16 +170,20 @@ function decode(
   messageName: MessageName,
   encoded: string,
   authenticated: boolean,
-  eiafxdata?: boolean,
+  eiafxdata?: boolean
 ): { payload?: Record<string, unknown>; code?: string; error?: string } {
   try {
     const payload = decodeMessage(ei[messageName], encoded, authenticated, { toJSON: false, stringEnums: true });
     // Round decimals to 2 places
-    const rounded = JSON.parse(JSON.stringify(payload, (_,val) => { return typeof val === 'number' ? Number(val.toFixed(6)) : val }))
+    const rounded = JSON.parse(
+      JSON.stringify(payload, (_, val) => {
+        return typeof val === 'number' ? Number(val.toFixed(6)) : val;
+      })
+    );
     if (eiafxdata) {
-     return {
-      payload: JSON.parse(JSON.stringify(updateData(rounded)))
-     }
+      return {
+        payload: JSON.parse(JSON.stringify(updateData(rounded))),
+      };
     }
     return {
       payload: rounded,

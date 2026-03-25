@@ -1,4 +1,3 @@
-import path from 'path';
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
@@ -6,10 +5,7 @@ import vue from '@vitejs/plugin-vue';
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      ui: path.resolve(__dirname, '../../ui'),
-    },
+    tsconfigPaths: true,
   },
   plugins: [vue(), ViteImageOptimizer()],
   build: {
@@ -17,5 +13,9 @@ export default defineConfig({
   },
   server: {
     host: true,
+    forwardConsole: {
+      unhandledErrors: true,
+      logLevels: ['warn', 'error'],
+    },
   },
 });

@@ -177,6 +177,9 @@ import MissionStarLevels from '@/components/MissionStarLevels.vue';
 import Type = ei.ArtifactSpec.Type;
 import { numberBadgeURL } from '@/badges';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 
 export default defineComponent({
   components: {

@@ -332,7 +332,7 @@ export default defineComponent({
 
     const { artifactSet: cteArtiSet, assemblyStatuses: cteAssemblyStatuses } = maxClothedTEArtifacts;
 
-    refreshIntervalId = setInterval(() => {
+    refreshIntervalId = window.setInterval(() => {
       currentTimestamp.value = Date.now();
       lastRefreshedRelative.value = lastRefreshed.fromNow();
     }, 200);
