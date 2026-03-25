@@ -365,7 +365,7 @@ export default defineComponent({
     };
 
     const storedViewCount = parseInt(getLocalStorage(VIEW_COUNT_LOCALSTORAGE_KEY) ?? '0', 10);
-    const viewCount = ref([0, 1, 2, 3, 12].includes(storedViewCount) ? storedViewCount : 0);
+    const viewCount = ref([0, 1, 3, 6, 12].includes(storedViewCount) ? storedViewCount : 0);
     const setViewCount = (count: number) => {
       viewCount.value = count;
       setLocalStorage(VIEW_COUNT_LOCALSTORAGE_KEY, count);

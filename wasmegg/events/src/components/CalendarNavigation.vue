@@ -132,8 +132,8 @@ export default defineComponent({
     });
     const viewOptions = [
       { value: 1, label: '1M' },
-      { value: 2, label: '2M' },
       { value: 3, label: '3M' },
+      { value: 6, label: '6M' },
       { value: 12, label: '1Y' },
       { value: 0, label: 'All' },
     ];
