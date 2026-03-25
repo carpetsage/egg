@@ -1,17 +1,40 @@
 <template>
   <div class="bg-white dark:bg-gray-800 shadow overflow-hidden ultrawide:rounded-lg">
-    <div class="px-4 sm:px-6 py-3 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-sm font-medium">
-      Access personal dashboard
-      <sup
-        v-if="onboarding"
-        class="inline-flex items-center pl-0.5 text-green-500 animate-bounce"
-        :style="{ fontSize: '0.625rem', lineHeight: '0.75rem' }"
+    <div
+      class="px-4 sm:px-6 py-3 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 text-sm font-medium flex items-center justify-between"
+    >
+      <span>
+        Access personal dashboard
+        <sup
+          v-if="onboarding"
+          class="inline-flex items-center pl-0.5 text-green-500 animate-bounce"
+          :style="{ fontSize: '0.625rem', lineHeight: '0.75rem' }"
+        >
+          NEW
+        </sup>
+      </span>
+      <button
+        type="button"
+        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+        :aria-label="collapsed ? 'Expand' : 'Collapse'"
+        @click="toggleCollapse"
       >
-        NEW
-      </sup>
+        <svg
+          class="w-4 h-4 transition-transform"
+          :class="{ 'rotate-180': !collapsed }"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
     </div>
-    <div class="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3">
-      <p class="text-xs text-gray-900 dark:text-gray-100 mb-2">
+    <div v-show="!collapsed" class="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3">
+      <p v-if="!isDashboard" class="text-xs text-gray-900 dark:text-gray-100 mb-2">
         Enter your ID to access a personal dashboard where the status of all your contracts, including solos and
         not-yet-joined-coops, are shown in one place. Bookmark your dashboard page to check on all your contracts at any
         time.
@@ -50,18 +73,16 @@
             />
           </svg>
         </button>
+        <span
+          v-tippy="{
+            content: `The ID asked for here is the unique ID used by Egg, Inc.\'s server to identify your account. You can find it in <span class='text-blue-300'>game screen -> nine dots menu -> Settings -> Privacy & Data, at the very bottom</span>. It should look like EI1234567890123456. Your old game services ID prior to the Artifact Update does not work here. Also note that the ID is case-sensitive.`,
+            allowHTML: true,
+          }"
+          class="flex items-center pl-2"
+        >
+          <base-info class="w-5 h-5" />
+        </span>
       </form>
-
-      <span
-        v-tippy="{
-          content: `The ID asked for here is the unique ID used by Egg, Inc.\'s server to identify your account. You can find it in <span class='text-blue-300'>game screen -> nine dots menu -> Settings -> Privacy & Data, at the very bottom</span>. It should look like EI1234567890123456. Your old game services ID prior to the Artifact Update does not work here. Also note that the ID is case-sensitive.`,
-          allowHTML: true,
-        }"
-        class="mt-2 flex items-center space-x-1 w-max"
-      >
-        <base-info />
-        <span class="text-xs text-gray-500 dark:text-gray-400">Where do I find my ID?</span>
-      </span>
 
       <div v-if="eids.size > 1" class="mt-3">
         <div class="text-xs text-gray-900 dark:text-gray-100 mb-1">Recent IDs:</div>
@@ -139,6 +160,11 @@ export default defineComponent({
     const eids = eidsStore.value.eids;
     const collapsed = ref(getLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY) === 'true');
 
+    const isDashboard = computed(() => {
+      const name = router.currentRoute.value.name;
+      return name === 'dashboard' || name === 'dashboard-legacy';
+    });
+
     const submittable = computed(() => {
       return PlayerIdSchema.safeParse(userId.value.trim()).success;
     });
@@ -161,6 +187,7 @@ export default defineComponent({
 
     return {
       onboarding,
+      isDashboard,
       userId,
       submittable,
       submit,
