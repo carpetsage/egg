@@ -312,6 +312,8 @@ export function useResearchViews() {
       };
 
       const processed = new Set<string>();
+      // Track tiers that were unlocked but had no items in the pool to receive the divider
+      const pendingDividerTiers = new Set<number>();
 
       const processItem = (item: UnpurchasedResearch) => {
         const r = item.research;
@@ -322,10 +324,18 @@ export function useResearchViews() {
 
         if (actuallyUnlocked) {
           processed.add(key);
-          let highestUnlockedBefore =
+          const highestUnlockedBefore =
             Array.from({ length: 13 }, (_, i) => i + 1)
               .reverse()
               .find(t => isTierUnlocked(currentSimState.researchLevels, t)) || 1;
+
+          // If this item's tier has a pending divider (unlocked earlier with no pool items),
+          // apply the divider to this item
+          if (pendingDividerTiers.has(r.tier)) {
+            item.showDivider = true;
+            item.unlockTier = r.tier;
+            pendingDividerTiers.delete(r.tier);
+          }
 
           const { timeToBuy, secondsToBuy } = formatTimeToBuy(item.price, currentSimSnapshot);
           totalSeconds += secondsToBuy === Infinity ? 0 : secondsToBuy;
@@ -366,17 +376,24 @@ export function useResearchViews() {
               .reverse()
               .find(t => isTierUnlocked(currentSimState.researchLevels, t)) || 1;
 
-          let highestAfter = getMaxUnlocked();
+          const highestAfter = getMaxUnlocked();
 
           if (highestAfter > highestUnlockedBefore) {
+            // Record all newly-unlocked tiers as needing dividers
+            for (let t = highestUnlockedBefore + 1; t <= highestAfter; t++) {
+              if (isTierUnlocked(currentSimState.researchLevels, t)) {
+                pendingDividerTiers.add(t);
+              }
+            }
+
             for (let i = 0; i < pool.length; i++) {
               const poolTier = pool[i].research.tier;
               if (isTierUnlocked(currentSimState.researchLevels, poolTier)) {
                 const stashed = pool.splice(i, 1)[0];
-                if (poolTier > highestUnlockedBefore) {
+                if (pendingDividerTiers.has(poolTier)) {
                   stashed.showDivider = true;
                   stashed.unlockTier = poolTier;
-                  highestUnlockedBefore = poolTier;
+                  pendingDividerTiers.delete(poolTier);
                 }
                 processItem(stashed);
                 i = -1;
