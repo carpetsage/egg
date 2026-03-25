@@ -25873,5 +25873,23 @@
     "startTimestamp": 1774368000,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1774540800,
+    "id": "event-3-25",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1774454400,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1774540800,
+    "id": "event-3-25-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1774454400,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
