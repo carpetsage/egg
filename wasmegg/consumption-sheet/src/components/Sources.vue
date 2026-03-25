@@ -1,10 +1,6 @@
 <template>
   <div class="flex flex-wrap items-center text-xs text-gray-500 leading-9 tabular-nums">
-    <span
-      v-for="source in sources"
-      :key="source.id"
-      class="inline-flex items-center mr-1.5 whitespace-nowrap"
-    >
+    <span v-for="source in sources" :key="source.id" class="inline-flex items-center mr-1.5 whitespace-nowrap">
       <span class="inline-block h-8 w-8 relative mr-0.5">
         <a :href="`#${source.id}`" class="h-8 w-8">
           <img
@@ -28,7 +24,7 @@ import { defineComponent, PropType } from 'vue';
 
 import { ei, iconURL } from 'lib';
 import { formatFloat } from '@/utils';
-import { Source } from '@/data.json';
+import type { Source } from '@/data-types';
 
 import Rarity = ei.ArtifactSpec.Rarity;
 

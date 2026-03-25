@@ -1,5 +1,3 @@
-import path from 'path';
-
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
@@ -7,10 +5,7 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
   base: '/eggs-laid/',
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      ui: path.resolve(__dirname, '../../ui'),
-    },
+    tsconfigPaths: true,
   },
   plugins: [vue()],
   build: {
@@ -18,5 +13,9 @@ export default defineConfig({
   },
   server: {
     host: true,
+    forwardConsole: {
+      unhandledErrors: true,
+      logLevels: ['warn', 'error'],
+    },
   },
 });

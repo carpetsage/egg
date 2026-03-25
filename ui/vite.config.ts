@@ -1,11 +1,16 @@
+import path from 'path';
+
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/consumption-sheet/',
+  base: '/@@ID@@/',
   resolve: {
-    tsconfigPaths: true,
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      ui: path.resolve(__dirname, '../../ui'),
+    },
   },
   plugins: [vue()],
   build: {
@@ -13,9 +18,5 @@ export default defineConfig({
   },
   server: {
     host: true,
-    forwardConsole: {
-      unhandledErrors: true,
-      logLevels: ['warn', 'error'],
-    },
   },
 });

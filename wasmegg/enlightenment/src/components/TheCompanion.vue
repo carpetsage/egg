@@ -474,7 +474,7 @@ export default defineComponent({
     const existingTrophyLevel = Math.min(backup.game!.eggMedalLevel![18], 4);
     const existingTrophyLevelUncapped = backup.game!.eggMedalLevel![18];
 
-    refreshIntervalId = setInterval(() => {
+    refreshIntervalId = window.setInterval(() => {
       currentTimestamp.value = Date.now();
       lastRefreshedRelative.value = lastRefreshed.fromNow();
     }, 200);

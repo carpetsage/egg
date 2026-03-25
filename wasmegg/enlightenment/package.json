@@ -14,27 +14,27 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^1.0.6",
-    "@vue/runtime-core": "^3.5.13",
-    "dayjs": "^1.11.13",
-    "js-sha256": "^0.11.0",
+    "@vue/runtime-core": "^3.5.30",
+    "dayjs": "^1.11.20",
+    "js-sha256": "^0.11.1",
     "lib": "workspace:^",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
-    "vue": "^3.5.13",
-    "vue-tippy": "^6.6.0"
+    "vue": "^3.5.30",
+    "vue-tippy": "^6.7.1"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
-    "@types/uuid": "^10.0.0",
-    "@vitejs/plugin-vue": "^5.2.1",
-    "@vue/compiler-sfc": "^3.5.13",
-    "autoprefixer": "^10.4.20",
-    "pinia": "^2.3.1",
-    "postcss": "^8.5.6",
-    "protobufjs": "^7.4.0",
+    "@types/uuid": "^11.0.0",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vue/compiler-sfc": "^3.5.30",
+    "autoprefixer": "^10.4.27",
+    "pinia": "^3.0.4",
+    "postcss": "^8.5.8",
+    "protobufjs": "^8.0.0",
     "tailwindcss": "^3.4.4",
-    "typescript": "^5.7.3",
-    "vite": "^6.4.1",
-    "vue-tsc": "^2.2.0"
+    "typescript": "^6.0.2",
+    "vite": "^8.0.2",
+    "vue-tsc": "^3.2.6"
   }
 }

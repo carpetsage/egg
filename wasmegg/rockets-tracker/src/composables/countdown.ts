@@ -8,7 +8,7 @@ export function useCountdown(deadline: Ref<number>): { secondsRemaining: Ref<num
   const startCountdown = () => {
     clearInterval(refreshIntervalId);
     if (secondsRemaining.value > 0) {
-      refreshIntervalId = setInterval(() => {
+      refreshIntervalId = window.setInterval(() => {
         currentTimestamp.value = Date.now() / 1000;
         if (secondsRemaining.value === 0) {
           clearInterval(refreshIntervalId);
