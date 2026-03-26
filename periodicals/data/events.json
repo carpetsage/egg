@@ -25891,5 +25891,23 @@
     "startTimestamp": 1774454400,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1774627200,
+    "id": "event-3-26",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1774540800,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1774627200,
+    "id": "ultra-3-26",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1774540800,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
