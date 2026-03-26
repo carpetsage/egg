@@ -40,49 +40,51 @@
         time.
       </p>
 
-      <form
-        class="relative sm:max-w-xs flex items-stretch flex-grow focus-within:z-10"
-        :class="onboarding ? 'border border-green-500 rounded-md' : null"
-        :style="onboarding ? { animation: 'glowing 2s ease-in-out infinite' } : undefined"
-        @submit="
-          $event.preventDefault();
-          submit();
-        "
-      >
-        <base-input
-          id="user_id"
-          v-model="userId"
-          name="user_id"
-          type="text"
-          class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-l-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
-          placeholder="User ID"
-          spellcheck="false"
-          autocapitalize="off"
-        />
-        <button
-          type="submit"
-          class="-ml-px relative inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-r-md bg-blue-600 hover:bg-blue-700 !duration-0 focus:outline-none disabled:opacity-50"
-          :class="{ 'cursor-not-allowed': !submittable }"
-          :disabled="!submittable"
+      <span class="flex">
+        <form
+          class="relative sm:max-w-xs flex items-stretch flex-grow focus-within:z-10"
+          :class="onboarding ? 'border border-green-500 rounded-md' : null"
+          :style="onboarding ? { animation: 'glowing 2s ease-in-out infinite' } : undefined"
+          @submit="
+            $event.preventDefault();
+            submit();
+          "
         >
-          <svg class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fill-rule="evenodd"
-              d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </button>
-        <span
-          v-tippy="{
-            content: `The ID asked for here is the unique ID used by Egg, Inc.\'s server to identify your account. You can find it in <span class='text-blue-300'>game screen -> nine dots menu -> Settings -> Privacy & Data, at the very bottom</span>. It should look like EI1234567890123456. Your old game services ID prior to the Artifact Update does not work here. Also note that the ID is case-sensitive.`,
-            allowHTML: true,
-          }"
-          class="flex items-center pl-2"
-        >
-          <base-info class="w-5 h-5" />
-        </span>
-      </form>
+          <base-input
+            id="user_id"
+            v-model="userId"
+            name="user_id"
+            type="text"
+            class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-l-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
+            placeholder="User ID"
+            spellcheck="false"
+            autocapitalize="off"
+          />
+          <button
+            type="submit"
+            class="-ml-px relative inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-r-md bg-blue-600 hover:bg-blue-700 !duration-0 focus:outline-none disabled:opacity-50"
+            :class="{ 'cursor-not-allowed': !submittable }"
+            :disabled="!submittable"
+          >
+            <svg class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fill-rule="evenodd"
+                d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+          <span
+            v-tippy="{
+              content: `The ID asked for here is the unique ID used by Egg, Inc.\'s server to identify your account. You can find it in <span class='text-blue-300'>game screen -> nine dots menu -> Settings -> Privacy & Data, at the very bottom</span>. It should look like EI1234567890123456. Your old game services ID prior to the Artifact Update does not work here. Also note that the ID is case-sensitive.`,
+              allowHTML: true,
+            }"
+            class="flex items-center pl-2"
+          >
+          </span>
+        </form>
+        <base-info class="w-5 h-5 self-center" />
+      </span>
 
       <div v-if="eids.size > 1" class="mt-3">
         <div class="text-xs text-gray-900 dark:text-gray-100 mb-1">Recent IDs:</div>
