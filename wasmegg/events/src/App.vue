@@ -280,7 +280,7 @@ export default defineComponent({
     watch(forceFullWidth, () => setLocalStorage(FORCE_FULL_WIDTH_LOCALSTORAGE_KEY, forceFullWidth));
     const forceSingleColumn = ref(getLocalStorage(FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY) === 'true');
     watch(forceSingleColumn, () => setLocalStorage(FORCE_SINGLE_COLUMN_LOCALSTORAGE_KEY, forceSingleColumn.value));
-    const showUltraEvents = ref(getLocalStorage(SHOW_ULTRA_EVENTS_LOCALSTORAGE_KEY) === 'false');
+    const showUltraEvents = ref(getLocalStorage(SHOW_ULTRA_EVENTS_LOCALSTORAGE_KEY) === 'true');
     watch(showUltraEvents, () => setLocalStorage(SHOW_ULTRA_EVENTS_LOCALSTORAGE_KEY, showUltraEvents.value));
     const showNormalEvents = ref(getLocalStorage(SHOW_NORMAL_EVENTS_LOCALSTORAGE_KEY) !== 'false');
     watch(showNormalEvents, () => setLocalStorage(SHOW_NORMAL_EVENTS_LOCALSTORAGE_KEY, showNormalEvents.value));
