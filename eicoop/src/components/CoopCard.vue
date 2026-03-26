@@ -193,79 +193,16 @@
           </dd>
         </div>
         <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Time to complete</dt>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Time to complete, offline adjusted</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
             <tippy class="text-gray-900 dark:text-gray-100">
               <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">{{
-                formatDuration(leagueStatus.expectedTimeToComplete)
+                formatDuration(leagueStatus.expectedTimeToCompleteOfflineAdjusted)
               }}</span>
               expected
-              <template v-if="leagueStatus.expectedTimeToComplete > 0" #content>
-                <p>
-                  Expected to complete at
-                  <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
-                    {{ leagueStatus.expectedFinalCompletionDate.format('YYYY-MM-DD HH:mm') }} </span
-                  >.
-                </p>
-                <template v-if="grade">
-                  <p>
-                    Predicted total time taken for contract completion:
-                    <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
-                      {{ formatDuration(onlineDuration) }}
-                    </span>
-                  </p>
-                </template>
-                <br />
-                <p>This is an estimate based on the current laying rate (see FAQ below)</p>
-              </template>
-            </tippy>
-            /
-            <tippy class="text-gray-900 dark:text-gray-100">
-              {{ formatDuration(max(status.secondsRemaining, 0)) }} remaining
-              <template #content>
-                {{ status.secondsRemaining > 0 ? 'Expires' : 'Expired' }} at
-                {{ status.expirationTime.format('YYYY-MM-DD HH:mm') }}
-              </template>
-            </tippy>
-          </dd>
-        </div>
-        <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500 flex flex-row dark:text-gray-400">
-            <template
-              v-if="
-                leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0 && completionTime > 0
-              "
-            >
-              Total time taken for contract completion
-            </template>
-            <template v-else>
-              Time to complete, offline adjusted
-              <base-warning
-                v-if="anyPlayerPrivate && leagueStatus.expectedTimeToCompleteOfflineAdjusted > 0"
-                v-tippy="'This is a conservative estimate due to some players having private farms'"
-                class="mx-0.5 translate-y-0.5"
-              />
-            </template>
-          </dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-            <tippy class="text-gray-900 dark:text-gray-100">
-              <span
-                v-if="
-                  leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0 && completionTime > 0
-                "
-                :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
-              >
-                {{ formatDuration(completionTime) }}
-              </span>
-              <template v-else>
-                <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
-                  >{{ formatDuration(leagueStatus.expectedTimeToCompleteOfflineAdjusted) }}
-                </span>
-                expected
-              </template>
               <template v-if="leagueStatus.expectedTimeToCompleteOfflineAdjusted > 0" #content>
                 <p>
-                  The expected completion time taking into account offline eggs laid for all members is
+                  Expected to complete at
                   <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
                     {{ leagueStatus.expectedFinalCompletionDateOfflineAdjusted.format('YYYY-MM-DD HH:mm') }} </span
                   >.
@@ -281,10 +218,87 @@
                 <br />
                 <p>Assumes that all players will check-in right before completion.</p>
               </template>
-              <template
-                v-else-if="!leagueStatus.hasEnded && leagueStatus.expectedTimeToCompleteOfflineAdjusted <= 0"
-                #content
+            </tippy>
+            /
+            <tippy class="text-gray-900 dark:text-gray-100">
+              {{ formatDuration(max(status.secondsRemaining, 0)) }} remaining
+              <template #content>
+                {{ status.secondsRemaining > 0 ? 'Expires' : 'Expired' }} at
+                {{ status.expirationTime.format('YYYY-MM-DD HH:mm') }}
+              </template>
+            </tippy>
+          </dd>
+        </div>
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500 flex flex-row dark:text-gray-400">
+            <template
+              v-if="leagueStatus.hasEnded && expectedTimeToCompleteRecentOfflineAdjusted <= 0 && completionTime > 0"
+            >
+              Total time taken for contract completion
+            </template>
+            <template v-else>
+              Time to complete,
+              <span class="relative inline-block mx-0.5 cursor-pointer">
+                <span class="underline decoration-dotted font-medium"> recent ({{ recentWindowLabel }}) </span>
+                <select
+                  v-model="recentWindowSeconds"
+                  class="absolute inset-0 opacity-0 cursor-pointer w-full"
+                  @change="onRecentWindowChange"
+                >
+                  <option v-for="opt in recentWindowOptions" :key="opt.seconds" :value="opt.seconds">
+                    {{ opt.label }}
+                  </option>
+                </select>
+              </span>
+              checkins only
+              <base-warning
+                v-if="anyPlayerPrivate && expectedTimeToCompleteRecentOfflineAdjusted > 0"
+                v-tippy="'This is a conservative estimate due to some players having private farms'"
+                class="mx-0.5 translate-y-0.5"
+              />
+            </template>
+          </dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+            <tippy class="text-gray-900 dark:text-gray-100">
+              <span
+                v-if="leagueStatus.hasEnded && expectedTimeToCompleteRecentOfflineAdjusted <= 0 && completionTime > 0"
+                :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
               >
+                {{ formatDuration(completionTime) }}
+              </span>
+              <template v-else>
+                <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)"
+                  >{{ formatDuration(expectedTimeToCompleteRecentOfflineAdjusted) }}
+                </span>
+                expected
+              </template>
+              <template v-if="expectedTimeToCompleteRecentOfflineAdjusted > 0" #content>
+                <p>
+                  The expected completion time taking into account offline eggs from members who checked in within the
+                  last {{ recentWindowLabel }} is
+                  <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
+                    {{ expectedFinalCompletionDateRecentOfflineAdjusted.format('YYYY-MM-DD HH:mm') }} </span
+                  >.
+                </p>
+                <template v-if="grade">
+                  <p>
+                    Predicted total time taken for contract completion, recent checkins:
+                    <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
+                      {{ formatDuration(recentDuration) }}
+                    </span>
+                  </p>
+                </template>
+                <br />
+                <p>
+                  {{ recentContributors.length }} / {{ status.contributors.length }} players checked in within the last
+                  {{ recentWindowLabel }}, contributing
+                  <span :class="completionStatusFgColorClass(leagueStatus.completionStatus)">
+                    {{ formatEIValue(recentEggsPerHour) }}/hr</span
+                  >
+                  ({{ ((recentEggsPerHour / status.eggsPerHour) * 100).toFixed(0) }}% of total rate).
+                </p>
+              </template>
+              <template v-else-if="!leagueStatus.hasEnded && expectedTimeToCompleteRecentOfflineAdjusted <= 0" #content>
                 <p>The coop should complete after enough members check-in.</p>
               </template>
             </tippy>
@@ -330,10 +344,11 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, inject, PropType, toRefs } from 'vue';
+import { computed, defineComponent, inject, PropType, ref, toRefs } from 'vue';
 import { Tippy } from 'vue-tippy';
 
 import { CoopStatus, eggIconPath, formatEIValue, formatDuration, getModifiers } from '@/lib';
+import { getLocalStorageNoPrefix, setLocalStorageNoPrefix } from 'lib';
 import { completionStatusFgColorClass, completionStatusBgColorClass } from '@/styles';
 import { devmodeKey } from '@/symbols';
 import { eggTooltip } from '@/utils';
@@ -348,6 +363,34 @@ import CoopCardContributionTable from '@/components/CoopCardContributionTable.vu
 import BaseClickToCopy from '@/components/BaseClickToCopy.vue';
 import AutoRefreshedRelativeTime from '@/components/AutoRefreshedRelativeTime.vue';
 import dayjs from 'dayjs';
+
+const RECENT_WINDOW_KEY = 'recentCheckinWindow';
+
+const RECENT_WINDOW_OPTIONS = [
+  { label: '15m', seconds: 15 * 60 },
+  { label: '30m', seconds: 30 * 60 },
+  { label: '1h', seconds: 3600 },
+  { label: '2h', seconds: 2 * 3600 },
+  { label: '4h', seconds: 4 * 3600 },
+  { label: '8h', seconds: 8 * 3600 },
+  { label: '12h', seconds: 12 * 3600 },
+  { label: '1d', seconds: 86400 },
+];
+
+const DEFAULT_SECONDS = 3600;
+
+function findClosestOption(seconds: number) {
+  return (
+    RECENT_WINDOW_OPTIONS.find(o => o.seconds === seconds) ??
+    RECENT_WINDOW_OPTIONS.reduce((best, o) =>
+      Math.abs(o.seconds - seconds) < Math.abs(best.seconds - seconds) ? o : best
+    )
+  );
+}
+
+const storedStr = getLocalStorageNoPrefix(RECENT_WINDOW_KEY);
+const storedSeconds = storedStr ? parseInt(storedStr) || DEFAULT_SECONDS : DEFAULT_SECONDS;
+const recentWindowSeconds = ref(findClosestOption(storedSeconds).seconds);
 
 export default defineComponent({
   components: {
@@ -400,6 +443,54 @@ export default defineComponent({
       return 0;
     });
 
+    function applyRecentWindow() {
+      setLocalStorageNoPrefix(RECENT_WINDOW_KEY, String(recentWindowSeconds.value));
+    }
+
+    function onRecentWindowChange() {
+      applyRecentWindow();
+    }
+
+    const recentWindowLabel = computed(
+      () =>
+        RECENT_WINDOW_OPTIONS.find(o => o.seconds === recentWindowSeconds.value)?.label ??
+        `${recentWindowSeconds.value / 60}m`
+    );
+
+    const eggsLaidRecentOfflineAdjusted = computed(() => {
+      const window = recentWindowSeconds.value;
+      let eggs = status.value.eggsLaid;
+      for (const c of status.value.contributors) {
+        if (c.offlineSeconds <= window) {
+          eggs += c.offlineEggs;
+        }
+      }
+      return leagueStatus.value ? Math.min(eggs, leagueStatus.value.finalTarget) : eggs;
+    });
+
+    const recentContributors = computed(() =>
+      status.value.contributors.filter(c => c.offlineSeconds <= recentWindowSeconds.value)
+    );
+
+    const recentEggsPerHour = computed(() => recentContributors.value.reduce((sum, c) => sum + c.eggsPerHour, 0));
+
+    const expectedTimeToCompleteRecentOfflineAdjusted = computed(() => {
+      if (!leagueStatus.value) return 0;
+      const eggs = eggsLaidRecentOfflineAdjusted.value;
+      const target = leagueStatus.value.finalTarget;
+      if (eggs >= target) return 0;
+      if (recentEggsPerHour.value <= 0) return Infinity;
+      return ((target - eggs) / recentEggsPerHour.value) * 3600;
+    });
+
+    const expectedFinalCompletionDateRecentOfflineAdjusted = computed(() =>
+      dayjs().add(expectedTimeToCompleteRecentOfflineAdjusted.value, 's')
+    );
+
+    const recentDuration = computed(
+      () => expectedFinalCompletionDateRecentOfflineAdjusted.value.unix() - startDate.value
+    );
+
     return {
       devmode,
       contract,
@@ -422,6 +513,15 @@ export default defineComponent({
       max: Math.max,
       grades,
       completionTime,
+      recentWindowSeconds,
+      recentWindowLabel,
+      recentWindowOptions: RECENT_WINDOW_OPTIONS,
+      onRecentWindowChange,
+      expectedTimeToCompleteRecentOfflineAdjusted,
+      expectedFinalCompletionDateRecentOfflineAdjusted,
+      recentDuration,
+      recentContributors,
+      recentEggsPerHour,
     };
   },
 });
