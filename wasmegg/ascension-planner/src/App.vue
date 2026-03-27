@@ -882,13 +882,18 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
         tempState.population = endPop;
         const endSnapshot = computeSnapshot(tempState, context);
 
-        // Average ELR for catch-up (accurate linear approximation)
+        // Average ELR and Offline Earnings for catch-up (accurate linear approximation)
         const avgELR = (snapshot.elr + endSnapshot.elr) / 2;
         const extraEggs = avgELR * elapsed;
 
-        if (extraEggs > 0) {
+        const avgOfflineEarnings = (snapshot.offlineEarnings + endSnapshot.offlineEarnings) / 2;
+        const extraCash = avgOfflineEarnings * elapsed;
+
+        if (extraEggs > 0 || extraCash > 0) {
           // 1. Update farm state
           farm.deliveredEggs += extraEggs;
+          farm.cashEarned += extraCash;
+          farm.cash += extraCash;
 
           // 2. Update store's initial delivered eggs
           const newDelivered = (eggsDelivered[egg] || 0) + extraEggs;
