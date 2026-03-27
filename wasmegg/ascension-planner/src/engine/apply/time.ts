@@ -9,7 +9,7 @@ export function applyTime(
   state: EngineState,
   seconds: number,
   prevSnapshot: CalculationsSnapshot,
-  options: { skipGrowth?: boolean } = {}
+  options: { skipGrowth?: boolean, skipEarnings?: boolean } = {}
 ): EngineState {
   if (seconds <= 0) return state;
 
@@ -24,20 +24,20 @@ export function applyTime(
 
   const P0 = prevSnapshot.population;
   const I = prevSnapshot.offlineIHR / 60;
-  const R = prevSnapshot.ratePerChickenPerSecond;
-  const S = prevSnapshot.shippingCapacity;
-  const V = prevSnapshot.elr > 0 ? prevSnapshot.offlineEarnings / prevSnapshot.elr : 0;
   const maxPop = prevSnapshot.habCapacity;
 
   const newPop = Math.min(maxPop, P0 + I * seconds);
 
   let earnedGems = 0;
-  if (V > 0) {
-    earnedGems = calculateEarningsForTime(seconds, prevSnapshot);
+  if (!options.skipEarnings) {
+    const V = prevSnapshot.elr > 0 ? prevSnapshot.offlineEarnings / prevSnapshot.elr : 0;
+    if (V > 0) {
+      earnedGems = calculateEarningsForTime(seconds, prevSnapshot);
+    }
   }
 
   let newBankValue = (state.bankValue || 0) + earnedGems;
-  if (prevSnapshot.offlineEarnings > 0) {
+  if (!options.skipEarnings && prevSnapshot.offlineEarnings > 0) {
     if (Math.abs(newBankValue) < prevSnapshot.offlineEarnings * 1e-6) {
       newBankValue = 0;
     }

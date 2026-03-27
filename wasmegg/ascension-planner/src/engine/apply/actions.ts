@@ -126,9 +126,7 @@ export function applyAction(
       const payload = action.payload as StoreFuelPayload;
       const newFuelAmounts = { ...state.fuelTankAmounts };
       newFuelAmounts[payload.egg] = (newFuelAmounts[payload.egg] || 0) + payload.amount;
-      const newEggsDelivered = { ...state.eggsDelivered };
-      newEggsDelivered[payload.egg] = (newEggsDelivered[payload.egg] || 0) + payload.amount;
-      return { ...state, fuelTankAmounts: newFuelAmounts, eggsDelivered: newEggsDelivered };
+      return { ...state, fuelTankAmounts: newFuelAmounts };
     }
 
     case 'remove_fuel': {

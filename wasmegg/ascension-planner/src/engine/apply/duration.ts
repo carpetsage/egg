@@ -108,7 +108,7 @@ export function refreshActionPayload(
       prevSnapshot.population,
       prevSnapshot.offlineIHR / 60,
       prevSnapshot.ratePerChickenPerSecond,
-      prevSnapshot.shippingCapacity,
+      Infinity, // Tanking is limited by production, not shipping
       prevSnapshot.habCapacity
     );
     return { ...action, payload };

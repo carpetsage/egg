@@ -299,7 +299,6 @@ function handleStoreFuel() {
 
   // Apply to store
   fuelTankStore.addFuel(payload.egg, payload.amount);
-  truthEggsStore.addEggsDelivered(payload.egg, payload.amount);
 
   // Complete execution
   completeExecution(
