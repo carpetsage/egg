@@ -377,7 +377,7 @@ const RECENT_WINDOW_OPTIONS = [
   { label: '1d', seconds: 86400 },
 ];
 
-const DEFAULT_SECONDS = 3600;
+const DEFAULT_SECONDS = 86400;
 
 function findClosestOption(seconds: number) {
   return (
