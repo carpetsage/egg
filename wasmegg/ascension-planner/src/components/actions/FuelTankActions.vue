@@ -102,6 +102,22 @@
         </button>
       </div>
 
+      <!-- Fuel Speed Selector -->
+      <div class="mb-3">
+        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Fuel Speed</div>
+        <div class="flex gap-1 bg-slate-100 rounded-lg p-0.5">
+          <button
+            v-for="speed in FUEL_SPEED_OPTIONS"
+            :key="speed.value"
+            class="flex-1 px-2 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
+            :class="fuelSpeed === speed.value ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'"
+            @click="fuelSpeed = speed.value"
+          >
+            {{ speed.label }}
+          </button>
+        </div>
+      </div>
+
       <div class="flex items-center gap-2 mb-4">
         <input
           v-model="amountInput"
@@ -143,6 +159,17 @@
             formatDuration(timeToStoreSeconds)
           }}</span>
         </div>
+        <!-- Variable-speed estimates -->
+        <template v-if="fuelSpeed < 1.0 && effectiveStoreAmount > 0">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Eggs Shipped</span>
+            <span class="text-sm font-mono-premium font-bold text-emerald-600">{{ formatNumber(estimatedEggsShipped, 1) }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gems Earned</span>
+            <span class="text-sm font-mono-premium font-bold text-emerald-600">+{{ formatNumber(estimatedGemsEarned, 1) }}</span>
+          </div>
+        </template>
         <div
           v-if="exceedsCapacity"
           class="flex items-center gap-2 text-red-500 text-[10px] font-bold mt-1 bg-red-50 p-2 rounded-lg border border-red-100"
@@ -283,7 +310,8 @@ import { useActionExecutor } from '@/composables/useActionExecutor';
 import { useLayRate } from '@/composables/useLayRate';
 import { useInternalHatcheryRate } from '@/composables/useInternalHatcheryRate';
 import { useHabCapacity } from '@/composables/useHabCapacity';
-import { solveForTime } from '@/engine/apply/math';
+import { useShippingCapacity } from '@/composables/useShippingCapacity';
+import { solveForTime, integrateRate } from '@/engine/apply/math';
 
 const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
@@ -292,10 +320,19 @@ const actionsStore = useActionsStore();
 const { output: layRateOutput } = useLayRate();
 const { output: ihrOutput } = useInternalHatcheryRate();
 const { output: habCapacityOutput } = useHabCapacity();
+const { output: shippingOutput } = useShippingCapacity();
 const { prepareExecution, completeExecution } = useActionExecutor();
+
+const FUEL_SPEED_OPTIONS = [
+  { label: '10%', value: 0.1 },
+  { label: '50%', value: 0.5 },
+  { label: '90%', value: 0.9 },
+  { label: '100%', value: 1.0 },
+] as const;
 
 const storeMode = ref<'add' | 'fillTo'>('fillTo');
 const removeMode = ref<'remove' | 'drainTo'>('drainTo');
+const fuelSpeed = ref(1.0);
 const amountInput = ref('');
 const removeInputs = ref<Record<string, string>>({
   curiosity: '',
@@ -336,18 +373,36 @@ const effectiveStoreAmount = computed(() => {
   return parsedAmount.value;
 });
 
-// Time calculation
+// Time calculation (scaled by fuel speed)
 const timeToStoreSeconds = computed(() => {
   if (effectiveStoreAmount.value <= 0) return 0;
   const P0 = virtueStore.population;
   const I = ihrOutput.value.offlineRate / 60; // chickens/sec
-  const R = layRateOutput.value.ratePerChickenPerSecond; // eggs/chicken/sec
+  const R = layRateOutput.value.ratePerChickenPerSecond * fuelSpeed.value; // scaled by speed
   const H = habCapacityOutput.value.totalFinalCapacity; // max chickens
 
   const maxPossibleRate = R * H;
 
   const time = solveForTime(effectiveStoreAmount.value, P0, I, R, maxPossibleRate);
   return isFinite(time) ? time : Infinity;
+});
+
+// Variable-speed estimates for the UI preview
+const estimatedEggsShipped = computed(() => {
+  if (fuelSpeed.value >= 1.0 || timeToStoreSeconds.value <= 0) return 0;
+  const P0 = virtueStore.population;
+  const I = ihrOutput.value.offlineRate / 60;
+  const remainingR = layRateOutput.value.ratePerChickenPerSecond * (1 - fuelSpeed.value);
+  const S = shippingOutput.value.totalFinalCapacity; // eggs/sec shipping cap
+  const H = habCapacityOutput.value.totalFinalCapacity;
+  return integrateRate(timeToStoreSeconds.value, P0, I, remainingR, S, H);
+});
+
+const estimatedGemsEarned = computed(() => {
+  if (estimatedEggsShipped.value <= 0) return 0;
+  const snapshot = actionsStore.effectiveSnapshot;
+  const valuePerEgg = snapshot.elr > 0 ? snapshot.offlineEarnings / snapshot.elr : 0;
+  return estimatedEggsShipped.value * valuePerEgg;
 });
 
 // Validation
@@ -388,6 +443,9 @@ function handleStoreFuel() {
     egg: beforeSnapshot.currentEgg,
     amount: effectiveStoreAmount.value,
     timeSeconds: timeToStoreSeconds.value,
+    fuelSpeed: fuelSpeed.value,
+    eggsShippedDuringFuel: estimatedEggsShipped.value,
+    gemsEarnedDuringFuel: estimatedGemsEarned.value,
   };
 
   const dependencies = computeDependencies(

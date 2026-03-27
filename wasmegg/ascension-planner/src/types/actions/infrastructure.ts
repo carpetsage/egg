@@ -41,6 +41,9 @@ export interface StoreFuelPayload {
   egg: VirtueEgg; // Which virtue egg to store
   amount: number; // Number of eggs to store
   timeSeconds: number; // Time required (for display)
+  fuelSpeed?: number; // 0.1 | 0.5 | 0.9 | 1.0 — default 1.0
+  eggsShippedDuringFuel?: number; // eggs shipped at (1-speed) rate during fueling
+  gemsEarnedDuringFuel?: number; // gems earned from shipped eggs during fueling
 }
 
 /**
