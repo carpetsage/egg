@@ -120,9 +120,22 @@
             >
               {{ VIRTUE_EGG_NAMES[egg] }}
             </span>
-            <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
-              {{ eggActionLabel(egg) }}
-            </span>
+            <div
+              class="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-100 bg-slate-50/50 shadow-sm mt-2"
+              v-tippy="'Claimed (+Pending) Truth Eggs'"
+            >
+              <span class="text-[10px] font-black text-slate-700 leading-none">
+                {{ truthEggsStore.teEarned[egg] }}
+              </span>
+              <span class="text-[9px] font-bold text-indigo-600 leading-none">
+                (+{{ truthEggsStore.pendingTEForEgg(egg) }})
+              </span>
+              <img
+                :src="iconURL(getColleggtibleIconPath('truth'), 64)"
+                class="w-3 h-3"
+                alt="TE"
+              />
+            </div>
           </div>
         </button>
       </div>
@@ -132,19 +145,21 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { iconURL } from 'lib';
 import { VIRTUE_EGG_NAMES, VIRTUE_EGGS, type VirtueEgg, generateActionId } from '@/types';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
 import { useInitialStateStore } from '@/stores/initialState';
+import { useTruthEggsStore } from '@/stores/truthEggs';
 import { computeDependencies } from '@/lib/actions/executor';
 import { useActionExecutor } from '@/composables/useActionExecutor';
-import { shiftCost } from 'lib';
+import { shiftCost, iconURL } from 'lib';
+import { getColleggtibleIconPath } from '@/lib/assets';
 import { formatNumber, formatDuration } from '@/lib/format';
 
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
 const initialStateStore = useInitialStateStore();
+const truthEggsStore = useTruthEggsStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
 const availableEggs = VIRTUE_EGGS;
