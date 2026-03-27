@@ -8,6 +8,7 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
+import { useNotesStore } from '@/stores/notes';
 import type { VirtueEgg, Action, CalculationsSnapshot } from '@/types';
 
 export function exportPlanData(actions: Action[], initialSnapshot?: CalculationsSnapshot, activePlanId: string | null = null) {
@@ -15,6 +16,7 @@ export function exportPlanData(actions: Action[], initialSnapshot?: Calculations
   const virtueStore = useVirtueStore();
   const fuelTankStore = useFuelTankStore();
   const truthEggsStore = useTruthEggsStore();
+  const notesStore = useNotesStore();
 
   const baseSoulEggs = initialSnapshot ? initialSnapshot.soulEggs : initialStateStore.soulEggs;
   const baseLoadout = initialSnapshot ? initialSnapshot.artifactLoadout : initialStateStore.artifactLoadout;
@@ -58,6 +60,9 @@ export function exportPlanData(actions: Action[], initialSnapshot?: Calculations
       eggsDelivered: baseEggsDelivered,
       teEarned: baseTeEarned,
     },
+    notesState: {
+      notes: notesStore.notes,
+    },
     actions: actions,
     activePlanId: activePlanId,
   };
@@ -85,6 +90,7 @@ export function importPlanLogic(jsonString: string) {
   const virtueStore = useVirtueStore();
   const fuelTankStore = useFuelTankStore();
   const truthEggsStore = useTruthEggsStore();
+  const notesStore = useNotesStore();
 
   initialStateStore.hydrate(data.initialState);
 
@@ -109,6 +115,12 @@ export function importPlanLogic(jsonString: string) {
     for (const [egg, count] of Object.entries((data.truthEggsState.teEarned || {}) as Record<string, number>)) {
       truthEggsStore.setTEEarned(egg as VirtueEgg, count);
     }
+  }
+
+  if (data.notesState) {
+    notesStore.setNotes(data.notesState.notes || []);
+  } else {
+    notesStore.$reset();
   }
 
   return data;

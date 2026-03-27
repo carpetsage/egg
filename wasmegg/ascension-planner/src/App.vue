@@ -392,6 +392,7 @@
       @save-plan-as="savePlanAs"
     />
     <FloatingStats @show-details="showCurrentDetails" />
+    <FloatingNotes />
   </div>
 </template>
 
@@ -410,6 +411,7 @@ import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useHabCapacityStore } from '@/stores/habCapacity';
 import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useSilosStore } from '@/stores/silos';
+import { useNotesStore } from '@/stores/notes';
 import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
 import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
@@ -418,6 +420,7 @@ import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import FloatingStats from '@/components/FloatingStats.vue';
+import FloatingNotes from '@/components/FloatingNotes.vue';
 import WarningDialog from '@/components/WarningDialog.vue';
 import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
 import PlanLibrary from '@/components/PlanLibrary.vue';
@@ -450,6 +453,7 @@ const commonResearchStore = useCommonResearchStore();
 const habCapacityStore = useHabCapacityStore();
 const shippingCapacityStore = useShippingCapacityStore();
 const silosStore = useSilosStore();
+const notesStore = useNotesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 const { partitionHash, saveActiveDraft, initPersistence, broadcastPresence } = usePersistence();
 
@@ -736,6 +740,7 @@ async function startFromScratch() {
   habCapacityStore.$reset();
   shippingCapacityStore.$reset();
   silosStore.$reset();
+  notesStore.$reset();
 
   // 3. Recompute and set a clean initial snapshot from the reset stores.
   const context = getSimulationContext();
@@ -832,6 +837,10 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
   savePlayerID(id);
   error.value = '';
   loading.value = true;
+
+  if (mode === 'default') {
+    notesStore.$reset();
+  }
 
   try {
     // Clear existing plan to ensure a fresh start with new player data
@@ -963,6 +972,8 @@ async function quickContinueAscension(selection: 'earnings' | 'elr') {
     // 3. Refresh backup (submitPlayerId)
     await submitPlayerId(playerId.value, selection === 'earnings' ? 'continue_earnings' : 'continue_elr');
 
+    notesStore.$reset();
+
     // 4. Trigger continue from backup
     actionsStore.isReconciling = false;
     await actionsStore.continueFromBackup(true);
@@ -1029,6 +1040,7 @@ async function planNextAscension() {
     habCapacityStore.$reset();
     shippingCapacityStore.$reset();
     silosStore.$reset();
+    notesStore.$reset();
 
     // 7. Set starting egg to Curiosity
     virtueStore.setCurrentEgg('curiosity');
