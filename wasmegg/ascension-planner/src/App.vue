@@ -576,13 +576,16 @@ onMounted(async () => {
 
 // Auto-save logic
 let saveTimeout: ReturnType<typeof setTimeout>;
-actionsStore.$subscribe(() => {
+function triggerAutoSave() {
   if (!playerId.value) return;
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
     saveActiveDraft();
   }, 1000);
-});
+}
+
+actionsStore.$subscribe(triggerAutoSave);
+notesStore.$subscribe(triggerAutoSave);
 
 // Re-init persistence when player ID changes
 watch(playerId, async newId => {
