@@ -23,4 +23,6 @@ export interface ActionsState {
   lastSavedActionsJson: string;
   // Monotonically increasing counter to trigger refreshes of the plan library UI
   libraryUpdateTick: number;
+  // Manual completion overrides for reconciliation, keyed by planId and actionId
+  manualOverrides: Record<string, Record<string, boolean>>;
 }

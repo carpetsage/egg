@@ -42,10 +42,14 @@ import { computed } from 'vue';
 import type { Action, BuyResearchPayload } from '@/types';
 import { getResearchById, getResearchByTier } from '@/calculations/commonResearch';
 
+import { useActionsStore } from '@/stores/actions';
+
 const props = defineProps<{
   headerAction: Action;
   actions: Action[];
 }>();
+
+const actionsStore = useActionsStore();
 
 const startState = computed(() => props.headerAction.endState);
 const endState = computed(() => {
@@ -93,7 +97,18 @@ const summaryItems = computed(() => {
     });
 
     if (isTierMaxed) {
-      maxedTiers.push(tier);
+      // If reconciling and show incomplete only, hide tiers already maxed in backup
+      const wasAlreadyMaxed =
+        actionsStore.isReconciling &&
+        actionsStore.showIncompleteOnly &&
+        tierResearches.every(r => {
+          const backupLevel = actionsStore.reconcileFarmState?.commonResearches[r.id] || 0;
+          return backupLevel >= r.levels;
+        });
+
+      if (!wasAlreadyMaxed) {
+        maxedTiers.push(tier);
+      }
       // Mark all researches in this tier as handled so we don't list them individually
       tierResearches.forEach(r => handledResearchIds.add(r.id));
     }
@@ -129,8 +144,20 @@ const summaryItems = computed(() => {
     .sort((a, b) => a.serial_id - b.serial_id); // Sort by order in game
 
   for (const r of remainingResearches) {
-    const startLevel = startState.value.researchLevels[r.id] || 0;
+    let startLevel = startState.value.researchLevels[r.id] || 0;
     const finalLevel = endState.value.researchLevels[r.id] || 0;
+
+    // If reconciling and show incomplete only, use backup level as start
+    if (actionsStore.isReconciling && actionsStore.showIncompleteOnly) {
+      const backupLevel = actionsStore.reconcileFarmState?.commonResearches[r.id] || 0;
+      startLevel = Math.max(startLevel, backupLevel);
+    }
+
+    // Skip if already purchased beyond or at parity with plan's end of shift
+    if (startLevel >= finalLevel) {
+      continue;
+    }
+
     const isMaxed = finalLevel >= r.levels;
 
     if (isMaxed) {

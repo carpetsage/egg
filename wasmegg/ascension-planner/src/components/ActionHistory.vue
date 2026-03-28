@@ -268,23 +268,27 @@ const filteredGroupedActions = computed<GroupedItem[]>(() => {
   return groups
     .map(group => {
       if (group.type === 'group') {
-        const auditedActions = [group.headerAction, ...group.actions];
-        const shiftStatus = actionsStore.getShiftReconciliationStatus(auditedActions);
+        const shiftStatus = actionsStore.getShiftReconciliationStatus(group.actions);
 
-        // If the entire shift is completed, hide it
+        // If all internal actions of the shift are completed, hide it.
         if (shiftStatus === 'completed') return null;
 
-        // Otherwise, filter actions to show only incomplete/NA
+        // Filter actions to show only incomplete/NA
         const filteredActions = group.actions.filter(a => {
           const status = actionsStore.getActionReconciliationStatus(a);
           return status !== 'completed';
         });
 
-        // Special case: if it's the current period and we filtered everything out,
-        // we might still want to see the header? Actually, if it's completed, we hide it.
+        // Recalculate time for only incomplete items in this period.
+        let incompleteTime = 0;
+        for (const a of filteredActions) {
+          incompleteTime += a.totalTimeSeconds || 0;
+        }
+
         return {
           ...group,
           actions: filteredActions,
+          timeElapsedSeconds: incompleteTime,
         };
       } else {
         const status = actionsStore.getActionReconciliationStatus(group.action);

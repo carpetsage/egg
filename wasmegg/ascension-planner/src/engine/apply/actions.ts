@@ -126,9 +126,21 @@ export function applyAction(
       const payload = action.payload as StoreFuelPayload;
       const newFuelAmounts = { ...state.fuelTankAmounts };
       newFuelAmounts[payload.egg] = (newFuelAmounts[payload.egg] || 0) + payload.amount;
-      const newEggsDelivered = { ...state.eggsDelivered };
-      newEggsDelivered[payload.egg] = (newEggsDelivered[payload.egg] || 0) + payload.amount;
-      return { ...state, fuelTankAmounts: newFuelAmounts, eggsDelivered: newEggsDelivered };
+
+      // Variable-speed fueling: apply shipped eggs and gems earned
+      const shippedEggs = payload.eggsShippedDuringFuel ?? 0;
+      const gemsEarned = payload.gemsEarnedDuringFuel ?? 0;
+
+      const newEggsDelivered = shippedEggs > 0
+        ? { ...state.eggsDelivered, [payload.egg]: (state.eggsDelivered[payload.egg] || 0) + shippedEggs }
+        : state.eggsDelivered;
+
+      return {
+        ...state,
+        fuelTankAmounts: newFuelAmounts,
+        eggsDelivered: newEggsDelivered,
+        bankValue: (state.bankValue || 0) + gemsEarned,
+      };
     }
 
     case 'remove_fuel': {

@@ -84,11 +84,45 @@
         </div>
       </div>
 
+      <!-- Store Mode Toggle -->
+      <div class="flex gap-1 mb-3 bg-slate-100 rounded-lg p-0.5">
+        <button
+          class="flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
+          :class="storeMode === 'fillTo' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'"
+          @click="storeMode = 'fillTo'"
+        >
+          Fill To Target
+        </button>
+        <button
+          class="flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
+          :class="storeMode === 'add' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'"
+          @click="storeMode = 'add'"
+        >
+          Add Amount
+        </button>
+      </div>
+
+      <!-- Fuel Speed Selector -->
+      <div class="mb-3">
+        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Fuel Speed</div>
+        <div class="flex gap-1 bg-slate-100 rounded-lg p-0.5">
+          <button
+            v-for="speed in FUEL_SPEED_OPTIONS"
+            :key="speed.value"
+            class="flex-1 px-2 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
+            :class="fuelSpeed === speed.value ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'"
+            @click="fuelSpeed = speed.value"
+          >
+            {{ speed.label }}
+          </button>
+        </div>
+      </div>
+
       <div class="flex items-center gap-2 mb-4">
         <input
           v-model="amountInput"
           type="text"
-          placeholder="e.g., 50B, 100T"
+          :placeholder="storeMode === 'fillTo' ? 'Target total, e.g., 10T' : 'e.g., 50B, 100T'"
           class="input-premium flex-1 font-mono-premium font-bold py-2.5"
           @keyup.enter="handleStoreFuel"
         />
@@ -99,16 +133,43 @@
 
       <!-- Time Estimate -->
       <div v-if="parsedAmount > 0" class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
-        <div class="flex justify-between items-center">
+        <!-- Fill To mode: show current → target → delta -->
+        <div v-if="storeMode === 'fillTo'" class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Currently</span>
+            <span class="text-sm font-mono-premium font-bold text-slate-500">{{ formatNumber(currentEggFuel, 1) }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target</span>
+            <span class="text-sm font-mono-premium font-bold text-slate-700">{{ formatNumber(parsedAmount, 1) }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Storing</span>
+            <span class="text-sm font-mono-premium font-bold" :class="fillDelta > 0 ? 'text-brand-primary' : 'text-slate-400'">{{ fillDelta > 0 ? formatNumber(fillDelta, 1) : 'Already at target' }}</span>
+          </div>
+        </div>
+        <!-- Add mode: show target -->
+        <div v-else class="flex justify-between items-center">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target</span>
           <span class="text-sm font-mono-premium font-bold text-slate-700">{{ formatNumber(parsedAmount, 1) }}</span>
         </div>
-        <div class="flex justify-between items-center">
+        <div v-if="effectiveStoreAmount > 0" class="flex justify-between items-center">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transit Time</span>
           <span class="text-sm font-mono-premium font-bold text-slate-900">{{
             formatDuration(timeToStoreSeconds)
           }}</span>
         </div>
+        <!-- Variable-speed estimates -->
+        <template v-if="fuelSpeed < 1.0 && effectiveStoreAmount > 0">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Eggs Shipped</span>
+            <span class="text-sm font-mono-premium font-bold text-emerald-600">{{ formatNumber(estimatedEggsShipped, 1) }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gems Earned</span>
+            <span class="text-sm font-mono-premium font-bold text-emerald-600">+{{ formatNumber(estimatedGemsEarned, 1) }}</span>
+          </div>
+        </template>
         <div
           v-if="exceedsCapacity"
           class="flex items-center gap-2 text-red-500 text-[10px] font-bold mt-1 bg-red-50 p-2 rounded-lg border border-red-100"
@@ -120,7 +181,7 @@
               clip-rule="evenodd"
             ></path>
           </svg>
-          <span>Exceeds capacity by {{ formatNumber(parsedAmount - fuelTankStore.availableCapacity, 1) }}</span>
+          <span>Exceeds capacity by {{ formatNumber(effectiveStoreAmount - fuelTankStore.availableCapacity, 1) }}</span>
         </div>
       </div>
     </div>
@@ -132,34 +193,71 @@
         <div class="text-sm font-bold text-slate-700">Remove Fuel Storage</div>
       </div>
 
+      <!-- Remove Mode Toggle -->
+      <div class="flex gap-1 mb-4 bg-slate-100 rounded-lg p-0.5">
+        <button
+          class="flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
+          :class="removeMode === 'drainTo' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'"
+          @click="removeMode = 'drainTo'"
+        >
+          Drain To Target
+        </button>
+        <button
+          class="flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
+          :class="removeMode === 'remove' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'"
+          @click="removeMode = 'remove'"
+        >
+          Remove Amount
+        </button>
+      </div>
+
       <div class="space-y-4">
-        <div v-for="egg in VIRTUE_FUEL_ORDER" :key="egg" class="flex items-center gap-2">
-          <div class="w-8 h-8 flex-shrink-0 bg-slate-50 rounded-lg p-1 border border-slate-100 shadow-inner">
-            <img
-              :src="iconURL(`egginc/egg_${egg}.png`, 64)"
-              class="w-full h-full object-contain drop-shadow-sm"
-              :alt="egg"
+        <div v-for="egg in VIRTUE_FUEL_ORDER" :key="egg" class="space-y-2">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 flex-shrink-0 bg-slate-50 rounded-lg p-1 border border-slate-100 shadow-inner">
+              <img
+                :src="iconURL(`egginc/egg_${egg}.png`, 64)"
+                class="w-full h-full object-contain drop-shadow-sm"
+                :alt="egg"
+              />
+            </div>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">{{
+              VIRTUE_EGG_NAMES[egg]
+            }}</span>
+
+            <input
+              v-model="removeInputs[egg]"
+              type="text"
+              :placeholder="removeMode === 'drainTo' ? 'Target remaining' : 'Amount'"
+              class="input-premium flex-1 font-mono-premium py-2 text-xs font-bold"
+              @keyup.enter="handleRemoveFuel(egg)"
             />
+
+            <button
+              class="btn-premium btn-primary px-4 py-2 text-[10px] uppercase font-black tracking-widest"
+              :disabled="!canRemove(egg)"
+              @click="handleRemoveFuel(egg)"
+            >
+              Remove
+            </button>
           </div>
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">{{
-            VIRTUE_EGG_NAMES[egg]
-          }}</span>
-
-          <input
-            v-model="removeInputs[egg]"
-            type="text"
-            placeholder="Amount"
-            class="input-premium flex-1 font-mono-premium py-2 text-xs font-bold"
-            @keyup.enter="handleRemoveFuel(egg)"
-          />
-
-          <button
-            class="btn-premium btn-primary px-4 py-2 text-[10px] uppercase font-black tracking-widest"
-            :disabled="!canRemove(egg)"
-            @click="handleRemoveFuel(egg)"
+          <!-- Drain To info line -->
+          <div
+            v-if="removeMode === 'drainTo' && parsedRemoveAmount(egg) > 0 && fuelTankStore.fuelAmounts[egg] > 0"
+            class="ml-10 p-2 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between text-[10px]"
           >
-            Remove
-          </button>
+            <div class="flex items-center gap-3">
+              <span class="font-black text-slate-400 uppercase tracking-widest">{{ formatNumber(fuelTankStore.fuelAmounts[egg], 1) }}</span>
+              <span class="text-slate-300">→</span>
+              <span class="font-black text-slate-400 uppercase tracking-widest">{{ formatNumber(parsedRemoveAmount(egg), 1) }}</span>
+            </div>
+            <span
+              class="font-mono-premium font-bold"
+              :class="drainDelta(egg) > 0 ? 'text-brand-primary' : 'text-slate-400'"
+            >
+              {{ drainDelta(egg) > 0 ? `Removing ${formatNumber(drainDelta(egg), 1)}` : 'Already at target' }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -212,7 +310,8 @@ import { useActionExecutor } from '@/composables/useActionExecutor';
 import { useLayRate } from '@/composables/useLayRate';
 import { useInternalHatcheryRate } from '@/composables/useInternalHatcheryRate';
 import { useHabCapacity } from '@/composables/useHabCapacity';
-import { solveForTime } from '@/engine/apply/math';
+import { useShippingCapacity } from '@/composables/useShippingCapacity';
+import { solveForTime, integrateRate } from '@/engine/apply/math';
 
 const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
@@ -221,8 +320,19 @@ const actionsStore = useActionsStore();
 const { output: layRateOutput } = useLayRate();
 const { output: ihrOutput } = useInternalHatcheryRate();
 const { output: habCapacityOutput } = useHabCapacity();
+const { output: shippingOutput } = useShippingCapacity();
 const { prepareExecution, completeExecution } = useActionExecutor();
 
+const FUEL_SPEED_OPTIONS = [
+  { label: '10%', value: 0.1 },
+  { label: '50%', value: 0.5 },
+  { label: '90%', value: 0.9 },
+  { label: '100%', value: 1.0 },
+] as const;
+
+const storeMode = ref<'add' | 'fillTo'>('fillTo');
+const removeMode = ref<'remove' | 'drainTo'>('drainTo');
+const fuelSpeed = ref(1.0);
 const amountInput = ref('');
 const removeInputs = ref<Record<string, string>>({
   curiosity: '',
@@ -253,29 +363,74 @@ function getRoundingShortfall(actual: number): number {
   return 0;
 }
 
-// Time calculation
+// Fill To mode: current fuel for the active egg and the delta needed
+const currentEggFuel = computed(() => fuelTankStore.fuelAmounts[virtueStore.currentEgg] || 0);
+const fillDelta = computed(() => Math.max(0, parsedAmount.value - currentEggFuel.value));
+
+// The actual amount to store: in Fill To mode it's the delta, in Add mode it's the raw input
+const effectiveStoreAmount = computed(() => {
+  if (storeMode.value === 'fillTo') return fillDelta.value;
+  return parsedAmount.value;
+});
+
+// Time calculation (scaled by fuel speed)
 const timeToStoreSeconds = computed(() => {
-  if (parsedAmount.value <= 0) return 0;
+  if (effectiveStoreAmount.value <= 0) return 0;
   const P0 = virtueStore.population;
   const I = ihrOutput.value.offlineRate / 60; // chickens/sec
-  const R = layRateOutput.value.ratePerChickenPerSecond; // eggs/chicken/sec
+  const R = layRateOutput.value.ratePerChickenPerSecond * fuelSpeed.value; // scaled by speed
   const H = habCapacityOutput.value.totalFinalCapacity; // max chickens
 
   const maxPossibleRate = R * H;
 
-  const time = solveForTime(parsedAmount.value, P0, I, R, maxPossibleRate);
+  const time = solveForTime(effectiveStoreAmount.value, P0, I, R, maxPossibleRate);
   return isFinite(time) ? time : Infinity;
 });
 
+// Variable-speed estimates for the UI preview
+const estimatedEggsShipped = computed(() => {
+  if (fuelSpeed.value >= 1.0 || timeToStoreSeconds.value <= 0) return 0;
+  const P0 = virtueStore.population;
+  const I = ihrOutput.value.offlineRate / 60;
+  const remainingR = layRateOutput.value.ratePerChickenPerSecond * (1 - fuelSpeed.value);
+  const S = shippingOutput.value.totalFinalCapacity; // eggs/sec shipping cap
+  const H = habCapacityOutput.value.totalFinalCapacity;
+  return integrateRate(timeToStoreSeconds.value, P0, I, remainingR, S, H);
+});
+
+const estimatedGemsEarned = computed(() => {
+  if (estimatedEggsShipped.value <= 0) return 0;
+  const snapshot = actionsStore.effectiveSnapshot;
+  const valuePerEgg = snapshot.elr > 0 ? snapshot.offlineEarnings / snapshot.elr : 0;
+  return estimatedEggsShipped.value * valuePerEgg;
+});
+
 // Validation
-const exceedsCapacity = computed(() => parsedAmount.value > fuelTankStore.availableCapacity);
-const canStore = computed(() => parsedAmount.value > 0 && !exceedsCapacity.value && isFinite(timeToStoreSeconds.value));
+const exceedsCapacity = computed(() => effectiveStoreAmount.value > fuelTankStore.availableCapacity);
+const canStore = computed(() => effectiveStoreAmount.value > 0 && !exceedsCapacity.value && isFinite(timeToStoreSeconds.value));
+
+// Parse a per-egg remove input
+function parsedRemoveAmount(egg: VirtueEgg): number {
+  const input = removeInputs.value[egg];
+  if (!input || !input.trim()) return 0;
+  const parsed = parseNumber(input);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+// Drain To mode: compute how much to remove to reach target remaining
+function drainDelta(egg: VirtueEgg): number {
+  return Math.max(0, fuelTankStore.fuelAmounts[egg] - parsedRemoveAmount(egg));
+}
+
+// The effective amount to remove for a given egg
+function effectiveRemoveAmount(egg: VirtueEgg): number {
+  if (removeMode.value === 'drainTo') return drainDelta(egg);
+  return parsedRemoveAmount(egg);
+}
 
 function canRemove(egg: VirtueEgg) {
-  const input = removeInputs.value[egg];
-  if (!input || !input.trim()) return false;
-  const amount = parseNumber(input);
-  return !isNaN(amount) && amount > 0 && fuelTankStore.fuelAmounts[egg] > 0;
+  const amount = effectiveRemoveAmount(egg);
+  return amount > 0 && fuelTankStore.fuelAmounts[egg] > 0;
 }
 
 function handleStoreFuel() {
@@ -286,8 +441,11 @@ function handleStoreFuel() {
 
   const payload = {
     egg: beforeSnapshot.currentEgg,
-    amount: parsedAmount.value,
+    amount: effectiveStoreAmount.value,
     timeSeconds: timeToStoreSeconds.value,
+    fuelSpeed: fuelSpeed.value,
+    eggsShippedDuringFuel: estimatedEggsShipped.value,
+    gemsEarnedDuringFuel: estimatedGemsEarned.value,
   };
 
   const dependencies = computeDependencies(
@@ -299,7 +457,6 @@ function handleStoreFuel() {
 
   // Apply to store
   fuelTankStore.addFuel(payload.egg, payload.amount);
-  truthEggsStore.addEggsDelivered(payload.egg, payload.amount);
 
   // Complete execution
   completeExecution(
@@ -321,15 +478,13 @@ function handleStoreFuel() {
 async function handleRemoveFuel(egg: VirtueEgg) {
   if (!canRemove(egg)) return;
 
-  const input = removeInputs.value[egg];
-  const amount = parseNumber(input);
+  // Compute actual amount to remove
+  let actualToRemove = effectiveRemoveAmount(egg);
 
-  // Cap at current amount and update UI
+  // Cap at current amount
   const currentAmount = fuelTankStore.fuelAmounts[egg];
-  let actualToRemove = amount;
-  if (amount > currentAmount) {
+  if (actualToRemove > currentAmount) {
     actualToRemove = currentAmount;
-    removeInputs.value[egg] = formatNumber(actualToRemove, 1);
   }
 
   if (actualToRemove <= 0) return;
