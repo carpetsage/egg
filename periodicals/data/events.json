@@ -25972,5 +25972,14 @@
     "startTimestamp": 1774886400,
     "type": "mission-fuel",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1775059200,
+    "id": "event-3-31",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1774972800,
+    "type": "shell-sale",
+    "ultra": false
   }
 ]
