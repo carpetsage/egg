@@ -28,3 +28,5 @@ onlyBuiltDependencies:
   - protobufjs
   - sharp
   - vue-demi
+
+minimumReleaseAge: 4320
