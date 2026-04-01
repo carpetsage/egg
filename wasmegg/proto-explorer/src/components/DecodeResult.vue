@@ -24,16 +24,20 @@
       </div>
     </div>
 
-    <div
-      v-show="decodedPayload !== null"
-      class="relative border border-gray-300 rounded-md h-[24rem] md:h-[32rem] lg:h-[40rem]"
-    >
-      <div ref="editorRef" class="h-full w-full overflow-auto"></div>
+    <div v-show="decodedPayload !== null" class="flex flex-col flex-1 relative" :style="{ minHeight: '24rem' }">
+      <div ref="editorRef" class="absolute h-full w-full border border-gray-300 rounded-md"></div>
       <copy-button
         class="absolute top-1 left-1 z-50"
         :content="formattedDecodedPayload"
         tooltip="Copy decoded payload as JSON"
       />
+      <button
+        class="absolute top-1 right-1 z-50 bg-white bg-opacity-80 rounded px-1.5 py-0.5 text-xs text-gray-600 border border-gray-300 hover:bg-gray-100"
+        title="Find (Ctrl+F)"
+        @click="openSearch"
+      >
+        Find
+      </button>
     </div>
 
     <div v-show="decodedPayload !== null" class="text-sm text-gray-700 flex flex-row flex-wrap items-center">
@@ -57,6 +61,7 @@ import { computed, defineComponent, onBeforeUnmount, onMounted, PropType, Ref, r
 import { EditorView, lineNumbers, highlightActiveLine, keymap } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { json } from '@codemirror/lang-json';
+import { syntaxHighlighting, defaultHighlightStyle, foldGutter, codeFolding, foldKeymap } from '@codemirror/language';
 import { searchKeymap, highlightSelectionMatches, openSearchPanel } from '@codemirror/search';
 import { defaultKeymap } from '@codemirror/commands';
 import * as $protobuf from 'protobufjs/minimal';
@@ -147,16 +152,20 @@ export default defineComponent({
           doc: formattedDecodedPayload.value,
           extensions: [
             lineNumbers(),
+            foldGutter(),
+            codeFolding(),
             highlightActiveLine(),
             highlightSelectionMatches(),
             json(),
+            syntaxHighlighting(defaultHighlightStyle),
             EditorView.lineWrapping,
             EditorState.readOnly.of(true),
             EditorState.tabSize.of(2),
-            keymap.of([...defaultKeymap, ...searchKeymap]),
+            keymap.of([...defaultKeymap, ...searchKeymap, ...foldKeymap]),
             EditorView.theme({
               '&': { height: '100%' },
               '.cm-scroller': { overflow: 'auto' },
+              '.cm-foldGutter': { width: '1.2em', textAlign: 'center' },
             }),
           ],
         }),
@@ -172,12 +181,17 @@ export default defineComponent({
       }
     });
 
+    const openSearch = () => {
+      if (editorView) openSearchPanel(editorView);
+    };
+
     onBeforeUnmount(() => {
       editorView?.destroy();
     });
 
     return {
       editorRef,
+      openSearch,
       eiValue,
       decodedPayload,
       decodedMAC,

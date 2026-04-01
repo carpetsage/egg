@@ -29,7 +29,7 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
 
-import { basicRequestInfo, CLIENT_VERSION, ei, getLocalStorage, setLocalStorage } from 'lib';
+import { basicRequestInfo, CLIENT_VERSION, ei, getLocalStorage, setLocalStorage, defaultUserId } from 'lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import ParameterInput from '@/components/ParameterInput.vue';
 import RequestButton from '@/components/RequestButton.vue';
@@ -60,7 +60,7 @@ export default defineComponent({
     };
 
     const getRequestPayloadObject = (): ContractCoopStatusRequestPayload => {
-      const uid = userId.value || atob('RUk1NDc5OTE2NjQyNzYyNzUy');
+      const uid = userId.value || defaultUserId;
       return {
         contractIdentifier: contractId.value,
         coopIdentifier: coopCode.value.toLowerCase(),

@@ -17,7 +17,7 @@ const CONFIG_GIST_URL =
 const TIMEOUT = 18000;
 
 // A valid userId donated by a volunteer.
-const defaultUserId = atob('RUk2MjkxOTQwOTY4MjM1MDA4');
+export const defaultUserId = atob('RUk2MjkxOTQwOTY4MjM1MDA4');
 
 /**
  * Makes an API request.
@@ -47,14 +47,15 @@ export async function request(endpoint: string, encodedPayload: string): Promise
     return text;
   } catch (e) {
     if (e instanceof Error && e.name === 'AbortError') {
-      throw new Error(`POST ${url} data=${encodedPayload}: timeout after ${TIMEOUT}ms.`);
+      throw new Error(`POST ${url}: timeout after ${TIMEOUT}ms.`, { cause: e });
     } else if (e instanceof TypeError) {
       throw new TypeError(
-        `POST ${url} data=${encodedPayload}: ${e} ` +
-          `(please check any ad/content blocking solution you might be using, e.g. uBlock, Brave, Pi-hole, NextDNS, etc.)`
+        `POST ${url}: ${e} ` +
+          `(please check any ad/content blocking solution you might be using, e.g. uBlock, Brave, Pi-hole, NextDNS, etc.)`,
+        { cause: e }
       );
     } else {
-      throw new Error(`POST ${url} data=${encodedPayload}: ${e}`);
+      throw new Error(`POST ${url} ${e}`, { cause: e });
     }
   }
 }
