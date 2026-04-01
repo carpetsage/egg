@@ -1,8 +1,8 @@
 <template>
   <api-requester
-    api-endpoint="/ei/coop_status_basic"
+    api-endpoint="/ei/coop_status_bot"
     request-message="ContractCoopStatusRequest"
-    response-message="JoinCoopResponse"
+    response-message="ContractCoopStatusResponse"
     :persist-form-data="persistFormData"
     :get-request-payload-object="getRequestPayloadObject"
   >
@@ -14,12 +14,7 @@
         placeholder="Ex: graviton-project"
         :required="true"
       />
-      <parameter-input
-        v-model.trim="coopCode"
-        name="coop_code"
-        label="Coop code"
-        :required="true"
-      />
+      <parameter-input v-model.trim="coopCode" name="coop_code" label="Coop code" :required="true" />
       <parameter-input
         v-model.trim="userId"
         name="user_id"
@@ -65,7 +60,7 @@ export default defineComponent({
     };
 
     const getRequestPayloadObject = (): ContractCoopStatusRequestPayload => {
-      const uid = userId.value || atob('RUk2MjkxOTQwOTY4MjM1MDA4');
+      const uid = userId.value || atob('RUk1NDc5OTE2NjQyNzYyNzUy');
       return {
         contractIdentifier: contractId.value,
         coopIdentifier: coopCode.value.toLowerCase(),

@@ -108,8 +108,8 @@ export default defineComponent({
         title: '/coop_status',
       },
       {
-        name: 'coop_status_basic',
-        title: '/coop_status_basic',
+        name: 'coop_status_bot',
+        title: '/coop_status_bot',
       },
       {
         name: 'contracts_archive',

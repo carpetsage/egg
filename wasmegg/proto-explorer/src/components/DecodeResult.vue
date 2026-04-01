@@ -24,8 +24,11 @@
       </div>
     </div>
 
-    <div v-show="decodedPayload !== null" class="flex flex-col flex-1 relative" :style="{ minHeight: '24rem' }">
-      <div ref="editorRef" class="absolute h-full w-full border border-gray-300 rounded-md"></div>
+    <div
+      v-show="decodedPayload !== null"
+      class="relative border border-gray-300 rounded-md h-[24rem] md:h-[32rem] lg:h-[40rem]"
+    >
+      <div ref="editorRef" class="h-full w-full overflow-auto"></div>
       <copy-button
         class="absolute top-1 left-1 z-50"
         :content="formattedDecodedPayload"
@@ -51,13 +54,12 @@
 
 <script lang="ts">
 import { computed, defineComponent, onBeforeUnmount, onMounted, PropType, Ref, ref, toRefs, watch } from 'vue';
-import { Ace, config, edit } from 'ace-builds';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/ext-searchbox';
-import AceWorkerJsonInline from 'ace-builds/src-noconflict/worker-json.js?url';
+import { EditorView, lineNumbers, highlightActiveLine, keymap } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
+import { json } from '@codemirror/lang-json';
+import { searchKeymap, highlightSelectionMatches, openSearchPanel } from '@codemirror/search';
+import { defaultKeymap } from '@codemirror/commands';
 import * as $protobuf from 'protobufjs/minimal';
-
-config.setModuleUrl('ace/mode/json_worker', AceWorkerJsonInline);
 
 import { decodeMessage, ei, formatEIValue } from 'lib';
 import CopyButton from '@/components/CopyButton.vue';
@@ -137,21 +139,41 @@ export default defineComponent({
     });
 
     const editorRef: Ref<HTMLElement | null> = ref(null);
-    let editor: Ace.Editor | null = null;
+    let editorView: EditorView | null = null;
 
     onMounted(() => {
-      editor = edit(editorRef.value!);
-      editor.setReadOnly(true);
-      editor.setOption('tabSize', 2);
-      editor.session.setMode('ace/mode/json');
-      editor.session.setUseWrapMode(true);
-      editor.session.setValue(formattedDecodedPayload.value);
+      editorView = new EditorView({
+        state: EditorState.create({
+          doc: formattedDecodedPayload.value,
+          extensions: [
+            lineNumbers(),
+            highlightActiveLine(),
+            highlightSelectionMatches(),
+            json(),
+            EditorView.lineWrapping,
+            EditorState.readOnly.of(true),
+            EditorState.tabSize.of(2),
+            keymap.of([...defaultKeymap, ...searchKeymap]),
+            EditorView.theme({
+              '&': { height: '100%' },
+              '.cm-scroller': { overflow: 'auto' },
+            }),
+          ],
+        }),
+        parent: editorRef.value!,
+      });
     });
 
-    watch(formattedDecodedPayload, () => editor?.session.setValue(formattedDecodedPayload.value));
+    watch(formattedDecodedPayload, () => {
+      if (editorView) {
+        editorView.dispatch({
+          changes: { from: 0, to: editorView.state.doc.length, insert: formattedDecodedPayload.value },
+        });
+      }
+    });
 
     onBeforeUnmount(() => {
-      editor?.destroy();
+      editorView?.destroy();
     });
 
     return {
