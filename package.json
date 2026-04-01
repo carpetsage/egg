@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@typescript-eslint/parser": "^8.57.2",
+    "@typescript-eslint/parser": "^8.58.0",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
@@ -9,9 +9,9 @@
     "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "prettier-eslint": "^16.4.2",
-    "syncpack": "^14.2.1",
+    "syncpack": "^14.3.0",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.57.2",
+    "typescript-eslint": "^8.58.0",
     "vue-eslint-parser": "^10.4.0"
   },
   "private": true,

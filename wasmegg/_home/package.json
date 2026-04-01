@@ -5,14 +5,14 @@
   "dependencies": {
     "lib": "workspace:^",
     "ui": "workspace:^",
-    "vue": "^3.5.30",
+    "vue": "^3.5.31",
     "vue-router": "^5.0.4",
     "vue-tippy": "^6.7.1"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
     "@vitejs/plugin-vue": "^6.0.5",
-    "@vue/compiler-sfc": "^3.5.30",
+    "@vue/compiler-sfc": "^3.5.31",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
     "sharp": "^0.34.5",

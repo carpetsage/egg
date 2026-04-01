@@ -22,8 +22,8 @@
     "jest": "^30.3.0",
     "pinia": "^3.0.4",
     "protobufjs-cli": "^2.0.0",
-    "ts-jest": "^29.4.6",
-    "vue": "^3.5.30"
+    "ts-jest": "^29.4.9",
+    "vue": "^3.5.31"
   },
   "license": "MIT",
   "main": "index.ts",

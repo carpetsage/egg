@@ -14,7 +14,7 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^1.0.6",
-    "@vue/runtime-core": "^3.5.30",
+    "@vue/runtime-core": "^3.5.31",
     "copy-text-to-clipboard": "^3.2.2",
     "dayjs": "^1.11.20",
     "diff": "^8.0.4",
@@ -25,7 +25,7 @@
     "safari-14-idb-fix": "^3.0.0",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
-    "vue": "^3.5.30",
+    "vue": "^3.5.31",
     "vue-router": "^5.0.4",
     "vue-tippy": "^6.7.1"
   },
@@ -35,7 +35,7 @@
     "@types/hogan.js": "^3.0.5",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vitejs/plugin-vue-jsx": "^5.1.5",
-    "@vue/compiler-sfc": "^3.5.30",
+    "@vue/compiler-sfc": "^3.5.31",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.4",

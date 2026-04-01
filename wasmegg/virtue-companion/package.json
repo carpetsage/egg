@@ -14,20 +14,20 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^1.0.6",
-    "@vue/runtime-core": "^3.5.30",
+    "@vue/runtime-core": "^3.5.31",
     "dayjs": "^1.11.20",
     "js-sha256": "^0.11.1",
     "lib": "workspace:^",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",
-    "vue": "^3.5.30",
+    "vue": "^3.5.31",
     "vue-tippy": "^6.7.1"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
     "@types/uuid": "^11.0.0",
     "@vitejs/plugin-vue": "^6.0.5",
-    "@vue/compiler-sfc": "^3.5.30",
+    "@vue/compiler-sfc": "^3.5.31",
     "autoprefixer": "^10.4.27",
     "pinia": "^3.0.4",
     "postcss": "^8.5.8",

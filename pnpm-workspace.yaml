@@ -29,4 +29,6 @@ onlyBuiltDependencies:
   - sharp
   - vue-demi
 
-minimumReleaseAge: 4320
+minimumReleaseAge: 2880
+minimumReleaseAgeExclude:
+  - ts-jest
