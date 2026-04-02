@@ -26008,5 +26008,14 @@
     "startTimestamp": 1775059200,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1775232000,
+    "id": "event-4-2",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1775145600,
+    "type": "boost-duration",
+    "ultra": false
   }
 ]
