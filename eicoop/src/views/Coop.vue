@@ -13,16 +13,16 @@
       </p>
     </div>
     <template v-if="false">
-      <coop-card-loader :contract-id="contractId" :coop-code="coopCode" :knownGrade="grade" @success="onSuccess" />
+      <coop-card-loader :contract-id="contractId" :coop-code="coopCode" :knownGrade="parsedGrade" @success="onSuccess" />
       <frequently-asked-questions />
     </template>
   </main>
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs } from 'vue';
+import { computed, defineComponent, toRefs } from 'vue';
 
-import { CoopStatus } from '@/lib';
+import { ei, CoopStatus } from '@/lib';
 import useHistoryStore, { HistoryCoopEntry } from '@/stores/history';
 import CoopCardLoader from '@/components/CoopCardLoader.vue';
 import FrequentlyAskedQuestions from '@/components/FrequentlyAskedQuestions.vue';
@@ -49,6 +49,9 @@ export default defineComponent({
   setup(props) {
     const historyStore = useHistoryStore();
     const { grade } = toRefs(props);
+    const parsedGrade = computed<ei.Contract.PlayerGrade | undefined>(() =>
+      grade.value ? (Number(grade.value) as ei.Contract.PlayerGrade) : undefined
+    );
     const onSuccess = (coopStatus: CoopStatus) => {
       const entry: HistoryCoopEntry = {
         contractId: coopStatus.contractId,
@@ -60,6 +63,7 @@ export default defineComponent({
       historyStore.addCoop(entry);
     };
     return {
+      parsedGrade,
       onSuccess,
     };
   },
