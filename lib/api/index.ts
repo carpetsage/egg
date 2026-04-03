@@ -14,7 +14,7 @@ const API_ROOT = 'https://egg-forwarder.carpet.workers.dev/?url=https://www.auxb
 
 const CONFIG_GIST_URL =
   'https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/config.json';
-const TIMEOUT = 18000;
+const TIMEOUT = 30000;
 
 // A valid userId donated by a volunteer.
 export const defaultUserId = atob('RUk2MjkxOTQwOTY4MjM1MDA4');
