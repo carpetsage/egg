@@ -143,6 +143,15 @@
         class="my-2 text-sm"
         @toggle="toggleSectionVisibility('earnings')"
       >
+        <div class="mb-2 flex items-center">
+          <input
+            id="always-video-doubler"
+            v-model="alwaysCountVideoDoubler"
+            type="checkbox"
+            class="h-4 w-4 text-green-600 border-gray-300 rounded focus:outline-none focus:ring-0 focus:ring-offset-0"
+          />
+          <label for="always-video-doubler" class="ml-2 text-sm text-gray-600">Always count video doubler</label>
+        </div>
         <p>
           Earning bonus:
           <base-e-i-value class="text-green-500" :value="earningBonus * 100" suffix="%" />,
@@ -160,8 +169,8 @@
           <base-e-i-value class="text-green-500" :value="earningRateOnlineMaxRCB * 2" suffix="/s" />
         </p>
         <p>
-          Earning rate (offline):
-          <base-e-i-value class="text-green-500" :value="earningRateOffline" suffix="/s" />
+          Earning rate (offline{{ alwaysCountVideoDoubler ? ', video doubler on' : '' }}):
+          <base-e-i-value class="text-green-500" :value="earningRateOfflineWithDoubler" suffix="/s" />
         </p>
         <p class="mt-1">Drone values at max RCB:</p>
         <ul>
@@ -567,6 +576,15 @@ export default defineComponent({
         }
       );
     }
+    const VIDEO_DOUBLER_LOCALSTORAGE_KEY = 'enlightenment_alwaysCountVideoDoubler';
+    const alwaysCountVideoDoubler = ref(getLocalStorage(VIDEO_DOUBLER_LOCALSTORAGE_KEY) !== 'false');
+    watch(alwaysCountVideoDoubler, () => {
+      setLocalStorage(VIDEO_DOUBLER_LOCALSTORAGE_KEY, alwaysCountVideoDoubler.value.toString());
+    });
+    const earningRateOfflineWithDoubler = computed(() =>
+      alwaysCountVideoDoubler.value ? earningRateOffline * 2 : earningRateOffline
+    );
+
     const calculateAndFormatDuration = (target: number, rate: number): string => {
       if (target <= 0) {
         return '-';
@@ -591,8 +609,8 @@ export default defineComponent({
         calc: calculateAndFormatDuration,
       },
       {
-        rate: earningRateOffline,
-        description: 'Offline earnings',
+        rate: earningRateOfflineWithDoubler.value,
+        description: alwaysCountVideoDoubler.value ? 'Offline earnings, video 2x' : 'Offline earnings',
         calc: calculateAndFormatDuration,
       },
       {
@@ -652,6 +670,8 @@ export default defineComponent({
       earningRateOnlineBaseline,
       earningRateOnlineMaxRCB,
       earningRateOffline,
+      earningRateOfflineWithDoubler,
+      alwaysCountVideoDoubler,
       droneValuesAtMaxRCB,
       cashTargetPreDiscount,
       cashTargetNAHPreDiscount,
