@@ -15,14 +15,23 @@ export interface PlanData {
 }
 
 /**
- * Hash a string using SHA-256.
+ * Hash a string using SHA-256. Returns the full 64-char hex string.
+ * Used as the local IndexedDB partition key.
  */
 export async function hashID(id: string): Promise<string> {
     if (!id) return 'anonymous';
-    const msgUint8 = new TextEncoder().encode(id.toLowerCase());
+    const msgUint8 = new TextEncoder().encode(id.toLowerCase().trim());
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Compute the 16-char hex prefix of the SHA-256 of a lowercased EID.
+ * Used as the cloud storage partition key (matches the worker's hashEid()).
+ */
+export async function cloudEidHash(id: string): Promise<string> {
+    return (await hashID(id)).substring(0, 16);
 }
 
 function openDB(): Promise<IDBDatabase> {

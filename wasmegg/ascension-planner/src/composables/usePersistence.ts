@@ -6,6 +6,7 @@ import { exportPlanData } from '@/stores/actions/io';
 const SYNC_CHANNEL_NAME = 'ascension_sync';
 const channel = new BroadcastChannel(SYNC_CHANNEL_NAME);
 const partitionHash = ref('');
+const rawEid = ref('');
 const isSyncing = ref(false);
 
 // Generate a unique session ID for this tab that persists through refreshes
@@ -93,6 +94,7 @@ async function loadActiveDraft() {
 
 export function usePersistence() {
   async function initPersistence(eid: string) {
+    rawEid.value = eid;
     partitionHash.value = await hashID(eid);
     await loadActiveDraft();
   }
@@ -152,6 +154,7 @@ export function usePersistence() {
     queryOtherTabs,
     busyPlanIds,
     partitionHash,
+    rawEid,
     sessionId,
   };
 }

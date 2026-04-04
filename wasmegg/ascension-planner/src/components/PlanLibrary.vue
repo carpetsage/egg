@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, nextTick } from 'vue';
 import { useActionsStore } from '@/stores/actions';
 import { usePersistence } from '@/composables/usePersistence';
+import { useCloudSync } from '@/composables/useCloudSync';
 import { loadLibraryPlans, deletePlanFromLibrary, savePlanToLibrary, type PlanData } from '@/lib/storage/db';
 import { downloadFile } from '@/utils/export';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
@@ -9,7 +10,51 @@ import ImportCollisionDialog from '@/components/ImportCollisionDialog.vue';
 import PlanAlreadyOpenWarning from '@/components/PlanAlreadyOpenWarning.vue';
 
 const actionsStore = useActionsStore();
-const { partitionHash, broadcastLibraryUpdate, broadcastPresence, busyPlanIds } = usePersistence();
+const { partitionHash, broadcastLibraryUpdate, broadcastPresence, busyPlanIds, rawEid } = usePersistence();
+const cloudSync = useCloudSync();
+
+const eid = rawEid;
+const syncResult = ref<{ downloaded: number; uploaded: number; skipped: number } | null>(null);
+const showSyncResult = ref(false);
+/** planId → 'uploading' | 'deleting' for per-row loading state */
+const cloudPlanOp = ref<Record<string, 'uploading' | 'deleting'>>({});
+
+async function handleCloudUploadPlan(plan: PlanData) {
+  if (!eid.value || cloudPlanOp.value[plan.id]) return;
+  cloudPlanOp.value = { ...cloudPlanOp.value, [plan.id]: 'uploading' };
+  try {
+    await cloudSync.uploadPlan(eid.value, plan);
+  } catch (e) {
+    console.warn('Cloud upload failed', e);
+  } finally {
+    const next = { ...cloudPlanOp.value };
+    delete next[plan.id];
+    cloudPlanOp.value = next;
+  }
+}
+
+async function handleSyncAll() {
+  if (!partitionHash.value || !eid.value) return;
+  try {
+    const result = await cloudSync.syncAll(eid.value, partitionHash.value);
+    syncResult.value = result;
+    showSyncResult.value = true;
+    setTimeout(() => { showSyncResult.value = false; }, 5000);
+    await refreshPlans();
+    broadcastLibraryUpdate();
+  } catch {
+    // Error is in cloudSync.syncError
+  }
+}
+
+function formatLastSync(ts: number | null): string {
+  if (!ts) return 'Never';
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 5) return 'Just now';
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return new Date(ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
 
 const plans = ref<PlanData[]>([]);
 const isLoading = ref(true);
@@ -59,6 +104,10 @@ async function loadPlan(plan: PlanData) {
   try {
     broadcastPresence(plan.id); // Immediate heartbeat to block other tabs
     await actionsStore.loadPlanFromLibrary(plan);
+    // Touch cloud record to update lastAccessed (fire-and-forget)
+    if (eid.value) {
+      cloudSync.touchPlan(eid.value, plan.id).catch(() => {});
+    }
     emit('plan-loaded');
   } catch (err) {
     alert('Failed to load plan: ' + err);
@@ -98,6 +147,10 @@ async function executeDelete() {
     await deletePlanFromLibrary(partitionHash.value, planToDelete.value.id);
     if (actionsStore.activePlanId === planToDelete.value.id) {
       actionsStore.activePlanId = null;
+    }
+    // Also remove from cloud (best-effort)
+    if (eid.value) {
+      cloudSync.deletePlanFromCloud(eid.value, planToDelete.value.id).catch(console.warn);
     }
     broadcastLibraryUpdate();
     await refreshPlans();
@@ -484,9 +537,67 @@ const emit = defineEmits(['plan-loaded']);
                 />
               </svg>
             </button>
+            <template v-if="eid && cloudSync.isAvailable.value">
+              <button
+                class="p-0.5 sm:p-1 text-gray-400 hover:text-sky-600 disabled:opacity-40"
+                v-tippy="'Upload to cloud'"
+                :disabled="!!cloudPlanOp[plan.id]"
+                :class="{ 'animate-pulse': cloudPlanOp[plan.id] === 'uploading' }"
+                @click="handleCloudUploadPlan(plan)"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </button>
+            </template>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Cloud Backup section -->
+    <div v-if="cloudSync.isAvailable.value" class="px-4 py-3 border-t border-gray-100">
+      <div class="flex items-center gap-1.5 mb-2">
+        <svg class="w-3.5 h-3.5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+        </svg>
+        <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Cloud Backup</span>
+      </div>
+      <div v-if="!eid" class="text-[10px] text-amber-600">Enter your EID above to enable cloud sync.</div>
+      <template v-else>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
+            class="flex items-center gap-1 text-xs text-sky-600 hover:text-sky-800 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="cloudSync.isSyncing.value"
+            @click="handleSyncAll"
+          >
+            <svg
+              class="w-3.5 h-3.5"
+              :class="{ 'animate-spin': cloudSync.isSyncing.value }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {{ cloudSync.isSyncing.value ? 'Syncing…' : 'Sync Now' }}
+          </button>
+          <span class="text-[10px] text-gray-400">
+            Last sync: {{ formatLastSync(cloudSync.lastSyncTime.value) }}
+          </span>
+        </div>
+
+        <!-- Sync result flash -->
+        <div v-if="showSyncResult && syncResult" class="mt-1.5 text-[10px] text-sky-700 font-medium">
+          ✓ {{ syncResult.downloaded }} downloaded &middot; {{ syncResult.uploaded }} uploaded
+          <span v-if="syncResult.skipped"> &middot; {{ syncResult.skipped }} already in sync</span>
+        </div>
+
+        <!-- Error display -->
+        <div v-if="cloudSync.syncError.value" class="mt-1.5 text-[10px] text-red-600 break-all">
+          {{ cloudSync.syncError.value }}
+        </div>
+      </template>
     </div>
 
     <div class="bg-amber-50 px-4 py-3 border-t border-amber-100 flex items-start">
@@ -499,8 +610,8 @@ const emit = defineEmits(['plan-loaded']);
         />
       </svg>
       <p class="text-[11px] text-amber-700 leading-relaxed uppercase tracking-tight font-medium">
-        Plans are stored locally in this browser. Clearing site data will delete your library. Use "Export All" to
-        create external backups.
+        Plans are stored locally in this browser. Clearing site data will delete your library. Use "Export All" or
+        enable cloud backup to keep your plans safe.
       </p>
     </div>
   </div>
