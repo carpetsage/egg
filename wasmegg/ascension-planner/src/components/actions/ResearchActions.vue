@@ -137,7 +137,7 @@ function getTimeToBuySeconds(research: CommonResearch): number {
  * Buy a single level of research and create the action.
  * Returns true if successful, false if already maxed.
  */
-function buyOneLevel(research: CommonResearch): boolean {
+function buyOneLevel(research: CommonResearch, isSmartBuy: boolean = false): boolean {
   const currentLevel = commonResearchStore.researchLevels[research.id] || 0;
   if (currentLevel >= research.levels) return false;
 
@@ -174,7 +174,7 @@ function buyOneLevel(research: CommonResearch): boolean {
       timestamp: Date.now(),
       type: 'buy_research',
       payload,
-      cost,
+      cost: isSmartBuy ? 0 : cost,
       dependsOn: dependencies,
     },
     beforeSnapshot
@@ -250,7 +250,7 @@ function handleSmartBuy(threshold: number) {
         // Find the first one below threshold
         const found = candidates.find(c => c.seconds <= threshold);
         if (found) {
-          if (buyOneLevel(found.research)) {
+          if (buyOneLevel(found.research, true)) {
             itemBought = true;
           }
         }
