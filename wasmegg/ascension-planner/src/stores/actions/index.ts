@@ -58,6 +58,8 @@ export const useActionsStore = defineStore('actions', {
       lastSavedActionsJson: '[]',
       libraryUpdateTick: 0,
       manualOverrides: JSON.parse(localStorage.getItem('ascension_manual_overrides') || '{}') as Record<string, Record<string, boolean>>,
+      isCloudSyncing: false,
+      cloudSyncError: null,
     };
   },
 
@@ -684,6 +686,16 @@ export const useActionsStore = defineStore('actions', {
         },
       };
       localStorage.setItem('ascension_manual_overrides', JSON.stringify(this.manualOverrides));
+    },
+
+    // ── Cloud sync ────────────────────────────────────────────────────────
+
+    setCloudSyncError(error: string | null) {
+      this.cloudSyncError = error;
+    },
+
+    setCloudSyncing(syncing: boolean) {
+      this.isCloudSyncing = syncing;
     },
   },
 });

@@ -54,8 +54,8 @@
       "esbuild",
       "protobufjs",
       "sharp",
-      "unrs-resolver",
-      "vue-demi"
+      "vue-demi",
+      "workerd"
     ]
   }
 }

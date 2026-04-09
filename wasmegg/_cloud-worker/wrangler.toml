@@ -1,0 +1,9 @@
+name = "egg-cloud-storage"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[kv_namespaces]]
+binding = "WASMEGG_DATA"
+id = "ea5acf7700b64496a7e860b400079f80"
+preview_id = "a6ea789838aa4108a79d8090d85b65a5"

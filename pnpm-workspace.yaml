@@ -9,6 +9,7 @@ packages:
   - wasmegg/enlightenment
   - wasmegg/events
   - wasmegg/_home
+  - wasmegg/_cloud-worker
   - wasmegg/inventory-visualizer
   - wasmegg/legendary-study
   - wasmegg/loot-simulator

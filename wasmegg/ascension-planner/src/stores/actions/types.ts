@@ -25,4 +25,7 @@ export interface ActionsState {
   libraryUpdateTick: number;
   // Manual completion overrides for reconciliation, keyed by planId and actionId
   manualOverrides: Record<string, Record<string, boolean>>;
+  // Cloud sync
+  isCloudSyncing: boolean;
+  cloudSyncError: string | null;
 }
