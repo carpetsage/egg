@@ -127,7 +127,7 @@
             class="bg-blue-600 text-white hover:bg-blue-700 font-bold uppercase tracking-widest text-[10px] py-1.5 px-3 rounded shadow-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             :class="showDeadlineWarning ? 'bg-amber-500 hover:bg-amber-600' : ''"
             :disabled="!canBuyToHere"
-            v-tippy="deadlineWarningTooltip(buyToHereSeconds)"
+            v-tippy="deadlineWarningTooltip(buyToHereSeconds, buyToHereTooltip)"
             @click.stop="$emit('buyToHere')"
           >
             Buy to here
@@ -199,6 +199,7 @@ const props = defineProps<{
   timeToBuySeconds?: number;
   maxTimeSeconds?: number;
   buyToHereSeconds?: number;
+  buyToHereTooltip?: string;
   extraSeconds?: number;
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;
@@ -214,13 +215,17 @@ const baseTimestamp = computed(() => {
   return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
 });
 
-function deadlineWarningTooltip(seconds?: number) {
-  if (seconds === undefined) return '';
+function deadlineWarningTooltip(seconds?: number, extraText?: string) {
+  if (seconds === undefined) return extraText || '';
   const timeStr = formatAbsoluteTime(seconds, baseTimestamp.value, virtueStore.ascensionTimezone);
-  if (props.showDeadlineWarning) {
-    return `${timeStr} is after next Saturday at +0. Turn off the research sale to see realistic prices.`;
+  const warning = props.showDeadlineWarning
+    ? `${timeStr} is after next Saturday at +0. Turn off the research sale to see realistic prices.`
+    : timeStr;
+  
+  if (extraText) {
+    return `${extraText}\n\nEstimated completion: ${warning}`;
   }
-  return timeStr;
+  return warning;
 }
 
 defineEmits<{

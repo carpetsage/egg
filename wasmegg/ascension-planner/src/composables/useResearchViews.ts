@@ -61,6 +61,7 @@ export interface ResearchViewItem {
   extraStats?: string;
   extraLabel?: string;
   extraSeconds?: number;
+  buyToHereTooltip?: string;
 }
 
 export const VIEWS = [
@@ -337,18 +338,22 @@ export function useResearchViews() {
             pendingDividerTiers.delete(r.tier);
           }
 
-          const { timeToBuy, secondsToBuy } = formatTimeToBuy(item.price, currentSimSnapshot);
-          totalSeconds += secondsToBuy === Infinity ? 0 : secondsToBuy;
+          const { secondsToBuy: sequentialSecondsToBuy } = formatTimeToBuy(item.price, currentSimSnapshot);
+          totalSeconds += sequentialSecondsToBuy === Infinity ? 0 : sequentialSecondsToBuy;
+
+          const rawSnapshot = { ...currentSimSnapshot, bankValue: 0 };
+          const { timeToBuy: rawTimeToBuy, secondsToBuy: rawSecondsToBuy } = formatTimeToBuy(item.price, rawSnapshot);
 
           result.push({
             research: r,
             targetLevel: item.targetLevel,
             price: item.price,
             currentLevel: researchLevels[r.id] || 0,
-            timeToBuy: timeToBuy,
-            timeToBuySeconds: secondsToBuy,
+            timeToBuy: rawTimeToBuy,
+            timeToBuySeconds: rawSecondsToBuy,
             buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : '0s',
             buyToHereSeconds: totalSeconds,
+            buyToHereTooltip: totalSeconds < rawSecondsToBuy ? 'Includes existing gems from your bank. Individual research wait times show the time to save from 0.' : undefined,
             canBuy: true,
             isMaxed: false,
             showDivider: item.showDivider || false,
@@ -361,9 +366,9 @@ export function useResearchViews() {
             population: Math.min(
               currentSimSnapshot.habCapacity,
               currentSimSnapshot.population +
-              (currentSimSnapshot.offlineIHR / 60) * (secondsToBuy === Infinity ? 0 : secondsToBuy)
+              (currentSimSnapshot.offlineIHR / 60) * (sequentialSecondsToBuy === Infinity ? 0 : sequentialSecondsToBuy)
             ),
-            bankValue: 0,
+            bankValue: Math.max(0, (currentSimState.bankValue || 0) - item.price),
             researchLevels: {
               ...currentSimState.researchLevels,
               [r.id]: (currentSimState.researchLevels[r.id] || 0) + 1,
@@ -412,18 +417,22 @@ export function useResearchViews() {
         const key = `${r.id}-${item.targetLevel}`;
         if (!processed.has(key)) {
           processed.add(key);
-          const { timeToBuy, secondsToBuy } = formatTimeToBuy(item.price, currentSimSnapshot);
-          totalSeconds += secondsToBuy === Infinity ? 0 : secondsToBuy;
+          const { secondsToBuy: sequentialSecondsToBuy } = formatTimeToBuy(item.price, currentSimSnapshot);
+          totalSeconds += sequentialSecondsToBuy === Infinity ? 0 : sequentialSecondsToBuy;
+
+          const rawSnapshot = { ...currentSimSnapshot, bankValue: 0 };
+          const { timeToBuy: rawTimeToBuy, secondsToBuy: rawSecondsToBuy } = formatTimeToBuy(item.price, rawSnapshot);
 
           result.push({
             research: r,
             targetLevel: item.targetLevel,
             price: item.price,
             currentLevel: researchLevels[r.id] || 0,
-            timeToBuy: timeToBuy,
-            timeToBuySeconds: secondsToBuy,
+            timeToBuy: rawTimeToBuy,
+            timeToBuySeconds: rawSecondsToBuy,
             buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : '0s',
             buyToHereSeconds: totalSeconds,
+            buyToHereTooltip: totalSeconds < rawSecondsToBuy ? 'Includes existing gems from your bank. Individual research wait times show the time to save from 0.' : undefined,
             canBuy: true,
             isMaxed: false,
             showDeadlineWarning: isSale && (absoluteSimTime + totalSeconds > researchSaleDeadline.value),
