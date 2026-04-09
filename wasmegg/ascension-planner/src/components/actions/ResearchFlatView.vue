@@ -32,6 +32,7 @@
         :can-buy-to-here="view === 'cheapest' ? true : item.canBuyToHere"
         :buy-to-here-time="item.buyToHereTime"
         :buy-to-here-seconds="item.buyToHereSeconds"
+        :buy-to-here-tooltip="item.buyToHereTooltip"
         :extra-stats="item.extraStats"
         :extra-label="item.extraLabel"
         :extra-seconds="item.extraSeconds"
@@ -67,6 +68,7 @@ interface SortedResearchItem {
   timeToBuySeconds?: number;
   buyToHereTime?: string;
   buyToHereSeconds?: number;
+  buyToHereTooltip?: string;
   canBuyToHere?: boolean;
   showDivider?: boolean;
   unlockTier?: number;
