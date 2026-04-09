@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -34,6 +35,7 @@ var (
 
 	periodicalsURL = "https://www.auxbrain.com/ei/get_periodicals"
 	seasonInfoURL  = "https://www.auxbrain.com/ei_ctx/get_season_infos_v2"
+	configURL      = "https://www.auxbrain.com/ei/get_config"
 )
 
 var userID = os.Getenv("EI_USERID")
@@ -63,13 +65,28 @@ type ContractSeasonStore struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatal("Usage: go run main.go <command> [commands...]\nCommands: events, contracts, customeggs, download-customeggs, contractseasons")
+		log.Fatal("Usage: go run main.go <command> [commands...]\nCommands: events, contracts, customeggs, download-customeggs, contractseasons, getconfig")
+	}
+
+	var periodicalsArgs []string
+	for _, arg := range os.Args[1:] {
+		if arg == "getconfig" {
+			if err := updateConfig(); err != nil {
+				log.Fatalf("Failed to update config: %v", err)
+			}
+		} else {
+			periodicalsArgs = append(periodicalsArgs, arg)
+		}
+	}
+
+	if len(periodicalsArgs) == 0 {
+		return
 	}
 
 	ctx := context.Background()
+	var _ context.Context = ctx
 
 	// Get periodicals data
-	var _ context.Context = ctx
 	periodicalsResp, err := requestPeriodicals()
 	if err != nil {
 		log.Fatalf("Failed to fetch periodicals: %v", err)
@@ -77,7 +94,7 @@ func main() {
 
 	// Process commands in parallel
 	var wg sync.WaitGroup
-	for _, arg := range os.Args[1:] {
+	for _, arg := range periodicalsArgs {
 		wg.Add(1)
 		go func(cmd string) {
 			defer wg.Done()
@@ -193,6 +210,69 @@ func decodeProtoMessage(msg proto.Message, data []byte, authenticated bool) erro
 	}
 
 	return proto.Unmarshal(msgData, msg)
+}
+
+// requestConfig fetches the game config from the EI API
+func requestConfig() (*ConfigResponse, error) {
+	req := &ConfigRequest{
+		Rinfo: createBasicRequestInfo(),
+	}
+
+	decoded, err := makeAPIRequest(configURL, req)
+	if err != nil {
+		return nil, err
+	}
+
+	configResp := &ConfigResponse{}
+	if err := decodeProtoMessage(configResp, decoded, true); err != nil {
+		return nil, fmt.Errorf("failed to decode config response: %w", err)
+	}
+
+	return configResp, nil
+}
+
+// deleteFieldsRecursive walks a JSON-decoded value and removes named fields at any depth
+func deleteFieldsRecursive(v interface{}, fields ...string) {
+	switch val := v.(type) {
+	case map[string]interface{}:
+		for _, f := range fields {
+			delete(val, f)
+		}
+		for _, child := range val {
+			deleteFieldsRecursive(child, fields...)
+		}
+	case []interface{}:
+		for _, child := range val {
+			deleteFieldsRecursive(child, fields...)
+		}
+	}
+}
+
+// updateConfig fetches the game config, strips time-sensitive fields, and writes config.json
+func updateConfig() error {
+	configResp, err := requestConfig()
+	if err != nil {
+		return err
+	}
+
+	jsonBytes, err := protojson.Marshal(configResp)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config to JSON: %w", err)
+	}
+
+	var data interface{}
+	if err := json.Unmarshal(jsonBytes, &data); err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %w", err)
+	}
+
+	deleteFieldsRecursive(data, "secondsUntilAvailable", "secondsRemaining")
+
+	stripped, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal stripped JSON: %w", err)
+	}
+
+	return os.WriteFile("config.json", append(stripped, '\n'), 0644)
 }
 
 // requestPeriodicals makes an API request to get periodicals data

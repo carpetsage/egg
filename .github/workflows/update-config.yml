@@ -9,29 +9,32 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: update-egg-config-gist
+        working-directory: periodicals
     steps:
       - uses: actions/checkout@v6
-      - name: Set up Node
-        uses: actions/setup-node@v6
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with: 
-          python-version: '>=3.13'
-      - name: Install uv
-        id: install-uv
-        uses: astral-sh/setup-uv@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
         with:
-          version: "0.5.24"
-          enable-cache: true
-          cache-suffix: config-gist
-      - name: Install dependencies
+          go-version: '>=1.24'
+      - name: Fetch config
         run: |
-          uv sync
-      - name: Update Gist
-        run: |
-          ./update-config.sh
+          go run main.go ei.pb.go getconfig
         env:
-          GITHUB_TOKEN: ${{ secrets.GIST_UPDATER_TOKEN }}
-          GIST_ID: ${{ secrets.EGG_CONFIG_GIST_ID }}
           EI_USERID: ${{ secrets.EI_USERID }}
+      - name: Update Gist if changed
+        run: |
+          if [ ! -s config.json ]; then
+            echo "config.json is empty, skipping"
+            exit 0
+          fi
+          gh gist view "$GIST_ID" --filename config.json > /tmp/gist_config.json 2>/dev/null || true
+          if ! diff -q config.json /tmp/gist_config.json > /dev/null 2>&1; then
+            echo "Config changed, updating gist"
+            jq -n --rawfile content config.json '{"files":{"config.json":{"content":$content}}}' \
+              | gh api --method PATCH "/gists/$GIST_ID" --input -
+          else
+            echo "No change"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GIST_UPDATER_TOKEN }}
+          GIST_ID: ${{ secrets.EGG_CONFIG_GIST_ID }}
