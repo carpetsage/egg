@@ -63,6 +63,11 @@
           Always On
         </button>
       </div>
+      
+      <!-- Note -->
+      <p class="text-[10px] text-slate-500 text-center px-2 leading-tight">
+        Note: Smart Buy will never spend gems from your bank.
+      </p>
     </div>
   </div>
 </template>
