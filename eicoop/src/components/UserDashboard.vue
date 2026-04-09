@@ -188,7 +188,7 @@
       :known-grade="params.grade"
       :refresh-key="coopRefreshKey"
       :user-id="userId"
-      :auto-load="autoLoadCoops"
+      :from-dashboard="true"
     />
   </template>
 </template>
@@ -205,7 +205,7 @@ import {
   getProphecyEggsProgress,
   getUserActiveSoloContracts,
   getUserBackupTime,
-  getLocalStorageNoPrefix,
+  setLocalStorage,
   SoloStatus,
   useEidsStore,
 } from '@/lib';
@@ -281,9 +281,6 @@ export default defineComponent({
     const soloStatuses = computed(() =>
       getUserActiveSoloContracts(backup.value).map(solo => new SoloStatus(solo, backup.value))
     );
-
-    const autoLoadCoops = ref(getLocalStorageNoPrefix('autoLoadCoops') === 'true');
-
     const housekeeping = () => {
       coopParams.value.forEach(coop => contractStore.addContract(coop.contract));
       soloStatuses.value.forEach(solo => contractStore.addContract(solo.contract));
@@ -314,8 +311,8 @@ export default defineComponent({
       triggerRefresh,
       eids,
       eidsStore,
+      setLocalStorage,
       USER_ID_LOCALSTORAGE_KEY,
-      autoLoadCoops,
     };
   },
 });

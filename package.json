@@ -49,13 +49,6 @@
       "allowedVersions": {
         "protobufjs-cli>protobufjs": "^8.0.0"
       }
-    },
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "protobufjs",
-      "sharp",
-      "unrs-resolver",
-      "vue-demi"
-    ]
+    }
   }
 }
