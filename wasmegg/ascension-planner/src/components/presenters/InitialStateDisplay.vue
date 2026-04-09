@@ -44,7 +44,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
           <div>
             <div class="text-sm font-bold text-slate-700">Starting Egg</div>
-            <div class="hidden sm:block text-[10px] uppercase font-black text-slate-400 tracking-wider">Initial virtue candidate</div>
+            <div class="hidden sm:block text-[10px] uppercase font-black text-slate-400 tracking-wider">Initial Egg</div>
           </div>
           <div class="flex gap-2 justify-between w-full sm:w-auto mt-1 sm:mt-0">
             <button
@@ -57,7 +57,7 @@
                   : 'border-slate-100 bg-slate-50 opacity-60 hover:opacity-100 hover:border-slate-200',
               ]"
               v-tippy="VIRTUE_EGG_NAMES[egg]"
-              @click="$emit('set-initial-egg', egg)"
+              @click="handleInitialEggClick(egg)"
             >
               <img
                 :src="iconURL(`egginc/egg_${egg}.png`, 64)"
@@ -652,6 +652,13 @@ const props = defineProps<{
   activeArtifactSet: import('@/types').ArtifactSetName | null;
   colleggtibleTiers: import('@/lib/colleggtibles').ColleggtibleTiers;
 }>();
+
+function handleInitialEggClick(egg: VirtueEgg) {
+  if (props.initialEgg === egg) return;
+  if (confirm('Changing the initial egg will reset your entire plan. Are you sure you want to continue?')) {
+    emit('set-initial-egg', egg);
+  }
+}
 
 const emit = defineEmits<{
   'set-epic-research-level': [researchId: string, level: number];
