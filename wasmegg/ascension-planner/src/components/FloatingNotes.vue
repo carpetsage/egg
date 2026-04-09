@@ -143,7 +143,7 @@ import type { PlannerNote } from '@/stores/notes';
 
 const notesStore = useNotesStore();
 
-const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+const isCollapsed = ref(true);
 
 const newNoteText = ref('');
 
