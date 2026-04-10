@@ -1044,6 +1044,7 @@ async function planNextAscension() {
     shippingCapacityStore.$reset();
     silosStore.$reset();
     notesStore.$reset();
+    virtueStore.setBankValue(0);
 
     // 7. Set starting egg to Curiosity
     virtueStore.setCurrentEgg('curiosity');

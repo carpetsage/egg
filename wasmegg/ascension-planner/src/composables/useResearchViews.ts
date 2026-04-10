@@ -649,7 +649,9 @@ export function useResearchViews() {
           // (Price / Earnings) = Seconds to buy
           // (Seconds / 3600) = Hours to buy
           // HPP = Hours / (Impact * 100)
-          const secondsToBuy = getTimeToSave(price, actionsStore.effectiveSnapshot);
+          // Use a snapshot with bankValue zeroed so hpp reflects pure earnings time, not savings.
+          const noBankSnapshot = { ...actionsStore.effectiveSnapshot, bankValue: 0 };
+          const secondsToBuy = getTimeToSave(price, noBankSnapshot);
           const hoursToBuy = secondsToBuy / 3600;
           const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
 
