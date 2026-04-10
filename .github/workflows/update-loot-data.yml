@@ -12,6 +12,8 @@ jobs:
         working-directory: wasmegg/artifact-explorer
     steps:
       - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
       - name: Update Loot Data
         run: |
           git pull --rebase
