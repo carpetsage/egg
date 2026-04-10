@@ -265,7 +265,7 @@ func updateConfig() error {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
-	deleteFieldsRecursive(data, "secondsUntilAvailable", "secondsRemaining")
+	deleteFieldsRecursive(data, "secondsUntilAvailable", "secondsRemaining", "shellsShowcasLastFeaturedTime")
 
 	stripped, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
