@@ -31,7 +31,7 @@ jobs:
           if ! diff -q config.json /tmp/gist_config.json > /dev/null 2>&1; then
             echo "Config changed, updating gist"
             jq -n --rawfile content config.json '{"files":{"config.json":{"content":$content}}}' \
-              | gh api --method PATCH "/gists/$GIST_ID" --input -
+              | gh api --method PATCH "/gists/$GIST_ID" --input - --silent
           else
             echo "No change"
           fi
