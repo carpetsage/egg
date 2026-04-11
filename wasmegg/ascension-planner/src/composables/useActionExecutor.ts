@@ -67,8 +67,8 @@ export function useActionExecutor() {
         actionsStore.actions,
         fullAction,
         actionsStore.editingInsertIndex,
-        idsToRemove => {
-          actionsStore.removeActions(idsToRemove);
+        async idsToRemove => {
+          await actionsStore.removeActions(idsToRemove);
         }
       );
 
@@ -79,7 +79,7 @@ export function useActionExecutor() {
       }
 
       // Insert at the correct position and replay subsequent actions
-      actionsStore.insertAction(fullAction, replayAction);
+      await actionsStore.insertAction(fullAction, replayAction);
 
       // Restore to the state after all replays (current state)
       // SKIP restoration if in batch mode - we want to keep the virtual state
