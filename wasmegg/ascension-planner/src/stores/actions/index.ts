@@ -406,7 +406,7 @@ export const useActionsStore = defineStore('actions', {
 
       startAction.payload.initialEgg = egg;
 
-      const keptActions = [startAction];
+      const keptActions: Action[] = [startAction];
       let foundWait = false;
 
       for (let i = 1; i < this.actions.length; i++) {

@@ -44,6 +44,8 @@ export function getSimulationContext(): SimulationContext {
 export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | null): EngineState {
   const virtueStore = useVirtueStore();
   const initialStateStore = useInitialStateStore();
+  const silosStore = useSilosStore();
+  const fuelTankStore = useFuelTankStore();
 
   // If a specific snapshot is provided (e.g. from existing action history), use it.
   // Otherwise, read the current "base" state from the hydrated stores.
@@ -71,6 +73,7 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
       bankValue: initialSnapshot.bankValue || 0,
       activeSales: { ...initialSnapshot.activeSales },
       earningsBoost: { ...initialSnapshot.earningsBoost },
+      tankLevel: initialSnapshot.tankLevel || 0,
     };
   }
 
