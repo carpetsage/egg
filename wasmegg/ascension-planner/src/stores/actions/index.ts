@@ -683,6 +683,8 @@ export const useActionsStore = defineStore('actions', {
 
       if (!skipRecalculate) {
         await this.recalculateFrom(0);
+      } else {
+        syncStoresToSnapshot(this.effectiveSnapshot);
       }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
       return true;
