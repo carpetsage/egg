@@ -129,6 +129,7 @@ export interface CalculationsSnapshot {
   soulEggs: number;
   siloCount: number;
   siloTimeMinutes: number;
+  tankLevel: number;
   fuelTankAmounts: Record<VirtueEgg, number>;
   eggsDelivered: Record<VirtueEgg, number>;
   teEarned: Record<VirtueEgg, number>;
