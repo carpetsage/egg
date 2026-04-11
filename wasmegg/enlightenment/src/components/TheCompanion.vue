@@ -163,6 +163,10 @@
           Earning rate (offline):
           <base-e-i-value class="text-green-500" :value="earningRateOffline" suffix="/s" />
         </p>
+        <p>
+          Earning rate (offline, video doubler on):
+          <base-e-i-value class="text-green-500" :value="earningRateOffline * 2" suffix="/s" />
+        </p>
         <p class="mt-1">Drone values at max RCB:</p>
         <ul>
           <li>Elite: <base-e-i-value class="text-green-500" :value="droneValuesAtMaxRCB.elite" /></li>
@@ -593,6 +597,11 @@ export default defineComponent({
       {
         rate: earningRateOffline,
         description: 'Offline earnings',
+        calc: calculateAndFormatDuration,
+      },
+      {
+        rate: earningRateOffline * 2,
+        description: 'Offline earnings w/ video 2x',
         calc: calculateAndFormatDuration,
       },
       {
