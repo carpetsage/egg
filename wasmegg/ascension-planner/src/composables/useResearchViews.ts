@@ -69,6 +69,7 @@ export interface ResearchViewItem {
   extraLabel?: string;
   extraSeconds?: number;
   buyToHereTooltip?: string;
+  realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
 }
 
 export const VIEWS = [
@@ -732,7 +733,7 @@ export function useResearchViews() {
         isMaxed: boolean;
         impact: number;
         hpp: number;
-        realisticStats?: { layRate: number; shippingRate: number; elr: number };
+        realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
         showDeadlineWarning: boolean;
       }[];
 

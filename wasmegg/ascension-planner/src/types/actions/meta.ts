@@ -164,6 +164,7 @@ export function createEmptySnapshot(): CalculationsSnapshot {
     soulEggs: 0,
     siloCount: 1,
     siloTimeMinutes: 60,
+    tankLevel: 0,
     fuelTankAmounts: {
       curiosity: 0,
       integrity: 0,

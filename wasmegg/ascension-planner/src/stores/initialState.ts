@@ -27,6 +27,7 @@ import {
 } from '@/lib/artifacts';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { useTruthEggsStore, VIRTUE_TE_ORDER } from './truthEggs';
+import { useFuelTankStore } from './fuelTank';
 
 export interface InitialStateStoreState {
   // Whether data has been loaded from a backup
