@@ -32,7 +32,7 @@
       Current egg is <img :src="eggIconURL" class="inline h-8 w-8" />, not
       <img :src="enlightenmentEggIconURL" class="inline h-8 w-8" />!
     </p>
-    <template v-else>
+    <template v-if="egg === enlightenmentEgg || devmode">
       <p class="text-sm">
         Last save population:
         <span class="text-green-500 tabular-nums">
@@ -346,6 +346,7 @@ import {
   setLocalStorage,
   getNumTruthEggs,
   maxModifierFromColleggtibles,
+  getDevModeOn,
 } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
@@ -618,7 +619,10 @@ export default defineComponent({
       setLocalStorage(TARGET_TS_LOCALSTORAGE_KEY, target_ts.value);
     });
 
+    const devmode = getDevModeOn();
+
     return {
+      devmode,
       nickname,
       lastRefreshed,
       lastRefreshedTimestamp,
