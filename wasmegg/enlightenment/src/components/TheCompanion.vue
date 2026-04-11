@@ -32,7 +32,7 @@
       Current egg is <img :src="eggIconURL" class="inline h-8 w-8" />, not
       <img :src="enlightenmentEggIconURL" class="inline h-8 w-8" />!
     </p>
-    <template v-if="egg === enlightenmentEgg || devmode">
+    <template v-if="(egg === enlightenmentEgg) || devmode">
       <p class="text-sm">
         Last save population:
         <span class="text-green-500 tabular-nums">
