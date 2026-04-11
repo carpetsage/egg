@@ -2,14 +2,9 @@ import type { EngineState, SimulationContext } from './types';
 import type { CalculationsSnapshot } from '@/types';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
-import { useCommonResearchStore } from '@/stores/commonResearch';
-import { useHabCapacityStore } from '@/stores/habCapacity';
-import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useSilosStore } from '@/stores/silos';
 import { useFuelTankStore } from '@/stores/fuelTank';
-import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useActionsStore } from '@/stores/actions';
-import { createEmptySnapshot } from '@/types';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { getLocalTimestampInTimezone } from '@/lib/events';
 
@@ -59,6 +54,7 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
       habIds: [...initialSnapshot.habIds],
       researchLevels: { ...initialSnapshot.researchLevels },
       siloCount: initialSnapshot.siloCount,
+      tankLevel: initialSnapshot.tankLevel || 0,
       artifactLoadout: initialSnapshot.artifactLoadout.map(slot => ({
         artifactId: slot.artifactId,
         stones: [...slot.stones],
@@ -73,29 +69,18 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
       bankValue: initialSnapshot.bankValue || 0,
       activeSales: { ...initialSnapshot.activeSales },
       earningsBoost: { ...initialSnapshot.earningsBoost },
-      tankLevel: initialSnapshot.tankLevel || 0,
     };
   }
 
-  // Fallback to reading from InitialStateStore.
-  // IMPORTANT: We do NOT read from the live farm stores (commonResearchStore, etc.)
-  // because those represent the results of the current simulation.
-  // We only use the stores that hold the DEFINITION of the player (InitialStateStore, VirtueStore).
-
-  // We always use empty defaults for the base state.
-  // Farm state (research, habs, vehicles) should only be populated via a
-  // Start Ascension action if the user chooses to "Continue Ascension".
+  // Fallback state
   return {
-    // We always start curiosity by default; start_ascension will override this.
     currentEgg: 'curiosity',
-
     shiftCount: virtueStore.initialShiftCount,
     te: virtueStore.initialTE,
     soulEggs: initialStateStore.soulEggs,
 
-    // Defaults for a new farm
-    vehicles: [{ vehicleId: 0, trainLength: 1 }], // Default Trike
-    habIds: [0, null, null, null], // Default Coop
+    vehicles: [{ vehicleId: 0, trainLength: 1 }], 
+    habIds: [0, null, null, null],
     researchLevels: {},
     siloCount: silosStore.siloCount || 1,
     tankLevel: fuelTankStore.tankLevel || 0,
