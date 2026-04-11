@@ -32,10 +32,12 @@
         :can-buy-to-here="view === 'cheapest' ? true : item.canBuyToHere"
         :buy-to-here-time="item.buyToHereTime"
         :buy-to-here-seconds="item.buyToHereSeconds"
+        :buy-to-here-tooltip="item.buyToHereTooltip"
         :extra-stats="item.extraStats"
         :extra-label="item.extraLabel"
         :extra-seconds="item.extraSeconds"
         :hpp="item.hpp"
+        :realistic-stats="item.realisticStats"
         :recommendation-note="item.recommendationNote"
         :show-sale-warning="item.showSaleWarning"
         :show-deadline-warning="item.showDeadlineWarning"
@@ -67,6 +69,7 @@ interface SortedResearchItem {
   timeToBuySeconds?: number;
   buyToHereTime?: string;
   buyToHereSeconds?: number;
+  buyToHereTooltip?: string;
   canBuyToHere?: boolean;
   showDivider?: boolean;
   unlockTier?: number;
@@ -74,6 +77,7 @@ interface SortedResearchItem {
   extraLabel?: string;
   extraSeconds?: number;
   hpp?: number;
+  realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
   recommendationNote?: string;
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;

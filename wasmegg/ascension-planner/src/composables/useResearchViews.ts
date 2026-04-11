@@ -17,12 +17,19 @@ import { useVirtueStore } from '@/stores/virtue';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
-import { calculateMaxVehicleSlots, calculateMaxTrainLength } from '@/calculations/shippingCapacity';
+import { calculateMaxVehicleSlots, calculateMaxTrainLength, calculateShippingCapacity } from '@/calculations/shippingCapacity';
 import { getNextPacificTime } from '@/lib/events';
 import { type CalculationsSnapshot } from '@/types';
+import { getOptimalELRSet } from '@/lib/artifacts/virtue';
+import { calculateArtifactModifiers } from '@/lib/artifacts';
+import { calculateLayRate } from '@/calculations/layRate';
+import { calculateEffectiveLayRate } from '@/calculations/effectiveLayRate';
+import { calculateHabCapacity_Full } from '@/calculations/habCapacity';
 import { createSimAction } from '@/types/actions/meta';
 
 export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr';
+export type ElrViewMode = 'realistic' | 'potential';
+export type ElrSortMode = 'efficiency' | 'impact';
 
 /**
  * Common interface for research items across different views.
@@ -61,6 +68,8 @@ export interface ResearchViewItem {
   extraStats?: string;
   extraLabel?: string;
   extraSeconds?: number;
+  buyToHereTooltip?: string;
+  realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
 }
 
 export const VIEWS = [
@@ -95,6 +104,56 @@ const ELR_EXCLUDED_CATEGORIES = [
   'egg_value',
 ];
 
+/**
+ * Compute ELR using the full pipeline with given research levels, artifact mods, max habs/vehicles.
+ */
+function computeRealisticELR(
+  researchLevels: Record<string, number>,
+  artifactMods: ReturnType<typeof calculateArtifactModifiers>,
+  epicResearchLevels: Record<string, number>,
+  colleggtibleModifiers: any,
+): { layRate: number; shippingRate: number; effectiveRate: number } {
+  const habCapOutput = calculateHabCapacity_Full({
+    habIds: [18, 18, 18, 18] as (number | null)[],
+    researchLevels,
+    peggMultiplier: colleggtibleModifiers.habCap,
+    artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
+    artifactEffects: artifactMods.habCapacity.effects,
+  });
+  const population = habCapOutput.totalFinalCapacity;
+
+  const layRateOutput = calculateLayRate({
+    researchLevels,
+    epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
+    siliconMultiplier: colleggtibleModifiers.elr,
+    population,
+    artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
+    artifactEffects: artifactMods.eggLayingRate.effects,
+  });
+
+  const totalSlots = calculateMaxVehicleSlots(researchLevels);
+  const maxTrainLen = calculateMaxTrainLength(researchLevels);
+  const vehicles = Array(totalSlots).fill(null).map(() => ({ vehicleId: 11, trainLength: maxTrainLen }));
+
+  const shippingOutput = calculateShippingCapacity({
+    vehicles,
+    researchLevels,
+    transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
+    colleggtibleMultiplier: colleggtibleModifiers.shippingCap,
+    artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
+    artifactEffects: artifactMods.shippingRate.effects,
+  });
+
+  const layRate = layRateOutput.totalRatePerSecond;
+  const shippingRate = shippingOutput.totalFinalCapacity;
+
+  return {
+    layRate,
+    shippingRate,
+    effectiveRate: Math.min(layRate, shippingRate),
+  };
+}
+
 export function useResearchViews() {
   const commonResearchStore = useCommonResearchStore();
   const initialStateStore = useInitialStateStore();
@@ -102,6 +161,32 @@ export function useResearchViews() {
   const virtueStore = useVirtueStore();
 
   const currentView = ref<ViewType>('game');
+  const elrViewMode = ref<ElrViewMode>('realistic');
+  const elrSortMode = ref<ElrSortMode>('efficiency');
+
+  const realisticSummary = computed(() => {
+    const rawBackup = initialStateStore.rawBackup;
+    if (!rawBackup || elrViewMode.value !== 'realistic') return null;
+
+    const researchLevels = commonResearchStore.researchLevels;
+    const context = getSimulationContext();
+    
+    const optimal = getOptimalELRSet(rawBackup, {
+      assumeMaxHabsVehicles: true,
+      excludeGusset: false,
+      commonResearch: researchLevels,
+      epicResearchLevels: context.epicResearchLevels,
+      colleggtibleModifiers: context.colleggtibleModifiers,
+    });
+    const artifactMods = calculateArtifactModifiers(optimal);
+    const stats = computeRealisticELR(researchLevels, artifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
+
+    return {
+      layRate: stats.layRate * 3600,
+      shippingRate: stats.shippingRate * 3600,
+      elr: stats.effectiveRate * 3600,
+    };
+  });
 
   const viewDescription = computed(() => {
     switch (currentView.value) {
@@ -111,8 +196,19 @@ export function useResearchViews() {
         return 'All unpurchased researches sorted by price. Strategically unlock tiers with "Buy to here".';
       case 'roi':
         return 'Prioritizes upgrades that pay for themselves fastest based on your current earnings.';
-      case 'elr':
-        return 'Sorts by theoretical maximum potential impact to Egg Laying Rate, ignoring current bottlenecks.';
+      case 'elr': {
+        const view = elrViewMode.value;
+        const sort = elrSortMode.value;
+        if (view === 'potential' && sort === 'efficiency') {
+          return 'Theoretical max impact to ELR, sorted by time efficiency.';
+        } else if (view === 'potential' && sort === 'impact') {
+          return 'Theoretical max impact to ELR, sorted by total impact.';
+        } else if (view === 'realistic' && sort === 'efficiency') {
+          return 'True ELR impact with optimal artifacts and max habs/vehicles, sorted by time efficiency.';
+        } else {
+          return 'True ELR impact with optimal artifacts and max habs/vehicles, sorted by total impact.';
+        }
+      }
       default:
         return '';
     }
@@ -337,18 +433,22 @@ export function useResearchViews() {
             pendingDividerTiers.delete(r.tier);
           }
 
-          const { timeToBuy, secondsToBuy } = formatTimeToBuy(item.price, currentSimSnapshot);
-          totalSeconds += secondsToBuy === Infinity ? 0 : secondsToBuy;
+          const { secondsToBuy: sequentialSecondsToBuy } = formatTimeToBuy(item.price, currentSimSnapshot);
+          totalSeconds += sequentialSecondsToBuy === Infinity ? 0 : sequentialSecondsToBuy;
+
+          const rawSnapshot = { ...currentSimSnapshot, bankValue: 0 };
+          const { timeToBuy: rawTimeToBuy, secondsToBuy: rawSecondsToBuy } = formatTimeToBuy(item.price, rawSnapshot);
 
           result.push({
             research: r,
             targetLevel: item.targetLevel,
             price: item.price,
             currentLevel: researchLevels[r.id] || 0,
-            timeToBuy: timeToBuy,
-            timeToBuySeconds: secondsToBuy,
+            timeToBuy: rawTimeToBuy,
+            timeToBuySeconds: rawSecondsToBuy,
             buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : '0s',
             buyToHereSeconds: totalSeconds,
+            buyToHereTooltip: totalSeconds < rawSecondsToBuy ? 'Includes existing gems from your bank. Individual research wait times show the time to save from 0.' : undefined,
             canBuy: true,
             isMaxed: false,
             showDivider: item.showDivider || false,
@@ -361,9 +461,9 @@ export function useResearchViews() {
             population: Math.min(
               currentSimSnapshot.habCapacity,
               currentSimSnapshot.population +
-              (currentSimSnapshot.offlineIHR / 60) * (secondsToBuy === Infinity ? 0 : secondsToBuy)
+              (currentSimSnapshot.offlineIHR / 60) * (sequentialSecondsToBuy === Infinity ? 0 : sequentialSecondsToBuy)
             ),
-            bankValue: 0,
+            bankValue: Math.max(0, (currentSimState.bankValue || 0) - item.price),
             researchLevels: {
               ...currentSimState.researchLevels,
               [r.id]: (currentSimState.researchLevels[r.id] || 0) + 1,
@@ -412,18 +512,22 @@ export function useResearchViews() {
         const key = `${r.id}-${item.targetLevel}`;
         if (!processed.has(key)) {
           processed.add(key);
-          const { timeToBuy, secondsToBuy } = formatTimeToBuy(item.price, currentSimSnapshot);
-          totalSeconds += secondsToBuy === Infinity ? 0 : secondsToBuy;
+          const { secondsToBuy: sequentialSecondsToBuy } = formatTimeToBuy(item.price, currentSimSnapshot);
+          totalSeconds += sequentialSecondsToBuy === Infinity ? 0 : sequentialSecondsToBuy;
+
+          const rawSnapshot = { ...currentSimSnapshot, bankValue: 0 };
+          const { timeToBuy: rawTimeToBuy, secondsToBuy: rawSecondsToBuy } = formatTimeToBuy(item.price, rawSnapshot);
 
           result.push({
             research: r,
             targetLevel: item.targetLevel,
             price: item.price,
             currentLevel: researchLevels[r.id] || 0,
-            timeToBuy: timeToBuy,
-            timeToBuySeconds: secondsToBuy,
+            timeToBuy: rawTimeToBuy,
+            timeToBuySeconds: rawSecondsToBuy,
             buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : '0s',
             buyToHereSeconds: totalSeconds,
+            buyToHereTooltip: totalSeconds < rawSecondsToBuy ? 'Includes existing gems from your bank. Individual research wait times show the time to save from 0.' : undefined,
             canBuy: true,
             isMaxed: false,
             showDeadlineWarning: isSale && (absoluteSimTime + totalSeconds > researchSaleDeadline.value),
@@ -614,57 +718,147 @@ export function useResearchViews() {
 
     if (currentView.value === 'elr') {
       const researchLevels = commonResearchStore.researchLevels;
-      const currentSlots = calculateMaxVehicleSlots(researchLevels);
-      const currentMaxCars = calculateMaxTrainLength(researchLevels);
 
       const unpurchased = all.filter(r => (researchLevels[r.id] || 0) < r.levels && filterByCategories(r));
       const uniqueUnpurchased = Array.from(new Map(unpurchased.map(r => [r.id, r])).values());
 
-      const currentEarnings = actionsStore.effectiveSnapshot.offlineEarnings;
+      // Build candidate list based on view mode
+      let candidates: {
+        research: CommonResearch;
+        price: number;
+        currentLevel: number;
+        targetLevel: number;
+        timeToBuy: string;
+        canBuy: boolean;
+        isMaxed: boolean;
+        impact: number;
+        hpp: number;
+        realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
+        showDeadlineWarning: boolean;
+      }[];
 
-      const candidates = uniqueUnpurchased
-        .map(r => {
-          const level = researchLevels[r.id] || 0;
-          const price = getDiscountedVirtuePrice(r, level, mods, isSale);
-          let impact = 0;
+      if (elrViewMode.value === 'realistic') {
+        // Realistic mode: full ELR pipeline with optimal artifacts, max habs/vehicles, gusset included
+        const rawBackup = initialStateStore.rawBackup;
+        if (!rawBackup) return [];
 
-          if (FLEET_RESEARCH_IDS.includes(r.id)) {
-            impact = 1 / currentSlots;
-          } else if (r.id === TRAIN_CAR_RESEARCH_ID) {
-            impact = 1 / currentMaxCars;
-          } else {
-            impact = r.per_level / (1 + level * r.per_level);
-          }
+        const context = getSimulationContext();
+        
+        // Baseline: Optimal artifacts for CURRENT research levels
+        const baselineOptimal = getOptimalELRSet(rawBackup, {
+          assumeMaxHabsVehicles: true,
+          excludeGusset: false,
+          commonResearch: researchLevels,
+          epicResearchLevels: context.epicResearchLevels,
+          colleggtibleModifiers: context.colleggtibleModifiers,
+        });
+        const baselineArtifactMods = calculateArtifactModifiers(baselineOptimal);
+        const baseline = computeRealisticELR(researchLevels, baselineArtifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
 
-          // Hours per percentage point
-          // (Price / Earnings) = Seconds to buy
-          // (Seconds / 3600) = Hours to buy
-          // HPP = Hours / (Impact * 100)
-          const secondsToBuy = getTimeToSave(price, actionsStore.effectiveSnapshot);
-          const hoursToBuy = secondsToBuy / 3600;
-          const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
+        if (baseline.effectiveRate <= 0) return [];
 
-          return {
-            research: r,
-            price,
-            currentLevel: level,
-            targetLevel: level + 1,
-            timeToBuy: '',
-            canBuy: isTierUnlocked(researchLevels, r.tier),
-            isMaxed: false,
-            impact,
-            hpp,
-            showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuy > researchSaleDeadline.value),
-          };
-        })
-        .filter(c => c.impact > 0)
-        .sort((a, b) => {
+        candidates = uniqueUnpurchased
+          .map(r => {
+            const level = researchLevels[r.id] || 0;
+            const price = getDiscountedVirtuePrice(r, level, mods, isSale);
+
+            const tempLevels = { ...researchLevels, [r.id]: level + 1 };
+            
+            // Re-calculate OPTIMAL artifacts for THIS research level
+            const tempOptimal = getOptimalELRSet(rawBackup, {
+              assumeMaxHabsVehicles: true,
+              excludeGusset: false,
+              commonResearch: tempLevels,
+              epicResearchLevels: context.epicResearchLevels,
+              colleggtibleModifiers: context.colleggtibleModifiers,
+            });
+            
+            const tempArtifactMods = calculateArtifactModifiers(tempOptimal);
+            const stats = computeRealisticELR(tempLevels, tempArtifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
+            const impact = (stats.effectiveRate - baseline.effectiveRate) / baseline.effectiveRate;
+
+            const noBankSnapshot = { ...actionsStore.effectiveSnapshot, bankValue: 0 };
+            const secondsToBuy = getTimeToSave(price, noBankSnapshot);
+            const hoursToBuy = secondsToBuy / 3600;
+            const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
+
+            return {
+              research: r,
+              price,
+              currentLevel: level,
+              targetLevel: level + 1,
+              timeToBuy: '',
+              canBuy: isTierUnlocked(researchLevels, r.tier),
+              isMaxed: false,
+              impact,
+              hpp,
+              realisticStats: {
+                layRate: stats.layRate * 3600,
+                shippingRate: stats.shippingRate * 3600,
+                elr: stats.effectiveRate * 3600,
+                elrDelta: (stats.effectiveRate - baseline.effectiveRate) * 3600,
+              },
+              showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuy > researchSaleDeadline.value),
+            };
+          });
+      } else {
+        // Potential mode: theoretical formula-based impact
+        const currentSlots = calculateMaxVehicleSlots(researchLevels);
+        const currentMaxCars = calculateMaxTrainLength(researchLevels);
+
+        candidates = uniqueUnpurchased
+          .map(r => {
+            const level = researchLevels[r.id] || 0;
+            const price = getDiscountedVirtuePrice(r, level, mods, isSale);
+            let impact = 0;
+
+            if (FLEET_RESEARCH_IDS.includes(r.id)) {
+              impact = 1 / currentSlots;
+            } else if (r.id === TRAIN_CAR_RESEARCH_ID) {
+              impact = 1 / currentMaxCars;
+            } else {
+              impact = r.per_level / (1 + level * r.per_level);
+            }
+
+            // Hours per percentage point
+            // Use a snapshot with bankValue zeroed so hpp reflects pure earnings time, not savings.
+            const noBankSnapshot = { ...actionsStore.effectiveSnapshot, bankValue: 0 };
+            const secondsToBuy = getTimeToSave(price, noBankSnapshot);
+            const hoursToBuy = secondsToBuy / 3600;
+            const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
+
+            return {
+              research: r,
+              price,
+              currentLevel: level,
+              targetLevel: level + 1,
+              timeToBuy: '',
+              canBuy: isTierUnlocked(researchLevels, r.tier),
+              isMaxed: false,
+              impact,
+              hpp,
+              showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuy > researchSaleDeadline.value),
+            };
+          })
+          .filter(c => c.impact > 0);
+      }
+
+      // Sort based on elrSortMode
+      if (elrSortMode.value === 'efficiency') {
+        candidates.sort((a, b) => {
           if (a.canBuy !== b.canBuy) return a.canBuy ? -1 : 1;
           if (isFinite(a.hpp) || isFinite(b.hpp)) {
             if (a.hpp !== b.hpp) return a.hpp - b.hpp;
           }
           return b.impact - a.impact;
         });
+      } else {
+        candidates.sort((a, b) => {
+          if (a.canBuy !== b.canBuy) return a.canBuy ? -1 : 1;
+          if (a.impact !== b.impact) return b.impact - a.impact;
+          return a.hpp - b.hpp;
+        });
+      }
 
       return candidates.map(c => ({
         ...c,
@@ -679,6 +873,8 @@ export function useResearchViews() {
 
   return {
     currentView,
+    elrViewMode,
+    elrSortMode,
     viewDescription,
     costModifiers,
     isResearchSaleActive,
@@ -687,6 +883,7 @@ export function useResearchViews() {
     tierSummaries,
     gameViewTimes,
     sortedResearches,
+    realisticSummary,
     researchSaleDeadline,
     TIER_THRESHOLDS: TIER_UNLOCK_THRESHOLDS,
   };

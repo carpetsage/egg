@@ -14,6 +14,44 @@
       {{ viewDescription }}
     </p>
 
+    <ElrViewControls
+      v-if="currentView === 'elr'"
+      :view-mode="elrViewMode"
+      :sort-mode="elrSortMode"
+      @update:view-mode="elrViewMode = $event"
+      @update:sort-mode="elrSortMode = $event"
+    />
+
+    <!-- Realistic Mode Summary -->
+    <div 
+      v-if="currentView === 'elr' && elrViewMode === 'realistic' && realisticSummary"
+      class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"
+    >
+      <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-center">
+        <div class="flex flex-col">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">Lay Rate</span>
+          <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1" v-tippy="'Optimal artifacts applied, max population assumed'">
+            {{ formatNumber(realisticSummary.layRate) }}/hr
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">Shipping Cap</span>
+          <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1" v-tippy="'Optimal artifacts applied, max vehicles assumed'">
+            {{ formatNumber(realisticSummary.shippingRate) }}/hr
+          </span>
+        </div>
+        <div class="flex flex-col border-l border-gray-200 pl-6">
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">ELR</span>
+          <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1" v-tippy="'The lower of the two rates'">
+            {{ formatNumber(realisticSummary.elr) }}/hr
+          </span>
+        </div>
+      </div>
+      <p class="mt-2 text-[10px] text-gray-400 text-center italic leading-tight px-2">
+        Note: These stats reflect performance after maxing habs, vehicles, and equipping optimal stone layout.
+      </p>
+    </div>
+
     <!-- Game View (Grouped by Tier) -->
     <ResearchGameView
       v-if="currentView === 'game'"
@@ -65,7 +103,7 @@ import {
   isTierUnlocked,
   type CommonResearch,
 } from '@/calculations/commonResearch';
-import { formatDuration } from '@/lib/format';
+import { formatDuration, formatNumber } from '@/lib/format';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useActionsStore } from '@/stores/actions';
 import { useSalesStore } from '@/stores/sales';
@@ -81,6 +119,7 @@ import SmartBuy from './SmartBuy.vue';
 import ResearchViewSelector from './ResearchViewSelector.vue';
 import ResearchGameView from './ResearchGameView.vue';
 import ResearchFlatView from './ResearchFlatView.vue';
+import ElrViewControls from './ElrViewControls.vue';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
 import { useEventExpiry } from '@/composables/useEventExpiry';
 
@@ -102,6 +141,8 @@ let isSmartBuying = false;
 
 const {
   currentView,
+  elrViewMode,
+  elrSortMode,
   viewDescription,
   costModifiers,
   isResearchSaleActive,
@@ -110,6 +151,7 @@ const {
   tierSummaries,
   gameViewTimes,
   sortedResearches,
+  realisticSummary,
   researchSaleDeadline,
   TIER_THRESHOLDS,
 } = useResearchViews();
@@ -240,7 +282,8 @@ function handleSmartBuy(threshold: number) {
             return {
               research: r,
               price,
-              seconds: getTimeToSave(price, snapshot),
+              // Ignore bank so smart buy never factors in saved gems
+              seconds: getTimeToSave(price, { ...snapshot, bankValue: 0 }),
             };
           });
 

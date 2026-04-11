@@ -402,9 +402,47 @@ export const useActionsStore = defineStore('actions', {
 
     async setInitialEgg(egg: VirtueEgg) {
       const startAction = this.getStartAction();
-      if (startAction) {
-        startAction.payload.initialEgg = egg;
+      if (!startAction) return;
+
+      startAction.payload.initialEgg = egg;
+
+      const keptActions: Action[] = [startAction];
+      let foundWait = false;
+
+      for (let i = 1; i < this.actions.length; i++) {
+        const a = this.actions[i];
+        if (a.type === 'wait_for_full_habs' && !foundWait) {
+          keptActions.push(a);
+          foundWait = true;
+        } else if (a.type === 'shift') {
+          // As soon as we see the first shift, we stop considering any waits
+          break;
+        }
       }
+
+      keptActions.forEach((a, idx) => {
+        a.index = idx;
+        a.dependents = [];
+      });
+      
+      for (let i = 1; i < keptActions.length; i++) {
+        keptActions[i].dependsOn = [keptActions[i - 1].id];
+        keptActions[i - 1].dependents.push(keptActions[i].id);
+      }
+
+      this.actions = keptActions;
+
+      const keptIds = new Set(keptActions.map(a => a.id));
+      if (this.editingGroupId && !keptIds.has(this.editingGroupId)) {
+        this.editingGroupId = null;
+      }
+      for (const id of Array.from(this.expandedGroupIds)) {
+        if (!keptIds.has(id)) {
+          this.expandedGroupIds.delete(id);
+        }
+      }
+
+      await this.recalculateFrom(0);
     },
 
     setEditingGroup(groupId: string | null) {
@@ -645,6 +683,8 @@ export const useActionsStore = defineStore('actions', {
 
       if (!skipRecalculate) {
         await this.recalculateFrom(0);
+      } else {
+        syncStoresToSnapshot(this.effectiveSnapshot);
       }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
       return true;

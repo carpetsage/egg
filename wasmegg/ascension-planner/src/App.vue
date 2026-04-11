@@ -919,6 +919,8 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
           const earned = teEarnedPerEgg[egg];
           initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - earned));
         }
+
+        farm.lastStepTime = now;
       }
     }
 
@@ -971,6 +973,7 @@ async function quickContinueAscension(selection: 'earnings' | 'elr') {
   try {
     // 1. Reset date/time/TZ to current
     virtueStore.resetToCurrentDateTime();
+    virtueStore.setBankValue(0);
 
     // 3. Refresh backup (submitPlayerId)
     await submitPlayerId(playerId.value, selection === 'earnings' ? 'continue_earnings' : 'continue_elr');
@@ -1044,6 +1047,7 @@ async function planNextAscension() {
     shippingCapacityStore.$reset();
     silosStore.$reset();
     notesStore.$reset();
+    virtueStore.setBankValue(0);
 
     // 7. Set starting egg to Curiosity
     virtueStore.setCurrentEgg('curiosity');

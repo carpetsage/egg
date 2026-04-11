@@ -27,6 +27,7 @@ import {
 } from '@/lib/artifacts';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { useTruthEggsStore, VIRTUE_TE_ORDER } from './truthEggs';
+import { useFuelTankStore } from './fuelTank';
 
 export interface InitialStateStoreState {
   // Whether data has been loaded from a backup
@@ -59,6 +60,7 @@ export interface InitialStateStoreState {
   assumeDoubleEarnings: boolean;
 
   // Global progress metrics at start of ascension
+  initialTankLevel: number;
   initialFuelAmounts: Record<VirtueEgg, number>;
   initialEggsDelivered: Record<VirtueEgg, number>;
   initialTeEarned: Record<VirtueEgg, number>;
@@ -107,6 +109,7 @@ export const useInitialStateStore = defineStore('initialState', {
     currentFarmState: null,
     soulEggs: 1e21, // Default to 1s
     assumeDoubleEarnings: true,
+    initialTankLevel: 0,
     initialFuelAmounts: createEmptyVirtueMap(),
     initialEggsDelivered: createEmptyVirtueMap(),
     initialTeEarned: createEmptyVirtueMap(),
@@ -280,6 +283,7 @@ export const useInitialStateStore = defineStore('initialState', {
         resilience: tankFuels[23] ?? 0,
         kindness: tankFuels[24] ?? 0,
       };
+      this.initialTankLevel = tankLevel;
       this.initialFuelAmounts = { ...virtueFuelAmounts };
       this.initialEggsDelivered = { ...eggsDelivered };
       this.initialTeEarned = { ...teEarnedPerEgg };
@@ -485,7 +489,9 @@ export const useInitialStateStore = defineStore('initialState', {
         this.assumeDoubleEarnings = true;
       }
       this.currentFarmState = data.currentFarmState || null;
-
+      if (data.initialTankLevel !== undefined) {
+        this.initialTankLevel = data.initialTankLevel;
+      }
       if (data.initialFuelAmounts) {
         this.initialFuelAmounts = { ...data.initialFuelAmounts };
       }
@@ -502,10 +508,15 @@ export const useInitialStateStore = defineStore('initialState', {
         this.activeMissions = [...data.activeMissions];
       }
 
-      // Sync Truth Eggs Store if handled here
+      // Sync Truth Eggs Store
       const truthEggsStore = useTruthEggsStore();
       truthEggsStore.eggsDelivered = { ...this.initialEggsDelivered };
       truthEggsStore.teEarned = { ...this.initialTeEarned };
+
+      // Sync Fuel Tank Store
+      const fuelTankStore = useFuelTankStore();
+      fuelTankStore.tankLevel = this.initialTankLevel;
+      fuelTankStore.fuelAmounts = { ...this.initialFuelAmounts };
     },
 
     /**
@@ -552,6 +563,7 @@ export const useInitialStateStore = defineStore('initialState', {
       this.activeArtifactSet = null;
       this.soulEggs = 1e21;
       this.assumeDoubleEarnings = true;
+      this.initialTankLevel = 0;
       this.initialFuelAmounts = createEmptyVirtueMap();
       this.initialEggsDelivered = createEmptyVirtueMap();
       this.initialTeEarned = createEmptyVirtueMap();

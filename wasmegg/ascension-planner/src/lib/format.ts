@@ -7,15 +7,62 @@
  * Format a large number with suffixes (K, M, B, T, etc.) or scientific notation.
  *
  * @param value - The number to format
- * @param decimals - Number of decimal places (default: 2)
+ * @param decimals - Number of decimal places (default: 3)
  * @returns Formatted string
  *
  * @example
- * formatNumber(1234) // "1.23K"
- * formatNumber(1234567890) // "1.23B"
- * formatNumber(1e20) // "1.00e+20"
+ * formatNumber(1234) // "1.234K"
+ * formatNumber(1234567890) // "1.235B"
+ * formatNumber(1e20) // "1.000e+20"
  */
-export function formatNumber(value: number, decimals: number = 2): string {
+const SUFFIXES = [
+  '',
+  'K',
+  'M',
+  'B',
+  'T',
+  'q',
+  'Q',
+  's',
+  'S',
+  'o',
+  'N',
+  'd',
+  'U',
+  'D',
+  'Td',
+  'qd',
+  'Qd',
+  'sd',
+  'Sd',
+  'Od',
+  'Nd',
+  'V',
+  'uV',
+  'dV',
+  'tV',
+  'qV',
+  'QV',
+  'sV',
+  'Sv',
+  'OV',
+  'NV',
+  'tT',
+];
+
+/**
+ * Format a large number with suffixes (K, M, B, T, etc.) or scientific notation.
+ *
+ * @param value - The number to format
+ * @param decimals - Number of decimal places (default: 3)
+ * @returns Formatted string
+ *
+ * @example
+ * formatNumber(1234) // "1.234K"
+ * formatNumber(1234567890) // "1.235B"
+ * formatNumber(1e20) // "1.000e+20"
+ */
+export function formatNumber(value: number, decimals: number = 3): string {
   if (value === 0) return '0';
   if (!isFinite(value)) return '∞';
 
@@ -23,47 +70,13 @@ export function formatNumber(value: number, decimals: number = 2): string {
   if (Math.abs(value) < 1000) {
     result = value.toFixed(decimals);
   } else {
-    const suffixes = [
-      '',
-      'K',
-      'M',
-      'B',
-      'T',
-      'q',
-      'Q',
-      's',
-      'S',
-      'o',
-      'N',
-      'd',
-      'U',
-      'D',
-      'Td',
-      'qd',
-      'Qd',
-      'sd',
-      'Sd',
-      'Od',
-      'Nd',
-      'V',
-      'uV',
-      'dV',
-      'tV',
-      'qV',
-      'QV',
-      'sV',
-      'Sv',
-      'OV',
-      'NV',
-      'tT',
-    ];
     const magnitude = Math.floor(Math.log10(Math.abs(value)) / 3);
 
-    if (magnitude >= suffixes.length) {
+    if (magnitude >= SUFFIXES.length) {
       result = value.toExponential(decimals);
     } else {
       const scaled = value / Math.pow(1000, magnitude);
-      result = scaled.toFixed(decimals) + suffixes[magnitude];
+      result = scaled.toFixed(decimals) + SUFFIXES[magnitude];
     }
   }
 
@@ -77,6 +90,23 @@ export function formatNumber(value: number, decimals: number = 2): string {
   }
 
   return result;
+}
+
+/**
+ * Format a value using the same magnitude/suffix as a reference value.
+ * Useful for showing deltas next to a total (e.g. "1.234q (+0.001q)").
+ */
+export function formatWithReference(value: number, reference: number, decimals: number = 3): string {
+  if (value === 0) return '0';
+  if (!isFinite(value)) return '∞';
+
+  // If reference is small or exponential, just use standard formatting
+  if (Math.abs(reference) < 1000) return value.toFixed(decimals);
+  const magnitude = Math.floor(Math.log10(Math.abs(reference)) / 3);
+  if (magnitude >= SUFFIXES.length) return value.toExponential(decimals);
+
+  const scaled = value / Math.pow(1000, magnitude);
+  return scaled.toFixed(decimals) + SUFFIXES[magnitude];
 }
 
 /**
