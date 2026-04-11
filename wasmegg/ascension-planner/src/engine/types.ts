@@ -18,6 +18,7 @@ export interface EngineState {
   vehicles: VehicleSlot[];
   researchLevels: ResearchLevels;
   siloCount: number;
+  tankLevel: number;
 
   // Artifacts
   artifactLoadout: ArtifactSlotPayload[];

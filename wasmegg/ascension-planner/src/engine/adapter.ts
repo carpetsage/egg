@@ -94,7 +94,8 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
     vehicles: [{ vehicleId: 0, trainLength: 1 }], // Default Trike
     habIds: [0, null, null, null], // Default Coop
     researchLevels: {},
-    siloCount: 1,
+    siloCount: silosStore.siloCount || 1,
+    tankLevel: fuelTankStore.tankLevel || 0,
 
     artifactLoadout: initialStateStore.artifactLoadout.map(slot => ({
       artifactId: slot.artifactId,

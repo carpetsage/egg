@@ -9,6 +9,7 @@ import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useNotesStore } from '@/stores/notes';
+import { useSilosStore } from '@/stores/silos';
 import type { VirtueEgg, Action, CalculationsSnapshot } from '@/types';
 
 export function exportPlanData(actions: Action[], initialSnapshot?: CalculationsSnapshot, activePlanId: string | null = null) {
@@ -18,10 +19,14 @@ export function exportPlanData(actions: Action[], initialSnapshot?: Calculations
   const truthEggsStore = useTruthEggsStore();
   const notesStore = useNotesStore();
 
+  const silosStore = useSilosStore();
+
   const baseSoulEggs = initialSnapshot ? initialSnapshot.soulEggs : initialStateStore.soulEggs;
   const baseLoadout = initialSnapshot ? initialSnapshot.artifactLoadout : initialStateStore.artifactLoadout;
   const baseSets = initialSnapshot ? initialSnapshot.artifactSets : initialStateStore.artifactSets;
   const baseActiveSet = initialSnapshot ? initialSnapshot.activeArtifactSet : initialStateStore.activeArtifactSet;
+  const baseSiloCount = initialSnapshot ? initialSnapshot.siloCount : silosStore.siloCount;
+  const baseTankLevel = initialSnapshot ? (initialSnapshot.tankLevel ?? fuelTankStore.tankLevel) : fuelTankStore.tankLevel;
   const baseFuelAmounts = initialSnapshot ? initialSnapshot.fuelTankAmounts : fuelTankStore.fuelAmounts;
   const baseEggsDelivered = initialSnapshot ? initialSnapshot.eggsDelivered : truthEggsStore.eggsDelivered;
   const baseTeEarned = initialSnapshot ? initialSnapshot.teEarned : truthEggsStore.teEarned;
@@ -41,9 +46,11 @@ export function exportPlanData(actions: Action[], initialSnapshot?: Calculations
       activeArtifactSet: baseActiveSet,
       currentFarmState: initialStateStore.currentFarmState,
       assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
-      initialFuelAmounts: initialStateStore.initialFuelAmounts,
-      initialEggsDelivered: initialStateStore.initialEggsDelivered,
-      initialTeEarned: initialStateStore.initialTeEarned,
+      initialSiloCount: baseSiloCount,
+      initialTankLevel: baseTankLevel,
+      initialFuelAmounts: baseFuelAmounts,
+      initialEggsDelivered: baseEggsDelivered,
+      initialTeEarned: baseTeEarned,
     },
     virtueState: {
       shiftCount: virtueStore.initialShiftCount,
@@ -53,7 +60,7 @@ export function exportPlanData(actions: Action[], initialSnapshot?: Calculations
       ascensionTimezone: virtueStore.ascensionTimezone,
     },
     fuelTankState: {
-      tankLevel: fuelTankStore.tankLevel,
+      tankLevel: baseTankLevel,
       fuelAmounts: baseFuelAmounts,
     },
     truthEggsState: {

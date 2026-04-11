@@ -178,6 +178,7 @@ export function computeSnapshot(
     soulEggs: state.soulEggs,
     siloCount: state.siloCount,
     siloTimeMinutes,
+    tankLevel: state.tankLevel,
     fuelTankAmounts: state.fuelTankAmounts,
     eggsDelivered: state.eggsDelivered,
     teEarned: state.teEarned,
