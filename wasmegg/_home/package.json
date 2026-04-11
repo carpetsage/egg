@@ -19,7 +19,7 @@
     "svgo": "^4.0.1",
     "tailwindcss": "^3.4.4",
     "typescript": "^6.0.2",
-    "vite": "^8.0.2",
+    "vite": "^8.0.5",
     "vite-plugin-image-optimizer": "^2.0.3",
     "vue-tsc": "^3.2.6"
   },
