@@ -97,9 +97,9 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
     activeArtifactSet: initialStateStore.activeArtifactSet,
     artifactSets: JSON.parse(JSON.stringify(initialStateStore.artifactSets)),
 
-    population: 0,
-    lastStepTime: 0,
-    bankValue: 0,
+    population: initialStateStore.currentFarmState?.population || 0,
+    lastStepTime: initialStateStore.currentFarmState?.lastStepTime || 0,
+    bankValue: initialStateStore.currentFarmState?.cash || virtueStore.bankValue || 0,
     activeSales: {
       research: false,
       hab: false,

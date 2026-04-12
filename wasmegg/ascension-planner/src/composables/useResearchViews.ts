@@ -16,7 +16,7 @@ import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
-import { applyAction, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
+import { applyAction, applyTime, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength, calculateShippingCapacity } from '@/calculations/shippingCapacity';
 import { getNextPacificTime } from '@/lib/events';
 import { type CalculationsSnapshot } from '@/types';
@@ -282,15 +282,12 @@ export function useResearchViews() {
           }
           rSeconds += seconds;
 
-          rState = {
-            ...rState,
-            population: Math.min(rSnapshot.habCapacity, rSnapshot.population + (rSnapshot.offlineIHR / 60) * seconds),
-            bankValue: 0, // Reset bank after "buying"
-            researchLevels: {
-              ...rState.researchLevels,
-              [r.id]: l + 1,
-            },
-          };
+          rState = applyAction(rState, {
+            type: 'buy_research',
+            payload: { researchId: r.id, fromLevel: l, toLevel: l + 1 },
+            cost: price,
+          });
+          rState = applyTime(rState, seconds, rSnapshot);
           rSnapshot = computeSnapshot(rState, context);
         }
         resultResearches[r.id] = rInfinite ? '∞' : rSeconds < 0.1 ? '0s' : formatDuration(rSeconds);
@@ -316,18 +313,12 @@ export function useResearchViews() {
           }
           tierSeconds += seconds;
 
-          tierState = {
-            ...tierState,
-            population: Math.min(
-              tierSnapshot.habCapacity,
-              tierSnapshot.population + (tierSnapshot.offlineIHR / 60) * seconds
-            ),
-            bankValue: 0,
-            researchLevels: {
-              ...tierState.researchLevels,
-              [r.id]: l + 1,
-            },
-          };
+          tierState = applyAction(tierState, {
+            type: 'buy_research',
+            payload: { researchId: r.id, fromLevel: l, toLevel: l + 1 },
+            cost: price,
+          });
+          tierState = applyTime(tierState, seconds, tierSnapshot);
           tierSnapshot = computeSnapshot(tierState, context);
         }
         if (tierInfinite) break;
@@ -444,11 +435,10 @@ export function useResearchViews() {
             targetLevel: item.targetLevel,
             price: item.price,
             currentLevel: researchLevels[r.id] || 0,
-            timeToBuy: rawTimeToBuy,
-            timeToBuySeconds: rawSecondsToBuy,
+            timeToBuy: sequentialSecondsToBuy < 0.1 ? '0s' : formatDuration(sequentialSecondsToBuy),
+            timeToBuySeconds: sequentialSecondsToBuy,
             buyToHereTime: totalSeconds > 0 ? formatDuration(totalSeconds) : '0s',
             buyToHereSeconds: totalSeconds,
-            buyToHereTooltip: totalSeconds < rawSecondsToBuy ? 'Includes existing gems from your bank. Individual research wait times show the time to save from 0.' : undefined,
             canBuy: true,
             isMaxed: false,
             showDivider: item.showDivider || false,
@@ -456,19 +446,16 @@ export function useResearchViews() {
             showDeadlineWarning: isSale && (absoluteSimTime + totalSeconds > researchSaleDeadline.value),
           });
 
-          currentSimState = {
-            ...currentSimState,
-            population: Math.min(
-              currentSimSnapshot.habCapacity,
-              currentSimSnapshot.population +
-              (currentSimSnapshot.offlineIHR / 60) * (sequentialSecondsToBuy === Infinity ? 0 : sequentialSecondsToBuy)
-            ),
-            bankValue: Math.max(0, (currentSimState.bankValue || 0) - item.price),
-            researchLevels: {
-              ...currentSimState.researchLevels,
-              [r.id]: (currentSimState.researchLevels[r.id] || 0) + 1,
-            },
-          };
+          currentSimState = applyAction(currentSimState, {
+            type: 'buy_research',
+            payload: { researchId: r.id, fromLevel: item.targetLevel - 1, toLevel: item.targetLevel },
+            cost: item.price,
+          });
+          currentSimState = applyTime(
+            currentSimState,
+            sequentialSecondsToBuy === Infinity ? 0 : sequentialSecondsToBuy,
+            currentSimSnapshot
+          );
           currentSimSnapshot = computeSnapshot(currentSimState, context);
 
           const getMaxUnlocked = () =>
@@ -778,8 +765,9 @@ export function useResearchViews() {
             const impact = (stats.effectiveRate - baseline.effectiveRate) / baseline.effectiveRate;
 
             const noBankSnapshot = { ...actionsStore.effectiveSnapshot, bankValue: 0 };
-            const secondsToBuy = getTimeToSave(price, noBankSnapshot);
-            const hoursToBuy = secondsToBuy / 3600;
+            const secondsToBuyNoBank = getTimeToSave(price, noBankSnapshot);
+            const secondsToBuyWithBank = getTimeToSave(price, actionsStore.effectiveSnapshot);
+            const hoursToBuy = secondsToBuyNoBank / 3600;
             const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
 
             return {
@@ -798,7 +786,7 @@ export function useResearchViews() {
                 elr: stats.effectiveRate * 3600,
                 elrDelta: (stats.effectiveRate - baseline.effectiveRate) * 3600,
               },
-              showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuy > researchSaleDeadline.value),
+              showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline.value),
             };
           });
       } else {
@@ -823,8 +811,9 @@ export function useResearchViews() {
             // Hours per percentage point
             // Use a snapshot with bankValue zeroed so hpp reflects pure earnings time, not savings.
             const noBankSnapshot = { ...actionsStore.effectiveSnapshot, bankValue: 0 };
-            const secondsToBuy = getTimeToSave(price, noBankSnapshot);
-            const hoursToBuy = secondsToBuy / 3600;
+            const secondsToBuyNoBank = getTimeToSave(price, noBankSnapshot);
+            const secondsToBuyWithBank = getTimeToSave(price, actionsStore.effectiveSnapshot);
+            const hoursToBuy = secondsToBuyNoBank / 3600;
             const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
 
             return {
@@ -837,7 +826,7 @@ export function useResearchViews() {
               isMaxed: false,
               impact,
               hpp,
-              showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuy > researchSaleDeadline.value),
+              showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline.value),
             };
           })
           .filter(c => c.impact > 0);
