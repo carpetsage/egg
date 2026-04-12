@@ -523,8 +523,23 @@ watch(showExclusive, () => {
 watch(showNonExclusive, () => {
   setLocalStorage(SHOW_NONEXCLUSIVE_LOCALSTORAGE_KEY, showNonExclusive.value);
 });
+// Add shell IDs to exclude individual items.
+const EXCLUDED_IDS = new Set<string>([]);
+// Add shell set IDs to exclude all shells in a set.
+const EXCLUDED_SET_IDS = new Set<string>(['ancientstone']);
 const isUnavailable = (shellThingy: Shell | ShellObject | ShellSet): boolean =>
   unavailableShellIds.has(shellThingy.id);
+const hasShellSetId = (shellThingy: Shell | ShellObject | ShellSet): shellThingy is Shell =>
+  'setId' in shellThingy;
+const isExcluded = (shellThingy: Shell | ShellObject | ShellSet): boolean => {
+  if (EXCLUDED_IDS.has(shellThingy.id)) {
+    return true;
+  }
+  if (hasShellSetId(shellThingy) && !!shellThingy.setId) {
+    return EXCLUDED_SET_IDS.has(shellThingy.setId);
+  }
+  return false;
+};
 
 const lastRefreshed = ref(dayjs());
 const now = ref(dayjs());
@@ -1187,50 +1202,72 @@ function sum(arr: number[]) {
 }
 
 const shellsFlat = Object.values(shells).flat();
-const shellsFlatOwned = shellsFlat.filter(shell => shell.owned);
-const unavailableShellCount = shellsFlat.filter(shell => isUnavailable(shell)).length;
-const totalShells = shellsFlat.length - unavailableShellCount;
-const decoratorValueOwned = sum(decorators.filter(d => d.owned).map(d => d.totalPrice));
-const setVariationValueOwned = sum(shellSets.map(set => set.ownedVariationValue));
-const shellVariationValueOwned = sum(shellsFlat.map(shell => shell.ownedVariationValue));
+const visibleShellsFlat = shellsFlat.filter(shell => !isExcluded(shell));
+const countedShellsFlat = visibleShellsFlat.filter(shell => !isUnavailable(shell));
+function isShellSetWithNoVisibleMembers(shellThingy: Shell | ShellObject | ShellSet): boolean {
+  if (!shellSetIds.includes(shellThingy.id)) {
+    return false;
+  }
+  return !shellsFlat.some(shell => shell.setId === shellThingy.id && !isExcluded(shell));
+}
+const visibleShellSets = shellSets.filter(set => !isExcluded(set) && !isShellSetWithNoVisibleMembers(set));
+const visibleDecorators = decorators.filter(decorator => !isExcluded(decorator));
+const visibleObjects = objects.filter(obj => !isExcluded(obj));
+const shellsFlatOwned = countedShellsFlat.filter(shell => shell.owned);
+const totalShells = countedShellsFlat.length;
+const decoratorValueOwned = sum(visibleDecorators.filter(d => d.owned).map(d => d.totalPrice));
+const setVariationValueOwned = sum(visibleShellSets.map(set => set.ownedVariationValue));
+const shellVariationValueOwned = sum(countedShellsFlat.map(shell => shell.ownedVariationValue));
 const variationValueOwned = setVariationValueOwned + shellVariationValueOwned;
-const setVariationPriceToComplete = shellSets.reduce((acc, set) => {
+const setVariationPriceToComplete = visibleShellSets.reduce((acc, set) => {
   const missingVariationValue = set.variations
     .filter(variation => !variation.owned)
     .reduce((variationAcc, variation) => variationAcc + variation.price, 0);
   return acc + missingVariationValue;
 }, 0);
-const shellVariationPriceToComplete = shellsFlat.reduce((acc, shell) => {
+const shellVariationPriceToComplete = countedShellsFlat.reduce((acc, shell) => {
   const missingVariationValue = shell.variations
     .filter(variation => !variation.owned)
     .reduce((variationAcc, variation) => variationAcc + variation.price, 0);
   return acc + missingVariationValue;
 }, 0);
 const variationPriceToComplete = setVariationPriceToComplete + shellVariationPriceToComplete;
-const totalDecorators = decorators.length;
-const totalDecoratorsOwned = decorators.filter(d => d.owned).length;
+const totalDecorators = visibleDecorators.length;
+const totalDecoratorsOwned = visibleDecorators.filter(d => d.owned).length;
 const totalVariations =
-  shellSets.reduce((acc, set) => acc + set.variations.length, 0) +
-  shellsFlat.reduce((acc, shell) => acc + shell.variations.length, 0);
+  visibleShellSets.reduce((acc, set) => acc + set.variations.length, 0) +
+  countedShellsFlat.reduce((acc, shell) => acc + shell.variations.length, 0);
 const totalVariationsOwned =
-  shellSets.reduce((acc, set) => acc + set.variations.filter(variation => variation.owned).length, 0) +
-  shellsFlat.reduce((acc, shell) => acc + shell.variations.filter(variation => variation.owned).length, 0);
-const totalPieces = totalShells + objects.length + decorators.length + totalVariations;
+  visibleShellSets.reduce(
+    (acc, set) => acc + set.variations.filter(variation => variation.owned).length,
+    0
+  ) +
+  countedShellsFlat.reduce(
+    (acc, shell) => acc + shell.variations.filter(variation => variation.owned).length,
+    0
+  );
+const totalPieces = totalShells + visibleObjects.length + visibleDecorators.length + totalVariations;
 const totalPiecesOwned =
   shellsFlatOwned.length +
-  objects.filter(s => s.owned).length +
-  decorators.filter(d => d.owned).length +
+  visibleObjects.filter(s => s.owned).length +
+  visibleDecorators.filter(d => d.owned).length +
   totalVariationsOwned;
 const totalValueOwned =
   sum(shellsFlatOwned.map(s => s.price)) +
-  sum(objects.filter(s => s.owned).map(s => s.price)) +
+  sum(visibleObjects.filter(s => s.owned).map(s => s.price)) +
   decoratorValueOwned +
   variationValueOwned;
+const visibleSetPriceToComplete = visibleShellSets.reduce((acc, set) => {
+  const missingVisiblePiecesPrice = countedShellsFlat
+    .filter(shell => shell.setId === set.id && !shell.owned)
+    .reduce((shellAcc, shell) => shellAcc + shell.price, 0);
+  return acc + Math.round(missingVisiblePiecesPrice * (1 - set.discount));
+}, 0);
 const costToPurchaseEverything =
-  sum(shellSets.map(set => set.priceToComplete)) +
-  sum(shellsFlat.filter(s => !s.owned && !s.isPartOfSet).map(s => s.price)) +
-  sum(objects.filter(o => !o.owned).map(o => o.price)) +
-  sum(decorators.map(decorator => decorator.priceToComplete)) +
+  visibleSetPriceToComplete +
+  sum(countedShellsFlat.filter(s => !s.owned && !s.isPartOfSet).map(s => s.price)) +
+  sum(visibleObjects.filter(o => !o.owned).map(o => o.price)) +
+  sum(visibleDecorators.map(decorator => decorator.priceToComplete)) +
   variationPriceToComplete;
 
 const shellThingyHasVariations = (
@@ -1247,6 +1284,12 @@ const hasUnownedVariations = (shellThingy: Shell | ShellObject | ShellSet): bool
 };
 
 const showShellThingy = (shellThingy: Shell | ShellObject | ShellSet): boolean => {
+  if (isExcluded(shellThingy)) {
+    return false;
+  }
+  if (isShellSetWithNoVisibleMembers(shellThingy)) {
+    return false;
+  }
   const missingVariations = hasUnownedVariations(shellThingy);
   const matchesOwnershipFilter =
     (showOwned.value && shellThingy.owned) ||
