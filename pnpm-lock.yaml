@@ -94,8 +94,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
@@ -243,8 +243,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -313,8 +313,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -380,8 +380,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -435,8 +435,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -490,8 +490,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -557,8 +557,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -621,8 +621,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@types/uuid':
         specifier: ^11.0.0
         version: 11.0.0
@@ -685,8 +685,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -746,8 +746,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@types/fontfaceobserver':
         specifier: ^2.1.3
         version: 2.1.3
@@ -831,8 +831,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@types/diff':
         specifier: ^8.0.0
         version: 8.0.0
@@ -892,8 +892,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -999,8 +999,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -1145,8 +1145,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@types/sql.js':
         specifier: ^1.4.10
         version: 1.4.10
@@ -1230,8 +1230,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@types/uuid':
         specifier: ^11.0.0
         version: 11.0.0
@@ -1300,8 +1300,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@vitejs/plugin-vue':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.0.5(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.4.2)(yaml@2.8.3))(vue@3.5.31(typescript@6.0.2))
@@ -1361,8 +1361,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@types/uuid':
         specifier: ^11.0.0
         version: 11.0.0
@@ -1431,8 +1431,8 @@ importers:
         version: 6.7.1(vue@3.5.31(typescript@6.0.2))
     devDependencies:
       '@tailwindcss/forms':
-        specifier: ^0.5.10
-        version: 0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
+        specifier: ^0.5.11
+        version: 0.5.11(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))
       '@types/uuid':
         specifier: ^11.0.0
         version: 11.0.0
@@ -2438,11 +2438,6 @@ packages:
 
   '@sinonjs/fake-timers@15.1.1':
     resolution: {integrity: sha512-cO5W33JgAPbOh07tvZjUOJ7oWhtaqGHiZw+11DPbyqh2kHTBc3eF/CjJDeQ4205RLQsX6rxCuYOroFQwl7JDRw==}
-
-  '@tailwindcss/forms@0.5.10':
-    resolution: {integrity: sha512-utI1ONF6uf/pPNO68kmN1b8rEwNXv3czukalo8VtJH8ksIkZXr3Q3VYudZLkCsDd4Wku120uF02hYK25XGPorw==}
-    peerDependencies:
-      tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1 || >= 4.0.0-alpha.20 || >= 4.0.0-beta.1'
 
   '@tailwindcss/forms@0.5.11':
     resolution: {integrity: sha512-h9wegbZDPurxG22xZSoWtdzc41/OlNEUQERNqI/0fOwa2aVlWGu7C35E/x6LDyD3lgtztFSSjKZyuVM0hxhbgA==}
@@ -6275,20 +6270,20 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@tailwindcss/forms@0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))':
+  '@tailwindcss/forms@0.5.11(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))':
     dependencies:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.17(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2))
-
-  '@tailwindcss/forms@0.5.10(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))':
-    dependencies:
-      mini-svg-data-uri: 1.4.4
-      tailwindcss: 3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2))
 
   '@tailwindcss/forms@0.5.11(tailwindcss@3.4.19(yaml@2.8.3))':
     dependencies:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.19(yaml@2.8.3)
+
+  '@tailwindcss/forms@0.5.11(tailwindcss@3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2)))':
+    dependencies:
+      mini-svg-data-uri: 1.4.4
+      tailwindcss: 3.4.4(ts-node@10.9.2(@types/node@25.5.0)(typescript@6.0.2))
 
   '@tanstack/virtual-core@3.13.23': {}
 

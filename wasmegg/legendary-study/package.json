@@ -30,7 +30,7 @@
     "vue-tippy": "^6.7.1"
   },
   "devDependencies": {
-    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/forms": "^0.5.11",
     "@types/diff": "^8.0.0",
     "@types/hogan.js": "^3.0.5",
     "@vitejs/plugin-vue": "^6.0.5",
