@@ -26179,5 +26179,23 @@
     "startTimestamp": 1776009600,
     "type": "epic-research-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1776182400,
+    "id": "event-4-13",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1776096000,
+    "type": "earnings-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1776182400,
+    "id": "ultra-4-13",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1776096000,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
