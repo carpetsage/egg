@@ -9,7 +9,7 @@
     "dayjs": "^1.11.20",
     "js-sha256": "^0.11.1",
     "lib": "workspace:^",
-    "protobufjs": "^8.0.0",
+    "protobufjs": "^8.0.1",
     "safari-14-idb-fix": "^3.0.0",
     "tippy.js": "^6.3.7",
     "ui": "workspace:^",

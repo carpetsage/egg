@@ -29,7 +29,7 @@
     "pinia": "^3.0.4",
     "postcss": "^8.5.8",
     "postcss-inline-svg": "^6.0.0",
-    "protobufjs": "^8.0.0",
+    "protobufjs": "^8.0.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^6.0.2",
     "vite": "^8.0.5",
