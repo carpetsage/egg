@@ -26260,5 +26260,23 @@
     "startTimestamp": 1776441600,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1776614400,
+    "id": "event-4-18",
+    "message": "DOUBLE PRESTIGE!!",
+    "multiplier": 2,
+    "startTimestamp": 1776528000,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1776700800,
+    "id": "event-4-18-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1776528000,
+    "type": "piggy-boost",
+    "ultra": false
   }
 ]
