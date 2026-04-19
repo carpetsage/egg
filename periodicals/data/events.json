@@ -26278,5 +26278,32 @@
     "startTimestamp": 1776528000,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1776700800,
+    "id": "event-4-19",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1776614400,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1776787200,
+    "id": "event-4-19-2",
+    "message": "DOUBLE CAPACITY!",
+    "multiplier": 2,
+    "startTimestamp": 1776614400,
+    "type": "mission-capacity",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1776700800,
+    "id": "ultra-4-19",
+    "message": "3x FUELING!",
+    "multiplier": 3,
+    "startTimestamp": 1776614400,
+    "type": "mission-fuel",
+    "ultra": true
   }
 ]
