@@ -26350,5 +26350,23 @@
     "startTimestamp": 1776873600,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1777046400,
+    "id": "event-4-23",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1776960000,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1777046400,
+    "id": "ultra-4-23",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1776960000,
+    "type": "hab-sale",
+    "ultra": true
   }
 ]
