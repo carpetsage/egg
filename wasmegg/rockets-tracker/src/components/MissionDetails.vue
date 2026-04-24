@@ -64,11 +64,8 @@
             :class="artifactRarityBgClass(item.afxRarity) || 'bg-gray-200'"
           >
             <img :src="iconURL(`egginc/${item.tierProps.icon_filename}`, 128)" class="h-full w-full" />
-            <div
-              v-if="item.count > 1"
-              class="absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
-            >
-              <img :src="numberBadgeURL(item.count)" class="h-3 w-3" />
+            <div v-if="item.count > 1" :class="'artifact-count ' + numToDigClass(item.count)">
+              {{ item.count }}
             </div>
 
             <template #content>
@@ -175,7 +172,7 @@ import BaseLoading from 'ui/components/BaseLoading.vue';
 import MissionStarLevels from '@/components/MissionStarLevels.vue';
 
 import Type = ei.ArtifactSpec.Type;
-import { numberBadgeURL } from '@/badges';
+import { numToDigClass } from '@/badges';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -315,7 +312,7 @@ export default defineComponent({
       artifactRarityFgClass,
       artifactRarityBgClass,
       iconURL,
-      numberBadgeURL,
+      numToDigClass,
       showDev,
       copyUserId,
       copyMissionId,
