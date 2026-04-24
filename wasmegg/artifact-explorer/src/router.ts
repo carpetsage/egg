@@ -3,6 +3,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import Main from '@/views/Main.vue';
 import Mission from '@/views/Mission.vue';
 import Artifact from '@/views/Artifact.vue';
+import FuelTankPlanner from '@/views/FuelTankPlanner.vue';
 
 const router = createRouter({
   routes: [
@@ -25,6 +26,14 @@ const router = createRouter({
           path: 'artifact/:artifactId/',
           components: {
             artifact: Artifact,
+          },
+          props: true,
+        },
+        {
+          name: 'tank',
+          path: 'tank/:tankPlannerArtifactId/',
+          components: {
+            tank: FuelTankPlanner,
           },
           props: true,
         },
