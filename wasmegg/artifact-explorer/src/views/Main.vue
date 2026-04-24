@@ -1,8 +1,9 @@
 <template>
   <spoiler-alert class="my-4" />
   <mission-selector :key="route.path" v-model="selectedMissionId" class="my-4" />
-  <router-view name="mission" />
   <artifact-selector :key="route.path" v-model="selectedArtifactId" class="my-4" />
+  <tank-artifact-selector :key="route.path" v-model="selectedTankArtifactId" class="my-4" />
+  <router-view name="mission" />
   <div class="my-4 text-xs text-red-900">
     <p class="font-medium">Artifact notes:</p>
     <p>
@@ -12,6 +13,7 @@
     <p>&dagger; Artifacts marked with &dagger; are not available from missions.</p>
   </div>
   <router-view name="artifact" />
+  <router-view name="tank" />
   <artifact-grid />
 </template>
 
@@ -22,6 +24,7 @@ import { useRoute, useRouter } from 'vue-router';
 import SpoilerAlert from '@/components/SpoilerAlert.vue';
 import ArtifactGrid from '@/components/ArtifactGrid.vue';
 import ArtifactSelector from '@/components/ArtifactSelector.vue';
+import TankArtifactSelector from '@/components/TankArtifactSelector.vue';
 import MissionSelector from '@/components/MissionSelector.vue';
 
 export default defineComponent({
@@ -29,6 +32,7 @@ export default defineComponent({
     SpoilerAlert,
     ArtifactGrid,
     ArtifactSelector,
+    TankArtifactSelector,
     MissionSelector,
   },
   props: {
@@ -40,11 +44,15 @@ export default defineComponent({
       type: String as PropType<string | null>,
       default: null,
     },
+    tankPlannerArtifactId: {
+      type: String as PropType<string | null>,
+      default: null,
+    },
   },
   setup(props) {
     const router = useRouter();
     const route = useRoute();
-    const { missionId, artifactId } = toRefs(props);
+    const { missionId, artifactId, tankPlannerArtifactId } = toRefs(props);
 
     const selectedMissionId = ref(missionId.value);
     watch(missionId, current => {
@@ -72,10 +80,24 @@ export default defineComponent({
       }
     });
 
+    const selectedTankArtifactId = ref(tankPlannerArtifactId.value);
+    watch(tankPlannerArtifactId, current => {
+      selectedTankArtifactId.value = current;
+    });
+    watch(selectedTankArtifactId, current => {
+      if (current !== null) {
+        router.push({
+          name: 'tank',
+          params: { tankPlannerArtifactId: current },
+        });
+      }
+    });
+
     return {
       route,
       selectedMissionId,
       selectedArtifactId,
+      selectedTankArtifactId,
     };
   },
 });

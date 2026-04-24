@@ -11,7 +11,8 @@
       "Bash(python3:*)",
       "Bash(pnpm build:*)",
       "Bash(grep:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(pnpm test *)"
     ]
   }
 }

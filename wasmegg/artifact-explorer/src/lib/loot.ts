@@ -5,9 +5,9 @@ import {
   itemExpectedFullConsumption,
   MissionType,
   targets,
+  type ShipsConfig,
 } from 'lib';
 
-import { config } from '@/store';
 import type { lootjson, MissionLevelLootStore, MissionLootStore } from './loot-json';
 import data from './loot-json';
 
@@ -70,7 +70,7 @@ type ItemMissionLevelLootStore = {
   counts: [number, number, number, number];
 };
 
-export function getTierLootData(itemId: string): ItemLootStore {
+export function getTierLootData(itemId: string, enabledTargets: ShipsConfig['targets']): ItemLootStore {
   const item = getArtifactTierPropsFromId(itemId);
   const result: ItemLootStore = {
     missions: [],
@@ -80,7 +80,7 @@ export function getTierLootData(itemId: string): ItemLootStore {
     const withinRange = mission.params.minQuality <= item.quality && item.quality <= mission.maxBoostedMaxQuality();
     const validTargets = mission.isFTL ? targets : [ei.ArtifactSpec.Name.UNKNOWN];
     for (const target of validTargets) {
-      if (!config.value.targets[target] && item.afx_id != target) {
+      if (!enabledTargets[target] && item.afx_id != target) {
         continue;
       }
       const store: ItemMissionLootStore = {
@@ -120,4 +120,36 @@ export function getTierLootData(itemId: string): ItemLootStore {
 
 export function missionDataNotEnough(mission: MissionType, totalDrops: number) {
   return totalDrops / mission.defaultCapacity < 20;
+}
+
+// Legendary drop rates come from counts[3] / totalDrops, and counts[3] is
+// often a single observation across tens of thousands of drops — far too
+// noisy to trust. Buckets below this minimum get zeroed by the optimizer.
+export const MIN_LEGENDARY_OBSERVATIONS = 5;
+
+let _maxLegendaryByItemId: Map<string, number> | null = null;
+
+function maxLegendaryByItemId(): Map<string, number> {
+  if (_maxLegendaryByItemId) return _maxLegendaryByItemId;
+  const result = new Map<string, number>();
+  for (const m of lootdata.missions) {
+    for (const level of m.levels) {
+      for (const tgt of level.targets) {
+        for (const item of tgt.items) {
+          const cur = result.get(item.itemId) ?? 0;
+          if (item.counts[3] > cur) result.set(item.itemId, item.counts[3]);
+        }
+      }
+    }
+  }
+  _maxLegendaryByItemId = result;
+  return result;
+}
+
+export function getMaxLegendaryCount(itemId: string): number {
+  return maxLegendaryByItemId().get(itemId) ?? 0;
+}
+
+export function legendaryDataIsSparse(itemId: string): boolean {
+  return getMaxLegendaryCount(itemId) < MIN_LEGENDARY_OBSERVATIONS;
 }

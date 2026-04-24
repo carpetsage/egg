@@ -97,7 +97,7 @@ export default defineComponent({
     );
     const afxId = computed(() => getArtifactTierPropsFromId(artifactId.value).afx_id);
     const expand = ref(getLocalStorage(COLLAPSE_ARTIFACT_DROP_RATES_LOCALSTORAGE_KEY) !== 'true');
-    const loot = computed(() => getTierLootData(artifactId.value));
+    const loot = computed(() => getTierLootData(artifactId.value, config.value.targets));
     const filteredMissions = computed(() => {
       let filtered: ItemMissionLootStore[] = [];
       if (config.value.onlyHenners) {
