@@ -16,6 +16,15 @@ export default {
         yellow: colors.amber,
         purple: colors.violet,
       },
+      width: {
+        'onedig': '0.75rem',
+        'twodig': '0.9rem',
+        'threedig': '1.2rem',
+        'fourdig': '1.5rem',
+        'fivedig': '1.75rem',
+        'sixdig': '2rem',
+        'sevendig': '2.25rem',
+      },
       gridTemplateColumns: {
         'max-2': 'repeat(2, max-content)',
         'max-3': 'repeat(3, max-content)',

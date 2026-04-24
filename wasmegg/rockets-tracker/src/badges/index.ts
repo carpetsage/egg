@@ -111,3 +111,15 @@ export function numberBadgeURL(x: number): string {
       return badgeMore;
   }
 }
+
+export function numToDigClass(num: number): string {
+  switch (true) {
+    case num > 999999: return 'w-sevendig';
+    case num > 99999: return 'w-sixdig';
+    case num > 9999: return 'w-fivedig';
+    case num > 999: return 'w-fourdig';
+    case num > 99: return 'w-threedig';
+    case num > 9: return 'w-twodig';
+    default: return 'w-onedig';
+  }
+}
