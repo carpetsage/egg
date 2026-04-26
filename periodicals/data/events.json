@@ -26388,6 +26388,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1777219200,
+    "id": "ultra-4-25",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1777132800,
+    "type": "shell-sale",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1777305600,
     "id": "event-4-25-2",
     "message": "4x PIGGY GROWTH!",
@@ -26397,12 +26406,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1777219200,
-    "id": "ultra-4-25",
-    "message": "15% OFF SHELLS!",
-    "multiplier": 0.85,
-    "startTimestamp": 1777132800,
-    "type": "shell-sale",
-    "ultra": true
+    "endTimestamp": 1777305600,
+    "id": "event-4-26",
+    "message": "35% OFF EPIC RESEARCH!!",
+    "multiplier": 0.65,
+    "startTimestamp": 1777219200,
+    "type": "epic-research-sale",
+    "ultra": false
   }
 ]
