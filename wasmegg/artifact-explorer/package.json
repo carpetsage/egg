@@ -20,10 +20,12 @@
     "@vitejs/plugin-vue-jsx": "^5.1.5",
     "@vue/compiler-sfc": "^3.5.31",
     "autoprefixer": "^10.4.27",
+    "pinia": "^3.0.4",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.4",
     "typescript": "^6.0.2",
     "vite": "^8.0.5",
+    "vitest": "^3.0.0",
     "vue-tsc": "^3.2.6"
   },
   "license": "MIT",
@@ -33,6 +35,8 @@
     "fastbuild": "vite build",
     "lint": "eslint --ext .js,.ts,.vue src",
     "serve": "vite preview",
-    "format": "prettier --write \"src/**/*.{js,ts,vue}\""
+    "format": "prettier --write \"src/**/*.{js,ts,vue}\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }
