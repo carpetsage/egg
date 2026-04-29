@@ -26444,10 +26444,10 @@
   {
     "endTimestamp": 1777564800,
     "id": "event-4-29",
-    "message": "2x GIFTS!",
-    "multiplier": 2,
+    "message": "10% OFF BOOSTS!",
+    "multiplier": 0.9,
     "startTimestamp": 1777478400,
-    "type": "gift-boost",
+    "type": "boost-sale",
     "ultra": false
   },
   {
