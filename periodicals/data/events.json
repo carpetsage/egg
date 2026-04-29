@@ -26440,5 +26440,32 @@
     "startTimestamp": 1777392000,
     "type": "hab-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1777564800,
+    "id": "event-4-29",
+    "message": "2x GIFTS!",
+    "multiplier": 2,
+    "startTimestamp": 1777478400,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1777564800,
+    "id": "event-4-29-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1777478400,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1777564800,
+    "id": "ultra-4-29",
+    "message": "2x GIFTS!",
+    "multiplier": 2,
+    "startTimestamp": 1777478400,
+    "type": "gift-boost",
+    "ultra": true
   }
 ]
