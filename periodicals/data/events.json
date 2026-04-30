@@ -26467,5 +26467,14 @@
     "startTimestamp": 1777478400,
     "type": "gift-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1777651200,
+    "id": "event-4-30",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1777564800,
+    "type": "vehicle-sale",
+    "ultra": false
   }
 ]
