@@ -942,10 +942,16 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
     }
 
     // Create the start_ascension action with initial snapshot
-    const context = getSimulationContext();
-    const baseState = createBaseEngineState(null);
-    const initialSnapshot = computeSnapshot(baseState, context);
-    await actionsStore.setInitialSnapshot(initialSnapshot);
+    // Skip for plan_next mode: planNextAscension will include pending TE
+    // and create the correct snapshot itself, avoiding a race condition
+    // where this premature snapshot (with pre-pending TE) blocks the
+    // correct recalculation.
+    if (mode !== 'plan_next') {
+      const context = getSimulationContext();
+      const baseState = createBaseEngineState(null);
+      const initialSnapshot = computeSnapshot(baseState, context);
+      await actionsStore.setInitialSnapshot(initialSnapshot);
+    }
 
     loading.value = false;
   } catch (e) {
