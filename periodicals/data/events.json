@@ -26476,5 +26476,23 @@
     "startTimestamp": 1777564800,
     "type": "vehicle-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1777737600,
+    "id": "event-5-1",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1777651200,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1777737600,
+    "id": "ultra-5-1",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1777651200,
+    "type": "hab-sale",
+    "ultra": true
   }
 ]
