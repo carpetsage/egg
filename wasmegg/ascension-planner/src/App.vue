@@ -437,6 +437,7 @@ import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import type { Action, VirtueEgg } from '@/types';
 import { VIRTUE_EGGS } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { getArtifact, getArtifactLoadoutFromBackup } from '@/lib/artifacts';
 
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
 const loading = ref(false);
@@ -961,8 +962,77 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
   }
 }
 
-function triggerQuickContinue() {
-  showArtifactSetConfirm.value = true;
+/**
+ * Try to determine which artifact set they have on based on stones.
+ */
+function detectArtifactSet(loadout: import('@/lib/artifacts').EquippedArtifact[]): 'earnings' | 'elr' | null {
+  let totalSlots = 0;
+  const allStones: string[] = [];
+
+  for (const slot of loadout) {
+    if (slot.artifactId) {
+      const artifact = getArtifact(slot.artifactId);
+      if (artifact) {
+        totalSlots += artifact.slots;
+      }
+    }
+    for (const stoneId of slot.stones) {
+      if (stoneId) {
+        allStones.push(stoneId);
+      }
+    }
+  }
+
+  // 1. If their artifact set has at least 3 stone slots, we can try to determine which set it is
+  if (totalSlots < 3) {
+    return null;
+  }
+
+  // If no stones are equipped, we can't reliably determine the set
+  if (allStones.length === 0) {
+    return null;
+  }
+
+  const isLunar = (id: string) => id.startsWith('lunar-stone-');
+  const isELR = (id: string) => id.startsWith('quantum-stone-') || id.startsWith('tachyon-stone-');
+
+  // 2. If all the stones are lunar stones, it's the earnings set
+  if (allStones.every(isLunar)) {
+    return 'earnings';
+  }
+
+  // 3. If all the stones are either quantum or tachyon, it's the elr set
+  if (allStones.every(isELR)) {
+    return 'elr';
+  }
+
+  return null;
+}
+
+async function triggerQuickContinue() {
+  if (!playerId.value) return;
+  loading.value = true;
+  error.value = '';
+
+  try {
+    const data = await requestFirstContact(playerId.value);
+    if (!data.backup) throw new Error('Could not fetch player backup');
+    const backup = data.backup;
+
+    const loadout = getArtifactLoadoutFromBackup(backup);
+    const detectedSet = detectArtifactSet(loadout);
+
+    if (detectedSet) {
+      handleArtifactSetSelection(detectedSet);
+    } else {
+      loading.value = false;
+      showArtifactSetConfirm.value = true;
+    }
+  } catch (e) {
+    loading.value = false;
+    error.value = e instanceof Error ? e.message : 'Quick Continue failed';
+    console.error('Quick Continue error:', e);
+  }
 }
 
 function handleArtifactSetSelection(selection: 'earnings' | 'elr') {
