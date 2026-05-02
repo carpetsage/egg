@@ -66,6 +66,9 @@ export interface InitialStateStoreState {
   initialTeEarned: Record<VirtueEgg, number>;
   initialTePending: Record<VirtueEgg, number>;
 
+  // Whether this is a continuation of an existing farm
+  isContinuing: boolean;
+
   // Active missions from backup
   activeMissions: ei.IMissionInfo[];
 
@@ -94,6 +97,7 @@ function initializeEpicResearchLevels(): ResearchLevels {
 export const useInitialStateStore = defineStore('initialState', {
   state: (): InitialStateStoreState => ({
     hasData: false,
+    isContinuing: false,
     playerId: '',
     nickname: '',
     isUltra: false,
@@ -191,12 +195,13 @@ export const useInitialStateStore = defineStore('initialState', {
       teEarnedPerEgg: Record<VirtueEgg, number>;
     } {
       this.hasData = true;
+      this.isContinuing = mode === 'continue_earnings' || mode === 'continue_elr';
       this.rawBackup = backup;
       this.playerId = playerId;
       this.nickname = backup.userName || playerId;
       this.isUltra =
         backup.subInfo?.subscriptionLevel != null && backup.subInfo.status === ei.UserSubscriptionInfo.Status.ACTIVE;
-      this.lastBackupTime = backup.settings?.lastBackupTime || 0;
+      this.lastBackupTime = backup.settings?.lastBackupTime || backup.approxTime || 0;
       this.soulEggs = backup.game?.soulEggsD || 0;
 
       const artifactsDB = backup.artifactsDb || {};
@@ -309,8 +314,10 @@ export const useInitialStateStore = defineStore('initialState', {
       // Load current farm state if on a virtue egg (IDs 50-54)
       this.currentFarmState = null;
       if (backup.farms && backup.farms.length > 0) {
-        const farm = backup.farms[0];
-        if (farm.eggType && farm.eggType >= 50 && farm.eggType <= 54) {
+        // Find the active virtue farm (IDs 50-54)
+        const farm = backup.farms.find(f => f.eggType && f.eggType >= 50 && f.eggType <= 54);
+        
+        if (farm) {
           const commonResearches: ResearchLevels = {};
           const rawResearch = farm.commonResearch || [];
           for (const r of rawResearch) {
@@ -321,7 +328,7 @@ export const useInitialStateStore = defineStore('initialState', {
 
           // Parse habs (can be numbers or objects with type field)
           const habs: (number | null)[] = (farm.habs || []).map(h => {
-            return h === 19 ? null : h;
+            return (h as number) === 19 ? null : (h as number);
           });
           // Ensure at least 4 slots for consistency
           while (habs.length < 4) habs.push(null);
@@ -331,7 +338,7 @@ export const useInitialStateStore = defineStore('initialState', {
           const trainLength = farm.trainLength || [];
           const vehicles: VehicleSlot[] = rawVehicles.map((v, idx: number) => {
             return {
-              vehicleId: v,
+              vehicleId: v as number | null,
               trainLength: trainLength[idx] || 1,
             };
           });
@@ -343,8 +350,8 @@ export const useInitialStateStore = defineStore('initialState', {
           }
 
           this.currentFarmState = {
-            eggType: farm.eggType,
-            cash: farm.unclaimedCash || 0,
+            eggType: farm.eggType as number,
+            cash: farm.unclaimedCash || Math.max(0, (farm.cashEarned || 0) - (farm.cashSpent || 0)),
             numSilos: farm.silosOwned || 1,
             commonResearches,
             habs,
@@ -457,6 +464,7 @@ export const useInitialStateStore = defineStore('initialState', {
      */
     hydrate(data: Partial<InitialStateStoreState>) {
       this.hasData = true;
+      this.isContinuing = data.isContinuing || false;
       this.playerId = data.playerId || '';
       this.nickname = data.nickname || 'Redacted';
       this.isUltra = data.isUltra || false;
@@ -552,6 +560,7 @@ export const useInitialStateStore = defineStore('initialState', {
      */
     clear() {
       this.hasData = false;
+      this.isContinuing = false;
       this.playerId = '';
       this.nickname = '';
       this.isUltra = false;

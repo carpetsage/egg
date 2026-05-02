@@ -435,8 +435,8 @@ import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import type { Action, VirtueEgg } from '@/types';
-import { VIRTUE_EGGS } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { getArtifact, getArtifactLoadoutFromBackup } from '@/lib/artifacts';
 
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
 const loading = ref(false);
@@ -861,68 +861,21 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
     }
 
     // Store the backup data in initial state
-    const { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
-      initialStateStore.loadFromBackup(id, backup, mode);
+    const { 
+      initialShiftCount, 
+      initialTE, 
+      tankLevel, 
+      virtueFuelAmounts, 
+      eggsDelivered, 
+      teEarnedPerEgg 
+    } = initialStateStore.loadFromBackup(id, backup, mode);
 
-    // Calculate extra eggs since backup if on a virtue egg
-    if (initialStateStore.currentFarmState && initialStateStore.lastBackupTime > 0) {
-      const farm = initialStateStore.currentFarmState;
-      const egg = VIRTUE_EGGS[farm.eggType - 50];
-      const now = Date.now() / 1000;
-      const elapsed = now - initialStateStore.lastBackupTime;
-
-      if (elapsed > 0) {
-        const context = getSimulationContext();
-        const tempState = createBaseEngineState(null);
-        tempState.currentEgg = egg;
-        tempState.habIds = farm.habs;
-        tempState.vehicles = farm.vehicles;
-        tempState.researchLevels = farm.commonResearches;
-        tempState.siloCount = farm.numSilos;
-        tempState.population = farm.population;
-        tempState.lastStepTime = farm.lastStepTime;
-
-        const snapshot = computeSnapshot(tempState, context);
-        const startPop = farm.population;
-        const extraChickens = (snapshot.offlineIHR / 60) * elapsed;
-        const endPop = Math.min(snapshot.habCapacity, startPop + extraChickens);
-
-        // Update population
-        farm.population = endPop;
-
-        // Recompute snapshot at end population to get accurate end-of-period ELR
-        tempState.population = endPop;
-        const endSnapshot = computeSnapshot(tempState, context);
-
-        // Average ELR and Offline Earnings for catch-up (accurate linear approximation)
-        const avgELR = (snapshot.elr + endSnapshot.elr) / 2;
-        const extraEggs = avgELR * elapsed;
-
-        const avgOfflineEarnings = (snapshot.offlineEarnings + endSnapshot.offlineEarnings) / 2;
-        const extraCash = avgOfflineEarnings * elapsed;
-
-        if (extraEggs > 0 || extraCash > 0) {
-          // 1. Update farm state
-          farm.deliveredEggs += extraEggs;
-          farm.cashEarned += extraCash;
-          farm.cash += extraCash;
-
-          // 2. Update store's initial delivered eggs
-          const newDelivered = (eggsDelivered[egg] || 0) + extraEggs;
-          initialStateStore.setInitialEggsDelivered(egg, newDelivered);
-
-          // 3. Update local eggsDelivered for later store initialization
-          eggsDelivered[egg] = newDelivered;
-
-          // 4. Recalculate pending TE for this egg
-          const theoreticalTE = countTEThresholdsPassed(newDelivered);
-          const earned = teEarnedPerEgg[egg];
-          initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - earned));
-        }
-
-        farm.lastStepTime = now;
-      }
-    }
+    // Catch-up calculations (eggs, earnings, population) are now handled 
+    // automatically by computeSnapshot in the engine. We compute the initial 
+    // snapshot first and then sync the results back to the stores.
+    const context = getSimulationContext();
+    const baseState = createBaseEngineState(null);
+    const initialSnapshot = computeSnapshot(baseState, context);
 
     // Initialize virtue store with player's shift count and TE
     virtueStore.setInitialState(initialShiftCount, initialTE);
@@ -933,19 +886,41 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
       fuelTankStore.setFuelAmount(egg as VirtueEgg, amount);
     }
 
-    // Initialize truth eggs store with player's TE data
-    for (const [egg, amount] of Object.entries(eggsDelivered)) {
+    // Initialize truth eggs store with caught-up data from snapshot
+    for (const [egg, amount] of Object.entries(initialSnapshot.eggsDelivered)) {
       truthEggsStore.setEggsDelivered(egg as VirtueEgg, amount);
     }
     for (const [egg, count] of Object.entries(teEarnedPerEgg)) {
       truthEggsStore.setTEEarned(egg as VirtueEgg, count);
     }
 
-    // Create the start_ascension action with initial snapshot
-    const context = getSimulationContext();
-    const baseState = createBaseEngineState(null);
-    const initialSnapshot = computeSnapshot(baseState, context);
-    await actionsStore.setInitialSnapshot(initialSnapshot);
+    // Update initial state store with caught-up values for persistence and future starts
+    if (initialStateStore.currentFarmState) {
+      const farm = initialStateStore.currentFarmState;
+      const egg = initialSnapshot.currentEgg;
+      const newDelivered = initialSnapshot.eggsDelivered[egg] || 0;
+      
+      const extraCash = initialSnapshot.bankValue - baseState.bankValue;
+
+      // Update farm state
+      farm.population = initialSnapshot.population;
+      farm.cash = initialSnapshot.bankValue;
+      farm.cashEarned += Math.max(0, extraCash);
+      farm.deliveredEggs = newDelivered;
+      farm.lastStepTime = context.ascensionStartTime;
+
+      // Update initial state tracking
+      initialStateStore.setInitialEggsDelivered(egg, newDelivered);
+      
+      // Recalculate pending TE for this egg
+      const theoreticalTE = countTEThresholdsPassed(newDelivered);
+      const earned = teEarnedPerEgg[egg];
+      initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - earned));
+    }
+
+    if (mode !== 'plan_next') {
+      await actionsStore.setInitialSnapshot(initialSnapshot);
+    }
 
     loading.value = false;
   } catch (e) {
@@ -955,8 +930,77 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
   }
 }
 
-function triggerQuickContinue() {
-  showArtifactSetConfirm.value = true;
+/**
+ * Try to determine which artifact set they have on based on stones.
+ */
+function detectArtifactSet(loadout: import('@/lib/artifacts').EquippedArtifact[]): 'earnings' | 'elr' | null {
+  let totalSlots = 0;
+  const allStones: string[] = [];
+
+  for (const slot of loadout) {
+    if (slot.artifactId) {
+      const artifact = getArtifact(slot.artifactId);
+      if (artifact) {
+        totalSlots += artifact.slots;
+      }
+    }
+    for (const stoneId of slot.stones) {
+      if (stoneId) {
+        allStones.push(stoneId);
+      }
+    }
+  }
+
+  // 1. If their artifact set has at least 3 stone slots, we can try to determine which set it is
+  if (totalSlots < 3) {
+    return null;
+  }
+
+  // If no stones are equipped, we can't reliably determine the set
+  if (allStones.length === 0) {
+    return null;
+  }
+
+  const isLunar = (id: string) => id.startsWith('lunar-stone-');
+  const isELR = (id: string) => id.startsWith('quantum-stone-') || id.startsWith('tachyon-stone-');
+
+  // 2. If all the stones are lunar stones, it's the earnings set
+  if (allStones.every(isLunar)) {
+    return 'earnings';
+  }
+
+  // 3. If all the stones are either quantum or tachyon, it's the elr set
+  if (allStones.every(isELR)) {
+    return 'elr';
+  }
+
+  return null;
+}
+
+async function triggerQuickContinue() {
+  if (!playerId.value) return;
+  loading.value = true;
+  error.value = '';
+
+  try {
+    const data = await requestFirstContact(playerId.value);
+    if (!data.backup) throw new Error('Could not fetch player backup');
+    const backup = data.backup;
+
+    const loadout = getArtifactLoadoutFromBackup(backup);
+    const detectedSet = detectArtifactSet(loadout);
+
+    if (detectedSet) {
+      handleArtifactSetSelection(detectedSet);
+    } else {
+      loading.value = false;
+      showArtifactSetConfirm.value = true;
+    }
+  } catch (e) {
+    loading.value = false;
+    error.value = e instanceof Error ? e.message : 'Quick Continue failed';
+    console.error('Quick Continue error:', e);
+  }
 }
 
 function handleArtifactSetSelection(selection: 'earnings' | 'elr') {
