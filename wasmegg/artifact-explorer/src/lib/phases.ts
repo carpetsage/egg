@@ -18,7 +18,7 @@ import {
 } from 'lib';
 
 import type { DAGChildRef, DAGNode, LaunchOption, RecipeDAG } from './types';
-import { getMissionLootData } from '@/lib';
+import { getMissionLootData, MIN_LEGENDARY_OBSERVATIONS } from '@/lib';
 import { sum } from '@/utils';
 import { Ingredient } from 'lib/artifacts/data-json';
 
@@ -58,12 +58,22 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
 /**
  * Returns the Cartesian product of spaceships × (sensor_targets ∪ {null}).
  * Each pair is a distinct LaunchOption with time_units = 0 (set in Phase 2).
+ * @param minDurationSeconds optional minimum mission duration in seconds; missions shorter than this are excluded
  */
-export function enumerateLaunchOptions(playerConfig: ShipsConfig, dag: RecipeDAG): LaunchOption[] {
+export function enumerateLaunchOptions(
+  playerConfig: ShipsConfig,
+  dag: RecipeDAG,
+  minDurationSeconds?: number
+): LaunchOption[] {
   const options: LaunchOption[] = [];
 
   for (const mission of missions) {
     if (!playerConfig.shipVisibility[mission.shipType]) continue;
+
+    if (minDurationSeconds !== undefined) {
+      const missionDuration = mission.boostedDurationSeconds(playerConfig);
+      if (missionDuration < minDurationSeconds) continue;
+    }
 
     const missionData = getMissionLootData(mission.missionTypeId);
     const levelLootData = missionData.levels[playerConfig.shipLevels[mission.shipType]];
@@ -80,7 +90,14 @@ export function enumerateLaunchOptions(playerConfig: ShipsConfig, dag: RecipeDAG
         option.supply_vector.set(item.itemId, expectedDropsPerBatch);
 
         if (dag.has(item.itemId)) {
-          const legendaryRate = (item.counts[3] / target.totalDrops) * missionCapacity * 3.0;
+          // Sparse-data gate: a single legendary observation across tens of
+          // thousands of drops yields a misleadingly precise rate. Trust this
+          // bucket's legendary count only if it has reached the minimum, OR if
+          // no bucket of this item has reached it (in which case zeroing every
+          // bucket would discard all signal).
+          const observed = item.counts[3];
+          const legendaryCount = observed >= MIN_LEGENDARY_OBSERVATIONS || playerConfig.showNodata ? observed : 0;
+          const legendaryRate = (legendaryCount / target.totalDrops) * missionCapacity * 3.0;
 
           option.yield_vector.set(item.itemId, expectedDropsPerBatch);
           option.legendary_yield_vector.set(item.itemId, legendaryRate);
@@ -107,9 +124,7 @@ function makeLaunchOption(mission: MissionType, target: ei.ArtifactSpec.Name, pl
     targetAfxId: target,
     actual_fuel: nonHumilityFuelUse.reduce((agg, current) => agg + current.amount, 0) * 3,
     actual_time: mission.boostedDurationSeconds(playerConfig),
-    fuel_units: 0,
     fuel_by_egg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount * 3), new Map()),
-    time_units: 0, // filled by Phase 2
     num_ships_launched: 0,
     supply_vector: new Map(),
     yield_vector: new Map(),

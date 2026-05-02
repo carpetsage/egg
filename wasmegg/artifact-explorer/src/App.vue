@@ -21,7 +21,18 @@ import TheNavBar from 'ui/components/NavBar.vue';
 import EiafxConfigTable from '@/components/EiafxConfigTable.vue';
 import ConfigModal from '@/components/ConfigModal.vue';
 import PlayerOverridesModal from '@/components/PlayerOverridesModal.vue';
-import { config, extras, overrides, persistConfig, persistExtras, persistOverrides } from '@/store';
+import {
+  autoCompute,
+  config,
+  extras,
+  missionFilters,
+  overrides,
+  persistAutoCompute,
+  persistConfig,
+  persistExtras,
+  persistMissionFilters,
+  persistOverrides,
+} from '@/store';
 
 export default defineComponent({
   components: {
@@ -52,6 +63,14 @@ export default defineComponent({
       },
       { deep: true }
     );
+    watch(
+      missionFilters,
+      () => {
+        persistMissionFilters();
+      },
+      { deep: true }
+    );
+    watch(autoCompute, () => persistAutoCompute());
   },
 });
 </script>
