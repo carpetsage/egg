@@ -121,3 +121,39 @@ export function getTierLootData(itemId: string): ItemLootStore {
 export function missionDataNotEnough(mission: MissionType, totalDrops: number) {
   return totalDrops / mission.defaultCapacity < 20;
 }
+
+// Sparse-data gate for legendary drop estimates. The optimizer's legendary
+// drop rate per bucket is `counts[3] / totalDrops`, where counts[3] can be a
+// single observation across tens of thousands of total drops — a point
+// estimate with a >5x Wilson CI swing in either direction. We mistrust such
+// buckets unless some other bucket of the same item has accumulated at least
+// MIN_LEGENDARY_OBSERVATIONS observations, in which case those better-sampled
+// buckets carry the legendary rate and the sparse ones are zeroed out.
+export const MIN_LEGENDARY_OBSERVATIONS = 5;
+
+let _maxLegendaryByItemId: Map<string, number> | null = null;
+
+function maxLegendaryByItemId(): Map<string, number> {
+  if (_maxLegendaryByItemId) return _maxLegendaryByItemId;
+  const result = new Map<string, number>();
+  for (const m of lootdata.missions) {
+    for (const level of m.levels) {
+      for (const tgt of level.targets) {
+        for (const item of tgt.items) {
+          const cur = result.get(item.itemId) ?? 0;
+          if (item.counts[3] > cur) result.set(item.itemId, item.counts[3]);
+        }
+      }
+    }
+  }
+  _maxLegendaryByItemId = result;
+  return result;
+}
+
+export function getMaxLegendaryCount(itemId: string): number {
+  return maxLegendaryByItemId().get(itemId) ?? 0;
+}
+
+export function legendaryDataIsSparse(itemId: string): boolean {
+  return getMaxLegendaryCount(itemId) < MIN_LEGENDARY_OBSERVATIONS;
+}

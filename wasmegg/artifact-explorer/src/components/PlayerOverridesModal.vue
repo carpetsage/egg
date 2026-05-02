@@ -25,7 +25,7 @@
           leave-to="opacity-0 translate-y-0 scale-95"
         >
           <div
-            class="inline-block bg-white rounded-lg px-6 pt-4 pb-6 text-left overflow-hidden shadow-xl transform transition-all my-8 align-middle max-w-lg w-full p-6 space-y-3 relative"
+            class="inline-block bg-white rounded-lg px-6 pt-4 pb-6 text-left overflow-y-auto shadow-xl transform transition-all my-8 align-middle max-w-3xl w-full p-6 space-y-3 relative max-h-[90vh]"
           >
             <DialogTitle as="h3" class="text-center text-base font-medium text-gray-900">
               {{ player ? 'Override player data' : 'Mission configuration' }}
@@ -78,28 +78,28 @@
                 </div>
               </div>
               <div>
-                <template v-for="ship in spaceshipList" :key="ship">
-                  <div class="flex flex-wrap">
-                    <div class="flex items-center space-x-2 w-full xs:w-40">
+                <div class="grid grid-cols-2 gap-x-6 gap-y-1">
+                  <template v-for="ship in spaceshipList" :key="ship">
+                    <div class="flex items-center gap-2 min-w-0">
                       <input
                         :id="`po_ship_visibility_${ship}`"
                         v-model="config.shipVisibility[ship]"
                         :name="`po_ship_visibility_${ship}`"
                         type="checkbox"
-                        class="focus:ring-green-500 h-3 w-3 text-green-600 border-gray-300 rounded"
+                        class="focus:ring-green-500 h-3 w-3 text-green-600 border-gray-300 rounded flex-shrink-0"
                       />
-                      <span class="text-sm">{{ spaceshipName(ship) }}</span>
+                      <span class="text-sm truncate">{{ spaceshipName(ship) }}</span>
+                      <div v-if="shipMaxLevel(ship) > 0" class="flex items-center space-x-0.5 flex-shrink-0">
+                        <ShipStars
+                          :level="config.shipLevels[ship]"
+                          :max="shipMaxLevel(ship)"
+                          :interactive="true"
+                          @set="(lvl: number) => setShipLevel(ship, lvl)"
+                        />
+                      </div>
                     </div>
-                    <div v-if="shipMaxLevel(ship) > 0" class="flex items-center space-x-0.5">
-                      <ShipStars
-                        :level="config.shipLevels[ship]"
-                        :max="shipMaxLevel(ship)"
-                        :interactive="true"
-                        @set="(lvl: number) => setShipLevel(ship, lvl)"
-                      />
-                    </div>
-                  </div>
-                </template>
+                  </template>
+                </div>
                 <div class="flex items-center space-x-2 mt-2 pt-2 border-t border-gray-200">
                   <input
                     id="po_ship_visibility_all"
@@ -301,7 +301,7 @@
               </div>
 
               <!-- Ships -->
-              <div class="border-t border-gray-100 pt-2 space-y-1 max-h-80 overflow-y-auto">
+              <div class="border-t border-gray-100 pt-2 space-y-1">
                 <template v-for="ship in spaceshipList" :key="ship">
                   <!-- Visibility row -->
                   <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center px-1">
@@ -334,7 +334,7 @@
                   >
                     <span class="text-xs text-gray-500 truncate pl-3">{{ spaceshipName(ship) }} — Level</span>
                     <div
-                      class="flex justify-end items-center w-20"
+                      class="flex justify-end items-center w-40"
                       :class="overrides.shipLevels[ship] ? 'opacity-40' : ''"
                     >
                       <ShipStars :level="player.shipLevels[ship]" :max="shipMaxLevel(ship)" />
@@ -345,7 +345,7 @@
                       :checked="!!overrides.shipLevels[ship]"
                       @change="setOverrideShipLevel(ship, ($event.target as HTMLInputElement).checked)"
                     />
-                    <div class="w-24 flex justify-end items-center">
+                    <div class="w-30 flex justify-end items-center">
                       <ShipStars
                         :level="config.shipLevels[ship]"
                         :max="shipMaxLevel(ship)"
@@ -371,6 +371,29 @@
               <div class="border-t border-gray-100 pt-2 space-y-1">
                 <div class="text-xs font-medium text-gray-500 px-1 pb-1">Mission settings</div>
                 <div class="flex items-center space-x-2 px-1">
+                  <input
+                    id="po_min_duration_enabled"
+                    :checked="missionFilters.minDurationHoursEnabled"
+                    name="po_min_duration_enabled"
+                    type="checkbox"
+                    class="focus:ring-green-500 h-3.5 w-3.5 text-green-600 border-gray-300 rounded"
+                    @change="setMinDurationHoursEnabled(($event.target as HTMLInputElement).checked)"
+                  />
+                  <label for="po_min_duration_enabled" class="text-sm text-gray-600 cursor-pointer"
+                    >Minimum mission duration</label
+                  >
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    :disabled="!missionFilters.minDurationHoursEnabled"
+                    :value="missionFilters.minDurationHours"
+                    class="block w-16 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-1.5 py-0.5 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
+                    @input="onDurationInput($event)"
+                  />
+                  <span class="text-xs text-gray-500">hours</span>
+                </div>
+                <div class="flex items-center space-x-2 px-1 pt-2">
                   <input
                     id="po_show_nodata"
                     v-model="config.showNodata"
@@ -436,6 +459,7 @@ import {
   closePlayerOverridesModal,
   config,
   extras,
+  missionFilters,
   overrides,
   playerCraftingLevel,
   playerOverridesModalOpen,
@@ -446,6 +470,8 @@ import {
   setCraftingLevel,
   setEpicResearchFTLLevel,
   setEpicResearchZerogLevel,
+  setMinDurationHours,
+  setMinDurationHoursEnabled,
   setOverrideCraftingLevel,
   setOverrideFTL,
   setOverridePreviousCrafts,
@@ -544,6 +570,14 @@ export default defineComponent({
       setter(n);
     }
 
+    function onDurationInput(event: Event) {
+      const raw = (event.target as HTMLInputElement).value.trim();
+      if (!raw) return;
+      const n = parseFloat(raw);
+      if (isNaN(n) || n < 0) return;
+      setMinDurationHours(n);
+    }
+
     const maxTankLevel = fuelTankSizes.length - 1;
 
     const allShipsVisible = computed(() => spaceshipList.every(ship => config.value.shipVisibility[ship]));
@@ -562,6 +596,7 @@ export default defineComponent({
       playerTankLevel,
       config,
       extras,
+      missionFilters,
       overrides,
       spaceshipList,
       spaceshipName,
@@ -570,6 +605,8 @@ export default defineComponent({
       setPreviousCraftCount,
       setEpicResearchFTLLevel,
       setEpicResearchZerogLevel,
+      setMinDurationHoursEnabled,
+      setMinDurationHours,
       setShipLevel,
       setShipVisibility,
       setOverrideCraftingLevel,
@@ -583,6 +620,7 @@ export default defineComponent({
       resetAllOverrides,
       takeControlOfAllShips,
       onIntInput,
+      onDurationInput,
       ei,
       id2url,
       getTargetName,

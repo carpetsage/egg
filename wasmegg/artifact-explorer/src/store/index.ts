@@ -25,6 +25,7 @@ import DurationType = ei.MissionInfo.DurationType;
 export const CONFIG_LOCALSTORAGE_KEY = 'config';
 export const OVERRIDES_LOCALSTORAGE_KEY = 'overrides';
 export const EXTRAS_LOCALSTORAGE_KEY = 'extras';
+export const MISSION_FILTERS_LOCALSTORAGE_KEY = 'mission_filters';
 
 // config is persisted through a watch in App.vue.
 export const config = ref(loadConfig());
@@ -238,9 +239,12 @@ export function setPlayerData(backup: ei.IBackup): void {
 
   playerShipsConfig.value = base;
 
-  const inv = new Inventory(backup.artifactsDb, {virtue: true});
+  const inv = new Inventory(backup.artifactsDb, { virtue: true });
+  for (const item of backup.artifactsDb.virtueAfxDb?.artifactStatus || []) {
+    inv.getItem(item.spec!).crafted += item.count!;
+  }
   playerInventory.value = inv;
-  playerTotalCraftingXp.value = inv.items.reduce((sum, item) => sum + item.totalCraftingXp, 0);
+  playerTotalCraftingXp.value = Math.floor(backup.artifacts?.craftingXp ?? 0);
   playerTankLevel.value = backup.artifacts?.tankLevel ?? null;
 }
 
@@ -383,4 +387,65 @@ export function loadExtras(): ExtrasConfig {
 
 export function persistExtras(): void {
   setLocalStorage(EXTRAS_LOCALSTORAGE_KEY, JSON.stringify(extras.value));
+}
+
+export interface MissionFilters {
+  minDurationHoursEnabled: boolean;
+  minDurationHours: number;
+}
+
+export const missionFilters = ref<MissionFilters>(loadMissionFilters());
+
+export function setMinDurationHoursEnabled(enabled: boolean): void {
+  missionFilters.value.minDurationHoursEnabled = enabled;
+}
+
+export function setMinDurationHours(hours: number): void {
+  missionFilters.value.minDurationHours = Math.max(0, hours);
+}
+
+function newMissionFilters(): MissionFilters {
+  return { minDurationHoursEnabled: false, minDurationHours: 0 };
+}
+
+function isMissionFilters(x: unknown): x is MissionFilters {
+  if (!x || typeof x !== 'object') return false;
+  const m = x as MissionFilters;
+  return typeof m.minDurationHoursEnabled === 'boolean' && typeof m.minDurationHours === 'number';
+}
+
+export function loadMissionFilters(): MissionFilters {
+  const str = getLocalStorage(MISSION_FILTERS_LOCALSTORAGE_KEY);
+  if (!str) return newMissionFilters();
+  try {
+    const parsed: unknown = JSON.parse(str);
+    if (isMissionFilters(parsed)) {
+      return parsed;
+    }
+  } catch (err) {
+    console.warn(`error parsing mission filters: ${err}`);
+  }
+  return newMissionFilters();
+}
+
+export function persistMissionFilters(): void {
+  setLocalStorage(MISSION_FILTERS_LOCALSTORAGE_KEY, JSON.stringify(missionFilters.value));
+}
+
+export const AUTO_COMPUTE_LOCALSTORAGE_KEY = 'auto_compute';
+
+export const autoCompute = ref<boolean>(loadAutoCompute());
+
+export function setAutoCompute(b: boolean): void {
+  autoCompute.value = b;
+}
+
+function loadAutoCompute(): boolean {
+  const str = getLocalStorage(AUTO_COMPUTE_LOCALSTORAGE_KEY);
+  if (str === 'false') return false;
+  return true;
+}
+
+export function persistAutoCompute(): void {
+  setLocalStorage(AUTO_COMPUTE_LOCALSTORAGE_KEY, String(autoCompute.value));
 }

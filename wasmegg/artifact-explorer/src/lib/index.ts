@@ -1,6 +1,7 @@
 export * from './artifacts';
 export * from './missions';
 export * from './loot';
+export * from './optimizer-views';
 
 // ============================================================
 // Path of Virtue Optimizer — Entry Point
@@ -8,15 +9,14 @@ export * from './loot';
 //
 // Orchestrates Phases 0-4. Pure function; no side effects.
 
-import type { DAGNode, LaunchSolution, OptimizerConfig, OptimizerSolution, DropRow } from './types';
+import type { DAGNode, LaunchSolution, OptimizerConfig, OptimizerSolution, DropRow, RecipeDAG } from './types';
 import { enumerateLaunchOptions, generateRecipeDag } from './phases';
+import { optimizeFull } from './optimizer-core';
 import { ei, getArtifactTierPropsFromId, getCraftingLevelFromXp, Inventory, InventoryItem, ShipsConfig } from 'lib';
 
-import { OptimizeFrankWolfe } from './frank-wolfe';
-import { CancellationToken, OptimizeBruteForce } from './brute-force';
 import { iconURL } from 'lib';
 
-function buildRecipeDag(
+export function buildRecipeDag(
   desired_artifact_node_ids: string[],
   playerInventory?: Inventory | null,
   playerTotalCraftingXp?: number | null,
@@ -61,43 +61,12 @@ function buildRecipeDag(
   return { dag: recipe_dag, baseYield };
 }
 
-export function OptimizeBF(
-  config: OptimizerConfig,
-  playerConfig: ShipsConfig,
-  onImprovement: (solution: OptimizerSolution) => void,
-  token: CancellationToken,
-  playerInventory?: Inventory | null,
-  playerTotalCraftingXp?: number | null,
-  previousCraftsOverride?: number
-): Promise<void> {
-  const { desired_artifact_node_ids, fuel_tank_capacity, time_budget_seconds } = config;
-  const { dag: recipe_dag, baseYield } = buildRecipeDag(
-    desired_artifact_node_ids,
-    playerInventory,
-    playerTotalCraftingXp,
-    previousCraftsOverride
-  );
-  const options = enumerateLaunchOptions(playerConfig, recipe_dag);
-  return OptimizeBruteForce(
-    {
-      options,
-      dag: recipe_dag,
-      desiredArtifactNodeIds: desired_artifact_node_ids,
-      fuelCapacity: fuel_tank_capacity,
-      totalTimeUnits: time_budget_seconds,
-      baseYield,
-    },
-    onImprovement,
-    token
-  );
-}
-
 function computeExpectedDrops(solution: OptimizerSolution, dag: Map<string, DAGNode>): DropRow[] {
   const totals = new Map<string, number>();
 
   for (const choice of solution.choice_history) {
     for (const [item, rate] of choice.supply_vector) {
-      totals.set(item, (totals.get(item) ?? 0) + rate);
+      totals.set(item, (totals.get(item) ?? 0) + rate * (choice.num_ships_launched / 3));
     }
   }
 
@@ -132,44 +101,34 @@ function computeFuelByEgg(solution: OptimizerSolution): Map<ei.Egg, number> {
   return totals;
 }
 
-export function OptimizeFrank(
+export function optimize(
   config: OptimizerConfig,
   playerConfig: ShipsConfig,
-  playerInventory?: Inventory | null,
-  playerTotalCraftingXp?: number | null,
-  previousCraftsOverride?: number
+  dag: RecipeDAG,
+  baseYield: Map<string, number>,
+  minDurationSeconds?: number
 ) {
   const { desired_artifact_node_ids, fuel_tank_capacity, time_budget_seconds } = config;
-  const { dag: recipe_dag, baseYield } = buildRecipeDag(
-    desired_artifact_node_ids,
-    playerInventory,
-    playerTotalCraftingXp,
-    previousCraftsOverride
-  );
-  const options = enumerateLaunchOptions(playerConfig, recipe_dag);
-  const rawResults = OptimizeFrankWolfe({
-    options,
-    dag: recipe_dag,
-    desiredArtifactNodeIds: desired_artifact_node_ids,
-    fuelCapacity: fuel_tank_capacity,
-    totalTimeUnits: time_budget_seconds,
-    maxIter: 1000,
-    tol: 0.00001,
-    baseYield,
-  });
+  const options = enumerateLaunchOptions(playerConfig, dag, minDurationSeconds);
+
+  const rawResults: OptimizerSolution[] = [
+    optimizeFull({
+      options,
+      recipe_dag: dag,
+      desired_artifact_node_ids,
+      fuel_capacity: fuel_tank_capacity,
+      time_capacity: time_budget_seconds,
+      base_yield: baseYield,
+      epsilon: 1e-3,
+    }),
+  ];
 
   for (const result of rawResults) {
     result.choice_history.sort(function (a: LaunchSolution, b: LaunchSolution) {
-      if (a.from_fw === b.from_fw) {
-        return a.ship.name < b.ship.name ? -1 : 1;
-      } else if (a.from_fw) {
-        return -1;
-      } else {
-        return 1;
-      }
+      return a.ship.shipType - b.ship.shipType;
     });
 
-    result.expected_drops = computeExpectedDrops(result, recipe_dag);
+    result.expected_drops = computeExpectedDrops(result, dag);
 
     result.fuel_by_egg = computeFuelByEgg(result);
   }
@@ -182,15 +141,10 @@ export type {
   OptimizerConfig,
   OptimizerSolution,
   LaunchOption,
+  LaunchSolution,
+  DropRow,
   SensorTarget,
   DAGNode,
   DAGChildRef,
   RecipeDAG,
-  DPCell,
-  DPTable,
-  SimulationConfig,
-  SimulationResult,
 } from './types';
-
-export { poissonAtLeast as poissonAtLeast } from './objective';
-export { enumerateLaunchOptions, addYieldVectors, zeroYieldVector, generateRecipeDag } from './phases';

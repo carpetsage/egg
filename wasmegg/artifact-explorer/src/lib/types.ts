@@ -20,8 +20,6 @@ export interface LaunchOption {
   actual_fuel: number;
   fuel_by_egg: Map<ei.Egg, number>;
   actual_time: number;
-  fuel_units: integer; // copied from ship.fuel_cost
-  time_units: integer; // set in Phase 2
   num_ships_launched: integer;
   supply_vector: Map<string, number>; // node_id → expected drops per launch
   yield_vector: Map<string, number>; // node_id → expected drops per launch
@@ -51,22 +49,6 @@ export interface DAGNode {
 export type RecipeDAG = Map<string, DAGNode>;
 
 // ============================================================
-// DP Structures
-// ============================================================
-
-export interface DPCell {
-  best_probability: number;
-  craft_probability: number;
-  drop_probability: number;
-  yield_vector: Map<string, number>;
-  legendary_yield_vector: Map<string, number>;
-  choice_history: LaunchOption[];
-}
-
-/** dp[fuel_remaining][time_remaining] */
-export type DPTable = DPCell[][];
-
-// ============================================================
 // Solution
 // ============================================================
 
@@ -78,9 +60,8 @@ export interface LaunchSolution {
   target: string;
   targetAfxId: ei.ArtifactSpec.Name;
   num_ships_launched: integer;
-  /** true = chosen by Frank-Wolfe relaxation; false = added by local search fill */
-  from_fw: boolean;
   supply_vector: Map<string, number>; // node_id → expected drops per launch
+  legendary_supply_vector: Map<string, number>; // node_id → legendary drops per batch
 }
 
 export interface DropRow {
@@ -95,17 +76,15 @@ export interface OptimizerSolution {
   best_probability: number;
   craft_probability: number;
   drop_probability: number;
+  expected_crafts: number;
   fuel_used: number;
   fuel_by_egg: Map<ei.Egg, number>;
   time_units_used: integer;
   choice_history: LaunchSolution[];
   expected_drops: DropRow[];
   final_yield_vector: Map<string, number>;
-  /** Raw Frank-Wolfe fractional solution before integer rounding + local search */
-  fw_fractional?: {
-    yield_vector: Map<string, number>;
-    probability: number;
-  };
+  recipe_dag: RecipeDAG;
+  craft_primal: Map<string, number>;
 }
 
 // ============================================================
@@ -117,24 +96,6 @@ export interface OptimizerConfig {
   include_not_enough_data: boolean;
   fuel_tank_capacity: integer;
   time_budget_seconds: number;
-}
-
-// ============================================================
-// Monte Carlo (validation)
-// ============================================================
-
-export interface SimulationConfig {
-  choice_history: LaunchOption[];
-  recipe_dag: RecipeDAG;
-  desired_artifact_node_ids: string[];
-  num_trials: integer;
-}
-
-export interface SimulationResult {
-  empirical_probability: number;
-  num_trials: integer;
-  /** per desired-artifact empirical success rates */
-  per_artifact_rates: Map<string, number>;
 }
 
 // ============================================================
