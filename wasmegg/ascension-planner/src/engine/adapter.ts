@@ -72,16 +72,20 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
     };
   }
 
+  const isContinuing = initialStateStore.isContinuing;
+
   // Fallback state
   return {
-    currentEgg: (initialStateStore.currentFarmState?.eggType ? VIRTUE_EGGS[initialStateStore.currentFarmState.eggType - 50] : 'curiosity') as VirtueEgg,
+    currentEgg: (isContinuing && initialStateStore.currentFarmState?.eggType
+      ? VIRTUE_EGGS[initialStateStore.currentFarmState.eggType - 50]
+      : 'curiosity') as VirtueEgg,
     shiftCount: virtueStore.initialShiftCount,
     te: virtueStore.initialTE,
     soulEggs: initialStateStore.soulEggs,
 
-    vehicles: initialStateStore.currentFarmState?.vehicles || [{ vehicleId: 0, trainLength: 1 }], 
-    habIds: initialStateStore.currentFarmState?.habs || [0, null, null, null],
-    researchLevels: { ...initialStateStore.currentFarmState?.commonResearches },
+    vehicles: (isContinuing && initialStateStore.currentFarmState?.vehicles) || [{ vehicleId: 0, trainLength: 1 }],
+    habIds: (isContinuing && initialStateStore.currentFarmState?.habs) || [0, null, null, null],
+    researchLevels: isContinuing ? { ...initialStateStore.currentFarmState?.commonResearches } : {},
     siloCount: silosStore.siloCount || 1,
     tankLevel: fuelTankStore.tankLevel || 0,
 
@@ -97,9 +101,9 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
     activeArtifactSet: initialStateStore.activeArtifactSet,
     artifactSets: JSON.parse(JSON.stringify(initialStateStore.artifactSets)),
 
-    population: initialStateStore.currentFarmState?.population || 0,
-    lastStepTime: initialStateStore.currentFarmState?.lastStepTime || 0,
-    bankValue: initialStateStore.currentFarmState?.cash || virtueStore.bankValue || 0,
+    population: (isContinuing && initialStateStore.currentFarmState?.population) || 0,
+    lastStepTime: (isContinuing && initialStateStore.currentFarmState?.lastStepTime) || 0,
+    bankValue: (isContinuing && initialStateStore.currentFarmState?.cash) || virtueStore.bankValue || 0,
     activeSales: {
       research: false,
       hab: false,

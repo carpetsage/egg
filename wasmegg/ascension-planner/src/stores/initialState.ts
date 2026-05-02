@@ -66,6 +66,9 @@ export interface InitialStateStoreState {
   initialTeEarned: Record<VirtueEgg, number>;
   initialTePending: Record<VirtueEgg, number>;
 
+  // Whether this is a continuation of an existing farm
+  isContinuing: boolean;
+
   // Active missions from backup
   activeMissions: ei.IMissionInfo[];
 
@@ -94,6 +97,7 @@ function initializeEpicResearchLevels(): ResearchLevels {
 export const useInitialStateStore = defineStore('initialState', {
   state: (): InitialStateStoreState => ({
     hasData: false,
+    isContinuing: false,
     playerId: '',
     nickname: '',
     isUltra: false,
@@ -191,6 +195,7 @@ export const useInitialStateStore = defineStore('initialState', {
       teEarnedPerEgg: Record<VirtueEgg, number>;
     } {
       this.hasData = true;
+      this.isContinuing = mode === 'continue_earnings' || mode === 'continue_elr';
       this.rawBackup = backup;
       this.playerId = playerId;
       this.nickname = backup.userName || playerId;
@@ -459,6 +464,7 @@ export const useInitialStateStore = defineStore('initialState', {
      */
     hydrate(data: Partial<InitialStateStoreState>) {
       this.hasData = true;
+      this.isContinuing = data.isContinuing || false;
       this.playerId = data.playerId || '';
       this.nickname = data.nickname || 'Redacted';
       this.isUltra = data.isUltra || false;
@@ -554,6 +560,7 @@ export const useInitialStateStore = defineStore('initialState', {
      */
     clear() {
       this.hasData = false;
+      this.isContinuing = false;
       this.playerId = '';
       this.nickname = '';
       this.isUltra = false;
