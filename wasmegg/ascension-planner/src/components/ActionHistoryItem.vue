@@ -1,5 +1,6 @@
 <template>
   <div
+    :id="action.id"
     class="px-3 sm:px-5 py-2 sm:py-3 flex flex-col gap-1 transition-colors"
     :class="isStartAction ? 'bg-slate-50/80 border-l-4 border-brand-primary' : 'hover:bg-slate-50/50'"
   >
