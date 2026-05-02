@@ -1,5 +1,5 @@
 import type { EngineState, SimulationContext } from './types';
-import type { CalculationsSnapshot } from '@/types';
+import { CalculationsSnapshot, VIRTUE_EGGS, VirtueEgg } from '@/types';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 import { useSilosStore } from '@/stores/silos';
@@ -74,14 +74,14 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
 
   // Fallback state
   return {
-    currentEgg: 'curiosity',
+    currentEgg: (initialStateStore.currentFarmState?.eggType ? VIRTUE_EGGS[initialStateStore.currentFarmState.eggType - 50] : 'curiosity') as VirtueEgg,
     shiftCount: virtueStore.initialShiftCount,
     te: virtueStore.initialTE,
     soulEggs: initialStateStore.soulEggs,
 
-    vehicles: [{ vehicleId: 0, trainLength: 1 }], 
-    habIds: [0, null, null, null],
-    researchLevels: {},
+    vehicles: initialStateStore.currentFarmState?.vehicles || [{ vehicleId: 0, trainLength: 1 }], 
+    habIds: initialStateStore.currentFarmState?.habs || [0, null, null, null],
+    researchLevels: { ...initialStateStore.currentFarmState?.commonResearches },
     siloCount: silosStore.siloCount || 1,
     tankLevel: fuelTankStore.tankLevel || 0,
 
