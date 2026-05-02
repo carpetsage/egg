@@ -26494,5 +26494,32 @@
     "startTimestamp": 1777651200,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1777824000,
+    "id": "event-5-2",
+    "message": "DOUBLE PRESTIGE!!",
+    "multiplier": 2,
+    "startTimestamp": 1777737600,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1777910400,
+    "id": "event-5-2-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1777737600,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1777824000,
+    "id": "ultra-5-2",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1777737600,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
