@@ -26505,6 +26505,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1777824000,
+    "id": "ultra-5-2",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1777737600,
+    "type": "vehicle-sale",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1777910400,
     "id": "event-5-2-2",
     "message": "4x PIGGY GROWTH!",
@@ -26514,12 +26523,21 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1777824000,
-    "id": "ultra-5-2",
-    "message": "75% OFF VEHICLES!",
-    "multiplier": 0.25,
-    "startTimestamp": 1777737600,
-    "type": "vehicle-sale",
+    "endTimestamp": 1777910400,
+    "id": "event-5-3",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1777824000,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1777910400,
+    "id": "ultra-5-3",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1777824000,
+    "type": "drone-boost",
     "ultra": true
   }
 ]
