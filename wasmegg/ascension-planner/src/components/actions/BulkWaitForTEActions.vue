@@ -241,7 +241,6 @@ const distributedGains = computed(() => {
   // Otherwise, fallback to greedy for the remaining.
   // Actually, for simplicity in Phase 1: if ANY are manual, use manual. 
   // But the plan says Rebalance button resets everything to greedy.
-  
   const anyManual = Object.values(manualGains.value).some(v => v !== null);
   if (anyManual) {
     const gains: Record<VirtueEgg, number> = {} as any;
