@@ -113,6 +113,11 @@ export const useActionsStore = defineStore('actions', {
       return startAction.endState.lastStepTime || 0;
     },
 
+    ascensionStartTime(): number {
+      const vStore = useVirtueStore();
+      return vStore.planStartTime.getTime() / 1000;
+    },
+
     getActionReconciliationStatus() {
       return (action: Action): 'completed' | 'pending' | 'na' => {
         if (!this.isReconciling) return 'na';

@@ -268,7 +268,7 @@ const eggPlans = computed(() => {
   const fullHabRate = Math.min(S, R * H);
   
   let runningTimeSeconds = 0;
-  const planStartOffset = (actionsStore as any).planStartOffset || 0;
+  const planStartOffset = actionsStore.planStartOffset || 0;
   const baseTime = snapshot.lastStepTime;
 
   return visitOrder.value.map((egg, index) => {
@@ -388,7 +388,7 @@ function adjustEgg(egg: VirtueEgg, delta: number) {
   });
 
   // Update total based on new sum
-  totalTEToGain.value = Object.values(manualGains.value).reduce((sum, v) => sum + (v || 0), 0);
+  totalTEToGain.value = Object.values(manualGains.value).reduce<number>((sum, v) => (sum || 0) + (v || 0), 0);
 }
 
 function rebalance() {
