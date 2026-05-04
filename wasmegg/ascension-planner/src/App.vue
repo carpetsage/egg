@@ -728,14 +728,9 @@ async function startFromScratch() {
   await actionsStore.clearAll();
 
   // 2. Reset all definition stores to their default/clean states.
-  // We do this AFTER clearAll because clearAll's simulation sync
-  // would otherwise overwrite these stores with old snapshot data.
-  const cachedBackup = initialStateStore.rawBackup;
-  const cachedPlayerId = initialStateStore.playerId;
   initialStateStore.$reset();
-  if (cachedPlayerId && cachedBackup) {
-    initialStateStore.loadFromBackup(cachedPlayerId, cachedBackup, 'scratch');
-  }
+
+  // 3. Reset all other stores to their default/clean states
   virtueStore.$reset();
   fuelTankStore.$reset();
   truthEggsStore.$reset();
@@ -807,7 +802,19 @@ async function handleRefreshReconcile() {
     await saveMetadata(pHash, 'rawBackup', backup);
     
     // Load into state store
-    initialStateStore.loadFromBackup(playerId.value, backup, 'reconcile');
+    const { 
+      initialShiftCount, 
+      initialTE, 
+      tankLevel, 
+      virtueFuelAmounts,
+    } = initialStateStore.loadFromBackup(playerId.value, backup, 'reconcile');
+
+    // Sync stores
+    virtueStore.setInitialState(initialShiftCount, initialTE);
+    fuelTankStore.setTankLevel(tankLevel);
+    for (const [egg, amount] of Object.entries(virtueFuelAmounts)) {
+      fuelTankStore.setFuelAmount(egg as VirtueEgg, amount);
+    }
     
     // Update reconciliation targets in actionsStore
     if (initialStateStore.currentFarmState) {
@@ -870,13 +877,6 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
       teEarnedPerEgg 
     } = initialStateStore.loadFromBackup(id, backup, mode);
 
-    // Catch-up calculations (eggs, earnings, population) are now handled 
-    // automatically by computeSnapshot in the engine. We compute the initial 
-    // snapshot first and then sync the results back to the stores.
-    const context = getSimulationContext();
-    const baseState = createBaseEngineState(null);
-    const initialSnapshot = computeSnapshot(baseState, context);
-
     // Initialize virtue store with player's shift count and TE
     virtueStore.setInitialState(initialShiftCount, initialTE);
 
@@ -885,6 +885,13 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
     for (const [egg, amount] of Object.entries(virtueFuelAmounts)) {
       fuelTankStore.setFuelAmount(egg as VirtueEgg, amount);
     }
+
+    // Catch-up calculations (eggs, earnings, population) are now handled 
+    // automatically by computeSnapshot in the engine. We compute the initial 
+    // snapshot first and then sync the results back to the stores.
+    const context = getSimulationContext();
+    const baseState = createBaseEngineState(null);
+    const initialSnapshot = computeSnapshot(baseState, context);
 
     // Initialize truth eggs store with caught-up data from snapshot
     for (const [egg, amount] of Object.entries(initialSnapshot.eggsDelivered)) {
@@ -918,9 +925,8 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
       initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - earned));
     }
 
-    if (mode !== 'plan_next') {
-      await actionsStore.setInitialSnapshot(initialSnapshot);
-    }
+    // Initialize initial state in actions store
+    await actionsStore.setInitialSnapshot(initialSnapshot);
 
     loading.value = false;
   } catch (e) {
