@@ -204,6 +204,7 @@ export const useActionsStore = defineStore('actions', {
       }
 
       await this.recalculateFrom(0);
+      this.lastSavedActionsJson = JSON.stringify(this.actions);
     },
 
     pushWaitForFullHabsAction() {
