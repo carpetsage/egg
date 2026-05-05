@@ -32,7 +32,7 @@ export interface BackupData {
 export function loadAndSyncBackup(
   playerId: string,
   backup: ei.IBackup,
-  mode: 'plan_next' | 'continue_earnings' | 'continue_elr' | 'reconcile'
+  mode: 'scratch' | 'plan_next' | 'continue_earnings' | 'continue_elr' | 'reconcile' | 'default'
 ): BackupData {
   const initialStateStore = useInitialStateStore();
   initialStateStore.rawBackup = backup;

@@ -441,6 +441,7 @@ import {
   initReconcile,
   loadAndSyncBackup,
   captureReconciliationTargets,
+  catchUpFarmState,
 } from '@/lib/modes';
 
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
