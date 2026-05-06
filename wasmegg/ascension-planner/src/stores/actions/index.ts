@@ -55,7 +55,7 @@ export const useActionsStore = defineStore('actions', {
       reconcileTeEarned: null,
       showIncompleteOnly: true,
       activePlanId: null,
-      lastSavedActionsJson: '[]',
+      lastSavedActionsJson: JSON.stringify([startAction]),
       libraryUpdateTick: 0,
       manualOverrides: JSON.parse(localStorage.getItem('ascension_manual_overrides') || '{}') as Record<string, Record<string, boolean>>,
     };
@@ -113,6 +113,11 @@ export const useActionsStore = defineStore('actions', {
       return startAction.endState.lastStepTime || 0;
     },
 
+    ascensionStartTime(): number {
+      const vStore = useVirtueStore();
+      return vStore.planStartTime.getTime() / 1000;
+    },
+
     getActionReconciliationStatus() {
       return (action: Action): 'completed' | 'pending' | 'na' => {
         if (!this.isReconciling) return 'na';
@@ -146,8 +151,34 @@ export const useActionsStore = defineStore('actions', {
     },
 
     isDirty(): boolean {
-      const currentActionsJson = JSON.stringify(this.actions);
-      return currentActionsJson !== this.lastSavedActionsJson;
+      const isTrivial = (a: Action): boolean => {
+        if (a.type === 'shift') return true;
+        if (a.type === 'wait_for_full_habs') return true;
+        if (a.type === 'toggle_earnings_boost' && (a.payload as any).active) return true;
+        if (a.type === 'toggle_sale' && (a.payload as any).active) return true;
+        return false;
+      };
+
+      const summarize = (actions: Action[]) => {
+        return actions
+          .filter(a => !isTrivial(a))
+          .map(a => ({
+            type: a.type,
+            payload: a.payload,
+          }));
+      };
+
+      const currentSummary = JSON.stringify(summarize(this.actions));
+      
+      let savedActions: Action[] = [];
+      try {
+        savedActions = JSON.parse(this.lastSavedActionsJson);
+      } catch (e) {
+        return true;
+      }
+      const savedSummary = JSON.stringify(summarize(savedActions));
+
+      return currentSummary !== savedSummary;
     },
   },
 
@@ -173,6 +204,7 @@ export const useActionsStore = defineStore('actions', {
       }
 
       await this.recalculateFrom(0);
+      this.lastSavedActionsJson = JSON.stringify(this.actions);
     },
 
     pushWaitForFullHabsAction() {

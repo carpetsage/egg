@@ -64,8 +64,9 @@
         <!-- Recon Status -->
         <div v-if="actionsStore.isReconciling" class="flex items-center justify-center w-5 sm:w-6">
           <!-- Manual completion / Unaudiated -->
-          <div v-if="isManuallyCompleted || reconciliationStatus === 'na'" class="flex items-center justify-center">
-            <label class="cursor-pointer hover:bg-slate-100 p-0.5 rounded transition-colors" v-tippy="isManuallyCompleted ? 'Manually completed - Click to undo' : 'Not Audited - Click to mark complete'">
+          <div v-if="isManuallyCompleted || reconciliationStatus === 'na' || reconciliationStatus === 'pending'" class="flex items-center justify-center">
+            <label class="cursor-pointer hover:bg-slate-100 p-0.5 rounded transition-colors" 
+                   v-tippy="isManuallyCompleted ? 'Manually completed - Click to undo' : (reconciliationStatus === 'pending' ? 'Pending in-game - Click to mark complete anyway' : 'Not Audited - Click to mark complete')">
               <input 
                 type="checkbox" 
                 :checked="isManuallyCompleted"
