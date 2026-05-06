@@ -305,7 +305,7 @@ const eggPlans = computed(() => {
       teToGain: gain,
       durationSeconds,
       displayTime: formatSimTime(baseTime + runningTimeSeconds),
-      absoluteTime: formatAbsoluteTime(completionTime - planStartOffset, actionsStore.ascensionStartTime),
+      absoluteTime: formatAbsoluteTime(completionTime - planStartOffset, actionsStore.ascensionStartTime * 1000),
     };
 
     runningTimeSeconds += durationSeconds;
