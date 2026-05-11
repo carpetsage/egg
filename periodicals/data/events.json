@@ -26656,5 +26656,14 @@
     "startTimestamp": 1778428800,
     "type": "hab-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1778601600,
+    "id": "event-5-11",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1778515200,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
