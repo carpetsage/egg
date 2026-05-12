@@ -307,7 +307,10 @@
             </button>
           </div>
           <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-            <AvailableActions @show-current-details="showCurrentDetails" />
+            <AvailableActions 
+              @show-current-details="showCurrentDetails" 
+              @refresh-backup="handleRefreshReconcile"
+            />
           </div>
         </div>
       </div>
