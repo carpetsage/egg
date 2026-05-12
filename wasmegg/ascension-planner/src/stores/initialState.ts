@@ -515,6 +515,9 @@ export const useInitialStateStore = defineStore('initialState', {
       if (data.activeMissions) {
         this.activeMissions = [...data.activeMissions];
       }
+      if (data.rawBackup) {
+        this.rawBackup = data.rawBackup;
+      }
 
       // Sync Truth Eggs Store
       const truthEggsStore = useTruthEggsStore();
