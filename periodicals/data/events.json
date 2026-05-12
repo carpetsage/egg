@@ -26665,5 +26665,23 @@
     "startTimestamp": 1778515200,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1778688000,
+    "id": "event-5-12",
+    "message": "2x GIFTS!",
+    "multiplier": 2,
+    "startTimestamp": 1778601600,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1778688000,
+    "id": "ultra-5-12",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1778601600,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
