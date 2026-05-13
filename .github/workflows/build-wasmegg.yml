@@ -12,7 +12,7 @@ on:
       - '!periodicals/data/seasoncontracts.json'
       - 'protobuf/ei.proto'
   pull_request:
-    types: [opened, edited, reopened]
+    types: [opened, synchronize, edited, reopened]
     paths:
       - 'lib/**'
       - 'ui/**'
@@ -20,6 +20,9 @@ on:
       - 'periodicals/*'
       - 'periodicals/data/*'
   workflow_dispatch:
+
+permissions:
+  contents: read
   #schedule:
   # Regenerate every day to incorporate updated mission outcome data.
   # Cron moved to cloudflare worker for more reliable timing
@@ -34,37 +37,17 @@ jobs:
         working-directory: wasmegg
     steps:
       - uses: actions/checkout@v6
-      - name: Set up protoc
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends protobuf-compiler
-          # Install protoc-gen-doc
-          basename=protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
-          wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.4.1/$basename.tar.gz
-          tar xf $basename.tar.gz
-          echo "$PWD/$basename" >> $GITHUB_PATH
-      - name: Set up ets
-        run: |
-          wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
-          sudo dpkg -i ets_0.2.1_linux_amd64.deb
-      - name: Set up Go
-        uses: actions/setup-go@v6
+      - uses: ./.github/actions/setup-wasmegg-deps
+      - uses: ./.github/actions/setup-pnpm-node
         with:
-          go-version: '^1.22'
-      - name: Install pnpm
-        uses: pnpm/action-setup@v5.0.0
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
             pnpm-global/5/pnpm-lock.yaml
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Cache netlify-headers-expander
+        uses: actions/cache@v4
         with:
-          python-version: '3.x'
+          path: wasmegg/netlify-headers-expander
+          key: netlify-headers-expander-1.0.0
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
@@ -81,32 +64,11 @@ jobs:
           make -j2 fastbuild
         env:
           EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
-      - name: Install netlify cli
-        run: |
-          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
-          pnpm add --global netlify-cli
-        if: github.event_name != 'pull_request'
-      - name: Deploy
-        run: |
-          netlify deploy --prod -d $GITHUB_WORKSPACE/wasmegg/dist
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-      - name: Deploy to branch-specific URL
-        run: |
-          netlify deploy --alias "${GITHUB_REF##*/}" -d $GITHUB_WORKSPACE/wasmegg/dist
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.ref != 'refs/heads/main' && github.event_name != 'pull_request'
-      - name: Deploy to commit-specific URL
-        run: |
-          netlify deploy --alias "$GITHUB_SHA" -d $GITHUB_WORKSPACE/wasmegg/dist
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        if: github.event_name != 'pull_request'
+      - uses: ./.github/actions/netlify-deploy
+        with:
+          dist-dir: wasmegg/dist
+          site-id: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
+          auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
   # With TS type checking.
   wasmegg-fullbuild:
@@ -116,37 +78,17 @@ jobs:
         working-directory: wasmegg
     steps:
       - uses: actions/checkout@v6
-      - name: Set up protoc
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends protobuf-compiler
-          # Install protoc-gen-doc
-          basename=protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
-          wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.4.1/$basename.tar.gz
-          tar xf $basename.tar.gz
-          echo "$PWD/$basename" >> $GITHUB_PATH
-      - name: Set up ets
-        run: |
-          wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
-          sudo dpkg -i ets_0.2.1_linux_amd64.deb
-      - name: Set up Go
-        uses: actions/setup-go@v6
+      - uses: ./.github/actions/setup-wasmegg-deps
+      - uses: ./.github/actions/setup-pnpm-node
         with:
-          go-version: '^1.22'
-      - name: Install pnpm
-        uses: pnpm/action-setup@v5.0.0
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: 'pnpm'
           cache-dependency-path: |
             pnpm-lock.yaml
             pnpm-global/5/pnpm-lock.yaml
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Cache netlify-headers-expander
+        uses: actions/cache@v4
         with:
-          python-version: '3.x'
+          path: wasmegg/netlify-headers-expander
+          key: netlify-headers-expander-1.0.0
       - name: Do other preparations
         run: |
           ../action-scripts/prepare

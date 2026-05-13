@@ -1,0 +1,43 @@
+name: 'Netlify Deploy'
+description: 'Deploy to Netlify with automatic prod/branch/commit URL handling'
+inputs:
+  dist-dir:
+    description: 'Path to the build output directory (relative to workspace root)'
+    required: true
+  site-id:
+    description: 'Netlify site ID (use secrets.NETLIFY_*_SITE_ID)'
+    required: true
+  auth-token:
+    description: 'Netlify auth token (use secrets.NETLIFY_AUTH_TOKEN)'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Install netlify cli
+      shell: bash
+      run: |
+        echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+        pnpm add --global netlify-cli
+    - name: Deploy (production)
+      if: github.ref == 'refs/heads/main'
+      shell: bash
+      run: |
+        netlify deploy --prod -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
+      env:
+        NETLIFY_SITE_ID: ${{ inputs.site-id }}
+        NETLIFY_AUTH_TOKEN: ${{ inputs.auth-token }}
+    - name: Deploy (branch URL)
+      if: github.ref != 'refs/heads/main'
+      shell: bash
+      run: |
+        netlify deploy --alias "${GITHUB_REF##*/}" -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
+      env:
+        NETLIFY_SITE_ID: ${{ inputs.site-id }}
+        NETLIFY_AUTH_TOKEN: ${{ inputs.auth-token }}
+    - name: Deploy (commit URL)
+      shell: bash
+      run: |
+        netlify deploy --alias "$GITHUB_SHA" -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
+      env:
+        NETLIFY_SITE_ID: ${{ inputs.site-id }}
+        NETLIFY_AUTH_TOKEN: ${{ inputs.auth-token }}

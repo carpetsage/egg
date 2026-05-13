@@ -1,0 +1,51 @@
+name: 'Set up wasmegg dependencies'
+description: 'Install protoc, protoc-gen-doc, ets, Go, and Python for wasmegg builds'
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache apt packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          /var/cache/apt/archives
+          /var/lib/apt/lists
+        key: ${{ runner.os }}-apt-protobuf-compiler
+    - name: Cache protoc-gen-doc
+      uses: actions/cache@v4
+      with:
+        path: protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
+        key: protoc-gen-doc-1.4.1-linux-amd64
+    - name: Set up protoc
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends protobuf-compiler
+        # Install protoc-gen-doc
+        basename=protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
+        if [[ ! -d "$basename" ]]; then
+          wget "https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.4.1/$basename.tar.gz"
+          echo '2e476c67063af55a5608f7ef876260eb4ca400b330b762a4f59096db501c5c8c  '"$basename.tar.gz" | sha256sum -c -
+          tar xf "$basename.tar.gz"
+        fi
+        echo "$PWD/$basename" >> $GITHUB_PATH
+    - name: Cache ets
+      uses: actions/cache@v4
+      with:
+        path: ets_0.2.1_linux_amd64.deb
+        key: ets-0.2.1-linux-amd64
+    - name: Set up ets
+      shell: bash
+      run: |
+        if [[ ! -f ets_0.2.1_linux_amd64.deb ]]; then
+          wget https://github.com/zmwangx/ets/releases/download/v0.2.1/ets_0.2.1_linux_amd64.deb
+          echo '759703ab432d52da4def118f98a7f811c0ec59354afad7151f08cba8f09f6171  ets_0.2.1_linux_amd64.deb' | sha256sum -c -
+        fi
+        sudo dpkg -i ets_0.2.1_linux_amd64.deb
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '^1.22'
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.x'

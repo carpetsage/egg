@@ -8,6 +8,10 @@ on:
   # Just run daily at some point. Time is not important.
   schedule:
    - cron: '0 23 * * *'
+
+permissions:
+  contents: write
+
 jobs:
   update:
     if: github.actor != 'dependabot[bot]'
