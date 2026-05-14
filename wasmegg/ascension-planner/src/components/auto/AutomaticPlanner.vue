@@ -113,11 +113,31 @@
 
         <button 
           class="btn-premium btn-primary w-full py-5 mt-8 text-sm shadow-xl shadow-indigo-500/20 active:scale-[0.98]"
-          disabled
+          @click="generate"
+          :disabled="isGenerating"
         >
-          Generate Path Decision Tree
+          <span v-if="isGenerating">Generating...</span>
+          <span v-else>Generate Path Decision Tree</span>
         </button>
       </div>
+    </div>
+
+    <!-- Results Section -->
+    <div v-if="planShifts.length > 0" class="max-w-5xl mx-auto space-y-6">
+      <div class="flex items-center justify-between px-2">
+        <h3 class="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Generated Plan</h3>
+      </div>
+
+      <ShiftSummary 
+        v-for="(shift, index) in planShifts"
+        :key="index"
+        :title="shift.title"
+        :egg="shift.egg"
+        :actions="shift.actions"
+        :duration="shift.duration"
+        :cost="shift.cost"
+        :costType="shift.costType"
+      />
     </div>
   </div>
 </template>
@@ -130,6 +150,13 @@ import { useVirtueStore } from '@/stores/virtue';
 import { iconURL } from 'lib';
 import { formatNumber } from '@/lib/format';
 import { computeMultiAscensionSECost } from '@/auto/se-tracker';
+import { createBaseEngineState, getSimulationContext } from '@/engine/adapter';
+import { getLocalTimestampInTimezone } from '@/lib/events';
+import { runAscension } from '@/auto/shifts';
+import { getResearchById, getResearchByTier } from '@/calculations/commonResearch';
+import { rollUpPendingTE } from '@/lib/modes';
+import { formatDuration } from '@/lib/format';
+import ShiftSummary from './ShiftSummary.vue';
 
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
@@ -144,9 +171,59 @@ const now = new Date();
 const startDate = ref(now.toISOString().split('T')[0]);
 const startTime = ref(now.toTimeString().split(' ')[0].substring(0, 5));
 
+const isGenerating = ref(false);
+const generatedPlan = ref<any>(null);
+
 const currentTE = computed(() => {
   const snapshot = actionsStore.effectiveSnapshot;
   return snapshot.teEarned ? Object.values(snapshot.teEarned).reduce((a, b) => a + b, 0) : 0;
+});
+
+const planShifts = computed(() => {
+  if (!generatedPlan.value || !generatedPlan.value.actions) return [];
+  
+  const shifts: any[] = [];
+  let currentShift = {
+    title: 'C1 Shift (Curiosity)',
+    egg: 'curiosity',
+    actions: [] as any[],
+    duration: 0,
+    cost: 0, // C1 has no shift cost, it starts on the egg
+    costType: 'SE' as 'SE' | 'Virtue',
+  };
+  
+  const titles = ['C1 Shift', 'K1 Shift', 'I1 Shift', 'C2 Shift', 'K2 Shift', 'R1 Shift', 'C3 Shift', 'H1 Shift', 'K3 Shift'];
+  let shiftIndex = 0;
+  
+  for (const action of generatedPlan.value.actions) {
+    if (action.type === 'shift') {
+      if (currentShift.actions.length > 0) {
+        shifts.push(currentShift);
+      }
+      shiftIndex++;
+      const nextEgg = action.payload.toEgg;
+      const title = titles[shiftIndex] || `${nextEgg.charAt(0).toUpperCase() + nextEgg.slice(1)} Shift`;
+      currentShift = {
+        title: title,
+        egg: nextEgg,
+        actions: [],
+        duration: 0,
+        cost: action.cost || 0,
+        costType: 'SE',
+      };
+    } else {
+      currentShift.actions.push(action);
+      if (action.type === 'wait_for_time') {
+        currentShift.duration += action.payload.totalTimeSeconds || 0;
+      }
+    }
+  }
+  
+  if (currentShift.actions.length > 0) {
+    shifts.push(currentShift);
+  }
+  
+  return shifts;
 });
 
 const seCostPreview = computed(() => {
@@ -195,6 +272,40 @@ const allTimezones = computed(() => {
     ];
   }
 });
+
+const generate = () => {
+  isGenerating.value = true;
+  
+  // Use a setTimeout to allow the UI to update "isGenerating" state before blocking
+  setTimeout(() => {
+    try {
+      // Roll up pending TE first (claimed at ascension start)
+      rollUpPendingTE();
+
+      const baseState = createBaseEngineState(null);
+      
+      // Force Curiosity and 1 chicken for C1 start
+      baseState.currentEgg = 'curiosity';
+      baseState.population = 1;
+      baseState.bankValue = 0;
+      baseState.researchLevels = {}; // Start with no common research
+
+      console.log(`Starting Simulation with rolled-up TE: ${baseState.te}`);
+
+      const context = getSimulationContext();
+      
+      const absStartTime = getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value);
+      context.ascensionStartTime = absStartTime;
+      
+      const buildPhaseEnd = absStartTime + 86400 * 7;
+      
+      const result = runAscension(baseState, context, buildPhaseEnd, absStartTime);
+      generatedPlan.value = result;
+    } finally {
+      isGenerating.value = false;
+    }
+  }, 10);
+};
 </script>
 
 <style scoped>

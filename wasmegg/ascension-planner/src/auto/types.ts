@@ -1,5 +1,6 @@
 import type { Action } from '@/types/actions/meta';
 import type { EngineState, SimulationContext } from '@/engine/types';
+export type { EngineState, SimulationContext };
 import type { VirtueEgg } from '@/types/actions/virtue';
 
 export interface AscensionSummary {

@@ -158,7 +158,7 @@ A minimal shell with:
 
 ## Phase 2: First Shift — C1
 
-### [ ] Step 2.1: Create `src/auto/shifts/c1.ts`
+### [x] Step 2.1: Create `src/auto/shifts/c1.ts`
 
 Implement the C1 strategy (PLAN.md §8, C1 row):
 
@@ -182,7 +182,7 @@ Each purchase: emit a `buy_research` action, deduct cost from bank, advance elap
 - Fleet_size and graviton_coupling are purchased before earnings research
 - Earnings research is in ROI order (not cheapest-first)
 
-### [ ] Step 2.2: Create `src/auto/shifts/index.ts` — Shift orchestrator
+### [x] Step 2.2: Create `src/auto/shifts/index.ts` — Shift orchestrator
 
 A function that runs the 13-shift sequence. For now, only C1 is implemented — the rest are stubs that return empty results:
 
@@ -197,7 +197,7 @@ function runAscension(
 
 **Test**: Run the orchestrator with a known backup. Verify it produces C1 actions and the remaining shifts are no-ops.
 
-### [ ] Step 2.3: Wire C1 into `AutomaticPlanner.vue`
+### [x] Step 2.3: Wire C1 into `AutomaticPlanner.vue`
 
 When the user clicks "Generate":
 1. Build `EngineState` and `SimulationContext` from the loaded backup (similar to how "Plan Future Ascension" mode initializes — see `src/lib/modes/`)
@@ -213,7 +213,7 @@ When the user clicks "Generate":
 
 ## Phase 3: Build Phase Shifts (K1 → K3)
 
-### [ ] Step 3.1: Implement `shifts/k1.ts` — First vehicles
+### [x] Step 3.1: Implement `shifts/k1.ts` — First vehicles
 
 K1 strategy (PLAN.md §9):
 1. Shift to Kindness (emit shift action, deduct SE)
@@ -222,25 +222,25 @@ K1 strategy (PLAN.md §9):
 
 **Test**: After C1, K1 produces vehicle purchases. Shipping capacity ≥ lay rate after minimum purchases.
 
-### [ ] Step 3.2: Implement `shifts/i1.ts` — Chicken Universes
+### [x] Step 3.2: Implement `shifts/i1.ts` — Chicken Universes
 
 I1: Shift to Integrity. Buy at least one intermediate hab to quickly increase earnings from having more chickens, then buy 4 Chicken Universe habs.
 
 **Test**: Output contains intermediate hab purchase actions, followed by 4 `buy_hab` actions for Chicken Universe (hab ID 18).
 
-### [ ] Step 3.3: Implement `shifts/c2.ts` — Finish fleet research
+### [x] Step 3.3: Implement `shifts/c2.ts` — Finish fleet research
 
 C2: Shift back to Curiosity. Finish any remaining fleet_size levels. Buy graviton_coupling, but do not wait more than 4 hours to buy an extra level (you may buy more levels later during C3).
 
 **Test**: After C2, all fleet_size research is maxed. Graviton_coupling is as high as affordable within a 4-hour wait limit per level.
 
-### [ ] Step 3.4: Implement `shifts/k2.ts` — Max vehicles
+### [x] Step 3.4: Implement `shifts/k2.ts` — Max vehicles
 
 K2: Shift to Kindness. Max all vehicle slots with best vehicles. Max train lengths.
 
 **Test**: After K2, all vehicle slots filled with tier-11 vehicles, max train lengths applied.
 
-### [ ] Step 3.5: Implement `shifts/r1.ts` — Silos
+### [x] Step 3.5: Implement `shifts/r1.ts` — Silos
 
 R1: Shift to Resilience. Buy as many silos as possible within 1 hour.
 

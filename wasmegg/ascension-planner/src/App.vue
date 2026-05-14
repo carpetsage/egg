@@ -39,7 +39,7 @@
                 <button
                   class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
                   :class="activeTab === 'automatic' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'"
-                  @click="activeTab = 'automatic'; isHeaderCollapsed = true"
+                  @click="handleAutoPlannerTabClick"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -826,6 +826,24 @@ function onFormInput(e: Event) {
     playerId.value = target.value.trim();
   }
   error.value = '';
+}
+
+async function handleAutoPlannerTabClick() {
+  activeTab.value = 'automatic';
+  isHeaderCollapsed.value = true;
+  
+  if (playerId.value && !loading.value) {
+    loading.value = true;
+    try {
+      // Fetch fresh backup and initialize for "Plan Future" mode (zeroed farm)
+      await initPlanFuture(playerId.value);
+    } catch (e) {
+      console.error('Failed to auto-init Auto Planner:', e);
+      error.value = 'Failed to load fresh backup for Auto Planner.';
+    } finally {
+      loading.value = false;
+    }
+  }
 }
 
 /**
