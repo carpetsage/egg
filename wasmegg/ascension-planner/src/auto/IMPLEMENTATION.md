@@ -64,7 +64,7 @@ Built on top of the existing `getNextPacificTime()` from `src/lib/events.ts`.
 
 ## Phase 1: Foundation — Types, SE Tracking, Tab Shell
 
-### [ ] Step 1.1: Create `src/auto/types.ts`
+### [x] Step 1.1: Create `src/auto/types.ts`
 
 Define all core types:
 
@@ -78,7 +78,7 @@ interface BuildPhaseResult { ... }    // Combined result of shifts C1-K3
 
 **Test**: Types only — this is just type definitions. Compiles without errors.
 
-### [ ] Step 1.2: Create `src/auto/se-tracker.ts`
+### [x] Step 1.2: Create `src/auto/se-tracker.ts`
 
 Pure functions for SE cost tracking:
 
@@ -102,7 +102,7 @@ Uses `shiftCost()` from `lib/earning_bonus.ts`. Iterates shift-by-shift, deducti
 
 **Test**: Compute SE costs for a known backup. Verify the first shift cost matches what the existing ShiftActions.vue component displays.
 
-### [ ] Step 1.3: Create `src/auto/te-thresholds.ts`
+### [x] Step 1.3: Create `src/auto/te-thresholds.ts`
 
 Pure functions for TE earning calculations:
 
@@ -132,7 +132,7 @@ Uses `TE_BREAKPOINTS` and `countTEThresholdsPassed` from `src/lib/truthEggs.ts`.
 
 **Test**: For a known ELR value, verify that `timeToEarnTE` correctly predicts when thresholds from `TE_BREAKPOINTS` are crossed. Test the variable-rate version against a sequence of changing ELRs.
 
-### [ ] Step 1.4: Add Manual/Automatic tab toggle to `App.vue`
+### [x] Step 1.4: Add Manual/Automatic tab toggle to `App.vue`
 
 Add a top-level tab bar with "Manual" and "Automatic" tabs. The Manual tab shows everything that exists today. The Automatic tab shows a new `AutomaticPlanner.vue` shell component.
 
@@ -141,7 +141,7 @@ Add a top-level tab bar with "Manual" and "Automatic" tabs. The Manual tab shows
 - The Automatic tab is lazy-loaded (only mount when selected)
 - No changes to existing Manual planner behavior
 
-### [ ] Step 1.5: Create `src/components/auto/AutomaticPlanner.vue` — Shell
+### [x] Step 1.5: Create `src/components/auto/AutomaticPlanner.vue` — Shell
 
 A minimal shell with:
 - Player ID input (reuse existing `requestFirstContact` pattern)

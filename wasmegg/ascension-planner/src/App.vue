@@ -23,6 +23,33 @@
 
             <the-player-id-form :player-id="playerId" @submit="submitPlayerId" @input="onFormInput" />
 
+            <!-- Mode Tabs -->
+            <div v-if="playerId && !loading" class="mt-6 flex justify-center animate-in fade-in slide-in-from-top-4 duration-500">
+              <div class="bg-slate-50 p-1.5 rounded-2xl border border-slate-200/50 shadow-sm flex gap-1">
+                <button
+                  class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
+                  :class="activeTab === 'manual' ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'"
+                  @click="activeTab = 'manual'"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Manual Planner
+                </button>
+                <button
+                  class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
+                  :class="activeTab === 'automatic' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'"
+                  @click="activeTab = 'automatic'; isHeaderCollapsed = true"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Auto Planner
+                  <span class="bg-indigo-500 text-[8px] px-1.5 py-0.5 rounded-md ml-1 border border-indigo-400/30">BETA</span>
+                </button>
+              </div>
+            </div>
+
             <!-- Plan Library Section -->
             <div v-if="playerId" class="max-w-6xl mx-auto mt-6">
               <PlanLibrary @plan-loaded="handlePlanLoaded" />
@@ -239,8 +266,8 @@
         </div>
       </div>
 
-      <!-- Active Event Slide Toggle (Earnings Boost) - always visible -->
-      <div class="mt-4 flex flex-col items-center gap-2">
+      <!-- Active Event Slide Toggle (Earnings Boost) -->
+      <div v-if="activeTab === 'manual'" class="mt-4 flex flex-col items-center gap-2">
         <div
           class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
         >
@@ -277,42 +304,48 @@
         {{ error }}
       </div>
 
-      <!-- Action History and Available Actions side-by-side -->
-      <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Action History -->
-        <div class="section-premium overflow-visible">
-          <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
-            <h2 class="text-lg font-semibold text-gray-800">Action History</h2>
-            <button
-              class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-              @click="expandedSections.actionHistory = !expandedSections.actionHistory"
-            >
-              <ChevronIcon :expanded="expandedSections.actionHistory" />
-            </button>
+      <div v-if="activeTab === 'manual'">
+        <!-- Action History and Available Actions side-by-side -->
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Action History -->
+          <div class="section-premium overflow-visible">
+            <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
+              <h2 class="text-lg font-semibold text-gray-800">Action History</h2>
+              <button
+                class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+                @click="expandedSections.actionHistory = !expandedSections.actionHistory"
+              >
+                <ChevronIcon :expanded="expandedSections.actionHistory" />
+              </button>
+            </div>
+            <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
+              <ActionHistory @show-details="showActionDetails" @undo="showUndoConfirmation" @clear-all="handleClearAll" />
+            </div>
           </div>
-          <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-            <ActionHistory @show-details="showActionDetails" @undo="showUndoConfirmation" @clear-all="handleClearAll" />
-          </div>
-        </div>
 
-        <!-- Available Actions -->
-        <div class="section-premium overflow-visible">
-          <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
-            <h2 class="text-lg font-semibold text-gray-800">Available Actions</h2>
-            <button
-              class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-              @click="expandedSections.availableActions = !expandedSections.availableActions"
-            >
-              <ChevronIcon :expanded="expandedSections.availableActions" />
-            </button>
-          </div>
-          <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-            <AvailableActions 
-              @show-current-details="showCurrentDetails" 
-              @refresh-backup="handleRefreshReconcile"
-            />
+          <!-- Available Actions -->
+          <div class="section-premium overflow-visible">
+            <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
+              <h2 class="text-lg font-semibold text-gray-800">Available Actions</h2>
+              <button
+                class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+                @click="expandedSections.availableActions = !expandedSections.availableActions"
+              >
+                <ChevronIcon :expanded="expandedSections.availableActions" />
+              </button>
+            </div>
+            <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
+              <AvailableActions 
+                @show-current-details="showCurrentDetails" 
+                @refresh-backup="handleRefreshReconcile"
+              />
+            </div>
           </div>
         </div>
+      </div>
+
+      <div v-else-if="activeTab === 'automatic' && playerId && !loading">
+        <AutomaticPlanner />
       </div>
     </div>
 
@@ -425,6 +458,7 @@ import WarningDialog from '@/components/WarningDialog.vue';
 import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
 import PlanLibrary from '@/components/PlanLibrary.vue';
 import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
+import AutomaticPlanner from '@/components/auto/AutomaticPlanner.vue';
 import { useSalesStore } from '@/stores/sales';
 import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -450,6 +484,7 @@ import {
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
 const loading = ref(false);
 const error = ref('');
+const activeTab = ref<'manual' | 'automatic'>('manual');
 
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
@@ -609,6 +644,7 @@ const expandedSections = ref({
 const isHeaderCollapsed = ref(false);
 
 function handlePlanLoaded() {
+  activeTab.value = 'manual';
   isHeaderCollapsed.value = true;
   scrollToTop();
 }
@@ -720,6 +756,7 @@ function executeClearAll() {
 async function startFromScratch() {
   error.value = '';
   try {
+    activeTab.value = 'manual';
     await initStartFromScratch();
     isHeaderCollapsed.value = true;
   } catch (e) {
@@ -742,6 +779,7 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
   error.value = '';
 
   try {
+    activeTab.value = 'manual';
     savePlayerID(playerId.value);
     await initReconcile(playerId.value, plan, broadcastPresence);
     isHeaderCollapsed.value = true;
@@ -925,6 +963,7 @@ async function quickContinueAscension(selection: 'earnings' | 'elr') {
   loading.value = true;
 
   try {
+    activeTab.value = 'manual';
     savePlayerID(playerId.value);
     await initContinueCurrent(playerId.value, selection);
     isHeaderCollapsed.value = true;
@@ -947,6 +986,7 @@ async function planNextAscension() {
   loading.value = true;
 
   try {
+    activeTab.value = 'manual';
     savePlayerID(playerId.value);
     await initPlanFuture(playerId.value);
     isHeaderCollapsed.value = true;
