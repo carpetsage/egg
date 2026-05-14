@@ -25,6 +25,8 @@ import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { calculateLayRate } from '@/calculations/layRate';
 import { calculateEffectiveLayRate } from '@/calculations/effectiveLayRate';
 import { calculateHabCapacity_Full } from '@/calculations/habCapacity';
+import { computeRealisticELR } from '@/calculations/realisticELR';
+import { calculateResearchROI } from '@/calculations/researchROI';
 import { createSimAction } from '@/types/actions/meta';
 
 export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr';
@@ -104,55 +106,7 @@ const ELR_EXCLUDED_CATEGORIES = [
   'egg_value',
 ];
 
-/**
- * Compute ELR using the full pipeline with given research levels, artifact mods, max habs/vehicles.
- */
-function computeRealisticELR(
-  researchLevels: Record<string, number>,
-  artifactMods: ReturnType<typeof calculateArtifactModifiers>,
-  epicResearchLevels: Record<string, number>,
-  colleggtibleModifiers: any,
-): { layRate: number; shippingRate: number; effectiveRate: number } {
-  const habCapOutput = calculateHabCapacity_Full({
-    habIds: [18, 18, 18, 18] as (number | null)[],
-    researchLevels,
-    peggMultiplier: colleggtibleModifiers.habCap,
-    artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
-    artifactEffects: artifactMods.habCapacity.effects,
-  });
-  const population = habCapOutput.totalFinalCapacity;
 
-  const layRateOutput = calculateLayRate({
-    researchLevels,
-    epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
-    siliconMultiplier: colleggtibleModifiers.elr,
-    population,
-    artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
-    artifactEffects: artifactMods.eggLayingRate.effects,
-  });
-
-  const totalSlots = calculateMaxVehicleSlots(researchLevels);
-  const maxTrainLen = calculateMaxTrainLength(researchLevels);
-  const vehicles = Array(totalSlots).fill(null).map(() => ({ vehicleId: 11, trainLength: maxTrainLen }));
-
-  const shippingOutput = calculateShippingCapacity({
-    vehicles,
-    researchLevels,
-    transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
-    colleggtibleMultiplier: colleggtibleModifiers.shippingCap,
-    artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
-    artifactEffects: artifactMods.shippingRate.effects,
-  });
-
-  const layRate = layRateOutput.totalRatePerSecond;
-  const shippingRate = shippingOutput.totalFinalCapacity;
-
-  return {
-    layRate,
-    shippingRate,
-    effectiveRate: Math.min(layRate, shippingRate),
-  };
-}
 
 export function useResearchViews() {
   const commonResearchStore = useCommonResearchStore();
@@ -561,52 +515,22 @@ export function useResearchViews() {
         const isLaying = categories.includes('egg_laying_rate');
         const isShipping = categories.includes('shipping_capacity');
 
-        const timeToBuySeconds = getTimeToSave(price, effectiveSnapshot);
+        const roiResult = calculateResearchROI({
+          research: r,
+          level,
+          price,
+          snapshot: effectiveSnapshot,
+          context,
+          eventTiming: {
+            absoluteSimTime,
+            nextSaleStart,
+            eventExpirationSeconds,
+            researchSaleDeadline: researchSaleDeadline.value,
+            isSaleActive: isSale,
+          },
+        });
 
-        const tempAction = createSimAction('buy_research', {
-          researchId: r.id,
-          fromLevel: level,
-          toLevel: level + 1,
-        }, price);
-
-        // Project the farm state forward to the actual time of purchase to get accurate ROI 
-        // predictions based on expected population growth while saving.
-        const stateAtBuy = timeToBuySeconds > 0 && isFinite(timeToBuySeconds)
-          ? applyAction(baseState, createSimAction('wait_for_time', { totalTimeSeconds: timeToBuySeconds }))
-          : baseState;
-        const snapshotAtBuy = timeToBuySeconds > 0 && isFinite(timeToBuySeconds)
-          ? computeSnapshot(stateAtBuy, context)
-          : effectiveSnapshot;
-
-        const nextStateAtBuy = applyAction(stateAtBuy, tempAction);
-        const nextSnapshot = computeSnapshot(nextStateAtBuy, context);
-        
-        const relativeExpirationAtBuy = eventExpirationSeconds - timeToBuySeconds;
-
-        let roiSeconds = Infinity;
-        const maxTime = 1e9; // ~31 years
-        const getExtra = (t: number) => 
-          calculateEarningsForTime(t, nextSnapshot, relativeExpirationAtBuy) - 
-          calculateEarningsForTime(t, snapshotAtBuy, relativeExpirationAtBuy);
-
-        if (getExtra(maxTime) >= price) {
-          let low = 0;
-          let high = maxTime;
-          for (let i = 0; i < 60; i++) {
-            const mid = (low + high) / 2;
-            if (getExtra(mid) >= price) {
-              high = mid;
-            } else {
-              low = mid;
-            }
-          }
-          roiSeconds = high;
-        }
-
-        const delta = roiSeconds !== Infinity && roiSeconds > 0 ? price / roiSeconds : 0;
-        const bankValue = effectiveSnapshot.bankValue || 0;
-        const effectivePrice = Math.max(0, price - bankValue);
-        const totalRoiSeconds = timeToBuySeconds + roiSeconds;
+        const { roiSeconds, totalRoiSeconds, showSaleWarning, showDeadlineWarning, timeToBuySeconds: resultTimeToBuySeconds, nextSnapshot } = roiResult;
 
         return {
           research: r,
@@ -614,12 +538,12 @@ export function useResearchViews() {
           currentLevel: level,
           targetLevel: level + 1,
           timeToBuy:
-            timeToBuySeconds > 0
-              ? timeToBuySeconds === Infinity
+            resultTimeToBuySeconds > 0
+              ? resultTimeToBuySeconds === Infinity
                 ? '∞'
-                : timeToBuySeconds < 1
+                : resultTimeToBuySeconds < 1
                   ? '0s'
-                  : formatDuration(timeToBuySeconds)
+                  : formatDuration(resultTimeToBuySeconds)
               : '',
           canBuy,
           isMaxed: false,
@@ -631,11 +555,8 @@ export function useResearchViews() {
           isLaying,
           isShipping,
           nextSnapshot,
-          showSaleWarning: !isSale && (
-            (absoluteSimTime + timeToBuySeconds >= nextSaleStart) ||
-            (delta * (nextSaleStart - (absoluteSimTime + timeToBuySeconds)) < 0.7 * price)
-          ),
-          showDeadlineWarning: isSale && (absoluteSimTime + timeToBuySeconds > researchSaleDeadline.value),
+          showSaleWarning,
+          showDeadlineWarning,
         };
       });
 
