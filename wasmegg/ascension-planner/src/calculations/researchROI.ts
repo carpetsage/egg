@@ -1,5 +1,6 @@
 import type { CommonResearch } from './commonResearch';
-import type { CalculationsSnapshot, SimulationContext } from '@/types';
+import type { CalculationsSnapshot } from '@/types';
+import type { SimulationContext } from '@/engine/types';
 import { createBaseEngineState } from '@/engine/adapter';
 import { applyAction, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';

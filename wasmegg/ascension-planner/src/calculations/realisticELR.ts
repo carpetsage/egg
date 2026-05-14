@@ -2,6 +2,7 @@ import { calculateHabCapacity_Full } from './habCapacity';
 import { calculateLayRate } from './layRate';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength, calculateShippingCapacity } from './shippingCapacity';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
+import type { ColleggtibleModifiers } from '@/lib/colleggtibles';
 
 /**
  * Compute ELR using the full pipeline with given research levels, artifact mods, max habs/vehicles.
@@ -11,7 +12,7 @@ export function computeRealisticELR(
   researchLevels: Record<string, number>,
   artifactMods: ReturnType<typeof calculateArtifactModifiers>,
   epicResearchLevels: Record<string, number>,
-  colleggtibleModifiers: any,
+  colleggtibleModifiers: ColleggtibleModifiers,
 ): { layRate: number; shippingRate: number; effectiveRate: number } {
   const habCapOutput = calculateHabCapacity_Full({
     habIds: [18, 18, 18, 18] as (number | null)[],
