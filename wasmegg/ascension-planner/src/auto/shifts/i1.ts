@@ -22,7 +22,7 @@ export function runI1(
   context: SimulationContext,
   timeLimit: number = 7200 // Giving plenty of time for 4 CUs
 ): ShiftResult {
-  console.log('--- Starting I1 Shift Simulation ---');
+  // console.log('--- Starting I1 Shift Simulation ---');
   let currentState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
@@ -72,10 +72,10 @@ export function runI1(
   
   currentState = applyAction(currentState, shiftAction);
   actions.push(shiftAction as unknown as any);
-  console.log(`  Shifted to Integrity. Cost: ${formatNumber(sCost, 3)} SE`);
+  // console.log(`  Shifted to Integrity. Cost: ${formatNumber(sCost, 3)} SE`);
 
   // 2. Buy intermediate hab if needed
-  console.log('Phase 1: Intermediate Hab check...');
+  // console.log('Phase 1: Intermediate Hab check...');
   const initialSnap = computeSnapshot(currentState, context, { skipGrowth: true });
   const countCUBefore = currentState.habIds.filter(id => id === 18).length;
   const cuPrice = getDiscountedHabPrice(getHabById(18), countCUBefore, getModifiers(), false);
@@ -95,7 +95,7 @@ export function runI1(
         : Infinity;
         
       if (timeToSave < 10) {
-        console.log(`  Buying intermediate hab ${hId} to boost earnings...`);
+        // console.log(`  Buying intermediate hab ${hId} to boost earnings...`);
         buyHab(0, hId);
         break;
       }
@@ -103,7 +103,7 @@ export function runI1(
   }
 
   // 3. Buy 4 Chicken Universes
-  console.log('Phase 2: Buying 4 Chicken Universes...');
+  // console.log('Phase 2: Buying 4 Chicken Universes...');
   for (let slot = 0; slot < 4; slot++) {
     if (currentState.habIds[slot] !== 18) {
       buyHab(slot, 18);

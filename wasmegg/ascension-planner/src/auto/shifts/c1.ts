@@ -1,6 +1,5 @@
 import type { Action } from '@/types/actions/meta';
 import type { EngineState, SimulationContext, ShiftResult } from '../types';
-import { calculateResearchROI, type ROICalculationInput } from '../../calculations/researchROI';
 import {
   getCommonResearches,
   isTierUnlocked,
@@ -8,6 +7,9 @@ import {
   type ResearchCostModifiers,
   getResearchById,
 } from '../../calculations/commonResearch';
+import {
+  getBestEarningsRecommendation,
+} from '../engine/strategist';
 import { getArtifact, getStone } from '../../lib/artifacts';
 import { computeSnapshot } from '../../engine/compute';
 import { applyAction } from '../../engine/apply';
@@ -59,12 +61,12 @@ export function runC1(
   context: SimulationContext,
   timeLimit: number = 1800
 ): ShiftResult {
-  console.log('--- Starting C1 Shift Simulation ---');
+  // console.log('--- Starting C1 Shift Simulation ---');
   let currentState = { ...startState };
   let elapsedSeconds = 0;
   let actions: Action[] = [];
 
-  const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + elapsedSeconds;
+  const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
 
   const getModifiers = (snapshot: any): ResearchCostModifiers => ({
     labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
@@ -128,21 +130,22 @@ export function runC1(
     .map(([label, count]) => `${count}x ${label}`)
     .join(', ');
 
-  console.log('--- Simulation Metrics ---');
-  console.log(`  TE: ${currentState.te}`);
-  console.log(`  Artifacts: ${currentState.artifactLoadout
-    .map(slot => (slot.artifactId ? getArtifact(slot.artifactId)?.label : 'Empty'))
-    .join(', ')}`);
-  if (stonesSummary) {
-    console.log(`  Stones: ${stonesSummary}`);
-  }
-  console.log(`  Chickens: ${formatNumber(snapshot.population, 3)}`);
-  console.log(`  Hab Capacity: ${formatNumber(snapshot.habCapacity, 3)}`);
-  console.log(`  Laying Rate: ${formatNumber(snapshot.layRate * 3600, 3)}/hr`);
-  console.log(`  Shipping Cap: ${formatNumber(snapshot.shippingCapacity * 3600, 3)}/hr`);
-  console.log(`  ELR: ${formatNumber(snapshot.elr * 3600, 3)}/hr`);
-  console.log(`  Earnings: ${formatNumber(snapshot.offlineEarnings * 3600, 3)} Virtue/hr`);
-  console.log('---------------------------');
+  console.clear();
+  // console.log('--- Simulation Metrics ---');
+  // console.log(`  TE: ${currentState.te}`);
+  // console.log(`  Artifacts: ${currentState.artifactLoadout
+  //   .map(slot => (slot.artifactId ? getArtifact(slot.artifactId)?.label : 'Empty'))
+  //   .join(', ')}`);
+  // if (stonesSummary) {
+  //   console.log(`  Stones: ${stonesSummary}`);
+  // }
+  // console.log(`  Chickens: ${formatNumber(snapshot.population, 3)}`);
+  // console.log(`  Hab Capacity: ${formatNumber(snapshot.habCapacity, 3)}`);
+  // console.log(`  Laying Rate: ${formatNumber(snapshot.layRate * 3600, 3)}/hr`);
+  // console.log(`  Shipping Cap: ${formatNumber(snapshot.shippingCapacity * 3600, 3)}/hr`);
+  // console.log(`  ELR: ${formatNumber(snapshot.elr * 3600, 3)}/hr`);
+  // console.log(`  Earnings: ${formatNumber(snapshot.offlineEarnings * 3600, 3)} Virtue/hr`);
+  // console.log('---------------------------');
 
   // --- Helper: find best tier-unlock candidate, preferring earnings within 2× cheapest ---
   const findTierUnlockCandidate = (targetTier: number): string | null => {
@@ -184,28 +187,19 @@ export function runC1(
 
   // --- Helper: buy best ROI-positive earnings research (single purchase) ---
   const buyBestEarningsResearch = (): boolean => {
-    const currentSnap = computeSnapshot(currentState, context, { skipGrowth: true });
     const eventTiming = getEventTiming();
+    const snap = computeSnapshot(currentState, context, { skipGrowth: true });
 
-    const candidates = getCommonResearches()
-      .filter(r => EARNINGS_CATEGORIES.some(cat => r.categories.includes(cat)))
-      .filter(r => (currentState.researchLevels[r.id] || 0) < r.levels)
-      .filter(r => isTierUnlocked(currentState.researchLevels, r.tier))
-      .map(r => {
-        const level = currentState.researchLevels[r.id] || 0;
-        const price = getDiscountedVirtuePrice(r, level, getModifiers(currentSnap), eventTiming.isSaleActive);
-        return {
-          research: r,
-          price,
-          roi: calculateResearchROI({ research: r, level, price, snapshot: currentSnap, context, eventTiming }),
-        };
-      })
-      .filter(item => item.roi.roiSeconds < (timeLimit - elapsedSeconds))
-      .sort((a, b) => a.roi.roiSeconds - b.roi.roiSeconds);
+    const recommendation = getBestEarningsRecommendation(
+      currentState,
+      context,
+      eventTiming,
+      getModifiers(snap),
+      timeLimit - elapsedSeconds
+    );
 
-    if (candidates.length > 0) {
-      // console.log(`  Quick win: ${candidates[0].research.name} (ROI: ${Math.floor(candidates[0].roi.roiSeconds)}s)`);
-      return buyResearch(candidates[0].research.id);
+    if (recommendation) {
+      return buyResearch(recommendation.researchId);
     }
     return false;
   };

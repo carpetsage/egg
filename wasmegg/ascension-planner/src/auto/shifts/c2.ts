@@ -1,12 +1,15 @@
 import type { Action } from '@/types/actions/meta';
 import type { EngineState, SimulationContext, ShiftResult } from '../types';
-import { calculateResearchROI } from '../../calculations/researchROI';
 import {
-  getCommonResearches,
   getDiscountedVirtuePrice,
   type ResearchCostModifiers,
   getResearchById,
+  isTierUnlocked,
+  purchasesNeededForTier,
 } from '../../calculations/commonResearch';
+import {
+  getBestEarningsRecommendation,
+} from '../engine/strategist';
 import { computeSnapshot } from '../../engine/compute';
 import { applyAction } from '../../engine/apply';
 import { createSimAction } from '@/types/actions/meta';
@@ -42,12 +45,12 @@ export function runC2(
   startState: EngineState,
   context: SimulationContext
 ): ShiftResult {
-  console.log('--- Starting C2 Shift Simulation ---');
+  // console.log('--- Starting C2 Shift Simulation ---');
   let currentState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 
-  const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + elapsedSeconds;
+  const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
 
   const getModifiers = (snapshot: any): ResearchCostModifiers => ({
     labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
@@ -71,6 +74,7 @@ export function runC2(
     if (!research) return false;
     const currentLevel = currentState.researchLevels[researchId] || 0;
     if (currentLevel >= research.levels) return false;
+    if (!isTierUnlocked(currentState.researchLevels, research.tier)) return false;
 
     const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
     const price = getDiscountedVirtuePrice(
@@ -84,12 +88,12 @@ export function runC2(
 
     const timeToSave = Math.max(0, (price - snapshot.bankValue) / snapshot.offlineEarnings);
     if (!Number.isFinite(timeToSave)) {
-      console.log(`    Stalling: Cannot afford ${researchId} (time to save is infinite)`);
+      // console.log(`    Stalling: Cannot afford ${researchId} (time to save is infinite)`);
       return false;
     }
     
     if (elapsedSeconds + timeToSave > 14400) {
-      console.log(`    Stalling: Buying ${researchId} would exceed the 4-hour shift limit`);
+      // console.log(`    Stalling: Buying ${researchId} would exceed the 4-hour shift limit`);
       return false;
     }
     
@@ -116,7 +120,7 @@ export function runC2(
   
   currentState = applyAction(currentState, shiftAction);
   actions.push(shiftAction as unknown as any);
-  console.log(`  Shifted to Curiosity. Cost: ${formatNumber(sCost, 3)} SE`);
+  // console.log(`  Shifted to Curiosity. Cost: ${formatNumber(sCost, 3)} SE`);
 
   // --- Helper: build event timing for ROI calculations ---
   const getEventTiming = () => {
@@ -174,35 +178,102 @@ export function runC2(
 
   // --- Helper: buy best ROI-positive earnings research (single purchase) ---
   const buyBestEarningsResearch = (): boolean => {
-    const currentSnap = computeSnapshot(currentState, context, { skipGrowth: true });
     const eventTiming = getEventTiming();
     const timeLeft = getEstimatedRemainingShiftTime();
+    const snap = computeSnapshot(currentState, context, { skipGrowth: true });
 
-    if (timeLeft <= 0 || timeLeft === Infinity) return false;
+    const recommendation = getBestEarningsRecommendation(
+      currentState,
+      context,
+      eventTiming,
+      getModifiers(snap),
+      timeLeft
+    );
 
-    const candidates = getCommonResearches()
-      .filter(r => r.categories.includes('egg_value') || r.categories.includes('egg_laying_rate') || r.categories.includes('shipping_capacity'))
-      .filter(r => (currentState.researchLevels[r.id] || 0) < r.levels)
-      .map(r => {
-        const level = currentState.researchLevels[r.id] || 0;
-        const price = getDiscountedVirtuePrice(r, level, getModifiers(currentSnap), eventTiming.isSaleActive);
-        return {
-          research: r,
-          price,
-          roi: calculateResearchROI({ research: r, level, price, snapshot: currentSnap, context, eventTiming }),
-        };
-      })
-      .filter(item => item.roi.roiSeconds < timeLeft)
-      .sort((a, b) => a.roi.roiSeconds - b.roi.roiSeconds);
-
-    if (candidates.length > 0) {
-      return buyResearch(candidates[0].research.id);
+    if (recommendation) {
+      return buyResearch(recommendation.researchId);
     }
     return false;
   };
 
+  // --- Helper: try to unlock a tier by buying the cheapest available research ---
+  const tryUnlockTier = (targetTier: number, targetResearchId: string): boolean => {
+    if (isTierUnlocked(currentState.researchLevels, targetTier)) return true;
+
+    const needed = purchasesNeededForTier(currentState.researchLevels, targetTier);
+    if (needed === Infinity) return false;
+
+    const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
+    const mods = getModifiers(snapshot);
+    const isSale = isResearchSaleActive(getAbsTime());
+
+    // Estimate total cost to unlock by finding the cheapest 'needed' purchases
+    let estimatedUnlockCost = 0;
+    const tempLevels = { ...currentState.researchLevels };
+    for (let i = 0; i < needed; i++) {
+      let cheapestPrice = Infinity;
+      let cheapestId = '';
+      for (const r of getCommonResearches()) {
+        if (
+          r.tier < targetTier &&
+          (tempLevels[r.id] || 0) < r.levels &&
+          isTierUnlocked(tempLevels, r.tier)
+        ) {
+          const p = getDiscountedVirtuePrice(r, tempLevels[r.id] || 0, mods, isSale);
+          if (p < cheapestPrice) {
+            cheapestPrice = p;
+            cheapestId = r.id;
+          }
+        }
+      }
+      if (!cheapestId) break;
+      estimatedUnlockCost += cheapestPrice;
+      tempLevels[cheapestId] = (tempLevels[cheapestId] || 0) + 1;
+    }
+
+    // Add cost of the next level of target research
+    const targetResearch = getResearchById(targetResearchId);
+    if (targetResearch) {
+      estimatedUnlockCost += getDiscountedVirtuePrice(
+        targetResearch,
+        currentState.researchLevels[targetResearchId] || 0,
+        mods,
+        isSale
+      );
+    }
+
+    const timeToSave = Math.max(0, (estimatedUnlockCost - snapshot.bankValue) / snapshot.offlineEarnings);
+    if (elapsedSeconds + timeToSave > 14400) {
+      // console.log(`  Not worth unlocking Tier ${targetTier}: would take too long (${timeToSave.toFixed(0)}s)`);
+      return false;
+    }
+
+    // console.log(`  Unlocking Tier ${targetTier} for ${targetResearchId}...`);
+    while (!isTierUnlocked(currentState.researchLevels, targetTier)) {
+      let cheapestPrice = Infinity;
+      let cheapestId = '';
+      for (const r of getCommonResearches()) {
+        if (
+          r.tier < targetTier &&
+          (currentState.researchLevels[r.id] || 0) < r.levels &&
+          isTierUnlocked(currentState.researchLevels, r.tier)
+        ) {
+          const p = getDiscountedVirtuePrice(r, currentState.researchLevels[r.id] || 0, mods, isSale);
+          if (p < cheapestPrice) {
+            cheapestPrice = p;
+            cheapestId = r.id;
+          }
+        }
+      }
+      if (!cheapestId) break;
+      if (!buyResearch(cheapestId)) break;
+    }
+
+    return isTierUnlocked(currentState.researchLevels, targetTier);
+  };
+
   // 2. Buy all fleet_size research until maxed
-  console.log('Phase 1: Buying all fleet_size research...');
+  // console.log('Phase 1: Buying all fleet_size research...');
   for (const id of FLEET_RESEARCH_IDS) {
     const research = getResearchById(id);
     while (research && (currentState.researchLevels[id] || 0) < research.levels) {
@@ -214,12 +285,18 @@ export function runC2(
   }
 
   // 3. Buy graviton_coupling until we hit the 4h limit or max it out
-  console.log('Phase 2: Checking graviton_coupling...');
+  // console.log('Phase 2: Checking graviton_coupling...');
   const gcResearch = getResearchById(GRAVITON_COUPLING_ID);
   
   while (gcResearch && (currentState.researchLevels[GRAVITON_COUPLING_ID] || 0) < gcResearch.levels) {
     while (buyBestEarningsResearch()) {
       // Continue buying ROI-positive earnings research
+    }
+
+    if (!isTierUnlocked(currentState.researchLevels, gcResearch.tier)) {
+      if (!tryUnlockTier(gcResearch.tier, GRAVITON_COUPLING_ID)) {
+        break;
+      }
     }
 
     if (!buyResearch(GRAVITON_COUPLING_ID)) {

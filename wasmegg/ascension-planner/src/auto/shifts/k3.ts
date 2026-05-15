@@ -10,31 +10,33 @@ import {
 } from '../../lib/vehicles';
 import { isResearchSaleActive } from '../calendar';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength } from '../../calculations/shippingCapacity';
+import { computeRealisticELR } from '../../calculations/realisticELR';
+import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { formatNumber } from '@/lib/format';
 
 /**
- * K2 Shift Strategy:
+ * K3 Shift Strategy:
  * 1. Shift to Kindness.
- * 2. Max all vehicle slots with best vehicles (Hyperloops, ID 11).
- * 3. Max train lengths.
+ * 2. Buy any remaining vehicles/trains unlocked by C3.
+ * 3. Compute peak ELR.
+ * 4. Wait until buildPhaseEnd.
  */
-export function runK2(
+export function runK3(
   startState: EngineState,
-  context: SimulationContext
+  context: SimulationContext,
+  buildPhaseEnd: number
 ): ShiftResult {
-  // console.log('--- Starting K2 Shift Simulation ---');
   let currentState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 
   const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
 
-  const advanceTime = (seconds: number) => {
+  const advanceTime = (seconds: number, metadata?: any) => {
     if (seconds <= 0) return;
     const snap = computeSnapshot(currentState, context, { skipGrowth: true });
-    const waitAction = createSimAction('wait_for_time', { totalTimeSeconds: seconds });
+    const waitAction = createSimAction('wait_for_time', { totalTimeSeconds: seconds, ...metadata });
     currentState = applyAction(currentState, waitAction);
-    // applyAction doesn't update bankValue for wait actions, so we credit earnings manually
     currentState = { ...currentState, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * seconds };
     actions.push(waitAction as unknown as any);
     elapsedSeconds += seconds;
@@ -93,36 +95,66 @@ export function runK2(
   
   currentState = applyAction(currentState, shiftAction);
   actions.push(shiftAction as unknown as any);
-  // console.log(`  Shifted to Kindness. Cost: ${formatNumber(sCost, 3)} SE`);
 
-  // 2. Max all vehicle slots with Hyperloop (ID 11)
-  // console.log('Phase 1: Buying Hyperloop for all slots...');
+  // 2. Buy any remaining vehicles/trains
   const maxSlots = calculateMaxVehicleSlots(currentState.researchLevels);
   for (let slot = 0; slot < maxSlots; slot++) {
     const currentVid = currentState.vehicles[slot]?.vehicleId;
     if (currentVid !== 11) {
-      if (!buyVehicle(slot, 11)) {
-         break;
-      }
+      if (!buyVehicle(slot, 11)) break;
     }
   }
 
-  // 3. Max train lengths
-  // console.log('Phase 2: Maxing train lengths...');
   const maxLen = calculateMaxTrainLength(currentState.researchLevels);
   for (let slot = 0; slot < maxSlots; slot++) {
     while (true) {
       const vehicle = currentState.vehicles[slot];
-      if (!vehicle || vehicle.vehicleId !== 11 || vehicle.trainLength >= maxLen) {
-        break;
-      }
-      if (!buyTrainCar(slot)) {
-        break;
-      }
+      if (!vehicle || vehicle.vehicleId !== 11 || vehicle.trainLength >= maxLen) break;
+      if (!buyTrainCar(slot)) break;
     }
   }
 
-  console.log(`K2 Finished: ${actions.filter(a => a.type === 'buy_vehicle' || a.type === 'buy_train_car').length} vehicle actions, total time ${elapsedSeconds}s`);
+  // 3. Compute peak ELR
+  const artMods = calculateArtifactModifiers(currentState.artifactLoadout);
+  const elrResult = computeRealisticELR(
+    currentState.researchLevels,
+    artMods,
+    context.epicResearchLevels,
+    context.colleggtibleModifiers
+  );
+  
+  const peakELR = elrResult.effectiveRate;
+  (currentState as any).maxELR = peakELR;
+
+  // Attach peakELR to the shift action (the first action) so the UI summary can find it easily
+  if (actions.length > 0 && actions[0].type === 'shift') {
+    actions[0].payload.peakELR = peakELR;
+  }
+
+  // 4. Wait until buildPhaseEnd
+  const absTimeAfterPurchases = getAbsTime();
+  const waitDuration = Math.max(0, buildPhaseEnd - absTimeAfterPurchases);
+  
+  if (waitDuration > 0) {
+    const teResult = computeTEEarned(
+      currentState.eggsDelivered[currentState.currentEgg] || 0,
+      peakELR,
+      waitDuration
+    );
+    
+    advanceTime(waitDuration, { 
+      isTEWait: true, 
+      teEarned: teResult.teEarned,
+      finalEggsDelivered: teResult.finalEggsDelivered 
+    });
+
+    // Update state
+    currentState.eggsDelivered[currentState.currentEgg] = teResult.finalEggsDelivered;
+    currentState.teEarned[currentState.currentEgg] = (currentState.teEarned[currentState.currentEgg] || 0) + teResult.teEarned;
+    currentState.te += teResult.teEarned;
+  }
+
+  console.log(`K3 Finished: Peak ELR ${formatNumber(peakELR * 3600, 3)}/hr. TE earned in wait: ${currentState.teEarned[currentState.currentEgg]}`);
 
   return {
     actions,

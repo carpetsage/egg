@@ -28,7 +28,7 @@ export function runK1(
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 
-  const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + elapsedSeconds;
+  const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
 
   const advanceTime = (seconds: number) => {
     if (seconds <= 0) return;
@@ -238,7 +238,7 @@ export function runK1(
         const price = getDiscountedVehiclePrice(vid, countBefore, getModifiers(), isResearchSaleActive(getAbsTime()));
         const timeToSave = Math.max(0, (price - currentSnap.bankValue) / currentSnap.offlineEarnings);
         if (elapsedSeconds + timeToSave <= timeLimit) {
-          console.log(`  Phase 2C: Buying vehicle ID ${vid} for empty slot ${i}`);
+          // console.log(`  Phase 2C: Buying vehicle ID ${vid} for empty slot ${i}`);
           if (buyVehicle(i, vid)) { bought = true; break; }
         }
       }

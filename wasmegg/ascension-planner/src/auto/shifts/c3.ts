@@ -8,6 +8,9 @@ import {
   getResearchById,
   isTierUnlocked,
 } from '../../calculations/commonResearch';
+import {
+  getBestEarningsRecommendation,
+} from '../engine/strategist';
 import { computeSnapshot } from '../../engine/compute';
 import { applyAction } from '../../engine/apply';
 import { createSimAction } from '@/types/actions/meta';
@@ -24,19 +27,27 @@ import { computeRealisticELR } from '../../calculations/realisticELR';
 import { getOptimalELRSet } from '../../lib/artifacts/virtue';
 import { calculateArtifactModifiers } from '../../lib/artifacts';
 
-const EARNINGS_CATEGORIES = ['egg_value', 'egg_laying_rate', 'shipping_capacity'];
+const EARNINGS_CATEGORIES = ['egg_value', 'egg_laying_rate', 'shipping_capacity', 'hab_capacity'];
+
+function calculateTotalPurchases(researchLevels: Record<string, number>): number {
+  let total = 0;
+  for (const level of Object.values(researchLevels)) {
+    total += level;
+  }
+  return total;
+}
 
 export function runC3(
   startState: EngineState,
   context: SimulationContext,
   buildPhaseEnd: number
 ): ShiftResult {
-  console.log('--- Starting C3 Shift Simulation ---');
+  // console.log('--- Starting C3 Shift Simulation ---');
   let currentState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 
-  const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + elapsedSeconds;
+  const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
 
   const getModifiers = (snapshot: any): ResearchCostModifiers => ({
     labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
@@ -94,141 +105,101 @@ export function runC3(
   
   currentState = applyAction(currentState, shiftAction);
   actions.push(shiftAction as unknown as any);
-  console.log(`  Shifted to Curiosity. Cost: ${formatNumber(sCost, 3)} SE`);
+  // console.log(`  Shifted to Curiosity. Cost: ${formatNumber(sCost, 3)} SE`);
+
+  const finalSaleStart = buildPhaseEnd - 86400;
+
+  // console.log(`[C3 DEBUG] Ascension Start: ${context.ascensionStartTime}`);
+  // console.log(`[C3 DEBUG] Plan Start Offset: ${context.planStartOffset}`);
+  // console.log(`[C3 DEBUG] startState.lastStepTime: ${startState.lastStepTime}`);
+  // console.log(`[C3 DEBUG] Initial absTime: ${getAbsTime()}`);
+  // console.log(`[C3 DEBUG] finalSaleStart: ${finalSaleStart}`);
+  // console.log(`[C3 DEBUG] buildPhaseEnd: ${buildPhaseEnd}`);
 
   // Step 1: Earnings ROI matrix
-  console.log('Phase 1: Buying Earnings ROI research...');
+  // console.log('Phase 1: Buying Earnings ROI research...');
 
-  let changed = true;
-  while (changed && getAbsTime() < buildPhaseEnd) {
-    changed = false;
+  let step1Active = true;
+  while (step1Active && getAbsTime() < buildPhaseEnd) {
     const absTime = getAbsTime();
+    // console.log(`[C3 DEBUG Phase 1] absTime: ${absTime}, elapsedSeconds: ${elapsedSeconds}`);
+
+    const nextSaleStart = getNextSaleStart(absTime);
+    const nextBoostStart = getNextEarningsBoostStart(absTime);
+    const nextBoostEnd = getNextEarningsBoostEnd(absTime);
+    
+    const boundaries = [
+      nextSaleStart,
+      nextBoostStart,
+      nextBoostEnd,
+      finalSaleStart,
+      buildPhaseEnd
+    ].filter(b => b > absTime).sort((a, b) => a - b);
+    
+    const nextBoundary = boundaries[0];
+
     const eventTiming = {
       absoluteSimTime: absTime,
-      nextSaleStart: getNextSaleStart(absTime),
+      nextSaleStart,
       eventExpirationSeconds: isEarningsBoostActive(absTime)
-        ? getNextEarningsBoostEnd(absTime) - absTime
-        : getNextEarningsBoostStart(absTime) - absTime,
+        ? nextBoostEnd - absTime
+        : nextBoostStart - absTime,
       researchSaleDeadline: getNextSaleStart(absTime),
       isSaleActive: isResearchSaleActive(absTime),
     };
 
     const currentSnap = computeSnapshot(currentState, context, { skipGrowth: true });
 
-    const candidates = getCommonResearches()
-      .filter(r => EARNINGS_CATEGORIES.some(cat => r.categories.includes(cat)))
-      .filter(r => (currentState.researchLevels[r.id] || 0) < r.levels)
-      .filter(r => isTierUnlocked(currentState.researchLevels, r.tier))
-      .map(r => {
-        const level = currentState.researchLevels[r.id] || 0;
-        const price = getDiscountedVirtuePrice(r, level, getModifiers(currentSnap), eventTiming.isSaleActive);
-        return {
-          research: r,
-          price,
-          roi: calculateResearchROI({ research: r, level, price, snapshot: currentSnap, context, eventTiming }),
-        };
-      })
-      .filter(c => c.roi.roiSeconds !== Infinity)
-      .sort((a, b) => a.roi.roiSeconds - b.roi.roiSeconds);
+    const recommendation = getBestEarningsRecommendation(
+      currentState,
+      context,
+      eventTiming,
+      getModifiers(currentSnap),
+      buildPhaseEnd - absTime,
+      undefined,
+      buildPhaseEnd
+    );
 
-    if (candidates.length === 0) break;
-
-    for (const c of candidates) {
-      const price = c.price;
-      const earningsDelta = c.roi.earningsDelta;
-      const timeToBuySeconds = c.roi.timeToBuySeconds;
-      const purchaseTime = absTime + timeToBuySeconds;
-
-      if (purchaseTime > buildPhaseEnd) continue;
-
-      const timeToNextSale = eventTiming.nextSaleStart - purchaseTime;
-      const timeToBuildEnd = buildPhaseEnd - purchaseTime;
-
-      const meetsA = !eventTiming.isSaleActive && (earningsDelta * timeToNextSale >= 0.7 * price);
-      const meetsB = earningsDelta * timeToBuildEnd >= price;
-
-      if (meetsB && (meetsA || eventTiming.isSaleActive)) {
-        if (buyResearch(c.research.id, price)) {
-          console.log(`  Bought A+B / Sale+B candidate: ${c.research.name}`);
-          changed = true;
-          break; // restart eval
-        }
+    if (recommendation) {
+      if (recommendation.isFiller) {
+        // console.log(`[C3 Phase 1] Choosing Unlock Path (Filler: ${recommendation.name})`);
       }
-    }
-  }
-
-  // Phase 1b: Queue !A+B candidates for sale start
-  const preSaleTime = getAbsTime();
-  if (preSaleTime < buildPhaseEnd && !isResearchSaleActive(preSaleTime)) {
-    const nextSale = getNextSaleStart(preSaleTime);
-    if (nextSale < buildPhaseEnd) {
-      const timeToWait = nextSale - preSaleTime;
-      console.log(`Phase 1b: Advancing to next sale start (${formatNumber(timeToWait, 0)}s)`);
-      advanceTime(timeToWait);
-
-      let saleChanged = true;
-      while (saleChanged && getAbsTime() < buildPhaseEnd) {
-        saleChanged = false;
-        const absTime = getAbsTime();
-
-        const eventTiming = {
-          absoluteSimTime: absTime,
-          nextSaleStart: getNextSaleStart(absTime),
-          eventExpirationSeconds: isEarningsBoostActive(absTime)
-            ? getNextEarningsBoostEnd(absTime) - absTime
-            : getNextEarningsBoostStart(absTime) - absTime,
-          researchSaleDeadline: getNextSaleStart(absTime),
-          isSaleActive: isResearchSaleActive(absTime), // should be true
-        };
-
-        const currentSnap = computeSnapshot(currentState, context, { skipGrowth: true });
-
-        const candidates = getCommonResearches()
-          .filter(r => EARNINGS_CATEGORIES.some(cat => r.categories.includes(cat)))
-          .filter(r => (currentState.researchLevels[r.id] || 0) < r.levels)
-          .filter(r => isTierUnlocked(currentState.researchLevels, r.tier))
-          .map(r => {
-            const level = currentState.researchLevels[r.id] || 0;
-            const price = getDiscountedVirtuePrice(r, level, getModifiers(currentSnap), true);
-            return {
-              research: r,
-              price,
-              roi: calculateResearchROI({ research: r, level, price, snapshot: currentSnap, context, eventTiming }),
-            };
-          })
-          .filter(c => c.roi.roiSeconds !== Infinity)
-          .sort((a, b) => a.roi.roiSeconds - b.roi.roiSeconds);
-
-        for (const c of candidates) {
-          const price = c.price;
-          const earningsDelta = c.roi.earningsDelta;
-          const timeToBuySeconds = c.roi.timeToBuySeconds;
-          const purchaseTime = absTime + timeToBuySeconds;
-          
-          if (purchaseTime > buildPhaseEnd) continue;
-
-          const timeToBuildEnd = buildPhaseEnd - purchaseTime;
-          const meetsB = earningsDelta * timeToBuildEnd >= price;
-
-          if (meetsB) {
-            if (buyResearch(c.research.id, price)) {
-              console.log(`  Bought B candidate during sale: ${c.research.name}`);
-              saleChanged = true;
-              break;
-            }
-          }
+      
+      const purchaseTime = absTime + (recommendation.timeToBuySeconds || 0); 
+      if (purchaseTime <= nextBoundary) {
+        if (buyResearch(recommendation.researchId, recommendation.price)) {
+          // console.log(`  Bought ${recommendation.isFiller ? 'filler' : 'earnings'}: ${recommendation.name} (ROI: ${formatNumber(recommendation.roiSeconds, 0)}s)`);
         }
+      } else {
+        advanceTime(nextBoundary - absTime);
+      }
+    } else {
+      if (absTime >= finalSaleStart) {
+        step1Active = false;
+      } else {
+        advanceTime(nextBoundary - absTime);
       }
     }
   }
 
   // Step 2: Buy ELR Impact research (Realistic, Time Efficiency)
-  console.log('Phase 2: Buying ELR Impact research (Realistic, Time Efficiency)...');
+  // console.log('Phase 2: Buying ELR Impact research (Realistic, Time Efficiency)...');
 
-  let elrChanged = true;
-  while (elrChanged && getAbsTime() < buildPhaseEnd) {
-    elrChanged = false;
+  let elrActive = true;
+  while (elrActive && getAbsTime() < buildPhaseEnd) {
     const absTime = getAbsTime();
+    // console.log(`[C3 DEBUG Phase 2] absTime: ${absTime}, elapsedSeconds: ${elapsedSeconds}`);
+
+    const nextBoostStart = getNextEarningsBoostStart(absTime);
+    const nextBoostEnd = getNextEarningsBoostEnd(absTime);
+    
+    const boundaries = [
+      nextBoostStart,
+      nextBoostEnd,
+      buildPhaseEnd
+    ].filter(b => b > absTime).sort((a, b) => a - b);
+    
+    const nextBoundary = boundaries[0];
 
     const currentSnap = computeSnapshot(currentState, context, { skipGrowth: true });
     const isSale = isResearchSaleActive(absTime);
@@ -246,11 +217,16 @@ export function runC3(
       const artifactMods = calculateArtifactModifiers(optimal);
       const stats = computeRealisticELR(currentState.researchLevels, artifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
       baselineELR = stats.effectiveRate;
+    } else {
+      const artifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
+      const stats = computeRealisticELR(currentState.researchLevels, artifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
+      baselineELR = stats.effectiveRate;
     }
 
     if (baselineELR <= 0) {
       console.log('  Cannot compute baseline ELR, skipping Phase 2');
-      break; 
+      advanceTime(nextBoundary - absTime);
+      continue; 
     }
 
     const elrCandidates = getCommonResearches()
@@ -261,14 +237,21 @@ export function runC3(
         const price = getDiscountedVirtuePrice(r, level, mods, isSale);
 
         const tempLevels = { ...currentState.researchLevels, [r.id]: level + 1 };
-        const tempOptimal = getOptimalELRSet(context.rawBackup, {
-          assumeMaxHabsVehicles: true,
-          excludeGusset: false,
-          commonResearch: tempLevels,
-          epicResearchLevels: context.epicResearchLevels,
-          colleggtibleModifiers: context.colleggtibleModifiers,
-        });
-        const tempArtifactMods = calculateArtifactModifiers(tempOptimal);
+        let tempArtifactMods;
+        
+        if (context.rawBackup) {
+          const tempOptimal = getOptimalELRSet(context.rawBackup, {
+            assumeMaxHabsVehicles: true,
+            excludeGusset: false,
+            commonResearch: tempLevels,
+            epicResearchLevels: context.epicResearchLevels,
+            colleggtibleModifiers: context.colleggtibleModifiers,
+          });
+          tempArtifactMods = calculateArtifactModifiers(tempOptimal);
+        } else {
+          tempArtifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
+        }
+        
         const stats = computeRealisticELR(tempLevels, tempArtifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
         const impact = (stats.effectiveRate - baselineELR) / baselineELR;
 
@@ -287,21 +270,22 @@ export function runC3(
       .filter(c => c.impact > 0 && c.timeToBuySeconds !== Infinity && (absTime + c.timeToBuySeconds <= buildPhaseEnd))
       .sort((a, b) => a.hpp - b.hpp);
 
+    // console.log(`[C3 Phase 2] Baseline ELR: ${formatNumber(baselineELR * 3600, 3)}/hr. Top 3 ELR candidates:`, elrCandidates.slice(0, 3).map(c => `${c.research.name} (hpp: ${c.hpp.toFixed(2)}, impact: ${(c.impact * 100).toFixed(2)}%)`));
+
     if (elrCandidates.length > 0) {
       const best = elrCandidates[0];
-      if (buyResearch(best.research.id, best.price)) {
-        console.log(`  Bought ELR Impact research: ${best.research.name} (hpp: ${best.hpp.toFixed(2)})`);
-        elrChanged = true;
-      }
-    }
-  }
+      const purchaseTime = absTime + best.timeToBuySeconds;
 
-  // Phase 3: Wait to build phase end
-  const finalAbsTime = getAbsTime();
-  if (finalAbsTime < buildPhaseEnd) {
-    const timeToWait = buildPhaseEnd - finalAbsTime;
-    console.log(`Phase 3: Waiting to build phase end (${formatNumber(timeToWait, 0)}s)`);
-    advanceTime(timeToWait);
+      if (purchaseTime <= nextBoundary) {
+        if (buyResearch(best.research.id, best.price)) {
+          // console.log(`  Bought ELR Impact research: ${best.research.name} (hpp: ${best.hpp.toFixed(2)})`);
+        }
+      } else {
+        advanceTime(nextBoundary - absTime);
+      }
+    } else {
+      advanceTime(nextBoundary - absTime);
+    }
   }
 
   const researchActions = actions.filter(a => a.type === 'buy_research');

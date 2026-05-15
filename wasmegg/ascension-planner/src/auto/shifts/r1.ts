@@ -17,7 +17,7 @@ export function runR1(
   context: SimulationContext,
   timeLimit: number = 3600
 ): ShiftResult {
-  console.log('--- Starting R1 Shift Simulation ---');
+  // console.log('--- Starting R1 Shift Simulation ---');
   let currentState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
@@ -43,10 +43,10 @@ export function runR1(
   
   currentState = applyAction(currentState, shiftAction);
   actions.push(shiftAction as unknown as any);
-  console.log(`  Shifted to Resilience. Cost: ${formatNumber(sCost, 3)} SE`);
+  // console.log(`  Shifted to Resilience. Cost: ${formatNumber(sCost, 3)} SE`);
 
   // 2. Buy as many silos as possible within 1 hour
-  console.log('Phase 1: Buying silos...');
+  // console.log('Phase 1: Buying silos...');
   while (currentState.siloCount < MAX_SILOS) {
     const currentSnap = computeSnapshot(currentState, context, { skipGrowth: true });
     const cost = nextSiloCost(currentState.siloCount);
@@ -55,7 +55,7 @@ export function runR1(
     const timeToSave = Math.max(0, (cost - currentSnap.bankValue) / currentSnap.offlineEarnings);
 
     if (!Number.isFinite(timeToSave)) {
-      console.log(`  [Silo ${currentState.siloCount + 1}] Stalling: Cannot afford. Earnings: ${formatNumber(currentSnap.offlineEarnings, 3)}/s, Cost: ${formatNumber(cost, 3)}`);
+      // console.log(`  [Silo ${currentState.siloCount + 1}] Stalling: Cannot afford. Earnings: ${formatNumber(currentSnap.offlineEarnings, 3)}/s, Cost: ${formatNumber(cost, 3)}`);
       break;
     }
 
@@ -70,7 +70,7 @@ export function runR1(
     }, cost);
     currentState = applyAction(currentState, action);
     actions.push(action as unknown as any);
-    console.log(`  [Silo ${currentState.siloCount}] BOUGHT. Total time: ${elapsedSeconds.toFixed(1)}s`);
+    // console.log(`  [Silo ${currentState.siloCount}] BOUGHT. Total time: ${elapsedSeconds.toFixed(1)}s`);
   }
 
   console.log(`R1 Finished: ${actions.filter(a => a.type === 'buy_silo').length} silo actions, total time ${elapsedSeconds}s`);

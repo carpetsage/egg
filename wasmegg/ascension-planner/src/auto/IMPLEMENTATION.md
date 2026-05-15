@@ -246,7 +246,7 @@ R1: Shift to Resilience. Buy as many silos as possible within 1 hour.
 
 **Test**: Silo count increases. Total shift time ≤ 1 hour.
 
-### [ ] Step 3.6: Implement `shifts/c3.ts` — Earnings → ELR research
+### [x] Step 3.6: Implement `shifts/c3.ts` — Earnings → ELR research
 
 C3 strategy (PLAN.md §8.5):
 1. Shift to Curiosity
@@ -264,13 +264,13 @@ C3 strategy (PLAN.md §8.5):
 - !A+!B research never bought
 - ELR research purchased during sale window by time efficiency
 
-### [ ] Step 3.7: Implement `shifts/h1.ts` — Artifact swap
+### [x] Step 3.7: Implement `shifts/h1.ts` — Artifact swap
 
 H1: Shift to Humility. Switch to optimal ELR artifacts using `getOptimalELRSet()`.
 
 **Test**: Output contains `equip_artifact_set` or `change_artifacts` action. Artifact loadout matches optimal ELR set.
 
-### [ ] Step 3.8: Implement `shifts/k3.ts` — Final vehicles + TE wait
+### [x] Step 3.8: Implement `shifts/k3.ts` — Final vehicles + TE wait
 
 K3: Shift to Kindness. Buy any remaining vehicles/trains. Then wait and earn TE.
 - Compute max ELR after purchases (this is the ascension's peak ELR)
@@ -278,7 +278,7 @@ K3: Shift to Kindness. Buy any remaining vehicles/trains. Then wait and earn TE.
 
 **Test**: After K3 purchases, verify max ELR calculation. Verify TE earned during wait portion matches threshold calculations.
 
-### [ ] Step 3.9: Integration test — Full build phase
+### [x] Step 3.9: Integration test — Full build phase
 
 Run the complete 13-shift sequence (C1→K3 + TE wait stubs) with a known backup. Verify:
 - All 13 shift actions emitted with correct SE costs
