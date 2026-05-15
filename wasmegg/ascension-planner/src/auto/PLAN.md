@@ -391,7 +391,7 @@ An exported plan can be loaded back into the manual planner via "Load Saved Plan
 
 A lightweight text summary (no actions, just the roadmap) can be copied to clipboard:
 ```
-Ascension Plan — Starting TE: 175
+Ascension Plan - Starting TE: 175
   A1: 175 → 195 TE (1-sale, 6d 12h) 
   A2: 195 → 225 TE (2-sale, 8d 3h)
   A3: 225 → 260 TE (1-sale, 5d 18h)

@@ -300,6 +300,47 @@
           </button>
         </div>
       </div>
+
+      <!-- Running Totals Summary Bar -->
+      <div v-if="ascensionChain.length >= 1" class="section-premium p-6 max-w-4xl mx-auto">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider">Chain Totals</h3>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <!-- Ascension Count -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ascensions</div>
+            <div class="text-xl font-black text-slate-900">{{ chainTotals.count }}</div>
+          </div>
+
+          <!-- TE Progress -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">TE Progress</div>
+            <div class="text-xl font-black text-slate-900">{{ chainTotals.startTE }} → {{ chainTotals.endTE }}</div>
+            <div class="text-[10px] font-bold text-indigo-500 mt-0.5">+{{ chainTotals.endTE - chainTotals.startTE }} TE gained</div>
+          </div>
+
+          <!-- Total Duration -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Duration</div>
+            <div class="text-xl font-black text-slate-900">{{ chainTotals.durationStr }}</div>
+            <div class="text-[10px] font-bold text-slate-400 mt-0.5">{{ chainTotals.durationDays }} days</div>
+          </div>
+
+          <!-- SE Consumed -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">SE Consumed</div>
+            <div class="text-xl font-black text-slate-900">{{ chainTotals.seConsumedStr }}</div>
+            <div class="text-[10px] font-bold text-slate-400 mt-0.5">{{ chainTotals.shiftsTotal }} shifts total</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -911,6 +952,39 @@ const exportCurrentPlan = () => {
   triggerPlanExport(plan);
 };
 
+const chainTotals = computed(() => {
+  const plans = ascensionChain.value.map(item =>
+    item.result1.summary.totalDurationSeconds <= item.result2.summary.totalDurationSeconds
+      ? item.result1.summary
+      : item.result2.summary
+  );
+
+  if (plans.length === 0) {
+    return { count: 0, startTE: 0, endTE: 0, durationStr: '—', durationDays: '0', seConsumedStr: '—', shiftsTotal: 0 };
+  }
+
+  const startTE = plans[0].startTE;
+  const endTE = plans[plans.length - 1].endTE;
+  const totalSeconds = plans.reduce((sum, p) => sum + p.totalDurationSeconds, 0);
+  const totalSEConsumed = plans.reduce((sum, p) => sum + (p.startSoulEggs - p.endSoulEggs), 0);
+  const totalShifts = plans.reduce((sum, p) => sum + (p.endShiftCount - p.startShiftCount), 0);
+
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const durationStr = days > 0 ? `${days}d ${hours}h` : `${hours}h`;
+  const durationDays = (totalSeconds / 86400).toFixed(1);
+
+  return {
+    count: plans.length,
+    startTE,
+    endTE,
+    durationStr,
+    durationDays,
+    seConsumedStr: formatNumber(totalSEConsumed),
+    shiftsTotal: totalShifts
+  };
+});
+
 const copySuccess = ref(false);
 
 const copySummary = async () => {
@@ -932,7 +1006,7 @@ const copySummary = async () => {
   let totalSeconds = 0;
   let totalSE = 0;
   
-  const lines = [`Ascension Plan — Starting TE: ${startTE}`];
+  const lines = [`Ascension Plan - Starting TE: ${startTE}`];
   
   bestPlans.forEach((plan, idx) => {
     const ascStartTE = idx === 0 ? startTE : bestPlans[idx - 1].endTE;
@@ -941,7 +1015,7 @@ const copySummary = async () => {
     const durationHours = Math.floor((plan.totalDurationSeconds % 86400) / 3600);
     const durationStr = `${durationDays}d ${durationHours}h`;
     
-    lines.push(`  A${idx + 1}: ${ascStartTE} → ${plan.endTE} TE (${saleStr}, ${durationStr})`);
+    lines.push(`  A${idx + 1}: ${ascStartTE} → ${plan.endTE} TE (${saleStr}, ${durationStr}, ${formatNumber(plan.maxELR * 3600, 3)}/hr)`);
     
     totalSeconds += plan.totalDurationSeconds;
     totalSE += (plan.startSoulEggs - plan.endSoulEggs);

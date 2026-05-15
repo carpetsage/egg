@@ -253,7 +253,7 @@ Total: 175 → 260 TE in ~20 days, 45.2T SE consumed
 
 **Test**: Generate a chain, click Copy Summary, paste into a text editor. Verify the format matches.
 
-### [ ] Step 6.4: Running totals in chain view
+### [x] Step 6.4: Running totals in chain view
 
 Add a cumulative summary bar at the bottom of the ascension chain showing:
 - Total duration across all ascensions
