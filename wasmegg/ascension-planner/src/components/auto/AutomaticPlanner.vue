@@ -193,7 +193,31 @@
 
     <!-- Results Section -->
     <div v-if="ascensionChain.length > 0" class="max-w-5xl mx-auto space-y-12 pb-24">
+      <div class="flex justify-between items-center px-4">
+        <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Generated Roadmap</h2>
+        <button 
+          @click="exportCurrentPlan"
+          class="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Export Plan
+        </button>
+      </div>
+
       <div v-for="(result, idx) in bestResults" :key="idx" class="space-y-8">
+        <div v-if="idx > 0 && idx === ascensionChain.length - 1" class="flex justify-end -mb-6 pr-1 relative z-30">
+          <button 
+            @click="removeLastAscension"
+            class="group flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm active:scale-95"
+          >
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Remove A{{ idx + 1 }}
+          </button>
+        </div>
         <AscensionOverview 
           :summary="result.summary" 
           :actions="result.actions"
@@ -271,11 +295,13 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
+import { useAutoPlannerStore } from '@/stores/autoPlanner';
 import { iconURL } from 'lib';
-import { formatNumber, parseNumber } from '@/lib/format';
+import { formatNumber, parseNumber, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
 import { useTruthEggsStore, VIRTUE_TE_ORDER } from '@/stores/truthEggs';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
@@ -288,6 +314,7 @@ import { rollUpPendingTE } from '@/lib/modes';
 import type { AscensionSummary } from '@/auto/types';
 import type { Action } from '@/types/actions/meta';
 import AscensionOverview from './AscensionOverview.vue';
+import { triggerPlanExport, type ExportedPlan } from '@/auto/export';
 
 interface ChainedAscension {
   index: number;
@@ -311,10 +338,26 @@ const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
 const virtueStore = useVirtueStore();
 const truthEggsStore = useTruthEggsStore();
+const autoPlannerStore = useAutoPlannerStore();
 
-// Default values
-const targetTE = ref(490);
-const timezone = ref(virtueStore.ascensionTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+const { 
+  ascensionChain, 
+  timezone, 
+  startDate, 
+  startTime, 
+  targetTE, 
+  targetEndDate, 
+  targetEndTime, 
+  nextGoals 
+} = storeToRefs(autoPlannerStore);
+
+// Initialize default values if not already set (e.g. from an import)
+if (targetTE.value === null) {
+  targetTE.value = 490;
+}
+if (!timezone.value) {
+  timezone.value = virtueStore.ascensionTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
 
 // Initialize Target TE to Current + 30 once data is loaded
 let targetTEInitialized = false;
@@ -327,15 +370,18 @@ watch(() => truthEggsStore.totalTE, (newVal) => {
 
 const now = new Date();
 // Use en-CA to get YYYY-MM-DD format in the selected timezone (avoiding UTC shift issues from toISOString)
-const startDate = ref(new Intl.DateTimeFormat('en-CA', { timeZone: timezone.value }).format(now));
-const startTime = ref(new Intl.DateTimeFormat('en-GB', { 
-  timeZone: timezone.value, 
-  hour: '2-digit', 
-  minute: '2-digit', 
-  hour12: false 
-}).format(now));
-const targetEndDate = ref('');
-const targetEndTime = ref('');
+if (!startDate.value) {
+  startDate.value = new Intl.DateTimeFormat('en-CA', { timeZone: timezone.value }).format(now);
+}
+if (!startTime.value) {
+  startTime.value = new Intl.DateTimeFormat('en-GB', { 
+    timeZone: timezone.value, 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: false 
+  }).format(now);
+}
+// targetEndDate and targetEndTime moved to store
 
 const clearA1DateGoal = () => {
   targetEndDate.value = '';
@@ -356,18 +402,19 @@ const clearSequentialTEGoal = (idx: number) => {
 };
 
 const isGenerating = ref(false);
-const ascensionChain = ref<ChainedAscension[]>([]);
 
-// Goals state management
-const nextGoals = ref<Record<number, { te: number | null, date: string, time: string }>>({
-  0: { te: 490, date: '', time: '' } // Top form placeholder (actually uses targetTE/startDate/startTime)
-});
+// (ascensionChain and nextGoals are now from the store)
 
 const handleDeliveredChange = (egg: import('@/types').VirtueEgg, value: string) => {
   const parsed = parseNumber(value);
   if (parsed !== null && !isNaN(parsed)) {
     truthEggsStore.setEggsDeliveredWithSync(egg, parsed);
     syncTEAcrossStores(egg);
+  }
+};
+const removeLastAscension = () => {
+  if (ascensionChain.value.length > 1) {
+    ascensionChain.value.pop();
   }
 };
 
@@ -494,20 +541,7 @@ const allTimezones = computed(() => {
   }
 });
 
-const formatUnixToDateInput = (timestamp: number, tz: string) => {
-  const d = new Date(timestamp * 1000);
-  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(d);
-};
-
-const formatUnixToTimeInput = (timestamp: number, tz: string) => {
-  const d = new Date(timestamp * 1000);
-  return new Intl.DateTimeFormat('en-GB', { 
-    timeZone: tz, 
-    hour: '2-digit', 
-    minute: '2-digit', 
-    hour12: false 
-  }).format(d);
-};
+// formatUnixToDateInput and formatUnixToTimeInput moved to @/lib/format
 
 const generate = () => {
   isGenerating.value = true;
@@ -832,6 +866,37 @@ const updateAscension = (idx: number, goal: { te: number | null, date: string, t
       isGenerating.value = false;
     }
   }, 10);
+};
+
+const exportCurrentPlan = () => {
+  if (ascensionChain.value.length === 0) return;
+  
+  const plan: ExportedPlan = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    startTime: getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value),
+    timezone: timezone.value,
+    initialState: {
+      epicResearchLevels: { ...initialStateStore.epicResearchLevels },
+      colleggtibleTiers: { ...initialStateStore.colleggtibleTiers },
+      artifactLoadout: JSON.parse(JSON.stringify(initialStateStore.artifactLoadout)),
+      soulEggs: initialStateStore.soulEggs,
+      isUltra: initialStateStore.isUltra,
+      initialTankLevel: initialStateStore.initialTankLevel,
+      initialFuelAmounts: { ...initialStateStore.initialFuelAmounts },
+      initialEggsDelivered: { ...initialStateStore.initialEggsDelivered },
+      initialTeEarned: { ...initialStateStore.initialTeEarned },
+    },
+    ascensions: ascensionChain.value.map((item, idx) => ({
+      index: idx,
+      targetTE: item.goal.te || item.result1.summary.endTE,
+      result1: item.result1,
+      result2: item.result2,
+      goal: item.goal
+    }))
+  };
+  
+  triggerPlanExport(plan);
 };
 </script>
 

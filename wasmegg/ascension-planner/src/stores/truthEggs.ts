@@ -174,6 +174,11 @@ export const useTruthEggsStore = defineStore('truthEggs', {
       return eggsNeededForTE(this.eggsDelivered[egg], targetTE);
     },
 
+    hydrate(data: any) {
+      if (!data) return;
+      if (data.initialEggsDelivered) this.eggsDelivered = { ...data.initialEggsDelivered };
+      if (data.initialTeEarned) this.teEarned = { ...data.initialTeEarned };
+    },
     /**
      * Reset to empty state
      */

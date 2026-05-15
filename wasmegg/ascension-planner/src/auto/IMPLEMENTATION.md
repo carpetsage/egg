@@ -155,7 +155,7 @@ Add an edit affordance to each `AscensionOverview`:
 
 **Test**: Generate A1 (TE goal: 200), A2 (TE goal: 230), A3 (TE goal: 260). Change A1's TE goal to 210. Verify A1's end date updates, A2 and A3 fully recalculate with new start times. Change A2's goal to a date instead of TE — verify TE is back-populated and A3 recalculates.
 
-### [ ] Step 5.5: Add delete and insert controls
+### [x] Step 5.5: Add delete and insert controls
 
 **File**: `src/components/auto/AutomaticPlanner.vue`
 
@@ -175,7 +175,7 @@ Edge cases:
 
 ## Phase 6: Export & Polish
 
-### [ ] Step 6.1: Export chain as plan library
+### [x] Step 6.1: Export chain as plan library
 
 **File**: New `src/auto/export.ts` + UI button in `AutomaticPlanner.vue`
 
@@ -185,14 +185,30 @@ Convert the entire ascension chain into a plan library JSON file:
 interface ExportedPlan {
   version: 1;
   exportedAt: string;        // ISO timestamp
-  playerId: string;
   startTime: number;
   timezone: string;
+  initialState: {
+    epicResearchLevels: Record<string, number>;
+    colleggtibleTiers: Record<string, number>;
+    artifactLoadout: any[];
+    soulEggs: number;
+    isUltra: boolean;
+    initialTankLevel: number;
+    initialFuelAmounts: Record<string, number>;
+    initialEggsDelivered: Record<string, number>;
+    initialTeEarned: Record<string, number>;
+  };
   ascensions: {
     index: number;
     targetTE: number;
-    summary: AscensionSummary;
-    actions: Action[];
+    result1: { summary: AscensionSummary; actions: Action[] };
+    result2: { summary: AscensionSummary; actions: Action[] };
+    goal: {
+      type: 'te' | 'date';
+      te: number | null;
+      date: string;
+      time: string;
+    };
   }[];
 }
 ```
@@ -201,17 +217,27 @@ Add an "Export Plan" button that downloads this as a `.json` file.
 
 **Test**: Generate 3 ascensions, export. Verify the JSON contains all 3 ascensions with correct data.
 
-### [ ] Step 6.2: Import plan library
+### [x] Step 6.2: Import plan library
 
-Allow loading an exported plan back into the auto planner:
-- Parse the JSON
-- Populate `ascensionChain` with the loaded data
-- Set global inputs (start time, timezone) from the file
-- Show all ascensions immediately without re-simulating
+Allow loading an exported plan back into the system via `PlanLibrary.vue`'s `handleImport` function. This should handle the `ExportedPlan` format (v1) and provide two pathways:
 
-Also support importing into the manual planner via "Load Saved Plan" — each ascension in the chain becomes a separate plan entry.
+1.  **Auto Planner Restore**: Populate the `ascensionChain` with the loaded data and set global inputs (start time, timezone) from the file. Show all ascensions immediately without re-simulating.
+2.  **Manual Library Import**: Support importing each individual ascension in the chain as a separate plan entry in the manual library. 
 
-**Test**: Export a plan, reload the page, import it. Verify all ascensions appear correctly.
+**Plan Naming Convention**:
+When importing individual ascensions from a chain into the library, use the following name format:
+`{YYYY-MM-DD} {A#} - {peakELR/hr} from {startTE} to {endTE} - {formattedDuration} - starting {YYYY-MM-DD}`
+
+*   **First Date**: Date of the export.
+*   **A#**: Ascension number (e.g., A1, A2).
+*   **peakELR/hr**: Formatted 3-digit ELR per hour (e.g., 1.23 q/hr).
+*   **startTE/endTE**: Starting and ending TE for that specific ascension.
+*   **formattedDuration**: Duration of the ascension (e.g., `5d 4h`).
+*   **Last Date**: Start date of that specific ascension.
+
+**Test**: Export a plan with multiple ascensions. Import it via the library and verify:
+- The Auto Planner restores the full chain correctly.
+- Individual plans can be imported with the specified naming convention.
 
 ### [ ] Step 6.3: Copy roadmap summary to clipboard
 

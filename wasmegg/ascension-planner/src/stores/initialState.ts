@@ -558,6 +558,19 @@ export const useInitialStateStore = defineStore('initialState', {
       this.initialTePending[egg] = Math.max(0, count);
     },
 
+    hydrate(data: any) {
+      if (!data) return;
+      this.hasData = true;
+      if (data.epicResearchLevels) this.epicResearchLevels = { ...data.epicResearchLevels };
+      if (data.colleggtibleTiers) this.colleggtibleTiers = { ...data.colleggtibleTiers };
+      if (data.artifactLoadout) this.artifactLoadout = JSON.parse(JSON.stringify(data.artifactLoadout));
+      if (data.soulEggs !== undefined) this.soulEggs = data.soulEggs;
+      if (data.isUltra !== undefined) this.isUltra = data.isUltra;
+      if (data.initialTankLevel !== undefined) this.initialTankLevel = data.initialTankLevel;
+      if (data.initialFuelAmounts) this.initialFuelAmounts = { ...data.initialFuelAmounts };
+      if (data.initialEggsDelivered) this.initialEggsDelivered = { ...data.initialEggsDelivered };
+      if (data.initialTeEarned) this.initialTeEarned = { ...data.initialTeEarned };
+    },
     /**
      * Clear all initial state data
      */

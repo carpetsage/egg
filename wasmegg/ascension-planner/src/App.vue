@@ -435,12 +435,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import TheNavBar from 'ui/components/NavBar.vue';
 import { getSavedPlayerID, savePlayerID, requestFirstContact } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
+import { useUIStore } from '@/stores/ui';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useEventsStore } from '@/stores/events';
@@ -483,12 +485,10 @@ import {
 } from '@/lib/modes';
 
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
-const loading = ref(false);
-const error = ref('');
-const activeTab = ref<'manual' | 'automatic'>('manual');
-
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
+const uiStore = useUIStore();
+const { activeTab, isHeaderCollapsed, isFooterCollapsed, loading, error } = storeToRefs(uiStore);
 const virtueStore = useVirtueStore();
 const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
@@ -642,7 +642,7 @@ const expandedSections = ref({
   availableActions: true,
 });
 
-const isHeaderCollapsed = ref(false);
+// isHeaderCollapsed moved to UI store
 
 function handlePlanLoaded() {
   activeTab.value = 'manual';
@@ -662,7 +662,6 @@ const undoAction = ref<Action | null>(null);
 const undoDependentsA = ref<Action[]>([]);
 const undoDependentsB = ref<Action[]>([]);
 const showClearAllConfirmation = ref(false);
-const isFooterCollapsed = ref(false);
 
 const showReconcileLibraryModal = ref(false);
 const showUnsavedConfirm = ref(false);
