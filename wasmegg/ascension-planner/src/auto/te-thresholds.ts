@@ -38,7 +38,10 @@ export function timeToEarnTE(
   const targetThreshold = getThresholdForTE(targetTE);
   const needed = targetThreshold - currentEggsDelivered;
   
-  return Math.max(0, needed / elrPerSecond);
+  // Add a tiny buffer (1ms) to ensure we cross the threshold despite floating point noise.
+  // This prevents rounding errors where computeTEEarned might report targetTE - 1
+  // because the final egg count was 3.4029999999999998e19 instead of 3.403e19.
+  return Math.max(0, needed / elrPerSecond + 0.001);
 }
 
 /**

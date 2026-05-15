@@ -32,7 +32,8 @@ export interface AscensionSummary {
   
   // Per-egg summary
   eggsDelivered: Record<VirtueEgg, number>;
-  teEarned: Record<VirtueEgg, number>;
+  teEarned: Record<VirtueEgg, number>;    // Gained during this ascension
+  finalTE: Record<VirtueEgg, number>;     // Total after ascension
   
   // Strategy label for display
   strategyLabel: string;                  // e.g., "1-sale build, 20 TE"

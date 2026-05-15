@@ -289,7 +289,7 @@ export function runC3(
   }
 
   const researchActions = actions.filter(a => a.type === 'buy_research');
-  console.log(`C3 Finished: ${researchActions.length} research actions, total time ${Math.floor(elapsedSeconds)}s`);
+  // console.log(`C3 Finished: ${researchActions.length} research actions, total time ${Math.floor(elapsedSeconds)}s`);
 
   return {
     actions,

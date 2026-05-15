@@ -1,105 +1,103 @@
-# Automatic Ascension Planner — Spec v4
+# Automatic Ascension Planner — Spec v5
 
 ## 1. The System
 
-A **multi-ascension decision tree optimizer** that takes a player's current state and a target TE, then generates candidate ascension sequences to reach that goal. The user explores the tree, picks preferred paths, and exports them as a plan library.
+A **sequential ascension plan builder** that lets a user construct their own multi-ascension roadmap toward a target TE. The user adds ascensions one at a time, choosing the TE goal for each. Each ascension's end state (end date/time, end TE, SE balance, shift count) automatically becomes the start state of the next. The user can go back and change an earlier ascension's goal, and everything downstream recalculates.
 
 ```mermaid
 flowchart TD
-    A["Player Backup<br>Current TE: 175"] --> B{Ascension 1}
-    B -->|"Build to 1st sale<br>earn 15 TE"| C1["End: 190 TE"]
-    B -->|"Build to 2nd sale<br>earn 25 TE"| C2["End: 200 TE"]
-    C1 --> D1{Ascension 2}
-    C2 --> D2{Ascension 2}
-    D1 -->|"..."| E1["..."]
-    D2 -->|"..."| E2["..."]
+    A["Player Backup<br>Current TE: 175"] --> B["Ascension 1<br>Goal: 195 TE"]
+    B --> C["Ascension 2<br>Goal: 225 TE"]
+    C --> D["Ascension 3<br>Goal: 260 TE"]
+    D --> E["..."]
+    
+    style B fill:#4f46e5,stroke:#6366f1,color:#fff
+    style C fill:#4f46e5,stroke:#6366f1,color:#fff
+    style D fill:#4f46e5,stroke:#6366f1,color:#fff
 ```
+
+The tool does **not** auto-generate or branch. The user is in full control of:
+- How many ascensions to plan
+- What TE goal each ascension targets
+- Whether to use a 1-sale or 2-sale build phase (the tool simulates both and recommends the faster one)
 
 ---
 
 ## 2. User Inputs
 
+### Global Inputs (top of the form)
+
 | Input | Type | Constraints | Description |
 |---|---|---|---|
 | **Player ID** | string | Required | Loads raw backup |
-| **Target TE** | integer | Min: `currentTE + pendingTE + 1`, Max: `490`, **Default: 490** | Long-term goal |
-| **Max Ascensions** | integer | Min: `1`, Max: `ceil((targetTE - currentTE) / 10)` ≤ 39 | How deep the tree can go |
-| **Ascension Start Time** | datetime + timezone | Defaults to now; **timezone selector** reused from initial state tab | When the first ascension begins |
+| **Initial TE** | per-egg breakdown | Auto-populated from backup | Eggs delivered + TE earned per egg, editable |
+| **Ascension Start Time** | datetime + timezone | Defaults to now | When the first ascension begins |
+| **Timezone** | timezone selector | Defaults to browser tz | Reused from initial state tab |
+
+### Per-Ascension Input
+
+After each generated ascension overview, a goal input appears for the next ascension. The user can specify **either** a TE goal **or** a date/time goal — whichever they provide, the tool calculates the other:
+
+| Input | Type | Constraints | Description |
+|---|---|---|---|
+| **TE Goal** | integer | Min: `previousEndTE + 10`, Max: `490` | Target TE for the next ascension |
+| **End Date/Time** | datetime | Min: previous ascension's end time | Target end date (uses same timezone as global start time) |
+
+The user fills in **one** of these fields. The tool then:
+1. Simulates both 1-sale and 2-sale build strategies
+2. Picks the faster/better strategy
+3. Back-populates the other field (either the resulting end date for a TE goal, or the achievable TE for a date goal)
+
+If the user later changes one field, the tool re-evaluates the 1-sale vs. 2-sale decision and recalculates the TE-wait shifts. The build phase (C1→K3) does **not** need to be re-simulated since the ascension's start time hasn't changed — only the wait phase durations change.
+
+The minimum gain of 10 TE per ascension is enforced — smaller gains are always more efficient as extensions of the previous ascension.
 
 ### Pre-Calculation Display
 
-Before generating, show the user:
+Before generating the first ascension, show:
 - **Current TE**: from backup (earned + pending)
-- **TE to gain**: `targetTE - currentTE`
-- **Max total SE spent**: cumulative SE consumed by `maxAscensions × 13` shifts, computed iteratively with `shiftCost(soulEggs, shiftCount)` deducting as it goes
-- **SE remaining after max ascensions**: `soulEggs - totalCost` (may be **negative** — that's OK, player may plan to earn more SE)
-
-The `shiftCost` formula (from `lib/earning_bonus.ts`):
-```typescript
-shiftCost(numSoulEggs, shiftCount) = 10^11 + 0.6 * basis + (0.4 * basis)^0.9
-// where basis = numSoulEggs * (0.02 * (shiftCount / 120)^3 + 0.0001)
-```
-
-> [!NOTE]
-> Since shift cost is a percentage of SE and both the percentage and remaining SE change with every shift, you can't show a per-ascension cost. Show only the **max total SE spent** across all planned ascensions, computed by iterating shift-by-shift.
-
-> [!WARNING]
-> SE going negative is allowed. Players may plan to earn more SE between ascensions. Display the negative value clearly but don't block generation.
+- **TE to gain**: `targetTE - currentTE` (where targetTE is the per-ascension goal)
 
 ---
 
-## 3. Decision Tree Branching
+## 3. Sequential Plan Flow
 
-Each ascension node has **two** branching dimensions:
+### How It Works
 
-### Branch Point 1: Build Phase Length
+1. **User sets global inputs** (player ID, start time, timezone, initial TE)
+2. **User sets their first goal** (either TE target or end date) and clicks Generate
+3. **Tool simulates both 1-sale and 2-sale builds**, picks the best, back-populates the other goal field, and shows the `AscensionOverview`
+4. **Below the overview**, a new goal input appears for the next ascension
+5. **User enters a goal and generates** — the tool uses the previous ascension's end time, end TE, ending SE, and ending shift count as the start state
+6. **Repeat** until the user reaches 490 TE or stops adding ascensions
 
-The "build phase" (shifts C1 through K3, where you determine max ELR) is anchored to the **Friday 9 AM Pacific research sale**:
+### State Chaining
 
-- **Option A**: Build phase ends at end of the **1st** research sale after ascension start
-- **Option B**: Build phase ends at end of the **2nd** research sale after ascension start
+Each ascension's output state becomes the next ascension's input state:
 
-This changes how much time C3 (the big earnings→ELR research shift) gets, which directly impacts max ELR and therefore TE earning speed.
-
-The research sale timing uses `getNextPacificTime(5, 9, timestamp)` from `lib/events.ts` — Friday = day 5, hour 9.
-
-### Branch Point 2: Ending TE
-
-After the build phase, the remaining shifts earn TE. The number of TE earned is variable. For each possible ending TE value:
-
-- Different ending TE → different starting TE for next ascension → different ELR/earnings potential
-- Higher TE earned = longer ascension = later start for next ascension
+| Property | Source |
+|---|---|
+| `startTime` | Previous ascension's `endTime` |
+| `startTE` | Previous ascension's `endTE` |
+| `startSoulEggs` | Previous ascension's `endSoulEggs` |
+| `startShiftCount` | Previous ascension's `endShiftCount` |
+| `eggsDelivered` | Reset to 0 per egg (new ascension = new farm) |
+| `teEarned` | Previous ascension's `finalTE` per egg |
+| `researchLevels` | Reset to `{}` (new ascension) |
+| `bankValue` | Reset to 0 (new ascension) |
+| `population` | Reset to 1 (new ascension) |
+| `currentEgg` | Reset to `curiosity` (C1 start) |
 
 > [!IMPORTANT]
-> **Minimum 10 TE per ascension.** No branch should gain fewer than 10 TE — it would be more efficient to wait longer on the previous ascension.
+> `eggsDelivered` resets per ascension because you start a new farm. But `teEarned` carries over because TE is permanent. The engine uses `teEarned` (not `eggsDelivered`) to determine starting TE for the next ascension's build phase.
 
-### The ~300 TE Threshold: Max ELR Milestone
+### Cascading Recalculation
 
-> [!TIP]
-> Somewhere around **~300 TE**, a player can purchase **all** research that affects egg laying rate and shipping capacity. At that point, the player's ELR is permanently maxed — no future ascension can improve it.
+If the user changes the goal (TE or date) of ascension N (where there are M > N total ascensions):
+- **Ascension N**: Only the TE-wait phase is recalculated (build phase C1→K3 is unchanged since start time didn't change). The 1-sale vs. 2-sale decision is re-evaluated. The other goal field is back-populated.
+- **Ascensions N+1 through M**: Fully re-simulated using updated start states from the chain (new start time, new start TE, updated SE/shift count). Each downstream ascension keeps its existing goal but recalculates everything else (timing, SE costs, ELR, build strategy).
 
-When the auto-planner detects that a player can achieve this milestone (all ELR/shipping research purchasable within a single build phase), the tree **collapses**. Instead of generating more branching ascensions, it produces **one final long ascension** that goes from ~300 TE all the way to the target (up to 490). This ascension's build phase achieves max ELR, and then the remaining shifts just wait for TE at the maximum possible rate.
-
-This is a massive simplification — no more branching needed after this point.
-
-### Pruning
-
-Only two pruning rules:
-
-| Rule | Effect |
-|---|---|
-| **TE gain < 10** | Prune — always inefficient, better to extend previous ascension |
-| **Target TE reached** | Stop — this is a complete path, no further branching |
-
-No other pruning. In particular:
-- **SE going negative is allowed** (player may earn more)
-- **No duration limit** (except 490 TE cap = 98 per egg)
-- **No dominated-path pruning** (speed isn't always the goal — player may want TE sooner for other game benefits)
-
-### Build Phase Optimization
-
-> [!TIP]
-> The build phase (C1 through K3) is **identical** for any ascension starting at the same timestamp with the same TE, regardless of how long the TE-waiting phase will take afterward. This means we compute the build phase **once** per (timestamp, TE) pair and reuse it across all ending-TE branches. Only the TE-wait phase varies.
+This ensures the plan stays internally consistent. A change to an early ascension that shifts the start date for later ones will change which research sales those later ascensions can access, potentially changing their optimal build strategy and requiring full re-simulation of the build phase.
 
 ---
 
@@ -192,7 +190,7 @@ Key functions reused directly:
 
 ---
 
-## 7. AscensionSummary: Lightweight Tree Node
+## 7. AscensionSummary: Lightweight Result
 
 ```typescript
 interface AscensionSummary {
@@ -224,16 +222,14 @@ interface AscensionSummary {
   
   // Per-egg summary
   eggsDelivered: Record<VirtueEgg, number>;
-  teEarned: Record<VirtueEgg, number>;
+  teEarned: Record<VirtueEgg, number>;    // Gained during this ascension
+  finalTE: Record<VirtueEgg, number>;     // Total after ascension
   
   // Strategy label for display
-  strategyLabel: string;                  // e.g., "1-sale build, 20 TE"
+  strategyLabel: string;                  // e.g., "1-sale build"
   
   // Max ELR milestone flag
   isMaxELRAscension: boolean;             // True if this is the ~300 TE collapse
-  
-  // Lazy reference to full plan
-  fullPlanRef?: WeakRef<Action[]> | null;
 }
 ```
 
@@ -282,87 +278,6 @@ Phase 2: Save and buy biggest (remaining time in ≤ 30 min)
   - Don't buy intermediate vehicles just to replace them — 
     skip to the best vehicle you can afford in the time remaining
 ```
-
----
-
-## 10. Architecture
-
-```
-src/lib/autoplan/
-  ├── index.ts                 // Entry: generateDecisionTree(backup, goal) → tree
-  ├── types.ts                 // AscensionSummary, AutoPlanGoal, etc.
-  ├── tree.ts                  // Decision tree: build, prune, rank
-  ├── calendar.ts              // Event schedule helpers
-  ├── se-tracker.ts            // SE & shift count tracking across ascensions
-  ├── te-thresholds.ts         // TE threshold crossing calculations
-  ├── ascension.ts             // Generate one ascension: startState → AscensionSummary
-  ├── shifts/
-  │   ├── index.ts             // Orchestrate the 13-shift sequence
-  │   ├── c1.ts                // C1: Tier unlock + fleet + graviton + earnings ROI
-  │   ├── k1.ts                // K1: Vehicles → shipping ≥ lay rate → max shipping
-  │   ├── i1.ts                // I1: 4 Chicken Universes
-  │   ├── c2.ts                // C2: Finish fleet + graviton
-  │   ├── k2.ts                // K2: Max vehicles
-  │   ├── r1.ts                // R1: Buy silos
-  │   ├── c3.ts                // C3: Earnings → ELR (sale-anchored, complex TBD)
-  │   ├── h1.ts                // H1: Switch to ELR artifacts
-  │   ├── k3.ts                // K3: Last vehicles/trains + TE wait
-  │   └── te-wait.ts           // TE earning shifts (C4, I2, R2, H2)
-  └── extract.ts               // Extract pure functions from UI composables
-
-src/components/
-  └── auto/
-      └── AutomaticPlanner.vue // New tab UI (independent component tree)
-```
-
----
-
-## 11. Implementation Plan
-
-### Phase 1: Foundation (MVP — C1 only)
-
-**Step 1: Scaffold & Tab**
-- Add Manual/Automatic tab toggle to `App.vue`
-- Create `AutomaticPlanner.vue` shell component
-- Include timezone selector (reuse from initial state tab)
-- Wire up player backup loading
-
-**Step 2: Extract Pure Functions**
-- Extract `computeRealisticELR` from `useResearchViews.ts` into shared utility
-- Extract ROI computation logic into a pure function
-- Create `calendar.ts` with `isSaleActive(time)` and `isEarningsBoostActive(time)`
-- Create `se-tracker.ts` with shift cost pre-calculation (iterative, not per-ascension)
-
-**Step 3: Types**
-- Define `AscensionSummary`, `AutoPlanGoal`, shift-level types
-- Define `AutoPlanInput` (player backup + goal + constraints)
-
-**Step 4: C1 Shift Strategy**
-- Implement `shifts/c1.ts`
-- Tier-unlock → fleet_size → graviton_coupling → earnings research (ROI order)
-- Uses `computeSnapshot({ skipGrowth: true })`, `getDiscountedVirtuePrice`, `isTierUnlocked`
-
-**Step 5: Basic Ascension Runner**
-- Implement `ascension.ts` — runs C1, returns partial results
-- Wire into `AutomaticPlanner.vue` — "Generate" triggers C1, shows results
-
-**Step 6: Display**
-- Show generated C1 actions in a list
-- Show SE cost preview, timing, earnings progression
-
-### Phase 2: Complete Template (K1 → K3)
-Build remaining shift strategies one at a time.
-
-### Phase 3: TE Earning & Decision Tree
-- Implement TE threshold crossing calculations
-- Build tree with both branch dimensions
-- Implement ~300 TE max-ELR collapse
-- Build tree visualization UI
-
-### Phase 4: Multi-Ascension & Export
-- Chain ascensions across the tree
-- SE tracking across the full tree
-- Export selected paths as plan library
 
 ---
 
@@ -431,6 +346,61 @@ C3 starts (e.g., Wednesday)
 
 ---
 
+## 10. Architecture
+
+```
+src/auto/
+  ├── AGENT.md                 ← Agent instructions
+  ├── PLAN.md                  ← This file: feature specification
+  ├── IMPLEMENTATION.md        ← Step-by-step implementation plan
+  ├── types.ts                 // AscensionSummary, etc.
+  ├── ascension.ts             // Generate one ascension
+  ├── calendar.ts              // Event schedule helpers
+  ├── se-tracker.ts            // SE & shift count tracking across ascensions
+  ├── te-thresholds.ts         // TE threshold crossing calculations
+  ├── engine/                  // Engine utilities (strategist, eggs calc)
+  ├── shifts/                  // Individual shift strategies
+  │   ├── index.ts
+  │   ├── c1.ts through te-wait.ts
+  └── extract.ts               // Pure functions extracted from UI composables
+
+src/components/auto/
+  ├── AutomaticPlanner.vue     // Main auto planner: inputs + chain of ascensions
+  ├── AscensionOverview.vue    // Single ascension result display
+  └── ShiftSummary.vue         // Individual shift detail view
+```
+
+---
+
+## 11. Export
+
+### Plan Library Export
+
+The user can export their entire ascension chain as a plan library file (JSON). This file contains:
+- Global metadata (player ID, start time, timezone)
+- An ordered array of ascension entries, each with:
+  - TE goal
+  - The full `Action[]` array
+  - The `AscensionSummary`
+
+### Import Back to Manual Planner
+
+An exported plan can be loaded back into the manual planner via "Load Saved Plan." Each ascension in the chain becomes a separate plan entry. The manual planner can replay all actions to verify correctness.
+
+### Copy / Share
+
+A lightweight text summary (no actions, just the roadmap) can be copied to clipboard:
+```
+Ascension Plan — Starting TE: 175
+  A1: 175 → 195 TE (1-sale, 6d 12h) 
+  A2: 195 → 225 TE (2-sale, 8d 3h)
+  A3: 225 → 260 TE (1-sale, 5d 18h)
+  ...
+Total: 175 → 490 TE in ~45 days
+```
+
+---
+
 ## 12. Open Questions
 
 All questions have been resolved. ✅
@@ -440,3 +410,4 @@ All questions have been resolved. ✅
 | **C3 Logic** | Fully specified in §8.5 — Earnings ROI with A/B condition matrix → ELR Impact during final sale |
 | **~300 TE Threshold** | Varies by player, computed dynamically per build phase |
 | **TE Thresholds Data** | `src/lib/truthEggs.ts` — `TE_BREAKPOINTS` array + existing utilities |
+| **Decision tree vs. manual** | Abandoned decision tree — user builds their own sequential plan |

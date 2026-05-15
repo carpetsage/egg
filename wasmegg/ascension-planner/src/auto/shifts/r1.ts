@@ -73,7 +73,7 @@ export function runR1(
     // console.log(`  [Silo ${currentState.siloCount}] BOUGHT. Total time: ${elapsedSeconds.toFixed(1)}s`);
   }
 
-  console.log(`R1 Finished: ${actions.filter(a => a.type === 'buy_silo').length} silo actions, total time ${elapsedSeconds}s`);
+  // console.log(`R1 Finished: ${actions.filter(a => a.type === 'buy_silo').length} silo actions, total time ${elapsedSeconds}s`);
 
   return {
     actions,

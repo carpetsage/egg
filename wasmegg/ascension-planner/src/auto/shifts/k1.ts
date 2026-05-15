@@ -249,7 +249,7 @@ export function runK1(
     }
   }
 
-  console.log(`K1 Finished: ${actions.filter(a => a.type === 'buy_vehicle' || a.type === 'buy_train_car').length} vehicle actions, total time ${elapsedSeconds.toFixed(1)}s`);
+  // console.log(`K1 Finished: ${actions.filter(a => a.type === 'buy_vehicle' || a.type === 'buy_train_car').length} vehicle actions, total time ${elapsedSeconds.toFixed(1)}s`);
 
   return {
     actions,

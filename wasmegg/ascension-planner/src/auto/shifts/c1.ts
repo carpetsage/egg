@@ -364,7 +364,7 @@ export function runC1(
   }
 
   const researchActions = actions.filter(a => a.type === 'buy_research');
-  console.log(`C1 Finished: ${researchActions.length} research actions, total time ${Math.floor(elapsedSeconds)}s`);
+  // console.log(`C1 Finished: ${researchActions.length} research actions, total time ${Math.floor(elapsedSeconds)}s`);
 
   return {
     actions,

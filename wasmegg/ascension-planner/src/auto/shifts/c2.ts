@@ -304,7 +304,7 @@ export function runC2(
     }
   }
 
-  console.log(`C2 Finished: ${actions.filter(a => a.type === 'buy_research').length} research actions, total time ${elapsedSeconds}s`);
+  // console.log(`C2 Finished: ${actions.filter(a => a.type === 'buy_research').length} research actions, total time ${elapsedSeconds}s`);
 
   return {
     actions,

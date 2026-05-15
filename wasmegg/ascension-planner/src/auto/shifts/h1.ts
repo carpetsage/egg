@@ -52,7 +52,7 @@ export function runH1(state: EngineState, context: SimulationContext): ShiftResu
   currentState = applyAction(currentState, artifactAction);
   actions.push(artifactAction as unknown as any);
 
-  console.log('H1 Finished: New artifacts equipped');
+  // console.log('H1 Finished: New artifacts equipped');
 
   return {
     actions,

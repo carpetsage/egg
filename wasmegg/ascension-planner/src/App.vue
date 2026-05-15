@@ -2,7 +2,7 @@
   
   <the-nav-bar active-entry-id="ascension-planner" />
 
-  <div :class="['min-h-screen bg-gray-100 transition-all duration-300', isFooterCollapsed ? 'pb-8' : 'pb-24']">
+  <div :class="['min-h-screen bg-gray-100 transition-all duration-300', (activeTab === 'automatic' || isFooterCollapsed) ? 'pb-8' : 'pb-24']">
     <div class="max-w-6xl mx-auto p-4">
       <!-- Collapsible Header Region -->
       <div class="bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-100 shadow-sm">
@@ -422,13 +422,14 @@
     <RecalculationOverlay />
 
     <PlanFinalSummary
+      v-if="activeTab === 'manual'"
       @show-details="showCurrentDetails"
       @update:collapsed="isFooterCollapsed = $event"
       @save-plan="saveCurrentPlan"
       @save-plan-as="savePlanAs"
     />
-    <FloatingStats @show-details="showCurrentDetails" />
-    <FloatingNotes />
+    <FloatingStats v-if="activeTab === 'manual'" @show-details="showCurrentDetails" />
+    <FloatingNotes v-if="activeTab === 'manual'" />
   </div>
 </template>
 

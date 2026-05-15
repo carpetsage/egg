@@ -205,6 +205,17 @@ const summaryItems = computed(() => {
         text: `Peak ELR: ${formatNumber(peakELRAction.payload.peakELR * 3600, 3)}/hr`,
       });
     }
+    // --- TE Earned ---
+    const teWaitActions = props.actions.filter(a => a.payload?.isTEWait);
+    if (teWaitActions.length > 0) {
+      const totalTE = teWaitActions.reduce((sum, a) => sum + (a.payload.teEarned || 0), 0);
+      if (totalTE > 0) {
+        items.push({
+          isPremium: true,
+          text: `+${totalTE} Truth Eggs`,
+        });
+      }
+    }
 
     // --- Overtake Info ---
     const overtakeAction = props.actions.find(a => a.type === 'virtual_overtake_info');

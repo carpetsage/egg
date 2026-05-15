@@ -13,6 +13,8 @@ import { calculateMaxVehicleSlots, calculateMaxTrainLength } from '../../calcula
 import { computeRealisticELR } from '../../calculations/realisticELR';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { formatNumber } from '@/lib/format';
+import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { computeTEEarned, timeToEarnTE } from '../te-thresholds';
 
 /**
  * K3 Shift Strategy:
@@ -24,7 +26,8 @@ import { formatNumber } from '@/lib/format';
 export function runK3(
   startState: EngineState,
   context: SimulationContext,
-  buildPhaseEnd: number
+  buildPhaseEnd: number,
+  targetTEForEgg?: number
 ): ShiftResult {
   let currentState = { ...startState };
   let elapsedSeconds = 0;
@@ -131,13 +134,25 @@ export function runK3(
     actions[0].payload.peakELR = peakELR;
   }
 
-  // 4. Wait until buildPhaseEnd
+  // 4. Wait
   const absTimeAfterPurchases = getAbsTime();
-  const waitDuration = Math.max(0, buildPhaseEnd - absTimeAfterPurchases);
+  let waitDuration = Math.max(0, buildPhaseEnd - absTimeAfterPurchases);
+  
+  if (targetTEForEgg !== undefined) {
+    const currentEggsDelivered = currentState.eggsDelivered['kindness'] || 0;
+    const currentTE = countTEThresholdsPassed(currentEggsDelivered);
+    const neededTE = Math.max(0, targetTEForEgg - currentTE);
+    
+    if (neededTE > 0) {
+      const teWaitTime = timeToEarnTE(currentEggsDelivered, peakELR, neededTE);
+      // We wait until buildPhaseEnd (end of sale) but extend it if more TE is needed.
+      waitDuration = Math.max(waitDuration, teWaitTime);
+    }
+  }
   
   if (waitDuration > 0) {
     const teResult = computeTEEarned(
-      currentState.eggsDelivered[currentState.currentEgg] || 0,
+      currentState.eggsDelivered['kindness'] || 0,
       peakELR,
       waitDuration
     );
@@ -149,12 +164,12 @@ export function runK3(
     });
 
     // Update state
-    currentState.eggsDelivered[currentState.currentEgg] = teResult.finalEggsDelivered;
-    currentState.teEarned[currentState.currentEgg] = (currentState.teEarned[currentState.currentEgg] || 0) + teResult.teEarned;
-    currentState.te += teResult.teEarned;
+    currentState.eggsDelivered['kindness'] = teResult.finalEggsDelivered;
+    currentState.teEarned['kindness'] = (currentState.teEarned['kindness'] || 0) + teResult.teEarned;
+    currentState.te = Object.values(currentState.teEarned).reduce((a, b) => (a as number) + (b as number), 0);
   }
 
-  console.log(`K3 Finished: Peak ELR ${formatNumber(peakELR * 3600, 3)}/hr. TE earned in wait: ${currentState.teEarned[currentState.currentEgg]}`);
+  // console.log(`K3 Finished: Peak ELR ${formatNumber(peakELR * 3600, 3)}/hr. TE earned in wait: ${currentState.teEarned[currentState.currentEgg]}`);
 
   return {
     actions,

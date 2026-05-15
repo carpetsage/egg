@@ -122,7 +122,7 @@ export function runK2(
     }
   }
 
-  console.log(`K2 Finished: ${actions.filter(a => a.type === 'buy_vehicle' || a.type === 'buy_train_car').length} vehicle actions, total time ${elapsedSeconds}s`);
+  // console.log(`K2 Finished: ${actions.filter(a => a.type === 'buy_vehicle' || a.type === 'buy_train_car').length} vehicle actions, total time ${elapsedSeconds}s`);
 
   return {
     actions,

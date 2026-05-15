@@ -9,382 +9,277 @@
 
 ---
 
-## Phase 0: Prerequisites — Extract & Prepare
+## Phase 0–4: Foundation through Single Ascension ✅
 
-Before writing any auto-planner code, extract pure functions from existing UI-coupled code so the auto-planner can reuse them without importing Vue composables or Pinia stores.
+All foundation work is complete. The following has been built and is working:
 
-### [x] Step 0.1: Add `skipGrowth` option to `computeSnapshot`
+- [x] `skipGrowth` option on `computeSnapshot`
+- [x] Extracted `computeRealisticELR` to shared utility
+- [x] Extracted ROI calculation to pure function
+- [x] `calendar.ts` — event schedule helpers
+- [x] `types.ts` — `AscensionSummary`, `ShiftResult`, etc.
+- [x] `se-tracker.ts` — SE cost tracking
+- [x] `te-thresholds.ts` — TE threshold crossing calculations
+- [x] Manual/Automatic tab toggle in `App.vue`
+- [x] `AutomaticPlanner.vue` — shell with player ID, target TE, start time, timezone
+- [x] All 13 shift strategies: C1, K1, I1, C2, K2, R1, C3, H1, K3, C4, I2, R2, H2
+- [x] `ascension.ts` — full single ascension orchestrator (`runAscension`, `runUntilShift`)
+- [x] `AscensionOverview.vue` — displays complete ascension results with shift breakdown
+- [x] `ShiftSummary.vue` — detailed per-shift action display
+- [x] 1-sale vs 2-sale comparison with "faster than" recommendation
 
-**File**: `src/engine/compute.ts`
-
-Add an optional `options` parameter to `computeSnapshot()` with a `skipGrowth: boolean` flag. When `true`, skip the population growth integration and assume `population = habCapacity`. This is the TE ≥ 100 optimization that makes the auto-planner fast.
-
-**Test**: Call `computeSnapshot` with and without `skipGrowth` on a state with high TE. Verify that with `skipGrowth: true`, the snapshot has `population === habCapacity` and `offlineEarnings` matches the non-growth version.
-
-### [x] Step 0.2: Extract `computeRealisticELR` to a shared utility
-
-**From**: `src/composables/useResearchViews.ts` (the private `computeRealisticELR` function, ~lines 110-155)
-**To**: `src/calculations/effectiveLayRate.ts` or a new `src/calculations/realisticELR.ts`
-
-This function computes ELR using the full pipeline (hab capacity → lay rate → shipping capacity → min of the two) given research levels, artifact mods, epic research, and colleggtible modifiers. It's currently a private function inside a Vue composable. Extract it as a named export so both the composable and the auto-planner can use it.
-
-**Test**: Import the extracted function in `useResearchViews.ts`, confirm existing behavior is unchanged (the composable should call the extracted function instead of its local copy).
-
-### [x] Step 0.3: Extract ROI calculation to a pure function
-
-**From**: `src/composables/useResearchViews.ts` (ROI calculation logic, ~lines 536-703)
-**To**: `src/calculations/researchROI.ts`
-
-Extract the core ROI calculation:
-- Input: research, current state, context, event timing
-- Output: `{ roiSeconds, totalRoiSeconds, earningsDelta, showSaleWarning }`
-
-This is the logic that computes how long until a research purchase pays for itself, including the sale warning flag. The auto-planner's C3 strategy (§8.5 in PLAN.md) needs this exact calculation.
-
-**Test**: Verify the extracted function produces identical ROI values to what the existing Earnings ROI view shows for a known state.
-
-### [x] Step 0.4: Create `src/auto/calendar.ts` — Event schedule helpers
-
-Pure functions for determining event state at any simulation timestamp:
-
-```typescript
-function isResearchSaleActive(timestampSeconds: number): boolean
-function isEarningsBoostActive(timestampSeconds: number): boolean
-function getNextSaleStart(timestampSeconds: number): number    // next Friday 9 AM PT
-function getNextSaleEnd(timestampSeconds: number): number      // next Saturday 9 AM PT
-function getNextEarningsBoostStart(timestampSeconds: number): number  // next Monday 9 AM PT
-function getNextEarningsBoostEnd(timestampSeconds: number): number    // next Tuesday 9 AM PT
-```
-
-Built on top of the existing `getNextPacificTime()` from `src/lib/events.ts`.
-
-**Test**: Unit test with known timestamps crossing sale/event boundaries. Verify DST handling (Pacific time changes UTC offset).
+**Current state**: The user can enter their player ID, set a TE goal, and generate a single ascension. Both 1-sale and 2-sale strategies are simulated, and the faster one is displayed with a comparison badge.
 
 ---
 
-## Phase 1: Foundation — Types, SE Tracking, Tab Shell
+## Phase 5: Sequential Ascension Chain
 
-### [x] Step 1.1: Create `src/auto/types.ts`
+This is the core new feature. Transform the single-ascension generator into a sequential plan builder where each ascension's end state feeds into the next.
 
-Define all core types:
+### [x] Step 5.1: Add goal input after `AscensionOverview`
 
-```typescript
-interface AscensionSummary { ... }    // See PLAN.md §7
-interface AutoPlanGoal { ... }        // { targetTE: number }
-interface AutoPlanInput { ... }       // backup + goal + maxAscensions + startTime
-interface ShiftResult { ... }         // { actions: Action[], elapsedSeconds: number, endState: EngineState }
-interface BuildPhaseResult { ... }    // Combined result of shifts C1-K3
+**File**: `src/components/auto/AutomaticPlanner.vue`
+
+After each `AscensionOverview` component, render a compact inline input for the next ascension's goal. The user can specify **either** a TE goal or an end date/time:
+
+- **TE Goal** input: integer, min = `previousEndTE + 10`, max = `490`, default = `min(previousEndTE + 30, 490)`
+- **End Date/Time** input: datetime, min = previous ascension's end time. Uses the same timezone as the global start time.
+- The user fills in **one** field. The other is left blank (or shows "auto" placeholder).
+- "Generate Next" button
+- Only show this input if `previousEndTE < 490` (no more ascensions needed at cap)
+
+**Goal resolution logic**:
+1. If the user specifies a **TE goal**: simulate both 1-sale and 2-sale builds to that TE, pick the faster one, back-populate the end date/time field with the winning strategy's end time.
+2. If the user specifies a **date/time goal**: simulate both 1-sale and 2-sale builds, compute how many TE each earns by that deadline, pick the one that earns more TE, back-populate the TE field.
+3. If the user later edits one field: re-evaluate the 1-sale vs. 2-sale decision, recalculate wait phases, update the other field. The build phase (C1→K3) is **not** re-simulated since the start time hasn't changed.
+
+**Visual design**: Keep it lightweight — a small card between ascension overviews, not a full form. Something like:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Next Ascension Goal                                        │
+│  [___225___] TE   — or —   [__2026-06-01__] [__09:00__]     │
+│                                        [Generate A2 →]      │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-**Test**: Types only — this is just type definitions. Compiles without errors.
+**Test**: Generate A1. Enter a TE goal and generate — verify end date is back-populated. Clear TE, enter a date goal and generate — verify TE is back-populated.
 
-### [x] Step 1.2: Create `src/auto/se-tracker.ts`
+### [ ] Step 5.2: Implement state chaining logic
 
-Pure functions for SE cost tracking:
+**File**: `src/components/auto/AutomaticPlanner.vue` (or extract to a composable)
+
+Create the logic that derives the next ascension's start state from the previous ascension's summary:
 
 ```typescript
-function computeShiftCosts(startingSE: number, startingShiftCount: number, numShifts: number): {
-  costs: number[];           // Cost of each individual shift
-  totalCost: number;         // Sum of all shift costs
-  endingSE: number;          // startingSE - totalCost (may be negative)
-  endingShiftCount: number;  // startingShiftCount + numShifts
+function deriveNextStartState(
+  prevSummary: AscensionSummary,
+  prevActions: Action[],
+  baseBackupState: EngineState // original backup for non-chain properties
+): { startState: EngineState; context: SimulationContext; startTime: number } {
+  // startTime = prevSummary.endTime
+  // startTE = prevSummary.endTE (carried via teEarned per egg = prevSummary.finalTE)
+  // soulEggs = prevSummary.endSoulEggs
+  // shiftCount = prevSummary.endShiftCount
+  // eggsDelivered = { curiosity: 0, ... } (reset — new farm)
+  // researchLevels = {} (reset — new farm)
+  // bankValue = 0, population = 1, currentEgg = 'curiosity'
+}
+```
+
+Key state carried forward:
+- `startTime` ← `prevSummary.endTime`
+- `teEarned` per egg ← `prevSummary.finalTE` per egg
+- `soulEggs` ← `prevSummary.endSoulEggs`
+- `shiftCount` ← `prevSummary.endShiftCount`
+
+Key state reset:
+- `eggsDelivered` ← all zeros
+- `researchLevels` ← `{}`
+- `bankValue` ← `0`
+- `population` ← `1`
+- `currentEgg` ← `'curiosity'`
+
+**Test**: Generate A1, then A2. Verify A2's start time matches A1's end time. Verify A2's starting TE matches A1's ending TE. Verify SE balance is properly decremented.
+
+### [ ] Step 5.3: Store ascension chain as reactive array
+
+**File**: `src/components/auto/AutomaticPlanner.vue`
+
+Refactor `generatedPlan` from a single result into a reactive array of ascension results:
+
+```typescript
+interface ChainedAscension {
+  index: number;              // 0-based
+  goalType: 'te' | 'date';   // Which field the user specified
+  targetTE: number;           // TE goal (user-set or back-populated)
+  targetEndTime?: number;     // End date goal as unix timestamp (user-set or back-populated)
+  summary: AscensionSummary;
+  actions: Action[];
 }
 
-function computeMultiAscensionSECost(startingSE: number, startingShiftCount: number, numAscensions: number): {
-  totalCost: number;
-  endingSE: number;
-  endingShiftCount: number;
-  perAscension: { cost: number; endingSE: number }[];
-}
+const ascensionChain = ref<ChainedAscension[]>([]);
 ```
 
-Uses `shiftCost()` from `lib/earning_bonus.ts`. Iterates shift-by-shift, deducting SE as it goes (since `shiftCost` depends on current SE and shift count).
+The template should iterate over `ascensionChain` rendering an `AscensionOverview` for each entry, with the goal input after the last entry.
 
-**Test**: Compute SE costs for a known backup. Verify the first shift cost matches what the existing ShiftActions.vue component displays.
+Update the `generate()` function to push new ascensions onto the chain rather than replacing.
 
-### [x] Step 1.3: Create `src/auto/te-thresholds.ts`
+**Test**: Generate A1, A2, A3 sequentially. All three appear stacked on the page with correct chaining.
 
-Pure functions for TE earning calculations:
+### [ ] Step 5.4: Implement cascading recalculation
 
-```typescript
-// Given a constant ELR, how many TE are earned in a given time?
-function computeTEEarned(
-  currentEggsDelivered: number,
-  elrPerSecond: number,
-  durationSeconds: number,
-): { teEarned: number; finalEggsDelivered: number }
+**File**: `src/components/auto/AutomaticPlanner.vue`
 
-// How long to earn N more TE at a constant ELR?
-function timeToEarnTE(
-  currentEggsDelivered: number,
-  elrPerSecond: number,
-  targetAdditionalTE: number,
-): number  // seconds, or Infinity if impossible
+When the user changes the goal (TE or date) for ascension N:
 
-// Given a variable ELR (changes at specific timestamps), track TE earned
-function computeTEEarnedVariableRate(
-  currentEggsDelivered: number,
-  elrSegments: { startTime: number; endTime: number; elrPerSecond: number }[],
-): { teEarned: number; finalEggsDelivered: number }
-```
+**If N is the last (or only) ascension in the chain:**
+1. Re-evaluate 1-sale vs. 2-sale using the cached build phase (start time unchanged → build phase unchanged)
+2. Recalculate only the TE-wait shifts with the new goal
+3. Back-populate the other goal field
 
-Uses `TE_BREAKPOINTS` and `countTEThresholdsPassed` from `src/lib/truthEggs.ts`.
+**If N is not the last ascension (there are ascensions N+1 through M):**
+1. Recalculate ascension N as above (wait phase only, build phase cached)
+2. For each ascension N+1 through M: re-derive start state from previous result, **fully re-simulate** (start time changed → build phase changes → new sale boundaries)
+3. Each downstream ascension keeps its existing goal (TE or date, whichever the user originally set) but recalculates everything else
+4. Back-populate the computed field for each downstream ascension
 
-**Test**: For a known ELR value, verify that `timeToEarnTE` correctly predicts when thresholds from `TE_BREAKPOINTS` are crossed. Test the variable-rate version against a sequence of changing ELRs.
-
-### [x] Step 1.4: Add Manual/Automatic tab toggle to `App.vue`
-
-Add a top-level tab bar with "Manual" and "Automatic" tabs. The Manual tab shows everything that exists today. The Automatic tab shows a new `AutomaticPlanner.vue` shell component.
+Add an edit affordance to each `AscensionOverview`:
+- The TE goal and end date shown as editable fields in the overview header
+- Changing and confirming triggers recalculation of that ascension and all subsequent ones
 
 **Implementation notes**:
-- Use a simple reactive `ref<'manual' | 'automatic'>` for the active tab
-- The Automatic tab is lazy-loaded (only mount when selected)
-- No changes to existing Manual planner behavior
+- The build phase optimization is key: for the edited ascension itself, only wait phases change. For downstream ascensions, full re-simulation is required because their start times shift.
+- Show a brief loading state during recalculation
+- Consider debouncing if the input is a live field
 
-### [x] Step 1.5: Create `src/components/auto/AutomaticPlanner.vue` — Shell
+**Test**: Generate A1 (TE goal: 200), A2 (TE goal: 230), A3 (TE goal: 260). Change A1's TE goal to 210. Verify A1's end date updates, A2 and A3 fully recalculate with new start times. Change A2's goal to a date instead of TE — verify TE is back-populated and A3 recalculates.
 
-A minimal shell with:
-- Player ID input (reuse existing `requestFirstContact` pattern)
-- Target TE input (integer, default 490, validated against backup)
-- Max Ascensions input (integer, validated)
-- Timezone selector (reuse from initial state tab)
-- Start time picker
-- "Preview" section showing: current TE, TE to gain, max SE cost (from `se-tracker.ts`)
-- "Generate" button (disabled, wired up in later phases)
+### [ ] Step 5.5: Add delete and insert controls
 
-**Test**: Navigate to Automatic tab, enter a player ID, see backup load and preview section populate.
+**File**: `src/components/auto/AutomaticPlanner.vue`
 
----
+Add controls to each ascension in the chain:
 
-## Phase 2: First Shift — C1
+- **Delete**: Remove ascension N, recalculate N+1 onward (their TE goals stay, but start states update)
+- **Insert before**: Add a new ascension before N, prompting for a TE goal, recalculate N onward
 
-### [x] Step 2.1: Create `src/auto/shifts/c1.ts`
+Edge cases:
+- Deleting the first ascension: the second one becomes the first, using the global start state
+- Deleting the last ascension: just remove it, show the "Next TE Goal" input after the new last
+- Insert before first: new ascension uses global start state, old first recalculates
 
-Implement the C1 strategy (PLAN.md §8, C1 row):
-
-**Input**: `EngineState`, `SimulationContext`, `timeLimit` (default 1800s)
-**Output**: `ShiftResult` (actions + elapsed time + end state)
-
-Algorithm:
-1. Identify fleet_size and graviton_coupling research IDs and their tiers
-2. Buy cheapest unlocked research to unlock needed tiers (`isTierUnlocked`, `getDiscountedVirtuePrice`)
-3. Buy earnings research in ROI order (using extracted ROI function from Step 0.3) if there are quick wins that decrease the time required to buy fleet_size and graviton_coupling. Save enough time to buy as many of these targets as possible before the 30 minute limit.
-4. Buy fleet_size research levels
-5. Buy graviton_coupling levels
-6. Stop when timeLimit is reached
-
-Each purchase: emit a `buy_research` action, deduct cost from bank, advance elapsed time by `price / offlineEarnings`, recompute snapshot.
-
-**Test**: Feed a known backup (high TE player). Verify:
-- Output actions are valid `buy_research` actions with correct costs
-- Tier unlocking happens in correct order
-- Total elapsed time ≤ 30 min
-- Fleet_size and graviton_coupling are purchased before earnings research
-- Earnings research is in ROI order (not cheapest-first)
-
-### [x] Step 2.2: Create `src/auto/shifts/index.ts` — Shift orchestrator
-
-A function that runs the 13-shift sequence. For now, only C1 is implemented — the rest are stubs that return empty results:
-
-```typescript
-function runAscension(
-  startState: EngineState,
-  context: SimulationContext,
-  buildPhaseEnd: number,    // Unix timestamp
-  startTime: number,        // Unix timestamp
-): { actions: Action[]; summary: AscensionSummary }
-```
-
-**Test**: Run the orchestrator with a known backup. Verify it produces C1 actions and the remaining shifts are no-ops.
-
-### [x] Step 2.3: Wire C1 into `AutomaticPlanner.vue`
-
-When the user clicks "Generate":
-1. Build `EngineState` and `SimulationContext` from the loaded backup (similar to how "Plan Future Ascension" mode initializes — see `src/lib/modes/`)
-2. Run the shift orchestrator (C1 only)
-3. Display the generated actions in a table:
-   - Research name, level, cost, time to save, cumulative time
-   - Earnings before/after each purchase
-   - Total shift duration
-
-**Test**: End-to-end: load a player backup in the Automatic tab, click Generate, see a table of C1 research purchases with timing.
-
----
-
-## Phase 3: Build Phase Shifts (K1 → K3)
-
-### [x] Step 3.1: Implement `shifts/k1.ts` — First vehicles
-
-K1 strategy (PLAN.md §9):
-1. Shift to Kindness (emit shift action, deduct SE)
-2. Buy minimum vehicles to get shipping ≥ lay rate
-3. Buy largest affordable vehicles/trains with remaining time (≤ 30 min total)
-
-**Test**: After C1, K1 produces vehicle purchases. Shipping capacity ≥ lay rate after minimum purchases.
-
-### [x] Step 3.2: Implement `shifts/i1.ts` — Chicken Universes
-
-I1: Shift to Integrity. Buy at least one intermediate hab to quickly increase earnings from having more chickens, then buy 4 Chicken Universe habs.
-
-**Test**: Output contains intermediate hab purchase actions, followed by 4 `buy_hab` actions for Chicken Universe (hab ID 18).
-
-### [x] Step 3.3: Implement `shifts/c2.ts` — Finish fleet research
-
-C2: Shift back to Curiosity. Finish any remaining fleet_size levels. Buy graviton_coupling, but do not wait more than 4 hours to buy an extra level (you may buy more levels later during C3).
-
-**Test**: After C2, all fleet_size research is maxed. Graviton_coupling is as high as affordable within a 4-hour wait limit per level.
-
-### [x] Step 3.4: Implement `shifts/k2.ts` — Max vehicles
-
-K2: Shift to Kindness. Max all vehicle slots with best vehicles. Max train lengths.
-
-**Test**: After K2, all vehicle slots filled with tier-11 vehicles, max train lengths applied.
-
-### [x] Step 3.5: Implement `shifts/r1.ts` — Silos
-
-R1: Shift to Resilience. Buy as many silos as possible within 1 hour.
-
-**Test**: Silo count increases. Total shift time ≤ 1 hour.
-
-### [x] Step 3.6: Implement `shifts/c3.ts` — Earnings → ELR research
-
-C3 strategy (PLAN.md §8.5):
-1. Shift to Curiosity
-2. **Step 1**: Buy earnings ROI research using A/B condition matrix
-   - A: 70% ROI before next sale start
-   - B: 100% ROI before build phase end
-   - A+B → buy now; !A+B → queue for sale; !A+!B → skip
-   - Edge case: ELR research meeting A+B → buy immediately
-3. **Step 2**: At final sale start, buy ELR Impact research (Realistic, Time Efficiency)
-4. Track Monday 2× earnings event (recalculate ROI when it activates/deactivates)
-
-**Test**: This is the most complex shift. Test with multiple build phase lengths (1-sale vs 2-sale). Verify:
-- A+B research bought immediately
-- !A+B research bought at sale prices
-- !A+!B research never bought
-- ELR research purchased during sale window by time efficiency
-
-### [x] Step 3.7: Implement `shifts/h1.ts` — Artifact swap
-
-H1: Shift to Humility. Switch to optimal ELR artifacts using `getOptimalELRSet()`.
-
-**Test**: Output contains `equip_artifact_set` or `change_artifacts` action. Artifact loadout matches optimal ELR set.
-
-### [x] Step 3.8: Implement `shifts/k3.ts` — Final vehicles + TE wait
-
-K3: Shift to Kindness. Buy any remaining vehicles/trains. Then wait and earn TE.
-- Compute max ELR after purchases (this is the ascension's peak ELR)
-- Use `computeTEEarned` to determine TE earned during the wait portion
-
-**Test**: After K3 purchases, verify max ELR calculation. Verify TE earned during wait portion matches threshold calculations.
-
-### [x] Step 3.9: Integration test — Full build phase
-
-Run the complete 13-shift sequence (C1→K3 + TE wait stubs) with a known backup. Verify:
-- All 13 shift actions emitted with correct SE costs
-- Research, vehicles, habs, silos, artifacts all purchased in correct order
-- Bank never relied upon (TE ≥ 100 means immediate spending)
-- Build phase timing aligns with sale boundaries
-- Max ELR computed correctly after K3
-
----
-
-## Phase 4: TE Earning & Single Ascension
-
-### [ ] Step 4.1: Implement `shifts/te-wait.ts` — TE earning shifts
-
-The final 4 shifts (C4, I2, R2, H2) plus K3's wait portion. Given a target ending TE:
-1. Compute total eggs needed across all 5 TE-earning eggs
-2. Account for any eggs delivered and TE thresholds passed during the build phase (especially during C3).
-3. Distribute remaining waiting time across the 5 shifts based on TE thresholds, ensuring C4 wait time is reduced by eggs already delivered.
-4. Track eggs delivered per egg, TE earned per egg
-5. Determine total duration to reach target TE
-
-**Test**: For a known max ELR, verify time-to-earn-N-TE matches manual calculation from `TE_BREAKPOINTS`, factoring in eggs delivered during the build phase.
-
-### [ ] Step 4.2: Complete `ascension.ts` — Full single ascension
-
-Combine build phase + TE earning into a complete ascension:
-- Input: starting state + build phase length (1 or 2 sales) + target ending TE
-- Output: `AscensionSummary` + `Action[]`
-
-**Test**: Generate a complete single ascension. Verify all fields of `AscensionSummary` are populated correctly (timing, TE, SE, ELR, eggs delivered).
-
-### [ ] Step 4.3: Update `AutomaticPlanner.vue` — Show single ascension results
-
-Display the complete ascension:
-- Build phase summary (research bought, vehicles, max ELR achieved)
-- TE earning breakdown (per-egg TE earned, time per shift)
-- Total ascension duration
-- SE consumed
-
----
-
-## Phase 5: Decision Tree
-
-### [ ] Step 5.1: Implement `tree.ts` — Tree builder
-
-Build the decision tree:
-1. Start from player's current state
-2. For each node, generate branches:
-   - 1-sale build vs 2-sale build (Branch Point 1)
-   - For each build variant: iterate possible ending TEs in steps of 1, min gain = 10 (Branch Point 2)
-3. Apply pruning: skip TE gain < 10, stop at target TE
-4. For each branch, create child nodes and recurse up to `maxAscensions` depth
-
-Use the build phase caching optimization: same (timestamp, TE) → same build phase result.
-
-**Test**: Generate a tree for a player going from 175 → 200 TE with max 3 ascensions. Verify:
-- Root has 1-sale and 2-sale branches
-- Each branch has multiple ending-TE children
-- No child gains < 10 TE
-- Paths that reach 200 TE terminate
-- Build phase is computed once per unique (timestamp, TE) pair
-
-### [ ] Step 5.2: Implement ~300 TE max-ELR collapse
-
-Add detection: at each node, check if all ELR/shipping research is purchasable within a single build phase. If so, collapse to one final long ascension to the target TE.
-
-**Test**: For a player starting at 310 TE, verify the tree produces a single ascension node (no branching).
-
-### [ ] Step 5.3: Tree visualization in `AutomaticPlanner.vue`
-
-Display the decision tree as an interactive table/list:
-- Each row = one `AscensionSummary` node
-- Columns: ascension #, start TE → end TE, max ELR, duration, SE cost, build type (1/2 sale)
-- Expandable: click to see full action list for that ascension
-- Path highlighting: select a leaf node to see the full path from root
-
-### [ ] Step 5.4: Path comparison view
-
-Allow selecting 2-3 complete paths and comparing them side-by-side:
-- Total duration, total SE cost, TE progression timeline
-- Per-ascension breakdown
+**Test**: Generate 3 ascensions. Delete #2 — verify #3 recalculates using #1's end state. Insert before #2 — verify a new ascension appears and everything recalculates.
 
 ---
 
 ## Phase 6: Export & Polish
 
-### [ ] Step 6.1: Export selected path as plan library
+### [ ] Step 6.1: Export chain as plan library
 
-Convert a selected tree path into the standard plan library format (same as what the manual planner exports). This is a list of ascensions, each containing an `Action[]` array.
+**File**: New `src/auto/export.ts` + UI button in `AutomaticPlanner.vue`
 
-**Test**: Export a path, import it back into the manual planner via "Load Saved Plan." Verify all actions replay correctly.
+Convert the entire ascension chain into a plan library JSON file:
 
-### [ ] Step 6.2: Progress indicators
+```typescript
+interface ExportedPlan {
+  version: 1;
+  exportedAt: string;        // ISO timestamp
+  playerId: string;
+  startTime: number;
+  timezone: string;
+  ascensions: {
+    index: number;
+    targetTE: number;
+    summary: AscensionSummary;
+    actions: Action[];
+  }[];
+}
+```
 
-Add progress feedback during generation:
-- Progress bar or step counter (currently processing shift X of 13, ascension Y of N)
-- Estimated time remaining
-- Cancel button
+Add an "Export Plan" button that downloads this as a `.json` file.
 
-### [ ] Step 6.3: Web Worker offloading
+**Test**: Generate 3 ascensions, export. Verify the JSON contains all 3 ascensions with correct data.
 
-Move the tree generation to a Web Worker so the UI stays responsive during computation. The decision tree builder may take several seconds for deep trees.
+### [ ] Step 6.2: Import plan library
 
-### [ ] Step 6.4: Final polish
+Allow loading an exported plan back into the auto planner:
+- Parse the JSON
+- Populate `ascensionChain` with the loaded data
+- Set global inputs (start time, timezone) from the file
+- Show all ascensions immediately without re-simulating
 
-- Loading states, error handling, edge cases
-- Responsive layout for the Automatic tab
-- Help text / tooltips explaining the decision tree
-- Save/restore auto-plan settings (player ID, target TE, etc.)
+Also support importing into the manual planner via "Load Saved Plan" — each ascension in the chain becomes a separate plan entry.
+
+**Test**: Export a plan, reload the page, import it. Verify all ascensions appear correctly.
+
+### [ ] Step 6.3: Copy roadmap summary to clipboard
+
+Add a "Copy Summary" button that generates a compact text roadmap:
+
+```
+Ascension Plan — Starting TE: 175
+  A1: 175 → 195 TE (1-sale, 6d 12h)
+  A2: 195 → 225 TE (2-sale, 8d 3h)
+  A3: 225 → 260 TE (1-sale, 5d 18h)
+Total: 175 → 260 TE in ~20 days, 45.2T SE consumed
+```
+
+**Test**: Generate a chain, click Copy Summary, paste into a text editor. Verify the format matches.
+
+### [ ] Step 6.4: Running totals in chain view
+
+Add a cumulative summary bar at the bottom of the ascension chain showing:
+- Total duration across all ascensions
+- Total SE consumed
+- Overall TE progress (start → final)
+- Number of ascensions
+
+This updates live as ascensions are added/removed/edited.
+
+**Test**: Generate 3 ascensions. Verify totals match the sum of individual ascension metrics.
+
+---
+
+## Phase 7: Cleanup & Hardening
+
+### [ ] Step 7.1: Remove dead tree code & types
+
+Remove any types, functions, or references related to the abandoned decision tree:
+- `tree.ts` (if created)
+- `AutoPlanGoal.maxAscensions` (no longer needed — user adds as many as they want)
+- Any tree-related fields in `AscensionSummary` that are no longer used (`parentId`, `depth` if not used for display)
+- `fullPlanRef?: WeakRef<Action[]>` in `AscensionSummary` — this was a memory optimization for hundreds of tree nodes; with ~dozen sequential plans, just keep actions directly in the `ChainedAscension` array
+- Update `types.ts` to only include what the sequential chain needs
+
+**Test**: TypeScript compiles with no errors. No dead imports.
+
+### [ ] Step 7.2: Loading states and error handling
+
+- Show a spinner/skeleton while each ascension simulates
+- Handle edge cases: TE goal already reached, SE going deeply negative, simulation failures
+- Validate that each ascension's TE goal is achievable (endTE matches or exceeds goal)
+- Show a warning if an ascension takes an unreasonably long time (e.g., > 60 days)
+
+### [ ] Step 7.3: Responsive layout
+
+- Ensure the chain view works on mobile/tablet
+- The "Next TE Goal" inline input should stack vertically on small screens
+- Ascension overviews should remain readable at narrow widths
+
+### [ ] Step 7.4: Ascension numbering and labels
+
+Update `AscensionOverview` to show clear numbering:
+- "Ascension 1", "Ascension 2", etc.
+- Show the TE goal in the header (not just the result)
+- Show cumulative position: "A3 of 5" or similar
+
+### [ ] Step 7.5: Save/restore auto-plan settings
+
+Persist the following to `localStorage`:
+- Player ID
+- Timezone preference
+- The entire ascension chain (goals + summaries, not full action arrays)
+- So the user can close the browser and come back to their plan
+
+**Test**: Generate a plan, refresh the page, verify the plan structure is restored (may need re-simulation for full action data).

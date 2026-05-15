@@ -110,7 +110,7 @@ export function runI1(
     }
   }
 
-  console.log(`I1 Finished: ${actions.filter(a => a.type === 'buy_hab').length} hab actions, total time ${elapsedSeconds}s`);
+  // console.log(`I1 Finished: ${actions.filter(a => a.type === 'buy_hab').length} hab actions, total time ${elapsedSeconds}s`);
 
   return {
     actions,
