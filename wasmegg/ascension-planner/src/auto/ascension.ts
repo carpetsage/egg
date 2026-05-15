@@ -44,13 +44,7 @@ export function deriveNextStartState(
     habIds: [0, null, null, null],
     vehicles: [{ vehicleId: 0, trainLength: 1 }],
     lastStepTime: 0,
-    eggsDelivered: {
-      curiosity: 0,
-      integrity: 0,
-      resilience: 0,
-      humility: 0,
-      kindness: 0,
-    },
+    eggsDelivered: { ...prevSummary.eggsDelivered },
     
     // Reset active modifiers
     activeSales: {
