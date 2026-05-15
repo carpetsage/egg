@@ -13,8 +13,10 @@ import { runR1 } from './shifts/r1';
 import { runC3 } from './shifts/c3';
 import { runH1 } from './shifts/h1';
 import { runK3 } from './shifts/k3';
-import { runC4, runI2, runR2, runH2, distributeTargetTE } from './shifts/te-wait';
+import { runC4, runI2, runR2, runH2, distributeTargetTE, solveTEForTimeBudget } from './shifts/te-wait';
 import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive } from './calendar';
+import { calculateArtifactModifiers } from '@/lib/artifacts';
+import { computeRealisticELR } from '@/calculations/realisticELR';
 import type { VirtueEgg } from '@/types';
 
 /**
@@ -108,6 +110,32 @@ export function runUntilShift(
 }
 
 /**
+ * Calculates the peak ELR reachable at the end of the build phase (K3).
+ * This simulates buying a full fleet of the best vehicles.
+ */
+function calculatePeakELR(state: EngineState, context: SimulationContext): number {
+  const currentState = JSON.parse(JSON.stringify(state));
+  const maxSlots = 17; // Max slots in Egg Inc
+  const maxLen = 10;   // Max cars per train (conservative estimate, will be updated by K3)
+  
+  // Fill fleet with Hyperloops (ID 11)
+  currentState.vehicles = [];
+  for (let i = 0; i < maxSlots; i++) {
+    currentState.vehicles.push({ vehicleId: 11, trainLength: maxLen });
+  }
+
+  const artMods = calculateArtifactModifiers(currentState.artifactLoadout);
+  const elrResult = computeRealisticELR(
+    currentState.researchLevels,
+    artMods,
+    context.epicResearchLevels,
+    context.colleggtibleModifiers
+  );
+  
+  return elrResult.effectiveRate;
+}
+
+/**
  * Orchestrates a complete 13-shift ascension.
  * 
  * @param startState - Starting engine state
@@ -129,6 +157,7 @@ export function runAscension(
   parentId: string | null = null,
   depth: number = 0,
   targetTE?: number,
+  targetEndTime?: number,
   resumeData?: { actions: Action[]; state: EngineState; elapsedSeconds: number; resumeShiftName: string }
 ): { actions: Action[]; summary: AscensionSummary } {
   let currentState = resumeData ? JSON.parse(JSON.stringify(resumeData.state)) : JSON.parse(JSON.stringify(startState));
@@ -158,8 +187,18 @@ export function runAscension(
         kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
       };
       
-      const targets = distributeTargetTE(currentTEs, targetTE || currentState.te);
-      const peakELR = (currentState as any).maxELR || 0;
+      let peakELR = (currentState as any).maxELR || 0;
+      if (shift.name === 'K3' && peakELR === 0) {
+        peakELR = calculatePeakELR(currentState, context);
+      }
+      
+      let effectiveTargetTE = targetTE;
+      if (targetEndTime && !effectiveTargetTE) {
+        const timeBudget = Math.max(0, targetEndTime - (startTime + totalElapsedSeconds));
+        effectiveTargetTE = solveTEForTimeBudget(currentTEs, currentState.eggsDelivered, peakELR, timeBudget);
+      }
+
+      const targets = distributeTargetTE(currentTEs, effectiveTargetTE || currentState.te);
 
       if (shift.name === 'K3') {
         result = (shift.run as any)(currentState, context, buildPhaseEnd, targets['kindness']);
@@ -253,7 +292,8 @@ export function runSingleAscension(
   context: SimulationContext,
   startTime: number,
   buildPhaseSaleCount: 1 | 2,
-  targetTE: number,
+  targetTE?: number,
+  targetEndTime?: number,
   id: string = 'asc_0'
 ): { actions: Action[]; summary: AscensionSummary } {
   // Determine buildPhaseEnd based on sale count.
@@ -277,6 +317,7 @@ export function runSingleAscension(
     id,
     null,
     0,
-    targetTE
+    targetTE,
+    targetEndTime
   );
 }

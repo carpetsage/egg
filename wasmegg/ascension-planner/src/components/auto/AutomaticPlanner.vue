@@ -20,118 +20,22 @@
 
         <div class="space-y-8">
           <!-- Section 1: Initial State -->
-          <div class="space-y-4">
-            <!-- Virtue Progress Breakdown -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between px-1">
-                <div>
-                  <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Initial TE</h3>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="px-3 py-1 bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm">
-                    <span class="text-[11px] font-black text-indigo-600 uppercase">{{ currentTE }} TE Total</span>
-                  </div>
-                  <div v-if="truthEggsStore.totalPendingTE > 0" class="px-3 py-1 bg-emerald-50 rounded-xl border border-emerald-100 shadow-sm animate-pulse-subtle">
-                    <span class="text-[11px] font-black text-emerald-600 uppercase">+{{ truthEggsStore.totalPendingTE }} Pending</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 gap-2">
-                <div v-for="egg in VIRTUE_TE_ORDER" :key="egg" 
-                     class="group flex items-center gap-5 p-3.5 bg-slate-50/30 hover:bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/5 rounded-2xl transition-all duration-500">
-                  <!-- Egg Column -->
-                  <div class="flex items-center gap-3 min-w-[120px]">
-                    <div class="w-9 h-9 bg-white rounded-xl shadow-sm flex items-center justify-center p-1.5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                      <img :src="iconURL(`egginc/egg_${egg}.png`, 64)" class="w-full h-full object-contain" :alt="egg" />
-                    </div>
-                    <div class="text-[11px] font-black text-slate-700 uppercase tracking-tight">{{ VIRTUE_EGG_NAMES[egg] }}</div>
-                  </div>
-                  
-                  <!-- Inputs Column -->
-                  <div class="flex-grow grid grid-cols-2 gap-6 items-center">
-                    <div class="flex flex-col gap-1">
-                      <span class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Delivered</span>
-                      <input 
-                        type="text" 
-                        :value="formatNumber(truthEggsStore.eggsDelivered[egg], 3)"
-                        class="w-full bg-white/50 border border-slate-100 rounded-lg px-3 py-1.5 text-[11px] font-mono-premium font-black text-slate-900 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
-                        @change="handleDeliveredChange(egg, ($event.target as HTMLInputElement).value)"
-                        @keydown.enter="($event.target as HTMLInputElement).blur()"
-                      />
-                    </div>
-                    
-                    <div class="flex flex-col gap-1">
-                      <span class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Earned TE</span>
-                      <div class="flex items-center gap-2">
-                        <div class="relative flex-grow">
-                          <input 
-                            type="number" 
-                            :value="truthEggsStore.teEarned[egg]"
-                            min="0"
-                            max="98"
-                            class="w-full bg-white/50 border border-slate-100 rounded-lg px-3 py-1.5 text-[11px] font-mono-premium font-black text-slate-900 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
-                            @change="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
-                            @keydown.enter="($event.target as HTMLInputElement).blur()"
-                          />
-                        </div>
-                        <div v-if="truthEggsStore.pendingTEForEgg(egg) > 0" 
-                             class="flex flex-col items-center justify-center bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 min-w-[44px]">
-                          <span class="text-[9px] font-black text-emerald-600">+{{ truthEggsStore.pendingTEForEgg(egg) }}</span>
-                          <span class="text-[5px] font-black text-emerald-400 uppercase leading-none">Pending</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Target Goal -->
-            <div class="space-y-2.5">
-              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Target TE</label>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                <div class="md:col-span-2 relative">
-                  <input
-                    v-model.number="targetTE"
-                    type="number"
-                    class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 font-mono-premium text-lg font-black text-slate-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 outline-none transition-all pr-12"
-                    :min="currentTE + 1"
-                    max="490"
-                  />
-                  <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 font-black text-xs">/ 490</div>
-                </div>
-                <div class="flex flex-col justify-center h-[54px] px-1">
-                  <div class="flex justify-between items-center">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase">Current: {{ currentTE }}</span>
-                    <span class="text-[10px] font-black text-indigo-500 uppercase tracking-tight"
-                      >+{{ Math.max(0, targetTE - currentTE) }} to gain</span
-                    >
-                  </div>
-                  <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                    <div 
-                      class="bg-indigo-500 h-full transition-all duration-1000" 
-                      :style="{ width: `${(currentTE / targetTE) * 100}%` }"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 2: Scheduling -->
-          <div>
+          <div class="space-y-8">
+            <!-- Part 1: Scheduling (Top) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div class="space-y-2">
                 <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label>
                 <div class="flex gap-3">
                   <input
                     v-model="startDate"
+                    @change="clearA1DateGoal"
                     type="date"
+                    :min="formatUnixToDateInput(Date.now() / 1000 - 86400 * 7, timezone)"
                     class="flex-grow bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
                   />
                   <input
                     v-model="startTime"
+                    @change="clearA1DateGoal"
                     type="time"
                     class="w-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
                   />
@@ -157,15 +61,132 @@
                 </div>
               </div>
             </div>
+
+            <!-- Part 2: Virtue Progress -->
+            <div class="space-y-6">
+              <div class="flex items-center justify-between px-1">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm shadow-indigo-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="text-xs font-black text-slate-800 uppercase tracking-wider leading-none">Virtue Progress</h2>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-[10px] font-black text-indigo-500 uppercase">{{ currentTE }} TE Total</span>
+                      <span v-if="truthEggsStore.totalPendingTE > 0" class="text-[10px] font-black text-emerald-500 uppercase">+{{ truthEggsStore.totalPendingTE }} Pending</span>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  v-if="truthEggsStore.hasPendingTE"
+                  @click="rollUpPendingTE"
+                  class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg transition-all shadow-md shadow-emerald-100 flex items-center gap-2 active:scale-95"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Roll Up Pending
+                </button>
+              </div>
+
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div v-for="egg in VIRTUE_TE_ORDER" :key="egg" class="relative group">
+                  <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 group-hover:border-indigo-100 group-hover:bg-slate-50/80 transition-all duration-300">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center gap-2">
+                        <img :src="iconURL(`egginc/egg_${egg}.png`, 64)" class="w-4 h-4 object-contain grayscale group-hover:grayscale-0 transition-all" />
+                        <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">{{ VIRTUE_EGG_NAMES[egg] }}</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="relative flex-grow">
+                        <input
+                          type="number"
+                          :value="truthEggsStore.teEarned[egg]"
+                          min="0"
+                          max="98"
+                          class="w-full bg-white/50 border border-slate-100 rounded-lg px-3 py-1.5 text-[11px] font-mono-premium font-black text-slate-900 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
+                          @change="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
+                          @keydown.enter="($event.target as HTMLInputElement).blur()"
+                        />
+                      </div>
+                      <div v-if="truthEggsStore.pendingTEForEgg(egg) > 0" 
+                           class="flex flex-col items-center justify-center bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 min-w-[44px]">
+                        <span class="text-[9px] font-black text-emerald-600">+{{ truthEggsStore.pendingTEForEgg(egg) }}</span>
+                        <span class="text-[5px] font-black text-emerald-400 uppercase leading-none">Pending</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Part 3: Target Goal -->
+            <div class="section-premium p-6 border-dashed border-2 border-indigo-200 bg-indigo-50/10">
+              <div class="flex items-center gap-3 mb-4 px-1">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider">Target Goal</h3>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                <div class="md:col-span-2 space-y-1.5">
+                  <div class="flex justify-between items-center px-1">
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Target TE</label>
+                    <span class="text-[9px] font-black text-indigo-500 uppercase">+{{ Math.max(0, targetTE - currentTE) }} to gain</span>
+                  </div>
+                  <div class="relative">
+                    <input
+                      v-model.number="targetTE"
+                      @input="clearA1DateGoal"
+                      type="number"
+                      class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 outline-none focus:border-indigo-500/50 transition-all pr-10"
+                      :min="currentTE + 1"
+                      max="490"
+                    />
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px]">TE</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-center pb-2.5 text-[10px] font-black text-slate-300 uppercase">
+                  — or —
+                </div>
+
+                <div class="md:col-span-3 space-y-1.5">
+                  <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">End Date & Time</label>
+                  <div class="flex gap-2">
+                    <input
+                      v-model="targetEndDate"
+                      @change="clearA1TEGoal"
+                      type="date"
+                      :min="startDate"
+                      class="flex-grow bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500/50 transition-all"
+                    />
+                    <input
+                      v-model="targetEndTime"
+                      @change="clearA1TEGoal"
+                      type="time"
+                      class="w-32 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500/50 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
         <button
           class="btn-premium btn-primary w-full py-4 mt-8 text-sm shadow-xl shadow-indigo-500/20 active:scale-[0.98]"
-          :disabled="isGenerating"
-          @click="generate"
+          :disabled="isGenerating || !isA1Dirty"
+          @click="ascensionChain.length > 0 ? updateAscension(0, { te: targetTE, date: targetEndDate, time: targetEndTime }) : generate()"
         >
           <span v-if="isGenerating">Generating Plan...</span>
-          <span v-else>Generate A1</span>
+          <span v-else>{{ ascensionChain.length > 0 ? 'Update A1' : 'Generate A1' }}</span>
         </button>
       </div>
     </div>
@@ -192,12 +213,13 @@
             </h3>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+          <div v-if="nextGoals[idx + 1]" class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
             <div class="md:col-span-2 space-y-1.5">
               <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Target TE</label>
               <div class="relative">
                 <input
                   v-model.number="nextGoals[idx + 1].te"
+                  @input="clearSequentialDateGoal(idx + 1)"
                   type="number"
                   class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 outline-none focus:border-indigo-500/50 transition-all pr-10"
                   :min="result.summary.endTE + 1"
@@ -217,11 +239,14 @@
               <div class="flex gap-2">
                 <input
                   v-model="nextGoals[idx + 1].date"
+                  @change="clearSequentialTEGoal(idx + 1)"
                   type="date"
+                  :min="formatUnixToDateInput(result.summary.endTime, timezone)"
                   class="flex-grow bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500/50 transition-all"
                 />
                 <input
                   v-model="nextGoals[idx + 1].time"
+                  @change="clearSequentialTEGoal(idx + 1)"
                   type="time"
                   class="w-32 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500/50 transition-all"
                 />
@@ -230,9 +255,8 @@
           </div>
 
           <button
-            class="btn-premium w-full py-3 mt-6 text-xs shadow-lg active:scale-[0.98] disabled:opacity-50"
-            :class="idx + 1 < ascensionChain.length ? 'bg-slate-700 text-white' : 'bg-indigo-600 text-white'"
-            :disabled="isGenerating"
+            class="btn-premium btn-primary w-full py-3 mt-6 text-xs shadow-lg active:scale-[0.98]"
+            :disabled="isGenerating || !isSequentialDirty(idx + 1)"
             @click="handleNextGoalSubmit(idx + 1)"
           >
             <span v-if="isGenerating">Simulating...</span>
@@ -269,9 +293,18 @@ interface ChainedAscension {
   index: number;
   result1: { summary: AscensionSummary; actions: Action[] };
   result2: { summary: AscensionSummary; actions: Action[] };
-  goalType: 'te' | 'date';
-  targetTE: number;
-  targetEndTime?: number;
+  goal: {
+    type: 'te' | 'date';
+    te: number | null;
+    date: string;
+    time: string;
+  };
+  // For A1, we also track initial parameters
+  initialParams?: {
+    startDate: string;
+    startTime: string;
+    teEarned: Record<string, number>;
+  }
 }
 
 const initialStateStore = useInitialStateStore();
@@ -301,6 +334,26 @@ const startTime = ref(new Intl.DateTimeFormat('en-GB', {
   minute: '2-digit', 
   hour12: false 
 }).format(now));
+const targetEndDate = ref('');
+const targetEndTime = ref('');
+
+const clearA1DateGoal = () => {
+  targetEndDate.value = '';
+  targetEndTime.value = '';
+};
+
+const clearA1TEGoal = () => {
+  targetTE.value = null as any;
+};
+
+const clearSequentialDateGoal = (idx: number) => {
+  nextGoals.value[idx].date = '';
+  nextGoals.value[idx].time = '';
+};
+
+const clearSequentialTEGoal = (idx: number) => {
+  nextGoals.value[idx].te = null;
+};
 
 const isGenerating = ref(false);
 const ascensionChain = ref<ChainedAscension[]>([]);
@@ -352,6 +405,38 @@ const currentTE = computed(() => {
   return snapshot.teEarned ? Object.values(snapshot.teEarned).reduce((a, b) => a + b, 0) : 0;
 });
 
+const isA1Dirty = computed(() => {
+  if (ascensionChain.value.length === 0) return true;
+  const last = ascensionChain.value[0];
+  if (!last.initialParams) return true;
+
+  const initialParamsDirty = (
+    startDate.value !== last.initialParams.startDate ||
+    startTime.value !== last.initialParams.startTime ||
+    JSON.stringify(truthEggsStore.teEarned) !== JSON.stringify(last.initialParams.teEarned)
+  );
+
+  if (initialParamsDirty) return true;
+
+  if (last.goal.type === 'te') {
+    return targetTE.value !== last.goal.te;
+  } else {
+    return targetEndDate.value !== last.goal.date || targetEndTime.value !== last.goal.time;
+  }
+});
+
+const isSequentialDirty = (idx: number) => {
+  if (idx >= ascensionChain.value.length) return true; // Generate button for new step
+  const current = ascensionChain.value[idx];
+  const goal = nextGoals.value[idx];
+  
+  if (current.goal.type === 'te') {
+    return goal.te !== current.goal.te;
+  } else {
+    return goal.date !== current.goal.date || goal.time !== current.goal.time;
+  }
+};
+
 const bestResults = computed(() => {
   return ascensionChain.value.map(item => {
     const s1 = item.result1.summary;
@@ -379,8 +464,6 @@ const bestResults = computed(() => {
   });
 });
 
-// Watchers for next goal resolution
-// (Removed global watchers, logic moved to handleNextGoalSubmit)
 
 
 
@@ -410,6 +493,21 @@ const allTimezones = computed(() => {
     ];
   }
 });
+
+const formatUnixToDateInput = (timestamp: number, tz: string) => {
+  const d = new Date(timestamp * 1000);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(d);
+};
+
+const formatUnixToTimeInput = (timestamp: number, tz: string) => {
+  const d = new Date(timestamp * 1000);
+  return new Intl.DateTimeFormat('en-GB', { 
+    timeZone: tz, 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: false 
+  }).format(d);
+};
 
 const generate = () => {
   isGenerating.value = true;
@@ -453,8 +551,16 @@ const generate = () => {
       };
 
       const t0 = performance.now();
+      
+      let finalTargetTE: number | undefined = (targetTE.value !== null && targetTE.value !== undefined && targetTE.value > 0) ? targetTE.value : undefined;
+      let finalEndTime: number | undefined = undefined;
+      
+      if (!finalTargetTE && targetEndDate.value) {
+        const timeToUse = targetEndTime.value || '09:00';
+        finalEndTime = getLocalTimestampInTimezone(targetEndDate.value, timeToUse, timezone.value);
+      }
 
-      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, 'asc_0', null, 0, targetTE.value, resumeData1);
+      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, 'asc_0', null, 0, finalTargetTE, finalEndTime, resumeData1);
 
       // We must pass a deep copy or fresh state for result2 so it doesn't mutate result1's objects
       const baseState2 = createBaseEngineState(null);
@@ -474,26 +580,43 @@ const generate = () => {
         resumeShiftName: 'C3'
       };
 
-      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, 'asc_0', null, 0, targetTE.value, resumeData2);
+      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, 'asc_0', null, 0, finalTargetTE, finalEndTime, resumeData2);
 
       const t1 = performance.now();
-      console.log(`Plan generation (C1-K3, 2 paths) took ${(t1 - t0).toFixed(2)}ms`);
-
-      ascensionChain.value = [{
-        index: 0,
-        result1,
-        result2,
-        goalType: 'te',
-        targetTE: targetTE.value
-      }];
 
       // Prepare goal state for A2
-      const best = result1.totalDurationSeconds <= result2.totalDurationSeconds ? result1 : result2;
+      const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
+      
+      const goalToSave = {
+        type: (finalTargetTE ? 'te' : 'date') as 'te' | 'date',
+        te: targetTE.value,
+        date: targetEndDate.value,
+        time: targetEndTime.value
+      };
+      const initialParamsToSave = {
+        startDate: startDate.value,
+        startTime: startTime.value,
+        teEarned: { ...truthEggsStore.teEarned }
+      };
+
+      // Update A1 form results
+      targetEndDate.value = formatUnixToDateInput(best.summary.endTime, timezone.value);
+      targetEndTime.value = formatUnixToTimeInput(best.summary.endTime, timezone.value);
+      targetTE.value = best.summary.endTE;
+
       nextGoals.value[1] = {
         te: Math.min(490, best.summary.endTE + 30),
         date: '',
         time: ''
       };
+
+      ascensionChain.value = [{
+        index: 0,
+        result1,
+        result2,
+        goal: goalToSave,
+        initialParams: initialParamsToSave
+      }];
     } finally {
       isGenerating.value = false;
     }
@@ -535,16 +658,21 @@ const generateNext = (goal: { te: number | null, date: string, time: string }) =
       const precomputed = runUntilShift(baseState, context, 'C3');
       const resumeShiftName = 'C3';
 
-      let finalTargetTE = goal.te || (lastSummary.endTE + 30);
-      let goalType: 'te' | 'date' = goal.te ? 'te' : 'date';
+      let finalTargetTE: number | undefined = goal.te || undefined;
       let targetEndTime: number | undefined = undefined;
+      let goalType: 'te' | 'date' = goal.te ? 'te' : 'date';
 
-      if (goalType === 'date' && goal.date && goal.time) {
-        targetEndTime = getLocalTimestampInTimezone(goal.date, goal.time, timezone.value);
-        finalTargetTE = lastSummary.endTE + 10; // Placeholder until date search is implemented
+      if (!finalTargetTE) {
+        if (goal.date) {
+          const timeToUse = goal.time || '09:00';
+          targetEndTime = getLocalTimestampInTimezone(goal.date, timeToUse, timezone.value);
+        } else {
+          finalTargetTE = (lastSummary ? lastSummary.endTE : currentTE.value) + 30;
+          goalType = 'te';
+        }
       }
 
-      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${idx}`, null, idx, finalTargetTE, {
+      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${idx}`, null, idx, finalTargetTE, targetEndTime, {
         actions: JSON.parse(JSON.stringify(precomputed.actions)),
         state: JSON.parse(JSON.stringify(precomputed.state)),
         elapsedSeconds: precomputed.elapsedSeconds,
@@ -556,7 +684,7 @@ const generateNext = (goal: { te: number | null, date: string, time: string }) =
       context2.ascensionStartTime = absStartTime;
       context2.planStartOffset = 0;
 
-      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, `asc_${idx}`, null, idx, finalTargetTE, {
+      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, `asc_${idx}`, null, idx, finalTargetTE, targetEndTime, {
         actions: JSON.parse(JSON.stringify(precomputed.actions)),
         state: JSON.parse(JSON.stringify(precomputed.state)),
         elapsedSeconds: precomputed.elapsedSeconds,
@@ -565,6 +693,20 @@ const generateNext = (goal: { te: number | null, date: string, time: string }) =
 
       // Prepare goal state for NEXT
       const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
+      
+      // Capture the goal state BEFORE back-populating results
+      const goalToSave = {
+        type: goalType,
+        te: goal.te,
+        date: goal.date,
+        time: goal.time
+      };
+
+      // Back-populate the form we just submitted
+      nextGoals.value[idx].date = formatUnixToDateInput(best.summary.endTime, timezone.value);
+      nextGoals.value[idx].time = formatUnixToTimeInput(best.summary.endTime, timezone.value);
+      nextGoals.value[idx].te = best.summary.endTE;
+
       nextGoals.value[idx + 1] = {
         te: Math.min(490, best.summary.endTE + 30),
         date: '',
@@ -575,9 +717,7 @@ const generateNext = (goal: { te: number | null, date: string, time: string }) =
         index: idx,
         result1,
         result2,
-        goalType,
-        targetTE: finalTargetTE,
-        targetEndTime
+        goal: goalToSave
       });
 
     } finally {
@@ -591,15 +731,33 @@ const updateAscension = (idx: number, goal: { te: number | null, date: string, t
   
   setTimeout(() => {
     try {
-      // 1. Update the goal for the specified ascension
-      const item = ascensionChain.value[idx];
-      item.goalType = goal.te ? 'te' : 'date';
-      item.targetTE = goal.te || (item.targetTE); // Keep existing if date goal used (simplified)
-      if (item.goalType === 'date') {
-        item.targetEndTime = getLocalTimestampInTimezone(goal.date, goal.time, timezone.value);
+      // 1. Resolve the goal for the edited step
+      let finalTargetTE: number | undefined = goal.te || undefined;
+      let finalEndTime: number | undefined = undefined;
+
+      if (!finalTargetTE && goal.date) {
+        const timeToUse = goal.time || '09:00';
+        finalEndTime = getLocalTimestampInTimezone(goal.date, timeToUse, timezone.value);
+      } else if (!finalTargetTE) {
+        finalTargetTE = (idx === 0 ? currentTE.value : 0) + 30;
       }
 
-      // 2. Recalculate from idx to end
+      // 2. Update the goal state for the edited step
+      ascensionChain.value[idx].goal = {
+        type: finalTargetTE ? 'te' : 'date',
+        te: goal.te,
+        date: goal.date,
+        time: goal.time
+      };
+
+      if (idx === 0) {
+        ascensionChain.value[0].initialParams = {
+          startDate: startDate.value,
+          startTime: startTime.value,
+          teEarned: { ...truthEggsStore.teEarned }
+        };
+      }
+
       for (let i = idx; i < ascensionChain.value.length; i++) {
         const prevSummary = i === 0 
           ? null // Should not happen for updateAscension as top form is separate for now
@@ -631,16 +789,34 @@ const updateAscension = (idx: number, goal: { te: number | null, date: string, t
         const buildPhaseEnd1 = getNextSaleEnd(absStartTime);
         const buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1);
 
-        const currentGoal = ascensionChain.value[i];
-        let targetTEVal = currentGoal.targetTE;
+        const item = ascensionChain.value[i];
+        let stepTargetTE: number | undefined = item.goal.te || undefined;
+        let stepEndTime: number | undefined = undefined;
+
+        if (!stepTargetTE && item.goal.date) {
+          const timeToUse = item.goal.time || '09:00';
+          stepEndTime = getLocalTimestampInTimezone(item.goal.date, timeToUse, timezone.value);
+        } else if (!stepTargetTE) {
+          // Fallback +30
+          const currentTotal = i === 0 
+            ? currentTE.value 
+            : (ascensionChain.value[i-1].result1.summary.totalDurationSeconds <= ascensionChain.value[i-1].result2.summary.totalDurationSeconds 
+                ? ascensionChain.value[i-1].result1.summary.endTE 
+                : ascensionChain.value[i-1].result2.summary.endTE);
+          stepTargetTE = currentTotal + 30;
+        }
         
-        // TODO: Handle date goal search logic properly
-        
-        const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${i}`, null, i, targetTEVal);
-        const result2 = runAscension(JSON.parse(JSON.stringify(baseState)), JSON.parse(JSON.stringify(context)), buildPhaseEnd2, absStartTime, `asc_${i}`, null, i, targetTEVal);
+        const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${i}`, null, i, stepTargetTE, stepEndTime);
+        const result2 = runAscension(JSON.parse(JSON.stringify(baseState)), JSON.parse(JSON.stringify(context)), buildPhaseEnd2, absStartTime, `asc_${i}`, null, i, stepTargetTE, stepEndTime);
 
         ascensionChain.value[i].result1 = result1;
         ascensionChain.value[i].result2 = result2;
+
+        // Back-populate the form for this step
+        const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
+        nextGoals.value[i].date = formatUnixToDateInput(best.summary.endTime, timezone.value);
+        nextGoals.value[i].time = formatUnixToTimeInput(best.summary.endTime, timezone.value);
+        nextGoals.value[i].te = best.summary.endTE;
       }
 
       // Update draft defaults

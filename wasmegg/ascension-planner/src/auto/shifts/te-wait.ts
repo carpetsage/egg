@@ -51,6 +51,52 @@ export function distributeTargetTE(
 }
 
 /**
+ * Finds the maximum total TE goal that can be reached within a given time budget.
+ * Uses a greedy approach similar to distributeTargetTE but constrained by time.
+ */
+export function solveTEForTimeBudget(
+  currentTEs: Record<VirtueEgg, number>,
+  currentEggsDelivered: Record<VirtueEgg, number>,
+  peakELR: number,
+  timeBudgetSeconds: number
+): number {
+  if (timeBudgetSeconds <= 0) return Object.values(currentTEs).reduce((a, b) => a + b, 0);
+  if (peakELR <= 0) return Object.values(currentTEs).reduce((a, b) => a + b, 0);
+
+  const targets = { ...currentTEs };
+  const eggsDelivered = { ...currentEggsDelivered };
+  const eggs: VirtueEgg[] = ['curiosity', 'integrity', 'resilience', 'humility', 'kindness'];
+  let remainingTime = timeBudgetSeconds;
+  
+  while (remainingTime > 0) {
+    let bestEgg: VirtueEgg | null = null;
+    let minTime = Infinity;
+
+    for (const egg of eggs) {
+      const currentTE = targets[egg];
+      if (currentTE < TE_BREAKPOINTS.length) {
+        // How long to reach the NEXT TE for this egg?
+        const time = timeToEarnTE(eggsDelivered[egg] || 0, peakELR, 1);
+        if (time < minTime) {
+          minTime = time;
+          bestEgg = egg;
+        }
+      }
+    }
+
+    if (!bestEgg || minTime > remainingTime) break;
+
+    remainingTime -= minTime;
+    targets[bestEgg]++;
+    // Update eggsDelivered to the threshold we just hit
+    eggsDelivered[bestEgg] = getThresholdForTE(targets[bestEgg]);
+  }
+
+  const finalTotal = Object.values(targets).reduce((a, b) => a + b, 0);
+  return finalTotal;
+}
+
+/**
  * Runs a TE-earning shift for a specific egg.
  * Waits until the target TE for that egg is reached at peak ELR.
  */

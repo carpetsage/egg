@@ -65,7 +65,7 @@ After each `AscensionOverview` component, render a compact inline input for the 
 
 **Test**: Generate A1. Enter a TE goal and generate — verify end date is back-populated. Clear TE, enter a date goal and generate — verify TE is back-populated.
 
-### [ ] Step 5.2: Implement state chaining logic
+### [x] Step 5.2: Implement state chaining logic
 
 **File**: `src/components/auto/AutomaticPlanner.vue` (or extract to a composable)
 
@@ -81,7 +81,7 @@ function deriveNextStartState(
   // startTE = prevSummary.endTE (carried via teEarned per egg = prevSummary.finalTE)
   // soulEggs = prevSummary.endSoulEggs
   // shiftCount = prevSummary.endShiftCount
-  // eggsDelivered = { curiosity: 0, ... } (reset — new farm)
+  // eggsDelivered = prevSummary.eggsDelivered (carried forward — lifetime total)
   // researchLevels = {} (reset — new farm)
   // bankValue = 0, population = 1, currentEgg = 'curiosity'
 }
@@ -94,7 +94,7 @@ Key state carried forward:
 - `shiftCount` ← `prevSummary.endShiftCount`
 
 Key state reset:
-- `eggsDelivered` ← all zeros
+- `eggsDelivered` ← `prevSummary.eggsDelivered` (carried forward for lifetime tracking)
 - `researchLevels` ← `{}`
 - `bankValue` ← `0`
 - `population` ← `1`
@@ -102,7 +102,7 @@ Key state reset:
 
 **Test**: Generate A1, then A2. Verify A2's start time matches A1's end time. Verify A2's starting TE matches A1's ending TE. Verify SE balance is properly decremented.
 
-### [ ] Step 5.3: Store ascension chain as reactive array
+### [x] Step 5.3: Store ascension chain as reactive array
 
 **File**: `src/components/auto/AutomaticPlanner.vue`
 
@@ -127,7 +127,7 @@ Update the `generate()` function to push new ascensions onto the chain rather th
 
 **Test**: Generate A1, A2, A3 sequentially. All three appear stacked on the page with correct chaining.
 
-### [ ] Step 5.4: Implement cascading recalculation
+### [x] Step 5.4: Implement cascading recalculation
 
 **File**: `src/components/auto/AutomaticPlanner.vue`
 
