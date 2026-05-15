@@ -14,6 +14,7 @@ import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import ImportCollisionDialog from '@/components/ImportCollisionDialog.vue';
 import AutoPlanImportDialog from '@/components/AutoPlanImportDialog.vue';
 import PlanAlreadyOpenWarning from '@/components/PlanAlreadyOpenWarning.vue';
+import { createEmptySnapshot } from '@/types';
 
 const actionsStore = useActionsStore();
 const autoPlannerStore = useAutoPlannerStore();
@@ -333,12 +334,39 @@ async function handleImport(event: Event) {
           // 2. Import Individual Ascensions into Library
           const exportDate = new Date(imported.exportedAt).toISOString().split('T')[0];
           
+          console.log('[PlanLibrary] Starting individual import for', imported.ascensions.length, 'ascensions');
+
           plansToImport = imported.ascensions.map((a: any, idx: number) => {
             // Pick the best result for the manual library
             const r1 = a.result1;
             const r2 = a.result2;
             const best = (r2 && r2.summary.endTE >= r1.summary.endTE && r2.summary.totalDurationSeconds <= r1.summary.totalDurationSeconds) ? r2 : r1;
             
+            console.log(`[PlanLibrary] Ascension ${idx + 1} uses strategy:`, best.summary.strategyLabel);
+            console.log(`[PlanLibrary] Ascension ${idx + 1} action count:`, best.actions.length);
+            console.log(`[PlanLibrary] Ascension ${idx + 1} first action type:`, best.actions[0]?.type);
+
+            let finalActions = best.actions;
+            if (finalActions.length === 0 || finalActions[0].type !== 'start_ascension') {
+              console.log(`[PlanLibrary] Ascension ${idx + 1} is missing start_ascension. Prepending a synthetic one.`);
+              const startAction = {
+                id: 'start_' + Math.random().toString(36).substring(2, 9),
+                index: 0,
+                timestamp: best.summary.startTime * 1000,
+                type: 'start_ascension',
+                payload: { initialEgg: 'curiosity' },
+                cost: 0, elrDelta: 0, offlineEarningsDelta: 0, eggValueDelta: 0,
+                habCapacityDelta: 0, layRateDelta: 0, shippingCapacityDelta: 0,
+                ihrDelta: 0, bankDelta: 0, populationDelta: 0, totalTimeSeconds: 0,
+                endState: createEmptySnapshot(),
+                dependsOn: [], dependents: []
+              };
+              finalActions = [startAction, ...finalActions];
+              finalActions.forEach((action: any, i: number) => {
+                action.index = i;
+              });
+            }
+
             const summary = best.summary;
             const startStr = new Date(summary.startTime * 1000).toISOString().split('T')[0];
             const peakELR = formatNumber(summary.maxELR * 3600, 2);
@@ -363,8 +391,26 @@ async function handleImport(event: Event) {
               name,
               data: {
                 version: 1,
-                actions: best.actions,
-                initialState: state
+                actions: finalActions,
+                initialState: state,
+                virtueState: {
+                  shiftCount: state.initialShiftCount || 0,
+                  initialTE: Object.values(state.initialTeEarned || {}).reduce((a: number, b: any) => a + (b || 0), 0),
+                  ascensionDate: formatUnixToDateInput(imported.startTime, imported.timezone),
+                  ascensionTime: formatUnixToTimeInput(imported.startTime, imported.timezone),
+                  ascensionTimezone: imported.timezone,
+                },
+                fuelTankState: {
+                  tankLevel: state.initialTankLevel || 0,
+                  fuelAmounts: state.initialFuelAmounts || {},
+                },
+                truthEggsState: {
+                  eggsDelivered: state.initialEggsDelivered || {},
+                  teEarned: state.initialTeEarned || {},
+                },
+                notesState: {
+                  notes: []
+                }
               }
             };
           });

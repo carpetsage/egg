@@ -18,6 +18,7 @@ import { shiftCost } from 'lib';
 import {
   isResearchSaleActive,
   getNextSaleStart,
+  getNextSaleEnd,
   isEarningsBoostActive,
   getNextEarningsBoostEnd,
   getNextEarningsBoostStart,
@@ -49,20 +50,89 @@ export function runC3(
 
   const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
 
-  const getModifiers = (snapshot: any): ResearchCostModifiers => ({
-    labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
-    waterballoonMultiplier: context.colleggtibleModifiers.researchCost || 1,
-    puzzleCubeMultiplier: snapshot.artifactModifiers?.researchPriceMultiplier ?? 1,
-  });
+  const getModifiers = (snapshot: any): ResearchCostModifiers => {
+    const artifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
+    return {
+      labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
+      waterballoonMultiplier: context.colleggtibleModifiers.researchCost || 1,
+      puzzleCubeMultiplier: artifactMods.researchCost.totalMultiplier,
+    };
+  };
 
-  const advanceTime = (seconds: number) => {
-    if (seconds <= 0) return;
-    const snap = computeSnapshot(currentState, context, { skipGrowth: true });
-    const waitAction = createSimAction('wait_for_time', { totalTimeSeconds: seconds });
-    currentState = applyAction(currentState, waitAction);
-    currentState = { ...currentState, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * seconds };
-    actions.push(waitAction as unknown as any);
-    elapsedSeconds += seconds;
+  const advanceTime = (totalSeconds: number) => {
+    let remaining = totalSeconds;
+
+    while (remaining > 0) {
+      const absTime = getAbsTime();
+      const nextSaleStart = getNextSaleStart(absTime);
+      const nextBoostStart = getNextEarningsBoostStart(absTime);
+      const nextSaleEnd = getNextSaleStart(absTime) + 24 * 3600; // rough, but works for boundaries
+      const nextBoostEnd = getNextEarningsBoostEnd(absTime);
+      
+      const boundaries = [
+        { time: nextSaleStart, type: 'research_sale' },
+        { time: getNextSaleEnd(absTime), type: 'research_sale_end' },
+        { time: nextBoostStart, type: 'earnings_boost' },
+        { time: nextBoostEnd, type: 'earnings_boost_end' },
+      ].filter(b => b.time > absTime).sort((a, b) => a.time - b.time);
+
+      const nextBoundary = boundaries[0];
+      
+      let stepSeconds = remaining;
+      let targetEvent: string | undefined;
+
+      if (nextBoundary && (nextBoundary.time - absTime) <= remaining) {
+        stepSeconds = nextBoundary.time - absTime;
+        targetEvent = nextBoundary.type;
+      }
+
+      if (stepSeconds > 0) {
+        let actionType: any = 'wait_for_time';
+        if (targetEvent === 'research_sale') actionType = 'wait_for_research_sale';
+        else if (targetEvent === 'earnings_boost') actionType = 'wait_for_earnings_boost';
+
+        const snap = computeSnapshot(currentState, context, { skipGrowth: true });
+        const waitAction = createSimAction(actionType, { totalTimeSeconds: stepSeconds });
+        
+        currentState = applyAction(currentState, waitAction);
+        currentState = { ...currentState, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * stepSeconds };
+        
+        const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+        waitAction.endState = finalSnap;
+        waitAction.totalTimeSeconds = stepSeconds;
+        waitAction.bankDelta = snap.offlineEarnings * stepSeconds;
+        
+        actions.push(waitAction);
+        elapsedSeconds += stepSeconds;
+        remaining -= stepSeconds;
+      }
+
+      // Check toggles after advancing
+      const newAbsTime = getAbsTime();
+      
+      const isBoostNow = isEarningsBoostActive(newAbsTime);
+      if (currentState.earningsBoost?.active !== isBoostNow) {
+        const toggleBoost = createSimAction('toggle_earnings_boost', {
+          active: isBoostNow,
+          multiplier: 2
+        });
+        currentState = applyAction(currentState, toggleBoost);
+        toggleBoost.endState = computeSnapshot(currentState, context, { skipGrowth: true });
+        actions.push(toggleBoost);
+      }
+
+      const isSaleNow = isResearchSaleActive(newAbsTime);
+      if (currentState.activeSales?.research !== isSaleNow) {
+        const toggleSale = createSimAction('toggle_sale', {
+          saleType: 'research',
+          active: isSaleNow,
+          multiplier: 0.35
+        });
+        currentState = applyAction(currentState, toggleSale);
+        toggleSale.endState = computeSnapshot(currentState, context, { skipGrowth: true });
+        actions.push(toggleSale);
+      }
+    }
   };
 
   const buyResearch = (researchId: string, customPrice?: number): boolean => {
@@ -91,7 +161,14 @@ export function runC3(
     }, price);
 
     currentState = applyAction(currentState, action);
-    actions.push(action as unknown as any);
+    
+    // Decoration
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    action.endState = finalSnap;
+    action.totalTimeSeconds = 0;
+    action.bankDelta = -price;
+
+    actions.push(action);
     return true;
   };
 
@@ -104,7 +181,13 @@ export function runC3(
   }, sCost);
   
   currentState = applyAction(currentState, shiftAction);
-  actions.push(shiftAction as unknown as any);
+  
+  // Decoration
+  const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+  shiftAction.endState = finalSnap;
+  shiftAction.totalTimeSeconds = 0;
+
+  actions.push(shiftAction);
   // console.log(`  Shifted to Curiosity. Cost: ${formatNumber(sCost, 3)} SE`);
 
   const finalSaleStart = buildPhaseEnd - 86400;
@@ -130,6 +213,7 @@ export function runC3(
     
     const boundaries = [
       nextSaleStart,
+      getNextSaleEnd(absTime),
       nextBoostStart,
       nextBoostEnd,
       finalSaleStart,
@@ -194,6 +278,8 @@ export function runC3(
     const nextBoostEnd = getNextEarningsBoostEnd(absTime);
     
     const boundaries = [
+      getNextSaleStart(absTime),
+      getNextSaleEnd(absTime),
       nextBoostStart,
       nextBoostEnd,
       buildPhaseEnd

@@ -64,7 +64,7 @@ export const useActionsStore = defineStore('actions', {
   getters: {
     currentSnapshot(): CalculationsSnapshot {
       if (this.actions.length === 0) {
-        return this._initialSnapshot ?? createEmptySnapshot();
+        return this.initialSnapshot;
       }
       return this.actions[this.actions.length - 1].endState;
     },
@@ -91,7 +91,7 @@ export const useActionsStore = defineStore('actions', {
       if (headerIndex === -1) return this.currentSnapshot;
       const nextShiftIndex = this.actions.findIndex((a, idx) => idx > headerIndex && a.type === 'shift');
       if (nextShiftIndex === -1) return this.currentSnapshot;
-      return this.actions[nextShiftIndex - 1]?.endState ?? this.currentSnapshot;
+      return this.actions[nextShiftIndex - 1].endState;
     },
 
     editingInsertIndex(): number {

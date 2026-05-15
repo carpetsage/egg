@@ -499,7 +499,7 @@ const notesStore = useNotesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 const { partitionHash, saveActiveDraft, initPersistence, broadcastPresence } = usePersistence();
 
-const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
+const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot?.earningsBoost?.active ?? false);
 
 const lastBackupFormatted = computed(() => {
   const approxTime = initialStateStore.rawBackup?.approxTime;

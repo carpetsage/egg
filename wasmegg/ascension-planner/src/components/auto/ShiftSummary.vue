@@ -84,7 +84,7 @@ import { formatNumber, formatDuration } from '@/lib/format';
 import { iconURL } from 'lib';
 import { getResearchById, getResearchByTier } from '@/calculations/commonResearch';
 import { getVehicleType } from '@/lib/vehicles';
-import { getHabById } from '@/lib/habs';
+import { getHabById, type HabId } from '../../lib/habs';
 import { getArtifact, getStone } from '@/lib/artifacts/data';
 import type { VirtueEgg } from '@/types';
 
@@ -266,7 +266,7 @@ const summaryItems = computed(() => {
   if (hasCU) {
     items.push({ isPremium: true, text: `${habCounts[18]}x Chicken Universe` });
   } else if (highestHabId >= 0) {
-    const habName = getHabById(highestHabId as any)?.name || 'Hab';
+    const habName = getHabById(highestHabId as HabId)?.name || 'Hab';
     items.push({ isPremium: false, name: `Hab Upgrade`, delta: `to ${habName}` });
   }
 

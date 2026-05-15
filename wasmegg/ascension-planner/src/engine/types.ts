@@ -42,6 +42,7 @@ export interface EngineState {
     active: boolean;
     multiplier: number;
   };
+  maxELR?: number;
 }
 
 /**

@@ -3,6 +3,7 @@ import { getOptimalELRSet } from '@/lib/artifacts/virtue';
 import type { Action } from '@/types/actions/meta';
 import { createSimAction } from '@/types/actions/meta';
 import { shiftCost } from 'lib';
+import { computeSnapshot } from '../../engine/compute';
 import { applyAction } from '../../engine/apply';
 
 /**
@@ -41,7 +42,13 @@ export function runH1(state: EngineState, context: SimulationContext): ShiftResu
   );
 
   let currentState = applyAction(state, shiftAction);
-  actions.push(shiftAction as unknown as any);
+  
+  // Decoration
+  const finalSnap1 = computeSnapshot(currentState, context, { skipGrowth: true });
+  shiftAction.endState = finalSnap1;
+  shiftAction.totalTimeSeconds = 0;
+
+  actions.push(shiftAction);
 
   // 2. Change Artifacts
   const artifactAction = createSimAction('change_artifacts', {
@@ -50,7 +57,13 @@ export function runH1(state: EngineState, context: SimulationContext): ShiftResu
   });
 
   currentState = applyAction(currentState, artifactAction);
-  actions.push(artifactAction as unknown as any);
+  
+  // Decoration
+  const finalSnap2 = computeSnapshot(currentState, context, { skipGrowth: true });
+  artifactAction.endState = finalSnap2;
+  artifactAction.totalTimeSeconds = 0;
+
+  actions.push(artifactAction);
 
   // console.log('H1 Finished: New artifacts equipped');
 

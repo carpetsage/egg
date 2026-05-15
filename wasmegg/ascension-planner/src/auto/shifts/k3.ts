@@ -39,9 +39,18 @@ export function runK3(
     if (seconds <= 0) return;
     const snap = computeSnapshot(currentState, context, { skipGrowth: true });
     const waitAction = createSimAction('wait_for_time', { totalTimeSeconds: seconds, ...metadata });
+    
     currentState = applyAction(currentState, waitAction);
+    // applyAction doesn't update bankValue for wait actions, so we credit earnings manually
     currentState = { ...currentState, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * seconds };
-    actions.push(waitAction as unknown as any);
+    
+    // Decoration for the action store
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    waitAction.endState = finalSnap;
+    waitAction.totalTimeSeconds = seconds;
+    waitAction.bankDelta = snap.offlineEarnings * seconds;
+    
+    actions.push(waitAction);
     elapsedSeconds += seconds;
   };
 
@@ -61,7 +70,14 @@ export function runK3(
     advanceTime(timeToSave);
     const action = createSimAction('buy_vehicle', { slotIndex, vehicleId }, price);
     currentState = applyAction(currentState, action);
-    actions.push(action as unknown as any);
+    
+    // Decoration
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    action.endState = finalSnap;
+    action.totalTimeSeconds = 0;
+    action.bankDelta = -price;
+
+    actions.push(action);
     return true;
   };
 
@@ -84,7 +100,14 @@ export function runK3(
       toLength: vehicle.trainLength + 1 
     }, price);
     currentState = applyAction(currentState, action);
-    actions.push(action as unknown as any);
+    
+    // Decoration
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    action.endState = finalSnap;
+    action.totalTimeSeconds = 0;
+    action.bankDelta = -price;
+
+    actions.push(action);
     return true;
   };
 
@@ -97,7 +120,13 @@ export function runK3(
   }, sCost);
   
   currentState = applyAction(currentState, shiftAction);
-  actions.push(shiftAction as unknown as any);
+  
+  // Decoration
+  const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+  shiftAction.endState = finalSnap;
+  shiftAction.totalTimeSeconds = 0;
+
+  actions.push(shiftAction);
 
   // 2. Buy any remaining vehicles/trains
   const maxSlots = calculateMaxVehicleSlots(currentState.researchLevels);
@@ -127,7 +156,7 @@ export function runK3(
   );
   
   const peakELR = elrResult.effectiveRate;
-  (currentState as any).maxELR = peakELR;
+  currentState.maxELR = peakELR;
 
   // Attach peakELR to the shift action (the first action) so the UI summary can find it easily
   if (actions.length > 0 && actions[0].type === 'shift') {

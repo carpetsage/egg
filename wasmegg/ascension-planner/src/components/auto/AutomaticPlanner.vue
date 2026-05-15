@@ -389,7 +389,7 @@ const clearA1DateGoal = () => {
 };
 
 const clearA1TEGoal = () => {
-  targetTE.value = null as any;
+  targetTE.value = null;
 };
 
 const clearSequentialDateGoal = (idx: number) => {
@@ -449,7 +449,8 @@ const syncTEAcrossStores = async (egg: import('@/types').VirtueEgg) => {
 
 const currentTE = computed(() => {
   const snapshot = actionsStore.effectiveSnapshot;
-  return snapshot.teEarned ? Object.values(snapshot.teEarned).reduce((a, b) => a + b, 0) : 0;
+  if (!snapshot || !snapshot.teEarned) return 0;
+  return Object.values(snapshot.teEarned).reduce((a, b) => a + b, 0);
 });
 
 const isA1Dirty = computed(() => {

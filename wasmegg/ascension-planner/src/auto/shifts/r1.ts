@@ -26,10 +26,18 @@ export function runR1(
     if (seconds <= 0) return;
     const snap = computeSnapshot(currentState, context, { skipGrowth: true });
     const waitAction = createSimAction('wait_for_time', { totalTimeSeconds: seconds });
+    
     currentState = applyAction(currentState, waitAction);
     // applyAction doesn't update bankValue for wait actions, so we credit earnings manually
     currentState = { ...currentState, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * seconds };
-    actions.push(waitAction as unknown as any);
+    
+    // Decoration for the action store
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    waitAction.endState = finalSnap;
+    waitAction.totalTimeSeconds = seconds;
+    waitAction.bankDelta = snap.offlineEarnings * seconds;
+    
+    actions.push(waitAction);
     elapsedSeconds += seconds;
   };
 
@@ -42,7 +50,13 @@ export function runR1(
   }, sCost);
   
   currentState = applyAction(currentState, shiftAction);
-  actions.push(shiftAction as unknown as any);
+  
+  // Decoration
+  const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+  shiftAction.endState = finalSnap;
+  shiftAction.totalTimeSeconds = 0;
+
+  actions.push(shiftAction);
   // console.log(`  Shifted to Resilience. Cost: ${formatNumber(sCost, 3)} SE`);
 
   // 2. Buy as many silos as possible within 1 hour
@@ -69,7 +83,14 @@ export function runR1(
       toCount: currentState.siloCount + 1,
     }, cost);
     currentState = applyAction(currentState, action);
-    actions.push(action as unknown as any);
+    
+    // Decoration
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    action.endState = finalSnap;
+    action.totalTimeSeconds = 0;
+    action.bankDelta = -cost;
+
+    actions.push(action);
     // console.log(`  [Silo ${currentState.siloCount}] BOUGHT. Total time: ${elapsedSeconds.toFixed(1)}s`);
   }
 

@@ -10,7 +10,7 @@ import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useNotesStore } from '@/stores/notes';
 import { useSilosStore } from '@/stores/silos';
-import type { VirtueEgg, Action, CalculationsSnapshot } from '@/types';
+import { createEmptySnapshot, type VirtueEgg, type Action, type CalculationsSnapshot } from '@/types';
 
 export function exportPlanData(actions: Action[], initialSnapshot?: CalculationsSnapshot, activePlanId: string | null = null) {
   const initialStateStore = useInitialStateStore();
@@ -128,6 +128,25 @@ export function importPlanLogic(jsonString: string) {
     notesStore.setNotes(data.notesState.notes || []);
   } else {
     notesStore.$reset();
+  }
+
+  // Safeguard: Ensure a start_ascension action is present for the UI Action History
+  if (data.actions && data.actions.length > 0 && data.actions[0].type !== 'start_ascension') {
+    console.log('[ActionIO] Repairing imported plan: prepending missing start_ascension');
+    const startAction = {
+      id: 'start_' + Math.random().toString(36).substring(2, 9),
+      index: 0,
+      timestamp: data.actions[0].timestamp || Date.now(),
+      type: 'start_ascension',
+      payload: { initialEgg: 'curiosity' },
+      cost: 0, elrDelta: 0, offlineEarningsDelta: 0, eggValueDelta: 0,
+      habCapacityDelta: 0, layRateDelta: 0, shippingCapacityDelta: 0,
+      ihrDelta: 0, bankDelta: 0, populationDelta: 0, totalTimeSeconds: 0,
+      endState: createEmptySnapshot(),
+      dependsOn: [], dependents: []
+    };
+    data.actions = [startAction, ...data.actions];
+    data.actions.forEach((a: any, i: number) => a.index = i);
   }
 
   return data;

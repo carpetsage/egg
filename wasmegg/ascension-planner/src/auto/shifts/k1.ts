@@ -34,10 +34,18 @@ export function runK1(
     if (seconds <= 0) return;
     const snap = computeSnapshot(currentState, context, { skipGrowth: true });
     const waitAction = createSimAction('wait_for_time', { totalTimeSeconds: seconds });
+    
     currentState = applyAction(currentState, waitAction);
     // applyAction doesn't update bankValue for wait actions, so we credit earnings manually
     currentState = { ...currentState, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * seconds };
-    actions.push(waitAction as unknown as any);
+    
+    // Decoration for the action store
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    waitAction.endState = finalSnap;
+    waitAction.totalTimeSeconds = seconds;
+    waitAction.bankDelta = snap.offlineEarnings * seconds;
+    
+    actions.push(waitAction);
     elapsedSeconds += seconds;
   };
 
@@ -59,8 +67,14 @@ export function runK1(
     advanceTime(timeToSave);
     const action = createSimAction('buy_vehicle', { slotIndex, vehicleId }, price);
     currentState = applyAction(currentState, action);
-    actions.push(action as unknown as any);
-    // console.log(`  Bought Vehicle ID ${vehicleId} in slot ${slotIndex} (waited ${timeToSave.toFixed(1)}s, cost ${formatNumber(price)})`);
+    
+    // Decoration
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    action.endState = finalSnap;
+    action.totalTimeSeconds = 0;
+    action.bankDelta = -price;
+
+    actions.push(action);
     return true;
   };
 
@@ -84,8 +98,14 @@ export function runK1(
       toLength: vehicle.trainLength + 1 
     }, price);
     currentState = applyAction(currentState, action);
-    actions.push(action as unknown as any);
-    // console.log(`  Bought Train Car for slot ${slotIndex} (waited ${timeToSave.toFixed(1)}s, cost ${formatNumber(price)})`);
+    
+    // Decoration
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    action.endState = finalSnap;
+    action.totalTimeSeconds = 0;
+    action.bankDelta = -price;
+
+    actions.push(action);
     return true;
   };
 
@@ -98,7 +118,13 @@ export function runK1(
   }, sCost);
   
   currentState = applyAction(currentState, shiftAction);
-  actions.push(shiftAction as unknown as any);
+  
+  // Decoration
+  const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+  shiftAction.endState = finalSnap;
+  shiftAction.totalTimeSeconds = 0;
+
+  actions.push(shiftAction);
   // console.log(`  Shifted to Kindness. Cost: ${formatNumber(sCost, 3)} SE`);
 
   // Phase 1: Buy the most expensive vehicle affordable in <10s until shipping ≥ lay rate

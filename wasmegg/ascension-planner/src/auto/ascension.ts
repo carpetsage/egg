@@ -1,4 +1,5 @@
-import type { Action } from '@/types/actions/meta';
+import { type Action, generateActionId } from '@/types/actions/meta';
+import { computeSnapshot } from '@/engine/compute';
 import { getNextPacificTime } from '@/lib/events';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { computeShiftCosts } from './se-tracker';
@@ -160,7 +161,14 @@ export function runAscension(
   targetEndTime?: number,
   resumeData?: { actions: Action[]; state: EngineState; elapsedSeconds: number; resumeShiftName: string }
 ): { actions: Action[]; summary: AscensionSummary } {
-  let currentState = resumeData ? JSON.parse(JSON.stringify(resumeData.state)) : JSON.parse(JSON.stringify(startState));
+  const actualStartState = JSON.parse(JSON.stringify(startState));
+  if (!resumeData) {
+    actualStartState.activeSales.research = isResearchSaleActive(startTime);
+    actualStartState.earningsBoost.active = isEarningsBoostActive(startTime);
+    actualStartState.earningsBoost.multiplier = 2;
+  }
+  
+  let currentState = resumeData ? JSON.parse(JSON.stringify(resumeData.state)) : JSON.parse(JSON.stringify(actualStartState));
   let currentActions: Action[] = resumeData ? [...resumeData.actions] : [];
   let totalElapsedSeconds = resumeData ? resumeData.elapsedSeconds : 0;
 
@@ -187,7 +195,7 @@ export function runAscension(
         kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
       };
       
-      let peakELR = (currentState as any).maxELR || 0;
+      let peakELR = currentState.maxELR || 0;
       if (shift.name === 'K3' && peakELR === 0) {
         peakELR = calculatePeakELR(currentState, context);
       }
@@ -221,6 +229,38 @@ export function runAscension(
     totalElapsedSeconds += result.elapsedSeconds;
   }
 
+  // Prepend start action if not resuming
+  if (!resumeData) {
+    const startSnapshot = computeSnapshot(actualStartState, context);
+    const startAction: Action = {
+      id: generateActionId(),
+      index: 0,
+      timestamp: startTime * 1000,
+      type: 'start_ascension',
+      payload: { initialEgg: actualStartState.currentEgg as VirtueEgg },
+      cost: 0,
+      elrDelta: 0,
+      offlineEarningsDelta: 0,
+      eggValueDelta: 0,
+      habCapacityDelta: 0,
+      layRateDelta: 0,
+      shippingCapacityDelta: 0,
+      ihrDelta: 0,
+      bankDelta: 0,
+      populationDelta: 0,
+      totalTimeSeconds: 0,
+      endState: startSnapshot,
+      dependsOn: [],
+      dependents: [],
+    };
+    currentActions.unshift(startAction);
+  }
+
+  // Ensure indices are correct
+  currentActions.forEach((a, idx) => {
+    a.index = idx;
+  });
+
   // SE cost tracking for 13 shifts
   const seResult = computeShiftCosts(startState.soulEggs, startState.shiftCount, 13);
 
@@ -245,7 +285,7 @@ export function runAscension(
     startTE: startState.te,
     endTE: currentState.te,
     teGained: currentState.te - startState.te,
-    maxELR: (currentState as any).maxELR || 0,
+    maxELR: currentState.maxELR || 0,
     startSoulEggs: startState.soulEggs,
     endSoulEggs: seResult.endingSE,
     startShiftCount: startState.shiftCount,

@@ -121,7 +121,13 @@ export function runTEWaitShift(
     }, sCost);
     
     currentState = applyAction(currentState, shiftAction);
-    actions.push(shiftAction as unknown as any);
+    
+    // Decoration
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    shiftAction.endState = finalSnap;
+    shiftAction.totalTimeSeconds = 0;
+
+    actions.push(shiftAction);
   }
 
   // 2. Wait until target TE is reached
@@ -152,7 +158,13 @@ export function runTEWaitShift(
       currentState.teEarned[egg] = (currentState.teEarned[egg] || 0) + teResult.teEarned;
       currentState.te += teResult.teEarned;
       
-      actions.push(waitAction as unknown as any);
+      // Decoration
+      const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+      waitAction.endState = finalSnap;
+      waitAction.totalTimeSeconds = waitTime;
+      waitAction.bankDelta = snap.offlineEarnings * waitTime;
+
+      actions.push(waitAction);
       elapsedSeconds += waitTime;
     }
   }
