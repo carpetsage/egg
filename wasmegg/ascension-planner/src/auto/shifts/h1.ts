@@ -50,20 +50,34 @@ export function runH1(state: EngineState, context: SimulationContext): ShiftResu
 
   actions.push(shiftAction);
 
-  // 2. Change Artifacts
-  const artifactAction = createSimAction('change_artifacts', {
-    fromLoadout: currentState.artifactLoadout,
-    toLoadout: optimalSet,
+  // 2. Update ELR Set
+  const updateAction = createSimAction('update_artifact_set', {
+    setName: 'elr',
+    newLoadout: optimalSet,
   });
 
-  currentState = applyAction(currentState, artifactAction);
+  currentState = applyAction(currentState, updateAction);
   
   // Decoration
   const finalSnap2 = computeSnapshot(currentState, context, { skipGrowth: true });
-  artifactAction.endState = finalSnap2;
-  artifactAction.totalTimeSeconds = 0;
+  updateAction.endState = finalSnap2;
+  updateAction.totalTimeSeconds = 0;
 
-  actions.push(artifactAction);
+  actions.push(updateAction);
+
+  // 3. Equip ELR Set
+  const equipAction = createSimAction('equip_artifact_set', {
+    setName: 'elr',
+  });
+
+  currentState = applyAction(currentState, equipAction);
+  
+  // Decoration
+  const finalSnap3 = computeSnapshot(currentState, context, { skipGrowth: true });
+  equipAction.endState = finalSnap3;
+  equipAction.totalTimeSeconds = 0;
+
+  actions.push(equipAction);
 
   // console.log('H1 Finished: New artifacts equipped');
 

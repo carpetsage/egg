@@ -180,22 +180,42 @@ export function runK3(
   }
   
   if (waitDuration > 0) {
+    const currentEggsDelivered = currentState.eggsDelivered['kindness'] || 0;
+    const currentTE = countTEThresholdsPassed(currentEggsDelivered);
+
     const teResult = computeTEEarned(
-      currentState.eggsDelivered['kindness'] || 0,
+      currentEggsDelivered,
       peakELR,
       waitDuration
     );
     
-    advanceTime(waitDuration, { 
-      isTEWait: true, 
-      teEarned: teResult.teEarned,
-      finalEggsDelivered: teResult.finalEggsDelivered 
+    const waitAction = createSimAction('wait_for_te', { 
+      egg: 'kindness',
+      targetTE: currentTE + teResult.teEarned,
+      teGained: teResult.teEarned,
+      eggsToLay: teResult.finalEggsDelivered - currentEggsDelivered,
+      timeSeconds: waitDuration,
+      startEggsDelivered: currentEggsDelivered,
+      startTE: currentTE
     });
+    
+    currentState = applyAction(currentState, waitAction);
+    
+    const snap = computeSnapshot(currentState, context, { skipGrowth: true });
+    currentState.bankValue += snap.offlineEarnings * waitDuration;
 
-    // Update state
     currentState.eggsDelivered['kindness'] = teResult.finalEggsDelivered;
     currentState.teEarned['kindness'] = (currentState.teEarned['kindness'] || 0) + teResult.teEarned;
     currentState.te = Object.values(currentState.teEarned).reduce((a, b) => (a as number) + (b as number), 0);
+    
+    // Decoration
+    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+    waitAction.endState = finalSnap;
+    waitAction.totalTimeSeconds = waitDuration;
+    waitAction.bankDelta = snap.offlineEarnings * waitDuration;
+
+    actions.push(waitAction);
+    elapsedSeconds += waitDuration;
   }
 
   // console.log(`K3 Finished: Peak ELR ${formatNumber(peakELR * 3600, 3)}/hr. TE earned in wait: ${currentState.teEarned[currentState.currentEgg]}`);

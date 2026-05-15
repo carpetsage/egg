@@ -370,7 +370,12 @@ export function runC3(
         advanceTime(nextBoundary - absTime);
       }
     } else {
-      advanceTime(nextBoundary - absTime);
+      if (nextBoundary === buildPhaseEnd) {
+        // Nothing left to buy before the sale ends, so we can exit C3 early!
+        elrActive = false;
+      } else {
+        advanceTime(nextBoundary - absTime);
+      }
     }
   }
 

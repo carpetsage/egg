@@ -141,11 +141,14 @@ export function runTEWaitShift(
     if (waitTime > 0 && waitTime !== Infinity) {
       const teResult = computeTEEarned(currentEggsDelivered, peakELR, waitTime);
       
-      const waitAction = createSimAction('wait_for_time', { 
-        totalTimeSeconds: waitTime,
-        isTEWait: true,
-        teEarned: teResult.teEarned,
-        finalEggsDelivered: teResult.finalEggsDelivered
+      const waitAction = createSimAction('wait_for_te', { 
+        egg,
+        targetTE: currentTE + neededTE,
+        teGained: teResult.teEarned,
+        eggsToLay: teResult.finalEggsDelivered - currentEggsDelivered,
+        timeSeconds: waitTime,
+        startEggsDelivered: currentEggsDelivered,
+        startTE: currentTE
       });
       
       // Update state manually because applyAction doesn't know about TE tracking yet

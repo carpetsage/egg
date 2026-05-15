@@ -195,15 +195,26 @@
     <div v-if="ascensionChain.length > 0" class="max-w-5xl mx-auto space-y-12 pb-24">
       <div class="flex justify-between items-center px-4">
         <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Generated Roadmap</h2>
-        <button 
-          @click="exportCurrentPlan"
-          class="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Export Plan
-        </button>
+        <div class="flex items-center gap-3">
+          <button 
+            @click="copySummary"
+            class="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            {{ copySuccess ? 'Copied!' : 'Copy Summary' }}
+          </button>
+          <button 
+            @click="exportCurrentPlan"
+            class="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export Plan
+          </button>
+        </div>
       </div>
 
       <div v-for="(result, idx) in bestResults" :key="idx" class="space-y-8">
@@ -898,6 +909,58 @@ const exportCurrentPlan = () => {
   };
   
   triggerPlanExport(plan);
+};
+
+const copySuccess = ref(false);
+
+const copySummary = async () => {
+  if (ascensionChain.value.length === 0) return;
+  
+  // Use the actual starting TE of A1
+  const startTE = ascensionChain.value[0].initialParams?.teEarned 
+    ? Object.values(ascensionChain.value[0].initialParams.teEarned).reduce((a, b) => a + b, 0)
+    : currentTE.value;
+
+  const bestPlans = ascensionChain.value.map(item => {
+    return item.result1.summary.totalDurationSeconds <= item.result2.summary.totalDurationSeconds 
+      ? item.result1.summary 
+      : item.result2.summary;
+  });
+  
+  const finalTE = bestPlans[bestPlans.length - 1].endTE;
+  
+  let totalSeconds = 0;
+  let totalSE = 0;
+  
+  const lines = [`Ascension Plan — Starting TE: ${startTE}`];
+  
+  bestPlans.forEach((plan, idx) => {
+    const ascStartTE = idx === 0 ? startTE : bestPlans[idx - 1].endTE;
+    const saleStr = plan.strategyLabel.replace(' build', '');
+    const durationDays = Math.floor(plan.totalDurationSeconds / 86400);
+    const durationHours = Math.floor((plan.totalDurationSeconds % 86400) / 3600);
+    const durationStr = `${durationDays}d ${durationHours}h`;
+    
+    lines.push(`  A${idx + 1}: ${ascStartTE} → ${plan.endTE} TE (${saleStr}, ${durationStr})`);
+    
+    totalSeconds += plan.totalDurationSeconds;
+    totalSE += (plan.startSoulEggs - plan.endSoulEggs);
+  });
+  
+  const totalDays = (totalSeconds / 86400).toFixed(1);
+  // Format totalSE safely, handling potential precision or floating point issues
+  const seStr = formatNumber(totalSE);
+  
+  lines.push(`Total: ${startTE} → ${finalTE} TE in ~${totalDays} days, ${seStr} SE consumed`);
+  
+  const text = lines.join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    copySuccess.value = true;
+    setTimeout(() => { copySuccess.value = false; }, 2000);
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+  }
 };
 </script>
 

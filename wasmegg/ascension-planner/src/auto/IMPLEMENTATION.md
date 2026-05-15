@@ -239,7 +239,7 @@ When importing individual ascensions from a chain into the library, use the foll
 - The Auto Planner restores the full chain correctly.
 - Individual plans can be imported with the specified naming convention.
 
-### [ ] Step 6.3: Copy roadmap summary to clipboard
+### [x] Step 6.3: Copy roadmap summary to clipboard
 
 Add a "Copy Summary" button that generates a compact text roadmap:
 
