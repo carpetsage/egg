@@ -209,6 +209,7 @@
           </svg>
         </button>
       </div>
+    </div>
 
       <!-- Reconciliation Status Banner -->
       <div v-if="actionsStore.isReconciling" class="mt-4 flex flex-col items-center gap-2">
@@ -341,6 +342,13 @@
               />
             </div>
           </div>
+          <a
+            href="https://wasmegg-carpet.netlify.app/ascension-planner/"
+            target="_blank"
+            class="bg-white text-indigo-600 px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg hover:shadow-white/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex-shrink-0"
+          >
+            Go to Main Page
+          </a>
         </div>
       </div>
 
