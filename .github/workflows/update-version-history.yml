@@ -30,7 +30,7 @@ jobs:
       - name: Update Version History
         run: |
           make src/lib/version_history.json
-          git diff HEAD -- src/lib/version_history.json || echo 'No changes to version history'
+          git diff HEAD -- src/version_history.json || echo 'No changes to version history'
         env:
           EI_USERID: ${{ secrets.EI_USERID }}
       - name: Commit, push changes, and possibly trigger new build
@@ -39,8 +39,8 @@ jobs:
           git config user.email 'actions@github.com'
 
           # Triggers wasmegg build
-          git add src/lib/version_history.json
-          git diff --cached --quiet || git commit -m 'events: update src/lib/version_history.json (from GitHub Actions)'
+          git add src/version_history.json
+          git diff --cached --quiet || git commit -m 'events: update src/version_history.json (from GitHub Actions)'
 
           git push
         env:
