@@ -81,10 +81,13 @@ jobs:
           make -j2 fastbuild
         env:
           EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
-      - name: Install netlify cli
+      - name: Configure pnpm global bin
         run: |
+          pnpm config set global-bin-dir $GITHUB_WORKSPACE/pnpm-global
           echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
-          pnpm add --global netlify-cli
+        if: github.event_name != 'pull_request'
+      - name: Install netlify cli
+        run: pnpm add --global netlify-cli
         if: github.event_name != 'pull_request'
       - name: Deploy
         run: |
