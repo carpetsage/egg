@@ -314,7 +314,6 @@
           </div>
         </div>
       </div>
-    </div>
 
     <!-- Action Details Modal -->
     <ActionDetailsModal v-if="showDetailsModal" :action="detailsModalAction" @close="closeActionDetails" />
@@ -394,8 +393,9 @@
       @save-plan="saveCurrentPlan"
       @save-plan-as="savePlanAs"
     />
-    <FloatingStats @show-details="showCurrentDetails" />
-    <FloatingNotes />
+    <FloatingStats v-if="activeTab === 'manual'" @show-details="showCurrentDetails" />
+    <FloatingNotes v-if="activeTab === 'manual'" />
+    </div>
   </div>
 </template>
 
