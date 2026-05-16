@@ -558,7 +558,6 @@ export const useInitialStateStore = defineStore('initialState', {
       this.initialTePending[egg] = Math.max(0, count);
     },
 
-
     /**
      * Clear all initial state data
      */
