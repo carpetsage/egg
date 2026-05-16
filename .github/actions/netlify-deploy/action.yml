@@ -16,8 +16,10 @@ runs:
     - name: Install netlify cli
       shell: bash
       run: |
-        echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+        export PNPM_HOME="$GITHUB_WORKSPACE/pnpm-global"
+        export PATH="$PNPM_HOME:$PATH"
         pnpm add --global netlify-cli
+        echo "$PNPM_HOME" >> "$GITHUB_PATH"
     - name: Deploy (production)
       if: github.ref == 'refs/heads/main'
       shell: bash
