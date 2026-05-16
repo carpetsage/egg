@@ -14,19 +14,28 @@ on:
     types: [opened, edited, reopened, synchronize]
     paths:
       - '.github/workflows/build-eicoops.yml'
+      - pnpm-lock.yaml
       - 'lib/**'
       - 'ui/**'
       - 'eicoop/**'
-      - 'periodicals/*'
+      - 'periodicals/data/*'
+      - 'protobuf/ei.proto'
   workflow_dispatch:
   #schedule:
   # Regenerate every day to incorporate updated mission outcome data.
   # - cron: '30 4 * * *'
+permissions:
+  contents: read
+
 jobs:
   # No TS type checking for faster deployment.
   eicoop-fastbuild:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+    concurrency:
+      group: ${{ github.workflow }}-fastbuild-${{ github.ref }}
+      cancel-in-progress: true
     defaults:
       run:
         working-directory: eicoop
@@ -39,9 +48,13 @@ jobs:
         with:
           node-version: '22'
           cache: 'pnpm'
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            pnpm-global/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Configure pnpm global bin
+        run: |
+          pnpm config set global-bin-dir $GITHUB_WORKSPACE/pnpm-global
+          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+      - name: Install netlify cli
+        run: pnpm add --global netlify-cli
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
@@ -52,12 +65,6 @@ jobs:
           make
       - name: Build site
         run: make fastbuild
-      - name: Configure pnpm global bin
-        run: |
-          pnpm config set global-bin-dir $GITHUB_WORKSPACE/pnpm-global
-          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
-      - name: Install netlify cli
-        run: pnpm add --global netlify-cli
       - name: Deploy
         run: |
           netlify deploy --prod -d $GITHUB_WORKSPACE/eicoop/dist
@@ -67,7 +74,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
       - name: Deploy to branch-specific URL
         run: |
-          netlify deploy --alias "${GITHUB_REF##*/}" -d $GITHUB_WORKSPACE/eicoop/dist
+          BRANCH_SLUG=$(echo "$GITHUB_REF_NAME" | sed 's/[^a-zA-Z0-9-]/-/g')
+          netlify deploy --alias "$BRANCH_SLUG" -d $GITHUB_WORKSPACE/eicoop/dist
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_EICOOP_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -82,6 +90,11 @@ jobs:
   # With TS type checking.
   eicoop-fullbuild:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'pull_request'
+    concurrency:
+      group: ${{ github.workflow }}-fullbuild-${{ github.ref }}
+      cancel-in-progress: true
     defaults:
       run:
         working-directory: eicoop
@@ -95,9 +108,13 @@ jobs:
         with:
           node-version: '22'
           cache: 'pnpm'
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            pnpm-global/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Configure pnpm global bin
+        run: |
+          pnpm config set global-bin-dir $GITHUB_WORKSPACE/pnpm-global
+          echo $GITHUB_WORKSPACE/pnpm-global >> $GITHUB_PATH
+      - name: Install netlify cli
+        run: pnpm add --global netlify-cli
       - name: Do other preparations
         run: |
           ../action-scripts/prepare
