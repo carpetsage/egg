@@ -4,6 +4,10 @@ inputs:
   dist-dir:
     description: 'Path to the build output directory (relative to workspace root)'
     required: true
+  working-directory:
+    description: 'Directory containing netlify.toml (relative to workspace root)'
+    required: false
+    default: '.'
   site-id:
     description: 'Netlify site ID (use secrets.NETLIFY_*_SITE_ID)'
     required: true
@@ -22,21 +26,24 @@ runs:
         echo "$PNPM_HOME/bin" >> "$GITHUB_PATH"
     - name: Deploy (production)
       if: github.ref == 'refs/heads/main'
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
-        netlify deploy --prod --site ${{ inputs.site-id }} -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
+        netlify deploy --prod --site ${{ inputs.site-id }} -d ${{ inputs.dist-dir }}
       env:
         NETLIFY_AUTH_TOKEN: ${{ inputs.auth-token }}
     - name: Deploy (branch URL)
       if: github.ref != 'refs/heads/main'
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
-        netlify deploy --alias "${GITHUB_REF##*/}" --site ${{ inputs.site-id }} -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
+        netlify deploy --alias "${GITHUB_REF##*/}" --site ${{ inputs.site-id }} -d ${{ inputs.dist-dir }}
       env:
         NETLIFY_AUTH_TOKEN: ${{ inputs.auth-token }}
     - name: Deploy (commit URL)
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
-        netlify deploy --alias "$GITHUB_SHA" --site ${{ inputs.site-id }} -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
+        netlify deploy --alias "$GITHUB_SHA" --site ${{ inputs.site-id }} -d ${{ inputs.dist-dir }}
       env:
         NETLIFY_AUTH_TOKEN: ${{ inputs.auth-token }}
