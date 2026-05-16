@@ -209,7 +209,6 @@
           </svg>
         </button>
       </div>
-    </div>
 
       <!-- Reconciliation Status Banner -->
       <div v-if="actionsStore.isReconciling" class="mt-4 flex flex-col items-center gap-2">
@@ -355,7 +354,6 @@
       <div v-else-if="activeTab === 'automatic' && playerId && !loading">
         <AutomaticPlanner />
       </div>
-    </div>
 
     <!-- Action Details Modal -->
     <ActionDetailsModal v-if="showDetailsModal" :action="detailsModalAction" @close="closeActionDetails" />
@@ -438,6 +436,7 @@
     />
     <FloatingStats v-if="activeTab === 'manual'" @show-details="showCurrentDetails" />
     <FloatingNotes v-if="activeTab === 'manual'" />
+    </div>
   </div>
 </template>
 
