@@ -6,10 +6,14 @@ on:
       - periodicals/data/customeggs.json
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   update-assets:
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout egg repo
         uses: actions/checkout@v6
@@ -23,6 +27,7 @@ jobs:
           repository: carpetsage/EggIncAssets
           path: EggIncAssets
           token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
+          fetch-depth: 1
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
@@ -59,7 +64,7 @@ jobs:
           git config user.email 'actions@github.com'
 
           # Add all changes
-          git add .
+          git add orig/
 
           # Check if there are any changes to commit
           if git diff --cached --quiet; then
