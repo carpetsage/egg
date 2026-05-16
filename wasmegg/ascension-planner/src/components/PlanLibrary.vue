@@ -266,7 +266,7 @@ async function handleImport(event: Event) {
 
         if (resolution === 'restore') {
           // 1. Switch tab
-          uiStore.activeTab = 'automatic';
+          uiStore.plannerTab = 'automatic';
           uiStore.isHeaderCollapsed = true;
 
           // 2. Load fresh backup first (ensures we have latest epic research/artifacts as a baseline)
