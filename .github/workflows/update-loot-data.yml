@@ -3,10 +3,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 14 * * *'
-
-permissions:
-  contents: write
-
 jobs:
   update:
     if: github.actor != 'dependabot[bot]'
@@ -30,18 +26,6 @@ jobs:
           git diff --cached --quiet || {
             git commit -m 'artifact-explorer: update loot data (from GitHub Actions)'
             git push
-<<<<<<< Updated upstream
           }
-=======
-            # Use a separate personal access token since the token included doesn't seem to trigger
-            # anything, although the response (HTTP 204) looks all right.
-            curl -fsS -D- \
-              -X POST \
-              -H "Authorization: Bearer ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}" \
-              -H 'Accept: application/vnd.github.v3+json' \
-              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-wasmegg.yml/dispatches" \
-              -d "{\"ref\": \"${GITHUB_REF##*/}\"}"
-            }
->>>>>>> Stashed changes
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}

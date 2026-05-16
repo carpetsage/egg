@@ -6,9 +6,6 @@ on:
       - periodicals/data/customeggs.json
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
   update-assets:
     if: github.actor != 'dependabot[bot]'
@@ -30,13 +27,6 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: '>=1.24'
-      - name: Cache apt packages
-        uses: actions/cache@v5
-        with:
-          path: |
-            /var/cache/apt/archives
-            /var/lib/apt/lists
-          key: ${{ runner.os }}-apt-imagemagick-optipng-zsh
       - name: Install dependencies
         run: |
           sudo apt-get update

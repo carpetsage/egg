@@ -7,12 +7,8 @@ on:
   workflow_dispatch:
   # schedule:
   #  replaced with cloudflare worker triggering this
-  #
+  # 
   #  - cron: '0 15-18,23 * * *'
-
-permissions:
-  contents: write
-
 jobs:
   update:
     if: github.actor != 'dependabot[bot]'
