@@ -4,14 +4,14 @@ runs:
   using: 'composite'
   steps:
     - name: Cache apt packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           /var/cache/apt/archives
           /var/lib/apt/lists
         key: ${{ runner.os }}-apt-protobuf-compiler
     - name: Cache protoc-gen-doc
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: protoc-gen-doc-1.4.1.linux-amd64.go1.15.2
         key: protoc-gen-doc-1.4.1-linux-amd64
@@ -29,7 +29,7 @@ runs:
         fi
         echo "$PWD/$basename" >> $GITHUB_PATH
     - name: Cache ets
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ets_0.2.1_linux_amd64.deb
         key: ets-0.2.1-linux-amd64

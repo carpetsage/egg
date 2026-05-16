@@ -39,7 +39,7 @@ jobs:
             pnpm-lock.yaml
             pnpm-global/pnpm-lock.yaml
       - name: Cache netlify-headers-expander
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: eicoop/netlify-headers-expander
           key: netlify-headers-expander-1.0.0
@@ -73,7 +73,7 @@ jobs:
             pnpm-lock.yaml
             pnpm-global/pnpm-lock.yaml
       - name: Cache netlify-headers-expander
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: eicoop/netlify-headers-expander
           key: netlify-headers-expander-1.0.0
