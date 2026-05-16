@@ -24,22 +24,19 @@ runs:
       if: github.ref == 'refs/heads/main'
       shell: bash
       run: |
-        netlify deploy --prod -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
+        netlify deploy --prod --site ${{ inputs.site-id }} -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
       env:
-        NETLIFY_SITE_ID: ${{ inputs.site-id }}
         NETLIFY_AUTH_TOKEN: ${{ inputs.auth-token }}
     - name: Deploy (branch URL)
       if: github.ref != 'refs/heads/main'
       shell: bash
       run: |
-        netlify deploy --alias "${GITHUB_REF##*/}" -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
+        netlify deploy --alias "${GITHUB_REF##*/}" --site ${{ inputs.site-id }} -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
       env:
-        NETLIFY_SITE_ID: ${{ inputs.site-id }}
         NETLIFY_AUTH_TOKEN: ${{ inputs.auth-token }}
     - name: Deploy (commit URL)
       shell: bash
       run: |
-        netlify deploy --alias "$GITHUB_SHA" -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
+        netlify deploy --alias "$GITHUB_SHA" --site ${{ inputs.site-id }} -d $GITHUB_WORKSPACE/${{ inputs.dist-dir }}
       env:
-        NETLIFY_SITE_ID: ${{ inputs.site-id }}
         NETLIFY_AUTH_TOKEN: ${{ inputs.auth-token }}
