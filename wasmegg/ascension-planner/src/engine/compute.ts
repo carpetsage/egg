@@ -76,7 +76,8 @@ export function computeSnapshot(
   let lastStepTime = state.lastStepTime;
 
   if (options.skipGrowth) {
-    population = habCapacityOutput.totalFinalCapacity;
+    // Force maintenance of state values
+    population = state.population || 0;
     bankValue = state.bankValue || 0;
   } else {
     // 8. Population growth (catch-up if starting from a backup)

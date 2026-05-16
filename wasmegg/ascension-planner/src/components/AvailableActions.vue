@@ -132,7 +132,7 @@ const isEditingStartGroup = computed(() => {
 });
 
 // The effective egg to use (from effective snapshot when editing, otherwise current)
-const effectiveEgg = computed(() => actionsStore.effectiveSnapshot?.currentEgg ?? 'curiosity');
+const effectiveEgg = computed(() => actionsStore.effectiveSnapshot.currentEgg);
 
 // All available tabs
 const allTabs = [

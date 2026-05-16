@@ -51,35 +51,20 @@ export type SimulatedAction = {
 
 /**
  * Create a minimal action for simulation purposes.
- * Returns an Action with default values for deltas, ready to be hydrated.
  */
 export function createSimAction<T extends ActionType>(
   type: T,
   payload: ActionPayloadMap[T],
   cost: number = 0
-): Action<T> {
+): SimulatedAction {
   return {
     id: `sim_${Math.random().toString(36).substring(2, 9)}`,
-    index: 0,
-    timestamp: Math.floor(Date.now() / 1000),
     type,
     payload,
     cost,
-    elrDelta: 0,
-    offlineEarningsDelta: 0,
-    eggValueDelta: 0,
-    habCapacityDelta: 0,
-    layRateDelta: 0,
-    shippingCapacityDelta: 0,
-    ihrDelta: 0,
-    bankDelta: 0,
-    populationDelta: 0,
-    totalTimeSeconds: 0,
+    timestamp: Math.floor(Date.now() / 1000),
     dependsOn: [],
-    dependents: [],
-    // We cast this placeholder because it will be hydrated immediately in the simulation loop
-    endState: {} as CalculationsSnapshot,
-  } as Action<T>;
+  } as unknown as SimulatedAction;
 }
 
 /**

@@ -280,7 +280,7 @@ const actionIconPath = computed(() => {
     return payload.setName === 'elr' ? 'egginc/afx_quantum_metronome_4.png' : 'egginc/afx_lunar_totem_4.png';
   }
   if (props.action.type === 'wait_for_time') {
-    return props.action.totalTimeSeconds > 3600 ? 'egginc/egg_truth.png' : 'egginc/tiny_indicator_waiting.png';
+    return 'egginc/tiny_indicator_waiting.png';
   }
   if (props.action.type === 'wait_for_missions') {
     return 'egginc/icon_afx_mission.png';
@@ -314,9 +314,6 @@ const eggName = computed(() => {
 });
 
 const displayName = computed(() => {
-  if (props.action.type === 'wait_for_time' && props.action.totalTimeSeconds > 3600) {
-    return 'Offline Accumulation';
-  }
   const executor = getExecutor(props.action.type);
   return executor.getDisplayName(props.action.payload);
 });
