@@ -41,7 +41,7 @@ function calculateTotalPurchases(researchLevels: Record<string, number>): number
 export function runC3(
   startState: EngineState,
   context: SimulationContext,
-  buildPhaseEnd: number
+  buildPhaseEnd: number = 0
 ): ShiftResult {
   // console.log('--- Starting C3 Shift Simulation ---');
   let currentState = { ...startState };

@@ -61,7 +61,9 @@ export function deriveNextStartState(
   };
 }
 
-const allShifts = [
+type ShiftRunner = (state: EngineState, context: SimulationContext, arg3?: number, arg4?: number) => ShiftResult;
+
+const allShifts: { name: string; run: ShiftRunner }[] = [
   { name: 'C1', run: runC1 },
   { name: 'K1', run: runK1 },
   { name: 'I1', run: runI1 },
@@ -93,12 +95,12 @@ export function runUntilShift(
   for (const shift of allShifts) {
     if (shift.name === stopBeforeShift) break;
     currentState.lastStepTime = totalElapsedSeconds;
-    const result = (shift.run as any)(currentState, context);
+    const result = shift.run(currentState, context);
 
     // Calculate eggs laid during this shift (assuming full habs)
     const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
-    if (result.actions.length > 0) {
-      (result.actions[0].payload as any).eggsLaid = eggsLaid;
+    if (result.actions.length > 0 && result.actions[0].type === 'shift') {
+      result.actions[0].payload.eggsLaid = eggsLaid;
     }
 
     currentActions.push(...result.actions);
@@ -180,7 +182,7 @@ export function runAscension(
     
     let result: ShiftResult;
     if (shift.name === 'C3') {
-      result = (shift.run as any)(currentState, context, buildPhaseEnd);
+      result = shift.run(currentState, context, buildPhaseEnd);
     } else if (shift.name === 'K3' || shift.name === 'C4' || shift.name === 'I2' || shift.name === 'R2' || shift.name === 'H2') {
       // For these shifts, we need the target TE split
       const currentTEs: any = {
@@ -205,19 +207,19 @@ export function runAscension(
       const targets = distributeTargetTE(currentTEs, effectiveTargetTE || currentState.te);
 
       if (shift.name === 'K3') {
-        result = (shift.run as any)(currentState, context, buildPhaseEnd, targets['kindness']);
+        result = shift.run(currentState, context, buildPhaseEnd, targets['kindness']);
       } else {
         const eggMap: Record<string, VirtueEgg> = { 'C4': 'curiosity', 'I2': 'integrity', 'R2': 'resilience', 'H2': 'humility' };
-        result = (shift.run as any)(currentState, context, targets[eggMap[shift.name]], peakELR);
+        result = shift.run(currentState, context, targets[eggMap[shift.name]], peakELR);
       }
     } else {
-      result = (shift.run as any)(currentState, context);
+      result = shift.run(currentState, context);
     }
 
     // Calculate eggs laid during this shift (assuming full habs)
     const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
-    if (result.actions.length > 0) {
-      (result.actions[0].payload as any).eggsLaid = eggsLaid;
+    if (result.actions.length > 0 && result.actions[0].type === 'shift') {
+      result.actions[0].payload.eggsLaid = eggsLaid;
     }
 
     currentActions.push(...result.actions);

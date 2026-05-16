@@ -179,18 +179,18 @@ export function runTEWaitShift(
   };
 }
 
-export function runC4(state: EngineState, context: SimulationContext, targetTEForEgg: number, peakELR: number): ShiftResult {
+export function runC4(state: EngineState, context: SimulationContext, targetTEForEgg: number = 0, peakELR: number = 0): ShiftResult {
   return runTEWaitShift(state, context, 'curiosity', targetTEForEgg, peakELR);
 }
 
-export function runI2(state: EngineState, context: SimulationContext, targetTEForEgg: number, peakELR: number): ShiftResult {
+export function runI2(state: EngineState, context: SimulationContext, targetTEForEgg: number = 0, peakELR: number = 0): ShiftResult {
   return runTEWaitShift(state, context, 'integrity', targetTEForEgg, peakELR);
 }
 
-export function runR2(state: EngineState, context: SimulationContext, targetTEForEgg: number, peakELR: number): ShiftResult {
+export function runR2(state: EngineState, context: SimulationContext, targetTEForEgg: number = 0, peakELR: number = 0): ShiftResult {
   return runTEWaitShift(state, context, 'resilience', targetTEForEgg, peakELR);
 }
 
-export function runH2(state: EngineState, context: SimulationContext, targetTEForEgg: number, peakELR: number): ShiftResult {
+export function runH2(state: EngineState, context: SimulationContext, targetTEForEgg: number = 0, peakELR: number = 0): ShiftResult {
   return runTEWaitShift(state, context, 'humility', targetTEForEgg, peakELR);
 }

@@ -26,7 +26,7 @@ import { computeTEEarned, timeToEarnTE } from '../te-thresholds';
 export function runK3(
   startState: EngineState,
   context: SimulationContext,
-  buildPhaseEnd: number,
+  buildPhaseEnd: number = 0,
   targetTEForEgg?: number
 ): ShiftResult {
   let currentState: EngineState = { ...startState };
@@ -160,7 +160,7 @@ export function runK3(
 
   // Attach peakELR to the shift action (the first action) so the UI summary can find it easily
   if (actions.length > 0 && actions[0].type === 'shift') {
-    (actions[0].payload as any).peakELR = peakELR;
+    actions[0].payload.peakELR = peakELR;
   }
 
   // 4. Wait

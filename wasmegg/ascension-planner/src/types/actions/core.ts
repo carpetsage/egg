@@ -17,6 +17,8 @@ export interface ShiftPayload {
   fromEgg: VirtueEgg;
   toEgg: VirtueEgg;
   newShiftCount: number;
+  eggsLaid?: number;
+  peakELR?: number;
 }
 
 /**
