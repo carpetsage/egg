@@ -65,6 +65,7 @@ jobs:
         env:
           EIAPI_TOKEN: ${{ secrets.EIAPI_TOKEN }}
       - uses: ./.github/actions/netlify-deploy
+        working-directory: wasmegg
         with:
           dist-dir: wasmegg/dist
           site-id: ${{ secrets.NETLIFY_WASMEGG_SITE_ID }}
