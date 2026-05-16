@@ -192,7 +192,14 @@
     </div>
 
     <!-- Results Section -->
-    <div v-if="ascensionChain.length > 0" class="max-w-5xl mx-auto space-y-12 pb-24">
+    <div v-if="ascensionChain.length > 0" class="max-w-5xl mx-auto space-y-12 pb-24 relative">
+      <!-- Loading Overlay for Chain -->
+      <div v-if="isGenerating" class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-[100] rounded-[3rem] flex items-center justify-center min-h-[400px]">
+        <div class="flex flex-col items-center gap-4">
+          <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <div class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] animate-pulse">Recalculating Chain...</div>
+        </div>
+      </div>
       <div class="flex justify-between items-center px-4">
         <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Generated Roadmap</h2>
         <div class="flex items-center gap-3">
@@ -298,6 +305,21 @@
             <span v-else-if="idx + 1 < ascensionChain.length">Update A{{ idx + 2 }} →</span>
             <span v-else>Generate A{{ idx + 2 }} →</span>
           </button>
+        </div>
+      </div>
+
+      <!-- Simulation Error Display -->
+      <div v-if="simulationError" class="max-w-4xl mx-auto px-4">
+        <div class="bg-rose-50 border border-rose-100 rounded-3xl p-6 flex items-start gap-4 shadow-xl shadow-rose-500/5 animate-in fade-in slide-in-from-top-4">
+          <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-rose-600 flex-shrink-0">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="space-y-1">
+            <h4 class="text-sm font-black text-rose-800 uppercase tracking-tight">Simulation Failed</h4>
+            <p class="text-xs font-bold text-rose-600/80 leading-relaxed">{{ simulationError }}</p>
+          </div>
         </div>
       </div>
 
@@ -437,8 +459,7 @@ const clearSequentialTEGoal = (idx: number) => {
 };
 
 const isGenerating = ref(false);
-
-// (ascensionChain and nextGoals are now from the store)
+const simulationError = ref<string | null>(null);
 
 const removeLastAscension = () => {
   if (ascensionChain.value.length > 1) {
@@ -574,10 +595,15 @@ const allTimezones = computed(() => {
 
 const generate = () => {
   isGenerating.value = true;
+  simulationError.value = null;
 
   // Use a setTimeout to allow the UI to update "isGenerating" state before blocking
   setTimeout(() => {
     try {
+      // Basic validation
+      if (targetTE.value !== null && targetTE.value <= currentTE.value) {
+        throw new Error(`Target TE (${targetTE.value}) must be greater than current TE (${currentTE.value})`);
+      }
       // Roll up pending TE first (claimed at ascension start)
       rollUpPendingTE();
       
@@ -676,6 +702,9 @@ const generate = () => {
         goal: goalToSave,
         initialParams: initialParamsToSave
       }];
+    } catch (err: any) {
+      console.error('Simulation error:', err);
+      simulationError.value = err.message || 'An unknown error occurred during simulation.';
     } finally {
       isGenerating.value = false;
     }
@@ -694,6 +723,7 @@ const handleNextGoalSubmit = (idx: number) => {
 const generateNext = (goal: { te: number | null, date: string, time: string }) => {
   if (ascensionChain.value.length === 0) return;
   isGenerating.value = true;
+  simulationError.value = null;
 
   setTimeout(() => {
     try {
@@ -729,6 +759,10 @@ const generateNext = (goal: { te: number | null, date: string, time: string }) =
           finalTargetTE = (lastSummary ? lastSummary.endTE : currentTE.value) + 30;
           goalType = 'te';
         }
+      }
+
+      if (finalTargetTE && finalTargetTE <= lastSummary.endTE) {
+        throw new Error(`Target TE (${finalTargetTE}) must be greater than previous end TE (${lastSummary.endTE})`);
       }
 
       const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${idx}`, finalTargetTE, targetEndTime, {
@@ -779,6 +813,9 @@ const generateNext = (goal: { te: number | null, date: string, time: string }) =
         goal: goalToSave
       });
 
+    } catch (err: any) {
+      console.error('Simulation error:', err);
+      simulationError.value = err.message || 'An unknown error occurred during simulation.';
     } finally {
       isGenerating.value = false;
     }
@@ -787,6 +824,7 @@ const generateNext = (goal: { te: number | null, date: string, time: string }) =
 
 const updateAscension = (idx: number, goal: { te: number | null, date: string, time: string }) => {
   isGenerating.value = true;
+  simulationError.value = null;
   
   setTimeout(() => {
     try {
@@ -799,6 +837,21 @@ const updateAscension = (idx: number, goal: { te: number | null, date: string, t
         finalEndTime = getLocalTimestampInTimezone(goal.date, timeToUse, timezone.value);
       } else if (!finalTargetTE) {
         finalTargetTE = (idx === 0 ? currentTE.value : 0) + 30;
+      }
+
+      if (idx > 0) {
+        const prevIdx = idx - 1;
+        const prevSum = ascensionChain.value[prevIdx].result1.summary.totalDurationSeconds <= ascensionChain.value[prevIdx].result2.summary.totalDurationSeconds 
+          ? ascensionChain.value[prevIdx].result1.summary 
+          : ascensionChain.value[prevIdx].result2.summary;
+        
+        if (finalTargetTE && finalTargetTE <= prevSum.endTE) {
+          throw new Error(`Target TE (${finalTargetTE}) for A${idx + 1} must be greater than A${idx} end TE (${prevSum.endTE})`);
+        }
+      } else {
+        if (finalTargetTE && finalTargetTE <= currentTE.value) {
+          throw new Error(`Target TE (${finalTargetTE}) for A1 must be greater than current TE (${currentTE.value})`);
+        }
       }
 
       // 2. Update the goal state for the edited step
@@ -887,6 +940,9 @@ const updateAscension = (idx: number, goal: { te: number | null, date: string, t
         time: ''
       };
 
+    } catch (err: any) {
+      console.error('Simulation error:', err);
+      simulationError.value = err.message || 'An unknown error occurred during simulation.';
     } finally {
       isGenerating.value = false;
     }

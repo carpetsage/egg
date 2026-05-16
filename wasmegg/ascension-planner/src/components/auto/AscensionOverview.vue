@@ -97,6 +97,17 @@
         </div>
       </div>
 
+      <!-- Warnings -->
+      <div v-if="warnings.length > 0" class="mb-6 space-y-2">
+        <div v-for="warning in warnings" :key="warning" 
+             class="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-3 flex items-center gap-3 text-amber-400">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span class="text-[11px] font-black uppercase tracking-wider">{{ warning }}</span>
+        </div>
+      </div>
+
       <!-- TE Breakdown -->
       <div class="bg-slate-950/30 rounded-3xl p-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -185,6 +196,17 @@ const props = defineProps<{
 
 const isExpanded = ref(false);
 const eggs: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
+
+const warnings = computed(() => {
+  const list: string[] = [];
+  if (props.summary.endSoulEggs < 0) {
+    list.push('Soul Egg balance will go negative. You may not be able to afford all shifts.');
+  }
+  if (props.summary.endTE < props.summary.startTE + 1) {
+    list.push('No TE gained during this ascension. Goal may be unreachable or already met.');
+  }
+  return list;
+});
 
 const shifts = computed(() => {
   const actions = props.actions;

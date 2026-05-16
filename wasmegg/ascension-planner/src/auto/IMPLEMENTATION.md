@@ -280,7 +280,7 @@ Remove any types, functions, or references related to the abandoned decision tre
 
 **Test**: TypeScript compiles with no errors. No dead imports.
 
-### [ ] Step 7.2: Loading states and error handling
+### [x] Step 7.2: Loading states and error handling
 
 - Show a spinner/skeleton while each ascension simulates
 - Handle edge cases: TE goal already reached, SE going deeply negative, simulation failures
