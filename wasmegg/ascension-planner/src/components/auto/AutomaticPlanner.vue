@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6">
-    <div class="section-premium p-8 max-w-4xl mx-auto mt-4 relative overflow-hidden">
+    <div class="section-premium p-4 sm:p-8 max-w-4xl mx-auto mt-4 relative overflow-hidden">
       <!-- Decorative background -->
       <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl"></div>
 
@@ -24,7 +24,7 @@
             <!-- Part 1: Scheduling (Top) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div class="space-y-2">
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label>
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Start Time</label>
                 <div class="flex gap-3">
                   <input
                     v-model="startDate"
@@ -43,7 +43,7 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Timezone</label>
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Timezone</label>
                 <div class="relative">
                   <select
                     v-model="timezone"
@@ -97,7 +97,7 @@
                     <div class="flex items-center justify-between mb-2">
                       <div class="flex items-center gap-2">
                         <img :src="iconURL(`egginc/egg_${egg}.png`, 64)" class="w-4 h-4 object-contain grayscale group-hover:grayscale-0 transition-all" />
-                        <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">{{ VIRTUE_EGG_NAMES[egg] }}</span>
+                        <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">{{ VIRTUE_EGG_NAMES[egg] }}</span>
                       </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -137,7 +137,7 @@
               <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                 <div class="md:col-span-2 space-y-1.5">
                   <div class="flex justify-between items-center px-1">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Target TE</label>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Target TE</label>
                     <span class="text-[9px] font-black text-indigo-500 uppercase">+{{ Math.max(0, targetTE - currentTE) }} to gain</span>
                   </div>
                   <div class="relative">
@@ -158,7 +158,7 @@
                 </div>
 
                 <div class="md:col-span-3 space-y-1.5">
-                  <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">End Date & Time</label>
+                  <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">End Date & Time</label>
                   <div class="flex gap-2">
                     <input
                       v-model="targetEndDate"
@@ -192,7 +192,7 @@
     </div>
 
     <!-- Results Section -->
-    <div v-if="ascensionChain.length > 0" class="max-w-5xl mx-auto space-y-12 pb-24 relative">
+    <div v-if="ascensionChain.length > 0" class="max-w-4xl mx-auto space-y-12 pb-24 relative px-4 sm:px-0">
       <!-- Loading Overlay for Chain -->
       <div v-if="isGenerating" class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-[100] rounded-[3rem] flex items-center justify-center min-h-[400px]">
         <div class="flex flex-col items-center gap-4">
@@ -200,9 +200,9 @@
           <div class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] animate-pulse">Recalculating Chain...</div>
         </div>
       </div>
-      <div class="flex justify-between items-center px-4">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 px-4">
         <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Generated Roadmap</h2>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap justify-center items-center gap-3">
           <button 
             @click="copySummary"
             class="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95"
@@ -239,11 +239,14 @@
         <AscensionOverview 
           :summary="result.summary" 
           :actions="result.actions"
+          :index="idx"
+          :total="ascensionChain.length"
+          :target-t-e="result.targetTE"
         />
 
         <!-- Simplified Goal Input -->
         <div v-if="result.summary.endTE < 490" 
-             class="section-premium p-6 max-w-2xl mx-auto border-dashed border-2 border-indigo-200 bg-indigo-50/10">
+             class="section-premium p-4 sm:p-6 border-dashed border-2 border-indigo-200 bg-indigo-50/10">
           <div class="flex items-center gap-3 mb-4 px-1">
             <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,7 +260,7 @@
 
           <div v-if="nextGoals[idx + 1]" class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
             <div class="md:col-span-2 space-y-1.5">
-              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Target TE</label>
+              <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Target TE</label>
               <div class="relative">
                 <input
                   v-model.number="nextGoals[idx + 1].te"
@@ -277,7 +280,7 @@
             </div>
 
             <div class="md:col-span-3 space-y-1.5">
-              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">End Date & Time</label>
+              <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">End Date & Time</label>
               <div class="flex gap-2">
                 <input
                   v-model="nextGoals[idx + 1].date"
@@ -309,7 +312,7 @@
       </div>
 
       <!-- Simulation Error Display -->
-      <div v-if="simulationError" class="max-w-4xl mx-auto px-4">
+      <div v-if="simulationError" class="px-4">
         <div class="bg-rose-50 border border-rose-100 rounded-3xl p-6 flex items-start gap-4 shadow-xl shadow-rose-500/5 animate-in fade-in slide-in-from-top-4">
           <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-rose-600 flex-shrink-0">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,7 +327,7 @@
       </div>
 
       <!-- Running Totals Summary Bar -->
-      <div v-if="ascensionChain.length >= 1" class="section-premium p-6 max-w-4xl mx-auto">
+      <div v-if="ascensionChain.length >= 1" class="section-premium p-6">
         <div class="flex items-center gap-3 mb-5">
           <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-200">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,27 +340,27 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <!-- Ascension Count -->
           <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ascensions</div>
+            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Ascensions</div>
             <div class="text-xl font-black text-slate-900">{{ chainTotals.count }}</div>
           </div>
 
           <!-- TE Progress -->
           <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">TE Progress</div>
+            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">TE Progress</div>
             <div class="text-xl font-black text-slate-900">{{ chainTotals.startTE }} → {{ chainTotals.endTE }}</div>
             <div class="text-[10px] font-bold text-indigo-500 mt-0.5">+{{ chainTotals.endTE - chainTotals.startTE }} TE gained</div>
           </div>
 
           <!-- Total Duration -->
           <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Duration</div>
+            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Duration</div>
             <div class="text-xl font-black text-slate-900">{{ chainTotals.durationStr }}</div>
             <div class="text-[10px] font-bold text-slate-400 mt-0.5">{{ chainTotals.durationDays }} days</div>
           </div>
 
           <!-- SE Consumed -->
           <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">SE Consumed</div>
+            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">SE Consumed</div>
             <div class="text-xl font-black text-slate-900">{{ chainTotals.seConsumedStr }}</div>
             <div class="text-[10px] font-bold text-slate-400 mt-0.5">{{ chainTotals.shiftsTotal }} shifts total</div>
           </div>
@@ -556,7 +559,8 @@ const bestResults = computed(() => {
           daysFaster: diffDays,
           otherPlanLabel: cleanOtherLabel
         }
-      }
+      },
+      targetTE: item.goal.te
     };
   });
 });

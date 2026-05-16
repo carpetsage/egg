@@ -287,13 +287,13 @@ Remove any types, functions, or references related to the abandoned decision tre
 - Validate that each ascension's TE goal is achievable (endTE matches or exceeds goal)
 - Show a warning if an ascension takes an unreasonably long time (e.g., > 60 days)
 
-### [ ] Step 7.3: Responsive layout
+### [x] Step 7.3: Responsive layout
 
 - Ensure the chain view works on mobile/tablet
 - The "Next TE Goal" inline input should stack vertically on small screens
 - Ascension overviews should remain readable at narrow widths
 
-### [ ] Step 7.4: Ascension numbering and labels
+### [x] Step 7.4: Ascension numbering and labels
 
 Update `AscensionOverview` to show clear numbering:
 - "Ascension 1", "Ascension 2", etc.
