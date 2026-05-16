@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-center gap-3">
+  <div class="flex flex-wrap items-center justify-center gap-3">
     <template v-if="showNav">
       <button
         type="button"
@@ -44,14 +44,14 @@
 
       <button
         type="button"
-        class="ml-2 inline-flex items-center px-2.5 py-1 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+        class="inline-flex items-center px-2.5 py-1 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
         @click="$emit('today')"
       >
         Today
       </button>
     </template>
 
-    <div class="ml-2 inline-flex rounded-md shadow-sm">
+    <div class="inline-flex rounded-md shadow-sm">
       <button
         v-for="(opt, idx) in viewOptions"
         :key="opt.value"
@@ -73,7 +73,7 @@
 
     <button
       type="button"
-      class="ml-2 inline-flex items-center gap-1 px-2.5 py-1 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+      class="inline-flex items-center gap-1 px-2.5 py-1 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
       :title="newestFirst ? 'Showing newest first' : 'Showing oldest first'"
       @click="$emit('toggle-order')"
     >
