@@ -1,5 +1,3 @@
-import type { Action } from '@/types/actions/meta';
-import type { EngineState, SimulationContext, ShiftResult } from '../types';
 import { runC1 } from './c1';
 import { runK1 } from './k1';
 import { runI1 } from './i1';

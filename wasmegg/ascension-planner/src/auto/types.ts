@@ -5,8 +5,6 @@ import type { VirtueEgg } from '@/types/actions/virtue';
 
 export interface AscensionSummary {
   id: string;
-  parentId: string | null;
-  depth: number;                          // 0-indexed ascension number
   
   // Timing
   startTime: number;                      // Unix timestamp (seconds)
@@ -40,9 +38,6 @@ export interface AscensionSummary {
   
   // Max ELR milestone flag
   isMaxELRAscension: boolean;             // True if this is the ~300 TE collapse
-  
-  // Lazy reference to full plan
-  fullPlanRef?: WeakRef<Action[]> | null;
 }
 
 export interface AutoPlanGoal {
@@ -52,7 +47,6 @@ export interface AutoPlanGoal {
 export interface AutoPlanInput {
   backup: any;
   goal: AutoPlanGoal;
-  maxAscensions: number;
   startTime: number;
   timezone?: string;
 }

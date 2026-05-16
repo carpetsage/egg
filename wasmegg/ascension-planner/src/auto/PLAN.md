@@ -195,8 +195,6 @@ Key functions reused directly:
 ```typescript
 interface AscensionSummary {
   id: string;
-  parentId: string | null;
-  depth: number;                          // 0-indexed ascension number
   
   // Timing
   startTime: number;                      // Unix timestamp (seconds)

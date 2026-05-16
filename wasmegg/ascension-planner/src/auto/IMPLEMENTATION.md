@@ -269,7 +269,7 @@ This updates live as ascensions are added/removed/edited.
 
 ## Phase 7: Cleanup & Hardening
 
-### [ ] Step 7.1: Remove dead tree code & types
+### [x] Step 7.1: Remove dead tree code & types
 
 Remove any types, functions, or references related to the abandoned decision tree:
 - `tree.ts` (if created)
@@ -299,13 +299,3 @@ Update `AscensionOverview` to show clear numbering:
 - "Ascension 1", "Ascension 2", etc.
 - Show the TE goal in the header (not just the result)
 - Show cumulative position: "A3 of 5" or similar
-
-### [ ] Step 7.5: Save/restore auto-plan settings
-
-Persist the following to `localStorage`:
-- Player ID
-- Timezone preference
-- The entire ascension chain (goals + summaries, not full action arrays)
-- So the user can close the browser and come back to their plan
-
-**Test**: Generate a plan, refresh the page, verify the plan structure is restored (may need re-simulation for full action data).

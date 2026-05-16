@@ -353,7 +353,7 @@ import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
 import { useAutoPlannerStore } from '@/stores/autoPlanner';
 import { iconURL } from 'lib';
-import { formatNumber, parseNumber, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
+import { formatNumber, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
 import { useTruthEggsStore, VIRTUE_TE_ORDER } from '@/stores/truthEggs';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
@@ -367,24 +367,7 @@ import type { AscensionSummary } from '@/auto/types';
 import type { Action } from '@/types/actions/meta';
 import AscensionOverview from './AscensionOverview.vue';
 import { triggerPlanExport, type ExportedPlan } from '@/auto/export';
-
-interface ChainedAscension {
-  index: number;
-  result1: { summary: AscensionSummary; actions: Action[] };
-  result2: { summary: AscensionSummary; actions: Action[] };
-  goal: {
-    type: 'te' | 'date';
-    te: number | null;
-    date: string;
-    time: string;
-  };
-  // For A1, we also track initial parameters
-  initialParams?: {
-    startDate: string;
-    startTime: string;
-    teEarned: Record<string, number>;
-  }
-}
+import { type ChainedAscension } from '@/stores/autoPlanner';
 
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
@@ -457,13 +440,6 @@ const isGenerating = ref(false);
 
 // (ascensionChain and nextGoals are now from the store)
 
-const handleDeliveredChange = (egg: import('@/types').VirtueEgg, value: string) => {
-  const parsed = parseNumber(value);
-  if (parsed !== null && !isNaN(parsed)) {
-    truthEggsStore.setEggsDeliveredWithSync(egg, parsed);
-    syncTEAcrossStores(egg);
-  }
-};
 const removeLastAscension = () => {
   if (ascensionChain.value.length > 1) {
     ascensionChain.value.pop();
@@ -637,8 +613,6 @@ const generate = () => {
         resumeShiftName: 'C3'
       };
 
-      const t0 = performance.now();
-      
       let finalTargetTE: number | undefined = (targetTE.value !== null && targetTE.value !== undefined && targetTE.value > 0) ? targetTE.value : undefined;
       let finalEndTime: number | undefined = undefined;
       
@@ -647,7 +621,7 @@ const generate = () => {
         finalEndTime = getLocalTimestampInTimezone(targetEndDate.value, timeToUse, timezone.value);
       }
 
-      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, 'asc_0', null, 0, finalTargetTE, finalEndTime, resumeData1);
+      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, 'asc_0', finalTargetTE, finalEndTime, resumeData1);
 
       // We must pass a deep copy or fresh state for result2 so it doesn't mutate result1's objects
       const baseState2 = createBaseEngineState(null);
@@ -667,9 +641,7 @@ const generate = () => {
         resumeShiftName: 'C3'
       };
 
-      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, 'asc_0', null, 0, finalTargetTE, finalEndTime, resumeData2);
-
-      const t1 = performance.now();
+      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, 'asc_0', finalTargetTE, finalEndTime, resumeData2);
 
       // Prepare goal state for A2
       const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
@@ -759,7 +731,7 @@ const generateNext = (goal: { te: number | null, date: string, time: string }) =
         }
       }
 
-      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${idx}`, null, idx, finalTargetTE, targetEndTime, {
+      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${idx}`, finalTargetTE, targetEndTime, {
         actions: JSON.parse(JSON.stringify(precomputed.actions)),
         state: JSON.parse(JSON.stringify(precomputed.state)),
         elapsedSeconds: precomputed.elapsedSeconds,
@@ -771,7 +743,7 @@ const generateNext = (goal: { te: number | null, date: string, time: string }) =
       context2.ascensionStartTime = absStartTime;
       context2.planStartOffset = 0;
 
-      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, `asc_${idx}`, null, idx, finalTargetTE, targetEndTime, {
+      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, `asc_${idx}`, finalTargetTE, targetEndTime, {
         actions: JSON.parse(JSON.stringify(precomputed.actions)),
         state: JSON.parse(JSON.stringify(precomputed.state)),
         elapsedSeconds: precomputed.elapsedSeconds,
@@ -893,8 +865,8 @@ const updateAscension = (idx: number, goal: { te: number | null, date: string, t
           stepTargetTE = currentTotal + 30;
         }
         
-        const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${i}`, null, i, stepTargetTE, stepEndTime);
-        const result2 = runAscension(JSON.parse(JSON.stringify(baseState)), JSON.parse(JSON.stringify(context)), buildPhaseEnd2, absStartTime, `asc_${i}`, null, i, stepTargetTE, stepEndTime);
+        const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${i}`, stepTargetTE, stepEndTime);
+        const result2 = runAscension(JSON.parse(JSON.stringify(baseState)), JSON.parse(JSON.stringify(context)), buildPhaseEnd2, absStartTime, `asc_${i}`, stepTargetTE, stepEndTime);
 
         ascensionChain.value[i].result1 = result1;
         ascensionChain.value[i].result2 = result2;

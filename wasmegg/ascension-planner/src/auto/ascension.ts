@@ -1,6 +1,5 @@
 import { type Action, generateActionId } from '@/types/actions/meta';
 import { computeSnapshot } from '@/engine/compute';
-import { getNextPacificTime } from '@/lib/events';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { computeShiftCosts } from './se-tracker';
 import { calculateEggsLaidDuringActions } from './engine/eggs';
@@ -15,7 +14,7 @@ import { runC3 } from './shifts/c3';
 import { runH1 } from './shifts/h1';
 import { runK3 } from './shifts/k3';
 import { runC4, runI2, runR2, runH2, distributeTargetTE, solveTEForTimeBudget } from './shifts/te-wait';
-import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive } from './calendar';
+import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive, isEarningsBoostActive } from './calendar';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { computeRealisticELR } from '@/calculations/realisticELR';
 import type { VirtueEgg } from '@/types';
@@ -144,8 +143,6 @@ function calculatePeakELR(state: EngineState, context: SimulationContext): numbe
  * @param buildPhaseEnd - Unix timestamp when the build phase should end (C3 end/sale boundary)
  * @param startTime - Unix timestamp when the ascension starts
  * @param id - Optional ID for the ascension
- * @param parentId - Optional parent ID for tree tracking
- * @param depth - Depth in the decision tree
  * @param targetTE - Final target total TE for the entire ascension
  * @param resumeData - Optional data to skip ahead in the simulation
  */
@@ -155,13 +152,12 @@ export function runAscension(
   buildPhaseEnd: number,
   startTime: number,
   id: string = 'asc_0',
-  parentId: string | null = null,
-  depth: number = 0,
   targetTE?: number,
   targetEndTime?: number,
   resumeData?: { actions: Action[]; state: EngineState; elapsedSeconds: number; resumeShiftName: string }
 ): { actions: Action[]; summary: AscensionSummary } {
   const actualStartState = JSON.parse(JSON.stringify(startState));
+  
   if (!resumeData) {
     actualStartState.activeSales.research = isResearchSaleActive(startTime);
     actualStartState.earningsBoost.active = isEarningsBoostActive(startTime);
@@ -275,8 +271,6 @@ export function runAscension(
   // Build the summary
   const summary: AscensionSummary = {
     id,
-    parentId,
-    depth,
     startTime,
     endTime: startTime + totalElapsedSeconds,
     totalDurationSeconds: totalElapsedSeconds,
@@ -314,50 +308,4 @@ export function runAscension(
     actions: currentActions,
     summary,
   };
-}
-
-/**
- * Runs a single complete ascension based on a sale count strategy.
- * 
- * @param startState - Starting engine state
- * @param context - Simulation context
- * @param startTime - Unix timestamp when the ascension starts
- * @param buildPhaseSaleCount - Number of research sales to include (1 or 2)
- * @param targetTE - Target total TE for the ascension
- * @param id - Optional ID
- * @returns Generated actions and summary
- */
-export function runSingleAscension(
-  startState: EngineState,
-  context: SimulationContext,
-  startTime: number,
-  buildPhaseSaleCount: 1 | 2,
-  targetTE?: number,
-  targetEndTime?: number,
-  id: string = 'asc_0'
-): { actions: Action[]; summary: AscensionSummary } {
-  // Determine buildPhaseEnd based on sale count.
-  // The build phase ends at the END of the Nth sale from startTime.
-  let buildPhaseEnd: number;
-  
-  if (buildPhaseSaleCount === 1) {
-    // 1-sale strategy: ends at the end of the very next sale
-    buildPhaseEnd = getNextSaleEnd(startTime);
-  } else {
-    // 2-sale strategy: ends at the end of the second sale
-    const firstSaleEnd = getNextSaleEnd(startTime);
-    buildPhaseEnd = getNextSaleEnd(firstSaleEnd + 1);
-  }
-
-  return runAscension(
-    startState,
-    context,
-    buildPhaseEnd,
-    startTime,
-    id,
-    null,
-    0,
-    targetTE,
-    targetEndTime
-  );
 }
