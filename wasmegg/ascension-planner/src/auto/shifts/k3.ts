@@ -29,7 +29,7 @@ export function runK3(
   buildPhaseEnd: number,
   targetTEForEgg?: number
 ): ShiftResult {
-  let currentState = { ...startState };
+  let currentState: EngineState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 
@@ -160,7 +160,7 @@ export function runK3(
 
   // Attach peakELR to the shift action (the first action) so the UI summary can find it easily
   if (actions.length > 0 && actions[0].type === 'shift') {
-    actions[0].payload.peakELR = peakELR;
+    (actions[0].payload as any).peakELR = peakELR;
   }
 
   // 4. Wait

@@ -64,7 +64,7 @@ export function runC1(
   peakELR: number = 0
 ): ShiftResult {
   // console.log('--- Starting C1 Shift Simulation ---');
-  let currentState = { ...startState, maxELR: peakELR };
+  let currentState: EngineState = { ...startState, maxELR: peakELR };
   let elapsedSeconds = 0;
   let actions: Action[] = [];
 

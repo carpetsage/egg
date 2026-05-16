@@ -93,7 +93,7 @@ export function runUntilShift(
   for (const shift of allShifts) {
     if (shift.name === stopBeforeShift) break;
     currentState.lastStepTime = totalElapsedSeconds;
-    const result = shift.run(currentState, context);
+    const result = (shift.run as any)(currentState, context);
 
     // Calculate eggs laid during this shift (assuming full habs)
     const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
@@ -207,7 +207,7 @@ export function runAscension(
       if (shift.name === 'K3') {
         result = (shift.run as any)(currentState, context, buildPhaseEnd, targets['kindness']);
       } else {
-        const eggMap: any = { 'C4': 'curiosity', 'I2': 'integrity', 'R2': 'resilience', 'H2': 'humility' };
+        const eggMap: Record<string, VirtueEgg> = { 'C4': 'curiosity', 'I2': 'integrity', 'R2': 'resilience', 'H2': 'humility' };
         result = (shift.run as any)(currentState, context, targets[eggMap[shift.name]], peakELR);
       }
     } else {

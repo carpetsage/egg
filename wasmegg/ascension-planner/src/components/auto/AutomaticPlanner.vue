@@ -138,7 +138,7 @@
                 <div class="md:col-span-2 space-y-1.5">
                   <div class="flex justify-between items-center px-1">
                     <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Target TE</label>
-                    <span class="text-[9px] font-black text-indigo-500 uppercase">+{{ Math.max(0, targetTE - currentTE) }} to gain</span>
+                    <span class="text-[9px] font-black text-indigo-500 uppercase">+{{ Math.max(0, (targetTE || 0) - currentTE) }} to gain</span>
                   </div>
                   <div class="relative">
                     <input

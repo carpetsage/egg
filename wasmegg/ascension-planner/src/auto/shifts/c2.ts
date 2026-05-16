@@ -6,6 +6,7 @@ import {
   getResearchById,
   isTierUnlocked,
   purchasesNeededForTier,
+  getCommonResearches,
 } from '../../calculations/commonResearch';
 import {
   getBestEarningsRecommendation,
@@ -48,7 +49,7 @@ export function runC2(
   context: SimulationContext
 ): ShiftResult {
   // console.log('--- Starting C2 Shift Simulation ---');
-  let currentState = { ...startState };
+  let currentState: EngineState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 

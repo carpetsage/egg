@@ -66,6 +66,13 @@ export const useTruthEggsStore = defineStore('truthEggs', {
     },
 
     /**
+     * Whether there are any pending TE across all eggs
+     */
+    hasPendingTE(): boolean {
+      return this.totalPendingTE > 0;
+    },
+
+    /**
      * Pending TE for a specific egg (thresholds passed but not yet claimed)
      */
     pendingTEForEgg(): (egg: VirtueEgg) => number {
