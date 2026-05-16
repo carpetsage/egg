@@ -2,6 +2,7 @@ name: build-eicoops
 on:
   push:
     paths:
+      - '.github/workflows/build-eicoops.yml'
       - pnpm-lock.yaml
       - 'lib/**'
       - 'ui/**'
@@ -10,8 +11,9 @@ on:
       - '!periodicals/data/events.json'
       - 'protobuf/ei.proto'
   pull_request:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, synchronize]
     paths:
+      - '.github/workflows/build-eicoops.yml'
       - 'lib/**'
       - 'ui/**'
       - 'eicoop/**'

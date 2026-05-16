@@ -2,6 +2,7 @@ name: build-wasmegg
 on:
   push:
     paths:
+      - '.github/workflows/build-wasmegg.yml'
       - pnpm-lock.yaml
       - 'wasmegg/**'
       - 'ui/**'
@@ -12,8 +13,9 @@ on:
       - '!periodicals/data/seasoncontracts.json'
       - 'protobuf/ei.proto'
   pull_request:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, synchronize]
     paths:
+      - '.github/workflows/build-wasmegg.yml'
       - 'lib/**'
       - 'ui/**'
       - 'wasmegg/**'
