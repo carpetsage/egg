@@ -4,23 +4,12 @@ import { useActionsStore } from '@/stores/actions';
 import { usePersistence } from '@/composables/usePersistence';
 import { loadLibraryPlans, deletePlanFromLibrary, savePlanToLibrary, type PlanData } from '@/lib/storage/db';
 import { downloadFile } from '@/utils/export';
-import { formatNumber, formatDuration, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
-import { initLoadPlan, initPlanFuture } from '@/lib/modes';
-import { useAutoPlannerStore, type ChainedAscension } from '@/stores/autoPlanner';
-import { useInitialStateStore } from '@/stores/initialState';
-import { useTruthEggsStore } from '@/stores/truthEggs';
-import { useUIStore } from '@/stores/ui';
+import { initLoadPlan } from '@/lib/modes';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import ImportCollisionDialog from '@/components/ImportCollisionDialog.vue';
-import AutoPlanImportDialog from '@/components/AutoPlanImportDialog.vue';
 import PlanAlreadyOpenWarning from '@/components/PlanAlreadyOpenWarning.vue';
-import { createEmptySnapshot } from '@/types';
 
 const actionsStore = useActionsStore();
-const autoPlannerStore = useAutoPlannerStore();
-const initialStateStore = useInitialStateStore();
-const truthEggsStore = useTruthEggsStore();
-const uiStore = useUIStore();
 const { partitionHash, broadcastLibraryUpdate, broadcastPresence, busyPlanIds } = usePersistence();
 
 const plans = ref<PlanData[]>([]);
@@ -46,13 +35,6 @@ let collisionResolver: ((resolution: 'overwrite' | 'keep-both' | 'skip' | 'cance
 // Import progress
 const importProgress = ref<{ current: number; total: number } | null>(null);
 
-// Auto-plan import state
-const showAutoPlanDialog = ref(false);
-const autoPlanToImport = ref<any>(null);
-const autoPlanName = ref('');
-const autoPlanAscensionCount = ref(0);
-let autoPlanResolver: ((resolution: 'restore' | 'individual' | 'cancel') => void) | null = null;
-
 async function refreshPlans() {
   if (!partitionHash.value) return;
   isLoading.value = true;
@@ -68,7 +50,6 @@ watch(partitionHash, refreshPlans);
 watch(() => actionsStore.libraryUpdateTick, refreshPlans);
 
 async function loadPlan(plan: PlanData) {
-  return;
   // Check if plan is already open in another tab
   if (busyPlanIds.value.has(plan.id) && actionsStore.activePlanId !== plan.id) {
     openPlanName.value = plan.name;
@@ -251,174 +232,6 @@ async function handleImport(event: Event) {
       } else if (imported.type === 'plan' && imported.data) {
         // Single plan export (from our new format)
         plansToImport = [{ name: imported.name || file.name.replace('.json', ''), data: imported.data }];
-      } else if (imported.version && imported.ascensions && imported.initialState) {
-        // Sequential Roadmap (Auto-Plan)
-        showAutoPlanDialog.value = true;
-        autoPlanToImport.value = imported;
-        autoPlanName.value = file.name.replace('.json', '');
-        autoPlanAscensionCount.value = imported.ascensions.length;
-
-        const resolution = await new Promise<'restore' | 'individual' | 'cancel'>(resolve => {
-          autoPlanResolver = resolve;
-        });
-
-        if (resolution === 'cancel') return;
-
-        if (resolution === 'restore') {
-          // 1. Switch tab
-          uiStore.activeTab = 'automatic';
-          uiStore.isHeaderCollapsed = true;
-
-          // 2. Load fresh backup first (ensures we have latest epic research/artifacts as a baseline)
-          //    We do this because switching to the Auto Planner tab normally triggers a backup fetch.
-          uiStore.loading = true;
-          try {
-            if (initialStateStore.playerId) {
-              await initPlanFuture(initialStateStore.playerId);
-            }
-
-            // 3. Restore to Auto Planner (now overwriting the fresh backup state)
-            const chain: ChainedAscension[] = imported.ascensions.map((a: any) => ({
-              index: a.index,
-              result1: a.result1,
-              result2: a.result2,
-              goal: a.goal
-            }));
-
-            const nextGoalsMap: Record<number, { te: number | null, date: string, time: string }> = {};
-            chain.forEach((a, idx) => {
-              // Populate with the original goal
-              nextGoalsMap[idx] = { ...a.goal };
-              
-              // If it was a TE goal, pre-fill the date/time fields with the actual result for better UX
-              if (a.goal.type === 'te' || !a.goal.date) {
-                const endTime = a.result1.summary.endTime;
-                nextGoalsMap[idx].date = formatUnixToDateInput(endTime, imported.timezone);
-                nextGoalsMap[idx].time = formatUnixToTimeInput(endTime, imported.timezone);
-              }
-            });
-            // Add the next step goal (empty placeholder for new ascension)
-            nextGoalsMap[chain.length] = {
-              te: Math.min(490, chain[chain.length - 1].result1.summary.endTE + 30),
-              date: '',
-              time: ''
-            };
-
-            const firstA = imported.ascensions[0];
-            const a1Goal = firstA.goal;
-            const a1EndTime = firstA.result1.summary.endTime;
-
-            autoPlannerStore.setPlan({
-              ascensionChain: chain,
-              timezone: imported.timezone,
-              startDate: formatUnixToDateInput(imported.startTime, imported.timezone),
-              startTime: formatUnixToTimeInput(imported.startTime, imported.timezone),
-              targetTE: a1Goal.type === 'te' ? a1Goal.te : null,
-              // Always populate date/time fields with results for visibility
-              targetEndDate: formatUnixToDateInput(a1EndTime, imported.timezone),
-              targetEndTime: formatUnixToTimeInput(a1EndTime, imported.timezone),
-              nextGoals: nextGoalsMap
-            });
-
-            // Hydrate stores so the form shows the correct numbers from the plan
-            initialStateStore.hydrate(imported.initialState);
-            truthEggsStore.hydrate(imported.initialState);
-          } catch (e) {
-            console.error('Failed to restore roadmap:', e);
-            alert('Failed to restore roadmap simulation state.');
-          } finally {
-            uiStore.loading = false;
-          }
-        }
-
-        if (resolution === 'individual') {
-          // 2. Import Individual Ascensions into Library
-          const exportDate = new Date(imported.exportedAt).toISOString().split('T')[0];
-          
-          console.log('[PlanLibrary] Starting individual import for', imported.ascensions.length, 'ascensions');
-
-          plansToImport = imported.ascensions.map((a: any, idx: number) => {
-            // Pick the best result for the manual library
-            const r1 = a.result1;
-            const r2 = a.result2;
-            const best = (r2 && r2.summary.endTE >= r1.summary.endTE && r2.summary.totalDurationSeconds <= r1.summary.totalDurationSeconds) ? r2 : r1;
-            
-            console.log(`[PlanLibrary] Ascension ${idx + 1} uses strategy:`, best.summary.strategyLabel);
-            console.log(`[PlanLibrary] Ascension ${idx + 1} action count:`, best.actions.length);
-            console.log(`[PlanLibrary] Ascension ${idx + 1} first action type:`, best.actions[0]?.type);
-
-            let finalActions = best.actions;
-            if (finalActions.length === 0 || finalActions[0].type !== 'start_ascension') {
-              console.log(`[PlanLibrary] Ascension ${idx + 1} is missing start_ascension. Prepending a synthetic one.`);
-              const startAction = {
-                id: 'start_' + Math.random().toString(36).substring(2, 9),
-                index: 0,
-                timestamp: best.summary.startTime * 1000,
-                type: 'start_ascension',
-                payload: { initialEgg: 'curiosity' },
-                cost: 0, elrDelta: 0, offlineEarningsDelta: 0, eggValueDelta: 0,
-                habCapacityDelta: 0, layRateDelta: 0, shippingCapacityDelta: 0,
-                ihrDelta: 0, bankDelta: 0, populationDelta: 0, totalTimeSeconds: 0,
-                endState: createEmptySnapshot(),
-                dependsOn: [], dependents: []
-              };
-              finalActions = [startAction, ...finalActions];
-              finalActions.forEach((action: any, i: number) => {
-                action.index = i;
-              });
-            }
-
-            const summary = best.summary;
-            const startStr = new Date(summary.startTime * 1000).toISOString().split('T')[0];
-            const peakELR = formatNumber(summary.maxELR * 3600, 2);
-            const duration = formatDuration(summary.totalDurationSeconds);
-            
-            const name = `${exportDate} A${idx + 1} - ${peakELR}/hr from ${summary.startTE} to ${summary.endTE} - ${duration} - starting ${startStr}`;
-            
-            // Build the individual plan initialState
-            const state = JSON.parse(JSON.stringify(imported.initialState));
-            
-            if (idx > 0) {
-              // Use the best summary of the previous ascension to advance state
-              const prevA = imported.ascensions[idx - 1];
-              const prevBest = (prevA.result2 && prevA.result2.summary.endTE >= prevA.result1.summary.endTE) ? prevA.result2 : prevA.result1;
-              state.initialTeEarned = { ...prevBest.summary.finalTE };
-              state.initialEggsDelivered = { ...prevBest.summary.eggsDelivered };
-              state.soulEggs = prevBest.summary.endSoulEggs;
-              state.initialShiftCount = prevBest.summary.endShiftCount;
-            }
-            
-            return {
-              name,
-              data: {
-                version: 1,
-                actions: finalActions,
-                initialState: state,
-                virtueState: {
-                  shiftCount: state.initialShiftCount || 0,
-                  initialTE: Object.values(state.initialTeEarned || {}).reduce((a: number, b: any) => a + (b || 0), 0),
-                  ascensionDate: formatUnixToDateInput(imported.startTime, imported.timezone),
-                  ascensionTime: formatUnixToTimeInput(imported.startTime, imported.timezone),
-                  ascensionTimezone: imported.timezone,
-                },
-                fuelTankState: {
-                  tankLevel: state.initialTankLevel || 0,
-                  fuelAmounts: state.initialFuelAmounts || {},
-                },
-                truthEggsState: {
-                  eggsDelivered: state.initialEggsDelivered || {},
-                  teEarned: state.initialTeEarned || {},
-                },
-                notesState: {
-                  notes: []
-                }
-              }
-            };
-          });
-        } else {
-          // Restore only — we're done
-          return;
-        }
       } else if (imported.version && imported.actions && imported.initialState) {
         // Raw plan data (old format — the plan data itself, not wrapped)
         plansToImport = [{ name: file.name.replace('.json', ''), data: imported }];
@@ -519,22 +332,6 @@ async function handleImport(event: Event) {
   // Reset the file input so the same file can be imported again
   if (event.target) {
     (event.target as HTMLInputElement).value = '';
-  }
-}
-
-function handleAutoPlanResolve(resolution: 'restore' | 'individual') {
-  showAutoPlanDialog.value = false;
-  if (autoPlanResolver) {
-    autoPlanResolver(resolution);
-    autoPlanResolver = null;
-  }
-}
-
-function handleAutoPlanCancel() {
-  showAutoPlanDialog.value = false;
-  if (autoPlanResolver) {
-    autoPlanResolver('cancel');
-    autoPlanResolver = null;
   }
 }
 
@@ -643,6 +440,16 @@ const emit = defineEmits(['plan-loaded']);
             <span class="hidden sm:inline text-[10px] text-gray-400 whitespace-nowrap mr-1">
               Updated {{ new Date(plan.timestamp).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) }}
             </span>
+            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Load this plan'" @click="loadPlan(plan)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
+                />
+              </svg>
+            </button>
             <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Export this plan (JSON)'" @click="exportPlan(plan)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -742,12 +549,4 @@ const emit = defineEmits(['plan-loaded']);
   </ConfirmationDialog>
 
   <PlanAlreadyOpenWarning v-if="showAlreadyOpenWarning" @dismiss="showAlreadyOpenWarning = false" />
-
-  <AutoPlanImportDialog
-    v-if="showAutoPlanDialog"
-    :plan-name="autoPlanName"
-    :ascension-count="autoPlanAscensionCount"
-    @resolve="handleAutoPlanResolve"
-    @cancel="handleAutoPlanCancel"
-  />
 </template>

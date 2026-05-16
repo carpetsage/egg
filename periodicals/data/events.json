@@ -26665,5 +26665,68 @@
     "startTimestamp": 1778515200,
     "type": "earnings-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1778688000,
+    "id": "event-5-12",
+    "message": "2x GIFTS!",
+    "multiplier": 2,
+    "startTimestamp": 1778601600,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1778688000,
+    "id": "ultra-5-12",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1778601600,
+    "type": "vehicle-sale",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1778774400,
+    "id": "event-5-13",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1778688000,
+    "type": "drone-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1778774400,
+    "id": "event-5-13-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1778688000,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1778860800,
+    "id": "event-5-14",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1778774400,
+    "type": "boost-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1778860800,
+    "id": "ultra-5-14",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1778774400,
+    "type": "drone-boost",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1778947200,
+    "id": "event-5-15",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1778860800,
+    "type": "research-sale",
+    "ultra": false
   }
 ]

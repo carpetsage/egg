@@ -14,10 +14,6 @@ export const PACIFIC_TIMEZONE = 'America/Los_Angeles';
  * @returns The next occurrence timestamp in seconds
  */
 export function getNextPacificTime(targetDayOfWeek: number, targetHour: number, fromTimestampSeconds: number): number {
-    // 8.64e12 is the approximate max safe Unix timestamp in seconds for JavaScript Date (8.64e15 ms)
-    if (!Number.isFinite(fromTimestampSeconds) || fromTimestampSeconds > 8.64e12 || fromTimestampSeconds < 0) {
-        return fromTimestampSeconds;
-    }
     const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: PACIFIC_TIMEZONE,
         weekday: 'short',
