@@ -2,7 +2,7 @@
   
   <the-nav-bar active-entry-id="ascension-planner" />
 
-  <div :class="['min-h-screen bg-gray-100 transition-all duration-300', isFooterCollapsed ? 'pb-8' : 'pb-24']">
+  <div :class="['min-h-screen bg-gray-100 transition-all duration-300', (activeTab === 'automatic' || isFooterCollapsed) ? 'pb-8' : 'pb-24']">
     <div class="max-w-6xl mx-auto p-4">
       <!-- Collapsible Header Region -->
       <div class="bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-100 shadow-sm">
@@ -23,10 +23,171 @@
 
             <the-player-id-form :player-id="playerId" @submit="submitPlayerId" @input="onFormInput" />
 
+            <!-- Mode Tabs -->
+            <div v-if="playerId && !loading" class="mt-6 flex justify-center animate-in fade-in slide-in-from-top-4 duration-500">
+              <div class="bg-slate-50 p-1.5 rounded-2xl border border-slate-200/50 shadow-sm flex gap-1">
+                <button
+                  class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
+                  :class="activeTab === 'manual' ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'"
+                  @click="activeTab = 'manual'"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Manual Planner
+                </button>
+                <button
+                  class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
+                  :class="activeTab === 'automatic' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'"
+                  @click="handleAutoPlannerTabClick"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Auto Planner
+                  <span class="bg-indigo-500 text-[8px] px-1.5 py-0.5 rounded-md ml-1 border border-indigo-400/30">BETA</span>
+                </button>
+              </div>
+            </div>
+
             <!-- Plan Library Section -->
             <div v-if="playerId" class="max-w-6xl mx-auto mt-6">
               <PlanLibrary @plan-loaded="handlePlanLoaded" />
             </div>
+
+            <!-- Ascension Action Buttons -->
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-3 max-w-6xl mx-auto">
+              <!-- Start from Scratch -->
+              <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+                <div
+                  class="absolute -right-6 -top-6 w-20 h-20 bg-red-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
+                ></div>
+                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+                  <div class="p-2.5 bg-red-50 rounded-xl">
+                    <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-bold text-slate-800">Start from Scratch</div>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                      Clear your entire plan, reset all settings, and begin with a clean slate
+                    </p>
+                  </div>
+                  <button
+                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+                    @click="confirmUnsavedChanges(startFromScratch)"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              <!-- Plan Next Ascension -->
+              <div
+                class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden border-brand-primary/30"
+              >
+                <div
+                  class="absolute -right-6 -top-6 w-20 h-20 bg-brand-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
+                ></div>
+                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+                  <div class="p-2.5 bg-brand-primary/10 rounded-xl">
+                    <svg class="w-6 h-6 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-bold text-slate-800">Plan Future Ascension</div>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                      Load your latest backup, include pending TE, reset the clock, and start planning fresh
+                    </p>
+                  </div>
+                  <button
+                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+                    :disabled="loading || !playerId"
+                    @click="confirmUnsavedChanges(planNextAscension)"
+                  >
+                    Plan
+                  </button>
+                </div>
+              </div>
+
+              <!-- Continue Current Ascension -->
+              <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+                <div
+                  class="absolute -right-6 -top-6 w-20 h-20 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
+                ></div>
+                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+                  <div class="p-2.5 bg-blue-50 rounded-xl">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-bold text-slate-800">Continue Current Ascension</div>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                      Resume from your current in-game farm with all events applied
+                    </p>
+                  </div>
+                  <button
+                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+                    :disabled="loading || !playerId"
+                    @click="confirmUnsavedChanges(triggerQuickContinue)"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+
+              <!-- Reconcile Plan -->
+              <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
+                <div
+                  class="absolute -right-6 -top-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"
+                ></div>
+                <div class="relative z-10 flex flex-col items-center gap-3 flex-1">
+                  <div class="p-2.5 bg-emerald-50 rounded-xl">
+                    <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-bold text-slate-800">Reconcile Plan</div>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1.5 leading-relaxed">
+                      Load a plan and compare against your current farm to track progress
+                    </p>
+                  </div>
+
+                  <button
+                    class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
+                    :disabled="loading || !playerId"
+                    @click="confirmUnsavedChanges(triggerReconcile)"
+                  >
+                    Reconcile
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -50,24 +211,136 @@
       </div>
     </div>
 
-    <!-- Migration Information Banner -->
-    <div class="max-w-6xl mx-auto px-4 mb-6 mt-2">
-      <div class="bg-indigo-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group">
-        <div class="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
-        <div class="flex flex-col md:flex-row items-center gap-6 relative">
-          <div class="bg-white/20 p-4 rounded-2xl backdrop-blur-md shadow-inner border border-white/20 flex-shrink-0">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-            </svg>
+      <!-- Reconciliation Status Banner -->
+      <div v-if="actionsStore.isReconciling" class="mt-4 flex flex-col items-center gap-2">
+        <div
+          class="w-full max-w-sm bg-gradient-to-r from-emerald-50/80 via-white to-green-50/80 rounded-2xl p-4 border border-emerald-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
+        >
+          <div class="flex items-center gap-3 relative z-10">
+            <!-- Icon/Status -->
+            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            
+            <div class="flex flex-col gap-0 text-left">
+              <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Reconciliation Mode</span>
+              <span class="text-[10px] font-bold text-emerald-600 tracking-tight">
+                Backup from {{ lastBackupFormatted }} <span class="text-emerald-400/80 font-medium">({{ lastBackupAge }})</span>
+              </span>
+            </div>
           </div>
-          <div class="flex-1 text-center md:text-left">
-            <h2 class="text-xl font-black uppercase tracking-tighter mb-1">Notice: Page no longer maintained</h2>
-            <p class="text-indigo-100 text-sm md:text-base font-medium opacity-90 leading-relaxed">
-              This standalone instance of the Ascension Planner is no longer maintained. We recommend that you
-              <strong>export your plans or plan library</strong> and start using the version integrated into the main
-              Wasmegg page at
-              <a href="https://wasmegg-carpet.netlify.app/ascension-planner/" target="_blank" class="text-white underline underline-offset-4 decoration-indigo-400/50 hover:decoration-white transition-all font-bold whitespace-nowrap">wasmegg-carpet.netlify.app</a>.
-            </p>
+
+          <div class="flex items-center gap-4 relative z-10">
+            <!-- Incomplete Only Toggle -->
+            <div class="flex items-center gap-2">
+              <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Incomplete Only</span>
+              <button
+                class="relative inline-flex h-4 w-8 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+                :class="actionsStore.showIncompleteOnly ? 'bg-emerald-500' : 'bg-slate-200'"
+                @click="actionsStore.showIncompleteOnly = !actionsStore.showIncompleteOnly"
+              >
+                <span
+                  class="inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
+                  :class="actionsStore.showIncompleteOnly ? 'translate-x-[13px]' : 'translate-x-1'"
+                />
+              </button>
+            </div> 
+
+            <!-- Refresh Button -->
+            <button
+              class="h-8 w-8 rounded-lg bg-white border border-emerald-100 shadow-sm flex items-center justify-center text-emerald-600 hover:bg-emerald-50 transition-colors"
+              title="Reload backup"
+              :disabled="loading"
+              @click="handleRefreshReconcile"
+            >
+              <svg 
+                class="w-4 h-4" 
+                :class="{ 'animate-spin': loading }"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Event Slide Toggle (Earnings Boost) -->
+      <div v-if="activeTab === 'manual'" class="mt-4 flex flex-col items-center gap-2">
+        <div
+          class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
+        >
+          <div class="flex items-center gap-2 relative z-10">
+            <div class="flex flex-col gap-0.5 text-left">
+              <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none"
+                  >Monday 2x Earnings Event</span
+                >
+              </div>
+              <span class="text-[11px] font-black text-orange-600 uppercase tracking-tighter">
+                {{ isEarningsBoostActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+          </div>
+
+          <button
+            class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+            :class="isEarningsBoostActive ? 'bg-orange-500' : 'bg-slate-200'"
+            @click="handleToggleEarningsEvent"
+          >
+            <span
+              class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
+              :class="isEarningsBoostActive ? 'translate-x-[22px]' : 'translate-x-1'"
+            />
+          </button>
+        </div>
+      </div>
+
+      <div v-if="loading" class="text-center py-4 text-gray-600">Loading player data...</div>
+
+      <div v-if="error" class="text-center py-4 text-red-600">
+        {{ error }}
+      </div>
+
+      <div v-if="activeTab === 'manual'">
+        <!-- Action History and Available Actions side-by-side -->
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Action History -->
+          <div class="section-premium overflow-visible">
+            <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
+              <h2 class="text-lg font-semibold text-gray-800">Action History</h2>
+              <button
+                class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+                @click="expandedSections.actionHistory = !expandedSections.actionHistory"
+              >
+                <ChevronIcon :expanded="expandedSections.actionHistory" />
+              </button>
+            </div>
+            <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
+              <ActionHistory @show-details="showActionDetails" @undo="showUndoConfirmation" @clear-all="handleClearAll" />
+            </div>
+          </div>
+
+          <!-- Available Actions -->
+          <div class="section-premium overflow-visible">
+            <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
+              <h2 class="text-lg font-semibold text-gray-800">Available Actions</h2>
+              <button
+                class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+                @click="expandedSections.availableActions = !expandedSections.availableActions"
+              >
+                <ChevronIcon :expanded="expandedSections.availableActions" />
+              </button>
+            </div>
+            <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
+              <AvailableActions 
+                @show-current-details="showCurrentDetails" 
+                @refresh-backup="handleRefreshReconcile"
+              />
+            </div>
           </div>
           <a
             href="https://wasmegg-carpet.netlify.app/ascension-planner/"
@@ -77,6 +350,10 @@
             Go to Main Page
           </a>
         </div>
+      </div>
+
+      <div v-else-if="activeTab === 'automatic' && playerId && !loading">
+        <AutomaticPlanner />
       </div>
     </div>
 
@@ -152,24 +429,33 @@
 
     <RecalculationOverlay />
 
+    <PlanFinalSummary
+      v-if="activeTab === 'manual'"
+      @show-details="showCurrentDetails"
+      @update:collapsed="isFooterCollapsed = $event"
+      @save-plan="saveCurrentPlan"
+      @save-plan-as="savePlanAs"
+    />
+    <FloatingStats v-if="activeTab === 'manual'" @show-details="showCurrentDetails" />
+    <FloatingNotes v-if="activeTab === 'manual'" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import TheNavBar from 'ui/components/NavBar.vue';
-import { getSavedPlayerID, savePlayerID, requestFirstContact, iconURL } from 'lib';
+import { getSavedPlayerID, savePlayerID, requestFirstContact } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
+import { useUIStore } from '@/stores/ui';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useEventsStore } from '@/stores/events';
-import { useCommonResearchStore } from '@/stores/commonResearch';
-import { useHabCapacityStore } from '@/stores/habCapacity';
-import { useShippingCapacityStore } from '@/stores/shippingCapacity';
-import { useSilosStore } from '@/stores/silos';
+
+import { useNotesStore } from '@/stores/notes';
 import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
 import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
@@ -178,10 +464,12 @@ import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import FloatingStats from '@/components/FloatingStats.vue';
+import FloatingNotes from '@/components/FloatingNotes.vue';
 import WarningDialog from '@/components/WarningDialog.vue';
 import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
 import PlanLibrary from '@/components/PlanLibrary.vue';
 import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
+import AutomaticPlanner from '@/components/auto/AutomaticPlanner.vue';
 import { useSalesStore } from '@/stores/sales';
 import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -192,42 +480,63 @@ import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import type { Action, VirtueEgg } from '@/types';
-import { VIRTUE_EGGS } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { getArtifact, getArtifactLoadoutFromBackup } from '@/lib/artifacts';
+import {
+  initStartFromScratch,
+  initPlanFuture,
+  initContinueCurrent,
+  initReconcile,
+  loadAndSyncBackup,
+  captureReconciliationTargets,
+  catchUpFarmState,
+} from '@/lib/modes';
 
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
-const loading = ref(false);
-const error = ref('');
-
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
+const uiStore = useUIStore();
+const { activeTab, isHeaderCollapsed, isFooterCollapsed, loading, error } = storeToRefs(uiStore);
 const virtueStore = useVirtueStore();
 const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
 const eventsStore = useEventsStore();
 const salesStore = useSalesStore();
-const commonResearchStore = useCommonResearchStore();
-const habCapacityStore = useHabCapacityStore();
-const shippingCapacityStore = useShippingCapacityStore();
-const silosStore = useSilosStore();
+
+const notesStore = useNotesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 const { partitionHash, saveActiveDraft, initPersistence, broadcastPresence } = usePersistence();
 
-const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
+const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot?.earningsBoost?.active ?? false);
 
 const lastBackupFormatted = computed(() => {
-
   const approxTime = initialStateStore.rawBackup?.approxTime;
   if (approxTime == null) return 'Unknown';
   const date = new Date(approxTime * 1000);
   
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleTimeString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
   });
+});
+
+const lastBackupAge = computed(() => {
+  const approxTime = initialStateStore.rawBackup?.approxTime;
+  if (approxTime == null) return '';
+  const now = Date.now() / 1000;
+  const diff = Math.max(0, now - approxTime);
+  
+  if (diff < 60) return 'Just now';
+  
+  const minutes = Math.floor(diff / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h${remainingMinutes}m ago`;
 });
 
 const pageTitle = computed(() => {
@@ -317,13 +626,16 @@ onMounted(async () => {
 
 // Auto-save logic
 let saveTimeout: ReturnType<typeof setTimeout>;
-actionsStore.$subscribe(() => {
+function triggerAutoSave() {
   if (!playerId.value) return;
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
     saveActiveDraft();
   }, 1000);
-});
+}
+
+actionsStore.$subscribe(triggerAutoSave);
+notesStore.$subscribe(triggerAutoSave);
 
 // Re-init persistence when player ID changes
 watch(playerId, async newId => {
@@ -338,9 +650,10 @@ const expandedSections = ref({
   availableActions: true,
 });
 
-const isHeaderCollapsed = ref(false);
+// isHeaderCollapsed moved to UI store
 
 function handlePlanLoaded() {
+  activeTab.value = 'manual';
   isHeaderCollapsed.value = true;
   scrollToTop();
 }
@@ -357,7 +670,6 @@ const undoAction = ref<Action | null>(null);
 const undoDependentsA = ref<Action[]>([]);
 const undoDependentsB = ref<Action[]>([]);
 const showClearAllConfirmation = ref(false);
-const isFooterCollapsed = ref(false);
 
 const showReconcileLibraryModal = ref(false);
 const showUnsavedConfirm = ref(false);
@@ -447,47 +759,18 @@ function executeClearAll() {
 
 /**
  * Start from Scratch: Full reset.
- * Wipes the action history, clears player data from stores,
- * and resets initial state to defaults — equivalent to a hard refresh.
+ * Delegates to initStartFromScratch mode initializer.
  */
 async function startFromScratch() {
   error.value = '';
-
-  // 1. Wipe action history first to stop any ongoing simulations
-  // and clear the start action's carry-over state.
-  const startAction = actionsStore.getStartAction();
-  if (startAction) {
-    startAction.payload.initialFarmState = undefined;
-    startAction.payload.isQuickContinue = false;
-    startAction.payload.initialEgg = 'curiosity';
+  try {
+    activeTab.value = 'manual';
+    await initStartFromScratch();
+    isHeaderCollapsed.value = true;
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Reset failed';
+    console.error('Start from Scratch error:', e);
   }
-  actionsStore.isReconciling = false;
-  actionsStore.showIncompleteOnly = false;
-  await actionsStore.clearAll();
-
-  // 2. Reset all definition stores to their default/clean states.
-  // We do this AFTER clearAll because clearAll's simulation sync
-  // would otherwise overwrite these stores with old snapshot data.
-  const cachedBackup = initialStateStore.rawBackup;
-  const cachedPlayerId = initialStateStore.playerId;
-  initialStateStore.$reset();
-  if (cachedPlayerId && cachedBackup) {
-    initialStateStore.loadFromBackup(cachedPlayerId, cachedBackup, 'scratch');
-  }
-  virtueStore.$reset();
-  fuelTankStore.$reset();
-  truthEggsStore.$reset();
-  commonResearchStore.$reset();
-  habCapacityStore.$reset();
-  shippingCapacityStore.$reset();
-  silosStore.$reset();
-
-  // 3. Recompute and set a clean initial snapshot from the reset stores.
-  const context = getSimulationContext();
-  const baseState = createBaseEngineState(null);
-  const initialSnapshot = computeSnapshot(baseState, context);
-  await actionsStore.setInitialSnapshot(initialSnapshot);
-  isHeaderCollapsed.value = true;
 }
 
 /**
@@ -504,26 +787,42 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
   error.value = '';
 
   try {
-    // 1. Fetch latest backup
-    await submitPlayerId(playerId.value, 'reconcile');
-
-    // Capture the live state for reconciliation before the plan import overwrites initialStateStore
-    if (initialStateStore.currentFarmState) {
-      actionsStore.reconcileFarmState = JSON.parse(JSON.stringify(initialStateStore.currentFarmState));
-    } else {
-      actionsStore.reconcileFarmState = null;
-    }
-    actionsStore.reconcileEggsDelivered = JSON.parse(JSON.stringify(initialStateStore.initialEggsDelivered));
-    actionsStore.reconcileTeEarned = JSON.parse(JSON.stringify(initialStateStore.initialTeEarned));
-
-    // 2. Set reconciliation mode and load the plan
-    actionsStore.isReconciling = true;
-    broadcastPresence(plan.id); // Immediate heartbeat to block other tabs
-    await actionsStore.loadPlanFromLibrary(plan);
+    activeTab.value = 'manual';
+    savePlayerID(playerId.value);
+    await initReconcile(playerId.value, plan, broadcastPresence);
     isHeaderCollapsed.value = true;
   } catch (err) {
     console.error(err);
     alert('Failed to reconcile plan.');
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleRefreshReconcile() {
+  if (!playerId.value || loading.value) return;
+  
+  loading.value = true;
+  error.value = '';
+  try {
+    const data = await requestFirstContact(playerId.value);
+    if (!data.backup) throw new Error('Could not fetch player backup');
+    const backup = data.backup;
+
+    // Save backup to DB
+    const pHash = await hashID(playerId.value);
+    await saveMetadata(pHash, 'rawBackup', backup);
+    
+    // Load into state store and sync global stores
+    loadAndSyncBackup(playerId.value, backup, 'reconcile');
+
+    // Update reconciliation targets in actionsStore
+    captureReconciliationTargets();
+
+    // No full recalculateAll() needed here, as reconciliation statuses are reactive getters.
+  } catch (err) {
+    console.error(err);
+    error.value = 'Failed to refresh backup.';
   } finally {
     loading.value = false;
   }
@@ -537,11 +836,35 @@ function onFormInput(e: Event) {
   error.value = '';
 }
 
-async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'continue_earnings' | 'continue_elr' | 'reconcile' | 'default' = 'default') {
+async function handleAutoPlannerTabClick() {
+  activeTab.value = 'automatic';
+  isHeaderCollapsed.value = true;
+  
+  if (playerId.value && !loading.value) {
+    loading.value = true;
+    try {
+      // Fetch fresh backup and initialize for "Plan Future" mode (zeroed farm)
+      await initPlanFuture(playerId.value);
+    } catch (e) {
+      console.error('Failed to auto-init Auto Planner:', e);
+      error.value = 'Failed to load fresh backup for Auto Planner.';
+    } finally {
+      loading.value = false;
+    }
+  }
+}
+
+/**
+ * Load player data from the server when the player ID form is submitted.
+ * This is NOT a mode initializer — it just fetches player data so the
+ * mode buttons become usable and player info is displayed.
+ */
+async function submitPlayerId(id: string) {
   playerId.value = id;
   savePlayerID(id);
   error.value = '';
   loading.value = true;
+  notesStore.$reset();
 
   try {
     // Clear existing plan to ensure a fresh start with new player data
@@ -558,84 +881,19 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
       console.error('Failed to save raw backup to DB', dbErr);
     }
 
-    // Store the backup data in initial state
-    const { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
-      initialStateStore.loadFromBackup(id, backup, mode);
+    // Load into state store and sync global stores
+    const { teEarnedPerEgg } = loadAndSyncBackup(id, backup, 'default');
 
-    // Calculate extra eggs since backup if on a virtue egg
-    if (initialStateStore.currentFarmState && initialStateStore.lastBackupTime > 0) {
-      const farm = initialStateStore.currentFarmState;
-      const egg = VIRTUE_EGGS[farm.eggType - 50];
-      const now = Date.now() / 1000;
-      const elapsed = now - initialStateStore.lastBackupTime;
-
-      if (elapsed > 0) {
-        const context = getSimulationContext();
-        const tempState = createBaseEngineState(null);
-        tempState.currentEgg = egg;
-        tempState.habIds = farm.habs;
-        tempState.vehicles = farm.vehicles;
-        tempState.researchLevels = farm.commonResearches;
-        tempState.siloCount = farm.numSilos;
-        tempState.population = farm.population;
-        tempState.lastStepTime = farm.lastStepTime;
-
-        const snapshot = computeSnapshot(tempState, context);
-        const startPop = farm.population;
-        const extraChickens = (snapshot.offlineIHR / 60) * elapsed;
-        const endPop = Math.min(snapshot.habCapacity, startPop + extraChickens);
-
-        // Update population
-        farm.population = endPop;
-
-        // Recompute snapshot at end population to get accurate end-of-period ELR
-        tempState.population = endPop;
-        const endSnapshot = computeSnapshot(tempState, context);
-
-        // Average ELR for catch-up (accurate linear approximation)
-        const avgELR = (snapshot.elr + endSnapshot.elr) / 2;
-        const extraEggs = avgELR * elapsed;
-
-        if (extraEggs > 0) {
-          // 1. Update farm state
-          farm.deliveredEggs += extraEggs;
-
-          // 2. Update store's initial delivered eggs
-          const newDelivered = (eggsDelivered[egg] || 0) + extraEggs;
-          initialStateStore.setInitialEggsDelivered(egg, newDelivered);
-
-          // 3. Update local eggsDelivered for later store initialization
-          eggsDelivered[egg] = newDelivered;
-
-          // 4. Recalculate pending TE for this egg
-          const theoreticalTE = countTEThresholdsPassed(newDelivered);
-          const earned = teEarnedPerEgg[egg];
-          initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - earned));
-        }
-      }
-    }
-
-    // Initialize virtue store with player's shift count and TE
-    virtueStore.setInitialState(initialShiftCount, initialTE);
-
-    // Initialize fuel tank store with player's tank data
-    fuelTankStore.setTankLevel(tankLevel);
-    for (const [egg, amount] of Object.entries(virtueFuelAmounts)) {
-      fuelTankStore.setFuelAmount(egg as VirtueEgg, amount);
-    }
-
-    // Initialize truth eggs store with player's TE data
-    for (const [egg, amount] of Object.entries(eggsDelivered)) {
-      truthEggsStore.setEggsDelivered(egg as VirtueEgg, amount);
-    }
-    for (const [egg, count] of Object.entries(teEarnedPerEgg)) {
-      truthEggsStore.setTEEarned(egg as VirtueEgg, count);
-    }
-
-    // Create the start_ascension action with initial snapshot
+    // Catch-up calculations (eggs, earnings, population) are now handled 
+    // automatically by computeSnapshot in the engine.
     const context = getSimulationContext();
     const baseState = createBaseEngineState(null);
     const initialSnapshot = computeSnapshot(baseState, context);
+    
+    // Sync farm state and Truth Eggs with caught-up values
+    catchUpFarmState(initialSnapshot, baseState.bankValue, context.ascensionStartTime, teEarnedPerEgg);
+
+    // Initialize initial state in actions store
     await actionsStore.setInitialSnapshot(initialSnapshot);
 
     loading.value = false;
@@ -646,8 +904,77 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
   }
 }
 
-function triggerQuickContinue() {
-  showArtifactSetConfirm.value = true;
+/**
+ * Try to determine which artifact set they have on based on stones.
+ */
+function detectArtifactSet(loadout: import('@/lib/artifacts').EquippedArtifact[]): 'earnings' | 'elr' | null {
+  let totalSlots = 0;
+  const allStones: string[] = [];
+
+  for (const slot of loadout) {
+    if (slot.artifactId) {
+      const artifact = getArtifact(slot.artifactId);
+      if (artifact) {
+        totalSlots += artifact.slots;
+      }
+    }
+    for (const stoneId of slot.stones) {
+      if (stoneId) {
+        allStones.push(stoneId);
+      }
+    }
+  }
+
+  // 1. If their artifact set has at least 3 stone slots, we can try to determine which set it is
+  if (totalSlots < 3) {
+    return null;
+  }
+
+  // If no stones are equipped, we can't reliably determine the set
+  if (allStones.length === 0) {
+    return null;
+  }
+
+  const isLunar = (id: string) => id.startsWith('lunar-stone-');
+  const isELR = (id: string) => id.startsWith('quantum-stone-') || id.startsWith('tachyon-stone-');
+
+  // 2. If all the stones are lunar stones, it's the earnings set
+  if (allStones.every(isLunar)) {
+    return 'earnings';
+  }
+
+  // 3. If all the stones are either quantum or tachyon, it's the elr set
+  if (allStones.every(isELR)) {
+    return 'elr';
+  }
+
+  return null;
+}
+
+async function triggerQuickContinue() {
+  if (!playerId.value) return;
+  loading.value = true;
+  error.value = '';
+
+  try {
+    const data = await requestFirstContact(playerId.value);
+    if (!data.backup) throw new Error('Could not fetch player backup');
+    const backup = data.backup;
+
+    const loadout = getArtifactLoadoutFromBackup(backup);
+    const detectedSet = detectArtifactSet(loadout);
+
+    if (detectedSet) {
+      handleArtifactSetSelection(detectedSet);
+    } else {
+      loading.value = false;
+      showArtifactSetConfirm.value = true;
+    }
+  } catch (e) {
+    loading.value = false;
+    error.value = e instanceof Error ? e.message : 'Quick Continue failed';
+    console.error('Quick Continue error:', e);
+  }
 }
 
 function handleArtifactSetSelection(selection: 'earnings' | 'elr') {
@@ -662,31 +989,21 @@ async function quickContinueAscension(selection: 'earnings' | 'elr') {
   loading.value = true;
 
   try {
-    // 1. Reset date/time/TZ to current
-    virtueStore.resetToCurrentDateTime();
-
-    // 3. Refresh backup (submitPlayerId)
-    await submitPlayerId(playerId.value, selection === 'earnings' ? 'continue_earnings' : 'continue_elr');
-
-    // 4. Trigger continue from backup
-    actionsStore.isReconciling = false;
-    await actionsStore.continueFromBackup(true);
-
+    activeTab.value = 'manual';
+    savePlayerID(playerId.value);
+    await initContinueCurrent(playerId.value, selection);
     isHeaderCollapsed.value = true;
-    loading.value = false;
   } catch (e) {
-    loading.value = false;
     error.value = e instanceof Error ? e.message : 'Quick Continue failed';
     console.error('Quick Continue error:', e);
+  } finally {
+    loading.value = false;
   }
 }
 
 /**
  * Plan Next Ascension:
- * 1. Load latest player data (reuses submitPlayerId)
- * 2. Include pending TE
- * 3. Reset ascension date/time/timezone to current values
- * 4. Clear action history (wipe old plan)
+ * Delegates to initPlanFuture mode initializer.
  */
 async function planNextAscension() {
   if (!playerId.value) return;
@@ -695,62 +1012,15 @@ async function planNextAscension() {
   loading.value = true;
 
   try {
-    // 1. Wipe current plan
-    await actionsStore.clearAll();
-
-    // 2. Load latest backup
-    await submitPlayerId(playerId.value, 'plan_next');
-
-    // 3. Include pending TE
-    for (const egg of Object.keys(initialStateStore.initialTePending) as VirtueEgg[]) {
-      const pending = initialStateStore.initialTePending[egg];
-      if (pending > 0) {
-        const currentEarned = initialStateStore.initialTeEarned[egg];
-        const newTotal = Math.min(98, currentEarned + pending);
-        truthEggsStore.setTEEarned(egg, newTotal);
-        initialStateStore.setInitialTePending(egg, 0);
-      }
-    }
-    // Sync back
-    for (const egg of Object.keys(initialStateStore.initialTeEarned) as VirtueEgg[]) {
-      initialStateStore.setInitialEggsDelivered(egg, truthEggsStore.eggsDelivered[egg]);
-      initialStateStore.setInitialTeEarned(egg, truthEggsStore.teEarned[egg]);
-    }
-    virtueStore.setTE(truthEggsStore.totalTE);
-    virtueStore.setInitialTE(truthEggsStore.totalTE);
-
-    // 4. Reset ascension date/time/timezone to current
-    virtueStore.resetToCurrentDateTime();
-
-    // 5. Clear any farm state from a previous Continue so the start action is clean
-    const startAction = actionsStore.getStartAction();
-    if (startAction) {
-      startAction.payload.initialFarmState = undefined;
-      startAction.payload.isQuickContinue = false;
-    }
-
-    // 6. Reset purchase state to defaults (fresh ascension)
-    commonResearchStore.$reset();
-    habCapacityStore.$reset();
-    shippingCapacityStore.$reset();
-    silosStore.$reset();
-
-    // 7. Set starting egg to Curiosity
-    virtueStore.setCurrentEgg('curiosity');
-    actionsStore.setInitialEgg('curiosity');
-
-    // 8. Recalculate initial snapshot with updated TE
-    const context = getSimulationContext();
-    const baseState = createBaseEngineState(null);
-    const initialSnapshot = computeSnapshot(baseState, context);
-    await actionsStore.setInitialSnapshot(initialSnapshot);
-
+    activeTab.value = 'manual';
+    savePlayerID(playerId.value);
+    await initPlanFuture(playerId.value);
     isHeaderCollapsed.value = true;
-    loading.value = false;
   } catch (e) {
-    loading.value = false;
     error.value = e instanceof Error ? e.message : 'Plan Next failed';
     console.error('Plan Next Ascension error:', e);
+  } finally {
+    loading.value = false;
   }
 }
 

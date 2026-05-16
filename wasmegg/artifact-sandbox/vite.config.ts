@@ -1,5 +1,3 @@
-import path from 'path';
-
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
@@ -8,10 +6,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx';
 export default defineConfig({
   base: '/artifact-sandbox/',
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      ui: path.resolve(__dirname, '../../ui'),
-    },
+    tsconfigPaths: true,
   },
   plugins: [vue(), vueJsx()],
   build: {
@@ -19,5 +14,9 @@ export default defineConfig({
   },
   server: {
     host: true,
+    forwardConsole: {
+      unhandledErrors: true,
+      logLevels: ['warn', 'error'],
+    },
   },
 });

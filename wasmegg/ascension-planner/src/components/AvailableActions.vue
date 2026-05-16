@@ -63,7 +63,7 @@
       <InitialStateContainer v-if="activeTab === 'initial'" />
       <VehicleActions v-if="activeTab === 'vehicles'" />
       <HabActions v-if="activeTab === 'habs'" />
-      <ResearchActions v-if="activeTab === 'research'" />
+      <ResearchActions v-if="activeTab === 'research'" @refresh-backup="$emit('refresh-backup')" />
       <ShiftActions v-if="activeTab === 'shift'" />
       <ArtifactActions v-if="activeTab === 'artifacts'" />
       <SiloActions v-if="activeTab === 'silos'" />
@@ -114,6 +114,7 @@ onUnmounted(() => {
 
 defineEmits<{
   'show-current-details': [];
+  'refresh-backup': [];
 }>();
 
 // Check if any shifts have been made
@@ -131,7 +132,7 @@ const isEditingStartGroup = computed(() => {
 });
 
 // The effective egg to use (from effective snapshot when editing, otherwise current)
-const effectiveEgg = computed(() => actionsStore.effectiveSnapshot.currentEgg);
+const effectiveEgg = computed(() => actionsStore.effectiveSnapshot?.currentEgg ?? 'curiosity');
 
 // All available tabs
 const allTabs = [

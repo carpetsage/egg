@@ -1,8 +1,8 @@
 <template>
   <api-requester
-    api-endpoint="/ei/coop_status_basic"
+    api-endpoint="/ei/coop_status_bot"
     request-message="ContractCoopStatusRequest"
-    response-message="JoinCoopResponse"
+    response-message="ContractCoopStatusResponse"
     :persist-form-data="persistFormData"
     :get-request-payload-object="getRequestPayloadObject"
   >
@@ -14,12 +14,7 @@
         placeholder="Ex: graviton-project"
         :required="true"
       />
-      <parameter-input
-        v-model.trim="coopCode"
-        name="coop_code"
-        label="Coop code"
-        :required="true"
-      />
+      <parameter-input v-model.trim="coopCode" name="coop_code" label="Coop code" :required="true" />
       <parameter-input
         v-model.trim="userId"
         name="user_id"
@@ -34,7 +29,7 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
 
-import { basicRequestInfo, CLIENT_VERSION, ei, getLocalStorage, setLocalStorage } from 'lib';
+import { basicRequestInfo, CLIENT_VERSION, ei, getLocalStorage, setLocalStorage, defaultUserId } from 'lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import ParameterInput from '@/components/ParameterInput.vue';
 import RequestButton from '@/components/RequestButton.vue';
@@ -65,7 +60,7 @@ export default defineComponent({
     };
 
     const getRequestPayloadObject = (): ContractCoopStatusRequestPayload => {
-      const uid = userId.value || atob('RUk2MjkxOTQwOTY4MjM1MDA4');
+      const uid = userId.value || defaultUserId;
       return {
         contractIdentifier: contractId.value,
         coopIdentifier: coopCode.value.toLowerCase(),

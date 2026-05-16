@@ -20,13 +20,13 @@
             {{ research.name }}
           </span>
           <span class="text-[11px] font-medium text-gray-500 whitespace-nowrap hidden sm:inline-block">
-            <span v-if="targetLevel" class="text-blue-600">Lvl {{ targetLevel }}</span>
+            <span v-if="targetLevel" class="text-gray-900">Lvl {{ targetLevel }}</span>
             <span v-else>Lvl {{ currentLevel }}</span>
             / {{ research.levels }}
           </span>
         </div>
         <span class="text-[11px] font-medium text-gray-500 whitespace-nowrap sm:hidden">
-          <span v-if="targetLevel" class="text-blue-600">Lvl {{ targetLevel }}</span>
+          <span v-if="targetLevel" class="text-gray-900">Lvl {{ targetLevel }}</span>
           <span v-else>Lvl {{ currentLevel }}</span>
           / {{ research.levels }}
         </span>
@@ -73,12 +73,12 @@
 
     <!-- Row 3: Metrics, Time Cost, Actions -->
     <div class="flex items-center justify-between w-full pl-[38px] gap-2">
-      <!-- Extra Stats (Left aligned now) -->
+      <!-- Extra Stats (Left aligned) -->
       <div class="flex-1">
         <div v-if="extraStats" class="whitespace-nowrap">
           <div class="flex items-end gap-2">
             <div
-              class="text-[9px] font-bold text-blue-600 uppercase tracking-tighter"
+              class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter"
               :class="{ 'cursor-help': hpp !== undefined }"
               v-tippy="
                 hpp !== undefined
@@ -105,8 +105,8 @@
                 ⚠️
               </span>
             </div>
-            <div v-if="hpp !== undefined" class="text-[9px] font-mono text-purple-600 leading-none pb-[1px]">
-              {{ hpp === Infinity ? '∞' : hpp.toFixed(1) }} hr/%
+            <div v-if="hpp !== undefined" class="text-[9px] font-mono text-gray-400 leading-none pb-[1px]">
+              {{ hpp === Infinity || isNaN(hpp) ? '∞' : hpp.toFixed(1) }} hr/%
             </div>
           </div>
         </div>
@@ -127,7 +127,7 @@
             class="bg-blue-600 text-white hover:bg-blue-700 font-bold uppercase tracking-widest text-[10px] py-1.5 px-3 rounded shadow-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             :class="showDeadlineWarning ? 'bg-amber-500 hover:bg-amber-600' : ''"
             :disabled="!canBuyToHere"
-            v-tippy="deadlineWarningTooltip(buyToHereSeconds)"
+            v-tippy="deadlineWarningTooltip(buyToHereSeconds, buyToHereTooltip)"
             @click.stop="$emit('buyToHere')"
           >
             Buy to here
@@ -166,13 +166,42 @@
         </div>
       </div>
     </div>
+
+    <!-- Row 4: Realistic Stats Comparison (Conditional) -->
+    <div v-if="realisticStats" class="mt-1 flex items-center justify-between w-full pl-[38px] py-1 border-t border-gray-50">
+       <div class="flex items-center gap-6">
+         <div class="flex flex-col">
+           <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-1 text-center font-mono">Lay Rate</span>
+           <span class="text-[10px] font-mono font-bold text-gray-600 leading-none text-center">
+             {{ formatNumber(realisticStats.layRate) }}/hr
+           </span>
+         </div>
+         <div class="flex flex-col">
+           <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-1 text-center font-mono">Shipping Cap</span>
+           <span class="text-[10px] font-mono font-bold text-gray-600 leading-none text-center">
+             {{ formatNumber(realisticStats.shippingRate) }}/hr
+           </span>
+         </div>
+       </div>
+       <div class="text-right">
+         <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-1 block text-right font-mono">ELR</span>
+         <div class="flex items-center justify-end gap-1 leading-none">
+           <span class="text-[11px] font-mono font-bold text-gray-900">
+             {{ formatNumber(realisticStats.elr) }}/hr
+           </span>
+           <span v-if="realisticStats.elrDelta > 0.001" class="text-[9px] font-mono font-bold text-gray-400 ml-1">
+             (+{{ formatWithReference(realisticStats.elrDelta, realisticStats.elr) }})
+           </span>
+         </div>
+       </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { CommonResearch } from '@/calculations/commonResearch';
-import { formatNumber, formatGemPrice, formatAbsoluteTime } from '@/lib/format';
+import { formatNumber, formatGemPrice, formatAbsoluteTime, formatDuration, formatWithReference } from '@/lib/format';
 import { getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { useActionsStore } from '@/stores/actions';
@@ -199,7 +228,9 @@ const props = defineProps<{
   timeToBuySeconds?: number;
   maxTimeSeconds?: number;
   buyToHereSeconds?: number;
+  buyToHereTooltip?: string;
   extraSeconds?: number;
+  realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;
 }>();
@@ -214,13 +245,17 @@ const baseTimestamp = computed(() => {
   return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
 });
 
-function deadlineWarningTooltip(seconds?: number) {
-  if (seconds === undefined) return '';
+function deadlineWarningTooltip(seconds?: number, extraText?: string) {
+  if (seconds === undefined) return extraText || '';
   const timeStr = formatAbsoluteTime(seconds, baseTimestamp.value, virtueStore.ascensionTimezone);
-  if (props.showDeadlineWarning) {
-    return `${timeStr} is after next Saturday at +0. Turn off the research sale to see realistic prices.`;
+  const warning = props.showDeadlineWarning
+    ? `${timeStr} is after next Saturday at +0. Turn off the research sale to see realistic prices.`
+    : timeStr;
+  
+  if (extraText) {
+    return `${extraText}\n\nEstimated completion: ${warning}`;
   }
-  return timeStr;
+  return warning;
 }
 
 defineEmits<{

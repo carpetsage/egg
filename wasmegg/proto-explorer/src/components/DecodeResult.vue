@@ -24,23 +24,23 @@
       </div>
     </div>
 
-    <div
-      v-show="decodedPayload !== null"
-      class="flex flex-col flex-1 relative"
-      :style="{ minHeight: '24rem' }"
-    >
+    <div v-show="decodedPayload !== null" class="flex flex-col flex-1 relative" :style="{ minHeight: '24rem' }">
       <div ref="editorRef" class="absolute h-full w-full border border-gray-300 rounded-md"></div>
       <copy-button
         class="absolute top-1 left-1 z-50"
         :content="formattedDecodedPayload"
         tooltip="Copy decoded payload as JSON"
       />
+      <button
+        class="absolute top-1 right-1 z-50 bg-white bg-opacity-80 rounded px-1.5 py-0.5 text-xs text-gray-600 border border-gray-300 hover:bg-gray-100"
+        title="Find (Ctrl+F)"
+        @click="openSearch"
+      >
+        Find
+      </button>
     </div>
 
-    <div
-      v-show="decodedPayload !== null"
-      class="text-sm text-gray-700 flex flex-row flex-wrap items-center"
-    >
+    <div v-show="decodedPayload !== null" class="text-sm text-gray-700 flex flex-row flex-wrap items-center">
       <label for="ei-raw-value" class="mr-2">Format EI value:</label>
       <div class="flex flex-row flex-1 min-w-full sm:min-w-max items-center">
         <input
@@ -57,24 +57,14 @@
 </template>
 
 <script lang="ts">
-import {
-  computed,
-  defineComponent,
-  onBeforeUnmount,
-  onMounted,
-  PropType,
-  Ref,
-  ref,
-  toRefs,
-  watch,
-} from 'vue';
-import { Ace, config, edit } from 'ace-builds';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/ext-searchbox';
-import AceWorkerJsonInline from 'ace-builds/src-noconflict/worker-json.js?url';
+import { computed, defineComponent, onBeforeUnmount, onMounted, PropType, Ref, ref, toRefs, watch } from 'vue';
+import { EditorView, lineNumbers, highlightActiveLine, keymap } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
+import { json } from '@codemirror/lang-json';
+import { syntaxHighlighting, defaultHighlightStyle, foldGutter, codeFolding, foldKeymap } from '@codemirror/language';
+import { searchKeymap, highlightSelectionMatches, openSearchPanel } from '@codemirror/search';
+import { defaultKeymap } from '@codemirror/commands';
 import * as $protobuf from 'protobufjs/minimal';
-
-config.setModuleUrl('ace/mode/json_worker', AceWorkerJsonInline);
 
 import { decodeMessage, ei, formatEIValue } from 'lib';
 import CopyButton from '@/components/CopyButton.vue';
@@ -102,13 +92,13 @@ export default defineComponent({
     eiafxdataFormat: {
       type: Boolean,
       default: false,
-    }
+    },
   },
 
   setup(props) {
     const { messageName, authenticated, encodedPayload, eiafxdataFormat } = toRefs(props);
     const eiValue = ref('');
-    $protobuf.util.toJSONOptions = { enums: String }
+    $protobuf.util.toJSONOptions = { enums: String };
 
     const decodeResult = computed(() => {
       if (!messageName.value || !encodedPayload.value) {
@@ -154,25 +144,54 @@ export default defineComponent({
     });
 
     const editorRef: Ref<HTMLElement | null> = ref(null);
-    let editor: Ace.Editor | null = null;
+    let editorView: EditorView | null = null;
 
     onMounted(() => {
-      editor = edit(editorRef.value!);
-      editor.setReadOnly(true);
-      editor.setOption('tabSize', 2);
-      editor.session.setMode('ace/mode/json');
-      editor.session.setUseWrapMode(true);
-      editor.session.setValue(formattedDecodedPayload.value);
+      editorView = new EditorView({
+        state: EditorState.create({
+          doc: formattedDecodedPayload.value,
+          extensions: [
+            lineNumbers(),
+            foldGutter(),
+            codeFolding(),
+            highlightActiveLine(),
+            highlightSelectionMatches(),
+            json(),
+            syntaxHighlighting(defaultHighlightStyle),
+            EditorView.lineWrapping,
+            EditorState.readOnly.of(true),
+            EditorState.tabSize.of(2),
+            keymap.of([...defaultKeymap, ...searchKeymap, ...foldKeymap]),
+            EditorView.theme({
+              '&': { height: '100%' },
+              '.cm-scroller': { overflow: 'auto' },
+              '.cm-foldGutter': { width: '1.2em', textAlign: 'center' },
+            }),
+          ],
+        }),
+        parent: editorRef.value!,
+      });
     });
 
-    watch(formattedDecodedPayload, () => editor?.session.setValue(formattedDecodedPayload.value));
+    watch(formattedDecodedPayload, () => {
+      if (editorView) {
+        editorView.dispatch({
+          changes: { from: 0, to: editorView.state.doc.length, insert: formattedDecodedPayload.value },
+        });
+      }
+    });
+
+    const openSearch = () => {
+      if (editorView) openSearchPanel(editorView);
+    };
 
     onBeforeUnmount(() => {
-      editor?.destroy();
+      editorView?.destroy();
     });
 
     return {
       editorRef,
+      openSearch,
       eiValue,
       decodedPayload,
       decodedMAC,
@@ -187,16 +206,20 @@ function decode(
   messageName: MessageName,
   encoded: string,
   authenticated: boolean,
-  eiafxdata?: boolean,
+  eiafxdata?: boolean
 ): { payload?: Record<string, unknown>; code?: string; error?: string } {
   try {
     const payload = decodeMessage(ei[messageName], encoded, authenticated, { toJSON: false, stringEnums: true });
     // Round decimals to 2 places
-    const rounded = JSON.parse(JSON.stringify(payload, (_,val) => { return typeof val === 'number' ? Number(val.toFixed(6)) : val }))
+    const rounded = JSON.parse(
+      JSON.stringify(payload, (_, val) => {
+        return typeof val === 'number' ? Number(val.toFixed(6)) : val;
+      })
+    );
     if (eiafxdata) {
-     return {
-      payload: JSON.parse(JSON.stringify(updateData(rounded)))
-     }
+      return {
+        payload: JSON.parse(JSON.stringify(updateData(rounded))),
+      };
     }
     return {
       payload: rounded,

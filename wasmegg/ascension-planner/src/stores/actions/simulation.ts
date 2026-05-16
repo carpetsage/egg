@@ -79,6 +79,7 @@ export function calculateActionResult(
   newState = applyPassiveEggs(newState, passiveEggs);
   newState = applyTime(newState, durationSeconds, prevSnapshot, {
     skipGrowth: action.type === 'wait_for_no_earnings',
+    skipEarnings: action.type === 'store_fuel',
   });
 
   const newSnapshot = computeSnapshot(newState, context, {

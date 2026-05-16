@@ -23,10 +23,10 @@ export default defineComponent({
     let redirectTimeoutId: number | undefined;
     onMounted(() => {
       devmodeStore.enablePermanently();
-      countdownIntervalId = setInterval(() => {
+      countdownIntervalId = window.setInterval(() => {
         countdown.value = Math.max(Math.ceil((deadline - Date.now()) / 1000), 0);
       }, 100);
-      redirectTimeoutId = setTimeout(() => {
+      redirectTimeoutId = window.setTimeout(() => {
         router.push({ name: 'home' });
       }, delaySeconds * 1000);
     });

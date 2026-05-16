@@ -2,7 +2,7 @@
  * Event-related utility functions.
  */
 
-const PACIFIC_TIMEZONE = 'America/Los_Angeles';
+export const PACIFIC_TIMEZONE = 'America/Los_Angeles';
 
 /**
  * Calculates the Unix timestamp (in seconds) of the next occurrence of a specific weekday
@@ -14,6 +14,10 @@ const PACIFIC_TIMEZONE = 'America/Los_Angeles';
  * @returns The next occurrence timestamp in seconds
  */
 export function getNextPacificTime(targetDayOfWeek: number, targetHour: number, fromTimestampSeconds: number): number {
+    // 8.64e12 is the approximate max safe Unix timestamp in seconds for JavaScript Date (8.64e15 ms)
+    if (!Number.isFinite(fromTimestampSeconds) || fromTimestampSeconds > 8.64e12 || fromTimestampSeconds < 0) {
+        return fromTimestampSeconds;
+    }
     const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: PACIFIC_TIMEZONE,
         weekday: 'short',
@@ -65,6 +69,48 @@ export function getNextPacificTime(targetDayOfWeek: number, targetHour: number, 
 
     // Fallback
     return fromTimestampSeconds + 604800;
+}
+
+/**
+ * Calculates the Unix timestamp (in seconds) of the next occurrence of a specific hour and minute
+ * in a specific timezone.
+ *
+ * @param targetHour - 0 to 23
+ * @param targetMinute - 0 to 59
+ * @param fromTimestampSeconds - Current simulation time (Unix timestamp in seconds)
+ * @param timezone - IANA timezone identifier
+ * @returns The next occurrence timestamp in seconds
+ */
+export function getNextTimeInTimezone(
+  targetHour: number,
+  targetMinute: number,
+  fromTimestampSeconds: number,
+  timezone: string
+): number {
+  const d = new Date(fromTimestampSeconds * 1000);
+  // Get the date string in YYYY-MM-DD format for the given timezone
+  const dateStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d).replace(/\//g, '-');
+
+  let targetTS = getLocalTimestampInTimezone(dateStr, `${String(targetHour).padStart(2, '0')}:${String(targetMinute).padStart(2, '0')}`, timezone);
+
+  // If the target time is in the past (or now), move to the next day
+  if (targetTS <= fromTimestampSeconds) {
+    const nextDay = new Date((targetTS + 86400 + 3600) * 1000); // Add 24+1 hours to be safe then get date
+    const nextDayStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(nextDay).replace(/\//g, '-');
+    targetTS = getLocalTimestampInTimezone(nextDayStr, `${String(targetHour).padStart(2, '0')}:${String(targetMinute).padStart(2, '0')}`, timezone);
+  }
+
+  return targetTS;
 }
 
 /**

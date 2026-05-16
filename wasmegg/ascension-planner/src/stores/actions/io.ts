@@ -8,18 +8,26 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
-import type { VirtueEgg, Action, CalculationsSnapshot } from '@/types';
+import { useNotesStore } from '@/stores/notes';
+import { useSilosStore } from '@/stores/silos';
+import { createEmptySnapshot, type VirtueEgg, type Action, type CalculationsSnapshot } from '@/types';
+import { countTEThresholdsPassed } from '@/lib/truthEggs';
 
 export function exportPlanData(actions: Action[], initialSnapshot?: CalculationsSnapshot, activePlanId: string | null = null) {
   const initialStateStore = useInitialStateStore();
   const virtueStore = useVirtueStore();
   const fuelTankStore = useFuelTankStore();
   const truthEggsStore = useTruthEggsStore();
+  const notesStore = useNotesStore();
+
+  const silosStore = useSilosStore();
 
   const baseSoulEggs = initialSnapshot ? initialSnapshot.soulEggs : initialStateStore.soulEggs;
   const baseLoadout = initialSnapshot ? initialSnapshot.artifactLoadout : initialStateStore.artifactLoadout;
   const baseSets = initialSnapshot ? initialSnapshot.artifactSets : initialStateStore.artifactSets;
   const baseActiveSet = initialSnapshot ? initialSnapshot.activeArtifactSet : initialStateStore.activeArtifactSet;
+  const baseSiloCount = initialSnapshot ? initialSnapshot.siloCount : silosStore.siloCount;
+  const baseTankLevel = initialSnapshot ? (initialSnapshot.tankLevel ?? fuelTankStore.tankLevel) : fuelTankStore.tankLevel;
   const baseFuelAmounts = initialSnapshot ? initialSnapshot.fuelTankAmounts : fuelTankStore.fuelAmounts;
   const baseEggsDelivered = initialSnapshot ? initialSnapshot.eggsDelivered : truthEggsStore.eggsDelivered;
   const baseTeEarned = initialSnapshot ? initialSnapshot.teEarned : truthEggsStore.teEarned;
@@ -39,9 +47,11 @@ export function exportPlanData(actions: Action[], initialSnapshot?: Calculations
       activeArtifactSet: baseActiveSet,
       currentFarmState: initialStateStore.currentFarmState,
       assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
-      initialFuelAmounts: initialStateStore.initialFuelAmounts,
-      initialEggsDelivered: initialStateStore.initialEggsDelivered,
-      initialTeEarned: initialStateStore.initialTeEarned,
+      initialSiloCount: baseSiloCount,
+      initialTankLevel: baseTankLevel,
+      initialFuelAmounts: baseFuelAmounts,
+      initialEggsDelivered: baseEggsDelivered,
+      initialTeEarned: baseTeEarned,
     },
     virtueState: {
       shiftCount: virtueStore.initialShiftCount,
@@ -51,12 +61,15 @@ export function exportPlanData(actions: Action[], initialSnapshot?: Calculations
       ascensionTimezone: virtueStore.ascensionTimezone,
     },
     fuelTankState: {
-      tankLevel: fuelTankStore.tankLevel,
+      tankLevel: baseTankLevel,
       fuelAmounts: baseFuelAmounts,
     },
     truthEggsState: {
       eggsDelivered: baseEggsDelivered,
       teEarned: baseTeEarned,
+    },
+    notesState: {
+      notes: notesStore.notes,
     },
     actions: actions,
     activePlanId: activePlanId,
@@ -85,6 +98,7 @@ export function importPlanLogic(jsonString: string) {
   const virtueStore = useVirtueStore();
   const fuelTankStore = useFuelTankStore();
   const truthEggsStore = useTruthEggsStore();
+  const notesStore = useNotesStore();
 
   initialStateStore.hydrate(data.initialState);
 
@@ -109,6 +123,52 @@ export function importPlanLogic(jsonString: string) {
     for (const [egg, count] of Object.entries((data.truthEggsState.teEarned || {}) as Record<string, number>)) {
       truthEggsStore.setTEEarned(egg as VirtueEgg, count);
     }
+  }
+
+  if (data.notesState) {
+    notesStore.setNotes(data.notesState.notes || []);
+  } else {
+    notesStore.$reset();
+  }
+
+  // Merge simple wait_for_time actions into subsequent purchases to reduce clutter
+  if (data.actions && data.actions.length > 0) {
+    const mergedActions: any[] = [];
+    for (let i = 0; i < data.actions.length; i++) {
+      const action = data.actions[i];
+      if (action.type === 'wait_for_time') {
+        const nextAction = data.actions[i + 1];
+        if (nextAction && ['buy_research', 'buy_hab', 'buy_vehicle', 'buy_train_car', 'buy_silo'].includes(nextAction.type)) {
+          nextAction.totalTimeSeconds = (nextAction.totalTimeSeconds || 0) + (action.totalTimeSeconds || 0);
+          nextAction.bankDelta = (nextAction.bankDelta || 0) + (action.bankDelta || 0);
+          continue; // Skip adding the wait_for_time action
+        }
+      }
+      mergedActions.push(action);
+    }
+    data.actions = mergedActions;
+  }
+
+  // Safeguard: Ensure a start_ascension action is present for the UI Action History
+  if (data.actions && data.actions.length > 0 && data.actions[0].type !== 'start_ascension') {
+    console.log('[ActionIO] Repairing imported plan: prepending missing start_ascension');
+    const startAction = {
+      id: 'start_' + Math.random().toString(36).substring(2, 9),
+      index: 0,
+      timestamp: data.actions[0].timestamp || Date.now(),
+      type: 'start_ascension',
+      payload: { initialEgg: 'curiosity' },
+      cost: 0, elrDelta: 0, offlineEarningsDelta: 0, eggValueDelta: 0,
+      habCapacityDelta: 0, layRateDelta: 0, shippingCapacityDelta: 0,
+      ihrDelta: 0, bankDelta: 0, populationDelta: 0, totalTimeSeconds: 0,
+      endState: createEmptySnapshot(),
+      dependsOn: [], dependents: []
+    };
+    data.actions = [startAction, ...data.actions];
+  }
+
+  if (data.actions) {
+    data.actions.forEach((a: any, i: number) => a.index = i);
   }
 
   return data;

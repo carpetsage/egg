@@ -10,6 +10,7 @@ on:
    - cron: '0 23 * * *'
 jobs:
   update:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     defaults:
       run:

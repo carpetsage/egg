@@ -5,22 +5,20 @@ import Name = ei.ArtifactSpec.Name;
 import Level = ei.ArtifactSpec.Level;
 import Rarity = ei.ArtifactSpec.Rarity;
 
-declare const data: {
-  families: Family[];
-};
-export default data;
-
 export type Family = FamilyCore & {
   tiers: Tier[];
 };
 
-export type Tier = TierCore & {
+export type Tier = Omit<TierCore, 'family' | 'crafting_xp' | 'odds_multiplier' | 'tier_number'> & {
+  tier_number: number;
   rarities: ConsumptionOutcome[];
   sources: Source[];
 };
 
-export type Source = TierCore & {
+export type Source = Omit<TierCore, 'family' | 'crafting_xp' | 'odds_multiplier' | 'tier_number'> & {
+  tier_number: number;
   afx_rarity: Rarity;
+  rarity: string;
   expected_yield: number;
 };
 
@@ -42,7 +40,7 @@ export type RawProduct = {
   reward_type: number;
   reward_type_name: string;
   reward_amount: number;
-}
+};
 
 export type Item = {
   afx_id: Name;

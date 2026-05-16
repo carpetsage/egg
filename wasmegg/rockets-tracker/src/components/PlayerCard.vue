@@ -460,11 +460,8 @@
                   class="h-6 w-6 mx-0.5 my-0.5 relative"
                 >
                   <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-epic" />
-                  <div
-                    v-if="tier.haveEpic > 1"
-                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
-                  >
-                    <img :src="numberBadgeURL(tier.haveEpic)" class="h-3 w-3" />
+                  <div v-if="tier.haveEpic > 1" :class="'artifact-count ' + numToDigClass(tier.haveEpic)">
+                    {{ tier.haveEpic }}
                   </div>
                 </div>
               </template>
@@ -479,11 +476,8 @@
                   class="h-6 w-6 mx-0.5 my-0.5 relative"
                 >
                   <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-legendary" />
-                  <div
-                    v-if="tier.haveLegendary > 1"
-                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
-                  >
-                    <img :src="numberBadgeURL(tier.haveLegendary)" class="h-3 w-3" />
+                  <div v-if="tier.haveLegendary > 1" :class="'artifact-count ' + numToDigClass(tier.haveLegendary)">
+                    {{ tier.haveLegendary }}
                   </div>
                 </div>
               </template>
@@ -628,11 +622,8 @@
                   class="h-6 w-6 mx-0.5 my-0.5 relative"
                 >
                   <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-epic" />
-                  <div
-                    v-if="tier.haveEpic > 1"
-                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
-                  >
-                    <img :src="numberBadgeURL(tier.haveEpic)" class="h-3 w-3" />
+                  <div v-if="tier.haveEpic > 1" :class="'artifact-count ' + numToDigClass(tier.haveEpic)">
+                    {{ tier.haveEpic }}
                   </div>
                 </div>
               </template>
@@ -647,11 +638,8 @@
                   class="h-6 w-6 mx-0.5 my-0.5 relative"
                 >
                   <img :src="iconURL(tier.iconPath, 128)" class="h-6 w-6 p-0.5 rounded-full bg-legendary" />
-                  <div
-                    v-if="tier.haveLegendary > 1"
-                    class="badge absolute bottom-0 -right-1 h-3 w-3 ring-white ring-1 rounded-full bg-gray-400"
-                  >
-                    <img :src="numberBadgeURL(tier.haveLegendary)" class="h-3 w-3" />
+                  <div v-if="tier.haveLegendary > 1" :class="'artifact-count ' + numToDigClass(tier.haveLegendary)">
+                    {{ tier.haveLegendary }}
                   </div>
                 </div>
               </template>
@@ -850,7 +838,7 @@ import {
   ZLC_EXTHEN_RECORD,
 } from '@/lib';
 import {
-  numberBadgeURL,
+  numToDigClass,
   badgeNAH,
   badgeGoodJob,
   badgeALC,

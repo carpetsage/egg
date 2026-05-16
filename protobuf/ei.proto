@@ -855,8 +855,11 @@ message ContractCoopStatusResponse {
         optional double contribution_amount = 3;
         optional double contribution_rate = 6;
         optional double soul_power = 11;
+        optional uint32 eop = 25;
+        optional uint32 eot = 26;
         optional FarmProductionParams production_params = 15;
         optional PlayerFarmInfo farm_info = 18;
+        optional PlayerColleggtibleInfo colleggtible_info = 27;
         optional int32 rank_change = 8;
         optional bool recently_active = 23;
         optional bool active = 4;
@@ -1158,6 +1161,7 @@ message ContractCoopStatusUpdateRequest {
     optional double total_step_time = 19;
     optional double soul_power = 7;
     optional uint32 eop = 15;
+    optional uint32 eot = 20;
     optional uint32 boost_tokens = 9;
     optional uint32 boost_tokens_spent = 13;
     optional bool hide_cc_status = 17;
@@ -1166,6 +1170,11 @@ message ContractCoopStatusUpdateRequest {
     optional IdleSessionSummary last_idle_summary = 18;
     optional double egg_laying_rate_buff = 10 [default = 1];
     optional double earnings_buff = 11 [default = 1];
+    optional PlayerColleggtibleInfo colleggtible_info = 21;
+}
+
+message PlayerColleggtibleInfo {
+    repeated GameModifier buffs = 1;
 }
 
 message ContractCoopStatusUpdateResponse {
@@ -1418,6 +1427,7 @@ message InGameMail {
     optional uint32 max_retries = 25;
     optional double days_until_retry = 26;
     optional string category = 28;
+    optional float release_time = 30;
 }
 
 message MailDB {

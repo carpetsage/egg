@@ -30,7 +30,7 @@ export function calculateWithOoMUnits(expr: string): number | null {
   // Interpret ^ as exponentiation, because who the hell cares about xor.
   expr = expr.replaceAll(/\^/g, '**');
   try {
-    const result = eval(expr);
+    const result = (0, eval)(expr);
     return typeof result === 'number' ? result : null;
   } catch (e) {
     return null;

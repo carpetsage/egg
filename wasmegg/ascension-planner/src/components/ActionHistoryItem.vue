@@ -1,5 +1,6 @@
 <template>
   <div
+    :id="action.id"
     class="px-3 sm:px-5 py-2 sm:py-3 flex flex-col gap-1 transition-colors"
     :class="isStartAction ? 'bg-slate-50/80 border-l-4 border-brand-primary' : 'hover:bg-slate-50/50'"
   >
@@ -62,19 +63,32 @@
       <div class="flex items-center gap-1 shrink-0">
         <!-- Recon Status -->
         <div v-if="actionsStore.isReconciling" class="flex items-center justify-center w-5 sm:w-6">
-          <div v-if="reconciliationStatus === 'completed'" class="text-emerald-500" v-tippy="'Action completed in-game'">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
+          <!-- Manual completion / Unaudiated -->
+          <div v-if="isManuallyCompleted || reconciliationStatus === 'na' || reconciliationStatus === 'pending'" class="flex items-center justify-center">
+            <label class="cursor-pointer hover:bg-slate-100 p-0.5 rounded transition-colors" 
+                   v-tippy="isManuallyCompleted ? 'Manually completed - Click to undo' : (reconciliationStatus === 'pending' ? 'Pending in-game - Click to mark complete anyway' : 'Not Audited - Click to mark complete')">
+              <input 
+                type="checkbox" 
+                :checked="isManuallyCompleted"
+                @change="actionsStore.toggleManualOverride(action.id)"
+                class="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded border-slate-300 text-emerald-500 focus:ring-emerald-400 cursor-pointer transition-all"
+              />
+            </label>
           </div>
-          <div v-else-if="reconciliationStatus === 'pending'" class="text-amber-500 animate-pulse" v-tippy="'Action pending in-game'">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div v-else class="text-[8px] sm:text-[9px] font-black text-slate-300 uppercase tracking-tighter" v-tippy="'Not audited'">
-            N/A
-          </div>
+
+          <!-- System Audited Status -->
+          <template v-else>
+            <div v-if="reconciliationStatus === 'completed'" class="text-emerald-500" v-tippy="'Action completed in-game'">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div v-else-if="reconciliationStatus === 'pending'" class="text-amber-500 animate-pulse" v-tippy="'Action pending in-game'">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </template>
         </div>
 
         <!-- Undo Button -->
@@ -266,7 +280,7 @@ const actionIconPath = computed(() => {
     return payload.setName === 'elr' ? 'egginc/afx_quantum_metronome_4.png' : 'egginc/afx_lunar_totem_4.png';
   }
   if (props.action.type === 'wait_for_time') {
-    return 'egginc/tiny_indicator_waiting.png';
+    return props.action.totalTimeSeconds > 3600 ? 'egginc/egg_truth.png' : 'egginc/tiny_indicator_waiting.png';
   }
   if (props.action.type === 'wait_for_missions') {
     return 'egginc/icon_afx_mission.png';
@@ -300,6 +314,9 @@ const eggName = computed(() => {
 });
 
 const displayName = computed(() => {
+  if (props.action.type === 'wait_for_time' && props.action.totalTimeSeconds > 3600) {
+    return 'Offline Accumulation';
+  }
   const executor = getExecutor(props.action.type);
   return executor.getDisplayName(props.action.payload);
 });
@@ -367,6 +384,10 @@ const timeToSaveTitle = computed(() => {
 
 const reconciliationStatus = computed(() => {
   return actionsStore.getActionReconciliationStatus(props.action);
+});
+
+const isManuallyCompleted = computed(() => {
+  return !!(actionsStore.activePlanId && actionsStore.manualOverrides[actionsStore.activePlanId]?.[props.action.id]);
 });
 
 function deltaClass(delta: number): string {

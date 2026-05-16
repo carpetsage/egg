@@ -146,11 +146,8 @@ function applyActionEffect(action: Action): void {
     case 'store_fuel': {
       const payload = action.payload as StoreFuelPayload;
       const fuelTankStore = useFuelTankStore();
-      const truthEggsStore = useTruthEggsStore();
       // Add fuel to tank
       fuelTankStore.addFuel(payload.egg, payload.amount);
-      // Add eggs delivered for this egg
-      truthEggsStore.addEggsDelivered(payload.egg, payload.amount);
       break;
     }
 

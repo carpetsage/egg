@@ -13,9 +13,8 @@
     "experimentalDecorators": true,
     "lib": ["esnext", "dom"],
     "types": [],
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["./src/*"],
       "ui/*": ["../ui/*"]
     }
   },
@@ -24,6 +23,7 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "../ui/**/*.vue"
+    "../ui/**/*.vue",
+    "vite.config.ts"
   ]
 }

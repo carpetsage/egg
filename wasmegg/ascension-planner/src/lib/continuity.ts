@@ -16,7 +16,7 @@ export async function checkAndHandleContinuity(
     dependsOn: string[];
   },
   insertIndex: number,
-  removeActionsCallback: (idsToRemove: string[]) => void
+  removeActionsCallback: (idsToRemove: string[]) => Promise<void>
 ): Promise<boolean> {
   // If inserting at end, no future conflicts possible
   // (Unless there's some complex time travel, but usually insertion at end is current)
@@ -133,7 +133,7 @@ export async function checkAndHandleContinuity(
       }
     }
 
-    removeActionsCallback(conflicts.map(a => a.id));
+    await removeActionsCallback(conflicts.map(a => a.id));
     return true;
   } else {
     // User cancelled

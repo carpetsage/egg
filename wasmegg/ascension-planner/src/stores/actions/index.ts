@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { markRaw } from 'vue';
-import type {
+import {
   Action,
   CalculationsSnapshot,
   UndoValidation,
@@ -9,9 +9,13 @@ import type {
   ToggleEarningsBoostPayload,
   UpdateArtifactSetPayload,
   VehicleSlot,
+  VIRTUE_EGGS,
+  createEmptySnapshot,
+  createEmptyUndoValidation,
+  generateActionId,
 } from '@/types';
+import { evaluateAction } from '@/lib/actions/reconciliation';
 import { type HabId } from '@/lib/habs';
-import { createEmptySnapshot, createEmptyUndoValidation, generateActionId, VIRTUE_EGGS } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { useInitialStateStore } from '@/stores/initialState';
@@ -51,15 +55,16 @@ export const useActionsStore = defineStore('actions', {
       reconcileTeEarned: null,
       showIncompleteOnly: true,
       activePlanId: null,
-      lastSavedActionsJson: '[]',
+      lastSavedActionsJson: JSON.stringify([startAction]),
       libraryUpdateTick: 0,
+      manualOverrides: JSON.parse(localStorage.getItem('ascension_manual_overrides') || '{}') as Record<string, Record<string, boolean>>,
     };
   },
 
   getters: {
     currentSnapshot(): CalculationsSnapshot {
       if (this.actions.length === 0) {
-        return this._initialSnapshot ?? createEmptySnapshot();
+        return this.initialSnapshot;
       }
       return this.actions[this.actions.length - 1].endState;
     },
@@ -86,7 +91,7 @@ export const useActionsStore = defineStore('actions', {
       if (headerIndex === -1) return this.currentSnapshot;
       const nextShiftIndex = this.actions.findIndex((a, idx) => idx > headerIndex && a.type === 'shift');
       if (nextShiftIndex === -1) return this.currentSnapshot;
-      return this.actions[nextShiftIndex - 1]?.endState ?? this.currentSnapshot;
+      return this.actions[nextShiftIndex - 1].endState;
     },
 
     editingInsertIndex(): number {
@@ -108,59 +113,30 @@ export const useActionsStore = defineStore('actions', {
       return startAction.endState.lastStepTime || 0;
     },
 
+    ascensionStartTime(): number {
+      const vStore = useVirtueStore();
+      return vStore.planStartTime.getTime() / 1000;
+    },
+
     getActionReconciliationStatus() {
       return (action: Action): 'completed' | 'pending' | 'na' => {
         if (!this.isReconciling) return 'na';
 
-        const auditedTypes = ['buy_research', 'buy_hab', 'buy_vehicle', 'buy_train_car', 'buy_silo', 'wait_for_te'];
-        if (!auditedTypes.includes(action.type)) return 'na';
-
-        const farm = this.reconcileFarmState;
-
-        // Special case for Wait for TE: needs comparison against catch-up delivered eggs
-        if (action.type === 'wait_for_te') {
-          const { egg, targetTE } = action.payload;
-          const delivered = this.reconcileEggsDelivered ? this.reconcileEggsDelivered[egg] || 0 : 0;
-          const earned = this.reconcileTeEarned ? this.reconcileTeEarned[egg] || 0 : 0;
-          const theoretical = countTEThresholdsPassed(delivered);
-          const currentTE = Math.max(earned, theoretical);
-          return currentTE >= targetTE ? 'completed' : 'pending';
+        // Check manual overrides first
+        if (this.activePlanId && this.manualOverrides[this.activePlanId]?.[action.id]) {
+          return 'completed';
         }
 
-        // Other audited actions require current farm state
-        if (!farm) {
-          return 'pending';
-        }
+        const initialStateStore = useInitialStateStore();
+        const eventsStore = useEventsStore();
+        const vStore = useVirtueStore();
 
-        switch (action.type) {
-          case 'buy_research': {
-            const { researchId, toLevel } = action.payload;
-            const currentLevel = farm.commonResearches[researchId] || 0;
-            return currentLevel >= toLevel ? 'completed' : 'pending';
-          }
-          case 'buy_hab': {
-            const { slotIndex, habId } = action.payload;
-            const currentHabId = farm.habs[slotIndex] || 0;
-            return currentHabId >= habId ? 'completed' : 'pending';
-          }
-          case 'buy_vehicle': {
-            const { slotIndex, vehicleId } = action.payload;
-            const currentVehicleId = farm.vehicles[slotIndex]?.vehicleId || 0;
-            return currentVehicleId >= vehicleId ? 'completed' : 'pending';
-          }
-          case 'buy_train_car': {
-            const { slotIndex, toLength } = action.payload;
-            const vehicle = farm.vehicles[slotIndex];
-            if (vehicle?.vehicleId === 11 && vehicle.trainLength >= toLength) return 'completed';
-            return 'pending';
-          }
-          case 'buy_silo': {
-            const { toCount } = action.payload;
-            return farm.numSilos >= toCount ? 'completed' : 'pending';
-          }
-        }
-
-        return 'na';
+        return evaluateAction(action, {
+          farm: this.reconcileFarmState,
+          initialState: initialStateStore.$state,
+          events: eventsStore.allEvents,
+          planStartTime: vStore.planStartTime.getTime() / 1000,
+        });
       };
     },
 
@@ -175,8 +151,34 @@ export const useActionsStore = defineStore('actions', {
     },
 
     isDirty(): boolean {
-      const currentActionsJson = JSON.stringify(this.actions);
-      return currentActionsJson !== this.lastSavedActionsJson;
+      const isTrivial = (a: Action): boolean => {
+        if (a.type === 'shift') return true;
+        if (a.type === 'wait_for_full_habs') return true;
+        if (a.type === 'toggle_earnings_boost' && (a.payload as any).active) return true;
+        if (a.type === 'toggle_sale' && (a.payload as any).active) return true;
+        return false;
+      };
+
+      const summarize = (actions: Action[]) => {
+        return actions
+          .filter(a => !isTrivial(a))
+          .map(a => ({
+            type: a.type,
+            payload: a.payload,
+          }));
+      };
+
+      const currentSummary = JSON.stringify(summarize(this.actions));
+      
+      let savedActions: Action[] = [];
+      try {
+        savedActions = JSON.parse(this.lastSavedActionsJson);
+      } catch (e) {
+        return true;
+      }
+      const savedSummary = JSON.stringify(summarize(savedActions));
+
+      return currentSummary !== savedSummary;
     },
   },
 
@@ -202,6 +204,7 @@ export const useActionsStore = defineStore('actions', {
       }
 
       await this.recalculateFrom(0);
+      this.lastSavedActionsJson = JSON.stringify(this.actions);
     },
 
     pushWaitForFullHabsAction() {
@@ -431,9 +434,47 @@ export const useActionsStore = defineStore('actions', {
 
     async setInitialEgg(egg: VirtueEgg) {
       const startAction = this.getStartAction();
-      if (startAction) {
-        startAction.payload.initialEgg = egg;
+      if (!startAction) return;
+
+      startAction.payload.initialEgg = egg;
+
+      const keptActions: Action[] = [startAction];
+      let foundWait = false;
+
+      for (let i = 1; i < this.actions.length; i++) {
+        const a = this.actions[i];
+        if (a.type === 'wait_for_full_habs' && !foundWait) {
+          keptActions.push(a);
+          foundWait = true;
+        } else if (a.type === 'shift') {
+          // As soon as we see the first shift, we stop considering any waits
+          break;
+        }
       }
+
+      keptActions.forEach((a, idx) => {
+        a.index = idx;
+        a.dependents = [];
+      });
+      
+      for (let i = 1; i < keptActions.length; i++) {
+        keptActions[i].dependsOn = [keptActions[i - 1].id];
+        keptActions[i - 1].dependents.push(keptActions[i].id);
+      }
+
+      this.actions = keptActions;
+
+      const keptIds = new Set(keptActions.map(a => a.id));
+      if (this.editingGroupId && !keptIds.has(this.editingGroupId)) {
+        this.editingGroupId = null;
+      }
+      for (const id of Array.from(this.expandedGroupIds)) {
+        if (!keptIds.has(id)) {
+          this.expandedGroupIds.delete(id);
+        }
+      }
+
+      await this.recalculateFrom(0);
     },
 
     setEditingGroup(groupId: string | null) {
@@ -674,6 +715,8 @@ export const useActionsStore = defineStore('actions', {
 
       if (!skipRecalculate) {
         await this.recalculateFrom(0);
+      } else {
+        syncStoresToSnapshot(this.effectiveSnapshot);
       }
       this.lastSavedActionsJson = JSON.stringify(this.actions);
       return true;
@@ -700,6 +743,19 @@ export const useActionsStore = defineStore('actions', {
     async loadPlanFromLibrary(plan: import('@/lib/storage/db').PlanData) {
       this.activePlanId = plan.id;
       await this.importPlan(JSON.stringify(plan.data));
+    },
+
+    toggleManualOverride(actionId: string) {
+      if (!this.activePlanId) return;
+      const currentOverrides = this.manualOverrides[this.activePlanId] || {};
+      this.manualOverrides = {
+        ...this.manualOverrides,
+        [this.activePlanId]: {
+          ...currentOverrides,
+          [actionId]: !currentOverrides[actionId],
+        },
+      };
+      localStorage.setItem('ascension_manual_overrides', JSON.stringify(this.manualOverrides));
     },
   },
 });

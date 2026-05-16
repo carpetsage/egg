@@ -1,6 +1,4 @@
-import path from 'path';
-
-import { splitVendorChunkPlugin, defineConfig } from 'vite';
+import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 
@@ -8,25 +6,24 @@ import vueJsx from '@vitejs/plugin-vue-jsx';
 export default defineConfig({
   base: '/artifact-explorer/',
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      ui: path.resolve(__dirname, '../../ui'),
-    },
+    tsconfigPaths: true,
   },
-  plugins: [vue(), vueJsx(), splitVendorChunkPlugin()],
+  plugins: [vue(), vueJsx()],
   build: {
-    chunkSizeWarningLimit: 5000,
-    rollupOptions: {
+    chunkSizeWarningLimit: 25000,
+    rolldownOptions: {
       output: {
-        manualChunks(id: string) {
-          if (id.endsWith('loot.json')) {
-            return 'loot';
-          }
-        }
-      }
-    }
+        codeSplitting: {
+          groups: [{ test: /loot.json$/, name: 'loot' }],
+        },
+      },
+    },
   },
   server: {
     host: true,
+    forwardConsole: {
+      unhandledErrors: true,
+      logLevels: ['warn', 'error'],
+    },
   },
 });

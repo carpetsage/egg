@@ -1,6 +1,6 @@
 import { Action, CalculationsSnapshot, LaunchMissionsPayload, WaitForTEPayload, StoreFuelPayload, WaitForResearchSalePayload, WaitForEarningsBoostPayload, WaitForGemsPayload } from '@/types';
 import { getNextPacificTime } from '@/lib/events';
-import { solveForTime, getTimeToSave, calculateEggsDeliveredForTime } from './math';
+import { solveForTime, integrateRate, getTimeToSave, calculateEggsDeliveredForTime } from './math';
 import { eggsNeededForTE, countTEThresholdsPassed } from '@/lib/truthEggs';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { getResearchById, getDiscountedVirtuePrice } from '@/calculations/commonResearch';
@@ -103,14 +103,38 @@ export function refreshActionPayload(
 
   if (action.type === 'store_fuel') {
     const payload = { ...(action.payload as StoreFuelPayload) };
+    const fuelSpeed = payload.fuelSpeed ?? 1.0;
+    const effectiveR = prevSnapshot.ratePerChickenPerSecond * fuelSpeed;
+
     payload.timeSeconds = solveForTime(
       payload.amount,
       prevSnapshot.population,
       prevSnapshot.offlineIHR / 60,
-      prevSnapshot.ratePerChickenPerSecond,
-      prevSnapshot.shippingCapacity,
+      effectiveR,
+      Infinity, // Tanking is limited by production, not shipping
       prevSnapshot.habCapacity
     );
+
+    // Variable-speed: compute eggs shipped and gems earned during fueling
+    if (fuelSpeed < 1.0 && payload.timeSeconds > 0) {
+      const remainingR = prevSnapshot.ratePerChickenPerSecond * (1 - fuelSpeed);
+      payload.eggsShippedDuringFuel = integrateRate(
+        payload.timeSeconds,
+        prevSnapshot.population,
+        prevSnapshot.offlineIHR / 60,
+        remainingR,
+        prevSnapshot.shippingCapacity, // shipping caps the shipped portion
+        prevSnapshot.habCapacity
+      );
+      const valuePerEgg = prevSnapshot.elr > 0
+        ? prevSnapshot.offlineEarnings / prevSnapshot.elr
+        : 0;
+      payload.gemsEarnedDuringFuel = payload.eggsShippedDuringFuel * valuePerEgg;
+    } else {
+      payload.eggsShippedDuringFuel = 0;
+      payload.gemsEarnedDuringFuel = 0;
+    }
+
     return { ...action, payload };
   }
 

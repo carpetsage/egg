@@ -26,8 +26,14 @@
               class="flex items-center md:justify-start space-x-1"
               :class="forceFullWidth ? 'justify-start' : 'justify-center'"
             >
-              <event-badge :event="event.type" />
-              <span class="text-xs truncate md:inline" :class="[event.fgClass, forceFullWidth ? 'inline' : 'hidden']">
+              <event-badge :event="event.type" :ultra="event.isInGameEvent() && event.ultra" />
+              <span
+                class="text-xs truncate md:inline"
+                :class="[
+                  event.isInGameEvent() && event.ultra ? 'ultra-text' : event.fgClass,
+                  forceFullWidth ? 'inline' : 'hidden',
+                ]"
+              >
                 <template v-if="event.isInGameEvent()">{{ event.caption }}</template>
                 <template v-else>v{{ event.version }}</template>
               </span>
@@ -174,5 +180,13 @@ export default defineComponent({
   .CalendarMonth {
     width: 744px;
   }
+}
+
+.ultra-text {
+  background: linear-gradient(135deg, #f97316, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 </style>

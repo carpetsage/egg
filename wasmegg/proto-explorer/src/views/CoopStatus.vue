@@ -1,6 +1,6 @@
 <template>
   <api-requester
-    api-endpoint="/ei/coop_status_bot"
+    api-endpoint="/ei/coop_status"
     request-message="ContractCoopStatusRequest"
     response-message="ContractCoopStatusResponse"
     :persist-form-data="persistFormData"
@@ -14,13 +14,13 @@
         placeholder="Ex: graviton-project"
         :required="true"
       />
-      <parameter-input v-model.trim="coopCode" name="coop_code" label="Coop code" :required="true" />
       <parameter-input
-        v-model.trim="userId"
-        name="user_id"
-        label="User ID"
-        placeholder="Optional, a valid one by default"
+        v-model.trim="coopCode"
+        name="coop_code"
+        label="Coop code"
+        placeholder="Optional, empty by default"
       />
+      <parameter-input v-model.trim="userId" name="user_id" label="User ID" :required="true" />
       <request-button :form-valid="formValid" />
     </template>
   </api-requester>
@@ -51,7 +51,7 @@ export default defineComponent({
     const contractId = ref(getLocalStorage(CONTRACT_ID_LOCALSTORAGE_KEY) || '');
     const coopCode = ref(getLocalStorage(COOP_CODE_LOCALSTORAGE_KEY) || '');
     const userId = ref(getLocalStorage(USER_ID_LOCALSTORAGE_KEY) || '');
-    const formValid = computed(() => contractId.value !== '' && coopCode.value != '');
+    const formValid = computed(() => contractId.value !== '' && userId.value != '');
 
     const persistFormData = () => {
       setLocalStorage(CONTRACT_ID_LOCALSTORAGE_KEY, contractId.value);
@@ -60,13 +60,12 @@ export default defineComponent({
     };
 
     const getRequestPayloadObject = (): ContractCoopStatusRequestPayload => {
-      const uid = userId.value || atob('RUk1NDc5OTE2NjQyNzYyNzUy');
       return {
         contractIdentifier: contractId.value,
         coopIdentifier: coopCode.value.toLowerCase(),
-        userId: uid,
+        userId: userId.value,
         clientVersion: CLIENT_VERSION,
-        rinfo: basicRequestInfo(uid),
+        rinfo: basicRequestInfo(userId.value),
       };
     };
 

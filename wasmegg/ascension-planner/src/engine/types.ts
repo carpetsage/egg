@@ -18,6 +18,7 @@ export interface EngineState {
   vehicles: VehicleSlot[];
   researchLevels: ResearchLevels;
   siloCount: number;
+  tankLevel: number;
 
   // Artifacts
   artifactLoadout: ArtifactSlotPayload[];
@@ -41,6 +42,7 @@ export interface EngineState {
     active: boolean;
     multiplier: number;
   };
+  maxELR?: number;
 }
 
 /**
@@ -52,6 +54,7 @@ export interface SimulationContext {
   ascensionStartTime: number; // Unix timestamp in seconds
   planStartOffset: number; // Seconds since ascension start at which planning begins
   assumeDoubleEarnings: boolean;
+  rawBackup?: any; // ei.IBackup
   // TODO: Add any other global context needed (e.g. events?)
 }
 

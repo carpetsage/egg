@@ -78,6 +78,7 @@ export function computeCurrentSnapshot(): CalculationsSnapshot {
     siloTimeMinutes,
 
     // Fuel tank state
+    tankLevel: fuelTankStore.tankLevel,
     fuelTankAmounts: { ...fuelTankStore.fuelAmounts },
 
     // Truth Eggs state
@@ -223,6 +224,7 @@ export function restoreFromSnapshot(snapshot: CalculationsSnapshot): void {
   // Restore fuel tank state
   if (snapshot.fuelTankAmounts) {
     fuelTankStore.$patch(state => {
+      state.tankLevel = snapshot.tankLevel ?? state.tankLevel;
       state.fuelAmounts = { ...snapshot.fuelTankAmounts };
     });
   }

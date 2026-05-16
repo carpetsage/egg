@@ -1,6 +1,10 @@
 <template>
   <template v-if="event.id !== 'app-update'">
-    <div class="h-4 w-6.5 rounded-full" :class="event.bgClass">
+    <div
+      class="h-4 w-6.5 rounded-full"
+      :class="ultra ? '' : event.bgClass"
+      :style="ultra ? { background: 'linear-gradient(135deg, #f97316, #a855f7)' } : undefined"
+    >
       <img class="h-4 w-full object-contain" :src="iconURL(event.icon, 64)" />
     </div>
   </template>
@@ -28,6 +32,10 @@ export default defineComponent({
     event: {
       type: Object as PropType<EventType>,
       required: true,
+    },
+    ultra: {
+      type: Boolean,
+      default: false,
     },
   },
   setup() {

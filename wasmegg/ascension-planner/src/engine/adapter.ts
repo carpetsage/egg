@@ -1,15 +1,10 @@
 import type { EngineState, SimulationContext } from './types';
-import type { CalculationsSnapshot } from '@/types';
+import { CalculationsSnapshot, VIRTUE_EGGS, VirtueEgg } from '@/types';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
-import { useCommonResearchStore } from '@/stores/commonResearch';
-import { useHabCapacityStore } from '@/stores/habCapacity';
-import { useShippingCapacityStore } from '@/stores/shippingCapacity';
 import { useSilosStore } from '@/stores/silos';
 import { useFuelTankStore } from '@/stores/fuelTank';
-import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useActionsStore } from '@/stores/actions';
-import { createEmptySnapshot } from '@/types';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { getLocalTimestampInTimezone } from '@/lib/events';
 
@@ -34,6 +29,7 @@ export function getSimulationContext(): SimulationContext {
     ascensionStartTime,
     planStartOffset: (useActionsStore() as any).planStartOffset || 0,
     assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
+    rawBackup: initialStateStore.rawBackup || undefined,
   };
 }
 
@@ -44,6 +40,8 @@ export function getSimulationContext(): SimulationContext {
 export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | null): EngineState {
   const virtueStore = useVirtueStore();
   const initialStateStore = useInitialStateStore();
+  const silosStore = useSilosStore();
+  const fuelTankStore = useFuelTankStore();
 
   // If a specific snapshot is provided (e.g. from existing action history), use it.
   // Otherwise, read the current "base" state from the hydrated stores.
@@ -57,6 +55,7 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
       habIds: [...initialSnapshot.habIds],
       researchLevels: { ...initialSnapshot.researchLevels },
       siloCount: initialSnapshot.siloCount,
+      tankLevel: initialSnapshot.tankLevel || 0,
       artifactLoadout: initialSnapshot.artifactLoadout.map(slot => ({
         artifactId: slot.artifactId,
         stones: [...slot.stones],
@@ -74,27 +73,22 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
     };
   }
 
-  // Fallback to reading from InitialStateStore.
-  // IMPORTANT: We do NOT read from the live farm stores (commonResearchStore, etc.)
-  // because those represent the results of the current simulation.
-  // We only use the stores that hold the DEFINITION of the player (InitialStateStore, VirtueStore).
+  const isContinuing = initialStateStore.isContinuing;
 
-  // We always use empty defaults for the base state.
-  // Farm state (research, habs, vehicles) should only be populated via a
-  // Start Ascension action if the user chooses to "Continue Ascension".
+  // Fallback state
   return {
-    // We always start curiosity by default; start_ascension will override this.
-    currentEgg: 'curiosity',
-
+    currentEgg: (isContinuing && initialStateStore.currentFarmState?.eggType
+      ? VIRTUE_EGGS[initialStateStore.currentFarmState.eggType - 50]
+      : 'curiosity') as VirtueEgg,
     shiftCount: virtueStore.initialShiftCount,
     te: virtueStore.initialTE,
     soulEggs: initialStateStore.soulEggs,
 
-    // Defaults for a new farm
-    vehicles: [{ vehicleId: 0, trainLength: 1 }], // Default Trike
-    habIds: [0, null, null, null], // Default Coop
-    researchLevels: {},
-    siloCount: 1,
+    vehicles: (isContinuing && initialStateStore.currentFarmState?.vehicles) || [{ vehicleId: 0, trainLength: 1 }],
+    habIds: (isContinuing && initialStateStore.currentFarmState?.habs) || [0, null, null, null],
+    researchLevels: isContinuing ? { ...initialStateStore.currentFarmState?.commonResearches } : {},
+    siloCount: silosStore.siloCount || 1,
+    tankLevel: fuelTankStore.tankLevel || 0,
 
     artifactLoadout: initialStateStore.artifactLoadout.map(slot => ({
       artifactId: slot.artifactId,
@@ -108,9 +102,9 @@ export function createBaseEngineState(initialSnapshot?: CalculationsSnapshot | n
     activeArtifactSet: initialStateStore.activeArtifactSet,
     artifactSets: JSON.parse(JSON.stringify(initialStateStore.artifactSets)),
 
-    population: 0,
-    lastStepTime: 0,
-    bankValue: 0,
+    population: (isContinuing && initialStateStore.currentFarmState?.population) || 0,
+    lastStepTime: (isContinuing && initialStateStore.currentFarmState?.lastStepTime) || 0,
+    bankValue: (isContinuing && initialStateStore.currentFarmState?.cash) || virtueStore.bankValue || 0,
     activeSales: {
       research: false,
       hab: false,

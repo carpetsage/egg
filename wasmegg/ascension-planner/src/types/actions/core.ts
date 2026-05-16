@@ -17,6 +17,8 @@ export interface ShiftPayload {
   fromEgg: VirtueEgg;
   toEgg: VirtueEgg;
   newShiftCount: number;
+  eggsLaid?: number;
+  peakELR?: number;
 }
 
 /**
@@ -129,6 +131,7 @@ export interface CalculationsSnapshot {
   soulEggs: number;
   siloCount: number;
   siloTimeMinutes: number;
+  tankLevel: number;
   fuelTankAmounts: Record<VirtueEgg, number>;
   eggsDelivered: Record<VirtueEgg, number>;
   teEarned: Record<VirtueEgg, number>;

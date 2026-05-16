@@ -29,3 +29,7 @@
 .bg-legendary {
   background: radial-gradient(#fffe41, #fffe41, #eeab42);
 }
+
+.artifact-count {
+  @apply text-[0.5rem] absolute bottom-0 -right-1 h-3 ring-white ring-1 rounded-full bg-gray-400 text-white flex items-center justify-center px-0.5;
+}

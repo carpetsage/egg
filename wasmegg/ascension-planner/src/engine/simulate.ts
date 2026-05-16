@@ -61,6 +61,7 @@ export function simulate(
 
     currentState = applyTime(currentState, durationSeconds, currentSnapshot, {
       skipGrowth: action.type === 'wait_for_no_earnings',
+      skipEarnings: action.type === 'store_fuel',
     });
 
     // 2. Compute full snapshot
@@ -146,6 +147,7 @@ export async function simulateAsync(
 
     currentState = applyTime(currentState, durationSeconds, currentSnapshot, {
       skipGrowth: action.type === 'wait_for_no_earnings',
+      skipEarnings: action.type === 'store_fuel',
     });
 
     const newSnapshot = computeSnapshot(currentState, context, {

@@ -13,9 +13,7 @@ export type NotificationParams = {
   options: NotificationOptions | undefined;
 };
 
-export function useNotifications(
-  params: Ref<NotificationParams[]>
-): {
+export function useNotifications(params: Ref<NotificationParams[]>): {
   notificationSupportedByBrowser: boolean;
   isMobileBrowser: boolean;
   notificationPermissionDenied: Ref<boolean>;
@@ -32,10 +30,9 @@ export function useNotifications(
       isMobileBrowser,
       notificationPermissionDenied,
       on,
-      /* eslint-disable @typescript-eslint/no-empty-function */
+
       toggleNotifications: () => {},
       clearNotifications: () => {},
-      /* eslint-enable */
     };
   }
 
@@ -68,14 +65,10 @@ export function useNotifications(
       if (timeout <= 0) {
         continue;
       }
-      const timeoutId = setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         new Notification(p.title, p.options);
       }, timeout);
-      console.log(
-        `scheduled notification for ${p.description || '?'} at ${
-          p.fireAt
-        } (timeout ID ${timeoutId})`
-      );
+      console.log(`scheduled notification for ${p.description || '?'} at ${p.fireAt} (timeout ID ${timeoutId})`);
       notificationTimeoutIds.push(timeoutId);
     }
   };
