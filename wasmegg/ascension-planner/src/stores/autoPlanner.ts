@@ -25,7 +25,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
   const timezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
   const startDate = ref('');
   const startTime = ref('');
-  const targetTE = ref<number | null>(null);
+  const targetTE = ref<string>('');
   const targetEndDate = ref('');
   const targetEndTime = ref('');
   const nextGoals = ref<Record<number, { te: number | null, date: string, time: string }>>({
@@ -37,7 +37,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     timezone: string;
     startDate: string;
     startTime: string;
-    targetTE: number | null;
+    targetTE: string;
     targetEndDate?: string;
     targetEndTime?: string;
     nextGoals: Record<number, { te: number | null, date: string, time: string }>;
@@ -46,7 +46,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     timezone.value = data.timezone;
     startDate.value = data.startDate;
     startTime.value = data.startTime;
-    targetTE.value = data.targetTE;
+    targetTE.value = data.targetTE || '';
     targetEndDate.value = data.targetEndDate || '';
     targetEndTime.value = data.targetEndTime || '';
     nextGoals.value = data.nextGoals;
@@ -54,7 +54,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
 
   function clear() {
     ascensionChain.value = [];
-    targetTE.value = 490;
+    targetTE.value = '';
     targetEndDate.value = '';
     targetEndTime.value = '';
     nextGoals.value = { 0: { te: 490, date: '', time: '' } };

@@ -47,17 +47,12 @@
                 <div class="relative">
                   <select
                     v-model="timezone"
-                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 focus:bg-white appearance-none transition-all"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-5 pr-10 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
                   >
                     <option v-for="tz in allTimezones" :key="tz.value" :value="tz.value">
                       {{ tz.label }}
                     </option>
                   </select>
-                  <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
                 </div>
               </div>
             </div>
@@ -123,58 +118,34 @@
               </div>
             </div>
 
-            <!-- Part 3: Target Goal -->
-            <div class="section-premium p-6 border-dashed border-2 border-indigo-200 bg-indigo-50/10">
+            <!-- Part 3: Target Goals -->
+            <div>
               <div class="flex items-center gap-3 mb-4 px-1">
                 <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
                 </div>
-                <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider">Target Goal</h3>
+                <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider">Ascension Targets</h3>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-                <div class="md:col-span-2 space-y-1.5">
-                  <div class="flex justify-between items-center px-1">
-                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Target TE</label>
-                    <span class="text-[9px] font-black text-indigo-500 uppercase">+{{ Math.max(0, (targetTE || 0) - currentTE) }} to gain</span>
-                  </div>
-                  <div class="relative">
-                    <input
-                      v-model.number="targetTE"
-                      @input="clearA1DateGoal"
-                      type="number"
-                      class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 outline-none focus:border-indigo-500/50 transition-all pr-10"
-                      :min="currentTE + 1"
-                      max="490"
-                    />
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px]">TE</div>
-                  </div>
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center px-1">
+                  <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Target TE(s)</label>
                 </div>
-
-                <div class="flex items-center justify-center pb-2.5 text-[10px] font-black text-slate-300 uppercase">
-                  — or —
+                <div class="relative">
+                  <input
+                    v-model="targetTE"
+                    @input="handleTargetTEInput"
+                    type="text"
+                    class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 outline-none focus:border-indigo-500/50 transition-all pr-10"
+                    placeholder="e.g. 300 400 490"
+                  />
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px]">TE</div>
                 </div>
-
-                <div class="md:col-span-3 space-y-1.5">
-                  <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">End Date & Time</label>
-                  <div class="flex gap-2">
-                    <input
-                      v-model="targetEndDate"
-                      @change="clearA1TEGoal"
-                      type="date"
-                      :min="startDate"
-                      class="flex-grow bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500/50 transition-all"
-                    />
-                    <input
-                      v-model="targetEndTime"
-                      @change="clearA1TEGoal"
-                      type="time"
-                      class="w-32 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500/50 transition-all"
-                    />
-                  </div>
-                </div>
+                <p class="text-[10px] font-bold text-slate-400 leading-relaxed px-1 mt-2">
+                  Enter a sequence of target TEs separated by spaces to generate an entire multi-ascension chain at once.
+                </p>
               </div>
             </div>
           </div>
@@ -183,10 +154,10 @@
         <button
           class="btn-premium btn-primary w-full py-4 mt-8 text-sm shadow-xl shadow-indigo-500/20 active:scale-[0.98]"
           :disabled="isGenerating || !isA1Dirty"
-          @click="ascensionChain.length > 0 ? updateAscension(0, { te: targetTE, date: targetEndDate, time: targetEndTime }) : generate()"
+          @click="generate()"
         >
           <span v-if="isGenerating">Generating Plan...</span>
-          <span v-else>{{ ascensionChain.length > 0 ? 'Update A1' : 'Generate A1' }}</span>
+          <span v-else>{{ ascensionChain.length > 0 ? 'Update Plan' : 'Generate Plan' }}</span>
         </button>
       </div>
     </div>
@@ -244,71 +215,6 @@
           :target-t-e="result.targetTE"
         />
 
-        <!-- Simplified Goal Input -->
-        <div v-if="result.summary.endTE < 490" 
-             class="section-premium p-4 sm:p-6 border-dashed border-2 border-indigo-200 bg-indigo-50/10">
-          <div class="flex items-center gap-3 mb-4 px-1">
-            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider">
-              {{ idx + 1 < ascensionChain.length ? `Edit A${idx + 2} Goal` : 'Next Ascension Goal' }}
-            </h3>
-          </div>
-
-          <div v-if="nextGoals[idx + 1]" class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-            <div class="md:col-span-2 space-y-1.5">
-              <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Target TE</label>
-              <div class="relative">
-                <input
-                  v-model.number="nextGoals[idx + 1].te"
-                  @input="clearSequentialDateGoal(idx + 1)"
-                  type="number"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 outline-none focus:border-indigo-500/50 transition-all pr-10"
-                  :min="result.summary.endTE + 1"
-                  max="490"
-                  placeholder="Auto"
-                />
-                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px]">TE</div>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-center pb-2.5 text-[10px] font-black text-slate-300 uppercase">
-              — or —
-            </div>
-
-            <div class="md:col-span-3 space-y-1.5">
-              <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">End Date & Time</label>
-              <div class="flex gap-2">
-                <input
-                  v-model="nextGoals[idx + 1].date"
-                  @change="clearSequentialTEGoal(idx + 1)"
-                  type="date"
-                  :min="formatUnixToDateInput(result.summary.endTime, timezone)"
-                  class="flex-grow bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500/50 transition-all"
-                />
-                <input
-                  v-model="nextGoals[idx + 1].time"
-                  @change="clearSequentialTEGoal(idx + 1)"
-                  type="time"
-                  class="w-32 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500/50 transition-all"
-                />
-              </div>
-            </div>
-          </div>
-
-          <button
-            class="btn-premium btn-primary w-full py-3 mt-6 text-xs shadow-lg active:scale-[0.98]"
-            :disabled="isGenerating || !isSequentialDirty(idx + 1)"
-            @click="handleNextGoalSubmit(idx + 1)"
-          >
-            <span v-if="isGenerating">Simulating...</span>
-            <span v-else-if="idx + 1 < ascensionChain.length">Update A{{ idx + 2 }} →</span>
-            <span v-else>Generate A{{ idx + 2 }} →</span>
-          </button>
-        </div>
       </div>
 
       <!-- Simulation Error Display -->
@@ -412,9 +318,6 @@ const {
 } = storeToRefs(autoPlannerStore);
 
 // Initialize default values if not already set (e.g. from an import)
-if (targetTE.value === null) {
-  targetTE.value = 490;
-}
 if (!timezone.value) {
   timezone.value = virtueStore.ascensionTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
@@ -423,10 +326,23 @@ if (!timezone.value) {
 let targetTEInitialized = false;
 watch(() => truthEggsStore.totalTE, (newVal) => {
   if (newVal > 0 && !targetTEInitialized) {
-    targetTE.value = Math.min(490, newVal + 30);
+    if (!targetTE.value) {
+      targetTE.value = String(Math.min(490, newVal + 30));
+    }
     targetTEInitialized = true;
   }
 }, { immediate: true });
+
+const getTargets = () => {
+  if (!targetTE.value) return [];
+  return targetTE.value.trim().split(/\s+/).map(Number).filter(n => !isNaN(n) && n > 0);
+};
+
+const handleTargetTEInput = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  const formatted = input.value.replace(/\D+/g, ' ');
+  targetTE.value = formatted.replace(/^\s+/, '').replace(/\s{2,}/g, ' ');
+};
 
 const now = new Date();
 // Use en-CA to get YYYY-MM-DD format in the selected timezone (avoiding UTC shift issues from toISOString)
@@ -441,25 +357,6 @@ if (!startTime.value) {
     hour12: false 
   }).format(now);
 }
-// targetEndDate and targetEndTime moved to store
-
-const clearA1DateGoal = () => {
-  targetEndDate.value = '';
-  targetEndTime.value = '';
-};
-
-const clearA1TEGoal = () => {
-  targetTE.value = null;
-};
-
-const clearSequentialDateGoal = (idx: number) => {
-  nextGoals.value[idx].date = '';
-  nextGoals.value[idx].time = '';
-};
-
-const clearSequentialTEGoal = (idx: number) => {
-  nextGoals.value[idx].te = null;
-};
 
 const isGenerating = ref(false);
 const simulationError = ref<string | null>(null);
@@ -518,24 +415,15 @@ const isA1Dirty = computed(() => {
 
   if (initialParamsDirty) return true;
 
-  if (last.goal.type === 'te') {
-    return targetTE.value !== last.goal.te;
-  } else {
-    return targetEndDate.value !== last.goal.date || targetEndTime.value !== last.goal.time;
-  }
-});
-
-const isSequentialDirty = (idx: number) => {
-  if (idx >= ascensionChain.value.length) return true; // Generate button for new step
-  const current = ascensionChain.value[idx];
-  const goal = nextGoals.value[idx];
+  const targets = getTargets();
+  if (targets.length !== ascensionChain.value.length) return true;
   
-  if (current.goal.type === 'te') {
-    return goal.te !== current.goal.te;
-  } else {
-    return goal.date !== current.goal.date || goal.time !== current.goal.time;
+  for (let i = 0; i < targets.length; i++) {
+    if (targets[i] !== ascensionChain.value[i].goal.te) return true;
   }
-};
+
+  return false;
+});
 
 const bestResults = computed(() => {
   return ascensionChain.value.map(item => {
@@ -601,348 +489,158 @@ const generate = () => {
   isGenerating.value = true;
   simulationError.value = null;
 
-  // Use a setTimeout to allow the UI to update "isGenerating" state before blocking
   setTimeout(() => {
     try {
-      // Basic validation
-      if (targetTE.value !== null && targetTE.value <= currentTE.value) {
-        throw new Error(`Target TE (${targetTE.value}) must be greater than current TE (${currentTE.value})`);
+      const targets = getTargets();
+      if (targets.length === 0) {
+        throw new Error('Please specify at least one Target TE');
       }
-      // Roll up pending TE first (claimed at ascension start)
+
+      if (targets.length > 0 && targets[0] <= currentTE.value) {
+        throw new Error(`First Target TE (${targets[0]}) must be greater than current TE (${currentTE.value})`);
+      }
+
       rollUpPendingTE();
       
       const context = getSimulationContext();
       const baseState = createBaseEngineState(null);
-      
-      // Sync actions store so currentTE and UI reflect rolled-up state
       const initialSnapshot = computeSnapshot(baseState, context);
       actionsStore.setInitialSnapshot(initialSnapshot);
 
-      // Force Curiosity and 1 chicken for C1 start
-      baseState.currentEgg = 'curiosity';
-      baseState.population = 1;
-      baseState.bankValue = 0;
-      baseState.researchLevels = {}; // Start with no common research
-
-      console.log(`Starting Simulation with rolled-up TE: ${baseState.te}`);
-
       const absStartTime = getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value);
-      context.ascensionStartTime = absStartTime;
-      context.planStartOffset = 0;
-
-      const buildPhaseEnd1 = getNextSaleEnd(absStartTime);
-      const buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1);
-
-      // Precompute C1 through R1 since they are identical
-      const precomputed = runUntilShift(baseState, context, 'C3');
-
-      const resumeData1 = {
-        actions: precomputed.actions,
-        state: precomputed.state,
-        elapsedSeconds: precomputed.elapsedSeconds,
-        resumeShiftName: 'C3'
-      };
-
-      let finalTargetTE: number | undefined = (targetTE.value !== null && targetTE.value !== undefined && targetTE.value > 0) ? targetTE.value : undefined;
-      let finalEndTime: number | undefined = undefined;
       
-      if (!finalTargetTE && targetEndDate.value) {
-        const timeToUse = targetEndTime.value || '09:00';
-        finalEndTime = getLocalTimestampInTimezone(targetEndDate.value, timeToUse, timezone.value);
-      }
-
-      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, 'asc_0', finalTargetTE, finalEndTime, resumeData1);
-
-      // We must pass a deep copy or fresh state for result2 so it doesn't mutate result1's objects
-      const baseState2 = createBaseEngineState(null);
-      baseState2.currentEgg = 'curiosity';
-      baseState2.population = 1;
-      baseState2.bankValue = 0;
-      baseState2.researchLevels = {};
-      const context2 = getSimulationContext();
-      context2.ascensionStartTime = absStartTime;
-      context2.planStartOffset = 0;
-
-      // Deep copy precomputed state/actions for result2
-      const resumeData2 = {
-        actions: JSON.parse(JSON.stringify(precomputed.actions)),
-        state: JSON.parse(JSON.stringify(precomputed.state)),
-        elapsedSeconds: precomputed.elapsedSeconds,
-        resumeShiftName: 'C3'
-      };
-
-      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, 'asc_0', finalTargetTE, finalEndTime, resumeData2);
-
-      // Prepare goal state for A2
-      const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
-      
-      const goalToSave = {
-        type: (finalTargetTE ? 'te' : 'date') as 'te' | 'date',
-        te: targetTE.value,
-        date: targetEndDate.value,
-        time: targetEndTime.value
-      };
       const initialParamsToSave = {
         startDate: startDate.value,
         startTime: startTime.value,
         teEarned: { ...truthEggsStore.teEarned }
       };
 
-      // Update A1 form results
-      targetEndDate.value = formatUnixToDateInput(best.summary.endTime, timezone.value);
-      targetEndTime.value = formatUnixToTimeInput(best.summary.endTime, timezone.value);
-      targetTE.value = best.summary.endTE;
+      const lastA1 = ascensionChain.value[0];
+      const initialParamsDirty = !lastA1 || !lastA1.initialParams || (
+        startDate.value !== lastA1.initialParams.startDate ||
+        startTime.value !== lastA1.initialParams.startTime ||
+        JSON.stringify(truthEggsStore.teEarned) !== JSON.stringify(lastA1.initialParams.teEarned)
+      );
 
-      nextGoals.value[1] = {
-        te: Math.min(490, best.summary.endTE + 30),
-        date: '',
-        time: ''
-      };
-
-      ascensionChain.value = [{
-        index: 0,
-        result1,
-        result2,
-        goal: goalToSave,
-        initialParams: initialParamsToSave
-      }];
-    } catch (err: any) {
-      console.error('Simulation error:', err);
-      simulationError.value = err.message || 'An unknown error occurred during simulation.';
-    } finally {
-      isGenerating.value = false;
-    }
-  }, 10);
-};
-
-const handleNextGoalSubmit = (idx: number) => {
-  const goal = nextGoals.value[idx];
-  if (idx === ascensionChain.value.length) {
-    generateNext(goal);
-  } else {
-    updateAscension(idx, goal);
-  }
-};
-
-const generateNext = (goal: { te: number | null, date: string, time: string }) => {
-  if (ascensionChain.value.length === 0) return;
-  isGenerating.value = true;
-  simulationError.value = null;
-
-  setTimeout(() => {
-    try {
-      const idx = ascensionChain.value.length;
-      const lastAsc = ascensionChain.value[idx - 1];
-      const lastSummary = lastAsc.result1.summary.totalDurationSeconds <= lastAsc.result2.summary.totalDurationSeconds 
-        ? lastAsc.result1.summary 
-        : lastAsc.result2.summary;
-
-      const baseBackupState = createBaseEngineState(null);
-      const baseState = deriveNextStartState(lastSummary, baseBackupState);
-
-      const context = getSimulationContext();
-      const absStartTime = lastSummary.endTime;
-      context.ascensionStartTime = absStartTime;
-      context.planStartOffset = 0;
-
-      const buildPhaseEnd1 = getNextSaleEnd(absStartTime);
-      const buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1);
-
-      const precomputed = runUntilShift(baseState, context, 'C3');
-      const resumeShiftName = 'C3';
-
-      let finalTargetTE: number | undefined = goal.te || undefined;
-      let targetEndTime: number | undefined = undefined;
-      let goalType: 'te' | 'date' = goal.te ? 'te' : 'date';
-
-      if (!finalTargetTE) {
-        if (goal.date) {
-          const timeToUse = goal.time || '09:00';
-          targetEndTime = getLocalTimestampInTimezone(goal.date, timeToUse, timezone.value);
-        } else {
-          finalTargetTE = (lastSummary ? lastSummary.endTE : currentTE.value) + 30;
-          goalType = 'te';
+      let firstDiffIdx = 0;
+      if (!initialParamsDirty) {
+        let matchCount = 0;
+        for (let i = 0; i < targets.length; i++) {
+          if (i < ascensionChain.value.length && targets[i] === ascensionChain.value[i].goal.te) {
+            matchCount++;
+          } else {
+            break;
+          }
         }
+        firstDiffIdx = matchCount;
       }
 
-      if (finalTargetTE && finalTargetTE <= lastSummary.endTE) {
-        throw new Error(`Target TE (${finalTargetTE}) must be greater than previous end TE (${lastSummary.endTE})`);
-      }
+      let currentBaseState;
+      let currentStartTime;
+      let currentSummary = null;
+      const newChain = [];
+      const loops = targets.length;
 
-      const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${idx}`, finalTargetTE, targetEndTime, {
-        actions: JSON.parse(JSON.stringify(precomputed.actions)),
-        state: JSON.parse(JSON.stringify(precomputed.state)),
-        elapsedSeconds: precomputed.elapsedSeconds,
-        resumeShiftName
-      });
-
-      const baseState2 = JSON.parse(JSON.stringify(baseState));
-      const context2 = getSimulationContext();
-      context2.ascensionStartTime = absStartTime;
-      context2.planStartOffset = 0;
-
-      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, absStartTime, `asc_${idx}`, finalTargetTE, targetEndTime, {
-        actions: JSON.parse(JSON.stringify(precomputed.actions)),
-        state: JSON.parse(JSON.stringify(precomputed.state)),
-        elapsedSeconds: precomputed.elapsedSeconds,
-        resumeShiftName
-      });
-
-      // Prepare goal state for NEXT
-      const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
-      
-      // Capture the goal state BEFORE back-populating results
-      const goalToSave = {
-        type: goalType,
-        te: goal.te,
-        date: goal.date,
-        time: goal.time
-      };
-
-      // Back-populate the form we just submitted
-      nextGoals.value[idx].date = formatUnixToDateInput(best.summary.endTime, timezone.value);
-      nextGoals.value[idx].time = formatUnixToTimeInput(best.summary.endTime, timezone.value);
-      nextGoals.value[idx].te = best.summary.endTE;
-
-      nextGoals.value[idx + 1] = {
-        te: Math.min(490, best.summary.endTE + 30),
-        date: '',
-        time: ''
-      };
-
-      ascensionChain.value.push({
-        index: idx,
-        result1,
-        result2,
-        goal: goalToSave
-      });
-
-    } catch (err: any) {
-      console.error('Simulation error:', err);
-      simulationError.value = err.message || 'An unknown error occurred during simulation.';
-    } finally {
-      isGenerating.value = false;
-    }
-  }, 10);
-};
-
-const updateAscension = (idx: number, goal: { te: number | null, date: string, time: string }) => {
-  isGenerating.value = true;
-  simulationError.value = null;
-  
-  setTimeout(() => {
-    try {
-      // 1. Resolve the goal for the edited step
-      let finalTargetTE: number | undefined = goal.te || undefined;
-      let finalEndTime: number | undefined = undefined;
-
-      if (!finalTargetTE && goal.date) {
-        const timeToUse = goal.time || '09:00';
-        finalEndTime = getLocalTimestampInTimezone(goal.date, timeToUse, timezone.value);
-      } else if (!finalTargetTE) {
-        finalTargetTE = (idx === 0 ? currentTE.value : 0) + 30;
-      }
-
-      if (idx > 0) {
-        const prevIdx = idx - 1;
-        const prevSum = ascensionChain.value[prevIdx].result1.summary.totalDurationSeconds <= ascensionChain.value[prevIdx].result2.summary.totalDurationSeconds 
-          ? ascensionChain.value[prevIdx].result1.summary 
-          : ascensionChain.value[prevIdx].result2.summary;
+      if (firstDiffIdx > 0) {
+        for (let i = 0; i < firstDiffIdx; i++) {
+          newChain.push(ascensionChain.value[i]);
+        }
+        const lastValid = newChain[firstDiffIdx - 1];
+        const lastValidSummary = lastValid.result1.summary.totalDurationSeconds <= lastValid.result2.summary.totalDurationSeconds ? lastValid.result1.summary : lastValid.result2.summary;
         
-        if (finalTargetTE && finalTargetTE <= prevSum.endTE) {
-          throw new Error(`Target TE (${finalTargetTE}) for A${idx + 1} must be greater than A${idx} end TE (${prevSum.endTE})`);
+        const baseBackupState = createBaseEngineState(null);
+        currentBaseState = deriveNextStartState(lastValidSummary, baseBackupState);
+        currentStartTime = lastValidSummary.endTime;
+        currentSummary = lastValidSummary;
+        
+        if (firstDiffIdx < loops && targets[firstDiffIdx] <= currentSummary.endTE) {
+          throw new Error(`Target TE (${targets[firstDiffIdx]}) for A${firstDiffIdx + 1} must be greater than A${firstDiffIdx} end TE (${currentSummary.endTE})`);
         }
       } else {
-        if (finalTargetTE && finalTargetTE <= currentTE.value) {
-          throw new Error(`Target TE (${finalTargetTE}) for A1 must be greater than current TE (${currentTE.value})`);
-        }
+        baseState.currentEgg = 'curiosity';
+        baseState.population = 1;
+        baseState.bankValue = 0;
+        baseState.researchLevels = {};
+        
+        currentBaseState = baseState;
+        currentStartTime = absStartTime;
       }
 
-      // 2. Update the goal state for the edited step
-      ascensionChain.value[idx].goal = {
-        type: finalTargetTE ? 'te' : 'date',
-        te: goal.te,
-        date: goal.date,
-        time: goal.time
-      };
-
-      if (idx === 0) {
-        ascensionChain.value[0].initialParams = {
-          startDate: startDate.value,
-          startTime: startTime.value,
-          teEarned: { ...truthEggsStore.teEarned }
-        };
-      }
-
-      for (let i = idx; i < ascensionChain.value.length; i++) {
-        const prevSummary = i === 0 
-          ? null // Should not happen for updateAscension as top form is separate for now
-          : (ascensionChain.value[i-1].result1.summary.totalDurationSeconds <= ascensionChain.value[i-1].result2.summary.totalDurationSeconds 
-              ? ascensionChain.value[i-1].result1.summary 
-              : ascensionChain.value[i-1].result2.summary);
-
-        const baseBackupState = createBaseEngineState(null);
-        let baseState: any;
-        let absStartTime: number;
-
-        if (i === 0) {
-          // A1 uses global start time
-          absStartTime = getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value);
-          baseState = createBaseEngineState(null);
-          baseState.currentEgg = 'curiosity';
-          baseState.population = 1;
-          baseState.bankValue = 0;
-          baseState.researchLevels = {};
-        } else {
-          baseState = deriveNextStartState(prevSummary!, baseBackupState);
-          absStartTime = prevSummary!.endTime;
-        }
-
-        const context = getSimulationContext();
-        context.ascensionStartTime = absStartTime;
-        context.planStartOffset = 0;
-
-        const buildPhaseEnd1 = getNextSaleEnd(absStartTime);
-        const buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1);
-
-        const item = ascensionChain.value[i];
-        let stepTargetTE: number | undefined = item.goal.te || undefined;
+      for (let i = firstDiffIdx; i < loops; i++) {
+        let stepTargetTE: number | undefined = targets[i] || undefined;
         let stepEndTime: number | undefined = undefined;
 
-        if (!stepTargetTE && item.goal.date) {
-          const timeToUse = item.goal.time || '09:00';
-          stepEndTime = getLocalTimestampInTimezone(item.goal.date, timeToUse, timezone.value);
-        } else if (!stepTargetTE) {
-          // Fallback +30
-          const currentTotal = i === 0 
-            ? currentTE.value 
-            : (ascensionChain.value[i-1].result1.summary.totalDurationSeconds <= ascensionChain.value[i-1].result2.summary.totalDurationSeconds 
-                ? ascensionChain.value[i-1].result1.summary.endTE 
-                : ascensionChain.value[i-1].result2.summary.endTE);
-          stepTargetTE = currentTotal + 30;
-        }
-        
-        const result1 = runAscension(baseState, context, buildPhaseEnd1, absStartTime, `asc_${i}`, stepTargetTE, stepEndTime);
-        const result2 = runAscension(JSON.parse(JSON.stringify(baseState)), JSON.parse(JSON.stringify(context)), buildPhaseEnd2, absStartTime, `asc_${i}`, stepTargetTE, stepEndTime);
+        const buildPhaseEnd1 = getNextSaleEnd(currentStartTime);
+        const buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1);
 
-        ascensionChain.value[i].result1 = result1;
-        ascensionChain.value[i].result2 = result2;
+        const currentContext = getSimulationContext();
+        currentContext.ascensionStartTime = currentStartTime;
+        currentContext.planStartOffset = 0;
 
-        // Back-populate the form for this step
+        const precomputed = runUntilShift(currentBaseState, currentContext, 'C3');
+        const resumeData1 = {
+          actions: precomputed.actions,
+          state: precomputed.state,
+          elapsedSeconds: precomputed.elapsedSeconds,
+          resumeShiftName: 'C3'
+        };
+
+        const result1 = runAscension(currentBaseState, currentContext, buildPhaseEnd1, currentStartTime, `asc_${i}`, stepTargetTE, stepEndTime, resumeData1);
+
+        const baseState2 = JSON.parse(JSON.stringify(currentBaseState));
+        const context2 = getSimulationContext();
+        context2.ascensionStartTime = currentStartTime;
+        context2.planStartOffset = 0;
+
+        const resumeData2 = {
+          actions: JSON.parse(JSON.stringify(precomputed.actions)),
+          state: JSON.parse(JSON.stringify(precomputed.state)),
+          elapsedSeconds: precomputed.elapsedSeconds,
+          resumeShiftName: 'C3'
+        };
+
+        const result2 = runAscension(baseState2, context2, buildPhaseEnd2, currentStartTime, `asc_${i}`, stepTargetTE, stepEndTime, resumeData2);
+
         const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
-        nextGoals.value[i].date = formatUnixToDateInput(best.summary.endTime, timezone.value);
-        nextGoals.value[i].time = formatUnixToTimeInput(best.summary.endTime, timezone.value);
-        nextGoals.value[i].te = best.summary.endTE;
+
+        const goalToSave = {
+          type: 'te' as 'te' | 'date',
+          te: stepTargetTE || null,
+          date: '',
+          time: ''
+        };
+
+        const chainItem: any = {
+          index: i,
+          result1,
+          result2,
+          goal: goalToSave
+        };
+        if (i === 0) {
+          chainItem.initialParams = initialParamsToSave;
+        }
+        newChain.push(chainItem);
+
+        currentSummary = best.summary;
+        
+        if (i < loops - 1) {
+          const baseBackupState = createBaseEngineState(null);
+          currentBaseState = deriveNextStartState(currentSummary, baseBackupState);
+          currentStartTime = currentSummary.endTime;
+          
+          if (targets[i + 1] <= currentSummary.endTE) {
+            throw new Error(`Target TE (${targets[i + 1]}) for A${i + 2} must be greater than A${i + 1} end TE (${currentSummary.endTE})`);
+          }
+        }
       }
 
-      // Update draft defaults
-      const last = ascensionChain.value[ascensionChain.value.length - 1];
-      const lastSummary = last.result1.summary.totalDurationSeconds <= last.result2.summary.totalDurationSeconds ? last.result1.summary : last.result2.summary;
-      nextGoals.value[ascensionChain.value.length] = {
-        te: Math.min(490, lastSummary.endTE + 30),
-        date: '',
-        time: ''
-      };
+      // Update A1 form results (optional, but good for feedback)
+      if (newChain.length > 0) {
+        // Ensure string is correctly formatted back to them if they typed badly
+        targetTE.value = targets.join(' ');
+      }
+
+      ascensionChain.value = newChain;
 
     } catch (err: any) {
       console.error('Simulation error:', err);
