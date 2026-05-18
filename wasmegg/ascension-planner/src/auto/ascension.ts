@@ -138,7 +138,7 @@ function calculatePeakELR(state: EngineState, context: SimulationContext): numbe
 }
 
 /**
- * Orchestrates a complete 13-shift ascension.
+ * Orchestrates a complete 12-shift ascension (C1 does not count as a shift).
  * 
  * @param startState - Starting engine state
  * @param context - Simulation context
@@ -259,8 +259,8 @@ export function runAscension(
     a.index = idx;
   });
 
-  // SE cost tracking for 13 shifts
-  const seResult = computeShiftCosts(startState.soulEggs, startState.shiftCount, 13);
+  // SE cost tracking for 12 shifts (C1 does not count as a shift)
+  const seResult = computeShiftCosts(startState.soulEggs, startState.shiftCount, 12);
 
   // Calculate sale count in build phase
   let saleCount = isResearchSaleActive(startTime) ? 1 : 0;

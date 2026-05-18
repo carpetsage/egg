@@ -23,10 +23,10 @@ export interface AscensionSummary {
   
   // SE tracking
   startSoulEggs: number;
-  endSoulEggs: number;                    // After 13 shifts deducted (may be negative)
+  endSoulEggs: number;                    // After 12 shifts deducted (may be negative)
   startShiftCount: number;
-  endShiftCount: number;                  // startShiftCount + 13
-  totalShiftCost: number;                 // Sum of 13 shift costs
+  endShiftCount: number;                  // startShiftCount + 12
+  totalShiftCost: number;                 // Sum of 12 shift costs
   
   // Per-egg summary
   eggsDelivered: Record<VirtueEgg, number>;

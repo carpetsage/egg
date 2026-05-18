@@ -232,43 +232,98 @@
         </div>
       </div>
 
-      <!-- Running Totals Summary Bar -->
-      <div v-if="ascensionChain.length >= 1" class="section-premium p-6">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-200">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider">Chain Totals</h3>
-        </div>
+      <!-- Running Totals Summary Bar (Floating at bottom) -->
+      <div
+        v-if="ascensionChain.length >= 1"
+        class="fixed bottom-0 left-0 right-0 z-[1000] bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] transition-transform duration-500"
+        :class="[isCollapsed ? 'translate-y-full' : 'translate-y-0']"
+      >
+        <button
+          @click="toggleCollapse"
+          class="absolute -top-8 right-6 bg-white/95 backdrop-blur-xl border border-b-0 border-slate-100 px-3 py-1 rounded-t-lg shadow-sm text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-wider h-8"
+        >
+          <svg
+            class="w-4 h-4 transition-transform duration-300"
+            :class="{ 'rotate-180': !isCollapsed }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <!-- Ascension Count -->
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Ascensions</div>
-            <div class="text-xl font-black text-slate-900">{{ chainTotals.count }}</div>
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-6">
+          <!-- Start Date -->
+          <div class="summary-item">
+            <span class="summary-label">Start Date</span>
+            <span class="summary-value text-slate-900">{{ chainTotals.startDateStr }}</span>
+          </div>
+
+          <!-- Ascensions -->
+          <div class="summary-item">
+            <span class="summary-label">Ascensions</span>
+            <span class="summary-value font-mono-premium font-black text-slate-600">{{ chainTotals.count }}</span>
           </div>
 
           <!-- TE Progress -->
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">TE Progress</div>
-            <div class="text-xl font-black text-slate-900">{{ chainTotals.startTE }} → {{ chainTotals.endTE }}</div>
-            <div class="text-[10px] font-bold text-indigo-500 mt-0.5">+{{ chainTotals.endTE - chainTotals.startTE }} TE gained</div>
+          <div class="summary-item">
+            <span class="summary-label">TE Progress</span>
+            <div class="flex items-center gap-2">
+              <span class="summary-value font-mono-premium font-black text-indigo-600">+{{ chainTotals.teGained }}</span>
+              <span
+                class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100"
+              >
+                ({{ chainTotals.startTE }} → {{ chainTotals.endTE }})
+              </span>
+            </div>
           </div>
 
-          <!-- Total Duration -->
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Duration</div>
-            <div class="text-xl font-black text-slate-900">{{ chainTotals.durationStr }}</div>
-            <div class="text-[10px] font-bold text-slate-400 mt-0.5">{{ chainTotals.durationDays }} days</div>
+          <!-- Duration -->
+          <div class="summary-item">
+            <span class="summary-label">Duration</span>
+            <span class="summary-value font-mono-premium font-black text-slate-600">{{ chainTotals.durationStr }}</span>
           </div>
 
-          <!-- SE Consumed -->
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">SE Consumed</div>
-            <div class="text-xl font-black text-slate-900">{{ chainTotals.seConsumedStr }}</div>
-            <div class="text-[10px] font-bold text-slate-400 mt-0.5">{{ chainTotals.shiftsTotal }} shifts total</div>
+          <!-- End Date -->
+          <div class="summary-item">
+            <span class="summary-label">End Date</span>
+            <span class="summary-value text-slate-900">{{ chainTotals.endDateStr }}</span>
+          </div>
+
+          <!-- Shifts -->
+          <div class="summary-item">
+            <span class="summary-label">Shifts</span>
+            <div class="flex items-center gap-2">
+              <span class="summary-value font-mono-premium font-black text-slate-600">+{{ chainTotals.shiftsTotal }}</span>
+              <span
+                class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100 font-mono-premium"
+              >
+                (#{{ chainTotals.startShifts }} → #{{ chainTotals.endShifts }})
+              </span>
+            </div>
+          </div>
+
+          <!-- SE Consumed / Remaining -->
+          <div class="summary-item">
+            <span class="summary-label">Soul Eggs</span>
+            <div class="flex items-center gap-2">
+              <span class="summary-value font-mono-premium font-black text-rose-500" v-tippy="'SE Consumed'">
+                -{{ formatNumber(chainTotals.totalSEConsumed, 1) }}
+              </span>
+              <div
+                class="flex flex-col justify-center border-l border-slate-100 pl-2 h-7 opacity-80"
+                v-tippy="'Remaining SE'"
+              >
+                <div class="text-[8px] font-black leading-none text-slate-400 mb-1 uppercase tracking-widest">
+                  Remaining
+                </div>
+                <div class="text-[11px] font-black leading-none text-slate-700 font-mono-premium flex items-center gap-1">
+                  {{ formatNumber(chainTotals.remainingSE, 1) }}
+                  <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3 h-3" alt="SE" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -703,6 +758,25 @@ const exportCurrentPlan = () => {
   triggerPlanExport(plan);
 };
 
+function formatDateOnly(timestampSeconds: number, tz: string): string {
+  if (!timestampSeconds) return 'N/A';
+  const date = new Date(timestampSeconds * 1000);
+  if (isNaN(date.getTime())) return 'N/A';
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: tz,
+  });
+}
+
+const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+function toggleCollapse() {
+  isCollapsed.value = !isCollapsed.value;
+}
+
 const chainTotals = computed(() => {
   const plans = ascensionChain.value.map(item =>
     item.result1.summary.totalDurationSeconds <= item.result2.summary.totalDurationSeconds
@@ -711,28 +785,55 @@ const chainTotals = computed(() => {
   );
 
   if (plans.length === 0) {
-    return { count: 0, startTE: 0, endTE: 0, durationStr: '—', durationDays: '0', seConsumedStr: '—', shiftsTotal: 0 };
+    return {
+      count: 0,
+      startTE: 0,
+      endTE: 0,
+      teGained: 0,
+      startDateStr: 'N/A',
+      endDateStr: 'N/A',
+      durationStr: '—',
+      durationDays: '0',
+      totalSEConsumed: 0,
+      remainingSE: 0,
+      shiftsTotal: 0,
+      startShifts: 0,
+      endShifts: 0,
+    };
   }
 
   const startTE = plans[0].startTE;
   const endTE = plans[plans.length - 1].endTE;
+  const teGained = endTE - startTE;
   const totalSeconds = plans.reduce((sum, p) => sum + p.totalDurationSeconds, 0);
   const totalSEConsumed = plans.reduce((sum, p) => sum + (p.startSoulEggs - p.endSoulEggs), 0);
+  const remainingSE = plans[plans.length - 1].endSoulEggs;
   const totalShifts = plans.reduce((sum, p) => sum + (p.endShiftCount - p.startShiftCount), 0);
+  const startShifts = plans[0].startShiftCount;
+  const endShifts = plans[plans.length - 1].endShiftCount;
 
   const days = Math.floor(totalSeconds / 86400);
   const hours = Math.floor((totalSeconds % 86400) / 3600);
   const durationStr = days > 0 ? `${days}d ${hours}h` : `${hours}h`;
   const durationDays = (totalSeconds / 86400).toFixed(1);
 
+  const startDateStr = formatDateOnly(plans[0].startTime, timezone.value);
+  const endDateStr = formatDateOnly(plans[plans.length - 1].endTime, timezone.value);
+
   return {
     count: plans.length,
     startTE,
     endTE,
+    teGained,
+    startDateStr,
+    endDateStr,
     durationStr,
     durationDays,
-    seConsumedStr: formatNumber(totalSEConsumed),
-    shiftsTotal: totalShifts
+    totalSEConsumed,
+    remainingSE,
+    shiftsTotal: totalShifts,
+    startShifts,
+    endShifts,
   };
 });
 
@@ -808,5 +909,14 @@ const copySummary = async () => {
 }
 .font-mono-premium {
   font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+}
+.summary-item {
+  @apply flex flex-col gap-1;
+}
+.summary-label {
+  @apply text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none;
+}
+.summary-value {
+  @apply text-[13px] font-bold tracking-tight whitespace-nowrap;
 }
 </style>

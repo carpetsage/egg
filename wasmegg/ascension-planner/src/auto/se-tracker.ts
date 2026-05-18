@@ -32,7 +32,7 @@ export function computeShiftCosts(
 }
 
 /**
- * Computes cumulative SE costs for multiple ascensions, each having 13 shifts.
+ * Computes cumulative SE costs for multiple ascensions, each having 12 shifts.
  */
 export function computeMultiAscensionSECost(
   startingSE: number,
@@ -45,7 +45,7 @@ export function computeMultiAscensionSECost(
   const perAscension: { cost: number; endingSE: number }[] = [];
 
   for (let i = 0; i < numAscensions; i++) {
-    const result = computeShiftCosts(currentSE, currentShiftCount, 13);
+    const result = computeShiftCosts(currentSE, currentShiftCount, 12);
     perAscension.push({
       cost: result.totalCost,
       endingSE: result.endingSE,
