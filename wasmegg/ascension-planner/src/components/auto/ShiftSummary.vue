@@ -1,9 +1,9 @@
 <template>
-  <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-    <div class="flex items-center justify-between mb-3">
+  <div class="bg-white rounded-xl border border-slate-100 p-2.5 sm:p-3 shadow-sm">
+    <div class="flex items-center justify-between mb-1.5">
       <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-lg flex items-center justify-center" :class="eggTheme.bg">
-          <svg class="w-4 h-4" :class="eggTheme.text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-5 h-5 rounded-md flex items-center justify-center" :class="eggTheme.bg">
+          <svg class="w-3.5 h-3.5" :class="eggTheme.text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -12,10 +12,10 @@
             />
           </svg>
         </div>
-        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ title }}</span>
+        <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.1em]">{{ title }}</span>
       </div>
 
-      <div class="flex items-center gap-3 text-[10px] font-black text-slate-400">
+      <div class="flex items-center gap-2 text-[9px] font-black text-slate-400">
         <span
           v-tippy="{ content: timeTooltipContent, allowHTML: true }"
           class="cursor-help border-b border-dashed border-slate-300/50 hover:text-slate-500 hover:border-slate-400 transition-colors"
@@ -31,17 +31,17 @@
           <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
           <div class="flex items-center gap-1 text-slate-500">
             <span>{{ formatNumber(totalEggsLaid, 3) }}</span>
-            <span class="text-[8px] opacity-60">EGGS</span>
+            <span class="text-[7.5px] opacity-60">EGGS</span>
           </div>
         </template>
       </div>
     </div>
 
-    <div v-if="summaryItems.length > 0" class="flex flex-wrap gap-2">
+    <div v-if="summaryItems.length > 0" class="flex flex-wrap gap-1">
       <div v-for="(item, index) in summaryItems" :key="index" class="flex items-center">
         <template v-if="item.isPremium">
           <span
-            class="badge-premium px-2 py-0.5 text-[9px] font-black tracking-tight"
+            class="badge-premium px-1.5 py-0.5 text-[8.5px] font-black tracking-tight"
             :class="eggTheme.badge"
           >
             {{ item.text }}
@@ -49,15 +49,15 @@
         </template>
         <template v-else-if="item.isPeakELR">
           <div
-            class="flex items-center gap-1.5 px-2 py-0.5 rounded-md border transition-all duration-500"
+            class="flex items-center gap-1 px-1.5 py-0.5 rounded border transition-all duration-500"
             :class="item.isOvertake ? 'bg-amber-50 border-amber-100' : 'bg-indigo-50 border-indigo-100'"
           >
             <div
-              class="w-2 h-2 rounded-full animate-pulse"
+              class="w-1.5 h-1.5 rounded-full animate-pulse"
               :class="item.isOvertake ? 'bg-amber-500' : 'bg-indigo-500'"
             ></div>
             <span
-              class="text-[9px] font-black tracking-tighter"
+              class="text-[8.5px] font-black tracking-tighter"
               :class="item.isOvertake ? 'text-amber-700' : 'text-indigo-700'"
             >
               {{ item.text }}
@@ -65,15 +65,15 @@
           </div>
         </template>
         <template v-else>
-          <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md">
-            <span class="text-[9px] font-bold text-slate-600">{{ item.name }}</span>
-            <span class="text-[9px] font-black text-indigo-500 tracking-tighter">{{ item.delta }}</span>
+          <div class="flex items-center gap-1 bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">
+            <span class="text-[8.5px] font-bold text-slate-600">{{ item.name }}</span>
+            <span class="text-[8.5px] font-black text-indigo-500 tracking-tighter">{{ item.delta }}</span>
           </div>
         </template>
       </div>
     </div>
-    <div v-else class="text-center py-2">
-      <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">No purchases during this shift</p>
+    <div v-else class="text-center py-1">
+      <p class="text-[8.5px] font-black text-slate-300 uppercase tracking-widest">No purchases during this shift</p>
     </div>
   </div>
 </template>

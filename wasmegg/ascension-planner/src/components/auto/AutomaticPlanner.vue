@@ -205,7 +205,7 @@
     </div>
 
     <!-- Results Section -->
-    <div v-if="ascensionChain.length > 0" class="max-w-4xl mx-auto space-y-12 pb-24 relative px-4 sm:px-0">
+    <div v-if="ascensionChain.length > 0" class="max-w-4xl mx-auto space-y-6 pb-24 relative px-4 sm:px-0">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4 px-4">
         <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Generated Roadmap</h2>
         <div class="flex flex-wrap justify-center items-center gap-3">
@@ -242,8 +242,10 @@
         </div>
       </div>
 
-      <div v-for="(result, idx) in bestResults" :key="idx" class="space-y-8">
+      <div class="space-y-4">
         <AscensionOverview
+          v-for="(result, idx) in bestResults"
+          :key="idx"
           :summary="result.summary"
           :actions="result.actions"
           :index="idx"
