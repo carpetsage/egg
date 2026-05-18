@@ -68,7 +68,6 @@ watch(partitionHash, refreshPlans);
 watch(() => actionsStore.libraryUpdateTick, refreshPlans);
 
 async function loadPlan(plan: PlanData) {
-  return;
   // Check if plan is already open in another tab
   if (busyPlanIds.value.has(plan.id) && actionsStore.activePlanId !== plan.id) {
     openPlanName.value = plan.name;
@@ -81,6 +80,7 @@ async function loadPlan(plan: PlanData) {
     await initLoadPlan(plan);
     emit('plan-loaded');
   } catch (err) {
+    console.error('[PlanLibrary] Error loading plan:', err);
     alert('Failed to load plan: ' + err);
   }
 }
