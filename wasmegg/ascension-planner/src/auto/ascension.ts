@@ -13,7 +13,7 @@ import { runR1 } from './shifts/r1';
 import { runC3 } from './shifts/c3';
 import { runH1 } from './shifts/h1';
 import { runK3 } from './shifts/k3';
-import { runC4, runI2, runR2, runH2, distributeTargetTE, solveTEForTimeBudget } from './shifts/te-wait';
+import { runC4, runI2, runR2, runH2, runTEWaitShift, distributeTargetTE, solveTEForTimeBudget } from './shifts/te-wait';
 import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive, isEarningsBoostActive } from './calendar';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { computeRealisticELR } from '@/calculations/realisticELR';
@@ -303,6 +303,138 @@ export function runAscension(
       kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
     },
     strategyLabel: `${saleCount}-sale build`,
+    isMaxELRAscension: false,
+  };
+
+  return {
+    actions: currentActions,
+    summary,
+  };
+}
+
+/**
+ * Simulates continuing the current ascension without any purchases or build phase.
+ * Only shifts between eggs and waits for TE at the player's current ELR.
+ * Visits each of the 5 virtue eggs 0 or 1 times, ending with balanced TE.
+ * 
+ * @param startState - Current engine state (with existing farm intact)
+ * @param context - Simulation context
+ * @param startTime - Unix timestamp when the plan starts
+ * @param currentELR - The player's current effective lay rate (eggs/second)
+ * @param targetTE - Final target total TE
+ * @param id - Optional ID for the ascension
+ */
+export function runContinueCurrent(
+  startState: EngineState,
+  context: SimulationContext,
+  startTime: number,
+  currentELR: number,
+  targetTE: number,
+  id: string = 'asc_continue'
+): { actions: Action[]; summary: AscensionSummary } {
+  const actualStartState: EngineState = JSON.parse(JSON.stringify(startState));
+  let currentState: EngineState = JSON.parse(JSON.stringify(actualStartState));
+  const currentActions: Action[] = [];
+  let totalElapsedSeconds = 0;
+
+  const allEggs: VirtueEgg[] = ['curiosity', 'kindness', 'integrity', 'resilience', 'humility'];
+
+  // Calculate current TE per egg from eggs delivered
+  const currentTEs: Record<VirtueEgg, number> = {
+    curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
+    integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
+    resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
+    humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
+    kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
+  };
+
+  // Distribute target TE balanced across eggs
+  const targets = distributeTargetTE(currentTEs, targetTE);
+
+  // Determine which eggs need more TE, sorted by needed TE (ascending — cheapest first)
+  const eggsToVisit = allEggs
+    .filter(egg => targets[egg] > currentTEs[egg])
+    .sort((a, b) => (targets[a] - currentTEs[a]) - (targets[b] - currentTEs[b]));
+
+  // Run TE wait shifts for each egg that needs visiting
+  for (const egg of eggsToVisit) {
+    currentState.lastStepTime = totalElapsedSeconds;
+    const result = runTEWaitShift(currentState, context, egg, targets[egg], currentELR);
+
+    currentActions.push(...result.actions);
+    currentState = result.endState;
+    totalElapsedSeconds += result.elapsedSeconds;
+  }
+
+  // If the player is already on an egg that doesn't need visiting (e.g. kindness with 0 needed),
+  // we might end on a different egg. The TE wait shifts handle this via their shift logic.
+
+  // Prepend start action
+  const startSnapshot = computeSnapshot(actualStartState, context);
+  const startAction: Action = {
+    id: generateActionId(),
+    index: 0,
+    timestamp: startTime * 1000,
+    type: 'start_ascension',
+    payload: { initialEgg: actualStartState.currentEgg as VirtueEgg },
+    cost: 0,
+    elrDelta: 0,
+    offlineEarningsDelta: 0,
+    eggValueDelta: 0,
+    habCapacityDelta: 0,
+    layRateDelta: 0,
+    shippingCapacityDelta: 0,
+    ihrDelta: 0,
+    bankDelta: 0,
+    populationDelta: 0,
+    totalTimeSeconds: 0,
+    endState: startSnapshot,
+    dependsOn: [],
+    dependents: [],
+  };
+  currentActions.unshift(startAction);
+
+  // Fix indices
+  currentActions.forEach((a, idx) => {
+    a.index = idx;
+  });
+
+  // SE cost — count only the shifts we actually did
+  const shiftCount = currentActions.filter(a => a.type === 'shift').length;
+  const seResult = computeShiftCosts(startState.soulEggs, startState.shiftCount, shiftCount);
+
+  const summary: AscensionSummary = {
+    id,
+    startTime,
+    endTime: startTime + totalElapsedSeconds,
+    totalDurationSeconds: totalElapsedSeconds,
+    buildPhaseEndTime: startTime, // No build phase
+    buildPhaseSaleCount: 1,
+    startTE: startState.te,
+    endTE: currentState.te,
+    teGained: currentState.te - startState.te,
+    maxELR: currentELR,
+    startSoulEggs: startState.soulEggs,
+    endSoulEggs: seResult.endingSE,
+    startShiftCount: startState.shiftCount,
+    endShiftCount: seResult.endingShiftCount,
+    totalShiftCost: seResult.totalCost,
+    eggsDelivered: { ...currentState.eggsDelivered },
+    teEarned: {
+      curiosity: (currentState.teEarned['curiosity'] || 0) - (startState.teEarned['curiosity'] || 0),
+      integrity: (currentState.teEarned['integrity'] || 0) - (startState.teEarned['integrity'] || 0),
+      resilience: (currentState.teEarned['resilience'] || 0) - (startState.teEarned['resilience'] || 0),
+      humility: (currentState.teEarned['humility'] || 0) - (startState.teEarned['humility'] || 0),
+      kindness: (currentState.teEarned['kindness'] || 0) - (startState.teEarned['kindness'] || 0),
+    },
+    finalTE: {
+      curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
+      integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
+      resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
+      humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
+      kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
+    },
+    strategyLabel: 'Continue current',
     isMaxELRAscension: false,
   };
 

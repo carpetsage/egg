@@ -23,12 +23,12 @@
             </div>
             <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               <h3 class="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-800">{{ summary.strategyLabel }}</h3>
-              <div v-if="summary.comparison && summary.comparison.daysFaster > 0.01" 
+              <div v-for="(comp, ci) in displayComparisons" :key="ci"
                 class="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm w-fit">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-                {{ summary.comparison.daysFaster.toFixed(1) }} days faster than {{ summary.comparison.otherPlanLabel }}
+                {{ comp.daysFaster.toFixed(1) }} days faster than {{ comp.otherPlanLabel }}
               </div>
             </div>
             <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-2 sm:mt-1">
@@ -197,7 +197,11 @@ const props = defineProps<{
     comparison?: { 
       daysFaster: number; 
       otherPlanLabel: string; 
-    } 
+    };
+    comparisons?: { 
+      daysFaster: number; 
+      otherPlanLabel: string; 
+    }[];
   };
   actions: any[];
   index: number;
@@ -207,6 +211,16 @@ const props = defineProps<{
 
 const isExpanded = ref(false);
 const eggs: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
+
+const displayComparisons = computed(() => {  
+  if (props.summary.comparisons && props.summary.comparisons.length > 0) {
+    return props.summary.comparisons;
+  }
+  if (props.summary.comparison && props.summary.comparison.daysFaster > 0.01) {
+    return [props.summary.comparison];
+  }
+  return [];
+});
 
 const warnings = computed(() => {
   const list: string[] = [];

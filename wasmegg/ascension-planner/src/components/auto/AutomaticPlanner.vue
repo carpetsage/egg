@@ -20,10 +20,17 @@
 
         <div class="space-y-8 relative">
           <!-- Form Disabled Overlay during Generation -->
-          <div v-if="isGenerating" class="absolute -inset-4 bg-white/60 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-3xl transition-all duration-300">
-            <div class="flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-indigo-100 shadow-xl shadow-indigo-500/10">
+          <div
+            v-if="isGenerating"
+            class="absolute -inset-4 bg-white/60 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-3xl transition-all duration-300"
+          >
+            <div
+              class="flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-indigo-100 shadow-xl shadow-indigo-500/10"
+            >
               <div class="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-              <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Form locked while calculating...</span>
+              <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest"
+                >Form locked while calculating...</span
+              >
             </div>
           </div>
           <!-- Section 1: Initial State -->
@@ -66,20 +73,37 @@
             <div class="space-y-6">
               <div class="flex items-center justify-between px-1">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm shadow-indigo-100">
+                  <div
+                    class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm shadow-indigo-100"
+                  >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h2 class="text-xs font-black text-slate-800 uppercase tracking-wider leading-none">Virtue Progress</h2>
+                    <h2 class="text-xs font-black text-slate-800 uppercase tracking-wider leading-none">
+                      Virtue Progress
+                    </h2>
                     <div class="flex items-center gap-2 mt-1">
                       <span class="text-[10px] font-black text-indigo-500 uppercase">{{ currentTE }} TE Total</span>
-                      <span v-if="truthEggsStore.totalPendingTE > 0" class="text-[10px] font-black text-emerald-500 uppercase">+{{ truthEggsStore.totalPendingTE }} Pending</span>
+                      <span
+                        v-if="truthEggsStore.totalPendingTE > 0"
+                        class="text-[10px] font-black text-emerald-500 uppercase"
+                        >+{{ truthEggsStore.totalPendingTE }} Pending</span
+                      >
+                      <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
+                      <span class="text-[10px] font-black text-slate-500"
+                        >ELR {{ formatNumber(currentELR * 3600, 3) }}/hr</span
+                      >
                     </div>
                   </div>
                 </div>
-                <button 
+                <button
                   v-if="truthEggsStore.hasPendingTE"
                   @click="rollUpPendingTE"
                   class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg transition-all shadow-md shadow-emerald-100 flex items-center gap-2 active:scale-95"
@@ -93,11 +117,19 @@
 
               <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <div v-for="egg in VIRTUE_TE_ORDER" :key="egg" class="relative group">
-                  <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 group-hover:border-indigo-100 group-hover:bg-slate-50/80 transition-all duration-300">
+                  <div
+                    class="bg-slate-50 border border-slate-100 rounded-xl p-3 group-hover:border-indigo-100 group-hover:bg-slate-50/80 transition-all duration-300"
+                  >
                     <div class="flex items-center justify-between mb-2">
                       <div class="flex items-center gap-2">
-                        <img :src="iconURL(`egginc/egg_${egg}.png`, 64)" class="w-4 h-4 object-contain grayscale group-hover:grayscale-0 transition-all" />
-                        <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">{{ VIRTUE_EGG_NAMES[egg] }}</span>
+                        <img
+                          :src="iconURL(`egginc/egg_${egg}.png`, 64)"
+                          class="w-4 h-4 object-contain grayscale group-hover:grayscale-0 transition-all"
+                        />
+                        <span
+                          class="text-[8px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors"
+                          >{{ VIRTUE_EGG_NAMES[egg] }}</span
+                        >
                       </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -112,9 +144,13 @@
                           @keydown.enter="($event.target as HTMLInputElement).blur()"
                         />
                       </div>
-                      <div v-if="truthEggsStore.pendingTEForEgg(egg) > 0" 
-                           class="flex flex-col items-center justify-center bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 min-w-[44px]">
-                        <span class="text-[9px] font-black text-emerald-600">+{{ truthEggsStore.pendingTEForEgg(egg) }}</span>
+                      <div
+                        v-if="truthEggsStore.pendingTEForEgg(egg) > 0"
+                        class="flex flex-col items-center justify-center bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 min-w-[44px]"
+                      >
+                        <span class="text-[9px] font-black text-emerald-600"
+                          >+{{ truthEggsStore.pendingTEForEgg(egg) }}</span
+                        >
                         <span class="text-[5px] font-black text-emerald-400 uppercase leading-none">Pending</span>
                       </div>
                     </div>
@@ -149,7 +185,8 @@
                   <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px]">TE</div>
                 </div>
                 <p class="text-[10px] font-bold text-slate-400 leading-relaxed px-1 mt-2">
-                  Enter a sequence of target TEs separated by spaces to generate an entire multi-ascension chain at once.
+                  Enter a sequence of target TEs separated by spaces to generate an entire multi-ascension chain at
+                  once.
                 </p>
               </div>
             </div>
@@ -172,23 +209,33 @@
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4 px-4">
         <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Generated Roadmap</h2>
         <div class="flex flex-wrap justify-center items-center gap-3">
-          <button 
+          <button
             @click="copySummary"
             :disabled="isGenerating"
             class="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-200 disabled:hover:text-slate-600"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+              />
             </svg>
             {{ copySuccess ? 'Copied!' : 'Copy Summary' }}
           </button>
-          <button 
+          <button
             @click="exportCurrentPlan"
             :disabled="isGenerating"
             class="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
             </svg>
             Export Plan
           </button>
@@ -196,33 +243,28 @@
       </div>
 
       <div v-for="(result, idx) in bestResults" :key="idx" class="space-y-8">
-        <div v-if="idx > 0 && idx === ascensionChain.length - 1" class="flex justify-end -mb-6 pr-1 relative z-30">
-          <button 
-            @click="removeLastAscension"
-            class="group flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm active:scale-95"
-          >
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Remove A{{ idx + 1 }}
-          </button>
-        </div>
-        <AscensionOverview 
-          :summary="result.summary" 
+        <AscensionOverview
+          :summary="result.summary"
           :actions="result.actions"
           :index="idx"
           :total="ascensionChain.length"
           :target-t-e="result.targetTE"
         />
-
       </div>
 
       <!-- Simulation Error Display -->
       <div v-if="simulationError" class="px-4">
-        <div class="bg-rose-50 border border-rose-100 rounded-3xl p-6 flex items-start gap-4 shadow-xl shadow-rose-500/5 animate-in fade-in slide-in-from-top-4">
+        <div
+          class="bg-rose-50 border border-rose-100 rounded-3xl p-6 flex items-start gap-4 shadow-xl shadow-rose-500/5 animate-in fade-in slide-in-from-top-4"
+        >
           <div class="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-rose-600 flex-shrink-0">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <div class="space-y-1">
@@ -270,7 +312,9 @@
           <div class="summary-item">
             <span class="summary-label">TE Progress</span>
             <div class="flex items-center gap-2">
-              <span class="summary-value font-mono-premium font-black text-indigo-600">+{{ chainTotals.teGained }}</span>
+              <span class="summary-value font-mono-premium font-black text-indigo-600"
+                >+{{ chainTotals.teGained }}</span
+              >
               <span
                 class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100"
               >
@@ -295,7 +339,9 @@
           <div class="summary-item">
             <span class="summary-label">Shifts</span>
             <div class="flex items-center gap-2">
-              <span class="summary-value font-mono-premium font-black text-slate-600">+{{ chainTotals.shiftsTotal }}</span>
+              <span class="summary-value font-mono-premium font-black text-slate-600"
+                >+{{ chainTotals.shiftsTotal }}</span
+              >
               <span
                 class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100 font-mono-premium"
               >
@@ -318,7 +364,9 @@
                 <div class="text-[8px] font-black leading-none text-slate-400 mb-1 uppercase tracking-widest">
                   Remaining
                 </div>
-                <div class="text-[11px] font-black leading-none text-slate-700 font-mono-premium flex items-center gap-1">
+                <div
+                  class="text-[11px] font-black leading-none text-slate-700 font-mono-premium flex items-center gap-1"
+                >
                   {{ formatNumber(chainTotals.remainingSE, 1) }}
                   <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3 h-3" alt="SE" />
                 </div>
@@ -330,8 +378,8 @@
     </div>
 
     <!-- Floating Progress Indicator -->
-    <div 
-      v-if="isGenerating" 
+    <div
+      v-if="isGenerating"
       class="fixed bottom-8 right-8 z-[200] bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/50 px-6 py-4 rounded-2xl shadow-2xl shadow-indigo-500/20 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 duration-300"
     >
       <div class="w-6 h-6 border-3 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin"></div>
@@ -356,9 +404,10 @@ import { useTruthEggsStore, VIRTUE_TE_ORDER } from '@/stores/truthEggs';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
+import { getArtifactLoadoutFromBackup, getOptimalEarningsSet } from '@/lib/artifacts';
 import { computeSnapshot } from '@/engine/compute';
 import { getLocalTimestampInTimezone } from '@/lib/events';
-import { runAscension, runUntilShift, deriveNextStartState } from '@/auto/ascension';
+import { runAscension, runUntilShift, deriveNextStartState, runContinueCurrent } from '@/auto/ascension';
 import { getNextSaleEnd } from '@/auto/calendar';
 import { rollUpPendingTE } from '@/lib/modes';
 import type { AscensionSummary } from '@/auto/types';
@@ -367,22 +416,19 @@ import AscensionOverview from './AscensionOverview.vue';
 import { triggerPlanExport, type ExportedPlan } from '@/auto/export';
 import { type ChainedAscension } from '@/stores/autoPlanner';
 
+import { useFuelTankStore } from '@/stores/fuelTank';
+import { useSilosStore } from '@/stores/silos';
+
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
 const virtueStore = useVirtueStore();
 const truthEggsStore = useTruthEggsStore();
+const fuelTankStore = useFuelTankStore();
+const silosStore = useSilosStore();
 const autoPlannerStore = useAutoPlannerStore();
 
-const { 
-  ascensionChain, 
-  timezone, 
-  startDate, 
-  startTime, 
-  targetTE, 
-  targetEndDate, 
-  targetEndTime, 
-  nextGoals 
-} = storeToRefs(autoPlannerStore);
+const { ascensionChain, timezone, startDate, startTime, targetTE, targetEndDate, targetEndTime, nextGoals } =
+  storeToRefs(autoPlannerStore);
 
 // Initialize default values if not already set (e.g. from an import)
 if (!timezone.value) {
@@ -391,18 +437,26 @@ if (!timezone.value) {
 
 // Initialize Target TE to Current + 30 once data is loaded
 let targetTEInitialized = false;
-watch(() => truthEggsStore.totalTE, (newVal) => {
-  if (newVal > 0 && !targetTEInitialized) {
-    if (!targetTE.value) {
-      targetTE.value = String(Math.min(490, newVal + 30));
+watch(
+  () => truthEggsStore.totalTE,
+  newVal => {
+    if (newVal > 0 && !targetTEInitialized) {
+      if (!targetTE.value) {
+        targetTE.value = String(Math.min(490, newVal + 30));
+      }
+      targetTEInitialized = true;
     }
-    targetTEInitialized = true;
-  }
-}, { immediate: true });
+  },
+  { immediate: true }
+);
 
 const getTargets = () => {
   if (!targetTE.value) return [];
-  return targetTE.value.trim().split(/\s+/).map(Number).filter(n => !isNaN(n) && n > 0);
+  return targetTE.value
+    .trim()
+    .split(/\s+/)
+    .map(Number)
+    .filter(n => !isNaN(n) && n > 0);
 };
 
 const handleTargetTEInput = (e: Event) => {
@@ -417,23 +471,17 @@ if (!startDate.value) {
   startDate.value = new Intl.DateTimeFormat('en-CA', { timeZone: timezone.value }).format(now);
 }
 if (!startTime.value) {
-  startTime.value = new Intl.DateTimeFormat('en-GB', { 
-    timeZone: timezone.value, 
-    hour: '2-digit', 
-    minute: '2-digit', 
-    hour12: false 
+  startTime.value = new Intl.DateTimeFormat('en-GB', {
+    timeZone: timezone.value,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
   }).format(now);
 }
 
 const isGenerating = ref(false);
 const generateProgress = ref('');
 const simulationError = ref<string | null>(null);
-
-const removeLastAscension = () => {
-  if (ascensionChain.value.length > 1) {
-    ascensionChain.value.pop();
-  }
-};
 
 const handleTEEarnedChange = (egg: import('@/types').VirtueEgg, value: string) => {
   const count = parseInt(value);
@@ -447,11 +495,11 @@ const syncTEAcrossStores = async (egg: import('@/types').VirtueEgg) => {
   // Update initialStateStore
   initialStateStore.setInitialEggsDelivered(egg, truthEggsStore.eggsDelivered[egg]);
   initialStateStore.setInitialTeEarned(egg, truthEggsStore.teEarned[egg]);
-  
+
   // Recalculate pending for this egg
   const theoreticalTE = countTEThresholdsPassed(truthEggsStore.eggsDelivered[egg]);
   initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - truthEggsStore.teEarned[egg]));
-  
+
   // Update virtueStore
   const total = truthEggsStore.totalTE;
   virtueStore.setInitialTE(total);
@@ -470,22 +518,86 @@ const currentTE = computed(() => {
   return Object.values(snapshot.teEarned).reduce((a, b) => a + b, 0);
 });
 
+const currentELR = computed(() => {
+  const farmState = initialStateStore.currentFarmState;
+  if (!farmState) {
+    const snapshot = actionsStore.effectiveSnapshot;
+    return snapshot?.elr ?? 0;
+  }
+
+  // Build the actual current farm state
+  const VIRTUE_EGGS_MAP: Record<number, import('@/types').VirtueEgg> = {
+    50: 'curiosity',
+    51: 'integrity',
+    52: 'humility',
+    53: 'resilience',
+    54: 'kindness',
+  };
+
+  const rawLoadout = initialStateStore.rawBackup
+    ? getArtifactLoadoutFromBackup(initialStateStore.rawBackup)
+    : initialStateStore.artifactLoadout;
+
+  const optimalEarnings = initialStateStore.rawBackup
+    ? getOptimalEarningsSet(initialStateStore.rawBackup)
+    : initialStateStore.artifactSets.earnings || null;
+
+  const continueState: import('@/engine/types').EngineState = {
+    currentEgg: (VIRTUE_EGGS_MAP[farmState.eggType] || 'curiosity') as import('@/types').VirtueEgg,
+    shiftCount: virtueStore.initialShiftCount,
+    te: virtueStore.initialTE,
+    soulEggs: initialStateStore.soulEggs,
+    vehicles: farmState.vehicles || [{ vehicleId: 0, trainLength: 1 }],
+    habIds: farmState.habs || [0, null, null, null],
+    researchLevels: { ...farmState.commonResearches },
+    siloCount: silosStore.siloCount || 1,
+    tankLevel: fuelTankStore.tankLevel || 0,
+    artifactLoadout: rawLoadout.map(slot => ({
+      artifactId: slot.artifactId,
+      stones: [...slot.stones],
+    })),
+    activeArtifactSet: 'elr',
+    artifactSets: {
+      earnings: optimalEarnings ? JSON.parse(JSON.stringify(optimalEarnings)) : null,
+      elr: JSON.parse(JSON.stringify(rawLoadout)),
+    },
+    fuelTankAmounts: { ...initialStateStore.initialFuelAmounts },
+    eggsDelivered: { ...initialStateStore.initialEggsDelivered },
+    teEarned: { ...initialStateStore.initialTeEarned },
+    population: farmState.population || 0,
+    lastStepTime: farmState.lastStepTime || 0,
+    bankValue: farmState.cash || 0,
+    activeSales: {
+      research: false,
+      hab: false,
+      vehicle: false,
+    },
+    earningsBoost: {
+      active: false,
+      multiplier: 1,
+    },
+  };
+
+  const context = getSimulationContext();
+  const snap = computeSnapshot(continueState, context, { skipGrowth: true });
+  return snap.elr;
+});
+
 const isA1Dirty = computed(() => {
   if (ascensionChain.value.length === 0) return true;
   const last = ascensionChain.value[0];
   if (!last.initialParams) return true;
 
-  const initialParamsDirty = (
+  const initialParamsDirty =
     startDate.value !== last.initialParams.startDate ||
     startTime.value !== last.initialParams.startTime ||
-    JSON.stringify(truthEggsStore.teEarned) !== JSON.stringify(last.initialParams.teEarned)
-  );
+    JSON.stringify(truthEggsStore.teEarned) !== JSON.stringify(last.initialParams.teEarned);
 
   if (initialParamsDirty) return true;
 
   const targets = getTargets();
   if (targets.length !== ascensionChain.value.length) return true;
-  
+
   for (let i = 0; i < targets.length; i++) {
     if (targets[i] !== ascensionChain.value[i].goal.te) return true;
   }
@@ -495,34 +607,50 @@ const isA1Dirty = computed(() => {
 
 const bestResults = computed(() => {
   return ascensionChain.value.map(item => {
-    const s1 = item.result1.summary;
-    const s2 = item.result2.summary;
-    
-    const isS1Better = s1.totalDurationSeconds <= s2.totalDurationSeconds;
-    const best = isS1Better ? item.result1 : item.result2;
-    const other = isS1Better ? item.result2 : item.result1;
-    
-    const diffSeconds = Math.abs(s1.totalDurationSeconds - s2.totalDurationSeconds);
-    const diffDays = diffSeconds / 86400;
-    
-    const cleanOtherLabel = `the ${other.summary.strategyLabel.replace(' build', '')} plan`;
-    
+    // Collect all candidates
+    const candidates = [
+      { result: item.result1, label: item.result1.summary.strategyLabel },
+      { result: item.result2, label: item.result2.summary.strategyLabel },
+    ];
+    if (item.result3) {
+      candidates.push({ result: item.result3, label: item.result3.summary.strategyLabel });
+    }
+
+    // Find the fastest
+    let bestIdx = 0;
+    for (let i = 1; i < candidates.length; i++) {
+      if (candidates[i].result.summary.totalDurationSeconds < candidates[bestIdx].result.summary.totalDurationSeconds) {
+        bestIdx = i;
+      }
+    }
+    const best = candidates[bestIdx].result;
+    const bestDuration = best.summary.totalDurationSeconds;
+
+    // Build comparisons against all others
+    const comparisons = candidates
+      .filter((_, i) => i !== bestIdx)
+      .map(other => {
+        const diffSeconds = other.result.summary.totalDurationSeconds - bestDuration;
+        return {
+          daysFaster: diffSeconds / 86400,
+          otherPlanLabel: `the ${other.label.replace(' build', '')} plan`,
+        };
+      })
+      .filter(c => c.daysFaster > 0.01)
+      .sort((a, b) => b.daysFaster - a.daysFaster);
+
     return {
       ...best,
       summary: {
         ...best.summary,
-        comparison: {
-          daysFaster: diffDays,
-          otherPlanLabel: cleanOtherLabel
-        }
+        comparisons,
+        // Keep single comparison for backward compat with non-A1 items
+        comparison: comparisons[0] || undefined,
       },
-      targetTE: item.goal.te
+      targetTE: item.goal.te,
     };
   });
 });
-
-
-
 
 const allTimezones = computed(() => {
   try {
@@ -573,26 +701,27 @@ const generate = async () => {
     }
 
     rollUpPendingTE();
-    
+
     const context = getSimulationContext();
     const baseState = createBaseEngineState(null);
     const initialSnapshot = computeSnapshot(baseState, context);
     actionsStore.setInitialSnapshot(initialSnapshot);
 
     const absStartTime = getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value);
-    
+
     const initialParamsToSave = {
       startDate: startDate.value,
       startTime: startTime.value,
-      teEarned: { ...truthEggsStore.teEarned }
+      teEarned: { ...truthEggsStore.teEarned },
     };
 
     const lastA1 = ascensionChain.value[0];
-    const initialParamsDirty = !lastA1 || !lastA1.initialParams || (
+    const initialParamsDirty =
+      !lastA1 ||
+      !lastA1.initialParams ||
       startDate.value !== lastA1.initialParams.startDate ||
       startTime.value !== lastA1.initialParams.startTime ||
-      JSON.stringify(truthEggsStore.teEarned) !== JSON.stringify(lastA1.initialParams.teEarned)
-    );
+      JSON.stringify(truthEggsStore.teEarned) !== JSON.stringify(lastA1.initialParams.teEarned);
 
     let firstDiffIdx = 0;
     if (!initialParamsDirty) {
@@ -618,22 +747,27 @@ const generate = async () => {
         newChain.push(ascensionChain.value[i]);
       }
       const lastValid = newChain[firstDiffIdx - 1];
-      const lastValidSummary = lastValid.result1.summary.totalDurationSeconds <= lastValid.result2.summary.totalDurationSeconds ? lastValid.result1.summary : lastValid.result2.summary;
-      
+      const lastValidSummary =
+        lastValid.result1.summary.totalDurationSeconds <= lastValid.result2.summary.totalDurationSeconds
+          ? lastValid.result1.summary
+          : lastValid.result2.summary;
+
       const baseBackupState = createBaseEngineState(null);
       currentBaseState = deriveNextStartState(lastValidSummary, baseBackupState);
       currentStartTime = lastValidSummary.endTime;
       currentSummary = lastValidSummary;
-      
+
       if (firstDiffIdx < loops && targets[firstDiffIdx] <= currentSummary.endTE) {
-        throw new Error(`Target TE (${targets[firstDiffIdx]}) for A${firstDiffIdx + 1} must be greater than A${firstDiffIdx} end TE (${currentSummary.endTE})`);
+        throw new Error(
+          `Target TE (${targets[firstDiffIdx]}) for A${firstDiffIdx + 1} must be greater than A${firstDiffIdx} end TE (${currentSummary.endTE})`
+        );
       }
     } else {
       baseState.currentEgg = 'curiosity';
       baseState.population = 1;
       baseState.bankValue = 0;
       baseState.researchLevels = {};
-      
+
       currentBaseState = baseState;
       currentStartTime = absStartTime;
     }
@@ -657,10 +791,19 @@ const generate = async () => {
         actions: precomputed.actions,
         state: precomputed.state,
         elapsedSeconds: precomputed.elapsedSeconds,
-        resumeShiftName: 'C3'
+        resumeShiftName: 'C3',
       };
 
-      const result1 = runAscension(currentBaseState, currentContext, buildPhaseEnd1, currentStartTime, `asc_${i}`, stepTargetTE, stepEndTime, resumeData1);
+      const result1 = runAscension(
+        currentBaseState,
+        currentContext,
+        buildPhaseEnd1,
+        currentStartTime,
+        `asc_${i}`,
+        stepTargetTE,
+        stepEndTime,
+        resumeData1
+      );
 
       generateProgress.value = `Simulating A${i + 1} of ${loops} (2-sale Build)...`;
       await new Promise(resolve => setTimeout(resolve, 15));
@@ -674,40 +817,128 @@ const generate = async () => {
         actions: JSON.parse(JSON.stringify(precomputed.actions)),
         state: JSON.parse(JSON.stringify(precomputed.state)),
         elapsedSeconds: precomputed.elapsedSeconds,
-        resumeShiftName: 'C3'
+        resumeShiftName: 'C3',
       };
 
-      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, currentStartTime, `asc_${i}`, stepTargetTE, stepEndTime, resumeData2);
+      const result2 = runAscension(
+        baseState2,
+        context2,
+        buildPhaseEnd2,
+        currentStartTime,
+        `asc_${i}`,
+        stepTargetTE,
+        stepEndTime,
+        resumeData2
+      );
 
-      const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
+      // For A1, also simulate "continue current" (no build, just shift+wait at current ELR)
+      let result3: { summary: AscensionSummary; actions: Action[] } | undefined;
+      if (i === 0 && stepTargetTE && initialStateStore.currentFarmState) {
+        generateProgress.value = `Simulating A${i + 1} of ${loops} (Continue Current)...`;
+        await new Promise(resolve => setTimeout(resolve, 15));
+
+        // Build engine state from the player's actual backup farm (with real research/habs/vehicles)
+        const farmState = initialStateStore.currentFarmState;
+        const VIRTUE_EGGS_MAP: Record<number, import('@/types').VirtueEgg> = {
+          50: 'curiosity',
+          51: 'integrity',
+          52: 'humility',
+          53: 'resilience',
+          54: 'kindness',
+        };
+        const rawLoadout = initialStateStore.rawBackup
+          ? getArtifactLoadoutFromBackup(initialStateStore.rawBackup)
+          : currentBaseState.artifactLoadout;
+
+        const optimalEarnings = initialStateStore.rawBackup
+          ? getOptimalEarningsSet(initialStateStore.rawBackup)
+          : currentBaseState.artifactSets.earnings || null;
+
+        const continueState: import('@/engine/types').EngineState = {
+          currentEgg: (VIRTUE_EGGS_MAP[farmState.eggType] || 'curiosity') as import('@/types').VirtueEgg,
+          shiftCount: currentBaseState.shiftCount,
+          te: currentBaseState.te,
+          soulEggs: currentBaseState.soulEggs,
+          vehicles: farmState.vehicles || [{ vehicleId: 0, trainLength: 1 }],
+          habIds: farmState.habs || [0, null, null, null],
+          researchLevels: { ...farmState.commonResearches },
+          siloCount: farmState.numSilos || 1,
+          tankLevel: currentBaseState.tankLevel,
+          artifactLoadout: rawLoadout.map(slot => ({
+            artifactId: slot.artifactId,
+            stones: [...slot.stones],
+          })),
+          activeArtifactSet: 'elr',
+          artifactSets: {
+            earnings: optimalEarnings ? JSON.parse(JSON.stringify(optimalEarnings)) : null,
+            elr: JSON.parse(JSON.stringify(rawLoadout)),
+          },
+          fuelTankAmounts: { ...currentBaseState.fuelTankAmounts },
+          eggsDelivered: { ...currentBaseState.eggsDelivered },
+          teEarned: { ...currentBaseState.teEarned },
+          population: farmState.population || 0,
+          lastStepTime: farmState.lastStepTime || 0,
+          bankValue: farmState.cash || 0,
+          activeSales: { research: false, hab: false, vehicle: false },
+          earningsBoost: { active: false, multiplier: 1 },
+        };
+
+        // Compute the real ELR from this farm state
+        const continueContext = getSimulationContext();
+        continueContext.ascensionStartTime = currentStartTime;
+        continueContext.planStartOffset = 0;
+        const continueSnapshot = computeSnapshot(continueState, continueContext, { skipGrowth: true });
+        const realELR = continueSnapshot.elr;
+
+        if (realELR > 0) {
+          result3 = runContinueCurrent(
+            continueState,
+            continueContext,
+            currentStartTime,
+            realELR,
+            stepTargetTE,
+            `asc_${i}_continue`
+          );
+        }
+      }
+
+      const candidates = [result1, result2, ...(result3 ? [result3] : [])];
+      const best = candidates.reduce((a, b) =>
+        a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b
+      );
 
       const goalToSave = {
         type: 'te' as 'te' | 'date',
         te: stepTargetTE || null,
         date: '',
-        time: ''
+        time: '',
       };
 
       const chainItem: any = {
         index: i,
         result1,
         result2,
-        goal: goalToSave
+        goal: goalToSave,
       };
+      if (result3) {
+        chainItem.result3 = result3;
+      }
       if (i === 0) {
         chainItem.initialParams = initialParamsToSave;
       }
       newChain.push(chainItem);
 
       currentSummary = best.summary;
-      
+
       if (i < loops - 1) {
         const baseBackupState = createBaseEngineState(null);
         currentBaseState = deriveNextStartState(currentSummary, baseBackupState);
         currentStartTime = currentSummary.endTime;
-        
+
         if (targets[i + 1] <= currentSummary.endTE) {
-          throw new Error(`Target TE (${targets[i + 1]}) for A${i + 2} must be greater than A${i + 1} end TE (${currentSummary.endTE})`);
+          throw new Error(
+            `Target TE (${targets[i + 1]}) for A${i + 2} must be greater than A${i + 1} end TE (${currentSummary.endTE})`
+          );
         }
       }
     }
@@ -717,7 +948,6 @@ const generate = async () => {
     }
 
     ascensionChain.value = newChain;
-
   } catch (err: any) {
     console.error('Simulation error:', err);
     simulationError.value = err.message || 'An unknown error occurred during simulation.';
@@ -729,7 +959,7 @@ const generate = async () => {
 
 const exportCurrentPlan = () => {
   if (ascensionChain.value.length === 0) return;
-  
+
   const plan: ExportedPlan = {
     version: 1,
     exportedAt: new Date().toISOString(),
@@ -751,10 +981,10 @@ const exportCurrentPlan = () => {
       targetTE: item.goal.te || item.result1.summary.endTE,
       result1: item.result1,
       result2: item.result2,
-      goal: item.goal
-    }))
+      goal: item.goal,
+    })),
   };
-  
+
   triggerPlanExport(plan);
 };
 
@@ -778,11 +1008,11 @@ function toggleCollapse() {
 }
 
 const chainTotals = computed(() => {
-  const plans = ascensionChain.value.map(item =>
-    item.result1.summary.totalDurationSeconds <= item.result2.summary.totalDurationSeconds
-      ? item.result1.summary
-      : item.result2.summary
-  );
+  const plans = ascensionChain.value.map(item => {
+    const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
+    return candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b))
+      .summary;
+  });
 
   if (plans.length === 0) {
     return {
@@ -841,49 +1071,53 @@ const copySuccess = ref(false);
 
 const copySummary = async () => {
   if (ascensionChain.value.length === 0) return;
-  
+
   // Use the actual starting TE of A1
-  const startTE = ascensionChain.value[0].initialParams?.teEarned 
+  const startTE = ascensionChain.value[0].initialParams?.teEarned
     ? Object.values(ascensionChain.value[0].initialParams.teEarned).reduce((a, b) => a + b, 0)
     : currentTE.value;
 
   const bestPlans = ascensionChain.value.map(item => {
-    return item.result1.summary.totalDurationSeconds <= item.result2.summary.totalDurationSeconds 
-      ? item.result1.summary 
-      : item.result2.summary;
+    const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
+    return candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b))
+      .summary;
   });
-  
+
   const finalTE = bestPlans[bestPlans.length - 1].endTE;
-  
+
   let totalSeconds = 0;
   let totalSE = 0;
-  
+
   const lines = [`Ascension Plan - Starting TE: ${startTE}`];
-  
+
   bestPlans.forEach((plan, idx) => {
     const ascStartTE = idx === 0 ? startTE : bestPlans[idx - 1].endTE;
     const saleStr = plan.strategyLabel.replace(' build', '');
     const durationDays = Math.floor(plan.totalDurationSeconds / 86400);
     const durationHours = Math.floor((plan.totalDurationSeconds % 86400) / 3600);
     const durationStr = `${durationDays}d ${durationHours}h`;
-    
-    lines.push(`  A${idx + 1}: ${ascStartTE} → ${plan.endTE} TE (${saleStr}, ${durationStr}, ${formatNumber(plan.maxELR * 3600, 3)}/hr)`);
-    
+
+    lines.push(
+      `  A${idx + 1}: ${ascStartTE} → ${plan.endTE} TE (${saleStr}, ${durationStr}, ${formatNumber(plan.maxELR * 3600, 3)}/hr)`
+    );
+
     totalSeconds += plan.totalDurationSeconds;
-    totalSE += (plan.startSoulEggs - plan.endSoulEggs);
+    totalSE += plan.startSoulEggs - plan.endSoulEggs;
   });
-  
+
   const totalDays = (totalSeconds / 86400).toFixed(1);
   // Format totalSE safely, handling potential precision or floating point issues
   const seStr = formatNumber(totalSE);
-  
+
   lines.push(`Total: ${startTE} → ${finalTE} TE in ~${totalDays} days, ${seStr} SE consumed`);
-  
+
   const text = lines.join('\n');
   try {
     await navigator.clipboard.writeText(text);
     copySuccess.value = true;
-    setTimeout(() => { copySuccess.value = false; }, 2000);
+    setTimeout(() => {
+      copySuccess.value = false;
+    }, 2000);
   } catch (err) {
     console.error('Failed to copy text: ', err);
   }
@@ -904,8 +1138,15 @@ const copySummary = async () => {
   animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 @keyframes pulse-subtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(0.98); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
 }
 .font-mono-premium {
   font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
