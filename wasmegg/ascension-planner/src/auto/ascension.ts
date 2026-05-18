@@ -333,6 +333,22 @@ export function runContinueCurrent(
   id: string = 'asc_continue'
 ): { actions: Action[]; summary: AscensionSummary } {
   const actualStartState: EngineState = JSON.parse(JSON.stringify(startState));
+
+  // Catch-up earnings: determine how long ago the last backup was,
+  // then add that many eggs based on current ELR.
+  const approxTime = context.rawBackup?.approxTime || 0;
+  if (approxTime > 0 && startTime > approxTime) {
+    const elapsedSeconds = startTime - approxTime;
+    const catchUpEggs = currentELR * elapsedSeconds;
+    const currentEgg = actualStartState.currentEgg;
+    actualStartState.eggsDelivered[currentEgg] = (actualStartState.eggsDelivered[currentEgg] || 0) + catchUpEggs;
+
+    // Recalculate TE earned for the current egg and total TE
+    const newTE = countTEThresholdsPassed(actualStartState.eggsDelivered[currentEgg]);
+    actualStartState.teEarned[currentEgg] = Math.max(actualStartState.teEarned[currentEgg] || 0, newTE);
+    actualStartState.te = Object.values(actualStartState.teEarned).reduce((a, b) => a + b, 0);
+  }
+
   let currentState: EngineState = JSON.parse(JSON.stringify(actualStartState));
   const currentActions: Action[] = [];
   let totalElapsedSeconds = 0;
@@ -355,6 +371,13 @@ export function runContinueCurrent(
   const eggsToVisit = allEggs
     .filter(egg => targets[egg] > currentTEs[egg])
     .sort((a, b) => (targets[a] - currentTEs[a]) - (targets[b] - currentTEs[b]));
+
+  // If the player's current egg from backup needs visiting, prioritize it to the front
+  const currentEggIdx = eggsToVisit.indexOf(currentState.currentEgg as VirtueEgg);
+  if (currentEggIdx !== -1) {
+    eggsToVisit.splice(currentEggIdx, 1);
+    eggsToVisit.unshift(currentState.currentEgg as VirtueEgg);
+  }
 
   // Run TE wait shifts for each egg that needs visiting
   for (const egg of eggsToVisit) {

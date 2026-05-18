@@ -148,6 +148,7 @@ const summaryItems = computed(() => {
   const finalHabs: Record<number, number> = {};
   let finalSiloCount = 0;
   const equippedArtifacts: any[] = [];
+  const equippedSets: string[] = [];
 
   for (const action of props.actions) {
     if (action.type === 'buy_research') {
@@ -192,10 +193,39 @@ const summaryItems = computed(() => {
           }
         }
       }
+    } else if (action.type === 'update_artifact_set') {
+      const { newLoadout } = action.payload;
+      equippedArtifacts.length = 0;
+      for (const slot of newLoadout) {
+        if (slot.artifactId) {
+          const artifact = getArtifact(slot.artifactId);
+          if (artifact) {
+            const stones = (slot.stones || [])
+              .map((s: string | null) => (s ? getStone(s) : null))
+              .filter((s: any) => s !== null);
+            equippedArtifacts.push({
+              name: artifact.familyName,
+              tier: artifact.tier,
+              rarity: artifact.rarityCode,
+              stones: stones.map((s: any) => ({ name: s.familyName, tier: s.tier })),
+            });
+          }
+        }
+      }
+    } else if (action.type === 'equip_artifact_set') {
+      const setName = action.payload.setName === 'earnings' ? 'Earnings' : 'ELR';
+      equippedSets.push(setName);
     }
   }
 
     const items: any[] = [];
+
+    for (const setName of equippedSets) {
+      items.push({
+        isPremium: true,
+        text: `Equipped ${setName} Set`,
+      });
+    }
 
     // --- Peak ELR / K3 Wait ---
     const peakELRAction = props.actions.find(a => a.payload?.peakELR !== undefined);
@@ -206,9 +236,9 @@ const summaryItems = computed(() => {
       });
     }
     // --- TE Earned ---
-    const teWaitActions = props.actions.filter(a => a.payload?.isTEWait);
+    const teWaitActions = props.actions.filter(a => a.type === 'wait_for_te' || a.payload?.isTEWait);
     if (teWaitActions.length > 0) {
-      const totalTE = teWaitActions.reduce((sum, a) => sum + (a.payload.teEarned || 0), 0);
+      const totalTE = teWaitActions.reduce((sum, a) => sum + (a.payload.teGained || a.payload.teEarned || 0), 0);
       if (totalTE > 0) {
         items.push({
           isPremium: true,

@@ -239,9 +239,14 @@ const shifts = computed(() => {
   const shifts: any[] = [];
   let absoluteTime = ascStartTime;
 
+  const isContinueCurrent = props.summary.strategyLabel === 'Continue current';
+  const startEgg = (actions[0]?.type === 'start_ascension' && actions[0]?.payload?.initialEgg) || 'curiosity';
+
   let currentShift = {
-    title: 'C1 Shift',
-    egg: 'curiosity',
+    title: isContinueCurrent
+      ? `${startEgg.charAt(0).toUpperCase() + startEgg.slice(1)} Shift`
+      : 'C1 Shift',
+    egg: startEgg,
     actions: [] as any[],
     duration: 0,
     cost: 0,
@@ -267,7 +272,10 @@ const shifts = computed(() => {
       }
       shiftIndex++;
       const nextEgg = action.payload.toEgg;
-      const title = titles[shiftIndex] || `${nextEgg.charAt(0).toUpperCase() + nextEgg.slice(1)} Shift`;
+      const title = isContinueCurrent
+        ? `${nextEgg.charAt(0).toUpperCase() + nextEgg.slice(1)} Shift`
+        : (titles[shiftIndex] || `${nextEgg.charAt(0).toUpperCase() + nextEgg.slice(1)} Shift`);
+
       currentShift = {
         title: title,
         egg: nextEgg,
@@ -280,8 +288,8 @@ const shifts = computed(() => {
       };
     } else {
       currentShift.actions.push(action);
-      if (action.type === 'wait_for_time') {
-        const dt = action.payload.totalTimeSeconds || 0;
+      if (action.type.startsWith('wait_')) {
+        const dt = action.totalTimeSeconds || action.payload.totalTimeSeconds || action.payload.timeSeconds || 0;
         currentShift.duration += dt;
         absoluteTime += dt;
       }
