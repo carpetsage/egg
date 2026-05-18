@@ -18,7 +18,14 @@
           </div>
         </div>
 
-        <div class="space-y-8">
+        <div class="space-y-8 relative">
+          <!-- Form Disabled Overlay during Generation -->
+          <div v-if="isGenerating" class="absolute -inset-4 bg-white/60 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-3xl transition-all duration-300">
+            <div class="flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-indigo-100 shadow-xl shadow-indigo-500/10">
+              <div class="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+              <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Form locked while calculating...</span>
+            </div>
+          </div>
           <!-- Section 1: Initial State -->
           <div class="space-y-8">
             <!-- Part 1: Scheduling (Top) -->
@@ -28,14 +35,12 @@
                 <div class="flex gap-3">
                   <input
                     v-model="startDate"
-                    @change="clearA1DateGoal"
                     type="date"
                     :min="formatUnixToDateInput(Date.now() / 1000 - 86400 * 7, timezone)"
                     class="flex-grow bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
                   />
                   <input
                     v-model="startTime"
-                    @change="clearA1DateGoal"
                     type="time"
                     class="w-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
                   />
@@ -156,7 +161,7 @@
           :disabled="isGenerating || !isA1Dirty"
           @click="generate()"
         >
-          <span v-if="isGenerating">Generating Plan...</span>
+          <span v-if="isGenerating">{{ generateProgress || 'Generating Plan...' }}</span>
           <span v-else>{{ ascensionChain.length > 0 ? 'Update Plan' : 'Generate Plan' }}</span>
         </button>
       </div>
@@ -164,19 +169,13 @@
 
     <!-- Results Section -->
     <div v-if="ascensionChain.length > 0" class="max-w-4xl mx-auto space-y-12 pb-24 relative px-4 sm:px-0">
-      <!-- Loading Overlay for Chain -->
-      <div v-if="isGenerating" class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-[100] rounded-[3rem] flex items-center justify-center min-h-[400px]">
-        <div class="flex flex-col items-center gap-4">
-          <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <div class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] animate-pulse">Recalculating Chain...</div>
-        </div>
-      </div>
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4 px-4">
         <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Generated Roadmap</h2>
         <div class="flex flex-wrap justify-center items-center gap-3">
           <button 
             @click="copySummary"
-            class="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95"
+            :disabled="isGenerating"
+            class="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-200 disabled:hover:text-slate-600"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -185,7 +184,8 @@
           </button>
           <button 
             @click="exportCurrentPlan"
-            class="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95"
+            :disabled="isGenerating"
+            class="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -271,6 +271,18 @@
             <div class="text-[10px] font-bold text-slate-400 mt-0.5">{{ chainTotals.shiftsTotal }} shifts total</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Floating Progress Indicator -->
+    <div 
+      v-if="isGenerating" 
+      class="fixed bottom-8 right-8 z-[200] bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/50 px-6 py-4 rounded-2xl shadow-2xl shadow-indigo-500/20 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 duration-300"
+    >
+      <div class="w-6 h-6 border-3 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin"></div>
+      <div class="space-y-0.5 pr-2">
+        <div class="text-[10px] font-black uppercase tracking-widest text-indigo-400">Updating Roadmap</div>
+        <div class="text-xs font-bold text-slate-200 font-mono-premium">{{ generateProgress || 'Calculating...' }}</div>
       </div>
     </div>
   </div>
@@ -359,6 +371,7 @@ if (!startTime.value) {
 }
 
 const isGenerating = ref(false);
+const generateProgress = ref('');
 const simulationError = ref<string | null>(null);
 
 const removeLastAscension = () => {
@@ -485,170 +498,178 @@ const allTimezones = computed(() => {
 
 // formatUnixToDateInput and formatUnixToTimeInput moved to @/lib/format
 
-const generate = () => {
+const generate = async () => {
+  if (isGenerating.value) return;
   isGenerating.value = true;
   simulationError.value = null;
+  generateProgress.value = 'Initializing simulation...';
 
-  setTimeout(() => {
-    try {
-      const targets = getTargets();
-      if (targets.length === 0) {
-        throw new Error('Please specify at least one Target TE');
+  // Allow browser to render initial loading overlay
+  await new Promise(resolve => setTimeout(resolve, 30));
+
+  try {
+    const targets = getTargets();
+    if (targets.length === 0) {
+      throw new Error('Please specify at least one Target TE');
+    }
+
+    if (targets.length > 0 && targets[0] <= currentTE.value) {
+      throw new Error(`First Target TE (${targets[0]}) must be greater than current TE (${currentTE.value})`);
+    }
+
+    rollUpPendingTE();
+    
+    const context = getSimulationContext();
+    const baseState = createBaseEngineState(null);
+    const initialSnapshot = computeSnapshot(baseState, context);
+    actionsStore.setInitialSnapshot(initialSnapshot);
+
+    const absStartTime = getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value);
+    
+    const initialParamsToSave = {
+      startDate: startDate.value,
+      startTime: startTime.value,
+      teEarned: { ...truthEggsStore.teEarned }
+    };
+
+    const lastA1 = ascensionChain.value[0];
+    const initialParamsDirty = !lastA1 || !lastA1.initialParams || (
+      startDate.value !== lastA1.initialParams.startDate ||
+      startTime.value !== lastA1.initialParams.startTime ||
+      JSON.stringify(truthEggsStore.teEarned) !== JSON.stringify(lastA1.initialParams.teEarned)
+    );
+
+    let firstDiffIdx = 0;
+    if (!initialParamsDirty) {
+      let matchCount = 0;
+      for (let i = 0; i < targets.length; i++) {
+        if (i < ascensionChain.value.length && targets[i] === ascensionChain.value[i].goal.te) {
+          matchCount++;
+        } else {
+          break;
+        }
       }
+      firstDiffIdx = matchCount;
+    }
 
-      if (targets.length > 0 && targets[0] <= currentTE.value) {
-        throw new Error(`First Target TE (${targets[0]}) must be greater than current TE (${currentTE.value})`);
+    let currentBaseState;
+    let currentStartTime;
+    let currentSummary = null;
+    const newChain = [];
+    const loops = targets.length;
+
+    if (firstDiffIdx > 0) {
+      for (let i = 0; i < firstDiffIdx; i++) {
+        newChain.push(ascensionChain.value[i]);
       }
-
-      rollUpPendingTE();
+      const lastValid = newChain[firstDiffIdx - 1];
+      const lastValidSummary = lastValid.result1.summary.totalDurationSeconds <= lastValid.result2.summary.totalDurationSeconds ? lastValid.result1.summary : lastValid.result2.summary;
       
-      const context = getSimulationContext();
-      const baseState = createBaseEngineState(null);
-      const initialSnapshot = computeSnapshot(baseState, context);
-      actionsStore.setInitialSnapshot(initialSnapshot);
-
-      const absStartTime = getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value);
+      const baseBackupState = createBaseEngineState(null);
+      currentBaseState = deriveNextStartState(lastValidSummary, baseBackupState);
+      currentStartTime = lastValidSummary.endTime;
+      currentSummary = lastValidSummary;
       
-      const initialParamsToSave = {
-        startDate: startDate.value,
-        startTime: startTime.value,
-        teEarned: { ...truthEggsStore.teEarned }
+      if (firstDiffIdx < loops && targets[firstDiffIdx] <= currentSummary.endTE) {
+        throw new Error(`Target TE (${targets[firstDiffIdx]}) for A${firstDiffIdx + 1} must be greater than A${firstDiffIdx} end TE (${currentSummary.endTE})`);
+      }
+    } else {
+      baseState.currentEgg = 'curiosity';
+      baseState.population = 1;
+      baseState.bankValue = 0;
+      baseState.researchLevels = {};
+      
+      currentBaseState = baseState;
+      currentStartTime = absStartTime;
+    }
+
+    for (let i = firstDiffIdx; i < loops; i++) {
+      let stepTargetTE: number | undefined = targets[i] || undefined;
+      let stepEndTime: number | undefined = undefined;
+
+      const buildPhaseEnd1 = getNextSaleEnd(currentStartTime);
+      const buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1);
+
+      const currentContext = getSimulationContext();
+      currentContext.ascensionStartTime = currentStartTime;
+      currentContext.planStartOffset = 0;
+
+      generateProgress.value = `Simulating A${i + 1} of ${loops} (1-sale Build)...`;
+      await new Promise(resolve => setTimeout(resolve, 15));
+
+      const precomputed = runUntilShift(currentBaseState, currentContext, 'C3');
+      const resumeData1 = {
+        actions: precomputed.actions,
+        state: precomputed.state,
+        elapsedSeconds: precomputed.elapsedSeconds,
+        resumeShiftName: 'C3'
       };
 
-      const lastA1 = ascensionChain.value[0];
-      const initialParamsDirty = !lastA1 || !lastA1.initialParams || (
-        startDate.value !== lastA1.initialParams.startDate ||
-        startTime.value !== lastA1.initialParams.startTime ||
-        JSON.stringify(truthEggsStore.teEarned) !== JSON.stringify(lastA1.initialParams.teEarned)
-      );
+      const result1 = runAscension(currentBaseState, currentContext, buildPhaseEnd1, currentStartTime, `asc_${i}`, stepTargetTE, stepEndTime, resumeData1);
 
-      let firstDiffIdx = 0;
-      if (!initialParamsDirty) {
-        let matchCount = 0;
-        for (let i = 0; i < targets.length; i++) {
-          if (i < ascensionChain.value.length && targets[i] === ascensionChain.value[i].goal.te) {
-            matchCount++;
-          } else {
-            break;
-          }
-        }
-        firstDiffIdx = matchCount;
+      generateProgress.value = `Simulating A${i + 1} of ${loops} (2-sale Build)...`;
+      await new Promise(resolve => setTimeout(resolve, 15));
+
+      const baseState2 = JSON.parse(JSON.stringify(currentBaseState));
+      const context2 = getSimulationContext();
+      context2.ascensionStartTime = currentStartTime;
+      context2.planStartOffset = 0;
+
+      const resumeData2 = {
+        actions: JSON.parse(JSON.stringify(precomputed.actions)),
+        state: JSON.parse(JSON.stringify(precomputed.state)),
+        elapsedSeconds: precomputed.elapsedSeconds,
+        resumeShiftName: 'C3'
+      };
+
+      const result2 = runAscension(baseState2, context2, buildPhaseEnd2, currentStartTime, `asc_${i}`, stepTargetTE, stepEndTime, resumeData2);
+
+      const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
+
+      const goalToSave = {
+        type: 'te' as 'te' | 'date',
+        te: stepTargetTE || null,
+        date: '',
+        time: ''
+      };
+
+      const chainItem: any = {
+        index: i,
+        result1,
+        result2,
+        goal: goalToSave
+      };
+      if (i === 0) {
+        chainItem.initialParams = initialParamsToSave;
       }
+      newChain.push(chainItem);
 
-      let currentBaseState;
-      let currentStartTime;
-      let currentSummary = null;
-      const newChain = [];
-      const loops = targets.length;
-
-      if (firstDiffIdx > 0) {
-        for (let i = 0; i < firstDiffIdx; i++) {
-          newChain.push(ascensionChain.value[i]);
-        }
-        const lastValid = newChain[firstDiffIdx - 1];
-        const lastValidSummary = lastValid.result1.summary.totalDurationSeconds <= lastValid.result2.summary.totalDurationSeconds ? lastValid.result1.summary : lastValid.result2.summary;
-        
+      currentSummary = best.summary;
+      
+      if (i < loops - 1) {
         const baseBackupState = createBaseEngineState(null);
-        currentBaseState = deriveNextStartState(lastValidSummary, baseBackupState);
-        currentStartTime = lastValidSummary.endTime;
-        currentSummary = lastValidSummary;
+        currentBaseState = deriveNextStartState(currentSummary, baseBackupState);
+        currentStartTime = currentSummary.endTime;
         
-        if (firstDiffIdx < loops && targets[firstDiffIdx] <= currentSummary.endTE) {
-          throw new Error(`Target TE (${targets[firstDiffIdx]}) for A${firstDiffIdx + 1} must be greater than A${firstDiffIdx} end TE (${currentSummary.endTE})`);
-        }
-      } else {
-        baseState.currentEgg = 'curiosity';
-        baseState.population = 1;
-        baseState.bankValue = 0;
-        baseState.researchLevels = {};
-        
-        currentBaseState = baseState;
-        currentStartTime = absStartTime;
-      }
-
-      for (let i = firstDiffIdx; i < loops; i++) {
-        let stepTargetTE: number | undefined = targets[i] || undefined;
-        let stepEndTime: number | undefined = undefined;
-
-        const buildPhaseEnd1 = getNextSaleEnd(currentStartTime);
-        const buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1);
-
-        const currentContext = getSimulationContext();
-        currentContext.ascensionStartTime = currentStartTime;
-        currentContext.planStartOffset = 0;
-
-        const precomputed = runUntilShift(currentBaseState, currentContext, 'C3');
-        const resumeData1 = {
-          actions: precomputed.actions,
-          state: precomputed.state,
-          elapsedSeconds: precomputed.elapsedSeconds,
-          resumeShiftName: 'C3'
-        };
-
-        const result1 = runAscension(currentBaseState, currentContext, buildPhaseEnd1, currentStartTime, `asc_${i}`, stepTargetTE, stepEndTime, resumeData1);
-
-        const baseState2 = JSON.parse(JSON.stringify(currentBaseState));
-        const context2 = getSimulationContext();
-        context2.ascensionStartTime = currentStartTime;
-        context2.planStartOffset = 0;
-
-        const resumeData2 = {
-          actions: JSON.parse(JSON.stringify(precomputed.actions)),
-          state: JSON.parse(JSON.stringify(precomputed.state)),
-          elapsedSeconds: precomputed.elapsedSeconds,
-          resumeShiftName: 'C3'
-        };
-
-        const result2 = runAscension(baseState2, context2, buildPhaseEnd2, currentStartTime, `asc_${i}`, stepTargetTE, stepEndTime, resumeData2);
-
-        const best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
-
-        const goalToSave = {
-          type: 'te' as 'te' | 'date',
-          te: stepTargetTE || null,
-          date: '',
-          time: ''
-        };
-
-        const chainItem: any = {
-          index: i,
-          result1,
-          result2,
-          goal: goalToSave
-        };
-        if (i === 0) {
-          chainItem.initialParams = initialParamsToSave;
-        }
-        newChain.push(chainItem);
-
-        currentSummary = best.summary;
-        
-        if (i < loops - 1) {
-          const baseBackupState = createBaseEngineState(null);
-          currentBaseState = deriveNextStartState(currentSummary, baseBackupState);
-          currentStartTime = currentSummary.endTime;
-          
-          if (targets[i + 1] <= currentSummary.endTE) {
-            throw new Error(`Target TE (${targets[i + 1]}) for A${i + 2} must be greater than A${i + 1} end TE (${currentSummary.endTE})`);
-          }
+        if (targets[i + 1] <= currentSummary.endTE) {
+          throw new Error(`Target TE (${targets[i + 1]}) for A${i + 2} must be greater than A${i + 1} end TE (${currentSummary.endTE})`);
         }
       }
-
-      // Update A1 form results (optional, but good for feedback)
-      if (newChain.length > 0) {
-        // Ensure string is correctly formatted back to them if they typed badly
-        targetTE.value = targets.join(' ');
-      }
-
-      ascensionChain.value = newChain;
-
-    } catch (err: any) {
-      console.error('Simulation error:', err);
-      simulationError.value = err.message || 'An unknown error occurred during simulation.';
-    } finally {
-      isGenerating.value = false;
     }
-  }, 10);
+
+    if (newChain.length > 0) {
+      targetTE.value = targets.join(' ');
+    }
+
+    ascensionChain.value = newChain;
+
+  } catch (err: any) {
+    console.error('Simulation error:', err);
+    simulationError.value = err.message || 'An unknown error occurred during simulation.';
+  } finally {
+    isGenerating.value = false;
+    generateProgress.value = '';
+  }
 };
 
 const exportCurrentPlan = () => {
