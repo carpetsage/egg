@@ -26782,5 +26782,14 @@
     "startTimestamp": 1779120000,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1779292800,
+    "id": "event-5-19",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1779206400,
+    "type": "hab-sale",
+    "ultra": false
   }
 ]
