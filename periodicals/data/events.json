@@ -26791,5 +26791,32 @@
     "startTimestamp": 1779206400,
     "type": "hab-sale",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1779379200,
+    "id": "event-5-20",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1779292800,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1779379200,
+    "id": "event-5-20-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1779292800,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1779379200,
+    "id": "ultra-5-20",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1779292800,
+    "type": "hab-sale",
+    "ultra": true
   }
 ]
