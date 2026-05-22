@@ -382,7 +382,8 @@
     <!-- Floating Progress Indicator -->
     <div
       v-if="isGenerating"
-      class="fixed bottom-8 right-8 z-[200] bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/50 px-6 py-4 rounded-2xl shadow-2xl shadow-indigo-500/20 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 duration-300"
+      class="fixed right-8 z-[200] bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/50 px-6 py-4 rounded-2xl shadow-2xl shadow-indigo-500/20 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 duration-300 transition-[bottom] duration-500"
+      :class="[ascensionChain.length >= 1 && !isCollapsed ? 'bottom-32' : 'bottom-8']"
     >
       <div class="w-6 h-6 border-3 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin"></div>
       <div class="space-y-0.5 pr-2">
