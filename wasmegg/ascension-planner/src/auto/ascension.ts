@@ -259,8 +259,9 @@ export function runAscension(
     a.index = idx;
   });
 
-  // SE cost tracking for 12 shifts (C1 does not count as a shift)
-  const seResult = computeShiftCosts(startState.soulEggs, startState.shiftCount, 12);
+  // SE cost tracking (C1 does not count as a shift; count actual shift actions in case some were skipped)
+  const actualShiftCount = currentActions.filter(a => a.type === 'shift').length;
+  const seResult = computeShiftCosts(startState.soulEggs, startState.shiftCount, actualShiftCount);
 
   // Calculate sale count in build phase
   let saleCount = isResearchSaleActive(startTime) ? 1 : 0;

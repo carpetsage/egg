@@ -111,6 +111,12 @@ export function runTEWaitShift(
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 
+  // Skip entirely if this egg already has enough TE
+  const currentTECheck = countTEThresholdsPassed(currentState.eggsDelivered[egg] || 0);
+  if (targetTEForEgg <= currentTECheck) {
+    return { actions: [], elapsedSeconds: 0, endState: state };
+  }
+
   // 1. Shift to target egg if not already there
   if (currentState.currentEgg !== egg) {
     const sCost = shiftCost(currentState.soulEggs, currentState.shiftCount);
