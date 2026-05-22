@@ -42,6 +42,6 @@ export function triggerPlanExport(plan: ExportedPlan) {
   const endTE = plan.ascensions[x - 1]?.result1.summary.endTE ?? 0;
   
   const filename = `Auto_AP_${dateStr}_${x}-ascensions_${startTE}_to_${endTE}.json`;
-  const content = JSON.stringify(plan, null, 2);
+  const content = JSON.stringify(plan);
   downloadFile(filename, content, 'application/json');
 }

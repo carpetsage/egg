@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -423,35 +423,45 @@ export function useAscensionGenerator() {
     }
   };
 
-  const exportCurrentPlan = () => {
+  const isExporting = ref(false);
+
+  const exportCurrentPlan = async () => {
     if (ascensionChain.value.length === 0) return;
 
-    const plan: ExportedPlan = {
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      startTime: getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value),
-      timezone: timezone.value,
-      initialState: {
-        epicResearchLevels: { ...initialStateStore.epicResearchLevels },
-        colleggtibleTiers: { ...initialStateStore.colleggtibleTiers },
-        artifactLoadout: JSON.parse(JSON.stringify(initialStateStore.artifactLoadout)),
-        soulEggs: initialStateStore.soulEggs,
-        isUltra: initialStateStore.isUltra,
-        initialTankLevel: initialStateStore.initialTankLevel,
-        initialFuelAmounts: { ...initialStateStore.initialFuelAmounts },
-        initialEggsDelivered: { ...initialStateStore.initialEggsDelivered },
-        initialTeEarned: { ...initialStateStore.initialTeEarned },
-      },
-      ascensions: ascensionChain.value.map((item, idx) => ({
-        index: idx,
-        targetTE: item.goal.te || item.result1.summary.endTE,
-        result1: item.result1,
-        result2: item.result2,
-        goal: item.goal,
-      })),
-    };
+    isExporting.value = true;
+    await nextTick();
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
-    triggerPlanExport(plan);
+    try {
+      const plan: ExportedPlan = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        startTime: getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value),
+        timezone: timezone.value,
+        initialState: {
+          epicResearchLevels: { ...initialStateStore.epicResearchLevels },
+          colleggtibleTiers: { ...initialStateStore.colleggtibleTiers },
+          artifactLoadout: JSON.parse(JSON.stringify(initialStateStore.artifactLoadout)),
+          soulEggs: initialStateStore.soulEggs,
+          isUltra: initialStateStore.isUltra,
+          initialTankLevel: initialStateStore.initialTankLevel,
+          initialFuelAmounts: { ...initialStateStore.initialFuelAmounts },
+          initialEggsDelivered: { ...initialStateStore.initialEggsDelivered },
+          initialTeEarned: { ...initialStateStore.initialTeEarned },
+        },
+        ascensions: ascensionChain.value.map((item, idx) => ({
+          index: idx,
+          targetTE: item.goal.te || item.result1.summary.endTE,
+          result1: item.result1,
+          result2: item.result2,
+          goal: item.goal,
+        })),
+      };
+
+      triggerPlanExport(plan);
+    } finally {
+      isExporting.value = false;
+    }
   };
 
   const copySummary = async () => {
@@ -501,6 +511,7 @@ export function useAscensionGenerator() {
 
   return {
     isGenerating,
+    isExporting,
     generateProgress,
     simulationError,
     isValidationErrorOpen,
