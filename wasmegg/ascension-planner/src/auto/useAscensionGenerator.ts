@@ -217,6 +217,11 @@ export function useAscensionGenerator() {
         firstDiffIdx = matchCount;
       }
 
+      // Force mode changes A1's effective end time, so A2+ must be recomputed
+      if (firstDiffIdx >= 1 && autoPlannerStore.a1ForceMode && ascensionChain.value.length > 1) {
+        firstDiffIdx = 1;
+      }
+
       let currentBaseState: any;
       let currentStartTime: number;
       let currentSummary: AscensionSummary | null = null;
@@ -228,10 +233,14 @@ export function useAscensionGenerator() {
           newChain.push(ascensionChain.value[i]);
         }
         const lastValid = newChain[firstDiffIdx - 1];
-        const lastValidSummary =
+        const naturalBestSummary =
           lastValid.result1.summary.totalDurationSeconds <= lastValid.result2.summary.totalDurationSeconds
             ? lastValid.result1.summary
             : lastValid.result2.summary;
+        const lastValidSummary =
+          lastValid.index === 0 && autoPlannerStore.a1ForceMode === 'continue' && lastValid.result3
+            ? lastValid.result3.summary
+            : naturalBestSummary;
 
         const baseBackupState = createBaseEngineState(null);
         currentBaseState = deriveNextStartState(lastValidSummary, baseBackupState);
