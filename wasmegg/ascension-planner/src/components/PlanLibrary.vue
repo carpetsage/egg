@@ -278,46 +278,64 @@ async function handleImport(event: Event) {
             }
 
             // 3. Restore to Auto Planner (now overwriting the fresh backup state)
-            const chain: ChainedAscension[] = imported.ascensions.map((a: any) => ({
-              index: a.index,
-              result1: a.result1,
-              result2: a.result2,
-              goal: a.goal
-            }));
+            const importedA1ForceMode: 'continue' | 'prestige' | null = imported.a1ForceMode || null;
+
+            // Pick the best result for an imported ascension, respecting a1ForceMode
+            const getBestImportResult = (a: any, aIdx: number) => {
+              if (aIdx === 0 && importedA1ForceMode === 'continue' && a.result3) return a.result3;
+              const r1 = a.result1;
+              const r2 = a.result2;
+              return r1.summary.totalDurationSeconds <= r2.summary.totalDurationSeconds ? r1 : r2;
+            };
+
+            const chain: ChainedAscension[] = imported.ascensions.map((a: any) => {
+              const item: ChainedAscension = {
+                index: a.index,
+                result1: a.result1,
+                result2: a.result2,
+                goal: a.goal,
+              };
+              if (a.result3) item.result3 = a.result3;
+              if (a.result3SkippedReason) item.result3SkippedReason = a.result3SkippedReason;
+              return item;
+            });
 
             const nextGoalsMap: Record<number, { te: number | null, date: string, time: string }> = {};
-            chain.forEach((a, idx) => {
+            imported.ascensions.forEach((a: any, idx: number) => {
               // Populate with the original goal
               nextGoalsMap[idx] = { ...a.goal };
-              
+
               // If it was a TE goal, pre-fill the date/time fields with the actual result for better UX
               if (a.goal.type === 'te' || !a.goal.date) {
-                const endTime = a.result1.summary.endTime;
-                nextGoalsMap[idx].date = formatUnixToDateInput(endTime, imported.timezone);
-                nextGoalsMap[idx].time = formatUnixToTimeInput(endTime, imported.timezone);
+                const bestResult = getBestImportResult(a, idx);
+                nextGoalsMap[idx].date = formatUnixToDateInput(bestResult.summary.endTime, imported.timezone);
+                nextGoalsMap[idx].time = formatUnixToTimeInput(bestResult.summary.endTime, imported.timezone);
               }
             });
             // Add the next step goal (empty placeholder for new ascension)
+            const lastImportedA = imported.ascensions[imported.ascensions.length - 1];
+            const lastBestResult = getBestImportResult(lastImportedA, imported.ascensions.length - 1);
             nextGoalsMap[chain.length] = {
-              te: Math.min(490, chain[chain.length - 1].result1.summary.endTE + 30),
+              te: Math.min(490, lastBestResult.summary.endTE + 30),
               date: '',
               time: ''
             };
 
             const firstA = imported.ascensions[0];
-            const a1Goal = firstA.goal;
-            const a1EndTime = firstA.result1.summary.endTime;
+            const bestFirstA = getBestImportResult(firstA, 0);
+            const a1EndTime = bestFirstA.summary.endTime;
 
             autoPlannerStore.setPlan({
               ascensionChain: chain,
               timezone: imported.timezone,
               startDate: formatUnixToDateInput(imported.startTime, imported.timezone),
               startTime: formatUnixToTimeInput(imported.startTime, imported.timezone),
-              targetTE: a1Goal.type === 'te' ? a1Goal.te : null,
+              targetTE: imported.ascensions.map((a: any) => a.goal.te || a.result1.summary.endTE).join(' '),
               // Always populate date/time fields with results for visibility
               targetEndDate: formatUnixToDateInput(a1EndTime, imported.timezone),
               targetEndTime: formatUnixToTimeInput(a1EndTime, imported.timezone),
-              nextGoals: nextGoalsMap
+              nextGoals: nextGoalsMap,
+              a1ForceMode: importedA1ForceMode,
             });
 
             // Hydrate stores so the form shows the correct numbers from the plan
@@ -337,11 +355,19 @@ async function handleImport(event: Event) {
           
           console.log('[PlanLibrary] Starting individual import for', imported.ascensions.length, 'ascensions');
 
+          const importedA1ForceModeIndividual: 'continue' | 'prestige' | null = imported.a1ForceMode || null;
+
           plansToImport = imported.ascensions.map((a: any, idx: number) => {
-            // Pick the best result for the manual library
-            const r1 = a.result1;
-            const r2 = a.result2;
-            const best = (r2 && r2.summary.endTE >= r1.summary.endTE && r2.summary.totalDurationSeconds <= r1.summary.totalDurationSeconds) ? r2 : r1;
+            // Pick the best result for the manual library, respecting a1ForceMode and including result3
+            const candidates = [a.result1, a.result2, ...(a.result3 ? [a.result3] : [])].filter(Boolean);
+            let best: typeof a.result1;
+            if (idx === 0 && importedA1ForceModeIndividual === 'continue' && a.result3) {
+              best = a.result3;
+            } else if (idx === 0 && importedA1ForceModeIndividual === 'prestige') {
+              best = a.result1.summary.totalDurationSeconds <= a.result2.summary.totalDurationSeconds ? a.result1 : a.result2;
+            } else {
+              best = candidates.reduce((b: any, c: any) => c.summary.totalDurationSeconds < b.summary.totalDurationSeconds ? c : b);
+            }
             
             console.log(`[PlanLibrary] Ascension ${idx + 1} uses strategy:`, best.summary.strategyLabel);
             console.log(`[PlanLibrary] Ascension ${idx + 1} action count:`, best.actions.length);

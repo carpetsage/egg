@@ -18,11 +18,13 @@ export interface ExportedPlan {
     initialEggsDelivered: Record<string, number>;
     initialTeEarned: Record<string, number>;
   };
+  a1ForceMode?: 'continue' | 'prestige' | null;
   ascensions: {
     index: number;
     targetTE: number;
     result1: { summary: AscensionSummary; actions: Action[] };
     result2: { summary: AscensionSummary; actions: Action[] };
+    result3?: { summary: AscensionSummary; actions: Action[] };
     goal: {
       type: 'te' | 'date';
       te: number | null;

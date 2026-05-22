@@ -438,6 +438,7 @@ export function useAscensionGenerator() {
         exportedAt: new Date().toISOString(),
         startTime: getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value),
         timezone: timezone.value,
+        a1ForceMode: autoPlannerStore.a1ForceMode,
         initialState: {
           epicResearchLevels: { ...initialStateStore.epicResearchLevels },
           colleggtibleTiers: { ...initialStateStore.colleggtibleTiers },
@@ -449,13 +450,17 @@ export function useAscensionGenerator() {
           initialEggsDelivered: { ...initialStateStore.initialEggsDelivered },
           initialTeEarned: { ...initialStateStore.initialTeEarned },
         },
-        ascensions: ascensionChain.value.map((item, idx) => ({
-          index: idx,
-          targetTE: item.goal.te || item.result1.summary.endTE,
-          result1: item.result1,
-          result2: item.result2,
-          goal: item.goal,
-        })),
+        ascensions: ascensionChain.value.map((item, idx) => {
+          const asc: ExportedPlan['ascensions'][number] = {
+            index: idx,
+            targetTE: item.goal.te || item.result1.summary.endTE,
+            result1: item.result1,
+            result2: item.result2,
+            goal: item.goal,
+          };
+          if (item.result3) asc.result3 = item.result3;
+          return asc;
+        }),
       };
 
       triggerPlanExport(plan);
