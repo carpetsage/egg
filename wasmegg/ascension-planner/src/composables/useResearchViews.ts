@@ -665,14 +665,16 @@ export function useResearchViews() {
 
         if (baseline.effectiveRate <= 0) return [];
 
+        const baselineFmt = (n: number) => n.toExponential(3);
+        console.log(`[ELR View] Baseline (max Hyperloops): lay=${baselineFmt(baseline.layRate * 3600)}/hr, ship=${baselineFmt(baseline.shippingRate * 3600)}/hr, ELR=${baselineFmt(baseline.effectiveRate * 3600)}/hr — bottleneck: ${baseline.layRate < baseline.shippingRate ? 'LAY RATE' : 'SHIPPING'}`);
+
         candidates = uniqueUnpurchased
           .map(r => {
             const level = researchLevels[r.id] || 0;
             const price = getDiscountedVirtuePrice(r, level, mods, isSale);
 
             const tempLevels = { ...researchLevels, [r.id]: level + 1 };
-            
-            // Re-calculate OPTIMAL artifacts for THIS research level
+
             const tempOptimal = getOptimalELRSet(rawBackup, {
               assumeMaxHabsVehicles: true,
               excludeGusset: false,
@@ -680,7 +682,7 @@ export function useResearchViews() {
               epicResearchLevels: context.epicResearchLevels,
               colleggtibleModifiers: context.colleggtibleModifiers,
             });
-            
+
             const tempArtifactMods = calculateArtifactModifiers(tempOptimal);
             const stats = computeRealisticELR(tempLevels, tempArtifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
             const impact = (stats.effectiveRate - baseline.effectiveRate) / baseline.effectiveRate;
@@ -690,6 +692,43 @@ export function useResearchViews() {
             const secondsToBuyWithBank = getTimeToSave(price, actionsStore.effectiveSnapshot);
             const hoursToBuy = secondsToBuyNoBank / 3600;
             const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
+
+            // Lookahead: find minimum N levels that unlock positive ELR impact.
+            let lookahead: { minLevels: number; impact: number; hpp: number; realisticStats: { layRate: number; shippingRate: number; elr: number; elrDelta: number } } | undefined;
+            if (impact <= 0 && level + 1 < r.levels) {
+              for (let n = 2; n <= r.levels - level; n++) {
+                const laLevels = { ...researchLevels, [r.id]: level + n };
+                const laOptimal = getOptimalELRSet(rawBackup, {
+                  assumeMaxHabsVehicles: true,
+                  excludeGusset: false,
+                  commonResearch: laLevels,
+                  epicResearchLevels: context.epicResearchLevels,
+                  colleggtibleModifiers: context.colleggtibleModifiers,
+                });
+                const laArtifactMods = calculateArtifactModifiers(laOptimal);
+                const laStats = computeRealisticELR(laLevels, laArtifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
+                const laImpact = (laStats.effectiveRate - baseline.effectiveRate) / baseline.effectiveRate;
+                if (laImpact > 0) {
+                  let totalPriceForN = 0;
+                  for (let l = level; l < level + n; l++) {
+                    totalPriceForN += getDiscountedVirtuePrice(r, l, mods, isSale);
+                  }
+                  const totalHoursForN = getTimeToSave(totalPriceForN, noBankSnapshot) / 3600;
+                  lookahead = {
+                    minLevels: n,
+                    impact: laImpact,
+                    hpp: totalHoursForN / (laImpact * 100),
+                    realisticStats: {
+                      layRate: laStats.layRate * 3600,
+                      shippingRate: laStats.shippingRate * 3600,
+                      elr: laStats.effectiveRate * 3600,
+                      elrDelta: (laStats.effectiveRate - baseline.effectiveRate) * 3600,
+                    },
+                  };
+                  break;
+                }
+              }
+            }
 
             return {
               research: r,
@@ -701,6 +740,7 @@ export function useResearchViews() {
               isMaxed: false,
               impact,
               hpp,
+              lookahead,
               realisticStats: {
                 layRate: stats.layRate * 3600,
                 shippingRate: stats.shippingRate * 3600,
@@ -710,7 +750,17 @@ export function useResearchViews() {
               showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline.value),
             };
           })
-          .filter(c => c.impact > 0);
+          .map(c => {
+            const fmt = (n: number) => n.toExponential(3);
+            const DEBUG_IDS = ['neural_net_refine', 'hyper_portalling'];
+            if (DEBUG_IDS.includes(c.research.id) || c.impact > 0 || c.lookahead) {
+              const stats = c.realisticStats!;
+              const laNote = c.lookahead ? ` [lookahead ${c.lookahead.minLevels} levels → +${(c.lookahead.impact * 100).toFixed(4)}%]` : '';
+              console.log(`[ELR View] ${c.research.name}: impact=${(c.impact * 100).toFixed(4)}%, lay=${fmt(stats.layRate)}/hr, ship=${fmt(stats.shippingRate)}/hr, elr=${fmt(stats.elr)}/hr${laNote}`);
+            }
+            return c;
+          })
+          .filter(c => c.impact > 0 || c.lookahead !== undefined);
       } else {
         // Potential mode: theoretical formula-based impact
         const currentSlots = calculateMaxVehicleSlots(researchLevels);
@@ -771,12 +821,17 @@ export function useResearchViews() {
         });
       }
 
-      return candidates.map(c => ({
-        ...c,
-        extraStats: `+${(c.impact * 100).toFixed(3)}%`,
-        extraLabel: 'Impact',
-        hpp: c.hpp,
-      }));
+      return candidates.map(c => {
+        const la = (c as { lookahead?: { minLevels: number; impact: number; hpp: number; realisticStats: typeof c.realisticStats } }).lookahead;
+        return {
+          ...c,
+          extraStats: la ? `+${(la.impact * 100).toFixed(3)}%` : `+${(c.impact * 100).toFixed(3)}%`,
+          extraLabel: la ? `${la.minLevels}-lvl impact` : 'Impact',
+          hpp: la ? la.hpp : c.hpp,
+          realisticStats: la ? la.realisticStats : c.realisticStats,
+          lookahead: la ? { minLevels: la.minLevels, impact: la.impact, hpp: la.hpp } : undefined,
+        };
+      });
     }
 
     return [];

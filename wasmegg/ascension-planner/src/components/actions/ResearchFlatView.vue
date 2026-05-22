@@ -38,6 +38,7 @@
         :extra-seconds="item.extraSeconds"
         :hpp="item.hpp"
         :realistic-stats="item.realisticStats"
+        :lookahead="item.lookahead"
         :recommendation-note="item.recommendationNote"
         :show-sale-warning="item.showSaleWarning"
         :show-deadline-warning="item.showDeadlineWarning"
@@ -95,6 +96,7 @@ interface SortedResearchItem {
   extraSeconds?: number;
   hpp?: number;
   realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
+  lookahead?: { minLevels: number; impact: number; hpp: number };
   recommendationNote?: string;
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;

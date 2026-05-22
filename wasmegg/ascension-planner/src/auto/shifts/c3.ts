@@ -292,6 +292,8 @@ export function runC3(
     const mods = getModifiers(currentSnap);
 
     let baselineELR = 0;
+    let baselineLayRate = 0;
+    let baselineShipRate = 0;
     if (context.rawBackup) {
       const optimal = getOptimalELRSet(context.rawBackup, {
         assumeMaxHabsVehicles: true,
@@ -303,10 +305,14 @@ export function runC3(
       const artifactMods = calculateArtifactModifiers(optimal);
       const stats = computeRealisticELR(currentState.researchLevels, artifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
       baselineELR = stats.effectiveRate;
+      baselineLayRate = stats.layRate;
+      baselineShipRate = stats.shippingRate;
     } else {
       const artifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
       const stats = computeRealisticELR(currentState.researchLevels, artifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
       baselineELR = stats.effectiveRate;
+      baselineLayRate = stats.layRate;
+      baselineShipRate = stats.shippingRate;
     }
 
     if (baselineELR <= 0) {
@@ -315,7 +321,7 @@ export function runC3(
       continue; 
     }
 
-    const elrCandidates = getCommonResearches()
+    const elrCandidatesAll = getCommonResearches()
       .filter(r => (currentState.researchLevels[r.id] || 0) < r.levels)
       .filter(r => isTierUnlocked(currentState.researchLevels, r.tier))
       .map(r => {
@@ -324,7 +330,7 @@ export function runC3(
 
         const tempLevels = { ...currentState.researchLevels, [r.id]: level + 1 };
         let tempArtifactMods;
-        
+
         if (context.rawBackup) {
           const tempOptimal = getOptimalELRSet(context.rawBackup, {
             assumeMaxHabsVehicles: true,
@@ -337,7 +343,7 @@ export function runC3(
         } else {
           tempArtifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
         }
-        
+
         const stats = computeRealisticELR(tempLevels, tempArtifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
         const impact = (stats.effectiveRate - baselineELR) / baselineELR;
 
@@ -345,18 +351,79 @@ export function runC3(
         const hoursToBuy = secondsToBuyNoBank / 3600;
         const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
 
+        // Lookahead: if +1 level has no impact, find the minimum N levels that unlock positive impact.
+        // C3 will then buy one level at a time — re-evaluation each loop keeps the research in
+        // the candidate list until all N levels are bought or time runs out.
+        let lookahead: { minLevels: number; impact: number; hpp: number } | undefined;
+        if (impact <= 0 && level + 1 < r.levels) {
+          for (let n = 2; n <= r.levels - level; n++) {
+            const laLevels = { ...currentState.researchLevels, [r.id]: level + n };
+            let laArtifactMods;
+            if (context.rawBackup) {
+              const laOptimal = getOptimalELRSet(context.rawBackup, {
+                assumeMaxHabsVehicles: true,
+                excludeGusset: false,
+                commonResearch: laLevels,
+                epicResearchLevels: context.epicResearchLevels,
+                colleggtibleModifiers: context.colleggtibleModifiers,
+              });
+              laArtifactMods = calculateArtifactModifiers(laOptimal);
+            } else {
+              laArtifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
+            }
+            const laStats = computeRealisticELR(laLevels, laArtifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
+            const laImpact = (laStats.effectiveRate - baselineELR) / baselineELR;
+            if (laImpact > 0) {
+              let totalPriceForN = 0;
+              for (let l = level; l < level + n; l++) {
+                totalPriceForN += getDiscountedVirtuePrice(r, l, mods, isSale);
+              }
+              const totalHoursForN = currentSnap.offlineEarnings > 0 ? totalPriceForN / currentSnap.offlineEarnings / 3600 : Infinity;
+              lookahead = {
+                minLevels: n,
+                impact: laImpact,
+                hpp: totalHoursForN / (laImpact * 100),
+              };
+              break;
+            }
+          }
+        }
+
         return {
           research: r,
           price,
           impact,
-          hpp,
+          // Use lookahead HPP for sorting so zero-impact-but-worthwhile items rank correctly.
+          hpp: lookahead ? lookahead.hpp : hpp,
+          lookahead,
+          layRate: stats.layRate,
+          shippingRate: stats.shippingRate,
           timeToBuySeconds: Math.max(0, (price - currentSnap.bankValue) / currentSnap.offlineEarnings)
         };
-      })
-      .filter(c => c.impact > 0 && c.timeToBuySeconds !== Infinity && (absTime + c.timeToBuySeconds <= buildPhaseEnd))
+      });
+
+    const fmt = (n: number) => (n * 3600).toExponential(3);
+    console.log(`[C3 Phase 2] Baseline (max Hyperloops assumed): lay=${fmt(baselineLayRate)}/hr, ship=${fmt(baselineShipRate)}/hr, ELR=${fmt(baselineELR)}/hr — bottleneck: ${baselineLayRate < baselineShipRate ? 'LAY RATE' : 'SHIPPING'}`);
+    const DEBUG_IDS = ['neural_net_refine', 'hyper_portalling'];
+    for (const id of DEBUG_IDS) {
+      const c = elrCandidatesAll.find(c => c.research.id === id);
+      if (c) {
+        console.log(`  [C3 Phase 2] ${c.research.name}: impact=${(c.impact * 100).toFixed(4)}% (all remaining levels), lay=${fmt(c.layRate)}/hr, ship=${fmt(c.shippingRate)}/hr, timeToBuy=${c.timeToBuySeconds === Infinity ? '∞' : c.timeToBuySeconds.toFixed(0)}s`);
+      } else {
+        console.log(`  [C3 Phase 2] ${id}: not in candidate list (maxed or tier locked)`);
+      }
+    }
+
+    const elrCandidates = elrCandidatesAll
+      .filter(c => (c.impact > 0 || c.lookahead !== undefined) && c.timeToBuySeconds !== Infinity && (absTime + c.timeToBuySeconds <= buildPhaseEnd))
       .sort((a, b) => a.hpp - b.hpp);
 
-    // console.log(`[C3 Phase 2] Baseline ELR: ${formatNumber(baselineELR * 3600, 3)}/hr. Top 3 ELR candidates:`, elrCandidates.slice(0, 3).map(c => `${c.research.name} (hpp: ${c.hpp.toFixed(2)}, impact: ${(c.impact * 100).toFixed(2)}%)`));
+    console.log(`[C3 Phase 2] Top 3 ELR candidates after filter:`, elrCandidates.slice(0, 3).map(c => {
+      const la = c.lookahead;
+      return la
+        ? `${c.research.name} (lookahead ${la.minLevels} levels, hpp: ${la.hpp.toFixed(2)}, impact: ${(la.impact * 100).toFixed(2)}%)`
+        : `${c.research.name} (hpp: ${c.hpp.toFixed(2)}, impact: ${(c.impact * 100).toFixed(2)}%)`;
+    }));
 
     if (elrCandidates.length > 0) {
       const best = elrCandidates[0];
