@@ -28,8 +28,8 @@ export function runR1(
     const waitAction = createSimAction('wait_for_time', { totalTimeSeconds: seconds });
     
     currentState = applyAction(currentState, waitAction);
-    // applyAction doesn't update bankValue for wait actions, so we credit earnings manually
-    currentState = { ...currentState, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * seconds };
+    // applyAction doesn't update bankValue or lastStepTime for wait actions, so we credit them manually
+    currentState = { ...currentState, lastStepTime: (currentState.lastStepTime || 0) + seconds, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * seconds };
     
     // Decoration for the action store
     const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });

@@ -100,20 +100,20 @@ export function runC2(
         const waitAction = createSimAction(actionType, { totalTimeSeconds: stepSeconds });
         
         currentState = applyAction(currentState, waitAction);
-        currentState = { ...currentState, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * stepSeconds };
-        
+        currentState = { ...currentState, lastStepTime: (currentState.lastStepTime || 0) + stepSeconds, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * stepSeconds };
+
         const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
         waitAction.endState = finalSnap;
         waitAction.totalTimeSeconds = stepSeconds;
         waitAction.bankDelta = snap.offlineEarnings * stepSeconds;
-        
+
         actions.push(waitAction);
         elapsedSeconds += stepSeconds;
         remaining -= stepSeconds;
       }
 
       const newAbsTime = getAbsTime();
-      
+
       const isBoostNow = isEarningsBoostActive(newAbsTime);
       if (currentState.earningsBoost?.active !== isBoostNow) {
         const toggleBoost = createSimAction('toggle_earnings_boost', {

@@ -157,10 +157,10 @@ export function runTEWaitShift(
         startTE: currentTE
       });
       
-      // Update state manually because applyAction doesn't know about TE tracking yet
+      // Update state manually because applyAction doesn't know about TE tracking or time
       currentState = applyAction(currentState, waitAction);
-      // Ensure bank is updated (though not strictly necessary for wait shifts)
       const snap = computeSnapshot(currentState, context, { skipGrowth: true });
+      currentState.lastStepTime = (currentState.lastStepTime || 0) + waitTime;
       currentState.bankValue += snap.offlineEarnings * waitTime;
       
       currentState.eggsDelivered[egg] = teResult.finalEggsDelivered;
