@@ -176,8 +176,10 @@
                 </div>
                 <div class="relative">
                   <input
+                    ref="targetInput"
                     v-model="targetTE"
                     @input="handleTargetTEInput"
+                    @keydown.enter="generate()"
                     type="text"
                     class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 outline-none focus:border-indigo-500/50 transition-all pr-10"
                     placeholder="e.g. 300 400 490"
@@ -395,7 +397,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -485,6 +487,7 @@ if (!startTime.value) {
 const isGenerating = ref(false);
 const generateProgress = ref('');
 const simulationError = ref<string | null>(null);
+const targetInput = ref<HTMLInputElement | null>(null);
 
 const handleTEEarnedChange = (egg: import('@/types').VirtueEgg, value: string) => {
   const count = parseInt(value);
@@ -957,6 +960,9 @@ const generate = async () => {
   } finally {
     isGenerating.value = false;
     generateProgress.value = '';
+    nextTick(() => {
+      targetInput.value?.focus();
+    });
   }
 };
 
