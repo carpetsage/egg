@@ -8,6 +8,7 @@ export interface ChainedAscension {
   result1: { summary: AscensionSummary; actions: Action[] };
   result2: { summary: AscensionSummary; actions: Action[] };
   result3?: { summary: AscensionSummary; actions: Action[] }; // "Continue current" option (A1 only)
+  result3SkippedReason?: string;
   goal: {
     type: 'te' | 'date';
     te: number | null;
