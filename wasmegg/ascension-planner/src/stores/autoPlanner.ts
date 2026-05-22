@@ -33,6 +33,8 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     0: { te: 490, date: '', time: '' }
   });
 
+  const a1ForceMode = ref<'continue' | 'prestige' | null>(null);
+
   function setPlan(data: {
     ascensionChain: ChainedAscension[];
     timezone: string;
@@ -42,6 +44,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     targetEndDate?: string;
     targetEndTime?: string;
     nextGoals: Record<number, { te: number | null, date: string, time: string }>;
+    a1ForceMode?: 'continue' | 'prestige' | null;
   }) {
     ascensionChain.value = data.ascensionChain;
     timezone.value = data.timezone;
@@ -51,6 +54,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     targetEndDate.value = data.targetEndDate || '';
     targetEndTime.value = data.targetEndTime || '';
     nextGoals.value = data.nextGoals;
+    a1ForceMode.value = data.a1ForceMode || null;
   }
 
   function clear() {
@@ -59,6 +63,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     targetEndDate.value = '';
     targetEndTime.value = '';
     nextGoals.value = { 0: { te: 490, date: '', time: '' } };
+    a1ForceMode.value = null;
   }
 
   return {
@@ -70,6 +75,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     targetEndDate,
     targetEndTime,
     nextGoals,
+    a1ForceMode,
     setPlan,
     clear,
   };

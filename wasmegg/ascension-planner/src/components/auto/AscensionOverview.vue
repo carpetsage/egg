@@ -14,17 +14,27 @@
           </div>
           <div>
             <div class="flex items-baseline gap-2">
-              <h3 class="text-base sm:text-lg font-black uppercase tracking-tight text-slate-800 leading-none">A{{ index + 1 }} of {{ total }}</h3>
+              <h3 class="text-base sm:text-lg font-black uppercase tracking-tight text-slate-800 leading-none">
+                A{{ index + 1 }} of {{ total }}
+                <span v-if="index === 0" class="ml-1 sm:ml-2 text-[8px] sm:text-[10px] font-bold text-slate-400 capitalize opacity-70">
+                  — {{ summary.strategyLabel === 'Continue current' ? 'Continue current ascension' : 'Prestige Now' }}
+                </span>
+              </h3>
               <span class="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">{{ formatTimeRange(summary.startTime, summary.endTime) }}</span>
             </div>
             
             <div v-if="displayComparisons.length > 0" class="flex flex-wrap gap-2 mt-1">
               <div v-for="(comp, ci) in displayComparisons" :key="ci"
-                class="bg-emerald-50 text-emerald-600 border border-emerald-100 px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm w-fit">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm w-fit"
+                :class="comp.message ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'">
+                <svg v-if="!comp.message" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-                {{ comp.daysFaster.toFixed(1) }} days faster than {{ comp.otherPlanLabel }}
+                <svg v-else class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <template v-if="comp.message">{{ comp.message }}</template>
+                <template v-else>{{ comp.daysFaster.toFixed(1) }} days faster than {{ comp.otherPlanLabel }}</template>
               </div>
             </div>
           </div>
@@ -40,10 +50,34 @@
             :class="isExpanded ? 'rotate-180' : ''"
             fill="none" stroke="currentColor" viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-      </div>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <button
+        v-if="index === 0"
+        @click="$emit('forceModeChange', summary.strategyLabel === 'Continue current' ? 'prestige' : 'continue')"
+        :disabled="summary.strategyLabel !== 'Continue current' && !result3Available"
+        class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-black transition-colors uppercase tracking-wider group shadow-sm flex-shrink-0 border"
+        :class="[
+          summary.strategyLabel === 'Continue current'
+            ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100'
+            : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed',
+        ]"
+      >
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            v-if="summary.strategyLabel === 'Continue current'"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="3"
+            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+          />
+          <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>{{ summary.strategyLabel === 'Continue current' ? 'Prestige Now' : 'Continue Ascension' }}</span>
+      </button>
+    </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-2 mb-3.5">
         <!-- TE Progress -->
@@ -191,16 +225,23 @@ const props = defineProps<{
     comparison?: { 
       daysFaster: number; 
       otherPlanLabel: string; 
+      message?: string;
     };
     comparisons?: { 
       daysFaster: number; 
       otherPlanLabel: string; 
+      message?: string;
     }[];
   };
   actions: any[];
   index: number;
   total: number;
   targetTE: number | null;
+  result3Available?: boolean;
+}>();
+
+defineEmits<{
+  (e: 'forceModeChange', mode: 'continue' | 'prestige'): void;
 }>();
 
 const isExpanded = ref(false);

@@ -56,15 +56,23 @@
 
               <div class="space-y-2">
                 <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Timezone</label>
-                <div class="relative">
-                  <select
-                    v-model="timezone"
-                    class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-5 pr-10 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
+                <div class="flex gap-2">
+                  <div class="relative flex-grow">
+                    <select
+                      v-model="timezone"
+                      class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-5 pr-10 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
+                    >
+                      <option v-for="tz in allTimezones" :key="tz.value" :value="tz.value">
+                        {{ tz.label }}
+                      </option>
+                    </select>
+                  </div>
+                  <button
+                    @click="setStartTimeToNow"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md shadow-indigo-100 flex items-center justify-center active:scale-95 whitespace-nowrap"
                   >
-                    <option v-for="tz in allTimezones" :key="tz.value" :value="tz.value">
-                      {{ tz.label }}
-                    </option>
-                  </select>
+                    Now
+                  </button>
                 </div>
               </div>
             </div>
@@ -253,6 +261,8 @@
           :index="idx"
           :total="ascensionChain.length"
           :target-t-e="result.targetTE"
+          :result3-available="result.result3Available"
+          @force-mode-change="handleToggleForceMode"
         />
       </div>
 
@@ -489,6 +499,12 @@ const generateProgress = ref('');
 const simulationError = ref<string | null>(null);
 const targetInput = ref<HTMLInputElement | null>(null);
 
+const setStartTimeToNow = () => {
+  const nowUnix = Date.now() / 1000;
+  startDate.value = formatUnixToDateInput(nowUnix, timezone.value);
+  startTime.value = formatUnixToTimeInput(nowUnix, timezone.value);
+};
+
 const handleTEEarnedChange = (egg: import('@/types').VirtueEgg, value: string) => {
   const count = parseInt(value);
   if (!isNaN(count)) {
@@ -622,11 +638,20 @@ const bestResults = computed(() => {
       candidates.push({ result: item.result3, label: item.result3.summary.strategyLabel });
     }
 
-    // Find the fastest
+    // Find the fastest or respect forced mode for A1
     let bestIdx = 0;
-    for (let i = 1; i < candidates.length; i++) {
-      if (candidates[i].result.summary.totalDurationSeconds < candidates[bestIdx].result.summary.totalDurationSeconds) {
-        bestIdx = i;
+    if (item.index === 0 && autoPlannerStore.a1ForceMode) {
+      if (autoPlannerStore.a1ForceMode === 'continue' && item.result3) {
+        bestIdx = candidates.length - 1; // result3 is always at the end
+      } else {
+        // Find best of result1 or result2
+        bestIdx = item.result1.summary.totalDurationSeconds <= item.result2.summary.totalDurationSeconds ? 0 : 1;
+      }
+    } else {
+      for (let i = 1; i < candidates.length; i++) {
+        if (candidates[i].result.summary.totalDurationSeconds < candidates[bestIdx].result.summary.totalDurationSeconds) {
+          bestIdx = i;
+        }
       }
     }
     const best = candidates[bestIdx].result;
@@ -645,6 +670,14 @@ const bestResults = computed(() => {
       .filter(c => c.daysFaster > 0.01)
       .sort((a, b) => b.daysFaster - a.daysFaster);
 
+    if (item.result3SkippedReason === 'startTimeTooFar') {
+      comparisons.push({
+        message: 'Select a time within 1 hour of the current time if you want to continue your ascension',
+        otherPlanLabel: '',
+        daysFaster: 0,
+      } as any);
+    }
+
     return {
       ...best,
       summary: {
@@ -654,6 +687,7 @@ const bestResults = computed(() => {
         comparison: comparisons[0] || undefined,
       },
       targetTE: item.goal.te,
+      result3Available: !!item.result3,
     };
   });
 });
@@ -839,9 +873,14 @@ const generate = async () => {
 
       // For A1, also simulate "continue current" (no build, just shift+wait at current ELR)
       let result3: { summary: AscensionSummary; actions: Action[] } | undefined;
+      let result3SkippedReason: string | null = null;
       if (i === 0 && stepTargetTE && initialStateStore.currentFarmState) {
-        generateProgress.value = `Simulating A${i + 1} of ${loops} (Continue Current)...`;
-        await new Promise(resolve => setTimeout(resolve, 15));
+        const nowSecs = Date.now() / 1000;
+        if (absStartTime > nowSecs + 3600) {
+          result3SkippedReason = 'startTimeTooFar';
+        } else {
+          generateProgress.value = `Simulating A${i + 1} of ${loops} (Continue Current)...`;
+          await new Promise(resolve => setTimeout(resolve, 15));
 
         // Build engine state from the player's actual backup farm (with real research/habs/vehicles)
         const farmState = initialStateStore.currentFarmState;
@@ -907,11 +946,19 @@ const generate = async () => {
           );
         }
       }
+    }
 
       const candidates = [result1, result2, ...(result3 ? [result3] : [])];
-      const best = candidates.reduce((a, b) =>
-        a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b
-      );
+      let best;
+      if (i === 0 && autoPlannerStore.a1ForceMode) {
+        if (autoPlannerStore.a1ForceMode === 'continue' && result3) {
+          best = result3;
+        } else {
+          best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
+        }
+      } else {
+        best = candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b));
+      }
 
       const goalToSave = {
         type: 'te' as 'te' | 'date',
@@ -928,6 +975,9 @@ const generate = async () => {
       };
       if (result3) {
         chainItem.result3 = result3;
+      }
+      if (result3SkippedReason) {
+        chainItem.result3SkippedReason = result3SkippedReason;
       }
       if (i === 0) {
         chainItem.initialParams = initialParamsToSave;
@@ -1130,6 +1180,11 @@ const copySummary = async () => {
   } catch (err) {
     console.error('Failed to copy text: ', err);
   }
+};
+
+const handleToggleForceMode = (mode: 'continue' | 'prestige') => {
+  autoPlannerStore.a1ForceMode = mode;
+  generate();
 };
 </script>
 
