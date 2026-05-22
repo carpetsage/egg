@@ -13,6 +13,9 @@ import { getNextSaleEnd } from '@/auto/calendar';
 import { rollUpPendingTE } from '@/lib/modes';
 import { getArtifactLoadoutFromBackup, getOptimalEarningsSet } from '@/lib/artifacts';
 import { triggerPlanExport, type ExportedPlan } from '@/auto/export';
+import { buildLibraryPlansFromExport } from '@/auto/buildLibraryPlans';
+import { savePlanToLibrary, type PlanData } from '@/lib/storage/db';
+import { usePersistence } from '@/composables/usePersistence';
 import type { AscensionSummary } from '@/auto/types';
 import type { Action } from '@/types/actions/meta';
 import type { VirtueEgg } from '@/types';
@@ -423,49 +426,78 @@ export function useAscensionGenerator() {
     }
   };
 
+  const { partitionHash, broadcastLibraryUpdate } = usePersistence();
+
+  const buildExportedPlan = (): ExportedPlan => ({
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    startTime: getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value),
+    timezone: timezone.value,
+    a1ForceMode: autoPlannerStore.a1ForceMode,
+    initialState: {
+      epicResearchLevels: { ...initialStateStore.epicResearchLevels },
+      colleggtibleTiers: { ...initialStateStore.colleggtibleTiers },
+      artifactLoadout: JSON.parse(JSON.stringify(initialStateStore.artifactLoadout)),
+      soulEggs: initialStateStore.soulEggs,
+      isUltra: initialStateStore.isUltra,
+      initialTankLevel: initialStateStore.initialTankLevel,
+      initialFuelAmounts: { ...initialStateStore.initialFuelAmounts },
+      initialEggsDelivered: { ...initialStateStore.initialEggsDelivered },
+      initialTeEarned: { ...initialStateStore.initialTeEarned },
+    },
+    ascensions: ascensionChain.value.map((item, idx) => {
+      const asc: ExportedPlan['ascensions'][number] = {
+        index: idx,
+        targetTE: item.goal.te || item.result1.summary.endTE,
+        result1: item.result1,
+        result2: item.result2,
+        goal: item.goal,
+      };
+      if (item.result3) asc.result3 = item.result3;
+      return asc;
+    }),
+  });
+
   const isExporting = ref(false);
 
   const exportCurrentPlan = async () => {
     if (ascensionChain.value.length === 0) return;
-
     isExporting.value = true;
     await nextTick();
     await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-
     try {
-      const plan: ExportedPlan = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        startTime: getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value),
-        timezone: timezone.value,
-        a1ForceMode: autoPlannerStore.a1ForceMode,
-        initialState: {
-          epicResearchLevels: { ...initialStateStore.epicResearchLevels },
-          colleggtibleTiers: { ...initialStateStore.colleggtibleTiers },
-          artifactLoadout: JSON.parse(JSON.stringify(initialStateStore.artifactLoadout)),
-          soulEggs: initialStateStore.soulEggs,
-          isUltra: initialStateStore.isUltra,
-          initialTankLevel: initialStateStore.initialTankLevel,
-          initialFuelAmounts: { ...initialStateStore.initialFuelAmounts },
-          initialEggsDelivered: { ...initialStateStore.initialEggsDelivered },
-          initialTeEarned: { ...initialStateStore.initialTeEarned },
-        },
-        ascensions: ascensionChain.value.map((item, idx) => {
-          const asc: ExportedPlan['ascensions'][number] = {
-            index: idx,
-            targetTE: item.goal.te || item.result1.summary.endTE,
-            result1: item.result1,
-            result2: item.result2,
-            goal: item.goal,
-          };
-          if (item.result3) asc.result3 = item.result3;
-          return asc;
-        }),
-      };
-
-      triggerPlanExport(plan);
+      triggerPlanExport(buildExportedPlan());
     } finally {
       isExporting.value = false;
+    }
+  };
+
+  const isSavingToLibrary = ref(false);
+  const saveToLibrarySuccess = ref(false);
+
+  const saveToLibrary = async () => {
+    if (ascensionChain.value.length === 0 || !partitionHash.value) return;
+    isSavingToLibrary.value = true;
+    try {
+      const plan = buildExportedPlan();
+      const datePrefix = new Date().toISOString().split('T')[0];
+      const plansToSave = buildLibraryPlansFromExport(plan, datePrefix);
+      for (const p of plansToSave) {
+        const entry: PlanData = {
+          id: crypto.randomUUID(),
+          name: p.name,
+          timestamp: Date.now(),
+          data: p.data,
+        };
+        await savePlanToLibrary(partitionHash.value, entry);
+      }
+      // Increment tick directly so this tab refreshes too (BroadcastChannel skips the sender)
+      actionsStore.libraryUpdateTick++;
+      broadcastLibraryUpdate();
+      saveToLibrarySuccess.value = true;
+      setTimeout(() => { saveToLibrarySuccess.value = false; }, 2000);
+    } finally {
+      isSavingToLibrary.value = false;
     }
   };
 
@@ -517,6 +549,8 @@ export function useAscensionGenerator() {
   return {
     isGenerating,
     isExporting,
+    isSavingToLibrary,
+    saveToLibrarySuccess,
     generateProgress,
     simulationError,
     isValidationErrorOpen,
@@ -527,6 +561,7 @@ export function useAscensionGenerator() {
     generate,
     copySummary,
     exportCurrentPlan,
+    saveToLibrary,
     handleToggleForceMode,
   };
 }

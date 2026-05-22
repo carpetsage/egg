@@ -15,6 +15,7 @@ import ImportCollisionDialog from '@/components/ImportCollisionDialog.vue';
 import AutoPlanImportDialog from '@/components/AutoPlanImportDialog.vue';
 import PlanAlreadyOpenWarning from '@/components/PlanAlreadyOpenWarning.vue';
 import { createEmptySnapshot } from '@/types';
+import { buildLibraryPlansFromExport } from '@/auto/buildLibraryPlans';
 
 const actionsStore = useActionsStore();
 const autoPlannerStore = useAutoPlannerStore();
@@ -353,94 +354,7 @@ async function handleImport(event: Event) {
           // 2. Import Individual Ascensions into Library
           const exportDate = new Date(imported.exportedAt).toISOString().split('T')[0];
           
-          console.log('[PlanLibrary] Starting individual import for', imported.ascensions.length, 'ascensions');
-
-          const importedA1ForceModeIndividual: 'continue' | 'prestige' | null = imported.a1ForceMode || null;
-
-          plansToImport = imported.ascensions.map((a: any, idx: number) => {
-            // Pick the best result for the manual library, respecting a1ForceMode and including result3
-            const candidates = [a.result1, a.result2, ...(a.result3 ? [a.result3] : [])].filter(Boolean);
-            let best: typeof a.result1;
-            if (idx === 0 && importedA1ForceModeIndividual === 'continue' && a.result3) {
-              best = a.result3;
-            } else if (idx === 0 && importedA1ForceModeIndividual === 'prestige') {
-              best = a.result1.summary.totalDurationSeconds <= a.result2.summary.totalDurationSeconds ? a.result1 : a.result2;
-            } else {
-              best = candidates.reduce((b: any, c: any) => c.summary.totalDurationSeconds < b.summary.totalDurationSeconds ? c : b);
-            }
-            
-            console.log(`[PlanLibrary] Ascension ${idx + 1} uses strategy:`, best.summary.strategyLabel);
-            console.log(`[PlanLibrary] Ascension ${idx + 1} action count:`, best.actions.length);
-            console.log(`[PlanLibrary] Ascension ${idx + 1} first action type:`, best.actions[0]?.type);
-
-            let finalActions = best.actions;
-            if (finalActions.length === 0 || finalActions[0].type !== 'start_ascension') {
-              console.log(`[PlanLibrary] Ascension ${idx + 1} is missing start_ascension. Prepending a synthetic one.`);
-              const startAction = {
-                id: 'start_' + Math.random().toString(36).substring(2, 9),
-                index: 0,
-                timestamp: best.summary.startTime * 1000,
-                type: 'start_ascension',
-                payload: { initialEgg: 'curiosity' },
-                cost: 0, elrDelta: 0, offlineEarningsDelta: 0, eggValueDelta: 0,
-                habCapacityDelta: 0, layRateDelta: 0, shippingCapacityDelta: 0,
-                ihrDelta: 0, bankDelta: 0, populationDelta: 0, totalTimeSeconds: 0,
-                endState: createEmptySnapshot(),
-                dependsOn: [], dependents: []
-              };
-              finalActions = [startAction, ...finalActions];
-              finalActions.forEach((action: any, i: number) => {
-                action.index = i;
-              });
-            }
-
-            const summary = best.summary;
-            const startStr = new Date(summary.startTime * 1000).toISOString().split('T')[0];
-            const peakELR = formatNumber(summary.maxELR * 3600, 2);
-            const duration = formatDuration(summary.totalDurationSeconds);
-            
-            const name = `${exportDate} A${idx + 1} - ${peakELR}/hr from ${summary.startTE} to ${summary.endTE} - ${duration} - starting ${startStr}`;
-            
-            // Build the individual plan initialState
-            const state = JSON.parse(JSON.stringify(imported.initialState));
-            
-            if (idx > 0) {
-              // Use the best summary of the previous ascension to advance state
-              const prevA = imported.ascensions[idx - 1];
-              const prevBest = (prevA.result2 && prevA.result2.summary.endTE >= prevA.result1.summary.endTE) ? prevA.result2 : prevA.result1;
-              state.initialTeEarned = { ...prevBest.summary.finalTE };
-              state.initialEggsDelivered = { ...prevBest.summary.eggsDelivered };
-              state.soulEggs = prevBest.summary.endSoulEggs;
-              state.initialShiftCount = prevBest.summary.endShiftCount;
-            }
-            
-            return {
-              name,
-              data: {
-                version: 1,
-                actions: finalActions,
-                initialState: state,
-                virtueState: {
-                  shiftCount: state.initialShiftCount || 0,
-                  initialTE: Object.values(state.initialTeEarned || {}).reduce((a: number, b: any) => a + (b || 0), 0),
-                  ascensionDate: formatUnixToDateInput(imported.startTime, imported.timezone),
-                  ascensionTime: formatUnixToTimeInput(imported.startTime, imported.timezone),
-                  ascensionTimezone: imported.timezone,
-                },
-                fuelTankState: {
-                  tankLevel: state.initialTankLevel || 0,
-                  fuelAmounts: state.initialFuelAmounts || {},
-                },
-                truthEggsState: {
-                  eggsDelivered: state.initialEggsDelivered || {},
-                  teEarned: state.initialTeEarned || {},
-                },
-                notesState: {
-                  notes: []
-                }
-              }
-            };
-          });
+          plansToImport = buildLibraryPlansFromExport(imported, exportDate);
         } else {
           // Restore only — we're done
           return;
