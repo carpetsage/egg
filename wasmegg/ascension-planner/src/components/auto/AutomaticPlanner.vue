@@ -403,6 +403,13 @@
         <div class="text-xs font-bold text-slate-200 font-mono-premium">{{ generateProgress || 'Calculating...' }}</div>
       </div>
     </div>
+
+    <!-- Validation Error Dialog -->
+    <ValidationDialog 
+      :is-open="isValidationErrorOpen" 
+      :message="validationErrorMessage" 
+      @close="isValidationErrorOpen = false" 
+    />
   </div>
 </template>
 
@@ -430,6 +437,7 @@ import type { Action } from '@/types/actions/meta';
 import AscensionOverview from './AscensionOverview.vue';
 import { triggerPlanExport, type ExportedPlan } from '@/auto/export';
 import { type ChainedAscension } from '@/stores/autoPlanner';
+import ValidationDialog from './ValidationDialog.vue';
 
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useSilosStore } from '@/stores/silos';
@@ -441,6 +449,14 @@ const truthEggsStore = useTruthEggsStore();
 const fuelTankStore = useFuelTankStore();
 const silosStore = useSilosStore();
 const autoPlannerStore = useAutoPlannerStore();
+
+const VIRTUE_EGGS_MAP: Record<number, import('@/types').VirtueEgg> = {
+  50: 'curiosity',
+  51: 'integrity',
+  52: 'humility',
+  53: 'resilience',
+  54: 'kindness',
+};
 
 const { ascensionChain, timezone, startDate, startTime, targetTE, targetEndDate, targetEndTime, nextGoals } =
   storeToRefs(autoPlannerStore);
@@ -499,6 +515,9 @@ const generateProgress = ref('');
 const simulationError = ref<string | null>(null);
 const targetInput = ref<HTMLInputElement | null>(null);
 
+const isValidationErrorOpen = ref(false);
+const validationErrorMessage = ref('');
+
 const setStartTimeToNow = () => {
   const nowUnix = Date.now() / 1000;
   startDate.value = formatUnixToDateInput(nowUnix, timezone.value);
@@ -548,14 +567,6 @@ const currentELR = computed(() => {
   }
 
   // Build the actual current farm state
-  const VIRTUE_EGGS_MAP: Record<number, import('@/types').VirtueEgg> = {
-    50: 'curiosity',
-    51: 'integrity',
-    52: 'humility',
-    53: 'resilience',
-    54: 'kindness',
-  };
-
   const rawLoadout = initialStateStore.rawBackup
     ? getArtifactLoadoutFromBackup(initialStateStore.rawBackup)
     : initialStateStore.artifactLoadout;
@@ -736,8 +747,39 @@ const generate = async () => {
       throw new Error('Please specify at least one Target TE');
     }
 
-    if (targets.length > 0 && targets[0] <= currentTE.value) {
-      throw new Error(`First Target TE (${targets[0]}) must be greater than current TE (${currentTE.value})`);
+    // 1. Validate Target TEs are strictly increasing
+    for (let i = 1; i < targets.length; i++) {
+      if (targets[i] <= targets[i - 1]) {
+        validationErrorMessage.value = `Target TE #${i + 1} (${targets[i]}) must be greater than the preceding Target TE (${targets[i - 1]})`;
+        isValidationErrorOpen.value = true;
+        throw new Error('validation_error');
+      }
+    }
+
+    // 2. Validate first Target TE relative to starting state
+    const teEarned = truthEggsStore.teEarned;
+    const currentTotal = Object.values(teEarned).reduce((a, b) => a + b, 0);
+
+    // Determine the starting egg for the first ascension (A1)
+    const startEgg = initialStateStore.currentFarmState
+      ? VIRTUE_EGGS_MAP[initialStateStore.currentFarmState.eggType] || 'curiosity'
+      : 'curiosity';
+
+    const otherEggsSum = Object.entries(teEarned).reduce(
+      (sum, [egg, val]) => sum + (egg !== startEgg ? (val as number) : 0),
+      0
+    );
+
+    if (targets[0] <= otherEggsSum) {
+      validationErrorMessage.value = `First Target TE (${targets[0]}) must be greater than the sum of TE from other eggs (${otherEggsSum}).`;
+      isValidationErrorOpen.value = true;
+      throw new Error('validation_error');
+    }
+
+    if (targets[0] <= currentTotal) {
+      validationErrorMessage.value = `First Target TE (${targets[0]}) must be greater than your current total TE (${currentTotal}). It is not possible to generate a plan gaining 0 or negative TE.`;
+      isValidationErrorOpen.value = true;
+      throw new Error('validation_error');
     }
 
     rollUpPendingTE();
@@ -884,13 +926,6 @@ const generate = async () => {
 
         // Build engine state from the player's actual backup farm (with real research/habs/vehicles)
         const farmState = initialStateStore.currentFarmState;
-        const VIRTUE_EGGS_MAP: Record<number, import('@/types').VirtueEgg> = {
-          50: 'curiosity',
-          51: 'integrity',
-          52: 'humility',
-          53: 'resilience',
-          54: 'kindness',
-        };
         const rawLoadout = initialStateStore.rawBackup
           ? getArtifactLoadoutFromBackup(initialStateStore.rawBackup)
           : currentBaseState.artifactLoadout;
@@ -1005,8 +1040,12 @@ const generate = async () => {
 
     ascensionChain.value = newChain;
   } catch (err: any) {
-    console.error('Simulation error:', err);
-    simulationError.value = err.message || 'An unknown error occurred during simulation.';
+    if (err.message === 'validation_error') {
+      // Handled by popup
+    } else {
+      console.error('Simulation error:', err);
+      simulationError.value = err.message || 'An unknown error occurred during simulation.';
+    }
   } finally {
     isGenerating.value = false;
     generateProgress.value = '';
