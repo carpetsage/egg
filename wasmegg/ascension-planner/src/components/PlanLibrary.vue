@@ -28,6 +28,11 @@ const plans = ref<PlanData[]>([]);
 const isLoading = ref(true);
 const showDeleteConfirm = ref(false);
 const planToDelete = ref<PlanData | null>(null);
+
+// Bulk select state
+const bulkSelectMode = ref(false);
+const selectedPlanIds = ref<Set<string>>(new Set());
+const showBulkDeleteConfirm = ref(false);
 const editingPlanId = ref<string | null>(null);
 const newName = ref('');
 const showCopyPrompt = ref(false);
@@ -125,6 +130,36 @@ async function executeDelete() {
   }
   showDeleteConfirm.value = false;
   planToDelete.value = null;
+}
+
+function toggleBulkSelectMode() {
+  bulkSelectMode.value = !bulkSelectMode.value;
+  selectedPlanIds.value = new Set();
+}
+
+function togglePlanSelection(id: string) {
+  const next = new Set(selectedPlanIds.value);
+  if (next.has(id)) {
+    next.delete(id);
+  } else {
+    next.add(id);
+  }
+  selectedPlanIds.value = next;
+}
+
+async function executeBulkDelete() {
+  if (!partitionHash.value) return;
+  for (const id of selectedPlanIds.value) {
+    await deletePlanFromLibrary(partitionHash.value, id);
+    if (actionsStore.activePlanId === id) {
+      actionsStore.activePlanId = null;
+    }
+  }
+  broadcastLibraryUpdate();
+  await refreshPlans();
+  selectedPlanIds.value = new Set();
+  bulkSelectMode.value = false;
+  showBulkDeleteConfirm.value = false;
 }
 
 function startRename(plan: PlanData) {
@@ -501,16 +536,33 @@ const emit = defineEmits(['plan-loaded']);
           {{ plans.length }}
         </span>
       </h3>
-      <div class="flex space-x-2">
+      <div class="flex items-center space-x-2">
         <button
-          class="text-xs text-indigo-600 hover:text-indigo-800 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          v-if="bulkSelectMode && selectedPlanIds.size > 0"
+          class="px-2.5 py-1 text-xs font-medium rounded border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
+          @click="showBulkDeleteConfirm = true"
+        >
+          Delete ({{ selectedPlanIds.size }})
+        </button>
+        <button
+          v-if="plans.length > 0"
+          class="px-2.5 py-1 text-xs font-medium rounded border transition-colors"
+          :class="bulkSelectMode
+            ? 'border-gray-300 text-gray-600 hover:bg-gray-50'
+            : 'border-indigo-300 text-indigo-600 hover:bg-indigo-50'"
+          @click="toggleBulkSelectMode"
+        >
+          {{ bulkSelectMode ? 'Cancel' : 'Multi-Select' }}
+        </button>
+        <button
+          class="px-2.5 py-1 text-xs font-medium rounded border border-indigo-300 text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           :disabled="plans.length === 0"
           @click="exportAll"
         >
           Export All
         </button>
-        <label class="text-xs text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer">
-          Import...
+        <label class="px-2.5 py-1 text-xs font-medium rounded border border-indigo-300 text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer">
+          Import
           <input type="file" class="hidden" accept=".json" @change="handleImport" />
         </label>
       </div>
@@ -564,7 +616,15 @@ const emit = defineEmits(['plan-loaded']);
                 </svg>
               </button>
             </div>
-            <div v-else class="flex items-center cursor-pointer" @click="loadPlan(plan)">
+            <div v-else class="flex items-center cursor-pointer" @click="bulkSelectMode ? togglePlanSelection(plan.id) : loadPlan(plan)">
+              <input
+                v-if="bulkSelectMode"
+                type="checkbox"
+                class="mr-2 h-4 w-4 flex-shrink-0 rounded border-gray-300 text-indigo-600 cursor-pointer"
+                :checked="selectedPlanIds.has(plan.id)"
+                @click.stop
+                @change="togglePlanSelection(plan.id)"
+              />
               <span class="text-sm font-medium text-gray-900 truncate" :title="plan.name">{{ plan.name }}</span>
               <span
                 v-if="actionsStore.activePlanId === plan.id"
@@ -650,6 +710,16 @@ const emit = defineEmits(['plan-loaded']);
       showDeleteConfirm = false;
       planToDelete = null;
     "
+  />
+
+  <ConfirmationDialog
+    v-if="showBulkDeleteConfirm"
+    title="Delete Plans"
+    :message="`Are you sure you want to delete ${selectedPlanIds.size} plan${selectedPlanIds.size > 1 ? 's' : ''}? This cannot be undone.`"
+    confirm-label="Delete"
+    variant="danger"
+    @confirm="executeBulkDelete"
+    @cancel="showBulkDeleteConfirm = false"
   />
 
   <ImportCollisionDialog
