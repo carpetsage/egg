@@ -206,7 +206,7 @@ export function runC1(
     .map(([label, count]) => `${count}x ${label}`)
     .join(', ');
 
-  console.clear();
+  // console.clear();
   // console.log('--- Simulation Metrics ---');
   // console.log(`  TE: ${currentState.te}`);
   // console.log(`  Artifacts: ${currentState.artifactLoadout

@@ -298,6 +298,9 @@ export function useAscensionGenerator() {
         const context2 = getSimulationContext();
         context2.ascensionStartTime = currentStartTime;
         context2.planStartOffset = 0;
+        // Share the ELR memo from the 1-sale run — same inventory + epic research means
+        // all cached states are valid for the 2-sale run.
+        if (currentContext.elrMemo) context2.elrMemo = currentContext.elrMemo;
 
         const resumeData2 = {
           actions: JSON.parse(JSON.stringify(precomputed.actions)),

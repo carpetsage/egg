@@ -1,6 +1,5 @@
 import type { Action } from '@/types/actions/meta';
 import type { EngineState, SimulationContext, ShiftResult } from '../types';
-import { calculateResearchROI } from '../../calculations/researchROI';
 import {
   getCommonResearches,
   getDiscountedVirtuePrice,
@@ -23,12 +22,28 @@ import {
   getNextEarningsBoostEnd,
   getNextEarningsBoostStart,
 } from '../calendar';
-import { formatNumber } from '@/lib/format';
 import { computeRealisticELR } from '../../calculations/realisticELR';
-import { getOptimalELRSet } from '../../lib/artifacts/virtue';
+import { buildELRCandidatePool, evaluateELRWithPool, evaluateELRForStructure, type ELRCandidatePool } from '../../lib/artifacts/virtue';
+import type { EquippedArtifact } from '../../lib/artifacts/types';
 import { calculateArtifactModifiers } from '../../lib/artifacts';
 
 const EARNINGS_CATEGORIES = ['egg_value', 'egg_laying_rate', 'shipping_capacity', 'hab_capacity'];
+
+/** Research IDs that feed into ELR calculations (lay rate, shipping capacity, hab capacity). */
+const ELR_RELEVANT_RESEARCH_IDS = new Set([
+  // Lay rate
+  'comfy_nests', 'hen_house_ac', 'improved_genetics', 'time_compress',
+  'timeline_diversion', 'relativity_optimization',
+  // Shipping capacity
+  'leafsprings', 'lightweight_boxes', 'driver_training', 'super_alloy',
+  'quantum_storage', 'hover_upgrades', 'dark_containment', 'neural_net_refine', 'hyper_portalling',
+  // Fleet size (vehicle slots → total shipping)
+  'vehicle_reliablity', 'excoskeletons', 'traffic_management', 'egg_loading_bots', 'autonomous_vehicles',
+  // Train length (Graviton Coupling → shipping per vehicle)
+  'micro_coupling',
+  // Hab capacity (population → lay rate)
+  'hab_capacity1', 'microlux', 'grav_plating', 'wormhole_dampening',
+]);
 
 function calculateTotalPurchases(researchLevels: Record<string, number>): number {
   let total = 0;
@@ -43,7 +58,6 @@ export function runC3(
   context: SimulationContext,
   buildPhaseEnd: number = 0
 ): ShiftResult {
-  // console.log('--- Starting C3 Shift Simulation ---');
   let currentState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
@@ -188,25 +202,13 @@ export function runC3(
   shiftAction.totalTimeSeconds = 0;
 
   actions.push(shiftAction);
-  // console.log(`  Shifted to Curiosity. Cost: ${formatNumber(sCost, 3)} SE`);
 
   const finalSaleStart = buildPhaseEnd - 86400;
 
-  // console.log(`[C3 DEBUG] Ascension Start: ${context.ascensionStartTime}`);
-  // console.log(`[C3 DEBUG] Plan Start Offset: ${context.planStartOffset}`);
-  // console.log(`[C3 DEBUG] startState.lastStepTime: ${startState.lastStepTime}`);
-  // console.log(`[C3 DEBUG] Initial absTime: ${getAbsTime()}`);
-  // console.log(`[C3 DEBUG] finalSaleStart: ${finalSaleStart}`);
-  // console.log(`[C3 DEBUG] buildPhaseEnd: ${buildPhaseEnd}`);
-
   // Step 1: Earnings ROI matrix
-  // console.log('Phase 1: Buying Earnings ROI research...');
-
   let step1Active = true;
   while (step1Active && getAbsTime() < buildPhaseEnd) {
     const absTime = getAbsTime();
-    // console.log(`[C3 DEBUG Phase 1] absTime: ${absTime}, elapsedSeconds: ${elapsedSeconds}`);
-
     const nextSaleStart = getNextSaleStart(absTime);
     const nextBoostStart = getNextEarningsBoostStart(absTime);
     const nextBoostEnd = getNextEarningsBoostEnd(absTime);
@@ -245,15 +247,9 @@ export function runC3(
     );
 
     if (recommendation) {
-      if (recommendation.isFiller) {
-        // console.log(`[C3 Phase 1] Choosing Unlock Path (Filler: ${recommendation.name})`);
-      }
-      
-      const purchaseTime = absTime + (recommendation.timeToBuySeconds || 0); 
+      const purchaseTime = absTime + (recommendation.timeToBuySeconds || 0);
       if (purchaseTime <= nextBoundary) {
-        if (buyResearch(recommendation.researchId, recommendation.price)) {
-          // console.log(`  Bought ${recommendation.isFiller ? 'filler' : 'earnings'}: ${recommendation.name} (ROI: ${formatNumber(recommendation.roiSeconds, 0)}s)`);
-        }
+        buyResearch(recommendation.researchId, recommendation.price);
       } else {
         advanceTime(nextBoundary - absTime);
       }
@@ -267,12 +263,66 @@ export function runC3(
   }
 
   // Step 2: Buy ELR Impact research (Realistic, Time Efficiency)
-  // console.log('Phase 2: Buying ELR Impact research (Realistic, Time Efficiency)...');
+
+  // Build the artifact candidate pool and lock the best structure — both done once.
+  // The 500-combo structure search runs exactly once; every subsequent ELR evaluation
+  // only runs the cheap stone allocation on that fixed structure (~500× less work).
+  const elrPool: ELRCandidatePool | null = context.rawBackup
+    ? buildELRCandidatePool(context.rawBackup, false)
+    : null;
+
+  // Run the full combo search once to find the best artifact structure.
+  let bestELRStructure: EquippedArtifact[] | null = null;
+  if (elrPool) {
+    const initialSet = evaluateELRWithPool(elrPool, {
+      commonResearch: currentState.researchLevels,
+      epicResearchLevels: context.epicResearchLevels,
+      colleggtibleModifiers: context.colleggtibleModifiers,
+    });
+    // Store artifact IDs + slot counts only; stones are re-allocated per research state.
+    bestELRStructure = initialSet.map(slot => ({
+      artifactId: slot.artifactId,
+      stones: new Array(slot.stones.length).fill(null),
+    }));
+  }
+
+  // Memoize ELR stats by research state. Each miss only re-runs stone allocation
+  // on the fixed structure (~12 evaluations) rather than the full 500-combo search.
+  // Reuse a shared memo from context (populated by a prior C3 run, e.g. the 1-sale run)
+  // so the 2-sale run benefits from already-computed states.
+  const elrMemo: Map<string, { layRate: number; shippingRate: number; effectiveRate: number }> =
+    context.elrMemo ?? new Map();
+  context.elrMemo = elrMemo; // write back so subsequent C3 calls can inherit it
+  const memoGetELR = (researchLevels: Record<string, number>) => {
+    const key = JSON.stringify(
+      Object.entries(researchLevels)
+        .filter(([id]) => ELR_RELEVANT_RESEARCH_IDS.has(id))
+        .sort(([a], [b]) => a.localeCompare(b))
+    );
+    let result = elrMemo.get(key);
+    if (!result) {
+      result = evaluateELRForStructure(bestELRStructure!, elrPool!, {
+        commonResearch: researchLevels,
+        epicResearchLevels: context.epicResearchLevels,
+        colleggtibleModifiers: context.colleggtibleModifiers,
+      });
+      elrMemo.set(key, result);
+    }
+    return result;
+  };
+
+  // Unified helper: uses the locked structure + pool when available, falls back
+  // to the current artifact loadout for the no-backup case.
+  const computeELRStats = (researchLevels: Record<string, number>) => {
+    if (bestELRStructure && elrPool) return memoGetELR(researchLevels);
+    const mods = calculateArtifactModifiers(currentState.artifactLoadout);
+    const raw = computeRealisticELR(researchLevels, mods, context.epicResearchLevels, context.colleggtibleModifiers);
+    return { layRate: raw.layRate, shippingRate: raw.shippingRate, effectiveRate: raw.effectiveRate };
+  };
 
   let elrActive = true;
   while (elrActive && getAbsTime() < buildPhaseEnd) {
     const absTime = getAbsTime();
-    // console.log(`[C3 DEBUG Phase 2] absTime: ${absTime}, elapsedSeconds: ${elapsedSeconds}`);
 
     const nextBoostStart = getNextEarningsBoostStart(absTime);
     const nextBoostEnd = getNextEarningsBoostEnd(absTime);
@@ -291,34 +341,11 @@ export function runC3(
     const isSale = isResearchSaleActive(absTime);
     const mods = getModifiers(currentSnap);
 
-    let baselineELR = 0;
-    let baselineLayRate = 0;
-    let baselineShipRate = 0;
-    if (context.rawBackup) {
-      const optimal = getOptimalELRSet(context.rawBackup, {
-        assumeMaxHabsVehicles: true,
-        excludeGusset: false,
-        commonResearch: currentState.researchLevels,
-        epicResearchLevels: context.epicResearchLevels,
-        colleggtibleModifiers: context.colleggtibleModifiers,
-      });
-      const artifactMods = calculateArtifactModifiers(optimal);
-      const stats = computeRealisticELR(currentState.researchLevels, artifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
-      baselineELR = stats.effectiveRate;
-      baselineLayRate = stats.layRate;
-      baselineShipRate = stats.shippingRate;
-    } else {
-      const artifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
-      const stats = computeRealisticELR(currentState.researchLevels, artifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
-      baselineELR = stats.effectiveRate;
-      baselineLayRate = stats.layRate;
-      baselineShipRate = stats.shippingRate;
-    }
+    const baselineELR = computeELRStats(currentState.researchLevels).effectiveRate;
 
     if (baselineELR <= 0) {
-      console.log('  Cannot compute baseline ELR, skipping Phase 2');
       advanceTime(nextBoundary - absTime);
-      continue; 
+      continue;
     }
 
     const elrCandidatesAll = getCommonResearches()
@@ -329,22 +356,7 @@ export function runC3(
         const price = getDiscountedVirtuePrice(r, level, mods, isSale);
 
         const tempLevels = { ...currentState.researchLevels, [r.id]: level + 1 };
-        let tempArtifactMods;
-
-        if (context.rawBackup) {
-          const tempOptimal = getOptimalELRSet(context.rawBackup, {
-            assumeMaxHabsVehicles: true,
-            excludeGusset: false,
-            commonResearch: tempLevels,
-            epicResearchLevels: context.epicResearchLevels,
-            colleggtibleModifiers: context.colleggtibleModifiers,
-          });
-          tempArtifactMods = calculateArtifactModifiers(tempOptimal);
-        } else {
-          tempArtifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
-        }
-
-        const stats = computeRealisticELR(tempLevels, tempArtifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
+        const stats = computeELRStats(tempLevels);
         const impact = (stats.effectiveRate - baselineELR) / baselineELR;
 
         const secondsToBuyNoBank = currentSnap.offlineEarnings > 0 ? price / currentSnap.offlineEarnings : Infinity;
@@ -358,20 +370,7 @@ export function runC3(
         if (impact <= 0 && level + 1 < r.levels) {
           for (let n = 2; n <= r.levels - level; n++) {
             const laLevels = { ...currentState.researchLevels, [r.id]: level + n };
-            let laArtifactMods;
-            if (context.rawBackup) {
-              const laOptimal = getOptimalELRSet(context.rawBackup, {
-                assumeMaxHabsVehicles: true,
-                excludeGusset: false,
-                commonResearch: laLevels,
-                epicResearchLevels: context.epicResearchLevels,
-                colleggtibleModifiers: context.colleggtibleModifiers,
-              });
-              laArtifactMods = calculateArtifactModifiers(laOptimal);
-            } else {
-              laArtifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
-            }
-            const laStats = computeRealisticELR(laLevels, laArtifactMods, context.epicResearchLevels, context.colleggtibleModifiers);
+            const laStats = computeELRStats(laLevels);
             const laImpact = (laStats.effectiveRate - baselineELR) / baselineELR;
             if (laImpact > 0) {
               let totalPriceForN = 0;
@@ -402,37 +401,16 @@ export function runC3(
         };
       });
 
-    const fmt = (n: number) => (n * 3600).toExponential(3);
-    console.log(`[C3 Phase 2] Baseline (max Hyperloops assumed): lay=${fmt(baselineLayRate)}/hr, ship=${fmt(baselineShipRate)}/hr, ELR=${fmt(baselineELR)}/hr — bottleneck: ${baselineLayRate < baselineShipRate ? 'LAY RATE' : 'SHIPPING'}`);
-    const DEBUG_IDS = ['neural_net_refine', 'hyper_portalling'];
-    for (const id of DEBUG_IDS) {
-      const c = elrCandidatesAll.find(c => c.research.id === id);
-      if (c) {
-        console.log(`  [C3 Phase 2] ${c.research.name}: impact=${(c.impact * 100).toFixed(4)}% (all remaining levels), lay=${fmt(c.layRate)}/hr, ship=${fmt(c.shippingRate)}/hr, timeToBuy=${c.timeToBuySeconds === Infinity ? '∞' : c.timeToBuySeconds.toFixed(0)}s`);
-      } else {
-        console.log(`  [C3 Phase 2] ${id}: not in candidate list (maxed or tier locked)`);
-      }
-    }
-
     const elrCandidates = elrCandidatesAll
       .filter(c => (c.impact > 0 || c.lookahead !== undefined) && c.timeToBuySeconds !== Infinity && (absTime + c.timeToBuySeconds <= buildPhaseEnd))
       .sort((a, b) => a.hpp - b.hpp);
-
-    console.log(`[C3 Phase 2] Top 3 ELR candidates after filter:`, elrCandidates.slice(0, 3).map(c => {
-      const la = c.lookahead;
-      return la
-        ? `${c.research.name} (lookahead ${la.minLevels} levels, hpp: ${la.hpp.toFixed(2)}, impact: ${(la.impact * 100).toFixed(2)}%)`
-        : `${c.research.name} (hpp: ${c.hpp.toFixed(2)}, impact: ${(c.impact * 100).toFixed(2)}%)`;
-    }));
 
     if (elrCandidates.length > 0) {
       const best = elrCandidates[0];
       const purchaseTime = absTime + best.timeToBuySeconds;
 
       if (purchaseTime <= nextBoundary) {
-        if (buyResearch(best.research.id, best.price)) {
-          // console.log(`  Bought ELR Impact research: ${best.research.name} (hpp: ${best.hpp.toFixed(2)})`);
-        }
+        buyResearch(best.research.id, best.price);
       } else {
         advanceTime(nextBoundary - absTime);
       }
@@ -445,9 +423,6 @@ export function runC3(
       }
     }
   }
-
-  const researchActions = actions.filter(a => a.type === 'buy_research');
-  // console.log(`C3 Finished: ${researchActions.length} research actions, total time ${Math.floor(elapsedSeconds)}s`);
 
   return {
     actions,
