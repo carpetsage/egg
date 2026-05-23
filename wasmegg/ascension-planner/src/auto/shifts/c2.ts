@@ -10,6 +10,7 @@ import {
 } from '../../calculations/commonResearch';
 import {
   getBestEarningsRecommendation,
+  DEFAULT_EARNINGS_CATEGORIES,
 } from '../engine/strategist';
 import { computeSnapshot } from '../../engine/compute';
 import { applyAction } from '../../engine/apply';
@@ -48,10 +49,13 @@ export function runC2(
   startState: EngineState,
   context: SimulationContext
 ): ShiftResult {
-  // console.log('--- Starting C2 Shift Simulation ---');
+  const c2Start = performance.now();
+  console.log('[C2] Starting...');
   let currentState: EngineState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
+  let memoHits = 0;
+  let memoMisses = 0;
 
   const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
 
@@ -205,6 +209,31 @@ export function runC2(
   actions.push(shiftAction);
   // console.log(`  Shifted to Curiosity. Cost: ${formatNumber(sCost, 3)} SE`);
 
+  // Memoize getBestEarningsRecommendation — same principle as C3's ELR memo.
+  // Key on earnings-relevant research + tier state so fleet/graviton purchases
+  // (which dominate C2) don't cause expensive re-evaluations.
+  const earningsResearchIds = new Set(
+    getCommonResearches()
+      .filter(r => DEFAULT_EARNINGS_CATEGORIES.some(cat => r.categories.includes(cat)))
+      .map(r => r.id)
+  );
+  const earningsMemo = new Map<string, ReturnType<typeof getBestEarningsRecommendation>>();
+  const getEarningsKey = (timeLeft: number): string => {
+    const isSale = isResearchSaleActive(getAbsTime());
+    let maxTier = 0;
+    for (let t = 1; t <= 13; t++) {
+      if (isTierUnlocked(currentState.researchLevels, t)) maxTier = t; else break;
+    }
+    return JSON.stringify([
+      Object.entries(currentState.researchLevels)
+        .filter(([id]) => earningsResearchIds.has(id))
+        .sort(([a], [b]) => a.localeCompare(b)),
+      maxTier,
+      isSale,
+      Math.floor(timeLeft / 300),
+    ]);
+  };
+
   // --- Helper: build event timing for ROI calculations ---
   const getEventTiming = () => {
     const absTime = getAbsTime();
@@ -261,18 +290,19 @@ export function runC2(
 
   // --- Helper: buy best ROI-positive earnings research (single purchase) ---
   const buyBestEarningsResearch = (): boolean => {
-    const eventTiming = getEventTiming();
     const timeLeft = getEstimatedRemainingShiftTime();
-    const snap = computeSnapshot(currentState, context, { skipGrowth: true });
-
-    const recommendation = getBestEarningsRecommendation(
-      currentState,
-      context,
-      eventTiming,
-      getModifiers(snap),
-      timeLeft
-    );
-
+    const key = getEarningsKey(timeLeft);
+    let recommendation = earningsMemo.get(key);
+    if (recommendation === undefined) {
+      const snap = computeSnapshot(currentState, context, { skipGrowth: true });
+      recommendation = getBestEarningsRecommendation(
+        currentState, context, getEventTiming(), getModifiers(snap), timeLeft
+      );
+      earningsMemo.set(key, recommendation);
+      memoMisses++;
+    } else {
+      memoHits++;
+    }
     if (recommendation) {
       return buyResearch(recommendation.researchId);
     }
@@ -356,25 +386,27 @@ export function runC2(
   };
 
   // 2. Buy all fleet_size research until maxed
-  // console.log('Phase 1: Buying all fleet_size research...');
+  const p1Start = performance.now();
+  let p1Fleet = 0;
+  let p1Earnings = 0;
   for (const id of FLEET_RESEARCH_IDS) {
     const research = getResearchById(id);
     while (research && (currentState.researchLevels[id] || 0) < research.levels) {
-      while (buyBestEarningsResearch()) {
-        // Continue buying ROI-positive earnings research
-      }
+      while (buyBestEarningsResearch()) { p1Earnings++; }
       if (!buyResearch(id)) break;
+      p1Fleet++;
     }
   }
+  console.log(`[C2 P1] ${(performance.now() - p1Start).toFixed(0)}ms | fleet: ${p1Fleet}, earnings: ${p1Earnings}`);
 
   // 3. Buy graviton_coupling until we hit the 4h limit or max it out
-  // console.log('Phase 2: Checking graviton_coupling...');
+  const p2Start = performance.now();
+  let p2GC = 0;
+  let p2Earnings = 0;
   const gcResearch = getResearchById(GRAVITON_COUPLING_ID);
-  
+
   while (gcResearch && (currentState.researchLevels[GRAVITON_COUPLING_ID] || 0) < gcResearch.levels) {
-    while (buyBestEarningsResearch()) {
-      // Continue buying ROI-positive earnings research
-    }
+    while (buyBestEarningsResearch()) { p2Earnings++; }
 
     if (!isTierUnlocked(currentState.researchLevels, gcResearch.tier)) {
       if (!tryUnlockTier(gcResearch.tier, GRAVITON_COUPLING_ID)) {
@@ -385,9 +417,12 @@ export function runC2(
     if (!buyResearch(GRAVITON_COUPLING_ID)) {
       break;
     }
+    p2GC++;
   }
+  console.log(`[C2 P2] ${(performance.now() - p2Start).toFixed(0)}ms | graviton: ${p2GC}, earnings: ${p2Earnings}`);
 
-  // console.log(`C2 Finished: ${actions.filter(a => a.type === 'buy_research').length} research actions, total time ${elapsedSeconds}s`);
+  const researchActions = actions.filter(a => a.type === 'buy_research');
+  console.log(`[C2] Total: ${(performance.now() - c2Start).toFixed(0)}ms | ${researchActions.length} purchases | memo ${memoHits} hits / ${memoMisses} misses`);
 
   return {
     actions,

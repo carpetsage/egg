@@ -92,10 +92,14 @@ export function runUntilShift(
   let currentActions: Action[] = [];
   let totalElapsedSeconds = 0;
 
+  const shiftTimings: { name: string; ms: number }[] = [];
+
   for (const shift of allShifts) {
     if (shift.name === stopBeforeShift) break;
     currentState.lastStepTime = totalElapsedSeconds;
+    const t0 = performance.now();
     const result = shift.run(currentState, context);
+    shiftTimings.push({ name: shift.name, ms: performance.now() - t0 });
 
     // Calculate eggs laid during this shift (assuming full habs)
     const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
@@ -107,6 +111,12 @@ export function runUntilShift(
     currentState = result.endState;
     totalElapsedSeconds += result.elapsedSeconds;
   }
+
+  const totalMs = shiftTimings.reduce((sum, t) => sum + t.ms, 0);
+  console.log(
+    `[C1 to R1] ${totalMs.toFixed(1)}ms total\n` +
+    shiftTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
+  );
 
   return { state: currentState, actions: currentActions, elapsedSeconds: totalElapsedSeconds };
 }
@@ -171,15 +181,17 @@ export function runAscension(
   let totalElapsedSeconds = resumeData ? resumeData.elapsedSeconds : 0;
 
   let skip = resumeData ? true : false;
+  const ascShiftTimings: { name: string; ms: number }[] = [];
 
   for (const shift of allShifts) {
     if (skip) {
       if (shift.name === resumeData!.resumeShiftName) skip = false;
       else continue;
     }
-    
+
     currentState.lastStepTime = totalElapsedSeconds;
-    
+
+    const t0 = performance.now();
     let result: ShiftResult;
     if (shift.name === 'C3') {
       result = shift.run(currentState, context, buildPhaseEnd);
@@ -222,10 +234,18 @@ export function runAscension(
       result.actions[0].payload.eggsLaid = eggsLaid;
     }
 
+    ascShiftTimings.push({ name: shift.name, ms: performance.now() - t0 });
+
     currentActions.push(...result.actions);
     currentState = result.endState;
     totalElapsedSeconds += result.elapsedSeconds;
   }
+
+  const ascTotalMs = ascShiftTimings.reduce((sum, t) => sum + t.ms, 0);
+  console.log(
+    `[C3 to H2 ${id}] ${ascTotalMs.toFixed(1)}ms total\n` +
+    ascShiftTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
+  );
 
   // Prepend start action if not resuming
   if (!resumeData) {

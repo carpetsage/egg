@@ -267,6 +267,7 @@ export function useAscensionGenerator() {
       for (let i = firstDiffIdx; i < loops; i++) {
         const stepTargetTE: number | undefined = targets[i] || undefined;
         const stepEndTime: number | undefined = undefined;
+        const t_asc = performance.now();
 
         const buildPhaseEnd1 = getNextSaleEnd(currentStartTime);
         const buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1);
@@ -410,6 +411,8 @@ export function useAscensionGenerator() {
             );
           }
         }
+
+        console.log(`[A${i+1} total time] ${(performance.now()-t_asc).toFixed(1)}ms`);
       }
 
       if (newChain.length > 0) {

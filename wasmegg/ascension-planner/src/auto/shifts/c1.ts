@@ -9,6 +9,7 @@ import {
 } from '../../calculations/commonResearch';
 import {
   getBestEarningsRecommendation,
+  DEFAULT_EARNINGS_CATEGORIES,
 } from '../engine/strategist';
 import { getArtifact, getStone, calculateArtifactModifiers } from '../../lib/artifacts';
 import { computeSnapshot } from '../../engine/compute';
@@ -63,10 +64,13 @@ export function runC1(
   timeLimit: number = 1800,
   peakELR: number = 0
 ): ShiftResult {
-  // console.log('--- Starting C1 Shift Simulation ---');
+  const c1Start = performance.now();
+  console.log('[C1] Starting...');
   let currentState: EngineState = { ...startState, maxELR: peakELR };
   let elapsedSeconds = 0;
   let actions: Action[] = [];
+  let memoHits = 0;
+  let memoMisses = 0;
 
   const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
 
@@ -247,6 +251,31 @@ export function runC1(
     return earningsCandidate ? earningsCandidate.id : cheapest.id;
   };
 
+  // Memoize getBestEarningsRecommendation keyed on earnings-relevant research + tier state.
+  // Fleet, filler, and graviton purchases don't invalidate the cache, so repeated calls
+  // between non-earnings purchases (common in Phase 1's tier-unlock loops) are free.
+  const earningsResearchIds = new Set(
+    getCommonResearches()
+      .filter(r => DEFAULT_EARNINGS_CATEGORIES.some(cat => r.categories.includes(cat)))
+      .map(r => r.id)
+  );
+  const earningsMemo = new Map<string, ReturnType<typeof getBestEarningsRecommendation>>();
+  const getEarningsKey = (timeLeft: number): string => {
+    const isSale = isResearchSaleActive(getAbsTime());
+    let maxTier = 0;
+    for (let t = 1; t <= 13; t++) {
+      if (isTierUnlocked(currentState.researchLevels, t)) maxTier = t; else break;
+    }
+    return JSON.stringify([
+      Object.entries(currentState.researchLevels)
+        .filter(([id]) => earningsResearchIds.has(id))
+        .sort(([a], [b]) => a.localeCompare(b)),
+      maxTier,
+      isSale,
+      Math.floor(timeLeft / 300), // 5-minute bucket
+    ]);
+  };
+
   // --- Helper: build event timing for ROI calculations ---
   const getEventTiming = () => {
     const absTime = getAbsTime();
@@ -263,56 +292,32 @@ export function runC1(
 
   // --- Helper: buy best ROI-positive earnings research (single purchase) ---
   const buyBestEarningsResearch = (): boolean => {
-    const eventTiming = getEventTiming();
-    const snap = computeSnapshot(currentState, context, { skipGrowth: true });
-
-    const recommendation = getBestEarningsRecommendation(
-      currentState,
-      context,
-      eventTiming,
-      getModifiers(snap),
-      timeLimit - elapsedSeconds
-    );
-
+    const timeLeft = timeLimit - elapsedSeconds;
+    const key = getEarningsKey(timeLeft);
+    let recommendation = earningsMemo.get(key);
+    if (recommendation === undefined) {
+      const snap = computeSnapshot(currentState, context, { skipGrowth: true });
+      recommendation = getBestEarningsRecommendation(
+        currentState, context, getEventTiming(), getModifiers(snap), timeLeft
+      );
+      earningsMemo.set(key, recommendation);
+      memoMisses++;
+    } else {
+      memoHits++;
+    }
     if (recommendation) {
       return buyResearch(recommendation.researchId);
     }
     return false;
   };
 
-  // --- Helper: estimate how many levels of a research can be bought in remaining time ---
-  const estimateBuyableLevels = (researchId: string): number => {
-    const research = getResearchById(researchId);
-    if (!research) return 0;
-
-    const snap = computeSnapshot(currentState, context, { skipGrowth: true });
-    if (snap.offlineEarnings <= 0) return 0;
-
-    let level = currentState.researchLevels[researchId] || 0;
-    let bank = snap.bankValue;
-    let time = elapsedSeconds;
-    const rate = snap.offlineEarnings;
-    const mods = getModifiers(snap);
-    let count = 0;
-
-    while (level < research.levels && time < timeLimit) {
-      const price = getDiscountedVirtuePrice(research, level, mods, isResearchSaleActive(
-        context.ascensionStartTime + context.planStartOffset + time
-      ));
-      const saveTime = Math.max(0, (price - bank) / rate);
-      if (time + saveTime > timeLimit) break;
-      bank = bank + rate * saveTime - price;
-      time += saveTime;
-      level++;
-      count++;
-    }
-    return count;
-  };
 
   // ========================================================================
   // PHASE 1: Interleaved tier-unlock + fleet + earnings (tiers 2→10)
   // ========================================================================
-  // console.log('Phase 1: Interleaved tier-unlock + fleet + earnings...');
+  const p1Start = performance.now();
+  let p1Earnings = 0;
+  let p1Fleet = 0;
 
   for (let targetTier = 2; targetTier <= 10 && elapsedSeconds <= timeLimit; targetTier++) {
     // a) Unlock the tier
@@ -322,48 +327,40 @@ export function runC1(
     }
 
     if (!isTierUnlocked(currentState.researchLevels, targetTier)) {
-      // console.log(`  Could not unlock Tier ${targetTier}, stopping Phase 1`);
       break;
     }
 
     // b) Buy quick-win earnings research before moving to next tier
-    let earningsBought = 0;
     while (elapsedSeconds <= timeLimit && buyBestEarningsResearch()) {
-      earningsBought++;
-    }
-    if (earningsBought > 0) {
-      // console.log(`  Bought ${earningsBought} earnings research after unlocking Tier ${targetTier}`);
+      p1Earnings++;
     }
 
     // c) Buy fleet_size research in this tier (except autonomous_vehicles, deferred to Phase 4)
     for (const id of FLEET_RESEARCH_IDS) {
       const research = getResearchById(id);
       if (research && research.tier === targetTier && id !== 'autonomous_vehicles') {
-        while (buyResearch(id)) {
-          // console.log(`  Bought fleet research: ${research.name}`);
-        }
+        while (buyResearch(id)) { p1Fleet++; }
       }
     }
   }
 
   const tier10Unlocked = isTierUnlocked(currentState.researchLevels, 10);
-  // console.log(`Phase 1 complete. Tier 10 ${tier10Unlocked ? 'unlocked' : 'NOT unlocked'}. Elapsed: ${Math.floor(elapsedSeconds)}s`);
+  console.log(`[C1 P1] ${(performance.now() - p1Start).toFixed(0)}ms | earnings: ${p1Earnings}, fleet: ${p1Fleet}, tier10: ${tier10Unlocked}`);
 
   // ========================================================================
   // PHASE 2: Checkpoint + graviton coupling attempt
   // ========================================================================
-  if (tier10Unlocked && elapsedSeconds <= timeLimit) {
-    // console.log('Phase 2: Saving checkpoint at Tier 10, attempting graviton coupling...');
+  const p2Start = performance.now();
+  let p2Graviton = 0;
+  let p2Rolled = false;
 
-    // Save checkpoint (deep copy)
+  if (tier10Unlocked && elapsedSeconds <= timeLimit) {
     const checkpointState = JSON.parse(JSON.stringify(currentState));
     const checkpointElapsed = elapsedSeconds;
     const checkpointActions = [...actions];
 
-    let gravitonBought = 0;
     let rollback = false;
 
-    // Try to unlock tiers 11 and 12
     for (let tier = 11; tier <= 12 && elapsedSeconds <= timeLimit; tier++) {
       while (!isTierUnlocked(currentState.researchLevels, tier) && elapsedSeconds <= timeLimit) {
         const candidate = findTierUnlockCandidate(tier);
@@ -371,76 +368,57 @@ export function runC1(
       }
 
       if (!isTierUnlocked(currentState.researchLevels, tier)) {
-        // console.log(`  Could not unlock Tier ${tier}, rolling back to checkpoint`);
         rollback = true;
         break;
       }
     }
 
-    // Try to buy graviton coupling if tier 12 unlocked
     if (!rollback && isTierUnlocked(currentState.researchLevels, 12)) {
       while (elapsedSeconds <= timeLimit && buyResearch(GRAVITON_COUPLING_ID)) {
-        gravitonBought++;
+        p2Graviton++;
       }
-      // console.log(`  Bought ${gravitonBought} graviton coupling levels`);
-
-      if (gravitonBought === 0) {
-        // console.log(`  No graviton coupling affordable, rolling back to checkpoint`);
-        rollback = true;
-      }
+      if (p2Graviton === 0) rollback = true;
     }
 
     if (rollback) {
       currentState = JSON.parse(JSON.stringify(checkpointState));
       elapsedSeconds = checkpointElapsed;
       actions = [...checkpointActions];
-      // console.log(`  Rolled back to checkpoint at ${Math.floor(elapsedSeconds)}s`);
-    } else {
-      // console.log(`  Graviton attempt successful: ${gravitonBought} levels. Elapsed: ${Math.floor(elapsedSeconds)}s`);
+      p2Rolled = true;
     }
   }
+
+  console.log(`[C1 P2] ${(performance.now() - p2Start).toFixed(0)}ms | graviton: ${p2Graviton}, rolled back: ${p2Rolled}`);
 
   // ========================================================================
   // PHASE 3: Maximize earnings rate with remaining time
   // ========================================================================
-  // console.log('Phase 3: Maximizing earnings rate...');
-  {
-    // Buy earnings research while ROI-positive, to maximize rate before buying AV
-    let earningsBought = 0;
-    while (elapsedSeconds <= timeLimit && buyBestEarningsResearch()) {
-      earningsBought++;
-    }
-    if (earningsBought > 0) {
-      // console.log(`  Bought ${earningsBought} earnings research in Phase 3`);
-    }
+  const p3Start = performance.now();
+  let p3Earnings = 0;
+  while (elapsedSeconds <= timeLimit && buyBestEarningsResearch()) {
+    p3Earnings++;
   }
+  console.log(`[C1 P3] ${(performance.now() - p3Start).toFixed(0)}ms | earnings: ${p3Earnings}`);
 
   // ========================================================================
   // PHASE 4: Buy autonomous_vehicles (and more graviton if time permits)
   // ========================================================================
-  if (tier10Unlocked) {
-    const avEstimate = estimateBuyableLevels('autonomous_vehicles');
-    // console.log(`Phase 4: Buying autonomous_vehicles (estimated ${avEstimate} levels affordable)...`);
-    let avBought = 0;
-    while (elapsedSeconds <= timeLimit && buyResearch('autonomous_vehicles')) {
-      avBought++;
-    }
-    // console.log(`  Bought ${avBought} autonomous_vehicles levels`);
+  const p4Start = performance.now();
+  let p4AV = 0;
+  let p4GC = 0;
 
-    // Also try more graviton coupling if we got some earlier
+  if (tier10Unlocked) {
+    while (elapsedSeconds <= timeLimit && buyResearch('autonomous_vehicles')) { p4AV++; }
+
     if (isTierUnlocked(currentState.researchLevels, 12)) {
-      let gcBought = 0;
-      while (elapsedSeconds <= timeLimit && buyResearch(GRAVITON_COUPLING_ID)) {
-        gcBought++;
-      }
-      if (gcBought > 0) {
-        // console.log(`  Bought ${gcBought} additional graviton coupling levels`);
-      }
+      while (elapsedSeconds <= timeLimit && buyResearch(GRAVITON_COUPLING_ID)) { p4GC++; }
     }
   }
 
+  console.log(`[C1 P4] ${(performance.now() - p4Start).toFixed(0)}ms | AV: ${p4AV}, graviton: ${p4GC}`);
+
   const researchActions = actions.filter(a => a.type === 'buy_research');
-  // console.log(`C1 Finished: ${researchActions.length} research actions, total time ${Math.floor(elapsedSeconds)}s`);
+  console.log(`[C1] Total: ${(performance.now() - c1Start).toFixed(0)}ms | ${researchActions.length} purchases | memo ${memoHits} hits / ${memoMisses} misses`);
 
   return {
     actions,

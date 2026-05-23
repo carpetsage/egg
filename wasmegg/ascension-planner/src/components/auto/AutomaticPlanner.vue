@@ -236,6 +236,8 @@ const {
 } = useAscensionGenerator();
 
 const runGenerate = () => {
+  console.clear();
+  console.log("Genearting");
   generate(() => nextTick(() => targetInput.value?.focus()));
 };
 
