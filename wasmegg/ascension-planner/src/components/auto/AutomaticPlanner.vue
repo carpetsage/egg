@@ -123,17 +123,25 @@
       </div>
 
       <div class="space-y-4">
-        <AscensionOverview
-          v-for="(result, idx) in bestResults"
-          :key="idx"
-          :summary="result.summary"
-          :actions="result.actions"
-          :index="idx"
-          :total="ascensionChain.length"
-          :target-t-e="result.targetTE"
-          :result3-available="result.result3Available"
-          @force-mode-change="handleToggleForceMode"
-        />
+        <template v-for="(result, idx) in bestResults" :key="idx">
+          <ForcedAscensionPreview
+            v-if="ascensionChain[idx]?.forcedTarget490"
+            :result1="ascensionChain[idx].result1"
+            :result2="ascensionChain[idx].result2"
+            :index="idx"
+            :total="visibleTotal"
+          />
+          <AscensionOverview
+            v-else
+            :summary="result.summary"
+            :actions="result.actions"
+            :index="idx"
+            :total="visibleTotal"
+            :target-t-e="result.targetTE"
+            :result3-available="result.result3Available"
+            @force-mode-change="handleToggleForceMode"
+          />
+        </template>
       </div>
 
       <SimulationErrorAlert v-if="simulationError" :message="simulationError" />
@@ -163,7 +171,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useAutoPlannerStore } from '@/stores/autoPlanner';
 import { useVirtueStore } from '@/stores/virtue';
@@ -174,6 +182,7 @@ import VirtueProgressSection from './VirtueProgressSection.vue';
 import ChainSummaryBar from './ChainSummaryBar.vue';
 import SimulationErrorAlert from './SimulationErrorAlert.vue';
 import AscensionOverview from './AscensionOverview.vue';
+import ForcedAscensionPreview from './ForcedAscensionPreview.vue';
 import ValidationDialog from './ValidationDialog.vue';
 
 const autoPlannerStore = useAutoPlannerStore();
@@ -181,6 +190,13 @@ const virtueStore = useVirtueStore();
 const truthEggsStore = useTruthEggsStore();
 
 const { ascensionChain, timezone, startDate, startTime, targetTE } = storeToRefs(autoPlannerStore);
+
+// The forced-490 ascension is a silent bonus card — don't count it in the "A1 of N" denominator.
+const visibleTotal = computed(() => {
+  const chain = ascensionChain.value;
+  const lastIsForced = chain.length > 0 && !!chain[chain.length - 1].forcedTarget490;
+  return chain.length - (lastIsForced ? 1 : 0);
+});
 const targetInput = ref<HTMLInputElement | null>(null);
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 

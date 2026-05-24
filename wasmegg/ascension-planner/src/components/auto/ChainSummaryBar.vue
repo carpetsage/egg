@@ -95,7 +95,9 @@ function formatDateOnly(timestampSeconds: number, tz: string): string {
 }
 
 const totals = computed(() => {
-  const plans = ascensionChain.value.map(item => {
+  // Exclude any silently-injected forced-490 ascension from all footer totals.
+  const visibleChain = ascensionChain.value.filter(item => !item.forcedTarget490);
+  const plans = visibleChain.map(item => {
     const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
     return candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b)).summary;
   });

@@ -19,7 +19,9 @@ export interface ChainedAscension {
     startDate: string;
     startTime: string;
     teEarned: Record<string, number>;
-  }
+  };
+  /** True when this ascension was silently injected to reach 490 TE, not entered by the user. */
+  forcedTarget490?: boolean;
 }
 
 export const useAutoPlannerStore = defineStore('autoPlanner', () => {

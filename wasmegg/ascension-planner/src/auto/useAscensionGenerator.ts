@@ -20,6 +20,7 @@ import type { AscensionSummary } from '@/auto/types';
 import type { Action } from '@/types/actions/meta';
 import type { VirtueEgg } from '@/types';
 
+
 const VIRTUE_EGGS_MAP: Record<number, VirtueEgg> = {
   50: 'curiosity',
   51: 'integrity',
@@ -71,7 +72,13 @@ export function useAscensionGenerator() {
     if (initialParamsDirty) return true;
 
     const targets = getTargets();
-    if (targets.length !== ascensionChain.value.length) return true;
+    // The chain may have a silent forced-490 item appended; exclude it from the length comparison.
+    const hasForced490 =
+      ascensionChain.value.length > 0 &&
+      !!ascensionChain.value[ascensionChain.value.length - 1].forcedTarget490;
+    const visibleChainLength = ascensionChain.value.length - (hasForced490 ? 1 : 0);
+
+    if (targets.length !== visibleChainLength) return true;
 
     for (let i = 0; i < targets.length; i++) {
       if (targets[i] !== ascensionChain.value[i].goal.te) return true;
@@ -160,6 +167,10 @@ export function useAscensionGenerator() {
         }
       }
 
+      // Silently append a 490-TE ascension when the user's final target isn't already 490.
+      const forced490 = targets[targets.length - 1] !== 490 && targets[targets.length - 1] < 490;
+      const effectiveTargets = forced490 ? [...targets, 490] : targets;
+
       const teEarned = truthEggsStore.teEarned;
       const currentTotal = Object.values(teEarned).reduce((a, b) => a + b, 0);
 
@@ -212,8 +223,8 @@ export function useAscensionGenerator() {
       let firstDiffIdx = 0;
       if (!initialParamsDirty) {
         let matchCount = 0;
-        for (let i = 0; i < targets.length; i++) {
-          if (i < ascensionChain.value.length && targets[i] === ascensionChain.value[i].goal.te) {
+        for (let i = 0; i < effectiveTargets.length; i++) {
+          if (i < ascensionChain.value.length && effectiveTargets[i] === ascensionChain.value[i].goal.te) {
             matchCount++;
           } else {
             break;
@@ -231,7 +242,7 @@ export function useAscensionGenerator() {
       let currentStartTime: number;
       let currentSummary: AscensionSummary | null = null;
       const newChain: any[] = [];
-      const loops = targets.length;
+      const loops = effectiveTargets.length;
 
       if (firstDiffIdx > 0) {
         for (let i = 0; i < firstDiffIdx; i++) {
@@ -252,9 +263,9 @@ export function useAscensionGenerator() {
         currentStartTime = lastValidSummary.endTime;
         currentSummary = lastValidSummary;
 
-        if (firstDiffIdx < loops && targets[firstDiffIdx] <= currentSummary!.endTE) {
+        if (firstDiffIdx < loops && effectiveTargets[firstDiffIdx] <= currentSummary!.endTE) {
           throw new Error(
-            `Target TE (${targets[firstDiffIdx]}) for A${firstDiffIdx + 1} must be greater than A${firstDiffIdx} end TE (${currentSummary!.endTE})`
+            `Target TE (${effectiveTargets[firstDiffIdx]}) for A${firstDiffIdx + 1} must be greater than A${firstDiffIdx} end TE (${currentSummary!.endTE})`
           );
         }
       } else {
@@ -267,7 +278,7 @@ export function useAscensionGenerator() {
       }
 
       for (let i = firstDiffIdx; i < loops; i++) {
-        const stepTargetTE: number | undefined = targets[i] || undefined;
+        const stepTargetTE: number | undefined = effectiveTargets[i] || undefined;
         const stepEndTime: number | undefined = undefined;
         const t_asc = performance.now();
 
@@ -398,6 +409,8 @@ export function useAscensionGenerator() {
         if (result3) chainItem.result3 = result3;
         if (result3SkippedReason) chainItem.result3SkippedReason = result3SkippedReason;
         if (i === 0) chainItem.initialParams = initialParamsToSave;
+        // Tag the last item when it was silently added to cover the 490-TE milestone.
+        if (forced490 && i === loops - 1) chainItem.forcedTarget490 = true;
         newChain.push(chainItem);
 
         currentSummary = best.summary;
@@ -407,9 +420,9 @@ export function useAscensionGenerator() {
           currentBaseState = deriveNextStartState(currentSummary, baseBackupState);
           currentStartTime = currentSummary.endTime;
 
-          if (targets[i + 1] <= currentSummary.endTE) {
+          if (effectiveTargets[i + 1] <= currentSummary.endTE) {
             throw new Error(
-              `Target TE (${targets[i + 1]}) for A${i + 2} must be greater than A${i + 1} end TE (${currentSummary.endTE})`
+              `Target TE (${effectiveTargets[i + 1]}) for A${i + 2} must be greater than A${i + 1} end TE (${currentSummary.endTE})`
             );
           }
         }
@@ -453,7 +466,7 @@ export function useAscensionGenerator() {
       initialEggsDelivered: { ...initialStateStore.initialEggsDelivered },
       initialTeEarned: { ...initialStateStore.initialTeEarned },
     },
-    ascensions: ascensionChain.value.map((item, idx) => {
+    ascensions: ascensionChain.value.filter(item => !item.forcedTarget490).map((item, idx) => {
       const asc: ExportedPlan['ascensions'][number] = {
         index: idx,
         targetTE: item.goal.te || item.result1.summary.endTE,
@@ -516,7 +529,7 @@ export function useAscensionGenerator() {
       ? Object.values(ascensionChain.value[0].initialParams.teEarned).reduce((a: number, b: any) => a + b, 0)
       : currentTE.value;
 
-    const bestPlans = ascensionChain.value.map(item => {
+    const bestPlans = ascensionChain.value.filter(item => !item.forcedTarget490).map(item => {
       const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
       return candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b)).summary;
     });
