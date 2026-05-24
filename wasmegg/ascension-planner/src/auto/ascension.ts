@@ -112,11 +112,11 @@ export function runUntilShift(
     totalElapsedSeconds += result.elapsedSeconds;
   }
 
-  const totalMs = shiftTimings.reduce((sum, t) => sum + t.ms, 0);
-  console.log(
-    `[C1 to R1] ${totalMs.toFixed(1)}ms total\n` +
-    shiftTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
-  );
+  // const totalMs = shiftTimings.reduce((sum, t) => sum + t.ms, 0);
+  // console.log(
+  //   `[C1 to R1] ${totalMs.toFixed(1)}ms total\n` +
+  //   shiftTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
+  // );
 
   return { state: currentState, actions: currentActions, elapsedSeconds: totalElapsedSeconds };
 }
@@ -241,11 +241,11 @@ export function runAscension(
     totalElapsedSeconds += result.elapsedSeconds;
   }
 
-  const ascTotalMs = ascShiftTimings.reduce((sum, t) => sum + t.ms, 0);
-  console.log(
-    `[C3 to H2 ${id}] ${ascTotalMs.toFixed(1)}ms total\n` +
-    ascShiftTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
-  );
+  // const ascTotalMs = ascShiftTimings.reduce((sum, t) => sum + t.ms, 0);
+  // console.log(
+  //   `[C3 to H2 ${id}] ${ascTotalMs.toFixed(1)}ms total\n` +
+  //   ascShiftTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
+  // );
 
   // Prepend start action if not resuming
   if (!resumeData) {

@@ -8,6 +8,7 @@ import {
   purchasesNeededForTier,
   getCommonResearches,
 } from '../../calculations/commonResearch';
+import { runQuickWins } from './quickWins';
 import {
   getBestEarningsRecommendation,
   DEFAULT_EARNINGS_CATEGORIES,
@@ -24,7 +25,6 @@ import {
   getNextEarningsBoostEnd,
   getNextEarningsBoostStart,
 } from '../calendar';
-import { formatNumber } from '@/lib/format';
 import { calculateArtifactModifiers } from '../../lib/artifacts';
 
 const FLEET_RESEARCH_IDS = [
@@ -50,7 +50,7 @@ export function runC2(
   context: SimulationContext
 ): ShiftResult {
   const c2Start = performance.now();
-  console.log('[C2] Starting...');
+  // console.log('[C2] Starting...');
   let currentState: EngineState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
@@ -59,14 +59,19 @@ export function runC2(
 
   const getAbsTime = () => context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
 
-  const getModifiers = (snapshot: any): ResearchCostModifiers => {
-    const artifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
-    return {
-      labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
-      waterballoonMultiplier: context.colleggtibleModifiers.researchCost || 1,
-      puzzleCubeMultiplier: artifactMods.researchCost.totalMultiplier,
-    };
+  // Mods are constant for the entire C2 run — artifact/epic/colleggtible multipliers don't
+  // change during research purchases, so we compute them once instead of per buyResearch call.
+  const mods: ResearchCostModifiers = {
+    labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
+    waterballoonMultiplier: context.colleggtibleModifiers.researchCost || 1,
+    puzzleCubeMultiplier: calculateArtifactModifiers(currentState.artifactLoadout).researchCost.totalMultiplier,
   };
+
+  // Cached earnings rate. Invalidated when:
+  //   - earnings-category research is bought (updated from endState snapshot in buyResearch)
+  //   - earnings boost toggles (updated from the toggle's snapshot in advanceTime)
+  // Everything else (time advancement, filler research) leaves offlineEarnings unchanged.
+  let offlineEarnings = 0; // set after the shift action
 
   const advanceTime = (totalSeconds: number) => {
     let remaining = totalSeconds;
@@ -75,7 +80,6 @@ export function runC2(
       const absTime = getAbsTime();
       const nextSaleStart = getNextSaleStart(absTime);
       const nextBoostStart = getNextEarningsBoostStart(absTime);
-      const nextSaleEnd = getNextSaleStart(absTime) + 24 * 3600;
       const nextBoostEnd = getNextEarningsBoostEnd(absTime);
       
       const boundaries = [
@@ -125,7 +129,10 @@ export function runC2(
           multiplier: 2
         });
         currentState = applyAction(currentState, toggleBoost);
-        toggleBoost.endState = computeSnapshot(currentState, context, { skipGrowth: true });
+        const boostSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+        toggleBoost.endState = boostSnap;
+        // Piggyback: the boost changes the earnings multiplier, so update the cache.
+        offlineEarnings = boostSnap.offlineEarnings;
         actions.push(toggleBoost);
       }
 
@@ -150,27 +157,17 @@ export function runC2(
     if (currentLevel >= research.levels) return false;
     if (!isTierUnlocked(currentState.researchLevels, research.tier)) return false;
 
-    const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
-    const price = getDiscountedVirtuePrice(
-      research,
-      currentLevel,
-      getModifiers(snapshot),
-      isResearchSaleActive(getAbsTime())
-    );
+    // Use cached offlineEarnings and currentState.bankValue directly — no snapshot needed for
+    // the affordability check. (applyAction for buy_research keeps bankValue in sync.)
+    if (offlineEarnings <= 0) return false;
 
-    if (snapshot.offlineEarnings <= 0) return false;
+    const price = getDiscountedVirtuePrice(research, currentLevel, mods, isResearchSaleActive(getAbsTime()));
+    const timeToSave = Math.max(0, ((currentState.bankValue || 0) - price < 0
+      ? (price - (currentState.bankValue || 0)) / offlineEarnings
+      : 0));
+    if (!Number.isFinite(timeToSave)) return false;
+    if (elapsedSeconds + timeToSave > 14400) return false;
 
-    const timeToSave = Math.max(0, (price - snapshot.bankValue) / snapshot.offlineEarnings);
-    if (!Number.isFinite(timeToSave)) {
-      // console.log(`    Stalling: Cannot afford ${researchId} (time to save is infinite)`);
-      return false;
-    }
-    
-    if (elapsedSeconds + timeToSave > 14400) {
-      // console.log(`    Stalling: Buying ${researchId} would exceed the 4-hour shift limit`);
-      return false;
-    }
-    
     advanceTime(timeToSave);
 
     const action = createSimAction('buy_research', {
@@ -180,14 +177,19 @@ export function runC2(
     }, price);
 
     currentState = applyAction(currentState, action);
-    
-    // Decoration
+
+    // Always compute endState for display (we need the snapshot here regardless).
+    // Piggyback: if this was earnings research, update the cached rate from the same snapshot.
     const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
     action.endState = finalSnap;
     action.totalTimeSeconds = 0;
     action.bankDelta = -price;
-
     actions.push(action);
+
+    if (DEFAULT_EARNINGS_CATEGORIES.some(cat => research.categories.includes(cat))) {
+      offlineEarnings = finalSnap.offlineEarnings;
+    }
+
     return true;
   };
 
@@ -200,11 +202,12 @@ export function runC2(
   }, sCost);
   
   currentState = applyAction(currentState, shiftAction);
-  
-  // Decoration
-  const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
-  shiftAction.endState = finalSnap;
+
+  // Decoration — and seed offlineEarnings from the post-shift snapshot.
+  const shiftSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+  shiftAction.endState = shiftSnap;
   shiftAction.totalTimeSeconds = 0;
+  offlineEarnings = shiftSnap.offlineEarnings;
 
   actions.push(shiftAction);
   // console.log(`  Shifted to Curiosity. Cost: ${formatNumber(sCost, 3)} SE`);
@@ -249,15 +252,12 @@ export function runC2(
   };
 
   // --- Helper: estimate remaining shift time ---
+  // Uses cached offlineEarnings and currentState.bankValue directly — no snapshot needed.
   const getEstimatedRemainingShiftTime = (): number => {
-    const snap = computeSnapshot(currentState, context, { skipGrowth: true });
-    if (snap.offlineEarnings <= 0) return Infinity;
-
-    let totalTargetCost = 0;
-    const mods = getModifiers(snap);
+    if (offlineEarnings <= 0) return Infinity;
     const isSale = isResearchSaleActive(getAbsTime());
 
-    // fleet researches remaining
+    let totalTargetCost = 0;
     for (const id of FLEET_RESEARCH_IDS) {
       const research = getResearchById(id);
       if (research) {
@@ -268,8 +268,6 @@ export function runC2(
         }
       }
     }
-    
-    // Add ALL remaining levels of graviton coupling
     const gcResearch = getResearchById(GRAVITON_COUPLING_ID);
     if (gcResearch) {
       let gcLevel = currentState.researchLevels[GRAVITON_COUPLING_ID] || 0;
@@ -279,13 +277,9 @@ export function runC2(
       }
     }
 
-    const costLeft = Math.max(0, totalTargetCost - snap.bankValue);
-    const timeToBuyAll = costLeft / snap.offlineEarnings;
-    
-    // The entire C2 shift should not take more than 4 hours (14400 seconds)
+    const costLeft = Math.max(0, totalTargetCost - (currentState.bankValue || 0));
     const timeToHardLimit = Math.max(0, 14400 - elapsedSeconds);
-    
-    return Math.min(timeToBuyAll, timeToHardLimit);
+    return Math.min(costLeft / offlineEarnings, timeToHardLimit);
   };
 
   // --- Helper: buy best ROI-positive earnings research (single purchase) ---
@@ -294,9 +288,8 @@ export function runC2(
     const key = getEarningsKey(timeLeft);
     let recommendation = earningsMemo.get(key);
     if (recommendation === undefined) {
-      const snap = computeSnapshot(currentState, context, { skipGrowth: true });
       recommendation = getBestEarningsRecommendation(
-        currentState, context, getEventTiming(), getModifiers(snap), timeLeft
+        currentState, context, getEventTiming(), mods, timeLeft
       );
       earningsMemo.set(key, recommendation);
       memoMisses++;
@@ -309,18 +302,35 @@ export function runC2(
     return false;
   };
 
+  // --- Helper: buy all research within QUICK_BUY_THRESHOLD_SECONDS of waiting ---
+  // See quickWins.ts for the rationale and full implementation.
+  const buyQuickWins = (): number => {
+    const result = runQuickWins(
+      currentState, actions, elapsedSeconds,
+      offlineEarnings, mods,
+      context, getAbsTime, shiftSnap,
+      14400, DEFAULT_EARNINGS_CATEGORIES,
+    );
+    currentState = result.currentState;
+    elapsedSeconds = result.elapsedSeconds;
+    offlineEarnings = result.offlineEarnings;
+    return result.count;
+  };
+
   // --- Helper: try to unlock a tier by buying the cheapest available research ---
   const tryUnlockTier = (targetTier: number, targetResearchId: string): boolean => {
+    if (isTierUnlocked(currentState.researchLevels, targetTier)) return true;
+
+    // Quick-win sweep first: cheap items contribute to the purchase threshold and
+    // may unlock the tier outright without needing the expensive items below.
+    buyQuickWins();
     if (isTierUnlocked(currentState.researchLevels, targetTier)) return true;
 
     const needed = purchasesNeededForTier(currentState.researchLevels, targetTier);
     if (needed === Infinity) return false;
 
-    const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
-    const mods = getModifiers(snapshot);
+    // Estimate total cost using cached mods and offlineEarnings — no snapshot needed.
     const isSale = isResearchSaleActive(getAbsTime());
-
-    // Estimate total cost to unlock by finding the cheapest 'needed' purchases
     let estimatedUnlockCost = 0;
     const tempLevels = { ...currentState.researchLevels };
     for (let i = 0; i < needed; i++) {
@@ -333,35 +343,23 @@ export function runC2(
           isTierUnlocked(tempLevels, r.tier)
         ) {
           const p = getDiscountedVirtuePrice(r, tempLevels[r.id] || 0, mods, isSale);
-          if (p < cheapestPrice) {
-            cheapestPrice = p;
-            cheapestId = r.id;
-          }
+          if (p < cheapestPrice) { cheapestPrice = p; cheapestId = r.id; }
         }
       }
       if (!cheapestId) break;
       estimatedUnlockCost += cheapestPrice;
       tempLevels[cheapestId] = (tempLevels[cheapestId] || 0) + 1;
     }
-
-    // Add cost of the next level of target research
     const targetResearch = getResearchById(targetResearchId);
     if (targetResearch) {
       estimatedUnlockCost += getDiscountedVirtuePrice(
-        targetResearch,
-        currentState.researchLevels[targetResearchId] || 0,
-        mods,
-        isSale
+        targetResearch, currentState.researchLevels[targetResearchId] || 0, mods, isSale
       );
     }
 
-    const timeToSave = Math.max(0, (estimatedUnlockCost - snapshot.bankValue) / snapshot.offlineEarnings);
-    if (elapsedSeconds + timeToSave > 14400) {
-      // console.log(`  Not worth unlocking Tier ${targetTier}: would take too long (${timeToSave.toFixed(0)}s)`);
-      return false;
-    }
+    const timeToSave = Math.max(0, (estimatedUnlockCost - (currentState.bankValue || 0)) / offlineEarnings);
+    if (elapsedSeconds + timeToSave > 14400) return false;
 
-    // console.log(`  Unlocking Tier ${targetTier} for ${targetResearchId}...`);
     while (!isTierUnlocked(currentState.researchLevels, targetTier)) {
       let cheapestPrice = Infinity;
       let cheapestId = '';
@@ -372,10 +370,7 @@ export function runC2(
           isTierUnlocked(currentState.researchLevels, r.tier)
         ) {
           const p = getDiscountedVirtuePrice(r, currentState.researchLevels[r.id] || 0, mods, isSale);
-          if (p < cheapestPrice) {
-            cheapestPrice = p;
-            cheapestId = r.id;
-          }
+          if (p < cheapestPrice) { cheapestPrice = p; cheapestId = r.id; }
         }
       }
       if (!cheapestId) break;
@@ -389,6 +384,9 @@ export function runC2(
   const p1Start = performance.now();
   let p1Fleet = 0;
   let p1Earnings = 0;
+  // Quick-win sweep after the Curiosity shift: C2's earnings rate may differ from C1's,
+  // potentially making items affordable that weren't within C1's 3-second threshold.
+  const p1QuickWins = buyQuickWins();
   for (const id of FLEET_RESEARCH_IDS) {
     const research = getResearchById(id);
     while (research && (currentState.researchLevels[id] || 0) < research.levels) {
@@ -397,7 +395,7 @@ export function runC2(
       p1Fleet++;
     }
   }
-  console.log(`[C2 P1] ${(performance.now() - p1Start).toFixed(0)}ms | fleet: ${p1Fleet}, earnings: ${p1Earnings}`);
+  // console.log(`[C2 P1] ${(performance.now() - p1Start).toFixed(0)}ms | quickWins: ${p1QuickWins}, fleet: ${p1Fleet}, earnings: ${p1Earnings}`);
 
   // 3. Buy graviton_coupling until we hit the 4h limit or max it out
   const p2Start = performance.now();
@@ -419,10 +417,10 @@ export function runC2(
     }
     p2GC++;
   }
-  console.log(`[C2 P2] ${(performance.now() - p2Start).toFixed(0)}ms | graviton: ${p2GC}, earnings: ${p2Earnings}`);
+  // console.log(`[C2 P2] ${(performance.now() - p2Start).toFixed(0)}ms | graviton: ${p2GC}, earnings: ${p2Earnings}`);
 
   const researchActions = actions.filter(a => a.type === 'buy_research');
-  console.log(`[C2] Total: ${(performance.now() - c2Start).toFixed(0)}ms | ${researchActions.length} purchases | memo ${memoHits} hits / ${memoMisses} misses`);
+  // console.log(`[C2] Total: ${(performance.now() - c2Start).toFixed(0)}ms | ${researchActions.length} purchases | memo ${memoHits} hits / ${memoMisses} misses`);
 
   return {
     actions,

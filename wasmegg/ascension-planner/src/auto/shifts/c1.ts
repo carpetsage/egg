@@ -7,6 +7,7 @@ import {
   type ResearchCostModifiers,
   getResearchById,
 } from '../../calculations/commonResearch';
+import { runQuickWins } from './quickWins';
 import {
   getBestEarningsRecommendation,
   DEFAULT_EARNINGS_CATEGORIES,
@@ -65,7 +66,7 @@ export function runC1(
   peakELR: number = 0
 ): ShiftResult {
   const c1Start = performance.now();
-  console.log('[C1] Starting...');
+  // console.log('[C1] Starting...');
   let currentState: EngineState = { ...startState, maxELR: peakELR };
   let elapsedSeconds = 0;
   let actions: Action[] = [];
@@ -210,23 +211,6 @@ export function runC1(
     .map(([label, count]) => `${count}x ${label}`)
     .join(', ');
 
-  // console.clear();
-  // console.log('--- Simulation Metrics ---');
-  // console.log(`  TE: ${currentState.te}`);
-  // console.log(`  Artifacts: ${currentState.artifactLoadout
-  //   .map(slot => (slot.artifactId ? getArtifact(slot.artifactId)?.label : 'Empty'))
-  //   .join(', ')}`);
-  // if (stonesSummary) {
-  //   console.log(`  Stones: ${stonesSummary}`);
-  // }
-  // console.log(`  Chickens: ${formatNumber(snapshot.population, 3)}`);
-  // console.log(`  Hab Capacity: ${formatNumber(snapshot.habCapacity, 3)}`);
-  // console.log(`  Laying Rate: ${formatNumber(snapshot.layRate * 3600, 3)}/hr`);
-  // console.log(`  Shipping Cap: ${formatNumber(snapshot.shippingCapacity * 3600, 3)}/hr`);
-  // console.log(`  ELR: ${formatNumber(snapshot.elr * 3600, 3)}/hr`);
-  // console.log(`  Earnings: ${formatNumber(snapshot.offlineEarnings * 3600, 3)} Virtue/hr`);
-  // console.log('---------------------------');
-
   // --- Helper: find best tier-unlock candidate, preferring earnings within 2× cheapest ---
   const findTierUnlockCandidate = (targetTier: number): string | null => {
     const snap = computeSnapshot(currentState, context, { skipGrowth: true });
@@ -290,6 +274,21 @@ export function runC1(
     };
   };
 
+  // --- Helper: buy all research purchasable within QUICK_BUY_THRESHOLD_SECONDS of waiting ---
+  // See quickWins.ts for the rationale and full implementation.
+  const buyQuickWins = (): number => {
+    const snap = computeSnapshot(currentState, context, { skipGrowth: true });
+    const result = runQuickWins(
+      currentState, actions, elapsedSeconds,
+      snap.offlineEarnings, getModifiers(snap),
+      context, getAbsTime, snap,
+      timeLimit, EARNINGS_CATEGORIES,
+    );
+    currentState = result.currentState;
+    elapsedSeconds = result.elapsedSeconds;
+    return result.count;
+  };
+
   // --- Helper: buy best ROI-positive earnings research (single purchase) ---
   const buyBestEarningsResearch = (): boolean => {
     const timeLeft = timeLimit - elapsedSeconds;
@@ -318,8 +317,14 @@ export function runC1(
   const p1Start = performance.now();
   let p1Earnings = 0;
   let p1Fleet = 0;
+  let p1QuickWins = 0;
 
   for (let targetTier = 2; targetTier <= 10 && elapsedSeconds <= timeLimit; targetTier++) {
+    // Quick-win sweep: buy anything in any currently-unlocked tier that costs ≤3s of wait.
+    // Buying cheap items accumulates purchases toward tier-unlock thresholds and may
+    // unlock targetTier immediately, short-circuiting the tier-unlock loop below.
+    p1QuickWins += buyQuickWins();
+
     // a) Unlock the tier
     while (!isTierUnlocked(currentState.researchLevels, targetTier) && elapsedSeconds <= timeLimit) {
       const candidate = findTierUnlockCandidate(targetTier);
@@ -345,7 +350,7 @@ export function runC1(
   }
 
   const tier10Unlocked = isTierUnlocked(currentState.researchLevels, 10);
-  console.log(`[C1 P1] ${(performance.now() - p1Start).toFixed(0)}ms | earnings: ${p1Earnings}, fleet: ${p1Fleet}, tier10: ${tier10Unlocked}`);
+  // console.log(`[C1 P1] ${(performance.now() - p1Start).toFixed(0)}ms | quickWins: ${p1QuickWins}, earnings: ${p1Earnings}, fleet: ${p1Fleet}, tier10: ${tier10Unlocked}`);
 
   // ========================================================================
   // PHASE 2: Checkpoint + graviton coupling attempt
@@ -353,8 +358,13 @@ export function runC1(
   const p2Start = performance.now();
   let p2Graviton = 0;
   let p2Rolled = false;
+  let p2QuickWins = 0;
 
   if (tier10Unlocked && elapsedSeconds <= timeLimit) {
+    // Quick-win sweep before taking the checkpoint: anything cheap in tiers 1–10 is
+    // unconditionally beneficial and must not be lost if the graviton attempt rolls back.
+    p2QuickWins += buyQuickWins();
+
     const checkpointState = JSON.parse(JSON.stringify(currentState));
     const checkpointElapsed = elapsedSeconds;
     const checkpointActions = [...actions];
@@ -388,7 +398,7 @@ export function runC1(
     }
   }
 
-  console.log(`[C1 P2] ${(performance.now() - p2Start).toFixed(0)}ms | graviton: ${p2Graviton}, rolled back: ${p2Rolled}`);
+  // console.log(`[C1 P2] ${(performance.now() - p2Start).toFixed(0)}ms | quickWins: ${p2QuickWins}, graviton: ${p2Graviton}, rolled back: ${p2Rolled}`);
 
   // ========================================================================
   // PHASE 3: Maximize earnings rate with remaining time
@@ -398,7 +408,7 @@ export function runC1(
   while (elapsedSeconds <= timeLimit && buyBestEarningsResearch()) {
     p3Earnings++;
   }
-  console.log(`[C1 P3] ${(performance.now() - p3Start).toFixed(0)}ms | earnings: ${p3Earnings}`);
+  // console.log(`[C1 P3] ${(performance.now() - p3Start).toFixed(0)}ms | earnings: ${p3Earnings}`);
 
   // ========================================================================
   // PHASE 4: Buy autonomous_vehicles (and more graviton if time permits)
@@ -415,10 +425,10 @@ export function runC1(
     }
   }
 
-  console.log(`[C1 P4] ${(performance.now() - p4Start).toFixed(0)}ms | AV: ${p4AV}, graviton: ${p4GC}`);
+  // console.log(`[C1 P4] ${(performance.now() - p4Start).toFixed(0)}ms | AV: ${p4AV}, graviton: ${p4GC}`);
 
   const researchActions = actions.filter(a => a.type === 'buy_research');
-  console.log(`[C1] Total: ${(performance.now() - c1Start).toFixed(0)}ms | ${researchActions.length} purchases | memo ${memoHits} hits / ${memoMisses} misses`);
+  // console.log(`[C1] Total: ${(performance.now() - c1Start).toFixed(0)}ms | ${researchActions.length} purchases | memo ${memoHits} hits / ${memoMisses} misses`);
 
   return {
     actions,
