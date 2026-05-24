@@ -183,8 +183,10 @@ export const useActionsStore = defineStore('actions', {
   },
 
   actions: {
-    async setInitialSnapshot(snapshot: CalculationsSnapshot) {
+    async setInitialSnapshot(snapshot: CalculationsSnapshot, options?: { silent?: boolean }) {
       this._initialSnapshot = snapshot;
+      if (options?.silent) return;
+
       if (this.actions.length === 0) {
         const startAction = createDefaultStartAction();
         this.actions.push(startAction);

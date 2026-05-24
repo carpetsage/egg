@@ -189,7 +189,9 @@ export function useAscensionGenerator() {
       const context = getSimulationContext();
       const baseState = createBaseEngineState(null);
       const initialSnapshot = computeSnapshot(baseState, context);
-      actionsStore.setInitialSnapshot(initialSnapshot);
+      // Pass silent:true so this snapshot update doesn't trigger the manual-mode
+      // RecalculationOverlay — the auto planner uses its own progress indicator.
+      actionsStore.setInitialSnapshot(initialSnapshot, { silent: true });
 
       const absStartTime = getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value);
 
