@@ -19,7 +19,7 @@
       </svg>
     </button>
 
-    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-6">
+    <div class="max-w-7xl mx-auto px-3 py-2 sm:px-6 sm:py-4 flex flex-wrap justify-between items-center gap-x-3 gap-y-2 sm:gap-6">
       <div class="summary-item">
         <span class="summary-label">Start Date</span>
         <span class="summary-value text-slate-900">{{ totals.startDateStr }}</span>
@@ -35,7 +35,7 @@
         <span class="summary-label group-hover:text-indigo-400 transition-colors">TE Progress</span>
         <div class="flex items-center gap-2">
           <span class="summary-value font-mono-premium font-black text-indigo-600 group-hover:text-indigo-700 transition-colors">+{{ totals.teGained }}</span>
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 group-hover:bg-indigo-50 px-2 py-0.5 rounded-full border border-slate-100 group-hover:border-indigo-100 transition-colors">
+          <span class="hidden sm:inline text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 group-hover:bg-indigo-50 px-2 py-0.5 rounded-full border border-slate-100 group-hover:border-indigo-100 transition-colors">
             ({{ totals.startTE }} → {{ totals.endTE }})
           </span>
         </div>
@@ -52,7 +52,7 @@
         <span class="summary-label">Shifts</span>
         <div class="flex items-center gap-2">
           <span class="summary-value font-mono-premium font-black text-slate-600">+{{ totals.shiftsTotal }}</span>
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100 font-mono-premium">
+          <span class="hidden sm:inline text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100 font-mono-premium">
             (#{{ totals.startShifts }} → #{{ totals.endShifts }})
           </span>
         </div>
@@ -63,7 +63,7 @@
           <span class="summary-value font-mono-premium font-black text-rose-500" v-tippy="'SE Consumed'">
             -{{ formatNumber(totals.totalSEConsumed, 1) }}
           </span>
-          <div class="flex flex-col justify-center border-l border-slate-100 pl-2 h-7 opacity-80" v-tippy="'Remaining SE'">
+          <div class="hidden sm:flex flex-col justify-center border-l border-slate-100 pl-2 h-7 opacity-80" v-tippy="'Remaining SE'">
             <div class="text-[8px] font-black leading-none text-slate-400 mb-1 uppercase tracking-widest">Remaining</div>
             <div class="text-[11px] font-black leading-none text-slate-700 font-mono-premium flex items-center gap-1">
               {{ formatNumber(totals.remainingSE, 1) }}
@@ -189,7 +189,7 @@ const teStatsList = computed(() => {
 
 <style scoped>
 .font-mono-premium { font-family: 'JetBrains Mono', 'Roboto Mono', monospace; }
-.summary-item { @apply flex flex-col gap-1; }
-.summary-label { @apply text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none; }
-.summary-value { @apply text-[13px] font-bold tracking-tight whitespace-nowrap; }
+.summary-item { @apply flex flex-col gap-0.5 sm:gap-1; }
+.summary-label { @apply text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wider sm:tracking-[0.2em] leading-none; }
+.summary-value { @apply text-[10px] sm:text-[13px] font-bold tracking-tight whitespace-nowrap; }
 </style>
