@@ -1,6 +1,7 @@
 <template>
   <div class="bg-white rounded-xl border border-slate-100 p-2.5 sm:p-3 shadow-sm">
-    <div class="flex items-center justify-between mb-1.5">
+    <div class="grid grid-cols-2 items-center gap-y-0.5 sm:flex sm:items-center sm:justify-between mb-1.5">
+      <!-- Col 1 Row 1 / Desktop left: icon + shift name -->
       <div class="flex items-center gap-2">
         <div class="w-5 h-5 rounded-md flex items-center justify-center" :class="eggTheme.bg">
           <svg class="w-3.5 h-3.5" :class="eggTheme.text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,7 +16,32 @@
         <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.1em]">{{ title }}</span>
       </div>
 
-      <div class="flex items-center gap-2 text-[9px] font-black text-slate-400">
+      <!-- Col 2 Row 1 (mobile only): Duration, right-aligned -->
+      <div class="flex justify-end items-center text-[9px] font-black text-slate-400 sm:hidden">
+        <span
+          v-tippy="{ content: timeTooltipContent, allowHTML: true }"
+          class="cursor-help border-b border-dashed border-slate-300/50 transition-colors"
+        >
+          {{ formatDuration(duration) }}
+        </span>
+      </div>
+
+      <!-- Col 1 Row 2 (mobile only): SE cost, left-aligned -->
+      <div class="flex items-center gap-1 text-[9px] font-black text-slate-400 sm:hidden">
+        <span>{{ formatNumber(cost, 3) }}</span>
+        <img v-if="costType === 'SE'" :src="iconURL('egginc/egg_soul.png', 32)" class="w-3 h-3 opacity-40" alt="SE" />
+      </div>
+
+      <!-- Col 2 Row 2 (mobile only): Eggs delivered, right-aligned -->
+      <div class="flex justify-end items-center gap-1 text-[9px] font-black text-slate-500 sm:hidden">
+        <template v-if="totalEggsLaid > 0">
+          <span>{{ formatNumber(totalEggsLaid, 3) }}</span>
+          <span class="text-[7.5px] opacity-60">EGGS</span>
+        </template>
+      </div>
+
+      <!-- Desktop only: full right-side row with dot separators (unchanged) -->
+      <div class="hidden sm:flex items-center gap-2 text-[9px] font-black text-slate-400">
         <span
           v-tippy="{ content: timeTooltipContent, allowHTML: true }"
           class="cursor-help border-b border-dashed border-slate-300/50 hover:text-slate-500 hover:border-slate-400 transition-colors"
