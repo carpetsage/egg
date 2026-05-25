@@ -28,11 +28,14 @@
         <span class="summary-label">Ascensions</span>
         <span class="summary-value font-mono-premium font-black text-slate-600">{{ totals.count }}</span>
       </div>
-      <div class="summary-item">
-        <span class="summary-label">TE Progress</span>
+      <div
+        class="summary-item cursor-pointer hover:bg-slate-50 p-2 -mx-2 -my-2 rounded-xl transition-colors duration-200 group"
+        @click="showTeModal = true"
+      >
+        <span class="summary-label group-hover:text-indigo-400 transition-colors">TE Progress</span>
         <div class="flex items-center gap-2">
-          <span class="summary-value font-mono-premium font-black text-indigo-600">+{{ totals.teGained }}</span>
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
+          <span class="summary-value font-mono-premium font-black text-indigo-600 group-hover:text-indigo-700 transition-colors">+{{ totals.teGained }}</span>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 group-hover:bg-indigo-50 px-2 py-0.5 rounded-full border border-slate-100 group-hover:border-indigo-100 transition-colors">
             ({{ totals.startTE }} → {{ totals.endTE }})
           </span>
         </div>
@@ -70,20 +73,28 @@
         </div>
       </div>
     </div>
+
+    <TeBreakdownModal :show="showTeModal" :stats="teStatsList" @close="showTeModal = false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useAutoPlannerStore } from '@/stores/autoPlanner';
+import { useInitialStateStore } from '@/stores/initialState';
 import { formatNumber } from '@/lib/format';
 import { iconURL } from 'lib';
+import { VIRTUE_EGGS } from '@/types/actions/virtue';
+import TeBreakdownModal from '@/components/TeBreakdownModal.vue';
 
 defineProps<{ isCollapsed: boolean }>();
 defineEmits<{ toggle: [] }>();
 
 const { ascensionChain, timezone } = storeToRefs(useAutoPlannerStore());
+const initialStateStore = useInitialStateStore();
+
+const showTeModal = ref(false);
 
 function formatDateOnly(timestampSeconds: number, tz: string): string {
   if (!timestampSeconds) return 'N/A';
@@ -130,6 +141,49 @@ const totals = computed(() => {
     startShifts: plans[0].startShiftCount,
     endShifts: plans[plans.length - 1].endShiftCount,
   };
+});
+
+const teStatsList = computed(() => {
+  const visibleChain = ascensionChain.value.filter(item => !item.forcedTarget490);
+  if (visibleChain.length === 0) return [];
+
+  const plans = visibleChain.map(item => {
+    const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
+    return candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b)).summary;
+  });
+
+  const lastPlan = plans[plans.length - 1];
+
+  const totalDelivered = VIRTUE_EGGS.reduce((sum, egg) => sum + (lastPlan.eggsDelivered[egg] || 0), 0);
+  const initialTotal = Object.values(initialStateStore.initialTeEarned).reduce((sum, val) => sum + val, 0);
+
+  const stats = [
+    {
+      id: 'truth',
+      name: 'Total TE',
+      start: initialTotal,
+      end: lastPlan.endTE,
+      delta: lastPlan.endTE - initialTotal,
+      icon: iconURL('egginc/egg_truth.png', 64),
+      delivered: totalDelivered,
+    },
+  ];
+
+  for (const egg of VIRTUE_EGGS) {
+    const start = initialStateStore.initialTeEarned[egg] || 0;
+    const end = lastPlan.finalTE[egg] || 0;
+    stats.push({
+      id: egg,
+      name: egg.charAt(0).toUpperCase() + egg.slice(1),
+      start,
+      end,
+      delta: end - start,
+      icon: iconURL(`egginc/egg_${egg}.png`, 64),
+      delivered: lastPlan.eggsDelivered[egg] || 0,
+    });
+  }
+
+  return stats;
 });
 </script>
 

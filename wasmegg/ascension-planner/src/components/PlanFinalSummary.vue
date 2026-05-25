@@ -185,69 +185,7 @@
     </Teleport>
 
     <!-- TE Modal -->
-    <Teleport to="body">
-      <div v-if="showTeModal" class="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-all" @click="showTeModal = false" />
-
-        <!-- Dialog -->
-        <div class="card-glass relative w-full max-w-sm overflow-hidden shadow-2xl rounded-2xl border border-white/50 bg-white/95 transition-all duration-300 animate-in fade-in zoom-in-95">
-          <div class="bg-gradient-to-r from-slate-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-            <div class="p-1.5 bg-slate-100 rounded-lg text-slate-600">
-              <img :src="iconURL('egginc/egg_truth.png', 64)" class="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" alt="Truth" />
-            </div>
-            <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">TE Breakdown</h3>
-          </div>
-
-          <div class="p-4 flex flex-col gap-2">
-            <div
-              v-for="stat in teStatsList"
-              :key="stat.id"
-              class="flex items-center justify-between p-3 rounded-xl border transition-all"
-              :class="{
-                'bg-indigo-50/50 border-indigo-100 shadow-sm': stat.id === 'truth',
-                'bg-white border-slate-100': stat.id !== 'truth'
-              }"
-            >
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm border border-slate-50 drop-shadow-sm">
-                  <img :src="stat.icon" class="w-6 h-6 object-contain" :alt="stat.name" />
-                </div>
-                <span class="text-sm font-black" :class="{ 'text-indigo-700': stat.id === 'truth', 'text-slate-700': stat.id !== 'truth' }">
-                  {{ stat.name }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2 font-mono-premium text-sm">
-                <span class="text-slate-400">{{ stat.start }}</span>
-                <span class="text-slate-300">→</span>
-                <span class="font-bold" :class="{ 'text-indigo-900': stat.id === 'truth', 'text-slate-700': stat.id !== 'truth' }">
-                  {{ stat.end }}
-                </span>
-                <span 
-                  class="ml-1 w-10 text-right font-black text-[10px]"
-                  :class="{
-                    'text-indigo-600': stat.id === 'truth' && stat.delta > 0,
-                    'text-emerald-500': stat.id !== 'truth' && stat.delta > 0,
-                    'text-slate-300': stat.delta === 0
-                  }"
-                >
-                  <template v-if="stat.delta > 0">+</template>{{ stat.delta }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-            <button
-              class="px-6 py-2 text-[10px] font-black uppercase tracking-widest bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all rounded-xl hover:shadow-sm"
-              @click="showTeModal = false"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <TeBreakdownModal :show="showTeModal" :stats="teStatsList" @close="showTeModal = false" />
   </div>
 </template>
 
@@ -261,6 +199,7 @@ import { type CalculationsSnapshot, type VirtueEgg } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { formatNumber } from '@/lib/format';
 import { iconURL } from 'lib';
+import TeBreakdownModal from '@/components/TeBreakdownModal.vue';
 
 const actionsStore = useActionsStore();
 const initialStateStore = useInitialStateStore();
@@ -339,8 +278,14 @@ const initialClaimedTE = computed(() => Object.values(initialStateStore.initialT
 const teGained = computed(() => currentTE.value - initialClaimedTE.value);
 
 const teStatsList = computed(() => {
-  const stats: { id: string; name: string; start: number; end: number; delta: number; icon: string }[] = [];
-  
+  const stats: { id: string; name: string; start: number; end: number; delta: number; icon: string; delivered: number }[] = [];
+
+  const virtueEggs: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
+
+  const totalDelivered = virtueEggs.reduce((sum, egg) => {
+    return sum + (actionsStore.currentSnapshot.eggsDelivered?.[egg] || 0);
+  }, 0);
+
   stats.push({
     id: 'truth',
     name: 'Total TE',
@@ -348,15 +293,16 @@ const teStatsList = computed(() => {
     end: currentTE.value,
     delta: teGained.value,
     icon: iconURL('egginc/egg_truth.png', 64),
+    delivered: totalDelivered,
   });
 
-  const virtueEggs: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
   for (const egg of virtueEggs) {
     const start = initialStateStore.initialTeEarned[egg] || 0;
-    const thresholdsPassed = countTEThresholdsPassed(actionsStore.currentSnapshot.eggsDelivered?.[egg] || 0);
+    const delivered = actionsStore.currentSnapshot.eggsDelivered?.[egg] || 0;
+    const thresholdsPassed = countTEThresholdsPassed(delivered);
     const claimed = actionsStore.currentSnapshot.teEarned?.[egg] || 0;
     const end = Math.max(claimed, thresholdsPassed);
-    
+
     stats.push({
       id: egg,
       name: egg.charAt(0).toUpperCase() + egg.slice(1),
@@ -364,6 +310,7 @@ const teStatsList = computed(() => {
       end,
       delta: end - start,
       icon: iconURL(`egginc/egg_${egg}.png`, 64),
+      delivered,
     });
   }
   return stats;

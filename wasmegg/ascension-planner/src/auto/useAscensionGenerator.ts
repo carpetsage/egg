@@ -132,12 +132,22 @@ export function useAscensionGenerator() {
         });
       }
 
+      const alternativeELRs = candidates
+        .filter((_, i) => i !== bestIdx)
+        .map(other => ({
+          elr: other.result.summary.maxELR,
+          label: other.result.summary.strategyLabel
+            .replace(' build', '')
+            .replace('Continue current', 'Continue'),
+        }));
+
       return {
         ...best,
         summary: {
           ...best.summary,
           comparisons,
           comparison: comparisons[0] || undefined,
+          alternativeELRs,
         },
         targetTE: item.goal.te,
         result3Available: !!item.result3,

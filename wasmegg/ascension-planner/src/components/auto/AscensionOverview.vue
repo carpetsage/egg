@@ -107,6 +107,17 @@
             <span class="text-lg sm:text-xl font-mono-premium font-black text-indigo-600">{{ formatNumber(summary.maxELR * 3600, 3) }}</span>
             <span class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase">/HR</span>
           </div>
+          <div v-if="summary.alternativeELRs && summary.alternativeELRs.length > 0" class="flex flex-col gap-0.5 mt-0.5">
+            <div
+              v-for="alt in summary.alternativeELRs"
+              :key="alt.label"
+              class="flex items-baseline gap-1"
+            >
+              <span class="text-[9px] sm:text-[10px] font-mono-premium font-bold text-slate-400">{{ formatNumber(alt.elr * 3600, 3) }}</span>
+              <span class="text-[7px] sm:text-[8px] font-black text-slate-300 uppercase tracking-wide">/hr</span>
+              <span class="text-[7px] sm:text-[8px] font-black text-slate-400 uppercase tracking-wide">{{ alt.label }}</span>
+            </div>
+          </div>
         </div>
 
         <!-- Total Duration -->
@@ -135,7 +146,7 @@
       <!-- Collapsible Detailed Breakdown Content -->
       <div v-if="isExpanded" class="mt-2.5 border-t border-slate-100 pt-2.5 space-y-2 animate-in fade-in slide-in-from-top-4 duration-500">
         <!-- SE Cost & Balance Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-2 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+        <div class="grid grid-cols-3 gap-x-4 gap-y-2 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
           <!-- SE Cost -->
           <div class="space-y-0.5">
             <div class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
@@ -161,6 +172,20 @@
               <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-4 h-4 opacity-40" alt="SE" />
             </div>
             <div class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-tight">shift count: {{ summary.endShiftCount }}</div>
+          </div>
+
+          <!-- Total Eggs Delivered -->
+          <div class="space-y-0.5">
+            <div class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+              <div class="w-1 h-1 rounded-full bg-slate-400"></div>
+              Eggs Delivered
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xl font-mono-premium font-black text-slate-600">
+                {{ formatNumber(Object.values(summary.eggsDelivered).reduce((s, n) => s + n, 0), 3) }}
+              </span>
+              <img :src="iconURL('egginc/egg_truth.png', 32)" class="w-4 h-4 opacity-60" alt="eggs" />
+            </div>
           </div>
         </div>
 
@@ -221,16 +246,20 @@ import type { VirtueEgg } from '@/types';
 import ShiftSummary from './ShiftSummary.vue';
 
 const props = defineProps<{
-  summary: AscensionSummary & { 
-    comparison?: { 
-      daysFaster: number; 
-      otherPlanLabel: string; 
+  summary: AscensionSummary & {
+    comparison?: {
+      daysFaster: number;
+      otherPlanLabel: string;
       message?: string;
     };
-    comparisons?: { 
-      daysFaster: number; 
-      otherPlanLabel: string; 
+    comparisons?: {
+      daysFaster: number;
+      otherPlanLabel: string;
       message?: string;
+    }[];
+    alternativeELRs?: {
+      elr: number;
+      label: string;
     }[];
   };
   actions: any[];
