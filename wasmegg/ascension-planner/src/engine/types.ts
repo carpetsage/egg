@@ -42,6 +42,7 @@ export interface EngineState {
     active: boolean;
     multiplier: number;
   };
+  maxELR?: number;
 }
 
 /**
@@ -53,6 +54,10 @@ export interface SimulationContext {
   ascensionStartTime: number; // Unix timestamp in seconds
   planStartOffset: number; // Seconds since ascension start at which planning begins
   assumeDoubleEarnings: boolean;
+  rawBackup?: any; // ei.IBackup
+  // Shared ELR memo — populated by the first C3 run and reused by subsequent runs
+  // with the same inventory/epic research (e.g. 1-sale and 2-sale).
+  elrMemo?: Map<string, { layRate: number; shippingRate: number; effectiveRate: number }>;
   // TODO: Add any other global context needed (e.g. events?)
 }
 
