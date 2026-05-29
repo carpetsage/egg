@@ -70,6 +70,34 @@
           <span v-if="isGenerating">{{ generateProgress || 'Generating Plan...' }}</span>
           <span v-else>{{ ascensionChain.length > 0 ? 'Update Plan' : 'Generate Plan' }}</span>
         </button>
+
+        <div v-if="ascensionChain.length === 0" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 space-y-2">
+          <p class="font-bold uppercase tracking-wide text-amber-700">Before you generate — a few assumptions to know about</p>
+          <ul class="space-y-1.5 list-disc list-inside leading-relaxed">
+            <li><span class="font-semibold">Habs are always full.</span> To keep processing fast, Auto-AP assumes full habs throughout. Results are most reliable once you're around 100 TE and time to fill habs is negligible.</li>
+            <li><span class="font-semibold">Your artifacts don't improve.</span> The plan is built around whatever artifacts you have right now — it won't account for better gear you might find later.</li>
+            <li><span class="font-semibold">No downtime between ascensions.</span> Each ascension is assumed to start the moment the previous one ends.</li>
+            <li><span class="font-semibold">Only 1-sale and 2-sale builds are considered</span> — except for A1, where continuing your current ascension is also evaluated as an option.</li>
+            <li><span class="font-semibold">You never sleep.</span> Auto-AP doesn't do any accounting for sleep hours.</li>
+          </ul>
+          <p class="text-amber-600 leading-relaxed">Use this as a starting point, not a final word. Your actual results may vary.</p>
+
+          <div class="border-t border-amber-200 pt-3 mt-1">
+            <p class="font-bold uppercase tracking-wide text-amber-700 mb-2">Each ascension will have exactly this shift order:</p>
+            <ul class="space-y-1.5 list-disc list-inside leading-relaxed">
+              <li><span class="font-semibold">C1</span> — Spends up to 30 minutes with the primary target being fleet size and Graviton Coupling.</li>
+              <li><span class="font-semibold">K1</span> — Spends up to 30 minutes buying the best vehicles it can afford.</li>
+              <li><span class="font-semibold">I1</span> — Max Chicken Universes.</li>
+              <li><span class="font-semibold">C2</span> — Maxes fleet size research. If it can afford Graviton Coupling within 4 hours, it does.</li>
+              <li><span class="font-semibold">K2</span> — Max Vehicles and Hyperloop Train Cars.</li>
+              <li><span class="font-semibold">R1</span> — Buys as many silos as possible within one hour.</li>
+              <li><span class="font-semibold">C3</span> — Purchases remaining ELR-boosting research: lay rate, shipping capacity, and hab capacity.</li>
+              <li><span class="font-semibold">H1</span> — Swaps to the optimal artifact loadout for ELR.</li>
+              <li><span class="font-semibold">K3</span> — Buys new hyperloop cars unlocked by C3, then waits out the ascension until the TE goal is reached.</li>
+              <li><span class="font-semibold">C4 / I2 / R2 / H2</span> — Each shifts to its respective virtue egg and waits until that egg's share of the TE goal is met.</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
 
