@@ -67,8 +67,8 @@ export function buildLibraryPlansFromExport(
         virtueState: {
           shiftCount: state.initialShiftCount || 0,
           initialTE: Object.values(state.initialTeEarned || {}).reduce((s: number, v: any) => s + (v || 0), 0),
-          ascensionDate: formatUnixToDateInput(imported.startTime, imported.timezone),
-          ascensionTime: formatUnixToTimeInput(imported.startTime, imported.timezone),
+          ascensionDate: formatUnixToDateInput(best.summary.startTime, imported.timezone),
+          ascensionTime: formatUnixToTimeInput(best.summary.startTime, imported.timezone),
           ascensionTimezone: imported.timezone,
         },
         fuelTankState: {
