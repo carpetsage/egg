@@ -314,11 +314,16 @@ async function handleImport(event: Event) {
             }
 
             // 3. Restore to Auto Planner (now overwriting the fresh backup state)
-            const importedA1ForceMode: 'continue' | 'prestige' | null = imported.a1ForceMode || null;
+            const importedOverrides: Record<number, string> = imported.planVariantOverrides ?? (
+              imported.a1ForceMode === 'continue' ? { 0: 'continue' } : {}
+            );
 
-            // Pick the best result for an imported ascension, respecting a1ForceMode
+            // Pick the best result for an imported ascension, respecting planVariantOverrides
             const getBestImportResult = (a: any, aIdx: number) => {
-              if (aIdx === 0 && importedA1ForceMode === 'continue' && a.result3) return a.result3;
+              const override = importedOverrides[aIdx];
+              if (override === 'continue' && a.result3) return a.result3;
+              if (override === '1-sale') return a.result1;
+              if (override === '2-sale') return a.result2;
               const r1 = a.result1;
               const r2 = a.result2;
               return r1.summary.totalDurationSeconds <= r2.summary.totalDurationSeconds ? r1 : r2;
@@ -371,7 +376,7 @@ async function handleImport(event: Event) {
               targetEndDate: formatUnixToDateInput(a1EndTime, imported.timezone),
               targetEndTime: formatUnixToTimeInput(a1EndTime, imported.timezone),
               nextGoals: nextGoalsMap,
-              a1ForceMode: importedA1ForceMode,
+              planVariantOverrides: importedOverrides as Record<number, 'continue' | '1-sale' | '2-sale'>,
             });
 
             // Hydrate stores so the form shows the correct numbers from the plan

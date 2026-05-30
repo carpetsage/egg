@@ -18,6 +18,8 @@ export interface ExportedPlan {
     initialEggsDelivered: Record<string, number>;
     initialTeEarned: Record<string, number>;
   };
+  planVariantOverrides?: Record<number, 'continue' | '1-sale' | '2-sale'>;
+  /** @deprecated use planVariantOverrides */
   a1ForceMode?: 'continue' | 'prestige' | null;
   ascensions: {
     index: number;

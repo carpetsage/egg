@@ -167,7 +167,8 @@
             :total="visibleTotal"
             :target-t-e="result.targetTE"
             :result3-available="result.result3Available"
-            @force-mode-change="handleToggleForceMode"
+            :result3-skipped-reason="result.result3SkippedReason"
+            @set-plan-variant="(variant: 'continue' | '1-sale' | '2-sale') => handleSetPlanVariant(idx, variant)"
           />
         </template>
       </div>
@@ -276,7 +277,7 @@ const {
   copySummary,
   exportCurrentPlan,
   saveToLibrary,
-  handleToggleForceMode,
+  handleSetPlanVariant,
 } = useAscensionGenerator();
 
 const runGenerate = () => {

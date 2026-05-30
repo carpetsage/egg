@@ -55,29 +55,67 @@
             </svg>
           </button>
 
-          <button
-            v-if="index === 0"
-            @click="$emit('forceModeChange', summary.strategyLabel === 'Continue current' ? 'prestige' : 'continue')"
-            :disabled="summary.strategyLabel !== 'Continue current' && !result3Available"
-            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-black transition-colors uppercase tracking-wider group shadow-sm flex-shrink-0 border"
-            :class="[
-              summary.strategyLabel === 'Continue current'
-                ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed',
-            ]"
-          >
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                v-if="summary.strategyLabel === 'Continue current'"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="3"
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-              />
-              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-            </svg>
-            <span>{{ summary.strategyLabel === 'Continue current' ? 'Prestige Now' : 'Continue Ascension' }}</span>
-          </button>
+          <!-- Plan variant dropdown -->
+          <div class="relative flex-shrink-0" ref="dropdownRef">
+            <button
+              @click.stop="isDropdownOpen = !isDropdownOpen"
+              class="flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-200/50 rounded-lg text-[9px] font-black text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-wider shadow-sm"
+            >
+              <span>{{ activeVariantShortLabel }}</span>
+              <svg class="w-3 h-3 transition-transform duration-200" :class="isDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <div
+              v-if="isDropdownOpen"
+              class="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-lg py-1 min-w-[148px]"
+            >
+              <button
+                v-for="opt in saleOptions"
+                :key="opt.value"
+                @click="selectVariant(opt.value)"
+                class="w-full text-left px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                :class="opt.value === activeVariant ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'"
+              >
+                <svg v-if="opt.value === activeVariant" class="w-2.5 h-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+                <span v-else class="w-2.5 flex-shrink-0" />
+                {{ opt.label }}
+              </button>
+
+              <!-- Continue Ascension (A1 only) -->
+              <template v-if="index === 0">
+                <div class="border-t border-slate-100 my-1" />
+                <span
+                  v-if="!result3Available"
+                  v-tippy="continueDisabledTooltip"
+                  class="block"
+                >
+                  <button
+                    disabled
+                    class="w-full text-left px-3 py-1.5 text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 opacity-40 cursor-not-allowed text-slate-500"
+                  >
+                    <span class="w-2.5 flex-shrink-0" />
+                    Continue Asc.
+                  </button>
+                </span>
+                <button
+                  v-else
+                  @click="selectVariant('continue')"
+                  class="w-full text-left px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                  :class="activeVariant === 'continue' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'"
+                >
+                  <svg v-if="activeVariant === 'continue'" class="w-2.5 h-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                  </svg>
+                  <span v-else class="w-2.5 flex-shrink-0" />
+                  Continue Asc.
+                </button>
+              </template>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -238,7 +276,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { formatNumber, formatDuration } from '@/lib/format';
 import { iconURL } from 'lib';
 import type { AscensionSummary } from '@/auto/types';
@@ -267,13 +305,53 @@ const props = defineProps<{
   total: number;
   targetTE: number | null;
   result3Available?: boolean;
+  result3SkippedReason?: string;
 }>();
 
-defineEmits<{
-  (e: 'forceModeChange', mode: 'continue' | 'prestige'): void;
+const emit = defineEmits<{
+  (e: 'setPlanVariant', variant: 'continue' | '1-sale' | '2-sale'): void;
 }>();
 
 const isExpanded = ref(false);
+const isDropdownOpen = ref(false);
+const dropdownRef = ref<HTMLElement | null>(null);
+
+const handleClickOutside = (e: MouseEvent) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target as Node)) {
+    isDropdownOpen.value = false;
+  }
+};
+onMounted(() => document.addEventListener('click', handleClickOutside));
+onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside));
+
+const activeVariant = computed<'1-sale' | '2-sale' | 'continue'>(() => {
+  const label = props.summary.strategyLabel;
+  if (label.includes('1-sale')) return '1-sale';
+  if (label.includes('2-sale')) return '2-sale';
+  return 'continue';
+});
+
+const activeVariantShortLabel = computed(() => {
+  if (activeVariant.value === 'continue') return 'Continue';
+  return activeVariant.value;
+});
+
+const saleOptions = [
+  { value: '1-sale' as const, label: '1-sale build' },
+  { value: '2-sale' as const, label: '2-sale build' },
+];
+
+const continueDisabledTooltip = computed(() => {
+  if (props.result3SkippedReason === 'startTimeTooFar') {
+    return 'Start time must be within 1 hour of now to use Continue Ascension';
+  }
+  return 'No farm backup loaded — upload a backup to use Continue Ascension';
+});
+
+const selectVariant = (variant: 'continue' | '1-sale' | '2-sale') => {
+  isDropdownOpen.value = false;
+  emit('setPlanVariant', variant);
+};
 const eggs: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
 
 const displayComparisons = computed(() => {  

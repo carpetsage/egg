@@ -3,6 +3,8 @@ import { ref } from 'vue';
 import type { AscensionSummary } from '@/auto/types';
 import type { Action } from '@/types/actions/meta';
 
+export type PlanVariant = '1-sale' | '2-sale' | 'continue';
+
 export interface ChainedAscension {
   index: number;
   result1: { summary: AscensionSummary; actions: Action[] };
@@ -36,7 +38,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     0: { te: 490, date: '', time: '' }
   });
 
-  const a1ForceMode = ref<'continue' | 'prestige' | null>(null);
+  const planVariantOverrides = ref<Record<number, PlanVariant>>({});
 
   function setPlan(data: {
     ascensionChain: ChainedAscension[];
@@ -47,6 +49,8 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     targetEndDate?: string;
     targetEndTime?: string;
     nextGoals: Record<number, { te: number | null, date: string, time: string }>;
+    planVariantOverrides?: Record<number, PlanVariant>;
+    /** @deprecated use planVariantOverrides */
     a1ForceMode?: 'continue' | 'prestige' | null;
   }) {
     ascensionChain.value = data.ascensionChain;
@@ -57,7 +61,13 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     targetEndDate.value = data.targetEndDate || '';
     targetEndTime.value = data.targetEndTime || '';
     nextGoals.value = data.nextGoals;
-    a1ForceMode.value = data.a1ForceMode || null;
+    if (data.planVariantOverrides) {
+      planVariantOverrides.value = data.planVariantOverrides;
+    } else if (data.a1ForceMode === 'continue') {
+      planVariantOverrides.value = { 0: 'continue' };
+    } else {
+      planVariantOverrides.value = {};
+    }
   }
 
   function clear() {
@@ -66,7 +76,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     targetEndDate.value = '';
     targetEndTime.value = '';
     nextGoals.value = { 0: { te: 490, date: '', time: '' } };
-    a1ForceMode.value = null;
+    planVariantOverrides.value = {};
   }
 
   return {
@@ -78,7 +88,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     targetEndDate,
     targetEndTime,
     nextGoals,
-    a1ForceMode,
+    planVariantOverrides,
     setPlan,
     clear,
   };

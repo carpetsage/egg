@@ -19,6 +19,7 @@ import { usePersistence } from '@/composables/usePersistence';
 import type { AscensionSummary } from '@/auto/types';
 import type { Action } from '@/types/actions/meta';
 import type { VirtueEgg } from '@/types';
+import type { ChainedAscension, PlanVariant } from '@/stores/autoPlanner';
 
 
 const VIRTUE_EGGS_MAP: Record<number, VirtueEgg> = {
@@ -28,6 +29,20 @@ const VIRTUE_EGGS_MAP: Record<number, VirtueEgg> = {
   53: 'resilience',
   54: 'kindness',
 };
+
+function pickVariantSummary(
+  item: ChainedAscension,
+  overrides: Record<number, PlanVariant>,
+): AscensionSummary {
+  const override = overrides[item.index];
+  if (override === 'continue' && item.result3) return item.result3.summary;
+  if (override === '1-sale') return item.result1.summary;
+  if (override === '2-sale') return item.result2.summary;
+  const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
+  return candidates.reduce((a, b) =>
+    a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b,
+  ).summary;
+}
 
 export function useAscensionGenerator() {
   const isGenerating = ref(false);
@@ -97,13 +112,14 @@ export function useAscensionGenerator() {
         candidates.push({ result: item.result3, label: item.result3.summary.strategyLabel });
       }
 
+      const override = autoPlannerStore.planVariantOverrides[item.index];
       let bestIdx = 0;
-      if (item.index === 0 && autoPlannerStore.a1ForceMode) {
-        if (autoPlannerStore.a1ForceMode === 'continue' && item.result3) {
-          bestIdx = candidates.length - 1;
-        } else {
-          bestIdx = item.result1.summary.totalDurationSeconds <= item.result2.summary.totalDurationSeconds ? 0 : 1;
-        }
+      if (override === 'continue' && item.result3) {
+        bestIdx = candidates.length - 1;
+      } else if (override === '1-sale') {
+        bestIdx = 0;
+      } else if (override === '2-sale') {
+        bestIdx = 1;
       } else {
         for (let i = 1; i < candidates.length; i++) {
           if (candidates[i].result.summary.totalDurationSeconds < candidates[bestIdx].result.summary.totalDurationSeconds) {
@@ -124,14 +140,6 @@ export function useAscensionGenerator() {
         .filter(c => c.daysFaster > 0.01)
         .sort((a, b) => b.daysFaster - a.daysFaster);
 
-      if (item.result3SkippedReason === 'startTimeTooFar') {
-        comparisons.push({
-          message: 'Select a time within 1 hour of the current time if you want to continue your ascension',
-          otherPlanLabel: '',
-          daysFaster: 0,
-        });
-      }
-
       const alternativeELRs = candidates
         .filter((_, i) => i !== bestIdx)
         .map(other => ({
@@ -151,6 +159,7 @@ export function useAscensionGenerator() {
         },
         targetTE: item.goal.te,
         result3Available: !!item.result3,
+        result3SkippedReason: item.result3SkippedReason,
       };
     });
   });
@@ -243,9 +252,11 @@ export function useAscensionGenerator() {
         firstDiffIdx = matchCount;
       }
 
-      // Force mode changes A1's effective end time, so A2+ must be recomputed
-      if (firstDiffIdx >= 1 && autoPlannerStore.a1ForceMode && ascensionChain.value.length > 1) {
-        firstDiffIdx = 1;
+      // A variant override changes the effective end time of that ascension, so all later ones must be recomputed.
+      for (const k of Object.keys(autoPlannerStore.planVariantOverrides).map(Number)) {
+        if (firstDiffIdx > k + 1 && ascensionChain.value.length > k + 1) {
+          firstDiffIdx = k + 1;
+        }
       }
 
       let currentBaseState: any;
@@ -259,14 +270,7 @@ export function useAscensionGenerator() {
           newChain.push(ascensionChain.value[i]);
         }
         const lastValid = newChain[firstDiffIdx - 1];
-        const naturalBestSummary =
-          lastValid.result1.summary.totalDurationSeconds <= lastValid.result2.summary.totalDurationSeconds
-            ? lastValid.result1.summary
-            : lastValid.result2.summary;
-        const lastValidSummary =
-          lastValid.index === 0 && autoPlannerStore.a1ForceMode === 'continue' && lastValid.result3
-            ? lastValid.result3.summary
-            : naturalBestSummary;
+        const lastValidSummary = pickVariantSummary(lastValid, autoPlannerStore.planVariantOverrides);
 
         const baseBackupState = createBaseEngineState(null);
         currentBaseState = deriveNextStartState(lastValidSummary, baseBackupState);
@@ -403,13 +407,14 @@ export function useAscensionGenerator() {
         }
 
         const candidates = [result1, result2, ...(result3 ? [result3] : [])];
+        const variantOverride = autoPlannerStore.planVariantOverrides[i];
         let best;
-        if (i === 0 && autoPlannerStore.a1ForceMode) {
-          if (autoPlannerStore.a1ForceMode === 'continue' && result3) {
-            best = result3;
-          } else {
-            best = result1.summary.totalDurationSeconds <= result2.summary.totalDurationSeconds ? result1 : result2;
-          }
+        if (variantOverride === 'continue' && result3) {
+          best = result3;
+        } else if (variantOverride === '1-sale') {
+          best = result1;
+        } else if (variantOverride === '2-sale') {
+          best = result2;
         } else {
           best = candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b));
         }
@@ -464,7 +469,7 @@ export function useAscensionGenerator() {
     exportedAt: new Date().toISOString(),
     startTime: getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value),
     timezone: timezone.value,
-    a1ForceMode: autoPlannerStore.a1ForceMode,
+    planVariantOverrides: { ...autoPlannerStore.planVariantOverrides },
     initialState: {
       epicResearchLevels: { ...initialStateStore.epicResearchLevels },
       colleggtibleTiers: { ...initialStateStore.colleggtibleTiers },
@@ -539,10 +544,9 @@ export function useAscensionGenerator() {
       ? Object.values(ascensionChain.value[0].initialParams.teEarned).reduce((a: number, b: any) => a + b, 0)
       : currentTE.value;
 
-    const bestPlans = ascensionChain.value.filter(item => !item.forcedTarget490).map(item => {
-      const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
-      return candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b)).summary;
-    });
+    const bestPlans = ascensionChain.value
+      .filter(item => !item.forcedTarget490)
+      .map(item => pickVariantSummary(item, autoPlannerStore.planVariantOverrides));
 
     const finalTE = bestPlans[bestPlans.length - 1].endTE;
     let totalSeconds = 0;
@@ -572,8 +576,11 @@ export function useAscensionGenerator() {
     }
   };
 
-  const handleToggleForceMode = (mode: 'continue' | 'prestige') => {
-    autoPlannerStore.a1ForceMode = mode;
+  const handleSetPlanVariant = (idx: number, variant: 'continue' | '1-sale' | '2-sale') => {
+    autoPlannerStore.planVariantOverrides = {
+      ...autoPlannerStore.planVariantOverrides,
+      [idx]: variant,
+    };
     generate();
   };
 
@@ -593,6 +600,6 @@ export function useAscensionGenerator() {
     copySummary,
     exportCurrentPlan,
     saveToLibrary,
-    handleToggleForceMode,
+    handleSetPlanVariant,
   };
 }

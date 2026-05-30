@@ -2,13 +2,11 @@ import { formatNumber, formatDuration, formatUnixToDateInput, formatUnixToTimeIn
 import { createEmptySnapshot } from '@/types';
 import type { ExportedPlan } from './export';
 
-function pickBest(a: any, idx: number, a1ForceMode: 'continue' | 'prestige' | null): any {
-  if (idx === 0 && a1ForceMode === 'continue' && a.result3) return a.result3;
-  if (idx === 0 && a1ForceMode === 'prestige') {
-    return a.result1.summary.totalDurationSeconds <= a.result2.summary.totalDurationSeconds
-      ? a.result1
-      : a.result2;
-  }
+function pickBest(a: any, idx: number, overrides: Record<number, string>): any {
+  const override = overrides[idx];
+  if (override === 'continue' && a.result3) return a.result3;
+  if (override === '1-sale') return a.result1;
+  if (override === '2-sale') return a.result2;
   const candidates = [a.result1, a.result2, ...(a.result3 ? [a.result3] : [])].filter(Boolean);
   return candidates.reduce((b: any, c: any) =>
     c.summary.totalDurationSeconds < b.summary.totalDurationSeconds ? c : b
@@ -19,10 +17,12 @@ export function buildLibraryPlansFromExport(
   imported: ExportedPlan,
   namePrefix: string,
 ): { name: string; data: Record<string, unknown> }[] {
-  const a1ForceMode = imported.a1ForceMode ?? null;
+  const overrides: Record<number, string> = imported.planVariantOverrides ?? (
+    imported.a1ForceMode === 'continue' ? { 0: 'continue' } : {}
+  );
 
   return imported.ascensions.map((a, idx) => {
-    const best = pickBest(a, idx, a1ForceMode);
+    const best = pickBest(a, idx, overrides);
 
     let finalActions = best.actions;
     if (finalActions.length === 0 || finalActions[0].type !== 'start_ascension') {
@@ -51,7 +51,7 @@ export function buildLibraryPlansFromExport(
     const state = JSON.parse(JSON.stringify(imported.initialState));
 
     if (idx > 0) {
-      const prevBest = pickBest(imported.ascensions[idx - 1], idx - 1, a1ForceMode);
+      const prevBest = pickBest(imported.ascensions[idx - 1], idx - 1, overrides);
       state.initialTeEarned = { ...prevBest.summary.finalTE };
       state.initialEggsDelivered = { ...prevBest.summary.eggsDelivered };
       state.soulEggs = prevBest.summary.endSoulEggs;
