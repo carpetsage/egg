@@ -168,7 +168,10 @@
             :target-t-e="result.targetTE"
             :result3-available="result.result3Available"
             :result3-skipped-reason="result.result3SkippedReason"
+            :is-saving-single="savingIndex === idx"
+            :save-single-success="savedIndex === idx"
             @set-plan-variant="(variant: 'continue' | '1-sale' | '2-sale') => handleSetPlanVariant(idx, variant)"
+            @save-single-to-library="saveSingleAscensionToLibrary(idx)"
           />
         </template>
       </div>
@@ -277,6 +280,9 @@ const {
   copySummary,
   exportCurrentPlan,
   saveToLibrary,
+  savingIndex,
+  savedIndex,
+  saveSingleAscensionToLibrary,
   handleSetPlanVariant,
 } = useAscensionGenerator();
 

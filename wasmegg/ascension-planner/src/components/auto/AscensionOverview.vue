@@ -116,6 +116,26 @@
               </template>
             </div>
           </div>
+
+          <!-- Save single ascension to library -->
+          <button
+            @click="emit('saveSingleToLibrary')"
+            :disabled="isSavingSingle"
+            v-tippy="saveSingleSuccess ? 'Saved to plan library!' : 'Save to plan library'"
+            class="flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-200/50 rounded-lg text-[9px] font-black text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-wider shadow-sm flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg v-if="isSavingSingle" class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <svg v-else-if="saveSingleSuccess" class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <svg v-else class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            {{ isSavingSingle ? 'Saving...' : saveSingleSuccess ? 'Saved!' : 'Save' }}
+          </button>
         </div>
       </div>
 
@@ -306,10 +326,13 @@ const props = defineProps<{
   targetTE: number | null;
   result3Available?: boolean;
   result3SkippedReason?: string;
+  isSavingSingle?: boolean;
+  saveSingleSuccess?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: 'setPlanVariant', variant: 'continue' | '1-sale' | '2-sale'): void;
+  (e: 'saveSingleToLibrary'): void;
 }>();
 
 const isExpanded = ref(false);

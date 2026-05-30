@@ -537,6 +537,34 @@ export function useAscensionGenerator() {
     }
   };
 
+  const savingIndex = ref<number | null>(null);
+  const savedIndex = ref<number | null>(null);
+
+  const saveSingleAscensionToLibrary = async (idx: number) => {
+    if (!partitionHash.value) return;
+    savingIndex.value = idx;
+    try {
+      const plan = buildExportedPlan();
+      const datePrefix = new Date().toISOString().split('T')[0];
+      const plansToSave = buildLibraryPlansFromExport(plan, datePrefix);
+      const p = plansToSave[idx];
+      if (!p) return;
+      const entry: PlanData = {
+        id: crypto.randomUUID(),
+        name: p.name,
+        timestamp: Date.now(),
+        data: p.data,
+      };
+      await savePlanToLibrary(partitionHash.value, entry);
+      actionsStore.libraryUpdateTick++;
+      broadcastLibraryUpdate();
+      savedIndex.value = idx;
+      setTimeout(() => { if (savedIndex.value === idx) savedIndex.value = null; }, 2000);
+    } finally {
+      savingIndex.value = null;
+    }
+  };
+
   const copySummary = async () => {
     if (ascensionChain.value.length === 0) return;
 
@@ -600,6 +628,9 @@ export function useAscensionGenerator() {
     copySummary,
     exportCurrentPlan,
     saveToLibrary,
+    savingIndex,
+    savedIndex,
+    saveSingleAscensionToLibrary,
     handleSetPlanVariant,
   };
 }
