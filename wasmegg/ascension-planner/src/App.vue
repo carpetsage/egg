@@ -1090,4 +1090,8 @@ const ChevronIcon = {
 .btn-ghost {
   @apply bg-transparent hover:bg-slate-50 border border-slate-100;
 }
+:deep(#playerId:not(:focus)) {
+  filter: blur(4px);
+  transition: filter 0.2s;
+}
 </style>
