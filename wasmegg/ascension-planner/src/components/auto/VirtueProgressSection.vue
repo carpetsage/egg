@@ -49,7 +49,7 @@
                 :value="truthEggsStore.teEarned[egg]"
                 min="0"
                 max="98"
-                class="w-full bg-white/50 border border-slate-100 rounded-lg px-3 py-1.5 text-[11px] font-mono-premium font-black text-slate-900 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
+                class="w-full bg-white border border-slate-100 rounded-lg px-3 py-1.5 text-[11px] font-mono-premium font-black text-slate-900 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
                 @change="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
                 @keydown.enter="($event.target as HTMLInputElement).blur()"
               />
