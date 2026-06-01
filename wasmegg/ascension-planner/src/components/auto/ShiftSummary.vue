@@ -167,6 +167,7 @@ const totalEggsLaid = computed(() => {
 
 const summaryItems = computed(() => {
   const finalResearch: Record<string, number> = {};
+  const startResearch: Record<string, number> = {};
   const modifiedResearchIds = new Set<string>();
   const modifiedTiers = new Set<number>();
 
@@ -178,7 +179,8 @@ const summaryItems = computed(() => {
 
   for (const action of props.actions) {
     if (action.type === 'buy_research') {
-      const { researchId, toLevel } = action.payload;
+      const { researchId, fromLevel, toLevel } = action.payload;
+if (!(researchId in startResearch)) startResearch[researchId] = fromLevel;
       finalResearch[researchId] = toLevel;
       modifiedResearchIds.add(researchId);
       const research = getResearchById(researchId);
@@ -389,7 +391,7 @@ const summaryItems = computed(() => {
       if (final >= r.levels) {
         items.push({ isPremium: false, name: `Max ${r.name}`, delta: '' });
       } else {
-        items.push({ isPremium: false, name: r.name, delta: `0 -> ${final}` });
+        items.push({ isPremium: false, name: r.name, delta: `${startResearch[r.id] ?? 0} -> ${final}` });
       }
     }
   }
