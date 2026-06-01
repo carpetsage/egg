@@ -45,6 +45,7 @@ export const useActionsStore = defineStore('actions', {
       editingGroupId: null,
       expandedGroupIds: new Set([startAction.id]),
       isRecalculating: false,
+      pendingRecalculate: false,
       recalculationProgress: { current: 0, total: 0 },
       batchMode: false,
       minBatchIndex: Infinity,
@@ -627,8 +628,12 @@ export const useActionsStore = defineStore('actions', {
         return;
       }
       startIndex = Math.max(0, startIndex);
-      if (this.isRecalculating) return;
+      if (this.isRecalculating) {
+        this.pendingRecalculate = true;
+        return;
+      }
       this.isRecalculating = true;
+      this.pendingRecalculate = false;
       try {
         const context = getSimulationContext();
         const baseState =
@@ -651,6 +656,11 @@ export const useActionsStore = defineStore('actions', {
         this.isRecalculating = false;
         this.batchMode = false;
         this.minBatchIndex = Infinity;
+        // If a recalculate was requested while we were running, do it now with fresh context
+        if (this.pendingRecalculate) {
+          this.pendingRecalculate = false;
+          await this.recalculateFrom(0);
+        }
       }
     },
 

@@ -29,6 +29,7 @@
     @set-ascension-date="handleSetAscensionDate"
     @set-ascension-time="handleSetAscensionTime"
     @set-ascension-timezone="handleSetAscensionTimezone"
+    @apply-ascension-settings="handleApplyAscensionSettings"
     @set-tank-level="handleSetTankLevel"
     @set-fuel-amount="handleSetFuelAmount"
     @set-eggs-delivered="handleSetEggsDelivered"
@@ -230,6 +231,13 @@ function handleSetAscensionTime(time: string) {
 }
 
 function handleSetAscensionTimezone(timezone: string) {
+  virtueStore.setAscensionTimezone(timezone);
+  actionsStore.recalculateFrom(0);
+}
+
+function handleApplyAscensionSettings(date: string, time: string, timezone: string) {
+  virtueStore.setAscensionDate(date);
+  virtueStore.setAscensionTime(time);
   virtueStore.setAscensionTimezone(timezone);
   actionsStore.recalculateFrom(0);
 }
