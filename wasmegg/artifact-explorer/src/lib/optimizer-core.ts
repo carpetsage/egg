@@ -1,26 +1,56 @@
 // ============================================================
 // Path of Virtue Optimizer — Outer Search
 //
-// Implements the algorithm from `algorithm_refinement_prompt.md`:
-//   Step 1a  Stratify Z (r=0) vs P (r>0)
-//   Step 4   Single-action sweep (computed early to also seed
-//            dominance pruning and the Step-5 top-K ranking)
-//   Step 1b  Dominance pruning  σ_j dominates σ_i when
-//            r_j ≤ r_i ∧ s_j ≤ s_i ∧ α_alone_j ≥ α_alone_i
-//   Step 2   Joint LP relaxation → α_LP (upper bound) and the ≤2
-//            non-zero x_i (the "FW support" — flagged from_fw=true
-//            on the output)
-//   Step 3   Pairwise P×P scan with concavity-based ternary search
-//            in k_j (per OQ7)
-//   Step 3b  Z×P and Z×Z scans (R-budget consumed only by the
-//            P action, or not at all)
-//   Step 5   Gap check; if (α_LP − best)/α_LP > ε, run a triple
-//            fallback restricted to the top-K=20 actions by
-//            single-action α
+// Given a set of enumerated launch options, find the integer
+// allocation (how many batches of each option to launch) that
+// maximises the chance of obtaining the desired legendary artifact,
+// subject to a fuel budget and a time budget.
 //
-// All α evaluations share a single compiled inner LP (see
-// value-function.ts) and a scratch inventory map to avoid
-// per-call allocation in the hot path.
+// Symbol glossary (terse names are used to keep the formulas below
+// readable; this table is the source of truth for what they mean):
+//   R          fuel capacity (budget);  r_i = fuel cost of option i
+//   S          time capacity (budget);  s_i = time cost of option i
+//   k_i        integer multiplicity (number of batches) of option i
+//   α (alpha)  expected craftable count of the root artifact for a
+//              given inventory — the inner LP's value (value-function.ts)
+//   Q          −log(1 − p_legendary_per_craft); constant for a target
+//   score      Q·α + Σ k_i·(direct legendary yield of the root). This
+//              is the quantity actually maximised here — NOT α. Locals
+//              named `score` / `evalScore` hold this composite value.
+//   Z          options with zero fuel cost   (r_i = 0)
+//   P          options with positive fuel cost (r_i > 0)
+//
+// Why maximise `score` instead of best_probability directly:
+//   best_probability is monotone increasing in `score`, and `score`
+//   is concave in inventory (α is concave; the legendary term is
+//   linear). Optimising `score` therefore maximises best_probability
+//   while keeping the ternary search, dominance pruning, and dual
+//   filter valid, and it removes a non-monotonicity that appeared
+//   when the probability expression was optimised directly.
+//
+// Stages (the labels match the section headers in the body; the
+// numbering is historical, so the stages do not run in numeric order):
+//   1a   Stratify options into Z (r=0) and P (r>0).
+//   4    Single-option sweep. Numbered last in the original design but
+//        run first here because it also seeds the dominance data and
+//        the stage-5 top-K ranking.
+//   1b   Dominance pruning: drop option i when some option j costs no
+//        more on either budget and yields at least as much of every
+//        ingredient (with strict improvement on some axis).
+//   2    Joint LP relaxation → score upper bound + its support set.
+//   2b   LP-dual marginal-value filter: drop options that, even at
+//        solo-max multiplicity, would cost more than half the gap
+//        budget to include.
+//   3    Pairwise P×P scan, ternary search on k_j (score is concave
+//        in k_j for a fixed option pair).
+//   3b   Z×P and Z×Z pairwise scans.
+//   5    Gap check; if (score_LP − best)/score_LP > ε, run a triple
+//        fallback restricted to the top-K=20 options by single-option
+//        score.
+//
+// All score evaluations share one compiled inner LP (value-function.ts)
+// and a scratch inventory map to avoid per-call allocation in the hot
+// path (the inner LP is solved on the order of millions of times).
 // ============================================================
 
 import type { LaunchOption, LaunchSolution, OptimizerSolution, RecipeDAG } from './types';
@@ -216,7 +246,7 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
   // ------------------------------------------------------------
   const jointLp = solveJointLp(allSurvivors, options, innerLp, R, S, base_yield, root, recipe_dag, Q);
   const scoreLP = jointLp.score;
-  const fwSet = new Set<number>(jointLp.support);
+  const lpSupport = new Set<number>(jointLp.support);
 
   // ------------------------------------------------------------
   // Step 2b — LP-dual marginal-value filter (score units)
@@ -240,7 +270,7 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
     const nodeDuals = jointLp.nodeDuals;
     for (let i = 0; i < options.length; i++) {
       if (!survives[i]) continue;
-      if (fwSet.has(i)) continue; // never drop the FW support
+      if (lpSupport.has(i)) continue; // never drop an option in the LP support
       const opt = options[i];
       let rc = Q * (opt.yield_vector.get(root) ?? 0) + (opt.legendary_yield_vector.get(root) ?? 0);
       rc -= opt.actual_fuel * yR;
@@ -286,10 +316,10 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
   // ------------------------------------------------------------
   const gap = scoreLP > ZERO_TOL ? (scoreLP - bestScore) / scoreLP : 0;
   if (gap > epsilon) {
-    // Top-K survivors by score-alone.
-    // [ASSUMPTION] Restricting the triple search to the top-K=20 by
-    // score-alone keeps the O(K³ · log² S) cost tractable. Triples
-    // involving low-score actions rarely improve the joint solution.
+    // Top-K survivors by score-alone. Heuristic: restricting the triple
+    // search to the top-K=20 by score-alone keeps the O(K³ · log² S) cost
+    // tractable, and triples involving low-score options rarely improve
+    // the joint solution.
     const ranked = ZsAfter.concat(PsAfter)
       .filter(i => isFinite(scoreAlone[i]) && scoreAlone[i] > -Infinity)
       .sort((x, y) => scoreAlone[y] - scoreAlone[x])
@@ -370,13 +400,15 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
 // Helpers
 // ============================================================
 
+// Evaluates the score (Q·α + direct legendary yield) for an allocation given as
+// [optionIndex, multiplicity] pairs. Backed by the shared inner LP in optimizeFull.
 type EvalFn = (multipliers: ReadonlyArray<readonly [number, number]>) => number;
 
 /**
  * Pairwise scan over the (k_i, k_j) lattice with ternary search on
- * k_j (concavity of α* in k_j for fixed Δ_i, Δ_j). Handles all of
- * P×P, Z×P, Z×Z because r=0 collapses k_R upper bound to Infinity
- * which is then clamped against the S-bound.
+ * k_j (the score is concave in k_j for a fixed option pair). Handles
+ * all of P×P, Z×P, Z×Z: a zero-fuel option makes the fuel-bound on k
+ * collapse to Infinity, which is then clamped against the time bound.
  */
 function pairwiseScan(
   iIdx: number,
@@ -384,8 +416,8 @@ function pairwiseScan(
   options: LaunchOption[],
   R: number,
   S: number,
-  evalAlpha: EvalFn,
-  tryUpdate: (alpha: number, alloc: Map<number, number>) => void
+  evalScore: EvalFn,
+  tryUpdate: (score: number, alloc: Map<number, number>) => void
 ) {
   const oi = options[iIdx];
   const oj = options[jIdx];
@@ -398,11 +430,9 @@ function pairwiseScan(
   const k_j_max_R = r_j > ZERO_TOL ? Math.floor(R / r_j) : Infinity;
   const k_j_max_S = Math.floor(S / s_j);
   const k_j_max = Math.min(k_j_max_R, k_j_max_S);
-  if (!isFinite(k_j_max) && r_i <= ZERO_TOL && r_j <= ZERO_TOL) {
-    // Both Z: k_j_max bounded by S only.
-  }
   if (k_j_max < 0) return;
 
+  // Largest k_i that still fits both budgets once k_j batches of j are committed.
   const kIatJ = (k_j: number): number => {
     const remR = R - k_j * r_j;
     const remS = S - k_j * s_j;
@@ -413,29 +443,29 @@ function pairwiseScan(
     return k_i < 0 ? 0 : isFinite(k_i) ? k_i : 0;
   };
 
-  const eval_k_j = (k_j: number): { alpha: number; k_i: number } => {
+  const scoreAtKj = (k_j: number): { score: number; k_i: number } => {
     const k_i = kIatJ(k_j);
-    if (k_i < 0) return { alpha: -Infinity, k_i: -1 };
-    const alpha = evalAlpha([
+    if (k_i < 0) return { score: -Infinity, k_i: -1 };
+    const score = evalScore([
       [iIdx, k_i],
       [jIdx, k_j],
     ]);
-    return { alpha, k_i };
+    return { score, k_i };
   };
 
-  const best = ternaryMaxOver(0, k_j_max, eval_k_j);
-  if (best.k_i >= 0 && best.alpha > -Infinity) {
+  const best = ternaryMaxOver(0, k_j_max, scoreAtKj);
+  if (best.k_i >= 0 && best.score > -Infinity) {
     const alloc = new Map<number, number>();
     if (best.k_i > 0) alloc.set(iIdx, best.k_i);
     if (best.k > 0) alloc.set(jIdx, best.k);
-    tryUpdate(best.alpha, alloc);
+    tryUpdate(best.score, alloc);
   }
 }
 
 /**
- * Triple scan with nested ternary search on k_i and k_j, deterministic
- * k_k from remaining budget. Uses the same concavity-of-α* assumption
- * along each axis.
+ * Triple scan with nested ternary search on k_i and k_j and a
+ * deterministic k_k from the remaining budget. Uses the same
+ * concavity-of-score assumption along each axis.
  */
 function tripleScan(
   iIdx: number,
@@ -444,8 +474,8 @@ function tripleScan(
   options: LaunchOption[],
   R: number,
   S: number,
-  evalAlpha: EvalFn,
-  tryUpdate: (alpha: number, alloc: Map<number, number>) => void
+  evalScore: EvalFn,
+  tryUpdate: (score: number, alloc: Map<number, number>) => void
 ) {
   const oi = options[iIdx];
   const oj = options[jIdx];
@@ -461,20 +491,20 @@ function tripleScan(
   const k_i_max = Math.min(r_i > ZERO_TOL ? Math.floor(R / r_i) : Infinity, Math.floor(S / s_i));
   if (!isFinite(k_i_max) || k_i_max < 0) return;
 
-  const evalGivenIJ = (k_i: number, k_j: number) => {
+  const scoreGivenIJ = (k_i: number, k_j: number) => {
     const remR = R - k_i * r_i - k_j * r_j;
     const remS = S - k_i * s_i - k_j * s_j;
-    if (remR < -ZERO_TOL || remS < -ZERO_TOL) return { alpha: -Infinity, k_k: -1 };
+    if (remR < -ZERO_TOL || remS < -ZERO_TOL) return { score: -Infinity, k_k: -1 };
     const k_k_R = r_k > ZERO_TOL ? Math.floor(remR / r_k) : Infinity;
     const k_k_S = Math.floor(remS / s_k);
     const k_k = Math.min(k_k_R, k_k_S);
-    if (!isFinite(k_k) || k_k < 0) return { alpha: -Infinity, k_k: -1 };
-    const alpha = evalAlpha([
+    if (!isFinite(k_k) || k_k < 0) return { score: -Infinity, k_k: -1 };
+    const score = evalScore([
       [iIdx, k_i],
       [jIdx, k_j],
       [kIdx, k_k],
     ]);
-    return { alpha, k_k };
+    return { score, k_k };
   };
 
   // Outer ternary on k_i. For each k_i, an inner ternary on k_j.
@@ -483,49 +513,49 @@ function tripleScan(
       r_j > ZERO_TOL ? Math.floor((R - k_i * r_i) / r_j) : Infinity,
       Math.floor((S - k_i * s_i) / s_j)
     );
-    if (!isFinite(k_j_max) || k_j_max < 0) return { alpha: -Infinity, k_j: -1, k_k: -1 };
+    if (!isFinite(k_j_max) || k_j_max < 0) return { score: -Infinity, k_j: -1, k_k: -1 };
     const inner = ternaryMaxOver(0, k_j_max, k_j => {
-      const r = evalGivenIJ(k_i, k_j);
-      return { alpha: r.alpha, k_k: r.k_k };
+      const r = scoreGivenIJ(k_i, k_j);
+      return { score: r.score, k_k: r.k_k };
     });
-    return { alpha: inner.alpha, k_j: inner.k, k_k: inner.k_k };
+    return { score: inner.score, k_j: inner.k, k_k: inner.k_k };
   };
 
   const outer = ternaryMaxOver(0, k_i_max, k_i => {
     const o = outerEval(k_i);
-    return { alpha: o.alpha, k_j: o.k_j, k_k: o.k_k };
+    return { score: o.score, k_j: o.k_j, k_k: o.k_k };
   });
 
-  if (outer.alpha > -Infinity) {
+  if (outer.score > -Infinity) {
     const alloc = new Map<number, number>();
     if (outer.k > 0) alloc.set(iIdx, outer.k);
     if (outer.k_j > 0) alloc.set(jIdx, outer.k_j);
     if (outer.k_k > 0) alloc.set(kIdx, outer.k_k);
-    tryUpdate(outer.alpha, alloc);
+    tryUpdate(outer.score, alloc);
   }
 }
 
 /**
  * Ternary search over an integer interval for the maximiser of an
  * approximately-concave function. The probe callback returns
- * `{ alpha, ...extra }` and the carried `extra` fields propagate
+ * `{ score, ...extra }` and the carried `extra` fields propagate
  * back with the winning probe.
  */
 function ternaryMaxOver<E extends Record<string, number>>(
   lo: number,
   hi: number,
-  probe: (k: number) => { alpha: number } & E
-): { alpha: number; k: number } & E {
+  probe: (k: number) => { score: number } & E
+): { score: number; k: number } & E {
   if (hi < lo) {
-    return { alpha: -Infinity, k: lo, ...({} as E) };
+    return { score: -Infinity, k: lo, ...({} as E) };
   }
   let bestK = lo;
   let bestProbe = probe(lo);
-  let bestAlpha = bestProbe.alpha;
+  let bestScore = bestProbe.score;
   if (hi !== lo) {
     const ph = probe(hi);
-    if (ph.alpha > bestAlpha) {
-      bestAlpha = ph.alpha;
+    if (ph.score > bestScore) {
+      bestScore = ph.score;
       bestK = hi;
       bestProbe = ph;
     }
@@ -535,28 +565,28 @@ function ternaryMaxOver<E extends Record<string, number>>(
     const m2 = hi - Math.floor((hi - lo) / 3);
     const p1 = probe(m1);
     const p2 = probe(m2);
-    if (p1.alpha > bestAlpha) {
-      bestAlpha = p1.alpha;
+    if (p1.score > bestScore) {
+      bestScore = p1.score;
       bestK = m1;
       bestProbe = p1;
     }
-    if (p2.alpha > bestAlpha) {
-      bestAlpha = p2.alpha;
+    if (p2.score > bestScore) {
+      bestScore = p2.score;
       bestK = m2;
       bestProbe = p2;
     }
-    if (p1.alpha < p2.alpha) lo = m1 + 1;
+    if (p1.score < p2.score) lo = m1 + 1;
     else hi = m2 - 1;
   }
   for (let k = lo; k <= hi; k++) {
     const p = probe(k);
-    if (p.alpha > bestAlpha) {
-      bestAlpha = p.alpha;
+    if (p.score > bestScore) {
+      bestScore = p.score;
       bestK = k;
       bestProbe = p;
     }
   }
-  return { ...(bestProbe as E), alpha: bestAlpha, k: bestK };
+  return { ...(bestProbe as E), score: bestScore, k: bestK };
 }
 
 // ============================================================
@@ -568,7 +598,7 @@ interface JointLpResult {
   score: number;
   /** x_i for each surviving option. */
   x: Float64Array;
-  /** Indices into the original `options` array of FW-support actions (x_i > 0). */
+  /** Indices into the original `options` array of the LP support (options with x_i > 0). */
   support: number[];
   /** Shadow price on the R (fuel) budget constraint. */
   dualR: number;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { compileInnerLp, evaluateAlpha, alphaToProb, poissonAtLeast } from './value-function';
+import { compileInnerLp, alphaToProb } from './value-function';
 import type { RecipeDAG, DAGNode } from './types';
 
 const PREC = 9;
@@ -9,10 +9,7 @@ const PREC = 9;
 function node(id: string, is_leaf: boolean, children: [string, number][] = [], pCraft = 0): DAGNode {
   return {
     id,
-    display_name: id,
     is_leaf,
-    is_root: false,
-    required_quantity: 1,
     children: children.map(([node_id, quantity]) => ({ node_id, quantity })),
     legendaryCraftProbability: pCraft,
   };
@@ -167,13 +164,15 @@ describe('compileInnerLp + solve: alpha computation', () => {
     expect(result.duals.get('D')).toBeCloseTo(0.5, PREC);
   });
 
-  // VF-13: successive evaluateAlpha calls with different inventories must not
-  // share state (the bScratch buffer is local to each compile call, so results
-  // must be independent regardless of call order).
-  it('VF-13: evaluateAlpha returns independent results across successive calls', () => {
+  // VF-13: solving one compiled LP repeatedly with different inventories must
+  // return independent results. The shared bScratch buffer is fully overwritten
+  // on each solve(), so call order must not leak state between evaluations — this
+  // is the reuse path the outer search relies on millions of times.
+  it('VF-13: repeated solve() calls on one compiled LP are independent', () => {
     const d = dag(node('A', false, [['B', 1]]), node('B', true));
-    const r1 = evaluateAlpha(new Map([['B', 3]]), d, ['A']);
-    const r2 = evaluateAlpha(new Map([['B', 7]]), d, ['A']);
+    const lp = compileInnerLp(d, ['A']);
+    const r1 = lp.solve(new Map([['B', 3]]));
+    const r2 = lp.solve(new Map([['B', 7]]));
     expect(r1.alpha).toBeCloseTo(3, PREC);
     expect(r2.alpha).toBeCloseTo(7, PREC);
   });
@@ -249,35 +248,5 @@ describe('alphaToProb: probability mapping', () => {
     expect(r.craft_probability).toBe(0);
     expect(r.drop_probability).toBe(0);
     expect(r.best_probability).toBe(0);
-  });
-});
-
-// ── poissonAtLeast ───────────────────────────────────────────────────────────
-
-describe('poissonAtLeast: Poisson tail probability', () => {
-  // PA-1: k≤0 early return → 1
-  it('PA-1: k=0 → 1 (P(X≥0)=1 always)', () => {
-    expect(poissonAtLeast(5, 0)).toBe(1);
-  });
-
-  // PA-2: lambda=0, k=1 → 0
-  it('PA-2: lambda=0, k=1 → 0 (no arrivals possible)', () => {
-    expect(poissonAtLeast(0, 1)).toBe(0);
-  });
-
-  // PA-3: lambda=1, k=1 → 1−e^{−1} ≈ 0.63212
-  it('PA-3: lambda=1, k=1 → 1−e^{−1}', () => {
-    expect(poissonAtLeast(1, 1)).toBeCloseTo(1 - Math.exp(-1), PREC);
-  });
-
-  // PA-4: lambda=2, k=3 → 1−5e^{−2}
-  // P(X<3) = e^{-2}(1 + 2 + 2) = 5e^{-2}
-  it('PA-4: lambda=2, k=3 → 1−5e^{−2}', () => {
-    expect(poissonAtLeast(2, 3)).toBeCloseTo(1 - 5 * Math.exp(-2), PREC);
-  });
-
-  // PA-5: lambda=2, k=1 → 1−e^{−2}
-  it('PA-5: lambda=2, k=1 → 1−e^{−2}', () => {
-    expect(poissonAtLeast(2, 1)).toBeCloseTo(1 - Math.exp(-2), PREC);
   });
 });

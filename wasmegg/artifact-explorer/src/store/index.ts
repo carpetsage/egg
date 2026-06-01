@@ -22,6 +22,19 @@ import {
 import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
 
+import {
+  ExtrasConfig,
+  isExtrasConfig,
+  isMissionFilters,
+  isOverrideFlags,
+  MissionFilters,
+  newExtras,
+  newMissionFilters,
+  newOverrides,
+  OverrideFlags,
+} from './schema';
+export type { ExtrasConfig, MissionFilters, OverrideFlags } from './schema';
+
 export const CONFIG_LOCALSTORAGE_KEY = 'config';
 export const OVERRIDES_LOCALSTORAGE_KEY = 'overrides';
 export const EXTRAS_LOCALSTORAGE_KEY = 'extras';
@@ -45,17 +58,6 @@ export function setShipLevel(ship: ei.MissionInfo.Spaceship, level: number): voi
 
 export function setShipVisibility(ship: ei.MissionInfo.Spaceship, visible: boolean): void {
   config.value.shipVisibility[ship] = visible;
-}
-
-// Per-field override flags. true = use the manual `config` value instead of player data.
-export interface OverrideFlags {
-  craftingLevel: boolean;
-  previousCrafts: boolean;
-  epicResearchFTLLevel: boolean;
-  epicResearchZerogLevel: boolean;
-  shipLevels: Partial<Record<Spaceship, boolean>>;
-  shipVisibility: Partial<Record<Spaceship, boolean>>;
-  tankLevel: boolean;
 }
 
 export const overrides = ref<OverrideFlags>(loadOverrides());
@@ -98,14 +100,6 @@ export function takeControlOfAllShips(): void {
 
 export function setOverrideTankLevel(b: boolean): void {
   overrides.value.tankLevel = b;
-}
-
-// Manual values that aren't part of ShipsConfig (crafting level, prior crafts on the
-// targeted artifact). Persisted alongside `config` and `overrides`.
-export interface ExtrasConfig {
-  craftingLevel: number;
-  previousCrafts: number;
-  tankLevel: number;
 }
 
 export const extras = ref<ExtrasConfig>(loadExtras());
@@ -305,34 +299,6 @@ export function closePlayerOverridesModal(): void {
   playerOverridesModalOpen.value = false;
 }
 
-function newOverrides(): OverrideFlags {
-  return {
-    craftingLevel: false,
-    previousCrafts: false,
-    epicResearchFTLLevel: false,
-    epicResearchZerogLevel: false,
-    shipLevels: {},
-    shipVisibility: {},
-    tankLevel: false,
-  };
-}
-
-function isOverrideFlags(x: unknown): x is OverrideFlags {
-  if (!x || typeof x !== 'object') return false;
-  const o = x as OverrideFlags;
-  return (
-    typeof o.previousCrafts === 'boolean' &&
-    typeof o.craftingLevel === 'boolean' &&
-    typeof o.epicResearchFTLLevel === 'boolean' &&
-    typeof o.epicResearchZerogLevel === 'boolean' &&
-    typeof o.shipLevels === 'object' &&
-    o.shipLevels !== null &&
-    typeof o.shipVisibility === 'object' &&
-    o.shipVisibility !== null &&
-    (o.tankLevel === undefined || typeof o.tankLevel === 'boolean')
-  );
-}
-
 export function loadOverrides(): OverrideFlags {
   const str = getLocalStorage(OVERRIDES_LOCALSTORAGE_KEY);
   if (!str) return newOverrides();
@@ -354,23 +320,9 @@ export function persistOverrides(): void {
   setLocalStorage(OVERRIDES_LOCALSTORAGE_KEY, JSON.stringify(overrides.value));
 }
 
-function newExtras(): ExtrasConfig {
-  return { craftingLevel: 30, previousCrafts: 0, tankLevel: fuelTankSizes.length - 1 };
-}
-
-function isExtrasConfig(x: unknown): x is ExtrasConfig {
-  if (!x || typeof x !== 'object') return false;
-  const e = x as ExtrasConfig;
-  return (
-    typeof e.craftingLevel === 'number' &&
-    typeof e.previousCrafts === 'number' &&
-    (e.tankLevel === undefined || typeof e.tankLevel === 'number')
-  );
-}
-
 export function loadExtras(): ExtrasConfig {
   const str = getLocalStorage(EXTRAS_LOCALSTORAGE_KEY);
-  if (!str) return newExtras();
+  if (!str) return newExtras(fuelTankSizes.length - 1);
   try {
     const parsed: unknown = JSON.parse(str);
     if (isExtrasConfig(parsed)) {
@@ -382,16 +334,11 @@ export function loadExtras(): ExtrasConfig {
   } catch (err) {
     console.warn(`error parsing extras: ${err}`);
   }
-  return newExtras();
+  return newExtras(fuelTankSizes.length - 1);
 }
 
 export function persistExtras(): void {
   setLocalStorage(EXTRAS_LOCALSTORAGE_KEY, JSON.stringify(extras.value));
-}
-
-export interface MissionFilters {
-  minDurationHoursEnabled: boolean;
-  minDurationHours: number;
 }
 
 export const missionFilters = ref<MissionFilters>(loadMissionFilters());
@@ -402,16 +349,6 @@ export function setMinDurationHoursEnabled(enabled: boolean): void {
 
 export function setMinDurationHours(hours: number): void {
   missionFilters.value.minDurationHours = Math.max(0, hours);
-}
-
-function newMissionFilters(): MissionFilters {
-  return { minDurationHoursEnabled: false, minDurationHours: 0 };
-}
-
-function isMissionFilters(x: unknown): x is MissionFilters {
-  if (!x || typeof x !== 'object') return false;
-  const m = x as MissionFilters;
-  return typeof m.minDurationHoursEnabled === 'boolean' && typeof m.minDurationHours === 'number';
 }
 
 export function loadMissionFilters(): MissionFilters {

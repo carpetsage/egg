@@ -38,16 +38,15 @@ export interface InnerLp {
   readonly varIndex: ReadonlyMap<string, number>;
   /** The desired root id this LP was compiled for. */
   readonly root: string;
-  /** Coefficient on x_i in the joint-LP objective for action i (Δ_i[root]). */
-  readonly objHasRootVar: boolean;
 
   solve(inventory: Map<string, number>): AlphaResult;
 }
 
 /**
  * Build the inner LP once for a given recipe DAG and desired root.
- * Currently supports a single root (per OQ4); the caller passes
- * `desired_artifact_node_ids[0]`.
+ * Only a single root is supported; the caller passes
+ * `desired_artifact_node_ids[0]`. Multiple simultaneous targets are
+ * not handled.
  */
 export function compileInnerLp(recipe_dag: RecipeDAG, desired_artifact_node_ids: string[]): InnerLp {
   if (desired_artifact_node_ids.length === 0) {
@@ -120,7 +119,6 @@ export function compileInnerLp(recipe_dag: RecipeDAG, desired_artifact_node_ids:
     constraintNodes,
     varIndex,
     root,
-    objHasRootVar: true,
 
     solve(inventory: Map<string, number>): AlphaResult {
       for (let i = 0; i < nCons; i++) {
@@ -150,25 +148,11 @@ function makeTrivialLp(root: string): InnerLp {
     constraintNodes: [],
     varIndex: new Map(),
     root,
-    objHasRootVar: false,
     solve(inventory: Map<string, number>): AlphaResult {
       const v = inventory.get(root) ?? 0;
       return { alpha: v > 0 ? v : 0, duals: new Map(), primalByNode: new Map() };
     },
   };
-}
-
-/**
- * Convenience wrapper that compiles + solves in one call. Use only
- * for one-shot evaluations; for repeated use, call `compileInnerLp`
- * once and reuse the returned `InnerLp.solve`.
- */
-export function evaluateAlpha(
-  inventory: Map<string, number>,
-  recipe_dag: RecipeDAG,
-  desired_artifact_node_ids: string[]
-): AlphaResult {
-  return compileInnerLp(recipe_dag, desired_artifact_node_ids).solve(inventory);
 }
 
 // ------------------------------------------------------------
@@ -216,19 +200,4 @@ export function alphaToProb(
   const best_probability = 1 - (1 - craft_probability) * (1 - drop_probability);
 
   return { best_probability, craft_probability, drop_probability };
-}
-
-// poissonAtLeast retained for parity with the deleted objective.ts —
-// not currently used by the new pipeline but cheap to expose.
-export function poissonAtLeast(lambda: number, k: number): number {
-  if (k <= 0) return 1;
-  if (lambda <= 0) return 0;
-  // P(X ≥ k) = 1 − Σ_{i=0..k-1} exp(-λ) λ^i / i!
-  let term = Math.exp(-lambda);
-  let cdf = term;
-  for (let i = 1; i < k; i++) {
-    term = (term * lambda) / i;
-    cdf += term;
-  }
-  return Math.max(0, 1 - cdf);
 }
