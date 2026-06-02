@@ -27,7 +27,10 @@ export function farmEarningRate(
   const onlineMaxRCB = onlineBaseline * maxRCB;
   // Standard permit earnings halved while offline.
   const offline =
-    onlineBaseline * (progress.permitLevel === 1 ? 1 : 0.5) * awayEarningsMultiplier(artifacts) * modifiers.awayEarnings;
+    onlineBaseline *
+    (progress.permitLevel === 1 ? 1 : 0.5) *
+    awayEarningsMultiplier(artifacts) *
+    modifiers.awayEarnings;
   return {
     onlineBaseline,
     onlineMaxRCB,

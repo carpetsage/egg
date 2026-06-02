@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
+if [[ -x netlify-headers-expander/netlify-headers-expander ]]; then
+    echo "netlify-headers-expander already present, skipping download"
+    echo "$PWD/netlify-headers-expander" >> $GITHUB_PATH
+    exit 0
+fi
+
 mkdir netlify-headers-expander && cd netlify-headers-expander
 wget https://github.com/zmwangx/netlify-headers-expander/releases/download/v1.0.0/netlify-headers-expander_1.0.0_linux_amd64.tar.gz
+echo '64d44bddae31729d81761704a6d31c3c6f05192ea122a2e6c8c5e9ef70b1abec  netlify-headers-expander_1.0.0_linux_amd64.tar.gz' | sha256sum -c -
 tar xf netlify-headers-expander_1.0.0_linux_amd64.tar.gz
 echo "$PWD" >> $GITHUB_PATH

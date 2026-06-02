@@ -1,5 +1,12 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { ei, requestContractsArchive, requestFirstContact, UserBackupEmptyError } from 'lib';
+import {
+  ei,
+  requestContractsArchive,
+  requestFirstContact,
+  resolveContractsInBackup,
+  resolveLocalContracts,
+  UserBackupEmptyError,
+} from 'lib';
 
 export async function getUserBackup(userId: string): Promise<ei.IBackup> {
   const data = await requestFirstContact(userId);
@@ -13,6 +20,7 @@ export async function getUserBackup(userId: string): Promise<ei.IBackup> {
   if (!backup.farms || backup.farms.length === 0) {
     throw new Error(`${userId}: no farm info in backup`);
   }
+  await resolveContractsInBackup(backup, userId);
   return backup;
 }
 
@@ -47,5 +55,6 @@ export async function getUserContractsArchive(userId: string): Promise<ei.IContr
   if (data.archive == null) {
     throw new UserBackupEmptyError(userId);
   }
+  await resolveLocalContracts(data.archive, userId);
   return data;
 }

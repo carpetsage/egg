@@ -46,7 +46,7 @@
 import { computed, defineComponent, PropType } from 'vue';
 import { Emitter } from 'mitt';
 
-import { ei, Inventory, requestFirstContact, UserBackupEmptyError, virtueEggs } from 'lib';
+import { ei, Inventory, requestFirstContact, resolveContractsInBackup, UserBackupEmptyError, virtueEggs } from 'lib';
 import { useSectionVisibility } from 'ui/composables/section_visibility';
 import { reportLegendaries, reportMissionData } from '@/lib';
 import { REPORT_LEGENDARIES, REPORT_MISSIONDATA } from '@/events';
@@ -86,6 +86,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
+    await resolveContractsInBackup(backup, playerId);
     const progress = data.backup.game;
     const egg = backup.farms?.at(0)?.eggType || ei.Egg.UNKNOWN;
     const virtue = virtueEggs.includes(egg);

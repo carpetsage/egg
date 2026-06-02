@@ -3,10 +3,14 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 */1 * * *'
+permissions:
+  contents: read
+
 jobs:
   update:
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: periodicals

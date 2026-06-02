@@ -1,14 +1,10 @@
 <template>
   <div class="flex justify-center my-3">
     <div class="px-4 py-2 bg-gray-50 rounded-md shadow">
-      <div class="text-center mb-0.5 text-sm font-medium text-gray-900">
-        Eggs of Prophecy progress
-      </div>
+      <div class="text-center mb-0.5 text-sm font-medium text-gray-900">Eggs of Prophecy progress</div>
       <div class="flex items-center justify-center mb-0.5 space-x-0.5">
         <img :src="iconURL('egginc/egg_of_prophecy.png', 128)" class="inline h-6 w-6" />
-        <span class="text-sm font-medium text-yellow-500">
-          {{ progress.completed }}/{{ progress.available }}
-        </span>
+        <span class="text-sm font-medium text-yellow-500"> {{ progress.completed }}/{{ progress.available }} </span>
         <span class="h-6 w-6 invisible"></span>
       </div>
       <ul class="text-center mb-1">
@@ -21,9 +17,7 @@
           <template #content>
             PEs collected from
             <span class="text-green-300">
-              {{ progress.fromContracts.numPEContractsCompleted }}/{{
-                progress.fromContracts.numPEContractsAvailable
-              }}
+              {{ progress.fromContracts.numPEContractsCompleted }}/{{ progress.fromContracts.numPEContractsAvailable }}
             </span>
             PE contracts
           </template>
@@ -55,8 +49,7 @@
           </span>
 
           <template #content>
-            Currently on month {{ progress.fromDailyGifts.onMonth }}, day
-            {{ progress.fromDailyGifts.onDay }}.
+            Currently on month {{ progress.fromDailyGifts.onMonth }}, day {{ progress.fromDailyGifts.onDay }}.
           </template>
         </tippy>
 
@@ -66,12 +59,8 @@
             {{ progress.fromContractSeasons.completed }}/{{ progress.fromContractSeasons.available }}
           </span>
         </tippy>
-
-
       </ul>
-      <p class="text-center text-xs text-gray-500">
-        Hover over or click on each line of the breakdown to see details.
-      </p>
+      <p class="text-center text-xs text-gray-500">Hover over or click on each line of the breakdown to see details.</p>
     </div>
   </div>
 </template>

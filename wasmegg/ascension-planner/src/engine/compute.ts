@@ -9,6 +9,7 @@ import type {
 } from '@/types';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { totalAwayTime } from '@/stores/silos';
+import { integrateRate } from './apply/math';
 
 import { calculateEggValue } from '@/calculations/eggValue';
 import { calculateHabCapacity_Full as calculateHabCapacity } from '@/calculations/habCapacity';
@@ -69,7 +70,8 @@ export function computeSnapshot(
   const ihrOutput = calculateIHR(ihrInput);
 
   // 8. Population growth (catch-up if starting from a backup)
-  let population = state.population || 0;
+  const startPopulation = state.population || 0;
+  let population = startPopulation;
   let bankValue = state.bankValue || 0;
   let lastStepTime = state.lastStepTime;
 
@@ -136,14 +138,27 @@ export function computeSnapshot(
   };
   const earningsOutput = calculateEarnings(earningsInput);
 
-  // Apply catch-up earnings to bank if this is the start of the ascension
+  // Apply catch-up earnings and eggs to bank/delivered if this is the start of the ascension
   // and we were offline.
   // We use 1e9 as a threshold to distinguish between 0-based simulation time
   // and absolute Unix timestamps from a backup.
+  let extraEggs = 0;
   if (state.lastStepTime > 1e9 && context.ascensionStartTime > state.lastStepTime && !options.skipGrowth) {
     const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
-    const catchUpGems = earningsOutput.offlineEarnings * elapsedSeconds;
-    bankValue += catchUpGems;
+
+    // Accurate catch-up using integrated rate (accounts for population growth)
+    extraEggs = integrateRate(
+      elapsedSeconds,
+      startPopulation,
+      ihrOutput.offlineRate / 60,
+      layRateOutput.ratePerChickenPerSecond,
+      shippingOutput.totalFinalCapacity,
+      habCapacityOutput.totalFinalCapacity
+    );
+
+    // Offline earnings factor (Value per egg * away multipliers)
+    const vOffline = elrOutput.effectiveLayRate > 0 ? earningsOutput.offlineEarnings / elrOutput.effectiveLayRate : 0;
+    bankValue += vOffline * extraEggs;
   }
 
   // Normalize rounding errors
@@ -180,7 +195,9 @@ export function computeSnapshot(
     siloTimeMinutes,
     tankLevel: state.tankLevel,
     fuelTankAmounts: state.fuelTankAmounts,
-    eggsDelivered: state.eggsDelivered,
+    eggsDelivered: extraEggs > 0 
+      ? { ...state.eggsDelivered, [state.currentEgg]: (state.eggsDelivered[state.currentEgg] || 0) + extraEggs }
+      : state.eggsDelivered,
     teEarned: state.teEarned,
     vehicles: state.vehicles,
     habIds: state.habIds,

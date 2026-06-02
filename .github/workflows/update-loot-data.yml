@@ -3,10 +3,14 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 14 * * *'
+permissions:
+  contents: write
+
 jobs:
   update:
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: wasmegg/artifact-explorer

@@ -1,22 +1,13 @@
 <template>
-  <div
-    class="grid gap-4 text-xs"
-    :style="{ gridTemplateColumns: 'repeat(auto-fill, minmax(15rem, 1fr))' }"
-  >
+  <div class="grid gap-4 text-xs" :style="{ gridTemplateColumns: 'repeat(auto-fill, minmax(15rem, 1fr))' }">
     <div
       v-for="(artifact, artifactIndex) in artifacts"
       :key="artifactIndex"
       class="px-4 py-4 bg-gray-50 shadow rounded-lg overflow-hidden text-center"
     >
       <div class="flex justify-center mb-2">
-        <div
-          class="h-32 w-32 relative rounded-full"
-          :class="rarityBgClass(artifact.afxRarity) || 'bg-gray-200'"
-        >
-          <img
-            class="absolute top-0 left-0 h-full w-full z-10"
-            :src="iconURL(artifact.iconPath, 256)"
-          />
+        <div class="h-32 w-32 relative rounded-full" :class="rarityBgClass(artifact.afxRarity) || 'bg-gray-200'">
+          <img class="absolute top-0 left-0 h-full w-full z-10" :src="iconURL(artifact.iconPath, 256)" />
           <img
             v-for="(stone, stoneIndex) in artifact.stones.slice().reverse()"
             :key="stoneIndex"
@@ -44,10 +35,7 @@
         {{ stone.effectTarget.replace(' on enlightenment egg farms', '') }}
       </div>
       <div v-if="warnings[artifactIndex]">
-        <img
-          class="inline h-4 w-4 relative -top-px mr-px"
-          :src="iconURL('egginc-extras/icon_warning.png', 64)"
-        />
+        <img class="inline h-4 w-4 relative -top-px mr-px" :src="iconURL('egginc-extras/icon_warning.png', 64)" />
         <span class="text-yellow-500">{{ warnings[artifactIndex] }}</span>
       </div>
     </div>
@@ -150,8 +138,7 @@ img.Artifact__stone {
   bottom: 7%;
   height: 17%;
   width: 17%;
-  filter: drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white)
-    drop-shadow(-1px 0 0 white);
+  filter: drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white);
 }
 
 img.Artifact__stone:nth-child(2) {
@@ -172,7 +159,6 @@ img.Artifact__warning {
   right: 0;
   height: 20%;
   width: 20%;
-  filter: drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white)
-    drop-shadow(-1px 0 0 white);
+  filter: drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white);
 }
 </style>

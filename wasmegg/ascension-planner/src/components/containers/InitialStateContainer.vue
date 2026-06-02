@@ -221,17 +221,17 @@ function handleSetInitialShiftCount(count: number) {
 
 function handleSetAscensionDate(date: string) {
   virtueStore.setAscensionDate(date);
-  updateInitialSnapshotAndRecalculate();
+  actionsStore.recalculateFrom(0);
 }
 
 function handleSetAscensionTime(time: string) {
   virtueStore.setAscensionTime(time);
-  updateInitialSnapshotAndRecalculate();
+  actionsStore.recalculateFrom(0);
 }
 
 function handleSetAscensionTimezone(timezone: string) {
   virtueStore.setAscensionTimezone(timezone);
-  updateInitialSnapshotAndRecalculate();
+  actionsStore.recalculateFrom(0);
 }
 
 function handleSetSoulEggs(count: number) {

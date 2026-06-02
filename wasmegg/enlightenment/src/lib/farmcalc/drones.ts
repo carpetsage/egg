@@ -29,20 +29,20 @@ export function calculateDroneValues(
     farmValuePerChicken < 3
       ? 30
       : farmValuePerChicken < 15
-      ? 15
-      : farmValuePerChicken < 30
-      ? 8
-      : farmValuePerChicken < 100
-      ? 5
-      : farmValuePerChicken < 200
-      ? 2
-      : farmValuePerChicken < 1_000
-      ? 1
-      : farmValuePerChicken < 50_000
-      ? 0.75
-      : farmValuePerChicken < 1_000_000
-      ? 0.5
-      : 0.25;
+        ? 15
+        : farmValuePerChicken < 30
+          ? 8
+          : farmValuePerChicken < 100
+            ? 5
+            : farmValuePerChicken < 200
+              ? 2
+              : farmValuePerChicken < 1_000
+                ? 1
+                : farmValuePerChicken < 50_000
+                  ? 0.75
+                  : farmValuePerChicken < 1_000_000
+                    ? 0.5
+                    : 0.25;
   const base = ((farmValue * rcb ** 0.5) / 50) * droneRewardsMultiplier(artifacts);
   const probMultiplier = biggerDronesProbabilityMultiplier(farm, progress);
   return {
@@ -56,10 +56,7 @@ export function calculateDroneValues(
   };
 }
 
-function biggerDronesProbabilityMultiplier(
-  farm: ei.Backup.ISimulation,
-  progress: ei.Backup.IGame
-): number {
+function biggerDronesProbabilityMultiplier(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): number {
   const research = farmResearch(farm, progress, {
     id: 'drone_rewards',
     name: 'Drone Rewards',

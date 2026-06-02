@@ -1,0 +1,57 @@
+/**
+ * @module initReconcile
+ * @description Mode D: Reconcile Plan
+ *
+ * Contract:
+ * - Fresh backup loaded for live comparison data
+ * - Plan loaded from library (stores hydrated from plan data, actions from plan)
+ * - isReconciling=true
+ * - reconcileFarmState = snapshot of live farm from backup
+ * - reconcileEggsDelivered / reconcileTeEarned = live values from backup
+ * - Plan's stores NOT overwritten by backup (backup is only for comparison)
+ *
+ * Ordering is critical:
+ * 1. Fetch backup (populates initialStateStore with live data)
+ * 2. Capture live comparison targets BEFORE plan import overwrites stores
+ * 3. Load plan from library (overwrites stores with plan data via hydrate)
+ * 4. Set reconciliation mode and comparison targets
+ */
+
+import { resetAllStores } from './reset';
+import { fetchPlayerBackup } from './fetchBackup';
+import { loadAndSyncBackup, captureReconciliationTargets } from './utils';
+import { useActionsStore } from '@/stores/actions';
+import type { PlanData } from '@/lib/storage/db';
+
+export async function initReconcile(
+  playerId: string,
+  plan: PlanData,
+  broadcastPresence?: (planId: string) => void
+): Promise<void> {
+  // 1. Clean slate
+  await resetAllStores();
+
+  // 2. Fetch backup for live comparison data
+  const { backup } = await fetchPlayerBackup(playerId);
+
+  // 3. Load backup into initialStateStore and temporarily populate global stores
+  //    (mode='reconcile' → loadAndSyncBackup handles Virtue/FuelTank but NOT TruthEggs)
+  loadAndSyncBackup(playerId, backup, 'reconcile');
+
+  // 4. Capture live comparison targets BEFORE the plan import overwrites stores
+  captureReconciliationTargets();
+
+  // 5. Set reconciliation mode
+  const actionsStore = useActionsStore();
+  actionsStore.isReconciling = true;
+  actionsStore.showIncompleteOnly = true;
+
+  // 6. Broadcast presence immediately to block other tabs
+  if (broadcastPresence) {
+    broadcastPresence(plan.id);
+  }
+
+  // 7. Load the plan from library — this overwrites stores with plan data
+  //    (importPlanLogic → hydrate overwrites initialStateStore, virtue, fuelTank, truthEggs, notes)
+  await actionsStore.loadPlanFromLibrary(plan);
+}

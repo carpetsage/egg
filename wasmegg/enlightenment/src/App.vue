@@ -2,9 +2,7 @@
   <the-nav-bar active-entry-id="enlightenment" />
 
   <div class="max-w-5xl w-full px-4 pb-4 xl:px-0 mx-auto">
-    <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
-      Enlightenment companion
-    </h1>
+    <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">Enlightenment companion</h1>
 
     <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
@@ -12,7 +10,7 @@
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
       <suspense>
         <template #default>
-          <the-companion :player-id="playerId" />
+          <the-companion :player-id="playerId" @request-refresh="requestRefresh" />
         </template>
         <template #fallback>
           <base-loading />
@@ -22,14 +20,14 @@
 
     <template v-else>
       <div class="text-sm mt-4">
-        This tool pulls the latest save for the specified player, and generates a report with
-        information useful for completing the enlightenment diamond trophy, e.g. hab space, internal
-        hatchery rate, equipped artifacts, projected completion date, etc.
+        This tool pulls the latest save for the specified player, and generates a report with information useful for
+        completing the enlightenment diamond trophy, e.g. hab space, internal hatchery rate, equipped artifacts,
+        projected completion date, etc.
       </div>
 
       <div class="text-sm mt-2">
-        If you are not yet sure about feasibility of the trophy, or earning enough cash for the
-        required WD level appears to be very difficult,
+        If you are not yet sure about feasibility of the trophy, or earning enough cash for the required WD level
+        appears to be very difficult,
         <a
           href="https://docs.google.com/spreadsheets/d/157K4r3Z5wfCNKhUWb34mlxM08DEA1AWamsA20xjQIhw/edit?usp=sharing"
           target="_blank"
@@ -65,19 +63,21 @@ export default defineComponent({
     TheCalculatorWrapper,
   },
   setup() {
-    const playerId = ref(
-      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || ''
-    );
+    const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
     const refreshId = ref(Date.now());
     const submitPlayerId = (id: string) => {
       playerId.value = id;
       refreshId.value = Date.now();
       savePlayerID(id);
     };
+    const requestRefresh = () => {
+      refreshId.value = Date.now();
+    };
     return {
       playerId,
       refreshId,
       submitPlayerId,
+      requestRefresh,
     };
   },
 });
