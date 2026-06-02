@@ -501,8 +501,8 @@ export default defineComponent({
       return eovDelivered.value[egg - 50] + eggsDeliveredWhileOffline;
     };
     const activeEOVDeliveredAdjusted = computed(() => ({
-      offline: calculateEOVDelivered(offlineIHR),
-      online: calculateEOVDelivered(onlineIHR),
+      offline: calculateEOVDelivered(offlineIHR.value),
+      online: calculateEOVDelivered(onlineIHR.value),
     }));
     const truthEggsPendingAdjusted = computed(() => ({
       offline: pendingTruthEggs(activeEOVDeliveredAdjusted.value.offline, truthEggs.value[egg - 50]) || 0,
