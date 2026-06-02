@@ -303,6 +303,7 @@ import {
   getNumTruthEggs,
   iconURL,
   requestFirstContact,
+  resolveContractsInBackup,
   setLocalStorage,
   UserBackupEmptyError,
 } from 'lib';
@@ -355,6 +356,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
+    await resolveContractsInBackup(backup, playerId);
     if (!backup.farms || backup.farms.length === 0) {
       throw new Error(`${backup.eiUserId}: no farm info in backup`);
     }

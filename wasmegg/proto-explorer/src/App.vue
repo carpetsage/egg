@@ -18,7 +18,7 @@ import TheCalculatorWrapper from 'ui/components/TheCalculatorWrapper.vue';
 export default defineComponent({
   components: {
     TheNavBar,
-    TheCalculatorWrapper
+    TheCalculatorWrapper,
   },
 });
 </script>

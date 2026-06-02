@@ -30,7 +30,10 @@ export function getContractGoals({
 }
 
 export function contractCompleted(contract: ei.ILocalContract, grade = ei.Contract.PlayerGrade.GRADE_C) {
-  const goals = getContractGoals({ contract: contract.contract!, grade: grade });
+  if (!contract.contract) {
+    return false;
+  }
+  const goals = getContractGoals({ contract: contract.contract, grade: grade });
   if (contract.numGoalsAchieved === 3) return true;
   if ((contract.numGoalsAchieved ?? 0) >= goals.length) return true;
 }

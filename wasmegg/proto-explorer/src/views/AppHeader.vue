@@ -1,19 +1,14 @@
 <template>
   <header class="shadow bg-white border-b border-gray-200">
-    <h1 class="mx-4 my-4 text-center text-lg leading-6 font-medium text-gray-900">
-      Proto explorer
-    </h1>
+    <h1 class="mx-4 my-4 text-center text-lg leading-6 font-medium text-gray-900">Proto explorer</h1>
     <div class="max-w-ultrawide w-full mx-auto px-4 xl:px-0 space-y-2">
       <div class="space-y-1">
         <p class="text-xs text-red-500">
-          Be forewarned that this tool puts great power into the hands of even non-technical folk.
-          As such it can facilitate the infliction of chaos and damage in the wrong hands. Unless
-          you want to see this tool taken down by the author,
-          <strong
-            >please do not discuss or share the URL in the public or where naughty kiddies are
-            around</strong
-          >. If you're not sure whether there are naughty kiddies lurking in your audience, assume
-          there are.
+          Be forewarned that this tool puts great power into the hands of even non-technical folk. As such it can
+          facilitate the infliction of chaos and damage in the wrong hands. Unless you want to see this tool taken down
+          by the author,
+          <strong>please do not discuss or share the URL in the public or where naughty kiddies are around</strong>. If
+          you're not sure whether there are naughty kiddies lurking in your audience, assume there are.
         </p>
         <p class="text-sm font-medium text-gray-700">
           App version:
@@ -114,6 +109,10 @@ export default defineComponent({
       {
         name: 'contracts_archive',
         title: 'ei_ctx/get_contracts_archive',
+      },
+      {
+        name: 'contracts_info',
+        title: 'ei_ctx/get_contracts_info',
       },
       {
         name: 'get_periodicals',

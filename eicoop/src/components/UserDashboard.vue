@@ -270,20 +270,28 @@ export default defineComponent({
 
     const coops = computed(() => getUserActiveCoopContractsSorted(backup.value));
     const coopParams = computed(() =>
-      coops.value.map(coop => ({
-        contractId: coop.contract!.identifier!,
-        coopCode: coop.coopIdentifier!,
-        contract: coop.contract!,
-        league: (coop.league as ContractLeague) ?? undefined,
-        grade: coop.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET,
-      }))
+      coops.value
+        .filter(coop => coop.contractIdentifier)
+        .map(coop => ({
+          contractId: coop.contractIdentifier!,
+          coopCode: coop.coopIdentifier!,
+          contract: coop.contract ?? undefined,
+          league: (coop.league as ContractLeague) ?? undefined,
+          grade: coop.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET,
+        }))
     );
     const soloStatuses = computed(() =>
-      getUserActiveSoloContracts(backup.value).map(solo => new SoloStatus(solo, backup.value))
+      getUserActiveSoloContracts(backup.value)
+        .filter(solo => solo.contract && solo.contractIdentifier)
+        .map(solo => new SoloStatus(solo, backup.value))
     );
     const housekeeping = () => {
-      coopParams.value.forEach(coop => contractStore.addContract(coop.contract));
-      soloStatuses.value.forEach(solo => contractStore.addContract(solo.contract));
+      coopParams.value.forEach(coop => {
+        if (coop.contract) contractStore.addContract(coop.contract);
+      });
+      soloStatuses.value.forEach(solo => {
+        if (solo.contract) contractStore.addContract(solo.contract);
+      });
     };
     housekeeping();
     watch(backup, () => {

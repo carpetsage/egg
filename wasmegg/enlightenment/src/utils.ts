@@ -6,10 +6,7 @@ export enum RoundingMode {
   Up = 1,
 }
 
-export function formatWithThousandSeparators(
-  x: number,
-  roundingMode = RoundingMode.Nearest
-): string {
+export function formatWithThousandSeparators(x: number, roundingMode = RoundingMode.Nearest): string {
   let rounded: number;
   switch (roundingMode) {
     case RoundingMode.Down:

@@ -10,7 +10,7 @@
     <base-error-boundary v-if="playerId" :key="`${playerId}:${refreshId}`">
       <suspense>
         <template #default>
-          <the-companion :player-id="playerId" />
+          <the-companion :player-id="playerId" @request-refresh="requestRefresh" />
         </template>
         <template #fallback>
           <base-loading />
@@ -57,10 +57,14 @@ export default defineComponent({
       refreshId.value = Date.now();
       savePlayerID(id);
     };
+    const requestRefresh = () => {
+      refreshId.value = Date.now();
+    };
     return {
       playerId,
       refreshId,
       submitPlayerId,
+      requestRefresh,
     };
   },
 });
