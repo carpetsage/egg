@@ -537,11 +537,19 @@ export default defineComponent({
     // Cap projected population at hab capacity
     const currentPopulation = computed(() =>
       Math.min(
-        lastRefreshedPopulation + (offlineIHR / 60_000) * (currentTimestamp.value - lastRefreshedTimestamp),
-        Math.max(lastRefreshedPopulation, totalHabSpace)
+        lastRefreshedPopulation + (offlineIHR.value / 60_000) * (currentTimestamp.value - lastRefreshedTimestamp),
+        Math.max(lastRefreshedPopulation, totalHabSpace.value)
       )
     );
     const artifacts = homeFarmArtifacts(backup);
+    const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
+    const ihrRates = computed(() =>
+      farmInternalHatcheryRates(internalHatcheryResearches, artifacts, truthEggs, modifiers.value.ihr)
+    );
+    const onlineIHRPerHab = computed(() => ihrRates.value.onlineRatePerHab);
+    const onlineIHR = computed(() => ihrRates.value.onlineRate);
+    const offlineIHR = computed(() => ihrRates.value.offlineRate);
+
     // Cap existing trophy level at platinum for people doing a legit diamond
     // run after cheating it first.
     const existingTrophyLevel = Math.min(backup.game!.eggMedalLevel![18], 4);
@@ -557,7 +565,7 @@ export default defineComponent({
 
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
-const habSpaces = computed(() => farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.value.habCap));
+    const habSpaces = computed(() => farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.value.habCap));
     const totalHabSpace = computed(() =>
       habSpaces.value.reduce((total, s) => total + s)
     );
@@ -588,33 +596,34 @@ const habSpaces = computed(() => farmHabSpaces(habs, habSpaceResearches, artifac
     const cashOnHand = farm.cashEarned! - farm.cashSpent!;
     const eggValue = farmEggValue(farmEggValueResearches(farm), artifacts);
     const maxRCB = farmMaxRCB(farmMaxRCBResearches(farm, progress), artifacts);
+    const currentWDLevel = farmCurrentWDLevel(farm);
     const {
       onlineBaseline: earningRateOnlineBaseline,
       onlineMaxRCB: earningRateOnlineMaxRCB,
       offline: earningRateOffline,
-    } = farmEarningRate(backup, farm, progress, artifacts, modifiers);
+    } = farmEarningRate(backup, farm, progress, artifacts, modifiers.value);
     const droneValuesAtMaxRCB = calculateDroneValues(farm, progress, artifacts, {
       population: farm.numChickens! as number,
       farmValue,
       rcb: maxRCB,
     });
     const cashTargetPreDiscount =
-      calculateWDLevelsCost(currentWDLevel, minimumRequiredWDLevel) *
+      calculateWDLevelsCost(currentWDLevel, minimumRequiredWDLevel.value) *
       researchPriceMultiplierFromResearches(farm, progress) *
-      modifiers.researchCost;
+      modifiers.value.researchCost;
 
     const cashTargetNAHPreDiscount =
       calculateWDLevelsCost(currentWDLevel, 25) *
       researchPriceMultiplierFromResearches(farm, progress) *
-      modifiers.researchCost;
+      modifiers.value.researchCost;
 
     const cashTargetACREPreDiscount =
       calculateMaxFarmCostMissing(farm) *
       researchPriceMultiplierFromResearches(farm, progress) *
-      modifiers.researchCost;
+      modifiers.value.researchCost;
 
     const cashTargetTSPreDiscount =
-      calculateTSCost(farm) * researchPriceMultiplierFromResearches(farm, progress) * modifiers.researchCost;
+      calculateTSCost(farm) * researchPriceMultiplierFromResearches(farm, progress) * modifiers.value.researchCost;
 
     const currentPriceMultiplier = researchPriceMultiplierFromArtifacts(artifacts);
     const bestPossibleCube = bestPossibleCubeForEnlightenment(backup);
@@ -678,12 +687,6 @@ const habSpaces = computed(() => farmHabSpaces(habs, habSpaceResearches, artifac
       },
     ];
 
-    const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
-    const {
-      onlineRatePerHab: onlineIHRPerHab,
-      onlineRate: onlineIHR,
-      offlineRate: offlineIHR,
-    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, truthEggs, modifiers.ihr);
 
     const { isVisibleSection, toggleSectionVisibility } = useSectionVisibility();
 
