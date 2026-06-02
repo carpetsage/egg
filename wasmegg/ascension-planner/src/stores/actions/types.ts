@@ -8,6 +8,7 @@ export interface ActionsState {
   // IDs of groups that are currently expanded
   expandedGroupIds: Set<string>;
   isRecalculating: boolean;
+  pendingRecalculate: boolean;
   recalculationProgress: { current: number; total: number };
   batchMode: boolean;
   minBatchIndex: number;

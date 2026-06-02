@@ -45,6 +45,7 @@ export const useActionsStore = defineStore('actions', {
       editingGroupId: null,
       expandedGroupIds: new Set([startAction.id]),
       isRecalculating: false,
+      pendingRecalculate: false,
       recalculationProgress: { current: 0, total: 0 },
       batchMode: false,
       minBatchIndex: Infinity,
@@ -64,7 +65,7 @@ export const useActionsStore = defineStore('actions', {
   getters: {
     currentSnapshot(): CalculationsSnapshot {
       if (this.actions.length === 0) {
-        return this._initialSnapshot ?? createEmptySnapshot();
+        return this.initialSnapshot;
       }
       return this.actions[this.actions.length - 1].endState;
     },
@@ -91,7 +92,7 @@ export const useActionsStore = defineStore('actions', {
       if (headerIndex === -1) return this.currentSnapshot;
       const nextShiftIndex = this.actions.findIndex((a, idx) => idx > headerIndex && a.type === 'shift');
       if (nextShiftIndex === -1) return this.currentSnapshot;
-      return this.actions[nextShiftIndex - 1]?.endState ?? this.currentSnapshot;
+      return this.actions[nextShiftIndex - 1].endState;
     },
 
     editingInsertIndex(): number {
@@ -183,8 +184,10 @@ export const useActionsStore = defineStore('actions', {
   },
 
   actions: {
-    async setInitialSnapshot(snapshot: CalculationsSnapshot) {
+    async setInitialSnapshot(snapshot: CalculationsSnapshot, options?: { silent?: boolean }) {
       this._initialSnapshot = snapshot;
+      if (options?.silent) return;
+
       if (this.actions.length === 0) {
         const startAction = createDefaultStartAction();
         this.actions.push(startAction);
@@ -625,8 +628,12 @@ export const useActionsStore = defineStore('actions', {
         return;
       }
       startIndex = Math.max(0, startIndex);
-      if (this.isRecalculating) return;
+      if (this.isRecalculating) {
+        this.pendingRecalculate = true;
+        return;
+      }
       this.isRecalculating = true;
+      this.pendingRecalculate = false;
       try {
         const context = getSimulationContext();
         const baseState =
@@ -649,6 +656,11 @@ export const useActionsStore = defineStore('actions', {
         this.isRecalculating = false;
         this.batchMode = false;
         this.minBatchIndex = Infinity;
+        // If a recalculate was requested while we were running, do it now with fresh context
+        if (this.pendingRecalculate) {
+          this.pendingRecalculate = false;
+          await this.recalculateFrom(0);
+        }
       }
     },
 

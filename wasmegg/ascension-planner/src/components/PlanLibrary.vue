@@ -4,18 +4,35 @@ import { useActionsStore } from '@/stores/actions';
 import { usePersistence } from '@/composables/usePersistence';
 import { loadLibraryPlans, deletePlanFromLibrary, savePlanToLibrary, type PlanData } from '@/lib/storage/db';
 import { downloadFile } from '@/utils/export';
-import { initLoadPlan } from '@/lib/modes';
+import { formatNumber, formatDuration, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
+import { initLoadPlan, initPlanFuture } from '@/lib/modes';
+import { useAutoPlannerStore, type ChainedAscension } from '@/stores/autoPlanner';
+import { useInitialStateStore } from '@/stores/initialState';
+import { useTruthEggsStore } from '@/stores/truthEggs';
+import { useUIStore } from '@/stores/ui';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import ImportCollisionDialog from '@/components/ImportCollisionDialog.vue';
+import AutoPlanImportDialog from '@/components/AutoPlanImportDialog.vue';
 import PlanAlreadyOpenWarning from '@/components/PlanAlreadyOpenWarning.vue';
+import { createEmptySnapshot } from '@/types';
+import { buildLibraryPlansFromExport } from '@/auto/buildLibraryPlans';
 
 const actionsStore = useActionsStore();
+const autoPlannerStore = useAutoPlannerStore();
+const initialStateStore = useInitialStateStore();
+const truthEggsStore = useTruthEggsStore();
+const uiStore = useUIStore();
 const { partitionHash, broadcastLibraryUpdate, broadcastPresence, busyPlanIds } = usePersistence();
 
 const plans = ref<PlanData[]>([]);
 const isLoading = ref(true);
 const showDeleteConfirm = ref(false);
 const planToDelete = ref<PlanData | null>(null);
+
+// Bulk select state
+const bulkSelectMode = ref(false);
+const selectedPlanIds = ref<Set<string>>(new Set());
+const showBulkDeleteConfirm = ref(false);
 const editingPlanId = ref<string | null>(null);
 const newName = ref('');
 const showCopyPrompt = ref(false);
@@ -34,6 +51,13 @@ let collisionResolver: ((resolution: 'overwrite' | 'keep-both' | 'skip' | 'cance
 
 // Import progress
 const importProgress = ref<{ current: number; total: number } | null>(null);
+
+// Auto-plan import state
+const showAutoPlanDialog = ref(false);
+const autoPlanToImport = ref<any>(null);
+const autoPlanName = ref('');
+const autoPlanAscensionCount = ref(0);
+let autoPlanResolver: ((resolution: 'restore' | 'individual' | 'cancel') => void) | null = null;
 
 async function refreshPlans() {
   if (!partitionHash.value) return;
@@ -62,6 +86,7 @@ async function loadPlan(plan: PlanData) {
     await initLoadPlan(plan);
     emit('plan-loaded');
   } catch (err) {
+    console.error('[PlanLibrary] Error loading plan:', err);
     alert('Failed to load plan: ' + err);
   }
 }
@@ -105,6 +130,36 @@ async function executeDelete() {
   }
   showDeleteConfirm.value = false;
   planToDelete.value = null;
+}
+
+function toggleBulkSelectMode() {
+  bulkSelectMode.value = !bulkSelectMode.value;
+  selectedPlanIds.value = new Set();
+}
+
+function togglePlanSelection(id: string) {
+  const next = new Set(selectedPlanIds.value);
+  if (next.has(id)) {
+    next.delete(id);
+  } else {
+    next.add(id);
+  }
+  selectedPlanIds.value = next;
+}
+
+async function executeBulkDelete() {
+  if (!partitionHash.value) return;
+  for (const id of selectedPlanIds.value) {
+    await deletePlanFromLibrary(partitionHash.value, id);
+    if (actionsStore.activePlanId === id) {
+      actionsStore.activePlanId = null;
+    }
+  }
+  broadcastLibraryUpdate();
+  await refreshPlans();
+  selectedPlanIds.value = new Set();
+  bulkSelectMode.value = false;
+  showBulkDeleteConfirm.value = false;
 }
 
 function startRename(plan: PlanData) {
@@ -232,6 +287,118 @@ async function handleImport(event: Event) {
       } else if (imported.type === 'plan' && imported.data) {
         // Single plan export (from our new format)
         plansToImport = [{ name: imported.name || file.name.replace('.json', ''), data: imported.data }];
+      } else if (imported.version && imported.ascensions && imported.initialState) {
+        // Sequential Roadmap (Auto-Plan)
+        showAutoPlanDialog.value = true;
+        autoPlanToImport.value = imported;
+        autoPlanName.value = file.name.replace('.json', '');
+        autoPlanAscensionCount.value = imported.ascensions.length;
+
+        const resolution = await new Promise<'restore' | 'individual' | 'cancel'>(resolve => {
+          autoPlanResolver = resolve;
+        });
+
+        if (resolution === 'cancel') return;
+
+        if (resolution === 'restore') {
+          // 1. Switch tab
+          uiStore.plannerTab = 'automatic';
+          uiStore.isHeaderCollapsed = true;
+
+          // 2. Load fresh backup first (ensures we have latest epic research/artifacts as a baseline)
+          //    We do this because switching to the Auto Planner tab normally triggers a backup fetch.
+          uiStore.loading = true;
+          try {
+            if (initialStateStore.playerId) {
+              await initPlanFuture(initialStateStore.playerId);
+            }
+
+            // 3. Restore to Auto Planner (now overwriting the fresh backup state)
+            const importedOverrides: Record<number, string> = imported.planVariantOverrides ?? (
+              imported.a1ForceMode === 'continue' ? { 0: 'continue' } : {}
+            );
+
+            // Pick the best result for an imported ascension, respecting planVariantOverrides
+            const getBestImportResult = (a: any, aIdx: number) => {
+              const override = importedOverrides[aIdx];
+              if (override === 'continue' && a.result3) return a.result3;
+              if (override === '1-sale') return a.result1;
+              if (override === '2-sale') return a.result2;
+              const r1 = a.result1;
+              const r2 = a.result2;
+              return r1.summary.totalDurationSeconds <= r2.summary.totalDurationSeconds ? r1 : r2;
+            };
+
+            const chain: ChainedAscension[] = imported.ascensions.map((a: any) => {
+              const item: ChainedAscension = {
+                index: a.index,
+                result1: a.result1,
+                result2: a.result2,
+                goal: a.goal,
+              };
+              if (a.result3) item.result3 = a.result3;
+              if (a.result3SkippedReason) item.result3SkippedReason = a.result3SkippedReason;
+              return item;
+            });
+
+            const nextGoalsMap: Record<number, { te: number | null, date: string, time: string }> = {};
+            imported.ascensions.forEach((a: any, idx: number) => {
+              // Populate with the original goal
+              nextGoalsMap[idx] = { ...a.goal };
+
+              // If it was a TE goal, pre-fill the date/time fields with the actual result for better UX
+              if (a.goal.type === 'te' || !a.goal.date) {
+                const bestResult = getBestImportResult(a, idx);
+                nextGoalsMap[idx].date = formatUnixToDateInput(bestResult.summary.endTime, imported.timezone);
+                nextGoalsMap[idx].time = formatUnixToTimeInput(bestResult.summary.endTime, imported.timezone);
+              }
+            });
+            // Add the next step goal (empty placeholder for new ascension)
+            const lastImportedA = imported.ascensions[imported.ascensions.length - 1];
+            const lastBestResult = getBestImportResult(lastImportedA, imported.ascensions.length - 1);
+            nextGoalsMap[chain.length] = {
+              te: Math.min(490, lastBestResult.summary.endTE + 30),
+              date: '',
+              time: ''
+            };
+
+            const firstA = imported.ascensions[0];
+            const bestFirstA = getBestImportResult(firstA, 0);
+            const a1EndTime = bestFirstA.summary.endTime;
+
+            autoPlannerStore.setPlan({
+              ascensionChain: chain,
+              timezone: imported.timezone,
+              startDate: formatUnixToDateInput(imported.startTime, imported.timezone),
+              startTime: formatUnixToTimeInput(imported.startTime, imported.timezone),
+              targetTE: imported.ascensions.map((a: any) => a.goal.te || a.result1.summary.endTE).join(' '),
+              // Always populate date/time fields with results for visibility
+              targetEndDate: formatUnixToDateInput(a1EndTime, imported.timezone),
+              targetEndTime: formatUnixToTimeInput(a1EndTime, imported.timezone),
+              nextGoals: nextGoalsMap,
+              planVariantOverrides: importedOverrides as Record<number, 'continue' | '1-sale' | '2-sale'>,
+            });
+
+            // Hydrate stores so the form shows the correct numbers from the plan
+            initialStateStore.hydrate(imported.initialState);
+            truthEggsStore.hydrate(imported.initialState);
+          } catch (e) {
+            console.error('Failed to restore roadmap:', e);
+            alert('Failed to restore roadmap simulation state.');
+          } finally {
+            uiStore.loading = false;
+          }
+        }
+
+        if (resolution === 'individual') {
+          // 2. Import Individual Ascensions into Library
+          const exportDate = new Date(imported.exportedAt).toISOString().split('T')[0];
+          
+          plansToImport = buildLibraryPlansFromExport(imported, exportDate);
+        } else {
+          // Restore only — we're done
+          return;
+        }
       } else if (imported.version && imported.actions && imported.initialState) {
         // Raw plan data (old format — the plan data itself, not wrapped)
         plansToImport = [{ name: file.name.replace('.json', ''), data: imported }];
@@ -335,6 +502,22 @@ async function handleImport(event: Event) {
   }
 }
 
+function handleAutoPlanResolve(resolution: 'restore' | 'individual') {
+  showAutoPlanDialog.value = false;
+  if (autoPlanResolver) {
+    autoPlanResolver(resolution);
+    autoPlanResolver = null;
+  }
+}
+
+function handleAutoPlanCancel() {
+  showAutoPlanDialog.value = false;
+  if (autoPlanResolver) {
+    autoPlanResolver('cancel');
+    autoPlanResolver = null;
+  }
+}
+
 const emit = defineEmits(['plan-loaded']);
 </script>
 
@@ -358,16 +541,33 @@ const emit = defineEmits(['plan-loaded']);
           {{ plans.length }}
         </span>
       </h3>
-      <div class="flex space-x-2">
+      <div class="flex items-center space-x-2">
         <button
-          class="text-xs text-indigo-600 hover:text-indigo-800 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          v-if="bulkSelectMode && selectedPlanIds.size > 0"
+          class="px-2.5 py-1 text-xs font-medium rounded border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
+          @click="showBulkDeleteConfirm = true"
+        >
+          Delete ({{ selectedPlanIds.size }})
+        </button>
+        <button
+          v-if="plans.length > 0"
+          class="px-2.5 py-1 text-xs font-medium rounded border transition-colors"
+          :class="bulkSelectMode
+            ? 'border-gray-300 text-gray-600 hover:bg-gray-50'
+            : 'border-indigo-300 text-indigo-600 hover:bg-indigo-50'"
+          @click="toggleBulkSelectMode"
+        >
+          {{ bulkSelectMode ? 'Cancel' : 'Multi-Select' }}
+        </button>
+        <button
+          class="px-2.5 py-1 text-xs font-medium rounded border border-indigo-300 text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           :disabled="plans.length === 0"
           @click="exportAll"
         >
           Export All
         </button>
-        <label class="text-xs text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer">
-          Import...
+        <label class="px-2.5 py-1 text-xs font-medium rounded border border-indigo-300 text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer">
+          Import
           <input type="file" class="hidden" accept=".json" @change="handleImport" />
         </label>
       </div>
@@ -421,7 +621,15 @@ const emit = defineEmits(['plan-loaded']);
                 </svg>
               </button>
             </div>
-            <div v-else class="flex items-center cursor-pointer" @click="loadPlan(plan)">
+            <div v-else class="flex items-center cursor-pointer" @click="bulkSelectMode ? togglePlanSelection(plan.id) : loadPlan(plan)">
+              <input
+                v-if="bulkSelectMode"
+                type="checkbox"
+                class="mr-2 h-4 w-4 flex-shrink-0 rounded border-gray-300 text-indigo-600 cursor-pointer"
+                :checked="selectedPlanIds.has(plan.id)"
+                @click.stop
+                @change="togglePlanSelection(plan.id)"
+              />
               <span class="text-sm font-medium text-gray-900 truncate" :title="plan.name">{{ plan.name }}</span>
               <span
                 v-if="actionsStore.activePlanId === plan.id"
@@ -440,16 +648,6 @@ const emit = defineEmits(['plan-loaded']);
             <span class="hidden sm:inline text-[10px] text-gray-400 whitespace-nowrap mr-1">
               Updated {{ new Date(plan.timestamp).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) }}
             </span>
-            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Load this plan'" @click="loadPlan(plan)">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
-                />
-              </svg>
-            </button>
             <button class="p-0.5 sm:p-1 text-gray-400 hover:text-indigo-600" v-tippy="'Export this plan (JSON)'" @click="exportPlan(plan)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -519,6 +717,16 @@ const emit = defineEmits(['plan-loaded']);
     "
   />
 
+  <ConfirmationDialog
+    v-if="showBulkDeleteConfirm"
+    title="Delete Plans"
+    :message="`Are you sure you want to delete ${selectedPlanIds.size} plan${selectedPlanIds.size > 1 ? 's' : ''}? This cannot be undone.`"
+    confirm-label="Delete"
+    variant="danger"
+    @confirm="executeBulkDelete"
+    @cancel="showBulkDeleteConfirm = false"
+  />
+
   <ImportCollisionDialog
     v-if="showCollisionDialog"
     ref="collisionDialogRef"
@@ -549,4 +757,12 @@ const emit = defineEmits(['plan-loaded']);
   </ConfirmationDialog>
 
   <PlanAlreadyOpenWarning v-if="showAlreadyOpenWarning" @dismiss="showAlreadyOpenWarning = false" />
+
+  <AutoPlanImportDialog
+    v-if="showAutoPlanDialog"
+    :plan-name="autoPlanName"
+    :ascension-count="autoPlanAscensionCount"
+    @resolve="handleAutoPlanResolve"
+    @cancel="handleAutoPlanCancel"
+  />
 </template>

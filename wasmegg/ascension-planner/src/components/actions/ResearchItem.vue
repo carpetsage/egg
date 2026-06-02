@@ -40,6 +40,21 @@
         {{ research.description }}
         
         <div
+          v-if="lookahead"
+          class="mt-1.5 p-1.5 inline-block bg-amber-50 border border-amber-100 rounded text-[9px] text-amber-800 leading-tight shadow-sm"
+        >
+          <div class="flex items-start gap-1">
+            <svg class="w-3 h-3 text-amber-500 shrink-0 mt-px" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span>
+              <span class="font-bold uppercase tracking-tight mr-1">Lookahead:</span>
+              Needs {{ lookahead.minLevels }} levels for +{{ (lookahead.impact * 100).toFixed(3) }}% ELR ({{ lookahead.hpp.toFixed(1) }} hr/%)
+            </span>
+          </div>
+        </div>
+
+        <div
           v-if="recommendationNote"
           class="mt-1.5 p-1.5 inline-block bg-blue-50 border border-blue-100 rounded text-[9px] text-blue-800 leading-tight shadow-sm"
         >
@@ -231,6 +246,7 @@ const props = defineProps<{
   buyToHereTooltip?: string;
   extraSeconds?: number;
   realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
+  lookahead?: { minLevels: number; impact: number; hpp: number };
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;
 }>();

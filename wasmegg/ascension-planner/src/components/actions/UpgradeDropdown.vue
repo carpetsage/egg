@@ -4,7 +4,7 @@
     <button
       type="button"
       class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-left shadow-sm focus:outline-none hover:bg-slate-100 transition-all group"
-      @click="isOpen = !isOpen"
+      @click="toggleOpen"
     >
       <div v-if="selectedOption" class="flex gap-3 items-center">
         <div class="w-10 h-10 bg-white rounded-lg shadow-sm border border-slate-100 flex-shrink-0 p-1.5 group-hover:scale-105 transition-transform">
@@ -50,7 +50,8 @@
     <!-- Dropdown Modal Context -->
     <div
       v-if="isOpen"
-      class="absolute z-50 mt-2 w-full sm:w-[450px] right-0 sm:right-auto sm:left-0 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2"
+      class="absolute z-50 w-full sm:w-[450px] right-0 sm:right-auto sm:left-0 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in"
+      :class="openUpward ? 'bottom-full mb-2 slide-in-from-bottom-2' : 'mt-2 slide-in-from-top-2'"
     >
       <div class="max-h-[60vh] overflow-y-auto custom-scrollbar divide-y divide-slate-50">
         <button
@@ -123,7 +124,18 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = ref(false);
+const openUpward = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
+
+function toggleOpen() {
+  if (!isOpen.value && containerRef.value) {
+    const rect = containerRef.value.getBoundingClientRect();
+    // PlanFinalSummary is ~80px tall; leave extra breathing room
+    const spaceBelow = window.innerHeight - rect.bottom - 100;
+    openUpward.value = spaceBelow < 420;
+  }
+  isOpen.value = !isOpen.value;
+}
 
 const selectedOption = computed(() => props.options.find(o => o.id === props.modelValue));
 

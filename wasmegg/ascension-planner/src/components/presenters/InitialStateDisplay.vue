@@ -669,6 +669,7 @@ const emit = defineEmits<{
   'set-ascension-date': [value: string];
   'set-ascension-time': [value: string];
   'set-ascension-timezone': [value: string];
+  'apply-ascension-settings': [date: string, time: string, timezone: string];
   'set-tank-level': [level: number];
   'set-fuel-amount': [egg: VirtueEgg, amount: number];
   'set-eggs-delivered': [egg: VirtueEgg, amount: number];
@@ -705,9 +706,7 @@ const hasAscensionChanges = computed(() => {
 });
 
 function applyAscensionChanges() {
-  emit('set-ascension-date', localAscensionDate.value);
-  emit('set-ascension-time', localAscensionTime.value);
-  emit('set-ascension-timezone', localAscensionTimezone.value);
+  emit('apply-ascension-settings', localAscensionDate.value, localAscensionTime.value, localAscensionTimezone.value);
 }
 
 // Collapsible state
