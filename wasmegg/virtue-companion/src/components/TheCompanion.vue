@@ -205,7 +205,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref, watch, provide } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, ref, shallowRef, watch, provide } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -214,6 +214,7 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
 import {
+  ei,
   iconURL,
   ArtifactSet,
   UserBackupEmptyError,
@@ -232,7 +233,9 @@ import {
   getColleggtibleTiers,
   modifiersFromColleggtibleTiers,
   setActiveManualTiers,
+  defaultModifiers,
   type ColleggtibleTiers,
+  type Modifiers,
 } from 'lib';
 import {
   allModifiersFromColleggtibles,
@@ -306,6 +309,21 @@ export default defineComponent({
     }
     playerId = playerId.toUpperCase();
 
+    // Create reactive state before await so provide/inject works across async boundary.
+    // Vue's provide() silently fails after await because getCurrentInstance() returns null.
+    const COLLEGGTIBLE_TIERS_KEY = `colleggtibleTiers_${playerId}`;
+    const backupRef = shallowRef<ei.IBackup>();
+    const hasManualTiers = ref(false);
+    const colleggtibleTiers = ref<ColleggtibleTiers>(getDefaultColleggtibleTiers());
+    const modifiers = computed<Modifiers>(() => {
+      if (!backupRef.value) return { ...defaultModifiers };
+      if (hasManualTiers.value) {
+        return modifiersFromColleggtibleTiers(colleggtibleTiers.value);
+      }
+      return allModifiersFromColleggtibles(backupRef.value);
+    });
+    provide('colleggtibleModifiers', modifiers);
+
     // Interval id used for refreshing lastRefreshedRelative.
     let refreshIntervalId: number | undefined;
     onBeforeUnmount(() => {
@@ -318,6 +336,7 @@ export default defineComponent({
     }
     const backup = data.backup;
     await resolveContractsInBackup(backup, playerId);
+    backupRef.value = backup;
     const nickname = backup.userName;
     const progress = backup.game;
     if (!progress) {
@@ -328,39 +347,26 @@ export default defineComponent({
     }
     const unresolvedContractCount = countUnresolvedContracts(backup);
 
-    const COLLEGGTIBLE_TIERS_KEY = `colleggtibleTiers_${playerId}`;
     const savedTiersRaw = getLocalStorage(COLLEGGTIBLE_TIERS_KEY);
     const autoTiers = getColleggtibleTiers(backup);
-    const hasManualTiers = ref(savedTiersRaw !== null && savedTiersRaw !== undefined);
-    let initialTiers: ColleggtibleTiers;
     if (savedTiersRaw) {
       try {
         const parsed = JSON.parse(savedTiersRaw);
         if (typeof parsed === 'object' && parsed !== null) {
-          initialTiers = { ...getDefaultColleggtibleTiers(), ...parsed };
+          colleggtibleTiers.value = { ...getDefaultColleggtibleTiers(), ...parsed };
+          hasManualTiers.value = true;
         } else {
-          initialTiers = autoTiers;
-          hasManualTiers.value = false;
+          colleggtibleTiers.value = autoTiers;
         }
       } catch {
-        initialTiers = autoTiers;
-        hasManualTiers.value = false;
+        colleggtibleTiers.value = autoTiers;
       }
     } else {
-      initialTiers = autoTiers;
+      colleggtibleTiers.value = autoTiers;
     }
-    const colleggtibleTiers = ref(initialTiers);
     if (hasManualTiers.value) {
-      setActiveManualTiers(initialTiers);
+      setActiveManualTiers(colleggtibleTiers.value);
     }
-
-    const modifiers = computed(() => {
-      if (hasManualTiers.value) {
-        return modifiersFromColleggtibleTiers(colleggtibleTiers.value);
-      }
-      return allModifiersFromColleggtibles(backup);
-    });
-    provide('colleggtibleModifiers', modifiers);
 
     const onColleggtibleTiersChange = (newTiers: ColleggtibleTiers) => {
       colleggtibleTiers.value = newTiers;

@@ -53,7 +53,7 @@
 
 <script lang="ts">
 import BaseInfo from 'ui/components/BaseInfo.vue';
-import { computed, defineComponent, toRefs, type PropType } from 'vue';
+import { computed, defineComponent, inject, toRefs, type PropType, type ComputedRef } from 'vue';
 import {
   ei,
   formatEIValue,
@@ -74,6 +74,7 @@ import {
   getNumTruthEggs,
   totalAwayTime,
   formatSiloDuration,
+  type Modifiers,
 } from '@/lib';
 
 export default defineComponent({
@@ -90,7 +91,8 @@ export default defineComponent({
     const farm = backup.value.farms![0];
     const progress = backup.value.game!;
     const artifacts = homeFarmArtifacts(backup.value, true);
-    const modifiers = allModifiersFromColleggtibles(backup.value);
+    const injectedMods = inject<ComputedRef<Modifiers>>('colleggtibleModifiers');
+    const modifiers = computed(() => injectedMods?.value ?? allModifiersFromColleggtibles(backup.value));
 
     const totalTruthEggs = computed(() => getNumTruthEggs(backup.value));
 
@@ -104,29 +106,28 @@ export default defineComponent({
     // Habs
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
-    const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.habCap);
-    const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
+    const habSpaces = computed(() => farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.value.habCap));
+    const totalHabSpace = computed(() => Math.round(habSpaces.value.reduce((total, s) => total + s)));
 
     // Vehicles
-    const eggLayingRate = farmEggLayingRate(farm, progress, artifacts) * modifiers.elr;
-    const totalVehicleSpace = farmShippingCapacity(farm, progress, artifacts, modifiers.shippingCap);
-    const effectiveELR = Math.min(eggLayingRate, totalVehicleSpace);
+    const eggLayingRate = computed(() => farmEggLayingRate(farm, progress, artifacts) * modifiers.value.elr);
+    const totalVehicleSpace = computed(() =>
+      farmShippingCapacity(farm, progress, artifacts, modifiers.value.shippingCap)
+    );
+    const effectiveELR = computed(() => Math.min(eggLayingRate.value, totalVehicleSpace.value));
 
     // IHR
     const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
-    const { offlineRate: offlineIHR } = farmInternalHatcheryRates(
-      internalHatcheryResearches,
-      artifacts,
-      modifiers.ihr,
-      totalTruthEggs.value
+    const offlineIHR = computed(() =>
+      farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.value.ihr, totalTruthEggs.value)
+        .offlineRate
     );
 
     // Earnings
-    const {
-      onlineBaseline: earningRateOnlineBaseline,
-      onlineMaxRCB: earningRateOnlineMaxRCB,
-      offline: earningRateOffline,
-    } = farmEarningRate(backup.value, farm, progress, artifacts, modifiers);
+    const earningRates = computed(() => farmEarningRate(backup.value, farm, progress, artifacts, modifiers.value));
+    const earningRateOnlineBaseline = computed(() => earningRates.value.onlineBaseline);
+    const earningRateOnlineMaxRCB = computed(() => earningRates.value.onlineMaxRCB);
+    const earningRateOffline = computed(() => earningRates.value.offline);
 
     // Drone value
     const farmValue = calculateFarmValue(backup.value, farm, progress, artifacts);
@@ -139,36 +140,34 @@ export default defineComponent({
     const eliteDroneValue = droneValuesAtMaxRCB.elite;
 
     // Computed values
-    const showIHR = computed(() => currentPopulation.value < totalHabSpace);
-    const showEliteDrone = computed(() => earningRateOffline < earningRateOnlineMaxRCB);
-    const populationPercent = computed(() => Math.round((currentPopulation.value / totalHabSpace) * 100));
+    const showIHR = computed(() => currentPopulation.value < totalHabSpace.value);
+    const showEliteDrone = computed(() => earningRateOffline.value < earningRateOnlineMaxRCB.value);
+    const populationPercent = computed(() => Math.round((currentPopulation.value / totalHabSpace.value) * 100));
 
     const relevantEarningRate = computed(() => {
-      const habsNotFull = currentPopulation.value < totalHabSpace;
-      const offlineRate = alwaysCountVideoDoubler.value ? earningRateOffline * 2 : earningRateOffline;
+      const habsNotFull = currentPopulation.value < totalHabSpace.value;
+      const offlineRate = alwaysCountVideoDoubler.value ? earningRateOffline.value * 2 : earningRateOffline.value;
 
       if (habsNotFull) {
-        // When habs not full, relevant online is active/rcb/video doubler
-        const relevantOnline = earningRateOnlineMaxRCB * 2;
+        const relevantOnline = earningRateOnlineMaxRCB.value * 2;
         return offlineRate > relevantOnline ? offlineRate : relevantOnline;
       } else {
-        // When habs full, relevant online is active no running chicken
-        const relevantOnline = earningRateOnlineBaseline * 2;
+        const relevantOnline = earningRateOnlineBaseline.value * 2;
         return offlineRate > relevantOnline ? offlineRate : relevantOnline;
       }
     });
 
     const earningRateLabel = computed(() => {
-      const habsNotFull = currentPopulation.value < totalHabSpace;
-      const offlineRate = alwaysCountVideoDoubler.value ? earningRateOffline * 2 : earningRateOffline;
+      const habsNotFull = currentPopulation.value < totalHabSpace.value;
+      const offlineRate = alwaysCountVideoDoubler.value ? earningRateOffline.value * 2 : earningRateOffline.value;
       const showingOffline = relevantEarningRate.value === offlineRate;
 
       if (showingOffline) {
         return alwaysCountVideoDoubler.value ? 'Offline + Video' : 'Offline';
       } else if (habsNotFull) {
-        if (relevantEarningRate.value === earningRateOnlineMaxRCB * 2) {
+        if (relevantEarningRate.value === earningRateOnlineMaxRCB.value * 2) {
           return 'Max RCB + Video';
-        } else if (relevantEarningRate.value === earningRateOnlineMaxRCB) {
+        } else if (relevantEarningRate.value === earningRateOnlineMaxRCB.value) {
           return 'Max RCB';
         } else {
           return 'Active';
