@@ -16,7 +16,7 @@
       <h3 class="text-base font-semibold text-gray-700 mb-3">Best Ship Set</h3>
       <optimizer-solution-card
         v-for="(view, i) in solutionViews"
-        :key="'fw-' + i"
+        :key="'solution-' + i"
         :solution="view.solution"
         :p-craft="view.pCraft"
         :lambda="view.lambda"
@@ -107,30 +107,6 @@ export default defineComponent({
       )
     );
 
-    watchEffect(() => {
-      const minDurationSeconds = missionFilters.value.minDurationHoursEnabled
-        ? missionFilters.value.minDurationHours * 3600
-        : undefined;
-      const args = {
-        desired_artifact_node_ids: [artifactId.value],
-        include_not_enough_data: effectiveConfig.value.showNodata,
-        fuel_tank_capacity: effectiveFuelTankCapacity.value,
-        time_budget_seconds: maxWaitTimeSeconds.value,
-      };
-      if (autoCompute.value) {
-        computedResults.value = optimize(
-          args,
-          effectiveConfig.value,
-          dagBundle.value.dag,
-          dagBundle.value.baseYield,
-          minDurationSeconds
-        );
-        pendingCompute.value = false;
-      } else {
-        pendingCompute.value = true;
-      }
-    });
-
     function runCompute() {
       const minDurationSeconds = missionFilters.value.minDurationHoursEnabled
         ? missionFilters.value.minDurationHours * 3600
@@ -149,6 +125,17 @@ export default defineComponent({
       );
       pendingCompute.value = false;
     }
+
+    // Recompute whenever a relevant input changes, but only while auto-compute is
+    // enabled; otherwise just flag that a manual recompute is due. (When disabled,
+    // runCompute is not called, so this effect intentionally tracks only autoCompute.)
+    watchEffect(() => {
+      if (autoCompute.value) {
+        runCompute();
+      } else {
+        pendingCompute.value = true;
+      }
+    });
 
     const inventoryRows = computed(() =>
       computeInventoryRows(artifactId.value, dagBundle.value.dag, playerInventory.value)

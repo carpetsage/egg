@@ -1,10 +1,11 @@
 // ============================================================
-// Path of Virtue Optimizer — Phases 0, 1, 2
+// Path of Virtue Optimizer — Recipe DAG + Launch Option Enumeration
 // ============================================================
 //
-// Phase 0 — Enumerate Launch Options (Spaceship × SensorTarget | null)
-// Phase 1 — Precompute Yield Vectors
-// Phase 2 — Discretize Time
+// generateRecipeDag      — build the crafting DAG for a target artifact.
+// enumerateLaunchOptions — enumerate every (spaceship × mission target) launch
+//                          option, precomputing its fuel cost, duration, and
+//                          per-launch yield vectors.
 //
 // All functions are pure.
 import { missions } from '@/lib/filter';
@@ -22,6 +23,11 @@ import { getMissionLootData, MIN_LEGENDARY_OBSERVATIONS } from '@/lib';
 import { sum } from '@/utils';
 import { Ingredient } from 'lib/artifacts/data-json';
 
+/**
+ * Recursively populate `recipeDag` with `id` and every artifact in its crafting
+ * tree (a no-op for ids already present). Mutates `recipeDag` in place; leaf
+ * (non-craftable) artifacts get an empty `children` list.
+ */
 export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
   if (recipeDag.has(id)) return;
 
@@ -30,18 +36,15 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
   const artifactIngredients = artifactData.recipe?.ingredients ?? [];
 
   const dagNode: DAGNode = {
-    id: id,
-    display_name: artifactData.name,
+    id,
     is_leaf: !artifactData.craftable,
-    is_root: false, // Set during other phases of computation
-    required_quantity: 1,
-    children: artifactIngredients.map((ingredient: Ingredient): DAGChildRef => {
-      return {
+    children: artifactIngredients.map(
+      (ingredient: Ingredient): DAGChildRef => ({
         node_id: ingredient.id,
         quantity: ingredient.count,
-      };
-    }),
-    legendaryCraftProbability: 0,
+      })
+    ),
+    legendaryCraftProbability: 0, // set for the targeted root by buildRecipeDag()
   };
 
   recipeDag.set(id, dagNode);
@@ -52,13 +55,14 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
 }
 
 // ------------------------------------------------------------
-// Phase 0 — Enumerate
+// Launch option enumeration
 // ------------------------------------------------------------
 
 /**
- * Returns the Cartesian product of spaceships × (sensor_targets ∪ {null}).
- * Each pair is a distinct LaunchOption with time_units = 0 (set in Phase 2).
- * @param minDurationSeconds optional minimum mission duration in seconds; missions shorter than this are excluded
+ * Enumerate every launch option: the Cartesian product of the player's visible
+ * spaceships and their applicable mission targets. Each option carries its fuel
+ * cost, duration, and per-launch yield / legendary vectors.
+ * @param minDurationSeconds optional floor on mission duration in seconds; shorter missions are excluded
  */
 export function enumerateLaunchOptions(
   playerConfig: ShipsConfig,
@@ -125,32 +129,8 @@ function makeLaunchOption(mission: MissionType, target: ei.ArtifactSpec.Name, pl
     actual_fuel: nonHumilityFuelUse.reduce((agg, current) => agg + current.amount, 0) * 3,
     actual_time: mission.boostedDurationSeconds(playerConfig),
     fuel_by_egg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount * 3), new Map()),
-    num_ships_launched: 0,
     supply_vector: new Map(),
     yield_vector: new Map(),
     legendary_yield_vector: new Map(),
   };
-}
-
-// ------------------------------------------------------------
-// Helpers
-// ------------------------------------------------------------
-
-/**
- * Adds two yield vectors component-wise.
- * Returns a new Map; does not mutate either input.
- */
-export function addYieldVectors(a: Map<string, number>, b: Map<string, number>): Map<string, number> {
-  const result = new Map(a);
-  for (const [k, v] of b) {
-    result.set(k, (result.get(k) ?? 0) + v);
-  }
-  return result;
-}
-
-/**
- * Returns an empty (all-zero) yield vector for the given DAG node set.
- */
-export function zeroYieldVector(_: RecipeDAG): Map<string, number> {
-  return new Map();
 }

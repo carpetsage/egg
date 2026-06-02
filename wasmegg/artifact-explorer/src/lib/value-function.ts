@@ -1,29 +1,49 @@
 // ============================================================
-// Inner value function α*(inventory) for the artifact-explorer
-// optimizer.
+// Inner value function for the artifact-explorer optimizer.
 //
-// α*(inventory) = the maximum number of root artifacts the player
-// can craft from a given yield/inventory bag, accounting for the
-// full recipe DAG including diamond dependencies (shared
-// ingredients with multiple consumers — bottom-up tree recursion
-// is wrong for these; an LP is required).
+// Multi-sink, weighted objective:
 //
-// `compileInnerLp` builds the LP structure once and exposes
-// `.solve(inventory)` so we can evaluate α* against many
-// inventories without rebuilding the constraint matrix — important
-// because the outer search calls α* on the order of millions of
-// times.
+//   max  Σ_T w_T · p_T
+//   s.t. (recipe conservation for every consumed node)
 //
-// `alphaToProb` maps α* and the aggregate legendary-drop rate into
-// the three probability fields the OptimizerSolution exposes.
+// where T ranges over the desired target artifacts (sinks) and w_T is a
+// per-target weight (the outer search passes Q_T = −log(1 − p_legendary_T);
+// callers that just want craftable counts pass nothing and every weight
+// defaults to 1).
+//
+// Every node that is consumed by some parent gets a conservation row —
+// targets are NOT special-cased out of the constraint matrix. Two
+// consequences:
+//   • A *final* target (no parents) has no row, so its direct drops are
+//     inert: a dropped non-legendary copy of the goal is not a craft and
+//     must not inflate the craft value. (Its legendary drops still flow
+//     through the separate Poisson term in `alphaToProb`.)
+//   • A target that is also an *ingredient* of another target keeps its
+//     row, so the shared good is conserved and its direct drops correctly
+//     feed the parent's crafting. No node deletion is required anywhere.
+//
+// `compileInnerLp` builds the structure once and exposes `.solve(inventory)`
+// so the constraint matrix is reused across the millions of evaluations the
+// outer search performs.
+//
+// `alphaToProb` maps one target's craftable count + legendary-drop rate into
+// that target's probability triple.
 // ============================================================
 
 import type { RecipeDAG } from './types';
 import { solveLp } from './lp';
 
 export interface AlphaResult {
+  /**
+   * Craftable count of the primary target (targets[0]); 0 when it is a leaf.
+   * Back-compat scalar for single-target callers.
+   */
   alpha: number;
-  /** Shadow price per constraint-node id. Empty if root is a leaf. */
+  /** Weighted objective value Σ_T w_T · p_T at the optimum — the quantity the outer search scores. */
+  score: number;
+  /** Per-target craftable count p_T (craftable targets only). */
+  craftByTarget: Map<string, number>;
+  /** Shadow price per constraint-node id. Empty if no craftable target. */
   duals: Map<string, number>;
   /** LP-optimal crafted count per non-leaf node id. */
   primalByNode: Map<string, number>;
@@ -36,24 +56,31 @@ export interface InnerLp {
   readonly constraintNodes: readonly string[];
   /** Maps an id to its column index, or undefined if it's a leaf. */
   readonly varIndex: ReadonlyMap<string, number>;
-  /** The desired root id this LP was compiled for. */
+  /** Primary target (targets[0]); kept for back-compat with single-root callers. */
   readonly root: string;
-  /** Coefficient on x_i in the joint-LP objective for action i (Δ_i[root]). */
-  readonly objHasRootVar: boolean;
+  /** All requested targets (sinks), in order; targets[0] is primary. */
+  readonly targets: readonly string[];
+  /** Objective weight per craftable target node (defaults to 1 when unspecified). */
+  readonly weightByTarget: ReadonlyMap<string, number>;
 
   solve(inventory: Map<string, number>): AlphaResult;
 }
 
 /**
- * Build the inner LP once for a given recipe DAG and desired root.
- * Currently supports a single root (per OQ4); the caller passes
- * `desired_artifact_node_ids[0]`.
+ * Build the inner LP once for a given recipe DAG and a set of desired targets.
+ * `weights` supplies the per-target objective weight Q_T; any target without an
+ * entry (or all targets, when `weights` is omitted) defaults to weight 1.
  */
-export function compileInnerLp(recipe_dag: RecipeDAG, desired_artifact_node_ids: string[]): InnerLp {
+export function compileInnerLp(
+  recipe_dag: RecipeDAG,
+  desired_artifact_node_ids: string[],
+  weights?: Map<string, number>
+): InnerLp {
   if (desired_artifact_node_ids.length === 0) {
-    return makeTrivialLp('');
+    return makeTrivialLp('', [], new Map());
   }
-  const root = desired_artifact_node_ids[0];
+  const targets = desired_artifact_node_ids;
+  const primary = targets[0];
 
   // Non-leaf nodes become decision variables p_n.
   const nonLeafNodes: string[] = [];
@@ -65,9 +92,16 @@ export function compileInnerLp(recipe_dag: RecipeDAG, desired_artifact_node_ids:
     }
   }
 
-  // Root must be craftable (non-leaf) for the LP to be meaningful.
-  if (!varIndex.has(root)) {
-    return makeTrivialLp(root);
+  // Objective weight per craftable target. A leaf target can't be crafted, so it
+  // contributes no objective term (its legendary chance is drops-only).
+  const weightByTarget = new Map<string, number>();
+  for (const t of targets) {
+    if (varIndex.has(t)) weightByTarget.set(t, weights?.get(t) ?? 1);
+  }
+  if (weightByTarget.size === 0) {
+    // No craftable target → nothing to optimise; fall back to the holdings of
+    // the primary target (drops-only), matching the leaf-root degenerate case.
+    return makeTrivialLp(primary, targets, weightByTarget);
   }
 
   // Build "parents-of" map: for each node, who consumes it and at what rate.
@@ -84,11 +118,11 @@ export function compileInnerLp(recipe_dag: RecipeDAG, desired_artifact_node_ids:
     }
   }
 
-  // Constraint per non-root node that is consumed by at least one parent:
+  // Constraint per node that is consumed by at least one parent:
   //   Σ_parents q · p_parent − [p_n if non-leaf] ≤ inventory[n]
+  // Targets are no longer excluded — only "has no parent" excludes a node.
   const constraintNodes: string[] = [];
   for (const id of recipe_dag.keys()) {
-    if (id === root) continue;
     const parents = parentsOf.get(id);
     if (!parents || parents.length === 0) continue;
     constraintNodes.push(id);
@@ -98,7 +132,7 @@ export function compileInnerLp(recipe_dag: RecipeDAG, desired_artifact_node_ids:
   const nCons = constraintNodes.length;
 
   const c = new Float64Array(nVars);
-  c[varIndex.get(root)!] = 1; // maximise p_root
+  for (const [t, w] of weightByTarget) c[varIndex.get(t)!] = w; // maximise Σ_T w_T · p_T
 
   const A: Float64Array[] = new Array(nCons);
   for (let i = 0; i < nCons; i++) {
@@ -119,8 +153,9 @@ export function compileInnerLp(recipe_dag: RecipeDAG, desired_artifact_node_ids:
     nonLeafNodes,
     constraintNodes,
     varIndex,
-    root,
-    objHasRootVar: true,
+    root: primary,
+    targets,
+    weightByTarget,
 
     solve(inventory: Map<string, number>): AlphaResult {
       for (let i = 0; i < nCons; i++) {
@@ -129,50 +164,39 @@ export function compileInnerLp(recipe_dag: RecipeDAG, desired_artifact_node_ids:
       }
       const r = solveLp(c, A, bScratch);
       if (r.status !== 'optimal') {
-        return { alpha: 0, duals: new Map(), primalByNode: new Map() };
+        return { alpha: 0, score: 0, craftByTarget: new Map(), duals: new Map(), primalByNode: new Map() };
       }
-      const rootDirect = inventory.get(root) ?? 0;
-      const alpha = r.objective + (rootDirect > 0 ? rootDirect : 0);
+      const craftByTarget = new Map<string, number>();
+      for (const t of weightByTarget.keys()) craftByTarget.set(t, r.primal[varIndex.get(t)!]);
+      const alpha = craftByTarget.get(primary) ?? 0;
       const duals = new Map<string, number>();
       for (let i = 0; i < nCons; i++) duals.set(constraintNodes[i], r.duals[i]);
       const primalByNode = new Map<string, number>();
       for (let i = 0; i < nonLeafNodes.length; i++) {
         if (r.primal[i] > 1e-9) primalByNode.set(nonLeafNodes[i], r.primal[i]);
       }
-      return { alpha, duals, primalByNode };
+      return { alpha, score: r.objective, craftByTarget, duals, primalByNode };
     },
   };
 }
 
-function makeTrivialLp(root: string): InnerLp {
+function makeTrivialLp(primary: string, targets: readonly string[], weightByTarget: Map<string, number>): InnerLp {
   return {
     nonLeafNodes: [],
     constraintNodes: [],
     varIndex: new Map(),
-    root,
-    objHasRootVar: false,
+    root: primary,
+    targets,
+    weightByTarget,
     solve(inventory: Map<string, number>): AlphaResult {
-      const v = inventory.get(root) ?? 0;
-      return { alpha: v > 0 ? v : 0, duals: new Map(), primalByNode: new Map() };
+      const v = inventory.get(primary) ?? 0;
+      return { alpha: v > 0 ? v : 0, score: 0, craftByTarget: new Map(), duals: new Map(), primalByNode: new Map() };
     },
   };
 }
 
-/**
- * Convenience wrapper that compiles + solves in one call. Use only
- * for one-shot evaluations; for repeated use, call `compileInnerLp`
- * once and reuse the returned `InnerLp.solve`.
- */
-export function evaluateAlpha(
-  inventory: Map<string, number>,
-  recipe_dag: RecipeDAG,
-  desired_artifact_node_ids: string[]
-): AlphaResult {
-  return compileInnerLp(recipe_dag, desired_artifact_node_ids).solve(inventory);
-}
-
 // ------------------------------------------------------------
-// α* → probability mapping
+// α* → probability mapping (per target)
 // ------------------------------------------------------------
 
 export interface ProbabilityFields {
@@ -182,12 +206,11 @@ export interface ProbabilityFields {
 }
 
 /**
- * Map α* (deterministic max craftable count) plus the aggregate
- * legendary-drop rate of the desired root into the three
- * probability fields the UI displays.
+ * Map one target's craftable count α plus its aggregate legendary-drop rate
+ * into that target's probability fields.
  *
  *   craft_probability = 1 − exp(α · ln(1 − p_legendary_per_craft))
- *   drop_probability  = 1 − exp(−Σ legendary_yield[root])
+ *   drop_probability  = 1 − exp(−Σ legendary_yield[target])
  *   best_probability  = 1 − (1 − craft)·(1 − drop)
  */
 export function alphaToProb(
@@ -216,19 +239,4 @@ export function alphaToProb(
   const best_probability = 1 - (1 - craft_probability) * (1 - drop_probability);
 
   return { best_probability, craft_probability, drop_probability };
-}
-
-// poissonAtLeast retained for parity with the deleted objective.ts —
-// not currently used by the new pipeline but cheap to expose.
-export function poissonAtLeast(lambda: number, k: number): number {
-  if (k <= 0) return 1;
-  if (lambda <= 0) return 0;
-  // P(X ≥ k) = 1 − Σ_{i=0..k-1} exp(-λ) λ^i / i!
-  let term = Math.exp(-lambda);
-  let cdf = term;
-  for (let i = 1; i < k; i++) {
-    term = (term * lambda) / i;
-    cdf += term;
-  }
-  return Math.max(0, 1 - cdf);
 }

@@ -16,6 +16,14 @@ import { ei, getArtifactTierPropsFromId, getCraftingLevelFromXp, Inventory, Inve
 
 import { iconURL } from 'lib';
 
+/**
+ * Build the recipe DAG for the desired artifact(s) and the player's starting
+ * "base yield" — the quantities they already own for each ingredient node.
+ *
+ * Each root's `legendaryCraftProbability` is derived from the player's crafting
+ * XP and prior craft count, so legendary craft odds reflect their progress.
+ * `baseYield` lets the optimizer treat owned items as a free head start.
+ */
 export function buildRecipeDag(
   desired_artifact_node_ids: string[],
   playerInventory?: Inventory | null,
@@ -101,6 +109,13 @@ function computeFuelByEgg(solution: OptimizerSolution): Map<ei.Egg, number> {
   return totals;
 }
 
+/**
+ * Run the optimizer for a single desired artifact and decorate the result with
+ * the presentation-only fields (sorted launches, expected drops, fuel by egg).
+ *
+ * Returns an array so the caller can render results with a single `v-for`; today
+ * it always holds exactly one solution (one target per run).
+ */
 export function optimize(
   config: OptimizerConfig,
   playerConfig: ShipsConfig,
@@ -111,7 +126,7 @@ export function optimize(
   const { desired_artifact_node_ids, fuel_tank_capacity, time_budget_seconds } = config;
   const options = enumerateLaunchOptions(playerConfig, dag, minDurationSeconds);
 
-  const rawResults: OptimizerSolution[] = [
+  const solutions: OptimizerSolution[] = [
     optimizeFull({
       options,
       recipe_dag: dag,
@@ -119,21 +134,16 @@ export function optimize(
       fuel_capacity: fuel_tank_capacity,
       time_capacity: time_budget_seconds,
       base_yield: baseYield,
-      epsilon: 1e-3,
     }),
   ];
 
-  for (const result of rawResults) {
-    result.choice_history.sort(function (a: LaunchSolution, b: LaunchSolution) {
-      return a.ship.shipType - b.ship.shipType;
-    });
-
-    result.expected_drops = computeExpectedDrops(result, dag);
-
-    result.fuel_by_egg = computeFuelByEgg(result);
+  for (const solution of solutions) {
+    solution.choice_history.sort((a: LaunchSolution, b: LaunchSolution) => a.ship.shipType - b.ship.shipType);
+    solution.expected_drops = computeExpectedDrops(solution, dag);
+    solution.fuel_by_egg = computeFuelByEgg(solution);
   }
 
-  return rawResults;
+  return solutions;
 }
 
 // Re-export key types and utilities for consumers
@@ -143,7 +153,6 @@ export type {
   LaunchOption,
   LaunchSolution,
   DropRow,
-  SensorTarget,
   DAGNode,
   DAGChildRef,
   RecipeDAG,
