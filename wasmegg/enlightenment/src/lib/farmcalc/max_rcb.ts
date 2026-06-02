@@ -33,10 +33,7 @@ const availableMaxRCBResearches: MaxRCBResearch[] = [
   },
 ];
 
-export function farmMaxRCBResearches(
-  farm: ei.Backup.ISimulation,
-  progress: ei.Backup.IGame
-): MaxRCBResearchInstance[] {
+export function farmMaxRCBResearches(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): MaxRCBResearchInstance[] {
   return farmResearches(farm, progress, availableMaxRCBResearches);
 }
 

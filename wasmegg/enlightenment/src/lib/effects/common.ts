@@ -42,18 +42,10 @@ export function aggregateEffect(
 }
 
 export function additiveEffect(artifacts: Artifact[], afxIds: ei.ArtifactSpec.Name[]): number {
-  return aggregateEffect(
-    artifacts,
-    afxIds,
-    (aggregate, effect) => aggregate + effect.delta * effect.multiplier,
-    0
-  );
+  return aggregateEffect(artifacts, afxIds, (aggregate, effect) => aggregate + effect.delta * effect.multiplier, 0);
 }
 
-export function multiplicativeEffect(
-  artifacts: Artifact[],
-  afxIds: ei.ArtifactSpec.Name[]
-): number {
+export function multiplicativeEffect(artifacts: Artifact[], afxIds: ei.ArtifactSpec.Name[]): number {
   return aggregateEffect(
     artifacts,
     afxIds,

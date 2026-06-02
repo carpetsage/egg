@@ -40,8 +40,11 @@ export class SoloStatus {
   internalHatcheryRateBoostMultiplier: number;
 
   constructor(contract: ei.ILocalContract, backup: ei.IBackup) {
-    this.contract = contract.contract!;
-    this.contractId = this.contract.identifier!;
+    if (!contract.contract) {
+      throw new Error(`cannot create SoloStatus without resolved contract: ${contract.contractIdentifier}`);
+    }
+    this.contract = contract.contract;
+    this.contractId = contract.contractIdentifier || this.contract.identifier!;
     this.backup = backup;
     const farmProps = (() => {
       for (const farm of backup.farms || []) {

@@ -81,6 +81,7 @@
       @buy="handleBuyResearch"
       @max="handleMaxResearch"
       @buy-to-here="handleBuyToHere"
+      @refresh-backup="$emit('refresh-backup')"
     />
 
     <EventExpiryDialog

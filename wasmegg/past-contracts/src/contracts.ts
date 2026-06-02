@@ -63,29 +63,47 @@ export const rawContractList: ContractProps[] = (() => {
   return list.sort((c1, c2) => c1.offeringTimestamp - c2.offeringTimestamp);
 })();
 
-export function getUserContractList(backup: ei.IBackup, archive?: ei.IContractsArchive): UserContract[] {
+export interface UserContractListResult {
+  contracts: UserContract[];
+  unresolvedCount: number;
+}
+
+export function getUserContractList(backup: ei.IBackup, archive?: ei.IContractsArchive): UserContractListResult {
   const activeContracts: ei.ILocalContract[] = backup.contracts?.contracts || [];
   const pastContracts: ei.ILocalContract[] = archive?.archive || backup.contracts?.archive || [];
   const localContracts: ei.ILocalContract[] = [];
+  let unresolvedCount = 0;
 
-  // compare past contracts with active contracts. Only a contract from one source
   for (const past of pastContracts) {
-    const match = activeContracts.find(c => c.contract?.identifier === past.contract?.identifier);
+    const match = activeContracts.find(
+      c => (c.contract?.identifier ?? c.contractIdentifier) === (past.contract?.identifier ?? past.contractIdentifier)
+    );
     if (!match) {
       localContracts.push(past);
     } else {
       localContracts.push(match);
     }
   }
-  // Add any active contracts that don't match past contracts
   for (const active of activeContracts) {
-    const match = localContracts.find(c => c.contract?.identifier === active.contract?.identifier);
+    const match = localContracts.find(
+      c =>
+        (c.contract?.identifier ?? c.contractIdentifier) === (active.contract?.identifier ?? active.contractIdentifier)
+    );
     if (!match) {
       localContracts.push(active);
     }
   }
 
-  const attemptedContracts = localContracts
+  const resolvedContracts: ei.ILocalContract[] = [];
+  for (const c of localContracts) {
+    if (c.contract) {
+      resolvedContracts.push(c);
+    } else {
+      unresolvedCount++;
+    }
+  }
+
+  const attemptedContracts = resolvedContracts
     .map(c => newUserContract(c, true, undefined, c.grade))
     .sort((c1, c2) => c1.timestamp - c2.timestamp);
 
@@ -100,7 +118,7 @@ export function getUserContractList(backup: ei.IBackup, archive?: ei.IContractsA
     }
   }
   unattemptedContracts.sort((c1, c2) => c1.timestamp - c2.timestamp);
-  return attemptedContracts.concat(unattemptedContracts);
+  return { contracts: attemptedContracts.concat(unattemptedContracts), unresolvedCount };
 }
 
 function newUserContract(

@@ -23,12 +23,7 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
 
-import {
-  basicRequestInfo,
-  ei,
-  getLocalStorage,
-  setLocalStorage,
-} from 'lib';
+import { basicRequestInfo, ei, getLocalStorage, setLocalStorage } from 'lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import ParameterInput from '@/components/ParameterInput.vue';
 import RequestButton from '@/components/RequestButton.vue';

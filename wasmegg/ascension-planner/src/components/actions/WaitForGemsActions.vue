@@ -136,9 +136,16 @@ const timeToSaveSeconds = computed(() => {
   return isFinite(time) ? time : Infinity;
 });
 
+const baseTimestamp = computed(() => {
+  const startTime = virtueStore.planStartTime.getTime();
+  const offset = actionsStore.planStartOffset;
+  // Wall clock time = (Plan Start) + (Current Sim Time - Initial Sim Time)
+  return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
+});
+
 const formattedAbsoluteTime = computed(() => {
   if (timeToSaveSeconds.value === 0 || !isFinite(timeToSaveSeconds.value)) return 'N/A';
-  return formatAbsoluteTime(timeToSaveSeconds.value, undefined, virtueStore.ascensionTimezone);
+  return formatAbsoluteTime(timeToSaveSeconds.value, baseTimestamp.value, virtueStore.ascensionTimezone);
 });
 
 const canWait = computed(

@@ -1,5 +1,19 @@
 <template>
   <main>
+    <div
+      v-if="unresolvedContractCount > 0"
+      class="rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm px-4 py-2 mb-3"
+    >
+      <strong>Contract data is incomplete.</strong>
+      Due to a recent Egg, Inc. update, some contract info could not be loaded. Colleggtible bonuses may be inaccurate.
+      You can manually set your colleggtible tiers below.
+      <colleggtible-config
+        :model-value="colleggtibleTiers"
+        :has-unresolved-contracts="unresolvedContractCount > 0"
+        @update:model-value="onColleggtibleTiersChange"
+      />
+    </div>
+
     <p>{{ nickname }}</p>
     <p class="text-sm">
       Last synced to server:
@@ -191,7 +205,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, ref, watch, provide } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -213,6 +227,12 @@ import {
   contenderToArtifactSet,
   ArtifactAssemblyStatus,
   Farm,
+  countUnresolvedContracts,
+  getDefaultColleggtibleTiers,
+  getColleggtibleTiers,
+  modifiersFromColleggtibleTiers,
+  setActiveManualTiers,
+  type ColleggtibleTiers,
 } from 'lib';
 import {
   allModifiersFromColleggtibles,
@@ -226,6 +246,7 @@ import {
   farmInternalHatcheryResearches,
   homeFarmArtifacts,
   requestFirstContact,
+  resolveContractsInBackup,
   farmEggLayingRate,
   pendingTruthEggs,
 } from '@/lib';
@@ -243,6 +264,7 @@ import VehiclesSection from '@/components/VehiclesSection.vue';
 import SilosSection from '@/components/SilosSection.vue';
 import InternalHatcheryInfo from '@/components/InternalHatcheryInfo.vue';
 import EarningsSection from '@/components/EarningsSection.vue';
+import ColleggtibleConfig from 'ui/components/ColleggtibleConfig.vue';
 
 // Note that timezone abbreviation may not work due to
 // https://github.com/iamkun/dayjs/issues/1154, in which case the GMT offset is
@@ -266,6 +288,7 @@ export default defineComponent({
     SilosSection,
     InternalHatcheryInfo,
     EarningsSection,
+    ColleggtibleConfig,
   },
   props: {
     playerId: {
@@ -273,9 +296,10 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['requestRefresh'],
   // This async component does not respond to playerId changes.
 
-  async setup({ playerId }) {
+  async setup({ playerId }, { emit }) {
     // Validate and sanitize player ID.
     if (!playerId.match(/^EI\d+$/i)) {
       throw new Error(`ID ${playerId} is not in the form EI1234567890123456; please consult "Where do I find my ID?"`);
@@ -293,6 +317,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
+    await resolveContractsInBackup(backup, playerId);
     const nickname = backup.userName;
     const progress = backup.game;
     if (!progress) {
@@ -301,7 +326,54 @@ export default defineComponent({
     if (!backup.farms || backup.farms.length === 0) {
       throw new Error(`${playerId}: no farm info in backup`);
     }
-    const modifiers = allModifiersFromColleggtibles(backup);
+    const unresolvedContractCount = countUnresolvedContracts(backup);
+
+    const COLLEGGTIBLE_TIERS_KEY = `colleggtibleTiers_${playerId}`;
+    const savedTiersRaw = getLocalStorage(COLLEGGTIBLE_TIERS_KEY);
+    const autoTiers = getColleggtibleTiers(backup);
+    const hasManualTiers = ref(savedTiersRaw !== null && savedTiersRaw !== undefined);
+    let initialTiers: ColleggtibleTiers;
+    if (savedTiersRaw) {
+      try {
+        const parsed = JSON.parse(savedTiersRaw);
+        if (typeof parsed === 'object' && parsed !== null) {
+          initialTiers = { ...getDefaultColleggtibleTiers(), ...parsed };
+        } else {
+          initialTiers = autoTiers;
+          hasManualTiers.value = false;
+        }
+      } catch {
+        initialTiers = autoTiers;
+        hasManualTiers.value = false;
+      }
+    } else {
+      initialTiers = autoTiers;
+    }
+    const colleggtibleTiers = ref(initialTiers);
+    if (hasManualTiers.value) {
+      setActiveManualTiers(initialTiers);
+    }
+
+    const modifiers = computed(() => {
+      if (hasManualTiers.value) {
+        return modifiersFromColleggtibleTiers(colleggtibleTiers.value);
+      }
+      return allModifiersFromColleggtibles(backup);
+    });
+    provide('colleggtibleModifiers', modifiers);
+
+    const onColleggtibleTiersChange = (newTiers: ColleggtibleTiers) => {
+      colleggtibleTiers.value = newTiers;
+      setLocalStorage(COLLEGGTIBLE_TIERS_KEY, JSON.stringify(newTiers));
+      hasManualTiers.value = true;
+      setActiveManualTiers(newTiers);
+    };
+    const onResetTiers = () => {
+      localStorage.removeItem(COLLEGGTIBLE_TIERS_KEY);
+      hasManualTiers.value = false;
+      setActiveManualTiers(null);
+      colleggtibleTiers.value = autoTiers;
+    };
     const farm = backup.farms[0]; // Home farm
     const homeFarm = new Farm(backup, backup.farms[0]);
     const egg = farm.eggType!;
@@ -313,8 +385,8 @@ export default defineComponent({
     // Cap projected population at hab capacity
     const currentPopulation = computed(() =>
       Math.min(
-        lastRefreshedPopulation + (offlineIHR / 60_000) * (currentTimestamp.value - lastRefreshedTimestamp),
-        Math.max(lastRefreshedPopulation, totalHabSpace)
+        lastRefreshedPopulation + (offlineIHR.value / 60_000) * (currentTimestamp.value - lastRefreshedTimestamp),
+        Math.max(lastRefreshedPopulation, totalHabSpace.value)
       )
     );
 
@@ -358,41 +430,41 @@ export default defineComponent({
 
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
-    const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.habCap);
-    const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
+    const habSpaces = computed(() => farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.value.habCap));
+    const totalHabSpace = computed(() => Math.round(habSpaces.value.reduce((total, s) => total + s)));
 
-    const totalVehicleSpace = farmShippingCapacity(farm, backup.game!, artifacts, modifiers.shippingCap);
-
-    const eggLayingRate = farmEggLayingRate(farm, progress, artifacts) * modifiers.elr;
-    const effectiveELR = Math.min(eggLayingRate, totalVehicleSpace);
+    const totalVehicleSpace = computed(() =>
+      farmShippingCapacity(farm, backup.game!, artifacts, modifiers.value.shippingCap)
+    );
+    const eggLayingRate = computed(() => farmEggLayingRate(farm, progress, artifacts) * modifiers.value.elr);
+    const effectiveELR = computed(() => Math.min(eggLayingRate.value, totalVehicleSpace.value));
     // Adjust egg laying rate for current population
     const currentELR = computed(() =>
-      Math.min((currentPopulation.value / lastRefreshedPopulation) * effectiveELR, totalVehicleSpace)
+      Math.min((currentPopulation.value / lastRefreshedPopulation) * effectiveELR.value, totalVehicleSpace.value)
     );
 
-    const clothedTE = calculateClothedTE(backup, artifacts);
+    const clothedTE = computed(() => calculateClothedTE(backup, artifacts));
 
     const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
-    const {
-      onlineRatePerHab: onlineIHRPerHab,
-      onlineRate: onlineIHR,
-      offlineRate: offlineIHR,
-    } = farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.ihr, totalTruthEggs.value);
+    const ihrRates = computed(() =>
+      farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.value.ihr, totalTruthEggs.value)
+    );
+    const onlineIHRPerHab = computed(() => ihrRates.value.onlineRatePerHab);
+    const onlineIHR = computed(() => ihrRates.value.onlineRate);
+    const offlineIHR = computed(() => ihrRates.value.offlineRate);
 
     // Calculate eggs delivered using integration - handles hab capacity and shipping capacity scenarios
     const calculateEOVDelivered = (ihr: number) => {
-      const timeElapsed = (currentTimestamp.value - lastRefreshedTimestamp) / 1000; // Convert to seconds
-      const ihrPerSecond = ihr / 60; // Convert from per minute to per second
+      const timeElapsed = (currentTimestamp.value - lastRefreshedTimestamp) / 1000;
+      const ihrPerSecond = ihr / 60;
 
-      // Calculate population at which shipping capacity is maxed out
-      const maxEffectivePopulation = (totalVehicleSpace / eggLayingRate) * lastRefreshedPopulation;
+      const maxEffectivePopulation = (totalVehicleSpace.value / eggLayingRate.value) * lastRefreshedPopulation;
 
-      // Effective capacity is the minimum of hab capacity and shipping-limited population
-      const effectiveCapacity = Math.min(totalHabSpace, maxEffectivePopulation);
+      const effectiveCapacity = Math.min(totalHabSpace.value, maxEffectivePopulation);
 
       // If we're already at or above effective capacity, ELR is static
       if (lastRefreshedPopulation >= effectiveCapacity) {
-        const staticELR = Math.min(eggLayingRate, totalVehicleSpace);
+        const staticELR = Math.min(eggLayingRate.value, totalVehicleSpace.value);
         const eggsDeliveredWhileOffline = staticELR * timeElapsed;
         return eovDelivered.value[egg - 50] + eggsDeliveredWhileOffline;
       }
@@ -403,7 +475,7 @@ export default defineComponent({
         const timeToCapacity = (effectiveCapacity - lastRefreshedPopulation) / ihrPerSecond;
 
         // Phase 1: Growing population until effective capacity is reached (use growth formula)
-        const initialELR = eggLayingRate;
+        const initialELR = eggLayingRate.value;
         const linearTerm1 = initialELR * timeToCapacity;
         const quadraticTerm1 =
           (initialELR * ihrPerSecond * timeToCapacity * timeToCapacity) / (2 * lastRefreshedPopulation);
@@ -411,22 +483,26 @@ export default defineComponent({
 
         // Phase 2: Static ELR after effective capacity is reached
         const timeAfterCapacity = timeElapsed - timeToCapacity;
-        const staticELR = Math.min(eggLayingRate * (effectiveCapacity / lastRefreshedPopulation), totalVehicleSpace);
+        const staticELR = Math.min(
+          eggLayingRate.value * (effectiveCapacity / lastRefreshedPopulation),
+          totalVehicleSpace.value
+        );
         const eggsPhase2 = staticELR * timeAfterCapacity;
 
         return eovDelivered.value[egg - 50] + eggsPhase1 + eggsPhase2;
       }
 
       // Population stays below effective capacity - use standard growth formula
-      const linearTerm = eggLayingRate * timeElapsed;
-      const quadraticTerm = (eggLayingRate * ihrPerSecond * timeElapsed * timeElapsed) / (2 * lastRefreshedPopulation);
+      const linearTerm = eggLayingRate.value * timeElapsed;
+      const quadraticTerm =
+        (eggLayingRate.value * ihrPerSecond * timeElapsed * timeElapsed) / (2 * lastRefreshedPopulation);
       const eggsDeliveredWhileOffline = linearTerm + quadraticTerm;
 
       return eovDelivered.value[egg - 50] + eggsDeliveredWhileOffline;
     };
     const activeEOVDeliveredAdjusted = computed(() => ({
-      offline: calculateEOVDelivered(offlineIHR),
-      online: calculateEOVDelivered(onlineIHR),
+      offline: calculateEOVDelivered(offlineIHR.value),
+      online: calculateEOVDelivered(onlineIHR.value),
     }));
     const truthEggsPendingAdjusted = computed(() => ({
       offline: pendingTruthEggs(activeEOVDeliveredAdjusted.value.offline, truthEggs.value[egg - 50]) || 0,
@@ -485,6 +561,11 @@ export default defineComponent({
     return {
       // Basic farm info
       nickname,
+      unresolvedContractCount,
+      colleggtibleTiers,
+      hasManualTiers,
+      onColleggtibleTiersChange,
+      onResetTiers,
       lastRefreshed,
       lastRefreshedRelative,
       egg,

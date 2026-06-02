@@ -82,7 +82,6 @@ export function farmEggLayingRate(
   artifacts: Artifact[]
 ): number {
   return (
-    (farm.numChickens! as number) *
-    farmEggLayingRatePerChicken(farmEggLayingRateResearches(farm, progress), artifacts)
+    (farm.numChickens! as number) * farmEggLayingRatePerChicken(farmEggLayingRateResearches(farm, progress), artifacts)
   );
 }

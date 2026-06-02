@@ -144,7 +144,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs, PropType, computed } from 'vue';
+import { defineComponent, toRefs, PropType, computed, inject, type ComputedRef } from 'vue';
 import dayjs from 'dayjs';
 import {
   ei,
@@ -162,6 +162,7 @@ import {
   formatDurationAuto,
   iconURL,
   getNumTruthEggs,
+  type Modifiers,
 } from '@/lib';
 import { formatWithThousandSeparators } from '@/utils';
 import BaseInfo from 'ui/components/BaseInfo.vue';
@@ -180,44 +181,48 @@ export default defineComponent({
     const farm = backup.value.farms![0];
     const progress = backup.value.game!;
     const artifacts = homeFarmArtifacts(backup.value, true);
-    const modifiers = allModifiersFromColleggtibles(backup.value);
+    const injectedMods = inject<ComputedRef<Modifiers> | undefined>('colleggtibleModifiers', undefined);
+    const modifiers = computed(() => injectedMods?.value ?? allModifiersFromColleggtibles(backup.value));
 
     const habs = farmHabs(farm);
     const researches = farmHabSpaceResearches(farm);
-    const habSpaces = farmHabSpaces(habs, researches, artifacts, modifiers.habCap);
-    const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
+    const habSpaces = computed(() => farmHabSpaces(habs, researches, artifacts, modifiers.value.habCap));
+    const totalHabSpace = computed(() => Math.round(habSpaces.value.reduce((total, s) => total + s)));
 
     const lastRefreshedTimestamp = farm.lastStepTime! * 1000;
     const lastRefreshedPopulation = farm.numChickens! as number;
 
     const totalTruthEggs = getNumTruthEggs(backup.value);
     const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
-    const { onlineRate: onlineIHR, offlineRate: offlineIHR } = farmInternalHatcheryRates(
-      internalHatcheryResearches,
-      artifacts,
-      modifiers.ihr,
-      totalTruthEggs
+    const ihrRates = computed(() =>
+      farmInternalHatcheryRates(internalHatcheryResearches, artifacts, modifiers.value.ihr, totalTruthEggs)
     );
+    const onlineIHR = computed(() => ihrRates.value.onlineRate);
+    const offlineIHR = computed(() => ihrRates.value.offlineRate);
 
     const currentPopulation = computed(() =>
       calculateCurrentPopulation(
         lastRefreshedPopulation,
-        offlineIHR,
+        offlineIHR.value,
         currentTimestamp.value,
         lastRefreshedTimestamp,
-        totalHabSpace
+        totalHabSpace.value
       )
     );
 
-    const eggLayingRate = farmEggLayingRate(farm, progress, artifacts) * modifiers.elr;
-    const totalVehicleSpace = farmShippingCapacity(farm, progress, artifacts, modifiers.shippingCap);
-    const maxEffectivePopulation = (totalVehicleSpace / eggLayingRate) * lastRefreshedPopulation;
+    const eggLayingRate = computed(() => farmEggLayingRate(farm, progress, artifacts) * modifiers.value.elr);
+    const totalVehicleSpace = computed(() =>
+      farmShippingCapacity(farm, progress, artifacts, modifiers.value.shippingCap)
+    );
+    const maxEffectivePopulation = computed(
+      () => (totalVehicleSpace.value / eggLayingRate.value) * lastRefreshedPopulation
+    );
 
     const groupedHabs = computed(() => {
       const groups = new Map<string, { name: string; iconPath: string; count: number; spacePerUnit: number }>();
       for (let i = 0; i < habs.length; i++) {
         const hab = habs[i];
-        const space = habSpaces[i];
+        const space = habSpaces.value[i];
         if (!groups.has(hab.name)) {
           groups.set(hab.name, { name: hab.name, iconPath: hab.iconPath, count: 0, spacePerUnit: space });
         }
@@ -228,9 +233,9 @@ export default defineComponent({
 
     const unfinishedResearches = researches.filter(r => r.level < r.maxLevel);
 
-    const timeToHabLock = (ihr: number) => calculateTimeToHabLock(totalHabSpace, currentPopulation.value, ihr);
+    const timeToHabLock = (ihr: number) => calculateTimeToHabLock(totalHabSpace.value, currentPopulation.value, ihr);
     const timeToMaxEffectivePop = (ihr: number) =>
-      calculateTimeToHabLock(maxEffectivePopulation, currentPopulation.value, ihr);
+      calculateTimeToHabLock(maxEffectivePopulation.value, currentPopulation.value, ihr);
 
     return {
       groupedHabs,

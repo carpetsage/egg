@@ -161,10 +161,14 @@ export function getExecutor<T extends ActionType>(type: T): ActionExecutor<T> {
 export function computeDependencies(
   type: ActionType,
   payload: ActionPayloadMap[ActionType],
-  existingActions: Action[],
+  existingActions: Action[] = [],
   initialResearchLevels: Record<string, number> = {}
 ): string[] {
   const deps: string[] = [];
+
+  if (!existingActions || !Array.isArray(existingActions)) {
+    return [];
+  }
 
   // 1. Every action depends on the most recent shift/start_ascension (the "group header")
   // This ensures that undoing a shift also undoes all actions performed during that shift.

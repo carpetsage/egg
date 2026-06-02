@@ -48,14 +48,31 @@
     </template>
 
     <div v-if="sortedResearches.length === 0" class="px-4 py-8 text-center text-gray-500 italic bg-gray-50">
-      No researches match this criteria or all are maxed.
+      <div v-if="isMissingRealisticData" class="max-w-xs mx-auto">
+        <p class="text-gray-900 font-bold not-italic mb-1 text-sm">Artifact Data Required</p>
+        <p class="text-[11px] leading-relaxed mb-4 not-italic">
+          Realistic predictions require your artifact inventory. We omit this data from saved plans for privacy when sharing files.
+          Click below to refresh your local data and enable the realistic view for this session.
+        </p>
+        <button
+          class="btn-premium btn-primary w-full mt-2"
+          @click="$emit('refresh-backup')"
+        >
+          Refresh & Fix Plan
+        </button>
+      </div>
+      <template v-else>
+        No researches match this criteria or all are maxed.
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { type CommonResearch } from '@/calculations/commonResearch';
 import { type ViewType } from '@/composables/useResearchViews';
+import { useInitialStateStore } from '@/stores/initialState';
 import ResearchItem from './ResearchItem.vue';
 
 interface SortedResearchItem {
@@ -83,7 +100,7 @@ interface SortedResearchItem {
   showDeadlineWarning?: boolean;
 }
 
-defineProps<{
+const props = defineProps<{
   sortedResearches: SortedResearchItem[];
   view: ViewType;
   thresholds: readonly number[];
@@ -91,5 +108,8 @@ defineProps<{
   getResearchTimeToBuySeconds: (r: CommonResearch) => number;
 }>();
 
-defineEmits(['buy', 'max', 'buy-to-here']);
+const initialStateStore = useInitialStateStore();
+const isMissingRealisticData = computed(() => props.view === 'elr' && !initialStateStore.rawBackup);
+
+defineEmits(['buy', 'max', 'buy-to-here', 'refresh-backup']);
 </script>

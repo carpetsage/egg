@@ -153,7 +153,7 @@
                   <button
                     class="btn-premium btn-primary px-5 py-2 mt-auto w-full"
                     :disabled="loading || !playerId"
-                    @click="triggerReconcile"
+                    @click="confirmUnsavedChanges(triggerReconcile)"
                   >
                     Reconcile
                   </button>
@@ -307,7 +307,10 @@
             </button>
           </div>
           <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-            <AvailableActions @show-current-details="showCurrentDetails" />
+            <AvailableActions 
+              @show-current-details="showCurrentDetails" 
+              @refresh-backup="handleRefreshReconcile"
+            />
           </div>
         </div>
       </div>
@@ -399,7 +402,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import TheNavBar from 'ui/components/NavBar.vue';
-import { getSavedPlayerID, savePlayerID, requestFirstContact, iconURL } from 'lib';
+import { getSavedPlayerID, savePlayerID, requestFirstContact, resolveContractsInBackup } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -407,10 +410,7 @@ import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useEventsStore } from '@/stores/events';
-import { useCommonResearchStore } from '@/stores/commonResearch';
-import { useHabCapacityStore } from '@/stores/habCapacity';
-import { useShippingCapacityStore } from '@/stores/shippingCapacity';
-import { useSilosStore } from '@/stores/silos';
+
 import { useNotesStore } from '@/stores/notes';
 import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
@@ -435,8 +435,17 @@ import { restoreFromSnapshot } from '@/lib/actions/snapshot';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import type { Action, VirtueEgg } from '@/types';
-import { VIRTUE_EGGS } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { getArtifact, getArtifactLoadoutFromBackup } from '@/lib/artifacts';
+import {
+  initStartFromScratch,
+  initPlanFuture,
+  initContinueCurrent,
+  initReconcile,
+  loadAndSyncBackup,
+  captureReconciliationTargets,
+  catchUpFarmState,
+} from '@/lib/modes';
 
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
 const loading = ref(false);
@@ -449,10 +458,7 @@ const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
 const eventsStore = useEventsStore();
 const salesStore = useSalesStore();
-const commonResearchStore = useCommonResearchStore();
-const habCapacityStore = useHabCapacityStore();
-const shippingCapacityStore = useShippingCapacityStore();
-const silosStore = useSilosStore();
+
 const notesStore = useNotesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 const { partitionHash, saveActiveDraft, initPersistence, broadcastPresence } = usePersistence();
@@ -709,48 +715,17 @@ function executeClearAll() {
 
 /**
  * Start from Scratch: Full reset.
- * Wipes the action history, clears player data from stores,
- * and resets initial state to defaults — equivalent to a hard refresh.
+ * Delegates to initStartFromScratch mode initializer.
  */
 async function startFromScratch() {
   error.value = '';
-
-  // 1. Wipe action history first to stop any ongoing simulations
-  // and clear the start action's carry-over state.
-  const startAction = actionsStore.getStartAction();
-  if (startAction) {
-    startAction.payload.initialFarmState = undefined;
-    startAction.payload.isQuickContinue = false;
-    startAction.payload.initialEgg = 'curiosity';
+  try {
+    await initStartFromScratch();
+    isHeaderCollapsed.value = true;
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Reset failed';
+    console.error('Start from Scratch error:', e);
   }
-  actionsStore.isReconciling = false;
-  actionsStore.showIncompleteOnly = false;
-  await actionsStore.clearAll();
-
-  // 2. Reset all definition stores to their default/clean states.
-  // We do this AFTER clearAll because clearAll's simulation sync
-  // would otherwise overwrite these stores with old snapshot data.
-  const cachedBackup = initialStateStore.rawBackup;
-  const cachedPlayerId = initialStateStore.playerId;
-  initialStateStore.$reset();
-  if (cachedPlayerId && cachedBackup) {
-    initialStateStore.loadFromBackup(cachedPlayerId, cachedBackup, 'scratch');
-  }
-  virtueStore.$reset();
-  fuelTankStore.$reset();
-  truthEggsStore.$reset();
-  commonResearchStore.$reset();
-  habCapacityStore.$reset();
-  shippingCapacityStore.$reset();
-  silosStore.$reset();
-  notesStore.$reset();
-
-  // 3. Recompute and set a clean initial snapshot from the reset stores.
-  const context = getSimulationContext();
-  const baseState = createBaseEngineState(null);
-  const initialSnapshot = computeSnapshot(baseState, context);
-  await actionsStore.setInitialSnapshot(initialSnapshot);
-  isHeaderCollapsed.value = true;
 }
 
 /**
@@ -767,22 +742,8 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
   error.value = '';
 
   try {
-    // 1. Fetch latest backup
-    await submitPlayerId(playerId.value, 'reconcile');
-
-    // Capture the live state for reconciliation before the plan import overwrites initialStateStore
-    if (initialStateStore.currentFarmState) {
-      actionsStore.reconcileFarmState = JSON.parse(JSON.stringify(initialStateStore.currentFarmState));
-    } else {
-      actionsStore.reconcileFarmState = null;
-    }
-    actionsStore.reconcileEggsDelivered = JSON.parse(JSON.stringify(initialStateStore.initialEggsDelivered));
-    actionsStore.reconcileTeEarned = JSON.parse(JSON.stringify(initialStateStore.initialTeEarned));
-
-    // 2. Set reconciliation mode and load the plan
-    actionsStore.isReconciling = true;
-    broadcastPresence(plan.id); // Immediate heartbeat to block other tabs
-    await actionsStore.loadPlanFromLibrary(plan);
+    savePlayerID(playerId.value);
+    await initReconcile(playerId.value, plan, broadcastPresence);
     isHeaderCollapsed.value = true;
   } catch (err) {
     console.error(err);
@@ -801,22 +762,17 @@ async function handleRefreshReconcile() {
     const data = await requestFirstContact(playerId.value);
     if (!data.backup) throw new Error('Could not fetch player backup');
     const backup = data.backup;
+    await resolveContractsInBackup(backup, playerId.value);
 
     // Save backup to DB
     const pHash = await hashID(playerId.value);
     await saveMetadata(pHash, 'rawBackup', backup);
     
-    // Load into state store
-    initialStateStore.loadFromBackup(playerId.value, backup, 'reconcile');
-    
+    // Load into state store and sync global stores
+    loadAndSyncBackup(playerId.value, backup, 'reconcile');
+
     // Update reconciliation targets in actionsStore
-    if (initialStateStore.currentFarmState) {
-      actionsStore.reconcileFarmState = JSON.parse(JSON.stringify(initialStateStore.currentFarmState));
-    } else {
-      actionsStore.reconcileFarmState = null;
-    }
-    actionsStore.reconcileEggsDelivered = JSON.parse(JSON.stringify(initialStateStore.initialEggsDelivered));
-    actionsStore.reconcileTeEarned = JSON.parse(JSON.stringify(initialStateStore.initialTeEarned));
+    captureReconciliationTargets();
 
     // No full recalculateAll() needed here, as reconciliation statuses are reactive getters.
   } catch (err) {
@@ -835,15 +791,17 @@ function onFormInput(e: Event) {
   error.value = '';
 }
 
-async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'continue_earnings' | 'continue_elr' | 'reconcile' | 'default' = 'default') {
+/**
+ * Load player data from the server when the player ID form is submitted.
+ * This is NOT a mode initializer — it just fetches player data so the
+ * mode buttons become usable and player info is displayed.
+ */
+async function submitPlayerId(id: string) {
   playerId.value = id;
   savePlayerID(id);
   error.value = '';
   loading.value = true;
-
-  if (mode === 'default') {
-    notesStore.$reset();
-  }
+  notesStore.$reset();
 
   try {
     // Clear existing plan to ensure a fresh start with new player data
@@ -852,6 +810,7 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
+    await resolveContractsInBackup(backup, id);
 
     try {
       const pHash = await hashID(id);
@@ -860,91 +819,19 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
       console.error('Failed to save raw backup to DB', dbErr);
     }
 
-    // Store the backup data in initial state
-    const { initialShiftCount, initialTE, tankLevel, virtueFuelAmounts, eggsDelivered, teEarnedPerEgg } =
-      initialStateStore.loadFromBackup(id, backup, mode);
+    // Load into state store and sync global stores
+    const { teEarnedPerEgg } = loadAndSyncBackup(id, backup, 'default');
 
-    // Calculate extra eggs since backup if on a virtue egg
-    if (initialStateStore.currentFarmState && initialStateStore.lastBackupTime > 0) {
-      const farm = initialStateStore.currentFarmState;
-      const egg = VIRTUE_EGGS[farm.eggType - 50];
-      const now = Date.now() / 1000;
-      const elapsed = now - initialStateStore.lastBackupTime;
-
-      if (elapsed > 0) {
-        const context = getSimulationContext();
-        const tempState = createBaseEngineState(null);
-        tempState.currentEgg = egg;
-        tempState.habIds = farm.habs;
-        tempState.vehicles = farm.vehicles;
-        tempState.researchLevels = farm.commonResearches;
-        tempState.siloCount = farm.numSilos;
-        tempState.population = farm.population;
-        tempState.lastStepTime = farm.lastStepTime;
-
-        const snapshot = computeSnapshot(tempState, context);
-        const startPop = farm.population;
-        const extraChickens = (snapshot.offlineIHR / 60) * elapsed;
-        const endPop = Math.min(snapshot.habCapacity, startPop + extraChickens);
-
-        // Update population
-        farm.population = endPop;
-
-        // Recompute snapshot at end population to get accurate end-of-period ELR
-        tempState.population = endPop;
-        const endSnapshot = computeSnapshot(tempState, context);
-
-        // Average ELR and Offline Earnings for catch-up (accurate linear approximation)
-        const avgELR = (snapshot.elr + endSnapshot.elr) / 2;
-        const extraEggs = avgELR * elapsed;
-
-        const avgOfflineEarnings = (snapshot.offlineEarnings + endSnapshot.offlineEarnings) / 2;
-        const extraCash = avgOfflineEarnings * elapsed;
-
-        if (extraEggs > 0 || extraCash > 0) {
-          // 1. Update farm state
-          farm.deliveredEggs += extraEggs;
-          farm.cashEarned += extraCash;
-          farm.cash += extraCash;
-
-          // 2. Update store's initial delivered eggs
-          const newDelivered = (eggsDelivered[egg] || 0) + extraEggs;
-          initialStateStore.setInitialEggsDelivered(egg, newDelivered);
-
-          // 3. Update local eggsDelivered for later store initialization
-          eggsDelivered[egg] = newDelivered;
-
-          // 4. Recalculate pending TE for this egg
-          const theoreticalTE = countTEThresholdsPassed(newDelivered);
-          const earned = teEarnedPerEgg[egg];
-          initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - earned));
-        }
-
-        farm.lastStepTime = now;
-      }
-    }
-
-    // Initialize virtue store with player's shift count and TE
-    virtueStore.setInitialState(initialShiftCount, initialTE);
-
-    // Initialize fuel tank store with player's tank data
-    fuelTankStore.setTankLevel(tankLevel);
-    for (const [egg, amount] of Object.entries(virtueFuelAmounts)) {
-      fuelTankStore.setFuelAmount(egg as VirtueEgg, amount);
-    }
-
-    // Initialize truth eggs store with player's TE data
-    for (const [egg, amount] of Object.entries(eggsDelivered)) {
-      truthEggsStore.setEggsDelivered(egg as VirtueEgg, amount);
-    }
-    for (const [egg, count] of Object.entries(teEarnedPerEgg)) {
-      truthEggsStore.setTEEarned(egg as VirtueEgg, count);
-    }
-
-    // Create the start_ascension action with initial snapshot
+    // Catch-up calculations (eggs, earnings, population) are now handled 
+    // automatically by computeSnapshot in the engine.
     const context = getSimulationContext();
     const baseState = createBaseEngineState(null);
     const initialSnapshot = computeSnapshot(baseState, context);
+    
+    // Sync farm state and Truth Eggs with caught-up values
+    catchUpFarmState(initialSnapshot, baseState.bankValue, context.ascensionStartTime, teEarnedPerEgg);
+
+    // Initialize initial state in actions store
     await actionsStore.setInitialSnapshot(initialSnapshot);
 
     loading.value = false;
@@ -955,8 +842,78 @@ async function submitPlayerId(id: string, mode: 'scratch' | 'plan_next' | 'conti
   }
 }
 
-function triggerQuickContinue() {
-  showArtifactSetConfirm.value = true;
+/**
+ * Try to determine which artifact set they have on based on stones.
+ */
+function detectArtifactSet(loadout: import('@/lib/artifacts').EquippedArtifact[]): 'earnings' | 'elr' | null {
+  let totalSlots = 0;
+  const allStones: string[] = [];
+
+  for (const slot of loadout) {
+    if (slot.artifactId) {
+      const artifact = getArtifact(slot.artifactId);
+      if (artifact) {
+        totalSlots += artifact.slots;
+      }
+    }
+    for (const stoneId of slot.stones) {
+      if (stoneId) {
+        allStones.push(stoneId);
+      }
+    }
+  }
+
+  // 1. If their artifact set has at least 3 stone slots, we can try to determine which set it is
+  if (totalSlots < 3) {
+    return null;
+  }
+
+  // If no stones are equipped, we can't reliably determine the set
+  if (allStones.length === 0) {
+    return null;
+  }
+
+  const isLunar = (id: string) => id.startsWith('lunar-stone-');
+  const isELR = (id: string) => id.startsWith('quantum-stone-') || id.startsWith('tachyon-stone-');
+
+  // 2. If all the stones are lunar stones, it's the earnings set
+  if (allStones.every(isLunar)) {
+    return 'earnings';
+  }
+
+  // 3. If all the stones are either quantum or tachyon, it's the elr set
+  if (allStones.every(isELR)) {
+    return 'elr';
+  }
+
+  return null;
+}
+
+async function triggerQuickContinue() {
+  if (!playerId.value) return;
+  loading.value = true;
+  error.value = '';
+
+  try {
+    const data = await requestFirstContact(playerId.value);
+    if (!data.backup) throw new Error('Could not fetch player backup');
+    const backup = data.backup;
+    await resolveContractsInBackup(backup, playerId.value);
+
+    const loadout = getArtifactLoadoutFromBackup(backup);
+    const detectedSet = detectArtifactSet(loadout);
+
+    if (detectedSet) {
+      handleArtifactSetSelection(detectedSet);
+    } else {
+      loading.value = false;
+      showArtifactSetConfirm.value = true;
+    }
+  } catch (e) {
+    loading.value = false;
+    error.value = e instanceof Error ? e.message : 'Quick Continue failed';
+    console.error('Quick Continue error:', e);
+  }
 }
 
 function handleArtifactSetSelection(selection: 'earnings' | 'elr') {
@@ -971,34 +928,20 @@ async function quickContinueAscension(selection: 'earnings' | 'elr') {
   loading.value = true;
 
   try {
-    // 1. Reset date/time/TZ to current
-    virtueStore.resetToCurrentDateTime();
-    virtueStore.setBankValue(0);
-
-    // 3. Refresh backup (submitPlayerId)
-    await submitPlayerId(playerId.value, selection === 'earnings' ? 'continue_earnings' : 'continue_elr');
-
-    notesStore.$reset();
-
-    // 4. Trigger continue from backup
-    actionsStore.isReconciling = false;
-    await actionsStore.continueFromBackup(true);
-
+    savePlayerID(playerId.value);
+    await initContinueCurrent(playerId.value, selection);
     isHeaderCollapsed.value = true;
-    loading.value = false;
   } catch (e) {
-    loading.value = false;
     error.value = e instanceof Error ? e.message : 'Quick Continue failed';
     console.error('Quick Continue error:', e);
+  } finally {
+    loading.value = false;
   }
 }
 
 /**
  * Plan Next Ascension:
- * 1. Load latest player data (reuses submitPlayerId)
- * 2. Include pending TE
- * 3. Reset ascension date/time/timezone to current values
- * 4. Clear action history (wipe old plan)
+ * Delegates to initPlanFuture mode initializer.
  */
 async function planNextAscension() {
   if (!playerId.value) return;
@@ -1007,64 +950,14 @@ async function planNextAscension() {
   loading.value = true;
 
   try {
-    // 1. Wipe current plan
-    await actionsStore.clearAll();
-
-    // 2. Load latest backup
-    await submitPlayerId(playerId.value, 'plan_next');
-
-    // 3. Include pending TE
-    for (const egg of Object.keys(initialStateStore.initialTePending) as VirtueEgg[]) {
-      const pending = initialStateStore.initialTePending[egg];
-      if (pending > 0) {
-        const currentEarned = initialStateStore.initialTeEarned[egg];
-        const newTotal = Math.min(98, currentEarned + pending);
-        truthEggsStore.setTEEarned(egg, newTotal);
-        initialStateStore.setInitialTePending(egg, 0);
-      }
-    }
-    // Sync back
-    for (const egg of Object.keys(initialStateStore.initialTeEarned) as VirtueEgg[]) {
-      initialStateStore.setInitialEggsDelivered(egg, truthEggsStore.eggsDelivered[egg]);
-      initialStateStore.setInitialTeEarned(egg, truthEggsStore.teEarned[egg]);
-    }
-    virtueStore.setTE(truthEggsStore.totalTE);
-    virtueStore.setInitialTE(truthEggsStore.totalTE);
-
-    // 4. Reset ascension date/time/timezone to current
-    virtueStore.resetToCurrentDateTime();
-
-    // 5. Clear any farm state from a previous Continue so the start action is clean
-    const startAction = actionsStore.getStartAction();
-    if (startAction) {
-      startAction.payload.initialFarmState = undefined;
-      startAction.payload.isQuickContinue = false;
-    }
-
-    // 6. Reset purchase state to defaults (fresh ascension)
-    commonResearchStore.$reset();
-    habCapacityStore.$reset();
-    shippingCapacityStore.$reset();
-    silosStore.$reset();
-    notesStore.$reset();
-    virtueStore.setBankValue(0);
-
-    // 7. Set starting egg to Curiosity
-    virtueStore.setCurrentEgg('curiosity');
-    actionsStore.setInitialEgg('curiosity');
-
-    // 8. Recalculate initial snapshot with updated TE
-    const context = getSimulationContext();
-    const baseState = createBaseEngineState(null);
-    const initialSnapshot = computeSnapshot(baseState, context);
-    await actionsStore.setInitialSnapshot(initialSnapshot);
-
+    savePlayerID(playerId.value);
+    await initPlanFuture(playerId.value);
     isHeaderCollapsed.value = true;
-    loading.value = false;
   } catch (e) {
-    loading.value = false;
     error.value = e instanceof Error ? e.message : 'Plan Next failed';
     console.error('Plan Next Ascension error:', e);
+  } finally {
+    loading.value = false;
   }
 }
 

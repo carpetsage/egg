@@ -6,7 +6,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-import {requestFirstContact, UserBackupEmptyError } from 'lib';
+import {requestFirstContact, resolveContractsInBackup, UserBackupEmptyError } from 'lib';
 import EggsLaid from '@/components/EggsLaid.vue';
 import MaxChickens from '@/components/MaxChickens.vue';
 
@@ -29,6 +29,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
+    await resolveContractsInBackup(backup, playerId);
     if (!backup.settings) {
       throw new Error(`${playerId}: settings not found in backup`);
     }

@@ -16,9 +16,7 @@
         {{ completionForecast.format('LLL z') }}
       </span>
       <template v-if="completionForecastDays !== null && completionForecastDays > 0">
-        <template v-if="completionForecastDays > 1">
-          ({{ completionForecastDays.toFixed(1) }} days)
-        </template>
+        <template v-if="completionForecastDays > 1"> ({{ completionForecastDays.toFixed(1) }} days) </template>
         <template v-else> (in {{ completionForecastFormattedDuration }})</template>
       </template>
     </template>
@@ -102,18 +100,10 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const {
-      trophyLevel,
-      trophyName,
-      lastRefreshedPopulation,
-      lastRefreshedTimestamp,
-      targetPopulation,
-      offlineIHR,
-    } = toRefs(props);
+    const { trophyLevel, trophyName, lastRefreshedPopulation, lastRefreshedTimestamp, targetPopulation, offlineIHR } =
+      toRefs(props);
     const trophyDisplayName = computed(() =>
-      trophyName.value !== undefined
-        ? trophyName.value
-        : `Enlightenment ${trophyLevel.value} Trophy`
+      trophyName.value !== undefined ? trophyName.value : `Enlightenment ${trophyLevel.value} Trophy`
     );
     const completionForecast = computed(() => {
       if (lastRefreshedPopulation.value < targetPopulation.value && offlineIHR.value > 0) {
@@ -126,9 +116,7 @@ export default defineComponent({
     });
     const now = ref(dayjs());
     const completionForecastDays = computed(() =>
-      completionForecast.value !== null
-        ? completionForecast.value.diff(now.value, 'day', true)
-        : null
+      completionForecast.value !== null ? completionForecast.value.diff(now.value, 'day', true) : null
     );
     const completionForecastFormattedDuration = computed(() =>
       completionForecast.value !== null

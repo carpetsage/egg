@@ -788,7 +788,8 @@ export function useResearchViews() {
               },
               showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline.value),
             };
-          });
+          })
+          .filter(c => c.impact > 0);
       } else {
         // Potential mode: theoretical formula-based impact
         const currentSlots = calculateMaxVehicleSlots(researchLevels);

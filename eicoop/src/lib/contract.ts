@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { ei, requestFirstContact, titleCase, ContractLeague } from 'lib';
+import { ei, requestFirstContact, resolveContractsInBackup, titleCase, ContractLeague } from 'lib';
 
 export type ContractType = 'Original' | 'Leggacy';
 
@@ -33,14 +33,19 @@ export async function getContractFromPlayerSave(
     throw new Error(`No backup found in /ei/bot_first_contact response for ${userId}.`);
   }
   const backup = firstContact.backup!;
+  await resolveContractsInBackup(backup, userId);
   if (!backup.contracts) {
     throw new Error(`No contracts found in ${userId}'s backup.`);
   }
   const localContracts = [...(backup.contracts.contracts ?? []), ...(backup.contracts.archive ?? [])];
   for (const contract of localContracts) {
-    if (contractId === contract.contract!.identifier) {
+    const id = contract.contractIdentifier || contract.contract?.identifier;
+    if (contractId === id) {
+      if (!contract.contract) {
+        return null;
+      }
       return {
-        contract: contract.contract!,
+        contract: contract.contract,
         league: contract.league ?? null,
         grade: contract.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET,
         creatorName: backup.userName ?? '',
