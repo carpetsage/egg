@@ -13,9 +13,9 @@
 //   k_i        integer multiplicity (number of batches) of option i
 //   α (alpha)  expected craftable count of the root artifact for a
 //              given inventory — the inner LP's value (value-function.ts)
-//   Q          −log(1 − p_legendary_per_craft); constant for a target
-//   score      Q·α + Σ k_i·(direct legendary yield of the root). This
-//              is the quantity actually maximised here — NOT α. Locals
+//   Q_T        −log(1 − p_legendary_per_craft_T); constant for a target T
+//   score      Σ_T Q_T·p_T + Σ k_i·(direct legendary yield of the targets).
+//              This is the quantity actually maximised here — NOT α. Locals
 //              named `score` / `evalScore` hold this composite value.
 //   Z          options with zero fuel cost   (r_i = 0)
 //   P          options with positive fuel cost (r_i > 0)
@@ -83,23 +83,28 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
     epsilon = DEFAULT_EPSILON,
   } = args;
 
-  const innerLp = compileInnerLp(recipe_dag, desired_artifact_node_ids);
-  const root = innerLp.root;
+  // Per-target legendary log-odds weights Q_T = −log(1 − p_legendary_per_craft_T),
+  // constant for each chosen artifact. These weight the inner LP's craft objective
+  // (Σ_T Q_T · p_T) so a craft of a higher-value target counts for more.
+  const targets = desired_artifact_node_ids;
+  const QByTarget = new Map<string, number>();
+  for (const t of targets) {
+    const pCraft = recipe_dag.get(t)?.legendaryCraftProbability ?? 0;
+    QByTarget.set(t, pCraft <= 0 ? 0 : pCraft >= 1 ? 1e6 : -Math.log(1 - pCraft));
+  }
+
+  const innerLp = compileInnerLp(recipe_dag, desired_artifact_node_ids, QByTarget);
   const scratchInv = new Map<string, number>();
 
   // Direct optimisation of best_probability via the substitution
-  //   score(alloc) = q · α(alloc) + Σ k_i · L_i[root]
-  //                = −log(1 − best_probability(alloc))
-  // where q = −log(1 − p_legendary_per_craft) is constant for the
-  // chosen artifact. Maximising score maximises best_probability and
-  // is monotone in the budget S, eliminating the objective-mismatch
-  // source of probability non-monotonicity. The score is concave in
-  // inventory (α is concave; the legendary term is linear), so the
-  // ternary search, dominance, and dual filter remain valid.
-  const rootNode = recipe_dag.get(root);
-  const pCraft = rootNode?.legendaryCraftProbability ?? 0;
-  const Q = pCraft <= 0 ? 0 : pCraft >= 1 ? 1e6 : -Math.log(1 - pCraft);
-
+  //   score(alloc) = Σ_T Q_T · p_T*(alloc)  +  Σ_T Σ_i k_i · L_i[T]
+  //               = (inner weighted craft value) + (direct legendary drops)
+  // Maximising score maximises best_probability and is monotone in the budget S.
+  // The inner score is concave in inventory (a weighted sum of concave LP values)
+  // and the legendary term is linear, so the ternary search, dominance, and dual
+  // filter remain valid. Direct *non-legendary* drops of a target no longer enter
+  // the craft value: a final target has no conservation row, so its inventory is
+  // inert; an ingredient-target's drops feed its parent through that row instead.
   const evalScoreAt = (multipliers: ReadonlyArray<readonly [number, number]>): number => {
     scratchInv.clear();
     for (const [k, v] of base_yield) scratchInv.set(k, v);
@@ -110,16 +115,15 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
       for (const [n, r] of opt.yield_vector) {
         scratchInv.set(n, (scratchInv.get(n) ?? 0) + k * r);
       }
-      directLegendary += k * (opt.legendary_yield_vector.get(root) ?? 0);
+      for (const t of targets) directLegendary += k * (opt.legendary_yield_vector.get(t) ?? 0);
     }
-    const alpha = innerLp.solve(scratchInv).alpha;
-    return Q * alpha + directLegendary;
+    return innerLp.solve(scratchInv).score + directLegendary;
   };
 
   const baseScore = (() => {
     scratchInv.clear();
     for (const [k, v] of base_yield) scratchInv.set(k, v);
-    return Q * innerLp.solve(scratchInv).alpha;
+    return innerLp.solve(scratchInv).score;
   })();
 
   // ------------------------------------------------------------
@@ -244,7 +248,7 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
   // ------------------------------------------------------------
   // Step 2 — Joint LP relaxation (in score units)
   // ------------------------------------------------------------
-  const jointLp = solveJointLp(allSurvivors, options, innerLp, R, S, base_yield, root, recipe_dag, Q);
+  const jointLp = solveJointLp(allSurvivors, options, innerLp, R, S, base_yield, targets, recipe_dag, QByTarget);
   const scoreLP = jointLp.score;
   const lpSupport = new Set<number>(jointLp.support);
 
@@ -252,10 +256,13 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
   // Step 2b — LP-dual marginal-value filter (score units)
   //
   // At the LP optimum every action's reduced cost is RC_i ≤ 0:
-  //   c_i  = Q · Δ_i[root] + L_i[root]
+  //   c_i  = Σ_T L_i[T]
   //   RC_i = c_i + Σ_n Δ_i[n] · y_n − r_i · y_R − s_i · y_S
   // where y_R, y_S are the budget shadow prices and y_n are the
-  // ingredient shadow prices on the inner conservation rows. Using
+  // ingredient/target shadow prices on the inner conservation rows. The
+  // craft value of an option's drops (including drops of an ingredient-
+  // target) is carried entirely by the Σ_n Δ_i[n] · y_n term — direct
+  // target drops are never rewarded by a standalone Q · Δ_i[T] term. Using
   // action i at multiplicity k_i costs k_i · |RC_i| in score-units —
   // by complementary slackness this is the lower bound on how much
   // score the LP would lose if the integer program were forced to
@@ -272,7 +279,8 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
       if (!survives[i]) continue;
       if (lpSupport.has(i)) continue; // never drop an option in the LP support
       const opt = options[i];
-      let rc = Q * (opt.yield_vector.get(root) ?? 0) + (opt.legendary_yield_vector.get(root) ?? 0);
+      let rc = 0;
+      for (const t of targets) rc += opt.legendary_yield_vector.get(t) ?? 0;
       rc -= opt.actual_fuel * yR;
       rc -= opt.actual_time * yS;
       for (const [n, dn] of nodeDuals) {
@@ -369,22 +377,30 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
     });
   }
 
-  // Root is the target, not an ingredient; its legendary drops flow via
-  // legendary_yield_vector → drop_probability. Exclude it so rootDirect = 0
-  // and alpha = craft_primal[root], keeping the craft chain consistent.
-  final_yield_vector.delete(root);
-
-  // Recover the deterministic α at the chosen integer allocation
-  // (one extra inner-LP solve) since alphaToProb takes raw α, not score.
+  // Recover the deterministic per-target craftable counts at the chosen integer
+  // allocation (one extra inner-LP solve). No node deletion is needed: a final
+  // target has no conservation row, so its direct drops in final_yield_vector are
+  // inert; an ingredient-target's drops correctly feed its parent.
   const finalSolve = innerLp.solve(final_yield_vector);
-  const bestAlpha = finalSolve.alpha;
-  const probs = alphaToProb(bestAlpha, total_legendary, desired_artifact_node_ids, recipe_dag);
+  const per_target = desired_artifact_node_ids.map(t => {
+    const craftCount =
+      finalSolve.craftByTarget.get(t) ?? (recipe_dag.get(t)?.is_leaf ? (final_yield_vector.get(t) ?? 0) : 0);
+    const p = alphaToProb(craftCount, total_legendary, [t], recipe_dag);
+    return { nodeId: t, expected_crafts: craftCount, ...p };
+  });
+  // Scalar fields report the primary target; multi-target consumers read per_target.
+  const primary = per_target[0] ?? {
+    best_probability: 0,
+    craft_probability: 0,
+    drop_probability: 0,
+    expected_crafts: 0,
+  };
 
   return {
-    best_probability: probs.best_probability,
-    craft_probability: probs.craft_probability,
-    drop_probability: probs.drop_probability,
-    expected_crafts: bestAlpha,
+    best_probability: primary.best_probability,
+    craft_probability: primary.craft_probability,
+    drop_probability: primary.drop_probability,
+    expected_crafts: primary.expected_crafts,
     fuel_used,
     fuel_by_egg,
     time_units_used: Math.round(time_secs),
@@ -393,6 +409,7 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
     final_yield_vector,
     recipe_dag,
     craft_primal: finalSolve.primalByNode,
+    per_target,
   };
 }
 
@@ -594,7 +611,7 @@ function ternaryMaxOver<E extends Record<string, number>>(
 // ============================================================
 
 interface JointLpResult {
-  /** LP optimum value in score units = Q · α + Σ x_i · L_i[root] (+ const). */
+  /** LP optimum value in score units = Σ_T Q_T · p_T + Σ x_i · Σ_T L_i[T] (+ const). */
   score: number;
   /** x_i for each surviving option. */
   x: Float64Array;
@@ -615,9 +632,9 @@ function solveJointLp(
   R: number,
   S: number,
   base_yield: Map<string, number>,
-  root: string,
+  targets: string[],
   recipe_dag: RecipeDAG,
-  Q: number
+  QByTarget: Map<string, number>
 ): JointLpResult {
   const nx = survivors.length;
   const np = innerLp.nonLeafNodes.length;
@@ -634,15 +651,19 @@ function solveJointLp(
   }
 
   // Objective in score units:
-  //   max Q · p_root + Σ x_i · (Q · Δ_i[root] + L_i[root])
+  //   max Σ_T Q_T · p_T + Σ x_i · Σ_T L_i[T]
+  // Direct target drops Δ_i[T] are NOT rewarded directly; their craft value is
+  // carried by the conservation rows (a consumed ingredient-target's drops relax
+  // its row), and a final target's drops are inert.
   const c = new Float64Array(totalVars);
-  const rootIdx = innerLp.varIndex.get(root);
-  if (rootIdx !== undefined) c[nx + rootIdx] = Q;
+  for (const [t, q] of QByTarget) {
+    const tIdx = innerLp.varIndex.get(t);
+    if (tIdx !== undefined) c[nx + tIdx] = q;
+  }
   for (let s = 0; s < nx; s++) {
     const opt = options[survivors[s]];
-    const dRoot = opt.yield_vector.get(root) ?? 0;
-    const lRoot = opt.legendary_yield_vector.get(root) ?? 0;
-    const ci = Q * dRoot + lRoot;
+    let ci = 0;
+    for (const t of targets) ci += opt.legendary_yield_vector.get(t) ?? 0;
     if (ci) c[s] = ci;
   }
 
@@ -661,8 +682,10 @@ function solveJointLp(
   A.push(sRow);
   bArr.push(S);
 
-  // Inner conservation constraints: per non-root node n with parents,
+  // Inner conservation constraints: per consumed node n with parents,
   //   Σ_parents q · p_parent − [p_n if non-leaf] − Σ x_i · Δ_i[n] ≤ base_yield[n]
+  // Targets are no longer excluded — an ingredient-target gets a row like any
+  // other consumed node; a final target has no parents and so no row.
   const parentsOf = new Map<string, { parent: string; q: number }[]>();
   for (const [pid, pnode] of recipe_dag) {
     if (pnode.is_leaf) continue;
@@ -680,7 +703,6 @@ function solveJointLp(
   // map duals back by node id after the LP solve.
   const constraintRowNode: string[] = [];
   for (const nodeId of recipe_dag.keys()) {
-    if (nodeId === root) continue;
     const parents = parentsOf.get(nodeId);
     if (!parents || parents.length === 0) continue;
     const row = new Float64Array(totalVars);
@@ -717,7 +739,8 @@ function solveJointLp(
     x[s] = result.primal[s];
     if (x[s] > ZERO_TOL) support.push(survivors[s]);
   }
-  const score = result.objective + Q * (base_yield.get(root) ?? 0);
+  let score = result.objective;
+  for (const [t, q] of QByTarget) score += q * (base_yield.get(t) ?? 0);
   const dualR = result.duals[0];
   const dualS = result.duals[1];
   const nodeDuals = new Map<string, number>();

@@ -106,33 +106,6 @@ describe('compileInnerLp + solve: alpha computation', () => {
     expect(lp.solve(new Map([['D', 4]])).alpha).toBeCloseTo(2, PREC);
   });
 
-  // VF-9 encodes the additive interpretation: direct root drops add to
-  // LP-crafted count rather than substituting for them. Characterization
-  // test — change in formula will fire here.
-  //
-  // VF-9: direct root items in inventory add to crafted count
-  // alpha = LP_obj (crafted from B) + inventory[A] (direct drops)
-  it('VF-9: direct root inv + crafted: inv={B:3, A:2} → alpha=5', () => {
-    const d = dag(node('A', false, [['B', 1]]), node('B', true));
-    const lp = compileInnerLp(d, ['A']);
-    expect(
-      lp.solve(
-        new Map([
-          ['B', 3],
-          ['A', 2],
-        ])
-      ).alpha
-    ).toBeCloseTo(5, PREC);
-  });
-
-  // VF-9b: pure-drops case — LP yields 0 crafts (no B in inventory),
-  // direct root drops should still produce alpha=4 under the additive rule.
-  it('VF-9b: inv={A:4} with no B → alpha=4 (direct drops with zero crafting)', () => {
-    const d = dag(node('A', false, [['B', 1]]), node('B', true));
-    const lp = compileInnerLp(d, ['A']);
-    expect(lp.solve(new Map([['A', 4]])).alpha).toBeCloseTo(4, PREC);
-  });
-
   // VF-10: zero-RHS constraint forces alpha=0
   it('VF-10: inv={B:0} → alpha=0', () => {
     const d = dag(node('A', false, [['B', 1]]), node('B', true));

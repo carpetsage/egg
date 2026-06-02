@@ -71,7 +71,17 @@ export interface DropRow {
   relevant: boolean;
 }
 
+/** Per-target probability breakdown for multi-target runs. */
+export interface TargetProbability {
+  nodeId: string;
+  best_probability: number;
+  craft_probability: number;
+  drop_probability: number;
+  expected_crafts: number;
+}
+
 export interface OptimizerSolution {
+  // Scalar fields report the primary target (desired_artifact_node_ids[0]).
   best_probability: number;
   craft_probability: number;
   drop_probability: number;
@@ -84,6 +94,8 @@ export interface OptimizerSolution {
   final_yield_vector: Map<string, number>;
   recipe_dag: RecipeDAG;
   craft_primal: Map<string, number>;
+  /** One entry per desired target, in order; per_target[0] mirrors the scalar fields. */
+  per_target: TargetProbability[];
 }
 
 // ============================================================
