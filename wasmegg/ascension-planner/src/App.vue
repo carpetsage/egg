@@ -762,7 +762,7 @@ async function handleRefreshReconcile() {
     const data = await requestFirstContact(playerId.value);
     if (!data.backup) throw new Error('Could not fetch player backup');
     const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId.value());
+    await resolveContractsInBackup(backup, playerId.value);
 
     // Save backup to DB
     const pHash = await hashID(playerId.value);
@@ -810,7 +810,7 @@ async function submitPlayerId(id: string) {
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
-    await resolveContractsInBackup(backup, id());
+    await resolveContractsInBackup(backup, id);
 
     try {
       const pHash = await hashID(id);
@@ -898,7 +898,7 @@ async function triggerQuickContinue() {
     const data = await requestFirstContact(playerId.value);
     if (!data.backup) throw new Error('Could not fetch player backup');
     const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId.value());
+    await resolveContractsInBackup(backup, playerId.value);
 
     const loadout = getArtifactLoadoutFromBackup(backup);
     const detectedSet = detectArtifactSet(loadout);
