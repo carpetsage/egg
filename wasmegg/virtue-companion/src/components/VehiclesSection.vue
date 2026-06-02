@@ -111,7 +111,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs, PropType, computed } from 'vue';
+import { defineComponent, toRefs, PropType, computed, inject, type ComputedRef } from 'vue';
 import {
   ei,
   allModifiersFromColleggtibles,
@@ -126,6 +126,7 @@ import {
   fmtApprox,
   eggIconPath,
   iconURL,
+  type Modifiers,
 } from '@/lib';
 
 export default defineComponent({
@@ -139,7 +140,8 @@ export default defineComponent({
     const farm = backup.value.farms![0];
     const progress = backup.value.game!;
     const artifacts = homeFarmArtifacts(backup.value, true);
-    const modifiers = allModifiersFromColleggtibles(backup.value);
+    const injectedMods = inject<ComputedRef<Modifiers>>('colleggtibleModifiers', undefined);
+    const modifiers = computed(() => injectedMods?.value ?? allModifiersFromColleggtibles(backup.value));
 
     const egg = farm.eggType!;
     const eggIconURL = iconURL(eggIconPath(egg), 128);
@@ -152,12 +154,16 @@ export default defineComponent({
       perLevel: 1,
       maxLevel: 5,
     });
-    const vehicleSpaces = farmVehicleShippingCapacities(vehicles, researches, artifacts, modifiers.shippingCap);
-    const totalVehicleSpace = farmShippingCapacity(farm, progress, artifacts, modifiers.shippingCap);
+    const vehicleSpaces = computed(() =>
+      farmVehicleShippingCapacities(vehicles, researches, artifacts, modifiers.value.shippingCap)
+    );
+    const totalVehicleSpace = computed(() =>
+      farmShippingCapacity(farm, progress, artifacts, modifiers.value.shippingCap)
+    );
     const vehicleCount = vehicles.length;
     const availableSlots = farmAvailableVehicleSlots(farm, progress);
-    const eggLayingRate = farmEggLayingRate(farm, progress, artifacts) * modifiers.elr;
-    const effectiveELR = Math.min(eggLayingRate, totalVehicleSpace);
+    const eggLayingRate = computed(() => farmEggLayingRate(farm, progress, artifacts) * modifiers.value.elr);
+    const effectiveELR = computed(() => Math.min(eggLayingRate.value, totalVehicleSpace.value));
 
     const groupedVehicles = computed(() => {
       const groups = new Map<
@@ -166,7 +172,7 @@ export default defineComponent({
       >();
       for (let i = 0; i < vehicles.length; i++) {
         const vehicle = vehicles[i];
-        const capacity = vehicleSpaces[i];
+        const capacity = vehicleSpaces.value[i];
         const isHyperloop = vehicle.id === 11;
         const key = isHyperloop ? `${vehicle.name}-${vehicle.trainLength}` : vehicle.name;
 

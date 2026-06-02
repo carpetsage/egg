@@ -33,7 +33,7 @@ const modifierNames = modifierKeys.map(m => ({ name: m, modifier: ei.GameModifie
  * Farm size thresholds for colleggtible progress tiers.
  * Each tier represents a milestone in contract completion.
  */
-const FARM_SIZE_TIERS = [
+export const FARM_SIZE_TIERS = [
   10_000_000, // Tier 1: 10M chickens
   100_000_000, // Tier 2: 100M chickens
   1_000_000_000, // Tier 3: 1B chickens
@@ -51,11 +51,155 @@ export const defaultModifiers: Modifiers = {
   habCost: 1,
   researchCost: 1,
 };
+
+export const FARM_SIZE_TIERS_LABELS = ['<10M', '10M', '100M', '1B', '10B'] as const;
+
+export type ColleggtibleTiers = Record<string, number>;
+
+export type ColleggtibleDimension =
+  | 'earnings'
+  | 'awayEarnings'
+  | 'ihr'
+  | 'elr'
+  | 'shippingCap'
+  | 'habCap'
+  | 'vehicleCost'
+  | 'habCost'
+  | 'researchCost';
+
+const DIMENSION_MAP: Record<number, ColleggtibleDimension> = {
+  [ei.GameModifier.GameDimension.EARNINGS]: 'earnings',
+  [ei.GameModifier.GameDimension.AWAY_EARNINGS]: 'awayEarnings',
+  [ei.GameModifier.GameDimension.INTERNAL_HATCHERY_RATE]: 'ihr',
+  [ei.GameModifier.GameDimension.EGG_LAYING_RATE]: 'elr',
+  [ei.GameModifier.GameDimension.SHIPPING_CAPACITY]: 'shippingCap',
+  [ei.GameModifier.GameDimension.HAB_CAPACITY]: 'habCap',
+  [ei.GameModifier.GameDimension.VEHICLE_COST]: 'vehicleCost',
+  [ei.GameModifier.GameDimension.HAB_COST]: 'habCost',
+  [ei.GameModifier.GameDimension.RESEARCH_COST]: 'researchCost',
+};
+
+const EFFECT_NAMES: Record<ColleggtibleDimension, string> = {
+  earnings: 'Earnings',
+  awayEarnings: 'Away earnings',
+  ihr: 'IHR',
+  elr: 'Lay rate',
+  shippingCap: 'Shipping capacity',
+  habCap: 'Hab capacity',
+  vehicleCost: 'Vehicle cost',
+  habCost: 'Hab cost',
+  researchCost: 'Research cost',
+};
+
+export interface ColleggtibleDef {
+  id: string;
+  name: string;
+  effect: string;
+  dimension: ColleggtibleDimension;
+  tierValues: [number, number, number, number];
+}
+
+export const colleggtibleDefs: ColleggtibleDef[] = customEggs
+  .filter(egg => egg.buffs && egg.buffs.length > 0)
+  .map(egg => {
+    const dimensionEnum = egg.buffs[0].dimension;
+    const dimension = DIMENSION_MAP[dimensionEnum];
+    if (!dimension) return null;
+    const tierValues = egg.buffs.map(b => b.value);
+    const paddedValues = [tierValues[0] ?? 1, tierValues[1] ?? 1, tierValues[2] ?? 1, tierValues[3] ?? 1] as [
+      number,
+      number,
+      number,
+      number,
+    ];
+    return {
+      id: egg.identifier,
+      name: egg.name,
+      effect: EFFECT_NAMES[dimension],
+      dimension,
+      tierValues: paddedValues,
+    };
+  })
+  .filter((def): def is ColleggtibleDef => def !== null);
+
+export function getDefaultColleggtibleTiers(): ColleggtibleTiers {
+  const tiers: ColleggtibleTiers = {};
+  for (const def of colleggtibleDefs) {
+    tiers[def.id] = -1;
+  }
+  return tiers;
+}
+
+export function getColleggtibleMultiplier(id: string, tierIndex: number): number {
+  const def = colleggtibleDefs.find(d => d.id === id);
+  if (!def || tierIndex < 0 || tierIndex > 3) return 1;
+  return def.tierValues[tierIndex];
+}
+
+export function modifiersFromColleggtibleTiers(tiers: ColleggtibleTiers): Modifiers {
+  const modifiers = new Map<ValidModifier, number>(
+    modifierNames.map(modifier => [modifier.name, 1])
+  );
+  const getModifier = (modifier: ValidModifier) => modifiers.get(modifier) ?? 1;
+
+  for (const def of colleggtibleDefs) {
+    const tierIndex = tiers[def.id] ?? -1;
+    if (tierIndex >= 0 && tierIndex <= 3) {
+      const value = def.tierValues[tierIndex];
+      const key = def.dimension as ValidModifier;
+      modifiers.set(key, (modifiers.get(key) ?? 1) * value);
+    }
+  }
+
+  return {
+    earnings: getModifier('EARNINGS'),
+    awayEarnings: getModifier('AWAY_EARNINGS'),
+    ihr: getModifier('INTERNAL_HATCHERY_RATE'),
+    elr: getModifier('EGG_LAYING_RATE'),
+    shippingCap: getModifier('SHIPPING_CAPACITY'),
+    habCap: getModifier('HAB_CAPACITY'),
+    vehicleCost: getModifier('VEHICLE_COST'),
+    habCost: getModifier('HAB_COST'),
+    researchCost: getModifier('RESEARCH_COST'),
+  };
+}
+
+export function formatColleggtibleBonus(multiplier: number, id?: string): string {
+  if (multiplier === 1) return 'No bonus';
+  if (id === 'chocolate' || id === 'wood') return `${multiplier.toFixed(1)}x`;
+  const percent = (multiplier - 1) * 100;
+  if (percent > 0) return `+${percent.toFixed(0)}%`;
+  return `${(multiplier * 100).toFixed(0)}%`;
+}
+
+export function formatTier(tierIndex: number): string {
+  if (tierIndex < 0) return 'None';
+  return `Tier ${tierIndex + 1}`;
+}
+
+export function countUnresolvedContracts(backup: ei.IBackup): number {
+  const allContracts = [...(backup.contracts?.archive ?? []), ...(backup.contracts?.contracts ?? [])];
+  return allContracts.filter(c => !c.contract).length;
+}
+
+let _activeManualTiers: ColleggtibleTiers | null = null;
+
+export function getActiveManualTiers(): ColleggtibleTiers | null {
+  return _activeManualTiers;
+}
+
+export function setActiveManualTiers(tiers: ColleggtibleTiers | null): void {
+  _activeManualTiers = tiers;
+}
+
 /**
  * Calculates all modifier values from colleggtibles in a backup.
- * Returns a structured object with all game modifiers applied.
+ * If manual tiers are active via setActiveManualTiers(), uses those instead.
  */
 export function allModifiersFromColleggtibles(backup: ei.IBackup) {
+  if (_activeManualTiers) {
+    return modifiersFromColleggtibleTiers(_activeManualTiers);
+  }
   const colleggtibles = getAllColleggtibleProgress(backup);
   const modifiers = new Map<ValidModifier, number>(
     modifierNames.map(modifier => [modifier.name, modifierFromCollegtibles(colleggtibles, modifier.modifier)])

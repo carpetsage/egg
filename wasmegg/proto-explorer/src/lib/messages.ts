@@ -2,6 +2,7 @@ import { ei } from 'lib';
 
 const enumNames = [
   'AdNetwork',
+  'AgeComplianceStatus',
   'DeviceFormFactor',
   'Egg',
   'FarmType',

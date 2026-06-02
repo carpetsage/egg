@@ -73,6 +73,49 @@ export async function requestContractsArchive(userId: string): Promise<ei.IContr
   return decodeMessage(ei.ContractsArchive, encodedResponsePayload, true) as ei.IContractsArchive;
 }
 
+export async function requestContractsInfo(
+  contractIdentifiers: string[],
+  userId?: string
+): Promise<ei.IContractsInfoResponse> {
+  userId = userId ?? defaultUserId;
+  const requestPayload: ei.IContractsInfoRequest = {
+    rinfo: basicRequestInfo(userId),
+    contractIdentifiers,
+    clientVersion: CLIENT_VERSION,
+  };
+  const encodedRequestPayload = encodeMessage(ei.ContractsInfoRequest, requestPayload);
+  const encodedResponsePayload = await request('/ei_ctx/get_contracts_info', encodedRequestPayload);
+  return decodeMessage(ei.ContractsInfoResponse, encodedResponsePayload, true) as ei.IContractsInfoResponse;
+}
+
+export async function resolveLocalContracts(
+  localContracts: ei.ILocalContract[],
+  userId?: string
+): Promise<void> {
+  const identifiers = [
+    ...new Set(localContracts.filter(c => !c.contract).map(c => c.contractIdentifier).filter((id): id is string => !!id)),
+  ];
+  if (identifiers.length === 0) {
+    return;
+  }
+  try {
+    const response = await requestContractsInfo(identifiers, userId);
+    const contractMap = new Map((response.contracts || []).map(c => [c.identifier!, c]));
+    for (const localContract of localContracts) {
+      if (!localContract.contract && localContract.contractIdentifier && contractMap.has(localContract.contractIdentifier)) {
+        localContract.contract = contractMap.get(localContract.contractIdentifier)!;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to resolve contract info:', e);
+  }
+}
+
+export async function resolveContractsInBackup(backup: ei.IBackup, userId?: string): Promise<void> {
+  const all = [...(backup.contracts?.contracts || []), ...(backup.contracts?.archive || [])];
+  await resolveLocalContracts(all, userId);
+}
+
 export async function requestShellShowcase(userId?: string): Promise<ei.IShellShowcaseListingSet> {
   userId = userId ?? defaultUserId;
   const requestPayload = basicRequestInfo(userId);

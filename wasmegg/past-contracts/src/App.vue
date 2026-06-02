@@ -1,9 +1,7 @@
 <template>
   <the-nav-bar active-entry-id="past-contracts" />
 
-  <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">
-    Past contracts viewer
-  </h1>
+  <h1 class="mx-4 mt-4 mb-2 text-center text-lg leading-6 font-medium text-gray-900">Past contracts viewer</h1>
 
   <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
@@ -22,8 +20,8 @@
 
     <template v-else>
       <div class="text-sm">
-        This tool pulls the current save of the specified player, and generates a report with their
-        Eggs of Prophecy (PE) progress and completion statuses of all known contracts.
+        This tool pulls the current save of the specified player, and generates a report with their Eggs of Prophecy
+        (PE) progress and completion statuses of all known contracts.
       </div>
     </template>
   </div>
@@ -48,9 +46,7 @@ export default defineComponent({
     TheReport,
   },
   setup() {
-    const playerId = ref(
-      new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || ''
-    );
+    const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
     const refreshId = ref(Date.now());
     const submitPlayerId = (id: string) => {
       playerId.value = id;

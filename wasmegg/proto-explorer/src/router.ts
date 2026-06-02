@@ -10,6 +10,7 @@ import FirstContact from '@/views/FirstContact.vue';
 import GetConfig from '@/views/GetConfig.vue';
 import GetPeriodicals from '@/views/GetPeriodicals.vue';
 import GetContractsArchive from './views/GetContractsArchive.vue';
+import GetContractsInfo from './views/GetContractsInfo.vue';
 import GetShellShowcase from './views/GetShellShowcase.vue';
 
 const header = {
@@ -81,6 +82,15 @@ const router = createRouter({
       path: '/get_contracts_archive/',
       components: {
         default: GetContractsArchive,
+        ...header,
+      },
+      props,
+    },
+    {
+      name: 'contracts_info',
+      path: '/get_contracts_info/',
+      components: {
+        default: GetContractsInfo,
         ...header,
       },
       props,

@@ -402,7 +402,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import TheNavBar from 'ui/components/NavBar.vue';
-import { getSavedPlayerID, savePlayerID, requestFirstContact } from 'lib';
+import { getSavedPlayerID, savePlayerID, requestFirstContact, resolveContractsInBackup } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -762,6 +762,7 @@ async function handleRefreshReconcile() {
     const data = await requestFirstContact(playerId.value);
     if (!data.backup) throw new Error('Could not fetch player backup');
     const backup = data.backup;
+    await resolveContractsInBackup(backup, playerId.value());
 
     // Save backup to DB
     const pHash = await hashID(playerId.value);
@@ -809,6 +810,7 @@ async function submitPlayerId(id: string) {
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
+    await resolveContractsInBackup(backup, id());
 
     try {
       const pHash = await hashID(id);
@@ -896,6 +898,7 @@ async function triggerQuickContinue() {
     const data = await requestFirstContact(playerId.value);
     if (!data.backup) throw new Error('Could not fetch player backup');
     const backup = data.backup;
+    await resolveContractsInBackup(backup, playerId.value());
 
     const loadout = getArtifactLoadoutFromBackup(backup);
     const detectedSet = detectArtifactSet(loadout);

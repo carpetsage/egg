@@ -1,5 +1,19 @@
 <template>
   <main>
+    <div
+      v-if="unresolvedContractCount > 0"
+      class="rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm px-4 py-2 mb-3"
+    >
+      <strong>Contract data is incomplete.</strong>
+      Due to a recent Egg, Inc. update, some contract info could not be loaded. Colleggtible bonuses may be inaccurate.
+      You can manually set your colleggtible tiers below.
+      <colleggtible-config
+        :model-value="colleggtibleTiers"
+        :has-unresolved-contracts="unresolvedContractCount > 0"
+        @update:model-value="onColleggtibleTiersChange"
+      />
+    </div>
+
     <p>{{ nickname }}</p>
     <p class="text-sm">
       Last synced to server:
@@ -32,7 +46,7 @@
       Current egg is <img :src="eggIconURL" class="inline h-8 w-8" />, not
       <img :src="enlightenmentEggIconURL" class="inline h-8 w-8" />!
     </p>
-    <template v-if="(egg === enlightenmentEgg) || devmode">
+    <template v-if="egg === enlightenmentEgg || devmode">
       <p class="text-sm">
         Last save population:
         <span class="text-green-500 tabular-nums">
@@ -329,7 +343,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, ref, watch, provide } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -339,14 +353,20 @@ import utc from 'dayjs/plugin/utc';
 
 import {
   allModifiersFromColleggtibles,
+  countUnresolvedContracts,
   eggIconPath,
+  getDefaultColleggtibleTiers,
+  getColleggtibleTiers,
   iconURL,
+  modifiersFromColleggtibleTiers,
+  setActiveManualTiers,
   UserBackupEmptyError,
   getLocalStorage,
   setLocalStorage,
   getNumTruthEggs,
   maxModifierFromColleggtibles,
   getDevModeOn,
+  type ColleggtibleTiers,
 } from 'lib';
 import {
   bestPossibleCubeForEnlightenment,
@@ -371,6 +391,7 @@ import {
   homeFarmArtifacts,
   nakedGangNickname as getNakedGangNickname,
   requestFirstContact,
+  resolveContractsInBackup,
   requiredWDLevelForEnlightenmentDiamond,
   researchPriceMultiplierFromArtifacts,
   researchPriceMultiplierFromResearches,
@@ -386,6 +407,7 @@ import UnfinishedResearches from '@/components/UnfinishedResearches.vue';
 import TargetCashMatrix from '@/components/TargetCashMatrix.vue';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseEIValue from 'ui/components/BaseEIValue.vue';
+import ColleggtibleConfig from 'ui/components/ColleggtibleConfig.vue';
 
 // Note that timezone abbreviation may not work due to
 // https://github.com/iamkun/dayjs/issues/1154, in which case the GMT offset is
@@ -413,6 +435,7 @@ export default defineComponent({
     TargetCashMatrix,
     BaseInfo,
     BaseEIValue,
+    ColleggtibleConfig,
   },
   props: {
     playerId: {
@@ -420,9 +443,10 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['requestRefresh'],
   // This async component does not respond to playerId changes.
 
-  async setup({ playerId }) {
+  async setup({ playerId }, { emit }) {
     // Validate and sanitize player ID.
     if (!playerId.match(/^EI\d+$/i)) {
       throw new Error(`ID ${playerId} is not in the form EI1234567890123456; please consult "Where do I find my ID?"`);
@@ -440,6 +464,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
+    await resolveContractsInBackup(backup, playerId);
     const nickname = backup.userName;
     const progress = backup.game;
     if (!progress) {
@@ -448,7 +473,54 @@ export default defineComponent({
     if (!backup.farms || backup.farms.length === 0) {
       throw new Error(`${playerId}: no farm info in backup`);
     }
-    const modifiers = allModifiersFromColleggtibles(backup);
+    const unresolvedContractCount = countUnresolvedContracts(backup);
+
+    const COLLEGGTIBLE_TIERS_KEY = `colleggtibleTiers_${playerId}`;
+    const savedTiersRaw = getLocalStorage(COLLEGGTIBLE_TIERS_KEY);
+    const autoTiers = getColleggtibleTiers(backup);
+    const hasManualTiers = ref(savedTiersRaw !== null && savedTiersRaw !== undefined);
+    let initialTiers: ColleggtibleTiers;
+    if (savedTiersRaw) {
+      try {
+        const parsed = JSON.parse(savedTiersRaw);
+        if (typeof parsed === 'object' && parsed !== null) {
+          initialTiers = { ...getDefaultColleggtibleTiers(), ...parsed };
+        } else {
+          initialTiers = autoTiers;
+          hasManualTiers.value = false;
+        }
+      } catch {
+        initialTiers = autoTiers;
+        hasManualTiers.value = false;
+      }
+    } else {
+      initialTiers = autoTiers;
+    }
+    const colleggtibleTiers = ref(initialTiers);
+    if (hasManualTiers.value) {
+      setActiveManualTiers(initialTiers);
+    }
+
+    const modifiers = computed(() => {
+      if (hasManualTiers.value) {
+        return modifiersFromColleggtibleTiers(colleggtibleTiers.value);
+      }
+      return allModifiersFromColleggtibles(backup);
+    });
+    provide('colleggtibleModifiers', modifiers);
+
+    const onColleggtibleTiersChange = (newTiers: ColleggtibleTiers) => {
+      colleggtibleTiers.value = newTiers;
+      setLocalStorage(COLLEGGTIBLE_TIERS_KEY, JSON.stringify(newTiers));
+      hasManualTiers.value = true;
+      setActiveManualTiers(newTiers);
+    };
+    const onResetTiers = () => {
+      localStorage.removeItem(COLLEGGTIBLE_TIERS_KEY);
+      hasManualTiers.value = false;
+      setActiveManualTiers(null);
+      colleggtibleTiers.value = autoTiers;
+    };
     const maxHabCapModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.HAB_CAPACITY);
     const nahPopulationTarget = Math.round(19_845_000_000 * maxHabCapModifier);
     const farm = backup.farms[0]; // Home farm
@@ -485,27 +557,30 @@ export default defineComponent({
 
     const habs = farmHabs(farm);
     const habSpaceResearches = farmHabSpaceResearches(farm);
-    const habSpaces = farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.habCap);
-    const totalHabSpace = Math.round(habSpaces.reduce((total, s) => total + s));
-    const totalHabSpaceSufficient = totalHabSpace >= 1e10;
-    const currentWDLevel = farmCurrentWDLevel(farm);
-    const requiredWDLevel = requiredWDLevelForEnlightenmentDiamond(
-      nakedGangNickname ? [] : artifacts,
-      modifiers.habCap
+const habSpaces = computed(() => farmHabSpaces(habs, habSpaceResearches, artifacts, modifiers.value.habCap));
+    const totalHabSpace = computed(() =>
+      habSpaces.value.reduce((total, s) => total + s)
     );
-    const bestGusset = bestPossibleGussetForEnlightenment(backup, modifiers.habCap);
-    const bestPossibleGusset = nakedGangNickname ? null : bestGusset;
-    // check for t4l gusset + 3 t4 clarities
+    const totalHabSpaceSufficient = computed(() =>
+      totalHabSpace.value >= 10_000_000_000
+    );
+    const bestGusset = computed(() => bestPossibleGussetForEnlightenment(backup, modifiers.value.habCap));
+    const bestPossibleGusset = computed(() => (nakedGangNickname ? null : bestGusset.value));
+    const bestPossibleGussetSet = computed(() => (bestPossibleGusset.value ? [bestPossibleGusset.value] : []));
+    const requiredWDLevel = computed(() =>
+      requiredWDLevelForEnlightenmentDiamond(bestPossibleGussetSet.value, modifiers.value.habCap)
+    );
     const canNAH = computed(
-      () => bestGusset?.afxRarity === ei.ArtifactSpec.Rarity.LEGENDARY && bestGusset.clarityEffect === 3
+      () => bestGusset.value?.afxRarity === ei.ArtifactSpec.Rarity.LEGENDARY && bestGusset.value?.clarityEffect === 3
     );
     const showNAH = computed(
       () => existingTrophyLevelUncapped == 5 || lastRefreshedPopulation >= 9_000_0000_000 || canNAH.value
     );
-    const bestPossibleGussetSet = bestPossibleGusset ? [bestPossibleGusset] : [];
-    const minimumRequiredWDLevel = bestPossibleGusset
-      ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset], modifiers.habCap)
-      : requiredWDLevel;
+    const minimumRequiredWDLevel = computed(() =>
+      bestPossibleGusset.value
+        ? requiredWDLevelForEnlightenmentDiamond([bestPossibleGusset.value], modifiers.value.habCap)
+        : requiredWDLevel.value
+    );
 
     const earningBonus = farmEarningBonus(backup, farm, progress, artifacts);
     const farmerRole = earningBonusToFarmerRole(earningBonus);
@@ -624,6 +699,11 @@ export default defineComponent({
     return {
       devmode,
       nickname,
+      unresolvedContractCount,
+      colleggtibleTiers,
+      hasManualTiers,
+      onColleggtibleTiersChange,
+      onResetTiers,
       lastRefreshed,
       lastRefreshedTimestamp,
       lastRefreshedRelative,
