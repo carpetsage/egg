@@ -299,10 +299,9 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['requestRefresh'],
   // This async component does not respond to playerId changes.
 
-  async setup({ playerId }, { emit }) {
+  async setup({ playerId }) {
     // Validate and sanitize player ID.
     if (!playerId.match(/^EI\d+$/i)) {
       throw new Error(`ID ${playerId} is not in the form EI1234567890123456; please consult "Where do I find my ID?"`);
@@ -380,6 +379,7 @@ export default defineComponent({
       setActiveManualTiers(null);
       colleggtibleTiers.value = autoTiers;
     };
+
     const farm = backup.farms[0]; // Home farm
     const homeFarm = new Farm(backup, backup.farms[0]);
     const egg = farm.eggType!;
@@ -402,13 +402,12 @@ export default defineComponent({
     // Create inventory and convert contender to artifact set with assembly statuses
     const inventory = new Inventory(backup.artifactsDb!, { virtue: true });
     // Calculate max clothed TE and optimal artifacts
-    const { clothedTE: maxClothedTE, recommendedArtifacts: maxClothedTEArtifacts } = calculateMaxClothedTE(
-      backup,
-      inventory,
-      equippedArtiSet
+    const maxClothedTEResult = computed(() =>
+      calculateMaxClothedTE(backup, inventory, equippedArtiSet, modifiers.value)
     );
-
-    const { artifactSet: cteArtiSet, assemblyStatuses: cteAssemblyStatuses } = maxClothedTEArtifacts;
+    const maxClothedTE = computed(() => maxClothedTEResult.value.clothedTE);
+    const cteArtiSet = computed(() => maxClothedTEResult.value.recommendedArtifacts.artifactSet);
+    const cteAssemblyStatuses = computed(() => maxClothedTEResult.value.recommendedArtifacts.assemblyStatuses);
 
     refreshIntervalId = window.setInterval(() => {
       currentTimestamp.value = Date.now();
@@ -449,7 +448,7 @@ export default defineComponent({
       Math.min((currentPopulation.value / lastRefreshedPopulation) * effectiveELR.value, totalVehicleSpace.value)
     );
 
-    const clothedTE = computed(() => calculateClothedTE(backup, artifacts));
+    const clothedTE = computed(() => calculateClothedTE(backup, artifacts, modifiers.value));
 
     const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
     const ihrRates = computed(() =>
@@ -569,7 +568,6 @@ export default defineComponent({
       nickname,
       unresolvedContractCount,
       colleggtibleTiers,
-      hasManualTiers,
       onColleggtibleTiersChange,
       onResetTiers,
       lastRefreshed,

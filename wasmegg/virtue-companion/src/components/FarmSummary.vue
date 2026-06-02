@@ -91,7 +91,7 @@ export default defineComponent({
     const farm = backup.value.farms![0];
     const progress = backup.value.game!;
     const artifacts = homeFarmArtifacts(backup.value, true);
-    const injectedMods = inject<ComputedRef<Modifiers>>('colleggtibleModifiers');
+    const injectedMods = inject<ComputedRef<Modifiers> | undefined>('colleggtibleModifiers', undefined);
     const modifiers = computed(() => injectedMods?.value ?? allModifiersFromColleggtibles(backup.value));
 
     const totalTruthEggs = computed(() => getNumTruthEggs(backup.value));
