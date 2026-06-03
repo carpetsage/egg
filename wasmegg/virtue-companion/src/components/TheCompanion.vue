@@ -205,7 +205,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref, watch, provide } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, ref, shallowRef, watch, provide } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -214,6 +214,7 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
 import {
+  ei,
   iconURL,
   ArtifactSet,
   UserBackupEmptyError,
@@ -232,7 +233,9 @@ import {
   getColleggtibleTiers,
   modifiersFromColleggtibleTiers,
   setActiveManualTiers,
+  defaultModifiers,
   type ColleggtibleTiers,
+  type Modifiers,
 } from 'lib';
 import {
   allModifiersFromColleggtibles,
@@ -296,15 +299,29 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['requestRefresh'],
   // This async component does not respond to playerId changes.
 
-  async setup({ playerId }, { emit }) {
+  async setup({ playerId }) {
     // Validate and sanitize player ID.
     if (!playerId.match(/^EI\d+$/i)) {
       throw new Error(`ID ${playerId} is not in the form EI1234567890123456; please consult "Where do I find my ID?"`);
     }
     playerId = playerId.toUpperCase();
+
+    // Create reactive state before await so provide/inject works across async boundary.
+    // Vue's provide() silently fails after await because getCurrentInstance() returns null.
+    const COLLEGGTIBLE_TIERS_KEY = `colleggtibleTiers_${playerId}`;
+    const backupRef = shallowRef<ei.IBackup>();
+    const hasManualTiers = ref(false);
+    const colleggtibleTiers = ref<ColleggtibleTiers>(getDefaultColleggtibleTiers());
+    const modifiers = computed<Modifiers>(() => {
+      if (!backupRef.value) return { ...defaultModifiers };
+      if (hasManualTiers.value) {
+        return modifiersFromColleggtibleTiers(colleggtibleTiers.value);
+      }
+      return allModifiersFromColleggtibles(backupRef.value);
+    });
+    provide('colleggtibleModifiers', modifiers);
 
     // Interval id used for refreshing lastRefreshedRelative.
     let refreshIntervalId: number | undefined;
@@ -318,6 +335,7 @@ export default defineComponent({
     }
     const backup = data.backup;
     await resolveContractsInBackup(backup, playerId);
+    backupRef.value = backup;
     const nickname = backup.userName;
     const progress = backup.game;
     if (!progress) {
@@ -328,39 +346,26 @@ export default defineComponent({
     }
     const unresolvedContractCount = countUnresolvedContracts(backup);
 
-    const COLLEGGTIBLE_TIERS_KEY = `colleggtibleTiers_${playerId}`;
     const savedTiersRaw = getLocalStorage(COLLEGGTIBLE_TIERS_KEY);
     const autoTiers = getColleggtibleTiers(backup);
-    const hasManualTiers = ref(savedTiersRaw !== null && savedTiersRaw !== undefined);
-    let initialTiers: ColleggtibleTiers;
     if (savedTiersRaw) {
       try {
         const parsed = JSON.parse(savedTiersRaw);
         if (typeof parsed === 'object' && parsed !== null) {
-          initialTiers = { ...getDefaultColleggtibleTiers(), ...parsed };
+          colleggtibleTiers.value = { ...getDefaultColleggtibleTiers(), ...parsed };
+          hasManualTiers.value = true;
         } else {
-          initialTiers = autoTiers;
-          hasManualTiers.value = false;
+          colleggtibleTiers.value = autoTiers;
         }
       } catch {
-        initialTiers = autoTiers;
-        hasManualTiers.value = false;
+        colleggtibleTiers.value = autoTiers;
       }
     } else {
-      initialTiers = autoTiers;
+      colleggtibleTiers.value = autoTiers;
     }
-    const colleggtibleTiers = ref(initialTiers);
     if (hasManualTiers.value) {
-      setActiveManualTiers(initialTiers);
+      setActiveManualTiers(colleggtibleTiers.value);
     }
-
-    const modifiers = computed(() => {
-      if (hasManualTiers.value) {
-        return modifiersFromColleggtibleTiers(colleggtibleTiers.value);
-      }
-      return allModifiersFromColleggtibles(backup);
-    });
-    provide('colleggtibleModifiers', modifiers);
 
     const onColleggtibleTiersChange = (newTiers: ColleggtibleTiers) => {
       colleggtibleTiers.value = newTiers;
@@ -374,6 +379,7 @@ export default defineComponent({
       setActiveManualTiers(null);
       colleggtibleTiers.value = autoTiers;
     };
+
     const farm = backup.farms[0]; // Home farm
     const homeFarm = new Farm(backup, backup.farms[0]);
     const egg = farm.eggType!;
@@ -396,13 +402,12 @@ export default defineComponent({
     // Create inventory and convert contender to artifact set with assembly statuses
     const inventory = new Inventory(backup.artifactsDb!, { virtue: true });
     // Calculate max clothed TE and optimal artifacts
-    const { clothedTE: maxClothedTE, recommendedArtifacts: maxClothedTEArtifacts } = calculateMaxClothedTE(
-      backup,
-      inventory,
-      equippedArtiSet
+    const maxClothedTEResult = computed(() =>
+      calculateMaxClothedTE(backup, inventory, equippedArtiSet, modifiers.value)
     );
-
-    const { artifactSet: cteArtiSet, assemblyStatuses: cteAssemblyStatuses } = maxClothedTEArtifacts;
+    const maxClothedTE = computed(() => maxClothedTEResult.value.clothedTE);
+    const cteArtiSet = computed(() => maxClothedTEResult.value.recommendedArtifacts.artifactSet);
+    const cteAssemblyStatuses = computed(() => maxClothedTEResult.value.recommendedArtifacts.assemblyStatuses);
 
     refreshIntervalId = window.setInterval(() => {
       currentTimestamp.value = Date.now();
@@ -443,7 +448,7 @@ export default defineComponent({
       Math.min((currentPopulation.value / lastRefreshedPopulation) * effectiveELR.value, totalVehicleSpace.value)
     );
 
-    const clothedTE = computed(() => calculateClothedTE(backup, artifacts));
+    const clothedTE = computed(() => calculateClothedTE(backup, artifacts, modifiers.value));
 
     const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
     const ihrRates = computed(() =>
@@ -563,7 +568,6 @@ export default defineComponent({
       nickname,
       unresolvedContractCount,
       colleggtibleTiers,
-      hasManualTiers,
       onColleggtibleTiersChange,
       onResetTiers,
       lastRefreshed,
