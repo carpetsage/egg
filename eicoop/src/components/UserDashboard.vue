@@ -271,9 +271,9 @@ export default defineComponent({
     const coops = computed(() => getUserActiveCoopContractsSorted(backup.value));
     const coopParams = computed(() =>
       coops.value
-        .filter(coop => coop.contractIdentifier)
+        .filter(coop => coop.contractIdentifier || coop.contract?.identifier)
         .map(coop => ({
-          contractId: coop.contractIdentifier!,
+          contractId: coop.contractIdentifier || coop.contract!.identifier!,
           coopCode: coop.coopIdentifier!,
           contract: coop.contract ?? undefined,
           league: (coop.league as ContractLeague) ?? undefined,
@@ -282,7 +282,7 @@ export default defineComponent({
     );
     const soloStatuses = computed(() =>
       getUserActiveSoloContracts(backup.value)
-        .filter(solo => solo.contract && solo.contractIdentifier)
+        .filter(solo => solo.contract && (solo.contractIdentifier || solo.contract?.identifier))
         .map(solo => new SoloStatus(solo, backup.value))
     );
     const housekeeping = () => {

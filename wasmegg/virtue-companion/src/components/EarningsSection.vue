@@ -240,9 +240,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, computed, ref, watch, toRefs } from 'vue';
+import { defineComponent, PropType, computed, ref, watch, toRefs, inject, type ComputedRef } from 'vue';
 import dayjs from 'dayjs';
-import { ei, formatEIValue, parseValueWithUnit, allModifiersFromColleggtibles, getNumTruthEggs } from 'lib';
+import {
+  ei,
+  formatEIValue,
+  parseValueWithUnit,
+  allModifiersFromColleggtibles,
+  getNumTruthEggs,
+  type Modifiers,
+} from 'lib';
 import {
   farmEarningRate,
   calculateDroneValues,
@@ -373,23 +380,22 @@ export default defineComponent({
       return farm.cashEarned! - farm.cashSpent!;
     });
 
+    const injectedMods = inject<ComputedRef<Modifiers> | undefined>('colleggtibleModifiers', undefined);
+
     const computedMetrics = computed(() => {
       const farm = backup.value.farms![0];
 
-      // Create a modified farm with current population
       const workingFarm = {
         ...farm,
         numChickens: currentPopulation.value,
       };
 
-      // Create a modified backup if target TE is assumed or pending TE is included, for EB and EB-dependent calculations.
       let workingBackup: ei.IBackup = {
         ...backup.value,
         farms: [workingFarm],
       };
 
       if (assumeTargetTE.value || includePendingTE.value) {
-        // Override the truth eggs count
         const originalVirtue = backup.value.virtue || {};
         workingBackup = {
           ...workingBackup,
@@ -401,7 +407,7 @@ export default defineComponent({
       }
 
       const progress = backup.value.game!;
-      const modifiers = allModifiersFromColleggtibles(backup.value);
+      const modifiers = injectedMods?.value ?? allModifiersFromColleggtibles(backup.value);
       const artifacts = homeFarmArtifacts(backup.value, true);
       const earningBonus = farmEarningBonus(workingBackup);
       const farmerRole = earningBonusToFarmerRole(earningBonus);

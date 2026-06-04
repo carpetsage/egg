@@ -1,5 +1,7 @@
 import { customEggs } from 'lib/eggs';
 import { ei } from 'lib/proto';
+import { decodeMessage } from 'lib/api';
+import contractProtos from '../../../../periodicals/data/contracts.json';
 
 /**
  * Colleggtible definitions and tier calculations.
@@ -178,21 +180,17 @@ export function calculateColleggtibleModifiers(tiers: ColleggtibleTiers): Colleg
 
   return modifiers;
 }
-
+      
 /**
- * Extract colleggtible tiers from backup data.
- * Looks at contract archives and current contracts to find max farm size.
+ * Derives colleggtible tiers from a player's contract history.
+ * Looks up each contract's custom egg via the periodicals contracts list,
+ * then finds the max farm size the player achieved across all runs of that
+ * egg's contracts to determine the tier.
  */
 export function getColleggtibleTiersFromBackup(
   contracts: {
-    archive?: Array<{
-      contract?: { customEggId?: string | null } | null;
-      maxFarmSizeReached?: number | null;
-    }> | null;
-    contracts?: Array<{
-      contract?: { customEggId?: string | null } | null;
-      maxFarmSizeReached?: number | null;
-    }> | null;
+    archive?: ei.ILocalContract[] | null;
+    contracts?: ei.ILocalContract[] | null;
   } | null
 ): ColleggtibleTiers {
   const tiers = getDefaultColleggtibleTiers();
@@ -200,17 +198,16 @@ export function getColleggtibleTiersFromBackup(
   if (!contracts) return tiers;
 
   const allContracts = [...(contracts.archive ?? []), ...(contracts.contracts ?? [])];
-
-  // For each colleggtible, find the max farm size reached across all contracts
+  const contractCustomEggIds = new Map<string, string>(
+    contractProtos.flatMap(c => {
+      const { customEggId } = decodeMessage(ei.Contract, c.proto) as ei.IContract;
+      return customEggId ? [[c.id, customEggId]] : [];
+    })
+  );
   for (const def of colleggtibleDefs) {
-    const maxFarmSize = Math.max(
-      ...allContracts.filter(c => c.contract?.customEggId === def.id).map(c => c.maxFarmSizeReached ?? 0),
-      0
-    );
-
-    // Find the highest tier achieved
-    const tierIndex = FARM_SIZE_TIERS.findLastIndex(threshold => maxFarmSize >= threshold);
-    tiers[def.id] = tierIndex;
+    const relevant = allContracts.filter(c => contractCustomEggIds.get(c.contractIdentifier ?? '') === def.id);
+    const maxFarmSize = Math.max(...relevant.map(c => c.maxFarmSizeReached ?? 0), 0);
+    tiers[def.id] = FARM_SIZE_TIERS.findLastIndex(threshold => maxFarmSize >= threshold);
   }
 
   return tiers;

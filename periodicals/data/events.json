@@ -27016,5 +27016,50 @@
     "startTimestamp": 1780329600,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1780502400,
+    "id": "event-6-2",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1780416000,
+    "type": "hab-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1780588800,
+    "id": "event-6-3",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1780502400,
+    "type": "vehicle-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1780588800,
+    "id": "event-6-3-2",
+    "message": "4x PIGGY GROWTH!",
+    "multiplier": 4,
+    "startTimestamp": 1780502400,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1780588800,
+    "id": "ultra-6-3",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1780502400,
+    "type": "hab-sale",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1780675200,
+    "id": "event-6-4",
+    "message": "2x GIFTS!",
+    "multiplier": 2,
+    "startTimestamp": 1780588800,
+    "type": "gift-boost",
+    "ultra": false
   }
 ]

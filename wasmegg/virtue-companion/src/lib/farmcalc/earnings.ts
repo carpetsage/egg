@@ -67,14 +67,18 @@ export function farmEarningRate(
  * @param artifacts - Optional artifact setup. If not provided, uses currently equipped artifacts
  * @returns Clothed TE value
  */
-export function calculateClothedTE(backup: ei.IBackup, artifactsOverride?: Artifact[]): number {
+export function calculateClothedTE(
+  backup: ei.IBackup,
+  artifactsOverride?: Artifact[],
+  currentModifiersOverride?: Modifiers
+): number {
   const farm = backup.farms![0];
   const progress = backup.game!;
   const artifacts = artifactsOverride ?? homeFarmArtifacts(backup, true);
   const truthEggs = getNumTruthEggs(backup);
 
-  // Get current modifiers from colleggtibles
-  const currentModifiers = allModifiersFromColleggtibles(backup);
+  // Get current modifiers from colleggtibles (or use override)
+  const currentModifiers = currentModifiersOverride ?? allModifiersFromColleggtibles(backup);
 
   // Get max possible modifiers from colleggtibles
   const maxEarningsModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.EARNINGS);
@@ -131,7 +135,12 @@ export function calculateClothedTE(backup: ei.IBackup, artifactsOverride?: Artif
  * @param backup - The backup data
  * @returns Object with max clothed TE and the winning contender
  */
-export function calculateMaxClothedTE(backup: ei.IBackup, inventory: Inventory, equipped: ArtifactSet) {
+export function calculateMaxClothedTE(
+  backup: ei.IBackup,
+  inventory: Inventory,
+  equipped: ArtifactSet,
+  currentModifiersOverride?: Modifiers
+) {
   // Determine strategy based on permit
   const progress = backup.game!;
   const strategy = progress.permitLevel === 1 ? Strategy.PRO_PERMIT_VIRTUE_CTE : Strategy.STANDARD_PERMIT_VIRTUE_CTE;
@@ -142,6 +151,6 @@ export function calculateMaxClothedTE(backup: ei.IBackup, inventory: Inventory, 
   // Convert Contender to ArtifactSet format
   const recommendedArtifacts = contenderToArtifactSet(contender, equipped, inventory);
 
-  const clothedTE = calculateClothedTE(backup, recommendedArtifacts.artifactSet.artifacts);
+  const clothedTE = calculateClothedTE(backup, recommendedArtifacts.artifactSet.artifacts, currentModifiersOverride);
   return { clothedTE, recommendedArtifacts };
 }
