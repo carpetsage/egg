@@ -183,9 +183,9 @@ export function calculateColleggtibleModifiers(tiers: ColleggtibleTiers): Colleg
       
 /**
  * Derives colleggtible tiers from a player's contract history.
- * Looks up each contract's custom egg via the periodicals contracts list,
- * then finds the max farm size the player achieved across all runs of that
- * egg's contracts to determine the tier.
+ * For each contract entry, the custom egg is resolved via the periodicals
+ * contracts list (new backup format) or the inline contract object (old format).
+ * The max farm size across all runs of each egg's contracts determines the tier.
  */
 export function getColleggtibleTiersFromBackup(
   contracts: {
@@ -204,8 +204,11 @@ export function getColleggtibleTiersFromBackup(
       return customEggId ? [[c.id, customEggId]] : [];
     })
   );
+  const getCustomEggId = (c: ei.ILocalContract) =>
+    contractCustomEggIds.get(c.contractIdentifier ?? '') ?? c.contract?.customEggId;
+
   for (const def of colleggtibleDefs) {
-    const relevant = allContracts.filter(c => contractCustomEggIds.get(c.contractIdentifier ?? '') === def.id);
+    const relevant = allContracts.filter(c => getCustomEggId(c) === def.id);
     const maxFarmSize = Math.max(...relevant.map(c => c.maxFarmSizeReached ?? 0), 0);
     tiers[def.id] = FARM_SIZE_TIERS.findLastIndex(threshold => maxFarmSize >= threshold);
   }
