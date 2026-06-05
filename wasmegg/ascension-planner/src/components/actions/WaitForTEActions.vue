@@ -96,6 +96,7 @@
             </svg>
           </button>
           <input
+            ref="inputEl"
             v-model.number="teToGain"
             type="number"
             :min="1"
@@ -201,6 +202,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+const inputEl = ref<HTMLInputElement | null>(null);
+defineExpose({ focus: () => inputEl.value?.focus() });
 import { iconURL } from 'lib';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useVirtueStore } from '@/stores/virtue';

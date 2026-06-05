@@ -5,6 +5,7 @@
         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3"> Duration </label>
         <div class="flex flex-col sm:flex-row gap-2">
           <input
+            ref="inputEl"
             v-model="inputDuration"
             type="text"
             placeholder="e.g. 8 or 8h30m"
@@ -75,6 +76,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useActionsStore } from '@/stores/actions';
+const inputEl = ref<HTMLInputElement | null>(null);
+defineExpose({ focus: () => inputEl.value?.focus() });
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { generateActionId } from '@/types';
