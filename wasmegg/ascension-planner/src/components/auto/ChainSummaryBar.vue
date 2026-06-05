@@ -100,9 +100,13 @@ function formatDateOnly(timestampSeconds: number, tz: string): string {
   if (!timestampSeconds) return 'N/A';
   const date = new Date(timestampSeconds * 1000);
   if (isNaN(date.getTime())) return 'N/A';
-  return date.toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: tz,
-  });
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'short', month: 'short', day: 'numeric', timeZone: tz,
+  };
+  if (date.getFullYear() !== new Date().getFullYear()) {
+    options.year = 'numeric';
+  }
+  return date.toLocaleDateString('en-US', options);
 }
 
 const totals = computed(() => {

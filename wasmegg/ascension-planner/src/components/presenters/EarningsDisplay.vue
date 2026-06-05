@@ -46,7 +46,7 @@
           <span class="font-mono-premium text-sm font-bold text-slate-700">{{ formatNumber(eggValue, 2) }}</span>
         </div>
         <div class="px-5 py-3 flex justify-between items-center group hover:bg-slate-50 transition-colors">
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Effective Lay Rate</span>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Delivery Rate</span>
           <span class="font-mono-premium text-sm font-bold text-slate-700"
             >{{ formatNumber(convertedELR, 2)
             }}<span class="text-[10px] opacity-60 ml-0.5">/{{ timeUnitLabel }}</span></span

@@ -102,7 +102,7 @@
             class="px-3 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
             :class="isOptimalELR ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'"
             @click="equipOptimalELR"
-            v-tippy="'Find and equip the best ELR set from your inventory'"
+            v-tippy="'Find and equip the best delivery rate set from your inventory'"
           >
             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -111,7 +111,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Optimal ELR
+            Optimal Delivery Rate
           </button>
         </div>
       </div>
@@ -139,7 +139,7 @@
             <p class="text-[10px] text-blue-700 leading-tight">
               <strong>Earnings:</strong> Necklaces, Ankhs, Cubes, Lunar stones.
               <br />
-              <strong>ELR:</strong> Metronomes, Compasses, Tachyon/Quantum stones.
+              <strong>Delivery:</strong> Metronomes, Compasses, Tachyon/Quantum stones.
             </p>
           </div>
         </div>

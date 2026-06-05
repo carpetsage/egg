@@ -45,7 +45,7 @@
     <div v-if="!isCollapsed" class="flex flex-col items-center w-full transition-all">
       <!-- Active Set Badge -->
       <div v-if="activeSet" class="badge-premium badge-brand py-0.5 mb-3 scale-90">
-        {{ activeSet === 'earnings' ? 'Earnings' : 'ELR' }} Set
+        {{ activeSet === 'earnings' ? 'Earnings' : 'Delivery Rate' }} Set
       </div>
       <div v-else class="badge-premium py-0.5 mb-3 scale-90 bg-slate-100 text-slate-500">No Active Set</div>
 
@@ -109,7 +109,7 @@
 
         <!-- ELR -->
         <div class="flex flex-col items-center">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">ELR</span>
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Delivery</span>
           <span class="font-mono-premium text-[11px] font-bold text-slate-700">
             {{ formatRate(elrHr) }}
           </span>

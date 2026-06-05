@@ -210,6 +210,11 @@
         </button>
       </div>
 
+      <!-- Current Mode Label -->
+      <div v-if="plannerTab === 'manual' && plannerModeLabel" class="mt-4 flex justify-center">
+        <span class="text-sm font-bold text-slate-700">{{ plannerModeLabel }}</span>
+      </div>
+
       <!-- Reconciliation Status Banner -->
       <div v-if="actionsStore.isReconciling" class="mt-4 flex flex-col items-center gap-2">
         <div
@@ -404,7 +409,7 @@
         </div>
         <div class="px-6 py-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
           <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('elr')">
-            ELR Set
+            Delivery Rate Set
           </button>
           <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('earnings')">
             Earnings Set
@@ -644,7 +649,22 @@ const expandedSections = ref({
 
 // isHeaderCollapsed moved to UI store
 
-function handlePlanLoaded() {
+type PlannerMode = 'scratch' | 'future' | 'continue' | 'library' | 'reconcile' | null;
+const plannerMode = ref<PlannerMode>(null);
+const loadedPlanName = ref('');
+
+const plannerModeLabel = computed(() => {
+  if (plannerMode.value === 'scratch') return 'Start from Scratch';
+  if (plannerMode.value === 'future') return 'Plan Future Ascension';
+  if (plannerMode.value === 'continue') return 'Continue Current Ascension';
+  if (plannerMode.value === 'library') return loadedPlanName.value;
+  if (plannerMode.value === 'reconcile') return `Reconciling ${loadedPlanName.value}`;
+  return null;
+});
+
+function handlePlanLoaded(name: string) {
+  plannerMode.value = 'library';
+  loadedPlanName.value = name;
   plannerTab.value = 'manual';
   isHeaderCollapsed.value = true;
   scrollToTop();
@@ -756,6 +776,7 @@ function executeClearAll() {
 async function startFromScratch() {
   error.value = '';
   try {
+    plannerMode.value = 'scratch';
     plannerTab.value = 'manual';
     await initStartFromScratch();
     isHeaderCollapsed.value = true;
@@ -779,6 +800,8 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
   error.value = '';
 
   try {
+    plannerMode.value = 'reconcile';
+    loadedPlanName.value = plan.name;
     plannerTab.value = 'manual';
     savePlayerID(playerId.value);
     await initReconcile(playerId.value, plan, broadcastPresence);
@@ -984,6 +1007,7 @@ async function quickContinueAscension(selection: 'earnings' | 'elr') {
   loading.value = true;
 
   try {
+    plannerMode.value = 'continue';
     plannerTab.value = 'manual';
     savePlayerID(playerId.value);
     await initContinueCurrent(playerId.value, selection);
@@ -1007,6 +1031,7 @@ async function planNextAscension() {
   loading.value = true;
 
   try {
+    plannerMode.value = 'future';
     plannerTab.value = 'manual';
     savePlayerID(playerId.value);
     await initPlanFuture(playerId.value);

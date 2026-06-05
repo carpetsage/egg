@@ -69,6 +69,13 @@
             </span>
             <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3.5 h-3.5" alt="SE" />
           </div>
+          <span
+            class="text-[10px] font-bold uppercase tracking-tight"
+            :class="shiftsUntilBroke <= 2 ? 'text-red-500' : 'text-slate-400'"
+            v-tippy="'Shifts remaining before SE goes negative'"
+          >
+            {{ shiftsUntilBroke }} left
+          </span>
         </div>
       </div>
 
@@ -230,6 +237,20 @@ const nextShiftCostValue = computed(() => {
 
 const isAffordable = computed(() => {
   return actionsStore.effectiveSnapshot.soulEggs >= nextShiftCostValue.value;
+});
+
+const shiftsUntilBroke = computed(() => {
+  let se = actionsStore.effectiveSnapshot.soulEggs;
+  let count = virtueStore.shiftCount;
+  let affordable = 0;
+  while (affordable <= 1000) {
+    const cost = shiftCost(se, count);
+    if (se < cost) break;
+    se -= cost;
+    count++;
+    affordable++;
+  }
+  return affordable;
 });
 
 function handleShift(toEgg: VirtueEgg) {
