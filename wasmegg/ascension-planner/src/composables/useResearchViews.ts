@@ -18,6 +18,7 @@ import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength, calculateShippingCapacity } from '@/calculations/shippingCapacity';
+import type { SimulationContext } from '@/engine/types';
 import { getNextPacificTime } from '@/lib/events';
 import { type CalculationsSnapshot } from '@/types';
 import { getOptimalELRSet } from '@/lib/artifacts/virtue';
@@ -32,6 +33,23 @@ import { createSimAction } from '@/types/actions/meta';
 export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr';
 export type ElrViewMode = 'realistic' | 'potential';
 export type ElrSortMode = 'efficiency' | 'impact';
+export type RoiMode = 'immediate' | 'maxed_vehicles';
+
+function buildMaxVehiclesSnapshot(
+  baseSnapshot: CalculationsSnapshot,
+  researchLevels: Record<string, number>,
+  context: SimulationContext
+): CalculationsSnapshot {
+  const maxSlots = calculateMaxVehicleSlots(researchLevels);
+  const maxTrainLen = calculateMaxTrainLength(researchLevels);
+  const engineState = createBaseEngineState(baseSnapshot);
+  const modifiedState = {
+    ...engineState,
+    researchLevels,
+    vehicles: Array(maxSlots).fill(null).map(() => ({ vehicleId: 11, trainLength: maxTrainLen })),
+  };
+  return computeSnapshot(modifiedState, context);
+}
 
 /**
  * Common interface for research items across different views.
@@ -120,6 +138,7 @@ export function useResearchViews() {
   const elrViewMode = ref<ElrViewMode>('realistic');
   const elrSortMode = ref<ElrSortMode>('efficiency');
   const deliveryImpactOnly = ref(false);
+  const roiMode = ref<RoiMode>('immediate');
 
   const realisticSummary = computed(() => {
     const rawBackup = initialStateStore.rawBackup;
@@ -510,6 +529,10 @@ export function useResearchViews() {
       const unpurchased = all.filter(r => (researchLevels[r.id] || 0) < r.levels && filterByCategories(r));
       const uniqueUnpurchased = Array.from(new Map(unpurchased.map(r => [r.id, r])).values());
 
+      const baseMaxVehiclesSnapshot = roiMode.value === 'maxed_vehicles'
+        ? buildMaxVehiclesSnapshot(effectiveSnapshot, researchLevels, context)
+        : null;
+
       const basicCandidates = uniqueUnpurchased.map(r => {
         const level = researchLevels[r.id] || 0;
         const price = getDiscountedVirtuePrice(r, level, mods, isSale);
@@ -518,22 +541,40 @@ export function useResearchViews() {
         const isLaying = categories.includes('egg_laying_rate');
         const isShipping = categories.includes('shipping_capacity');
 
-        const roiResult = calculateResearchROI({
-          research: r,
-          level,
-          price,
-          snapshot: effectiveSnapshot,
-          context,
-          eventTiming: {
-            absoluteSimTime,
-            nextSaleStart,
-            eventExpirationSeconds,
-            researchSaleDeadline: researchSaleDeadline.value,
-            isSaleActive: isSale,
-          },
-        });
+        let roiSeconds: number;
+        let totalRoiSeconds: number;
+        let showSaleWarning: boolean;
+        let showDeadlineWarning: boolean;
+        let resultTimeToBuySeconds: number;
+        let nextSnapshot: CalculationsSnapshot;
 
-        const { roiSeconds, totalRoiSeconds, showSaleWarning, showDeadlineWarning, timeToBuySeconds: resultTimeToBuySeconds, nextSnapshot } = roiResult;
+        if (roiMode.value === 'maxed_vehicles' && baseMaxVehiclesSnapshot) {
+          resultTimeToBuySeconds = getTimeToSave(price, effectiveSnapshot);
+          const afterMaxSnapshot = buildMaxVehiclesSnapshot(effectiveSnapshot, { ...researchLevels, [r.id]: level + 1 }, context);
+          nextSnapshot = afterMaxSnapshot;
+          const earningsDelta = afterMaxSnapshot.offlineEarnings - baseMaxVehiclesSnapshot.offlineEarnings;
+          roiSeconds = earningsDelta > 0 ? price / earningsDelta : Infinity;
+          totalRoiSeconds = isFinite(resultTimeToBuySeconds) ? resultTimeToBuySeconds + roiSeconds : Infinity;
+          showSaleWarning = !isSale && (absoluteSimTime + resultTimeToBuySeconds >= nextSaleStart);
+          showDeadlineWarning = isSale && (absoluteSimTime + resultTimeToBuySeconds > researchSaleDeadline.value);
+        } else {
+          const roiResult = calculateResearchROI({
+            research: r,
+            level,
+            price,
+            snapshot: effectiveSnapshot,
+            context,
+            eventTiming: {
+              absoluteSimTime,
+              nextSaleStart,
+              eventExpirationSeconds,
+              researchSaleDeadline: researchSaleDeadline.value,
+              isSaleActive: isSale,
+            },
+          });
+          ({ roiSeconds, totalRoiSeconds, showSaleWarning, showDeadlineWarning, nextSnapshot } = roiResult);
+          resultTimeToBuySeconds = roiResult.timeToBuySeconds;
+        }
 
         return {
           research: r,
@@ -574,37 +615,40 @@ export function useResearchViews() {
       return basicCandidates
         .map(c => {
           let recommendationNote: string | undefined = undefined;
-          const isBottlenecked = c.roiSeconds === Infinity || c.roiSeconds > 3600 * 24 * 7;
 
-          if (isBottlenecked && (c.isLaying || c.isShipping)) {
-            const partner = c.isLaying ? bestShipping : bestLaying;
-            if (partner && partner.research.id !== c.research.id) {
-              const level1 = researchLevels[c.research.id] || 0;
-              const level2 = researchLevels[partner.research.id] || 0;
+          if (roiMode.value === 'immediate') {
+            const isBottlenecked = c.roiSeconds === Infinity || c.roiSeconds > 3600 * 24 * 7;
 
-              let pairState = applyAction(baseState, createSimAction('buy_research', {
-                researchId: c.research.id,
-                fromLevel: level1,
-                toLevel: level1 + 1,
-              }, c.price));
+            if (isBottlenecked && (c.isLaying || c.isShipping)) {
+              const partner = c.isLaying ? bestShipping : bestLaying;
+              if (partner && partner.research.id !== c.research.id) {
+                const level1 = researchLevels[c.research.id] || 0;
+                const level2 = researchLevels[partner.research.id] || 0;
 
-              pairState = applyAction(pairState, createSimAction('buy_research', {
-                researchId: partner.research.id,
-                fromLevel: level2,
-                toLevel: level2 + 1,
-              }, partner.price));
+                let pairState = applyAction(baseState, createSimAction('buy_research', {
+                  researchId: c.research.id,
+                  fromLevel: level1,
+                  toLevel: level1 + 1,
+                }, c.price));
 
-              const pairSnapshot = computeSnapshot(pairState, context);
-              const pairEarnings = pairSnapshot.offlineEarnings;
-              const partnerEarnings = partner.nextSnapshot.offlineEarnings;
+                pairState = applyAction(pairState, createSimAction('buy_research', {
+                  researchId: partner.research.id,
+                  fromLevel: level2,
+                  toLevel: level2 + 1,
+                }, partner.price));
 
-              if (pairEarnings > partnerEarnings) {
-                const pairTotalCost = c.price + partner.price;
-                const pairDelta = pairEarnings - currentEarnings;
-                const pairRoiSeconds = pairTotalCost / pairDelta;
+                const pairSnapshot = computeSnapshot(pairState, context);
+                const pairEarnings = pairSnapshot.offlineEarnings;
+                const partnerEarnings = partner.nextSnapshot.offlineEarnings;
 
-                if (pairRoiSeconds < c.roiSeconds) {
-                  recommendationNote = `Buying this with "${partner.research.name}" would have a much better combined payback time of ${formatDuration(pairRoiSeconds)}.`;
+                if (pairEarnings > partnerEarnings) {
+                  const pairTotalCost = c.price + partner.price;
+                  const pairDelta = pairEarnings - currentEarnings;
+                  const pairRoiSeconds = pairTotalCost / pairDelta;
+
+                  if (pairRoiSeconds < c.roiSeconds) {
+                    recommendationNote = `Buying this with "${partner.research.name}" would have a much better combined payback time of ${formatDuration(pairRoiSeconds)}.`;
+                  }
                 }
               }
             }
@@ -850,6 +894,7 @@ export function useResearchViews() {
     elrViewMode,
     elrSortMode,
     deliveryImpactOnly,
+    roiMode,
     viewDescription,
     costModifiers,
     isResearchSaleActive,
