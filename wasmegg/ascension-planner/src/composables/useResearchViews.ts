@@ -108,6 +108,8 @@ const ELR_EXCLUDED_CATEGORIES = [
 
 
 
+const DELIVERY_IMPACT_CATEGORIES = new Set(['hab_capacity', 'fleet_size', 'egg_laying_rate', 'shipping_capacity']);
+
 export function useResearchViews() {
   const commonResearchStore = useCommonResearchStore();
   const initialStateStore = useInitialStateStore();
@@ -117,6 +119,7 @@ export function useResearchViews() {
   const currentView = ref<ViewType>('game');
   const elrViewMode = ref<ElrViewMode>('realistic');
   const elrSortMode = ref<ElrSortMode>('efficiency');
+  const deliveryImpactOnly = ref(false);
 
   const realisticSummary = computed(() => {
     const rawBackup = initialStateStore.rawBackup;
@@ -615,6 +618,11 @@ export function useResearchViews() {
             recommendationNote,
           };
         })
+        .filter(c => {
+          if (!deliveryImpactOnly.value) return true;
+          const cats = c.research.categories.split(',').map(s => s.trim());
+          return cats.some(cat => DELIVERY_IMPACT_CATEGORIES.has(cat));
+        })
         .sort((a, b) => {
           if (a.canBuy !== b.canBuy) return a.canBuy ? -1 : 1;
           if (a.totalRoiSeconds === b.totalRoiSeconds) {
@@ -841,6 +849,7 @@ export function useResearchViews() {
     currentView,
     elrViewMode,
     elrSortMode,
+    deliveryImpactOnly,
     viewDescription,
     costModifiers,
     isResearchSaleActive,
