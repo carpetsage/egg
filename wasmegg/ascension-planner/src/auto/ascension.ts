@@ -1,6 +1,7 @@
 import { type Action, generateActionId } from '@/types/actions/meta';
 import { computeSnapshot } from '@/engine/compute';
-import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { countTEThresholdsPassed, getThresholdForTE } from '@/lib/truthEggs';
+import { timeToEarnTE } from './te-thresholds';
 import { computeShiftCosts } from './se-tracker';
 import { calculateEggsLaidDuringActions } from './engine/eggs';
 import type { EngineState, SimulationContext, AscensionSummary, ShiftResult } from './types';
@@ -18,6 +19,13 @@ import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive, isEarningsBoost
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { computeRealisticELR } from '@/calculations/realisticELR';
 import type { VirtueEgg } from '@/types';
+
+function computeLastTEDuration(finalTE: Record<VirtueEgg, number>, peakELR: number): number {
+  const maxTE = Math.max(...Object.values(finalTE));
+  if (maxTE <= 0 || peakELR <= 0) return 0;
+  const prevEggs = maxTE > 1 ? getThresholdForTE(maxTE - 1) : 0;
+  return timeToEarnTE(prevEggs, peakELR, 1);
+}
 
 /**
  * Derives the starting state for the next ascension in a sequential chain.
@@ -325,6 +333,13 @@ export function runAscension(
     },
     strategyLabel: `${saleCount}-sale build`,
     isMaxELRAscension: false,
+    lastTEDurationSeconds: computeLastTEDuration({
+      curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
+      integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
+      resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
+      humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
+      kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
+    }, currentState.maxELR || 0),
   };
 
   return {
@@ -480,6 +495,13 @@ export function runContinueCurrent(
     },
     strategyLabel: 'Continue current',
     isMaxELRAscension: false,
+    lastTEDurationSeconds: computeLastTEDuration({
+      curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
+      integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
+      resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
+      humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
+      kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
+    }, currentELR),
   };
 
   return {

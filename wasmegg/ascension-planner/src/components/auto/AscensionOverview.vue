@@ -139,55 +139,65 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-x-1.5 sm:gap-x-6 gap-y-2 mb-3.5">
+      <div class="grid grid-cols-4 gap-x-1.5 sm:gap-x-3 gap-y-2 mb-3.5">
         <!-- TE Progress -->
         <div class="space-y-0.5">
-          <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide sm:tracking-widest flex items-center gap-1 sm:gap-1.5">
+          <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide flex items-center gap-1 sm:gap-1.5">
             <div class="w-1 h-1 rounded-full bg-emerald-500"></div>
             TE Progress
           </div>
-          <div class="flex items-baseline gap-1 sm:gap-1.5">
+          <div class="flex items-baseline gap-0.5 sm:gap-1.5">
             <span class="text-sm sm:text-xl font-mono-premium font-black text-slate-400">{{ summary.startTE }}</span>
-            <svg class="w-2 h-2 sm:w-3.5 sm:h-3.5 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-1.5 h-1.5 sm:w-3.5 sm:h-3.5 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
             <span class="text-base sm:text-2xl font-mono-premium font-black text-emerald-600">{{ summary.endTE }}</span>
-            <img :src="iconURL('egginc/egg_truth.png', 64)" class="w-3 h-3 sm:w-4 sm:h-4 ml-0.5" alt="TE" />
           </div>
           <div class="text-[8px] sm:text-[9px] font-black text-emerald-500/80 uppercase tracking-tight mt-0.5">+{{ summary.teGained }}</div>
         </div>
 
         <!-- Peak ELR -->
         <div class="space-y-0.5">
-          <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide sm:tracking-widest flex items-center gap-1 sm:gap-1.5">
+          <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide flex items-center gap-1 sm:gap-1.5">
             <div class="w-1 h-1 rounded-full bg-indigo-500"></div>
-            Peak Delivery Rate
+            <span class="sm:hidden">Delivery</span><span class="hidden sm:inline">Delivery Rate</span>
           </div>
-          <div class="flex items-center gap-1 sm:gap-1.5">
-            <span class="text-sm sm:text-xl font-mono-premium font-black text-indigo-600">{{ formatNumber(summary.maxELR * 3600, 3) }}</span>
-            <span class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase">/HR</span>
+          <div class="flex items-center gap-0.5 sm:gap-1.5">
+            <span class="text-[11px] sm:text-xl font-mono-premium font-black text-indigo-600">{{ formatNumber(summary.maxELR * 3600, 3) }}</span>
+            <span class="text-[6px] sm:text-[9px] font-black text-slate-400 uppercase">/HR</span>
           </div>
           <div v-if="summary.alternativeELRs && summary.alternativeELRs.length > 0" class="flex flex-col gap-0.5 mt-0.5">
             <div
               v-for="alt in summary.alternativeELRs"
               :key="alt.label"
-              class="flex items-baseline gap-1"
+              class="flex items-baseline gap-0.5 sm:gap-1"
             >
-              <span class="text-[9px] sm:text-[10px] font-mono-premium font-bold text-slate-400">{{ formatNumber(alt.elr * 3600, 3) }}</span>
-              <span class="text-[7px] sm:text-[8px] font-black text-slate-300 uppercase tracking-wide">/hr</span>
-              <span class="text-[7px] sm:text-[8px] font-black text-slate-400 uppercase tracking-wide">{{ alt.label }}</span>
+              <span class="text-[7px] sm:text-[10px] font-mono-premium font-bold text-slate-400">{{ formatNumber(alt.elr * 3600, 3) }}</span>
+              <span class="text-[6px] sm:text-[8px] font-black text-slate-300 uppercase tracking-wide">/hr</span>
+              <span class="text-[6px] sm:text-[8px] font-black text-slate-400 uppercase tracking-wide">{{ alt.label }}</span>
             </div>
           </div>
         </div>
 
         <!-- Total Duration -->
         <div class="space-y-0.5">
-          <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide sm:tracking-widest flex items-center gap-1 sm:gap-1.5">
+          <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide flex items-center gap-1 sm:gap-1.5">
             <div class="w-1 h-1 rounded-full bg-indigo-600"></div>
             Duration
           </div>
           <div class="flex items-center gap-1 sm:gap-1.5">
             <span class="text-sm sm:text-xl font-mono-premium font-black text-indigo-600">{{ formatDuration(summary.totalDurationSeconds) }}</span>
+          </div>
+        </div>
+
+        <!-- Longest Single TE Wait -->
+        <div v-if="summary.lastTEDurationSeconds > 0" class="space-y-0.5">
+          <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide flex items-center gap-1 sm:gap-1.5">
+            <div class="w-1 h-1 rounded-full bg-indigo-400"></div>
+            Last TE Wait
+          </div>
+          <div class="flex items-center gap-1 sm:gap-1.5">
+            <span class="text-sm sm:text-xl font-mono-premium font-black text-indigo-500">{{ formatDuration(summary.lastTEDurationSeconds) }}</span>
           </div>
         </div>
       </div>
@@ -209,7 +219,7 @@
         <div class="grid grid-cols-3 gap-x-1.5 sm:gap-x-4 gap-y-2 bg-slate-50/50 border border-slate-100 rounded-xl p-2 sm:p-3">
           <!-- SE Cost -->
           <div class="space-y-0.5">
-            <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide sm:tracking-widest flex items-center gap-1 sm:gap-1.5">
+            <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide flex items-center gap-1 sm:gap-1.5">
               <div class="w-1 h-1 rounded-full bg-rose-500"></div>
               SE Consumed
             </div>
@@ -221,7 +231,7 @@
 
           <!-- Ending SE Balance -->
           <div class="space-y-0.5">
-            <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide sm:tracking-widest flex items-center gap-1 sm:gap-1.5">
+            <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide flex items-center gap-1 sm:gap-1.5">
               <div class="w-1 h-1 rounded-full bg-slate-400"></div>
               Ending SE Balance
             </div>
@@ -236,7 +246,7 @@
 
           <!-- Total Eggs Delivered -->
           <div class="space-y-0.5">
-            <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide sm:tracking-widest flex items-center gap-1 sm:gap-1.5">
+            <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide flex items-center gap-1 sm:gap-1.5">
               <div class="w-1 h-1 rounded-full bg-slate-400"></div>
               Eggs Delivered
             </div>
