@@ -49,7 +49,7 @@
             </svg>
             <span>
               <span class="font-bold uppercase tracking-tight mr-1">Lookahead:</span>
-              Needs {{ lookahead.minLevels }} levels for +{{ (lookahead.impact * 100).toFixed(3) }}% ELR ({{ lookahead.hpp.toFixed(1) }} hr/%)
+              Needs {{ lookahead.minLevels }} levels for +{{ (lookahead.impact * 100).toFixed(3) }}% Delivery Rate ({{ lookahead.hpp.toFixed(1) }} hr/%)
             </span>
           </div>
         </div>
@@ -199,7 +199,7 @@
          </div>
        </div>
        <div class="text-right">
-         <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-1 block text-right font-mono">ELR</span>
+         <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-1 block text-right font-mono">Delivery Rate</span>
          <div class="flex items-center justify-end gap-1 leading-none">
            <span class="text-[11px] font-mono font-bold text-gray-900">
              {{ formatNumber(realisticStats.elr) }}/hr

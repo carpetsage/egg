@@ -161,7 +161,7 @@
         <div class="space-y-0.5">
           <div class="text-[7px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wide sm:tracking-widest flex items-center gap-1 sm:gap-1.5">
             <div class="w-1 h-1 rounded-full bg-indigo-500"></div>
-            Peak ELR
+            Peak Delivery Rate
           </div>
           <div class="flex items-center gap-1 sm:gap-1.5">
             <span class="text-sm sm:text-xl font-mono-premium font-black text-indigo-600">{{ formatNumber(summary.maxELR * 3600, 3) }}</span>

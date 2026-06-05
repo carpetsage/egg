@@ -134,7 +134,7 @@
         <div class="pt-2 mt-1 border-t border-slate-100/50 space-y-2">
           <div class="flex justify-between items-center text-[10px]">
             <div class="flex items-center gap-1">
-              <span class="font-black text-slate-400 uppercase tracking-widest">ELR per hour:</span>
+              <span class="font-black text-slate-400 uppercase tracking-widest">Delivery Rate per hour:</span>
               <button
                 class="p-0.5 text-slate-300 hover:text-slate-900 transition-colors"
                 v-tippy="'View calculation details'"
@@ -154,7 +154,7 @@
           </div>
           <div class="flex justify-between items-center text-[10px]">
             <div class="flex items-center gap-1">
-              <span class="font-black text-slate-400 uppercase tracking-widest">ELR per day:</span>
+              <span class="font-black text-slate-400 uppercase tracking-widest">Delivery Rate per day:</span>
             </div>
             <span class="font-mono-premium text-slate-500">{{ formatNumber(elrPerDay, 2) }}</span>
           </div>

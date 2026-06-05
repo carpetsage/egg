@@ -151,7 +151,7 @@
         @click="toggleSection('elr')"
       >
         <div class="flex flex-col">
-          <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">Effective Lay Rate</span>
+          <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">Delivery Rate</span>
           <span class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Actual Deliveries</span>
         </div>
         <div class="flex items-center gap-4">

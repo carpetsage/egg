@@ -241,7 +241,7 @@ if (!(researchId in startResearch)) startResearch[researchId] = fromLevel;
         }
       }
     } else if (action.type === 'equip_artifact_set') {
-      const setName = action.payload.setName === 'earnings' ? 'Earnings' : 'ELR';
+      const setName = action.payload.setName === 'earnings' ? 'Earnings' : 'Delivery Rate';
       equippedSets.push(setName);
     }
   }
@@ -260,7 +260,7 @@ if (!(researchId in startResearch)) startResearch[researchId] = fromLevel;
     if (peakELRAction) {
       items.push({
         isPeakELR: true,
-        text: `Peak ELR: ${formatNumber(peakELRAction.payload.peakELR * 3600, 3)}/hr`,
+        text: `Peak Delivery Rate: ${formatNumber(peakELRAction.payload.peakELR * 3600, 3)}/hr`,
       });
     }
     // --- TE Earned ---

@@ -41,7 +41,7 @@
           </span>
         </div>
         <div class="flex flex-col border-l border-gray-200 pl-6">
-          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">ELR</span>
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">Delivery Rate</span>
           <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1" v-tippy="'The lower of the two rates'">
             {{ formatNumber(realisticSummary.elr) }}/hr
           </span>

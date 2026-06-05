@@ -78,7 +78,7 @@ export const VIEWS = [
   { id: 'game', label: 'Game View' },
   { id: 'cheapest', label: 'Cheapest First' },
   { id: 'roi', label: 'Earnings ROI' },
-  { id: 'elr', label: 'ELR Impact' },
+  { id: 'elr', label: 'Delivery Impact' },
 ] as const;
 
 // Evaluation IDs for ELR Impact
@@ -154,13 +154,13 @@ export function useResearchViews() {
         const view = elrViewMode.value;
         const sort = elrSortMode.value;
         if (view === 'potential' && sort === 'efficiency') {
-          return 'Theoretical max impact to ELR, sorted by time efficiency.';
+          return 'Theoretical max impact to Delivery Rate, sorted by time efficiency.';
         } else if (view === 'potential' && sort === 'impact') {
-          return 'Theoretical max impact to ELR, sorted by total impact.';
+          return 'Theoretical max impact to Delivery Rate, sorted by total impact.';
         } else if (view === 'realistic' && sort === 'efficiency') {
-          return 'True ELR impact with optimal artifacts and max habs/vehicles, sorted by time efficiency.';
+          return 'True Delivery Rate impact with optimal artifacts and max habs/vehicles, sorted by time efficiency.';
         } else {
-          return 'True ELR impact with optimal artifacts and max habs/vehicles, sorted by total impact.';
+          return 'True Delivery Rate impact with optimal artifacts and max habs/vehicles, sorted by total impact.';
         }
       }
       default:
@@ -666,7 +666,7 @@ export function useResearchViews() {
         if (baseline.effectiveRate <= 0) return [];
 
         const baselineFmt = (n: number) => n.toExponential(3);
-        console.log(`[ELR View] Baseline (max Hyperloops): lay=${baselineFmt(baseline.layRate * 3600)}/hr, ship=${baselineFmt(baseline.shippingRate * 3600)}/hr, ELR=${baselineFmt(baseline.effectiveRate * 3600)}/hr — bottleneck: ${baseline.layRate < baseline.shippingRate ? 'LAY RATE' : 'SHIPPING'}`);
+        // console.log(`[ELR View] Baseline (max Hyperloops): lay=${baselineFmt(baseline.layRate * 3600)}/hr, ship=${baselineFmt(baseline.shippingRate * 3600)}/hr, ELR=${baselineFmt(baseline.effectiveRate * 3600)}/hr — bottleneck: ${baseline.layRate < baseline.shippingRate ? 'LAY RATE' : 'SHIPPING'}`);
 
         candidates = uniqueUnpurchased
           .map(r => {
@@ -756,7 +756,7 @@ export function useResearchViews() {
             if (DEBUG_IDS.includes(c.research.id) || c.impact > 0 || c.lookahead) {
               const stats = c.realisticStats!;
               const laNote = c.lookahead ? ` [lookahead ${c.lookahead.minLevels} levels → +${(c.lookahead.impact * 100).toFixed(4)}%]` : '';
-              console.log(`[ELR View] ${c.research.name}: impact=${(c.impact * 100).toFixed(4)}%, lay=${fmt(stats.layRate)}/hr, ship=${fmt(stats.shippingRate)}/hr, elr=${fmt(stats.elr)}/hr${laNote}`);
+              // console.log(`[ELR View] ${c.research.name}: impact=${(c.impact * 100).toFixed(4)}%, lay=${fmt(stats.layRate)}/hr, ship=${fmt(stats.shippingRate)}/hr, elr=${fmt(stats.elr)}/hr${laNote}`);
             }
             return c;
           })

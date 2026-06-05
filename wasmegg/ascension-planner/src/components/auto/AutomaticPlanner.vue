@@ -91,8 +91,8 @@
               <li><span class="font-semibold">C2</span> — Maxes fleet size research. If it can afford Graviton Coupling within 4 hours, it does.</li>
               <li><span class="font-semibold">K2</span> — Max Vehicles and Hyperloop Train Cars.</li>
               <li><span class="font-semibold">R1</span> — Buys as many silos as possible within one hour.</li>
-              <li><span class="font-semibold">C3</span> — Purchases remaining ELR-boosting research: lay rate, shipping capacity, and hab capacity.</li>
-              <li><span class="font-semibold">H1</span> — Swaps to the optimal artifact loadout for ELR.</li>
+              <li><span class="font-semibold">C3</span> — Purchases remaining Delivery Rate-boosting research: lay rate, shipping capacity, and hab capacity.</li>
+              <li><span class="font-semibold">H1</span> — Swaps to the optimal artifact loadout for Delivery Rate.</li>
               <li><span class="font-semibold">K3</span> — Buys new hyperloop cars unlocked by C3, then waits out the ascension until the TE goal is reached.</li>
               <li><span class="font-semibold">C4 / I2 / R2 / H2</span> — Each shifts to its respective virtue egg and waits until that egg's share of the TE goal is met.</li>
             </ul>

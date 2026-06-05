@@ -24,7 +24,7 @@
 
       <!-- Peak ELR row -->
       <div class="flex items-center gap-3 mb-4 px-1">
-        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Peak ELR</span>
+        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Peak Delivery Rate</span>
         <div class="flex items-center gap-1.5">
           <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider">1-sale</span>
           <span class="text-[13px] font-mono-premium font-black text-indigo-600">

@@ -409,7 +409,7 @@
         </div>
         <div class="px-6 py-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
           <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('elr')">
-            ELR Set
+            Delivery Rate Set
           </button>
           <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('earnings')">
             Earnings Set
