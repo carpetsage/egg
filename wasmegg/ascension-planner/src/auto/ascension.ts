@@ -370,11 +370,12 @@ export function runContinueCurrent(
 ): { actions: Action[]; summary: AscensionSummary } {
   const actualStartState: EngineState = JSON.parse(JSON.stringify(startState));
 
-  // Catch-up earnings: determine how long ago the last backup was,
-  // then add that many eggs based on current ELR.
-  const approxTime = context.rawBackup?.approxTime || 0;
-  if (approxTime > 0 && startTime > approxTime) {
-    const elapsedSeconds = startTime - approxTime;
+  // Catch-up: add eggs laid since the farm's last sync (lastStepTime) up to the plan
+  // start, assuming a constant lay rate. Mirrors the guard in computeSnapshot —
+  // lastStepTime > 1e9 distinguishes a real Unix timestamp from a 0-based sim offset.
+  const lastSyncTime = actualStartState.lastStepTime;
+  if (lastSyncTime > 1e9 && startTime > lastSyncTime) {
+    const elapsedSeconds = startTime - lastSyncTime;
     const catchUpEggs = currentELR * elapsedSeconds;
     const currentEgg = actualStartState.currentEgg;
     actualStartState.eggsDelivered[currentEgg] = (actualStartState.eggsDelivered[currentEgg] || 0) + catchUpEggs;
