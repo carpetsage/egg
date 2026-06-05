@@ -26,9 +26,7 @@
         ></textarea>
       </div>
 
-      <base-loading v-if="loading" class="text-sm text-gray-700">
-        Waiting for server response...
-      </base-loading>
+      <base-loading v-if="loading" class="text-sm text-gray-700"> Waiting for server response... </base-loading>
 
       <div v-if="!loading && encodedResponsePayload">
         <label for="message" class="flex items-center text-sm font-medium text-gray-700">
@@ -111,13 +109,11 @@ export default defineComponent({
 
   setup(props) {
     const { apiEndpoint, requestMessage, getRequestPayloadObject } = toRefs(props);
-    const {
-      encodedRequestPayload,
-      encodedResponsePayload,
-      requestError,
-      loading,
-      sendRequest,
-    } = useAPIClient(apiEndpoint.value, requestMessage.value, getRequestPayloadObject.value);
+    const { encodedRequestPayload, encodedResponsePayload, requestError, loading, sendRequest } = useAPIClient(
+      apiEndpoint.value,
+      requestMessage.value,
+      getRequestPayloadObject.value
+    );
     return {
       encodedRequestPayload,
       encodedResponsePayload,

@@ -116,10 +116,9 @@
 <script lang="ts">
 import { computed, defineComponent, toRefs, ref } from 'vue';
 
-import { ei, iconURL } from 'lib';
-import { AfxTier, allPossibleTiers, getArtifactTierPropsFromId as id2artifact } from 'lib/artifacts/data';
+import { iconURL } from 'lib';
+import { getArtifactTierPropsFromId as id2artifact } from 'lib/artifacts/data';
 import { cmpArtifactTiers } from '@/lib';
-import { rarityFgClass500 } from '@/utils';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseInput from 'ui/components/BaseInput.vue';
 import ArtifactName from '@/components/ArtifactName.vue';
@@ -127,21 +126,15 @@ import ArtifactMissionOptimizer from '@/components/ArtifactMissionOptimizer.vue'
 import Share from '@/components/Share.vue';
 import craftingPriceFormulaImage from '@/assets/crafting-price-formula.svg';
 
-import Type = ei.ArtifactSpec.Type;
-
 export default defineComponent({
   components: {
     BaseInfo,
     BaseInput,
     ArtifactName,
-    ArtifactMissionOptimizer: ArtifactMissionOptimizer,
+    ArtifactMissionOptimizer,
     Share,
   },
   props: {
-    page: {
-      type: String,
-      required: true,
-    },
     tankPlannerArtifactId: {
       type: String,
       required: true,
@@ -177,75 +170,14 @@ export default defineComponent({
       }
       return ingredients.sort(cmpArtifactTiers);
     });
-    const dependents = computed(() => calculateDependents(artifact.value));
-    const recursiveDependents = computed(() => {
-      const queue = dependents.value.map(it => it.item);
-      const directDependentIds = new Set(queue.map(it => it.id));
-      const seen = new Set();
-      const deps = [];
-      while (queue.length > 0) {
-        const item = queue.shift()!;
-        if (!directDependentIds.has(item.id)) {
-          if (seen.has(item.id)) {
-            continue;
-          }
-          deps.push(item);
-        }
-        seen.add(item.id);
-        queue.push(...calculateDependents(item).map(it => it.item));
-      }
-      return deps.sort(cmpArtifactTiers);
-    });
-    const hardDependents = computed(() => {
-      const allDependents = dependents.value.map(it => it.item).concat(recursiveDependents.value);
-      const hard = [];
-      for (const dependent of allDependents) {
-        if (dependent.hard_dependencies !== null) {
-          for (const ingredient of dependent.hard_dependencies) {
-            if (ingredient.id === artifactId.value) {
-              hard.push({
-                item: dependent,
-                count: ingredient.count,
-              });
-            }
-          }
-        }
-      }
-      return hard.sort((it1, it2) => cmpArtifactTiers(it1.item, it2.item));
-    });
-
     return {
       id2artifact,
       artifact,
       recursiveIngredients,
-      dependents,
-      recursiveDependents,
-      hardDependents,
       craftingPriceFormulaImage,
       iconURL,
-      rarityFgClass500,
-      Type,
       waitTime_days,
     };
   },
 });
-
-function calculateDependents(item: AfxTier): { item: AfxTier; count: number }[] {
-  const dependents = [];
-  for (const it of allPossibleTiers) {
-    if (!it.recipe) {
-      continue;
-    }
-    for (const ingredient of it.recipe.ingredients) {
-      if (ingredient.id === item.id) {
-        dependents.push({
-          item: it,
-          count: ingredient.count,
-        });
-        break;
-      }
-    }
-  }
-  return dependents;
-}
 </script>

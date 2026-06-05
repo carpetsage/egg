@@ -4,6 +4,7 @@ import { useActionsStore } from '@/stores/actions';
 import { usePersistence } from '@/composables/usePersistence';
 import { loadLibraryPlans, deletePlanFromLibrary, savePlanToLibrary, type PlanData } from '@/lib/storage/db';
 import { downloadFile } from '@/utils/export';
+import { initLoadPlan } from '@/lib/modes';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import ImportCollisionDialog from '@/components/ImportCollisionDialog.vue';
 import PlanAlreadyOpenWarning from '@/components/PlanAlreadyOpenWarning.vue';
@@ -58,7 +59,7 @@ async function loadPlan(plan: PlanData) {
 
   try {
     broadcastPresence(plan.id); // Immediate heartbeat to block other tabs
-    await actionsStore.loadPlanFromLibrary(plan);
+    await initLoadPlan(plan);
     emit('plan-loaded');
   } catch (err) {
     alert('Failed to load plan: ' + err);

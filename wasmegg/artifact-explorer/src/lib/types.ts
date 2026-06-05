@@ -4,12 +4,9 @@
 
 import { ei, MissionType } from 'lib';
 
-/** A sensor target the player can designate */
-export interface SensorTarget {
-  id: string;
-  name: string;
-  node_id: string; // DAG node being targeted
-}
+/** Marks a `number` that is logically an integer. Documents intent only; not enforced at runtime. */
+type integer = number;
+export type { integer };
 
 /** Phase 0 + Phase 1 output: one enumerated launch option */
 export interface LaunchOption {
@@ -20,9 +17,14 @@ export interface LaunchOption {
   actual_fuel: number;
   fuel_by_egg: Map<ei.Egg, number>;
   actual_time: number;
-  num_ships_launched: integer;
-  supply_vector: Map<string, number>; // node_id → expected drops per launch
-  yield_vector: Map<string, number>; // node_id → expected drops per launch
+  // Every item this launch drops (node_id → expected count per launch batch), including
+  // items that are not recipe ingredients. Drives the "expected drops" display only.
+  supply_vector: Map<string, number>;
+  // The subset of supply_vector restricted to recipe-DAG ingredients. This is what the
+  // optimizer feeds into the inner crafting LP.
+  yield_vector: Map<string, number>;
+  // node_id → expected legendary drops per launch batch (for the root and any
+  // legendary-bearing ingredient).
   legendary_yield_vector: Map<string, number>;
 }
 
@@ -37,12 +39,9 @@ export interface DAGChildRef {
 
 export interface DAGNode {
   id: string;
-  display_name: string;
   is_leaf: boolean; // true = raw drop only; false = craftable
-  is_root: boolean;
-  required_quantity: integer; // how many needed to satisfy this node
   children: DAGChildRef[]; // empty for leaf nodes
-  legendaryCraftProbability: number;
+  legendaryCraftProbability: number; // per-craft chance of a legendary; non-zero only on the targeted root
 }
 
 /** Full recipe DAG: keyed by node_id */
@@ -72,7 +71,17 @@ export interface DropRow {
   relevant: boolean;
 }
 
+/** Per-target probability breakdown for multi-target runs. */
+export interface TargetProbability {
+  nodeId: string;
+  best_probability: number;
+  craft_probability: number;
+  drop_probability: number;
+  expected_crafts: number;
+}
+
 export interface OptimizerSolution {
+  // Scalar fields report the primary target (desired_artifact_node_ids[0]).
   best_probability: number;
   craft_probability: number;
   drop_probability: number;
@@ -85,6 +94,8 @@ export interface OptimizerSolution {
   final_yield_vector: Map<string, number>;
   recipe_dag: RecipeDAG;
   craft_primal: Map<string, number>;
+  /** One entry per desired target, in order; per_target[0] mirrors the scalar fields. */
+  per_target: TargetProbability[];
 }
 
 // ============================================================
@@ -97,9 +108,3 @@ export interface OptimizerConfig {
   fuel_tank_capacity: integer;
   time_budget_seconds: number;
 }
-
-// ============================================================
-// Utility alias
-// ============================================================
-type integer = number; // documents intent; no runtime enforcement needed
-export type { integer };

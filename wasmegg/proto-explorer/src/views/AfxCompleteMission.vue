@@ -14,12 +14,7 @@
         placeholder="Ex: EI1234567890123456"
         :required="true"
       />
-      <parameter-input
-        v-model.trim="missionId"
-        name="mission_id"
-        label="Mission ID"
-        :required="true"
-      />
+      <parameter-input v-model.trim="missionId" name="mission_id" label="Mission ID" :required="true" />
       <request-button :form-valid="formValid" />
     </template>
   </api-requester>

@@ -73,10 +73,9 @@ export function checkEventCrossing(
     const completionTimeAbs = planStartTimeSecs + (completionTimeSim - planStartOffset);
 
     return {
-        // We warn if it completes after the threshold. 
-        // We no longer strictly check if currentSimTime < endTimeSim to handle cases 
-        // where the user is already slightly past the threshold but the event is still toggled on.
-        isCrossed: completionTimeSim > endTimeSim,
+        // We warn if it completes at least 1 second after the threshold. 
+        // This avoids nuisance warnings for sub-second overlaps.
+        isCrossed: completionTimeSim >= endTimeSim + 1,
         endTime: endTimeAbs,
         completionTime: completionTimeAbs,
     };

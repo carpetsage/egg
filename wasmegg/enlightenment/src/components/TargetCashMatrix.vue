@@ -7,10 +7,7 @@
           <table class="min-w-full divide-y divide-gray-200 text-center tabular-nums">
             <thead class="bg-gray-50">
               <tr>
-                <th
-                  scope="col"
-                  class="px-2 py-2 whitespace-pre text-sm font-medium text-gray-500"
-                ></th>
+                <th scope="col" class="px-2 py-2 whitespace-pre text-sm font-medium text-gray-500"></th>
                 <th
                   v-for="target in targets"
                   :key="target.description"
@@ -23,9 +20,7 @@
             </thead>
             <tbody>
               <tr class="bg-white">
-                <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                  Discount
-                </td>
+                <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">Discount</td>
                 <td
                   v-for="target in targets"
                   :key="target.description"
@@ -36,9 +31,7 @@
               </tr>
 
               <tr class="bg-gray-50">
-                <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                  Cash target
-                </td>
+                <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">Cash target</td>
                 <td
                   v-for="target in targets"
                   :key="target.description"
@@ -49,9 +42,7 @@
               </tr>
 
               <tr class="bg-white border-b border-gray-200">
-                <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
-                  Need to earn
-                </td>
+                <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">Need to earn</td>
                 <td
                   v-for="target in targets"
                   :key="target.description"
@@ -60,11 +51,7 @@
                   <base-e-i-value :value="needToEarn(target)" />
                 </td>
               </tr>
-              <tr
-                v-for="(m, index) in means"
-                :key="m.description"
-                :class="index % 2 === 1 ? 'bg-white' : 'bg-gray-50'"
-              >
+              <tr v-for="(m, index) in means" :key="m.description" :class="index % 2 === 1 ? 'bg-white' : 'bg-gray-50'">
                 <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">
                   {{ m.description }}
                 </td>
@@ -125,8 +112,7 @@ export default defineComponent({
   },
   setup(props) {
     const { baseTarget, current } = toRefs(props);
-    const needToEarn = (target: Target) =>
-      Math.max(baseTarget.value * target.multiplier - current.value, 0);
+    const needToEarn = (target: Target) => Math.max(baseTarget.value * target.multiplier - current.value, 0);
     return {
       needToEarn,
       formatPercentage,

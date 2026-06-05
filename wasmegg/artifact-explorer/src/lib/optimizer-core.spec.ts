@@ -7,10 +7,7 @@ import type { LaunchOption, RecipeDAG, DAGNode } from './types';
 function makeNode(id: string, is_leaf: boolean, children: [string, number][] = [], pCraft = 0): DAGNode {
   return {
     id,
-    display_name: id,
     is_leaf,
-    is_root: false,
-    required_quantity: 1,
     children: children.map(([node_id, quantity]) => ({ node_id, quantity })),
     legendaryCraftProbability: pCraft,
   };
@@ -44,7 +41,6 @@ function makeOpt(
     actual_fuel,
     fuel_by_egg: new Map(),
     actual_time,
-    num_ships_launched: 3,
     supply_vector: new Map(yieldEntries),
     yield_vector: new Map(yieldEntries),
     legendary_yield_vector: new Map(legendaryEntries),
@@ -141,11 +137,11 @@ describe('optimizeFull', () => {
     expect(sol.choice_history.find(c => c.targetAfxId === opt1.targetAfxId)).toBeDefined();
   });
 
-  // OC-7: Joint LP / Frank-Wolfe support flag
+  // OC-7: Joint LP support — complementary options both get allocated
   // DAG: A ← {B:1, C:1}; optB yields B, optC yields C — neither dominates the other.
-  // The LP optimum splits budget evenly: x_B = x_C = 10. Both are in the FW support
-  // so both choice_history entries must have from_fw === true.
-  it('OC-7: FW-support entries flagged from_fw=true; both B and C yields ≥ 9', () => {
+  // The LP optimum splits the budget evenly (x_B = x_C = 10), so the final allocation
+  // must include both options and accumulate ≥ 9 of each ingredient.
+  it('OC-7: complementary B/C options both allocated; each yield ≥ 9', () => {
     const dag7: RecipeDAG = new Map([
       [
         'A',

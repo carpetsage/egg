@@ -16,9 +16,7 @@
           type="checkbox"
           class="h-4 w-4 text-blue-600 focus:outline-none border-gray-300 rounded"
         />
-        <label for="eiafxdata" class="ml-2 block text-sm text-gray-900">
-          Format like eiafx-data
-        </label>
+        <label for="eiafxdata" class="ml-2 block text-sm text-gray-900"> Format like eiafx-data </label>
       </div>
       <request-button :form-valid="true" />
     </template>
@@ -46,9 +44,7 @@ export default defineComponent({
       rinfo: basicRequestInfo(atob('RUk2MjkxOTQwOTY4MjM1MDA4')),
     });
     const eiafxdata = ref(getLocalStorage(EIAFXDATA_LOCALSTORAGE_KEY) === 'true');
-    watch(eiafxdata, () =>
-      setLocalStorage(EIAFXDATA_LOCALSTORAGE_KEY, eiafxdata.value)
-    );
+    watch(eiafxdata, () => setLocalStorage(EIAFXDATA_LOCALSTORAGE_KEY, eiafxdata.value));
     return {
       eiafxdata,
       getRequestPayloadObject,

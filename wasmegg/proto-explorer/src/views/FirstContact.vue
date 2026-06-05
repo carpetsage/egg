@@ -15,12 +15,7 @@
         placeholder="Ex: EI1234567890123456"
         :required="true"
       />
-      <parameter-input
-        v-model.trim="deviceId"
-        name="device_id"
-        label="Device ID"
-        placeholder="Optional"
-      />
+      <parameter-input v-model.trim="deviceId" name="device_id" label="Device ID" placeholder="Optional" />
       <parameter-input
         v-model.trim="gameServicesId"
         name="game_services_id"
@@ -35,14 +30,7 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
 
-import {
-  basicRequestInfo,
-  CLIENT_VERSION,
-  ei,
-  getLocalStorage,
-  PLATFORM,
-  setLocalStorage,
-} from 'lib';
+import { basicRequestInfo, CLIENT_VERSION, ei, getLocalStorage, PLATFORM, setLocalStorage } from 'lib';
 import ApiRequester from '@/components/APIRequester.vue';
 import ParameterInput from '@/components/ParameterInput.vue';
 import RequestButton from '@/components/RequestButton.vue';
