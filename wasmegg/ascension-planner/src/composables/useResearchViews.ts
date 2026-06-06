@@ -552,8 +552,21 @@ export function useResearchViews() {
           resultTimeToBuySeconds = getTimeToSave(price, effectiveSnapshot);
           const afterMaxSnapshot = buildMaxVehiclesSnapshot(effectiveSnapshot, { ...researchLevels, [r.id]: level + 1 }, context);
           nextSnapshot = afterMaxSnapshot;
-          const earningsDelta = afterMaxSnapshot.offlineEarnings - baseMaxVehiclesSnapshot.offlineEarnings;
-          roiSeconds = earningsDelta > 0 ? price / earningsDelta : Infinity;
+          const maxTime = 1e9;
+          const getExtra = (t: number) =>
+            calculateEarningsForTime(t, afterMaxSnapshot) -
+            calculateEarningsForTime(t, baseMaxVehiclesSnapshot);
+          if (getExtra(maxTime) >= price) {
+            let low = 0, high = maxTime;
+            for (let i = 0; i < 60; i++) {
+              const mid = (low + high) / 2;
+              if (getExtra(mid) >= price) high = mid;
+              else low = mid;
+            }
+            roiSeconds = high;
+          } else {
+            roiSeconds = Infinity;
+          }
           totalRoiSeconds = isFinite(resultTimeToBuySeconds) ? resultTimeToBuySeconds + roiSeconds : Infinity;
           showSaleWarning = !isSale && (absoluteSimTime + resultTimeToBuySeconds >= nextSaleStart);
           showDeadlineWarning = isSale && (absoluteSimTime + resultTimeToBuySeconds > researchSaleDeadline.value);
