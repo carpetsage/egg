@@ -38,7 +38,9 @@ export function simulate(
   // We need a way to treat baseState as a Snapshot for delta computation of the first action.
   // However, computeDeltas expects a full CalculationsSnapshot.
   // We can compute the "base snapshot" once.
-  const baseSnapshot = computeSnapshot(baseState, context);
+  // skipEpochConversion keeps lastStepTime in the plan's native reference frame (relative or epoch)
+  // so that mid-plan recalculations don't corrupt the plan's time axis.
+  const baseSnapshot = computeSnapshot(baseState, context, { skipEpochConversion: true });
 
   let currentState = baseState;
   let currentSnapshot = baseSnapshot;
@@ -67,6 +69,7 @@ export function simulate(
     // 2. Compute full snapshot
     const newSnapshot = computeSnapshot(currentState, context, {
       skipGrowth: action.type === 'wait_for_no_earnings',
+      skipEpochConversion: true,
     });
 
     // 3. Compute deltas vs previous state
@@ -120,7 +123,7 @@ export async function simulateAsync(
 ): Promise<Action[]> {
   const results: Action[] = [];
   let previousSnapshot: CalculationsSnapshot | null = null;
-  const baseSnapshot = computeSnapshot(baseState, context);
+  const baseSnapshot = computeSnapshot(baseState, context, { skipEpochConversion: true });
 
   let currentState = baseState;
   let currentSnapshot = baseSnapshot;
@@ -152,6 +155,7 @@ export async function simulateAsync(
 
     const newSnapshot = computeSnapshot(currentState, context, {
       skipGrowth: action.type === 'wait_for_no_earnings',
+      skipEpochConversion: true,
     });
     const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;
     const deltas = computeDeltas(prevSnap, newSnapshot);

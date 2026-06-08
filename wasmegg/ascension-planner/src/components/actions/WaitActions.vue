@@ -30,7 +30,7 @@
         </svg>
       </button>
       <div v-show="teExpanded" class="p-6 border-t border-slate-50">
-        <WaitForTEActions @show-current-details="$emit('show-current-details')" />
+        <WaitForTEActions ref="teActionsRef" @show-current-details="$emit('show-current-details')" />
       </div>
     </div>
 
@@ -61,7 +61,7 @@
         </svg>
       </button>
       <div v-show="bulkTEExpanded" class="p-6 border-t border-slate-50">
-        <BulkWaitForTEActions />
+        <BulkWaitForTEActions ref="bulkTEActionsRef" />
       </div>
     </div>
 
@@ -156,7 +156,7 @@
         </svg>
       </button>
       <div v-show="gemsExpanded" class="p-6 border-t border-slate-50">
-        <WaitForGemsActions />
+        <WaitForGemsActions ref="gemsActionsRef" />
       </div>
     </div>
 
@@ -187,7 +187,7 @@
         </svg>
       </button>
       <div v-show="timeExpanded" class="p-6 border-t border-slate-50">
-        <WaitForTimeActions />
+        <WaitForTimeActions ref="timeActionsRef" />
       </div>
     </div>
 
@@ -218,7 +218,7 @@
         </svg>
       </button>
       <div v-show="noEarningsExpanded" class="p-6 border-t border-slate-50">
-        <WaitWithoutEarningsActions />
+        <WaitWithoutEarningsActions ref="noEarningsActionsRef" />
       </div>
     </div>
 
@@ -263,7 +263,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { iconURL } from 'lib';
 import { useActionsStore } from '@/stores/actions';
 import WaitForTEActions from './WaitForTEActions.vue';
@@ -288,6 +288,18 @@ const gemsExpanded = ref(false);
 const timeExpanded = ref(false);
 const noEarningsExpanded = ref(false);
 const eventsExpanded = ref(false);
+
+const teActionsRef = ref<InstanceType<typeof WaitForTEActions> | null>(null);
+const bulkTEActionsRef = ref<InstanceType<typeof BulkWaitForTEActions> | null>(null);
+const gemsActionsRef = ref<InstanceType<typeof WaitForGemsActions> | null>(null);
+const timeActionsRef = ref<InstanceType<typeof WaitForTimeActions> | null>(null);
+const noEarningsActionsRef = ref<InstanceType<typeof WaitWithoutEarningsActions> | null>(null);
+
+watch(teExpanded, val => { if (val) nextTick(() => teActionsRef.value?.focus()); });
+watch(bulkTEExpanded, val => { if (val) nextTick(() => bulkTEActionsRef.value?.focus()); });
+watch(gemsExpanded, val => { if (val) nextTick(() => gemsActionsRef.value?.focus()); });
+watch(timeExpanded, val => { if (val) nextTick(() => timeActionsRef.value?.focus()); });
+watch(noEarningsExpanded, val => { if (val) nextTick(() => noEarningsActionsRef.value?.focus()); });
 
 defineEmits<{
   'show-current-details': [];

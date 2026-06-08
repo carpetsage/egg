@@ -29,7 +29,7 @@ const BASE_EGG_VALUE = 1;
 export function computeSnapshot(
   state: EngineState,
   context: SimulationContext,
-  options: { skipGrowth?: boolean } = {}
+  options: { skipGrowth?: boolean; skipEpochConversion?: boolean } = {}
 ): SimulationResult {
   const { epicResearchLevels, colleggtibleModifiers } = context;
 
@@ -80,8 +80,10 @@ export function computeSnapshot(
     bankValue = state.bankValue || 0;
   } else {
     // 8. Population growth (catch-up if starting from a backup)
-    // If time is not initialized (e.g. fresh ascension), base it on the planned start time
-    if (lastStepTime < 1e9 && context.ascensionStartTime > 1e9) {
+    // If time is not initialized (e.g. fresh ascension), base it on the planned start time.
+    // Skip this when called from simulation loops (skipEpochConversion:true) to keep lastStepTime
+    // in the same relative reference frame as the rest of the plan.
+    if (!options.skipEpochConversion && lastStepTime < 1e9 && context.ascensionStartTime > 1e9) {
       lastStepTime = context.ascensionStartTime;
     }
 

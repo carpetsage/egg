@@ -318,14 +318,18 @@ const teStatsList = computed(() => {
 
 function formatDateTime(date: Date): string {
   if (isNaN(date.getTime())) return 'N/A';
-  return date.toLocaleString('en-US', {
+  const options: Intl.DateTimeFormatOptions = {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-  });
+  };
+  if (date.getFullYear() !== new Date().getFullYear()) {
+    options.year = 'numeric';
+  }
+  return date.toLocaleString('en-US', options);
 }
 
 // Import/Export Logic

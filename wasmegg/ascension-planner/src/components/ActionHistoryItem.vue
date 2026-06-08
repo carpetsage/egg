@@ -124,7 +124,7 @@
           <span v-if="action.ihrDelta" :class="deltaClass(action.ihrDelta)">IHR {{ formatDelta(action.ihrDelta) }}</span>
           <span v-if="action.layRateDelta" :class="deltaClass(action.layRateDelta)">Lay {{ formatDelta(action.layRateDelta) }}</span>
           <span v-if="action.shippingCapacityDelta" :class="deltaClass(action.shippingCapacityDelta)">Ship {{ formatDelta(action.shippingCapacityDelta) }}</span>
-          <span v-if="action.elrDelta" :class="deltaClass(action.elrDelta)">ELR {{ formatDelta(action.elrDelta) }}</span>
+          <span v-if="action.elrDelta" :class="deltaClass(action.elrDelta)">Delivery {{ formatDelta(action.elrDelta) }}</span>
           <span v-if="action.offlineEarningsDelta" :class="deltaClass(action.offlineEarningsDelta)">Earn {{ formatDelta(action.offlineEarningsDelta) }}</span>
           <span v-if="action.populationDelta" :class="deltaClass(action.populationDelta)">Pop {{ formatDelta(action.populationDelta) }}</span>
           <span

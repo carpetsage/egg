@@ -302,7 +302,7 @@
               class="btn-premium btn-primary py-2 text-[10px] font-black uppercase tracking-widest"
               @click="$emit('save-current-to-set', 'elr')"
             >
-              Save as ELR
+              Save as Delivery
             </button>
           </div>
         </template>

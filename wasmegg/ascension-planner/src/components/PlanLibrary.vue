@@ -84,7 +84,7 @@ async function loadPlan(plan: PlanData) {
   try {
     broadcastPresence(plan.id); // Immediate heartbeat to block other tabs
     await initLoadPlan(plan);
-    emit('plan-loaded');
+    emit('plan-loaded', plan.name);
   } catch (err) {
     console.error('[PlanLibrary] Error loading plan:', err);
     alert('Failed to load plan: ' + err);
@@ -518,7 +518,7 @@ function handleAutoPlanCancel() {
   }
 }
 
-const emit = defineEmits(['plan-loaded']);
+const emit = defineEmits<{ 'plan-loaded': [name: string] }>();
 </script>
 
 <template>

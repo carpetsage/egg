@@ -33,6 +33,9 @@ export interface AscensionSummary {
   teEarned: Record<VirtueEgg, number>;    // Gained during this ascension
   finalTE: Record<VirtueEgg, number>;     // Total after ascension
   
+  // Time to earn the final TE step of the highest-TE egg
+  lastTEDurationSeconds: number;
+
   // Strategy label for display
   strategyLabel: string;                  // e.g., "1-sale build, 20 TE"
   

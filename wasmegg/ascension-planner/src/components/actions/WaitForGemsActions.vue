@@ -36,6 +36,7 @@
       <div class="flex flex-col gap-3 mb-6">
         <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Wait until I have:</span>
         <input
+          ref="inputEl"
           v-model="targetInput"
           type="text"
           placeholder="e.g. 1M or 1,234,567"
@@ -98,6 +99,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+const inputEl = ref<HTMLInputElement | null>(null);
+defineExpose({ focus: () => inputEl.value?.focus() });
 import { iconURL } from 'lib';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
