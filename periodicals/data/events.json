@@ -27173,10 +27173,10 @@
   {
     "endTimestamp": 1781280000,
     "id": "ultra-6-11",
-    "message": "4x DRONE REWARDS!",
-    "multiplier": 4,
+    "message": "3x FUELING!",
+    "multiplier": 3,
     "startTimestamp": 1781193600,
-    "type": "drone-boost",
+    "type": "mission-fuel",
     "ultra": true
   }
 ]
