@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import router from './router';
 import App from './App.vue';
 import './index.css';
@@ -10,6 +11,8 @@ import 'tippy.js/themes/translucent.css';
 
 const app = createApp(App);
 app.use(router);
+const pinia = createPinia();
+app.use(pinia);
 app.use(VueTippy, {
   defaultProps: {
     theme: 'translucent',
