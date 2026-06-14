@@ -27198,6 +27198,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1781452800,
+    "id": "ultra-6-13",
+    "message": "2x GIFTS!",
+    "multiplier": 2,
+    "startTimestamp": 1781366400,
+    "type": "gift-boost",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1781539200,
     "id": "event-6-13-2",
     "message": "4x PIGGY GROWTH!",
@@ -27207,12 +27216,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1781452800,
-    "id": "ultra-6-13",
-    "message": "2x GIFTS!",
-    "multiplier": 2,
-    "startTimestamp": 1781366400,
-    "type": "gift-boost",
-    "ultra": true
+    "endTimestamp": 1781539200,
+    "id": "event-6-14",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1781452800,
+    "type": "crafting-sale",
+    "ultra": false
   }
 ]
