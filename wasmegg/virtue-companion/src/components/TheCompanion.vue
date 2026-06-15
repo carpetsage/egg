@@ -180,7 +180,7 @@
       <hr />
 
       <collapsible-section
-        section-title="Currently Equipped Artifacts"
+        :section-title="`Currently Equipped Artifacts (Clothed TE: ${formatWithThousandSeparators(Math.round(clothedTE))})`"
         :visible="isVisibleSection('artifacts')"
         class="my-2 text-sm"
         @toggle="toggleSectionVisibility('artifacts')"

@@ -2,7 +2,7 @@ import { Build, Config } from '../models';
 import { ArtifactSpec } from '../proto';
 import { allColleggtiblesModifiers } from './colleggtibles';
 import { additiveEffect } from './common';
-import { cteFromArtifacts, cteFromColleggtibles, multiplierToTE } from 'lib';
+import { cteFromArtifacts, cteFromColleggtibles, cteFromLabUpgrade, multiplierToTE } from 'lib';
 
 export function earningBonus(build: Build, config: Config, virtue = false): number {
   const peBonus = prophecyEggBonus(build, config);
@@ -29,8 +29,10 @@ export function clothedTE(build: Build, config: Config) {
   const cteFromColleggs = cteFromColleggtibles(modifiers);
   // cte penalty for std permit
   const cteFromPermit = config.proPermit ? 0 : multiplierToTE(0.5);
+  // cte penalty for missing Lab Upgrade epic research
+  const cteFromLab = cteFromLabUpgrade(config.labUpgrade);
 
-  return cteFromArtis + cteFromColleggs + cteFromPermit;
+  return cteFromArtis + cteFromColleggs + cteFromPermit + cteFromLab;
 }
 
 function prophecyEggBonus(build: Build, config: Config): number {

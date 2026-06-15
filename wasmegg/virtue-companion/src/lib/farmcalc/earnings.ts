@@ -3,7 +3,6 @@ import {
   Artifact,
   Stone,
   Modifiers,
-  maxModifierFromColleggtibles,
   allModifiersFromColleggtibles,
   getNumTruthEggs,
   recommendArtifactSet,
@@ -12,14 +11,18 @@ import {
   contenderToArtifactSet,
   ArtifactSet,
   Inventory,
+  cteFromArtifacts,
+  cteFromColleggtibles,
+  cteFromLabUpgrade,
+  multiplierToTE,
 } from 'lib';
-import { awayEarningsMultiplier, eggValueMultiplier, researchPriceMultiplierFromArtifacts } from '../effects';
+import { awayEarningsMultiplier } from '../effects';
 import { farmEarningBonus } from './earning_bonus';
 import { farmEggValue, farmEggValueResearches } from './egg_value';
 import { farmEggLayingRate } from './laying_rate';
 import { farmMaxRCB, farmMaxRCBResearches } from './max_rcb';
 import { farmShippingCapacity } from './shipping_capacity';
-import { researchPriceMultiplierFromResearches } from './research_price';
+import { labUpgradeLevel } from './research_price';
 import { homeFarmArtifacts } from './artifacts';
 
 export function farmEarningRate(
@@ -76,56 +79,23 @@ export function calculateClothedTE(
   const progress = backup.game!;
   const artifacts = artifactsOverride ?? homeFarmArtifacts(backup, true);
   const truthEggs = getNumTruthEggs(backup);
-
-  // Get current modifiers from colleggtibles (or use override)
   const currentModifiers = currentModifiersOverride ?? allModifiersFromColleggtibles(backup);
 
-  // Get max possible modifiers from colleggtibles
-  const maxEarningsModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.EARNINGS);
-  const maxAwayEarningsModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.AWAY_EARNINGS);
-  const maxResearchCostModifier = maxModifierFromColleggtibles(ei.GameModifier.GameDimension.RESEARCH_COST);
+  // Standard permit halves offline earnings.
+  const permitPenalty = progress.permitLevel === 1 ? 0 : multiplierToTE(0.5);
 
-  // Calculate multipliers from artifacts
-  const eggValueMult = eggValueMultiplier(artifacts);
-  const awayEarningsMult = awayEarningsMultiplier(artifacts);
-  const artifactResearchPriceMult = researchPriceMultiplierFromArtifacts(artifacts);
-
-  // Calculate epic research multiplier (Lab Upgrade) - actual level from backup
-  const epicResearchMult = researchPriceMultiplierFromResearches(farm, progress);
-  const maxEpicResearchMult = 1 + 10 * -0.05; // Max level 10, -5% per level = 0.5 (50% discount)
-
-  // Standard permit penalty (50% offline earnings)
-  const permitMult = progress.permitLevel === 1 ? 1 : 0.5;
-
-  // Calculate effective multipliers
-  // For earnings sources (egg value, offline earnings), higher is better
-  const earningsEffect = eggValueMult * awayEarningsMult;
-
-  // For cost modifiers, we want to know what fraction of max discount we have
-  // Research discount is multiplicative, so we convert to "effective earnings boost"
-  // A 50% research discount (0.5x) is equivalent to 2x effective earnings (1/0.5 = 2)
-  const currentResearchPriceMult = artifactResearchPriceMult * epicResearchMult * currentModifiers.researchCost;
-  const researchDiscountEffect = 1 / currentResearchPriceMult;
-  const maxResearchDiscountEffect = 1 / (maxEpicResearchMult * maxResearchCostModifier);
-
-  // Calculate colleggtible penalties
-  // These represent what fraction of max power we have
-  const earningsPenalty = currentModifiers.earnings / maxEarningsModifier;
-  const awayEarningsPenalty = currentModifiers.awayEarnings / maxAwayEarningsModifier;
-  const researchCostPenalty = researchDiscountEffect / maxResearchDiscountEffect;
-
-  // Combine all multipliers
-  // This represents the total earnings multiplier from all sources
-  const totalMultiplier = earningsEffect * permitMult * earningsPenalty * awayEarningsPenalty * researchCostPenalty;
-
-  // Convert multiplier to TE equivalent
-  // Since TE affects earnings by 1.1^TE, we use logarithms to convert back:
-  // If earnings = 1.1^TE_base * multiplier, then
-  // equivalent TE = TE_base + log(multiplier) / log(1.1)
-  const multiplierAsTE = Math.log(totalMultiplier) / Math.log(1.1);
-  const clothedTE = truthEggs + multiplierAsTE;
-
-  return clothedTE;
+  // Composed from the shared lib CTE primitives so the Artifact Sandbox and
+  // Virtue Companion compute Clothed TE identically. Each term is the TE
+  // equivalent of one contribution: artifact multipliers (bonus), missing
+  // colleggtibles (penalty vs max), missing Lab Upgrade (penalty vs max), and
+  // the standard-permit penalty.
+  return (
+    truthEggs +
+    cteFromArtifacts(artifacts) +
+    cteFromColleggtibles(currentModifiers) +
+    cteFromLabUpgrade(labUpgradeLevel(farm, progress)) +
+    permitPenalty
+  );
 }
 
 /**
