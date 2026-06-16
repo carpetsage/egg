@@ -8,10 +8,7 @@
  *
  * This file consumes the JSON emitted by the `colleggtible-contracts`
  * command in `periodicals/main.go`, which cross-references
- * `data/contracts.json` against `data/customeggs.json`. The output is
- * checked into the repo; regenerate it with
- * `cd periodicals && make colleggtible-contracts` (or by running any
- * periodicals-fetching command, which auto-regenerates).
+ * `data/contracts.json` against `data/customeggs.json`
  */
 
 import colleggtibleContracts from './colleggtible-contracts.json';
@@ -32,7 +29,7 @@ export const COLLEGGTIBLE_CONTRACT_MAP: ReadonlyMap<string, ei.IContract> = (() 
       continue;
     }
     try {
-      const contract = decodeMessage(ei.Contract, store.proto, true) as ei.IContract;
+      const contract = decodeMessage(ei.Contract, store.proto, false) as ei.IContract;
       if (contract.identifier) {
         map.set(contract.identifier, contract);
       }
@@ -43,6 +40,4 @@ export const COLLEGGTIBLE_CONTRACT_MAP: ReadonlyMap<string, ei.IContract> = (() 
   return map;
 })();
 
-export const COLLEGGTIBLE_CONTRACT_IDENTIFIERS: ReadonlySet<string> = new Set(
-  COLLEGGTIBLE_CONTRACT_MAP.keys()
-);
+export const COLLEGGTIBLE_CONTRACT_IDENTIFIERS: ReadonlySet<string> = new Set(COLLEGGTIBLE_CONTRACT_MAP.keys());
