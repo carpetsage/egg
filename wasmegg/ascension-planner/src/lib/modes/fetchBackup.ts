@@ -32,7 +32,7 @@ export async function fetchPlayerBackup(playerId: string): Promise<BackupResult>
   if (!data.backup) {
     throw new Error('Could not fetch player backup');
   }
-  await resolveColleggtibleContracts(data.backup, playerId);
+  resolveColleggtibleContracts(data.backup);
 
   // Persist to IndexedDB for offline access / cross-session reuse
   const pHash = await hashID(playerId);

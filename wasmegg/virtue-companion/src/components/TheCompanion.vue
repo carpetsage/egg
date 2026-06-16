@@ -334,7 +334,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
-    await resolveColleggtibleContracts(backup, playerId);
+    resolveColleggtibleContracts(backup);
     backupRef.value = backup;
     const nickname = backup.userName;
     const progress = backup.game;

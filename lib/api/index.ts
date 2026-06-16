@@ -4,7 +4,7 @@ import { ei } from '../proto';
 import { decodeMessage } from './decode';
 import { encodeMessage } from './encode';
 import { APP_BUILD, APP_VERSION, CLIENT_VERSION, PLATFORM, PLATFORM_STRING } from './version';
-import { COLLEGGTIBLE_CONTRACT_IDENTIFIERS } from '../contract-identifiers';
+
 
 export * from './decode';
 export * from './encode';
@@ -111,90 +111,6 @@ export async function requestContractPlayerInfo(userId?: string): Promise<ei.ICo
   const encodedRequestPayload = encodeMessage(ei.BasicRequestInfo, requestPayload);
   const encodedResponsePayload = await request('/ei_ctx/get_contract_player_info', encodedRequestPayload);
   return decodeMessage(ei.ContractPlayerInfo, encodedResponsePayload, true) as ei.IContractPlayerInfo;
-}
-
-/**
- * Fetches the player's ContractPlayerInfo and writes it into the backup as
- * `backup.contracts.lastCpi` (mutating in place), so the rest of the codebase
- * can keep reading `backup.contracts.lastCpi` as if it had been populated by
- * the backup itself.
- *
- * Before the game-API change, the backup payload included `lastCpi`; that
- * field is no longer populated. Callers that want the old behaviour should
- * invoke this helper after `requestFirstContact` and the existing
- * `resolveContractsInBackup`. If the endpoint fails, `backup.contracts.lastCpi`
- * is left untouched so callers see the same null/missing state they would
- * have seen without the helper.
- */
-export async function resolveContractPlayerInfo(backup: ei.IBackup, userId?: string): Promise<void> {
-  try {
-    const cpi = await requestContractPlayerInfo(userId);
-    if (!backup.contracts) {
-      backup.contracts = {};
-    }
-    backup.contracts.lastCpi = cpi;
-  } catch (e) {
-    console.warn('Failed to resolve contract player info:', e);
-  }
-}
-
-// Unix timestamp after which colleggtibles existed in the game. Contracts
-// accepted before this date did not grant colleggtible bonuses, even if a
-// later rerun of the same contract identifier used a custom egg.
-const COLLEGGTIBLE_CUTOFF_TIME = 1719435600;
-
-/**
- * Resolves only colleggtible contracts
- * 
- * Faster than getting all contracts if only colleggtible info is needed
- */
-export async function resolveColleggtibleContracts(backup: ei.IBackup, userId?: string): Promise<void> {
-  const all = [...(backup.contracts?.contracts ?? []), ...(backup.contracts?.archive ?? [])];
-  const subset = all.filter(
-    c =>
-      !c.contract &&
-      c.contractIdentifier &&
-      COLLEGGTIBLE_CONTRACT_IDENTIFIERS.has(c.contractIdentifier) &&
-      (c.timeAccepted ?? 0) > COLLEGGTIBLE_CUTOFF_TIME
-  );
-  await resolveLocalContracts(subset, userId);
-}
-
-export async function resolveLocalContracts(localContracts: ei.ILocalContract[], userId?: string): Promise<void> {
-  const identifiers = [
-    ...new Set(
-      localContracts
-        .filter(c => !c.contract)
-        .map(c => c.contractIdentifier)
-        .filter((id): id is string => !!id)
-    ),
-  ];
-  if (identifiers.length === 0) {
-    return;
-  }
-  try {
-    const response = await requestContractsInfo(identifiers, userId);
-    const contractMap = new Map((response.contracts || []).map(c => [c.identifier!, c]));
-    for (const localContract of localContracts) {
-      if (
-        !localContract.contract &&
-        localContract.contractIdentifier &&
-        contractMap.has(localContract.contractIdentifier)
-      ) {
-        localContract.contract = contractMap.get(localContract.contractIdentifier)!;
-      }
-    }
-  } catch (e) {
-    console.warn('Failed to resolve contract info:', e);
-  }
-}
-
-export async function resolveContractsInBackup(backup: ei.IBackup, userId?: string): Promise<void> {
-  const all = [...(backup.contracts?.contracts || []), ...(backup.contracts?.archive || [])].filter(c => !c.contract && c.contractIdentifier);
-  if (all.length === 0) {
-    return;
-  }
-  await resolveLocalContracts(all, userId);
 }
 
 export async function requestShellShowcase(userId?: string): Promise<ei.IShellShowcaseListingSet> {

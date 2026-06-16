@@ -876,7 +876,7 @@ async function submitPlayerId(id: string) {
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
-    await resolveColleggtibleContracts(backup, id);
+    resolveColleggtibleContracts(backup);
 
     try {
       const pHash = await hashID(id);
@@ -964,7 +964,7 @@ async function triggerQuickContinue() {
     const data = await requestFirstContact(playerId.value);
     if (!data.backup) throw new Error('Could not fetch player backup');
     const backup = data.backup;
-    await resolveColleggtibleContracts(backup, playerId.value);
+    resolveColleggtibleContracts(backup);
 
     const loadout = getArtifactLoadoutFromBackup(backup);
     const detectedSet = detectArtifactSet(loadout);

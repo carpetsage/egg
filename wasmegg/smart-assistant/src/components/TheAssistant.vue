@@ -356,7 +356,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
-    await resolveColleggtibleContracts(backup, playerId);
+    resolveColleggtibleContracts(backup);
     if (!backup.farms || backup.farms.length === 0) {
       throw new Error(`${backup.eiUserId}: no farm info in backup`);
     }
