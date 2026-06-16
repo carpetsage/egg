@@ -25,5 +25,5 @@ export { initStartFromScratch } from './startFromScratch';
 export { initLoadPlan } from './loadPlan';
 export { initPlanFuture } from './planFuture';
 export { initContinueCurrent } from './continueCurrent';
-export { initReconcile } from './reconcile';
+export { initReconcile, refreshReconcile } from './reconcile';
 export * from './utils';

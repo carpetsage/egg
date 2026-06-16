@@ -1,19 +1,5 @@
 <template>
   <main>
-    <div
-      v-if="unresolvedContractCount > 0"
-      class="rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm px-4 py-2 mb-3"
-    >
-      <strong>Contract data is incomplete.</strong>
-      Due to a recent Egg, Inc. update, some contract info could not be loaded. Colleggtible bonuses may be inaccurate.
-      You can manually set your colleggtible tiers below.
-      <colleggtible-config
-        :model-value="colleggtibleTiers"
-        :has-unresolved-contracts="unresolvedContractCount > 0"
-        @update:model-value="onColleggtibleTiersChange"
-      />
-    </div>
-
     <p>{{ nickname }}</p>
     <p class="text-sm">
       Last synced to server:
@@ -225,16 +211,8 @@ import {
   nextShiftCost,
   getNumTruthEggs,
   Inventory,
-  contenderToArtifactSet,
-  ArtifactAssemblyStatus,
   Farm,
-  countUnresolvedContracts,
-  getDefaultColleggtibleTiers,
-  getColleggtibleTiers,
-  modifiersFromColleggtibleTiers,
-  setActiveManualTiers,
   defaultModifiers,
-  type ColleggtibleTiers,
   type Modifiers,
 } from 'lib';
 import {
@@ -249,7 +227,7 @@ import {
   farmInternalHatcheryResearches,
   homeFarmArtifacts,
   requestFirstContact,
-  resolveContractsInBackup,
+  resolveColleggtibleContracts,
   farmEggLayingRate,
   pendingTruthEggs,
 } from '@/lib';
@@ -267,7 +245,6 @@ import VehiclesSection from '@/components/VehiclesSection.vue';
 import SilosSection from '@/components/SilosSection.vue';
 import InternalHatcheryInfo from '@/components/InternalHatcheryInfo.vue';
 import EarningsSection from '@/components/EarningsSection.vue';
-import ColleggtibleConfig from 'ui/components/ColleggtibleConfig.vue';
 
 // Note that timezone abbreviation may not work due to
 // https://github.com/iamkun/dayjs/issues/1154, in which case the GMT offset is
@@ -291,7 +268,6 @@ export default defineComponent({
     SilosSection,
     InternalHatcheryInfo,
     EarningsSection,
-    ColleggtibleConfig,
   },
   props: {
     playerId: {
@@ -310,20 +286,16 @@ export default defineComponent({
 
     // Create reactive state before await so provide/inject works across async boundary.
     // Vue's provide() silently fails after await because getCurrentInstance() returns null.
-    const COLLEGGTIBLE_TIERS_KEY = `colleggtibleTiers_${playerId}`;
     const backupRef = shallowRef<ei.IBackup>();
-    const hasManualTiers = ref(false);
-    const colleggtibleTiers = ref<ColleggtibleTiers>(getDefaultColleggtibleTiers());
     const modifiers = computed<Modifiers>(() => {
       if (!backupRef.value) return { ...defaultModifiers };
-      if (hasManualTiers.value) {
-        return modifiersFromColleggtibleTiers(colleggtibleTiers.value);
-      }
       return allModifiersFromColleggtibles(backupRef.value);
     });
     provide('colleggtibleModifiers', modifiers);
 
     // Interval id used for refreshing lastRefreshedRelative.
+    // Must be declared before the await below so onBeforeUnmount is registered synchronously.
+    // eslint-disable-next-line prefer-const
     let refreshIntervalId: number | undefined;
     onBeforeUnmount(() => {
       clearInterval(refreshIntervalId);
@@ -334,7 +306,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId);
+    resolveColleggtibleContracts(backup);
     backupRef.value = backup;
     const nickname = backup.userName;
     const progress = backup.game;
@@ -344,41 +316,6 @@ export default defineComponent({
     if (!backup.farms || backup.farms.length === 0) {
       throw new Error(`${playerId}: no farm info in backup`);
     }
-    const unresolvedContractCount = countUnresolvedContracts(backup);
-
-    const savedTiersRaw = getLocalStorage(COLLEGGTIBLE_TIERS_KEY);
-    const autoTiers = getColleggtibleTiers(backup);
-    if (savedTiersRaw) {
-      try {
-        const parsed = JSON.parse(savedTiersRaw);
-        if (typeof parsed === 'object' && parsed !== null) {
-          colleggtibleTiers.value = { ...getDefaultColleggtibleTiers(), ...parsed };
-          hasManualTiers.value = true;
-        } else {
-          colleggtibleTiers.value = autoTiers;
-        }
-      } catch {
-        colleggtibleTiers.value = autoTiers;
-      }
-    } else {
-      colleggtibleTiers.value = autoTiers;
-    }
-    if (hasManualTiers.value) {
-      setActiveManualTiers(colleggtibleTiers.value);
-    }
-
-    const onColleggtibleTiersChange = (newTiers: ColleggtibleTiers) => {
-      colleggtibleTiers.value = newTiers;
-      setLocalStorage(COLLEGGTIBLE_TIERS_KEY, JSON.stringify(newTiers));
-      hasManualTiers.value = true;
-      setActiveManualTiers(newTiers);
-    };
-    const onResetTiers = () => {
-      localStorage.removeItem(COLLEGGTIBLE_TIERS_KEY);
-      hasManualTiers.value = false;
-      setActiveManualTiers(null);
-      colleggtibleTiers.value = autoTiers;
-    };
 
     const farm = backup.farms[0]; // Home farm
     const homeFarm = new Farm(backup, backup.farms[0]);
@@ -566,10 +503,6 @@ export default defineComponent({
     return {
       // Basic farm info
       nickname,
-      unresolvedContractCount,
-      colleggtibleTiers,
-      onColleggtibleTiersChange,
-      onResetTiers,
       lastRefreshed,
       lastRefreshedRelative,
       egg,

@@ -55,3 +55,15 @@ export async function initReconcile(
   //    (importPlanLogic → hydrate overwrites initialStateStore, virtue, fuelTank, truthEggs, notes)
   await actionsStore.loadPlanFromLibrary(plan);
 }
+
+/**
+ * Refresh an in-progress reconciliation by re-fetching the live backup and
+ * re-capturing comparison targets. Unlike initReconcile this does NOT reset
+ * stores, re-broadcast presence, or re-load the plan — the plan is already
+ * loaded and we just want fresh live data to compare against it.
+ */
+export async function refreshReconcile(playerId: string): Promise<void> {
+  const { backup } = await fetchPlayerBackup(playerId);
+  loadAndSyncBackup(playerId, backup, 'reconcile');
+  captureReconciliationTargets();
+}

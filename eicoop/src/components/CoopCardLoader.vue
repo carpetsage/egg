@@ -85,6 +85,7 @@ export default defineComponent({
           store: contractStore.list,
           knownContract: knownContract.value || coopStatus.value?.contract || undefined,
           knownLeague: knownLeague.value || coopStatus.value?.league || undefined,
+          knownGrade: status.grade || undefined,
         });
         contractStore.addContract(status.contract!);
         emit('success', status);
