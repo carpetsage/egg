@@ -19,7 +19,7 @@ export function getSavedPlayerID() {
     getLocalStorageNoPrefix(SITE_WIDE_SAVED_PLAYER_ID_LOCALSTORAGE_KEY);
   const result = PlayerIdSchema.safeParse(playerId);
   if (!result.success) {
-    console.warn('Invalid player ID in localStorage:', result.error);
+    console.warn('Invalid player ID in localStorage:', playerId, result.error);
     deletePlayerID();
     return undefined;
   }

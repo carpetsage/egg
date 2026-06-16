@@ -2,7 +2,7 @@
   <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6 space-y-4">
     <div class="flex items-baseline gap-3">
       <h3>{{ latestSeasonProgress.seasonName }} Season Progress</h3>
-      <span class="text-sm text-gray-500 dark:text-gray-400">
+      <span v-if="!loading" class="text-sm text-gray-500 dark:text-gray-400">
         {{ latestSeasonProgress.contractsCompleted }} / 13 contracts completed
       </span>
     </div>
@@ -88,6 +88,7 @@ import {
   formatDuration,
   formatEIValue,
   getUserContractsArchive,
+  resolveLocalContracts,
   rewardAmountDisplay,
   rewardIconPath,
   rewardName,
@@ -134,6 +135,9 @@ export default defineComponent({
 
       try {
         contracts.value = await getUserContractsArchive(backup.value.eiUserId!);
+        if (contracts.value?.archive) {
+          await resolveLocalContracts(contracts.value.archive, backup.value.eiUserId!);
+        }
       } catch (err) {
         error.value = err instanceof Error ? err : new Error(`${err}`);
       }

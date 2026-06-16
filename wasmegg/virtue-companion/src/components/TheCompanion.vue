@@ -249,7 +249,7 @@ import {
   farmInternalHatcheryResearches,
   homeFarmArtifacts,
   requestFirstContact,
-  resolveContractsInBackup,
+  resolveColleggtibleContracts,
   farmEggLayingRate,
   pendingTruthEggs,
 } from '@/lib';
@@ -334,7 +334,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId);
+    resolveColleggtibleContracts(backup);
     backupRef.value = backup;
     const nickname = backup.userName;
     const progress = backup.game;

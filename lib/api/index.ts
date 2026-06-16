@@ -5,12 +5,17 @@ import { decodeMessage } from './decode';
 import { encodeMessage } from './encode';
 import { APP_BUILD, APP_VERSION, CLIENT_VERSION, PLATFORM, PLATFORM_STRING } from './version';
 
+
 export * from './decode';
 export * from './encode';
 export * from './utils';
 export * from './version';
 
 const API_ROOT = 'https://egg-forwarder.carpet.workers.dev/?url=https://www.auxbrain.com';
+const AUTH_API_ROOT = 'https://egg-auth-worker.carpet.workers.dev';
+
+// Endpoints that must be routed through the authenticated API worker.
+const AUTH_ENDPOINTS = new Set(['/ei_ctx/get_contracts_info', '/ei_ctx/get_contract_player_info']);
 
 const CONFIG_GIST_URL =
   'https://gist.githubusercontent.com/carpetsage/373992bc6c5e00f8abd39dfb752845c0/raw/config.json';
@@ -23,13 +28,15 @@ export const defaultUserId = atob('RUk2MjkxOTQwOTY4MjM1MDA4');
  * Makes an API request.
  * @param endpoint - Path of API endpoint, e.g. /ei/coop_status.
  * @param encodedPayload - base64-encoded request payload.
+ * @param apiRoot - Optional root URL for API endpoint. If omitted, the endpoint is checked against AUTH_ENDPOINTS and routed to AUTH_API_ROOT automatically when matched; otherwise it falls back to API_ROOT.
  * @returns base64-encoded response payload.
  * @throws Throws an error on network failure (including timeout) or non-2XX response.
  */
-export async function request(endpoint: string, encodedPayload: string): Promise<string> {
+export async function request(endpoint: string, encodedPayload: string, apiRoot?: string): Promise<string> {
   const controller = new AbortController();
   setTimeout(() => controller.abort(), TIMEOUT);
-  const url = API_ROOT + endpoint;
+  const root = apiRoot ?? (AUTH_ENDPOINTS.has(endpoint) ? AUTH_API_ROOT : API_ROOT);
+  const url = root + endpoint;
   try {
     const resp = await fetch(url, {
       method: 'POST',
@@ -88,32 +95,22 @@ export async function requestContractsInfo(
   return decodeMessage(ei.ContractsInfoResponse, encodedResponsePayload, true) as ei.IContractsInfoResponse;
 }
 
-export async function resolveLocalContracts(
-  localContracts: ei.ILocalContract[],
-  userId?: string
-): Promise<void> {
-  const identifiers = [
-    ...new Set(localContracts.filter(c => !c.contract).map(c => c.contractIdentifier).filter((id): id is string => !!id)),
-  ];
-  if (identifiers.length === 0) {
-    return;
-  }
-  try {
-    const response = await requestContractsInfo(identifiers, userId);
-    const contractMap = new Map((response.contracts || []).map(c => [c.identifier!, c]));
-    for (const localContract of localContracts) {
-      if (!localContract.contract && localContract.contractIdentifier && contractMap.has(localContract.contractIdentifier)) {
-        localContract.contract = contractMap.get(localContract.contractIdentifier)!;
-      }
-    }
-  } catch (e) {
-    console.warn('Failed to resolve contract info:', e);
-  }
-}
-
-export async function resolveContractsInBackup(backup: ei.IBackup, userId?: string): Promise<void> {
-  const all = [...(backup.contracts?.contracts || []), ...(backup.contracts?.archive || [])];
-  await resolveLocalContracts(all, userId);
+/**
+ * Fetches the player's contract-player info (grade, total/season CXP, soul
+ * power, season progress, etc.) from the authenticated `/ei_ctx/get_contract_player_info`
+ * endpoint.
+ *
+ * The game API no longer populates `backup.contracts.lastCpi` in the backup
+ * payload, so tools that used to read it directly now need to call this
+ * endpoint after fetching the backup. The response is the same
+ * `ContractPlayerInfo` object that used to live in the backup.
+ */
+export async function requestContractPlayerInfo(userId?: string): Promise<ei.IContractPlayerInfo> {
+  userId = userId ?? defaultUserId;
+  const requestPayload = basicRequestInfo(userId);
+  const encodedRequestPayload = encodeMessage(ei.BasicRequestInfo, requestPayload);
+  const encodedResponsePayload = await request('/ei_ctx/get_contract_player_info', encodedRequestPayload);
+  return decodeMessage(ei.ContractPlayerInfo, encodedResponsePayload, true) as ei.IContractPlayerInfo;
 }
 
 export async function requestShellShowcase(userId?: string): Promise<ei.IShellShowcaseListingSet> {
@@ -122,42 +119,6 @@ export async function requestShellShowcase(userId?: string): Promise<ei.IShellSh
   const encodedRequestPayload = encodeMessage(ei.BasicRequestInfo, requestPayload);
   const encodedResponsePayload = await request('/ei/get_shell_showcase', encodedRequestPayload);
   return decodeMessage(ei.ShellShowcaseListingSet, encodedResponsePayload, false) as ei.IShellShowcaseListingSet;
-}
-
-export async function joinCoopRequest(
-  contractId: string,
-  coopCode: string,
-  userId?: string
-): Promise<ei.IJoinCoopResponse> {
-  userId = userId ?? defaultUserId;
-  const requestPayload: ei.IJoinCoopRequest = {
-    rinfo: basicRequestInfo(userId),
-    contractIdentifier: contractId,
-    coopIdentifier: coopCode,
-    userId,
-    clientVersion: CLIENT_VERSION,
-  };
-  const encodedRequestPayload = encodeMessage(ei.ContractCoopStatusRequest, requestPayload);
-  const encodedResponsePayload = await request('/ei/coop_status_basic', encodedRequestPayload);
-  return decodeMessage(ei.JoinCoopResponse, encodedResponsePayload, true) as ei.IJoinCoopResponse;
-}
-
-export async function requestCoopStatusBasic(
-  contractId: string,
-  coopCode: string,
-  userId?: string
-): Promise<ei.IJoinCoopResponse> {
-  userId = userId ?? defaultUserId;
-  const requestPayload: ei.IContractCoopStatusRequest = {
-    rinfo: basicRequestInfo(userId),
-    contractIdentifier: contractId,
-    coopIdentifier: coopCode,
-    userId,
-    clientVersion: CLIENT_VERSION,
-  };
-  const encodedRequestPayload = encodeMessage(ei.ContractCoopStatusRequest, requestPayload);
-  const encodedResponsePayload = await request('/ei/coop_status_basic', encodedRequestPayload);
-  return decodeMessage(ei.JoinCoopResponse, encodedResponsePayload, true) as ei.IJoinCoopResponse;
 }
 
 /**
