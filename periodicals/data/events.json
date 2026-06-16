@@ -27241,5 +27241,14 @@
     "startTimestamp": 1781539200,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1781712000,
+    "id": "event-6-16",
+    "message": "2x BOOST DURATION!",
+    "multiplier": 2,
+    "startTimestamp": 1781625600,
+    "type": "boost-duration",
+    "ultra": false
   }
 ]
