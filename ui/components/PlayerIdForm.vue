@@ -1,14 +1,19 @@
 <template>
-  <form class="mx-4 sm:mx-auto sm:max-w-xs sm:w-full mt-2 mb-4 space-y-1" @submit.prevent="$emit('submit', input)">
+  <form class="mx-4 sm:mx-auto sm:max-w-xs sm:w-full mt-2 mb-4 space-y-1" @submit.prevent="submit">
     <div>
       <label for="email" class="sr-only">Player ID</label>
       <base-input
         id="playerId"
-        v-model.trim="input"
+        v-model="displayValue"
         type="text"
         name="playerId"
+        :readonly="!editing"
         class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+        :class="{ 'cursor-pointer': !editing && activeEid }"
+        :title="!editing && activeEid ? 'Click to reveal/edit the EID' : undefined"
         placeholder="Player ID"
+        @focus="onFocus"
+        @blur="onBlur"
       />
       <div v-if="eids.size <= 1" class="text-center">
         <span
@@ -25,26 +30,28 @@
       <div v-else class="mt-2 mb-2 w-fit mx-auto">
         <div class="flex flex-wrap gap-2 w-fit">
           <span
-            v-for="[eid, name] of eids"
+            v-for="[eid, entry] of eids"
             :key="eid"
-            class="inline-flex items-center px-1 py-1 rounded-full bg-gray-200 border border-gray-300 text-xs text-gray-900 w-fit"
+            class="inline-flex items-center px-1 py-1 rounded-full border text-xs w-fit"
+            :class="
+              eid === activeEid
+                ? 'bg-blue-100 border-blue-400 text-gray-900'
+                : 'bg-gray-200 border-gray-300 text-gray-900'
+            "
           >
             <button
               type="button"
               class="mr-1 text-gray-400 hover:text-blue-500 focus:outline-none"
               aria-label="Edit name"
-              @click="eidsStore.editName(eid, name)"
+              @click="eidsStore.editName(eid, entry.nickname)"
             >
               ✎
             </button>
             <span
               class="hover:underline cursor-pointer"
               style="text-decoration-thickness: 1.5px"
-              @click="
-                input = eid;
-                $emit('submit', eid);
-              "
-              >{{ name || eid }}</span
+              @click="loadEid(eid)"
+              >{{ eidsStore.displayName(eid) }}</span
             >
             <button
               type="button"
@@ -64,6 +71,7 @@
         class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         :class="{ 'cursor-not-allowed': !submittable }"
         :disabled="!submittable"
+        @mousedown.prevent
       >
         Load Player Data
       </button>
@@ -72,11 +80,11 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, toRefs, watch } from 'vue';
+import { defineComponent, toRefs, watch } from 'vue';
 
 import BaseInfo from './BaseInfo.vue';
 import BaseInput from './BaseInput.vue';
-import { useEidsStore } from 'lib';
+import { useEidInput } from '../composables/eid_input';
 import { PlayerIdSchema } from 'lib/schema';
 
 export default defineComponent({
@@ -93,27 +101,52 @@ export default defineComponent({
   emits: {
     submit: (_playerId: string) => true,
   },
-  setup(props) {
+  setup(props, { emit }) {
     const { playerId } = toRefs(props);
-    const eidsStore = ref(useEidsStore());
-    const input = ref(playerId.value.trim());
-    const eids = eidsStore.value.eids;
+
+    const { eidsStore, eids, activeEid, editing, displayValue, submittable, onFocus, onBlur, resolveSubmit, commit } =
+      useEidInput(playerId.value);
 
     // Initialize with current playerId
     if (playerId.value) {
-      eidsStore.value.addEid(playerId.value);
+      eidsStore.addEid(playerId.value);
     }
 
+    // The parent drives the active player via the prop.
     watch(playerId, () => {
-      input.value = playerId.value.trim();
-      eidsStore.value.addEid(playerId.value);
+      commit(playerId.value);
+      eidsStore.addEid(playerId.value);
     });
 
-    const submittable = computed(() => PlayerIdSchema.safeParse(input.value.trim()).success);
+    const load = (eid: string) => {
+      const trimmed = eid.trim();
+      if (!PlayerIdSchema.safeParse(trimmed).success) {
+        return;
+      }
+      commit(trimmed);
+      emit('submit', trimmed);
+    };
+
+    // The button submits the typed EID (or reloads the active player in display
+    // mode).
+    const submit = () => {
+      load(resolveSubmit());
+    };
+
+    // Clicking a recent-ID pill loads that player.
+    const loadEid = (eid: string) => {
+      load(eid);
+    };
 
     return {
-      input,
+      activeEid,
+      editing,
+      displayValue,
+      onFocus,
+      onBlur,
       submittable,
+      submit,
+      loadEid,
       eids,
       eidsStore,
     };
