@@ -11,11 +11,11 @@ import { ei, Mission } from 'lib';
 import { epicResearchDefs } from '@/lib/epicResearch';
 import {
   type ColleggtibleTiers,
-  type ColleggtibleModifiers,
+  type Modifiers as ColleggtibleModifiers,
   getDefaultColleggtibleTiers,
-  getColleggtibleTiersFromBackup,
-  calculateColleggtibleModifiers,
-} from '@/lib/colleggtibles';
+  getColleggtibleTiers,
+  modifiersFromColleggtibleTiers as calculateColleggtibleModifiers,
+} from 'lib/collegtibles';
 import {
   type EquippedArtifact,
   type ArtifactModifiers,
@@ -222,7 +222,7 @@ export const useInitialStateStore = defineStore('initialState', {
       }
 
       // Load colleggtible tiers from contracts
-      this.colleggtibleTiers = getColleggtibleTiersFromBackup(backup.contracts ?? null);
+      this.colleggtibleTiers = getColleggtibleTiers(backup);
 
       // Load artifact loadout from backup
       const backupLoadout = getArtifactLoadoutFromBackup(backup);

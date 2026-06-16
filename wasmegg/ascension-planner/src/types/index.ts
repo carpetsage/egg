@@ -53,22 +53,6 @@ export interface BaseCalculationResearch {
 }
 
 /**
- * Colleggtible modifiers - multiplicative bonuses from colleggtibles
- * Values are multipliers (1.0 = no bonus, 1.1 = +10%, 0.9 = -10%)
- */
-export interface ColleggtibleModifiers {
-  earnings: number; // Multiplier on all earnings
-  eggValue: number; // Multiplier on egg value specifically
-  researchCost: number; // Multiplier on research cost
-  habCost: number; // Multiplier on hab cost
-  habCapacity: number; // Multiplier on hab capacity (PEGG: up to +5%)
-  ihr: number; // Multiplier on IHR (Easter Egg: up to +5%)
-  layRate: number; // Multiplier on lay rate (Silicon: up to +5%)
-  shippingCapacity: number; // Multiplier on shipping (Carbon Fiber + Pumpkin: up to +10%)
-  vehicleCost: number; // Multiplier on vehicle cost
-}
-
-/**
  * Artifact effect for display in breakdowns
  */
 export interface ArtifactEffectDisplay {
@@ -407,19 +391,4 @@ export interface EarningsOutput {
   artifactBreakdown: ArtifactEffectDisplay[]; // Artifact effects for display
 }
 
-/**
- * Default/empty values
- */
-export function createDefaultColleggtibleModifiers(): ColleggtibleModifiers {
-  return {
-    earnings: 1.0,
-    eggValue: 1.0,
-    researchCost: 1.0,
-    habCost: 1.0,
-    habCapacity: 1.0,
-    ihr: 1.0,
-    layRate: 1.0,
-    shippingCapacity: 1.0,
-    vehicleCost: 1.0,
-  };
-}
+

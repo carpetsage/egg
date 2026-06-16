@@ -7,7 +7,7 @@
  * independently and handles its own store population.
  */
 
-import { requestFirstContact, resolveContractsInBackup } from 'lib';
+import { requestFirstContact, resolveColleggtibleContracts } from 'lib';
 import type { ei } from 'lib';
 import { hashID, saveMetadata } from '@/lib/storage/db';
 
@@ -32,7 +32,7 @@ export async function fetchPlayerBackup(playerId: string): Promise<BackupResult>
   if (!data.backup) {
     throw new Error('Could not fetch player backup');
   }
-  await resolveContractsInBackup(data.backup, playerId);
+  await resolveColleggtibleContracts(data.backup, playerId);
 
   // Persist to IndexedDB for offline access / cross-session reuse
   const pHash = await hashID(playerId);

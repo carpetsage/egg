@@ -2,7 +2,7 @@ import { calculateHabCapacity_Full } from './habCapacity';
 import { calculateLayRate } from './layRate';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength, calculateShippingCapacity } from './shippingCapacity';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
-import type { ColleggtibleModifiers } from '@/lib/colleggtibles';
+import type { Modifiers as ColleggtibleModifiers } from 'lib/collegtibles';
 
 /**
  * Compute ELR using the full pipeline with given research levels, artifact mods, max habs/vehicles.

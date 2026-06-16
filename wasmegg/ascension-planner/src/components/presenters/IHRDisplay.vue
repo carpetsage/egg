@@ -274,7 +274,7 @@
 <script setup lang="ts">
 import type { IHROutput } from '@/types';
 import { formatNumber, formatMultiplier } from '@/lib/format';
-import { formatTier, formatColleggtibleBonus } from '@/lib/colleggtibles';
+import { formatTier, formatColleggtibleBonus } from 'lib/collegtibles';
 import { getColleggtibleIconPath, getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { computed } from 'vue';

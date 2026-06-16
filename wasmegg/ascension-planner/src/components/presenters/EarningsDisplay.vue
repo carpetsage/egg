@@ -252,7 +252,7 @@
 <script setup lang="ts">
 import type { EarningsOutput, TimeUnit } from '@/types';
 import { formatNumber, formatMultiplier } from '@/lib/format';
-import { formatTier, formatColleggtibleBonus, getColleggtibleMultiplier } from '@/lib/colleggtibles';
+import { formatTier, formatColleggtibleBonus, getColleggtibleMultiplier } from 'lib/collegtibles';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { computed } from 'vue';

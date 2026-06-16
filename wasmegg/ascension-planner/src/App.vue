@@ -442,7 +442,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import TheNavBar from 'ui/components/NavBar.vue';
-import { getSavedPlayerID, savePlayerID, requestFirstContact, resolveContractsInBackup } from 'lib';
+import { getSavedPlayerID, savePlayerID, requestFirstContact, resolveColleggtibleContracts } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -484,6 +484,7 @@ import {
   initPlanFuture,
   initContinueCurrent,
   initReconcile,
+  refreshReconcile,
   loadAndSyncBackup,
   captureReconciliationTargets,
   catchUpFarmState,
@@ -816,25 +817,11 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
 
 async function handleRefreshReconcile() {
   if (!playerId.value || loading.value) return;
-  
+
   loading.value = true;
   error.value = '';
   try {
-    const data = await requestFirstContact(playerId.value);
-    if (!data.backup) throw new Error('Could not fetch player backup');
-    const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId.value);
-
-    // Save backup to DB
-    const pHash = await hashID(playerId.value);
-    await saveMetadata(pHash, 'rawBackup', backup);
-    
-    // Load into state store and sync global stores
-    loadAndSyncBackup(playerId.value, backup, 'reconcile');
-
-    // Update reconciliation targets in actionsStore
-    captureReconciliationTargets();
-
+    await refreshReconcile(playerId.value);
     // No full recalculateAll() needed here, as reconciliation statuses are reactive getters.
   } catch (err) {
     console.error(err);
@@ -889,7 +876,7 @@ async function submitPlayerId(id: string) {
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
-    await resolveContractsInBackup(backup, id);
+    await resolveColleggtibleContracts(backup, id);
 
     try {
       const pHash = await hashID(id);
@@ -977,7 +964,7 @@ async function triggerQuickContinue() {
     const data = await requestFirstContact(playerId.value);
     if (!data.backup) throw new Error('Could not fetch player backup');
     const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId.value);
+    await resolveColleggtibleContracts(backup, playerId.value);
 
     const loadout = getArtifactLoadoutFromBackup(backup);
     const detectedSet = detectArtifactSet(loadout);

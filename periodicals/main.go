@@ -32,6 +32,7 @@ var (
 	contractFile         = "data/contracts.json"
 	eggFile              = "data/customeggs.json"
 	contractSeasonsFile  = "data/contractseasons.json"
+	contractIDsFile      = "data/contract-identifiers.json"
 
 	periodicalsURL = "https://www.auxbrain.com/ei/get_periodicals"
 	seasonInfoURL  = "https://www.auxbrain.com/ei_ctx/get_season_infos_v2"
@@ -57,6 +58,15 @@ type ContractStore struct {
 	Proto string `json:"proto"`
 }
 
+// ContractIdentifiers is the JSON schema emitted to
+// lib/contract-identifiers.json. Consumed by the egg-fresh client to
+// subset /ei_ctx/get_contracts_info requests to only the colleggtible
+// contracts (those using a custom-egg) that actually need resolving.
+// The array is sorted lexicographically.
+type ContractIdentifiers struct {
+	Colleggtible []string `json:"colleggtible"`
+}
+
 // ContractSeasonStore represents a contract season for JSON persistence
 type ContractSeasonStore struct {
 	ID    string `json:"id"`
@@ -65,7 +75,7 @@ type ContractSeasonStore struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatal("Usage: go run main.go <command> [commands...]\nCommands: events, contracts, customeggs, download-customeggs, contractseasons, getconfig")
+		log.Fatal("Usage: go run main.go <command> [commands...]\nCommands: events, contracts, customeggs, download-customeggs, contractseasons, getconfig, contract-identifiers")
 	}
 
 	var periodicalsArgs []string
@@ -73,6 +83,10 @@ func main() {
 		if arg == "getconfig" {
 			if err := updateConfig(); err != nil {
 				log.Fatalf("Failed to update config: %v", err)
+			}
+		} else if arg == "contract-identifiers" {
+			if err := updateColleggtibleContractIdentifiers(contractFile, eggFile, contractIDsFile); err != nil {
+				log.Fatalf("Failed to update contract identifiers: %v", err)
 			}
 		} else {
 			periodicalsArgs = append(periodicalsArgs, arg)
@@ -130,6 +144,14 @@ func main() {
 		}(arg)
 	}
 	wg.Wait()
+
+	// Auto-regenerate lib/contract-identifiers.json whenever the
+	// periodicals pipeline runs. The output is a small sorted-JSON file
+	// used by the egg-fresh client to subset /ei_ctx/get_contracts_info
+	// requests. Fire-and-forget; failures are logged, not fatal.
+	if err := updateColleggtibleContractIdentifiers(contractFile, eggFile, contractIDsFile); err != nil {
+		log.Printf("Failed to update contract identifiers: %v", err)
+	}
 }
 
 // createBasicRequestInfo creates a BasicRequestInfo with default values
@@ -413,6 +435,77 @@ func saveCustomEggsToFile(customEggs []*CustomEgg) error {
 	}
 
 	return saveJSONToFile(encodedEggs, eggFile)
+}
+
+// updateColleggtibleContractIdentifiers cross-references the bundled
+// contracts and custom-eggs to produce the set of contract identifiers
+// that use a colleggtible (custom-egg) egg. The resulting file is
+// consumed by the egg-fresh client to subset /ei_ctx/get_contracts_info
+// requests to only the colleggtible contracts that actually need
+// resolving.
+func updateColleggtibleContractIdentifiers(contractsPath, customEggsPath, outputPath string) error {
+	// 1. Load and decode contracts.
+	contractData, err := os.ReadFile(contractsPath)
+	if err != nil {
+		return fmt.Errorf("read contracts: %w", err)
+	}
+	var contractStores []ContractStore
+	if err := json.Unmarshal(contractData, &contractStores); err != nil {
+		return fmt.Errorf("parse contracts: %w", err)
+	}
+
+	// 2. Build the set of known custom-egg identifiers.
+	customEggData, err := os.ReadFile(customEggsPath)
+	if err != nil {
+		return fmt.Errorf("read custom eggs: %w", err)
+	}
+	var customEggProtos []string
+	if err := json.Unmarshal(customEggData, &customEggProtos); err != nil {
+		return fmt.Errorf("parse custom eggs: %w", err)
+	}
+	knownCustomEggIds := make(map[string]bool)
+	for _, b64 := range customEggProtos {
+		raw, err := base64.StdEncoding.DecodeString(b64)
+		if err != nil {
+			continue
+		}
+		egg := &CustomEgg{}
+		if err := proto.Unmarshal(raw, egg); err != nil {
+			continue
+		}
+		if id := egg.GetIdentifier(); id != "" {
+			knownCustomEggIds[id] = true
+		}
+	}
+
+	// 3. For each contract, if its customEggId is in the known set,
+	//    include its identifier in the output. Tolerant of malformed
+	//    base64 / proto entries (skips them, doesn't fail the run).
+	seen := make(map[string]bool)
+	var colleggtibleIds []string
+	for _, store := range contractStores {
+		raw, err := base64.StdEncoding.DecodeString(store.Proto)
+		if err != nil {
+			continue
+		}
+		contract := &Contract{}
+		if err := proto.Unmarshal(raw, contract); err != nil {
+			continue
+		}
+		customEggId := contract.GetCustomEggId()
+		if customEggId == "" || !knownCustomEggIds[customEggId] {
+			continue
+		}
+		if id := contract.GetIdentifier(); id != "" && !seen[id] {
+			seen[id] = true
+			colleggtibleIds = append(colleggtibleIds, id)
+		}
+	}
+	sort.Strings(colleggtibleIds)
+
+	return saveJSONToFile(ContractIdentifiers{
+		Colleggtible: colleggtibleIds,
+	}, outputPath)
 }
 
 // updateEvents processes and saves events
