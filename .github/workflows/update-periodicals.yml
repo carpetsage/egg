@@ -30,7 +30,7 @@ jobs:
           go-version: '>=1.24'
       - name: Update Periodicals
         run: |
-          go run main.go ei.pb.go events contracts customeggs contractseasons
+          go run main.go ei.pb.go events contracts customeggs contractseasons colleggtible-contracts
           git diff HEAD -- data
         env:
           EI_USERID: ${{ secrets.EI_USERID }}
@@ -58,6 +58,10 @@ jobs:
           # Triggers both builds
           git add data/customeggs.json
           git diff --cached --quiet || git commit -m 'custom eggs: update data/customeggs.json (from GitHub Actions)'
+
+          # Triggers both builds
+          git add data/colleggtible-contracts.json
+          git diff --cached --quiet || git commit -m 'contracts: update data/colleggtible-contracts.json (from GitHub Actions)'
 
           git push
         env:
