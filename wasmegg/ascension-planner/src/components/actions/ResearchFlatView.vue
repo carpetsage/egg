@@ -1,5 +1,19 @@
 <template>
   <div class="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100 bg-white">
+    <!-- Unlock Next Tier Shortcut -->
+    <div v-if="unlockNextTier" class="px-4 py-3 bg-gradient-to-r from-blue-50 to-white">
+      <button
+        class="btn-premium btn-primary w-full"
+        :disabled="!unlockNextTier.canBuy"
+        @click="$emit('buy-to-here', unlockNextTier.index)"
+      >
+        Unlock Tier {{ unlockNextTier.tier }}
+        <span class="text-[11px] font-normal opacity-80">
+          ({{ unlockNextTier.purchaseCount }} {{ unlockNextTier.purchaseCount === 1 ? 'purchase' : 'purchases' }}, {{ unlockNextTier.time }})
+        </span>
+      </button>
+    </div>
+
     <template v-for="(item, idx) in sortedResearches" :key="`${item.research.id}-${item.targetLevel}`">
       <!-- Tier Break Divider (Cheapest First) -->
       <div
@@ -112,6 +126,23 @@ const props = defineProps<{
 
 const initialStateStore = useInitialStateStore();
 const isMissingRealisticData = computed(() => props.view === 'elr' && !initialStateStore.rawBackup);
+
+const unlockNextTier = computed(() => {
+  if (props.view !== 'cheapest') return null;
+
+  const dividerIndex = props.sortedResearches.findIndex(item => item.showDivider);
+  if (dividerIndex <= 0) return null;
+
+  const index = dividerIndex - 1;
+  const target = props.sortedResearches[index];
+  return {
+    index,
+    tier: props.sortedResearches[dividerIndex].unlockTier,
+    purchaseCount: dividerIndex,
+    time: target.buyToHereTime,
+    canBuy: target.canBuyToHere,
+  };
+});
 
 defineEmits(['buy', 'max', 'buy-to-here', 'refresh-backup']);
 </script>
