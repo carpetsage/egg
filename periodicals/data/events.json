@@ -27286,5 +27286,23 @@
     "startTimestamp": 1781798400,
     "type": "drone-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1781971200,
+    "id": "event-6-19",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1781884800,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1781971200,
+    "id": "ultra-6-19",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1781884800,
+    "type": "shell-sale",
+    "ultra": true
   }
 ]
