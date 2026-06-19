@@ -398,7 +398,7 @@
 import type { ShippingCapacityOutput, VehicleSlot, TimeUnit } from '@/types';
 import { getVehicleType, getVehicleCostMultiplier, type VehicleCostModifiers } from '@/lib/vehicles';
 import { formatNumber, formatMultiplier, formatPercent } from '@/lib/format';
-import { formatTier, formatColleggtibleBonus, getColleggtibleMultiplier } from '@/lib/colleggtibles';
+import { formatTier, formatColleggtibleBonus, getColleggtibleMultiplier } from 'lib/collegtibles';
 import { getColleggtibleIconPath, getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { computed } from 'vue';

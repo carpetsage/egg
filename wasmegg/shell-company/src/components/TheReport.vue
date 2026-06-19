@@ -345,7 +345,6 @@ import {
   iconURL,
   requestConfig,
   requestFirstContact,
-  resolveContractsInBackup,
   setLocalStorage,
   UserBackupEmptyError,
 } from 'lib';
@@ -560,7 +559,6 @@ const save = await requestFirstContact(props.playerId);
 if (!save.backup || !save.backup.game) {
   throw new UserBackupEmptyError(props.playerId);
 }
-await resolveContractsInBackup(save.backup, props.playerId);
 const config = await requestConfig(props.playerId);
 const shellConfigs = config.dlcCatalog?.shells;
 if (!shellConfigs || shellConfigs.length === 0) {

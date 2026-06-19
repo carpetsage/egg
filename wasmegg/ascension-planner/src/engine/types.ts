@@ -1,5 +1,5 @@
 import type { CalculationsSnapshot, VehicleSlot, ResearchLevels, ArtifactSlotPayload, VirtueEgg } from '@/types';
-import type { ColleggtibleModifiers } from '@/lib/colleggtibles';
+import type { Modifiers as ColleggtibleModifiers } from 'lib/collegtibles';
 
 /**
  * The minimal mutable state required to compute the next state.

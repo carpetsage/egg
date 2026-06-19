@@ -6,8 +6,8 @@ import {
   ei,
   FarmerRole,
   requestQueryCoop,
+  requestContractsInfo,
   soulPowerToFarmerRole,
-  requestCoopStatusBasic,
   getLocalStorage,
   getContractGoals,
 } from 'lib';
@@ -113,20 +113,13 @@ export class CoopStatus {
       // set league if we didn't set grade
       this.league = this.grade ? null : await this.resolveLeague(knownLeague);
     } else {
-      if (this.contributors.length === 0) {
-        throw new Error(`No contributors found in ${this.contractId}:${this.coopCode}, cannot resolve contract info.`);
+      const result = await requestContractsInfo([this.contractId]);
+      if (!result || !result.contracts?.at(0)) {
+        throw new Error(`Contract ${this.contractId} not found in auxbrain's servers.`);
       }
-      const userId = getLocalStorage('userId', '/_') || '';
-      const result = await getContractFromPlayerSave(userId, this.contractId);
-      if (!result) {
-        throw new Error(`Contract ${this.contractId} not found in user's save.`);
-      }
-      this.contract = result.contract;
-      this.league = result.league ?? 1;
-      this.grade = result.grade ?? ei.Contract.PlayerGrade.GRADE_UNSET;
-      this.creatorName = result.creatorName;
+      this.contract = result.contracts[0];
     }
-    this.goals = getContractGoals({ contract: this.contract, grade: this.grade ?? 1, league: this.league ?? 0 });
+    this.goals = getContractGoals({ contract: this.contract, grade: this.grade ?? 5, league: this.league ?? 0 });
 
     this.leagueStatus = new ContractLeagueStatus(
       this.eggsLaid,
@@ -140,36 +133,6 @@ export class CoopStatus {
     // After resolving the league status we know what the final target is,
     // so we adjust our offline eggs to keep it within bounds
     this.eggsLaidOfflineAdjusted = Math.min(this.eggsLaidOfflineAdjusted, this.leagueStatus.finalTarget);
-  }
-
-  async resolveGrade(knownGrade?: ei.Contract.PlayerGrade): Promise<ei.Contract.PlayerGrade> {
-    if (knownGrade !== undefined) {
-      this.grade = knownGrade;
-      return this.grade;
-    }
-    // empty coop / before grades
-    if (this.contributors.length === 0 || this.expirationTime < dayjs('2023-05-01 00:00Z')) {
-      this.grade = ei.Contract.PlayerGrade.GRADE_C;
-      return this.grade;
-    }
-    try {
-      const { grade, status } = await requestCoopStatusBasic(this.contractId, this.coopCode);
-      // grade from response or AAA
-      this.grade = grade ? grade : ei.Contract.PlayerGrade.GRADE_AAA;
-      // status from response or ACTIVE
-      console.log(status);
-      if (this.secondsRemaining > 0) {
-        this.status = status ? ei.ContractCoopStatusResponse.Status[status] : 'ACTIVE';
-      } else {
-        this.status = status ? ei.ContractCoopStatusResponse.Status[status] : 'COMPLETE';
-      }
-      return this.grade;
-    } catch (e) {
-      console.error(`failed to determine grade, falling back to AAA: ${e}`);
-    }
-    // If all else fails just go with AAA
-    this.grade = ei.Contract.PlayerGrade.GRADE_AAA;
-    return this.grade;
   }
 
   async resolveLeague(knownLeague?: ContractLeague): Promise<ContractLeague> {

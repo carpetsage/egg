@@ -626,7 +626,7 @@ import {
   formatColleggtibleBonus,
   getColleggtibleMultiplier,
   FARM_SIZE_TIERS,
-} from '@/lib/colleggtibles';
+} from 'lib/collegtibles';
 
 const props = defineProps<{
   hasData: boolean;
@@ -650,7 +650,7 @@ const props = defineProps<{
   assumeDoubleEarnings: boolean;
   artifactSets: Record<import('@/types').ArtifactSetName, EquippedArtifact[] | null>;
   activeArtifactSet: import('@/types').ArtifactSetName | null;
-  colleggtibleTiers: import('@/lib/colleggtibles').ColleggtibleTiers;
+  colleggtibleTiers: import('lib/collegtibles').ColleggtibleTiers;
 }>();
 
 function handleInitialEggClick(egg: VirtueEgg) {
