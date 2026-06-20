@@ -158,6 +158,8 @@
             :result2="ascensionChain[idx].result2"
             :index="idx"
             :total="visibleTotal"
+            :start-eggs-delivered="idx === 0 ? truthEggsStore.eggsDelivered : bestResults[idx - 1].summary.eggsDelivered"
+            @update-target="(te: number) => handleUpdateTarget(idx, te)"
           />
           <AscensionOverview
             v-else
@@ -170,8 +172,13 @@
             :result3-skipped-reason="result.result3SkippedReason"
             :is-saving-single="savingIndex === idx"
             :save-single-success="savedIndex === idx"
+            :result1="ascensionChain[idx].result1"
+            :result2="ascensionChain[idx].result2"
+            :result3="ascensionChain[idx].result3"
+            :start-eggs-delivered="idx === 0 ? truthEggsStore.eggsDelivered : bestResults[idx - 1].summary.eggsDelivered"
             @set-plan-variant="(variant: 'continue' | '1-sale' | '2-sale') => handleSetPlanVariant(idx, variant)"
             @save-single-to-library="saveSingleAscensionToLibrary(idx)"
+            @update-target="(te: number) => handleUpdateTarget(idx, te)"
           />
         </template>
       </div>
@@ -199,6 +206,16 @@
       :message="validationErrorMessage"
       @close="isValidationErrorOpen = false"
     />
+
+    <ConfirmationDialog
+      v-if="pendingTargetUpdate"
+      title="Overlapping Ascension"
+      :message="overlapConfirmMessage"
+      confirm-label="Remove & Update"
+      variant="danger"
+      @confirm="confirmOverlapRemoval"
+      @cancel="pendingTargetUpdate = null"
+    />
   </div>
 </template>
 
@@ -216,6 +233,7 @@ import SimulationErrorAlert from './SimulationErrorAlert.vue';
 import AscensionOverview from './AscensionOverview.vue';
 import ForcedAscensionPreview from './ForcedAscensionPreview.vue';
 import ValidationDialog from './ValidationDialog.vue';
+import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 
 const autoPlannerStore = useAutoPlannerStore();
 const virtueStore = useVirtueStore();
@@ -290,6 +308,60 @@ const runGenerate = () => {
   console.clear();
   generate(() => nextTick(() => targetInput.value?.focus()));
 };
+
+const pendingTargetUpdate = ref<{ ascensionIndex: number; newTargets: number[]; removed: number[] } | null>(null);
+
+const overlapConfirmMessage = computed(() => {
+  if (!pendingTargetUpdate.value) return '';
+  const { ascensionIndex, removed } = pendingTargetUpdate.value;
+  if (removed.length === 1) {
+    return `This overlaps A${ascensionIndex + 2}'s target of TE ${removed[0]} — remove that step?`;
+  }
+  const labels = removed.map((te, i) => `A${ascensionIndex + 2 + i} (TE ${te})`).join(', ');
+  return `This overlaps ${removed.length} downstream targets — ${labels} — remove them?`;
+});
+
+function applyTargets(newTargets: number[]) {
+  targetTE.value = newTargets.join(' ');
+  runGenerate();
+}
+
+// Triggered by clicking "Update A{n} to end at TE {x}" on a calendar marker. `ascensionIndex`
+// is always the card the calendar was opened from (never the ascension that TE happens to
+// fall within further down the chain) — replaces that ascension's real target, or appends a
+// new one if it's the silently-injected forced-490 slot. If the new target now overlaps or
+// exceeds later real targets, those are cascade-removed after the user confirms.
+function handleUpdateTarget(ascensionIndex: number, newTE: number) {
+  const targets = targetTE.value
+    .trim()
+    .split(/\s+/)
+    .map(Number)
+    .filter(n => Number.isFinite(n));
+
+  const newTargets = [...targets];
+  if (ascensionIndex >= newTargets.length) {
+    newTargets.push(newTE);
+  } else {
+    newTargets[ascensionIndex] = newTE;
+  }
+
+  const removed: number[] = [];
+  while (ascensionIndex + 1 < newTargets.length && newTargets[ascensionIndex + 1] <= newTargets[ascensionIndex]) {
+    removed.push(newTargets[ascensionIndex + 1]);
+    newTargets.splice(ascensionIndex + 1, 1);
+  }
+
+  if (removed.length > 0) {
+    pendingTargetUpdate.value = { ascensionIndex, newTargets, removed };
+  } else {
+    applyTargets(newTargets);
+  }
+}
+
+function confirmOverlapRemoval() {
+  if (pendingTargetUpdate.value) applyTargets(pendingTargetUpdate.value.newTargets);
+  pendingTargetUpdate.value = null;
+}
 
 const handleTargetTEInput = (e: Event) => {
   const input = e.target as HTMLInputElement;
