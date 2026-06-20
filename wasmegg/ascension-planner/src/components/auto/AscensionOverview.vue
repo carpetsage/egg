@@ -7,11 +7,21 @@
     <div class="relative z-10">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
         <div class="flex items-center gap-2.5 sm:gap-3">
-          <div class="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md shadow-indigo-100/50 flex-shrink-0">
+          <button
+            type="button"
+            class="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md shadow-indigo-100/50 flex-shrink-0 hover:shadow-lg transition-shadow"
+            v-tippy="'View TE calendar'"
+            @click="openCalendar"
+          >
             <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
-          </div>
+          </button>
           <div>
             <div class="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-2">
               <h3 class="text-base sm:text-lg font-black uppercase tracking-tight text-slate-800 leading-none">
@@ -302,6 +312,15 @@
         />
       </div>
     </div>
+
+    <TeCalendarModal
+      v-if="isCalendarOpen"
+      :is-open="isCalendarOpen"
+      :entries="calendarEntries"
+      :ascension-label="`A${index + 1}`"
+      @close="isCalendarOpen = false"
+      @update-target="(te: number) => emit('updateTarget', te)"
+    />
   </div>
 </template>
 
@@ -311,7 +330,10 @@ import { formatNumber, formatDuration } from '@/lib/format';
 import { iconURL } from 'lib';
 import type { AscensionSummary } from '@/auto/types';
 import type { VirtueEgg } from '@/types';
+import type { Action } from '@/types/actions/meta';
+import { buildAscensionCalendar, type TECalendarEntry, type PlanVariantLabel } from '@/auto/te-calendar';
 import ShiftSummary from './ShiftSummary.vue';
+import TeCalendarModal from './TeCalendarModal.vue';
 
 const props = defineProps<{
   summary: AscensionSummary & {
@@ -338,12 +360,46 @@ const props = defineProps<{
   result3SkippedReason?: string;
   isSavingSingle?: boolean;
   saveSingleSuccess?: boolean;
+  result1: { summary: AscensionSummary; actions: Action[] };
+  result2: { summary: AscensionSummary; actions: Action[] };
+  result3?: { summary: AscensionSummary; actions: Action[] };
+  startEggsDelivered: Record<VirtueEgg, number>;
 }>();
 
 const emit = defineEmits<{
   (e: 'setPlanVariant', variant: 'continue' | '1-sale' | '2-sale'): void;
   (e: 'saveSingleToLibrary'): void;
+  (e: 'updateTarget', te: number): void;
 }>();
+
+const isCalendarOpen = ref(false);
+
+// A computed, not a ref populated inside the click handler: Vue caches this until
+// one of its actual dependencies (summary/actions/targetTE/results/startEggsDelivered)
+// changes, so re-opening the same card's calendar is free. Combined with `v-if` gating
+// <TeCalendarModal>'s very existence above, the (still fairly cheap, but non-trivial
+// at up to 490 entries) computation also never runs at all until first opened.
+const calendarEntries = computed<TECalendarEntry[]>(() => {
+  const candidates: { variant: PlanVariantLabel; result: { summary: AscensionSummary; actions: Action[] } }[] = [
+    { variant: '1-sale', result: props.result1 },
+    { variant: '2-sale', result: props.result2 },
+  ];
+  if (props.index === 0 && props.result3) {
+    candidates.unshift({ variant: 'continue', result: props.result3 });
+  }
+
+  return buildAscensionCalendar(
+    props.summary.startTime,
+    { summary: props.summary, actions: props.actions },
+    props.targetTE,
+    props.startEggsDelivered,
+    candidates
+  ).entries;
+});
+
+function openCalendar() {
+  isCalendarOpen.value = true;
+}
 
 const isExpanded = ref(false);
 const isDropdownOpen = ref(false);
