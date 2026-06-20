@@ -314,6 +314,12 @@ function checkHabCapacityViolation(
   return false;
 }
 
+function maybeAddWaitForFullHabs(beforeSnapshot: CalculationsSnapshot) {
+  if (actionsStore.effectiveSnapshot.habCapacity > beforeSnapshot.habCapacity) {
+    actionsStore.pushWaitForFullHabsAction();
+  }
+}
+
 function saveChanges() {
   const toLoadout: ArtifactSlotPayload[] = localLoadout.value.map(slot => ({
     artifactId: slot.artifactId,
@@ -354,6 +360,8 @@ function saveChanges() {
     },
     beforeSnapshot
   );
+
+  maybeAddWaitForFullHabs(beforeSnapshot);
 }
 
 function equipSet() {
@@ -388,5 +396,7 @@ function equipSet() {
     },
     beforeSnapshot
   );
+
+  maybeAddWaitForFullHabs(beforeSnapshot);
 }
 </script>
