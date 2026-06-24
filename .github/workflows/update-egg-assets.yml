@@ -16,13 +16,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout egg repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: egg
           token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
           fetch-depth: 1
       - name: Checkout EggIncAssets repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: carpetsage/EggIncAssets
           path: EggIncAssets
