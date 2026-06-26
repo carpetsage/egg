@@ -3,8 +3,8 @@ import { sha256 } from 'js-sha256';
 import { ei } from '../proto';
 import { decodeMessage } from './decode';
 import { encodeMessage } from './encode';
+import useEidsStore from '../stores/eids';
 import { APP_BUILD, APP_VERSION, CLIENT_VERSION, PLATFORM, PLATFORM_STRING } from './version';
-
 
 export * from './decode';
 export * from './encode';
@@ -161,6 +161,9 @@ export async function requestPeriodicals(userId?: string): Promise<ei.IPeriodica
  * @throws
  */
 export async function requestFirstContact(userId: string): Promise<ei.IEggIncFirstContactResponse> {
+  // Keep the original (as the caller stores it in the eids store) before
+  // processUserId strips any `mk2!` prefix, so the captured username keys match.
+  const originalUserId = userId.trim();
   userId = processUserId(userId);
   const requestPayload: ei.IEggIncFirstContactRequest = {
     rinfo: basicRequestInfo(''),
@@ -171,7 +174,23 @@ export async function requestFirstContact(userId: string): Promise<ei.IEggIncFir
   };
   const encodedRequestPayload = encodeMessage(ei.EggIncFirstContactRequest, requestPayload);
   const encodedResponsePayload = await request('/ei/bot_first_contact', encodedRequestPayload);
-  return decodeMessage(ei.EggIncFirstContactResponse, encodedResponsePayload, false) as ei.IEggIncFirstContactResponse;
+  const response = decodeMessage(
+    ei.EggIncFirstContactResponse,
+    encodedResponsePayload,
+    false
+  ) as ei.IEggIncFirstContactResponse;
+  // Auto-capture the in-game username so tools can display it in place of the
+  // EID. This is the central choke point every tool's backup fetch flows
+  // through. Never let a store hiccup break data loading.
+  const userName = response.backup?.userName;
+  if (userName) {
+    try {
+      useEidsStore().updateUsername(originalUserId, userName);
+    } catch {
+      // ignore — username capture is best-effort
+    }
+  }
+  return response;
 }
 
 /**
