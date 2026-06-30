@@ -10,7 +10,7 @@
       :get-item-display="artifact => artifact.display"
       :get-item-icon-path="artifact => 'egginc/' + artifact.icon_filename"
       :item-from-id="id => artifactIdToArtifact.get(id)!"
-      :search-items="searchArtifacts"
+      :search-items="searchLegendaryArtifacts"
       placeholder="Select artifact (type to filter)"
       :model-value="modelValue"
       @update:model-value="$emit('update:modelValue', $event)"
@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { PropType } from 'vue';
 
-import { artifactIdToArtifact, legendaryArtifacts, searchArtifacts } from '@/lib/filter';
+import { artifactIdToArtifact, legendaryArtifacts, searchLegendaryArtifacts } from '@/lib/filter';
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
 
 const BaseSelectFilterable = GenericBaseSelectFilterable<(typeof legendaryArtifacts)[number]>();

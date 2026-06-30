@@ -28,5 +28,6 @@ export const missionIds = missions.map(mission => mission.missionTypeId);
 export const missionIdToMission = new Map(missions.map(mission => [mission.missionTypeId, mission]));
 
 const { search: searchArtifacts } = useSearch(artifacts, 'id', ['display']);
+const { search: searchLegendaryArtifacts } = useSearch(legendaryArtifacts, 'id', ['display']);
 const { search: searchMissions } = useSearch(missions, 'missionTypeId', ['name']);
-export { searchArtifacts, searchMissions };
+export { searchArtifacts, searchLegendaryArtifacts, searchMissions };
