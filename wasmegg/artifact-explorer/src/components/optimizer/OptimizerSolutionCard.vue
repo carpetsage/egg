@@ -19,15 +19,15 @@
         >?</sup
       >
     </div>
-    <div class="text-gray-600">Fuel: {{ (solution.fuelUsed / 1_000_000_000_000).toFixed(2) }}T Eggs</div>
+    <div class="text-gray-600">Fuel: {{ formatEIValue(solution.fuelUsed, { trim: true }) }} Eggs</div>
 
     <ul>
       <li v-for="[egg, qty] of solution.fuelByEgg.entries()" :key="'egg-' + egg" class="text-gray-600">
-        {{ (qty / 1_000_000_000_000).toFixed(2) }}T
+        {{ formatEIValue(qty, { trim: true }) }}
         <base-icon :icon-rel-path="eggIconPath(egg)" :size="64" class="inline-block -ml-0.5 h-4 w-4"></base-icon>
       </li>
     </ul>
-    <div class="text-gray-600">Time: {{ (solution.timeUnitsUsed / 86400).toFixed(1) }} days</div>
+    <div class="text-gray-600">Time: {{ formatDuration(solution.timeUnitsUsed, true) }}</div>
     <div class="text-gray-600">Expected crafts: {{ solution.expectedCrafts.toFixed(1) }}</div>
 
     <optimizer-choice-list :choices="solution.choiceHistory" />
@@ -51,7 +51,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 
-import { eggIconPath } from 'lib';
+import { eggIconPath, formatDuration, formatEIValue } from 'lib';
 import type { CraftChainRow, MissionLegendaryRow, OptimizerSolution } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 import OptimizerChoiceList from './OptimizerChoiceList.vue';
@@ -72,7 +72,7 @@ export default defineComponent({
   setup() {
     const sparseTooltip =
       'Drop data is sparse: no mission has accumulated 5+ legendary observations of this artifact. The displayed rate is dominated by single-observation noise and may overstate or understate the true rate by several multiples.';
-    return { eggIconPath, sparseTooltip };
+    return { eggIconPath, formatDuration, formatEIValue, sparseTooltip };
   },
 });
 </script>
