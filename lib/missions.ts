@@ -499,6 +499,13 @@ export class MissionType {
     );
   }
 
+  maxBoostedCapacity(): number {
+    return Math.floor(
+      (this.defaultCapacity + this.params.levelCapacityBump * this.maxLevel) *
+        (1.5 ) // 10 Zero-G Levels
+    );
+  }
+
   boostedQuality(config: ShipsConfig): number {
     return (
       Math.round((this.params.quality + this.params.levelQualityBump * config.shipLevels[this.shipType]) * 100) / 100
