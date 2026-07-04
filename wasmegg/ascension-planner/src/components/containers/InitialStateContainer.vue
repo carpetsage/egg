@@ -1,5 +1,6 @@
 <template>
   <InitialStateDisplay
+    ref="displayRef"
     :has-data="store.hasData"
     :epic-research-levels="store.epicResearchLevels"
     :artifact-loadout="store.artifactLoadout"
@@ -49,7 +50,7 @@
  * Container component for Initial State.
  * Displays player info loaded from backup.
  */
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
@@ -266,4 +267,14 @@ function handleSetActiveArtifactSet(setName: ArtifactSetName) {
   store.setActiveArtifactSet(setName);
   updateInitialSnapshotAndRecalculate();
 }
+
+const displayRef = ref<InstanceType<typeof InitialStateDisplay> | null>(null);
+
+defineExpose({
+  applyPendingAscensionChanges() {
+    if (displayRef.value?.hasAscensionChanges) {
+      displayRef.value.applyAscensionChanges();
+    }
+  },
+});
 </script>

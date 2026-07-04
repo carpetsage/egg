@@ -709,6 +709,8 @@ function applyAscensionChanges() {
   emit('apply-ascension-settings', localAscensionDate.value, localAscensionTime.value, localAscensionTimezone.value);
 }
 
+defineExpose({ hasAscensionChanges, applyAscensionChanges });
+
 // Collapsible state
 const epicResearchExpanded = ref(false);
 const colleggtiblesExpanded = ref(false);
