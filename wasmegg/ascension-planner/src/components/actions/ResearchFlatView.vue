@@ -8,10 +8,16 @@
         @click="$emit('buy-to-here', unlockNextTier.index)"
       >
         Unlock Tier {{ unlockNextTier.tier }}
-        <span class="text-[11px] font-normal opacity-80">
-          ({{ unlockNextTier.purchaseCount }} {{ unlockNextTier.purchaseCount === 1 ? 'purchase' : 'purchases' }}, {{ unlockNextTier.time }})
-        </span>
       </button>
+      <div class="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[10px] text-gray-500">
+        <span>{{ unlockNextTier.purchaseCount }} {{ unlockNextTier.purchaseCount === 1 ? 'purchase' : 'purchases' }}</span>
+        <span class="text-gray-400">|</span>
+        <span>{{ unlockNextTier.time }}</span>
+        <template v-if="unlockNextTier.absoluteTime">
+          <span class="text-gray-400">|</span>
+          <span>{{ unlockNextTier.absoluteTime }}</span>
+        </template>
+      </div>
     </div>
 
     <template v-for="(item, idx) in sortedResearches" :key="`${item.research.id}-${item.targetLevel}`">
@@ -88,6 +94,9 @@ import { computed } from 'vue';
 import { type CommonResearch } from '@/calculations/commonResearch';
 import { type ViewType } from '@/composables/useResearchViews';
 import { useInitialStateStore } from '@/stores/initialState';
+import { useActionsStore } from '@/stores/actions';
+import { useVirtueStore } from '@/stores/virtue';
+import { formatAbsoluteTime } from '@/lib/format';
 import ResearchItem from './ResearchItem.vue';
 
 interface SortedResearchItem {
@@ -127,6 +136,16 @@ const props = defineProps<{
 const initialStateStore = useInitialStateStore();
 const isMissingRealisticData = computed(() => props.view === 'elr' && !initialStateStore.rawBackup);
 
+const actionsStore = useActionsStore();
+const virtueStore = useVirtueStore();
+
+const baseTimestamp = computed(() => {
+  const startTime = virtueStore.planStartTime.getTime();
+  const offset = actionsStore.planStartOffset;
+  // Wall clock time = (Plan Start) + (Current Sim Time - Initial Sim Time)
+  return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
+});
+
 const unlockNextTier = computed(() => {
   if (props.view !== 'cheapest') return null;
 
@@ -141,6 +160,10 @@ const unlockNextTier = computed(() => {
     purchaseCount: dividerIndex,
     time: target.buyToHereTime,
     canBuy: target.canBuyToHere,
+    absoluteTime:
+      target.buyToHereSeconds !== undefined
+        ? formatAbsoluteTime(target.buyToHereSeconds, baseTimestamp.value, virtueStore.ascensionTimezone)
+        : undefined,
   };
 });
 
