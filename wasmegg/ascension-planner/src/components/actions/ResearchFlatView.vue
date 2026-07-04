@@ -47,6 +47,7 @@
         :can-buy="item.canBuy"
         :is-maxed="item.isMaxed"
         :show-max="false"
+        :hide-buy-button="view === 'milestones'"
         :show-tier="true"
         :show-buy-to-here="view === 'cheapest'"
         :can-buy-to-here="view === 'cheapest' ? true : item.canBuyToHere"
@@ -82,6 +83,12 @@
           Refresh & Fix Plan
         </button>
       </div>
+      <template v-else-if="view === 'milestones' && !milestoneTargetSelected">
+        Pick a milestone above to see the fastest path.
+      </template>
+      <template v-else-if="view === 'milestones'">
+        This milestone has already been reached.
+      </template>
       <template v-else>
         No researches match this criteria or all are maxed.
       </template>
@@ -129,6 +136,7 @@ const props = defineProps<{
   sortedResearches: SortedResearchItem[];
   view: ViewType;
   thresholds: readonly number[];
+  milestoneTargetSelected?: boolean;
   getResearchTimeToBuy: (r: CommonResearch) => string;
   getResearchTimeToBuySeconds: (r: CommonResearch) => number;
 }>();

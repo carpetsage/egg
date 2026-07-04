@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import {
   getCommonResearches,
+  getResearchById,
   getTiers,
   getResearchByTier,
   getTierSummary,
@@ -9,7 +10,7 @@ import {
   TIER_UNLOCK_THRESHOLDS,
   type CommonResearch,
 } from '@/calculations/commonResearch';
-import { formatDuration } from '@/lib/format';
+import { formatDuration, formatAbsoluteTime } from '@/lib/format';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
@@ -18,7 +19,7 @@ import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength, calculateShippingCapacity } from '@/calculations/shippingCapacity';
-import type { SimulationContext } from '@/engine/types';
+import type { SimulationContext, EngineState } from '@/engine/types';
 import { getNextPacificTime } from '@/lib/events';
 import { type CalculationsSnapshot } from '@/types';
 import { getOptimalELRSet } from '@/lib/artifacts/virtue';
@@ -30,10 +31,14 @@ import { computeRealisticELR } from '@/calculations/realisticELR';
 import { calculateResearchROI } from '@/calculations/researchROI';
 import { createSimAction } from '@/types/actions/meta';
 
-export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr';
+export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr' | 'milestones';
 export type ElrViewMode = 'realistic' | 'potential';
 export type ElrSortMode = 'efficiency' | 'impact';
 export type RoiMode = 'immediate' | 'maxed_vehicles';
+
+export type MilestoneTarget =
+  | { kind: 'tier'; tier: number }
+  | { kind: 'research'; researchId: string; targetLevel: number };
 
 function buildMaxVehiclesSnapshot(
   baseSnapshot: CalculationsSnapshot,
@@ -93,10 +98,11 @@ export interface ResearchViewItem {
 }
 
 export const VIEWS = [
-  { id: 'game', label: 'Game View' },
-  { id: 'cheapest', label: 'Cheapest First' },
-  { id: 'roi', label: 'Earnings ROI' },
-  { id: 'elr', label: 'Delivery Impact' },
+  { id: 'game', label: 'Game View', description: 'Grouped by tier, exactly like the game.' },
+  { id: 'cheapest', label: 'Cheapest First', description: 'All unpurchased researches sorted by price.' },
+  { id: 'roi', label: 'Earnings ROI', description: 'Prioritizes upgrades that pay for themselves fastest.' },
+  { id: 'elr', label: 'Delivery Impact', description: 'Sorted by impact to your Delivery Rate.' },
+  { id: 'milestones', label: 'Milestones', description: 'Fastest ROI path to a tier unlock or research level.' },
 ] as const;
 
 // Evaluation IDs for ELR Impact
@@ -139,6 +145,7 @@ export function useResearchViews() {
   const elrSortMode = ref<ElrSortMode>('efficiency');
   const deliveryImpactOnly = ref(false);
   const roiMode = ref<RoiMode>('immediate');
+  const milestoneTarget = ref<MilestoneTarget | null>(null);
 
   const realisticSummary = computed(() => {
     const rawBackup = initialStateStore.rawBackup;
@@ -185,6 +192,8 @@ export function useResearchViews() {
           return 'True Delivery Rate impact with optimal artifacts and max habs/vehicles, sorted by total impact.';
         }
       }
+      case 'milestones':
+        return 'Pick a tier unlock or a specific research level, and see the fastest ROI-optimal path to it.';
       default:
         return '';
     }
@@ -200,6 +209,18 @@ export function useResearchViews() {
 
   const tiers = computed(() => getTiers());
   const researchByTier = computed(() => getResearchByTier());
+
+  const milestoneNextLockedTier = computed(() => {
+    const levels = commonResearchStore.researchLevels;
+    return tiers.value.find(tier => !isTierUnlocked(levels, tier)) ?? null;
+  });
+
+  const milestoneResearchOptions = computed(() => {
+    const levels = commonResearchStore.researchLevels;
+    return getCommonResearches()
+      .filter(r => (levels[r.id] || 0) < r.levels && isTierUnlocked(levels, r.tier))
+      .map(r => ({ research: r, currentLevel: levels[r.id] || 0 }));
+  });
 
   const tierSummaries = computed(() => {
     const summaries: Record<number, ReturnType<typeof getTierSummary>> = {};
@@ -219,6 +240,518 @@ export function useResearchViews() {
     const offset = actionsStore.planStartOffset;
     const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
     return getNextPacificTime(6, 9, absoluteSimTime);
+  });
+
+  function isMilestoneReached(target: MilestoneTarget, levels: Record<string, number>): boolean {
+    return target.kind === 'tier' ? isTierUnlocked(levels, target.tier) : (levels[target.researchId] || 0) >= target.targetLevel;
+  }
+
+  const MILESTONE_MAX_STEPS = 2000;
+
+  // For a "research level" milestone there's always a well-defined fallback: just save up and buy
+  // the target directly. So a detour through some other research is only worth suggesting if it
+  // provably shortens the total time versus that direct purchase — not merely because the detour
+  // has good ROI in isolation (a great-ROI item can still make you arrive at the target *later*,
+  // since you also have to spend time saving up for the detour itself).
+  function computeResearchMilestoneChain(target: { researchId: string; targetLevel: number }, context: SimulationContext) {
+    const mods = costModifiers.value;
+    const isSale = isResearchSaleActive.value;
+
+    const targetResearch = getResearchById(target.researchId);
+
+    let state = createBaseEngineState(actionsStore.effectiveSnapshot);
+    let snapshot = actionsStore.effectiveSnapshot;
+    let totalSeconds = 0;
+    const items: ResearchViewItem[] = [];
+
+    if (!targetResearch) return { items, reached: false, totalSeconds };
+
+    while (items.length < MILESTONE_MAX_STEPS && (state.researchLevels[targetResearch.id] || 0) < target.targetLevel) {
+      const levels = state.researchLevels;
+      const targetLevel = levels[targetResearch.id] || 0;
+      const targetPrice = getDiscountedVirtuePrice(targetResearch, targetLevel, mods, isSale);
+      const directSeconds = getTimeToSave(targetPrice, snapshot);
+
+      let best: { research: CommonResearch; level: number; price: number; secondsToBuy: number; pathSeconds: number } | null = null;
+
+      for (const r of getCommonResearches()) {
+        if (r.id === targetResearch.id) continue;
+        const level = levels[r.id] || 0;
+        if (level >= r.levels || !isTierUnlocked(levels, r.tier)) continue;
+
+        const price = getDiscountedVirtuePrice(r, level, mods, isSale);
+        const secondsToBuy = getTimeToSave(price, snapshot);
+        if (secondsToBuy === Infinity) continue;
+
+        const stateAfter = applyTime(
+          applyAction(state, {
+            type: 'buy_research',
+            payload: { researchId: r.id, fromLevel: level, toLevel: level + 1 },
+            cost: price,
+          }),
+          secondsToBuy,
+          snapshot
+        );
+        const snapshotAfter = computeSnapshot(stateAfter, context);
+        const secondsToTargetAfter = getTimeToSave(targetPrice, snapshotAfter);
+        const pathSeconds = secondsToBuy + secondsToTargetAfter;
+
+        if (pathSeconds < directSeconds && (!best || pathSeconds < best.pathSeconds)) {
+          best = { research: r, level, price, secondsToBuy, pathSeconds };
+        }
+      }
+
+      if (best) {
+        totalSeconds += best.secondsToBuy;
+        state = applyAction(state, {
+          type: 'buy_research',
+          payload: { researchId: best.research.id, fromLevel: best.level, toLevel: best.level + 1 },
+          cost: best.price,
+        });
+        state = applyTime(state, best.secondsToBuy, snapshot);
+        snapshot = computeSnapshot(state, context);
+
+        const timeSaved = directSeconds - best.pathSeconds;
+        items.push({
+          research: best.research,
+          targetLevel: best.level + 1,
+          currentLevel: best.level,
+          price: best.price,
+          timeToBuy: best.secondsToBuy < 0.1 ? '0s' : formatDuration(best.secondsToBuy),
+          timeToBuySeconds: best.secondsToBuy,
+          buyToHereTime: totalSeconds < 0.1 ? '0s' : formatDuration(totalSeconds),
+          buyToHereSeconds: totalSeconds,
+          canBuy: true,
+          isMaxed: false,
+          canBuyToHere: true,
+          extraStats: isFinite(timeSaved) ? formatDuration(timeSaved) : '—',
+          extraLabel: 'Saves',
+        });
+      } else {
+        if (directSeconds === Infinity) break;
+
+        totalSeconds += directSeconds;
+        state = applyAction(state, {
+          type: 'buy_research',
+          payload: { researchId: targetResearch.id, fromLevel: targetLevel, toLevel: targetLevel + 1 },
+          cost: targetPrice,
+        });
+        state = applyTime(state, directSeconds, snapshot);
+        snapshot = computeSnapshot(state, context);
+
+        items.push({
+          research: targetResearch,
+          targetLevel: targetLevel + 1,
+          currentLevel: targetLevel,
+          price: targetPrice,
+          timeToBuy: directSeconds < 0.1 ? '0s' : formatDuration(directSeconds),
+          timeToBuySeconds: directSeconds,
+          buyToHereTime: totalSeconds < 0.1 ? '0s' : formatDuration(totalSeconds),
+          buyToHereSeconds: totalSeconds,
+          canBuy: true,
+          isMaxed: false,
+          canBuyToHere: true,
+        });
+      }
+    }
+
+    return { items, reached: (state.researchLevels[targetResearch.id] || 0) >= target.targetLevel, totalSeconds };
+  }
+
+  // Tier-unlock milestone, cheapest-first strategy from an arbitrary starting point: buys whatever's
+  // cheapest (ignoring ROI) until the tier unlocks. Much cheaper to compute per step than the ROI
+  // strategy (just a price compare, no ROI/snapshot projection).
+  function simulateCheapestFirstTierChain(
+    state: EngineState,
+    snapshot: CalculationsSnapshot,
+    totalSecondsSoFar: number,
+    target: { tier: number },
+    context: SimulationContext
+  ) {
+    const mods = costModifiers.value;
+    const isSale = isResearchSaleActive.value;
+
+    let curState = state;
+    let curSnapshot = snapshot;
+    let totalSeconds = totalSecondsSoFar;
+    const items: ResearchViewItem[] = [];
+
+    while (items.length < MILESTONE_MAX_STEPS && !isTierUnlocked(curState.researchLevels, target.tier)) {
+      const levels = curState.researchLevels;
+
+      const candidates = getCommonResearches()
+        .filter(r => (levels[r.id] || 0) < r.levels && isTierUnlocked(levels, r.tier))
+        .map(r => {
+          const level = levels[r.id] || 0;
+          return { research: r, level, price: getDiscountedVirtuePrice(r, level, mods, isSale) };
+        });
+
+      if (candidates.length === 0) break;
+
+      candidates.sort((a, b) => a.price - b.price);
+      const best = candidates[0];
+      const secondsToBuy = getTimeToSave(best.price, curSnapshot);
+      if (secondsToBuy === Infinity) break;
+
+      totalSeconds += secondsToBuy;
+
+      curState = applyAction(curState, {
+        type: 'buy_research',
+        payload: { researchId: best.research.id, fromLevel: best.level, toLevel: best.level + 1 },
+        cost: best.price,
+      });
+      curState = applyTime(curState, secondsToBuy, curSnapshot);
+      curSnapshot = computeSnapshot(curState, context);
+
+      items.push({
+        research: best.research,
+        targetLevel: best.level + 1,
+        currentLevel: best.level,
+        price: best.price,
+        timeToBuy: secondsToBuy < 0.1 ? '0s' : formatDuration(secondsToBuy),
+        timeToBuySeconds: secondsToBuy,
+        buyToHereTime: totalSeconds < 0.1 ? '0s' : formatDuration(totalSeconds),
+        buyToHereSeconds: totalSeconds,
+        canBuy: true,
+        isMaxed: false,
+        canBuyToHere: true,
+      });
+    }
+
+    return { items, reached: isTierUnlocked(curState.researchLevels, target.tier), totalSeconds };
+  }
+
+  function computeCheapestFirstTierChain(target: { tier: number }, context: SimulationContext) {
+    return simulateCheapestFirstTierChain(createBaseEngineState(actionsStore.effectiveSnapshot), actionsStore.effectiveSnapshot, 0, target, context);
+  }
+
+  // Re-sequences a FIXED set of purchases (same researches, same levels — just picked by price) into
+  // ROI order instead. The set of purchases and their total price don't change, but since each
+  // purchase's own price only depends on its own current level (never on what else has been bought),
+  // buying the ROI-positive ones earlier can only grow earnings sooner and speed up the rest — never
+  // slower than the original price-only order. Per-research level order is preserved (you can't buy
+  // level N+1 before level N of the same research).
+  function reorderTierChainByROI(
+    tailItems: ResearchViewItem[],
+    startState: EngineState,
+    startSnapshot: CalculationsSnapshot,
+    startTotalSeconds: number,
+    context: SimulationContext
+  ) {
+    const mods = costModifiers.value;
+    const isSale = isResearchSaleActive.value;
+
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+
+    const pendingByResearch = new Map<string, { research: CommonResearch; levels: number[] }>();
+    for (const item of tailItems) {
+      const entry = pendingByResearch.get(item.research.id);
+      if (entry) {
+        entry.levels.push(item.targetLevel);
+      } else {
+        pendingByResearch.set(item.research.id, { research: item.research, levels: [item.targetLevel] });
+      }
+    }
+
+    let state = startState;
+    let snapshot = startSnapshot;
+    let totalSeconds = startTotalSeconds;
+    const items: ResearchViewItem[] = [];
+
+    while (items.length < tailItems.length) {
+      const currentAbsoluteTime = absoluteSimTime + totalSeconds;
+      const nextSaleStart = getNextPacificTime(5, 9, currentAbsoluteTime);
+      const upcoming9amDurations = Array.from({ length: 7 }, (_, i) => getNextPacificTime(i, 9, currentAbsoluteTime) - currentAbsoluteTime);
+      const eventExpirationSeconds = Math.min(...upcoming9amDurations);
+
+      const candidates = Array.from(pendingByResearch.values())
+        .filter(entry => entry.levels.length > 0)
+        .map(entry => {
+          const targetLevel = entry.levels[0];
+          const level = targetLevel - 1;
+          const price = getDiscountedVirtuePrice(entry.research, level, mods, isSale);
+          const roiResult = calculateResearchROI({
+            research: entry.research,
+            level,
+            price,
+            snapshot,
+            context,
+            eventTiming: {
+              absoluteSimTime: currentAbsoluteTime,
+              nextSaleStart,
+              eventExpirationSeconds,
+              researchSaleDeadline: researchSaleDeadline.value,
+              isSaleActive: isSale,
+            },
+          });
+          return { research: entry.research, level, targetLevel, price, roiResult };
+        });
+
+      if (candidates.length === 0) break;
+
+      candidates.sort((a, b) => {
+        if (a.roiResult.roiSeconds !== b.roiResult.roiSeconds) return a.roiResult.roiSeconds - b.roiResult.roiSeconds;
+        return a.price - b.price;
+      });
+
+      const best = candidates[0];
+      const secondsToBuy = getTimeToSave(best.price, snapshot);
+      if (secondsToBuy === Infinity) break;
+
+      totalSeconds += secondsToBuy;
+
+      state = applyAction(state, {
+        type: 'buy_research',
+        payload: { researchId: best.research.id, fromLevel: best.level, toLevel: best.targetLevel },
+        cost: best.price,
+      });
+      state = applyTime(state, secondsToBuy, snapshot);
+      snapshot = computeSnapshot(state, context);
+
+      const roiLabel =
+        best.roiResult.roiSeconds === Infinity || best.roiResult.roiSeconds > 999 * 86400
+          ? '>999d'
+          : formatDuration(best.roiResult.roiSeconds);
+
+      items.push({
+        research: best.research,
+        targetLevel: best.targetLevel,
+        currentLevel: best.level,
+        price: best.price,
+        timeToBuy: secondsToBuy < 0.1 ? '0s' : formatDuration(secondsToBuy),
+        timeToBuySeconds: secondsToBuy,
+        buyToHereTime: totalSeconds < 0.1 ? '0s' : formatDuration(totalSeconds),
+        buyToHereSeconds: totalSeconds,
+        canBuy: true,
+        isMaxed: false,
+        canBuyToHere: true,
+        roiSeconds: best.roiResult.roiSeconds,
+        totalRoiSeconds: best.roiResult.totalRoiSeconds,
+        roiLabel,
+        extraStats: roiLabel,
+        extraLabel: 'ROI',
+        extraSeconds: best.roiResult.roiSeconds,
+        showSaleWarning: best.roiResult.showSaleWarning,
+        showDeadlineWarning: best.roiResult.showDeadlineWarning,
+      });
+
+      pendingByResearch.get(best.research.id)!.levels.shift();
+    }
+
+    return { items, totalSeconds };
+  }
+
+  // Tier-unlock milestone: every purchase (in an already-unlocked tier) counts toward the threshold,
+  // so there's no "wasted" purchase the way there is for a research-level target. But that doesn't
+  // mean ROI-first is always fastest — an expensive, high-ROI purchase only pays off if there's
+  // enough remaining runway for its earnings boost to matter; buying it when the milestone could
+  // instead be finished with a pile of purchases cheaper than it just wastes time saving up.
+  //
+  // At each step: compare (a) finishing via pure cheapest-first from here, against (b) buying the
+  // single best-ROI candidate now, then finishing via cheapest-first from THAT state. Whichever is
+  // faster wins. If (b) wins, commit to that one purchase and repeat the comparison (another detour
+  // may or may not be worth it next); if (a) wins, stop inserting detours and finish with the
+  // cheapest-first tail. This naturally orders the result as [ROI detours..., cheap purchases...],
+  // since detours are only ever prepended while they keep winning, and once cheapest-first wins the
+  // remaining tail is pure cheapest-first.
+  function computeTierMilestoneChain(target: { tier: number }, context: SimulationContext) {
+    const mods = costModifiers.value;
+    const isSale = isResearchSaleActive.value;
+
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+
+    let state = createBaseEngineState(actionsStore.effectiveSnapshot);
+    let snapshot = actionsStore.effectiveSnapshot;
+    let totalSeconds = 0;
+    const items: ResearchViewItem[] = [];
+
+    while (items.length < MILESTONE_MAX_STEPS && !isTierUnlocked(state.researchLevels, target.tier)) {
+      const cheapPlan = simulateCheapestFirstTierChain(state, snapshot, totalSeconds, target, context);
+
+      const levels = state.researchLevels;
+      const currentAbsoluteTime = absoluteSimTime + totalSeconds;
+      const nextSaleStart = getNextPacificTime(5, 9, currentAbsoluteTime);
+      const upcoming9amDurations = Array.from({ length: 7 }, (_, i) => getNextPacificTime(i, 9, currentAbsoluteTime) - currentAbsoluteTime);
+      const eventExpirationSeconds = Math.min(...upcoming9amDurations);
+
+      const roiCandidates = getCommonResearches()
+        .filter(r => (levels[r.id] || 0) < r.levels && isTierUnlocked(levels, r.tier))
+        .map(r => {
+          const level = levels[r.id] || 0;
+          const price = getDiscountedVirtuePrice(r, level, mods, isSale);
+          const roiResult = calculateResearchROI({
+            research: r,
+            level,
+            price,
+            snapshot,
+            context,
+            eventTiming: {
+              absoluteSimTime: currentAbsoluteTime,
+              nextSaleStart,
+              eventExpirationSeconds,
+              researchSaleDeadline: researchSaleDeadline.value,
+              isSaleActive: isSale,
+            },
+          });
+          return { research: r, level, price, roiResult };
+        });
+
+      roiCandidates.sort((a, b) => {
+        if (a.roiResult.roiSeconds !== b.roiResult.roiSeconds) return a.roiResult.roiSeconds - b.roiResult.roiSeconds;
+        return a.price - b.price;
+      });
+
+      let detourPlan: { detourItem: ResearchViewItem; secondsToBuy: number; totalSeconds: number; reached: boolean } | null = null;
+
+      if (roiCandidates.length > 0) {
+        const bestRoi = roiCandidates[0];
+        const secondsToBuy = getTimeToSave(bestRoi.price, snapshot);
+
+        if (secondsToBuy !== Infinity) {
+          const stateAfterDetour = applyTime(
+            applyAction(state, {
+              type: 'buy_research',
+              payload: { researchId: bestRoi.research.id, fromLevel: bestRoi.level, toLevel: bestRoi.level + 1 },
+              cost: bestRoi.price,
+            }),
+            secondsToBuy,
+            snapshot
+          );
+          const snapshotAfterDetour = computeSnapshot(stateAfterDetour, context);
+          const restOfPlan = simulateCheapestFirstTierChain(
+            stateAfterDetour,
+            snapshotAfterDetour,
+            totalSeconds + secondsToBuy,
+            target,
+            context
+          );
+
+          const roiLabel =
+            bestRoi.roiResult.roiSeconds === Infinity || bestRoi.roiResult.roiSeconds > 999 * 86400
+              ? '>999d'
+              : formatDuration(bestRoi.roiResult.roiSeconds);
+
+          detourPlan = {
+            detourItem: {
+              research: bestRoi.research,
+              targetLevel: bestRoi.level + 1,
+              currentLevel: bestRoi.level,
+              price: bestRoi.price,
+              timeToBuy: secondsToBuy < 0.1 ? '0s' : formatDuration(secondsToBuy),
+              timeToBuySeconds: secondsToBuy,
+              buyToHereTime: totalSeconds + secondsToBuy < 0.1 ? '0s' : formatDuration(totalSeconds + secondsToBuy),
+              buyToHereSeconds: totalSeconds + secondsToBuy,
+              canBuy: true,
+              isMaxed: false,
+              canBuyToHere: true,
+              roiSeconds: bestRoi.roiResult.roiSeconds,
+              totalRoiSeconds: bestRoi.roiResult.totalRoiSeconds,
+              roiLabel,
+              extraStats: roiLabel,
+              extraLabel: 'ROI',
+              extraSeconds: bestRoi.roiResult.roiSeconds,
+              showSaleWarning: bestRoi.roiResult.showSaleWarning,
+              showDeadlineWarning: bestRoi.roiResult.showDeadlineWarning,
+            },
+            secondsToBuy,
+            totalSeconds: restOfPlan.totalSeconds,
+            reached: restOfPlan.reached,
+          };
+        }
+      }
+
+      const detourWins = detourPlan && detourPlan.reached && (!cheapPlan.reached || detourPlan.totalSeconds < cheapPlan.totalSeconds);
+
+      if (detourWins && detourPlan) {
+        items.push(detourPlan.detourItem);
+        totalSeconds += detourPlan.secondsToBuy;
+        state = applyAction(state, {
+          type: 'buy_research',
+          payload: {
+            researchId: detourPlan.detourItem.research.id,
+            fromLevel: detourPlan.detourItem.currentLevel,
+            toLevel: detourPlan.detourItem.targetLevel,
+          },
+          cost: detourPlan.detourItem.price,
+        });
+        state = applyTime(state, detourPlan.secondsToBuy, snapshot);
+        snapshot = computeSnapshot(state, context);
+        continue;
+      }
+
+      // Cheapest-first wins (or no detour is viable) — buy the same set of items, but re-sequenced
+      // by ROI so any ROI-positive purchases in the tail happen before the zero-ROI filler.
+      const reordered = reorderTierChainByROI(cheapPlan.items, state, snapshot, totalSeconds, context);
+      items.push(...reordered.items);
+      return { items, reached: cheapPlan.reached, totalSeconds: reordered.totalSeconds };
+    }
+
+    return { items, reached: isTierUnlocked(state.researchLevels, target.tier), totalSeconds };
+  }
+
+  const milestoneChainResult = computed(() => {
+    const target = milestoneTarget.value;
+    if (!target) return { items: [] as ResearchViewItem[], reached: false, totalSeconds: 0 };
+
+    const context = getSimulationContext();
+    return target.kind === 'tier' ? computeTierMilestoneChain(target, context) : computeResearchMilestoneChain(target, context);
+  });
+
+  // Baseline comparison ("without this research"). For a research-level milestone there's a
+  // well-defined direct alternative — just save up and buy that research's next level with no
+  // detours — which is exactly what the chain algorithm above compares each detour against, so
+  // using the same number here keeps "with" guaranteed no worse than "without". A tier-unlock
+  // milestone has no single "direct" purchase, so its baseline is buying cheapest-first (no ROI
+  // reordering) until the tier unlocks — the naive strategy already used elsewhere in the app.
+  const milestoneBaselineResult = computed(() => {
+    const target = milestoneTarget.value;
+    if (!target) return { reached: false, totalSeconds: 0 };
+
+    const mods = costModifiers.value;
+    const isSale = isResearchSaleActive.value;
+
+    if (target.kind === 'research') {
+      const targetResearch = getResearchById(target.researchId);
+      if (!targetResearch) return { reached: false, totalSeconds: 0 };
+
+      const level = commonResearchStore.researchLevels[targetResearch.id] || 0;
+      const price = getDiscountedVirtuePrice(targetResearch, level, mods, isSale);
+      const seconds = getTimeToSave(price, actionsStore.effectiveSnapshot);
+      return { reached: seconds !== Infinity, totalSeconds: seconds };
+    }
+
+    const context = getSimulationContext();
+    const cheapChain = computeCheapestFirstTierChain(target, context);
+    return { reached: cheapChain.reached, totalSeconds: cheapChain.totalSeconds };
+  });
+
+  const milestoneSummary = computed(() => {
+    const target = milestoneTarget.value;
+    if (!target) return null;
+    if (isMilestoneReached(target, commonResearchStore.researchLevels)) return null;
+
+    const chain = milestoneChainResult.value;
+    const baseline = milestoneBaselineResult.value;
+
+    if (!chain.reached || !baseline.reached) {
+      return { truncated: true as const };
+    }
+
+    const baseTimestamp =
+      virtueStore.planStartTime.getTime() + (actionsStore.effectiveSnapshot.lastStepTime - actionsStore.planStartOffset) * 1000;
+
+    return {
+      truncated: false as const,
+      baselineSeconds: baseline.totalSeconds,
+      optimizedSeconds: chain.totalSeconds,
+      timeSavedSeconds: baseline.totalSeconds - chain.totalSeconds,
+      purchaseCount: chain.items.length,
+      finishAbsoluteTime: formatAbsoluteTime(chain.totalSeconds, baseTimestamp, virtueStore.ascensionTimezone),
+    };
   });
 
   const gameViewTimes = computed(() => {
@@ -899,6 +1432,10 @@ export function useResearchViews() {
       });
     }
 
+    if (currentView.value === 'milestones') {
+      return milestoneChainResult.value.items;
+    }
+
     return [];
   });
 
@@ -908,6 +1445,10 @@ export function useResearchViews() {
     elrSortMode,
     deliveryImpactOnly,
     roiMode,
+    milestoneTarget,
+    milestoneNextLockedTier,
+    milestoneResearchOptions,
+    milestoneSummary,
     viewDescription,
     costModifiers,
     isResearchSaleActive,

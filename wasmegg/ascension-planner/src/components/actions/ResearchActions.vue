@@ -63,6 +63,74 @@
       @update:sort-mode="elrSortMode = $event"
     />
 
+    <MilestoneTargetPicker
+      v-if="currentView === 'milestones'"
+      v-model="milestoneTarget"
+      :next-locked-tier="milestoneNextLockedTier"
+      :research-options="milestoneResearchOptions"
+    />
+
+    <!-- Milestone Summary -->
+    <div
+      v-if="currentView === 'milestones' && milestoneSummary"
+      class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"
+    >
+      <template v-if="milestoneSummary.truncated">
+        <p class="text-xs text-gray-500 text-center italic">
+          This milestone requires too many purchases to fully calculate right now.
+        </p>
+      </template>
+      <template v-else>
+        <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-center">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">Without This Research</span>
+            <span
+              class="text-sm font-mono font-bold text-gray-900 leading-none py-1"
+              v-tippy="'Time to reach this milestone buying cheapest-first, with no ROI prioritization.'"
+            >
+              {{ formatDuration(milestoneSummary.baselineSeconds) }}
+            </span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">With This Research</span>
+            <span
+              class="text-sm font-mono font-bold text-gray-900 leading-none py-1"
+              v-tippy="'Time to reach this milestone by always buying whatever currently pays for itself fastest.'"
+            >
+              {{ formatDuration(milestoneSummary.optimizedSeconds) }}
+            </span>
+          </div>
+          <div class="flex flex-col border-l border-gray-200 pl-6">
+            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">Time Saved</span>
+            <span class="text-sm font-mono font-bold text-emerald-600 leading-none py-1">
+              {{ formatDuration(Math.max(0, milestoneSummary.timeSavedSeconds)) }}
+            </span>
+          </div>
+          <div class="flex flex-col border-l border-gray-200 pl-6">
+            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">Researches Bought</span>
+            <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1">
+              {{ milestoneSummary.purchaseCount }}
+            </span>
+          </div>
+        </div>
+        <p class="mt-2 text-[10px] text-gray-400 text-center">
+          Finishes {{ milestoneSummary.finishAbsoluteTime }}
+        </p>
+      </template>
+    </div>
+
+    <!-- Buy Entire Chain -->
+    <button
+      v-if="currentView === 'milestones' && sortedResearches.length > 0"
+      class="btn-premium btn-primary w-full mt-2"
+      @click="handleBuyMilestoneChain"
+    >
+      Buy Entire Chain
+      <span class="ml-1 text-[10px] opacity-70 font-mono lowercase tracking-normal">
+        ({{ sortedResearches.length }} {{ sortedResearches.length === 1 ? 'purchase' : 'purchases' }})
+      </span>
+    </button>
+
     <!-- Realistic Mode Summary -->
     <div 
       v-if="currentView === 'elr' && elrViewMode === 'realistic' && realisticSummary"
@@ -117,6 +185,7 @@
       :sorted-researches="sortedResearches"
       :view="currentView"
       :thresholds="TIER_THRESHOLDS"
+      :milestone-target-selected="!!milestoneTarget"
       :get-research-time-to-buy="getTimeToBuy"
       :get-research-time-to-buy-seconds="getTimeToBuySeconds"
       @buy="handleBuyResearch"
@@ -162,6 +231,7 @@ import ResearchViewSelector from './ResearchViewSelector.vue';
 import ResearchGameView from './ResearchGameView.vue';
 import ResearchFlatView from './ResearchFlatView.vue';
 import ElrViewControls from './ElrViewControls.vue';
+import MilestoneTargetPicker from './MilestoneTargetPicker.vue';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
 import { useEventExpiry } from '@/composables/useEventExpiry';
 
@@ -187,6 +257,10 @@ const {
   elrSortMode,
   deliveryImpactOnly,
   roiMode,
+  milestoneTarget,
+  milestoneNextLockedTier,
+  milestoneResearchOptions,
+  milestoneSummary,
   viewDescription,
   costModifiers,
   isResearchSaleActive,
@@ -393,6 +467,24 @@ function handleBuyToHere(index: number) {
     batch(() => {
       for (let i = 0; i <= index; i++) {
         const item = list[i];
+        buyOneLevel(item.research);
+      }
+    });
+  });
+}
+
+function handleBuyMilestoneChain() {
+  const list = sortedResearches.value;
+  if (list.length === 0) return;
+
+  let totalDuration = 0;
+  for (const item of list) {
+    totalDuration += getTimeToBuySeconds(item.research);
+  }
+
+  withExpiryCheck(totalDuration, true, () => {
+    batch(() => {
+      for (const item of list) {
         buyOneLevel(item.research);
       }
     });
