@@ -130,9 +130,9 @@
       :event-name="expiryData.eventName"
       :end-time="expiryData.endTime"
       :completion-time="expiryData.completionTime"
-      @confirm="handleExpiryConfirm"
       @cancel="handleExpiryCancel"
-      @deactivate="handleExpiryDeactivate"
+      @deactivate-and-cancel="handleExpiryDeactivateAndCancel"
+      @deactivate-and-continue="handleExpiryDeactivateAndContinue"
     />
   </div>
 </template>
@@ -173,9 +173,9 @@ const {
   showExpiryDialog,
   expiryData,
   withExpiryCheck,
-  confirm: handleExpiryConfirm,
   cancel: handleExpiryCancel,
-  deactivateAndCancel: handleExpiryDeactivate,
+  deactivateAndCancel: handleExpiryDeactivateAndCancel,
+  deactivateAndContinue: handleExpiryDeactivateAndContinue,
 } = useEventExpiry();
 
 const smartBuyState = ref({ threshold: 0, alwaysOn: false });
