@@ -64,6 +64,19 @@
               </template>
             </div>
           </button>
+
+          <button
+            v-if="maxSilosIn1Hour.count > 0"
+            class="btn-premium btn-secondary w-full py-3 mt-2 flex items-center justify-center gap-2"
+            @click="handleBuyMaxSilos1Hour"
+          >
+            <span class="text-[11px] font-black uppercase tracking-tight">1-Hr Max</span>
+            <div class="w-1 h-1 rounded-full bg-slate-400/40"></div>
+            <span class="text-[10px] font-mono-premium font-black uppercase tracking-widest opacity-70">
+              {{ maxSilosIn1Hour.count }} silo{{ maxSilosIn1Hour.count !== 1 ? 's' : '' }} in
+              {{ formatDuration(maxSilosIn1Hour.seconds) }}
+            </span>
+          </button>
         </div>
         <div
           v-else
@@ -145,7 +158,7 @@
 
 <script setup lang="ts">
 import { useSiloTime } from '@/composables/useSiloTime';
-import { useSilosStore } from '@/stores/silos';
+import { useSilosStore, nextSiloCost, MAX_SILOS } from '@/stores/silos';
 import { useActionsStore } from '@/stores/actions';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
@@ -156,10 +169,12 @@ import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computed } from 'vue';
 import { getTimeToSave } from '@/engine/apply';
 
+const ONE_HOUR_SECONDS = 3600;
+
 const silosStore = useSilosStore();
 const actionsStore = useActionsStore();
 const { output: siloOutput } = useSiloTime();
-const { prepareExecution, completeExecution } = useActionExecutor();
+const { prepareExecution, completeExecution, batch } = useActionExecutor();
 
 const baseUrl = import.meta.env.BASE_URL;
 
@@ -171,7 +186,42 @@ const timeToBuy = computed(() => {
   return formatDuration(seconds);
 });
 
-function handleBuySilo() {
+// Simulate buying silos back-to-back (waiting to save up gems between purchases)
+// to see how many fit within a 1-hour window.
+const maxSilosIn1Hour = computed<{ count: number; seconds: number }>(() => {
+  const snapshot = actionsStore.effectiveSnapshot;
+  let virtualSnapshot = { ...snapshot };
+  let elapsedSeconds = 0;
+  let count = 0;
+  let currentSiloCount = siloOutput.value.siloCount;
+
+  while (currentSiloCount < MAX_SILOS) {
+    const cost = nextSiloCost(currentSiloCount);
+    const seconds = getTimeToSave(cost, virtualSnapshot);
+    if (!isFinite(seconds) || elapsedSeconds + seconds > ONE_HOUR_SECONDS) break;
+
+    elapsedSeconds += seconds;
+
+    // Advance virtual population/earnings state during the wait
+    const I = virtualSnapshot.offlineIHR / 60;
+    virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, virtualSnapshot.population + I * seconds);
+    const layRatePerChicken = snapshot.population > 0 ? snapshot.layRate / snapshot.population : 0;
+    virtualSnapshot.layRate = virtualSnapshot.population * layRatePerChicken;
+    virtualSnapshot.elr = Math.min(virtualSnapshot.layRate, virtualSnapshot.shippingCapacity);
+    const earningsPerEgg = snapshot.elr > 0 ? snapshot.offlineEarnings / snapshot.elr : 0;
+    virtualSnapshot.offlineEarnings = virtualSnapshot.elr * earningsPerEgg;
+
+    // Bank is spent down to exactly cover the purchase
+    virtualSnapshot.bankValue = seconds > 0 ? 0 : Math.max(0, (virtualSnapshot.bankValue || 0) - cost);
+
+    currentSiloCount++;
+    count++;
+  }
+
+  return { count, seconds: elapsedSeconds };
+});
+
+async function handleBuySilo() {
   if (!siloOutput.value.canBuyMore) return;
 
   // Prepare execution (restores stores if editing past group)
@@ -200,8 +250,10 @@ function handleBuySilo() {
   // Apply to store
   silosStore.buySilo();
 
-  // Complete execution
-  completeExecution(
+  // Complete execution — awaited so that back-to-back purchases (e.g. from the
+  // 1-hr max button) each see the previous purchase's updated state before
+  // computing their own fromCount/toCount and cost.
+  await completeExecution(
     {
       id: generateActionId(),
       timestamp: Date.now(),
@@ -212,5 +264,16 @@ function handleBuySilo() {
     },
     beforeSnapshot
   );
+}
+
+function handleBuyMaxSilos1Hour() {
+  const toBuy = maxSilosIn1Hour.value.count;
+  if (toBuy <= 0) return;
+
+  batch(async () => {
+    for (let i = 0; i < toBuy; i++) {
+      await handleBuySilo();
+    }
+  });
 }
 </script>
