@@ -45,38 +45,75 @@
       <!-- Buy Silo Section (Moved here) -->
       <div class="mb-6">
         <div v-if="siloOutput.canBuyMore">
-          <button
-            class="btn-premium btn-primary w-full py-3.5 flex flex-col items-center gap-1 shadow-lg shadow-brand-primary/10"
-            @click="handleBuySilo"
-          >
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-black uppercase tracking-tight">Buy Silo #{{ siloOutput.siloCount + 1 }}</span>
-            </div>
-            <div class="flex items-center gap-2 opacity-80">
-              <span class="text-[10px] font-black uppercase tracking-widest"
-                >{{ formatGemPrice(siloOutput.nextSiloCost) }} gems</span
+          <div :class="maxSilosIn1Hour.count > 0 ? 'grid grid-cols-1 sm:grid-cols-2 gap-3' : ''">
+            <button
+              class="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden"
+              @click="handleBuySilo"
+            >
+              <div class="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/[0.02] transition-colors"></div>
+              <div
+                class="rounded-xl bg-indigo-50 border border-indigo-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10"
               >
-              <template v-if="timeToBuy">
-                <div class="w-1 h-1 rounded-full bg-white/40"></div>
-                <span class="text-[10px] font-mono-premium font-black uppercase tracking-widest"
-                  >Ready in {{ timeToBuy }}</span
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-indigo-600"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-              </template>
-            </div>
-          </button>
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </div>
+              <div class="flex flex-col items-center relative z-10">
+                <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-indigo-700"
+                  >Buy Silo #{{ siloOutput.siloCount + 1 }}</span
+                >
+                <span class="text-[9px] font-mono-premium font-black text-indigo-500 mt-0.5">
+                  {{ formatGemPrice(siloOutput.nextSiloCost) }} gems<template v-if="timeToBuy">
+                    · Ready in {{ timeToBuy }}</template
+                  >
+                </span>
+              </div>
+            </button>
 
-          <button
-            v-if="maxSilosIn1Hour.count > 0"
-            class="btn-premium btn-secondary w-full py-3 mt-2 flex items-center justify-center gap-2"
-            @click="handleBuyMaxSilos1Hour"
-          >
-            <span class="text-[11px] font-black uppercase tracking-tight">1-Hr Max</span>
-            <div class="w-1 h-1 rounded-full bg-slate-400/40"></div>
-            <span class="text-[10px] font-mono-premium font-black uppercase tracking-widest opacity-70">
-              {{ maxSilosIn1Hour.count }} silo{{ maxSilosIn1Hour.count !== 1 ? 's' : '' }} in
-              {{ formatDuration(maxSilosIn1Hour.seconds) }}
-            </span>
-          </button>
+            <button
+              v-if="maxSilosIn1Hour.count > 0"
+              class="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-violet-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-violet-300 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden"
+              @click="handleBuyMaxSilos1Hour"
+            >
+              <div class="absolute inset-0 bg-violet-500/0 group-hover:bg-violet-500/[0.02] transition-colors"></div>
+              <div
+                class="rounded-xl bg-violet-50 border border-violet-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-violet-600"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <div class="flex flex-col items-center relative z-10">
+                <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-violet-700"
+                  >1-Hr Max</span
+                >
+                <span class="text-[9px] font-mono-premium font-black text-violet-500 mt-0.5">
+                  {{ maxSilosIn1Hour.count }} silo{{ maxSilosIn1Hour.count !== 1 ? 's' : '' }} ·
+                  {{ formatDuration(maxSilosIn1Hour.seconds) }}
+                </span>
+              </div>
+            </button>
+          </div>
         </div>
         <div
           v-else
