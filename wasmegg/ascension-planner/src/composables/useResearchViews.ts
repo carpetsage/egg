@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import {
   getCommonResearches,
   getResearchById,
@@ -105,6 +105,13 @@ export const VIEWS = [
   { id: 'milestones', label: 'Milestones', description: 'Fastest ROI path to a tier unlock or research level.' },
 ] as const;
 
+const RESEARCH_VIEW_STORAGE_KEY = 'ascension_research_view';
+
+function loadStoredResearchView(): ViewType {
+  const stored = localStorage.getItem(RESEARCH_VIEW_STORAGE_KEY);
+  return VIEWS.some(v => v.id === stored) ? (stored as ViewType) : 'game';
+}
+
 // Evaluation IDs for ELR Impact
 const FLEET_RESEARCH_IDS = [
   'vehicle_reliablity',
@@ -140,7 +147,8 @@ export function useResearchViews() {
   const actionsStore = useActionsStore();
   const virtueStore = useVirtueStore();
 
-  const currentView = ref<ViewType>('game');
+  const currentView = ref<ViewType>(loadStoredResearchView());
+  watch(currentView, v => localStorage.setItem(RESEARCH_VIEW_STORAGE_KEY, v));
   const elrViewMode = ref<ElrViewMode>('realistic');
   const elrSortMode = ref<ElrSortMode>('efficiency');
   const deliveryImpactOnly = ref(false);
