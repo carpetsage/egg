@@ -18,7 +18,11 @@
             class="w-7 h-7 object-contain shrink-0"
             :alt="selectedResearch.research.name"
           />
-          <span class="flex-1 text-left truncate">{{ selectedResearch.research.name }}</span>
+          <span class="flex-1 text-left truncate"
+            >{{ selectedResearch.research.name }} (Lv {{ selectedResearch.currentLevel + 1 }}/{{
+              selectedResearch.research.levels
+            }})</span
+          >
         </template>
         <span v-else class="flex-1 text-left text-gray-400">Select a milestone</span>
         <ChevronDownIcon class="w-4 h-4 text-gray-400 shrink-0 transition-transform" :class="{ 'rotate-180': open }" />
