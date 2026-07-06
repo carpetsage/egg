@@ -42,9 +42,9 @@
 
           <div class="mt-8 flex flex-col sm:flex-row justify-end gap-3">
             <div class="flex flex-1 gap-2">
-               <button
+              <button
                 class="flex-1 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-50 transition-colors"
-                @click="$emit('deactivate')"
+                @click="$emit('deactivateAndCancel')"
               >
                 Deactivate & Cancel
               </button>
@@ -57,10 +57,10 @@
                 Cancel
               </button>
               <button
-                class="btn-premium bg-slate-800 text-white px-8 py-2 text-[10px] font-black uppercase tracking-wider shadow-lg"
-                @click="$emit('confirm')"
+                class="btn-premium bg-rose-600 text-white px-8 py-2 text-[10px] font-black uppercase tracking-wider shadow-lg"
+                @click="$emit('deactivateAndContinue')"
               >
-                Continue Anyway
+                Deactivate and Continue
               </button>
             </div>
           </div>
@@ -82,9 +82,9 @@ interface Props {
 defineProps<Props>();
 
 defineEmits<{
-  confirm: [];
   cancel: [];
-  deactivate: [];
+  deactivateAndCancel: [];
+  deactivateAndContinue: [];
 }>();
 
 const virtueStore = useVirtueStore();

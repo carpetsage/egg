@@ -114,8 +114,12 @@ async function executeCopy() {
   planToCopy.value = null;
 }
 
-async function confirmDelete(plan: PlanData) {
+async function confirmDelete(plan: PlanData, event?: MouseEvent) {
   planToDelete.value = plan;
+  if (event?.shiftKey) {
+    await executeDelete();
+    return;
+  }
   showDeleteConfirm.value = true;
 }
 
@@ -545,7 +549,7 @@ const emit = defineEmits<{ 'plan-loaded': [name: string] }>();
         <button
           v-if="bulkSelectMode && selectedPlanIds.size > 0"
           class="px-2.5 py-1 text-xs font-medium rounded border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
-          @click="showBulkDeleteConfirm = true"
+          @click="$event.shiftKey ? executeBulkDelete() : (showBulkDeleteConfirm = true)"
         >
           Delete ({{ selectedPlanIds.size }})
         </button>
@@ -673,7 +677,7 @@ const emit = defineEmits<{ 'plan-loaded': [name: string] }>();
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
               </svg>
             </button>
-            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-red-600" v-tippy="'Delete this plan'" @click="confirmDelete(plan)">
+            <button class="p-0.5 sm:p-1 text-gray-400 hover:text-red-600" v-tippy="'Delete this plan'" @click="confirmDelete(plan, $event)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"

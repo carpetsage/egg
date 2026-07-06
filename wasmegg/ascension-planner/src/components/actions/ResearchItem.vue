@@ -151,6 +151,7 @@
 
           <!-- Buy one level button -->
           <button
+            v-if="!hideBuyButton"
             class="w-7 h-7 flex items-center justify-center rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             :class="[
               showDeadlineWarning
@@ -233,6 +234,7 @@ const props = defineProps<{
   extraLabel?: string;
   hpp?: number;
   showMax: boolean;
+  hideBuyButton?: boolean;
   showTier?: boolean;
   targetLevel?: number;
   showBuyToHere?: boolean;

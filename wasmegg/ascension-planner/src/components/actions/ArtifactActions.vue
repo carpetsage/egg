@@ -314,6 +314,14 @@ function checkHabCapacityViolation(
   return false;
 }
 
+// If equipping/updating a set increased hab capacity (e.g. a new or upgraded
+// gusset), queue a "Wait for Full Habs" action right after it.
+function insertWaitForFullHabsIfCapacityIncreased(beforeSnapshot: CalculationsSnapshot) {
+  if (actionsStore.effectiveSnapshot.habCapacity > beforeSnapshot.habCapacity) {
+    actionsStore.pushWaitForFullHabsAction();
+  }
+}
+
 function saveChanges() {
   const toLoadout: ArtifactSlotPayload[] = localLoadout.value.map(slot => ({
     artifactId: slot.artifactId,
@@ -354,6 +362,7 @@ function saveChanges() {
     },
     beforeSnapshot
   );
+  insertWaitForFullHabsIfCapacityIncreased(beforeSnapshot);
 }
 
 function equipSet() {
@@ -388,5 +397,6 @@ function equipSet() {
     },
     beforeSnapshot
   );
+  insertWaitForFullHabsIfCapacityIncreased(beforeSnapshot);
 }
 </script>
