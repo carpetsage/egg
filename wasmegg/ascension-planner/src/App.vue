@@ -1,8 +1,12 @@
 <template>
-  
   <the-nav-bar active-entry-id="ascension-planner" />
 
-  <div :class="['min-h-screen bg-gray-100 transition-all duration-300', (plannerTab === 'automatic' || isFooterCollapsed) ? 'pb-8' : 'pb-24']">
+  <div
+    :class="[
+      'min-h-screen bg-gray-100 transition-all duration-300',
+      plannerTab === 'automatic' || isFooterCollapsed ? 'pb-8' : 'pb-24',
+    ]"
+  >
     <div class="max-w-6xl mx-auto p-4">
       <!-- Collapsible Header Region -->
       <div class="bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-100 shadow-sm">
@@ -21,31 +25,54 @@
               Player Backup From: {{ lastBackupFormatted }}
             </div>
 
-            <the-player-id-form :player-id="playerId" @submit="submitPlayerId" @input="onFormInput" />
+            <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
 
             <!-- Mode Tabs -->
-            <div v-if="playerId && !loading" class="mt-6 flex justify-center animate-in fade-in slide-in-from-top-4 duration-500">
+            <div
+              v-if="playerId && !loading"
+              class="mt-6 flex justify-center animate-in fade-in slide-in-from-top-4 duration-500"
+            >
               <div class="bg-slate-50 p-1.5 rounded-2xl border border-slate-200/50 shadow-sm flex gap-1">
                 <button
                   class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
-                  :class="plannerTab === 'manual' ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'"
+                  :class="
+                    plannerTab === 'manual'
+                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
+                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                  "
                   @click="plannerTab = 'manual'"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
                   </svg>
                   Manual Planner
                 </button>
                 <button
                   class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
-                  :class="plannerTab === 'automatic' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'"
+                  :class="
+                    plannerTab === 'automatic'
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
+                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                  "
                   @click="handleAutoPlannerTabClick"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
                   </svg>
                   Auto Planner
-                  <span class="bg-indigo-500 text-[8px] px-1.5 py-0.5 rounded-md ml-1 border border-indigo-400/30">BETA</span>
+                  <span class="bg-indigo-500 text-[8px] px-1.5 py-0.5 rounded-md ml-1 border border-indigo-400/30"
+                    >BETA</span
+                  >
                 </button>
               </div>
             </div>
@@ -187,7 +214,6 @@
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -222,16 +248,26 @@
         >
           <div class="flex items-center gap-3 relative z-10">
             <!-- Icon/Status -->
-            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+            <div
+              class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm"
+            >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
-            
+
             <div class="flex flex-col gap-0 text-left">
-              <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Reconciliation Mode</span>
+              <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5"
+                >Reconciliation Mode</span
+              >
               <span class="text-[10px] font-bold text-emerald-600 tracking-tight">
-                Backup from {{ lastBackupFormatted }} <span class="text-emerald-400/80 font-medium">({{ lastBackupAge }})</span>
+                Backup from {{ lastBackupFormatted }}
+                <span class="text-emerald-400/80 font-medium">({{ lastBackupAge }})</span>
               </span>
             </div>
           </div>
@@ -250,7 +286,7 @@
                   :class="actionsStore.showIncompleteOnly ? 'translate-x-[13px]' : 'translate-x-1'"
                 />
               </button>
-            </div> 
+            </div>
 
             <!-- Refresh Button -->
             <button
@@ -259,12 +295,19 @@
               :disabled="loading"
               @click="handleRefreshReconcile"
             >
-              <svg 
-                class="w-4 h-4" 
+              <svg
+                class="w-4 h-4"
                 :class="{ 'animate-spin': loading }"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
             </button>
           </div>
@@ -324,7 +367,11 @@
               </button>
             </div>
             <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-              <ActionHistory @show-details="showActionDetails" @undo="showUndoConfirmation" @clear-all="handleClearAll" />
+              <ActionHistory
+                @show-details="showActionDetails"
+                @undo="showUndoConfirmation"
+                @clear-all="handleClearAll"
+              />
             </div>
           </div>
 
@@ -340,10 +387,7 @@
               </button>
             </div>
             <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-              <AvailableActions 
-                @show-current-details="showCurrentDetails" 
-                @refresh-backup="handleRefreshReconcile"
-              />
+              <AvailableActions @show-current-details="showCurrentDetails" @refresh-backup="handleRefreshReconcile" />
             </div>
           </div>
         </div>
@@ -353,87 +397,95 @@
         <AutomaticPlanner />
       </div>
 
-    <!-- Action Details Modal -->
-    <ActionDetailsModal v-if="showDetailsModal" :action="detailsModalAction" @close="closeActionDetails" />
+      <!-- Action Details Modal -->
+      <ActionDetailsModal v-if="showDetailsModal" :action="detailsModalAction" @close="closeActionDetails" />
 
-    <!-- Undo Confirmation Dialog -->
-    <UndoConfirmationDialog
-      v-if="undoAction"
-      :action="undoAction"
-      :dependents-a="undoDependentsA"
-      :dependents-b="undoDependentsB"
-      @confirm="executeUndo"
-      @cancel="cancelUndo"
-    />
+      <!-- Undo Confirmation Dialog -->
+      <UndoConfirmationDialog
+        v-if="undoAction"
+        :action="undoAction"
+        :dependents-a="undoDependentsA"
+        :dependents-b="undoDependentsB"
+        @confirm="executeUndo"
+        @cancel="cancelUndo"
+      />
 
-    <!-- Clear All Confirmation Dialog -->
-    <ConfirmationDialog
-      v-if="showClearAllConfirmation"
-      title="Clear All Actions"
-      message="Are you sure you want to clear all actions? This cannot be undone."
-      confirm-label="Clear All"
-      @confirm="executeClearAll"
-      @cancel="showClearAllConfirmation = false"
-    />
+      <!-- Clear All Confirmation Dialog -->
+      <ConfirmationDialog
+        v-if="showClearAllConfirmation"
+        title="Clear All Actions"
+        message="Are you sure you want to clear all actions? This cannot be undone."
+        confirm-label="Clear All"
+        @confirm="executeClearAll"
+        @cancel="showClearAllConfirmation = false"
+      />
 
-    <!-- Unsaved Changes Protection Dialog -->
-    <ConfirmationDialog
-      v-if="showUnsavedConfirm"
-      title="Unsaved Changes"
-      message="You have unsaved changes in your current plan. If you continue, these changes will be lost. Would you like to save before proceeding?"
-      confirm-label="Continue Without Saving"
-      variant="danger"
-      @confirm="
-        showUnsavedConfirm = false;
-        pendingAction?.();
-      "
-      @cancel="
-        showUnsavedConfirm = false;
-        pendingAction = null;
-      "
-    />
+      <!-- Unsaved Changes Protection Dialog -->
+      <ConfirmationDialog
+        v-if="showUnsavedConfirm"
+        title="Unsaved Changes"
+        message="You have unsaved changes in your current plan. If you continue, these changes will be lost. Would you like to save before proceeding?"
+        confirm-label="Continue Without Saving"
+        variant="danger"
+        @confirm="
+          showUnsavedConfirm = false;
+          pendingAction?.();
+        "
+        @cancel="
+          showUnsavedConfirm = false;
+          pendingAction = null;
+        "
+      />
 
-    <!-- Plan Selection Dialog (for Reconcile) -->
-    <PlanSelectionDialog
-      v-if="showReconcileLibraryModal"
-      @select="handleLibraryReconcile"
-      @cancel="showReconcileLibraryModal = false"
-    />
+      <!-- Plan Selection Dialog (for Reconcile) -->
+      <PlanSelectionDialog
+        v-if="showReconcileLibraryModal"
+        @select="handleLibraryReconcile"
+        @cancel="showReconcileLibraryModal = false"
+      />
 
-    <!-- Artifact Set Selection Dialog -->
-    <div v-if="showArtifactSetConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div class="px-6 py-5 border-b border-slate-100">
-          <h3 class="text-lg font-bold text-slate-800">Current Artifact Set</h3>
-          <p class="mt-2 text-sm text-slate-500">Which artifact set do you currently have equipped in game?</p>
-        </div>
-        <div class="px-6 py-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
-          <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('elr')">
-            Delivery Rate Set
-          </button>
-          <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('earnings')">
-            Earnings Set
-          </button>
+      <!-- Artifact Set Selection Dialog -->
+      <div v-if="showArtifactSetConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div
+          class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        >
+          <div class="px-6 py-5 border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-800">Current Artifact Set</h3>
+            <p class="mt-2 text-sm text-slate-500">Which artifact set do you currently have equipped in game?</p>
+          </div>
+          <div class="px-6 py-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
+            <button
+              class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              @click="handleArtifactSetSelection('elr')"
+            >
+              Delivery Rate Set
+            </button>
+            <button
+              class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              @click="handleArtifactSetSelection('earnings')"
+            >
+              Earnings Set
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Continuity Check Dialog -->
-    <ContinuityDialog />
+      <!-- Continuity Check Dialog -->
+      <ContinuityDialog />
 
-    <WarningDialog />
+      <WarningDialog />
 
-    <RecalculationOverlay />
+      <RecalculationOverlay />
 
-    <PlanFinalSummary
-      v-if="plannerTab === 'manual'"
-      @show-details="showCurrentDetails"
-      @update:collapsed="isFooterCollapsed = $event"
-      @save-plan="saveCurrentPlan"
-      @save-plan-as="savePlanAs"
-    />
-    <FloatingStats v-if="plannerTab === 'manual'" @show-details="showCurrentDetails" />
-    <FloatingNotes v-if="plannerTab === 'manual'" />
+      <PlanFinalSummary
+        v-if="plannerTab === 'manual'"
+        @show-details="showCurrentDetails"
+        @update:collapsed="isFooterCollapsed = $event"
+        @save-plan="saveCurrentPlan"
+        @save-plan-as="savePlanAs"
+      />
+      <FloatingStats v-if="plannerTab === 'manual'" @show-details="showCurrentDetails" />
+      <FloatingNotes v-if="plannerTab === 'manual'" />
     </div>
   </div>
 </template>
@@ -511,7 +563,7 @@ const lastBackupFormatted = computed(() => {
   const approxTime = initialStateStore.rawBackup?.approxTime;
   if (approxTime == null) return 'Unknown';
   const date = new Date(approxTime * 1000);
-  
+
   return date.toLocaleTimeString(undefined, {
     weekday: 'short',
     month: 'short',
@@ -526,12 +578,12 @@ const lastBackupAge = computed(() => {
   if (approxTime == null) return '';
   const now = Date.now() / 1000;
   const diff = Math.max(0, now - approxTime);
-  
+
   if (diff < 60) return 'Just now';
-  
+
   const minutes = Math.floor(diff / 60);
   if (minutes < 60) return `${minutes}m ago`;
-  
+
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   return `${hours}h${remainingMinutes}m ago`;
@@ -831,18 +883,10 @@ async function handleRefreshReconcile() {
   }
 }
 
-function onFormInput(e: Event) {
-  const target = e.target as HTMLInputElement;
-  if (target?.id === 'playerId') {
-    playerId.value = target.value.trim();
-  }
-  error.value = '';
-}
-
 async function handleAutoPlannerTabClick() {
   plannerTab.value = 'automatic';
   isHeaderCollapsed.value = true;
-  
+
   if (playerId.value && !loading.value) {
     loading.value = true;
     try {
@@ -888,12 +932,12 @@ async function submitPlayerId(id: string) {
     // Load into state store and sync global stores
     const { teEarnedPerEgg } = loadAndSyncBackup(id, backup, 'default');
 
-    // Catch-up calculations (eggs, earnings, population) are now handled 
+    // Catch-up calculations (eggs, earnings, population) are now handled
     // automatically by computeSnapshot in the engine.
     const context = getSimulationContext();
     const baseState = createBaseEngineState(null);
     const initialSnapshot = computeSnapshot(baseState, context);
-    
+
     // Sync farm state and Truth Eggs with caught-up values
     catchUpFarmState(initialSnapshot, baseState.bankValue, context.ascensionStartTime, teEarnedPerEgg);
 
@@ -1104,9 +1148,5 @@ const ChevronIcon = {
 }
 .btn-ghost {
   @apply bg-transparent hover:bg-slate-50 border border-slate-100;
-}
-:deep(#playerId:not(:focus)) {
-  filter: blur(4px);
-  transition: filter 0.2s;
 }
 </style>
