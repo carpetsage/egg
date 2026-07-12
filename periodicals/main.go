@@ -23,15 +23,15 @@ import (
 
 // Configuration constants (from defaults.py)
 var (
-	currentClientVersion = uint32(999)
-	clientVersion        = uint32(67)
-	version              = "1.33.1"
-	build                = "111291"
-	platform             = "IOS"
-	eventFile                = "data/events.json"
-	contractFile             = "data/contracts.json"
-	eggFile                  = "data/customeggs.json"
-	contractSeasonsFile      = "data/contractseasons.json"
+	currentClientVersion      = uint32(999)
+	clientVersion             = uint32(67)
+	version                   = "1.33.1"
+	build                     = "111291"
+	platform                  = "IOS"
+	eventFile                 = "data/events.json"
+	contractFile              = "data/contracts.json"
+	eggFile                   = "data/customeggs.json"
+	contractSeasonsFile       = "data/contractseasons.json"
 	colleggtibleContractsFile = "data/colleggtible-contracts.json"
 
 	periodicalsURL = "https://www.auxbrain.com/ei/get_periodicals"
@@ -71,15 +71,16 @@ func main() {
 
 	var periodicalsArgs []string
 	for _, arg := range os.Args[1:] {
-		if arg == "getconfig" {
+		switch arg {
+		case "getconfig":
 			if err := updateConfig(); err != nil {
 				log.Fatalf("Failed to update config: %v", err)
 			}
-		} else if arg == "colleggtible-contracts" {
+		case "colleggtible-contracts":
 			if err := updateColleggtibleContracts(contractFile, eggFile, colleggtibleContractsFile); err != nil {
 				log.Fatalf("Failed to update colleggtible contracts: %v", err)
 			}
-		} else {
+		default:
 			periodicalsArgs = append(periodicalsArgs, arg)
 		}
 	}
@@ -262,7 +263,8 @@ func deleteFieldsRecursive(v interface{}, fields ...string) {
 	}
 }
 
-// updateConfig fetches the game config, strips time-sensitive fields, and writes config.json
+// updateConfig fetches the game config, strips time-sensitive fields, and writes config.json.
+// It also writes derived files for custom_ce shells and liveConfig, which the GitHub Action uploads to a gist.
 func updateConfig() error {
 	configResp, err := requestConfig()
 	if err != nil {
@@ -279,14 +281,55 @@ func updateConfig() error {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
-	deleteFieldsRecursive(data, "secondsUntilAvailable", "secondsRemaining", "shellsShowcasLastFeaturedTime")
+	deleteFieldsRecursive(data, "secondsUntilAvailable", "secondsRemaining", "shellsShowcasLastFeaturedTime", "popularity")
+
+	dataMap, ok := data.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected config structure")
+	}
 
 	stripped, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal stripped JSON: %w", err)
 	}
+	if err := os.WriteFile("config.json", append(stripped, '\n'), 0644); err != nil {
+		return fmt.Errorf("failed to write config.json: %w", err)
+	}
 
-	return os.WriteFile("config.json", append(stripped, '\n'), 0644)
+	// Extract shells whose identifier contains "custom_ce".
+	var customCEShells []interface{}
+	if dlcCatalog, ok := dataMap["dlcCatalog"].(map[string]interface{}); ok {
+		if shells, ok := dlcCatalog["shells"].([]interface{}); ok {
+			for _, shell := range shells {
+				shellMap, ok := shell.(map[string]interface{})
+				if !ok {
+					continue
+				}
+				id, ok := shellMap["identifier"].(string)
+				if ok && strings.Contains(id, "custom_ce") {
+					customCEShells = append(customCEShells, shell)
+				}
+			}
+		}
+	}
+	customShellsJSON, err := json.MarshalIndent(customCEShells, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal custom shells: %w", err)
+	}
+	if err := os.WriteFile("custom_ce_shells.json", append(customShellsJSON, '\n'), 0644); err != nil {
+		return fmt.Errorf("failed to write custom_ce_shells.json: %w", err)
+	}
+
+	// Extract liveConfig on its own.
+	liveConfigJSON, err := json.MarshalIndent(dataMap["liveConfig"], "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal live config: %w", err)
+	}
+	if err := os.WriteFile("live_config.json", append(liveConfigJSON, '\n'), 0644); err != nil {
+		return fmt.Errorf("failed to write live_config.json: %w", err)
+	}
+
+	return nil
 }
 
 // requestPeriodicals makes an API request to get periodicals data

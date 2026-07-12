@@ -31,10 +31,21 @@ jobs:
             echo "config.json is empty, skipping"
             exit 0
           fi
-          gh gist view "$GIST_ID" --filename config.json > /tmp/gist_config.json 2>/dev/null || true
-          if ! diff -q config.json /tmp/gist_config.json > /dev/null 2>&1; then
-            echo "Config changed, updating gist"
-            jq -n --rawfile content config.json '{"files":{"config.json":{"content":$content}}}' \
+          changed=false
+          for file in config.json custom_ce_shells.json live_config.json; do
+            gh gist view "$GIST_ID" --filename "$file" > "/tmp/gist_$file" 2>/dev/null || true
+            if ! diff -q "$file" "/tmp/gist_$file" > /dev/null 2>&1; then
+              echo "$file changed"
+              changed=true
+            fi
+          done
+          if [ "$changed" = true ]; then
+            echo "Updating gist"
+            jq -n \
+              --rawfile config config.json \
+              --rawfile shells custom_ce_shells.json \
+              --rawfile live live_config.json \
+              '{"files":{"config.json":{"content":$config},"custom_ce_shells.json":{"content":$shells},"live_config.json":{"content":$live}}}' \
               | gh api --method PATCH "/gists/$GIST_ID" --input - --silent
           else
             echo "No change"
