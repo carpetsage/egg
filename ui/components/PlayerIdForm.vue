@@ -2,19 +2,30 @@
   <form class="mx-4 sm:mx-auto sm:max-w-xs sm:w-full mt-2 mb-4 space-y-1" @submit.prevent="submit">
     <div>
       <label for="email" class="sr-only">Player ID</label>
-      <base-input
-        id="playerId"
-        v-model="displayValue"
-        type="text"
-        name="playerId"
-        :readonly="!editing"
-        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-        :class="{ 'cursor-pointer': !editing && activeEid }"
-        :title="!editing && activeEid ? 'Click to reveal/edit the EID' : undefined"
-        placeholder="Player ID"
-        @focus="onFocus"
-        @blur="onBlur"
-      />
+      <div class="flex items-center gap-2">
+        <button
+          v-if="activeEid"
+          type="button"
+          class="text-gray-400 hover:text-blue-500 focus:outline-none"
+          aria-label="Edit name"
+          @click="eidsStore.editName(activeEid, eids.get(activeEid)?.nickname)"
+        >
+          ✎
+        </button>
+        <base-input
+          id="playerId"
+          v-model="displayValue"
+          type="text"
+          name="playerId"
+          :readonly="!editing"
+          class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          :class="{ 'cursor-pointer': !editing && activeEid }"
+          :title="!editing && activeEid ? 'Click to reveal/edit the EID' : undefined"
+          placeholder="Player ID"
+          @focus="onFocus"
+          @blur="onBlur"
+        />
+      </div>
       <div v-if="eids.size <= 1" class="text-center">
         <span
           v-tippy="{

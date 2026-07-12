@@ -22,7 +22,7 @@ export const useEidsStore = defineStore('eids', () => {
     eids.value.set(eid, {});
 
     // Remove oldest entry if over limit
-    if (eids.value.size > 7) {
+    if (eids.value.size > 15) {
       // First try to find an entry without any name (no nickname or username)
       let keyToDelete = null;
       for (const [key, value] of eids.value.entries()) {
@@ -80,7 +80,10 @@ export const useEidsStore = defineStore('eids', () => {
   function editName(eid: string, oldname?: string) {
     const name = prompt('Enter a name for this EID:', oldname);
     if (name !== null) {
-      updateNickname(eid, name);
+      // If the user clears the nickname and we have a captured username,
+      // fall back to displaying the username by copying it to nickname.
+      const entry = eids.value.get(eid);
+      updateNickname(eid, name || entry?.username || '');
     }
   }
 
