@@ -34,6 +34,7 @@ message Config {
   uint32 missing_soul_food = 20;
   uint32 missing_prophecy_bonus = 21;
   uint32 missing_epic_multiplier = 22;
+  uint32 missing_lab_upgrade = 23;
 
   bool bird_feed_active = 10;
   bool tachyon_prism_active = 11;

@@ -152,6 +152,20 @@
               />
               <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">/ 5</div>
             </div>
+            <div class="relative flex items-center justify-end">
+              <label for="lab_upgrade" class="flex items-center text-sm whitespace-nowrap mr-2">
+                <img :src="iconURL('egginc/r_icon_lab_upgrade.png', 64)" class="h-8 w-8 relative -top-px" />
+                Lab upgrade
+              </label>
+              <integer-input
+                id="lab_upgrade"
+                v-model="conf.labUpgrade"
+                :min="0"
+                :max="10"
+                base-class="w-16 pl-2.5 pt-1 pb-0.5"
+              />
+              <div class="absolute inset-y-0.5 right-0 pr-2.5 pt-1 pb-0.5 sm:text-sm text-gray-200">/ 10</div>
+            </div>
           </div>
         </div>
 
