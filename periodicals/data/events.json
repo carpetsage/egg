@@ -27657,6 +27657,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1783872000,
+    "id": "ultra-7-11",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1783785600,
+    "type": "vehicle-sale",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1783958400,
     "id": "event-7-11-2",
     "message": "4x PIGGY GROWTH!",
@@ -27666,12 +27675,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1783872000,
-    "id": "ultra-7-11",
-    "message": "75% OFF VEHICLES!",
-    "multiplier": 0.25,
-    "startTimestamp": 1783785600,
-    "type": "vehicle-sale",
-    "ultra": true
+    "endTimestamp": 1783958400,
+    "id": "event-7-12",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1783872000,
+    "type": "crafting-sale",
+    "ultra": false
   }
 ]
