@@ -62,6 +62,21 @@
           </div>
         </div>
 
+        <div
+          v-if="showLowClothedTEWarning"
+          class="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex gap-3"
+        >
+          <svg class="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p class="leading-relaxed">
+            Auto-AP is really built for players farther along — below 200 Clothed TE, its assumptions (like habs
+            staying full throughout) don't hold up well, so the plan it generates may be pretty suboptimal for
+            you right now. You're welcome to generate one anyway just to see what it does, but for a plan you can
+            actually rely on, raise your Clothed TE in the Virtue Progress section above first.
+          </p>
+        </div>
+
         <button
           class="btn-premium btn-primary w-full py-4 mt-8 text-sm shadow-xl shadow-indigo-500/20 active:scale-[0.98]"
           :disabled="isGenerating || !isA1Dirty"
@@ -209,6 +224,7 @@ import { useAutoPlannerStore } from '@/stores/autoPlanner';
 import { useVirtueStore } from '@/stores/virtue';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useAscensionGenerator } from '@/auto/useAscensionGenerator';
+import { useEarningsClothedTE } from '@/composables/useEarningsClothedTE';
 import SchedulingInputs from './SchedulingInputs.vue';
 import VirtueProgressSection from './VirtueProgressSection.vue';
 import ChainSummaryBar from './ChainSummaryBar.vue';
@@ -229,6 +245,9 @@ const visibleTotal = computed(() => {
   const lastIsForced = chain.length > 0 && !!chain[chain.length - 1].forcedTarget490;
   return chain.length - (lastIsForced ? 1 : 0);
 });
+const { clothedTE: earningsClothedTe } = useEarningsClothedTE();
+const showLowClothedTEWarning = computed(() => earningsClothedTe.value !== null && earningsClothedTe.value < 200);
+
 const targetInput = ref<HTMLInputElement | null>(null);
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 

@@ -14,6 +14,10 @@
             <span v-if="truthEggsStore.totalPendingTE > 0" class="text-[10px] font-black text-emerald-500 uppercase">
               +{{ truthEggsStore.totalPendingTE }} Pending
             </span>
+            <span v-if="earningsClothedTe !== null" class="w-1 h-1 bg-slate-200 rounded-full"></span>
+            <span v-if="earningsClothedTe !== null" class="text-[10px] font-black text-indigo-500 uppercase"
+              >Clothed TE {{ Math.round(earningsClothedTe) }}</span
+            >
             <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
             <span class="text-[10px] font-black text-slate-500">Delivery Rate {{ formatNumber(currentELR * 3600, 3) }}/hr</span>
           </div>
@@ -82,6 +86,7 @@ import { useSilosStore } from '@/stores/silos';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { getArtifactLoadoutFromBackup, getOptimalEarningsSet } from '@/lib/artifacts';
+import { useEarningsClothedTE } from '@/composables/useEarningsClothedTE';
 import { computeSnapshot } from '@/engine/compute';
 import { rollUpPendingTE } from '@/lib/modes';
 import type { VirtueEgg } from '@/types';
@@ -106,6 +111,9 @@ const currentTE = computed(() => {
   if (!snapshot?.teEarned) return 0;
   return Object.values(snapshot.teEarned).reduce((a, b) => a + b, 0);
 });
+
+// Clothed TE for the earnings set as of the current simulation snapshot.
+const { clothedTE: earningsClothedTe } = useEarningsClothedTE();
 
 const currentELR = computed(() => {
   const farmState = initialStateStore.currentFarmState;
