@@ -333,4 +333,36 @@ describe('optimizeFull', () => {
     expect(sol.timeUnitsUsed).toBeLessThanOrEqual(51); // +1 for integer rounding
     expect(sol.choiceHistory.length).toBeGreaterThan(0);
   });
+
+  it('treats a NaN or negative budget as zero (no launches)', () => {
+    // An empty time budget field upstream turns into NaN; the search must
+    // degrade to the deterministic no-launch baseline, not leak NaN into
+    // the scans and the joint LP.
+    const opts = [makeOpt(10, 10, [['B', 1]]), makeOpt(0, 3, [['B', 1]])];
+    for (const timeCapacity of [NaN, -5, Infinity]) {
+      const sol = optimizeFull({
+        options: opts,
+        recipeDag: craftDag(0.1),
+        desiredArtifactNodeIds: ['A'],
+        fuelCapacity: 1000,
+        timeCapacity,
+        baseYield: new Map(),
+      });
+      expect(sol.choiceHistory).toHaveLength(0);
+      expect(sol.fuelUsed).toBe(0);
+      expect(sol.timeUnitsUsed).toBe(0);
+      expect(Number.isFinite(sol.bestProbability)).toBe(true);
+    }
+    const solNaNFuel = optimizeFull({
+      options: opts,
+      recipeDag: craftDag(0.1),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: NaN,
+      timeCapacity: 100,
+      baseYield: new Map(),
+    });
+    // the zero-fuel option is still launchable against the time budget
+    expect(solNaNFuel.fuelUsed).toBe(0);
+    expect(solNaNFuel.timeUnitsUsed).toBeLessThanOrEqual(100);
+  });
 });

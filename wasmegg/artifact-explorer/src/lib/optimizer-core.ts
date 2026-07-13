@@ -33,11 +33,19 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
     options,
     recipeDag,
     desiredArtifactNodeIds,
-    fuelCapacity: R,
-    timeCapacity: S,
+    fuelCapacity: rawR,
+    timeCapacity: rawS,
     baseYield,
     epsilon = DEFAULT_EPSILON,
   } = args;
+
+  // A NaN or negative budget (e.g. an empty input field upstream) must not
+  // reach the search: NaN comparisons silently take different branches in
+  // the single sweep, the pairwise/triple scans, and the joint LP, so each
+  // path sees a different effective budget. Clamp to zero — no budget, no
+  // launches — and let the caller decide how to present invalid input.
+  const R = Number.isFinite(rawR) && rawR > 0 ? rawR : 0;
+  const S = Number.isFinite(rawS) && rawS > 0 ? rawS : 0;
 
   // Q_T weights the inner LP's craft objective so a craft of a target with
   // better legendary odds counts for more.

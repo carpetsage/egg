@@ -6,6 +6,7 @@
         :player-id="playerId"
         :pending-compute="pendingCompute"
         :wait-time-days="waitTimeDays"
+        :time-budget-invalid="!timeBudgetValid"
         @submit-player-id="submitPlayerId"
         @run-compute="runCompute"
         @update:wait-time-days="waitTimeDays = $event"
@@ -28,7 +29,11 @@
           :drop-data-is-sparse="view.dropDataIsSparse"
         />
         <p v-if="solutionViews.length === 0" class="text-sm text-gray-400">
-          No ship set found for the current settings.
+          {{
+            timeBudgetValid
+              ? 'No ship set found for the current settings.'
+              : 'Enter a time budget (a positive number of days) to compute a plan.'
+          }}
         </p>
       </div>
 
@@ -81,6 +86,8 @@ export default defineComponent({
 
     const waitTimeDays = ref('30');
     const maxWaitTimeSeconds = computed(() => parseFloat(waitTimeDays.value) * 86400);
+    
+    const timeBudgetValid = computed(() => Number.isFinite(maxWaitTimeSeconds.value) && maxWaitTimeSeconds.value > 0);
 
     const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
     if (playerId.value) {
@@ -125,6 +132,11 @@ export default defineComponent({
     );
 
     function runCompute() {
+      if (!timeBudgetValid.value) {
+        computedResults.value = [];
+        pendingCompute.value = false;
+        return;
+      }
       const minDurationSeconds = missionFilters.value.minDurationHoursEnabled
         ? missionFilters.value.minDurationHours * 3600
         : undefined;
@@ -173,6 +185,7 @@ export default defineComponent({
 
     return {
       waitTimeDays,
+      timeBudgetValid,
       pendingCompute,
       playerId,
       runCompute,

@@ -27,7 +27,8 @@
             placeholder="Days"
             @update:model-value="$emit('update:waitTimeDays', String($event))"
           />
-          <p class="mt-1 text-xs text-gray-400">Maximum time you're willing to spend launching missions</p>
+          <p v-if="timeBudgetInvalid" class="mt-1 text-xs text-red-500">Enter a positive number of days</p>
+          <p v-else class="mt-1 text-xs text-gray-400">Maximum time you're willing to spend launching missions</p>
         </div>
 
         <div>
@@ -219,6 +220,7 @@ export default defineComponent({
     playerId: { type: String, default: '' },
     pendingCompute: { type: Boolean, required: true },
     waitTimeDays: { type: String, required: true },
+    timeBudgetInvalid: { type: Boolean, default: false },
   },
   emits: {
     submitPlayerId: (_id: string) => true,
