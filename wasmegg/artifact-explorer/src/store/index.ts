@@ -39,6 +39,8 @@ export const CONFIG_LOCALSTORAGE_KEY = 'config';
 export const OVERRIDES_LOCALSTORAGE_KEY = 'overrides';
 export const EXTRAS_LOCALSTORAGE_KEY = 'extras';
 export const MISSION_FILTERS_LOCALSTORAGE_KEY = 'mission_filters';
+// EID whose save the manual (override) values were last seeded from.
+export const SEEDED_EID_LOCALSTORAGE_KEY = 'seeded_eid';
 
 // config is persisted through a watch in App.vue.
 export const config = ref(loadConfig());
@@ -87,14 +89,17 @@ export function setOverrideShipVisibility(ship: Spaceship, b: boolean): void {
   overrides.value.shipVisibility[ship] = b;
 }
 
-export function resetAllOverrides(): void {
-  overrides.value = newOverrides();
-}
-
 export function takeControlOfAllShips(): void {
   for (const s of spaceshipList) {
     overrides.value.shipLevels[s] = true;
     overrides.value.shipVisibility[s] = true;
+  }
+}
+
+export function releaseControlOfAllShips(): void {
+  for (const s of spaceshipList) {
+    overrides.value.shipLevels[s] = false;
+    overrides.value.shipVisibility[s] = false;
   }
 }
 
@@ -189,6 +194,30 @@ export const effectiveConfig = computed<ShipsConfig>(() => {
   };
 });
 
+// Copy the loaded save's values into the manual (override) values, so that
+// turning on an override starts from the player's real value rather than a
+// default or one left over from another account. Called by setPlayerData when
+// the save belongs to an EID we haven't seeded from before.
+function seedOverrideValuesFromPlayerData(): void {
+  const player = playerShipsConfig.value;
+  if (player) {
+    config.value.epicResearchFTLLevel = player.epicResearchFTLLevel;
+    config.value.epicResearchZerogLevel = player.epicResearchZerogLevel;
+    config.value.shipLevels = { ...player.shipLevels };
+    config.value.shipVisibility = { ...player.shipVisibility };
+  }
+  if (playerCraftingLevel.value !== null) {
+    extras.value.craftingLevel = playerCraftingLevel.value;
+  }
+  // Per-artifact, so only available while the optimizer is open.
+  if (playerPreviousCrafts.value !== null) {
+    extras.value.previousCrafts = playerPreviousCrafts.value;
+  }
+  if (playerTankLevel.value !== null) {
+    extras.value.tankLevel = playerTankLevel.value;
+  }
+}
+
 function computeShipLevelFromPoints(shipType: Spaceship, points: number): number {
   const thresholds = shipLevelLaunchPointThresholds(shipType);
   let level = 0;
@@ -239,6 +268,12 @@ export function setPlayerData(backup: ei.IBackup): void {
   playerInventory.value = inv;
   playerTotalCraftingXp.value = Math.floor(backup.artifacts?.craftingXp ?? 0);
   playerTankLevel.value = backup.artifacts?.tankLevel ?? null;
+
+  const eid = backup.eiUserId;
+  if (eid && getLocalStorage(SEEDED_EID_LOCALSTORAGE_KEY) !== eid) {
+    seedOverrideValuesFromPlayerData();
+    setLocalStorage(SEEDED_EID_LOCALSTORAGE_KEY, eid);
+  }
 }
 
 export function clearPlayerData(): void {

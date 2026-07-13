@@ -25,13 +25,16 @@
           leave-to="opacity-0 translate-y-0 scale-95"
         >
           <div
-            class="inline-block bg-white rounded-lg px-6 pt-4 pb-6 text-left overflow-y-auto shadow-xl transform transition-all my-8 align-middle max-w-3xl w-full p-6 space-y-3 relative max-h-[90vh]"
+            class="inline-block bg-white rounded-lg px-6 pt-4 pb-6 text-left overflow-y-auto shadow-xl transform transition-all my-8 align-middle max-w-2xl w-full p-6 space-y-3 relative max-h-[90vh]"
           >
-            <DialogTitle as="h3" class="text-center text-base font-medium text-gray-900">
-              {{ player ? 'Override player data' : 'Mission configuration' }}
-            </DialogTitle>
-            <p v-if="player" class="text-center text-xs text-gray-500 -mt-2">
-              Tick a row to use the manual value instead of what was loaded from your save.
+            <DialogTitle as="h3" class="text-center text-base font-medium text-gray-900">Ships</DialogTitle>
+            <p class="text-center text-xs text-gray-500 -mt-2">
+              <template v-if="player">
+                Availability and star levels were loaded from your save. Override a ship to set a custom value.
+              </template>
+              <template v-else>
+                Tick the ships the optimizer may launch; click the stars to set each ship's level.
+              </template>
             </p>
 
             <button
@@ -42,393 +45,132 @@
             </button>
 
             <template v-if="!player">
-              <!-- No player data: simple config form (mirrors ConfigModal) -->
-              <div>
-                <label for="po_epic_research_ftl" class="block">
-                  <div class="text-sm font-medium text-gray-700">FTL Drive Upgrades</div>
-                  <div class="text-sm text-gray-500">(Mission time reducing epic research)</div>
-                </label>
-                <div class="relative flex items-center w-20 mt-2">
-                  <base-integer-input
-                    id="po_epic_research_ftl"
-                    base-class="block w-full w-number-input sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-1 border-gray-300"
-                    :min="0"
-                    :max="60"
-                    :model-value="config.epicResearchFTLLevel"
-                    @update:model-value="setEpicResearchFTLLevel"
-                  />
-                  <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">/ 60</div>
-                </div>
-              </div>
-              <div>
-                <label for="po_epic_research_zerog" class="block">
-                  <div class="text-sm font-medium text-gray-700">Zero-g Quantum Containment</div>
-                  <div class="text-sm text-gray-500">(Mission capacity increasing epic research)</div>
-                </label>
-                <div class="relative flex items-center w-20 mt-2">
-                  <base-integer-input
-                    id="po_epic_research_zerog"
-                    base-class="block w-full w-number-input sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 pl-2.5 py-1 border-gray-300"
-                    :min="0"
-                    :max="10"
-                    :model-value="config.epicResearchZerogLevel"
-                    @update:model-value="setEpicResearchZerogLevel"
-                  />
-                  <div class="absolute inset-y-0 right-0 pr-2.5 sm:text-sm flex items-center">/ 10</div>
-                </div>
-              </div>
-              <div>
-                <div class="grid grid-cols-2 gap-x-6 gap-y-1">
-                  <template v-for="ship in spaceshipList" :key="ship">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <input
-                        :id="`po_ship_visibility_${ship}`"
-                        v-model="config.shipVisibility[ship]"
-                        :name="`po_ship_visibility_${ship}`"
-                        type="checkbox"
-                        class="focus:ring-green-500 h-3 w-3 text-green-600 border-gray-300 rounded flex-shrink-0"
-                      />
-                      <span class="text-sm truncate">{{ spaceshipName(ship) }}</span>
-                      <div v-if="shipMaxLevel(ship) > 0" class="flex items-center space-x-0.5 flex-shrink-0">
-                        <ShipStars
-                          :level="config.shipLevels[ship]"
-                          :max="shipMaxLevel(ship)"
-                          :interactive="true"
-                          @set="(lvl: number) => setShipLevel(ship, lvl)"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                </div>
-                <div class="flex items-center space-x-2 mt-2 pt-2 border-t border-gray-200">
+              <!-- No save loaded: edit the manual fleet directly. -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 pt-1">
+                <div v-for="ship in spaceshipList" :key="ship" class="flex items-center gap-2 min-w-0">
                   <input
-                    id="po_ship_visibility_all"
-                    :checked="allShipsVisible"
-                    :indeterminate="someShipsVisible && !allShipsVisible"
-                    name="po_ship_visibility_all"
+                    :id="`po_ship_visibility_${ship}`"
+                    v-model="config.shipVisibility[ship]"
+                    :name="`po_ship_visibility_${ship}`"
                     type="checkbox"
-                    class="focus:ring-green-500 h-3.5 w-3.5 text-green-600 border-gray-300 rounded"
-                    @change="toggleAllShips"
+                    class="focus:ring-green-500 h-3.5 w-3.5 text-green-600 border-gray-300 rounded flex-shrink-0"
+                    title="Ticked ships can be launched by the optimizer"
                   />
-                  <label for="po_ship_visibility_all" class="text-sm text-gray-600 cursor-pointer">
-                    Show/Hide All Ships
+                  <label
+                    :for="`po_ship_visibility_${ship}`"
+                    class="text-sm truncate cursor-pointer"
+                    :class="config.shipVisibility[ship] ? 'text-gray-700' : 'text-gray-400'"
+                  >
+                    {{ spaceshipName(ship) }}
                   </label>
-                </div>
-              </div>
-              <div>
-                <div class="flex items-center space-x-0.5">
-                  <input
-                    id="po_show_nodata"
-                    v-model="config.showNodata"
-                    name="po_show_nodata"
-                    type="checkbox"
-                    class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-                  />&nbsp;
-                  <label class="text-sm text-gray-600">Show Targets with No Data</label>
-                </div>
-              </div>
-              <div>
-                <div class="text-sm font-medium text-gray-700">Ship Targets</div>
-                <div class="text-sm text-gray-500">(Targets shown in Artifact view)</div>
-                <template v-for="target in targets" :key="target">
-                  <div class="flex items-center space-x-0.5">
-                    <input
-                      :id="`po_target_${target}`"
-                      v-model="config.targets[target]"
-                      :name="`po_target_${target}`"
-                      type="checkbox"
-                      class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-                    />&nbsp;
-                    <label :for="`po_target_${target}`" class="text-sm text-gray-600">
-                      <template v-if="Number(target) !== 10000">
-                        <img
-                          class="inline-flex h-6 w-6"
-                          :src="id2url(Number(target), 32)"
-                          :alt="ei.ArtifactSpec.Name[target]"
-                        />
-                        {{ getTargetName(target) }}
-                      </template>
-                      <template v-else>Untargeted</template>
-                    </label>
+                  <div v-if="shipMaxLevel(ship) > 0" class="flex-shrink-0">
+                    <ShipStars
+                      :level="config.shipLevels[ship]"
+                      :max="shipMaxLevel(ship)"
+                      :interactive="true"
+                      @set="(lvl: number) => setShipLevel(ship, lvl)"
+                    />
                   </div>
-                </template>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2 mt-2 pt-2 border-t border-gray-200">
+                <input
+                  id="po_ship_visibility_all"
+                  :checked="allShipsVisible"
+                  :indeterminate="someShipsVisible && !allShipsVisible"
+                  name="po_ship_visibility_all"
+                  type="checkbox"
+                  class="focus:ring-green-500 h-3.5 w-3.5 text-green-600 border-gray-300 rounded"
+                  @change="toggleAllShips"
+                />
+                <label for="po_ship_visibility_all" class="text-sm text-gray-600 cursor-pointer">
+                  Toggle all ships
+                </label>
               </div>
             </template>
+
             <template v-else>
-              <!-- Header -->
-              <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 text-xs font-medium text-gray-400 px-1">
-                <span></span>
-                <span class="text-right w-20">Player</span>
-                <span class="text-center w-12">Override</span>
-                <span class="text-right w-24">Manual</span>
+              <!-- Save loaded: per-ship choice between save values and manual values. -->
+              <div
+                class="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-x-3 items-center px-1 text-[11px] font-medium uppercase tracking-wide text-gray-400"
+              >
+                <span>Ship</span>
+                <span class="w-40">From save</span>
+                <span class="w-14 text-center">Override?</span>
+                <span class="w-44">Custom value</span>
               </div>
+              <p class="text-xs text-gray-400 px-1 -mt-1">
+                The checkbox marks a ship as launchable; the stars are its level. The optimizer uses whichever side
+                isn't grayed out.
+              </p>
 
-              <!-- Player Properties -->
-              <div class="border-t border-gray-100 pt-2 space-y-1">
-                <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center px-1">
-                  <span class="text-sm text-gray-700">Crafting Level</span>
-                  <span
-                    class="font-mono text-sm text-right w-20"
-                    :class="overrides.craftingLevel ? 'text-gray-400' : 'text-gray-700 font-semibold'"
-                  >
-                    {{ playerCraftingLevel ?? '—' }} / 30
-                  </span>
-                  <input
-                    type="checkbox"
-                    class="justify-self-center w-12 h-3.5 w-3.5 text-green-600 rounded focus:ring-green-500"
-                    :checked="overrides.craftingLevel"
-                    @change="setOverrideCraftingLevel(($event.target as HTMLInputElement).checked)"
-                  />
-                  <div class="w-24 flex justify-end">
-                    <input
-                      type="number"
-                      min="0"
-                      max="30"
-                      class="block w-16 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-1.5 py-0.5 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
-                      :disabled="!overrides.craftingLevel"
-                      :value="extras.craftingLevel"
-                      @input="onIntInput($event, setCraftingLevel, 0, 30)"
-                    />
-                  </div>
-                </div>
-                <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center px-1">
-                  <span class="text-sm text-gray-700">Previous Crafts</span>
-                  <span
-                    class="font-mono text-sm text-right w-20"
-                    :class="overrides.previousCrafts ? 'text-gray-400' : 'text-gray-700 font-semibold'"
-                  >
-                    {{ playerPreviousCrafts ?? '—' }}
-                  </span>
-                  <input
-                    type="checkbox"
-                    class="justify-self-center w-12 h-3.5 w-3.5 text-green-600 rounded focus:ring-green-500"
-                    :checked="overrides.previousCrafts"
-                    @change="setOverridePreviousCrafts(($event.target as HTMLInputElement).checked)"
-                  />
-                  <div class="w-24 flex justify-end">
-                    <input
-                      type="number"
-                      min="0"
-                      class="block w-16 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-1.5 py-0.5 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
-                      :disabled="!overrides.previousCrafts"
-                      :value="extras.previousCrafts"
-                      @input="onIntInput($event, setPreviousCraftCount, 0, Number.MAX_SAFE_INTEGER)"
-                    />
-                  </div>
-                </div>
-                <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center px-1">
-                  <span class="text-sm text-gray-700">Fuel Tank Level</span>
-                  <span
-                    class="font-mono text-sm text-right w-20"
-                    :class="overrides.tankLevel ? 'text-gray-400' : 'text-gray-700 font-semibold'"
-                  >
-                    {{ playerTankLevel ?? '—' }} / {{ maxTankLevel }}
-                  </span>
-                  <input
-                    type="checkbox"
-                    class="justify-self-center w-12 h-3.5 w-3.5 text-green-600 rounded focus:ring-green-500"
-                    :checked="overrides.tankLevel"
-                    @change="setOverrideTankLevel(($event.target as HTMLInputElement).checked)"
-                  />
-                  <div class="w-24 flex justify-end">
-                    <input
-                      type="number"
-                      :min="0"
-                      :max="maxTankLevel"
-                      class="block w-16 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-1.5 py-0.5 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
-                      :disabled="!overrides.tankLevel"
-                      :value="extras.tankLevel"
-                      @input="onIntInput($event, setTankLevel, 0, maxTankLevel)"
-                    />
-                  </div>
-                </div>
-              </div>
+              <div class="border-t border-gray-100 divide-y divide-gray-50">
+                <div
+                  v-for="ship in spaceshipList"
+                  :key="ship"
+                  class="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-x-3 items-center px-1 py-1.5"
+                >
+                  <span class="text-sm text-gray-700 truncate">{{ spaceshipName(ship) }}</span>
 
-              <!-- Epic researches -->
-              <div class="border-t border-gray-100 pt-2 space-y-1">
-                <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center px-1">
-                  <span class="text-sm text-gray-700">FTL Drive Upgrades</span>
-                  <span
-                    class="font-mono text-sm text-right w-20"
-                    :class="overrides.epicResearchFTLLevel ? 'text-gray-400' : 'text-gray-700 font-semibold'"
-                  >
-                    {{ player.epicResearchFTLLevel }} / 60
-                  </span>
-                  <input
-                    type="checkbox"
-                    class="justify-self-center w-12 h-3.5 w-3.5 text-green-600 rounded focus:ring-green-500"
-                    :checked="overrides.epicResearchFTLLevel"
-                    @change="setOverrideFTL(($event.target as HTMLInputElement).checked)"
-                  />
-                  <div class="w-24 flex justify-end">
-                    <input
-                      type="number"
-                      min="0"
-                      max="60"
-                      class="block w-16 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-1.5 py-0.5 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
-                      :disabled="!overrides.epicResearchFTLLevel"
-                      :value="config.epicResearchFTLLevel"
-                      @input="onIntInput($event, setEpicResearchFTLLevel, 0, 60)"
-                    />
-                  </div>
-                </div>
-                <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center px-1">
-                  <span class="text-sm text-gray-700">Zero-g Quantum Containment</span>
-                  <span
-                    class="font-mono text-sm text-right w-20"
-                    :class="overrides.epicResearchZerogLevel ? 'text-gray-400' : 'text-gray-700 font-semibold'"
-                  >
-                    {{ player.epicResearchZerogLevel }} / 10
-                  </span>
-                  <input
-                    type="checkbox"
-                    class="justify-self-center w-12 h-3.5 w-3.5 text-green-600 rounded focus:ring-green-500"
-                    :checked="overrides.epicResearchZerogLevel"
-                    @change="setOverrideZerog(($event.target as HTMLInputElement).checked)"
-                  />
-                  <div class="w-24 flex justify-end">
-                    <input
-                      type="number"
-                      min="0"
-                      max="10"
-                      class="block w-16 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-1.5 py-0.5 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
-                      :disabled="!overrides.epicResearchZerogLevel"
-                      :value="config.epicResearchZerogLevel"
-                      @input="onIntInput($event, setEpicResearchZerogLevel, 0, 10)"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Ships -->
-              <div class="border-t border-gray-100 pt-2 space-y-1">
-                <template v-for="ship in spaceshipList" :key="ship">
-                  <!-- Visibility row -->
-                  <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center px-1">
-                    <span class="text-sm text-gray-700 truncate">{{ spaceshipName(ship) }} — Visible</span>
-                    <span class="text-right w-20" :class="overrides.shipVisibility[ship] ? 'opacity-40' : ''">
-                      <span class="text-sm" :class="player.shipVisibility[ship] ? 'text-green-600' : 'text-gray-400'">
-                        {{ player.shipVisibility[ship] ? '✓' : '—' }}
-                      </span>
-                    </span>
-                    <input
-                      type="checkbox"
-                      class="justify-self-center w-12 h-3.5 w-3.5 text-green-600 rounded focus:ring-green-500"
-                      :checked="!!overrides.shipVisibility[ship]"
-                      @change="setOverrideShipVisibility(ship, ($event.target as HTMLInputElement).checked)"
-                    />
-                    <div class="w-24 flex justify-end items-center">
-                      <input
-                        type="checkbox"
-                        class="h-3.5 w-3.5 text-green-600 rounded focus:ring-green-500"
-                        :checked="config.shipVisibility[ship]"
-                        :disabled="!overrides.shipVisibility[ship]"
-                        @change="setShipVisibility(ship, ($event.target as HTMLInputElement).checked)"
-                      />
-                    </div>
-                  </div>
-                  <!-- Level row -->
+                  <!-- Save values (read-only) -->
                   <div
-                    v-if="shipMaxLevel(ship) > 0"
-                    class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center px-1 pb-1 border-b border-gray-50"
+                    class="flex items-center gap-1.5 w-40"
+                    :class="isManual(ship) ? 'opacity-40' : ''"
+                    :title="isManual(ship) ? 'Ignored while manual is on' : 'Currently in use'"
                   >
-                    <span class="text-xs text-gray-500 truncate pl-3">{{ spaceshipName(ship) }} — Level</span>
-                    <div
-                      class="flex justify-end items-center w-40"
-                      :class="overrides.shipLevels[ship] ? 'opacity-40' : ''"
+                    <span
+                      class="text-sm w-4 text-center flex-shrink-0"
+                      :class="player.shipVisibility[ship] ? 'text-green-600' : 'text-gray-400'"
                     >
-                      <ShipStars :level="player.shipLevels[ship]" :max="shipMaxLevel(ship)" />
-                    </div>
+                      {{ player.shipVisibility[ship] ? '✓' : '—' }}
+                    </span>
+                    <ShipStars
+                      v-if="shipMaxLevel(ship) > 0"
+                      :level="player.shipLevels[ship]"
+                      :max="shipMaxLevel(ship)"
+                    />
+                  </div>
+
+                  <!-- Manual toggle -->
+                  <input
+                    type="checkbox"
+                    class="justify-self-center h-3.5 w-3.5 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                    :checked="isManual(ship)"
+                    :title="isManual(ship) ? 'Untick to go back to your save values' : 'Tick to set this ship manually'"
+                    @change="setManual(ship, ($event.target as HTMLInputElement).checked)"
+                  />
+
+                  <!-- Manual values (editable once manual is on) -->
+                  <div
+                    class="flex items-center gap-1.5 w-44"
+                    :class="isManual(ship) ? '' : 'opacity-40'"
+                    :title="isManual(ship) ? 'Currently in use' : 'Ignored until manual is on'"
+                  >
                     <input
                       type="checkbox"
-                      class="justify-self-center w-12 h-3.5 w-3.5 text-green-600 rounded focus:ring-green-500"
-                      :checked="!!overrides.shipLevels[ship]"
-                      @change="setOverrideShipLevel(ship, ($event.target as HTMLInputElement).checked)"
+                      class="h-3.5 w-3.5 text-green-600 border-gray-300 rounded focus:ring-green-500 flex-shrink-0 disabled:cursor-not-allowed"
+                      :checked="config.shipVisibility[ship]"
+                      :disabled="!isManual(ship)"
+                      @change="setShipVisibility(ship, ($event.target as HTMLInputElement).checked)"
                     />
-                    <div class="w-30 flex justify-end items-center">
-                      <ShipStars
-                        :level="config.shipLevels[ship]"
-                        :max="shipMaxLevel(ship)"
-                        :interactive="!!overrides.shipLevels[ship]"
-                        @set="(lvl: number) => setShipLevel(ship, lvl)"
-                      />
-                    </div>
+                    <ShipStars
+                      v-if="shipMaxLevel(ship) > 0"
+                      :level="config.shipLevels[ship]"
+                      :max="shipMaxLevel(ship)"
+                      :interactive="isManual(ship)"
+                      @set="(lvl: number) => setShipLevel(ship, lvl)"
+                    />
                   </div>
-                </template>
+                </div>
               </div>
 
-              <!-- Bulk actions -->
               <div class="flex justify-between items-center text-xs pt-2 border-t border-gray-100">
                 <button type="button" class="text-blue-600 hover:text-blue-800" @click="takeControlOfAllShips">
-                  Take control of all ships
+                  Use custom values for all ships
                 </button>
-                <button type="button" class="text-gray-500 hover:text-gray-700" @click="resetAllOverrides">
-                  Reset all overrides
+                <button type="button" class="text-gray-500 hover:text-gray-700" @click="releaseControlOfAllShips">
+                  Use save values for all ships
                 </button>
-              </div>
-
-              <!-- Mission settings (config-only, no player counterpart) -->
-              <div class="border-t border-gray-100 pt-2 space-y-1">
-                <div class="text-xs font-medium text-gray-500 px-1 pb-1">Mission settings</div>
-                <div class="flex items-center space-x-2 px-1">
-                  <input
-                    id="po_min_duration_enabled"
-                    :checked="missionFilters.minDurationHoursEnabled"
-                    name="po_min_duration_enabled"
-                    type="checkbox"
-                    class="focus:ring-green-500 h-3.5 w-3.5 text-green-600 border-gray-300 rounded"
-                    @change="setMinDurationHoursEnabled(($event.target as HTMLInputElement).checked)"
-                  />
-                  <label for="po_min_duration_enabled" class="text-sm text-gray-600 cursor-pointer"
-                    >Minimum mission duration</label
-                  >
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    :disabled="!missionFilters.minDurationHoursEnabled"
-                    :value="missionFilters.minDurationHours"
-                    class="block w-16 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-1.5 py-0.5 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
-                    @input="onDurationInput($event)"
-                  />
-                  <span class="text-xs text-gray-500">hours</span>
-                </div>
-                <div class="flex items-center space-x-2 px-1 pt-2">
-                  <input
-                    id="po_show_nodata"
-                    v-model="config.showNodata"
-                    name="po_show_nodata"
-                    type="checkbox"
-                    class="focus:ring-green-500 h-3.5 w-3.5 text-green-600 border-gray-300 rounded"
-                  />
-                  <label for="po_show_nodata" class="text-sm text-gray-600 cursor-pointer"
-                    >Show Targets with No Data</label
-                  >
-                </div>
-                <div class="text-xs font-medium text-gray-500 px-1 pt-1">Ship Targets</div>
-                <div class="text-xs text-gray-400 px-1">(Targets shown in Artifact view)</div>
-                <template v-for="target in targets" :key="target">
-                  <div class="flex items-center space-x-1 px-1">
-                    <input
-                      :id="`po_target_${target}`"
-                      v-model="config.targets[target]"
-                      :name="`po_target_${target}`"
-                      type="checkbox"
-                      class="focus:ring-green-500 h-3.5 w-3.5 text-green-600 border-gray-300 rounded"
-                    />&nbsp;
-                    <label :for="`po_target_${target}`" class="text-sm text-gray-600">
-                      <template v-if="Number(target) !== 10000">
-                        <img
-                          class="inline-flex h-5 w-5"
-                          :src="id2url(Number(target), 32)"
-                          :alt="ei.ArtifactSpec.Name[target]"
-                        />
-                        {{ getTargetName(target) }}
-                      </template>
-                      <template v-else>Untargeted</template>
-                    </label>
-                  </div>
-                </template>
               </div>
             </template>
           </div>
@@ -443,49 +185,24 @@ import { computed, defineComponent } from 'vue';
 import { Dialog, DialogOverlay, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XIcon } from '@heroicons/vue/solid';
 
-import {
-  ei,
-  fuelTankSizes,
-  getImageUrlFromId as id2url,
-  getTargetName,
-  noFragTargets as targets,
-  shipMaxLevel,
-  spaceshipList,
-  spaceshipName,
-} from 'lib';
-import BaseIntegerInput from 'ui/components/BaseIntegerInput.vue';
+import { ei, shipMaxLevel, spaceshipList, spaceshipName } from 'lib';
 import ShipStars from './ShipStars';
 
 import {
   closePlayerOverridesModal,
   config,
-  extras,
-  missionFilters,
   overrides,
-  playerCraftingLevel,
   playerOverridesModalOpen,
-  playerPreviousCrafts,
   playerShipsConfig,
-  playerTankLevel,
-  resetAllOverrides,
-  setCraftingLevel,
-  setEpicResearchFTLLevel,
-  setEpicResearchZerogLevel,
-  setMinDurationHours,
-  setMinDurationHoursEnabled,
-  setOverrideCraftingLevel,
-  setOverrideFTL,
-  setOverridePreviousCrafts,
+  releaseControlOfAllShips,
   setOverrideShipLevel,
   setOverrideShipVisibility,
-  setOverrideTankLevel,
-  setOverrideZerog,
-  setPreviousCraftCount,
   setShipLevel,
   setShipVisibility,
-  setTankLevel,
   takeControlOfAllShips,
 } from '@/store';
+
+import Spaceship = ei.MissionInfo.Spaceship;
 
 export default defineComponent({
   components: {
@@ -496,26 +213,15 @@ export default defineComponent({
     TransitionRoot,
     XIcon,
     ShipStars,
-    BaseIntegerInput,
   },
   setup() {
-    function onIntInput(event: Event, setter: (n: number) => void, min: number, max: number) {
-      const raw = (event.target as HTMLInputElement).value.trim();
-      if (!raw.match(/^-?\d+$/)) return;
-      const n = parseInt(raw);
-      if (n < min || n > max) return;
-      setter(n);
-    }
-
-    function onDurationInput(event: Event) {
-      const raw = (event.target as HTMLInputElement).value.trim();
-      if (!raw) return;
-      const n = parseFloat(raw);
-      if (isNaN(n) || n < 0) return;
-      setMinDurationHours(n);
-    }
-
-    const maxTankLevel = fuelTankSizes.length - 1;
+    // Level and visibility overrides are stored as separate flags, but the UI
+    // treats "manual" as one per-ship switch covering both.
+    const isManual = (ship: Spaceship) => !!(overrides.value.shipLevels[ship] || overrides.value.shipVisibility[ship]);
+    const setManual = (ship: Spaceship, b: boolean) => {
+      setOverrideShipLevel(ship, b);
+      setOverrideShipVisibility(ship, b);
+    };
 
     const allShipsVisible = computed(() => spaceshipList.every(ship => config.value.shipVisibility[ship]));
     const someShipsVisible = computed(() => spaceshipList.some(ship => config.value.shipVisibility[ship]));
@@ -528,41 +234,16 @@ export default defineComponent({
       playerOverridesModalOpen,
       closePlayerOverridesModal,
       player: playerShipsConfig,
-      playerCraftingLevel,
-      playerPreviousCrafts,
-      playerTankLevel,
       config,
-      extras,
-      missionFilters,
-      overrides,
       spaceshipList,
       spaceshipName,
       shipMaxLevel,
-      setCraftingLevel,
-      setPreviousCraftCount,
-      setEpicResearchFTLLevel,
-      setEpicResearchZerogLevel,
-      setMinDurationHoursEnabled,
-      setMinDurationHours,
+      isManual,
+      setManual,
       setShipLevel,
       setShipVisibility,
-      setOverrideCraftingLevel,
-      setOverridePreviousCrafts,
-      setOverrideFTL,
-      setOverrideZerog,
-      setOverrideShipLevel,
-      setOverrideShipVisibility,
-      setOverrideTankLevel,
-      setTankLevel,
-      resetAllOverrides,
       takeControlOfAllShips,
-      onIntInput,
-      onDurationInput,
-      ei,
-      id2url,
-      getTargetName,
-      targets,
-      maxTankLevel,
+      releaseControlOfAllShips,
       allShipsVisible,
       someShipsVisible,
       toggleAllShips,
@@ -570,9 +251,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-::deep(.w-number-input) {
-  width: 4.5rem;
-}
-</style>

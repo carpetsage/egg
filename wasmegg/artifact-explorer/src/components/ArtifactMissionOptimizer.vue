@@ -1,31 +1,40 @@
 <template>
-  <optimizer-toolbar
-    :has-player-data="!!playerShipsConfig"
-    :auto-compute="autoCompute"
-    :pending-compute="pendingCompute"
-    :player-id="playerId"
-    @submit-player-id="submitPlayerId"
-    @open-player-overrides-modal="openPlayerOverridesModal"
-    @set-auto-compute="setAutoCompute"
-    @run-compute="runCompute"
-  />
-
-  <optimizer-inventory-panel :rows="inventoryRows" />
-
-  <div class="grid gap-6 mt-4 grid-cols-1">
-    <div class="border border-gray-200 rounded-lg p-4">
-      <h3 class="text-base font-semibold text-gray-700 mb-3">Best Ship Set</h3>
-      <optimizer-solution-card
-        v-for="(view, i) in solutionViews"
-        :key="'solution-' + i"
-        :solution="view.solution"
-        :p-craft="view.pCraft"
-        :lambda="view.lambda"
-        :craft-chain="view.craftChain"
-        :mission-legendary-sources="view.missionLegendarySources"
-        :has-inventory="!!playerInventory"
-        :drop-data-is-sparse="view.dropDataIsSparse"
+  <div class="lg:grid lg:grid-cols-[minmax(280px,340px)_1fr] lg:gap-6 space-y-6 lg:space-y-0">
+    <!-- Left: inputs sidebar -->
+    <div class="lg:sticky lg:top-4 self-start">
+      <optimizer-sidebar
+        :player-id="playerId"
+        :pending-compute="pendingCompute"
+        :wait-time-days="waitTimeDays"
+        @submit-player-id="submitPlayerId"
+        @run-compute="runCompute"
+        @update:wait-time-days="waitTimeDays = $event"
       />
+    </div>
+
+    <!-- Right: results canvas -->
+    <div class="min-w-0 space-y-4">
+      <div class="border border-gray-200 rounded-lg p-4">
+        <h3 class="text-base font-semibold text-gray-700 mb-3">Best Ship Set</h3>
+        <optimizer-solution-card
+          v-for="(view, i) in solutionViews"
+          :key="'solution-' + i"
+          :solution="view.solution"
+          :p-craft="view.pCraft"
+          :lambda="view.lambda"
+          :craft-chain="view.craftChain"
+          :mission-legendary-sources="view.missionLegendarySources"
+          :has-inventory="!!playerInventory"
+          :drop-data-is-sparse="view.dropDataIsSparse"
+        />
+        <p v-if="solutionViews.length === 0" class="text-sm text-gray-400">
+          No ship set found for the current settings.
+        </p>
+      </div>
+
+      <optimizer-inventory-panel :rows="inventoryRows" />
+
+      <slot />
     </div>
   </div>
 </template>
@@ -43,10 +52,7 @@ import {
   effectivePreviousCrafts,
   effectiveTotalCraftingXp,
   missionFilters,
-  openPlayerOverridesModal,
   playerInventory,
-  playerShipsConfig,
-  setAutoCompute,
   setPlayerData,
 } from '@/store';
 import {
@@ -61,18 +67,20 @@ import {
   optimize,
   type OptimizerSolution,
 } from '@/lib';
-import OptimizerToolbar from './optimizer/OptimizerToolbar.vue';
+import OptimizerSidebar from './optimizer/OptimizerSidebar.vue';
 import OptimizerInventoryPanel from './optimizer/OptimizerInventoryPanel.vue';
 import OptimizerSolutionCard from './optimizer/OptimizerSolutionCard.vue';
 
 export default defineComponent({
-  components: { OptimizerToolbar, OptimizerInventoryPanel, OptimizerSolutionCard },
+  components: { OptimizerSidebar, OptimizerInventoryPanel, OptimizerSolutionCard },
   props: {
     artifactId: { type: String, required: true },
-    maxWaitTimeSeconds: { type: Number, required: true },
   },
   setup(props) {
-    const { artifactId, maxWaitTimeSeconds } = toRefs(props);
+    const { artifactId } = toRefs(props);
+
+    const waitTimeDays = ref('30');
+    const maxWaitTimeSeconds = computed(() => parseFloat(waitTimeDays.value) * 86400);
 
     const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
     if (playerId.value) {
@@ -164,14 +172,11 @@ export default defineComponent({
     );
 
     return {
-      autoCompute,
-      setAutoCompute,
+      waitTimeDays,
       pendingCompute,
       playerId,
       runCompute,
       submitPlayerId,
-      openPlayerOverridesModal,
-      playerShipsConfig,
       playerInventory,
       inventoryRows,
       solutionViews,
