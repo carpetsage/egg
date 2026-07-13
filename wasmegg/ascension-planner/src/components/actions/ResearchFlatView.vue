@@ -58,6 +58,8 @@
         :extra-label="item.extraLabel"
         :extra-seconds="item.extraSeconds"
         :hpp="item.hpp"
+        :time-roi-seconds="item.timeRoiSeconds"
+        :roi-display-mode="roiDisplayMode"
         :realistic-stats="item.realisticStats"
         :lookahead="item.lookahead"
         :recommendation-note="item.recommendationNote"
@@ -99,7 +101,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { type CommonResearch } from '@/calculations/commonResearch';
-import { type ViewType } from '@/composables/useResearchViews';
+import { type ViewType, type ElrRoiDisplayMode } from '@/composables/useResearchViews';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
@@ -125,6 +127,7 @@ interface SortedResearchItem {
   extraLabel?: string;
   extraSeconds?: number;
   hpp?: number;
+  timeRoiSeconds?: number;
   realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
   lookahead?: { minLevels: number; impact: number; hpp: number };
   recommendationNote?: string;
@@ -139,6 +142,7 @@ const props = defineProps<{
   milestoneTargetSelected?: boolean;
   getResearchTimeToBuy: (r: CommonResearch) => string;
   getResearchTimeToBuySeconds: (r: CommonResearch) => number;
+  roiDisplayMode?: ElrRoiDisplayMode;
 }>();
 
 const initialStateStore = useInitialStateStore();

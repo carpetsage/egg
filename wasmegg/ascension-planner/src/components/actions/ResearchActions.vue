@@ -59,8 +59,10 @@
       v-if="currentView === 'elr'"
       :view-mode="elrViewMode"
       :sort-mode="elrSortMode"
+      :roi-display-mode="elrRoiDisplayMode"
       @update:view-mode="elrViewMode = $event"
       @update:sort-mode="elrSortMode = $event"
+      @update:roi-display-mode="elrRoiDisplayMode = $event"
     />
 
     <MilestoneTargetPicker
@@ -188,6 +190,7 @@
       :milestone-target-selected="!!milestoneTarget"
       :get-research-time-to-buy="getTimeToBuy"
       :get-research-time-to-buy-seconds="getTimeToBuySeconds"
+      :roi-display-mode="elrRoiDisplayMode"
       @buy="handleBuyResearch"
       @max="handleMaxResearch"
       @buy-to-here="handleBuyToHere"
@@ -255,6 +258,7 @@ const {
   currentView,
   elrViewMode,
   elrSortMode,
+  elrRoiDisplayMode,
   deliveryImpactOnly,
   roiMode,
   milestoneTarget,

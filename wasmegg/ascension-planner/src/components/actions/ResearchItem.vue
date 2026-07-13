@@ -96,9 +96,11 @@
               class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter"
               :class="{ 'cursor-help': hpp !== undefined }"
               v-tippy="
-                hpp !== undefined
-                  ? 'Estimated waiting time (hours) per 1% Egg Laying Rate impact based on current earnings. Lower is better.'
-                  : undefined
+                hpp === undefined
+                  ? undefined
+                  : roiDisplayMode === 'time'
+                    ? 'Time, laying at the boosted rate, for the extra production to pay back what it cost to buy this research.'
+                    : 'Estimated waiting time (hours) per 1% Egg Laying Rate impact based on current earnings. Lower is better.'
               "
             >
               {{ extraLabel }}
@@ -121,7 +123,12 @@
               </span>
             </div>
             <div v-if="hpp !== undefined" class="text-[9px] font-mono text-gray-400 leading-none pb-[1px]">
-              {{ hpp === Infinity || isNaN(hpp) ? '∞' : hpp.toFixed(1) }} hr/%
+              <template v-if="roiDisplayMode === 'time'">
+                {{ formatDuration(timeRoiSeconds ?? Infinity) }}
+              </template>
+              <template v-else>
+                {{ hpp === Infinity || isNaN(hpp) ? '∞' : hpp.toFixed(1) }} hr/%
+              </template>
             </div>
           </div>
         </div>
@@ -247,6 +254,8 @@ const props = defineProps<{
   buyToHereSeconds?: number;
   buyToHereTooltip?: string;
   extraSeconds?: number;
+  timeRoiSeconds?: number;
+  roiDisplayMode?: 'hpp' | 'time';
   realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
   lookahead?: { minLevels: number; impact: number; hpp: number };
   showSaleWarning?: boolean;
