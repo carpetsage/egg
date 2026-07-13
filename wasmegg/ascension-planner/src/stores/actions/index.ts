@@ -689,8 +689,8 @@ export const useActionsStore = defineStore('actions', {
       
       // NEW: Skip recalculation if the plan already contains calculated result data (endState).
       // Since the user is in a long session, we trust the cached calculations in the library.
-      const isPreCalculated = data.actions && 
-                             data.actions.length > 0 && 
+      const isPreCalculated = data.actions &&
+                             data.actions.length > 0 &&
                              data.actions.every((a: Action) => a.endState !== undefined);
 
       if (isPreCalculated) {

@@ -163,8 +163,8 @@ export function runTEWaitShift(
       currentState.lastStepTime = (currentState.lastStepTime || 0) + waitTime;
       currentState.bankValue += snap.offlineEarnings * waitTime;
       
-      currentState.eggsDelivered[egg] = teResult.finalEggsDelivered;
-      currentState.teEarned[egg] = (currentState.teEarned[egg] || 0) + teResult.teEarned;
+      currentState.eggsDelivered = { ...currentState.eggsDelivered, [egg]: teResult.finalEggsDelivered };
+      currentState.teEarned = { ...currentState.teEarned, [egg]: (currentState.teEarned[egg] || 0) + teResult.teEarned };
       currentState.te += teResult.teEarned;
       
       // Decoration

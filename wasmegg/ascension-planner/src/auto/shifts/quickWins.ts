@@ -31,7 +31,7 @@ import {
   type ResearchCostModifiers,
 } from '../../calculations/commonResearch';
 import { computeSnapshot } from '../../engine/compute';
-import { applyAction } from '../../engine/apply';
+import { applyAction, calculateEggsDeliveredForTime } from '../../engine/apply';
 import { createSimAction } from '@/types/actions/meta';
 import { isResearchSaleActive } from '../calendar';
 
@@ -107,10 +107,12 @@ export function runQuickWins(
     // and skip boundary detection (inconsequential inside ≤3s per user preference).
     if (timeToSave > 0) {
       const waitAction = createSimAction('wait_for_time', { totalTimeSeconds: timeToSave });
+      const passiveEggs = calculateEggsDeliveredForTime(timeToSave, approximateSnap);
       currentState = {
         ...currentState,
         lastStepTime: (currentState.lastStepTime || 0) + timeToSave,
         bankValue: bankValue + offlineEarnings * timeToSave,
+        eggsDelivered: { ...currentState.eggsDelivered, [currentState.currentEgg]: (currentState.eggsDelivered[currentState.currentEgg] || 0) + passiveEggs },
       };
       waitAction.endState = approximateSnap;
       waitAction.totalTimeSeconds = timeToSave;

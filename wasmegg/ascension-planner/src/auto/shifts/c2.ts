@@ -14,7 +14,7 @@ import {
   DEFAULT_EARNINGS_CATEGORIES,
 } from '../engine/strategist';
 import { computeSnapshot } from '../../engine/compute';
-import { applyAction } from '../../engine/apply';
+import { applyAction, calculateEggsDeliveredForTime } from '../../engine/apply';
 import { createSimAction } from '@/types/actions/meta';
 import { shiftCost } from 'lib';
 import {
@@ -106,9 +106,15 @@ export function runC2(
 
         const snap = computeSnapshot(currentState, context, { skipGrowth: true });
         const waitAction = createSimAction(actionType, { totalTimeSeconds: stepSeconds });
-        
+        const passiveEggs = calculateEggsDeliveredForTime(stepSeconds, snap);
+
         currentState = applyAction(currentState, waitAction);
-        currentState = { ...currentState, lastStepTime: (currentState.lastStepTime || 0) + stepSeconds, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * stepSeconds };
+        currentState = {
+          ...currentState,
+          lastStepTime: (currentState.lastStepTime || 0) + stepSeconds,
+          bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * stepSeconds,
+          eggsDelivered: { ...currentState.eggsDelivered, [currentState.currentEgg]: (currentState.eggsDelivered[currentState.currentEgg] || 0) + passiveEggs },
+        };
 
         const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
         waitAction.endState = finalSnap;
