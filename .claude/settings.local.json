@@ -12,7 +12,8 @@
       "Bash(pnpm build:*)",
       "Bash(grep:*)",
       "Bash(node -e:*)",
-      "Bash(pnpm test *)"
+      "Bash(pnpm test *)",
+      "Bash(find:*)"
     ]
   }
 }

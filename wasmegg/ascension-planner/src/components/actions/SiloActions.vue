@@ -45,25 +45,75 @@
       <!-- Buy Silo Section (Moved here) -->
       <div class="mb-6">
         <div v-if="siloOutput.canBuyMore">
-          <button
-            class="btn-premium btn-primary w-full py-3.5 flex flex-col items-center gap-1 shadow-lg shadow-brand-primary/10"
-            @click="handleBuySilo"
-          >
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-black uppercase tracking-tight">Buy Silo #{{ siloOutput.siloCount + 1 }}</span>
-            </div>
-            <div class="flex items-center gap-2 opacity-80">
-              <span class="text-[10px] font-black uppercase tracking-widest"
-                >{{ formatGemPrice(siloOutput.nextSiloCost) }} gems</span
+          <div :class="maxSilosIn1Hour.count > 0 ? 'grid grid-cols-1 sm:grid-cols-2 gap-3' : ''">
+            <button
+              class="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden"
+              @click="handleBuySilo"
+            >
+              <div class="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/[0.02] transition-colors"></div>
+              <div
+                class="rounded-xl bg-indigo-50 border border-indigo-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10"
               >
-              <template v-if="timeToBuy">
-                <div class="w-1 h-1 rounded-full bg-white/40"></div>
-                <span class="text-[10px] font-mono-premium font-black uppercase tracking-widest"
-                  >Ready in {{ timeToBuy }}</span
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-indigo-600"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-              </template>
-            </div>
-          </button>
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </div>
+              <div class="flex flex-col items-center relative z-10">
+                <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-indigo-700"
+                  >Buy Silo #{{ siloOutput.siloCount + 1 }}</span
+                >
+                <span class="text-[9px] font-mono-premium font-black text-indigo-500 mt-0.5">
+                  {{ formatGemPrice(siloOutput.nextSiloCost) }} gems<template v-if="timeToBuy">
+                    · Ready in {{ timeToBuy }}</template
+                  >
+                </span>
+              </div>
+            </button>
+
+            <button
+              v-if="maxSilosIn1Hour.count > 0"
+              class="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-violet-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-violet-300 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden"
+              @click="handleBuyMaxSilos1Hour"
+            >
+              <div class="absolute inset-0 bg-violet-500/0 group-hover:bg-violet-500/[0.02] transition-colors"></div>
+              <div
+                class="rounded-xl bg-violet-50 border border-violet-100 p-2 transition-colors group-hover:bg-white group-hover:scale-110 shadow-sm relative z-10"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-violet-600"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <div class="flex flex-col items-center relative z-10">
+                <span class="text-[11px] font-black uppercase tracking-widest text-slate-900 group-hover:text-violet-700"
+                  >1-Hr Max</span
+                >
+                <span class="text-[9px] font-mono-premium font-black text-violet-500 mt-0.5">
+                  {{ maxSilosIn1Hour.count }} silo{{ maxSilosIn1Hour.count !== 1 ? 's' : '' }} ·
+                  {{ formatDuration(maxSilosIn1Hour.seconds) }}
+                </span>
+              </div>
+            </button>
+          </div>
         </div>
         <div
           v-else
@@ -145,7 +195,7 @@
 
 <script setup lang="ts">
 import { useSiloTime } from '@/composables/useSiloTime';
-import { useSilosStore } from '@/stores/silos';
+import { useSilosStore, nextSiloCost, MAX_SILOS } from '@/stores/silos';
 import { useActionsStore } from '@/stores/actions';
 import { computeDependencies } from '@/lib/actions/executor';
 import { formatNumber, formatGemPrice, formatDuration } from '@/lib/format';
@@ -156,10 +206,12 @@ import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computed } from 'vue';
 import { getTimeToSave } from '@/engine/apply';
 
+const ONE_HOUR_SECONDS = 3600;
+
 const silosStore = useSilosStore();
 const actionsStore = useActionsStore();
 const { output: siloOutput } = useSiloTime();
-const { prepareExecution, completeExecution } = useActionExecutor();
+const { prepareExecution, completeExecution, batch } = useActionExecutor();
 
 const baseUrl = import.meta.env.BASE_URL;
 
@@ -171,7 +223,42 @@ const timeToBuy = computed(() => {
   return formatDuration(seconds);
 });
 
-function handleBuySilo() {
+// Simulate buying silos back-to-back (waiting to save up gems between purchases)
+// to see how many fit within a 1-hour window.
+const maxSilosIn1Hour = computed<{ count: number; seconds: number }>(() => {
+  const snapshot = actionsStore.effectiveSnapshot;
+  let virtualSnapshot = { ...snapshot };
+  let elapsedSeconds = 0;
+  let count = 0;
+  let currentSiloCount = siloOutput.value.siloCount;
+
+  while (currentSiloCount < MAX_SILOS) {
+    const cost = nextSiloCost(currentSiloCount);
+    const seconds = getTimeToSave(cost, virtualSnapshot);
+    if (!isFinite(seconds) || elapsedSeconds + seconds > ONE_HOUR_SECONDS) break;
+
+    elapsedSeconds += seconds;
+
+    // Advance virtual population/earnings state during the wait
+    const I = virtualSnapshot.offlineIHR / 60;
+    virtualSnapshot.population = Math.min(virtualSnapshot.habCapacity, virtualSnapshot.population + I * seconds);
+    const layRatePerChicken = snapshot.population > 0 ? snapshot.layRate / snapshot.population : 0;
+    virtualSnapshot.layRate = virtualSnapshot.population * layRatePerChicken;
+    virtualSnapshot.elr = Math.min(virtualSnapshot.layRate, virtualSnapshot.shippingCapacity);
+    const earningsPerEgg = snapshot.elr > 0 ? snapshot.offlineEarnings / snapshot.elr : 0;
+    virtualSnapshot.offlineEarnings = virtualSnapshot.elr * earningsPerEgg;
+
+    // Bank is spent down to exactly cover the purchase
+    virtualSnapshot.bankValue = seconds > 0 ? 0 : Math.max(0, (virtualSnapshot.bankValue || 0) - cost);
+
+    currentSiloCount++;
+    count++;
+  }
+
+  return { count, seconds: elapsedSeconds };
+});
+
+async function handleBuySilo() {
   if (!siloOutput.value.canBuyMore) return;
 
   // Prepare execution (restores stores if editing past group)
@@ -200,8 +287,10 @@ function handleBuySilo() {
   // Apply to store
   silosStore.buySilo();
 
-  // Complete execution
-  completeExecution(
+  // Complete execution — awaited so that back-to-back purchases (e.g. from the
+  // 1-hr max button) each see the previous purchase's updated state before
+  // computing their own fromCount/toCount and cost.
+  await completeExecution(
     {
       id: generateActionId(),
       timestamp: Date.now(),
@@ -212,5 +301,16 @@ function handleBuySilo() {
     },
     beforeSnapshot
   );
+}
+
+function handleBuyMaxSilos1Hour() {
+  const toBuy = maxSilosIn1Hour.value.count;
+  if (toBuy <= 0) return;
+
+  batch(async () => {
+    for (let i = 0; i < toBuy; i++) {
+      await handleBuySilo();
+    }
+  });
 }
 </script>
