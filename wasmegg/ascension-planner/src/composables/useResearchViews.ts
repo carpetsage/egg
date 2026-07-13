@@ -106,10 +106,51 @@ export const VIEWS = [
 ] as const;
 
 const RESEARCH_VIEW_STORAGE_KEY = 'ascension_research_view';
+const ELR_VIEW_MODE_STORAGE_KEY = 'ascension_research_elr_view_mode';
+const ELR_SORT_MODE_STORAGE_KEY = 'ascension_research_elr_sort_mode';
+const DELIVERY_IMPACT_ONLY_STORAGE_KEY = 'ascension_research_delivery_impact_only';
+const ROI_MODE_STORAGE_KEY = 'ascension_research_roi_mode';
+const MILESTONE_TARGET_STORAGE_KEY = 'ascension_research_milestone_target';
 
 function loadStoredResearchView(): ViewType {
   const stored = localStorage.getItem(RESEARCH_VIEW_STORAGE_KEY);
   return VIEWS.some(v => v.id === stored) ? (stored as ViewType) : 'game';
+}
+
+function loadStoredElrViewMode(): ElrViewMode {
+  const stored = localStorage.getItem(ELR_VIEW_MODE_STORAGE_KEY);
+  return stored === 'realistic' || stored === 'potential' ? stored : 'realistic';
+}
+
+function loadStoredElrSortMode(): ElrSortMode {
+  const stored = localStorage.getItem(ELR_SORT_MODE_STORAGE_KEY);
+  return stored === 'efficiency' || stored === 'impact' ? stored : 'efficiency';
+}
+
+function loadStoredDeliveryImpactOnly(): boolean {
+  return localStorage.getItem(DELIVERY_IMPACT_ONLY_STORAGE_KEY) === 'true';
+}
+
+function loadStoredRoiMode(): RoiMode {
+  const stored = localStorage.getItem(ROI_MODE_STORAGE_KEY);
+  return stored === 'immediate' || stored === 'maxed_vehicles' ? stored : 'immediate';
+}
+
+function loadStoredMilestoneTarget(): MilestoneTarget | null {
+  const stored = localStorage.getItem(MILESTONE_TARGET_STORAGE_KEY);
+  if (!stored) return null;
+  try {
+    const parsed = JSON.parse(stored);
+    if (parsed?.kind === 'tier' && typeof parsed.tier === 'number') {
+      return { kind: 'tier', tier: parsed.tier };
+    }
+    if (parsed?.kind === 'research' && typeof parsed.researchId === 'string' && typeof parsed.targetLevel === 'number') {
+      return { kind: 'research', researchId: parsed.researchId, targetLevel: parsed.targetLevel };
+    }
+  } catch {
+    // ignore malformed storage
+  }
+  return null;
 }
 
 // Evaluation IDs for ELR Impact
@@ -149,11 +190,26 @@ export function useResearchViews() {
 
   const currentView = ref<ViewType>(loadStoredResearchView());
   watch(currentView, v => localStorage.setItem(RESEARCH_VIEW_STORAGE_KEY, v));
-  const elrViewMode = ref<ElrViewMode>('realistic');
-  const elrSortMode = ref<ElrSortMode>('efficiency');
-  const deliveryImpactOnly = ref(false);
-  const roiMode = ref<RoiMode>('immediate');
-  const milestoneTarget = ref<MilestoneTarget | null>(null);
+  const elrViewMode = ref<ElrViewMode>(loadStoredElrViewMode());
+  watch(elrViewMode, v => localStorage.setItem(ELR_VIEW_MODE_STORAGE_KEY, v));
+  const elrSortMode = ref<ElrSortMode>(loadStoredElrSortMode());
+  watch(elrSortMode, v => localStorage.setItem(ELR_SORT_MODE_STORAGE_KEY, v));
+  const deliveryImpactOnly = ref(loadStoredDeliveryImpactOnly());
+  watch(deliveryImpactOnly, v => localStorage.setItem(DELIVERY_IMPACT_ONLY_STORAGE_KEY, String(v)));
+  const roiMode = ref<RoiMode>(loadStoredRoiMode());
+  watch(roiMode, v => localStorage.setItem(ROI_MODE_STORAGE_KEY, v));
+  const milestoneTarget = ref<MilestoneTarget | null>(loadStoredMilestoneTarget());
+  watch(
+    milestoneTarget,
+    v => {
+      if (v) {
+        localStorage.setItem(MILESTONE_TARGET_STORAGE_KEY, JSON.stringify(v));
+      } else {
+        localStorage.removeItem(MILESTONE_TARGET_STORAGE_KEY);
+      }
+    },
+    { deep: true }
+  );
 
   const realisticSummary = computed(() => {
     const rawBackup = initialStateStore.rawBackup;
