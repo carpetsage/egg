@@ -293,6 +293,13 @@ describe('legendary observation counts', () => {
     expect(legendaryDataIsSparse('gold-meteorite-2')).toBe(true); // 4
     expect(legendaryDataIsSparse('lunar-totem-3')).toBe(false); // 20
     expect(legendaryDataIsSparse('puzzle-cube-1')).toBe(true); // 0
-    expect(legendaryDataIsSparse('book-of-basan-4')).toBe(true); // absent
+  });
+
+  it('does not flag items that cannot drop from missions', () => {
+    // T4 Book of Basan and T4 Tachyon Deflector are craft-only
+    // (available_from_missions is false): zero observations is structural,
+    // not sparse data.
+    expect(legendaryDataIsSparse('book-of-basan-4')).toBe(false);
+    expect(legendaryDataIsSparse('tachyon-deflector-4')).toBe(false);
   });
 });

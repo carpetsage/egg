@@ -151,5 +151,5 @@ export function getMaxLegendaryCount(itemId: string): number {
 }
 
 export function legendaryDataIsSparse(itemId: string): boolean {
-  return getMaxLegendaryCount(itemId) < MIN_LEGENDARY_OBSERVATIONS;
+  return getArtifactTierPropsFromId(itemId).available_from_missions && getMaxLegendaryCount(itemId) < MIN_LEGENDARY_OBSERVATIONS;
 }
