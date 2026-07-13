@@ -86,7 +86,7 @@ export default defineComponent({
 
     const waitTimeDays = ref('30');
     const maxWaitTimeSeconds = computed(() => parseFloat(waitTimeDays.value) * 86400);
-    
+
     const timeBudgetValid = computed(() => Number.isFinite(maxWaitTimeSeconds.value) && maxWaitTimeSeconds.value > 0);
 
     const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
