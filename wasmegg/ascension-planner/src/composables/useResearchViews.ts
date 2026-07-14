@@ -34,6 +34,7 @@ import { createSimAction } from '@/types/actions/meta';
 export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr' | 'milestones';
 export type ElrViewMode = 'realistic' | 'potential';
 export type ElrSortMode = 'efficiency' | 'impact';
+export type ElrRoiDisplayMode = 'hpp' | 'time';
 export type RoiMode = 'immediate' | 'maxed_vehicles';
 
 export type MilestoneTarget =
@@ -106,10 +107,57 @@ export const VIEWS = [
 ] as const;
 
 const RESEARCH_VIEW_STORAGE_KEY = 'ascension_research_view';
+const ELR_VIEW_MODE_STORAGE_KEY = 'ascension_research_elr_view_mode';
+const ELR_SORT_MODE_STORAGE_KEY = 'ascension_research_elr_sort_mode';
+const ELR_ROI_DISPLAY_MODE_STORAGE_KEY = 'ascension_research_elr_roi_display_mode';
+const DELIVERY_IMPACT_ONLY_STORAGE_KEY = 'ascension_research_delivery_impact_only';
+const ROI_MODE_STORAGE_KEY = 'ascension_research_roi_mode';
+const MILESTONE_TARGET_STORAGE_KEY = 'ascension_research_milestone_target';
 
 function loadStoredResearchView(): ViewType {
   const stored = localStorage.getItem(RESEARCH_VIEW_STORAGE_KEY);
   return VIEWS.some(v => v.id === stored) ? (stored as ViewType) : 'game';
+}
+
+function loadStoredElrViewMode(): ElrViewMode {
+  const stored = localStorage.getItem(ELR_VIEW_MODE_STORAGE_KEY);
+  return stored === 'realistic' || stored === 'potential' ? stored : 'realistic';
+}
+
+function loadStoredElrSortMode(): ElrSortMode {
+  const stored = localStorage.getItem(ELR_SORT_MODE_STORAGE_KEY);
+  return stored === 'efficiency' || stored === 'impact' ? stored : 'efficiency';
+}
+
+function loadStoredElrRoiDisplayMode(): ElrRoiDisplayMode {
+  const stored = localStorage.getItem(ELR_ROI_DISPLAY_MODE_STORAGE_KEY);
+  return stored === 'hpp' || stored === 'time' ? stored : 'hpp';
+}
+
+function loadStoredDeliveryImpactOnly(): boolean {
+  return localStorage.getItem(DELIVERY_IMPACT_ONLY_STORAGE_KEY) === 'true';
+}
+
+function loadStoredRoiMode(): RoiMode {
+  const stored = localStorage.getItem(ROI_MODE_STORAGE_KEY);
+  return stored === 'immediate' || stored === 'maxed_vehicles' ? stored : 'immediate';
+}
+
+function loadStoredMilestoneTarget(): MilestoneTarget | null {
+  const stored = localStorage.getItem(MILESTONE_TARGET_STORAGE_KEY);
+  if (!stored) return null;
+  try {
+    const parsed = JSON.parse(stored);
+    if (parsed?.kind === 'tier' && typeof parsed.tier === 'number') {
+      return { kind: 'tier', tier: parsed.tier };
+    }
+    if (parsed?.kind === 'research' && typeof parsed.researchId === 'string' && typeof parsed.targetLevel === 'number') {
+      return { kind: 'research', researchId: parsed.researchId, targetLevel: parsed.targetLevel };
+    }
+  } catch {
+    // ignore malformed storage
+  }
+  return null;
 }
 
 // Evaluation IDs for ELR Impact
@@ -149,11 +197,28 @@ export function useResearchViews() {
 
   const currentView = ref<ViewType>(loadStoredResearchView());
   watch(currentView, v => localStorage.setItem(RESEARCH_VIEW_STORAGE_KEY, v));
-  const elrViewMode = ref<ElrViewMode>('realistic');
-  const elrSortMode = ref<ElrSortMode>('efficiency');
-  const deliveryImpactOnly = ref(false);
-  const roiMode = ref<RoiMode>('immediate');
-  const milestoneTarget = ref<MilestoneTarget | null>(null);
+  const elrViewMode = ref<ElrViewMode>(loadStoredElrViewMode());
+  watch(elrViewMode, v => localStorage.setItem(ELR_VIEW_MODE_STORAGE_KEY, v));
+  const elrSortMode = ref<ElrSortMode>(loadStoredElrSortMode());
+  watch(elrSortMode, v => localStorage.setItem(ELR_SORT_MODE_STORAGE_KEY, v));
+  const elrRoiDisplayMode = ref<ElrRoiDisplayMode>(loadStoredElrRoiDisplayMode());
+  watch(elrRoiDisplayMode, v => localStorage.setItem(ELR_ROI_DISPLAY_MODE_STORAGE_KEY, v));
+  const deliveryImpactOnly = ref(loadStoredDeliveryImpactOnly());
+  watch(deliveryImpactOnly, v => localStorage.setItem(DELIVERY_IMPACT_ONLY_STORAGE_KEY, String(v)));
+  const roiMode = ref<RoiMode>(loadStoredRoiMode());
+  watch(roiMode, v => localStorage.setItem(ROI_MODE_STORAGE_KEY, v));
+  const milestoneTarget = ref<MilestoneTarget | null>(loadStoredMilestoneTarget());
+  watch(
+    milestoneTarget,
+    v => {
+      if (v) {
+        localStorage.setItem(MILESTONE_TARGET_STORAGE_KEY, JSON.stringify(v));
+      } else {
+        localStorage.removeItem(MILESTONE_TARGET_STORAGE_KEY);
+      }
+    },
+    { deep: true }
+  );
 
   const realisticSummary = computed(() => {
     const rawBackup = initialStateStore.rawBackup;
@@ -1247,6 +1312,7 @@ export function useResearchViews() {
         isMaxed: boolean;
         impact: number;
         hpp: number;
+        timeRoiSeconds: number;
         realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
         showDeadlineWarning: boolean;
       }[];
@@ -1298,9 +1364,21 @@ export function useResearchViews() {
             const secondsToBuyWithBank = getTimeToSave(price, actionsStore.effectiveSnapshot);
             const hoursToBuy = secondsToBuyNoBank / 3600;
             const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
+            // Time-to-ROI: how long, laying at the new (boosted) rate, it takes for the
+            // extra production to pay back the buy-time cost (expressed in egg-equivalent
+            // terms via the baseline rate). Equivalent to hpp * 100, in seconds.
+            const timeRoiSeconds = impact > 0 ? secondsToBuyNoBank / impact : Infinity;
 
             // Lookahead: find minimum N levels that unlock positive ELR impact.
-            let lookahead: { minLevels: number; impact: number; hpp: number; realisticStats: { layRate: number; shippingRate: number; elr: number; elrDelta: number } } | undefined;
+            let lookahead:
+              | {
+                  minLevels: number;
+                  impact: number;
+                  hpp: number;
+                  timeRoiSeconds: number;
+                  realisticStats: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
+                }
+              | undefined;
             if (impact <= 0 && level + 1 < r.levels) {
               for (let n = 2; n <= r.levels - level; n++) {
                 const laLevels = { ...researchLevels, [r.id]: level + n };
@@ -1319,11 +1397,13 @@ export function useResearchViews() {
                   for (let l = level; l < level + n; l++) {
                     totalPriceForN += getDiscountedVirtuePrice(r, l, mods, isSale);
                   }
-                  const totalHoursForN = getTimeToSave(totalPriceForN, noBankSnapshot) / 3600;
+                  const totalSecondsForN = getTimeToSave(totalPriceForN, noBankSnapshot);
+                  const totalHoursForN = totalSecondsForN / 3600;
                   lookahead = {
                     minLevels: n,
                     impact: laImpact,
                     hpp: totalHoursForN / (laImpact * 100),
+                    timeRoiSeconds: totalSecondsForN / laImpact,
                     realisticStats: {
                       layRate: laStats.layRate * 3600,
                       shippingRate: laStats.shippingRate * 3600,
@@ -1346,6 +1426,7 @@ export function useResearchViews() {
               isMaxed: false,
               impact,
               hpp,
+              timeRoiSeconds,
               lookahead,
               realisticStats: {
                 layRate: stats.layRate * 3600,
@@ -1393,6 +1474,7 @@ export function useResearchViews() {
             const secondsToBuyWithBank = getTimeToSave(price, actionsStore.effectiveSnapshot);
             const hoursToBuy = secondsToBuyNoBank / 3600;
             const hpp = impact > 0 ? hoursToBuy / (impact * 100) : Infinity;
+            const timeRoiSeconds = impact > 0 ? secondsToBuyNoBank / impact : Infinity;
 
             return {
               research: r,
@@ -1404,6 +1486,7 @@ export function useResearchViews() {
               isMaxed: false,
               impact,
               hpp,
+              timeRoiSeconds,
               showDeadlineWarning: isSale && (absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline.value),
             };
           })
@@ -1428,12 +1511,17 @@ export function useResearchViews() {
       }
 
       return candidates.map(c => {
-        const la = (c as { lookahead?: { minLevels: number; impact: number; hpp: number; realisticStats: typeof c.realisticStats } }).lookahead;
+        const la = (
+          c as {
+            lookahead?: { minLevels: number; impact: number; hpp: number; timeRoiSeconds: number; realisticStats: typeof c.realisticStats };
+          }
+        ).lookahead;
         return {
           ...c,
           extraStats: la ? `+${(la.impact * 100).toFixed(3)}%` : `+${(c.impact * 100).toFixed(3)}%`,
           extraLabel: la ? `${la.minLevels}-lvl impact` : 'Impact',
           hpp: la ? la.hpp : c.hpp,
+          timeRoiSeconds: la ? la.timeRoiSeconds : c.timeRoiSeconds,
           realisticStats: la ? la.realisticStats : c.realisticStats,
           lookahead: la ? { minLevels: la.minLevels, impact: la.impact, hpp: la.hpp } : undefined,
         };
@@ -1451,6 +1539,7 @@ export function useResearchViews() {
     currentView,
     elrViewMode,
     elrSortMode,
+    elrRoiDisplayMode,
     deliveryImpactOnly,
     roiMode,
     milestoneTarget,

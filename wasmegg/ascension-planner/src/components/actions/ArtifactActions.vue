@@ -63,6 +63,11 @@
               </button>
             </template>
           </div>
+
+          <div v-if="selectedTab === 'earnings' && earningsClothedTe !== null" class="flex items-center gap-1.5">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Clothed TE</span>
+            <span class="text-xs font-mono-premium font-bold text-gray-900">{{ Math.round(earningsClothedTe) }}</span>
+          </div>
         </div>
 
         <div v-if="selectedTab === 'elr'" class="flex flex-wrap items-center justify-end gap-y-2 gap-x-4 border-t border-gray-200/60 pt-2 -mt-1">
@@ -163,7 +168,7 @@ import {
   summarizeLoadout,
   calculateArtifactModifiers,
 } from '@/lib/artifacts';
-import { getOptimalELRSet, isFunctionallyIdentical } from '@/lib/artifacts/virtue';
+import { getOptimalELRSet, isFunctionallyIdentical, calculateClothedTEForSet } from '@/lib/artifacts/virtue';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computeDependencies } from '@/lib/actions/executor';
 import { calculateHabCapacity_Full } from '@/calculations/habCapacity';
@@ -184,6 +189,19 @@ const selectedTab = ref<ArtifactSetName>('earnings');
 const localLoadout = ref<EquippedArtifact[]>(createEmptyLoadout());
 const assumeMaxHabsVehicles = ref(true);
 const excludeGusset = ref(false);
+
+// Clothed TE for the earnings set currently being viewed (localLoadout may hold
+// unsaved edits), regardless of whether it's the equipped set.
+const earningsClothedTe = computed<number | null>(() => {
+  if (selectedTab.value !== 'earnings') return null;
+  const context = getSimulationContext();
+  return calculateClothedTEForSet(localLoadout.value, {
+    truthEggs: actionsStore.effectiveSnapshot.te,
+    colleggtibleModifiers: context.colleggtibleModifiers,
+    labUpgradeLevel: context.epicResearchLevels['cheaper_research'] ?? 0,
+    permitLevel: initialStateStore.rawBackup?.game?.permitLevel ?? null,
+  });
+});
 
 const isOptimalELR = computed(() => {
   if (!initialStateStore.rawBackup) return false;

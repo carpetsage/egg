@@ -39,7 +39,7 @@
           </div>
           <div class="flex flex-col items-start gap-0.5">
             <div class="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-tight">Time: {{ formattedTimeElapsed }}</div>
-            <div v-if="props.eggsDelivered > 0" class="text-[9px] sm:text-[10px] font-black text-slate-900 tracking-widest">
+            <div class="text-[9px] sm:text-[10px] font-black text-slate-900 tracking-widest">
               {{ formatNumber(props.eggsDelivered, 3) }} Eggs
             </div>
           </div>

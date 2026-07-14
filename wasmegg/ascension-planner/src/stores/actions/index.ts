@@ -383,6 +383,20 @@ export const useActionsStore = defineStore('actions', {
         a.dependents = a.dependents.filter(depId => !toRemove.has(depId));
       });
       this.actions = newActions;
+
+      // If we're editing a shift and it's now the last shift in the plan (because a later
+      // shift and its actions were just undone), stop editing it. Editing exists to modify a
+      // past shift; once it's the last shift, it's already the default edit target.
+      if (this.editingGroupId) {
+        const headerIndex = this.actions.findIndex(a => a.id === this.editingGroupId);
+        if (headerIndex !== -1) {
+          const hasLaterShift = this.actions.some((a, idx) => idx > headerIndex && a.type === 'shift');
+          if (!hasLaterShift) {
+            this.editingGroupId = null;
+          }
+        }
+      }
+
       await this.recalculateFrom(minIndex === Infinity ? 0 : minIndex);
       if (restoreCallback) restoreCallback(this.effectiveSnapshot);
     },
@@ -689,8 +703,8 @@ export const useActionsStore = defineStore('actions', {
       
       // NEW: Skip recalculation if the plan already contains calculated result data (endState).
       // Since the user is in a long session, we trust the cached calculations in the library.
-      const isPreCalculated = data.actions && 
-                             data.actions.length > 0 && 
+      const isPreCalculated = data.actions &&
+                             data.actions.length > 0 &&
                              data.actions.every((a: Action) => a.endState !== undefined);
 
       if (isPreCalculated) {

@@ -1,7 +1,7 @@
 import type { Action } from '@/types/actions/meta';
 import type { EngineState, SimulationContext, ShiftResult } from '../types';
 import { computeSnapshot } from '../../engine/compute';
-import { applyAction } from '../../engine/apply';
+import { applyAction, calculateEggsDeliveredForTime } from '../../engine/apply';
 import { createSimAction } from '@/types/actions/meta';
 import { shiftCost } from 'lib';
 import {
@@ -39,10 +39,16 @@ export function runK3(
     if (seconds <= 0) return;
     const snap = computeSnapshot(currentState, context, { skipGrowth: true });
     const waitAction = createSimAction('wait_for_time', { totalTimeSeconds: seconds, ...metadata });
-    
+    const passiveEggs = calculateEggsDeliveredForTime(seconds, snap);
+
     currentState = applyAction(currentState, waitAction);
     // applyAction doesn't update bankValue or lastStepTime for wait actions, so we credit them manually
-    currentState = { ...currentState, lastStepTime: (currentState.lastStepTime || 0) + seconds, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * seconds };
+    currentState = {
+      ...currentState,
+      lastStepTime: (currentState.lastStepTime || 0) + seconds,
+      bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * seconds,
+      eggsDelivered: { ...currentState.eggsDelivered, [currentState.currentEgg]: (currentState.eggsDelivered[currentState.currentEgg] || 0) + passiveEggs },
+    };
 
     // Decoration for the action store
     const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
@@ -204,8 +210,8 @@ export function runK3(
     const snap = computeSnapshot(currentState, context, { skipGrowth: true });
     currentState.bankValue += snap.offlineEarnings * waitDuration;
 
-    currentState.eggsDelivered['kindness'] = teResult.finalEggsDelivered;
-    currentState.teEarned['kindness'] = (currentState.teEarned['kindness'] || 0) + teResult.teEarned;
+    currentState.eggsDelivered = { ...currentState.eggsDelivered, kindness: teResult.finalEggsDelivered };
+    currentState.teEarned = { ...currentState.teEarned, kindness: (currentState.teEarned['kindness'] || 0) + teResult.teEarned };
     currentState.te = Object.values(currentState.teEarned).reduce((a, b) => (a as number) + (b as number), 0);
     
     // Decoration

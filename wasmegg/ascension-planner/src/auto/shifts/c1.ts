@@ -14,7 +14,7 @@ import {
 } from '../engine/strategist';
 import { getArtifact, getStone, calculateArtifactModifiers } from '../../lib/artifacts';
 import { computeSnapshot } from '../../engine/compute';
-import { applyAction } from '../../engine/apply';
+import { applyAction, calculateEggsDeliveredForTime } from '../../engine/apply';
 import { createSimAction } from '@/types/actions/meta';
 import {
   isResearchSaleActive,
@@ -118,9 +118,15 @@ export function runC1(
 
         const snap = computeSnapshot(currentState, context, { skipGrowth: true });
         const waitAction = createSimAction(actionType, { totalTimeSeconds: stepSeconds });
-        
+        const passiveEggs = calculateEggsDeliveredForTime(stepSeconds, snap);
+
         currentState = applyAction(currentState, waitAction);
-        currentState = { ...currentState, lastStepTime: (currentState.lastStepTime || 0) + stepSeconds, bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * stepSeconds };
+        currentState = {
+          ...currentState,
+          lastStepTime: (currentState.lastStepTime || 0) + stepSeconds,
+          bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * stepSeconds,
+          eggsDelivered: { ...currentState.eggsDelivered, [currentState.currentEgg]: (currentState.eggsDelivered[currentState.currentEgg] || 0) + passiveEggs },
+        };
 
         const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
         waitAction.endState = finalSnap;

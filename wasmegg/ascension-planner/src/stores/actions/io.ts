@@ -161,7 +161,12 @@ export function importPlanLogic(jsonString: string) {
       cost: 0, elrDelta: 0, offlineEarningsDelta: 0, eggValueDelta: 0,
       habCapacityDelta: 0, layRateDelta: 0, shippingCapacityDelta: 0,
       ihrDelta: 0, bankDelta: 0, populationDelta: 0, totalTimeSeconds: 0,
-      endState: createEmptySnapshot(),
+      endState: {
+        ...createEmptySnapshot(),
+        currentEgg: 'curiosity',
+        eggsDelivered: { ...(data.truthEggsState?.eggsDelivered || {}) },
+        teEarned: { ...(data.truthEggsState?.teEarned || {}) },
+      },
       dependsOn: [], dependents: []
     };
     data.actions = [startAction, ...data.actions];

@@ -22,6 +22,7 @@
     :artifact-sets="store.artifactSets"
     :active-artifact-set="store.activeArtifactSet"
     :colleggtible-tiers="store.colleggtibleTiers"
+    :clothed-te="earningsClothedTe"
     @set-epic-research-level="handleSetEpicResearchLevel"
     @update:artifact-loadout="handleArtifactLoadout"
     @set-initial-egg="handleSetInitialEgg"
@@ -64,6 +65,7 @@ import InitialStateDisplay from '@/components/presenters/InitialStateDisplay.vue
 import type { VirtueEgg, Action, ArtifactSetName } from '@/types';
 import { VIRTUE_EGGS } from '@/types';
 import type { EquippedArtifact } from '@/lib/artifacts';
+import { calculateClothedTEForSet } from '@/lib/artifacts';
 
 const store = useInitialStateStore();
 const virtueStore = useVirtueStore();
@@ -90,6 +92,18 @@ function updateInitialSnapshotAndRecalculate() {
 }
 
 const initialTotalTe = computed(() => Object.values(store.initialTeEarned).reduce((sum, val) => sum + val, 0));
+
+// Clothed TE for the earnings artifact set, computed from live initial-state inputs
+// (not the frozen backup snapshot) so it stays in sync as the player edits research/colleggtibles.
+const earningsClothedTe = computed<number | null>(() => {
+  if (!store.artifactSets.earnings) return null;
+  return calculateClothedTEForSet(store.artifactSets.earnings, {
+    truthEggs: initialTotalTe.value,
+    colleggtibleModifiers: store.colleggtibleModifiers,
+    labUpgradeLevel: store.epicResearchLevels['cheaper_research'] ?? 0,
+    permitLevel: store.rawBackup?.game?.permitLevel ?? null,
+  });
+});
 
 
 function handleSetEpicResearchLevel(id: string, level: number) {

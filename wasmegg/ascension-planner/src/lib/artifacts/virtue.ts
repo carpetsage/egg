@@ -8,15 +8,16 @@ import {
   contenderToArtifactSet,
   newItem,
 } from 'lib/artifacts';
-import { allModifiersFromColleggtibles, maxModifierFromColleggtibles } from 'lib/collegtibles';
+import { allModifiersFromColleggtibles, maxModifierFromColleggtibles, Modifiers } from 'lib/collegtibles';
 import { getNumTruthEggs } from 'lib/earning_bonus';
+import { cteFromArtifacts, cteFromColleggtibles, cteFromLabUpgrade, multiplierToTE } from 'lib/virtue';
 import {
   eggValueMultiplier,
   awayEarningsMultiplier,
   researchPriceMultiplierFromArtifacts,
 } from 'lib/artifacts/virtue_effects';
 import { EquippedArtifact } from './types';
-import { libArtifactToEquippedArtifact } from './utils';
+import { libArtifactToEquippedArtifact, equippedArtifactsToLibArtifacts } from './utils';
 import {
   calculateArtifactModifiers,
   createEmptyLoadout,
@@ -70,6 +71,34 @@ export function getOptimalEarningsSet(backup: ei.IBackup): EquippedArtifact[] {
   const { artifactSet } = contenderToArtifactSet(contender, equipped, inventory);
 
   return artifactSet.artifacts.map(libArtifactToEquippedArtifact);
+}
+
+/**
+ * Calculate Clothed TE for an arbitrary artifact set (e.g. a candidate set the
+ * player hasn't equipped yet), driven by the planner's own live initial-state
+ * inputs rather than a frozen backup snapshot. Mirrors virtue-companion's
+ * `calculateClothedTE`, composed from the same shared `lib/virtue` primitives.
+ */
+export function calculateClothedTEForSet(
+  loadout: EquippedArtifact[],
+  options: {
+    truthEggs: number;
+    colleggtibleModifiers: Modifiers;
+    labUpgradeLevel: number;
+    permitLevel?: number | null;
+  }
+): number {
+  const artifacts = equippedArtifactsToLibArtifacts(loadout);
+  // Standard permit halves offline earnings; Pro permit (permitLevel === 1) does not.
+  const permitPenalty = options.permitLevel === 1 ? 0 : multiplierToTE(0.5);
+
+  return (
+    options.truthEggs +
+    cteFromArtifacts(artifacts) +
+    cteFromColleggtibles(options.colleggtibleModifiers) +
+    cteFromLabUpgrade(options.labUpgradeLevel) +
+    permitPenalty
+  );
 }
 
 // Internal candidate representation used by the pool-based ELR optimizer.

@@ -96,8 +96,31 @@ const props = defineProps<{
 
 defineEmits(['buy', 'max', 'max-tier']);
 
-const expandedTiers = ref(new Set<number>());
+const EXPANDED_TIERS_STORAGE_KEY = 'ascension_research_expanded_tiers';
+
+function loadStoredExpandedTiers(): Set<number> | null {
+  const stored = localStorage.getItem(EXPANDED_TIERS_STORAGE_KEY);
+  if (!stored) return null;
+  try {
+    const parsed = JSON.parse(stored);
+    if (Array.isArray(parsed)) {
+      return new Set(parsed.filter((t): t is number => typeof t === 'number'));
+    }
+  } catch {
+    // ignore malformed storage
+  }
+  return null;
+}
+
+const storedExpandedTiers = loadStoredExpandedTiers();
+const expandedTiers = ref(new Set<number>(storedExpandedTiers ?? []));
 const autoExpanded = new Set<number>();
+
+watch(
+  expandedTiers,
+  tiersSet => localStorage.setItem(EXPANDED_TIERS_STORAGE_KEY, JSON.stringify(Array.from(tiersSet))),
+  { deep: true }
+);
 
 const actionsStore = useActionsStore();
 const virtueStore = useVirtueStore();
@@ -117,13 +140,21 @@ function isTierMaxed(tier: number): boolean {
 
 // Auto-expand any tier that is unlocked and has research available.
 // We track autoExpanded to avoid re-expanding a tier the user manually collapsed.
+// If expand/collapse state was restored from storage, tiers already unlocked at mount
+// have already had their auto-expand decision made (respect the user's saved choice) —
+// only tiers that unlock later this session should be auto-expanded.
 watch(
   () => props.tierSummaries,
   summaries => {
     if (!summaries) return;
     for (const tier of props.tiers) {
+      if (autoExpanded.has(tier)) continue;
       const summary = summaries[tier];
-      if (summary?.isUnlocked && !isTierMaxed(tier) && !autoExpanded.has(tier)) {
+      if (storedExpandedTiers && summary?.isUnlocked) {
+        autoExpanded.add(tier);
+        continue;
+      }
+      if (summary?.isUnlocked && !isTierMaxed(tier)) {
         expandedTiers.value.add(tier);
         autoExpanded.add(tier);
       }

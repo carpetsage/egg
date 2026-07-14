@@ -284,6 +284,10 @@
         </div>
       </div>
       <div class="p-4">
+        <div v-if="activeSetTab === 'earnings' && clothedTe !== null" class="mt-4 flex justify-between items-center px-1">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clothed TE</span>
+          <span class="text-sm font-mono-premium font-bold text-slate-900">{{ Math.round(clothedTe) }}</span>
+        </div>
         <template v-if="!hasArtifactSets">
           <div class="mb-4">
             <ArtifactSelector
@@ -651,6 +655,7 @@ const props = defineProps<{
   artifactSets: Record<import('@/types').ArtifactSetName, EquippedArtifact[] | null>;
   activeArtifactSet: import('@/types').ArtifactSetName | null;
   colleggtibleTiers: import('lib/collegtibles').ColleggtibleTiers;
+  clothedTe: number | null;
 }>();
 
 function handleInitialEggClick(egg: VirtueEgg) {

@@ -299,6 +299,19 @@ export function runAscension(
     nextSale = getNextSaleStart(nextSale + 1);
   }
 
+  // finalTE is the source of truth for TE totals: it's derived directly from
+  // eggsDelivered, whereas currentState.te is an incrementally-maintained counter
+  // that build-phase shifts (passive egg accumulation) don't update, so it can
+  // under-count relative to finalTE.
+  const finalTE = {
+    curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
+    integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
+    resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
+    humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
+    kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
+  };
+  const endTE = Object.values(finalTE).reduce((a, b) => a + b, 0);
+
   // Build the summary
   const summary: AscensionSummary = {
     id,
@@ -308,8 +321,8 @@ export function runAscension(
     buildPhaseEndTime: buildPhaseEnd,
     buildPhaseSaleCount: (saleCount === 2 ? 2 : 1) as 1 | 2,
     startTE: startState.te,
-    endTE: currentState.te,
-    teGained: currentState.te - startState.te,
+    endTE,
+    teGained: endTE - startState.te,
     maxELR: currentState.maxELR || 0,
     startSoulEggs: startState.soulEggs,
     endSoulEggs: seResult.endingSE,
@@ -324,22 +337,10 @@ export function runAscension(
       humility: (currentState.teEarned['humility'] || 0) - (startState.teEarned['humility'] || 0),
       kindness: (currentState.teEarned['kindness'] || 0) - (startState.teEarned['kindness'] || 0),
     },
-    finalTE: {
-      curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
-      integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
-      resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
-      humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
-      kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
-    },
+    finalTE,
     strategyLabel: `${saleCount}-sale build`,
     isMaxELRAscension: false,
-    lastTEDurationSeconds: computeLastTEDuration({
-      curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
-      integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
-      resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
-      humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
-      kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
-    }, currentState.maxELR || 0),
+    lastTEDurationSeconds: computeLastTEDuration(finalTE, currentState.maxELR || 0),
   };
 
   return {
@@ -463,6 +464,15 @@ export function runContinueCurrent(
   const shiftCount = currentActions.filter(a => a.type === 'shift').length;
   const seResult = computeShiftCosts(startState.soulEggs, startState.shiftCount, shiftCount);
 
+  const finalTE = {
+    curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
+    integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
+    resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
+    humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
+    kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
+  };
+  const endTE = Object.values(finalTE).reduce((a, b) => a + b, 0);
+
   const summary: AscensionSummary = {
     id,
     startTime,
@@ -471,8 +481,8 @@ export function runContinueCurrent(
     buildPhaseEndTime: startTime, // No build phase
     buildPhaseSaleCount: 1,
     startTE: startState.te,
-    endTE: currentState.te,
-    teGained: currentState.te - startState.te,
+    endTE,
+    teGained: endTE - startState.te,
     maxELR: currentELR,
     startSoulEggs: startState.soulEggs,
     endSoulEggs: seResult.endingSE,
@@ -487,22 +497,10 @@ export function runContinueCurrent(
       humility: (currentState.teEarned['humility'] || 0) - (startState.teEarned['humility'] || 0),
       kindness: (currentState.teEarned['kindness'] || 0) - (startState.teEarned['kindness'] || 0),
     },
-    finalTE: {
-      curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
-      integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
-      resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
-      humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
-      kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
-    },
+    finalTE,
     strategyLabel: 'Continue current',
     isMaxELRAscension: false,
-    lastTEDurationSeconds: computeLastTEDuration({
-      curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
-      integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
-      resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
-      humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
-      kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
-    }, currentELR),
+    lastTEDurationSeconds: computeLastTEDuration(finalTE, currentELR),
   };
 
   return {
