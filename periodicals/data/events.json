@@ -27700,5 +27700,50 @@
     "startTimestamp": 1783958400,
     "type": "drone-boost",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1784131200,
+    "id": "egg-day-1",
+    "message": "10x PRESTIGE!!!",
+    "multiplier": 10,
+    "startTimestamp": 1784044800,
+    "type": "prestige-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1784131200,
+    "id": "egg-day-2",
+    "message": "10x MISSION SPEED!!!",
+    "multiplier": 0.1,
+    "startTimestamp": 1784044800,
+    "type": "mission-duration",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1784131200,
+    "id": "egg-day-3",
+    "message": "10x PIGGY!!!",
+    "multiplier": 10,
+    "startTimestamp": 1784044800,
+    "type": "piggy-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1784131200,
+    "id": "egg-day-4",
+    "message": "10x FUELING!!!",
+    "multiplier": 10,
+    "startTimestamp": 1784044800,
+    "type": "mission-fuel",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1784131200,
+    "id": "egg-day-ultra",
+    "message": "10x DRONES!!!",
+    "multiplier": 10,
+    "startTimestamp": 1784044800,
+    "type": "drone-boost",
+    "ultra": true
   }
 ]
