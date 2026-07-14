@@ -21,7 +21,7 @@
     "babel-jest": "^30.3.0",
     "jest": "^30.3.0",
     "pinia": "^3.0.4",
-    "protobufjs-cli": "^2.0.0",
+    "protobufjs-cli": "^2.0.1",
     "ts-jest": "^29.4.9",
     "vue": "^3.5.31"
   },
