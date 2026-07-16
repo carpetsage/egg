@@ -484,11 +484,12 @@ const formatTimeRange = (start: number, end: number) => {
   const e = new Date(end * 1000);
   
   const options: Intl.DateTimeFormatOptions = { 
+    weekday: 'short',
     year: 'numeric',
-    month: 'short', 
-    day: 'numeric', 
-    hour: 'numeric', 
-    minute: '2-digit' 
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
   };
   
   return `${s.toLocaleString('en-US', options)} — ${e.toLocaleString('en-US', options)}`;
