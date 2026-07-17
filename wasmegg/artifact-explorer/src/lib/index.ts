@@ -6,7 +6,7 @@ export * from './optimizer-views';
 import type { DAGNode, LaunchSolution, OptimizerConfig, OptimizerSolution, DropRow, RecipeDAG } from './types';
 import { enumerateLaunchOptions, generateRecipeDag } from './phases';
 import { optimizeFull } from './optimizer-core';
-import { ei, getArtifactTierPropsFromId, getCraftingLevelFromXp, Inventory, InventoryItem, ShipsConfig } from 'lib';
+import { ei, getArtifactTierPropsFromId, getCraftingInfoFromLevel, Inventory, InventoryItem, ShipsConfig } from 'lib';
 
 import { iconURL } from 'lib';
 
@@ -15,13 +15,11 @@ import { iconURL } from 'lib';
 // comes from the player's crafting XP and prior craft count.
 export function buildRecipeDag(
   desiredArtifactNodeIds: string[],
+  playerLevel: number,
   playerInventory?: Inventory | null,
-  playerTotalCraftingXp?: number | null,
   previousCraftsOverride?: number
 ): Map<string, DAGNode> {
   const recipeDag = new Map<string, DAGNode>();
-  // Default to full crafting XP because reasons
-  const xp = playerTotalCraftingXp ?? 10_000_000_000;
 
   for (const artifact of desiredArtifactNodeIds) {
     generateRecipeDag(artifact, recipeDag);
@@ -38,7 +36,7 @@ export function buildRecipeDag(
     // craftChance returns a percentage value, not a raw probability
     artifactDagNode.legendaryCraftProbability =
       artifactItem.craftChance(
-        getCraftingLevelFromXp(xp).rarityMult,
+        getCraftingInfoFromLevel(playerLevel).rarityMult,
         ei.ArtifactSpec.Rarity.LEGENDARY,
         previousCrafts
       ) / 100.0;

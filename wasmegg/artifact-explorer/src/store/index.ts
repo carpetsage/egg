@@ -7,7 +7,6 @@ import {
   getArtifactTierPropsFromId,
   getCraftingLevelFromXp,
   getLocalStorage,
-  getXPFromCraftingLevel,
   Inventory,
   isOldShipsConfig,
   isShipsConfig,
@@ -165,9 +164,6 @@ export const effectiveTankLevel = computed<number>(() => {
 });
 
 export const effectiveFuelTankCapacity = computed<number>(() => fuelTankSizes[effectiveTankLevel.value]);
-
-// The optimizer takes XP, not a level, so convert back.
-export const effectiveTotalCraftingXp = computed<number>(() => getXPFromCraftingLevel(effectiveCraftingLevel.value));
 
 // What the optimizer reads: the manual config when no player data is loaded,
 // otherwise player data with overridden fields taken from the manual config.

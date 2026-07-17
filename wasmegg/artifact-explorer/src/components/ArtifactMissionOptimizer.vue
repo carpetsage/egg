@@ -55,7 +55,7 @@ import {
   effectiveConfig,
   effectiveFuelTankCapacity,
   effectivePreviousCrafts,
-  effectiveTotalCraftingXp,
+  effectiveCraftingLevel,
   missionFilters,
   playerInventory,
   setPlayerData,
@@ -121,8 +121,8 @@ export default defineComponent({
     const recipeDag = computed<ReturnType<typeof buildRecipeDag>>(() =>
       buildRecipeDag(
         [artifactId.value],
+        effectiveCraftingLevel.value,
         playerInventory.value,
-        effectiveTotalCraftingXp.value,
         effectivePreviousCrafts.value
       )
     );
