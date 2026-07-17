@@ -173,7 +173,7 @@ export function getCraftingLevelFromXp(craftingXp: number): PlayerCraftingLevel 
 
     const levelTargetXp = levelBaseXp + xpRequired;
 
-    if (craftingXp <= levelTargetXp || level == numLevels) {
+    if (craftingXp < levelTargetXp || level == numLevels) {
       return { level, rarityMult };
     }
 
