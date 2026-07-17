@@ -121,9 +121,7 @@
                     :class="isManual(ship) ? 'opacity-40' : ''"
                     :title="isManual(ship) ? 'Ignored while manual is on' : 'Currently in use'"
                   >
-                    <span
-                      class="sm:hidden w-20 flex-shrink-0 text-[11px] uppercase tracking-wide text-gray-400"
-                    >
+                    <span class="sm:hidden w-20 flex-shrink-0 text-[11px] uppercase tracking-wide text-gray-400">
                       From save
                     </span>
                     <span
@@ -141,9 +139,7 @@
 
                   <!-- Manual toggle -->
                   <div class="flex items-center gap-1.5 mt-1 sm:mt-0 sm:justify-self-center">
-                    <span
-                      class="sm:hidden w-20 flex-shrink-0 text-[11px] uppercase tracking-wide text-gray-400"
-                    >
+                    <span class="sm:hidden w-20 flex-shrink-0 text-[11px] uppercase tracking-wide text-gray-400">
                       Override?
                     </span>
                     <input
@@ -163,9 +159,7 @@
                     :class="isManual(ship) ? '' : 'opacity-40'"
                     :title="isManual(ship) ? 'Currently in use' : 'Ignored until manual is on'"
                   >
-                    <span
-                      class="sm:hidden w-20 flex-shrink-0 text-[11px] uppercase tracking-wide text-gray-400"
-                    >
+                    <span class="sm:hidden w-20 flex-shrink-0 text-[11px] uppercase tracking-wide text-gray-400">
                       Custom
                     </span>
                     <input

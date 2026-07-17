@@ -12,7 +12,7 @@ const Name = ei.ArtifactSpec.Name;
 
 describe('buildRecipeDag', () => {
   it('builds the real puzzle cube recipe chain', () => {
-    const dag = buildRecipeDag(['puzzle-cube-4']);
+    const dag = buildRecipeDag(['puzzle-cube-4'], 30);
 
     for (const tier of ['puzzle-cube-1', 'puzzle-cube-2', 'puzzle-cube-3', 'puzzle-cube-4']) {
       expect(dag.has(tier)).toBe(true);
@@ -32,7 +32,7 @@ describe('buildRecipeDag', () => {
   });
 
   it('puts the legendary craft probability on the root only', () => {
-    const dag = buildRecipeDag(['puzzle-cube-4']);
+    const dag = buildRecipeDag(['puzzle-cube-4'], 30);
     const root = dag.get('puzzle-cube-4')!;
     expect(root.legendaryCraftProbability).toBeGreaterThan(0);
     expect(root.legendaryCraftProbability).toBeLessThanOrEqual(1);
@@ -44,7 +44,7 @@ describe('buildRecipeDag', () => {
 });
 
 describe('enumerateLaunchOptions', () => {
-  const dag = buildRecipeDag(['puzzle-cube-4']);
+  const dag = buildRecipeDag(['puzzle-cube-4'], 30);
 
   it('produces well-formed options from real loot data', () => {
     const options = enumerateLaunchOptions(perfectShipsConfig, dag);
@@ -83,7 +83,7 @@ describe('optimize', () => {
       fuelTankCapacity: 2_000_000_000,
       timeBudgetSeconds: 3 * 24 * 3600,
     };
-    const dag = buildRecipeDag(config.desiredArtifactNodeIds);
+    const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
     const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
     const [sol] = optimize(config, perfectShipsConfig, dag, baseYield);
 
