@@ -491,6 +491,9 @@ export class MissionType {
     const fuels = virtue ? this.virtueFuels : this.defaultFuels;
     return new Map(fuels.map(fuel => [fuel.egg, fuel.amount]));
   }
+  get virtueGemCost(): number {
+    return virtueShipGemCosts[this.shipType];
+  }
 
   boostedCapacity(config: ShipsConfig): number {
     return Math.floor(
@@ -1096,6 +1099,23 @@ const virtueMissionFuelsInfo: MissionTypeMap<MissionFuels> = {
       new MissionFuel(ei.Egg.RESILIENCE, 40e12),
     ],
   },
+};
+
+// Gem cost to purchase each virtue ship for launch on the Egg of Humility.
+// Constant per ship; mission duration and ship level have no effect.
+// https://egg-inc.fandom.com/wiki/Path_of_Virtue/Egg_of_Humility
+export const virtueShipGemCosts: Record<Spaceship, number> = {
+  [Spaceship.CHICKEN_ONE]: 9.7e9,
+  [Spaceship.CHICKEN_NINE]: 19e12,
+  [Spaceship.CHICKEN_HEAVY]: 35e15,
+  [Spaceship.BCR]: 60e18,
+  [Spaceship.MILLENIUM_CHICKEN]: 2.4e21,
+  [Spaceship.CORELLIHEN_CORVETTE]: 600e21,
+  [Spaceship.GALEGGTICA]: 129e24,
+  [Spaceship.CHICKFIANT]: 29e27,
+  [Spaceship.VOYEGGER]: 39e30,
+  [Spaceship.HENERPRISE]: 310e33,
+  [Spaceship.ATREGGIES]: 419e36,
 };
 
 export function requiredTotalLaunchesToUnlockNextShip(shipType: Spaceship): number {

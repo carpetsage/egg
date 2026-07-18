@@ -381,13 +381,25 @@ export function setMinDurationHours(hours: number): void {
   missionFilters.value.minDurationHours = Math.max(0, hours);
 }
 
+export function setMaxGemCostEnabled(enabled: boolean): void {
+  missionFilters.value.maxGemCostEnabled = enabled;
+}
+
+export function setMaxGemCost(cost: number): void {
+  missionFilters.value.maxGemCost = Math.max(0, cost);
+}
+
 export function loadMissionFilters(): MissionFilters {
   const str = getLocalStorage(MISSION_FILTERS_LOCALSTORAGE_KEY);
   if (!str) return newMissionFilters();
   try {
     const parsed: unknown = JSON.parse(str);
     if (isMissionFilters(parsed)) {
-      return parsed;
+      return {
+        ...parsed,
+        maxGemCostEnabled: parsed.maxGemCostEnabled ?? false,
+        maxGemCost: parsed.maxGemCost ?? 0,
+      };
     }
   } catch (err) {
     console.warn(`error parsing mission filters: ${err}`);

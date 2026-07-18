@@ -55,6 +55,32 @@
           </div>
         </div>
 
+        <div>
+          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+              :checked="missionFilters.maxGemCostEnabled"
+              @change="setMaxGemCostEnabled(($event.target as HTMLInputElement).checked)"
+            />
+            Maximum purchase cost
+          </label>
+          <div class="mt-1 flex items-center gap-2">
+            <input
+              type="text"
+              :disabled="!missionFilters.maxGemCostEnabled"
+              :value="maxGemCostDisplay"
+              placeholder="e.g. 10S"
+              class="block w-24 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-2 py-1 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
+              @input="onGemCostInput($event)"
+            />
+            <span class="text-xs text-gray-500">gems</span>
+          </div>
+          <p v-if="missionFilters.maxGemCostEnabled" class="mt-1 text-xs text-gray-400">
+            Only schedule ships costing at most this many gems (e.g. 10S = 10 septillion)
+          </p>
+        </div>
+
         <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
           <input
             id="sidebar_show_nodata"
@@ -181,7 +207,7 @@
 <script lang="ts">
 import { computed, defineComponent } from 'vue';
 
-import { formatEIValue, fuelTankSizes, spaceshipList } from 'lib';
+import { formatEIValue, fuelTankSizes, parseValueWithUnit, spaceshipList } from 'lib';
 import BaseInput from 'ui/components/BaseInput.vue';
 import PlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import LootDataCredit from '@/components/LootDataCredit.vue';
@@ -203,6 +229,8 @@ import {
   setCraftingLevel,
   setEpicResearchFTLLevel,
   setEpicResearchZerogLevel,
+  setMaxGemCost,
+  setMaxGemCostEnabled,
   setMinDurationHours,
   setMinDurationHoursEnabled,
   setOverrideCraftingLevel,
@@ -250,6 +278,18 @@ export default defineComponent({
       setMinDurationHours(n);
     }
 
+    // Shown value for the gem cost filter, in Egg, Inc. order-of-magnitude
+    // notation (e.g. 10S). Input is parsed back through the same notation.
+    const maxGemCostDisplay = computed(() => formatEIValue(missionFilters.value.maxGemCost, { trim: true }));
+
+    function onGemCostInput(event: Event) {
+      const raw = (event.target as HTMLInputElement).value.trim();
+      if (!raw) return;
+      const n = parseValueWithUnit(raw, false);
+      if (n === null || n < 0) return;
+      setMaxGemCost(n);
+    }
+
     return {
       hasPlayerData,
       maxTankLevel,
@@ -257,6 +297,8 @@ export default defineComponent({
       totalShips,
       shipsVisibleCount,
       onDurationInput,
+      maxGemCostDisplay,
+      onGemCostInput,
       // store state
       config,
       extras,
@@ -280,6 +322,7 @@ export default defineComponent({
       setOverrideFTL,
       setOverrideZerog,
       setMinDurationHoursEnabled,
+      setMaxGemCostEnabled,
       openPlayerOverridesModal,
     };
   },

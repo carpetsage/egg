@@ -2,7 +2,7 @@
 // localStorage values. Kept free of side effects (no localStorage or window
 // access at import time) so it can be unit tested under node.
 
-import type { ei } from 'lib';
+import { virtueShipGemCosts, ei } from 'lib';
 
 type Spaceship = ei.MissionInfo.Spaceship;
 
@@ -71,14 +71,27 @@ export function isExtrasConfig(x: unknown): x is ExtrasConfig {
 export interface MissionFilters {
   minDurationHoursEnabled: boolean;
   minDurationHours: number;
+  // Maximum gem cost of a mission's ship on the Egg of Humility.
+  maxGemCostEnabled: boolean;
+  maxGemCost: number;
 }
 
 export function newMissionFilters(): MissionFilters {
-  return { minDurationHoursEnabled: false, minDurationHours: 0 };
+  return {
+    minDurationHoursEnabled: false,
+    minDurationHours: 0,
+    maxGemCostEnabled: false,
+    maxGemCost: virtueShipGemCosts[ei.MissionInfo.Spaceship.ATREGGIES],
+  };
 }
 
 export function isMissionFilters(x: unknown): x is MissionFilters {
   if (!x || typeof x !== 'object') return false;
   const m = x as MissionFilters;
-  return typeof m.minDurationHoursEnabled === 'boolean' && typeof m.minDurationHours === 'number';
+  return (
+    typeof m.minDurationHoursEnabled === 'boolean' &&
+    typeof m.minDurationHours === 'number' &&
+    (m.maxGemCostEnabled === undefined || typeof m.maxGemCostEnabled === 'boolean') &&
+    (m.maxGemCost === undefined || typeof m.maxGemCost === 'number')
+  );
 }
