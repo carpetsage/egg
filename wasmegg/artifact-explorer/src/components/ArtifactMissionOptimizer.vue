@@ -140,6 +140,7 @@ export default defineComponent({
       const minDurationSeconds = missionFilters.value.minDurationHoursEnabled
         ? missionFilters.value.minDurationHours * 3600
         : undefined;
+      const maxGemCost = missionFilters.value.maxGemCostEnabled ? missionFilters.value.maxGemCost : undefined;
       computedResults.value = optimize(
         {
           // Eventually, this will be expanded to allow multiple artifacts
@@ -152,7 +153,8 @@ export default defineComponent({
         effectiveConfig.value,
         recipeDag.value,
         playerBaseYield.value,
-        minDurationSeconds
+        minDurationSeconds,
+        maxGemCost
       );
       pendingCompute.value = false;
     }

@@ -45,11 +45,13 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
 
 // Enumerate launch options: every visible ship crossed with its applicable
 // mission targets, each carrying fuel cost, duration, and per-launch yield
-// vectors. Missions shorter than minDurationSeconds (if given) are skipped.
+// vectors. Missions shorter than minDurationSeconds or whose ship costs more
+// gems than maxGemCost (if given) are skipped.
 export function enumerateLaunchOptions(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
-  minDurationSeconds?: number
+  minDurationSeconds?: number,
+  maxGemCost?: number
 ): LaunchOption[] {
   const options: LaunchOption[] = [];
 
@@ -67,6 +69,8 @@ export function enumerateLaunchOptions(
       const missionDuration = mission.boostedDurationSeconds(playerConfig);
       if (missionDuration < minDurationSeconds) continue;
     }
+
+    if (maxGemCost !== undefined && mission.virtueGemCost > maxGemCost) continue;
 
     const missionData = getMissionLootData(mission.missionTypeId);
     const levelLootData = missionData.levels[playerConfig.shipLevels[mission.shipType]];

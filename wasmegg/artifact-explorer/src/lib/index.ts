@@ -115,10 +115,11 @@ export function optimize(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
   baseYield: Map<string, number>,
-  minDurationSeconds?: number
+  minDurationSeconds?: number,
+  maxGemCost?: number
 ) {
   const { desiredArtifactNodeIds, fuelTankCapacity, timeBudgetSeconds } = config;
-  const options = enumerateLaunchOptions(playerConfig, dag, minDurationSeconds);
+  const options = enumerateLaunchOptions(playerConfig, dag, minDurationSeconds, maxGemCost);
 
   const solutions: OptimizerSolution[] = [
     optimizeFull({
