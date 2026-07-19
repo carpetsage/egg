@@ -27801,6 +27801,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1784476800,
+    "id": "ultra-7-18",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1784390400,
+    "type": "hab-sale",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1784563200,
     "id": "event-7-18-2",
     "message": "4x PIGGY GROWTH!",
@@ -27810,12 +27819,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1784476800,
-    "id": "ultra-7-18",
-    "message": "80% OFF HEN HOUSES!",
-    "multiplier": 0.2,
-    "startTimestamp": 1784390400,
-    "type": "hab-sale",
-    "ultra": true
+    "endTimestamp": 1784563200,
+    "id": "event-7-19",
+    "message": "35% OFF EPIC RESEARCH!!",
+    "multiplier": 0.65,
+    "startTimestamp": 1784476800,
+    "type": "epic-research-sale",
+    "ultra": false
   }
 ]
