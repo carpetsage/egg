@@ -68,7 +68,7 @@ export function simulate(
 
     // 2. Compute full snapshot
     const newSnapshot = computeSnapshot(currentState, context, {
-      skipGrowth: action.type === 'wait_for_no_earnings',
+      freezePopulation: action.type === 'wait_for_no_earnings',
       skipEpochConversion: true,
     });
 
@@ -154,7 +154,7 @@ export async function simulateAsync(
     });
 
     const newSnapshot = computeSnapshot(currentState, context, {
-      skipGrowth: action.type === 'wait_for_no_earnings',
+      freezePopulation: action.type === 'wait_for_no_earnings',
       skipEpochConversion: true,
     });
     const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;

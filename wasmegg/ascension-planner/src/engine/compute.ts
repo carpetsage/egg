@@ -29,7 +29,7 @@ const BASE_EGG_VALUE = 1;
 export function computeSnapshot(
   state: EngineState,
   context: SimulationContext,
-  options: { skipGrowth?: boolean; skipEpochConversion?: boolean } = {}
+  options: { skipGrowth?: boolean; freezePopulation?: boolean; skipEpochConversion?: boolean } = {}
 ): SimulationResult {
   const { epicResearchLevels, colleggtibleModifiers } = context;
 
@@ -77,6 +77,10 @@ export function computeSnapshot(
 
   if (options.skipGrowth) {
     population = habCapacityOutput.totalFinalCapacity;
+    bankValue = state.bankValue || 0;
+  } else if (options.freezePopulation) {
+    // Population and earnings are frozen (e.g. waiting with empty silos): no growth, no gems.
+    population = state.population || 0;
     bankValue = state.bankValue || 0;
   } else {
     // 8. Population growth (catch-up if starting from a backup)
@@ -144,7 +148,12 @@ export function computeSnapshot(
   // We use 1e9 as a threshold to distinguish between 0-based simulation time
   // and absolute Unix timestamps from a backup.
   let extraEggs = 0;
-  if (state.lastStepTime > 1e9 && context.ascensionStartTime > state.lastStepTime && !options.skipGrowth) {
+  if (
+    state.lastStepTime > 1e9 &&
+    context.ascensionStartTime > state.lastStepTime &&
+    !options.skipGrowth &&
+    !options.freezePopulation
+  ) {
     const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
 
     // Accurate catch-up using integrated rate (accounts for population growth)
