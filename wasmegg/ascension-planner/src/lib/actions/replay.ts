@@ -23,6 +23,7 @@ import type {
   UpdateArtifactSetPayload,
   VirtueEgg,
   RemoveFuelPayload,
+  ModifyBankPayload,
 } from '@/types';
 import { type HabId } from '@/lib/habs';
 import { restoreFromSnapshot, computeCurrentSnapshot, computeDeltas } from './snapshot';
@@ -206,6 +207,14 @@ function applyActionEffect(action: Action): void {
           stones: [...slot.stones],
         }))
       );
+      break;
+    }
+
+    case 'modify_bank': {
+      const payload = action.payload as ModifyBankPayload;
+      const virtueStore = useVirtueStore();
+      const newValue = payload.mode === 'set' ? payload.amount : virtueStore.bankValue + payload.amount;
+      virtueStore.setBankValue(newValue);
       break;
     }
 

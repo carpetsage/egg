@@ -216,6 +216,12 @@ export function applyAction(
       return newState;
     }
 
+    case 'modify_bank': {
+      const payload = action.payload as import('@/types').ModifyBankPayload;
+      const newBankValue = payload.mode === 'set' ? payload.amount : (state.bankValue || 0) + payload.amount;
+      return { ...state, bankValue: newBankValue };
+    }
+
     case 'wait_for_time':
     case 'wait_for_full_habs':
     case 'wait_for_gems':

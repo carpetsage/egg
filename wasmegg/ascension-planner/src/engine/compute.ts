@@ -196,9 +196,10 @@ export function computeSnapshot(
     siloTimeMinutes,
     tankLevel: state.tankLevel,
     fuelTankAmounts: state.fuelTankAmounts,
-    eggsDelivered: extraEggs > 0 
-      ? { ...state.eggsDelivered, [state.currentEgg]: (state.eggsDelivered[state.currentEgg] || 0) + extraEggs }
-      : state.eggsDelivered,
+    eggsDelivered:
+      extraEggs > 0
+        ? { ...state.eggsDelivered, [state.currentEgg]: (state.eggsDelivered[state.currentEgg] || 0) + extraEggs }
+        : state.eggsDelivered,
     teEarned: state.teEarned,
     vehicles: state.vehicles,
     habIds: state.habIds,
