@@ -2,6 +2,7 @@ export * from './artifacts';
 export * from './missions';
 export * from './loot';
 export * from './optimizer-views';
+export * from './optimizer-tree';
 
 import type { DAGNode, LaunchSolution, OptimizerConfig, OptimizerSolution, DropRow, RecipeDAG } from './types';
 import { enumerateLaunchOptions, generateRecipeDag } from './phases';

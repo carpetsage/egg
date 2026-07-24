@@ -54,7 +54,7 @@
       :expected-crafts="solution.expectedCrafts"
       :p-craft="pCraft"
       :lambda="lambda"
-      :craft-chain="craftChain"
+      :craft-chain-tree="craftChainTree"
       :mission-legendary-sources="missionLegendarySources"
       :has-inventory="hasInventory"
     />
@@ -65,7 +65,7 @@
 import { computed, defineComponent, PropType } from 'vue';
 
 import { eggIconPath, formatDuration, formatEIValue } from 'lib';
-import type { CraftChainRow, MissionLegendaryRow, OptimizerSolution } from '@/lib';
+import type { CraftChainMetrics, MissionLegendaryRow, OptimizerSolution, RecipeTreeNode } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 import OptimizerChoiceList from './OptimizerChoiceList.vue';
 import OptimizerExpectedDrops from './OptimizerExpectedDrops.vue';
@@ -78,7 +78,7 @@ export default defineComponent({
     maxWaitTimeSeconds: { type: Number, required: true },
     pCraft: { type: Number, required: true },
     lambda: { type: Number, required: true },
-    craftChain: { type: Array as PropType<CraftChainRow[]>, required: true },
+    craftChainTree: { type: Object as PropType<RecipeTreeNode<CraftChainMetrics> | null>, required: true },
     missionLegendarySources: { type: Array as PropType<MissionLegendaryRow[]>, required: true },
     hasInventory: { type: Boolean, required: true },
     dropDataIsSparse: { type: Boolean, default: false },

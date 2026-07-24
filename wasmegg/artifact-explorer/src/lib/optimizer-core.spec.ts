@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ei } from 'lib';
 import { optimizeFull } from './optimizer-core';
-import { computeCraftChainRows } from './optimizer-views';
+import { computeCraftChainTree } from './optimizer-tree';
 import { makeNode, makeOpt } from './spec-helpers';
 import type { RecipeDAG } from './types';
 
@@ -321,9 +321,9 @@ describe('optimizeFull', () => {
     expect(sol.baseYield.get(leaf)).toBe(5);
     // 10s per launch, 50s per-slot horizon, 3 slots: 5 per slot -> 15 dropped
     expect(sol.finalYieldVector.get(leaf)).toBeCloseTo(20, 9); // 5 owned + 15 dropped
-    const leafRow = computeCraftChainRows(sol, root, null).find(r => r.nodeId === leaf);
-    expect(leafRow).toBeDefined();
-    expect(leafRow!.dropped).toBeCloseTo(15, 9);
+    const leafNode = computeCraftChainTree(sol, root, null)?.children.find(n => n.nodeId === leaf);
+    expect(leafNode).toBeDefined();
+    expect(leafNode!.metrics.dropped).toBeCloseTo(15, 9);
   });
 
   it('never exceeds either budget', () => {

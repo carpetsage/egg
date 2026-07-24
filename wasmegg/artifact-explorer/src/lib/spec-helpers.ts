@@ -2,7 +2,7 @@
 // options with small controlled numbers so tests can assert exact arithmetic.
 
 import { ei, MissionType } from 'lib';
-import type { DAGNode, LaunchOption } from './types';
+import type { DAGNode, LaunchOption, OptimizerSolution } from './types';
 
 export function makeNode(id: string, isLeaf: boolean, children: [string, number][] = [], pCraft = 0): DAGNode {
   return {
@@ -38,5 +38,26 @@ export function makeOpt(
     supplyVector: new Map(yieldEntries),
     yieldVector: new Map(yieldEntries),
     legendaryYieldVector: new Map(legendaryEntries),
+  };
+}
+
+export function makeSolution(overrides: Partial<OptimizerSolution>): OptimizerSolution {
+  return {
+    bestProbability: 0,
+    craftProbability: 0,
+    dropProbability: 0,
+    expectedCrafts: 0,
+    fuelUsed: 0,
+    fuelByEgg: new Map(),
+    timeUnitsUsed: 0,
+    runningTimeSeconds: 0,
+    choiceHistory: [],
+    expectedDrops: [],
+    finalYieldVector: new Map(),
+    baseYield: new Map(),
+    recipeDag: new Map(),
+    craftPrimal: new Map(),
+    perTarget: [],
+    ...overrides,
   };
 }
