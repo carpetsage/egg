@@ -1,5 +1,7 @@
 # Brute-force oracle for the artifact optimizer
 
+The solver's design is documented in [`../lib/OPTIMIZER.md`](../lib/OPTIMIZER.md).
+
 Correctness harness for the heuristic outer solver (`optimizeFull`). The
 solver is treated as a black box: nothing here imports its internals, and the
 three-slot packing feasibility check is re-derived independently.

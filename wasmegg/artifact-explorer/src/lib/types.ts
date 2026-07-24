@@ -50,9 +50,8 @@ export interface LaunchSolution {
   legendarySupplyVector: Map<string, number>;
 }
 
-// One slot's share of the plan. The three slots run concurrently, so the
-// plan's wall-clock is the busiest slot's load; rawLoadSeconds is the same
-// sum over the missions' true (unfloored) durations.
+// The three slots run concurrently, so the plan's wall-clock is the busiest
+// slot's load.
 export interface SlotSummary {
   loadSeconds: number;
   rawLoadSeconds: number;
@@ -76,8 +75,8 @@ export interface TargetProbability {
 }
 
 export interface OptimizerSolution {
-  // the scalar probability fields describe the primary target; multi-target
-  // consumers should read perTarget instead
+  // these scalar fields describe the primary target only; multi-target
+  // consumers must read perTarget
   bestProbability: number;
   craftProbability: number;
   dropProbability: number;
@@ -95,6 +94,8 @@ export interface OptimizerSolution {
   recipeDag: RecipeDAG;
   craftPrimal: Map<string, number>;
   perTarget: TargetProbability[]; // perTarget[0] mirrors the scalar fields
+  // P(a legendary of EVERY selected target): the product over perTarget.
+  jointProbability: number;
 }
 
 export interface OptimizerConfig {

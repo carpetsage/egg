@@ -4,7 +4,15 @@
 
 import { describe, it, expect } from 'vitest';
 
-import { isExtrasConfig, isOverrideFlags, newExtras, newOverrides } from './schema';
+import {
+  DEFAULT_WAIT_TIME_DAYS,
+  isExtrasConfig,
+  isMissionFilters,
+  isOverrideFlags,
+  newExtras,
+  newMissionFilters,
+  newOverrides,
+} from './schema';
 
 describe('OverrideFlags', () => {
   it('defaults everything to off', () => {
@@ -84,5 +92,35 @@ describe('ExtrasConfig', () => {
     expect(isExtrasConfig(undefined)).toBe(false);
     expect(isExtrasConfig('string')).toBe(false);
     expect(isExtrasConfig(123)).toBe(false);
+  });
+});
+
+describe('MissionFilters', () => {
+  it('defaults to a medium effort and the default time budget', () => {
+    const filters = newMissionFilters();
+
+    expect(filters.effort).toBe('medium');
+    expect(filters.maxGemCostEnabled).toBe(false);
+    expect(filters.waitTimeDays).toBe(DEFAULT_WAIT_TIME_DAYS);
+  });
+
+  it('validates a default object', () => {
+    expect(isMissionFilters(newMissionFilters())).toBe(true);
+  });
+
+  it('accepts persisted blobs without waitTimeDays', () => {
+    const old = { effort: 'high', maxGemCostEnabled: true, maxGemCost: 12 };
+    expect(isMissionFilters(old)).toBe(true);
+  });
+
+  it('rejects a non-string waitTimeDays', () => {
+    expect(isMissionFilters({ ...newMissionFilters(), waitTimeDays: 30 })).toBe(false);
+  });
+
+  it('rejects non-objects', () => {
+    expect(isMissionFilters(null)).toBe(false);
+    expect(isMissionFilters(undefined)).toBe(false);
+    expect(isMissionFilters('string')).toBe(false);
+    expect(isMissionFilters(123)).toBe(false);
   });
 });

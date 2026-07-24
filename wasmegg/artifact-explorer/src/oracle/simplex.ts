@@ -4,8 +4,18 @@
 
 import { Frac } from './rational';
 
+export interface SimplexFloatResult {
+  objective: number;
+  primal: number[]; // one entry per column of c, in its order
+}
+
+export interface SimplexResult {
+  objective: Frac;
+  primal: Frac[];
+}
+
 // Float twin of simplexMaximize for cheap candidate ranking.
-export function simplexMaximizeFloat(A: number[][], b: number[], c: number[]): number {
+export function simplexMaximizeFloatFull(A: number[][], b: number[], c: number[]): SimplexFloatResult {
   const EPS = 1e-9;
   const m = A.length;
   const n = c.length;
@@ -40,7 +50,11 @@ export function simplexMaximizeFloat(A: number[][], b: number[], c: number[]): n
       }
     }
     if (enter === -1) {
-      return T[m][width - 1];
+      const primal = new Array<number>(n).fill(0);
+      for (let i = 0; i < m; i++) {
+        if (basis[i] < n) primal[basis[i]] = T[i][width - 1];
+      }
+      return { objective: T[m][width - 1], primal };
     }
     let leave = -1;
     let bestRatio = Infinity;
@@ -76,7 +90,11 @@ export function simplexMaximizeFloat(A: number[][], b: number[], c: number[]): n
   throw new Error('float simplex iteration cap exceeded');
 }
 
-export function simplexMaximize(A: Frac[][], b: Frac[], c: Frac[]): Frac {
+export function simplexMaximizeFloat(A: number[][], b: number[], c: number[]): number {
+  return simplexMaximizeFloatFull(A, b, c).objective;
+}
+
+export function simplexMaximizeFull(A: Frac[][], b: Frac[], c: Frac[]): SimplexResult {
   const m = A.length;
   const n = c.length;
   for (const bi of b) {
@@ -123,7 +141,11 @@ export function simplexMaximize(A: Frac[][], b: Frac[], c: Frac[]): Frac {
       }
     }
     if (enter === -1) {
-      return T[m][width - 1]; // optimal; objective value accumulated in rhs
+      const primal: Frac[] = new Array(n).fill(Frac.ZERO);
+      for (let i = 0; i < m; i++) {
+        if (basis[i] < n) primal[basis[i]] = T[i][width - 1];
+      }
+      return { objective: T[m][width - 1], primal }; // objective value accumulated in rhs
     }
     // Ratio test; Bland tie-break on lowest basis variable index.
     let leave = -1;
@@ -155,4 +177,8 @@ export function simplexMaximize(A: Frac[][], b: Frac[], c: Frac[]): Frac {
     }
     basis[leave] = enter;
   }
+}
+
+export function simplexMaximize(A: Frac[][], b: Frac[], c: Frac[]): Frac {
+  return simplexMaximizeFull(A, b, c).objective;
 }
