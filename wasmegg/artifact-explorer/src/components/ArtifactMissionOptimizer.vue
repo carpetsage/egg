@@ -33,7 +33,7 @@
           {{
             timeBudgetValid
               ? 'No ship set found for the current settings.'
-              : 'Enter a time budget (a positive number of days) to compute a plan.'
+              : 'Enter a time budget (e.g. 30, 12d12h, 10h5m) to compute a plan.'
           }}
         </p>
       </div>
@@ -48,7 +48,7 @@
 <script lang="ts">
 import { computed, defineComponent, onUnmounted, ref, toRefs, watch, watchEffect } from 'vue';
 
-import { getSavedPlayerID, requestFirstContact, savePlayerID } from 'lib';
+import { getSavedPlayerID, parseDurationDays, requestFirstContact, savePlayerID } from 'lib';
 
 import {
   autoCompute,
@@ -87,7 +87,7 @@ export default defineComponent({
     const { artifactId } = toRefs(props);
 
     const waitTimeDays = ref('30');
-    const maxWaitTimeSeconds = computed(() => parseFloat(waitTimeDays.value) * 86400);
+    const maxWaitTimeSeconds = computed(() => parseDurationDays(waitTimeDays.value));
 
     const timeBudgetValid = computed(() => Number.isFinite(maxWaitTimeSeconds.value) && maxWaitTimeSeconds.value > 0);
 
