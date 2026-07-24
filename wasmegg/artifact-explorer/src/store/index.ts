@@ -35,7 +35,7 @@ import {
   OverrideFlags,
 } from './schema';
 export type { ExtrasConfig, MissionFilters, OverrideFlags, EffortLevel } from './schema';
-export { EFFORT_LEVELS, EFFORT_SLACK_SECONDS } from './schema';
+export { EFFORT_LEVELS, EFFORT_LAUNCH_PERIOD_SECONDS } from './schema';
 
 export const CONFIG_LOCALSTORAGE_KEY = 'config';
 export const OVERRIDES_LOCALSTORAGE_KEY = 'overrides';

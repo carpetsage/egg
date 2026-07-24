@@ -63,18 +63,30 @@ describe('enumerateLaunchOptions', () => {
     expect(options.some(o => o.targetAfxId === Name.PUZZLE_CUBE)).toBe(true);
   });
 
-  it('adds extraTimeSeconds slack to every mission duration without dropping any', () => {
+  it('floors every mission duration up to the launch period without dropping any', () => {
     const base = enumerateLaunchOptions(perfectShipsConfig, dag);
-    const slack = 4 * 3600;
-    const inflated = enumerateLaunchOptions(perfectShipsConfig, dag, slack);
-    // Nothing is filtered out: the effort slack is a soft penalty, not a cutoff.
-    expect(inflated.length).toBe(base.length);
+    // 6h splits the real option set: some missions are shorter, some longer
+    const launchPeriod = 6 * 3600;
+    const floored = enumerateLaunchOptions(perfectShipsConfig, dag, launchPeriod);
+    // the floor is a soft penalty, not a cutoff
+    expect(floored.length).toBe(base.length);
     const baseById = new Map(base.map(o => [o.id, o]));
-    for (const o of inflated) {
+    let sawRaised = false;
+    let sawUnchanged = false;
+    for (const o of floored) {
       const original = baseById.get(o.id)!;
-      expect(o.actualTime).toBeCloseTo(original.actualTime + slack);
-      expect(o.actualTime).toBeGreaterThanOrEqual(slack);
+      expect(o.rawTime).toBeCloseTo(original.actualTime);
+      expect(o.actualTime).toBeCloseTo(Math.max(o.rawTime, launchPeriod));
+      if (o.rawTime >= launchPeriod) {
+        expect(o.actualTime).toBeCloseTo(o.rawTime);
+        sawUnchanged = true;
+      } else {
+        expect(o.actualTime).toBeCloseTo(launchPeriod);
+        sawRaised = true;
+      }
     }
+    expect(sawRaised).toBe(true);
+    expect(sawUnchanged).toBe(true);
   });
 
   it('drops missions whose ship costs more gems than maxGemCost', () => {
@@ -120,7 +132,7 @@ describe('optimize', () => {
     }
   });
 
-  it('splits budgeted time into idle slack and running time', () => {
+  it('reports running time as the busiest slot real flight time', () => {
     const config = {
       desiredArtifactNodeIds: ['puzzle-cube-4'],
       includeNotEnoughData: false,
@@ -129,25 +141,21 @@ describe('optimize', () => {
     };
     const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
     const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
-    const slack = 3600; // medium effort: ~1h of relaunch slack per wave
-    const [sol] = optimize(config, perfectShipsConfig, dag, baseYield, slack);
+    const launchPeriod = 3600; // high effort: 1 launch / slot / hour
+    const [sol] = optimize(config, perfectShipsConfig, dag, baseYield, launchPeriod);
 
-    // The three slots run concurrently, so the wall-clock idle the player waits
-    // through is the busiest slot's relaunch slack: its mission count × slack.
     expect(sol.slots).toBeDefined();
     expect(sol.slots!.length).toBe(3);
     const busiest = sol.slots!.reduce((a, b) => (b.loadSeconds > a.loadSeconds ? b : a));
     expect(busiest.missionCount).toBeGreaterThan(0);
-    expect(sol.idleTimeSeconds).toBe(Math.round(busiest.missionCount * slack));
-    expect(sol.runningTimeSeconds).toBe(Math.max(0, sol.timeUnitsUsed - sol.idleTimeSeconds));
-    // every slot fits within the horizon (the per-slot packing contract)
+    expect(sol.runningTimeSeconds).toBe(Math.round(busiest.rawLoadSeconds));
+    expect(sol.runningTimeSeconds).toBeLessThanOrEqual(sol.timeUnitsUsed);
     for (const slot of sol.slots!) {
       expect(slot.loadSeconds).toBeLessThanOrEqual(config.timeBudgetSeconds + 1e-6);
     }
 
-    // With zero slack there is no idle time and everything is running time.
+    // with a zero launch period nothing is floored: raw flight = makespan
     const [rawSol] = optimize(config, perfectShipsConfig, dag, baseYield, 0);
-    expect(rawSol.idleTimeSeconds).toBe(0);
     expect(rawSol.runningTimeSeconds).toBe(rawSol.timeUnitsUsed);
   });
 });

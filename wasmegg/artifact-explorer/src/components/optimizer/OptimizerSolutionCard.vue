@@ -36,9 +36,9 @@
       </li>
     </ul>
     <div class="text-gray-600">Ships in flight: {{ formatDuration(solution.runningTimeSeconds, true) }}</div>
-    <div v-if="solution.idleTimeSeconds > 0" class="text-gray-600">
-      <span v-tippy="idleTooltip" class="cursor-help border-b border-dotted border-gray-400/60">Idle between launches</span>
-      : {{ formatDuration(solution.idleTimeSeconds, true) }}
+    <div v-if="idleTimeSeconds > 0" class="text-gray-600">
+      <span v-tippy="idleTooltip" class="cursor-help border-b border-dotted border-gray-400/60">Idle</span>
+      : {{ formatDuration(idleTimeSeconds, true) }}
     </div>
     <div class="text-gray-600">Expected crafts: {{ solution.expectedCrafts.toFixed(1) }}</div>
 
@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { computed, defineComponent, PropType } from 'vue';
 
 import { eggIconPath, formatDuration, formatEIValue } from 'lib';
 import type { CraftChainRow, MissionLegendaryRow, OptimizerSolution } from '@/lib';
@@ -75,6 +75,7 @@ export default defineComponent({
   components: { BaseIcon, OptimizerChoiceList, OptimizerExpectedDrops, OptimizerProbabilityBreakdown },
   props: {
     solution: { type: Object as PropType<OptimizerSolution>, required: true },
+    maxWaitTimeSeconds: { type: Number, required: true },
     pCraft: { type: Number, required: true },
     lambda: { type: Number, required: true },
     craftChain: { type: Array as PropType<CraftChainRow[]>, required: true },
@@ -82,7 +83,7 @@ export default defineComponent({
     hasInventory: { type: Boolean, required: true },
     dropDataIsSparse: { type: Boolean, default: false },
   },
-  setup() {
+  setup(props) {
     const sparseTooltip =
       'Drop data is sparse: no mission has accumulated 5+ legendary observations of this artifact. The displayed rate is dominated by single-observation noise and may overstate or understate the true rate by several multiples.';
     const chanceTooltip =
@@ -92,7 +93,10 @@ export default defineComponent({
     const dropTooltip =
       'The probability of at least one legendary dropping directly from the missions themselves, without crafting.';
     const idleTooltip =
-      'Estimated wall-clock time spent not launching — the relaunch slack implied by your effort setting. Lower effort assumes longer gaps before you send the next wave.';
+      'Budget time with no ships in flight — gaps between launches (per your effort setting) plus unused budget at the end. Ships in flight + idle = your max wait time.';
+    const idleTimeSeconds = computed(() =>
+      Math.max(0, Math.round(props.maxWaitTimeSeconds) - props.solution.runningTimeSeconds)
+    );
     return {
       eggIconPath,
       formatDuration,
@@ -102,6 +106,7 @@ export default defineComponent({
       craftTooltip,
       dropTooltip,
       idleTooltip,
+      idleTimeSeconds,
     };
   },
 });

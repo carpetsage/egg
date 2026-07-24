@@ -44,18 +44,14 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
 }
 
 // Enumerate launch options: every visible ship crossed with its applicable
-// mission targets, each carrying fuel cost, duration, and per-launch yield
-// vectors. Costs and yields are PER SINGLE SHIP: the game's three mission
-// slots are independent, each running its own back-to-back sequence of single
-// ship missions within the shared time horizon, so the optimizer allocates
-// individual ships (not lockstep waves of three). extraTimeSeconds is added to
-// every mission's duration for time budgeting (see EFFORT_SLACK_SECONDS): a
-// fixed relaunch-slack that penalises short missions without banning them.
-// Missions whose ship costs more gems than maxGemCost (if given) are skipped.
+// mission targets, with per-single-ship costs and yields. launchPeriodSeconds
+// floors each mission's effective duration (see EFFORT_LAUNCH_PERIOD_SECONDS),
+// penalising short missions without banning them. Ships costing more gems
+// than maxGemCost (if given) are skipped.
 export function enumerateLaunchOptions(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
-  extraTimeSeconds = 0,
+  launchPeriodSeconds = 0,
   maxGemCost?: number
 ): LaunchOption[] {
   const options: LaunchOption[] = [];
@@ -107,7 +103,7 @@ export function enumerateLaunchOptions(
         if (target !== bestNonDagTarget) continue;
       }
 
-      const option = makeLaunchOption(mission, target.targetAfxId, playerConfig, extraTimeSeconds);
+      const option = makeLaunchOption(mission, target.targetAfxId, playerConfig, launchPeriodSeconds);
       for (const item of target.items) {
         const expectedDropsPerShip = (sum(item.counts) / target.totalDrops) * missionCapacity;
         option.supplyVector.set(item.itemId, expectedDropsPerShip);
@@ -136,12 +132,14 @@ function makeLaunchOption(
   mission: MissionType,
   target: ei.ArtifactSpec.Name,
   playerConfig: ShipsConfig,
-  extraTimeSeconds = 0
+  launchPeriodSeconds = 0
 ): LaunchOption {
   const id = `${mission.missionTypeId}::${target}`;
   const fuelUse = mission.virtueFuels;
 
   const nonHumilityFuelUse = fuelUse.filter(x => x.egg !== ei.Egg.HUMILITY);
+
+  const rawTime = mission.boostedDurationSeconds(playerConfig);
 
   return {
     id,
@@ -149,7 +147,8 @@ function makeLaunchOption(
     target: getArtifactName(target),
     targetAfxId: target,
     actualFuel: nonHumilityFuelUse.reduce((agg, current) => agg + current.amount, 0),
-    actualTime: mission.boostedDurationSeconds(playerConfig) + extraTimeSeconds,
+    actualTime: Math.max(rawTime, launchPeriodSeconds),
+    rawTime,
     fuelByEgg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount), new Map()),
     supplyVector: new Map(),
     yieldVector: new Map(),

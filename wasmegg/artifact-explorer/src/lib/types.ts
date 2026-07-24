@@ -11,7 +11,10 @@ export interface LaunchOption {
   targetAfxId: ei.ArtifactSpec.Name; // UNKNOWN when untargeted
   actualFuel: number;
   fuelByEgg: Map<ei.Egg, number>;
+  // effective duration for budgeting: rawTime floored up to the effort
+  // level's launch period
   actualTime: number;
+  rawTime: number; // true (unfloored) boosted duration
   // everything this launch drops, per single ship — display only
   supplyVector: Map<string, number>;
   // subset of supplyVector restricted to recipe ingredients; this is what
@@ -47,11 +50,12 @@ export interface LaunchSolution {
   legendarySupplyVector: Map<string, number>;
 }
 
-// One slot's share of the plan: how much of the horizon it occupies (relaunch
-// slack included) and how many single-ship missions it runs. The three slots
-// run concurrently, so the plan's wall-clock is the busiest slot's load.
+// One slot's share of the plan. The three slots run concurrently, so the
+// plan's wall-clock is the busiest slot's load; rawLoadSeconds is the same
+// sum over the missions' true (unfloored) durations.
 export interface SlotSummary {
   loadSeconds: number;
+  rawLoadSeconds: number;
   missionCount: integer;
 }
 
@@ -80,16 +84,9 @@ export interface OptimizerSolution {
   expectedCrafts: number;
   fuelUsed: number;
   fuelByEgg: Map<ei.Egg, number>;
-  // timeUnitsUsed is the plan's wall-clock: the makespan of the busiest of the
-  // three concurrent slots (<= the horizon). It splits into runningTimeSeconds
-  // (ships in flight on that slot) + idleTimeSeconds (effort slack spent
-  // between that slot's relaunches).
-  timeUnitsUsed: integer;
-  runningTimeSeconds: integer;
-  idleTimeSeconds: integer;
-  // per-slot occupancy of the chosen plan (up to three entries); the packing
-  // witness the optimizer used to prove every mission fits one slot's horizon
-  slots?: SlotSummary[];
+  timeUnitsUsed: integer; // makespan: the busiest slot's floored load
+  runningTimeSeconds: integer; // the busiest slot's real (raw) flight time
+  slots?: SlotSummary[]; // per-slot occupancy of the chosen plan
   choiceHistory: LaunchSolution[];
   expectedDrops: DropRow[];
   finalYieldVector: Map<string, number>;

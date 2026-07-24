@@ -21,6 +21,7 @@
           v-for="(view, i) in solutionViews"
           :key="'solution-' + i"
           :solution="view.solution"
+          :max-wait-time-seconds="lastComputedMaxWaitTimeSeconds"
           :p-craft="view.pCraft"
           :lambda="view.lambda"
           :craft-chain="view.craftChain"
@@ -56,7 +57,7 @@ import {
   effectiveFuelTankCapacity,
   effectivePreviousCrafts,
   effectiveCraftingLevel,
-  EFFORT_SLACK_SECONDS,
+  EFFORT_LAUNCH_PERIOD_SECONDS,
   missionFilters,
   playerInventory,
   setPlayerData,
@@ -118,6 +119,9 @@ export default defineComponent({
 
     const pendingCompute = ref(false);
     const computedResults = ref<OptimizerSolution[]>([]);
+    // budget the displayed plan was computed against; the live input can
+    // change before a manual recompute
+    const lastComputedMaxWaitTimeSeconds = ref(0);
 
     const recipeDag = computed<ReturnType<typeof buildRecipeDag>>(() =>
       buildRecipeDag(
@@ -138,8 +142,9 @@ export default defineComponent({
         pendingCompute.value = false;
         return;
       }
-      const extraTimeSeconds = EFFORT_SLACK_SECONDS[missionFilters.value.effort];
+      const launchPeriodSeconds = EFFORT_LAUNCH_PERIOD_SECONDS[missionFilters.value.effort];
       const maxGemCost = missionFilters.value.maxGemCostEnabled ? missionFilters.value.maxGemCost : undefined;
+      lastComputedMaxWaitTimeSeconds.value = maxWaitTimeSeconds.value;
       computedResults.value = optimize(
         {
           // Eventually, this will be expanded to allow multiple artifacts
@@ -152,7 +157,7 @@ export default defineComponent({
         effectiveConfig.value,
         recipeDag.value,
         playerBaseYield.value,
-        extraTimeSeconds,
+        launchPeriodSeconds,
         maxGemCost
       );
       pendingCompute.value = false;
@@ -186,6 +191,7 @@ export default defineComponent({
 
     return {
       waitTimeDays,
+      lastComputedMaxWaitTimeSeconds,
       timeBudgetValid,
       pendingCompute,
       playerId,

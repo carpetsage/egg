@@ -34,6 +34,7 @@ export function makeOpt(
     actualFuel,
     fuelByEgg: new Map(),
     actualTime,
+    rawTime: actualTime,
     supplyVector: new Map(yieldEntries),
     yieldVector: new Map(yieldEntries),
     legendaryYieldVector: new Map(legendaryEntries),
