@@ -45,10 +45,13 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
 
 // Enumerate launch options: every visible ship crossed with its applicable
 // mission targets, each carrying fuel cost, duration, and per-launch yield
-// vectors. extraTimeSeconds is added to every mission's duration for time
-// budgeting (see EFFORT_SLACK_SECONDS): a fixed relaunch-slack that penalises
-// short missions without banning them. Missions whose ship costs more gems
-// than maxGemCost (if given) are skipped.
+// vectors. Costs and yields are PER SINGLE SHIP: the game's three mission
+// slots are independent, each running its own back-to-back sequence of single
+// ship missions within the shared time horizon, so the optimizer allocates
+// individual ships (not lockstep waves of three). extraTimeSeconds is added to
+// every mission's duration for time budgeting (see EFFORT_SLACK_SECONDS): a
+// fixed relaunch-slack that penalises short missions without banning them.
+// Missions whose ship costs more gems than maxGemCost (if given) are skipped.
 export function enumerateLaunchOptions(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
@@ -106,8 +109,8 @@ export function enumerateLaunchOptions(
 
       const option = makeLaunchOption(mission, target.targetAfxId, playerConfig, extraTimeSeconds);
       for (const item of target.items) {
-        const expectedDropsPerBatch = (sum(item.counts) / target.totalDrops) * missionCapacity * 3.0;
-        option.supplyVector.set(item.itemId, expectedDropsPerBatch);
+        const expectedDropsPerShip = (sum(item.counts) / target.totalDrops) * missionCapacity;
+        option.supplyVector.set(item.itemId, expectedDropsPerShip);
 
         if (dag.has(item.itemId)) {
           // Zero out legendary counts below the observation minimum — a single
@@ -115,9 +118,9 @@ export function enumerateLaunchOptions(
           // precise rate.
           const observed = item.counts[3];
           const legendaryCount = observed >= MIN_LEGENDARY_OBSERVATIONS || playerConfig.showNodata ? observed : 0;
-          const legendaryRate = (legendaryCount / target.totalDrops) * missionCapacity * 3.0;
+          const legendaryRate = (legendaryCount / target.totalDrops) * missionCapacity;
 
-          option.yieldVector.set(item.itemId, expectedDropsPerBatch);
+          option.yieldVector.set(item.itemId, expectedDropsPerShip);
           option.legendaryYieldVector.set(item.itemId, legendaryRate);
         }
       }
@@ -145,9 +148,9 @@ function makeLaunchOption(
     ship: mission,
     target: getArtifactName(target),
     targetAfxId: target,
-    actualFuel: nonHumilityFuelUse.reduce((agg, current) => agg + current.amount, 0) * 3,
+    actualFuel: nonHumilityFuelUse.reduce((agg, current) => agg + current.amount, 0),
     actualTime: mission.boostedDurationSeconds(playerConfig) + extraTimeSeconds,
-    fuelByEgg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount * 3), new Map()),
+    fuelByEgg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount), new Map()),
     supplyVector: new Map(),
     yieldVector: new Map(),
     legendaryYieldVector: new Map(),

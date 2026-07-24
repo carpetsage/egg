@@ -146,15 +146,16 @@ export function computeCraftChainRows(
 }
 
 // Per-mission expected direct legendary drops of the targeted root.
-// legendary_supply_vector is per batch of 3 ships, hence the /3. Missions
-// contributing essentially nothing are dropped from the breakdown.
+// legendary_supply_vector is per single ship, and numShipsLaunched counts
+// single ships, so the two multiply directly. Missions contributing
+// essentially nothing are dropped from the breakdown.
 export function computeMissionLegendaryRows(solution: OptimizerSolution, rootId: string): MissionLegendaryRow[] {
   return solution.choiceHistory
     .map(choice => ({
       ship: choice.ship,
       targetAfxId: choice.targetAfxId,
       numShipsLaunched: choice.numShipsLaunched,
-      legendaryDrops: (choice.numShipsLaunched / 3) * (choice.legendarySupplyVector.get(rootId) ?? 0),
+      legendaryDrops: choice.numShipsLaunched * (choice.legendarySupplyVector.get(rootId) ?? 0),
     }))
     .filter(row => row.legendaryDrops > 0.0001);
 }

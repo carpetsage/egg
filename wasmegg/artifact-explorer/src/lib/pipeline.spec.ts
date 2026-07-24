@@ -132,11 +132,18 @@ describe('optimize', () => {
     const slack = 3600; // medium effort: ~1h of relaunch slack per wave
     const [sol] = optimize(config, perfectShipsConfig, dag, baseYield, slack);
 
-    // Each choice launches 3 ships per wave, so idle slack accrues per wave.
-    const waves = sol.choiceHistory.reduce((sum, choice) => sum + choice.numShipsLaunched / 3, 0);
-    expect(waves).toBeGreaterThan(0);
-    expect(sol.idleTimeSeconds).toBe(Math.round(waves * slack));
+    // The three slots run concurrently, so the wall-clock idle the player waits
+    // through is the busiest slot's relaunch slack: its mission count × slack.
+    expect(sol.slots).toBeDefined();
+    expect(sol.slots!.length).toBe(3);
+    const busiest = sol.slots!.reduce((a, b) => (b.loadSeconds > a.loadSeconds ? b : a));
+    expect(busiest.missionCount).toBeGreaterThan(0);
+    expect(sol.idleTimeSeconds).toBe(Math.round(busiest.missionCount * slack));
     expect(sol.runningTimeSeconds).toBe(Math.max(0, sol.timeUnitsUsed - sol.idleTimeSeconds));
+    // every slot fits within the horizon (the per-slot packing contract)
+    for (const slot of sol.slots!) {
+      expect(slot.loadSeconds).toBeLessThanOrEqual(config.timeBudgetSeconds + 1e-6);
+    }
 
     // With zero slack there is no idle time and everything is running time.
     const [rawSol] = optimize(config, perfectShipsConfig, dag, baseYield, 0);

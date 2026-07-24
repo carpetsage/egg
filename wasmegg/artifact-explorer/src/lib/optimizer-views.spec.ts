@@ -255,19 +255,19 @@ describe('computeMissionLegendaryRows', () => {
     };
   }
 
-  it('scales per-batch legendary supply by batches of 3 ships', () => {
+  it('scales legendary supply by ship count', () => {
     const solution = makeSolution({
       choiceHistory: [
-        makeChoice(6, [[lt4, 0.5]]), // 2 batches * 0.5 = 1 expected drop
+        makeChoice(2, [[lt4, 0.5]]), // 2 ships * 0.5 = 1 expected drop
         makeChoice(9, [[lt3, 0.5]]), // supplies a different node only
-        makeChoice(3, [[lt4, 0.0001]]), // exactly at the noise threshold
+        makeChoice(3, [[lt4, 0.00001]]), // 3 * 1e-5 = 3e-5, below the noise threshold
       ],
     });
     const rows = computeMissionLegendaryRows(solution, lt4);
     expect(rows).toHaveLength(1);
     expect(rows[0].ship).toBe(ship);
     expect(rows[0].targetAfxId).toBe(Name.LUNAR_TOTEM);
-    expect(rows[0].numShipsLaunched).toBe(6);
+    expect(rows[0].numShipsLaunched).toBe(2);
     expect(rows[0].legendaryDrops).toBeCloseTo(1, 12);
   });
 

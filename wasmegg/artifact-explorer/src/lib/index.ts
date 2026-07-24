@@ -72,7 +72,7 @@ function computeExpectedDrops(solution: OptimizerSolution, dag: Map<string, DAGN
 
   for (const choice of solution.choiceHistory) {
     for (const [item, rate] of choice.supplyVector) {
-      totals.set(item, (totals.get(item) ?? 0) + (rate * choice.numShipsLaunched) / 3);
+      totals.set(item, (totals.get(item) ?? 0) + rate * choice.numShipsLaunched);
     }
   }
 
@@ -100,7 +100,7 @@ function computeFuelByEgg(solution: OptimizerSolution): Map<ei.Egg, number> {
 
   for (const choice of solution.choiceHistory) {
     for (const [egg, rate] of choice.actualFuelByEgg) {
-      totals.set(egg, (totals.get(egg) ?? 0) + (rate * choice.numShipsLaunched) / 3.0);
+      totals.set(egg, (totals.get(egg) ?? 0) + rate * choice.numShipsLaunched);
     }
   }
 
@@ -138,14 +138,20 @@ export function optimize(
     solution.expectedDrops = computeExpectedDrops(solution, dag);
     solution.fuelByEgg = computeFuelByEgg(solution);
 
-    // Split the budgeted time into ships-in-flight vs. idle relaunch slack.
-    // Each choice is 3 ships per wave, so waves = numShipsLaunched / 3, and
-    // the slack (extraTimeSeconds) was added to every option's actualTime.
-    let waves = 0;
-    for (const choice of solution.choiceHistory) {
-      waves += choice.numShipsLaunched / 3;
+    // Split the wall-clock (the busiest slot's makespan; timeUnitsUsed) into
+    // ships-in-flight vs. idle relaunch slack. The three slots run concurrently,
+    // so the idle the player waits through is the busiest slot's slack:
+    // (its mission count) × extraTimeSeconds, which was added to every option's
+    // actualTime.
+    let idle = 0;
+    let makespan = -1;
+    for (const slot of solution.slots ?? []) {
+      if (slot.loadSeconds > makespan) {
+        makespan = slot.loadSeconds;
+        idle = slot.missionCount * extraTimeSeconds;
+      }
     }
-    solution.idleTimeSeconds = Math.round(waves * extraTimeSeconds);
+    solution.idleTimeSeconds = Math.round(idle);
     solution.runningTimeSeconds = Math.max(0, solution.timeUnitsUsed - solution.idleTimeSeconds);
   }
 

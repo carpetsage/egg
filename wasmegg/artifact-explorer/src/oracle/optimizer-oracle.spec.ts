@@ -1,40 +1,23 @@
-// Brute-force oracle harness for the heuristic outer solver.
+// Brute-force oracle harness for the heuristic outer solver. Treats the
+// optimizer as a black box and checks three properties per instance:
+// feasibility (fuel budget and 3-slot packing), honesty (reported probability
+// matches an independent re-evaluation), and optimality (no feasible
+// allocation beats the plan by more than ORACLE_GAP_TOL).
 //
-// The optimizer is treated as a black box: the only things this file knows
-// about it are the public entry point optimizeFull, the input/output types,
-// and the documented objective (header comment of optimizer-core.ts). The
-// oracle re-derives every number through disparate logic — an exact rational
-// simplex over the recipe DAG plus exhaustive enumeration of integer launch
-// allocations — and checks three properties per instance:
-//
-//   1. feasibility — the returned plan respects the fuel/time budgets and
-//      the reported totals match the plan;
-//   2. honesty     — the reported probability equals an independent
-//      re-evaluation of the returned plan;
-//   3. optimality  — no feasible allocation beats the plan by more than
-//      ORACLE_GAP_TOL in probability.
-//
-// Tiers:
-//   - calibration probes + smoke fuzz always run (seconds);
-//   - the deep fuzz loop only runs with RUN_ORACLE=1 (pnpm test:oracle) and
-//     is time-boxed by ORACLE_TIME_BUDGET_MS (default 25 minutes).
-//
-// Tunables (env): ORACLE_GAP_TOL (default 1e-3, matching the solver's own
-// documented epsilon scale), ORACLE_HONESTY_TOL (default 1e-6),
-// ORACLE_TIME_BUDGET_MS, ORACLE_SEED_BASE.
+// Calibration probes and smoke fuzz always run; the deep fuzz campaign runs
+// with RUN_ORACLE=1 (pnpm test:oracle), time-boxed by ORACLE_TIME_BUDGET_MS.
 
 import { describe, expect, test } from 'vitest';
 
 import { optimizeFull } from '../lib/optimizer-core';
 import type { OptimizerSolution } from '../lib/types';
 import { makeNode, makeOpt } from '../lib/spec-helpers';
-import { bruteForceBest } from './enumerate';
+import { bruteForceBest, packableInto3Bins } from './enumerate';
 import { evaluateAllocation, OracleInstance, targetQ } from './evaluate';
 import { FAMILIES, Family, generateInstance } from './generate';
 
 const GAP_TOL = Number(process.env.ORACLE_GAP_TOL ?? 1e-3);
-// the always-on smoke tier only guards against catastrophic gaps; fine-grained
-// optimality gauging is the deep campaign's job
+// the smoke tier only guards against catastrophic gaps
 const SMOKE_GAP_TOL = Math.max(GAP_TOL, 0.05);
 const HONESTY_TOL = Number(process.env.ORACLE_HONESTY_TOL ?? 1e-6);
 const DEEP = process.env.RUN_ORACLE === '1';
@@ -66,47 +49,9 @@ function runOptimizer(inst: OracleInstance): OptimizerSolution {
   });
 }
 
-// numShipsLaunched counts individual ships, while costs and yields are per
-// batch. The ships-per-batch constant is not part of the public types, so it
-// is measured once from a probe whose true batch count is provable from the
-// reported probability alone: with only a direct-drop option (0.125 expected
-// legendaries per batch, 3 batches affordable), probability is strictly
-// monotone in batches, so a report of 1 - e^-0.375 pins the plan at exactly
-// 3 batches.
-let shipsPerBatchMemo: number | null = null;
-function shipsPerBatch(): number {
-  if (shipsPerBatchMemo !== null) {
-    return shipsPerBatchMemo;
-  }
-  const dag = new Map(
-    [makeNode('probe-leaf', true), makeNode('probe-t', false, [['probe-leaf', 1]], 0.4)].map(n => [n.id, n] as const)
-  );
-  const solution = optimizeFull({
-    options: [makeOpt(2, 1, [], [['probe-t', 0.125]])],
-    recipeDag: dag,
-    desiredArtifactNodeIds: ['probe-t'],
-    fuelCapacity: 6,
-    timeCapacity: 100,
-    baseYield: new Map(),
-  });
-  const batches = 3;
-  if (Math.abs(solution.bestProbability - (1 - Math.exp(-batches * 0.125))) > 1e-9) {
-    throw new Error('ships-per-batch probe did not land on the provable optimum');
-  }
-  const ships = solution.choiceHistory.reduce((sum, h) => sum + h.numShipsLaunched, 0);
-  if (!Number.isInteger(ships / batches) || ships / batches < 1) {
-    throw new Error(`ships-per-batch probe measured non-integer scale ${ships}/${batches}`);
-  }
-  shipsPerBatchMemo = ships / batches;
-  return shipsPerBatchMemo;
-}
-
 // choiceHistory entries don't carry the option id, but the generator
-// guarantees each option has a unique (fuel, time, target) triple — real
-// options from the same mission share fuel and time across targets, so the
-// target is a necessary part of the key
+// guarantees each option a unique (fuel, time, target) triple.
 function reconstructAllocation(inst: OracleInstance, solution: OptimizerSolution): number[] {
-  const scale = shipsPerBatch();
   const allocation = new Array<number>(inst.options.length).fill(0);
   for (const launch of solution.choiceHistory) {
     if (launch.numShipsLaunched === 0) {
@@ -123,11 +68,7 @@ function reconstructAllocation(inst: OracleInstance, solution: OptimizerSolution
         `choiceHistory entry (fuel=${launch.actualFuel}, time=${launch.actualTime}, target=${launch.targetAfxId}) matches no input option`
       );
     }
-    const batches = launch.numShipsLaunched / scale;
-    if (!Number.isInteger(batches) || batches < 0) {
-      throw new Error(`ship count ${launch.numShipsLaunched} is not a whole number of ${scale}-ship batches`);
-    }
-    allocation[idx] += batches;
+    allocation[idx] += launch.numShipsLaunched;
   }
   return allocation;
 }
@@ -146,12 +87,9 @@ function claimedProbability(solution: OptimizerSolution, inst: OracleInstance): 
   return 1 - oneMinus;
 }
 
-// Second opinion on an oracle-found allocation, using only the public API:
-// collapse the allocation into a single synthetic launch option carrying its
-// aggregate yields, offer it under a budget that fits exactly one batch, and
-// let the solver price it with its own value function. Because the objective
-// is monotone in inventory, taking that one batch is trivially optimal, so
-// the returned probability is the solver's own valuation of the oracle plan.
+// Second opinion on an oracle-found allocation: collapse it into a single
+// synthetic take-it-or-leave-it option and let the solver price it with its
+// own value function, so a reported gap cannot be an oracle-model artifact.
 function solverPricesAllocation(inst: OracleInstance, allocation: number[]): number {
   const yields = new Map<string, number>();
   const legendary = new Map<string, number>();
@@ -191,22 +129,56 @@ function checkInstance(inst: OracleInstance, gapTol = GAP_TOL): InstanceOutcome 
 
   // tolerances are relative: real fuel costs run to billions of eggs
   const fuelUsed = allocation.reduce((sum, k, i) => sum + k * inst.options[i].actualFuel, 0);
-  const timeUsed = allocation.reduce((sum, k, i) => sum + k * inst.options[i].actualTime, 0);
   const slack = (x: number) => 1e-9 * Math.max(1, x);
-  if (
-    fuelUsed > inst.fuelCapacity + slack(inst.fuelCapacity) ||
-    timeUsed > inst.timeCapacity + slack(inst.timeCapacity)
-  ) {
-    fail('feasibility', `plan uses fuel=${fuelUsed}/${inst.fuelCapacity}, time=${timeUsed}/${inst.timeCapacity}`);
+
+  // Reduce the allocation to per-duration counts and check 3-slot packability
+  // independently of the solver's own packer.
+  const durList: number[] = [];
+  const durCounts: number[] = [];
+  const durIndex = new Map<number, number>();
+  inst.options.forEach((opt, i) => {
+    const key = Math.round(opt.actualTime);
+    let di = durIndex.get(key);
+    if (di === undefined) {
+      di = durList.length;
+      durList.push(opt.actualTime);
+      durCounts.push(0);
+      durIndex.set(key, di);
+    }
+    durCounts[di] += allocation[i];
+  });
+  if (fuelUsed > inst.fuelCapacity + slack(inst.fuelCapacity)) {
+    fail('feasibility', `plan uses fuel=${fuelUsed}/${inst.fuelCapacity}`);
+    return { family: inst.label, seed: inst.seed, gap: NaN, failures };
+  }
+  if (!packableInto3Bins(durCounts, durList, inst.timeCapacity)) {
+    fail('feasibility', `plan [${allocation}] does not pack into 3 slots of ${inst.timeCapacity}s`);
+    return { family: inst.label, seed: inst.seed, gap: NaN, failures };
+  }
+
+  // The slot witness must be self-consistent: every slot within the horizon,
+  // mission counts summing to the plan, timeUnitsUsed = the busiest slot.
+  const slots = solution.slots ?? [];
+  const totalMissions = allocation.reduce((sum, k) => sum + k, 0);
+  const slotMissionSum = slots.reduce((sum, sl) => sum + sl.missionCount, 0);
+  const makespan = slots.reduce((m, sl) => Math.max(m, sl.loadSeconds), 0);
+  for (const sl of slots) {
+    if (sl.loadSeconds > inst.timeCapacity + slack(inst.timeCapacity)) {
+      fail('feasibility', `slot load ${sl.loadSeconds} exceeds horizon ${inst.timeCapacity}`);
+      return { family: inst.label, seed: inst.seed, gap: NaN, failures };
+    }
+  }
+  if (slotMissionSum !== totalMissions) {
+    fail('feasibility', `slot witness holds ${slotMissionSum} missions but plan has ${totalMissions}`);
     return { family: inst.label, seed: inst.seed, gap: NaN, failures };
   }
   if (
     Math.abs(solution.fuelUsed - fuelUsed) > 1e-6 * Math.max(1, fuelUsed) ||
-    Math.abs(solution.timeUnitsUsed - timeUsed) > 1e-6 * Math.max(1, timeUsed)
+    Math.abs(solution.timeUnitsUsed - Math.round(makespan)) > 1
   ) {
     fail(
       'feasibility',
-      `reported usage fuel=${solution.fuelUsed}, time=${solution.timeUnitsUsed} but plan uses fuel=${fuelUsed}, time=${timeUsed}`
+      `reported usage fuel=${solution.fuelUsed}, time=${solution.timeUnitsUsed} but plan uses fuel=${fuelUsed}, makespan=${makespan}`
     );
   }
 
@@ -215,10 +187,8 @@ function checkInstance(inst: OracleInstance, gapTol = GAP_TOL): InstanceOutcome 
   if (Math.abs(claimed - planEval.probability) > HONESTY_TOL) {
     fail('honesty', `claimed p=${claimed} vs independent p=${planEval.probability} for allocation [${allocation}]`);
   } else if (claimed < 1 && planEval.score < 30) {
-    // below the float-saturation point of 1 - e^-score, also compare in score
-    // space, which stays sharp where probabilities compress toward 1; the
-    // claimed value round-trips through probability space, whose one-ulp
-    // granularity near p = 1 corresponds to a score error of ~ulp(1) * e^score
+    // also compare in score space, which stays sharp where probabilities
+    // compress toward 1; the round-trip resolution is ~ulp(1) * e^score
     const claimedScore = -Math.log(1 - claimed);
     const roundTripResolution = 4e-16 * Math.exp(planEval.score);
     if (Math.abs(claimedScore - planEval.score) > HONESTY_TOL * (1 + planEval.score) + roundTripResolution) {
@@ -229,9 +199,6 @@ function checkInstance(inst: OracleInstance, gapTol = GAP_TOL): InstanceOutcome 
   const oracle = bruteForceBest(inst);
   const gap = Math.max(0, oracle.bestProbability - planEval.probability);
   if (gap > gapTol) {
-    // ask the solver itself to price the oracle's allocation; if its own
-    // value function agrees the alternative is better, the gap cannot be an
-    // artifact of the oracle's independent model
     const solverView = solverPricesAllocation(inst, oracle.bestAllocation);
     const confirmed = solverView - planEval.probability > GAP_TOL / 2;
     fail(
@@ -315,13 +282,8 @@ function assertNoFailures(outcomes: InstanceOutcome[]): void {
   expect(failures.length).toBe(0);
 }
 
-// ---------------------------------------------------------------------------
 // Calibration probes: instances so small the optimum is unambiguous, checked
-// against closed-form arithmetic. If these fail, either the solver is broken
-// on trivial input or the oracle's model of the contract is wrong — both void
-// the fuzz results, so they run first and unconditionally.
-// ---------------------------------------------------------------------------
-
+// against closed-form arithmetic. A failure here voids the fuzz results.
 describe('oracle calibration', () => {
   test('inventory-only crafting matches closed form', () => {
     const p = 0.5;
@@ -463,11 +425,7 @@ describe('oracle calibration', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Smoke fuzz: a deterministic handful of instances per family, fast enough
-// for the default test run.
-// ---------------------------------------------------------------------------
-
+// Smoke fuzz: a deterministic handful of instances per family.
 describe('oracle smoke fuzz', () => {
   test('optimizer within tolerance on smoke instances', () => {
     const outcomes: InstanceOutcome[] = [];
@@ -485,10 +443,7 @@ describe('oracle smoke fuzz', () => {
   }, 120_000);
 });
 
-// ---------------------------------------------------------------------------
-// Deep fuzz: time-boxed exhaustive campaign, gated behind RUN_ORACLE=1.
-// ---------------------------------------------------------------------------
-
+// Deep fuzz: time-boxed campaign, gated behind RUN_ORACLE=1.
 describe.skipIf(!DEEP)('oracle deep fuzz', () => {
   test(
     'optimizer within tolerance across the full campaign',

@@ -12,7 +12,7 @@ export interface LaunchOption {
   actualFuel: number;
   fuelByEgg: Map<ei.Egg, number>;
   actualTime: number;
-  // everything this launch drops, per batch — display only
+  // everything this launch drops, per single ship — display only
   supplyVector: Map<string, number>;
   // subset of supplyVector restricted to recipe ingredients; this is what
   // the optimizer feeds the inner LP
@@ -41,9 +41,18 @@ export interface LaunchSolution {
   actualTime: number;
   target: string;
   targetAfxId: ei.ArtifactSpec.Name;
+  // total count of single-ship missions of this type across all three slots
   numShipsLaunched: integer;
   supplyVector: Map<string, number>;
   legendarySupplyVector: Map<string, number>;
+}
+
+// One slot's share of the plan: how much of the horizon it occupies (relaunch
+// slack included) and how many single-ship missions it runs. The three slots
+// run concurrently, so the plan's wall-clock is the busiest slot's load.
+export interface SlotSummary {
+  loadSeconds: number;
+  missionCount: integer;
 }
 
 export interface DropRow {
@@ -71,11 +80,16 @@ export interface OptimizerSolution {
   expectedCrafts: number;
   fuelUsed: number;
   fuelByEgg: Map<ei.Egg, number>;
-  // timeUnitsUsed is the total budgeted time: runningTimeSeconds (ships in
-  // flight) + idleTimeSeconds (effort slack spent between relaunches).
+  // timeUnitsUsed is the plan's wall-clock: the makespan of the busiest of the
+  // three concurrent slots (<= the horizon). It splits into runningTimeSeconds
+  // (ships in flight on that slot) + idleTimeSeconds (effort slack spent
+  // between that slot's relaunches).
   timeUnitsUsed: integer;
   runningTimeSeconds: integer;
   idleTimeSeconds: integer;
+  // per-slot occupancy of the chosen plan (up to three entries); the packing
+  // witness the optimizer used to prove every mission fits one slot's horizon
+  slots?: SlotSummary[];
   choiceHistory: LaunchSolution[];
   expectedDrops: DropRow[];
   finalYieldVector: Map<string, number>;
