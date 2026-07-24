@@ -620,9 +620,7 @@ function assembleSolution(baseYield: Map<string, number>, bestAlloc: Map<number,
   return { finalYieldVector, totalLegendary, fuelUsed, fuelByEgg, choiceHistory };
 }
 
-function dominates(j: LaunchOption, i: LaunchOption): boolean {
-  const oi = i;
-  const oj = j;
+function dominates(oj: LaunchOption, oi: LaunchOption): boolean {
   if (oj.actualFuel > oi.actualFuel + ZERO_TOL) return false;
   if (oj.actualTime > oi.actualTime + ZERO_TOL) return false;
   let strictYield = false;

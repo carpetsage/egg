@@ -85,13 +85,12 @@ export default defineComponent({
   },
   setup(props) {
     const sparseTooltip =
-      'Drop data is sparse: no mission has accumulated 5+ legendary observations of this artifact. The displayed rate is dominated by single-observation noise and may overstate or understate the true rate by several multiples.';
+      'Drop data is sparse: no mission has 5+ recorded legendary observations of this artifact, so the displayed rate may be off by several multiples.';
     const chanceTooltip =
-      'The overall probability of ending up with at least one legendary of this artifact from this ship set — combining both crafting it and having it drop directly.';
+      'Probability of at least one legendary of this artifact from this ship set, via crafting or a direct drop.';
     const craftTooltip =
-      'The probability of crafting at least one legendary, from the ingredients gathered across these missions (plus anything already in your inventory).';
-    const dropTooltip =
-      'The probability of at least one legendary dropping directly from the missions themselves, without crafting.';
+      'Probability of crafting at least one legendary from the gathered ingredients (plus anything already in your inventory).';
+    const dropTooltip = 'Probability of at least one legendary dropping directly from the missions.';
     const idleTooltip =
       'Budget time with no ships in flight — gaps between launches (per your effort setting) plus unused budget at the end. Ships in flight + idle = your max wait time.';
     const idleTimeSeconds = computed(() =>

@@ -94,9 +94,8 @@ export function enumerateLaunchOptions(
     for (const target of applicableTargets) {
       const minTotalLaunches = target.totalDrops / maxMissionCapacity;
 
-      // Cannot use the missionDataNotEnough function as it's too conservative
-      // It uses the base launch capacity which yields too high of an expected launch count
-      // Though, this effect will
+      // missionDataNotEnough is too conservative here: it divides by the base
+      // launch capacity, overestimating the expected launch count.
       if (minTotalLaunches < 20 && !playerConfig.showNodata) continue;
 
       if (target.targetAfxId !== ei.ArtifactSpec.Name.UNKNOWN && !dagAfxIds.has(target.targetAfxId)) {
