@@ -60,6 +60,8 @@ function makeSolution(overrides: Partial<OptimizerSolution>): OptimizerSolution 
     fuelUsed: 0,
     fuelByEgg: new Map(),
     timeUnitsUsed: 0,
+    runningTimeSeconds: 0,
+    idleTimeSeconds: 0,
     choiceHistory: [],
     expectedDrops: [],
     finalYieldVector: new Map(),

@@ -115,11 +115,11 @@ export function optimize(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
   baseYield: Map<string, number>,
-  minDurationSeconds?: number,
+  extraTimeSeconds = 0,
   maxGemCost?: number
 ) {
   const { desiredArtifactNodeIds, fuelTankCapacity, timeBudgetSeconds } = config;
-  const options = enumerateLaunchOptions(playerConfig, dag, minDurationSeconds, maxGemCost);
+  const options = enumerateLaunchOptions(playerConfig, dag, extraTimeSeconds, maxGemCost);
 
   const solutions: OptimizerSolution[] = [
     optimizeFull({
@@ -137,6 +137,16 @@ export function optimize(
     solution.choiceHistory.sort((a: LaunchSolution, b: LaunchSolution) => a.ship.shipType - b.ship.shipType);
     solution.expectedDrops = computeExpectedDrops(solution, dag);
     solution.fuelByEgg = computeFuelByEgg(solution);
+
+    // Split the budgeted time into ships-in-flight vs. idle relaunch slack.
+    // Each choice is 3 ships per wave, so waves = numShipsLaunched / 3, and
+    // the slack (extraTimeSeconds) was added to every option's actualTime.
+    let waves = 0;
+    for (const choice of solution.choiceHistory) {
+      waves += choice.numShipsLaunched / 3;
+    }
+    solution.idleTimeSeconds = Math.round(waves * extraTimeSeconds);
+    solution.runningTimeSeconds = Math.max(0, solution.timeUnitsUsed - solution.idleTimeSeconds);
   }
 
   return solutions;

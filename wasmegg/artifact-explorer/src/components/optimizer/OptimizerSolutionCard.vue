@@ -35,7 +35,11 @@
         <base-icon :icon-rel-path="eggIconPath(egg)" :size="64" class="inline-block -ml-0.5 h-4 w-4"></base-icon>
       </li>
     </ul>
-    <div class="text-gray-600">Total mission time: {{ formatDuration(solution.timeUnitsUsed, true) }}</div>
+    <div class="text-gray-600">Ships in flight: {{ formatDuration(solution.runningTimeSeconds, true) }}</div>
+    <div v-if="solution.idleTimeSeconds > 0" class="text-gray-600">
+      <span v-tippy="idleTooltip" class="cursor-help border-b border-dotted border-gray-400/60">Idle between launches</span>
+      : {{ formatDuration(solution.idleTimeSeconds, true) }}
+    </div>
     <div class="text-gray-600">Expected crafts: {{ solution.expectedCrafts.toFixed(1) }}</div>
 
     <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mt-3">Launch plan</div>
@@ -87,7 +91,18 @@ export default defineComponent({
       'The probability of crafting at least one legendary, from the ingredients gathered across these missions (plus anything already in your inventory).';
     const dropTooltip =
       'The probability of at least one legendary dropping directly from the missions themselves, without crafting.';
-    return { eggIconPath, formatDuration, formatEIValue, sparseTooltip, chanceTooltip, craftTooltip, dropTooltip };
+    const idleTooltip =
+      'Estimated wall-clock time spent not launching — the relaunch slack implied by your effort setting. Lower effort assumes longer gaps before you send the next wave.';
+    return {
+      eggIconPath,
+      formatDuration,
+      formatEIValue,
+      sparseTooltip,
+      chanceTooltip,
+      craftTooltip,
+      dropTooltip,
+      idleTooltip,
+    };
   },
 });
 </script>

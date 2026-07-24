@@ -68,9 +68,30 @@ export function isExtrasConfig(x: unknown): x is ExtrasConfig {
   );
 }
 
+// How much effort the player is willing to put into relaunching missions.
+// Lower effort adds more slack to each mission's duration when the optimizer
+// budgets time, which biases it away from lots of tiny, babysitting-heavy
+// launches. See EFFORT_SLACK_SECONDS for the added time per level.
+export const EFFORT_LEVELS = ['low', 'medium', 'high', 'infinite'] as const;
+
+export type EffortLevel = (typeof EFFORT_LEVELS)[number];
+
+// Slack added to every mission's duration for budgeting, per effort level.
+// A shorter mission carries proportionally more of this fixed overhead, so
+// short missions only survive when they're genuinely worth the relaunching.
+export const EFFORT_SLACK_SECONDS: Record<EffortLevel, number> = {
+  low: 4 * 3600, // relaunch roughly every 4 hours
+  medium: 3600, // relaunch roughly hourly
+  high: 300, // relaunch within ~5 minutes
+  infinite: 0, // relaunch instantly (raw durations)
+};
+
+export function isEffortLevel(x: unknown): x is EffortLevel {
+  return (EFFORT_LEVELS as readonly unknown[]).includes(x);
+}
+
 export interface MissionFilters {
-  minDurationHoursEnabled: boolean;
-  minDurationHours: number;
+  effort: EffortLevel;
   // Maximum gem cost of a mission's ship on the Egg of Humility.
   maxGemCostEnabled: boolean;
   maxGemCost: number;
@@ -78,8 +99,7 @@ export interface MissionFilters {
 
 export function newMissionFilters(): MissionFilters {
   return {
-    minDurationHoursEnabled: false,
-    minDurationHours: 0,
+    effort: 'medium',
     maxGemCostEnabled: false,
     maxGemCost: virtueShipGemCosts[ei.MissionInfo.Spaceship.ATREGGIES],
   };
@@ -89,8 +109,7 @@ export function isMissionFilters(x: unknown): x is MissionFilters {
   if (!x || typeof x !== 'object') return false;
   const m = x as MissionFilters;
   return (
-    typeof m.minDurationHoursEnabled === 'boolean' &&
-    typeof m.minDurationHours === 'number' &&
+    (m.effort === undefined || isEffortLevel(m.effort)) &&
     (m.maxGemCostEnabled === undefined || typeof m.maxGemCostEnabled === 'boolean') &&
     (m.maxGemCost === undefined || typeof m.maxGemCost === 'number')
   );

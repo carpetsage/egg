@@ -32,27 +32,50 @@
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-              :checked="missionFilters.minDurationHoursEnabled"
-              @change="setMinDurationHoursEnabled(($event.target as HTMLInputElement).checked)"
-            />
-            Minimum mission duration
-          </label>
-          <div class="mt-1 flex items-center gap-2">
-            <input
-              type="number"
-              step="0.5"
-              min="0"
-              :disabled="!missionFilters.minDurationHoursEnabled"
-              :value="missionFilters.minDurationHours"
-              class="block w-20 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-2 py-1 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
-              @input="onDurationInput($event)"
-            />
-            <span class="text-xs text-gray-500">hours</span>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600">Effort</label>
+            <span class="text-xs font-medium text-gray-700">{{ effortMeta[missionFilters.effort].label }}</span>
           </div>
+          <div
+            ref="effortTrack"
+            role="slider"
+            tabindex="0"
+            aria-label="Effort"
+            :aria-valuemin="0"
+            :aria-valuemax="EFFORT_LEVELS.length - 1"
+            :aria-valuenow="effortIndex"
+            :aria-valuetext="effortMeta[missionFilters.effort].label"
+            class="relative mt-2 h-6 cursor-pointer select-none touch-none focus:outline-none"
+            @pointerdown="onTrackPointerDown"
+            @pointermove="onTrackPointerMove"
+            @pointerup="onTrackPointerUp"
+            @pointercancel="onTrackPointerUp"
+            @keydown="onTrackKeydown"
+          >
+            <div ref="effortRail" class="absolute inset-x-2 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-gray-200">
+              <div
+                class="absolute left-0 top-0 h-full rounded-full bg-green-500"
+                :style="{ width: `${(effortIndex / (EFFORT_LEVELS.length - 1)) * 100}%` }"
+              ></div>
+              <span
+                v-for="(lvl, i) in EFFORT_LEVELS"
+                :key="lvl"
+                class="absolute top-1/2 rounded-full border-2 -translate-x-1/2 -translate-y-1/2 transition-all"
+                :class="[
+                  i === effortIndex
+                    ? 'h-4 w-4 border-green-600 bg-white shadow ring-1 ring-green-600/20'
+                    : i < effortIndex
+                      ? 'h-3 w-3 border-green-500 bg-green-500'
+                      : 'h-3 w-3 border-gray-300 bg-white',
+                ]"
+                :style="{ left: `${(i / (EFFORT_LEVELS.length - 1)) * 100}%` }"
+              ></span>
+            </div>
+          </div>
+          <div class="mt-1 flex justify-between text-[11px] text-gray-400">
+            <span v-for="lvl in EFFORT_LEVELS" :key="'lbl-' + lvl">{{ effortMeta[lvl].short }}</span>
+          </div>
+          <p class="mt-1 text-xs text-gray-400">{{ effortMeta[missionFilters.effort].hint }}</p>
         </div>
 
         <div>
@@ -205,7 +228,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue';
+import { computed, defineComponent, ref } from 'vue';
 
 import { formatEIValue, fuelTankSizes, parseValueWithUnit, spaceshipList } from 'lib';
 import BaseInput from 'ui/components/BaseInput.vue';
@@ -217,6 +240,8 @@ import {
   autoCompute,
   config,
   effectiveConfig,
+  EFFORT_LEVELS,
+  type EffortLevel,
   extras,
   missionFilters,
   openPlayerOverridesModal,
@@ -227,12 +252,11 @@ import {
   playerTankLevel,
   setAutoCompute,
   setCraftingLevel,
+  setEffort,
   setEpicResearchFTLLevel,
   setEpicResearchZerogLevel,
   setMaxGemCost,
   setMaxGemCostEnabled,
-  setMinDurationHours,
-  setMinDurationHoursEnabled,
   setOverrideCraftingLevel,
   setOverrideFTL,
   setOverridePreviousCrafts,
@@ -241,6 +265,29 @@ import {
   setPreviousCraftCount,
   setTankLevel,
 } from '@/store';
+
+const effortMeta: Record<EffortLevel, { short: string; label: string; hint: string }> = {
+  low: {
+    short: 'Low',
+    label: 'Low',
+    hint: 'Adds 4h of slack to every mission — strongly favors long, low-maintenance sends.',
+  },
+  medium: {
+    short: 'Med',
+    label: 'Medium',
+    hint: 'Adds 1h of slack to every mission.',
+  },
+  high: {
+    short: 'High',
+    label: 'High',
+    hint: 'Adds 5 min of slack to every mission — assumes you relaunch promptly.',
+  },
+  infinite: {
+    short: '∞',
+    label: 'Infinite',
+    hint: 'No slack — assumes you relaunch the instant a mission lands.',
+  },
+};
 
 export default defineComponent({
   components: { BaseInput, PlayerIdForm, LootDataCredit, OptimizerSettingRow },
@@ -270,12 +317,60 @@ export default defineComponent({
     const totalShips = spaceshipList.length;
     const shipsVisibleCount = computed(() => spaceshipList.filter(s => effectiveConfig.value.shipVisibility[s]).length);
 
-    function onDurationInput(event: Event) {
-      const raw = (event.target as HTMLInputElement).value.trim();
-      if (!raw) return;
-      const n = parseFloat(raw);
-      if (isNaN(n) || n < 0) return;
-      setMinDurationHours(n);
+    const effortTrack = ref<HTMLElement | null>(null);
+    const effortRail = ref<HTMLElement | null>(null);
+    const dragging = ref(false);
+    const effortIndex = computed(() => Math.max(0, EFFORT_LEVELS.indexOf(missionFilters.value.effort)));
+
+    function setEffortByIndex(i: number) {
+      const clamped = Math.min(EFFORT_LEVELS.length - 1, Math.max(0, i));
+      setEffort(EFFORT_LEVELS[clamped]);
+    }
+
+    // Measure against the rail, not the outer track: the notch centers sit at
+    // the rail's 0%/100%.
+    function selectFromClientX(clientX: number) {
+      const rect = (effortRail.value ?? effortTrack.value)?.getBoundingClientRect();
+      if (!rect || rect.width <= 0) return;
+      const ratio = (clientX - rect.left) / rect.width;
+      setEffortByIndex(Math.round(ratio * (EFFORT_LEVELS.length - 1)));
+    }
+
+    function onTrackPointerDown(e: PointerEvent) {
+      e.preventDefault();
+      effortTrack.value?.focus();
+      effortTrack.value?.setPointerCapture?.(e.pointerId);
+      dragging.value = true;
+      selectFromClientX(e.clientX);
+    }
+    function onTrackPointerMove(e: PointerEvent) {
+      if (!dragging.value) return;
+      selectFromClientX(e.clientX);
+    }
+    function onTrackPointerUp(e: PointerEvent) {
+      dragging.value = false;
+      effortTrack.value?.releasePointerCapture?.(e.pointerId);
+    }
+    function onTrackKeydown(e: KeyboardEvent) {
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'ArrowDown':
+          setEffortByIndex(effortIndex.value - 1);
+          break;
+        case 'ArrowRight':
+        case 'ArrowUp':
+          setEffortByIndex(effortIndex.value + 1);
+          break;
+        case 'Home':
+          setEffortByIndex(0);
+          break;
+        case 'End':
+          setEffortByIndex(EFFORT_LEVELS.length - 1);
+          break;
+        default:
+          return;
+      }
+      e.preventDefault();
     }
 
     // Shown value for the gem cost filter, in Egg, Inc. order-of-magnitude
@@ -296,9 +391,18 @@ export default defineComponent({
       tankCapacityLabel,
       totalShips,
       shipsVisibleCount,
-      onDurationInput,
       maxGemCostDisplay,
       onGemCostInput,
+      // effort slider
+      EFFORT_LEVELS,
+      effortMeta,
+      effortTrack,
+      effortRail,
+      effortIndex,
+      onTrackPointerDown,
+      onTrackPointerMove,
+      onTrackPointerUp,
+      onTrackKeydown,
       // store state
       config,
       extras,
@@ -321,7 +425,6 @@ export default defineComponent({
       setOverrideTankLevel,
       setOverrideFTL,
       setOverrideZerog,
-      setMinDurationHoursEnabled,
       setMaxGemCostEnabled,
       openPlayerOverridesModal,
     };

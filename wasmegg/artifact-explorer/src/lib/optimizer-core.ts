@@ -298,6 +298,11 @@ export function optimizeFull(args: OptimizeArgs): OptimizerSolution {
     fuelUsed: fuelUsed,
     fuelByEgg: fuelByEgg,
     timeUnitsUsed: Math.round(timeSecs),
+    // The running/idle split depends on the effort slack baked into each
+    // option's actualTime, which is only known upstream; index.ts fills these
+    // in. Default to all-running (slack of zero).
+    runningTimeSeconds: Math.round(timeSecs),
+    idleTimeSeconds: 0,
     choiceHistory: choiceHistory,
     expectedDrops: [], // populated by index.ts
     finalYieldVector: finalYieldVector,

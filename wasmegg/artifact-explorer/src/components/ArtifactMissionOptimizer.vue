@@ -56,6 +56,7 @@ import {
   effectiveFuelTankCapacity,
   effectivePreviousCrafts,
   effectiveCraftingLevel,
+  EFFORT_SLACK_SECONDS,
   missionFilters,
   playerInventory,
   setPlayerData,
@@ -137,9 +138,7 @@ export default defineComponent({
         pendingCompute.value = false;
         return;
       }
-      const minDurationSeconds = missionFilters.value.minDurationHoursEnabled
-        ? missionFilters.value.minDurationHours * 3600
-        : undefined;
+      const extraTimeSeconds = EFFORT_SLACK_SECONDS[missionFilters.value.effort];
       const maxGemCost = missionFilters.value.maxGemCostEnabled ? missionFilters.value.maxGemCost : undefined;
       computedResults.value = optimize(
         {
@@ -153,7 +152,7 @@ export default defineComponent({
         effectiveConfig.value,
         recipeDag.value,
         playerBaseYield.value,
-        minDurationSeconds,
+        extraTimeSeconds,
         maxGemCost
       );
       pendingCompute.value = false;

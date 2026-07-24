@@ -71,7 +71,11 @@ export interface OptimizerSolution {
   expectedCrafts: number;
   fuelUsed: number;
   fuelByEgg: Map<ei.Egg, number>;
+  // timeUnitsUsed is the total budgeted time: runningTimeSeconds (ships in
+  // flight) + idleTimeSeconds (effort slack spent between relaunches).
   timeUnitsUsed: integer;
+  runningTimeSeconds: integer;
+  idleTimeSeconds: integer;
   choiceHistory: LaunchSolution[];
   expectedDrops: DropRow[];
   finalYieldVector: Map<string, number>;

@@ -63,14 +63,17 @@ describe('enumerateLaunchOptions', () => {
     expect(options.some(o => o.targetAfxId === Name.PUZZLE_CUBE)).toBe(true);
   });
 
-  it('drops missions shorter than minDurationSeconds', () => {
-    const all = enumerateLaunchOptions(perfectShipsConfig, dag);
-    const minDuration = 4 * 3600;
-    const longOnly = enumerateLaunchOptions(perfectShipsConfig, dag, minDuration);
-    expect(longOnly.length).toBeGreaterThan(0);
-    expect(longOnly.length).toBeLessThan(all.length);
-    for (const o of longOnly) {
-      expect(o.actualTime).toBeGreaterThanOrEqual(minDuration);
+  it('adds extraTimeSeconds slack to every mission duration without dropping any', () => {
+    const base = enumerateLaunchOptions(perfectShipsConfig, dag);
+    const slack = 4 * 3600;
+    const inflated = enumerateLaunchOptions(perfectShipsConfig, dag, slack);
+    // Nothing is filtered out: the effort slack is a soft penalty, not a cutoff.
+    expect(inflated.length).toBe(base.length);
+    const baseById = new Map(base.map(o => [o.id, o]));
+    for (const o of inflated) {
+      const original = baseById.get(o.id)!;
+      expect(o.actualTime).toBeCloseTo(original.actualTime + slack);
+      expect(o.actualTime).toBeGreaterThanOrEqual(slack);
     }
   });
 
@@ -115,5 +118,29 @@ describe('optimize', () => {
       expect(row.expected).toBeGreaterThan(0);
       expect(row.iconUrl).toMatch(/^https:/);
     }
+  });
+
+  it('splits budgeted time into idle slack and running time', () => {
+    const config = {
+      desiredArtifactNodeIds: ['puzzle-cube-4'],
+      includeNotEnoughData: false,
+      fuelTankCapacity: 2_000_000_000,
+      timeBudgetSeconds: 3 * 24 * 3600,
+    };
+    const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
+    const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
+    const slack = 3600; // medium effort: ~1h of relaunch slack per wave
+    const [sol] = optimize(config, perfectShipsConfig, dag, baseYield, slack);
+
+    // Each choice launches 3 ships per wave, so idle slack accrues per wave.
+    const waves = sol.choiceHistory.reduce((sum, choice) => sum + choice.numShipsLaunched / 3, 0);
+    expect(waves).toBeGreaterThan(0);
+    expect(sol.idleTimeSeconds).toBe(Math.round(waves * slack));
+    expect(sol.runningTimeSeconds).toBe(Math.max(0, sol.timeUnitsUsed - sol.idleTimeSeconds));
+
+    // With zero slack there is no idle time and everything is running time.
+    const [rawSol] = optimize(config, perfectShipsConfig, dag, baseYield, 0);
+    expect(rawSol.idleTimeSeconds).toBe(0);
+    expect(rawSol.runningTimeSeconds).toBe(rawSol.timeUnitsUsed);
   });
 });
