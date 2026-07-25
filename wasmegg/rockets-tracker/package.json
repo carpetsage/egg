@@ -29,11 +29,11 @@
     "autoprefixer": "^10.4.27",
     "pinia": "^3.0.4",
     "postcss": "^8.5.8",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.0",
     "svgo": "^4.0.1",
     "tailwindcss": "^3.4.4",
     "typescript": "^6.0.2",
-    "vite": "^8.0.16",
+    "vite": "^8.1.5",
     "vite-plugin-image-optimizer": "^2.0.3",
     "vue-tsc": "^3.2.6"
   },
