@@ -63,7 +63,7 @@ export function runC2(
   // change during research purchases, so we compute them once instead of per buyResearch call.
   const mods: ResearchCostModifiers = {
     labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
-    waterballoonMultiplier: context.colleggtibleModifiers.researchCost || 1,
+    researchCostMultiplier: context.colleggtibleModifiers.researchCost || 1,
     puzzleCubeMultiplier: calculateArtifactModifiers(currentState.artifactLoadout).researchCost.totalMultiplier,
   };
 

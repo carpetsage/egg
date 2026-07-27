@@ -177,7 +177,7 @@ const {
 // Cost modifiers
 const costModifiers = computed<HabCostModifiers>(() => ({
   cheaperContractorsLevel: initialStateStore.epicResearchLevels['cheaper_contractors'] || 0,
-  flameRetardantMultiplier: initialStateStore.colleggtibleModifiers.habCost,
+  habCostMultiplier: initialStateStore.colleggtibleModifiers.habCost,
 }));
 
 const isHabSaleActive = computed(() => actionsStore.effectiveSnapshot.activeSales.hab);
@@ -199,7 +199,7 @@ const effectiveMultipliers = computed(() => {
   return {
     universalMultiplier: universal,
     portalMultiplier: portalOnly,
-    peggMultiplier: initialStateStore.colleggtibleModifiers.habCap,
+    habCapMultiplier: initialStateStore.colleggtibleModifiers.habCap,
     artifactMultiplier: artifactMods.totalMultiplier,
   };
 });
@@ -262,9 +262,9 @@ function getHabCapacity(habId: number): number {
   const hab = getHabById(habId);
   if (!hab) return 0;
 
-  const { universalMultiplier, portalMultiplier, peggMultiplier, artifactMultiplier } = effectiveMultipliers.value;
+  const { universalMultiplier, portalMultiplier, habCapMultiplier, artifactMultiplier } = effectiveMultipliers.value;
 
-  return calculateHabCapacity(hab, universalMultiplier, portalMultiplier, peggMultiplier, artifactMultiplier);
+  return calculateHabCapacity(hab, universalMultiplier, portalMultiplier, habCapMultiplier, artifactMultiplier);
 }
 
 /**

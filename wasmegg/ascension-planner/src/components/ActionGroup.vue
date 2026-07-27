@@ -122,7 +122,6 @@
           v-for="(action, idx) in actions"
           :key="action.id"
           :action="action"
-          @show-details="$emit('show-details', action)"
           @undo="handleUndo($event, action)"
         />
       </div>
@@ -167,7 +166,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'show-details': [action: Action];
   undo: [action: Action, options: { skipConfirmation: boolean }];
   'start-editing': [groupId: string];
   'stop-editing': [];

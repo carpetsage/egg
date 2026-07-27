@@ -79,7 +79,7 @@ export function runC1(
     const artifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
     return {
       labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
-      waterballoonMultiplier: context.colleggtibleModifiers.researchCost || 1,
+      researchCostMultiplier: context.colleggtibleModifiers.researchCost || 1,
       puzzleCubeMultiplier: artifactMods.researchCost.totalMultiplier,
     };
   };

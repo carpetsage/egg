@@ -30,7 +30,7 @@
         </svg>
       </button>
       <div v-show="teExpanded" class="p-6 border-t border-slate-50">
-        <WaitForTEActions ref="teActionsRef" @show-current-details="$emit('show-current-details')" />
+        <WaitForTEActions ref="teActionsRef" />
       </div>
     </div>
 
@@ -300,8 +300,4 @@ watch(bulkTEExpanded, val => { if (val) nextTick(() => bulkTEActionsRef.value?.f
 watch(gemsExpanded, val => { if (val) nextTick(() => gemsActionsRef.value?.focus()); });
 watch(timeExpanded, val => { if (val) nextTick(() => timeActionsRef.value?.focus()); });
 watch(noEarningsExpanded, val => { if (val) nextTick(() => noEarningsActionsRef.value?.focus()); });
-
-defineEmits<{
-  'show-current-details': [];
-}>();
 </script>

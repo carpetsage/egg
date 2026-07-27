@@ -20,7 +20,6 @@
         <ActionHistoryItem
           v-if="item.type === 'single'"
           :action="item.action"
-          @show-details="$emit('show-details', item.action)"
           @undo="handleUndoRequest(item.action, $event)"
         />
 
@@ -35,7 +34,6 @@
           :visit-count="item.visitCount"
           :is-editing="actionsStore.editingGroupId === item.headerAction.id"
           :is-current="item.isCurrent"
-          @show-details="$emit('show-details', $event)"
           @undo="handleUndoRequest"
           @start-editing="handleStartEditing"
           @stop-editing="handleStopEditing"
@@ -65,7 +63,6 @@ import ActionHistoryItem from './ActionHistoryItem.vue';
 import ActionGroup from './ActionGroup.vue';
 
 const emit = defineEmits<{
-  'show-details': [action: Action];
   undo: [action: Action, options?: { skipConfirmation: boolean }];
   'clear-all': [options?: { skipConfirmation: boolean }];
 }>();

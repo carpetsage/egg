@@ -274,7 +274,7 @@ export function useResearchViews() {
 
   const costModifiers = computed(() => ({
     labUpgradeLevel: initialStateStore.epicResearchLevels['cheaper_research'] || 0,
-    waterballoonMultiplier: initialStateStore.colleggtibleModifiers.researchCost,
+    researchCostMultiplier: initialStateStore.colleggtibleModifiers.researchCost,
     puzzleCubeMultiplier: initialStateStore.artifactModifiers.researchCost.totalMultiplier,
   }));
 

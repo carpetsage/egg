@@ -367,11 +367,7 @@
               </button>
             </div>
             <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-              <ActionHistory
-                @show-details="showActionDetails"
-                @undo="showUndoConfirmation"
-                @clear-all="handleClearAll"
-              />
+              <ActionHistory @undo="showUndoConfirmation" @clear-all="handleClearAll" />
             </div>
           </div>
 
@@ -387,7 +383,7 @@
               </button>
             </div>
             <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-              <AvailableActions @show-current-details="showCurrentDetails" @refresh-backup="handleRefreshReconcile" />
+              <AvailableActions @refresh-backup="handleRefreshReconcile" />
             </div>
           </div>
         </div>
@@ -396,9 +392,6 @@
       <div v-else-if="plannerTab === 'automatic' && playerId && !loading">
         <AutomaticPlanner />
       </div>
-
-      <!-- Action Details Modal -->
-      <ActionDetailsModal v-if="showDetailsModal" :action="detailsModalAction" @close="closeActionDetails" />
 
       <!-- Undo Confirmation Dialog -->
       <UndoConfirmationDialog
@@ -479,12 +472,11 @@
 
       <PlanFinalSummary
         v-if="plannerTab === 'manual'"
-        @show-details="showCurrentDetails"
         @update:collapsed="isFooterCollapsed = $event"
         @save-plan="saveCurrentPlan"
         @save-plan-as="savePlanAs"
       />
-      <FloatingStats v-if="plannerTab === 'manual'" @show-details="showCurrentDetails" />
+      <FloatingStats v-if="plannerTab === 'manual'" />
       <FloatingNotes v-if="plannerTab === 'manual'" />
     </div>
   </div>
@@ -507,7 +499,6 @@ import { useEventsStore } from '@/stores/events';
 import { useNotesStore } from '@/stores/notes';
 import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
-import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
 import UndoConfirmationDialog from '@/components/UndoConfirmationDialog.vue';
 import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
@@ -729,8 +720,6 @@ const totalCost = computed(() => actionsStore.totalCost);
 const actionCount = computed(() => actionsStore.actionCount);
 
 // Modal state
-const showDetailsModal = ref(false);
-const detailsModalAction = ref<Action | null>(null);
 const undoAction = ref<Action | null>(null);
 const undoDependentsA = ref<Action[]>([]);
 const undoDependentsB = ref<Action[]>([]);
@@ -755,28 +744,6 @@ function confirmUnsavedChanges(action: () => void) {
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Modal handlers
-function showActionDetails(action: Action) {
-  // Temporarily restore stores to this action's end state so CalculationSummary shows correct values
-  restoreFromSnapshot(action.endState);
-  detailsModalAction.value = action;
-  showDetailsModal.value = true;
-}
-
-function showCurrentDetails() {
-  // Ensure we're in the effective snapshot
-  restoreFromSnapshot(actionsStore.effectiveSnapshot);
-  detailsModalAction.value = null;
-  showDetailsModal.value = true;
-}
-
-function closeActionDetails() {
-  // Restore stores to current state (last action's end state) or effective state if editing
-  restoreFromSnapshot(actionsStore.effectiveSnapshot);
-  detailsModalAction.value = null;
-  showDetailsModal.value = false;
 }
 
 function showUndoConfirmation(action: Action, options?: { skipConfirmation: boolean }) {

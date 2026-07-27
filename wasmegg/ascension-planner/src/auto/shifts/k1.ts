@@ -57,7 +57,7 @@ export function runK1(
 
   const getModifiers = () => ({
     bustUnionsLevel: context.epicResearchLevels['cheaper_vehicles'] || 0,
-    lithiumMultiplier: context.colleggtibleModifiers.vehicleCost || 1,
+    vehicleCostMultiplier: context.colleggtibleModifiers.vehicleCost || 1,
   });
 
   const buyVehicle = (slotIndex: number, vehicleId: number): boolean => {

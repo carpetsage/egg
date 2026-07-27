@@ -313,7 +313,7 @@ function checkHabCapacityViolation(
   const habCapacityOutput = calculateHabCapacity_Full({
     habIds: snapshot.habIds,
     researchLevels: snapshot.researchLevels,
-    peggMultiplier: context.colleggtibleModifiers.habCap,
+    habCapMultiplier: context.colleggtibleModifiers.habCap,
     artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
     artifactEffects: artifactMods.habCapacity.effects,
   });

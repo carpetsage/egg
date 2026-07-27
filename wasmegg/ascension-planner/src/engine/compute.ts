@@ -49,7 +49,7 @@ export function computeSnapshot(
   const habCapacityInput: HabCapacityInput = {
     habIds: state.habIds,
     researchLevels: state.researchLevels,
-    peggMultiplier: colleggtibleModifiers.habCap,
+    habCapMultiplier: colleggtibleModifiers.habCap,
     artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
     artifactEffects: artifactMods.habCapacity.effects,
   };
@@ -63,7 +63,7 @@ export function computeSnapshot(
       epicInternalIncubators: epicResearchLevels['epic_internal_incubators'] || 0,
       internalHatcheryCalm: epicResearchLevels['int_hatch_calm'] || 0,
     },
-    easterEggMultiplier: colleggtibleModifiers.ihr,
+    ihrMultiplier: colleggtibleModifiers.ihr,
     artifactMultiplier: artifactMods.internalHatcheryRate.totalMultiplier,
     artifactEffects: artifactMods.internalHatcheryRate.effects,
   };
@@ -108,7 +108,7 @@ export function computeSnapshot(
   const layRateInput: LayRateInput = {
     researchLevels: state.researchLevels,
     epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
-    siliconMultiplier: colleggtibleModifiers.elr,
+    elrMultiplier: colleggtibleModifiers.elr,
     population: population,
     artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
     artifactEffects: artifactMods.eggLayingRate.effects,
@@ -120,7 +120,7 @@ export function computeSnapshot(
     vehicles: state.vehicles,
     researchLevels: state.researchLevels,
     transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
-    colleggtibleMultiplier: colleggtibleModifiers.shippingCap,
+    shippingCapMultiplier: colleggtibleModifiers.shippingCap,
     artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
     artifactEffects: artifactMods.shippingRate.effects,
   };
@@ -134,7 +134,7 @@ export function computeSnapshot(
     eggValue: eggValueOutput.finalValue,
     effectiveLayRate: elrOutput.effectiveLayRate,
     te: state.te,
-    fireworkMultiplier: colleggtibleModifiers.earnings,
+    earningsMultiplier: colleggtibleModifiers.earnings,
     awayEarningsMultiplier: colleggtibleModifiers.awayEarnings,
     artifactAwayMultiplier: artifactMods.awayEarnings.totalMultiplier,
     videoDoublerMultiplier: context.assumeDoubleEarnings ? 2 : 1,
