@@ -27936,6 +27936,15 @@
     "ultra": false
   },
   {
+    "endTimestamp": 1785168000,
+    "id": "ultra-7-26",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1785081600,
+    "type": "drone-boost",
+    "ultra": true
+  },
+  {
     "endTimestamp": 1785254400,
     "id": "event-7-26-2",
     "message": "DOUBLE CAPACITY!",
@@ -27945,12 +27954,12 @@
     "ultra": false
   },
   {
-    "endTimestamp": 1785168000,
-    "id": "ultra-7-26",
-    "message": "4x DRONE REWARDS!",
-    "multiplier": 4,
-    "startTimestamp": 1785081600,
-    "type": "drone-boost",
-    "ultra": true
+    "endTimestamp": 1785254400,
+    "id": "event-7-27",
+    "message": "2x EARNINGS!",
+    "multiplier": 2,
+    "startTimestamp": 1785168000,
+    "type": "earnings-boost",
+    "ultra": false
   }
 ]
