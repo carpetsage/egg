@@ -1,0 +1,46 @@
+{
+  "strictness": 2,
+  "commentTypes": ["logic", "syntax", "style"],
+  "excludeAuthors": ["dependabot[bot]"],
+  "ignorePatterns": "pnpm-lock.yaml\ngo.sum\nperiodicals/uv.lock\n**/dist/**\neicoop/mock/*.txt\nui/heroicons.d.ts\nwasmegg/artifact-explorer/src/lib/loot.json\nwasmegg/_common/loot/latest-mission_reward_count.json\nwasmegg/_common/loot_legacy/mission_reward_count.json\n**/contracts.json\n**/events.json\nwasmegg/events/src/legacy_events.json\n**/version_history.json\n**/colleggtible-contracts.json\n**/contractseasons.json\n**/seasoncontracts.json\n**/customeggs.json\nperiodicals/data/**\nwasmegg/virtue-companion/src/lib/catalog.json\nlib/artifacts/data.json\nlib/artifacts/consumption.json\nlib/eiafx-config.json\nwasmegg/_common/eiafx/eiafx-data.json\nwasmegg/_common/eiafx/eiafx-config.json\nwasmegg/_common/consumption/consumption-data.json",
+  "rules": [
+    {
+      "id": "no-formatting-nitpicks",
+      "rule": "Do not comment on code formatting: whitespace, indentation, line length, quote style, semicolons, or trailing commas. Prettier owns all of it (printWidth 120, single quotes, ES5 trailing commas, 2-space indent, semicolons) and eslint-config-prettier enforces it, so such comments can never be actionable. Naming conventions and structural consistency are still fair game.",
+      "severity": "high"
+    },
+    {
+      "id": "respect-eslint-config",
+      "rule": "Do not report violations of rules that eslint.config.mjs deliberately disables or relaxes. `@typescript-eslint/no-non-null-assertion` is off by design, `no-undef` is off, `no-constant-condition` does not check loops, and unused function parameters prefixed with an underscore are intentional. Check eslint.config.mjs before claiming a lint violation.",
+      "severity": "high"
+    },
+    {
+      "id": "no-docstring-requests",
+      "rule": "Do not request docstrings or JSDoc comments. This codebase does not use them as a convention, so the request is never actionable.",
+      "severity": "high"
+    },
+    {
+      "id": "no-test-suggestions",
+      "rule": "Do not suggest adding tests for a workspace that has no test harness. Most workspaces in this repository have none, and standing up a harness is out of scope for a typical change.",
+      "severity": "high"
+    },
+    {
+      "id": "vue-reactivity",
+      "rule": "In Vue single-file components, flag reactivity bugs: losing reactivity by destructuring a reactive object, a missing `.value` on a ref, computed properties with side effects, a watcher that should be a computed, `v-for` without a stable `:key`, and props mutated directly instead of emitting.",
+      "scope": ["**/*.vue"],
+      "severity": "medium"
+    },
+    {
+      "id": "vue-lifecycle-cleanup",
+      "rule": "Event listeners, intervals, timeouts, and observers registered in `onMounted` must be torn down in `onUnmounted`. These are long-lived single-page apps, so a leak accumulates across navigation.",
+      "scope": ["**/*.vue"],
+      "severity": "medium"
+    },
+    {
+      "id": "go-unchecked-errors",
+      "rule": "Flag unchecked errors and ignored `err` returns. Much of the Go code regenerates committed JSON data files, so a write that fails partway can leave a truncated data file committed to the repository.",
+      "scope": ["**/*.go"],
+      "severity": "medium"
+    }
+  ]
+}

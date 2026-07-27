@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "eslint.config.mjs",
+      "description": "ESLint flat config. Read this before reporting any lint violation — several rules are deliberately disabled or relaxed."
+    },
+    {
+      "path": ".prettierrc.json",
+      "description": "Prettier config. Defines the formatting this repo has fully delegated to tooling."
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "description": "The full list of workspaces. Use it to judge the blast radius of a change to lib/ or ui/."
+    }
+  ]
+}
