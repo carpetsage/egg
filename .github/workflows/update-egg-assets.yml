@@ -64,7 +64,7 @@ jobs:
           git config user.email 'actions@github.com'
 
           # Add all changes
-          git add orig/
+          git add .
 
           # Check if there are any changes to commit
           if git diff --cached --quiet; then
