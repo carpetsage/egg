@@ -83,7 +83,7 @@ export function calculateActionResult(
   });
 
   const newSnapshot = computeSnapshot(newState, context, {
-    skipGrowth: action.type === 'wait_for_no_earnings',
+    freezePopulation: action.type === 'wait_for_no_earnings',
     skipEpochConversion: true,
   });
   return { newSnapshot, durationSeconds };

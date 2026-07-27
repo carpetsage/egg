@@ -297,6 +297,13 @@ function getTimeToBuySeconds(research: CommonResearch): number {
   return getTimeToSave(price, actionsStore.effectiveSnapshot);
 }
 
+// Some sortedResearches branches (e.g. ROI view) don't populate buyToHereSeconds,
+// since it's simulated step-by-step and only meaningful for a defined "chain" (cheapest/milestones).
+function getSimulatedBuyToHereSeconds(item: unknown): number | undefined {
+  const seconds = (item as { buyToHereSeconds?: unknown }).buyToHereSeconds;
+  return typeof seconds === 'number' ? seconds : undefined;
+}
+
 /**
  * Buy a single level of research and create the action.
  * Returns true if successful, false if already maxed.
@@ -461,10 +468,14 @@ function handleBuyToHere(index: number) {
   const list = sortedResearches.value;
   if (index < 0 || index >= list.length) return;
 
-  // Estimate total duration
-  let totalDuration = 0;
-  for (let i = 0; i <= index; i++) {
-    totalDuration += getTimeToBuySeconds(list[i].research);
+  // buyToHereSeconds is simulated step-by-step (earnings rate updates as each
+  // item is bought), unlike summing getTimeToBuySeconds against today's static rate.
+  let totalDuration = getSimulatedBuyToHereSeconds(list[index]);
+  if (totalDuration === undefined) {
+    totalDuration = 0;
+    for (let i = 0; i <= index; i++) {
+      totalDuration += getTimeToBuySeconds(list[i].research);
+    }
   }
 
   withExpiryCheck(totalDuration, true, () => {
@@ -481,9 +492,14 @@ function handleBuyMilestoneChain() {
   const list = sortedResearches.value;
   if (list.length === 0) return;
 
-  let totalDuration = 0;
-  for (const item of list) {
-    totalDuration += getTimeToBuySeconds(item.research);
+  // Same reasoning as handleBuyToHere: use the chain's simulated final duration
+  // rather than summing individual durations against today's static earnings rate.
+  let totalDuration = getSimulatedBuyToHereSeconds(list[list.length - 1]);
+  if (totalDuration === undefined) {
+    totalDuration = 0;
+    for (const item of list) {
+      totalDuration += getTimeToBuySeconds(item.research);
+    }
   }
 
   withExpiryCheck(totalDuration, true, () => {

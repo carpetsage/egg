@@ -30,6 +30,18 @@ export interface NotificationPayload {
   icon?: string;
 }
 
+/**
+ * Payload for manually overriding the bank value.
+ * `mode: 'set'` replaces the bank value outright (amount is the new total);
+ * `mode: 'delta'` adds/subtracts a fixed amount (amount is the +/- adjustment).
+ */
+export interface ModifyBankPayload {
+  mode: 'set' | 'delta';
+  amount: number;
+  previousValue: number;
+  delta: number;
+}
+
 import type {
   BuyVehiclePayload,
   BuyHabPayload,
@@ -78,7 +90,8 @@ export type ActionType =
   | 'wait_for_earnings_boost'
   | 'wait_for_no_earnings'
   | 'toggle_earnings_boost'
-  | 'notification';
+  | 'notification'
+  | 'modify_bank';
 
 /**
  * Maps action types to their payload interfaces.
@@ -108,6 +121,7 @@ export interface ActionPayloadMap {
   wait_for_no_earnings: import('./wait').WaitWithoutEarningsPayload;
   toggle_earnings_boost: ToggleEarningsBoostPayload;
   notification: NotificationPayload;
+  modify_bank: ModifyBankPayload;
 }
 
 /**

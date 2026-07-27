@@ -228,6 +228,7 @@ export function computePassiveEggsDelivered(action: Action, prevSnapshot: Calcul
     'toggle_earnings_boost',
     'notification',
     'wait_for_no_earnings',
+    'modify_bank',
   ];
   if (NO_PASSIVE_TYPES.includes(action.type)) return 0;
 

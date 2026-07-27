@@ -45,6 +45,7 @@ import { waitForEarningsBoostExecutor } from './executors/waitForEarningsBoost';
 import { waitForGemsExecutor } from './executors/waitForGems';
 import { waitForNoEarningsExecutor } from './executors/wait_for_no_earnings';
 import { notificationExecutor } from './executors/notification';
+import { modifyBankExecutor } from './executors/modifyBank';
 
 // ============================================================================
 // Executor Interface
@@ -135,6 +136,7 @@ const executorMap: { [K in ActionType]: ActionExecutor<K> } = {
   wait_for_no_earnings: waitForNoEarningsExecutor,
   toggle_earnings_boost: toggleEarningsBoostExecutor,
   notification: notificationExecutor,
+  modify_bank: modifyBankExecutor,
 };
 
 /**
