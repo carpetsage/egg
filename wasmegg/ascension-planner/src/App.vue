@@ -8,6 +8,8 @@
     ]"
   >
     <div class="max-w-6xl mx-auto p-4">
+      <CustomEggWatcher v-if="isDev" />
+
       <!-- Collapsible Header Region -->
       <div class="bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-100 shadow-sm">
         <div
@@ -497,6 +499,7 @@ import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useEventsStore } from '@/stores/events';
 
 import { useNotesStore } from '@/stores/notes';
+import CustomEggWatcher from '@/components/CustomEggWatcher.vue';
 import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
 import UndoConfirmationDialog from '@/components/UndoConfirmationDialog.vue';
@@ -532,6 +535,9 @@ import {
   captureReconciliationTargets,
   catchUpFarmState,
 } from '@/lib/modes';
+
+// Dev server only (localhost or a LAN IP hitting the Vite dev server) - never in a production build.
+const isDev = import.meta.env.DEV;
 
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
 const initialStateStore = useInitialStateStore();
