@@ -63,15 +63,30 @@ describe('enumerateLaunchOptions', () => {
     expect(options.some(o => o.targetAfxId === Name.PUZZLE_CUBE)).toBe(true);
   });
 
-  it('drops missions shorter than minDurationSeconds', () => {
-    const all = enumerateLaunchOptions(perfectShipsConfig, dag);
-    const minDuration = 4 * 3600;
-    const longOnly = enumerateLaunchOptions(perfectShipsConfig, dag, minDuration);
-    expect(longOnly.length).toBeGreaterThan(0);
-    expect(longOnly.length).toBeLessThan(all.length);
-    for (const o of longOnly) {
-      expect(o.actualTime).toBeGreaterThanOrEqual(minDuration);
+  it('floors every mission duration up to the launch period without dropping any', () => {
+    const base = enumerateLaunchOptions(perfectShipsConfig, dag);
+    // 6h splits the real option set: some missions are shorter, some longer
+    const launchPeriod = 6 * 3600;
+    const floored = enumerateLaunchOptions(perfectShipsConfig, dag, launchPeriod);
+    // the floor is a soft penalty, not a cutoff
+    expect(floored.length).toBe(base.length);
+    const baseById = new Map(base.map(o => [o.id, o]));
+    let sawRaised = false;
+    let sawUnchanged = false;
+    for (const o of floored) {
+      const original = baseById.get(o.id)!;
+      expect(o.rawTime).toBeCloseTo(original.actualTime);
+      expect(o.actualTime).toBeCloseTo(Math.max(o.rawTime, launchPeriod));
+      if (o.rawTime >= launchPeriod) {
+        expect(o.actualTime).toBeCloseTo(o.rawTime);
+        sawUnchanged = true;
+      } else {
+        expect(o.actualTime).toBeCloseTo(launchPeriod);
+        sawRaised = true;
+      }
     }
+    expect(sawRaised).toBe(true);
+    expect(sawUnchanged).toBe(true);
   });
 
   it('drops missions whose ship costs more gems than maxGemCost', () => {
@@ -115,5 +130,32 @@ describe('optimize', () => {
       expect(row.expected).toBeGreaterThan(0);
       expect(row.iconUrl).toMatch(/^https:/);
     }
+  });
+
+  it('reports running time as the busiest slot real flight time', () => {
+    const config = {
+      desiredArtifactNodeIds: ['puzzle-cube-4'],
+      includeNotEnoughData: false,
+      fuelTankCapacity: 2_000_000_000,
+      timeBudgetSeconds: 3 * 24 * 3600,
+    };
+    const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
+    const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
+    const launchPeriod = 3600; // high effort: 1 launch / slot / hour
+    const [sol] = optimize(config, perfectShipsConfig, dag, baseYield, launchPeriod);
+
+    expect(sol.slots).toBeDefined();
+    expect(sol.slots!.length).toBe(3);
+    const busiest = sol.slots!.reduce((a, b) => (b.loadSeconds > a.loadSeconds ? b : a));
+    expect(busiest.missionCount).toBeGreaterThan(0);
+    expect(sol.runningTimeSeconds).toBe(Math.round(busiest.rawLoadSeconds));
+    expect(sol.runningTimeSeconds).toBeLessThanOrEqual(sol.timeUnitsUsed);
+    for (const slot of sol.slots!) {
+      expect(slot.loadSeconds).toBeLessThanOrEqual(config.timeBudgetSeconds + 1e-6);
+    }
+
+    // with a zero launch period nothing is floored: raw flight = makespan
+    const [rawSol] = optimize(config, perfectShipsConfig, dag, baseYield, 0);
+    expect(rawSol.runningTimeSeconds).toBe(rawSol.timeUnitsUsed);
   });
 });

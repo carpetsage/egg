@@ -44,13 +44,14 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
 }
 
 // Enumerate launch options: every visible ship crossed with its applicable
-// mission targets, each carrying fuel cost, duration, and per-launch yield
-// vectors. Missions shorter than minDurationSeconds or whose ship costs more
-// gems than maxGemCost (if given) are skipped.
+// mission targets, with per-single-ship costs and yields. launchPeriodSeconds
+// floors each mission's effective duration (see EFFORT_LAUNCH_PERIOD_SECONDS),
+// penalising short missions without banning them. Ships costing more gems
+// than maxGemCost (if given) are skipped.
 export function enumerateLaunchOptions(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
-  minDurationSeconds?: number,
+  launchPeriodSeconds = 0,
   maxGemCost?: number
 ): LaunchOption[] {
   const options: LaunchOption[] = [];
@@ -64,11 +65,6 @@ export function enumerateLaunchOptions(
 
   for (const mission of missions) {
     if (!playerConfig.shipVisibility[mission.shipType]) continue;
-
-    if (minDurationSeconds !== undefined) {
-      const missionDuration = mission.boostedDurationSeconds(playerConfig);
-      if (missionDuration < minDurationSeconds) continue;
-    }
 
     if (maxGemCost !== undefined && mission.virtueGemCost > maxGemCost) continue;
 
@@ -98,19 +94,18 @@ export function enumerateLaunchOptions(
     for (const target of applicableTargets) {
       const minTotalLaunches = target.totalDrops / maxMissionCapacity;
 
-      // Cannot use the missionDataNotEnough function as it's too conservative
-      // It uses the base launch capacity which yields too high of an expected launch count
-      // Though, this effect will
+      // missionDataNotEnough is too conservative here: it divides by the base
+      // launch capacity, overestimating the expected launch count.
       if (minTotalLaunches < 20 && !playerConfig.showNodata) continue;
 
       if (target.targetAfxId !== ei.ArtifactSpec.Name.UNKNOWN && !dagAfxIds.has(target.targetAfxId)) {
         if (target !== bestNonDagTarget) continue;
       }
 
-      const option = makeLaunchOption(mission, target.targetAfxId, playerConfig);
+      const option = makeLaunchOption(mission, target.targetAfxId, playerConfig, launchPeriodSeconds);
       for (const item of target.items) {
-        const expectedDropsPerBatch = (sum(item.counts) / target.totalDrops) * missionCapacity * 3.0;
-        option.supplyVector.set(item.itemId, expectedDropsPerBatch);
+        const expectedDropsPerShip = (sum(item.counts) / target.totalDrops) * missionCapacity;
+        option.supplyVector.set(item.itemId, expectedDropsPerShip);
 
         if (dag.has(item.itemId)) {
           // Zero out legendary counts below the observation minimum — a single
@@ -118,9 +113,9 @@ export function enumerateLaunchOptions(
           // precise rate.
           const observed = item.counts[3];
           const legendaryCount = observed >= MIN_LEGENDARY_OBSERVATIONS || playerConfig.showNodata ? observed : 0;
-          const legendaryRate = (legendaryCount / target.totalDrops) * missionCapacity * 3.0;
+          const legendaryRate = (legendaryCount / target.totalDrops) * missionCapacity;
 
-          option.yieldVector.set(item.itemId, expectedDropsPerBatch);
+          option.yieldVector.set(item.itemId, expectedDropsPerShip);
           option.legendaryYieldVector.set(item.itemId, legendaryRate);
         }
       }
@@ -132,20 +127,28 @@ export function enumerateLaunchOptions(
   return options;
 }
 
-function makeLaunchOption(mission: MissionType, target: ei.ArtifactSpec.Name, playerConfig: ShipsConfig): LaunchOption {
+function makeLaunchOption(
+  mission: MissionType,
+  target: ei.ArtifactSpec.Name,
+  playerConfig: ShipsConfig,
+  launchPeriodSeconds = 0
+): LaunchOption {
   const id = `${mission.missionTypeId}::${target}`;
   const fuelUse = mission.virtueFuels;
 
   const nonHumilityFuelUse = fuelUse.filter(x => x.egg !== ei.Egg.HUMILITY);
+
+  const rawTime = mission.boostedDurationSeconds(playerConfig);
 
   return {
     id,
     ship: mission,
     target: getArtifactName(target),
     targetAfxId: target,
-    actualFuel: nonHumilityFuelUse.reduce((agg, current) => agg + current.amount, 0) * 3,
-    actualTime: mission.boostedDurationSeconds(playerConfig),
-    fuelByEgg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount * 3), new Map()),
+    actualFuel: nonHumilityFuelUse.reduce((agg, current) => agg + current.amount, 0),
+    actualTime: Math.max(rawTime, launchPeriodSeconds),
+    rawTime,
+    fuelByEgg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount), new Map()),
     supplyVector: new Map(),
     yieldVector: new Map(),
     legendaryYieldVector: new Map(),

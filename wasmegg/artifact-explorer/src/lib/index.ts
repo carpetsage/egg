@@ -2,6 +2,7 @@ export * from './artifacts';
 export * from './missions';
 export * from './loot';
 export * from './optimizer-views';
+export * from './optimizer-tree';
 
 import type { DAGNode, LaunchSolution, OptimizerConfig, OptimizerSolution, DropRow, RecipeDAG } from './types';
 import { enumerateLaunchOptions, generateRecipeDag } from './phases';
@@ -72,7 +73,7 @@ function computeExpectedDrops(solution: OptimizerSolution, dag: Map<string, DAGN
 
   for (const choice of solution.choiceHistory) {
     for (const [item, rate] of choice.supplyVector) {
-      totals.set(item, (totals.get(item) ?? 0) + (rate * choice.numShipsLaunched) / 3);
+      totals.set(item, (totals.get(item) ?? 0) + rate * choice.numShipsLaunched);
     }
   }
 
@@ -100,7 +101,7 @@ function computeFuelByEgg(solution: OptimizerSolution): Map<ei.Egg, number> {
 
   for (const choice of solution.choiceHistory) {
     for (const [egg, rate] of choice.actualFuelByEgg) {
-      totals.set(egg, (totals.get(egg) ?? 0) + (rate * choice.numShipsLaunched) / 3.0);
+      totals.set(egg, (totals.get(egg) ?? 0) + rate * choice.numShipsLaunched);
     }
   }
 
@@ -115,11 +116,11 @@ export function optimize(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
   baseYield: Map<string, number>,
-  minDurationSeconds?: number,
+  launchPeriodSeconds = 0,
   maxGemCost?: number
 ) {
   const { desiredArtifactNodeIds, fuelTankCapacity, timeBudgetSeconds } = config;
-  const options = enumerateLaunchOptions(playerConfig, dag, minDurationSeconds, maxGemCost);
+  const options = enumerateLaunchOptions(playerConfig, dag, launchPeriodSeconds, maxGemCost);
 
   const solutions: OptimizerSolution[] = [
     optimizeFull({

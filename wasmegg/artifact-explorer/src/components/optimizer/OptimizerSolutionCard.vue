@@ -35,7 +35,11 @@
         <base-icon :icon-rel-path="eggIconPath(egg)" :size="64" class="inline-block -ml-0.5 h-4 w-4"></base-icon>
       </li>
     </ul>
-    <div class="text-gray-600">Total mission time: {{ formatDuration(solution.timeUnitsUsed, true) }}</div>
+    <div class="text-gray-600">Ships in flight: {{ formatDuration(solution.runningTimeSeconds, true) }}</div>
+    <div v-if="idleTimeSeconds > 0" class="text-gray-600">
+      <span v-tippy="idleTooltip" class="cursor-help border-b border-dotted border-gray-400/60">Idle</span>
+      : {{ formatDuration(idleTimeSeconds, true) }}
+    </div>
     <div class="text-gray-600">Expected crafts: {{ solution.expectedCrafts.toFixed(1) }}</div>
 
     <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mt-3">Launch plan</div>
@@ -50,7 +54,7 @@
       :expected-crafts="solution.expectedCrafts"
       :p-craft="pCraft"
       :lambda="lambda"
-      :craft-chain="craftChain"
+      :craft-chain-tree="craftChainTree"
       :mission-legendary-sources="missionLegendarySources"
       :has-inventory="hasInventory"
     />
@@ -58,10 +62,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { computed, defineComponent, PropType } from 'vue';
 
 import { eggIconPath, formatDuration, formatEIValue } from 'lib';
-import type { CraftChainRow, MissionLegendaryRow, OptimizerSolution } from '@/lib';
+import type { CraftChainMetrics, MissionLegendaryRow, OptimizerSolution, RecipeTreeNode } from '@/lib';
 import BaseIcon from 'ui/components/BaseIcon.vue';
 import OptimizerChoiceList from './OptimizerChoiceList.vue';
 import OptimizerExpectedDrops from './OptimizerExpectedDrops.vue';
@@ -71,23 +75,38 @@ export default defineComponent({
   components: { BaseIcon, OptimizerChoiceList, OptimizerExpectedDrops, OptimizerProbabilityBreakdown },
   props: {
     solution: { type: Object as PropType<OptimizerSolution>, required: true },
+    maxWaitTimeSeconds: { type: Number, required: true },
     pCraft: { type: Number, required: true },
     lambda: { type: Number, required: true },
-    craftChain: { type: Array as PropType<CraftChainRow[]>, required: true },
+    craftChainTree: { type: Object as PropType<RecipeTreeNode<CraftChainMetrics> | null>, required: true },
     missionLegendarySources: { type: Array as PropType<MissionLegendaryRow[]>, required: true },
     hasInventory: { type: Boolean, required: true },
     dropDataIsSparse: { type: Boolean, default: false },
   },
-  setup() {
+  setup(props) {
     const sparseTooltip =
-      'Drop data is sparse: no mission has accumulated 5+ legendary observations of this artifact. The displayed rate is dominated by single-observation noise and may overstate or understate the true rate by several multiples.';
+      'Drop data is sparse: no mission has 5+ recorded legendary observations of this artifact, so the displayed rate may be off by several multiples.';
     const chanceTooltip =
-      'The overall probability of ending up with at least one legendary of this artifact from this ship set — combining both crafting it and having it drop directly.';
+      'Probability of at least one legendary of this artifact from this ship set, via crafting or a direct drop.';
     const craftTooltip =
-      'The probability of crafting at least one legendary, from the ingredients gathered across these missions (plus anything already in your inventory).';
-    const dropTooltip =
-      'The probability of at least one legendary dropping directly from the missions themselves, without crafting.';
-    return { eggIconPath, formatDuration, formatEIValue, sparseTooltip, chanceTooltip, craftTooltip, dropTooltip };
+      'Probability of crafting at least one legendary from the gathered ingredients (plus anything already in your inventory).';
+    const dropTooltip = 'Probability of at least one legendary dropping directly from the missions.';
+    const idleTooltip =
+      'Budget time with no ships in flight — gaps between launches (per your effort setting) plus unused budget at the end. Ships in flight + idle = your max wait time.';
+    const idleTimeSeconds = computed(() =>
+      Math.max(0, Math.round(props.maxWaitTimeSeconds) - props.solution.runningTimeSeconds)
+    );
+    return {
+      eggIconPath,
+      formatDuration,
+      formatEIValue,
+      sparseTooltip,
+      chanceTooltip,
+      craftTooltip,
+      dropTooltip,
+      idleTooltip,
+      idleTimeSeconds,
+    };
   },
 });
 </script>

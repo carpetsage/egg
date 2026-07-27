@@ -17,42 +17,68 @@
       <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Constraints</h3>
       <div class="space-y-3">
         <div>
-          <label for="waitTimeInput" class="block text-sm text-gray-700">Time budget (days)</label>
+          <label for="waitTimeInput" class="block text-sm text-gray-700">Time budget</label>
           <base-input
             id="waitTimeInput"
-            :model-value="waitTimeDays"
-            type="number"
+            :model-value="waitTimeDraft"
+            type="text"
             name="waitTimeInput"
             class="mt-1 appearance-none block w-full px-3 py-1.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            placeholder="Days"
-            @update:model-value="$emit('update:waitTimeDays', String($event))"
+            placeholder="e.g. 30, 12d12h, 10h5m"
+            @update:model-value="onWaitTimeInput"
+            @blur="onWaitTimeBlur"
           />
-          <p v-if="timeBudgetInvalid" class="mt-1 text-xs text-red-500">Enter a positive number of days</p>
+          <p v-if="timeBudgetInvalid" class="mt-1 text-xs text-red-500">
+            Enter a positive duration (e.g. 30, 12d12h, 10h5m)
+          </p>
           <p v-else class="mt-1 text-xs text-gray-400">Maximum time you're willing to spend launching missions</p>
         </div>
 
         <div>
-          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-              :checked="missionFilters.minDurationHoursEnabled"
-              @change="setMinDurationHoursEnabled(($event.target as HTMLInputElement).checked)"
-            />
-            Minimum mission duration
-          </label>
-          <div class="mt-1 flex items-center gap-2">
-            <input
-              type="number"
-              step="0.5"
-              min="0"
-              :disabled="!missionFilters.minDurationHoursEnabled"
-              :value="missionFilters.minDurationHours"
-              class="block w-20 sm:text-sm rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 px-2 py-1 border border-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
-              @input="onDurationInput($event)"
-            />
-            <span class="text-xs text-gray-500">hours</span>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600">Effort</label>
+            <span class="text-xs font-medium text-gray-700">{{ effortMeta[missionFilters.effort].label }}</span>
           </div>
+          <div
+            ref="effortTrack"
+            role="slider"
+            tabindex="0"
+            aria-label="Effort"
+            :aria-valuemin="0"
+            :aria-valuemax="EFFORT_LEVELS.length - 1"
+            :aria-valuenow="effortIndex"
+            :aria-valuetext="effortMeta[missionFilters.effort].label"
+            class="relative mt-2 h-6 cursor-pointer select-none touch-none focus:outline-none"
+            @pointerdown="onTrackPointerDown"
+            @pointermove="onTrackPointerMove"
+            @pointerup="onTrackPointerUp"
+            @pointercancel="onTrackPointerUp"
+            @keydown="onTrackKeydown"
+          >
+            <div ref="effortRail" class="absolute inset-x-2 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-gray-200">
+              <div
+                class="absolute left-0 top-0 h-full rounded-full bg-green-500"
+                :style="{ width: `${(effortIndex / (EFFORT_LEVELS.length - 1)) * 100}%` }"
+              ></div>
+              <span
+                v-for="(lvl, i) in EFFORT_LEVELS"
+                :key="lvl"
+                class="absolute top-1/2 rounded-full border-2 -translate-x-1/2 -translate-y-1/2 transition-all"
+                :class="[
+                  i === effortIndex
+                    ? 'h-4 w-4 border-green-600 bg-white shadow ring-1 ring-green-600/20'
+                    : i < effortIndex
+                      ? 'h-3 w-3 border-green-500 bg-green-500'
+                      : 'h-3 w-3 border-gray-300 bg-white',
+                ]"
+                :style="{ left: `${(i / (EFFORT_LEVELS.length - 1)) * 100}%` }"
+              ></span>
+            </div>
+          </div>
+          <div class="mt-1 flex justify-between text-[11px] text-gray-400">
+            <span v-for="lvl in EFFORT_LEVELS" :key="'lbl-' + lvl">{{ effortMeta[lvl].short }}</span>
+          </div>
+          <p class="mt-1 text-xs text-gray-400">{{ effortMeta[missionFilters.effort].hint }}</p>
         </div>
 
         <div>
@@ -205,9 +231,17 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue';
+import { computed, defineComponent, ref, watch } from 'vue';
 
-import { formatEIValue, fuelTankSizes, parseValueWithUnit, spaceshipList } from 'lib';
+import {
+  formatDuration,
+  formatEIValue,
+  fuelTankSizes,
+  isDurationNormalizable,
+  parseDurationDays,
+  parseValueWithUnit,
+  spaceshipList,
+} from 'lib';
 import BaseInput from 'ui/components/BaseInput.vue';
 import PlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import LootDataCredit from '@/components/LootDataCredit.vue';
@@ -217,6 +251,8 @@ import {
   autoCompute,
   config,
   effectiveConfig,
+  EFFORT_LEVELS,
+  type EffortLevel,
   extras,
   missionFilters,
   openPlayerOverridesModal,
@@ -227,12 +263,11 @@ import {
   playerTankLevel,
   setAutoCompute,
   setCraftingLevel,
+  setEffort,
   setEpicResearchFTLLevel,
   setEpicResearchZerogLevel,
   setMaxGemCost,
   setMaxGemCostEnabled,
-  setMinDurationHours,
-  setMinDurationHoursEnabled,
   setOverrideCraftingLevel,
   setOverrideFTL,
   setOverridePreviousCrafts,
@@ -241,6 +276,29 @@ import {
   setPreviousCraftCount,
   setTankLevel,
 } from '@/store';
+
+const effortMeta: Record<EffortLevel, { short: string; label: string; hint: string }> = {
+  low: {
+    short: 'Low',
+    label: 'Low',
+    hint: 'One launch per slot per day — favors long, low-maintenance missions.',
+  },
+  medium: {
+    short: 'Med',
+    label: 'Medium',
+    hint: 'Two launches per slot per day.',
+  },
+  high: {
+    short: 'High',
+    label: 'High',
+    hint: 'One launch per slot per hour.',
+  },
+  max: {
+    short: 'Max',
+    label: 'Max',
+    hint: 'No launch limit — relaunch the instant a mission lands.',
+  },
+};
 
 export default defineComponent({
   components: { BaseInput, PlayerIdForm, LootDataCredit, OptimizerSettingRow },
@@ -255,7 +313,30 @@ export default defineComponent({
     runCompute: () => true,
     'update:waitTimeDays': (_days: string) => true,
   },
-  setup() {
+  setup(props, { emit }) {
+    const waitTimeDraft = ref(props.waitTimeDays);
+    watch(
+      () => props.waitTimeDays,
+      v => {
+        waitTimeDraft.value = v;
+      }
+    );
+
+    function onWaitTimeInput(value: string) {
+      waitTimeDraft.value = value;
+      emit('update:waitTimeDays', value);
+    }
+
+    function onWaitTimeBlur() {
+      if (!isDurationNormalizable(waitTimeDraft.value)) {
+        // keep the text as typed rather than overwrite it with e.g. '>100yr'
+        return;
+      }
+      const normalized = formatDuration(parseDurationDays(waitTimeDraft.value), true);
+      waitTimeDraft.value = normalized;
+      emit('update:waitTimeDays', normalized);
+    }
+
     const maxTankLevel = fuelTankSizes.length - 1;
     const hasPlayerData = computed(() => !!playerShipsConfig.value);
 
@@ -270,12 +351,60 @@ export default defineComponent({
     const totalShips = spaceshipList.length;
     const shipsVisibleCount = computed(() => spaceshipList.filter(s => effectiveConfig.value.shipVisibility[s]).length);
 
-    function onDurationInput(event: Event) {
-      const raw = (event.target as HTMLInputElement).value.trim();
-      if (!raw) return;
-      const n = parseFloat(raw);
-      if (isNaN(n) || n < 0) return;
-      setMinDurationHours(n);
+    const effortTrack = ref<HTMLElement | null>(null);
+    const effortRail = ref<HTMLElement | null>(null);
+    const dragging = ref(false);
+    const effortIndex = computed(() => Math.max(0, EFFORT_LEVELS.indexOf(missionFilters.value.effort)));
+
+    function setEffortByIndex(i: number) {
+      const clamped = Math.min(EFFORT_LEVELS.length - 1, Math.max(0, i));
+      setEffort(EFFORT_LEVELS[clamped]);
+    }
+
+    // Measure against the rail, not the outer track: the notch centers sit at
+    // the rail's 0%/100%.
+    function selectFromClientX(clientX: number) {
+      const rect = (effortRail.value ?? effortTrack.value)?.getBoundingClientRect();
+      if (!rect || rect.width <= 0) return;
+      const ratio = (clientX - rect.left) / rect.width;
+      setEffortByIndex(Math.round(ratio * (EFFORT_LEVELS.length - 1)));
+    }
+
+    function onTrackPointerDown(e: PointerEvent) {
+      e.preventDefault();
+      effortTrack.value?.focus();
+      effortTrack.value?.setPointerCapture?.(e.pointerId);
+      dragging.value = true;
+      selectFromClientX(e.clientX);
+    }
+    function onTrackPointerMove(e: PointerEvent) {
+      if (!dragging.value) return;
+      selectFromClientX(e.clientX);
+    }
+    function onTrackPointerUp(e: PointerEvent) {
+      dragging.value = false;
+      effortTrack.value?.releasePointerCapture?.(e.pointerId);
+    }
+    function onTrackKeydown(e: KeyboardEvent) {
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'ArrowDown':
+          setEffortByIndex(effortIndex.value - 1);
+          break;
+        case 'ArrowRight':
+        case 'ArrowUp':
+          setEffortByIndex(effortIndex.value + 1);
+          break;
+        case 'Home':
+          setEffortByIndex(0);
+          break;
+        case 'End':
+          setEffortByIndex(EFFORT_LEVELS.length - 1);
+          break;
+        default:
+          return;
+      }
+      e.preventDefault();
     }
 
     // Shown value for the gem cost filter, in Egg, Inc. order-of-magnitude
@@ -291,14 +420,26 @@ export default defineComponent({
     }
 
     return {
+      waitTimeDraft,
+      onWaitTimeInput,
+      onWaitTimeBlur,
       hasPlayerData,
       maxTankLevel,
       tankCapacityLabel,
       totalShips,
       shipsVisibleCount,
-      onDurationInput,
       maxGemCostDisplay,
       onGemCostInput,
+      // effort slider
+      EFFORT_LEVELS,
+      effortMeta,
+      effortTrack,
+      effortRail,
+      effortIndex,
+      onTrackPointerDown,
+      onTrackPointerMove,
+      onTrackPointerUp,
+      onTrackKeydown,
       // store state
       config,
       extras,
@@ -321,7 +462,6 @@ export default defineComponent({
       setOverrideTankLevel,
       setOverrideFTL,
       setOverrideZerog,
-      setMinDurationHoursEnabled,
       setMaxGemCostEnabled,
       openPlayerOverridesModal,
     };

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ei } from 'lib';
 import { optimizeFull } from './optimizer-core';
-import { computeCraftChainRows } from './optimizer-views';
+import { computeCraftChainTree } from './optimizer-tree';
 import { makeNode, makeOpt } from './spec-helpers';
 import type { RecipeDAG } from './types';
 
@@ -33,7 +33,7 @@ describe('optimizeFull', () => {
   });
 
   it('uses the full time budget for a zero-fuel option', () => {
-    // 10s per launch, 100s budget: 10 launches, 10 B
+    // 10s per launch, 100s horizon, 3 slots: 10 launches per slot -> 30 B
     const sol = optimizeFull({
       options: [makeOpt(0, 10, [['B', 1]])],
       recipeDag: craftDag(0.1),
@@ -44,11 +44,12 @@ describe('optimizeFull', () => {
     });
     expect(sol.timeUnitsUsed).toBeLessThanOrEqual(100);
     const yieldB = sol.finalYieldVector.get('B') ?? 0;
-    expect(yieldB).toBeGreaterThanOrEqual(10);
+    expect(yieldB).toBeGreaterThanOrEqual(30);
   });
 
   it('respects a tighter time budget exactly', () => {
-    // 10s per launch, 50s budget: exactly 5 launches
+    // 10s per launch, 50s per-slot horizon, 3 slots: 5 launches per slot -> 15 B,
+    // and each slot filled to 50s so the wall-clock makespan is 50
     const sol = optimizeFull({
       options: [makeOpt(0, 10, [['B', 1]])],
       recipeDag: craftDag(0.1),
@@ -58,7 +59,7 @@ describe('optimizeFull', () => {
       baseYield: new Map(),
     });
     expect(sol.timeUnitsUsed).toBe(50);
-    expect(sol.finalYieldVector.get('B')).toBeCloseTo(5, 9);
+    expect(sol.finalYieldVector.get('B')).toBeCloseTo(15, 9);
   });
 
   it('respects the fuel budget', () => {
@@ -232,13 +233,16 @@ describe('optimizeFull', () => {
     });
     expect(sol.choiceHistory.find(c => c.targetAfxId === optZ.targetAfxId)).toBeDefined();
     expect(sol.choiceHistory.find(c => c.targetAfxId === optP.targetAfxId)).toBeDefined();
-    expect(sol.finalYieldVector.get('B')).toBeCloseTo(10, 6);
+    // C is fuel-bound at 10; crafts = min(B, C) = 10. B (zero fuel) is at least
+    // enough to match C — any surplus free B is optimal-equivalent.
     expect(sol.finalYieldVector.get('C')).toBeCloseTo(10, 6);
-    expect(sol.timeUnitsUsed).toBe(200);
+    expect(sol.finalYieldVector.get('B') ?? 0).toBeGreaterThanOrEqual(10 - 1e-6);
+    expect(sol.expectedCrafts).toBeCloseTo(10, 6);
+    expect(sol.timeUnitsUsed).toBeLessThanOrEqual(200);
     expect(sol.fuelUsed).toBeCloseTo(100, 6);
   });
 
-  it('keeps an option the dual filter would wrongly prune', () => {
+  it('reaches the brute-force optimum on a tight-fuel mix', () => {
     const dag: RecipeDAG = new Map([
       [
         'A',
@@ -293,8 +297,10 @@ describe('optimizeFull', () => {
       timeCapacity: 8,
       baseYield: new Map(),
     });
-    expect(sol.expectedCrafts).toBeGreaterThan(4.5);
-    expect(sol.choiceHistory.some(c => c.targetAfxId === opt2.targetAfxId)).toBe(true);
+    // Fuel binds at 6; the brute-force optimum is 6x opt1 -> min(B,C) = 12.18
+    // crafts, which a dual filter that wrongly pruned opt1 would miss.
+    expect(sol.expectedCrafts).toBeCloseTo(12.18, 2);
+    expect(sol.choiceHistory.some(c => c.targetAfxId === opt1.targetAfxId)).toBe(true);
   });
 
   it('snapshots base_yield and keeps it out of the dropped column', () => {
@@ -313,10 +319,11 @@ describe('optimizeFull', () => {
       baseYield: new Map([[leaf, 5]]),
     });
     expect(sol.baseYield.get(leaf)).toBe(5);
-    expect(sol.finalYieldVector.get(leaf)).toBeCloseTo(10, 9); // 5 owned + 5 dropped
-    const leafRow = computeCraftChainRows(sol, root, null).find(r => r.nodeId === leaf);
-    expect(leafRow).toBeDefined();
-    expect(leafRow!.dropped).toBeCloseTo(5, 9);
+    // 10s per launch, 50s per-slot horizon, 3 slots: 5 per slot -> 15 dropped
+    expect(sol.finalYieldVector.get(leaf)).toBeCloseTo(20, 9); // 5 owned + 15 dropped
+    const leafNode = computeCraftChainTree(sol, root, null)?.children.find(n => n.nodeId === leaf);
+    expect(leafNode).toBeDefined();
+    expect(leafNode!.metrics.dropped).toBeCloseTo(15, 9);
   });
 
   it('never exceeds either budget', () => {

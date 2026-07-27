@@ -21,9 +21,10 @@
           v-for="(view, i) in solutionViews"
           :key="'solution-' + i"
           :solution="view.solution"
+          :max-wait-time-seconds="lastComputedMaxWaitTimeSeconds"
           :p-craft="view.pCraft"
           :lambda="view.lambda"
-          :craft-chain="view.craftChain"
+          :craft-chain-tree="view.craftChainTree"
           :mission-legendary-sources="view.missionLegendarySources"
           :has-inventory="!!playerInventory"
           :drop-data-is-sparse="view.dropDataIsSparse"
@@ -32,12 +33,12 @@
           {{
             timeBudgetValid
               ? 'No ship set found for the current settings.'
-              : 'Enter a time budget (a positive number of days) to compute a plan.'
+              : 'Enter a time budget (e.g. 30, 12d12h, 10h5m) to compute a plan.'
           }}
         </p>
       </div>
 
-      <optimizer-inventory-panel :rows="inventoryRows" />
+      <optimizer-inventory-panel :tree="inventoryTree" :has-inventory="!!playerInventory" />
 
       <slot />
     </div>
@@ -47,7 +48,7 @@
 <script lang="ts">
 import { computed, defineComponent, onUnmounted, ref, toRefs, watch, watchEffect } from 'vue';
 
-import { getSavedPlayerID, requestFirstContact, savePlayerID } from 'lib';
+import { getSavedPlayerID, parseDurationDays, requestFirstContact, savePlayerID } from 'lib';
 
 import {
   autoCompute,
@@ -56,6 +57,7 @@ import {
   effectiveFuelTankCapacity,
   effectivePreviousCrafts,
   effectiveCraftingLevel,
+  EFFORT_LAUNCH_PERIOD_SECONDS,
   missionFilters,
   playerInventory,
   setPlayerData,
@@ -63,8 +65,8 @@ import {
 import {
   buildRecipeDag,
   computeBaseYield,
-  computeCraftChainRows,
-  computeInventoryRows,
+  computeCraftChainTree,
+  computeInventoryTree,
   computeMissionLegendaryRows,
   lambdaFromDropProbability,
   legendaryCraftProbabilityOf,
@@ -85,7 +87,7 @@ export default defineComponent({
     const { artifactId } = toRefs(props);
 
     const waitTimeDays = ref('30');
-    const maxWaitTimeSeconds = computed(() => parseFloat(waitTimeDays.value) * 86400);
+    const maxWaitTimeSeconds = computed(() => parseDurationDays(waitTimeDays.value));
 
     const timeBudgetValid = computed(() => Number.isFinite(maxWaitTimeSeconds.value) && maxWaitTimeSeconds.value > 0);
 
@@ -117,6 +119,9 @@ export default defineComponent({
 
     const pendingCompute = ref(false);
     const computedResults = ref<OptimizerSolution[]>([]);
+    // budget the displayed plan was computed against; the live input can
+    // change before a manual recompute
+    const lastComputedMaxWaitTimeSeconds = ref(0);
 
     const recipeDag = computed<ReturnType<typeof buildRecipeDag>>(() =>
       buildRecipeDag(
@@ -137,10 +142,9 @@ export default defineComponent({
         pendingCompute.value = false;
         return;
       }
-      const minDurationSeconds = missionFilters.value.minDurationHoursEnabled
-        ? missionFilters.value.minDurationHours * 3600
-        : undefined;
+      const launchPeriodSeconds = EFFORT_LAUNCH_PERIOD_SECONDS[missionFilters.value.effort];
       const maxGemCost = missionFilters.value.maxGemCostEnabled ? missionFilters.value.maxGemCost : undefined;
+      lastComputedMaxWaitTimeSeconds.value = maxWaitTimeSeconds.value;
       computedResults.value = optimize(
         {
           // Eventually, this will be expanded to allow multiple artifacts
@@ -153,7 +157,7 @@ export default defineComponent({
         effectiveConfig.value,
         recipeDag.value,
         playerBaseYield.value,
-        minDurationSeconds,
+        launchPeriodSeconds,
         maxGemCost
       );
       pendingCompute.value = false;
@@ -170,8 +174,8 @@ export default defineComponent({
       }
     });
 
-    const inventoryRows = computed(() =>
-      computeInventoryRows(artifactId.value, recipeDag.value, playerInventory.value)
+    const inventoryTree = computed(() =>
+      computeInventoryTree(artifactId.value, recipeDag.value, playerInventory.value)
     );
 
     const solutionViews = computed(() =>
@@ -179,7 +183,7 @@ export default defineComponent({
         solution,
         pCraft: legendaryCraftProbabilityOf(solution, artifactId.value),
         lambda: lambdaFromDropProbability(solution.dropProbability),
-        craftChain: computeCraftChainRows(solution, artifactId.value, playerInventory.value),
+        craftChainTree: computeCraftChainTree(solution, artifactId.value, playerInventory.value),
         missionLegendarySources: computeMissionLegendaryRows(solution, artifactId.value),
         dropDataIsSparse: legendaryDataIsSparse(artifactId.value),
       }))
@@ -187,13 +191,14 @@ export default defineComponent({
 
     return {
       waitTimeDays,
+      lastComputedMaxWaitTimeSeconds,
       timeBudgetValid,
       pendingCompute,
       playerId,
       runCompute,
       submitPlayerId,
       playerInventory,
-      inventoryRows,
+      inventoryTree,
       solutionViews,
     };
   },

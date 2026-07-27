@@ -68,9 +68,28 @@ export function isExtrasConfig(x: unknown): x is ExtrasConfig {
   );
 }
 
+// How much effort the player will put into relaunching missions. Lower effort
+// means a longer launch period, biasing the optimizer away from lots of tiny,
+// babysitting-heavy launches.
+export const EFFORT_LEVELS = ['low', 'medium', 'high', 'max'] as const;
+
+export type EffortLevel = (typeof EFFORT_LEVELS)[number];
+
+// Launch period per effort level: a floor on each mission's effective
+// duration, so a slot runs at most one launch per period.
+export const EFFORT_LAUNCH_PERIOD_SECONDS: Record<EffortLevel, number> = {
+  low: 86400, // 1 launch / slot / day
+  medium: 43200, // 2 launches / slot / day
+  high: 3600, // 1 launch / slot / hour
+  max: 0, // as often as the optimizer wants (raw durations)
+};
+
+export function isEffortLevel(x: unknown): x is EffortLevel {
+  return (EFFORT_LEVELS as readonly unknown[]).includes(x);
+}
+
 export interface MissionFilters {
-  minDurationHoursEnabled: boolean;
-  minDurationHours: number;
+  effort: EffortLevel;
   // Maximum gem cost of a mission's ship on the Egg of Humility.
   maxGemCostEnabled: boolean;
   maxGemCost: number;
@@ -78,8 +97,7 @@ export interface MissionFilters {
 
 export function newMissionFilters(): MissionFilters {
   return {
-    minDurationHoursEnabled: false,
-    minDurationHours: 0,
+    effort: 'medium',
     maxGemCostEnabled: false,
     maxGemCost: virtueShipGemCosts[ei.MissionInfo.Spaceship.ATREGGIES],
   };
@@ -89,8 +107,7 @@ export function isMissionFilters(x: unknown): x is MissionFilters {
   if (!x || typeof x !== 'object') return false;
   const m = x as MissionFilters;
   return (
-    typeof m.minDurationHoursEnabled === 'boolean' &&
-    typeof m.minDurationHours === 'number' &&
+    (m.effort === undefined || isEffortLevel(m.effort)) &&
     (m.maxGemCostEnabled === undefined || typeof m.maxGemCostEnabled === 'boolean') &&
     (m.maxGemCost === undefined || typeof m.maxGemCost === 'number')
   );

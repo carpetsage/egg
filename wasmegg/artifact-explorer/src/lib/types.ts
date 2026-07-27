@@ -11,8 +11,11 @@ export interface LaunchOption {
   targetAfxId: ei.ArtifactSpec.Name; // UNKNOWN when untargeted
   actualFuel: number;
   fuelByEgg: Map<ei.Egg, number>;
+  // effective duration for budgeting: rawTime floored up to the effort
+  // level's launch period
   actualTime: number;
-  // everything this launch drops, per batch — display only
+  rawTime: number; // true (unfloored) boosted duration
+  // everything this launch drops, per single ship — display only
   supplyVector: Map<string, number>;
   // subset of supplyVector restricted to recipe ingredients; this is what
   // the optimizer feeds the inner LP
@@ -41,9 +44,19 @@ export interface LaunchSolution {
   actualTime: number;
   target: string;
   targetAfxId: ei.ArtifactSpec.Name;
+  // total count of single-ship missions of this type across all three slots
   numShipsLaunched: integer;
   supplyVector: Map<string, number>;
   legendarySupplyVector: Map<string, number>;
+}
+
+// One slot's share of the plan. The three slots run concurrently, so the
+// plan's wall-clock is the busiest slot's load; rawLoadSeconds is the same
+// sum over the missions' true (unfloored) durations.
+export interface SlotSummary {
+  loadSeconds: number;
+  rawLoadSeconds: number;
+  missionCount: integer;
 }
 
 export interface DropRow {
@@ -71,7 +84,9 @@ export interface OptimizerSolution {
   expectedCrafts: number;
   fuelUsed: number;
   fuelByEgg: Map<ei.Egg, number>;
-  timeUnitsUsed: integer;
+  timeUnitsUsed: integer; // makespan: the busiest slot's floored load
+  runningTimeSeconds: integer; // the busiest slot's real (raw) flight time
+  slots?: SlotSummary[]; // per-slot occupancy of the chosen plan
   choiceHistory: LaunchSolution[];
   expectedDrops: DropRow[];
   finalYieldVector: Map<string, number>;
