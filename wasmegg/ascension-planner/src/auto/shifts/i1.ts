@@ -54,7 +54,7 @@ export function runI1(
 
   const getModifiers = () => ({
     cheaperContractorsLevel: context.epicResearchLevels['cheaper_contractors'] || 0,
-    flameRetardantMultiplier: context.colleggtibleModifiers.habCost || 1,
+    habCostMultiplier: context.colleggtibleModifiers.habCost || 1,
   });
 
   const buyHab = (slotIndex: number, habId: number): boolean => {

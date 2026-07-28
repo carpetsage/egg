@@ -233,14 +233,14 @@ function _evalStones(
   const habCapOutput = calculateHabCapacity_Full({
     habIds: [18, 18, 18, 18] as (number | null)[],
     researchLevels: commonResearch,
-    peggMultiplier: colleggtibles.habCap,
+    habCapMultiplier: colleggtibles.habCap,
     artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
     artifactEffects: artifactMods.habCapacity.effects,
   });
   const layRateOutput = calculateLayRate({
     researchLevels: commonResearch,
     epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
-    siliconMultiplier: colleggtibles.elr,
+    elrMultiplier: colleggtibles.elr,
     population: habCapOutput.totalFinalCapacity,
     artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
     artifactEffects: artifactMods.eggLayingRate.effects,
@@ -252,7 +252,7 @@ function _evalStones(
     vehicles,
     researchLevels: commonResearch,
     transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
-    colleggtibleMultiplier: colleggtibles.shippingCap,
+    shippingCapMultiplier: colleggtibles.shippingCap,
     artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
     artifactEffects: artifactMods.shippingRate.effects,
   });
@@ -636,7 +636,7 @@ export function getOptimalELRSet(
       const habCapOutput = calculateHabCapacity_Full({
         habIds: habIds as any,
         researchLevels: commonResearch,
-        peggMultiplier: colleggtibles.habCap,
+        habCapMultiplier: colleggtibles.habCap,
         artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
         artifactEffects: artifactMods.habCapacity.effects,
       });
@@ -646,7 +646,7 @@ export function getOptimalELRSet(
       const layRateOutput = calculateLayRate({
         researchLevels: commonResearch,
         epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
-        siliconMultiplier: colleggtibles.elr,
+        elrMultiplier: colleggtibles.elr,
         population,
         artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
         artifactEffects: artifactMods.eggLayingRate.effects,
@@ -677,7 +677,7 @@ export function getOptimalELRSet(
         vehicles,
         researchLevels: commonResearch,
         transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
-        colleggtibleMultiplier: colleggtibles.shippingCap,
+        shippingCapMultiplier: colleggtibles.shippingCap,
         artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
         artifactEffects: artifactMods.shippingRate.effects,
       });

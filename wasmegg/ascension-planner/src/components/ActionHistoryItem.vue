@@ -276,7 +276,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'show-details': [];
   undo: [options: { skipConfirmation: boolean }];
 }>();
 

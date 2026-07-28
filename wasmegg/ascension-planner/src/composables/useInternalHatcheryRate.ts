@@ -38,7 +38,7 @@ export function useInternalHatcheryRate(): {
         epicInternalIncubators: epicResearchLevels.value['epic_internal_incubators'] || 0,
         internalHatcheryCalm: epicResearchLevels.value['int_hatch_calm'] || 0,
       },
-      easterEggMultiplier: initialStateStore.colleggtibleModifiers.ihr,
+      ihrMultiplier: initialStateStore.colleggtibleModifiers.ihr,
       artifactMultiplier: artifactMod.totalMultiplier,
       artifactEffects: artifactMod.effects,
     };

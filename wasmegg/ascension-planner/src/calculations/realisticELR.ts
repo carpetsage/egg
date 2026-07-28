@@ -17,7 +17,7 @@ export function computeRealisticELR(
   const habCapOutput = calculateHabCapacity_Full({
     habIds: [18, 18, 18, 18] as (number | null)[],
     researchLevels,
-    peggMultiplier: colleggtibleModifiers.habCap,
+    habCapMultiplier: colleggtibleModifiers.habCap,
     artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
     artifactEffects: artifactMods.habCapacity.effects,
   });
@@ -26,7 +26,7 @@ export function computeRealisticELR(
   const layRateOutput = calculateLayRate({
     researchLevels,
     epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
-    siliconMultiplier: colleggtibleModifiers.elr,
+    elrMultiplier: colleggtibleModifiers.elr,
     population,
     artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
     artifactEffects: artifactMods.eggLayingRate.effects,
@@ -40,7 +40,7 @@ export function computeRealisticELR(
     vehicles,
     researchLevels,
     transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
-    colleggtibleMultiplier: colleggtibleModifiers.shippingCap,
+    shippingCapMultiplier: colleggtibleModifiers.shippingCap,
     artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
     artifactEffects: artifactMods.shippingRate.effects,
   });

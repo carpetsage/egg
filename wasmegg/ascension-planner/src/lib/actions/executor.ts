@@ -98,9 +98,9 @@ export interface ExecutorContext {
   getTEEarned(): Record<VirtueEgg, number>;
 
   // Cost modifiers
-  getHabCostModifiers(): { cheaperContractorsLevel: number; flameRetardantMultiplier: number };
-  getVehicleCostModifiers(): { bustUnionsLevel: number; lithiumMultiplier: number };
-  getResearchCostModifiers(): { labUpgradeLevel: number; waterballoonMultiplier: number; puzzleCubeMultiplier: number };
+  getHabCostModifiers(): { cheaperContractorsLevel: number; habCostMultiplier: number };
+  getVehicleCostModifiers(): { bustUnionsLevel: number; vehicleCostMultiplier: number };
+  getResearchCostModifiers(): { labUpgradeLevel: number; researchCostMultiplier: number; puzzleCubeMultiplier: number };
 }
 
 // ============================================================================

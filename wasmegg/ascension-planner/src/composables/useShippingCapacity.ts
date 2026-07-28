@@ -35,7 +35,7 @@ export function useShippingCapacity(): {
       vehicles: vehicles.value,
       researchLevels: researchLevels.value,
       transportationLobbyistLevel: epicResearchLevels.value['transportation_lobbyist'] || 0,
-      colleggtibleMultiplier: initialStateStore.colleggtibleModifiers.shippingCap,
+      shippingCapMultiplier: initialStateStore.colleggtibleModifiers.shippingCap,
       artifactMultiplier: artifactMod.totalMultiplier,
       artifactEffects: artifactMod.effects,
     };

@@ -68,7 +68,7 @@
       <ArtifactActions v-if="activeTab === 'artifacts'" />
       <SiloActions v-if="activeTab === 'silos'" />
       <FuelTankActions v-if="activeTab === 'fuel'" />
-      <WaitActions v-if="activeTab === 'wait'" @show-current-details="$emit('show-current-details')" />
+      <WaitActions v-if="activeTab === 'wait'" />
       <RocketActions v-if="activeTab === 'rockets'" />
     </div>
   </div>
@@ -114,7 +114,6 @@ onUnmounted(() => {
 });
 
 defineEmits<{
-  'show-current-details': [];
   'refresh-backup': [];
 }>();
 

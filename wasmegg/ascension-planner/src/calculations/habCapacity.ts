@@ -74,10 +74,10 @@ export function calculateHabCapacity(
   hab: Hab,
   universalMultiplier: number,
   portalMultiplier: number,
-  peggMultiplier: number,
+  habCapMultiplier: number,
   artifactMultiplier: number
 ): number {
-  const baseMultiplier = universalMultiplier * peggMultiplier * artifactMultiplier;
+  const baseMultiplier = universalMultiplier * habCapMultiplier * artifactMultiplier;
   const finalMultiplier = isPortalHab(hab) ? baseMultiplier * portalMultiplier : baseMultiplier;
 
   // Capacity rounds up (ceiling)
@@ -88,7 +88,7 @@ export function calculateHabCapacity(
  * Main calculation: compute total hab capacity with full breakdown.
  */
 export function calculateHabCapacity_Full(input: HabCapacityInput): HabCapacityOutput {
-  const { habIds, researchLevels, peggMultiplier, artifactMultiplier, artifactEffects } = input;
+  const { habIds, researchLevels, habCapMultiplier, artifactMultiplier, artifactEffects } = input;
 
   // Calculate research multipliers
   const { universal, portalOnly } = calculateTotalResearchMultipliers(researchLevels);
@@ -102,7 +102,7 @@ export function calculateHabCapacity_Full(input: HabCapacityInput): HabCapacityO
         habName: null,
         baseCapacity: 0,
         researchMultiplier: 1,
-        peggMultiplier: 1,
+        habCapMultiplier: 1,
         artifactMultiplier: 1,
         finalCapacity: 0,
       };
@@ -118,9 +118,9 @@ export function calculateHabCapacity_Full(input: HabCapacityInput): HabCapacityO
       habName: hab.name,
       baseCapacity: hab.baseCapacity,
       researchMultiplier: researchMult,
-      peggMultiplier,
+      habCapMultiplier,
       artifactMultiplier,
-      finalCapacity: calculateHabCapacity(hab, universal, portalOnly, peggMultiplier, artifactMultiplier),
+      finalCapacity: calculateHabCapacity(hab, universal, portalOnly, habCapMultiplier, artifactMultiplier),
     };
   });
 
@@ -144,7 +144,7 @@ export function calculateHabCapacity_Full(input: HabCapacityInput): HabCapacityO
     totalBaseCapacity,
     researchMultiplier: universal,
     portalResearchMultiplier: portalOnly,
-    peggMultiplier,
+    habCapMultiplier,
     artifactMultiplier,
     totalFinalCapacity,
     researchBreakdown,
