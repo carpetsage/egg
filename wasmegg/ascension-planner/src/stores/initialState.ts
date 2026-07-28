@@ -475,7 +475,14 @@ export const useInitialStateStore = defineStore('initialState', {
         this.epicResearchLevels = { ...data.epicResearchLevels };
       }
       if (data.colleggtibleTiers) {
-        this.colleggtibleTiers = { ...data.colleggtibleTiers };
+        // Merge onto current defaults rather than replacing outright, so
+        // colleggtibles released after this plan was saved (and therefore
+        // absent from the saved data) still get an entry instead of being
+        // silently dropped and unsettable in the UI.
+        this.colleggtibleTiers = {
+          ...getDefaultColleggtibleTiers(),
+          ...data.colleggtibleTiers,
+        };
       }
       if (data.artifactLoadout) {
         this.artifactLoadout = [...data.artifactLoadout];
