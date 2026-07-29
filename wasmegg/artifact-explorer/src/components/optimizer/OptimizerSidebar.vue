@@ -35,10 +35,7 @@
         </div>
 
         <div>
-          <div class="flex items-center justify-between">
-            <label class="text-sm text-gray-600">Effort</label>
-            <span class="text-xs font-medium text-gray-700">{{ effortMeta[missionFilters.effort].label }}</span>
-          </div>
+          <span class="text-sm text-gray-600">Effort</span>
           <div
             ref="effortTrack"
             role="slider"
@@ -75,8 +72,13 @@
               ></span>
             </div>
           </div>
-          <div class="mt-1 flex justify-between text-[11px] text-gray-400">
-            <span v-for="lvl in EFFORT_LEVELS" :key="'lbl-' + lvl">{{ effortMeta[lvl].short }}</span>
+          <div class="mt-1 flex items-baseline justify-between">
+            <span
+              v-for="lvl in EFFORT_LEVELS"
+              :key="'lbl-' + lvl"
+              :class="lvl === missionFilters.effort ? 'text-sm font-bold text-gray-900' : 'text-[11px] text-gray-400'"
+              >{{ effortMeta[lvl].short }}</span
+            >
           </div>
           <p class="mt-1 text-xs text-gray-400">{{ effortMeta[missionFilters.effort].hint }}</p>
         </div>
