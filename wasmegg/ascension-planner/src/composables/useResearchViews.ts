@@ -79,6 +79,7 @@ export interface ResearchViewItem {
   isLaying?: boolean;
   isShipping?: boolean;
   recommendationNote?: string;
+  pairRoiSeconds?: number;
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;
 
@@ -1234,6 +1235,7 @@ export function useResearchViews() {
       return basicCandidates
         .map(c => {
           let recommendationNote: string | undefined = undefined;
+          let pairRoiSeconds: number | undefined = undefined;
 
           if (roiMode.value === 'immediate') {
             const isBottlenecked = c.roiSeconds === Infinity || c.roiSeconds > 3600 * 24 * 7;
@@ -1263,10 +1265,11 @@ export function useResearchViews() {
                 if (pairEarnings > partnerEarnings) {
                   const pairTotalCost = c.price + partner.price;
                   const pairDelta = pairEarnings - currentEarnings;
-                  const pairRoiSeconds = pairTotalCost / pairDelta;
+                  const combinedRoiSeconds = pairTotalCost / pairDelta;
 
-                  if (pairRoiSeconds < c.roiSeconds) {
-                    recommendationNote = `Buying this with "${partner.research.name}" would have a much better combined payback time of ${formatDuration(pairRoiSeconds)}.`;
+                  if (combinedRoiSeconds < c.roiSeconds) {
+                    recommendationNote = `Buying this with "${partner.research.name}" would have a much better combined payback time of ${formatDuration(combinedRoiSeconds)}.`;
+                    pairRoiSeconds = combinedRoiSeconds;
                   }
                 }
               }
@@ -1279,6 +1282,7 @@ export function useResearchViews() {
             extraLabel: 'Achieve ROI',
             extraSeconds: c.totalRoiSeconds,
             recommendationNote,
+            pairRoiSeconds,
           };
         })
         .filter(c => {
@@ -1288,10 +1292,12 @@ export function useResearchViews() {
         })
         .sort((a, b) => {
           if (a.canBuy !== b.canBuy) return a.canBuy ? -1 : 1;
-          if (a.totalRoiSeconds === b.totalRoiSeconds) {
+          const aSortSeconds = a.pairRoiSeconds !== undefined ? Math.min(a.totalRoiSeconds, a.pairRoiSeconds) : a.totalRoiSeconds;
+          const bSortSeconds = b.pairRoiSeconds !== undefined ? Math.min(b.totalRoiSeconds, b.pairRoiSeconds) : b.totalRoiSeconds;
+          if (aSortSeconds === bSortSeconds) {
             return a.price - b.price;
           }
-          return a.totalRoiSeconds - b.totalRoiSeconds;
+          return aSortSeconds - bSortSeconds;
         });
     }
 
