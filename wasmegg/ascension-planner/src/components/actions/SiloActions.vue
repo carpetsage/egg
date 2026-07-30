@@ -108,7 +108,7 @@
                   >1-Hr Max</span
                 >
                 <span class="text-[9px] font-mono-premium font-black text-violet-500 mt-0.5">
-                  {{ maxSilosIn1Hour.count }} silo{{ maxSilosIn1Hour.count !== 1 ? 's' : '' }} ·
+                  {{ maxSilosIn1Hour.count }} new silo{{ maxSilosIn1Hour.count !== 1 ? 's' : '' }} ·
                   {{ formatDuration(maxSilosIn1Hour.seconds) }}
                 </span>
               </div>
