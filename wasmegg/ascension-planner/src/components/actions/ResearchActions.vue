@@ -53,6 +53,20 @@
           >?</span>
         </div>
       </div>
+
+      <button
+        class="btn-premium btn-primary w-full mt-6 py-4 flex items-center justify-center gap-2 group disabled:opacity-20 shadow-lg shadow-slate-900/10"
+        :disabled="!canBuyUntilSaleWarning"
+        v-tippy="'Buys the top-ranked research over and over, recalculating after each purchase, and stops right before one that won\'t earn back 70% of its cost before the next sale.'"
+        @click="handleBuyUntilSaleWarning"
+      >
+        <img
+          :src="iconURL('egginc-extras/icon_research_sale.png', 64)"
+          class="w-5 h-5 object-contain group-hover:scale-110 transition-transform"
+          alt="Research Sale"
+        />
+        <span>Buy Until Sale Warning</span>
+      </button>
     </div>
 
     <ElrViewControls
@@ -210,7 +224,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { iconURL } from 'lib';
 import {
   getDiscountedVirtuePrice,
   getCommonResearches,
@@ -304,6 +319,11 @@ function getSimulatedBuyToHereSeconds(item: unknown): number | undefined {
   return typeof seconds === 'number' ? seconds : undefined;
 }
 
+// Only the ROI view branch populates showSaleWarning; other branches' item shapes don't have it.
+function getSimulatedShowSaleWarning(item: unknown): boolean {
+  return (item as { showSaleWarning?: unknown }).showSaleWarning === true;
+}
+
 /**
  * Buy a single level of research and create the action.
  * Returns true if successful, false if already maxed.
@@ -372,6 +392,31 @@ watch(
 function handleBuyResearch(research: CommonResearch) {
   const duration = getTimeToBuySeconds(research);
   withExpiryCheck(duration, true, () => buyOneLevel(research));
+}
+
+// Top-ranked buyable item in the ROI view, i.e. the one "Buy Until Sale Warning" would buy next.
+const nextRoiCandidate = computed(() => sortedResearches.value.find(item => item.canBuy && !item.isMaxed));
+
+const canBuyUntilSaleWarning = computed(() => {
+  const next = nextRoiCandidate.value;
+  return !!next && !getSimulatedShowSaleWarning(next);
+});
+
+// Repeatedly buys the top-ranked ROI research, recalculating the list after each purchase
+// (since buying one research changes the math for the rest), stopping right before an item
+// that wouldn't earn back 70% of its cost before the next sale.
+function handleBuyUntilSaleWarning() {
+  batch(() => {
+    let iterations = 0;
+    const maxIterations = 1000;
+
+    while (iterations < maxIterations) {
+      iterations++;
+      const next = nextRoiCandidate.value;
+      if (!next || getSimulatedShowSaleWarning(next)) break;
+      if (!buyOneLevel(next.research)) break;
+    }
+  });
 }
 
 function handleSmartBuy(threshold: number) {
