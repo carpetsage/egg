@@ -79,6 +79,21 @@
       @update:roi-display-mode="elrRoiDisplayMode = $event"
     />
 
+    <button
+      v-if="currentView === 'elr'"
+      class="btn-premium btn-primary w-full py-4 flex items-center justify-center gap-2 group disabled:opacity-20 shadow-lg shadow-slate-900/10"
+      :disabled="!canBuyUntilSaleDeadline"
+      v-tippy="'Buys the top-ranked research over and over, recalculating after each purchase, and stops right before one that wouldn\'t finish before the research sale ends. Only available while the research sale is active.'"
+      @click="handleBuyUntilSaleDeadline"
+    >
+      <img
+        :src="iconURL('egginc-extras/icon_research_sale.png', 64)"
+        class="w-5 h-5 object-contain group-hover:scale-110 transition-transform"
+        alt="Research Sale"
+      />
+      <span>Buy Until Sale Ends</span>
+    </button>
+
     <MilestoneTargetPicker
       v-if="currentView === 'milestones'"
       v-model="milestoneTarget"
@@ -394,17 +409,21 @@ function handleBuyResearch(research: CommonResearch) {
   withExpiryCheck(duration, true, () => buyOneLevel(research));
 }
 
-// Top-ranked buyable item in the ROI view, i.e. the one "Buy Until Sale Warning" would buy next.
-const nextRoiCandidate = computed(() => sortedResearches.value.find(item => item.canBuy && !item.isMaxed));
+// Best-ranked buyable ROI item that doesn't fail the sale-warning check, i.e. the one
+// "Buy Until Sale Warning" would buy next. A higher-ranked item may be skipped over here
+// because it fails the check (e.g. too expensive to finish before the sale) while a
+// cheaper, lower-ranked one still passes.
+const nextRoiCandidate = computed(() =>
+  sortedResearches.value.find(item => item.canBuy && !item.isMaxed && !getSimulatedShowSaleWarning(item))
+);
 
-const canBuyUntilSaleWarning = computed(() => {
-  const next = nextRoiCandidate.value;
-  return !!next && !getSimulatedShowSaleWarning(next);
-});
+const canBuyUntilSaleWarning = computed(() => !!nextRoiCandidate.value);
 
-// Repeatedly buys the top-ranked ROI research, recalculating the list after each purchase
-// (since buying one research changes the math for the rest), stopping right before an item
-// that wouldn't earn back 70% of its cost before the next sale.
+// Repeatedly buys the best-ranked ROI research that still passes the sale-warning check,
+// recalculating the list after each purchase (since buying one research changes the math
+// for the rest). Items that fail the check are skipped rather than treated as a stopping
+// point, since a cheaper lower-ranked item may still be affordable in time. Stops only once
+// every remaining purchasable item fails the check.
 function handleBuyUntilSaleWarning() {
   batch(() => {
     let iterations = 0;
@@ -413,7 +432,37 @@ function handleBuyUntilSaleWarning() {
     while (iterations < maxIterations) {
       iterations++;
       const next = nextRoiCandidate.value;
-      if (!next || getSimulatedShowSaleWarning(next)) break;
+      if (!next) break;
+      if (!buyOneLevel(next.research)) break;
+    }
+  });
+}
+
+// Best-ranked buyable Delivery Impact item that would still finish before the sale ends,
+// i.e. the one "Buy Until Sale Ends" would buy next. A higher-ranked item may be skipped
+// over here because it fails the check while a cheaper, lower-ranked one still passes.
+const nextElrCandidate = computed(() =>
+  sortedResearches.value.find(item => item.canBuy && !item.isMaxed && !item.showDeadlineWarning)
+);
+
+const canBuyUntilSaleDeadline = computed(() => isResearchSaleActive.value && !!nextElrCandidate.value);
+
+// Repeatedly buys the best-ranked Delivery Impact research that would still finish before
+// the sale ends, recalculating the list after each purchase. Items that fail the check are
+// skipped rather than treated as a stopping point, since a cheaper lower-ranked item may
+// still be affordable in time. Stops only once every remaining purchasable item fails the
+// check.
+function handleBuyUntilSaleDeadline() {
+  if (!isResearchSaleActive.value) return;
+
+  batch(() => {
+    let iterations = 0;
+    const maxIterations = 1000;
+
+    while (iterations < maxIterations) {
+      iterations++;
+      const next = nextElrCandidate.value;
+      if (!next) break;
       if (!buyOneLevel(next.research)) break;
     }
   });
