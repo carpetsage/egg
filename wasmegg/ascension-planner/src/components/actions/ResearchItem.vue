@@ -53,27 +53,8 @@
             </span>
           </div>
         </div>
-
-        <div
-          v-if="recommendationNote"
-          class="mt-1.5 p-1.5 inline-block bg-blue-50 border border-blue-100 rounded text-[9px] text-blue-800 leading-tight shadow-sm"
-        >
-          <div class="flex items-start gap-1">
-            <svg class="w-3 h-3 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            <span>
-              <span class="font-bold uppercase tracking-tight mr-1">Pair Suggestion:</span>
-              {{ recommendationNote }}
-            </span>
-          </div>
-        </div>
       </div>
-      
+
       <!-- Gem Cost -->
       <div class="text-right shrink-0">
         <template v-if="!isMaxed">
@@ -130,6 +111,25 @@
                 {{ hpp === Infinity || isNaN(hpp) ? '∞' : hpp.toFixed(1) }} hr/%
               </template>
             </div>
+          </div>
+        </div>
+
+        <div
+          v-if="recommendationNote"
+          class="mt-1.5 p-1.5 inline-block bg-blue-50 border border-blue-100 rounded text-[9px] text-blue-800 leading-tight shadow-sm"
+        >
+          <div class="flex items-start gap-1">
+            <svg class="w-3 h-3 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span>
+              <span class="font-bold uppercase tracking-tight mr-1">Pair Suggestion:</span>
+              {{ recommendationNote }}
+            </span>
           </div>
         </div>
       </div>
