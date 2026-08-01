@@ -81,7 +81,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useAutoPlannerStore } from '@/stores/autoPlanner';
+import { useAutoPlannerStore, pickVariant } from '@/stores/autoPlanner';
 import { useInitialStateStore } from '@/stores/initialState';
 import { formatNumber } from '@/lib/format';
 import { iconURL } from 'lib';
@@ -91,7 +91,8 @@ import TeBreakdownModal from '@/components/TeBreakdownModal.vue';
 defineProps<{ isCollapsed: boolean }>();
 defineEmits<{ toggle: [] }>();
 
-const { ascensionChain, timezone } = storeToRefs(useAutoPlannerStore());
+const autoPlannerStore = useAutoPlannerStore();
+const { ascensionChain, timezone } = storeToRefs(autoPlannerStore);
 const initialStateStore = useInitialStateStore();
 
 const showTeModal = ref(false);
@@ -113,8 +114,7 @@ const totals = computed(() => {
   // Exclude any silently-injected forced-490 ascension from all footer totals.
   const visibleChain = ascensionChain.value.filter(item => !item.forcedTarget490);
   const plans = visibleChain.map(item => {
-    const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
-    return candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b)).summary;
+    return pickVariant(item.variants, autoPlannerStore.planVariantOverrides[item.index]).summary;
   });
 
   if (plans.length === 0) {
@@ -152,8 +152,7 @@ const teStatsList = computed(() => {
   if (visibleChain.length === 0) return [];
 
   const plans = visibleChain.map(item => {
-    const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
-    return candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b)).summary;
+    return pickVariant(item.variants, autoPlannerStore.planVariantOverrides[item.index]).summary;
   });
 
   const lastPlan = plans[plans.length - 1];

@@ -11,13 +11,14 @@ import { runI1 } from './shifts/i1';
 import { runC2 } from './shifts/c2';
 import { runK2 } from './shifts/k2';
 import { runR1 } from './shifts/r1';
-import { runC3 } from './shifts/c3';
+import { runC3, type C3Params, type C3Variant } from './shifts/c3';
 import { runH1 } from './shifts/h1';
 import { runK3 } from './shifts/k3';
 import { runC4, runI2, runR2, runH2, runTEWaitShift, distributeTargetTE, solveTEForTimeBudget } from './shifts/te-wait';
-import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive, isEarningsBoostActive } from './calendar';
+import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { computeRealisticELR } from '@/calculations/realisticELR';
+import { getTiers, isTierUnlocked } from '@/calculations/commonResearch';
 import type { VirtueEgg } from '@/types';
 
 function computeLastTEDuration(finalTE: Record<VirtueEgg, number>, peakELR: number): number {
@@ -69,7 +70,13 @@ export function deriveNextStartState(
   };
 }
 
-type ShiftRunner = (state: EngineState, context: SimulationContext, arg3?: number, arg4?: number) => ShiftResult;
+type ShiftRunner = (
+  state: EngineState,
+  context: SimulationContext,
+  arg3?: number,
+  arg4?: number,
+  arg5?: C3Params
+) => ShiftResult;
 
 const allShifts: { name: string; run: ShiftRunner }[] = [
   { name: 'C1', run: runC1 },
@@ -165,6 +172,7 @@ function calculatePeakELR(state: EngineState, context: SimulationContext): numbe
  * @param id - Optional ID for the ascension
  * @param targetTE - Final target total TE for the entire ascension
  * @param resumeData - Optional data to skip ahead in the simulation
+ * @param c3Params - Optional params forwarded to C3 (e.g. attemptTier13Unlock)
  */
 export function runAscension(
   startState: EngineState,
@@ -174,7 +182,8 @@ export function runAscension(
   id: string = 'asc_0',
   targetTE?: number,
   targetEndTime?: number,
-  resumeData?: { actions: Action[]; state: EngineState; elapsedSeconds: number; resumeShiftName: string }
+  resumeData?: { actions: Action[]; state: EngineState; elapsedSeconds: number; resumeShiftName: string },
+  c3Params?: C3Params
 ): { actions: Action[]; summary: AscensionSummary } {
   const actualStartState = JSON.parse(JSON.stringify(startState));
   
@@ -202,7 +211,7 @@ export function runAscension(
     const t0 = performance.now();
     let result: ShiftResult;
     if (shift.name === 'C3') {
-      result = shift.run(currentState, context, buildPhaseEnd);
+      result = shift.run(currentState, context, buildPhaseEnd, undefined, c3Params);
     } else if (shift.name === 'K3' || shift.name === 'C4' || shift.name === 'I2' || shift.name === 'R2' || shift.name === 'H2') {
       // For these shifts, we need the target TE split
       const currentTEs: any = {
@@ -224,7 +233,7 @@ export function runAscension(
         effectiveTargetTE = solveTEForTimeBudget(currentTEs, currentState.eggsDelivered, peakELR, timeBudget);
       }
 
-      const targets = distributeTargetTE(currentTEs, effectiveTargetTE || currentState.te);
+      const targets = distributeTargetTE(currentState.eggsDelivered, effectiveTargetTE || currentState.te);
 
       if (shift.name === 'K3') {
         result = shift.run(currentState, context, buildPhaseEnd, targets['kindness']);
@@ -312,6 +321,8 @@ export function runAscension(
   };
   const endTE = Object.values(finalTE).reduce((a, b) => a + b, 0);
 
+  const tier13Unlocked = isTierUnlocked(currentState.researchLevels, Math.max(...getTiers()));
+
   // Build the summary
   const summary: AscensionSummary = {
     id,
@@ -319,7 +330,7 @@ export function runAscension(
     endTime: startTime + totalElapsedSeconds,
     totalDurationSeconds: totalElapsedSeconds,
     buildPhaseEndTime: buildPhaseEnd,
-    buildPhaseSaleCount: (saleCount === 2 ? 2 : 1) as 1 | 2,
+    buildPhaseSaleCount: saleCount,
     startTE: startState.te,
     endTE,
     teGained: endTE - startState.te,
@@ -341,12 +352,53 @@ export function runAscension(
     strategyLabel: `${saleCount}-sale build`,
     isMaxELRAscension: false,
     lastTEDurationSeconds: computeLastTEDuration(finalTE, currentState.maxELR || 0),
+    tier13Unlocked,
   };
 
   return {
     actions: currentActions,
     summary,
   };
+}
+
+/**
+ * Completes a single `C3Variant` (produced by `runC3Variants`) through the rest of the ascension
+ * (H1-H2), resuming from the shared C1-R1 precompute rather than re-running it. `originalStartState`
+ * must be the true pre-C1 ascension start state (the same value passed as `runAscension`'s own
+ * `startState` for a from-scratch call) — `runAscension`'s post-loop bookkeeping (`startTE`,
+ * `startSoulEggs`, `startShiftCount`, `teEarned` deltas) reads directly off that param even when
+ * `resumeData` is set, so passing `preC3.state` (the post-C1-R1, pre-C3 state) there instead would
+ * silently corrupt those fields — `preC3.state`'s `shiftCount` already includes the 5 shifts C1-R1
+ * spent (K1/I1/C2/K2/R1; C1 itself doesn't count as a shift), and its `te`/`soulEggs` have already
+ * moved. Caller passes `preC3`/`originalStartState` once per ascension step and reuses both for every
+ * variant, per this plan's C1-R1 reuse requirement.
+ */
+export function runAscensionFromC3Variant(
+  originalStartState: EngineState,
+  preC3: { actions: Action[]; state: EngineState; elapsedSeconds: number },
+  variant: C3Variant,
+  context: SimulationContext,
+  startTime: number,
+  id: string,
+  targetTE?: number,
+  targetEndTime?: number
+): { actions: Action[]; summary: AscensionSummary } {
+  const resumeData = {
+    actions: [...preC3.actions, ...variant.result.actions],
+    state: variant.result.endState,
+    elapsedSeconds: preC3.elapsedSeconds + variant.result.elapsedSeconds,
+    resumeShiftName: 'H1' as const,
+  };
+  return runAscension(
+    originalStartState,
+    context,
+    variant.buildPhaseEnd,
+    startTime,
+    id,
+    targetTE,
+    targetEndTime,
+    resumeData
+  );
 }
 
 /**
@@ -403,7 +455,7 @@ export function runContinueCurrent(
   };
 
   // Distribute target TE balanced across eggs
-  const targets = distributeTargetTE(currentTEs, targetTE);
+  const targets = distributeTargetTE(currentState.eggsDelivered, targetTE);
 
   // Determine which eggs need more TE, sorted by needed TE (ascending — cheapest first)
   const eggsToVisit = allEggs
@@ -501,6 +553,7 @@ export function runContinueCurrent(
     strategyLabel: 'Continue current',
     isMaxELRAscension: false,
     lastTEDurationSeconds: computeLastTEDuration(finalTE, currentELR),
+    tier13Unlocked: isTierUnlocked(currentState.researchLevels, Math.max(...getTiers())),
   };
 
   return {
