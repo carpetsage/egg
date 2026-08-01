@@ -6,12 +6,17 @@ import {
   isTierUnlocked,
   type ResearchCostModifiers,
 } from './commonResearch';
-import { calculateResearchROI, getSaleAwareTimeToSave } from './researchROI';
+import {
+  calculateResearchROI,
+  getSaleAwareTimeToSave,
+  findEventCrossings,
+  type PurchaseEventCrossings,
+} from './researchROI';
 import type { EngineState, SimulationContext } from '@/engine/types';
 import type { CalculationsSnapshot } from '@/types';
 import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
-import { applyAction, applyTime, getTimeToSave, type EarningsRateTransition } from '@/engine/apply';
+import { applyAction, applyTime, getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
 import {
   getNextPacificTime,
   isResearchSaleActive,
@@ -19,28 +24,6 @@ import {
   getNextEarningsBoostStart,
   getNextEarningsBoostEnd,
 } from '@/lib/events';
-
-/**
- * Builds the earnings-rate transitions needed for a `getTimeToSave`/`applyTime` call starting at
- * `snapshot`, given the TRUE calendar time `absTime` that call represents. `snapshot.earningsBoost
- * .active` may be stale (these chain functions never toggle it — it stays frozen at whatever the
- * very first snapshot had) — when it disagrees with calendar truth at `absTime`, a past-transition
- * correction is included so the boundary-aware math treats the current truth as authoritative. This
- * is still correct even though `snapshot`'s own rate (`V1`) was computed under the stale flag:
- * `V1` always represents "the rate for whichever state the flag reflects," and the boundary-aware
- * functions derive the *other* state's rate by multiplying/dividing by the boost multiplier — so
- * only the segment assignment needs correcting, never `V1` itself.
- */
-function boostTransitionsFrom(snapshot: CalculationsSnapshot, absTime: number): EarningsRateTransition[] {
-  const trueActiveNow = isEarningsBoostActive(absTime);
-  const transitions: EarningsRateTransition[] = [];
-  if (trueActiveNow !== snapshot.earningsBoost.active) {
-    transitions.push({ atSeconds: -1, boostActive: trueActiveNow });
-  }
-  const nextFlip = trueActiveNow ? getNextEarningsBoostEnd(absTime) : getNextEarningsBoostStart(absTime);
-  transitions.push({ atSeconds: nextFlip - absTime, boostActive: !trueActiveNow });
-  return transitions;
-}
 
 export type MilestoneTarget =
   | { kind: 'tier'; tier: number }
@@ -71,6 +54,11 @@ export interface MilestoneChainItem {
   // hold off," not "this happened during an event."
   duringSale: boolean;
   duringEarningsBoost: boolean;
+  // Which event boundaries (if any) this purchase's own wait crosses while saving up — e.g. a
+  // purchase that starts before the 2x boost but doesn't finish until after it starts. Lets the
+  // preview show the same wait/toggle split the manual planner inserts when actually executing it,
+  // instead of only revealing that split after the user clicks "Buy".
+  eventCrossings?: PurchaseEventCrossings;
 }
 
 interface MilestoneChainResult {
@@ -183,6 +171,12 @@ export function computeResearchMilestoneChain(
         timeSavedSeconds: timeSaved,
         duringSale: best.duringSale,
         duringEarningsBoost: isEarningsBoostActive(currentAbsoluteTime + best.secondsToBuy),
+        eventCrossings: findEventCrossings(
+          currentAbsoluteTime,
+          best.secondsToBuy,
+          isSale,
+          isEarningsBoostActive(currentAbsoluteTime)
+        ),
       });
     } else {
       if (directSeconds === Infinity) break;
@@ -205,6 +199,12 @@ export function computeResearchMilestoneChain(
         buyToHereSeconds: totalSeconds,
         duringSale: targetPurchase.duringSale,
         duringEarningsBoost: isEarningsBoostActive(currentAbsoluteTime + directSeconds),
+        eventCrossings: findEventCrossings(
+          currentAbsoluteTime,
+          directSeconds,
+          isSale,
+          isEarningsBoostActive(currentAbsoluteTime)
+        ),
       });
     }
   }
@@ -343,11 +343,13 @@ function reorderTierChainByROI(
     const isSale = isResearchSaleActive(currentAbsoluteTime);
     const transitions = boostTransitionsFrom(snapshot, currentAbsoluteTime);
     const nextSaleStart = getNextPacificTime(5, 9, currentAbsoluteTime);
-    const upcoming9amDurations = Array.from(
-      { length: 7 },
-      (_, i) => getNextPacificTime(i, 9, currentAbsoluteTime) - currentAbsoluteTime
-    );
-    const eventExpirationSeconds = Math.min(...upcoming9amDurations);
+    // Seconds until the boost's own next flip (see `boostTransitionFor`'s contract in
+    // researchROI.ts) — must match calendar truth (`isEarningsBoostActive`), not the nearest 9 AM
+    // on any day, else an inactive boost gets treated as starting on the next day instead of the
+    // next Monday.
+    const eventExpirationSeconds = isEarningsBoostActive(currentAbsoluteTime)
+      ? getNextEarningsBoostEnd(currentAbsoluteTime) - currentAbsoluteTime
+      : getNextEarningsBoostStart(currentAbsoluteTime) - currentAbsoluteTime;
 
     const candidates = Array.from(pendingByResearch.values())
       .filter(entry => entry.levels.length > 0)
@@ -373,8 +375,15 @@ function reorderTierChainByROI(
 
     if (candidates.length === 0) break;
 
+    // Sort by totalRoiSeconds (wait-to-afford + payback), not roiSeconds (payback alone) — same
+    // convention `researchRanking.ts`'s final sort already uses. Sorting by payback alone can pick
+    // an expensive item with a slightly faster payback over several cheaper, still-decent-ROI items
+    // that are individually affordable much sooner, forcing one long idle wait instead of buying
+    // things as money allows.
     candidates.sort((a, b) => {
-      if (a.roiResult.roiSeconds !== b.roiResult.roiSeconds) return a.roiResult.roiSeconds - b.roiResult.roiSeconds;
+      if (a.roiResult.totalRoiSeconds !== b.roiResult.totalRoiSeconds) {
+        return a.roiResult.totalRoiSeconds - b.roiResult.totalRoiSeconds;
+      }
       return a.roiResult.price - b.roiResult.price;
     });
 
@@ -417,6 +426,12 @@ function reorderTierChainByROI(
       showDeadlineWarning: best.roiResult.showDeadlineWarning,
       duringSale: bestPurchase.duringSale,
       duringEarningsBoost: isEarningsBoostActive(currentAbsoluteTime + secondsToBuy),
+      eventCrossings: findEventCrossings(
+        currentAbsoluteTime,
+        secondsToBuy,
+        isSale,
+        isEarningsBoostActive(currentAbsoluteTime)
+      ),
     });
 
     pendingByResearch.get(best.research.id)!.levels.shift();
@@ -467,11 +482,11 @@ export function computeTierMilestoneChain(
     const isSale = isResearchSaleActive(currentAbsoluteTime);
     const transitions = boostTransitionsFrom(snapshot, currentAbsoluteTime);
     const nextSaleStart = getNextPacificTime(5, 9, currentAbsoluteTime);
-    const upcoming9amDurations = Array.from(
-      { length: 7 },
-      (_, i) => getNextPacificTime(i, 9, currentAbsoluteTime) - currentAbsoluteTime
-    );
-    const eventExpirationSeconds = Math.min(...upcoming9amDurations);
+    // Seconds until the boost's own next flip — see the matching comment above in
+    // `reorderTierChainByROI` (or `boostTransitionFor`'s doc in researchROI.ts).
+    const eventExpirationSeconds = isEarningsBoostActive(currentAbsoluteTime)
+      ? getNextEarningsBoostEnd(currentAbsoluteTime) - currentAbsoluteTime
+      : getNextEarningsBoostStart(currentAbsoluteTime) - currentAbsoluteTime;
 
     const roiCandidates = getCommonResearches()
       .filter(r => (levels[r.id] || 0) < r.levels && isTierUnlocked(levels, r.tier))
@@ -494,8 +509,11 @@ export function computeTierMilestoneChain(
         return { research: r, level, roiResult };
       });
 
+    // Same totalRoiSeconds (wait-to-afford + payback) convention as reorderTierChainByROI above.
     roiCandidates.sort((a, b) => {
-      if (a.roiResult.roiSeconds !== b.roiResult.roiSeconds) return a.roiResult.roiSeconds - b.roiResult.roiSeconds;
+      if (a.roiResult.totalRoiSeconds !== b.roiResult.totalRoiSeconds) {
+        return a.roiResult.totalRoiSeconds - b.roiResult.totalRoiSeconds;
+      }
       return a.roiResult.price - b.roiResult.price;
     });
 
@@ -557,6 +575,12 @@ export function computeTierMilestoneChain(
             showDeadlineWarning: bestRoi.roiResult.showDeadlineWarning,
             duringSale: bestPurchase.duringSale,
             duringEarningsBoost: isEarningsBoostActive(currentAbsoluteTime + secondsToBuy),
+            eventCrossings: findEventCrossings(
+              currentAbsoluteTime,
+              secondsToBuy,
+              isSale,
+              isEarningsBoostActive(currentAbsoluteTime)
+            ),
           },
           secondsToBuy,
           totalSeconds: restOfPlan.totalSeconds,

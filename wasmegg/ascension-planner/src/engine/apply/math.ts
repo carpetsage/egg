@@ -1,4 +1,5 @@
 import type { CalculationsSnapshot } from '@/types';
+import { isEarningsBoostActive, getNextEarningsBoostStart, getNextEarningsBoostEnd } from '@/lib/events';
 
 /**
  * A future point (relative to t=0 of the calculation) at which the earnings boost's active state
@@ -10,6 +11,61 @@ import type { CalculationsSnapshot } from '@/types';
 export interface EarningsRateTransition {
   atSeconds: number;
   boostActive: boolean;
+}
+
+/**
+ * How far ahead to enumerate upcoming boost start/end flips. `getTimeToSave` doesn't know in
+ * advance how long a wait will actually take (it's solving for that), so `boostTransitionsFrom`
+ * can't bound the list to "however far this particular wait goes" the way `findEventCrossings`
+ * (researchROI.ts, which *is* given a known duration) does — it has to generate enough transitions
+ * up front to cover whatever the wait turns out to need. Beyond this horizon, the boundary-aware
+ * math falls back to assuming the last known state holds indefinitely (same "practical infinity"
+ * tradeoff `calculateResearchROI`'s `maxTime = 1e9` makes) — 45 days covers any single research
+ * purchase in practice while keeping the number of calendar lookups per call bounded (~12-13
+ * boost cycles, since the boost recurs weekly).
+ */
+const BOOST_TRANSITION_HORIZON_SECONDS = 45 * 86400;
+
+/**
+ * Builds the earnings-rate transitions needed for a `getTimeToSave`/`calculateEarningsForTime`/
+ * `applyTime` call starting at `snapshot`, given the TRUE calendar time `absTime` that call
+ * represents. `snapshot.earningsBoost.active` may be stale (many callers never toggle it as
+ * simulated time advances — it stays frozen at whatever it was when the snapshot was computed) —
+ * when it disagrees with calendar truth at `absTime`, a past-transition correction is included so
+ * the boundary-aware math above treats the current truth as authoritative. This is still correct
+ * even though `snapshot`'s own rate (`V1`) was computed under the stale flag: `V1` always
+ * represents "the rate for whichever state the flag reflects," and the boundary-aware functions
+ * derive the *other* state's rate by multiplying/dividing by the boost multiplier — so only the
+ * segment assignment needs correcting, never `V1` itself.
+ *
+ * Walks forward enumerating EVERY boost start/end flip within the horizon, not just the next one —
+ * a wait long enough to span a full 24h boost cycle (start AND end both within it, e.g. a purchase
+ * that takes several days) needs both transitions represented, or the math would assume the boost,
+ * once started, stays active for the rest of the wait instead of reverting to 1x after 24h.
+ */
+export function boostTransitionsFrom(
+  snapshot: CalculationsSnapshot,
+  absTime: number,
+  horizonSeconds: number = BOOST_TRANSITION_HORIZON_SECONDS
+): EarningsRateTransition[] {
+  const trueActiveNow = isEarningsBoostActive(absTime);
+  const transitions: EarningsRateTransition[] = [];
+  if (trueActiveNow !== snapshot.earningsBoost.active) {
+    transitions.push({ atSeconds: -1, boostActive: trueActiveNow });
+  }
+
+  let cursor = absTime;
+  let active = trueActiveNow;
+  const horizon = absTime + horizonSeconds;
+  while (cursor < horizon) {
+    const nextFlip = active ? getNextEarningsBoostEnd(cursor) : getNextEarningsBoostStart(cursor);
+    if (!isFinite(nextFlip) || nextFlip > horizon) break;
+    transitions.push({ atSeconds: nextFlip - absTime, boostActive: !active });
+    active = !active;
+    cursor = nextFlip;
+  }
+
+  return transitions;
 }
 
 /**
@@ -180,9 +236,7 @@ export function getTimeToSave(
   const popAt = (t: number) => Math.min(HabCap, P0 + I * t);
 
   const past = transitions.filter(t => t.atSeconds <= 0).sort((a, b) => b.atSeconds - a.atSeconds);
-  const future = transitions
-    .filter(t => t.atSeconds > 0)
-    .sort((a, b) => a.atSeconds - b.atSeconds);
+  const future = transitions.filter(t => t.atSeconds > 0).sort((a, b) => a.atSeconds - b.atSeconds);
 
   let segmentActive = past.length > 0 ? past[0].boostActive : currentActive;
   let segmentStart = 0;

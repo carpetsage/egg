@@ -18,7 +18,7 @@ import {
 import { getSaleAwareTimeToSave, meetsROIByDeadline } from '../../../calculations/researchROI';
 import { calculateArtifactModifiers } from '../../../lib/artifacts';
 import { computeSnapshot } from '../../../engine/compute';
-import { applyAction } from '../../../engine/apply';
+import { applyAction, boostTransitionsFrom } from '../../../engine/apply';
 import { advanceTimeWithBoundaries } from './advanceTime';
 import { isResearchSaleActive, getNextSaleStart, getNextSaleEnd } from '@/lib/events';
 
@@ -72,7 +72,7 @@ export function createMilestoneShiftHelpers(startState: EngineState, context: Si
       isResearchSaleActive(absTime),
       absTime,
       snapshot,
-      []
+      boostTransitionsFrom(snapshot, absTime)
     );
 
     if (snapshot.offlineEarnings <= 0) return false;
