@@ -299,14 +299,15 @@ import { formatDuration, formatNumber } from '@/lib/format';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useActionsStore } from '@/stores/actions';
 import { useSalesStore } from '@/stores/sales';
+import { useVirtueStore } from '@/stores/virtue';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { useResearchViews, VIEWS } from '@/composables/useResearchViews';
-import { getTimeToSave } from '@/engine/apply';
+import { getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
 import { findSmartBuyCandidate } from '@/calculations/smartBuyCandidate';
 import { buyWhilePassingCheck } from '@/calculations/researchRanking';
-import { meetsROIByDeadline } from '@/calculations/researchROI';
+import { meetsROIByDeadline, getSaleAwareTimeToSave, findEventCrossings } from '@/calculations/researchROI';
 
 // Sub-components
 import ResearchSaleToggle from './ResearchSaleToggle.vue';
@@ -322,6 +323,7 @@ import { useEventExpiry } from '@/composables/useEventExpiry';
 const commonResearchStore = useCommonResearchStore();
 const actionsStore = useActionsStore();
 const salesStore = useSalesStore();
+const virtueStore = useVirtueStore();
 const { prepareExecution, completeExecution, batch } = useActionExecutor();
 const {
   showExpiryDialog,
@@ -447,67 +449,184 @@ function buyOneLevel(research: CommonResearch): boolean {
 }
 
 /**
- * Before buying an item from a sale/boost-aware list (milestone chain, ROI ranking, ELR ranking),
- * flip `activeSales.research`/`earningsBoost.active` to match what that item's own `duringSale`/
- * `duringEarningsBoost` says should be true at this point in the sequence — inserting a
- * `toggle_sale`/`toggle_earnings_boost` action if (and only if) the current flag disagrees.
- *
- * No `wait_for_*` action is needed alongside these toggles: by the time a loop reaches item N, the
- * natural passage of time from items 1..N-1's own money-waits has already carried the plan to the
- * absolute time item N's `duringSale`/`duringEarningsBoost` were computed against (same convention
- * `WaitForEventActions.vue` uses for the initial "wait for it to start" case, just already-elapsed
- * here rather than needing an explicit wait). For the research sale specifically this is exact —
- * price never affects wait-time math, so nothing about the sale can cause real elapsed time to
- * diverge from the chain's own internal timeline; for the earnings boost there's a small, separate,
- * pre-existing source of drift (see this phase's resolution notes in EVENT_AWARE_PLANNING_AND_C3.md)
- * unrelated to this toggle-insertion logic itself.
+ * Absolute Unix timestamp (seconds) that `lastStepTime` (a snapshot's plan-relative clock reading)
+ * corresponds to — same formula `WaitForEventActions.vue`/`useResearchViews.ts` use everywhere else.
  */
-function syncEventStateForItem(item: { duringSale?: boolean; duringEarningsBoost?: boolean }) {
-  if (item.duringSale !== undefined) {
-    const beforeSnapshot = prepareExecution();
-    if (item.duringSale !== beforeSnapshot.activeSales.research) {
-      const payload = { saleType: 'research' as const, active: item.duringSale, multiplier: 0.3 };
-      salesStore.setSaleActive('research', item.duringSale);
-      completeExecution(
-        {
-          id: generateActionId(),
-          timestamp: Date.now(),
-          type: 'toggle_sale',
+function absoluteSimTimeAt(lastStepTime: number): number {
+  const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+  return baseTimestamp + (lastStepTime - actionsStore.planStartOffset);
+}
+
+/** Inserts a wait action of the given type/duration, returning its id (or undefined if seconds <= 0). */
+function insertWait(
+  type: 'wait_for_research_sale' | 'wait_for_earnings_boost' | 'wait_for_time',
+  seconds: number,
+  beforeSnapshot: ReturnType<typeof prepareExecution>
+): string | undefined {
+  if (seconds <= 0) return undefined;
+  const id = generateActionId();
+  const payload = { totalTimeSeconds: seconds };
+  completeExecution(
+    {
+      id,
+      timestamp: Date.now(),
+      type,
+      payload,
+      cost: 0,
+      dependsOn: computeDependencies(
+        type,
+        payload,
+        actionsStore.actionsBeforeInsertion,
+        actionsStore.initialSnapshot.researchLevels
+      ),
+    },
+    beforeSnapshot
+  );
+  return id;
+}
+
+function insertToggleSale(
+  active: boolean,
+  waitId: string | undefined,
+  beforeSnapshot: ReturnType<typeof prepareExecution>
+) {
+  const payload = { saleType: 'research' as const, active, multiplier: 0.3 };
+  salesStore.setSaleActive('research', active);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'toggle_sale',
+      payload,
+      cost: 0,
+      dependsOn: [
+        ...computeDependencies(
+          'toggle_sale',
           payload,
-          cost: 0,
-          dependsOn: computeDependencies(
-            'toggle_sale',
-            payload,
-            actionsStore.actionsBeforeInsertion,
-            actionsStore.initialSnapshot.researchLevels
-          ),
-        },
-        beforeSnapshot
+          actionsStore.actionsBeforeInsertion,
+          actionsStore.initialSnapshot.researchLevels
+        ),
+        ...(waitId ? [waitId] : []),
+      ],
+    },
+    beforeSnapshot
+  );
+}
+
+function insertToggleEarningsBoost(
+  active: boolean,
+  waitId: string | undefined,
+  beforeSnapshot: ReturnType<typeof prepareExecution>
+) {
+  const payload = { active, multiplier: active ? 2 : 1 };
+  salesStore.setEarningsBoost(active, payload.multiplier);
+  completeExecution(
+    {
+      id: generateActionId(),
+      timestamp: Date.now(),
+      type: 'toggle_earnings_boost',
+      payload,
+      cost: 0,
+      dependsOn: [
+        ...computeDependencies(
+          'toggle_earnings_boost',
+          payload,
+          actionsStore.actionsBeforeInsertion,
+          actionsStore.initialSnapshot.researchLevels
+        ),
+        ...(waitId ? [waitId] : []),
+      ],
+    },
+    beforeSnapshot
+  );
+}
+
+/**
+ * Before buying `item.research`, bring `activeSales.research`/`earningsBoost.active` in line with
+ * whether THIS SPECIFIC purchase — computed fresh from the live/current state — actually resolves
+ * during each event or not. Deliberately does NOT trust a plan's precomputed `duringSale`/
+ * `duringEarningsBoost` (as an earlier version of this function did): those are snapshotted at
+ * planning time, and can drift from what's actually true by the time execution reaches this item
+ * (e.g. because an earlier item in the same batch banked more, or less, than the plan assumed —
+ * `syncEventStateForItem` itself, by inserting real actions, is one such source of drift). Recomputing
+ * live here makes the sync self-correcting regardless of that drift's size or source, instead of
+ * blindly forcing a wait for an event boundary the live state may already be past or short of.
+ *
+ * `getSaleAwareTimeToSave` already reports, for the *live* state, whether the optimal purchase
+ * resolves during a sale or not (`purchase.duringSale`) — comparing that against the live
+ * `activeSales.research` flag tells us whether a sale boundary is actually being crossed. Earnings
+ * boost has no analogous helper (the boost affects rate, not price), so the same idea is computed
+ * directly: `liveWait` (via the same boundary-aware `getTimeToSave`/`boostTransitionsFrom` used
+ * everywhere else) is the true total wait either way a boundary is or isn't crossed; comparing it
+ * against the distance to the boost's next flip says whether it's actually crossed.
+ *
+ * When a boundary genuinely is crossed, a `wait_for_research_sale`/`wait_for_earnings_boost`
+ * (starting) or plain `wait_for_time` (ending — there's no dedicated `wait_for_*_end` action type,
+ * and the start-only types are hardcoded to the wrong day in `refreshActionPayload` if reused here)
+ * action is inserted for exactly the calendar distance to that boundary, then the toggle. This
+ * doesn't double-count time: the wait's duration is independent of price, and the purchase that
+ * follows computes its own (correspondingly shorter) remaining wait from the bank/population the
+ * wait action already advanced to. When no boundary is actually crossed, nothing is inserted at all.
+ */
+function syncEventStateForItem(item: { research: CommonResearch }) {
+  // --- Research sale ---
+  {
+    let beforeSnapshot = prepareExecution();
+    const level = beforeSnapshot.researchLevels[item.research.id] || 0;
+    if (level < item.research.levels) {
+      const absoluteSimTime = absoluteSimTimeAt(beforeSnapshot.lastStepTime);
+      const transitions = boostTransitionsFrom(beforeSnapshot, absoluteSimTime);
+      const isSaleActive = beforeSnapshot.activeSales.research;
+      const purchase = getSaleAwareTimeToSave(
+        item.research,
+        level,
+        costModifiers.value,
+        isSaleActive,
+        absoluteSimTime,
+        beforeSnapshot,
+        transitions
       );
+      const crossings = findEventCrossings(
+        absoluteSimTime,
+        purchase.waitSeconds,
+        isSaleActive,
+        beforeSnapshot.earningsBoost.active
+      );
+
+      for (const crossing of crossings.sale) {
+        const waitId = insertWait(
+          crossing.togglesTo ? 'wait_for_research_sale' : 'wait_for_time',
+          crossing.waitSeconds,
+          beforeSnapshot
+        );
+        beforeSnapshot = waitId ? prepareExecution() : beforeSnapshot;
+        insertToggleSale(crossing.togglesTo, waitId, beforeSnapshot);
+      }
     }
   }
 
-  if (item.duringEarningsBoost !== undefined) {
-    const beforeSnapshot = prepareExecution();
-    if (item.duringEarningsBoost !== beforeSnapshot.earningsBoost.active) {
-      const payload = { active: item.duringEarningsBoost, multiplier: item.duringEarningsBoost ? 2 : 1 };
-      salesStore.setEarningsBoost(item.duringEarningsBoost, payload.multiplier);
-      completeExecution(
-        {
-          id: generateActionId(),
-          timestamp: Date.now(),
-          type: 'toggle_earnings_boost',
-          payload,
-          cost: 0,
-          dependsOn: computeDependencies(
-            'toggle_earnings_boost',
-            payload,
-            actionsStore.actionsBeforeInsertion,
-            actionsStore.initialSnapshot.researchLevels
-          ),
-        },
-        beforeSnapshot
-      );
+  // --- Earnings boost ---
+  {
+    let beforeSnapshot = prepareExecution();
+    const level = beforeSnapshot.researchLevels[item.research.id] || 0;
+    if (level < item.research.levels) {
+      const absoluteSimTime = absoluteSimTimeAt(beforeSnapshot.lastStepTime);
+      const transitions = boostTransitionsFrom(beforeSnapshot, absoluteSimTime);
+      const isSaleActive = beforeSnapshot.activeSales.research;
+      const price = getDiscountedVirtuePrice(item.research, level, costModifiers.value, isSaleActive);
+      const liveWait = getTimeToSave(price, beforeSnapshot, transitions);
+      const isBoostActive = beforeSnapshot.earningsBoost.active;
+      const crossings = findEventCrossings(absoluteSimTime, liveWait, isSaleActive, isBoostActive);
+
+      for (const crossing of crossings.boost) {
+        const waitId = insertWait(
+          crossing.togglesTo ? 'wait_for_earnings_boost' : 'wait_for_time',
+          crossing.waitSeconds,
+          beforeSnapshot
+        );
+        beforeSnapshot = waitId ? prepareExecution() : beforeSnapshot;
+        insertToggleEarningsBoost(crossing.togglesTo, waitId, beforeSnapshot);
+      }
     }
   }
 }
