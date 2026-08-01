@@ -4,9 +4,20 @@
 
 export const PACIFIC_TIMEZONE = 'America/Los_Angeles';
 
+const nextPacificTimeCache = new Map<string, { from: number; result: number }>();
+
 /**
  * Calculates the Unix timestamp (in seconds) of the next occurrence of a specific weekday
  * and hour (0-23) in Pacific Time.
+ *
+ * The underlying search (`computeNextPacificTime`) is a brute-force hour-by-hour
+ * `Intl.DateTimeFormat` walk — DST-safe but expensive (up to ~200 Intl calls). Callers that step
+ * through simulated time in small increments (e.g. milestone-chain simulations re-deriving
+ * sale/boost state at every purchase) can call this thousands of times in a row asking for the
+ * "same" boundary, so the last result per (day, hour) pair is cached and reused whenever the new
+ * query is still within the same window — this is always correct, not an approximation: if
+ * `result` is the smallest matching timestamp > `from`, and the new query's `from` is >= that same
+ * `from` and still < `result`, there cannot be an earlier matching timestamp being missed.
  *
  * @param targetDayOfWeek - 0 (Sunday) to 6 (Saturday)
  * @param targetHour - 0 to 23
@@ -18,6 +29,19 @@ export function getNextPacificTime(targetDayOfWeek: number, targetHour: number, 
     if (!Number.isFinite(fromTimestampSeconds) || fromTimestampSeconds > 8.64e12 || fromTimestampSeconds < 0) {
         return fromTimestampSeconds;
     }
+
+    const cacheKey = `${targetDayOfWeek}:${targetHour}`;
+    const cached = nextPacificTimeCache.get(cacheKey);
+    if (cached && fromTimestampSeconds >= cached.from && fromTimestampSeconds < cached.result) {
+        return cached.result;
+    }
+
+    const result = computeNextPacificTime(targetDayOfWeek, targetHour, fromTimestampSeconds);
+    nextPacificTimeCache.set(cacheKey, { from: fromTimestampSeconds, result });
+    return result;
+}
+
+function computeNextPacificTime(targetDayOfWeek: number, targetHour: number, fromTimestampSeconds: number): number {
     const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: PACIFIC_TIMEZONE,
         weekday: 'short',
@@ -69,6 +93,64 @@ export function getNextPacificTime(targetDayOfWeek: number, targetHour: number, 
 
     // Fallback
     return fromTimestampSeconds + 604800;
+}
+
+/**
+ * Returns the Unix timestamp (in seconds) of the next Research Sale start (Friday 9 AM PT).
+ */
+export function getNextSaleStart(timestampSeconds: number): number {
+  return getNextPacificTime(5, 9, timestampSeconds);
+}
+
+/**
+ * Returns the Unix timestamp (in seconds) of the next Research Sale end (Saturday 9 AM PT).
+ */
+export function getNextSaleEnd(timestampSeconds: number): number {
+  return getNextPacificTime(6, 9, timestampSeconds);
+}
+
+/**
+ * Returns true if a Research Sale is active at the given timestamp.
+ */
+export function isResearchSaleActive(timestampSeconds: number): boolean {
+  // If the next end is sooner than the next start, we are currently in a sale.
+  return getNextSaleEnd(timestampSeconds) < getNextSaleStart(timestampSeconds);
+}
+
+/**
+ * Returns the Unix timestamp (in seconds) of the end of the `saleCount`-th Research Sale after
+ * `ascensionStartTime` — i.e. the standard "build phase end" boundary for a C3 variant that plans
+ * to ride out `saleCount` weekly sales before moving on. `saleCount === 1` is just `getNextSaleEnd`;
+ * each additional sale chains onto the previous one's end (`+ 1` second to search strictly after it,
+ * matching `useAscensionGenerator.ts`'s existing `buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1)`
+ * pattern this generalizes).
+ */
+export function getBuildPhaseEndForSaleCount(ascensionStartTime: number, saleCount: number): number {
+  let end = getNextSaleEnd(ascensionStartTime);
+  for (let i = 1; i < saleCount; i++) end = getNextSaleEnd(end + 1);
+  return end;
+}
+
+/**
+ * Returns the Unix timestamp (in seconds) of the next Earnings Boost start (Monday 9 AM PT).
+ */
+export function getNextEarningsBoostStart(timestampSeconds: number): number {
+  return getNextPacificTime(1, 9, timestampSeconds);
+}
+
+/**
+ * Returns the Unix timestamp (in seconds) of the next Earnings Boost end (Tuesday 9 AM PT).
+ */
+export function getNextEarningsBoostEnd(timestampSeconds: number): number {
+  return getNextPacificTime(2, 9, timestampSeconds);
+}
+
+/**
+ * Returns true if an Earnings Boost is active at the given timestamp.
+ */
+export function isEarningsBoostActive(timestampSeconds: number): boolean {
+  // If the next end is sooner than the next start, we are currently in an earnings boost.
+  return getNextEarningsBoostEnd(timestampSeconds) < getNextEarningsBoostStart(timestampSeconds);
 }
 
 /**

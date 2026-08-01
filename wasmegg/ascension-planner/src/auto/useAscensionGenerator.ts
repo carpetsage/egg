@@ -8,8 +8,8 @@ import { formatNumber } from '@/lib/format';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { computeSnapshot } from '@/engine/compute';
 import { getLocalTimestampInTimezone } from '@/lib/events';
-import { runAscension, runUntilShift, deriveNextStartState, runContinueCurrent } from '@/auto/ascension';
-import { getNextSaleEnd } from '@/auto/calendar';
+import { runUntilShift, deriveNextStartState, runContinueCurrent, runAscensionFromC3Variant } from '@/auto/ascension';
+import { runC3Variants } from '@/auto/shifts/c3';
 import { rollUpPendingTE } from '@/lib/modes';
 import { getArtifactLoadoutFromBackup, getOptimalEarningsSet } from '@/lib/artifacts';
 import { triggerPlanExport, type ExportedPlan } from '@/auto/export';
@@ -17,9 +17,9 @@ import { buildLibraryPlansFromExport } from '@/auto/buildLibraryPlans';
 import { savePlanToLibrary, type PlanData } from '@/lib/storage/db';
 import { usePersistence } from '@/composables/usePersistence';
 import type { AscensionSummary } from '@/auto/types';
-import type { Action } from '@/types/actions/meta';
 import type { VirtueEgg } from '@/types';
-import type { ChainedAscension, PlanVariant } from '@/stores/autoPlanner';
+import type { ChainedAscension, VariantKey, VariantResult } from '@/stores/autoPlanner';
+import { pickVariant } from '@/stores/autoPlanner';
 
 
 const VIRTUE_EGGS_MAP: Record<number, VirtueEgg> = {
@@ -32,16 +32,9 @@ const VIRTUE_EGGS_MAP: Record<number, VirtueEgg> = {
 
 function pickVariantSummary(
   item: ChainedAscension,
-  overrides: Record<number, PlanVariant>,
+  overrides: Record<number, VariantKey>,
 ): AscensionSummary {
-  const override = overrides[item.index];
-  if (override === 'continue' && item.result3) return item.result3.summary;
-  if (override === '1-sale') return item.result1.summary;
-  if (override === '2-sale') return item.result2.summary;
-  const candidates = [item.result1, item.result2, ...(item.result3 ? [item.result3] : [])];
-  return candidates.reduce((a, b) =>
-    a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b,
-  ).summary;
+  return pickVariant(item.variants, overrides[item.index]).summary;
 }
 
 export function useAscensionGenerator() {
@@ -104,61 +97,54 @@ export function useAscensionGenerator() {
 
   const bestResults = computed(() => {
     return ascensionChain.value.map(item => {
-      const candidates = [
-        { result: item.result1, label: item.result1.summary.strategyLabel },
-        { result: item.result2, label: item.result2.summary.strategyLabel },
-      ];
-      if (item.result3) {
-        candidates.push({ result: item.result3, label: item.result3.summary.strategyLabel });
-      }
-
       const override = autoPlannerStore.planVariantOverrides[item.index];
-      let bestIdx = 0;
-      if (override === 'continue' && item.result3) {
-        bestIdx = candidates.length - 1;
-      } else if (override === '1-sale') {
-        bestIdx = 0;
-      } else if (override === '2-sale') {
-        bestIdx = 1;
-      } else {
-        for (let i = 1; i < candidates.length; i++) {
-          if (candidates[i].result.summary.totalDurationSeconds < candidates[bestIdx].result.summary.totalDurationSeconds) {
-            bestIdx = i;
-          }
+      const best = pickVariant(item.variants, override);
+      const present = (Object.entries(item.variants) as [VariantKey, VariantResult | undefined][])
+        .filter((entry): entry is [VariantKey, VariantResult] => !!entry[1]);
+      const bestKey = present.find(([, v]) => v === best)?.[0];
+      const sortedByDuration = [...present].sort(
+        (a, b) => a[1].summary.totalDurationSeconds - b[1].summary.totalDurationSeconds
+      );
+      const fastest = sortedByDuration[0][1];
+      const isFastest = best.summary.totalDurationSeconds <= fastest.summary.totalDurationSeconds;
+
+      // Always exactly one comparison badge: faster-than-next-fastest when the selected variant IS
+      // the fastest present one, else slower-than-the-fastest (never "next slowest").
+      let comparison: { daysFaster: number; otherPlanLabel: string; message?: string } | undefined;
+      if (isFastest && sortedByDuration.length > 1) {
+        const secondFastest = sortedByDuration[1][1];
+        const daysFaster = (secondFastest.summary.totalDurationSeconds - best.summary.totalDurationSeconds) / 86400;
+        if (daysFaster > 0.01) {
+          comparison = { daysFaster, otherPlanLabel: 'the next fastest plan' };
+        }
+      } else if (!isFastest) {
+        const daysSlower = (best.summary.totalDurationSeconds - fastest.summary.totalDurationSeconds) / 86400;
+        if (daysSlower > 0.01) {
+          comparison = {
+            daysFaster: 0,
+            otherPlanLabel: '',
+            message: `${daysSlower.toFixed(1)} days slower than the fastest plan`,
+          };
         }
       }
 
-      const best = candidates[bestIdx].result;
-      const bestDuration = best.summary.totalDurationSeconds;
-
-      const comparisons: { daysFaster: number; otherPlanLabel: string; message?: string }[] = candidates
-        .filter((_, i) => i !== bestIdx)
-        .map(other => ({
-          daysFaster: (other.result.summary.totalDurationSeconds - bestDuration) / 86400,
-          otherPlanLabel: `the ${other.label.replace(' build', '')} plan`,
-        }))
-        .filter(c => c.daysFaster > 0.01)
-        .sort((a, b) => b.daysFaster - a.daysFaster);
-
-      const alternativeELRs = candidates
-        .filter((_, i) => i !== bestIdx)
-        .map(other => ({
-          elr: other.result.summary.maxELR,
-          label: other.result.summary.strategyLabel
-            .replace(' build', '')
-            .replace('Continue current', 'Continue'),
+      const alternativeELRs = present
+        .filter(([key]) => key !== bestKey)
+        .map(([key, v]) => ({
+          elr: v.summary.maxELR,
+          label: key === 'continue' ? 'Continue' : key,
         }));
 
       return {
         ...best,
         summary: {
           ...best.summary,
-          comparisons,
-          comparison: comparisons[0] || undefined,
+          comparison,
           alternativeELRs,
         },
         targetTE: item.goal.te,
-        result3Available: !!item.result3,
+        variants: item.variants,
+        variantKey: bestKey,
         result3SkippedReason: item.result3SkippedReason,
       };
     });
@@ -262,7 +248,7 @@ export function useAscensionGenerator() {
       let currentBaseState: any;
       let currentStartTime: number;
       let currentSummary: AscensionSummary | null = null;
-      const newChain: any[] = [];
+      const newChain: ChainedAscension[] = [];
       const loops = effectiveTargets.length;
 
       if (firstDiffIdx > 0) {
@@ -296,53 +282,49 @@ export function useAscensionGenerator() {
         const stepEndTime: number | undefined = undefined;
         const t_asc = performance.now();
 
-        const buildPhaseEnd1 = getNextSaleEnd(currentStartTime);
-        const buildPhaseEnd2 = getNextSaleEnd(buildPhaseEnd1 + 1);
-
         const currentContext = getSimulationContext();
         currentContext.ascensionStartTime = currentStartTime;
         currentContext.planStartOffset = 0;
 
-        generateProgress.value = `Simulating A${i + 1} of ${loops} (1-sale Build)...`;
+        generateProgress.value = `Simulating A${i + 1} of ${loops} (build phase precompute)...`;
         await new Promise(resolve => setTimeout(resolve, 15));
 
+        // Single C1-R1 precompute, shared across every build variant below (a hard requirement —
+        // see VARIANT_MATRIX_AND_UI.md's Investigation findings — since K3-H2 completion is the
+        // expensive part of an ascension and this reuse keeps that from being repeated).
         const precomputed = runUntilShift(currentBaseState, currentContext, 'C3');
-        const resumeData1 = {
+        const preC3 = {
           actions: precomputed.actions,
           state: precomputed.state,
           elapsedSeconds: precomputed.elapsedSeconds,
-          resumeShiftName: 'C3' as const,
         };
 
-        const result1 = runAscension(
-          currentBaseState, currentContext, buildPhaseEnd1, currentStartTime,
-          `asc_${i}`, stepTargetTE, stepEndTime, resumeData1
-        );
+        // Cheap: runs C3 alone (not a full ascension) for every (saleCount, attemptTier13Unlock)
+        // combination, descending-order-pruning Tier 13 attempts once a larger saleCount proves it
+        // impossible.
+        const c3Variants = runC3Variants(precomputed.state, currentContext, 3);
+        // Variants where the requested Tier 13 unlock couldn't finish in time are dropped here, not
+        // completed through K3-H2: `runC3` returns early on that failure, before actually reaching
+        // buildPhaseEnd, so there's no valid build-phase-complete state to hand off to H1 onward.
+        const survivingVariants = c3Variants.filter(v => !v.impossible);
 
-        generateProgress.value = `Simulating A${i + 1} of ${loops} (2-sale Build)...`;
-        await new Promise(resolve => setTimeout(resolve, 15));
+        const variants: ChainedAscension['variants'] = {};
+        for (let vIdx = 0; vIdx < survivingVariants.length; vIdx++) {
+          const variant = survivingVariants[vIdx];
+          const key: VariantKey = variant.attemptTier13Unlock
+            ? (`${variant.saleCount}-sale-tier13` as VariantKey)
+            : (`${variant.saleCount}-sale` as VariantKey);
 
-        const baseState2 = JSON.parse(JSON.stringify(currentBaseState));
-        const context2 = getSimulationContext();
-        context2.ascensionStartTime = currentStartTime;
-        context2.planStartOffset = 0;
-        // Share the ELR memo from the 1-sale run — same inventory + epic research means
-        // all cached states are valid for the 2-sale run.
-        if (currentContext.elrMemo) context2.elrMemo = currentContext.elrMemo;
+          generateProgress.value =
+            `Simulating A${i + 1} of ${loops} (build variant ${vIdx + 1} of ${survivingVariants.length})...`;
+          await new Promise(resolve => setTimeout(resolve, 15));
 
-        const resumeData2 = {
-          actions: JSON.parse(JSON.stringify(precomputed.actions)),
-          state: JSON.parse(JSON.stringify(precomputed.state)),
-          elapsedSeconds: precomputed.elapsedSeconds,
-          resumeShiftName: 'C3' as const,
-        };
+          variants[key] = runAscensionFromC3Variant(
+            currentBaseState, preC3, variant, currentContext, currentStartTime,
+            `asc_${i}`, stepTargetTE, stepEndTime
+          );
+        }
 
-        const result2 = runAscension(
-          baseState2, context2, buildPhaseEnd2, currentStartTime,
-          `asc_${i}`, stepTargetTE, stepEndTime, resumeData2
-        );
-
-        let result3: { summary: AscensionSummary; actions: Action[] } | undefined;
         let result3SkippedReason: string | null = null;
 
         if (i === 0 && stepTargetTE && initialStateStore.currentFarmState) {
@@ -398,7 +380,7 @@ export function useAscensionGenerator() {
             const realELR = continueSnapshot.elr;
 
             if (realELR > 0) {
-              result3 = runContinueCurrent(
+              variants.continue = runContinueCurrent(
                 continueState, continueContext, currentStartTime,
                 realELR, stepTargetTE, `asc_${i}_continue`
               );
@@ -406,28 +388,15 @@ export function useAscensionGenerator() {
           }
         }
 
-        const candidates = [result1, result2, ...(result3 ? [result3] : [])];
-        const variantOverride = autoPlannerStore.planVariantOverrides[i];
-        let best;
-        if (variantOverride === 'continue' && result3) {
-          best = result3;
-        } else if (variantOverride === '1-sale') {
-          best = result1;
-        } else if (variantOverride === '2-sale') {
-          best = result2;
-        } else {
-          best = candidates.reduce((a, b) => (a.summary.totalDurationSeconds <= b.summary.totalDurationSeconds ? a : b));
-        }
-
         const goalToSave = { type: 'te' as const, te: stepTargetTE || null, date: '', time: '' };
-        const chainItem: any = { index: i, result1, result2, goal: goalToSave };
-        if (result3) chainItem.result3 = result3;
+        const chainItem: ChainedAscension = { index: i, variants, goal: goalToSave };
         if (result3SkippedReason) chainItem.result3SkippedReason = result3SkippedReason;
         if (i === 0) chainItem.initialParams = initialParamsToSave;
         // Tag the last item when it was silently added to cover the 490-TE milestone.
         if (forced490 && i === loops - 1) chainItem.forcedTarget490 = true;
         newChain.push(chainItem);
 
+        const best = pickVariant(variants, autoPlannerStore.planVariantOverrides[i]);
         currentSummary = best.summary;
 
         if (i < loops - 1) {
@@ -465,7 +434,7 @@ export function useAscensionGenerator() {
   const { partitionHash, broadcastLibraryUpdate } = usePersistence();
 
   const buildExportedPlan = (): ExportedPlan => ({
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     startTime: getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value),
     timezone: timezone.value,
@@ -484,12 +453,11 @@ export function useAscensionGenerator() {
     ascensions: ascensionChain.value.filter(item => !item.forcedTarget490).map((item, idx) => {
       const asc: ExportedPlan['ascensions'][number] = {
         index: idx,
-        targetTE: item.goal.te || item.result1.summary.endTE,
-        result1: item.result1,
-        result2: item.result2,
+        targetTE: item.goal.te || pickVariant(item.variants).summary.endTE,
+        variants: item.variants,
         goal: item.goal,
       };
-      if (item.result3) asc.result3 = item.result3;
+      if (item.result3SkippedReason) asc.result3SkippedReason = item.result3SkippedReason;
       return asc;
     }),
   });
@@ -604,7 +572,7 @@ export function useAscensionGenerator() {
     }
   };
 
-  const handleSetPlanVariant = (idx: number, variant: 'continue' | '1-sale' | '2-sale') => {
+  const handleSetPlanVariant = (idx: number, variant: VariantKey) => {
     autoPlannerStore.planVariantOverrides = {
       ...autoPlannerStore.planVariantOverrides,
       [idx]: variant,

@@ -69,30 +69,48 @@
 
             <div
               v-if="isDropdownOpen"
-              class="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-lg py-1 min-w-[148px]"
+              class="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-lg py-1 min-w-[190px]"
             >
-              <button
-                v-for="opt in saleOptions"
-                :key="opt.value"
-                @click="selectVariant(opt.value)"
-                class="w-full text-left px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors flex items-center gap-1.5"
-                :class="opt.value === activeVariant ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'"
-              >
-                <svg v-if="opt.value === activeVariant" class="w-2.5 h-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                </svg>
-                <span v-else class="w-2.5 flex-shrink-0" />
-                {{ opt.label }}
-              </button>
+              <div v-for="row in variantRows" :key="row.saleCount" class="flex items-center gap-1 px-1">
+                <button
+                  class="flex-1 text-left px-2 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors flex items-center gap-1.5 rounded-lg"
+                  :class="
+                    row.plainKey === activeVariantKey
+                      ? 'bg-indigo-50 text-indigo-600'
+                      : 'text-slate-600 hover:bg-slate-50'
+                  "
+                  @click="selectVariant(row.plainKey)"
+                >
+                  <svg
+                    v-if="row.plainKey === activeVariantKey"
+                    class="w-2.5 h-2.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                  </svg>
+                  <span v-else class="w-2.5 flex-shrink-0" />
+                  {{ row.saleCount }}-sale build
+                </button>
+                <button
+                  v-if="row.tier13Key"
+                  v-tippy="'Also unlocks Tier 13 research'"
+                  class="px-1.5 py-1 text-[8px] font-black uppercase tracking-wider rounded-md border transition-colors flex-shrink-0"
+                  :class="
+                    row.tier13Key === activeVariantKey
+                      ? 'bg-amber-50 text-amber-600 border-amber-200'
+                      : 'text-slate-400 border-slate-200 hover:bg-slate-50'
+                  "
+                  @click="selectVariant(row.tier13Key)"
+                >
+                  T13
+                </button>
+              </div>
 
               <!-- Continue Ascension (A1 only) -->
               <template v-if="index === 0">
                 <div class="border-t border-slate-100 my-1" />
-                <span
-                  v-if="!result3Available"
-                  v-tippy="continueDisabledTooltip"
-                  class="block"
-                >
+                <span v-if="!continueAvailable" v-tippy="continueDisabledTooltip" class="block">
                   <button
                     disabled
                     class="w-full text-left px-3 py-1.5 text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 opacity-40 cursor-not-allowed text-slate-500"
@@ -103,12 +121,21 @@
                 </span>
                 <button
                   v-else
-                  @click="selectVariant('continue')"
                   class="w-full text-left px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors flex items-center gap-1.5"
-                  :class="activeVariant === 'continue' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'"
+                  :class="
+                    activeVariantKey === 'continue'
+                      ? 'bg-indigo-50 text-indigo-600'
+                      : 'text-slate-600 hover:bg-slate-50'
+                  "
+                  @click="selectVariant('continue')"
                 >
-                  <svg v-if="activeVariant === 'continue'" class="w-2.5 h-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                  <svg
+                    v-if="activeVariantKey === 'continue'"
+                    class="w-2.5 h-2.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                   </svg>
                   <span v-else class="w-2.5 flex-shrink-0" />
                   Continue Asc.
@@ -116,6 +143,24 @@
               </template>
             </div>
           </div>
+
+          <!-- Compare variants -->
+          <button
+            v-if="variantRows.length > 1 || continueAvailable"
+            v-tippy="'Compare all variants side by side'"
+            class="flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-200/50 rounded-lg text-[9px] font-black text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-wider shadow-sm flex-shrink-0"
+            @click="isComparisonOpen = true"
+          >
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
+              />
+            </svg>
+            Compare
+          </button>
 
           <!-- Save single ascension to library -->
           <button
@@ -302,6 +347,14 @@
         />
       </div>
     </div>
+
+    <VariantComparisonModal
+      :show="isComparisonOpen"
+      :variants="variants"
+      :active-variant-key="activeVariantKey"
+      @close="isComparisonOpen = false"
+      @select="onCompareSelect"
+    />
   </div>
 </template>
 
@@ -311,6 +364,8 @@ import { formatNumber, formatDuration } from '@/lib/format';
 import { iconURL } from 'lib';
 import type { AscensionSummary } from '@/auto/types';
 import type { VirtueEgg } from '@/types';
+import VariantComparisonModal from './VariantComparisonModal.vue';
+import type { VariantKey, VariantResult } from '@/stores/autoPlanner';
 import ShiftSummary from './ShiftSummary.vue';
 
 const props = defineProps<{
@@ -320,11 +375,6 @@ const props = defineProps<{
       otherPlanLabel: string;
       message?: string;
     };
-    comparisons?: {
-      daysFaster: number;
-      otherPlanLabel: string;
-      message?: string;
-    }[];
     alternativeELRs?: {
       elr: number;
       label: string;
@@ -334,19 +384,21 @@ const props = defineProps<{
   index: number;
   total: number;
   targetTE: number | null;
-  result3Available?: boolean;
+  variants: Partial<Record<VariantKey, VariantResult>>;
+  activeVariantKey?: VariantKey;
   result3SkippedReason?: string;
   isSavingSingle?: boolean;
   saveSingleSuccess?: boolean;
 }>();
 
 const emit = defineEmits<{
-  (e: 'setPlanVariant', variant: 'continue' | '1-sale' | '2-sale'): void;
+  (e: 'setPlanVariant', variant: VariantKey): void;
   (e: 'saveSingleToLibrary'): void;
 }>();
 
 const isExpanded = ref(false);
 const isDropdownOpen = ref(false);
+const isComparisonOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
 
 const handleClickOutside = (e: MouseEvent) => {
@@ -357,22 +409,31 @@ const handleClickOutside = (e: MouseEvent) => {
 onMounted(() => document.addEventListener('click', handleClickOutside));
 onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside));
 
-const activeVariant = computed<'1-sale' | '2-sale' | 'continue'>(() => {
-  const label = props.summary.strategyLabel;
-  if (label.includes('1-sale')) return '1-sale';
-  if (label.includes('2-sale')) return '2-sale';
-  return 'continue';
-});
+// The variant key that actually produced `props.summary` — passed down from `bestResults`
+// (`useAscensionGenerator.ts`) rather than re-derived by string-matching `strategyLabel`, which can't
+// distinguish e.g. a 3-sale-tier13 build from a 1-sale one.
+const activeVariantKey = computed(() => props.activeVariantKey ?? 'continue');
 
 const activeVariantShortLabel = computed(() => {
-  if (activeVariant.value === 'continue') return 'Continue';
-  return activeVariant.value;
+  if (activeVariantKey.value === 'continue') return 'Continue';
+  return activeVariantKey.value.replace('-tier13', '+T13');
 });
 
-const saleOptions = [
-  { value: '1-sale' as const, label: '1-sale build' },
-  { value: '2-sale' as const, label: '2-sale build' },
-];
+// One row per sale count that has at least its plain (non-Tier-13) variant present — the plain
+// variant always exists whenever that sale count was attempted at all (only the Tier-13 attempt on
+// top of it can be pruned), so grouping by sale count never needs a "row with nothing in it" case.
+const variantRows = computed(() => {
+  const rows: { saleCount: number; plainKey: VariantKey; tier13Key?: VariantKey }[] = [];
+  for (const saleCount of [1, 2, 3] as const) {
+    const plainKey: VariantKey = `${saleCount}-sale`;
+    if (!props.variants[plainKey]) continue;
+    const tier13Key: VariantKey = `${saleCount}-sale-tier13`;
+    rows.push({ saleCount, plainKey, tier13Key: props.variants[tier13Key] ? tier13Key : undefined });
+  }
+  return rows;
+});
+
+const continueAvailable = computed(() => !!props.variants.continue);
 
 const continueDisabledTooltip = computed(() => {
   if (props.result3SkippedReason === 'startTimeTooFar') {
@@ -381,19 +442,23 @@ const continueDisabledTooltip = computed(() => {
   return 'No farm backup loaded — upload a backup to use Continue Ascension';
 });
 
-const selectVariant = (variant: 'continue' | '1-sale' | '2-sale') => {
+const selectVariant = (variant: VariantKey) => {
   isDropdownOpen.value = false;
+  emit('setPlanVariant', variant);
+};
+
+// The modal is an alternate view onto the same picking mechanism as the dropdown, not a second
+// source of truth — selecting a row calls the exact same emit.
+const onCompareSelect = (variant: VariantKey) => {
+  isComparisonOpen.value = false;
   emit('setPlanVariant', variant);
 };
 const eggs: VirtueEgg[] = ['curiosity', 'integrity', 'humility', 'resilience', 'kindness'];
 
-const displayComparisons = computed(() => {  
-  if (props.summary.comparisons && props.summary.comparisons.length > 0) {
-    return props.summary.comparisons;
-  }
-  if (props.summary.comparison && props.summary.comparison.daysFaster > 0.01) {
-    return [props.summary.comparison];
-  }
+const displayComparisons = computed(() => {
+  const comparison = props.summary.comparison;
+  if (!comparison) return [];
+  if (comparison.message || comparison.daysFaster > 0.01) return [comparison];
   return [];
 });
 

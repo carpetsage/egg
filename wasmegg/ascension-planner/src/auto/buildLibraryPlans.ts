@@ -1,40 +1,31 @@
 import { formatNumber, formatDuration, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
 import { createEmptySnapshot } from '@/types';
-import type { ExportedPlan } from './export';
-
-function pickBest(a: any, idx: number, overrides: Record<number, string>): any {
-  const override = overrides[idx];
-  if (override === 'continue' && a.result3) return a.result3;
-  if (override === '1-sale') return a.result1;
-  if (override === '2-sale') return a.result2;
-  const candidates = [a.result1, a.result2, ...(a.result3 ? [a.result3] : [])].filter(Boolean);
-  return candidates.reduce((b: any, c: any) =>
-    c.summary.totalDurationSeconds < b.summary.totalDurationSeconds ? c : b
-  );
-}
+import { migrateExportedPlanV1, type ExportedPlan, type ExportedPlanV1 } from './export';
+import { pickVariant } from '@/stores/autoPlanner';
 
 export function buildLibraryPlansFromExport(
-  imported: ExportedPlan,
-  namePrefix: string,
+  importedRaw: ExportedPlan | ExportedPlanV1,
+  namePrefix: string
 ): { name: string; data: Record<string, unknown> }[] {
-  const overrides: Record<number, string> = imported.planVariantOverrides ?? (
-    imported.a1ForceMode === 'continue' ? { 0: 'continue' } : {}
-  );
+  const imported: ExportedPlan = importedRaw.version === 1 ? migrateExportedPlanV1(importedRaw) : importedRaw;
+
+  const overrides =
+    imported.planVariantOverrides ?? (imported.a1ForceMode === 'continue' ? { 0: 'continue' as const } : {});
 
   return imported.ascensions.map((a, idx) => {
-    const best = pickBest(a, idx, overrides);
+    const best = pickVariant(a.variants, overrides[idx]);
 
     const state = JSON.parse(JSON.stringify(imported.initialState));
 
     if (idx > 0) {
-      const prevBest = pickBest(imported.ascensions[idx - 1], idx - 1, overrides);
+      const prevBest = pickVariant(imported.ascensions[idx - 1].variants, overrides[idx - 1]);
       state.initialTeEarned = { ...prevBest.summary.finalTE };
       state.initialEggsDelivered = { ...prevBest.summary.eggsDelivered };
       state.soulEggs = prevBest.summary.endSoulEggs;
       state.initialShiftCount = prevBest.summary.endShiftCount;
     }
 
-    let finalActions = best.actions;
+    let finalActions: any[] = best.actions;
     if (finalActions.length === 0 || finalActions[0].type !== 'start_ascension') {
       const startAction = {
         id: 'start_' + Math.random().toString(36).substring(2, 9),
