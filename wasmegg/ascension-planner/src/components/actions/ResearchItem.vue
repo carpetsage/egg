@@ -62,6 +62,22 @@
             {{ formatGemPrice(price) }}
             <img :src="iconURL('egginc/icon_virtue_gem.png', 64)" class="w-2.5 h-2.5 object-contain opacity-80" alt="Gem" />
           </div>
+          <div v-if="duringSale || duringEarningsBoost" class="flex items-center justify-end gap-1 mt-0.5">
+            <span
+              v-if="duringSale"
+              class="text-[8px] font-black uppercase tracking-tight text-rose-600 bg-rose-50 rounded px-1 py-0.5 cursor-help"
+              v-tippy="'This price reflects the 70% research sale discount.'"
+            >
+              Sale
+            </span>
+            <span
+              v-if="duringEarningsBoost"
+              class="text-[8px] font-black uppercase tracking-tight text-orange-600 bg-orange-50 rounded px-1 py-0.5 cursor-help"
+              v-tippy="'This purchase completes during the 2x earnings boost.'"
+            >
+              2x
+            </span>
+          </div>
         </template>
         <div v-else class="text-[10px] text-emerald-600 font-black uppercase tracking-widest mt-0.5">Maxed</div>
       </div>
@@ -266,6 +282,8 @@ const props = defineProps<{
   lookahead?: { minLevels: number; impact: number; hpp: number };
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;
+  duringSale?: boolean;
+  duringEarningsBoost?: boolean;
 }>();
 
 const actionsStore = useActionsStore();

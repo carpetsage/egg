@@ -10,40 +10,54 @@ import type { VirtueEgg } from '@/types/actions/virtue';
 
 /**
  * Distributes a target total TE across the 5 virtue eggs in a way that
- * minimizes total time (by aiming for equalized TE counts).
- * 
- * @param currentTEs - Map of current TE per egg
+ * minimizes total time, by greedily assigning each next TE to whichever egg
+ * needs the fewest additional eggs delivered to cross its next threshold.
+ *
+ * Mirrors `BulkWaitForTEActions.vue`'s `calculateGreedyGains`: cost is based on
+ * each egg's actual `eggsDelivered` (which may sit strictly between two TE
+ * thresholds), not just its current TE count — comparing raw threshold values
+ * would ignore partial progress and effectively just equalize TE counts.
+ *
+ * @param eggsDelivered - Map of lifetime eggs delivered per egg
  * @param targetTotalTE - Goal total TE for the entire ascension
  * @returns Map of target TE per egg
  */
 export function distributeTargetTE(
-  currentTEs: Record<VirtueEgg, number>,
+  eggsDelivered: Record<VirtueEgg, number>,
   targetTotalTE: number
 ): Record<VirtueEgg, number> {
-  const targets: Record<VirtueEgg, number> = { ...currentTEs };
   const eggs: VirtueEgg[] = ['curiosity', 'integrity', 'resilience', 'humility', 'kindness'];
+  const targets: Record<VirtueEgg, number> = {} as Record<VirtueEgg, number>;
+  const delivered: Record<VirtueEgg, number> = {} as Record<VirtueEgg, number>;
+
+  for (const egg of eggs) {
+    delivered[egg] = eggsDelivered[egg] || 0;
+    targets[egg] = countTEThresholdsPassed(delivered[egg]);
+  }
 
   let currentTotal = Object.values(targets).reduce((a, b) => a + b, 0);
-  
+
   while (currentTotal < targetTotalTE) {
-    // Find the egg where the next TE is "cheapest" (lowest threshold)
+    // Find the egg where the next TE needs the fewest additional eggs delivered
     let bestEgg: VirtueEgg | null = null;
-    let minThreshold = Infinity;
+    let bestCost = Infinity;
 
     for (const egg of eggs) {
       const currentTE = targets[egg];
-      if (currentTE < TE_BREAKPOINTS.length) {
-        const threshold = TE_BREAKPOINTS[currentTE]; // Threshold for TE #(currentTE + 1)
-        if (threshold < minThreshold) {
-          minThreshold = threshold;
-          bestEgg = egg;
-        }
+      if (currentTE >= TE_BREAKPOINTS.length) continue;
+
+      const nextThreshold = TE_BREAKPOINTS[currentTE];
+      const cost = Math.max(0, nextThreshold - delivered[egg]);
+      if (cost < bestCost) {
+        bestCost = cost;
+        bestEgg = egg;
       }
     }
 
     if (!bestEgg) break; // Should not happen unless target > max total TE
 
     targets[bestEgg]++;
+    delivered[bestEgg] = TE_BREAKPOINTS[targets[bestEgg] - 1];
     currentTotal++;
   }
 

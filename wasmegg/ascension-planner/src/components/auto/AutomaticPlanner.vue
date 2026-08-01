@@ -169,8 +169,7 @@
         <template v-for="(result, idx) in bestResults" :key="idx">
           <ForcedAscensionPreview
             v-if="ascensionChain[idx]?.forcedTarget490"
-            :result1="ascensionChain[idx].result1"
-            :result2="ascensionChain[idx].result2"
+            :variants="ascensionChain[idx].variants"
             :index="idx"
             :total="visibleTotal"
           />
@@ -181,11 +180,12 @@
             :index="idx"
             :total="visibleTotal"
             :target-t-e="result.targetTE"
-            :result3-available="result.result3Available"
+            :variants="result.variants"
+            :active-variant-key="result.variantKey"
             :result3-skipped-reason="result.result3SkippedReason"
             :is-saving-single="savingIndex === idx"
             :save-single-success="savedIndex === idx"
-            @set-plan-variant="(variant: 'continue' | '1-sale' | '2-sale') => handleSetPlanVariant(idx, variant)"
+            @set-plan-variant="(variant: VariantKey) => handleSetPlanVariant(idx, variant)"
             @save-single-to-library="saveSingleAscensionToLibrary(idx)"
           />
         </template>
@@ -220,7 +220,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useAutoPlannerStore } from '@/stores/autoPlanner';
+import { useAutoPlannerStore, type VariantKey } from '@/stores/autoPlanner';
 import { useVirtueStore } from '@/stores/virtue';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useAscensionGenerator } from '@/auto/useAscensionGenerator';

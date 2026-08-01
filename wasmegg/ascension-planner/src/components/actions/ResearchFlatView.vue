@@ -65,6 +65,8 @@
         :recommendation-note="item.recommendationNote"
         :show-sale-warning="item.showSaleWarning"
         :show-deadline-warning="item.showDeadlineWarning"
+        :during-sale="item.duringSale"
+        :during-earnings-boost="item.duringEarningsBoost"
         @buy="$emit('buy', item.research)"
         @max="$emit('max', item.research)"
         @buy-to-here="$emit('buy-to-here', idx)"
@@ -133,6 +135,8 @@ interface SortedResearchItem {
   recommendationNote?: string;
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;
+  duringSale?: boolean;
+  duringEarningsBoost?: boolean;
 }
 
 const props = defineProps<{
