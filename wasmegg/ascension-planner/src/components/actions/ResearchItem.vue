@@ -78,6 +78,27 @@
               2x
             </span>
           </div>
+          <div
+            v-if="eventCrossings?.sale.length || eventCrossings?.boost.length"
+            class="flex flex-col items-end gap-0.5 mt-0.5"
+          >
+            <span
+              v-for="(crossing, i) in eventCrossings?.sale ?? []"
+              :key="`sale-${i}`"
+              v-tippy="crossingTooltip('research sale', crossing)"
+              class="text-[8px] font-bold text-gray-400 whitespace-nowrap cursor-help"
+            >
+              ⏳ Sale {{ crossing.togglesTo ? 'starts' : 'ends' }} in {{ formatDuration(crossing.waitSeconds) }}
+            </span>
+            <span
+              v-for="(crossing, i) in eventCrossings?.boost ?? []"
+              :key="`boost-${i}`"
+              v-tippy="crossingTooltip('2x earnings boost', crossing)"
+              class="text-[8px] font-bold text-gray-400 whitespace-nowrap cursor-help"
+            >
+              ⏳ 2x {{ crossing.togglesTo ? 'starts' : 'ends' }} in {{ formatDuration(crossing.waitSeconds) }}
+            </span>
+          </div>
         </template>
         <div v-else class="text-[10px] text-emerald-600 font-black uppercase tracking-widest mt-0.5">Maxed</div>
       </div>
@@ -251,6 +272,7 @@ import { getResearchIconPath } from '@/lib/assets';
 import { iconURL } from 'lib';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
+import { type PurchaseEventCrossings } from '@/calculations/researchROI';
 
 const props = defineProps<{
   research: CommonResearch;
@@ -284,6 +306,7 @@ const props = defineProps<{
   showDeadlineWarning?: boolean;
   duringSale?: boolean;
   duringEarningsBoost?: boolean;
+  eventCrossings?: PurchaseEventCrossings;
 }>();
 
 const actionsStore = useActionsStore();
@@ -295,6 +318,15 @@ const baseTimestamp = computed(() => {
   // Wall clock time = (Plan Start) + (Current Sim Time - Initial Sim Time)
   return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
 });
+
+// `crossing.waitSeconds` is the length of the wait segment leading up to that crossing (from the
+// previous crossing, or from now for the first one) — so "after a Xh wait" is accurate regardless
+// of whether this is the first event boundary saving up for this purchase hits, or a later one
+// (e.g. a multi-day purchase that saves through an entire boost cycle, start and end both).
+function crossingTooltip(eventLabel: string, crossing: { waitSeconds: number; togglesTo: boolean }): string {
+  const direction = crossing.togglesTo ? 'starts' : 'ends';
+  return `Saving up for this crosses the ${eventLabel} ${direction}, after a ${formatDuration(crossing.waitSeconds)} wait.`;
+}
 
 function deadlineWarningTooltip(seconds?: number, extraText?: string) {
   if (seconds === undefined) return extraText || '';

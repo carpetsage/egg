@@ -67,6 +67,7 @@
         :show-deadline-warning="item.showDeadlineWarning"
         :during-sale="item.duringSale"
         :during-earnings-boost="item.duringEarningsBoost"
+        :event-crossings="item.eventCrossings"
         @buy="$emit('buy', item.research)"
         @max="$emit('max', item.research)"
         @buy-to-here="$emit('buy-to-here', idx)"
@@ -108,6 +109,7 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
 import { formatAbsoluteTime } from '@/lib/format';
+import { type PurchaseEventCrossings } from '@/calculations/researchROI';
 import ResearchItem from './ResearchItem.vue';
 
 interface SortedResearchItem {
@@ -137,6 +139,7 @@ interface SortedResearchItem {
   showDeadlineWarning?: boolean;
   duringSale?: boolean;
   duringEarningsBoost?: boolean;
+  eventCrossings?: PurchaseEventCrossings;
 }
 
 const props = defineProps<{

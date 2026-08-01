@@ -36,6 +36,7 @@ import {
   computeMilestoneSummaryCore,
 } from '@/calculations/milestoneChain';
 import { type ResearchRankingItem, rankResearchByROI, rankResearchByELRImpact } from '@/calculations/researchRanking';
+import { type PurchaseEventCrossings } from '@/calculations/researchROI';
 
 export type { MilestoneTarget } from '@/calculations/milestoneChain';
 
@@ -76,6 +77,10 @@ export interface ResearchViewItem {
   // a 2x earnings boost. Distinct from showSaleWarning/showDeadlineWarning ("you should hold off").
   duringSale?: boolean;
   duringEarningsBoost?: boolean;
+  // Event boundaries (if any) this purchase's own wait crosses while saving up. Only set on the
+  // milestones branch — lets the preview show the same wait/toggle split the manual planner
+  // inserts when actually executing the chain, instead of only revealing it after clicking "Buy".
+  eventCrossings?: PurchaseEventCrossings;
   // Extra $/sec this purchase would add to earnings once bought. Only set on the roi branch
   // (see ResearchRankingItem's field of the same name).
   earningsDelta?: number;
@@ -328,6 +333,7 @@ export function useResearchViews() {
       showDeadlineWarning: item.showDeadlineWarning,
       duringSale: item.duringSale,
       duringEarningsBoost: item.duringEarningsBoost,
+      eventCrossings: item.eventCrossings,
     };
 
     if (item.roiSeconds !== undefined) {

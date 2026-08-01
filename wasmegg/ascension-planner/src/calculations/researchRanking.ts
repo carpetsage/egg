@@ -14,9 +14,14 @@ import type { SimulationContext } from '@/engine/types';
 import type { CalculationsSnapshot } from '@/types';
 import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
-import { applyAction, getTimeToSave, calculateEarningsForTime } from '@/engine/apply';
+import { applyAction, getTimeToSave, calculateEarningsForTime, boostTransitionsFrom } from '@/engine/apply';
 import { createSimAction } from '@/types/actions/meta';
-import { getNextPacificTime, isEarningsBoostActive } from '@/lib/events';
+import {
+  getNextPacificTime,
+  isEarningsBoostActive,
+  getNextEarningsBoostStart,
+  getNextEarningsBoostEnd,
+} from '@/lib/events';
 import { ei } from 'lib';
 
 // Research categories to exclude from specific ranking views
@@ -142,11 +147,12 @@ export function rankResearchByROI(
   const currentEarnings = startSnapshot.offlineEarnings;
 
   const nextSaleStart = getNextPacificTime(5, 9, absoluteSimTime);
-  const upcoming9amDurations = Array.from(
-    { length: 7 },
-    (_, i) => getNextPacificTime(i, 9, absoluteSimTime) - absoluteSimTime
-  );
-  const eventExpirationSeconds = Math.min(...upcoming9amDurations);
+  // Seconds until the boost's own next flip — end if it's active now, start if it isn't — per the
+  // contract `boostTransitionFor` (researchROI.ts) expects. NOT "seconds until the nearest 9 AM on
+  // any day," which would misplace a not-yet-started boost days early.
+  const eventExpirationSeconds = isEarningsBoostActive(absoluteSimTime)
+    ? getNextEarningsBoostEnd(absoluteSimTime) - absoluteSimTime
+    : getNextEarningsBoostStart(absoluteSimTime) - absoluteSimTime;
 
   if (currentEarnings <= 0) return [];
 
@@ -176,7 +182,15 @@ export function rankResearchByROI(
     let nextSnapshot: CalculationsSnapshot;
 
     if (roiMode === 'maxed_vehicles' && baseMaxVehiclesSnapshot) {
-      const purchase = getSaleAwareTimeToSave(r, level, mods, isSale, absoluteSimTime, startSnapshot, []);
+      const purchase = getSaleAwareTimeToSave(
+        r,
+        level,
+        mods,
+        isSale,
+        absoluteSimTime,
+        startSnapshot,
+        boostTransitionsFrom(startSnapshot, absoluteSimTime)
+      );
       resultPrice = purchase.price;
       resultDuringSale = purchase.duringSale;
       resultTimeToBuySeconds = purchase.waitSeconds;
@@ -414,8 +428,25 @@ export function rankResearchByELRImpact(
         // legitimately disagree about whether waiting for the sale wins, since a bigger bank
         // shortens the "buy now" wait without changing the "wait for sale" one.
         const noBankSnapshot = { ...startSnapshot, bankValue: 0 };
-        const noBankPurchase = getSaleAwareTimeToSave(r, level, mods, isSale, absoluteSimTime, noBankSnapshot, []);
-        const withBankPurchase = getSaleAwareTimeToSave(r, level, mods, isSale, absoluteSimTime, startSnapshot, []);
+        const transitions = boostTransitionsFrom(startSnapshot, absoluteSimTime);
+        const noBankPurchase = getSaleAwareTimeToSave(
+          r,
+          level,
+          mods,
+          isSale,
+          absoluteSimTime,
+          noBankSnapshot,
+          transitions
+        );
+        const withBankPurchase = getSaleAwareTimeToSave(
+          r,
+          level,
+          mods,
+          isSale,
+          absoluteSimTime,
+          startSnapshot,
+          transitions
+        );
         const price = withBankPurchase.price;
         const secondsToBuyNoBank = noBankPurchase.waitSeconds;
         const secondsToBuyWithBank = withBankPurchase.waitSeconds;
@@ -527,8 +558,25 @@ export function rankResearchByELRImpact(
         // legitimately disagree about whether waiting for the sale wins, since a bigger bank
         // shortens the "buy now" wait without changing the "wait for sale" one.
         const noBankSnapshot = { ...startSnapshot, bankValue: 0 };
-        const noBankPurchase = getSaleAwareTimeToSave(r, level, mods, isSale, absoluteSimTime, noBankSnapshot, []);
-        const withBankPurchase = getSaleAwareTimeToSave(r, level, mods, isSale, absoluteSimTime, startSnapshot, []);
+        const transitions = boostTransitionsFrom(startSnapshot, absoluteSimTime);
+        const noBankPurchase = getSaleAwareTimeToSave(
+          r,
+          level,
+          mods,
+          isSale,
+          absoluteSimTime,
+          noBankSnapshot,
+          transitions
+        );
+        const withBankPurchase = getSaleAwareTimeToSave(
+          r,
+          level,
+          mods,
+          isSale,
+          absoluteSimTime,
+          startSnapshot,
+          transitions
+        );
         const price = withBankPurchase.price;
         const secondsToBuyNoBank = noBankPurchase.waitSeconds;
         const secondsToBuyWithBank = withBankPurchase.waitSeconds;

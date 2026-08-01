@@ -5,7 +5,7 @@ import { createBaseEngineState } from '@/engine/adapter';
 import { applyAction, getTimeToSave, calculateEarningsForTime, type EarningsRateTransition } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { createSimAction } from '@/types/actions/meta';
-import { getNextSaleStart } from '@/lib/events';
+import { getNextSaleStart, getNextSaleEnd, getNextEarningsBoostStart, getNextEarningsBoostEnd } from '@/lib/events';
 
 export interface ROICalculationInput {
   research: CommonResearch;
@@ -66,9 +66,11 @@ export interface SaleAwarePurchase {
  * needing 60 minutes of saving at full price only needs ~18 minutes at 70% off — so the true wait
  * is 30 minutes (wait for the sale, then buy instantly with money already banked), not 60.
  *
- * Only handles the *upcoming* sale, not a currently-active one ending mid-wait (the symmetric
- * problem in the other direction) — if `isSaleActive` is already true, this returns the same
- * answer the old naive computation would have.
+ * Also handles the symmetric problem in the other direction — a currently-active sale ending
+ * before enough is saved for the discounted price. Money earned is unaffected by the sale (only
+ * the *target* price is), so the wait to reach the full price is just `getTimeToSave(fullPrice,
+ * snapshot, transitions)` computed from now — the same continuous earnings integral already used
+ * everywhere else, unaffected by whether it happens to cross the sale's end partway through.
  */
 export function getSaleAwareTimeToSave(
   research: CommonResearch,
@@ -83,7 +85,15 @@ export function getSaleAwareTimeToSave(
   const currentWait = getTimeToSave(currentPrice, snapshot, transitions);
 
   if (isSaleActive) {
-    return { price: currentPrice, waitSeconds: currentWait, duringSale: true };
+    const timeUntilSaleEnds = getNextSaleEnd(currentAbsoluteTime) - currentAbsoluteTime;
+    if (!isFinite(timeUntilSaleEnds) || currentWait <= timeUntilSaleEnds) {
+      return { price: currentPrice, waitSeconds: currentWait, duringSale: true };
+    }
+    // Won't finish saving the discounted price before the sale ends — the shortfall has to be
+    // covered at full price instead.
+    const fullPrice = getDiscountedVirtuePrice(research, level, mods, false);
+    const fullPriceWait = getTimeToSave(fullPrice, snapshot, transitions);
+    return { price: fullPrice, waitSeconds: fullPriceWait, duringSale: false };
   }
 
   const timeUntilSale = getNextSaleStart(currentAbsoluteTime) - currentAbsoluteTime;
@@ -101,6 +111,84 @@ export function getSaleAwareTimeToSave(
     return { price: salePrice, waitSeconds: trueSaleWait, duringSale: true };
   }
   return { price: currentPrice, waitSeconds: currentWait, duringSale: false };
+}
+
+/** One event boundary a purchase's own wait crosses: how far away it is, and what it flips to. */
+export interface EventCrossing {
+  waitSeconds: number;
+  togglesTo: boolean;
+}
+
+export interface PurchaseEventCrossings {
+  sale: EventCrossing[];
+  boost: EventCrossing[];
+}
+
+/**
+ * Given a purchase that starts saving at `currentAbsoluteTime` and (per its own already-computed,
+ * boundary-aware `secondsToBuy` — e.g. from `getSaleAwareTimeToSave`/`getTimeToSave`) completes
+ * `secondsToBuy` later, determines which event boundaries (research sale start/end, earnings boost
+ * start/end) fall within that window — i.e. which events this purchase will cross while saving up.
+ * Returns every crossing in chronological order, not just the first — a wait long enough to span a
+ * FULL event cycle (e.g. several days, crossing both the boost's start AND its end) needs both
+ * represented, or a display/execution consumer would miss the boost turning back off partway
+ * through.
+ *
+ * Purely descriptive: doesn't affect price/wait math at all (that's already baked into
+ * `secondsToBuy` by whichever boundary-aware function computed it) — this just identifies, given
+ * that already-correct total, what to show/insert as explicit wait+toggle steps around the
+ * purchase. Shared by the milestone chain (to annotate the preview) and the manual planner's
+ * execution code (to decide what to actually insert) so both sides agree by construction.
+ */
+export function findEventCrossings(
+  currentAbsoluteTime: number,
+  secondsToBuy: number,
+  isSaleActiveNow: boolean,
+  isBoostActiveNow: boolean
+): PurchaseEventCrossings {
+  return {
+    sale: walkEventCrossings(currentAbsoluteTime, secondsToBuy, isSaleActiveNow, getNextSaleStart, getNextSaleEnd),
+    boost: walkEventCrossings(
+      currentAbsoluteTime,
+      secondsToBuy,
+      isBoostActiveNow,
+      getNextEarningsBoostStart,
+      getNextEarningsBoostEnd
+    ),
+  };
+}
+
+/**
+ * Walks forward from `currentAbsoluteTime`, alternating between `getNextStart`/`getNextEnd`,
+ * collecting every flip within the purchase's `secondsToBuy` window. Each entry's `waitSeconds` is
+ * the length of the segment ENDING at that crossing (from the previous crossing, or from
+ * `currentAbsoluteTime` for the first) — i.e. exactly the duration of the `wait_for_*` action that
+ * would precede it, so callers can insert/display a chronological sequence of wait+toggle steps
+ * without needing to re-derive offsets.
+ */
+function walkEventCrossings(
+  currentAbsoluteTime: number,
+  secondsToBuy: number,
+  isActiveNow: boolean,
+  getNextStart: (t: number) => number,
+  getNextEnd: (t: number) => number
+): EventCrossing[] {
+  if (!isFinite(secondsToBuy) || secondsToBuy <= 0) return [];
+
+  const crossings: EventCrossing[] = [];
+  const deadline = currentAbsoluteTime + secondsToBuy;
+  let cursor = currentAbsoluteTime;
+  let active = isActiveNow;
+
+  while (true) {
+    const boundary = active ? getNextEnd(cursor) : getNextStart(cursor);
+    if (!isFinite(boundary) || boundary > deadline) break;
+    crossings.push({ waitSeconds: boundary - cursor, togglesTo: !active });
+    active = !active;
+    cursor = boundary;
+  }
+
+  return crossings;
 }
 
 /**
