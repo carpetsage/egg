@@ -9,7 +9,8 @@
     "fastbuild": "vite build",
     "lint": "eslint --ext .js,.ts,.vue src",
     "serve": "vite preview",
-    "format": "prettier --write \"src/**/*.{js,ts,vue}\""
+    "format": "prettier --write \"src/**/*.{js,ts,vue}\"",
+    "generate:pacific-time-table": "node --experimental-strip-types scripts/generatePacificTimeTable.ts"
   },
   "dependencies": {
     "@heroicons/vue": "^1.0.6",
