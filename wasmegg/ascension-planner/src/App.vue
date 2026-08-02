@@ -472,6 +472,12 @@
 
       <RecalculationOverlay />
 
+      <LoadingOverlay
+        :show="loading"
+        title="One Moment..."
+        message="Fetching your data and crunching the numbers to set up your plan..."
+      />
+
       <PlanFinalSummary
         v-if="plannerTab === 'manual'"
         @update:collapsed="isFooterCollapsed = $event"
@@ -510,6 +516,7 @@ import FloatingStats from '@/components/FloatingStats.vue';
 import FloatingNotes from '@/components/FloatingNotes.vue';
 import WarningDialog from '@/components/WarningDialog.vue';
 import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
+import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import PlanLibrary from '@/components/PlanLibrary.vue';
 import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
 import AutomaticPlanner from '@/components/auto/AutomaticPlanner.vue';

@@ -451,11 +451,25 @@ export function useResearchViews() {
   let milestoneChainGeneration = 0;
 
   watchEffect(async () => {
+    // Must be the first read so Vue tracks it and re-runs this effect once mode-init settles.
+    // While a mode switch (start from scratch / plan future / reconcile / load plan / etc.) is
+    // resetting stores, they briefly disagree with each other (e.g. virtueStore already reset while
+    // actionsStore still holds the previous plan's snapshot) — computing a milestone chain against
+    // that transitional mix has produced nonsensical absolute timestamps and hung the tab.
+    if (actionsStore.isPlanInitializing) {
+      return;
+    }
+
     const target = milestoneTarget.value;
     const generation = ++milestoneChainGeneration;
 
     if (!target) {
       milestoneChainResultRef.value = { items: [], reached: false, totalSeconds: 0 };
+      // Must clear this here too, not just after a completed compute below: if a prior invocation
+      // (for the previous target) is still in flight when the target is cleared, it will later find
+      // itself superseded (`generation !== milestoneChainGeneration`) and discard its result without
+      // touching this flag — leaving the overlay stuck on forever with nothing left computing.
+      isComputingMilestoneChain.value = false;
       return;
     }
 
@@ -510,15 +524,30 @@ export function useResearchViews() {
     return computeMilestoneBaseline(target, startSnapshot, context, costModifiers.value, absoluteSimTime);
   });
 
+  // Whether the currently-selected milestone target is already reached at the current research
+  // levels — exposed separately from `milestoneSummary` (which returns `null` in this case) so
+  // `ResearchFlatView`'s empty state can tell "already done" apart from "chain got stuck/truncated
+  // with zero purchases queued," which also produces an empty `sortedResearches` list but means
+  // something very different.
+  const milestoneAlreadyReached = computed(() => {
+    const target = milestoneTarget.value;
+    if (!target) return false;
+    return isMilestoneReached(target, commonResearchStore.researchLevels);
+  });
+
   const milestoneSummary = computed(() => {
     const target = milestoneTarget.value;
     if (!target) return null;
-    if (isMilestoneReached(target, commonResearchStore.researchLevels)) return null;
+    if (milestoneAlreadyReached.value) return null;
 
     const core = computeMilestoneSummaryCore(milestoneChainResult.value, milestoneBaselineResult.value);
 
     if (core.truncated) {
-      return { truncated: true as const };
+      return {
+        truncated: true as const,
+        partialPurchaseCount: core.partialPurchaseCount ?? 0,
+        partialSeconds: core.partialSeconds ?? 0,
+      };
     }
 
     const baseTimestamp =
@@ -880,6 +909,7 @@ export function useResearchViews() {
     milestoneNextLockedTier,
     milestoneResearchOptions,
     milestoneSummary,
+    milestoneAlreadyReached,
     isComputingMilestoneChain,
     viewDescription,
     costModifiers,
