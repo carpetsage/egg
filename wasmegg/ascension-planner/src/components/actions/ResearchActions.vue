@@ -138,8 +138,13 @@
       class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"
     >
       <template v-if="milestoneSummary.truncated">
-        <p class="text-xs text-gray-500 text-center italic">
-          This milestone requires too many purchases to fully calculate right now.
+        <p v-if="milestoneSummary.partialPurchaseCount > 0" class="text-xs text-gray-500 text-center italic">
+          This milestone takes at least {{ milestoneSummary.partialPurchaseCount }}
+          {{ milestoneSummary.partialPurchaseCount === 1 ? 'purchase' : 'purchases' }} (at least
+          {{ formatDuration(milestoneSummary.partialSeconds) }}) — too many to fully calculate right now.
+        </p>
+        <p v-else class="text-xs text-gray-500 text-center italic">
+          Unable to find a path to this milestone from the current state.
         </p>
       </template>
       <template v-else>
@@ -201,6 +206,24 @@
         ({{ sortedResearches.length }} {{ sortedResearches.length === 1 ? 'purchase' : 'purchases' }})
       </span>
     </button>
+
+    <!-- Event Crossing Details Toggle -->
+    <div
+      v-if="currentView === 'milestones' && sortedResearches.length > 0"
+      class="flex items-center justify-between mt-2 px-1"
+    >
+      <span class="text-xs text-gray-500">See details of sale and earnings events</span>
+      <button
+        class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+        :class="showEventCrossingDetails ? 'bg-indigo-500' : 'bg-slate-200'"
+        @click="showEventCrossingDetails = !showEventCrossingDetails"
+      >
+        <span
+          class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
+          :class="showEventCrossingDetails ? 'translate-x-[22px]' : 'translate-x-1'"
+        />
+      </button>
+    </div>
 
     <!-- Realistic Mode Summary -->
     <div
@@ -270,6 +293,8 @@
       :view="currentView"
       :thresholds="TIER_THRESHOLDS"
       :milestone-target-selected="!!milestoneTarget"
+      :milestone-already-reached="milestoneAlreadyReached"
+      :show-event-crossing-details="showEventCrossingDetails"
       :get-research-time-to-buy="getTimeToBuy"
       :get-research-time-to-buy-seconds="getTimeToBuySeconds"
       :roi-display-mode="elrRoiDisplayMode"
@@ -289,7 +314,7 @@
       @deactivate-and-continue="handleExpiryDeactivateAndContinue"
     />
 
-    <MilestonePlanningOverlay :show="isComputingMilestoneChain" />
+    <LoadingOverlay :show="isComputingMilestoneChain" />
   </div>
 </template>
 
@@ -319,7 +344,7 @@ import ResearchGameView from './ResearchGameView.vue';
 import ResearchFlatView from './ResearchFlatView.vue';
 import ElrViewControls from './ElrViewControls.vue';
 import MilestoneTargetPicker from './MilestoneTargetPicker.vue';
-import MilestonePlanningOverlay from './MilestonePlanningOverlay.vue';
+import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
 import { useEventExpiry } from '@/composables/useEventExpiry';
 
@@ -339,6 +364,7 @@ const {
 
 const smartBuyState = ref({ threshold: 0, alwaysOn: false });
 let isSmartBuying = false;
+const showEventCrossingDetails = ref(false);
 
 const {
   currentView,
@@ -351,6 +377,7 @@ const {
   milestoneNextLockedTier,
   milestoneResearchOptions,
   milestoneSummary,
+  milestoneAlreadyReached,
   isComputingMilestoneChain,
   viewDescription,
   costModifiers,

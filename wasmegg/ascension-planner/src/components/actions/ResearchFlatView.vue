@@ -68,6 +68,7 @@
         :during-sale="item.duringSale"
         :during-earnings-boost="item.duringEarningsBoost"
         :event-crossings="item.eventCrossings"
+        :show-event-crossing-details="showEventCrossingDetails"
         @buy="$emit('buy', item.research)"
         @max="$emit('max', item.research)"
         @buy-to-here="$emit('buy-to-here', idx)"
@@ -91,8 +92,11 @@
       <template v-else-if="view === 'milestones' && !milestoneTargetSelected">
         Pick a milestone above to see the fastest path.
       </template>
-      <template v-else-if="view === 'milestones'">
+      <template v-else-if="view === 'milestones' && milestoneAlreadyReached">
         This milestone has already been reached.
+      </template>
+      <template v-else-if="view === 'milestones'">
+        Unable to find a path to this milestone from the current state.
       </template>
       <template v-else>
         No researches match this criteria or all are maxed.
@@ -147,6 +151,8 @@ const props = defineProps<{
   view: ViewType;
   thresholds: readonly number[];
   milestoneTargetSelected?: boolean;
+  milestoneAlreadyReached?: boolean;
+  showEventCrossingDetails?: boolean;
   getResearchTimeToBuy: (r: CommonResearch) => string;
   getResearchTimeToBuySeconds: (r: CommonResearch) => number;
   roiDisplayMode?: ElrRoiDisplayMode;

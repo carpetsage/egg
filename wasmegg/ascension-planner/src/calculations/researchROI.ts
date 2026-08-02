@@ -7,7 +7,6 @@ import {
   getTimeToSave,
   calculateEarningsForTime,
   boostTransitionsFrom,
-  MAX_PRACTICAL_WAIT_SECONDS,
   type EarningsRateTransition,
 } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
@@ -17,6 +16,17 @@ import { getNextSaleStart, getNextSaleEnd, getNextEarningsBoostStart, getNextEar
 // See the comment where this is used in `calculateResearchROI` for why the ROI-payback horizon is
 // deliberately much shorter than `boostTransitionsFrom`'s own multi-year default.
 const ROI_PAYBACK_TRANSITION_HORIZON_SECONDS = 60 * 86400;
+
+/**
+ * How far ahead to search for a purchase to earn back its own cost, when estimating ROI payback
+ * time (`roiSeconds`/`totalRoiSeconds` below, and the equivalent inline search in
+ * `researchRanking.ts`'s 'maxed_vehicles' branch). Unlike `getTimeToSave`'s wait-to-afford
+ * calculation, capping this is safe: a purchase whose payback search doesn't converge within this
+ * horizon just gets `roiSeconds: Infinity`, which only ever affects ROI-based sort order (it sorts
+ * last) — it's never treated as "this purchase can't be bought," so there's no equivalent risk of
+ * reporting a real purchase as impossible.
+ */
+export const MAX_ROI_PAYBACK_SEARCH_SECONDS = 999 * 86400;
 
 export interface ROICalculationInput {
   research: CommonResearch;
@@ -255,8 +265,8 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
   //
   // Deliberately a much shorter horizon than `boostTransitionsFrom`'s own default (see its doc
   // comment): this feeds a PAYBACK ESTIMATE that can search up to `maxTime`
-  // (`MAX_PRACTICAL_WAIT_SECONDS`, ~999 days) below — unlike the wait-to-afford calculation above,
-  // where exactly which boost cycles fall within the wait changes the real answer, unresolved
+  // (`MAX_ROI_PAYBACK_SEARCH_SECONDS`, ~999 days) below — unlike the wait-to-afford calculation
+  // above, where exactly which boost cycles fall within the wait changes the real answer, unresolved
   // oscillation far in the future barely moves a payback estimate already spanning months to years,
   // and `getExtra` computes a DIFFERENCE between two highly-correlated curves (before/after this
   // purchase) whose tail-extrapolation errors mostly cancel. This is called once per candidate
@@ -274,7 +284,7 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
   );
 
   let roiSeconds = Infinity;
-  const maxTime = MAX_PRACTICAL_WAIT_SECONDS;
+  const maxTime = MAX_ROI_PAYBACK_SEARCH_SECONDS;
   const getExtra = (t: number) =>
     calculateEarningsForTime(t, nextSnapshot, nextTransitions) -
     calculateEarningsForTime(t, snapshotAtBuy, atBuyTransitions);

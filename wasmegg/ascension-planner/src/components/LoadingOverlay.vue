@@ -22,16 +22,24 @@
         </svg>
       </div>
       <div class="space-y-2 text-center max-w-[15rem]">
-        <h3 class="text-xl font-black text-gray-900 tracking-tight">Optimizing Your Plan</h3>
-        <p class="text-sm font-bold text-gray-500 leading-snug">
-          Simulating research sales and 2x earnings windows across thousands of purchase orders to chart your fastest
-          path...
-        </p>
+        <h3 class="text-xl font-black text-gray-900 tracking-tight">{{ title }}</h3>
+        <p class="text-sm font-bold text-gray-500 leading-snug">{{ message }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{ show: boolean }>();
+withDefaults(
+  defineProps<{
+    show: boolean;
+    title?: string;
+    message?: string;
+  }>(),
+  {
+    title: 'Optimizing Your Plan',
+    message:
+      'Simulating research sales and 2x earnings windows across thousands of purchase orders to chart your fastest path...',
+  }
+);
 </script>

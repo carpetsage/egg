@@ -5,7 +5,7 @@ import {
   isTierUnlocked,
   type ResearchCostModifiers,
 } from './commonResearch';
-import { calculateResearchROI, getSaleAwareTimeToSave } from './researchROI';
+import { calculateResearchROI, getSaleAwareTimeToSave, MAX_ROI_PAYBACK_SEARCH_SECONDS } from './researchROI';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength } from './shippingCapacity';
 import { getOptimalELRSet } from '@/lib/artifacts/virtue';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
@@ -14,13 +14,7 @@ import type { SimulationContext } from '@/engine/types';
 import type { CalculationsSnapshot } from '@/types';
 import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
-import {
-  applyAction,
-  getTimeToSave,
-  calculateEarningsForTime,
-  boostTransitionsFrom,
-  MAX_PRACTICAL_WAIT_SECONDS,
-} from '@/engine/apply';
+import { applyAction, getTimeToSave, calculateEarningsForTime, boostTransitionsFrom } from '@/engine/apply';
 import { createSimAction } from '@/types/actions/meta';
 import { getNextPacificTime, isEarningsBoostActive } from '@/lib/events';
 import { ei } from 'lib';
@@ -191,7 +185,7 @@ export function rankResearchByROI(
         context
       );
       nextSnapshot = afterMaxSnapshot;
-      const maxTime = MAX_PRACTICAL_WAIT_SECONDS;
+      const maxTime = MAX_ROI_PAYBACK_SEARCH_SECONDS;
       const getExtra = (t: number) =>
         calculateEarningsForTime(t, afterMaxSnapshot) - calculateEarningsForTime(t, baseMaxVehiclesSnapshot);
       if (getExtra(maxTime) >= resultPrice) {

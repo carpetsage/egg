@@ -646,6 +646,14 @@ export interface MilestoneSummaryCore {
   optimizedSeconds?: number;
   timeSavedSeconds?: number;
   purchaseCount?: number;
+  // Only set when truncated. However far the optimized chain actually got before giving up —
+  // either it hit MILESTONE_MAX_STEPS with real progress still being made (the common "this
+  // milestone is just very far away" case, where these are genuinely useful lower bounds: "at
+  // least N purchases, at least X of saving"), or it got stuck with zero purchases queued because
+  // nothing is currently affordable/viable at all (both `partialPurchaseCount` and `partialSeconds`
+  // are then 0, which callers should treat as "stuck," not "almost done").
+  partialPurchaseCount?: number;
+  partialSeconds?: number;
 }
 
 export function computeMilestoneSummaryCore(
@@ -653,7 +661,11 @@ export function computeMilestoneSummaryCore(
   baseline: { reached: boolean; totalSeconds: number }
 ): MilestoneSummaryCore {
   if (!chain.reached || !baseline.reached) {
-    return { truncated: true };
+    return {
+      truncated: true,
+      partialPurchaseCount: chain.items.length,
+      partialSeconds: chain.totalSeconds,
+    };
   }
 
   return {

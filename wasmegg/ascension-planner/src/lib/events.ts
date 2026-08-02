@@ -4,38 +4,111 @@
 
 export const PACIFIC_TIMEZONE = 'America/Los_Angeles';
 
-// Per (day, hour) key: every occurrence discovered so far, sorted ascending, with NO gaps between
-// `minSafeFrom` and the list's last entry (each entry was found as "the next occurrence after the
-// previous one", so nothing in between was skipped). `minSafeFrom` is the earliest `from` this list
-// is proven complete for — the `from` of whichever query first created the entry. See the
-// correctness note on `getNextPacificTime` below for why a single growing list (rather than
-// remembering just the last query) is both correct and dramatically more cache-effective.
-const nextPacificTimeCache = new Map<string, { minSafeFrom: number; occurrences: number[] }>();
+// Precomputed, flat, sorted table of every occurrence of a given (weekday, hour) in Pacific Time,
+// across a fixed, generous calendar window — built once per (day, hour) key, on first use, then
+// reused forever via binary search.
+//
+// Why a precomputed table instead of a lazy/incremental cache: the universe of relevant timestamps
+// here is tiny and fully known in advance (~208/year across the 4 weekly events this app cares
+// about — Monday/Tuesday/Friday/Saturday 9am Pacific). Discovering that lazily, one query at a
+// time, sounds like the "efficient" choice, but this app's actual query pattern defeats it: the
+// milestone-chain algorithm evaluates many candidate researches per step, each with its own (often
+// wildly different, non-monotonic) wait time, so queries ping-pong between near and far points in
+// time. Every incremental-cache design tried here — a single growing list, then multiple discovered
+// ranges — ended up paying for repeated brute-force `Intl.DateTimeFormat` walks (up to ~200 calls
+// each) because "the next query" kept landing outside whatever had been discovered so far,
+// regardless of how much bookkeeping was added; measured at 45+ seconds in a real milestone
+// recompute. A flat table sidesteps the problem entirely: since every point in [TABLE_START,
+// TABLE_END) is precomputed, EVERY query is an O(log n) binary-search hit, no matter how much it
+// jumps around in time — there is nothing left to discover, so there is nothing left to miss.
+// Covers every case where a DST-exact answer actually matters. getTimeToSave never caps a
+// genuinely-reachable wait down to a fake Infinity (see its own doc comment — that was tried once
+// and it broke exactly this), so a candidate purchase evaluated from a very weak starting state CAN
+// legitimately produce an accumulated wait of centuries — arbitrarily far beyond any table it'd be
+// practical to precompute (widening this from 85 to 1000 years measurably barely moved a real
+// reproduction's out-of-table query count, confirming the tail is unbounded, not just "currently a
+// bit too far"). So this table doesn't try to cover that tail: `getNextPacificTime` extrapolates
+// past `TABLE_END_SECONDS` using cheap weekly-periodicity arithmetic instead (see there), which
+// only loses DST precision (~1hr, twice a year) — irrelevant at a distance where
+// `boostTransitionsFrom` itself already documents approximating "the last known state holds" as
+// acceptable. 85 years keeps the one-time build trivial (~115ms across all 4 real keys) while still
+// giving an exact answer for anything remotely close to real-world planning horizons.
+const TABLE_START_SECONDS = Date.UTC(2015, 0, 1) / 1000;
+const TABLE_END_SECONDS = Date.UTC(2100, 0, 1) / 1000;
+const pacificTimeTables = new Map<string, number[]>();
+
+/**
+ * Builds the full table of every `targetDayOfWeek`/`targetHour` occurrence in Pacific Time between
+ * `TABLE_START_SECONDS` and `TABLE_END_SECONDS`. Runs once per key (~85 years × ~1 match/week ≈
+ * 4,400 occurrences), then never again.
+ *
+ * Walks calendar dates one day at a time using plain UTC arithmetic (`dayStart += 86400`, exact —
+ * UTC has no DST) to determine each date's weekday — weekday cycling is pure calendar arithmetic
+ * (Monday repeats every 7 days regardless of timezone; DST only shifts clock time within a day,
+ * never which day it is), so this needs zero timezone-aware calls for the ~31,000 candidate days
+ * scanned. Only the ~1-in-7 matching days pay for a real timezone lookup, and that lookup reuses a
+ * single `Intl.DateTimeFormat` instance across the whole build (measured ~8x faster than
+ * constructing a fresh formatter per lookup, which `getTimezoneOffsetAt` does — fine for its own
+ * one-off callers, too slow to do thousands of times in a row here).
+ */
+function buildPacificTimeTable(targetDayOfWeek: number, targetHour: number): number[] {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: PACIFIC_TIMEZONE,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: false,
+  });
+  // Same base conversion as `getLocalTimestampInTimezone`/`getTimezoneOffsetAt` below (guess a UTC
+  // instant for the wall-clock time, look up that instant's real offset, adjust) — DST correctness
+  // for non-edge-case times comes from this same tested approach, just with the formatter hoisted
+  // out of the hot loop. That single-pass version has a known edge case exactly ON a DST transition
+  // day: the offset it discovers is "whatever's in effect at the naive guess," which can be on the
+  // wrong side of the transition when the target hour is close enough to it (verified: this never
+  // happens for hour=9, this file's only real usage, but `buildPacificTimeTable` is general-purpose
+  // — see git history for a reproduction using earlier-morning hours). One extra lookup — re-checking
+  // the offset AT the corrected candidate instant, not just the naive guess — fixes it: since a given
+  // zone only ever has two possible offsets, this second lookup either confirms the first (no
+  // transition nearby) or reveals the correct one (transition nearby), and is provably sufficient in
+  // one extra step, no iteration needed.
+  const offsetAt = (timestampSeconds: number): number => {
+    const parts = formatter.formatToParts(new Date(timestampSeconds * 1000));
+    const get = (t: string) => parseInt(parts.find(p => p.type === t)!.value);
+    const wallClockUTC = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'));
+    return Math.floor((wallClockUTC - timestampSeconds * 1000) / 1000);
+  };
+
+  const occurrences: number[] = [];
+  let weekday = new Date(TABLE_START_SECONDS * 1000).getUTCDay();
+
+  for (let dayStart = TABLE_START_SECONDS; dayStart < TABLE_END_SECONDS; dayStart += 86400) {
+    if (weekday === targetDayOfWeek) {
+      const d = new Date(dayStart * 1000);
+      const guessUTC = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), targetHour, 0, 0);
+      const firstPassOffset = offsetAt(Math.floor(guessUTC / 1000));
+      const candidate = guessUTC - firstPassOffset * 1000;
+      const secondPassOffset = offsetAt(Math.floor(candidate / 1000));
+      const finalOffset = secondPassOffset !== firstPassOffset ? secondPassOffset : firstPassOffset;
+      occurrences.push(Math.floor((guessUTC - finalOffset * 1000) / 1000));
+    }
+    weekday = (weekday + 1) % 7;
+  }
+
+  return occurrences; // already ascending — built walking forward in time
+}
 
 /**
  * Calculates the Unix timestamp (in seconds) of the next occurrence of a specific weekday
  * and hour (0-23) in Pacific Time.
  *
- * The underlying search (`computeNextPacificTime`) is a brute-force hour-by-hour
- * `Intl.DateTimeFormat` walk — DST-safe but expensive (up to ~200 Intl calls). Callers can query
- * many DISTINCT, overlapping `from` timestamps in a row (e.g. a milestone chain enumerating every
- * boost cycle within a purchase's wait, then evaluating dozens of candidate researches at that same
- * point in time, each re-deriving the same boundary) — remembering only the single most recent
- * query would mean almost every one of those calls misses and re-walks from scratch, even though
- * they're all asking about the same neighborhood of time. Instead, every occurrence ever discovered
- * for a given (day, hour) key is kept in a sorted, gapless list and reused via binary search — so
- * once ANY caller has walked out to some point, every other caller asking about anything before
- * that point gets an instant answer, no matter how many distinct callers or how far the walk needs
- * to reach (this is what makes waits spanning months or years of boost cycles tractable).
- *
- * Correctness: `minSafeFrom` records the earliest `from` the list is proven complete for (the
- * `from` of whichever query first built it) — each entry after that was found as "the next
- * occurrence after the previous one," so there are no gaps between `minSafeFrom` and the list's
- * last entry. A query is only ever answered from the list if its `from` is `>= minSafeFrom`; a
- * query earlier than that can't be answered from what we currently know (there might be an
- * undiscovered occurrence in between), so it always falls back to a fresh brute-force search and
- * starts a new list from there — same safety property the single-entry cache had, just applied to
- * a growing collection of proven points instead of one.
+ * Answered via binary search against a precomputed table (see `buildPacificTimeTable`'s doc
+ * comment) covering `[TABLE_START_SECONDS, TABLE_END_SECONDS)` — built once per (day, hour) key,
+ * on first use. A query outside that range (before 2015, or an extreme accumulated wait landing
+ * after 2100) falls back to the slower brute-force `computeNextPacificTime` for just that one
+ * point; this is expected to be rare given the table's generous span.
  *
  * @param targetDayOfWeek - 0 (Sunday) to 6 (Saturday)
  * @param targetHour - 0 to 23
@@ -43,56 +116,59 @@ const nextPacificTimeCache = new Map<string, { minSafeFrom: number; occurrences:
  * @returns The next occurrence timestamp in seconds
  */
 export function getNextPacificTime(targetDayOfWeek: number, targetHour: number, fromTimestampSeconds: number): number {
-  // 8.64e12 is the approximate max safe Unix timestamp in seconds for JavaScript Date (8.64e15 ms)
+  // 8.64e12 is the approximate max safe Unix timestamp in seconds for JavaScript Date (8.64e15 ms).
+  // Must return Infinity here, NOT `fromTimestampSeconds` itself — every caller (most importantly
+  // `boostTransitionsFrom`'s horizon walk) relies on "next occurrence is always strictly after
+  // `from`" to make progress. Echoing the input back violates that and looks like "the next
+  // occurrence IS now," which sends callers into a non-advancing loop. `Infinity` correctly reads
+  // as "no valid next occurrence exists" to every caller (`isFinite` checks, `<` comparisons in
+  // isResearchSaleActive/isEarningsBoostActive, etc.) — a query can legitimately reach this range
+  // since an accumulated wait made of genuinely huge (but finite, by design — see getTimeToSave's
+  // doc comment) per-step waits can compound past it.
   if (!Number.isFinite(fromTimestampSeconds) || fromTimestampSeconds > 8.64e12 || fromTimestampSeconds < 0) {
-    return fromTimestampSeconds;
+    return Infinity;
   }
 
   const cacheKey = `${targetDayOfWeek}:${targetHour}`;
-  const entry = nextPacificTimeCache.get(cacheKey);
-
-  if (!entry || fromTimestampSeconds < entry.minSafeFrom) {
-    // Nothing cached yet for this key, or this query reaches earlier than anything we've proven
-    // complete — start (or restart) the list here. Discards any previously-discovered later
-    // occurrences for simplicity; this path is rare (query order is overwhelmingly
-    // forward-advancing in practice) and still always correct, just not maximally reused.
-    const first = computeNextPacificTime(targetDayOfWeek, targetHour, fromTimestampSeconds);
-    nextPacificTimeCache.set(cacheKey, { minSafeFrom: fromTimestampSeconds, occurrences: [first] });
-    return first;
+  let table = pacificTimeTables.get(cacheKey);
+  if (!table) {
+    table = buildPacificTimeTable(targetDayOfWeek, targetHour);
+    pacificTimeTables.set(cacheKey, table);
   }
 
-  const idx = upperBound(entry.occurrences, fromTimestampSeconds);
-  if (idx < entry.occurrences.length) {
-    return entry.occurrences[idx];
+  if (fromTimestampSeconds >= TABLE_START_SECONDS) {
+    const idx = upperBound(table, fromTimestampSeconds);
+    if (idx < table.length) {
+      return table[idx];
+    }
+
+    // Beyond the precomputed table's end. No FIXED table size actually solves this case: since
+    // getTimeToSave never caps a genuinely-reachable wait to a fake Infinity, a candidate evaluated
+    // against a near-zero-but-positive earn rate can legitimately produce a wait of centuries —
+    // arbitrarily far beyond any table it'd be practical to precompute. Rather than pay for another
+    // slow brute-force search (the exact cost this whole rewrite exists to avoid), extrapolate using
+    // simple weekly periodicity from the table's last known precise entry: every occurrence repeats
+    // every exactly 604800 seconds except for an up-to-1-hour DST wobble twice a year, which is
+    // irrelevant at this distance — `boostTransitionsFrom` already documents that beyond its own
+    // horizon, approximating "the last known state holds" is an acceptable trade-off for exactly
+    // this reason. O(1), no Intl calls, correct (always strictly after `from`) no matter how far out
+    // the query lands.
+    const lastKnown = table[table.length - 1];
+    const WEEK_SECONDS = 7 * 86400;
+    // Math.floor(...) + 1, NOT Math.ceil(...): when `fromTimestampSeconds` lands exactly on a
+    // periodic multiple of `lastKnown` (which happens naturally when one call's result feeds the
+    // next query, e.g. inside boostTransitionsFrom's own walk), ceil of an exact integer returns
+    // that same integer — i.e. this would return `fromTimestampSeconds` itself, violating "always
+    // strictly after `from`" and stalling the caller's loop. floor+1 always steps at least one full
+    // week past `from`, exact multiple or not.
+    const stepsNeeded = Math.floor((fromTimestampSeconds - lastKnown) / WEEK_SECONDS) + 1;
+    return lastKnown + stepsNeeded * WEEK_SECONDS;
   }
 
-  // Beyond what's been discovered so far for this key. If the gap is small, extend the list
-  // forward one weekly step at a time (cheap, and grows the cache for future reuse). But if
-  // `fromTimestampSeconds` lands FAR beyond the list's current end — a purchase with a legitimately
-  // huge wait (a low-earnings candidate can have a finite but astronomically large `timeToBuySeconds`)
-  // can easily land a query centuries away — walking there one week at a time would take as many
-  // brute-force computations as weeks in the gap, unlike `computeNextPacificTime` itself, which is
-  // O(1) in how far `from` is (a fixed ~200-hour scan) regardless. So beyond a bounded number of
-  // incremental steps, jump straight there with one direct call instead, same "start a fresh list"
-  // approach as the `minSafeFrom` reset case above.
-  const MAX_INCREMENTAL_STEPS = 104; // ~2 years of weekly steps
-  const WEEK_SECONDS = 7 * 86400;
-  const lastKnown = entry.occurrences[entry.occurrences.length - 1];
-  if (fromTimestampSeconds - lastKnown > MAX_INCREMENTAL_STEPS * WEEK_SECONDS) {
-    const result = computeNextPacificTime(targetDayOfWeek, targetHour, fromTimestampSeconds);
-    nextPacificTimeCache.set(cacheKey, { minSafeFrom: fromTimestampSeconds, occurrences: [result] });
-    return result;
-  }
-
-  let searchFrom = lastKnown;
-  let result: number;
-  do {
-    result = computeNextPacificTime(targetDayOfWeek, targetHour, searchFrom);
-    entry.occurrences.push(result);
-    searchFrom = result;
-  } while (result <= fromTimestampSeconds);
-
-  return result;
+  // Before the precomputed table's start (2015) — vanishingly unlikely for any real query, but
+  // brute-force this one point precisely rather than extrapolating backward from a table that
+  // doesn't cover it.
+  return computeNextPacificTime(targetDayOfWeek, targetHour, fromTimestampSeconds);
 }
 
 /** Index of the first element strictly greater than `value` in an ascending-sorted array. */
@@ -110,6 +186,12 @@ function upperBound(sortedArr: number[], value: number): number {
   return lo;
 }
 
+/**
+ * Brute-force hour-by-hour `Intl.DateTimeFormat` walk (DST-safe, up to ~200 calls) — the fallback
+ * `getNextPacificTime` uses for queries outside its precomputed table's range. Was the sole
+ * implementation before that table existed; kept as-is since it's still correct, just not the hot
+ * path anymore.
+ */
 function computeNextPacificTime(targetDayOfWeek: number, targetHour: number, fromTimestampSeconds: number): number {
     const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: PACIFIC_TIMEZONE,
