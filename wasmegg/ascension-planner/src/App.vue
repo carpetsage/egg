@@ -476,6 +476,7 @@
         :show="loading"
         title="One Moment..."
         message="Fetching your data and crunching the numbers to set up your plan..."
+        :stuck-after-ms="12000"
       />
 
       <PlanFinalSummary
@@ -522,6 +523,7 @@ import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
 import AutomaticPlanner from '@/components/auto/AutomaticPlanner.vue';
 import { useSalesStore } from '@/stores/sales';
 import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
+import { debugLog } from '@/lib/debugLog';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { usePersistence } from '@/composables/usePersistence';
 import { generateActionId } from '@/types';
@@ -646,6 +648,7 @@ function handleToggleEarningsEvent() {
 }
 
 onMounted(async () => {
+  debugLog('App onMounted: start');
   eventsStore.fetchEvents();
 
   if (playerId.value) {
@@ -663,7 +666,9 @@ onMounted(async () => {
   }
 
   if (!actionsStore._initialSnapshot) {
+    debugLog('App onMounted: no initial snapshot, calling recalculateAll');
     await actionsStore.recalculateAll();
+    debugLog('App onMounted: recalculateAll done');
   }
 
   // Fresh start: if only start_ascension exists and no farm state is loaded, add initial Wait for Full Habs
@@ -676,6 +681,7 @@ onMounted(async () => {
   ) {
     actionsStore.pushWaitForFullHabsAction();
   }
+  debugLog('App onMounted: done');
 });
 
 // Auto-save logic

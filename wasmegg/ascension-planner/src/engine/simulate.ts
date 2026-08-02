@@ -12,6 +12,7 @@ import {
 import { computeSnapshot } from './compute';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { yieldForOverlayPaint } from '@/lib/yieldForOverlayPaint';
+import { debugLog } from '@/lib/debugLog';
 
 /**
  * Simulate a list of actions to produce a timeline of states.
@@ -136,10 +137,13 @@ export async function simulateAsync(
   // A smaller number makes the UI smoother but total time slightly longer
   const YIELD_INTERVAL = 20;
 
+  debugLog('simulateAsync: start', { actionCount: actions.length, startIndex });
+
   for (let i = 0; i < actions.length; i++) {
     // Yield check
     if (i % YIELD_INTERVAL === 0) {
       if (onProgress) onProgress(i, actions.length);
+      debugLog('simulateAsync: progress', { i, total: actions.length });
       await yieldForOverlayPaint();
     }
 
@@ -188,5 +192,6 @@ export async function simulateAsync(
   // Final progress update
   if (onProgress) onProgress(actions.length, actions.length);
 
+  debugLog('simulateAsync: done', { actionCount: actions.length });
   return results;
 }
