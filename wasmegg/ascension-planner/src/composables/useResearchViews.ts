@@ -37,6 +37,7 @@ import {
 } from '@/calculations/milestoneChain';
 import { type ResearchRankingItem, rankResearchByROI, rankResearchByELRImpact } from '@/calculations/researchRanking';
 import { type PurchaseEventCrossings } from '@/calculations/researchROI';
+import { yieldForOverlayPaint } from '@/lib/yieldForOverlayPaint';
 
 export type { MilestoneTarget } from '@/calculations/milestoneChain';
 
@@ -435,13 +436,12 @@ export function useResearchViews() {
   // `computeTierMilestoneChain`/`computeResearchMilestoneChain` are synchronous and can take a
   // couple of seconds for a large tier-unlock chain. A plain `computed` can't show a loading state
   // for that: Vue computeds are fully synchronous, so setting a flag right before calling it would
-  // never actually get painted —
-  // the flag flip and the freeze both happen within the same tick. Instead this is a `watchEffect`
-  // that captures every reactive dependency it needs SYNCHRONOUSLY (so Vue's automatic dependency
-  // tracking — which only sees reads before the first `await` — still picks all of them up),
-  // flips the loading flag, then `await`s a macrotask yield (the same `setTimeout(resolve, 0)`
-  // trick `simulateAsync` uses for the recalculation overlay) before running the actual blocking
-  // computation, so the browser gets a chance to paint the loading state first.
+  // never actually get painted — the flag flip and the freeze both happen within the same tick.
+  // Instead this is a `watchEffect` that captures every reactive dependency it needs SYNCHRONOUSLY
+  // (so Vue's automatic dependency tracking — which only sees reads before the first `await` —
+  // still picks all of them up), flips the loading flag, then yields (see `yieldForOverlayPaint`
+  // below) before running the actual blocking computation, so the browser gets a chance to paint
+  // the loading state first.
   const isComputingMilestoneChain = ref(false);
   const milestoneChainResultRef = ref<{ items: MilestoneChainItem[]; reached: boolean; totalSeconds: number }>({
     items: [],
@@ -468,7 +468,7 @@ export function useResearchViews() {
     const absoluteSimTime = baseTimestamp + (startSnapshot.lastStepTime - offset);
 
     isComputingMilestoneChain.value = true;
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await yieldForOverlayPaint();
 
     const result =
       target.kind === 'tier'

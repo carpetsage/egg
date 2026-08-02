@@ -11,6 +11,7 @@ import {
 } from './apply';
 import { computeSnapshot } from './compute';
 import { computeDeltas } from '@/lib/actions/snapshot';
+import { yieldForOverlayPaint } from '@/lib/yieldForOverlayPaint';
 
 /**
  * Simulate a list of actions to produce a timeline of states.
@@ -139,7 +140,7 @@ export async function simulateAsync(
     // Yield check
     if (i % YIELD_INTERVAL === 0) {
       if (onProgress) onProgress(i, actions.length);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await yieldForOverlayPaint();
     }
 
     let action = actions[i];
