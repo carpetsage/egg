@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, watchEffect } from 'vue';
 import {
   getCommonResearches,
   getTiers,
@@ -432,37 +432,65 @@ export function useResearchViews() {
     };
   }
 
-  const milestoneChainResult = computed(() => {
+  // `computeTierMilestoneChain`/`computeResearchMilestoneChain` are synchronous and can take a
+  // couple of seconds for a large tier-unlock chain. A plain `computed` can't show a loading state
+  // for that: Vue computeds are fully synchronous, so setting a flag right before calling it would
+  // never actually get painted —
+  // the flag flip and the freeze both happen within the same tick. Instead this is a `watchEffect`
+  // that captures every reactive dependency it needs SYNCHRONOUSLY (so Vue's automatic dependency
+  // tracking — which only sees reads before the first `await` — still picks all of them up),
+  // flips the loading flag, then `await`s a macrotask yield (the same `setTimeout(resolve, 0)`
+  // trick `simulateAsync` uses for the recalculation overlay) before running the actual blocking
+  // computation, so the browser gets a chance to paint the loading state first.
+  const isComputingMilestoneChain = ref(false);
+  const milestoneChainResultRef = ref<{ items: MilestoneChainItem[]; reached: boolean; totalSeconds: number }>({
+    items: [],
+    reached: false,
+    totalSeconds: 0,
+  });
+  let milestoneChainGeneration = 0;
+
+  watchEffect(async () => {
     const target = milestoneTarget.value;
-    if (!target) return { items: [] as MilestoneChainItem[], reached: false, totalSeconds: 0 };
+    const generation = ++milestoneChainGeneration;
+
+    if (!target) {
+      milestoneChainResultRef.value = { items: [], reached: false, totalSeconds: 0 };
+      return;
+    }
 
     const context = getSimulationContext();
     const startSnapshot = actionsStore.effectiveSnapshot;
     const mods = costModifiers.value;
+    const deadline = researchSaleDeadline.value;
     const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
     const offset = actionsStore.planStartOffset;
     const absoluteSimTime = baseTimestamp + (startSnapshot.lastStepTime - offset);
 
-    if (target.kind === 'tier') {
-      return computeTierMilestoneChain(
-        target,
-        startSnapshot,
-        context,
-        mods,
-        absoluteSimTime,
-        researchSaleDeadline.value
-      );
-    }
+    isComputingMilestoneChain.value = true;
+    await new Promise(resolve => setTimeout(resolve, 0));
 
-    return computeResearchMilestoneChain(
-      target,
-      createBaseEngineState(startSnapshot),
-      startSnapshot,
-      context,
-      mods,
-      absoluteSimTime
-    );
+    const result =
+      target.kind === 'tier'
+        ? computeTierMilestoneChain(target, startSnapshot, context, mods, absoluteSimTime, deadline)
+        : computeResearchMilestoneChain(
+            target,
+            createBaseEngineState(startSnapshot),
+            startSnapshot,
+            context,
+            mods,
+            absoluteSimTime
+          );
+
+    // Discard if a newer invocation has started since (e.g. the user changed the milestone target
+    // again before this one finished) — only the latest result should ever land.
+    if (generation === milestoneChainGeneration) {
+      milestoneChainResultRef.value = result;
+      isComputingMilestoneChain.value = false;
+    }
   });
+
+  const milestoneChainResult = computed(() => milestoneChainResultRef.value);
 
   // Baseline comparison ("without this research"). For a research-level milestone there's a
   // well-defined direct alternative — just save up and buy that research's next level with no
@@ -852,6 +880,7 @@ export function useResearchViews() {
     milestoneNextLockedTier,
     milestoneResearchOptions,
     milestoneSummary,
+    isComputingMilestoneChain,
     viewDescription,
     costModifiers,
     isResearchSaleActive,

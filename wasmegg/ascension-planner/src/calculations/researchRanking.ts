@@ -14,14 +14,15 @@ import type { SimulationContext } from '@/engine/types';
 import type { CalculationsSnapshot } from '@/types';
 import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
-import { applyAction, getTimeToSave, calculateEarningsForTime, boostTransitionsFrom } from '@/engine/apply';
-import { createSimAction } from '@/types/actions/meta';
 import {
-  getNextPacificTime,
-  isEarningsBoostActive,
-  getNextEarningsBoostStart,
-  getNextEarningsBoostEnd,
-} from '@/lib/events';
+  applyAction,
+  getTimeToSave,
+  calculateEarningsForTime,
+  boostTransitionsFrom,
+  MAX_PRACTICAL_WAIT_SECONDS,
+} from '@/engine/apply';
+import { createSimAction } from '@/types/actions/meta';
+import { getNextPacificTime, isEarningsBoostActive } from '@/lib/events';
 import { ei } from 'lib';
 
 // Research categories to exclude from specific ranking views
@@ -147,12 +148,10 @@ export function rankResearchByROI(
   const currentEarnings = startSnapshot.offlineEarnings;
 
   const nextSaleStart = getNextPacificTime(5, 9, absoluteSimTime);
-  // Seconds until the boost's own next flip — end if it's active now, start if it isn't — per the
-  // contract `boostTransitionFor` (researchROI.ts) expects. NOT "seconds until the nearest 9 AM on
-  // any day," which would misplace a not-yet-started boost days early.
-  const eventExpirationSeconds = isEarningsBoostActive(absoluteSimTime)
-    ? getNextEarningsBoostEnd(absoluteSimTime) - absoluteSimTime
-    : getNextEarningsBoostStart(absoluteSimTime) - absoluteSimTime;
+  // Computed once and reused for every candidate below — all candidates share the same
+  // `startSnapshot`/`absoluteSimTime`, so redoing `boostTransitionsFrom`'s (multi-year-horizon)
+  // walk per-candidate would multiply an already expensive operation by the candidate count.
+  const transitions = boostTransitionsFrom(startSnapshot, absoluteSimTime);
 
   if (currentEarnings <= 0) return [];
 
@@ -182,15 +181,7 @@ export function rankResearchByROI(
     let nextSnapshot: CalculationsSnapshot;
 
     if (roiMode === 'maxed_vehicles' && baseMaxVehiclesSnapshot) {
-      const purchase = getSaleAwareTimeToSave(
-        r,
-        level,
-        mods,
-        isSale,
-        absoluteSimTime,
-        startSnapshot,
-        boostTransitionsFrom(startSnapshot, absoluteSimTime)
-      );
+      const purchase = getSaleAwareTimeToSave(r, level, mods, isSale, absoluteSimTime, startSnapshot, transitions);
       resultPrice = purchase.price;
       resultDuringSale = purchase.duringSale;
       resultTimeToBuySeconds = purchase.waitSeconds;
@@ -200,7 +191,7 @@ export function rankResearchByROI(
         context
       );
       nextSnapshot = afterMaxSnapshot;
-      const maxTime = 1e9;
+      const maxTime = MAX_PRACTICAL_WAIT_SECONDS;
       const getExtra = (t: number) =>
         calculateEarningsForTime(t, afterMaxSnapshot) - calculateEarningsForTime(t, baseMaxVehiclesSnapshot);
       if (getExtra(maxTime) >= resultPrice) {
@@ -229,9 +220,9 @@ export function rankResearchByROI(
         eventTiming: {
           absoluteSimTime,
           nextSaleStart,
-          eventExpirationSeconds,
           researchSaleDeadline,
           isSaleActive: isSale,
+          transitions,
         },
       });
       ({ roiSeconds, totalRoiSeconds, showSaleWarning, showDeadlineWarning, nextSnapshot } = roiResult);
