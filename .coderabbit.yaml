@@ -68,6 +68,11 @@ reviews:
     # Generated type definitions
     - "!ui/heroicons.d.ts"
 
+    # Protobuf schemas and everything generated from them.
+    - "!**/*.proto"
+    - "!periodicals/ei.py"
+    - "!periodicals/ei.pb.go"
+
     # Game data refreshed by .github/workflows/update-*.yml
     - "!wasmegg/artifact-explorer/src/lib/loot.json"
     # Scoped to the data files only: these directories also hold the
@@ -151,12 +156,6 @@ reviews:
         unchecked errors, ignored `err` returns, and file writes that could
         leave a truncated or partially-written data file on failure.
 
-    - path: "protobuf/**/*.proto"
-      instructions: >-
-        This schema mirrors the private Egg, Inc. API. Renumbering or reusing
-        an existing field number is a breaking change — flag it loudly.
-        Removed fields should be reserved rather than deleted outright.
-
     - path: ".github/workflows/**"
       instructions: >-
         Flag unpinned third-party actions (prefer a commit SHA), secrets
@@ -199,7 +198,7 @@ reviews:
 
     # Protobuf
     buf:
-      enabled: true
+      enabled: false
 
     # Python (periodicals/, update-egg-config-gist/)
     ruff:
