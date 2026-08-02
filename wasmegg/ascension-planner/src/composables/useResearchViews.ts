@@ -19,6 +19,7 @@ import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, getTimeToSave } from '@/engine/apply';
 import { calculateShippingCapacity } from '@/calculations/shippingCapacity';
 import { getNextPacificTime } from '@/lib/events';
+import { debugLog } from '@/lib/debugLog';
 import { type CalculationsSnapshot } from '@/types';
 import { getOptimalELRSet } from '@/lib/artifacts/virtue';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
@@ -457,11 +458,13 @@ export function useResearchViews() {
     // actionsStore still holds the previous plan's snapshot) — computing a milestone chain against
     // that transitional mix has produced nonsensical absolute timestamps and hung the tab.
     if (actionsStore.isPlanInitializing) {
+      debugLog('milestoneChain watchEffect: skipped, isPlanInitializing=true');
       return;
     }
 
     const target = milestoneTarget.value;
     const generation = ++milestoneChainGeneration;
+    debugLog('milestoneChain watchEffect: fired', { generation, target });
 
     if (!target) {
       milestoneChainResultRef.value = { items: [], reached: false, totalSeconds: 0 };
@@ -484,6 +487,8 @@ export function useResearchViews() {
     isComputingMilestoneChain.value = true;
     await yieldForOverlayPaint();
 
+    debugLog('milestoneChain watchEffect: starting blocking compute', { generation, absoluteSimTime });
+    const start = performance.now();
     const result =
       target.kind === 'tier'
         ? computeTierMilestoneChain(target, startSnapshot, context, mods, absoluteSimTime, deadline)
@@ -495,12 +500,20 @@ export function useResearchViews() {
             mods,
             absoluteSimTime
           );
+    debugLog('milestoneChain watchEffect: finished blocking compute', {
+      generation,
+      elapsedMs: Math.round(performance.now() - start),
+      resultItems: result.items.length,
+      reached: result.reached,
+    });
 
     // Discard if a newer invocation has started since (e.g. the user changed the milestone target
     // again before this one finished) — only the latest result should ever land.
     if (generation === milestoneChainGeneration) {
       milestoneChainResultRef.value = result;
       isComputingMilestoneChain.value = false;
+    } else {
+      debugLog('milestoneChain watchEffect: stale, discarding', { generation, currentGeneration: milestoneChainGeneration });
     }
   });
 

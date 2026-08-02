@@ -30,6 +30,7 @@ import { simulateAsync } from '@/engine/simulate';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
 import { computeDependencies } from '@/lib/actions/executor';
+import { debugLog } from '@/lib/debugLog';
 
 import { ActionsState } from './types';
 import { createDefaultStartAction, calculateActionResult } from './simulation';
@@ -186,6 +187,7 @@ export const useActionsStore = defineStore('actions', {
 
   actions: {
     async setInitialSnapshot(snapshot: CalculationsSnapshot, options?: { silent?: boolean }) {
+      debugLog('setInitialSnapshot: start', { silent: options?.silent });
       this._initialSnapshot = snapshot;
       if (options?.silent) {
         this.isPlanInitializing = false;
@@ -213,6 +215,7 @@ export const useActionsStore = defineStore('actions', {
       await this.recalculateFrom(0);
       this.lastSavedActionsJson = JSON.stringify(this.actions);
       this.isPlanInitializing = false;
+      debugLog('setInitialSnapshot: done');
     },
 
     pushWaitForFullHabsAction() {
@@ -649,10 +652,12 @@ export const useActionsStore = defineStore('actions', {
       startIndex = Math.max(0, startIndex);
       if (this.isRecalculating) {
         this.pendingRecalculate = true;
+        debugLog('recalculateFrom: already recalculating, deferring', { startIndex });
         return;
       }
       this.isRecalculating = true;
       this.pendingRecalculate = false;
+      debugLog('recalculateFrom: start', { startIndex, actionsLength: this.actions.length });
       try {
         const context = getSimulationContext();
         const baseState =
@@ -671,6 +676,7 @@ export const useActionsStore = defineStore('actions', {
         this.actions.splice(startIndex, newActionsSegment.length, ...newActionsSegment);
         this.relinkDependencies();
         syncStoresToSnapshot(this.effectiveSnapshot);
+        debugLog('recalculateFrom: done', { startIndex });
       } finally {
         this.isRecalculating = false;
         this.batchMode = false;
