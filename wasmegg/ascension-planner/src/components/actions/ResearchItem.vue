@@ -79,7 +79,7 @@
             </span>
           </div>
           <div
-            v-if="eventCrossings?.sale.length || eventCrossings?.boost.length"
+            v-if="showEventCrossingDetails && (eventCrossings?.sale.length || eventCrossings?.boost.length)"
             class="flex flex-col items-end gap-0.5 mt-0.5"
           >
             <span
@@ -307,6 +307,7 @@ const props = defineProps<{
   duringSale?: boolean;
   duringEarningsBoost?: boolean;
   eventCrossings?: PurchaseEventCrossings;
+  showEventCrossingDetails?: boolean;
 }>();
 
 const actionsStore = useActionsStore();

@@ -153,10 +153,11 @@ export async function simulateAsync(
     currentState = applyPassiveEggs(currentState, passiveEggs);
 
     const absoluteSimTime = context.ascensionStartTime + (currentSnapshot.lastStepTime - context.planStartOffset);
+    const transitions = boostTransitionsFrom(currentSnapshot, absoluteSimTime);
     currentState = applyTime(currentState, durationSeconds, currentSnapshot, {
       skipGrowth: action.type === 'wait_for_no_earnings',
       skipEarnings: action.type === 'store_fuel',
-      transitions: boostTransitionsFrom(currentSnapshot, absoluteSimTime),
+      transitions,
     });
 
     const newSnapshot = computeSnapshot(currentState, context, {
