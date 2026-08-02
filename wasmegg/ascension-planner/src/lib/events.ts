@@ -4,20 +4,38 @@
 
 export const PACIFIC_TIMEZONE = 'America/Los_Angeles';
 
-const nextPacificTimeCache = new Map<string, { from: number; result: number }>();
+// Per (day, hour) key: every occurrence discovered so far, sorted ascending, with NO gaps between
+// `minSafeFrom` and the list's last entry (each entry was found as "the next occurrence after the
+// previous one", so nothing in between was skipped). `minSafeFrom` is the earliest `from` this list
+// is proven complete for — the `from` of whichever query first created the entry. See the
+// correctness note on `getNextPacificTime` below for why a single growing list (rather than
+// remembering just the last query) is both correct and dramatically more cache-effective.
+const nextPacificTimeCache = new Map<string, { minSafeFrom: number; occurrences: number[] }>();
 
 /**
  * Calculates the Unix timestamp (in seconds) of the next occurrence of a specific weekday
  * and hour (0-23) in Pacific Time.
  *
  * The underlying search (`computeNextPacificTime`) is a brute-force hour-by-hour
- * `Intl.DateTimeFormat` walk — DST-safe but expensive (up to ~200 Intl calls). Callers that step
- * through simulated time in small increments (e.g. milestone-chain simulations re-deriving
- * sale/boost state at every purchase) can call this thousands of times in a row asking for the
- * "same" boundary, so the last result per (day, hour) pair is cached and reused whenever the new
- * query is still within the same window — this is always correct, not an approximation: if
- * `result` is the smallest matching timestamp > `from`, and the new query's `from` is >= that same
- * `from` and still < `result`, there cannot be an earlier matching timestamp being missed.
+ * `Intl.DateTimeFormat` walk — DST-safe but expensive (up to ~200 Intl calls). Callers can query
+ * many DISTINCT, overlapping `from` timestamps in a row (e.g. a milestone chain enumerating every
+ * boost cycle within a purchase's wait, then evaluating dozens of candidate researches at that same
+ * point in time, each re-deriving the same boundary) — remembering only the single most recent
+ * query would mean almost every one of those calls misses and re-walks from scratch, even though
+ * they're all asking about the same neighborhood of time. Instead, every occurrence ever discovered
+ * for a given (day, hour) key is kept in a sorted, gapless list and reused via binary search — so
+ * once ANY caller has walked out to some point, every other caller asking about anything before
+ * that point gets an instant answer, no matter how many distinct callers or how far the walk needs
+ * to reach (this is what makes waits spanning months or years of boost cycles tractable).
+ *
+ * Correctness: `minSafeFrom` records the earliest `from` the list is proven complete for (the
+ * `from` of whichever query first built it) — each entry after that was found as "the next
+ * occurrence after the previous one," so there are no gaps between `minSafeFrom` and the list's
+ * last entry. A query is only ever answered from the list if its `from` is `>= minSafeFrom`; a
+ * query earlier than that can't be answered from what we currently know (there might be an
+ * undiscovered occurrence in between), so it always falls back to a fresh brute-force search and
+ * starts a new list from there — same safety property the single-entry cache had, just applied to
+ * a growing collection of proven points instead of one.
  *
  * @param targetDayOfWeek - 0 (Sunday) to 6 (Saturday)
  * @param targetHour - 0 to 23
@@ -25,20 +43,71 @@ const nextPacificTimeCache = new Map<string, { from: number; result: number }>()
  * @returns The next occurrence timestamp in seconds
  */
 export function getNextPacificTime(targetDayOfWeek: number, targetHour: number, fromTimestampSeconds: number): number {
-    // 8.64e12 is the approximate max safe Unix timestamp in seconds for JavaScript Date (8.64e15 ms)
-    if (!Number.isFinite(fromTimestampSeconds) || fromTimestampSeconds > 8.64e12 || fromTimestampSeconds < 0) {
-        return fromTimestampSeconds;
-    }
+  // 8.64e12 is the approximate max safe Unix timestamp in seconds for JavaScript Date (8.64e15 ms)
+  if (!Number.isFinite(fromTimestampSeconds) || fromTimestampSeconds > 8.64e12 || fromTimestampSeconds < 0) {
+    return fromTimestampSeconds;
+  }
 
-    const cacheKey = `${targetDayOfWeek}:${targetHour}`;
-    const cached = nextPacificTimeCache.get(cacheKey);
-    if (cached && fromTimestampSeconds >= cached.from && fromTimestampSeconds < cached.result) {
-        return cached.result;
-    }
+  const cacheKey = `${targetDayOfWeek}:${targetHour}`;
+  const entry = nextPacificTimeCache.get(cacheKey);
 
+  if (!entry || fromTimestampSeconds < entry.minSafeFrom) {
+    // Nothing cached yet for this key, or this query reaches earlier than anything we've proven
+    // complete — start (or restart) the list here. Discards any previously-discovered later
+    // occurrences for simplicity; this path is rare (query order is overwhelmingly
+    // forward-advancing in practice) and still always correct, just not maximally reused.
+    const first = computeNextPacificTime(targetDayOfWeek, targetHour, fromTimestampSeconds);
+    nextPacificTimeCache.set(cacheKey, { minSafeFrom: fromTimestampSeconds, occurrences: [first] });
+    return first;
+  }
+
+  const idx = upperBound(entry.occurrences, fromTimestampSeconds);
+  if (idx < entry.occurrences.length) {
+    return entry.occurrences[idx];
+  }
+
+  // Beyond what's been discovered so far for this key. If the gap is small, extend the list
+  // forward one weekly step at a time (cheap, and grows the cache for future reuse). But if
+  // `fromTimestampSeconds` lands FAR beyond the list's current end — a purchase with a legitimately
+  // huge wait (a low-earnings candidate can have a finite but astronomically large `timeToBuySeconds`)
+  // can easily land a query centuries away — walking there one week at a time would take as many
+  // brute-force computations as weeks in the gap, unlike `computeNextPacificTime` itself, which is
+  // O(1) in how far `from` is (a fixed ~200-hour scan) regardless. So beyond a bounded number of
+  // incremental steps, jump straight there with one direct call instead, same "start a fresh list"
+  // approach as the `minSafeFrom` reset case above.
+  const MAX_INCREMENTAL_STEPS = 104; // ~2 years of weekly steps
+  const WEEK_SECONDS = 7 * 86400;
+  const lastKnown = entry.occurrences[entry.occurrences.length - 1];
+  if (fromTimestampSeconds - lastKnown > MAX_INCREMENTAL_STEPS * WEEK_SECONDS) {
     const result = computeNextPacificTime(targetDayOfWeek, targetHour, fromTimestampSeconds);
-    nextPacificTimeCache.set(cacheKey, { from: fromTimestampSeconds, result });
+    nextPacificTimeCache.set(cacheKey, { minSafeFrom: fromTimestampSeconds, occurrences: [result] });
     return result;
+  }
+
+  let searchFrom = lastKnown;
+  let result: number;
+  do {
+    result = computeNextPacificTime(targetDayOfWeek, targetHour, searchFrom);
+    entry.occurrences.push(result);
+    searchFrom = result;
+  } while (result <= fromTimestampSeconds);
+
+  return result;
+}
+
+/** Index of the first element strictly greater than `value` in an ascending-sorted array. */
+function upperBound(sortedArr: number[], value: number): number {
+  let lo = 0;
+  let hi = sortedArr.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (sortedArr[mid] <= value) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+  return lo;
 }
 
 function computeNextPacificTime(targetDayOfWeek: number, targetHour: number, fromTimestampSeconds: number): number {

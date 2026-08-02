@@ -14,17 +14,37 @@ export interface EarningsRateTransition {
 }
 
 /**
+ * Waits longer than this are treated as practically unaffordable (`Infinity`) rather than computed
+ * precisely — enforced in `getTimeToSave` below. Matches `formatDuration`'s own display cutoff
+ * (`src/lib/format.ts`, `days > 999` → `'>999d'`): the UI already collapses any longer wait into an
+ * opaque "very long" indicator, so there's no value in computing (or representing) one more
+ * precisely than that, and real cost in doing so — a near-zero-but-nonzero earning rate (very early
+ * in an ascension is the common case) combined with an expensive item produces a mathematically
+ * correct but practically meaningless multi-century wait, which is expensive to reason about
+ * downstream: every earnings-boost/sale boundary calculation touching that timestamp scales with
+ * how far into the future it reaches (this is what caused a real page freeze — a handful of
+ * centuries-away candidates each forcing a calendar walk proportional to the gap).
+ */
+export const MAX_PRACTICAL_WAIT_SECONDS = 999 * 86400;
+
+/**
  * How far ahead to enumerate upcoming boost start/end flips. `getTimeToSave` doesn't know in
  * advance how long a wait will actually take (it's solving for that), so `boostTransitionsFrom`
  * can't bound the list to "however far this particular wait goes" the way `findEventCrossings`
  * (researchROI.ts, which *is* given a known duration) does — it has to generate enough transitions
- * up front to cover whatever the wait turns out to need. Beyond this horizon, the boundary-aware
- * math falls back to assuming the last known state holds indefinitely (same "practical infinity"
- * tradeoff `calculateResearchROI`'s `maxTime = 1e9` makes) — 45 days covers any single research
- * purchase in practice while keeping the number of calendar lookups per call bounded (~12-13
- * boost cycles, since the boost recurs weekly).
+ * up front to cover whatever the wait turns out to need. Set to comfortably exceed
+ * `MAX_PRACTICAL_WAIT_SECONDS`: since `getTimeToSave` never returns a finite wait longer than that,
+ * this horizon is guaranteed sufficient to precisely represent every boost cycle within ANY wait
+ * this file ever produces — nothing ever falls into the "beyond the horizon, assume the last known
+ * state holds indefinitely" fallback below.
+ *
+ * Affordable to set this generously (rather than trimming it as tight as possible) because
+ * `getNextPacificTime`'s cache (`src/lib/events.ts`) remembers every occurrence it has ever
+ * discovered per (day, hour) key, not just the last one: the very first walk out to this horizon
+ * pays the real (brute-force) cost once, and every other call from any candidate/step touching any
+ * point within that already-discovered range answers via binary search, not recomputation.
  */
-const BOOST_TRANSITION_HORIZON_SECONDS = 45 * 86400;
+const BOOST_TRANSITION_HORIZON_SECONDS = MAX_PRACTICAL_WAIT_SECONDS + 7 * 86400;
 
 /**
  * Builds the earnings-rate transitions needed for a `getTimeToSave`/`calculateEarningsForTime`/
@@ -252,7 +272,8 @@ export function getTimeToSave(
     if (dollarsSoFar + dollarsAvailable >= effectiveCost) {
       const neededEggs = (effectiveCost - dollarsSoFar) / rate;
       const tWithinRegime = solveForTime(neededEggs, popAt(segmentStart), I, R, S, HabCap);
-      return segmentStart + tWithinRegime;
+      const total = segmentStart + tWithinRegime;
+      return total > MAX_PRACTICAL_WAIT_SECONDS ? Infinity : total;
     }
 
     dollarsSoFar += dollarsAvailable;
