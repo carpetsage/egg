@@ -17,13 +17,7 @@ import type { CalculationsSnapshot } from '@/types';
 import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
-import {
-  getNextPacificTime,
-  isResearchSaleActive,
-  isEarningsBoostActive,
-  getNextEarningsBoostStart,
-  getNextEarningsBoostEnd,
-} from '@/lib/events';
+import { getNextPacificTime, isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
 
 export type MilestoneTarget =
   | { kind: 'tier'; tier: number }
@@ -343,13 +337,6 @@ function reorderTierChainByROI(
     const isSale = isResearchSaleActive(currentAbsoluteTime);
     const transitions = boostTransitionsFrom(snapshot, currentAbsoluteTime);
     const nextSaleStart = getNextPacificTime(5, 9, currentAbsoluteTime);
-    // Seconds until the boost's own next flip (see `boostTransitionFor`'s contract in
-    // researchROI.ts) — must match calendar truth (`isEarningsBoostActive`), not the nearest 9 AM
-    // on any day, else an inactive boost gets treated as starting on the next day instead of the
-    // next Monday.
-    const eventExpirationSeconds = isEarningsBoostActive(currentAbsoluteTime)
-      ? getNextEarningsBoostEnd(currentAbsoluteTime) - currentAbsoluteTime
-      : getNextEarningsBoostStart(currentAbsoluteTime) - currentAbsoluteTime;
 
     const candidates = Array.from(pendingByResearch.values())
       .filter(entry => entry.levels.length > 0)
@@ -365,9 +352,9 @@ function reorderTierChainByROI(
           eventTiming: {
             absoluteSimTime: currentAbsoluteTime,
             nextSaleStart,
-            eventExpirationSeconds,
             researchSaleDeadline,
             isSaleActive: isSale,
+            transitions,
           },
         });
         return { research: entry.research, level, targetLevel, roiResult };
@@ -482,11 +469,6 @@ export function computeTierMilestoneChain(
     const isSale = isResearchSaleActive(currentAbsoluteTime);
     const transitions = boostTransitionsFrom(snapshot, currentAbsoluteTime);
     const nextSaleStart = getNextPacificTime(5, 9, currentAbsoluteTime);
-    // Seconds until the boost's own next flip — see the matching comment above in
-    // `reorderTierChainByROI` (or `boostTransitionFor`'s doc in researchROI.ts).
-    const eventExpirationSeconds = isEarningsBoostActive(currentAbsoluteTime)
-      ? getNextEarningsBoostEnd(currentAbsoluteTime) - currentAbsoluteTime
-      : getNextEarningsBoostStart(currentAbsoluteTime) - currentAbsoluteTime;
 
     const roiCandidates = getCommonResearches()
       .filter(r => (levels[r.id] || 0) < r.levels && isTierUnlocked(levels, r.tier))
@@ -501,9 +483,9 @@ export function computeTierMilestoneChain(
           eventTiming: {
             absoluteSimTime: currentAbsoluteTime,
             nextSaleStart,
-            eventExpirationSeconds,
             researchSaleDeadline,
             isSaleActive: isSale,
+            transitions,
           },
         });
         return { research: r, level, roiResult };

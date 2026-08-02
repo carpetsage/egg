@@ -288,6 +288,8 @@
       @deactivate-and-cancel="handleExpiryDeactivateAndCancel"
       @deactivate-and-continue="handleExpiryDeactivateAndContinue"
     />
+
+    <MilestonePlanningOverlay :show="isComputingMilestoneChain" />
   </div>
 </template>
 
@@ -317,6 +319,7 @@ import ResearchGameView from './ResearchGameView.vue';
 import ResearchFlatView from './ResearchFlatView.vue';
 import ElrViewControls from './ElrViewControls.vue';
 import MilestoneTargetPicker from './MilestoneTargetPicker.vue';
+import MilestonePlanningOverlay from './MilestonePlanningOverlay.vue';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
 import { useEventExpiry } from '@/composables/useEventExpiry';
 
@@ -348,6 +351,7 @@ const {
   milestoneNextLockedTier,
   milestoneResearchOptions,
   milestoneSummary,
+  isComputingMilestoneChain,
   viewDescription,
   costModifiers,
   isResearchSaleActive,

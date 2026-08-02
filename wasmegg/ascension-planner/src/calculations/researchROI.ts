@@ -2,10 +2,21 @@ import { getDiscountedVirtuePrice, type CommonResearch, type ResearchCostModifie
 import type { CalculationsSnapshot } from '@/types';
 import type { SimulationContext } from '@/engine/types';
 import { createBaseEngineState } from '@/engine/adapter';
-import { applyAction, getTimeToSave, calculateEarningsForTime, type EarningsRateTransition } from '@/engine/apply';
+import {
+  applyAction,
+  getTimeToSave,
+  calculateEarningsForTime,
+  boostTransitionsFrom,
+  MAX_PRACTICAL_WAIT_SECONDS,
+  type EarningsRateTransition,
+} from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { createSimAction } from '@/types/actions/meta';
 import { getNextSaleStart, getNextSaleEnd, getNextEarningsBoostStart, getNextEarningsBoostEnd } from '@/lib/events';
+
+// See the comment where this is used in `calculateResearchROI` for why the ROI-payback horizon is
+// deliberately much shorter than `boostTransitionsFrom`'s own multi-year default.
+const ROI_PAYBACK_TRANSITION_HORIZON_SECONDS = 60 * 86400;
 
 export interface ROICalculationInput {
   research: CommonResearch;
@@ -16,9 +27,16 @@ export interface ROICalculationInput {
   eventTiming: {
     absoluteSimTime: number;
     nextSaleStart: number;
-    eventExpirationSeconds: number;
     researchSaleDeadline: number;
     isSaleActive: boolean;
+    // Precomputed via `boostTransitionsFrom(snapshot, absoluteSimTime)` — callers evaluating many
+    // candidates at the same point in simulated time (e.g. a milestone chain's per-step candidate
+    // list) should compute this ONCE per step and pass the same value to every `calculateResearchROI`
+    // call, rather than each call re-deriving an identical result. `boostTransitionsFrom` walks a
+    // multi-year horizon to correctly represent long waits (see its own doc comment), so redoing
+    // that walk per-candidate rather than once-per-step multiplies an already expensive operation
+    // by the candidate count for no benefit.
+    transitions: EarningsRateTransition[];
   };
 }
 
@@ -35,20 +53,6 @@ export interface ROICalculationResult {
   // an upcoming sale turns out faster than buying at today's price (see `getSaleAwareTimeToSave`).
   price: number;
   duringSale: boolean;
-}
-
-/**
- * Builds the single-transition array `calculateEarningsForTime`/`getTimeToSave` expect, from a
- * snapshot's current boost state plus the number of seconds until it next flips (whichever
- * direction — `eventExpirationSeconds` already means "seconds until active boost ends" OR "seconds
- * until inactive boost starts", per `EventTiming`'s doc). The transition always flips to the
- * opposite of the snapshot's own `earningsBoost.active` — including when `atSeconds <= 0`, which
- * correctly signals "this snapshot's flag is stale, the true state already flipped" to the
- * boundary-aware math (see `EarningsRateTransition`'s doc in `engine/apply/math.ts`).
- */
-function boostTransitionFor(snapshot: CalculationsSnapshot, atSeconds: number): EarningsRateTransition[] {
-  if (!isFinite(atSeconds)) return [];
-  return [{ atSeconds, boostActive: !snapshot.earningsBoost.active }];
 }
 
 export interface SaleAwarePurchase {
@@ -215,17 +219,9 @@ export function meetsROIByDeadline(
  */
 export function calculateResearchROI(input: ROICalculationInput): ROICalculationResult {
   const { research, level, mods, snapshot, context, eventTiming } = input;
-  const { absoluteSimTime, nextSaleStart, eventExpirationSeconds, researchSaleDeadline, isSaleActive } = eventTiming;
+  const { absoluteSimTime, nextSaleStart, researchSaleDeadline, isSaleActive, transitions } = eventTiming;
 
-  const purchase = getSaleAwareTimeToSave(
-    research,
-    level,
-    mods,
-    isSaleActive,
-    absoluteSimTime,
-    snapshot,
-    boostTransitionFor(snapshot, eventExpirationSeconds)
-  );
+  const purchase = getSaleAwareTimeToSave(research, level, mods, isSaleActive, absoluteSimTime, snapshot, transitions);
   const price = purchase.price;
   const timeToBuySeconds = purchase.waitSeconds;
   const baseState = createBaseEngineState(snapshot);
@@ -252,13 +248,36 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
   const nextStateAtBuy = applyAction(stateAtBuy, tempAction);
   const nextSnapshot = computeSnapshot(nextStateAtBuy, context);
 
-  const relativeExpirationAtBuy = eventExpirationSeconds - timeToBuySeconds;
+  const absoluteSimTimeAtBuy = absoluteSimTime + timeToBuySeconds;
+  // Hoisted out of `getExtra`: neither depends on `t`, so computing them once and reusing across
+  // every binary-search iteration below avoids redoing a transitions walk up to 61 times per call —
+  // `getExtra` is invoked once for the initial check plus up to 60 more times in the loop.
+  //
+  // Deliberately a much shorter horizon than `boostTransitionsFrom`'s own default (see its doc
+  // comment): this feeds a PAYBACK ESTIMATE that can search up to `maxTime`
+  // (`MAX_PRACTICAL_WAIT_SECONDS`, ~999 days) below — unlike the wait-to-afford calculation above,
+  // where exactly which boost cycles fall within the wait changes the real answer, unresolved
+  // oscillation far in the future barely moves a payback estimate already spanning months to years,
+  // and `getExtra` computes a DIFFERENCE between two highly-correlated curves (before/after this
+  // purchase) whose tail-extrapolation errors mostly cancel. This is called once per candidate
+  // researched per step, so it dominates the calendar-lookup cost of a large milestone chain if
+  // left at the full horizon.
+  const nextTransitions = boostTransitionsFrom(
+    nextSnapshot,
+    absoluteSimTimeAtBuy,
+    ROI_PAYBACK_TRANSITION_HORIZON_SECONDS
+  );
+  const atBuyTransitions = boostTransitionsFrom(
+    snapshotAtBuy,
+    absoluteSimTimeAtBuy,
+    ROI_PAYBACK_TRANSITION_HORIZON_SECONDS
+  );
 
   let roiSeconds = Infinity;
-  const maxTime = 1e9; // ~31 years
+  const maxTime = MAX_PRACTICAL_WAIT_SECONDS;
   const getExtra = (t: number) =>
-    calculateEarningsForTime(t, nextSnapshot, boostTransitionFor(nextSnapshot, relativeExpirationAtBuy)) -
-    calculateEarningsForTime(t, snapshotAtBuy, boostTransitionFor(snapshotAtBuy, relativeExpirationAtBuy));
+    calculateEarningsForTime(t, nextSnapshot, nextTransitions) -
+    calculateEarningsForTime(t, snapshotAtBuy, atBuyTransitions);
 
   if (getExtra(maxTime) >= price) {
     let low = 0;
