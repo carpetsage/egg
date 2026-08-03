@@ -18,6 +18,20 @@ import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
 import { getNextPacificTime, isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
+import { debugLog } from '@/lib/debugLog';
+
+// Time-based (not iteration-count-based) progress heartbeat for the milestone-chain loops below.
+// Time-based rather than every-N-iterations because we don't know in advance whether a hang means
+// "many iterations, each fast" or "stuck within one iteration" — logging on a wall-clock interval
+// catches both, and each call is a synchronous localStorage write (see debugLog.ts), so it's
+// captured immediately even if the loop itself never returns.
+const PROGRESS_LOG_INTERVAL_MS = 500;
+function maybeLogProgress(label: string, lastLogTime: number, data: Record<string, unknown>): number {
+  const now = performance.now();
+  if (now - lastLogTime < PROGRESS_LOG_INTERVAL_MS) return lastLogTime;
+  debugLog(`${label}: progress`, data);
+  return now;
+}
 
 export type MilestoneTarget =
   | { kind: 'tier'; tier: number }
@@ -83,7 +97,18 @@ export function computeResearchMilestoneChain(
 
   if (!targetResearch) return { items, reached: false, totalSeconds };
 
+  let outerIterations = 0;
+  let lastProgressLog = performance.now();
+  const loopStart = lastProgressLog;
+
   while (items.length < MILESTONE_MAX_STEPS && (state.researchLevels[targetResearch.id] || 0) < target.targetLevel) {
+    outerIterations++;
+    lastProgressLog = maybeLogProgress('computeResearchMilestoneChain', lastProgressLog, {
+      target,
+      outerIterations,
+      itemsSoFar: items.length,
+      elapsedMs: Math.round(performance.now() - loopStart),
+    });
     const currentAbsoluteTime = absoluteSimTimeAtStart + totalSeconds;
     const isSale = isResearchSaleActive(currentAbsoluteTime);
     const transitions = boostTransitionsFrom(snapshot, currentAbsoluteTime);
@@ -115,6 +140,12 @@ export function computeResearchMilestoneChain(
       if (r.id === targetResearch.id) continue;
       const level = levels[r.id] || 0;
       if (level >= r.levels || !isTierUnlocked(levels, r.tier)) continue;
+      lastProgressLog = maybeLogProgress('computeResearchMilestoneChain', lastProgressLog, {
+        target,
+        outerIterations,
+        candidateResearchId: r.id,
+        elapsedMs: Math.round(performance.now() - loopStart),
+      });
 
       const detourPurchase = getSaleAwareTimeToSave(r, level, mods, isSale, currentAbsoluteTime, snapshot, transitions);
       const price = detourPurchase.price;
@@ -223,7 +254,18 @@ export function simulateCheapestFirstTierChain(
   let totalSeconds = totalSecondsSoFar;
   const items: MilestoneChainItem[] = [];
 
+  let outerIterations = 0;
+  let lastProgressLog = performance.now();
+  const loopStart = lastProgressLog;
+
   while (items.length < MILESTONE_MAX_STEPS && !isTierUnlocked(curState.researchLevels, target.tier)) {
+    outerIterations++;
+    lastProgressLog = maybeLogProgress('simulateCheapestFirstTierChain', lastProgressLog, {
+      target,
+      outerIterations,
+      itemsSoFar: items.length,
+      elapsedMs: Math.round(performance.now() - loopStart),
+    });
     const currentAbsoluteTime = absoluteSimTimeAtStart + totalSeconds;
     const isSale = isResearchSaleActive(currentAbsoluteTime);
     const transitions = boostTransitionsFrom(curSnapshot, currentAbsoluteTime);
@@ -453,7 +495,18 @@ export function computeTierMilestoneChain(
   let totalSeconds = 0;
   const items: MilestoneChainItem[] = [];
 
+  let outerIterations = 0;
+  let lastProgressLog = performance.now();
+  const loopStart = lastProgressLog;
+
   while (items.length < MILESTONE_MAX_STEPS && !isTierUnlocked(state.researchLevels, target.tier)) {
+    outerIterations++;
+    lastProgressLog = maybeLogProgress('computeTierMilestoneChain', lastProgressLog, {
+      target,
+      outerIterations,
+      itemsSoFar: items.length,
+      elapsedMs: Math.round(performance.now() - loopStart),
+    });
     const cheapPlan = simulateCheapestFirstTierChain(
       state,
       snapshot,
@@ -473,6 +526,13 @@ export function computeTierMilestoneChain(
     const roiCandidates = getCommonResearches()
       .filter(r => (levels[r.id] || 0) < r.levels && isTierUnlocked(levels, r.tier))
       .map(r => {
+        lastProgressLog = maybeLogProgress('computeTierMilestoneChain', lastProgressLog, {
+          target,
+          outerIterations,
+          phase: 'roiCandidates',
+          candidateResearchId: r.id,
+          elapsedMs: Math.round(performance.now() - loopStart),
+        });
         const level = levels[r.id] || 0;
         const roiResult = calculateResearchROI({
           research: r,
