@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
-import { getDebugLogText } from '@/lib/debugLog';
+import { useCopyDiagnosticReport } from '@/composables/useCopyDiagnosticReport';
 
 const props = withDefaults(
   defineProps<{
@@ -81,12 +81,10 @@ const props = withDefaults(
 );
 
 const stuckHelperVisible = ref(false);
-const copyState = ref<'idle' | 'copied'>('idle');
-const showRawText = ref(false);
-const diagnosticText = ref('');
 const rawTextArea = ref<HTMLTextAreaElement | null>(null);
 let stuckTimer: ReturnType<typeof setTimeout> | null = null;
-let copiedResetTimer: ReturnType<typeof setTimeout> | null = null;
+
+const { copyState, showRawText, diagnosticText, copyDiagnostics: copyDiagnosticsBase } = useCopyDiagnosticReport();
 
 watch(
   () => props.show,
@@ -107,22 +105,8 @@ watch(
 );
 
 async function copyDiagnostics() {
-  diagnosticText.value = getDebugLogText();
-
-  try {
-    if (!navigator.clipboard) throw new Error('Clipboard API unavailable');
-    await navigator.clipboard.writeText(diagnosticText.value);
-    showRawText.value = false;
-    copyState.value = 'copied';
-    if (copiedResetTimer) clearTimeout(copiedResetTimer);
-    copiedResetTimer = setTimeout(() => {
-      copyState.value = 'idle';
-    }, 3000);
-  } catch {
-    // Clipboard write blocked (permissions, non-secure context, etc.) — fall back to a
-    // manually-selectable text box, which works everywhere since it relies on the OS's native
-    // text selection rather than any browser API.
-    showRawText.value = true;
+  await copyDiagnosticsBase();
+  if (showRawText.value) {
     await nextTick();
     rawTextArea.value?.focus();
   }

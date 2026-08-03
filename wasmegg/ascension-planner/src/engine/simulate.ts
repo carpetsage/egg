@@ -12,7 +12,7 @@ import {
 import { computeSnapshot } from './compute';
 import { computeDeltas } from '@/lib/actions/snapshot';
 import { yieldForOverlayPaint } from '@/lib/yieldForOverlayPaint';
-import { debugLog } from '@/lib/debugLog';
+import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
 
 /**
  * Simulate a list of actions to produce a timeline of states.
@@ -137,61 +137,63 @@ export async function simulateAsync(
   // A smaller number makes the UI smoother but total time slightly longer
   const YIELD_INTERVAL = 20;
 
-  debugLog('simulateAsync: start', { actionCount: actions.length, startIndex });
+  debugLogStart('simulateAsync', { actionCount: actions.length, startIndex });
+  try {
+    for (let i = 0; i < actions.length; i++) {
+      // Yield check
+      if (i % YIELD_INTERVAL === 0) {
+        if (onProgress) onProgress(i, actions.length);
+        debugLog('simulateAsync: progress', { i, total: actions.length });
+        await yieldForOverlayPaint();
+      }
 
-  for (let i = 0; i < actions.length; i++) {
-    // Yield check
-    if (i % YIELD_INTERVAL === 0) {
-      if (onProgress) onProgress(i, actions.length);
-      debugLog('simulateAsync: progress', { i, total: actions.length });
-      await yieldForOverlayPaint();
+      let action = actions[i];
+      const actualIndex = startIndex + i;
+
+      action = refreshActionPayload(action, currentSnapshot, context);
+      currentState = applyAction(currentState, action);
+      const durationSeconds = getActionDuration(action, currentSnapshot, context);
+      const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot, context);
+      currentState = applyPassiveEggs(currentState, passiveEggs);
+
+      const absoluteSimTime = context.ascensionStartTime + (currentSnapshot.lastStepTime - context.planStartOffset);
+      const transitions = boostTransitionsFrom(currentSnapshot, absoluteSimTime);
+      currentState = applyTime(currentState, durationSeconds, currentSnapshot, {
+        skipGrowth: action.type === 'wait_for_no_earnings',
+        skipEarnings: action.type === 'store_fuel',
+        transitions,
+      });
+
+      const newSnapshot = computeSnapshot(currentState, context, {
+        freezePopulation: action.type === 'wait_for_no_earnings',
+        skipEpochConversion: true,
+      });
+      const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;
+      const deltas = computeDeltas(prevSnap, newSnapshot);
+      results.push({
+        ...action,
+        index: actualIndex,
+        ...deltas,
+        totalTimeSeconds: durationSeconds,
+        endState: newSnapshot,
+      });
+      currentState = {
+        ...currentState,
+        population: newSnapshot.population,
+        bankValue: newSnapshot.bankValue,
+        lastStepTime: newSnapshot.lastStepTime,
+        eggsDelivered: { ...newSnapshot.eggsDelivered },
+        fuelTankAmounts: { ...newSnapshot.fuelTankAmounts },
+      };
+      previousSnapshot = newSnapshot;
+      currentSnapshot = newSnapshot;
     }
 
-    let action = actions[i];
-    const actualIndex = startIndex + i;
+    // Final progress update
+    if (onProgress) onProgress(actions.length, actions.length);
 
-    action = refreshActionPayload(action, currentSnapshot, context);
-    currentState = applyAction(currentState, action);
-    const durationSeconds = getActionDuration(action, currentSnapshot, context);
-    const passiveEggs = computePassiveEggsDelivered(action, currentSnapshot, context);
-    currentState = applyPassiveEggs(currentState, passiveEggs);
-
-    const absoluteSimTime = context.ascensionStartTime + (currentSnapshot.lastStepTime - context.planStartOffset);
-    const transitions = boostTransitionsFrom(currentSnapshot, absoluteSimTime);
-    currentState = applyTime(currentState, durationSeconds, currentSnapshot, {
-      skipGrowth: action.type === 'wait_for_no_earnings',
-      skipEarnings: action.type === 'store_fuel',
-      transitions,
-    });
-
-    const newSnapshot = computeSnapshot(currentState, context, {
-      freezePopulation: action.type === 'wait_for_no_earnings',
-      skipEpochConversion: true,
-    });
-    const prevSnap = i === 0 ? baseSnapshot : previousSnapshot!;
-    const deltas = computeDeltas(prevSnap, newSnapshot);
-    results.push({
-      ...action,
-      index: actualIndex,
-      ...deltas,
-      totalTimeSeconds: durationSeconds,
-      endState: newSnapshot,
-    });
-    currentState = {
-      ...currentState,
-      population: newSnapshot.population,
-      bankValue: newSnapshot.bankValue,
-      lastStepTime: newSnapshot.lastStepTime,
-      eggsDelivered: { ...newSnapshot.eggsDelivered },
-      fuelTankAmounts: { ...newSnapshot.fuelTankAmounts },
-    };
-    previousSnapshot = newSnapshot;
-    currentSnapshot = newSnapshot;
+    return results;
+  } finally {
+    debugLogEnd('simulateAsync', { actionCount: actions.length });
   }
-
-  // Final progress update
-  if (onProgress) onProgress(actions.length, actions.length);
-
-  debugLog('simulateAsync: done', { actionCount: actions.length });
-  return results;
 }
