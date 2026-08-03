@@ -205,6 +205,25 @@ export function useResearchViews() {
     },
     { deep: true }
   );
+  // `milestoneTarget` is a localStorage-backed ref, entirely outside the Pinia store system —
+  // resetAllStores() (which every mode-init flow calls first) only resets Pinia stores, so it never
+  // touches this. Left alone, a milestone target selected in one plan (possibly deep into a
+  // developed save) silently survives into a brand new blank ascension and immediately re-triggers
+  // an expensive computation against a near-zero earn rate — this is exactly the "cross-mode state
+  // leakage" resetAllStores() exists to prevent (see its own doc comment), just missed because this
+  // particular piece of state doesn't live in a store. Clear it in lockstep with isPlanInitializing
+  // so it's gone before the milestoneChain watchEffect below gets a chance to act on it.
+  watch(
+    () => actionsStore.isPlanInitializing,
+    initializing => {
+      if (initializing && milestoneTarget.value !== null) {
+        debugLog('useResearchViews: clearing stale milestoneTarget on mode-init', {
+          staleTarget: milestoneTarget.value,
+        });
+        milestoneTarget.value = null;
+      }
+    }
+  );
 
   const realisticSummary = computed(() => {
     const rawBackup = initialStateStore.rawBackup;
@@ -511,7 +530,10 @@ export function useResearchViews() {
       milestoneChainResultRef.value = result;
       isComputingMilestoneChain.value = false;
     } else {
-      debugLog('milestoneChain watchEffect: stale, discarding', { generation, currentGeneration: milestoneChainGeneration });
+      debugLog('milestoneChain watchEffect: stale, discarding', {
+        generation,
+        currentGeneration: milestoneChainGeneration,
+      });
     }
   });
 
