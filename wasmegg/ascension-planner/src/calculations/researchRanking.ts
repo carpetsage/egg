@@ -5,7 +5,13 @@ import {
   isTierUnlocked,
   type ResearchCostModifiers,
 } from './commonResearch';
-import { calculateResearchROI, getSaleAwareTimeToSave, MAX_ROI_PAYBACK_SEARCH_SECONDS } from './researchROI';
+import {
+  calculateResearchROI,
+  getSaleAwareTimeToSave,
+  isActuallyDuringSale,
+  meetsROIByDeadline,
+  MAX_ROI_PAYBACK_SEARCH_SECONDS,
+} from './researchROI';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength } from './shippingCapacity';
 import { getOptimalELRSet } from '@/lib/artifacts/virtue';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
@@ -16,7 +22,7 @@ import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
 import { applyAction, getTimeToSave, calculateEarningsForTime, boostTransitionsFrom } from '@/engine/apply';
 import { createSimAction } from '@/types/actions/meta';
-import { getNextPacificTime, isEarningsBoostActive } from '@/lib/events';
+import { getNextPacificTime, isEarningsBoostActive, isResearchSaleActive } from '@/lib/events';
 import { ei } from 'lib';
 
 // Research categories to exclude from specific ranking views
@@ -202,8 +208,25 @@ export function rankResearchByROI(
       }
       totalRoiSeconds = isFinite(resultTimeToBuySeconds) ? resultTimeToBuySeconds + roiSeconds : Infinity;
       resultEarningsDelta = roiSeconds !== Infinity && roiSeconds > 0 ? resultPrice / roiSeconds : 0;
-      showSaleWarning = !resultDuringSale && absoluteSimTime + resultTimeToBuySeconds >= nextSaleStart;
-      showDeadlineWarning = isSale && absoluteSimTime + resultTimeToBuySeconds > researchSaleDeadline;
+      // Must match the `immediate` mode's check (`calculateResearchROI`'s `showSaleWarning`) exactly:
+      // a real 70%-payback-by-deadline test, not just "does this complete before the deadline." The
+      // old version here only checked completion time, so a purchase that finishes early but never
+      // pays for itself (`resultEarningsDelta === 0`, i.e. `roiSeconds` hit the `Infinity` branch
+      // above) still passed — which is exactly how a slow, unprofitable item like
+      // `timeline_diversion` kept getting bought after the next sale start had already rolled forward
+      // past a completed sale, dragging the loop out to the sale *after* next. See
+      // `isActuallyDuringSale`'s doc comment for why `resultDuringSale` also can't be trusted alone.
+      showSaleWarning =
+        !isActuallyDuringSale(resultDuringSale, absoluteSimTime + resultTimeToBuySeconds) &&
+        !meetsROIByDeadline(
+          resultEarningsDelta,
+          resultPrice,
+          absoluteSimTime + resultTimeToBuySeconds,
+          nextSaleStart,
+          70
+        );
+      showDeadlineWarning =
+        isResearchSaleActive(absoluteSimTime) && absoluteSimTime + resultTimeToBuySeconds > researchSaleDeadline;
     } else {
       const roiResult = calculateResearchROI({
         research: r,
@@ -311,10 +334,30 @@ export function rankResearchByROI(
                 // This item alone won't reach 70% payback before the next sale, but it
                 // only makes sense to buy as part of the pair — so judge the sale warning
                 // against the pair's combined payback time instead of this item's solo ROI.
+                //
+                // The previous version of this check used `!isResearchSaleActive(absoluteSimTime)`
+                // — "is a real sale active right now, at evaluation time" — as a blanket permission
+                // to waive the warning. That's the wrong question: it doesn't matter whether a sale
+                // happens to be active THIS INSTANT, only whether THIS purchase's own completion
+                // (`absoluteSimTime + c.timeToBuySeconds`) lands during a sale or pays off in time.
+                // Evaluating late in a real sale's window (as here — this render's `absoluteSimTime`
+                // can land minutes before that sale's own end) made `isResearchSaleActive` true and
+                // permanently disabled the warning for every bottlenecked laying/shipping candidate
+                // with any viable partner, regardless of how far past the sale — or even the
+                // following one — its actual completion time was. This is exactly how a slow,
+                // partner-bottlenecked research (e.g. one with `roiSeconds: Infinity`) kept getting
+                // bought well past the next real sale, dragging `handleBuyUntilSaleWarning` out by
+                // extra days each time. Match the same calendar-verified pattern used everywhere
+                // else instead (see `isActuallyDuringSale`'s doc comment).
                 showSaleWarning =
-                  !isSale &&
-                  (absoluteSimTime + c.timeToBuySeconds >= nextSaleStart ||
-                    pairDelta * (nextSaleStart - (absoluteSimTime + c.timeToBuySeconds)) < 0.7 * pairTotalCost);
+                  !isActuallyDuringSale(c.duringSale, absoluteSimTime + c.timeToBuySeconds) &&
+                  !meetsROIByDeadline(
+                    pairDelta,
+                    pairTotalCost,
+                    absoluteSimTime + c.timeToBuySeconds,
+                    nextSaleStart,
+                    70
+                  );
               }
             }
           }
@@ -525,7 +568,8 @@ export function rankResearchByELRImpact(
             elr: stats.effectiveRate * 3600,
             elrDelta: (stats.effectiveRate - baseline.effectiveRate) * 3600,
           },
-          showDeadlineWarning: isSale && absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline,
+          showDeadlineWarning:
+            isResearchSaleActive(absoluteSimTime) && absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline,
           duringSale: withBankPurchase.duringSale,
           duringEarningsBoost: isEarningsBoostActive(absoluteSimTime + secondsToBuyWithBank),
         };
@@ -584,7 +628,8 @@ export function rankResearchByELRImpact(
           impact,
           hpp,
           timeRoiSeconds,
-          showDeadlineWarning: isSale && absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline,
+          showDeadlineWarning:
+            isResearchSaleActive(absoluteSimTime) && absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline,
           duringSale: withBankPurchase.duringSale,
           duringEarningsBoost: isEarningsBoostActive(absoluteSimTime + secondsToBuyWithBank),
         };

@@ -18,7 +18,7 @@ import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, getTimeToSave } from '@/engine/apply';
 import { calculateShippingCapacity } from '@/calculations/shippingCapacity';
-import { getNextPacificTime } from '@/lib/events';
+import { getNextPacificTime, isResearchSaleActive as isRealSaleActiveAt } from '@/lib/events';
 import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
 import { type CalculationsSnapshot } from '@/types';
 import { getOptimalELRSet } from '@/lib/artifacts/virtue';
@@ -789,7 +789,11 @@ export function useResearchViews() {
             isMaxed: false,
             showDivider: item.showDivider || false,
             unlockTier: item.unlockTier || 0,
-            showDeadlineWarning: isSale && absoluteSimTime + totalSeconds > researchSaleDeadline.value,
+            // `isSale` alone can be a stale plan-snapshot flag rather than calendar truth (see
+            // `isActuallyDuringSale`'s doc comment in researchROI.ts) — re-verify against the real
+            // calendar before letting it gate this warning.
+            showDeadlineWarning:
+              isRealSaleActiveAt(absoluteSimTime) && absoluteSimTime + totalSeconds > researchSaleDeadline.value,
           });
 
           currentSimState = applyAction(currentSimState, {
@@ -866,7 +870,11 @@ export function useResearchViews() {
                 : undefined,
             canBuy: true,
             isMaxed: false,
-            showDeadlineWarning: isSale && absoluteSimTime + totalSeconds > researchSaleDeadline.value,
+            // `isSale` alone can be a stale plan-snapshot flag rather than calendar truth (see
+            // `isActuallyDuringSale`'s doc comment in researchROI.ts) — re-verify against the real
+            // calendar before letting it gate this warning.
+            showDeadlineWarning:
+              isRealSaleActiveAt(absoluteSimTime) && absoluteSimTime + totalSeconds > researchSaleDeadline.value,
           });
         }
       });
