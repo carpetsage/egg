@@ -11,7 +11,13 @@ import {
 } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import { createSimAction } from '@/types/actions/meta';
-import { getNextSaleStart, getNextSaleEnd, getNextEarningsBoostStart, getNextEarningsBoostEnd } from '@/lib/events';
+import {
+  getNextSaleStart,
+  getNextSaleEnd,
+  getNextEarningsBoostStart,
+  getNextEarningsBoostEnd,
+  isResearchSaleActive,
+} from '@/lib/events';
 
 // See the comment where this is used in `calculateResearchROI` for why the ROI-payback horizon is
 // deliberately much shorter than `boostTransitionsFrom`'s own multi-year default.
@@ -180,6 +186,21 @@ export function findEventCrossings(
  * would precede it, so callers can insert/display a chronological sequence of wait+toggle steps
  * without needing to re-derive offsets.
  */
+// This function's loop bound is `currentAbsoluteTime + secondsToBuy` — and secondsToBuy is
+// deliberately allowed to be enormous (see getTimeToSave's doc comment: it never caps a
+// genuinely-reachable wait to a fake Infinity, so a purchase evaluated against a weak earn rate can
+// legitimately take centuries). Unlike boostTransitionsFrom, which bounds its OWN walk to a fixed
+// horizon regardless of the caller's wait, this function had no cap at all — for a multi-century
+// wait it would enumerate every weekly sale/boost cycle in that entire span, pushing potentially
+// millions of entries and crashing the tab on an out-of-memory error (confirmed in production: a
+// milestone-chain purchase evaluated against a near-zero earn rate did exactly this, crashing
+// before any of the surrounding loop's own progress heartbeats had a chance to log anything, since
+// the crash happens inside a single call, not across iterations already being watched). This is
+// purely a display/preview mechanism (the wait+toggle steps for a purchase), so there's no reason
+// to enumerate more than a practical number of crossings — nobody benefits from seeing hundreds of
+// individual toggle steps for a purchase that takes years, let alone centuries.
+const MAX_EVENT_CROSSINGS = 100;
+
 function walkEventCrossings(
   currentAbsoluteTime: number,
   secondsToBuy: number,
@@ -194,15 +215,39 @@ function walkEventCrossings(
   let cursor = currentAbsoluteTime;
   let active = isActiveNow;
 
-  while (true) {
+  while (crossings.length < MAX_EVENT_CROSSINGS) {
     const boundary = active ? getNextEnd(cursor) : getNextStart(cursor);
-    if (!isFinite(boundary) || boundary > deadline) break;
+    // boundary <= cursor should be unreachable (getNextPacificTime guarantees its result is always
+    // strictly after its input — see that function's own doc comment), but this walk used to have
+    // no defense at all against that invariant ever being violated; break rather than spin forever
+    // if it somehow is.
+    if (!isFinite(boundary) || boundary > deadline || boundary <= cursor) break;
     crossings.push({ waitSeconds: boundary - cursor, togglesTo: !active });
     active = !active;
     cursor = boundary;
   }
 
   return crossings;
+}
+
+/**
+ * Whether a purchase modeled as completing "during a sale" (`modeledDuringSale` — e.g.
+ * `getSaleAwareTimeToSave`'s `duringSale`, which is only ever as fresh as whichever `isSaleActive`
+ * snapshot flag the caller happened to pass in) is *actually* landing inside a real calendar sale
+ * window at `completesAt`. That snapshot flag only changes when an explicit `toggle_sale` action
+ * flips it, and nothing re-derives it against the calendar the way `boostTransitionsFrom` does for
+ * `earningsBoost.active` — so it can go stale (stay `true` long after the real sale ended) without
+ * anything noticing, if whichever purchase happened to be evaluated while it drifted didn't itself
+ * straddle the real end boundary. A warning-suppression check that trusts a stale `true` here
+ * unconditionally waives the "will this pay off before the real next sale" warning for every
+ * candidate, however long its actual wait — which is exactly how `showSaleWarning`/
+ * `showDeadlineWarning` below (and their `researchRanking.ts` equivalents) previously let
+ * `handleBuyUntilSaleWarning` buy through arbitrarily slow research unchecked. Re-verifying against
+ * calendar truth here closes that gap without touching the price actually charged (which is allowed
+ * to keep following the plan's own modeled/manually-toggled sale state).
+ */
+export function isActuallyDuringSale(modeledDuringSale: boolean, completesAt: number): boolean {
+  return modeledDuringSale && isResearchSaleActive(completesAt);
 }
 
 /**
@@ -306,14 +351,17 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
   const earningsDelta = roiSeconds !== Infinity && roiSeconds > 0 ? price / roiSeconds : 0;
   const totalRoiSeconds = timeToBuySeconds + roiSeconds;
 
-  // No warning needed if this purchase is already timed to land during the sale (either it was
-  // already active, or getSaleAwareTimeToSave already decided waiting for it was worth it) —
-  // there's nothing left to warn about, the price/wait above already account for it.
-  const showSaleWarning =
-    !purchase.duringSale &&
-    !meetsROIByDeadline(earningsDelta, price, absoluteSimTime + timeToBuySeconds, nextSaleStart, 70);
+  const completesAt = absoluteSimTime + timeToBuySeconds;
 
-  const showDeadlineWarning = isSaleActive && absoluteSimTime + timeToBuySeconds > researchSaleDeadline;
+  // No warning needed if this purchase is already timed to land during a REAL sale (see
+  // `isActuallyDuringSale`'s doc comment — `purchase.duringSale` alone isn't enough, since it can
+  // reflect a stale `isSaleActive` snapshot flag rather than calendar truth) — there's nothing left
+  // to warn about, the price/wait above already account for it.
+  const showSaleWarning =
+    !isActuallyDuringSale(purchase.duringSale, completesAt) &&
+    !meetsROIByDeadline(earningsDelta, price, completesAt, nextSaleStart, 70);
+
+  const showDeadlineWarning = isResearchSaleActive(absoluteSimTime) && completesAt > researchSaleDeadline;
 
   return {
     roiSeconds,

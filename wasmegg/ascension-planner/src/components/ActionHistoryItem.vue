@@ -152,7 +152,7 @@
         <!-- Deltas -->
         <div
           v-if="!isStartAction || isContinued"
-          class="text-[8px] mt-1 hidden sm:flex flex-wrap gap-x-3 gap-y-0.5 font-black uppercase tracking-wider"
+          class="text-[8px] mt-1 hidden sm:flex flex-wrap gap-x-3 gap-y-0.5 font-black tracking-wider"
         >
           <span v-if="action.eggValueDelta" :class="deltaClass(action.eggValueDelta)"
             >Val {{ formatDelta(action.eggValueDelta) }}</span
