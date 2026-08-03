@@ -476,6 +476,13 @@
         :show="loading"
         title="One Moment..."
         message="Fetching your data and crunching the numbers to set up your plan..."
+        :stuck-after-ms="12000"
+      />
+
+      <StaleSessionBanner
+        v-if="staleSessionOperations.length > 0"
+        :open-operations="staleSessionOperations"
+        @dismiss="dismissStaleSessionBanner"
       />
 
       <PlanFinalSummary
@@ -522,6 +529,8 @@ import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
 import AutomaticPlanner from '@/components/auto/AutomaticPlanner.vue';
 import { useSalesStore } from '@/stores/sales';
 import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
+import { debugLogStart, debugLogEnd, getStaleOpenOperations, clearStaleOpenOperations } from '@/lib/debugLog';
+import StaleSessionBanner from '@/components/StaleSessionBanner.vue';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { usePersistence } from '@/composables/usePersistence';
 import { generateActionId } from '@/types';
@@ -547,6 +556,14 @@ import {
 const isDev = import.meta.env.DEV;
 
 const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
+// Operations left open (started but never finished) by the previous session — non-empty means it
+// likely froze mid-operation. Populated at the very start of onMounted, before this session logs
+// anything of its own. See StaleSessionBanner.vue and debugLog.ts's doc comments.
+const staleSessionOperations = ref<string[]>([]);
+function dismissStaleSessionBanner() {
+  staleSessionOperations.value = [];
+  clearStaleOpenOperations();
+}
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
 const uiStore = useUIStore();
@@ -646,35 +663,43 @@ function handleToggleEarningsEvent() {
 }
 
 onMounted(async () => {
-  eventsStore.fetchEvents();
+  // Must run before this session logs anything of its own — see getStaleOpenOperations' doc comment.
+  staleSessionOperations.value = getStaleOpenOperations();
 
-  if (playerId.value) {
-    await initPersistence(playerId.value);
+  debugLogStart('App onMounted');
+  try {
+    eventsStore.fetchEvents();
 
-    try {
-      const pHash = await hashID(playerId.value);
-      const savedBackup = await loadMetadata(pHash, 'rawBackup');
-      if (savedBackup) {
-        initialStateStore.rawBackup = savedBackup;
+    if (playerId.value) {
+      await initPersistence(playerId.value);
+
+      try {
+        const pHash = await hashID(playerId.value);
+        const savedBackup = await loadMetadata(pHash, 'rawBackup');
+        if (savedBackup) {
+          initialStateStore.rawBackup = savedBackup;
+        }
+      } catch (e) {
+        console.error('Failed to load raw backup from DB', e);
       }
-    } catch (e) {
-      console.error('Failed to load raw backup from DB', e);
     }
-  }
 
-  if (!actionsStore._initialSnapshot) {
-    await actionsStore.recalculateAll();
-  }
+    if (!actionsStore._initialSnapshot) {
+      await actionsStore.recalculateAll();
+    }
 
-  // Fresh start: if only start_ascension exists and no farm state is loaded, add initial Wait for Full Habs
-  const startAction = actionsStore.getStartAction();
-  if (
-    actionsStore.actions.length === 1 &&
-    startAction &&
-    !startAction.payload.initialFarmState &&
-    !startAction.payload.isQuickContinue
-  ) {
-    actionsStore.pushWaitForFullHabsAction();
+    // Fresh start: if only start_ascension exists and no farm state is loaded, add initial Wait for Full Habs
+    const startAction = actionsStore.getStartAction();
+    if (
+      actionsStore.actions.length === 1 &&
+      startAction &&
+      !startAction.payload.initialFarmState &&
+      !startAction.payload.isQuickContinue
+    ) {
+      actionsStore.pushWaitForFullHabsAction();
+    }
+  } finally {
+    debugLogEnd('App onMounted');
   }
 });
 
