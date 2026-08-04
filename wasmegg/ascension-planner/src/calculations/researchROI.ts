@@ -267,6 +267,51 @@ export function meetsROIByDeadline(
   return earningsDelta * (targetTimestamp - purchaseTime) >= (targetPercent / 100) * price;
 }
 
+/** Minimal shape `meetsSaleAwareDeadline` needs — any ranked-candidate item satisfies this. */
+export interface SaleAwareDeadlineCandidate {
+  canBuy: boolean;
+  isMaxed: boolean;
+  price: number;
+  earningsDelta?: number;
+  purchaseTimestamp?: number;
+  duringSale?: boolean;
+}
+
+/**
+ * Whether `item` is worth buying under a sale-aware "X% ROI by the next sale" rule — the shared
+ * predicate behind both the manual planner's "Buy Until Sale Warning" (`targetPercent: 70`) and
+ * "Buy Until ROI Deadline" (`targetPercent: 100`) buttons, parameterized so both are just two
+ * calls to the same function instead of two separately-maintained implementations (which is how
+ * `nextRoiDeadlineCandidate` ended up missing the bypass below entirely — see git history).
+ *
+ * A candidate passes if EITHER:
+ * - it's actually landing inside a real calendar sale window (`isActuallyDuringSale` — see its own
+ *   doc comment for why this can't just trust the modeled `duringSale` flag), in which case the
+ *   deadline math below is moot and doesn't need to be checked at all, OR
+ * - `meetsROIByDeadline` directly confirms it clears `targetPercent`% payback by `nextSaleStart`.
+ *
+ * The bypass matters for more than just "sale-priced purchases don't need a warning": it's also
+ * what lets the *transitional* candidate — the one whose own wait is timed to complete exactly
+ * when `nextSaleStart` arrives — pass at all. Without it, `meetsROIByDeadline`'s own
+ * `targetTimestamp <= purchaseTime` guard always fails for that candidate (its completion and the
+ * deadline are, by construction, the same instant), so no `duringSale` candidate would ever be
+ * selectable, and callers relying on this to trigger `syncEventStateForItem`'s wait/toggle
+ * insertion would never buy the one purchase that carries the plan through the boundary. Callers
+ * that must end up with zero purchases actually priced at the sale discount (rather than just
+ * skipping the warning) are expected to sweep those back out afterward — see
+ * `buyUntilRealSaleStarts` in `researchRanking.ts`.
+ */
+export function meetsSaleAwareDeadline(
+  item: SaleAwareDeadlineCandidate,
+  nextSaleStart: number,
+  targetPercent: number
+): boolean {
+  if (!item.canBuy || item.isMaxed) return false;
+  if (item.earningsDelta === undefined || item.purchaseTimestamp === undefined) return false;
+  if (isActuallyDuringSale(item.duringSale ?? false, item.purchaseTimestamp)) return true;
+  return meetsROIByDeadline(item.earningsDelta, item.price, item.purchaseTimestamp, nextSaleStart, targetPercent);
+}
+
 /**
  * Calculate the Return on Investment (ROI) for a specific research purchase.
  * This predicts how long it will take for the research to pay for itself

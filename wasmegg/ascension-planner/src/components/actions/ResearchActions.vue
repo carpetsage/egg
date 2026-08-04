@@ -330,17 +330,16 @@ import { useVirtueStore } from '@/stores/virtue';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
-import { useResearchViews, VIEWS } from '@/composables/useResearchViews';
+import { useResearchViews, VIEWS, type ResearchViewItem } from '@/composables/useResearchViews';
 import { getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
 import { findSmartBuyCandidate } from '@/calculations/smartBuyCandidate';
-import { buyWhilePassingCheck } from '@/calculations/researchRanking';
+import { buyWhilePassingCheck, buyUntilRealSaleStarts } from '@/calculations/researchRanking';
 import {
-  meetsROIByDeadline,
   getSaleAwareTimeToSave,
   findEventCrossings,
+  meetsSaleAwareDeadline,
   type EventCrossing,
 } from '@/calculations/researchROI';
-import { isResearchSaleActive as isRealSaleActiveAt } from '@/lib/events';
 import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
 
 // Sub-components
@@ -424,11 +423,6 @@ function getTimeToBuySeconds(research: CommonResearch): number {
 function getSimulatedBuyToHereSeconds(item: unknown): number | undefined {
   const seconds = (item as { buyToHereSeconds?: unknown }).buyToHereSeconds;
   return typeof seconds === 'number' ? seconds : undefined;
-}
-
-// Only the ROI view branch populates showSaleWarning; other branches' item shapes don't have it.
-function getSimulatedShowSaleWarning(item: unknown): boolean {
-  return (item as { showSaleWarning?: unknown }).showSaleWarning === true;
 }
 
 /**
@@ -612,7 +606,7 @@ function insertToggleEarningsBoost(
  * wait action already advanced to. When no boundary is actually crossed, nothing is inserted at all.
  */
 function syncEventStateForItem(item: { research: CommonResearch }) {
-  let beforeSnapshot = prepareExecution();
+  const beforeSnapshot = prepareExecution();
   const level = beforeSnapshot.researchLevels[item.research.id] || 0;
   if (level >= item.research.levels) return;
 
@@ -645,9 +639,27 @@ function syncEventStateForItem(item: { research: CommonResearch }) {
     boostCrossings: crossings.boost.map(c => ({ waitSeconds: c.waitSeconds, togglesTo: c.togglesTo })),
   });
 
-  // Each list's `waitSeconds` is relative to its own previous crossing (or to `absoluteSimTime` for
-  // the first) — convert both to absolute timestamps so sale and boost crossings can be merged and
-  // walked in true chronological order, regardless of which type occurs first.
+  insertEventCrossingWaits(absoluteSimTime, crossings, beforeSnapshot);
+}
+
+/**
+ * Shared by `syncEventStateForItem` (crossings up to a purchase's own wait) and `advanceToDeadline`
+ * (crossings up to a fixed target time with no purchase attached): merges the sale and boost
+ * crossing lists into true chronological order and inserts a wait+toggle action pair for each one.
+ * See `syncEventStateForItem`'s git history for why merging matters — treating sale and boost as two
+ * independent sequential passes silently drops a boost window that falls entirely inside a
+ * sale-wait period.
+ *
+ * Each list's `waitSeconds` is relative to its own previous crossing (or to `absoluteSimTime` for
+ * the first) — convert both to absolute timestamps first so they can be merged regardless of which
+ * type occurs first. Returns the snapshot and absolute time reached after the last crossing (equal
+ * to `absoluteSimTime` itself, with the input snapshot, if there were no crossings at all).
+ */
+function insertEventCrossingWaits(
+  absoluteSimTime: number,
+  crossings: { sale: EventCrossing[]; boost: EventCrossing[] },
+  beforeSnapshot: ReturnType<typeof prepareExecution>
+): { snapshot: ReturnType<typeof prepareExecution>; cursor: number } {
   type TaggedCrossing = { absoluteTime: number; togglesTo: boolean; kind: 'sale' | 'boost' };
   const toTagged = (list: EventCrossing[], kind: TaggedCrossing['kind']): TaggedCrossing[] => {
     let cursor = absoluteSimTime;
@@ -661,26 +673,72 @@ function syncEventStateForItem(item: { research: CommonResearch }) {
   );
 
   let cursor = absoluteSimTime;
+  let snapshot = beforeSnapshot;
   for (const crossing of allCrossings) {
     const waitSeconds = crossing.absoluteTime - cursor;
     if (crossing.kind === 'sale') {
       const waitId = insertWait(
         crossing.togglesTo ? 'wait_for_research_sale' : 'wait_for_time',
         waitSeconds,
-        beforeSnapshot
+        snapshot
       );
-      beforeSnapshot = waitId ? prepareExecution() : beforeSnapshot;
-      insertToggleSale(crossing.togglesTo, waitId, beforeSnapshot);
+      snapshot = waitId ? prepareExecution() : snapshot;
+      insertToggleSale(crossing.togglesTo, waitId, snapshot);
     } else {
       const waitId = insertWait(
         crossing.togglesTo ? 'wait_for_earnings_boost' : 'wait_for_time',
         waitSeconds,
-        beforeSnapshot
+        snapshot
       );
-      beforeSnapshot = waitId ? prepareExecution() : beforeSnapshot;
-      insertToggleEarningsBoost(crossing.togglesTo, waitId, beforeSnapshot);
+      snapshot = waitId ? prepareExecution() : snapshot;
+      insertToggleEarningsBoost(crossing.togglesTo, waitId, snapshot);
     }
     cursor = crossing.absoluteTime;
+  }
+  return { snapshot, cursor };
+}
+
+/**
+ * Carries the plan's clock the rest of the way to `targetDeadline` on its own, inserting whatever
+ * wait+toggle actions the remaining sale/boost crossings between "wherever the buy loop stopped"
+ * and the deadline need. `runSaleAwareBuyFlow`'s buy loop only advances time as a side effect of
+ * `syncEventStateForItem` calls made right before each purchase — so if it stops because
+ * `getNextCandidate()` ran out of qualifying research (rather than because the deadline was
+ * actually reached), nothing else ever carries the plan forward, and the promised "wait for the
+ * sale to end, then the boost, then wait for the next sale" progression silently doesn't happen. A
+ * no-op if `targetDeadline` has already been reached (e.g. the transitional bypass purchase already
+ * carried the clock there).
+ */
+function advanceToDeadline(targetDeadline: number) {
+  if (!isFinite(targetDeadline)) return;
+  const beforeSnapshot = prepareExecution();
+  const absoluteSimTime = absoluteSimTimeAt(beforeSnapshot.lastStepTime);
+  const waitSeconds = targetDeadline - absoluteSimTime;
+  if (waitSeconds <= 0) return;
+
+  const isSaleActive = beforeSnapshot.activeSales.research;
+  const isBoostActive = beforeSnapshot.earningsBoost.active;
+  const crossings = findEventCrossings(absoluteSimTime, waitSeconds, isSaleActive, isBoostActive);
+
+  debugLog('advanceToDeadline', {
+    absoluteSimTime,
+    absoluteSimTimeIso: new Date(absoluteSimTime * 1000).toISOString(),
+    targetDeadline,
+    targetDeadlineIso: new Date(targetDeadline * 1000).toISOString(),
+    isSaleActive,
+    isBoostActive,
+    saleCrossings: crossings.sale.map(c => ({ waitSeconds: c.waitSeconds, togglesTo: c.togglesTo })),
+    boostCrossings: crossings.boost.map(c => ({ waitSeconds: c.waitSeconds, togglesTo: c.togglesTo })),
+  });
+
+  const { snapshot: afterSnapshot, cursor } = insertEventCrossingWaits(absoluteSimTime, crossings, beforeSnapshot);
+
+  // Any stretch after the last crossing (or the whole window, if there were none at all — e.g. no
+  // boost is due before the next sale) still needs a plain wait so the clock actually reaches
+  // targetDeadline, not just its last crossing.
+  const remaining = targetDeadline - cursor;
+  if (remaining > 0) {
+    insertWait('wait_for_time', remaining, afterSnapshot);
   }
 }
 
@@ -704,18 +762,12 @@ function handleBuyResearch(research: CommonResearch) {
 // because it fails the check (e.g. too expensive to finish before the sale) while a
 // cheaper, lower-ranked one still passes.
 //
-// Deliberately does NOT exclude `duringSale` items here. The wait/toggle insertion machinery
-// (`syncEventStateForItem`, for both the research sale and the 2x earnings boost) only ever runs
-// as a side effect of actually buying a candidate — there's no standalone "advance the clock
-// through these events" action independent of a purchase. So the candidate whose own wait carries
-// the plan through those events has to actually be bought for that wait to get inserted at all.
-// This button must still end up with ZERO purchases at a sale-discounted price, though — that's
-// handled downstream in `handleBuyUntilSaleWarning`'s post-run cleanup sweep (see its own comment),
-// which strips out any `buy_research` action that landed `duringSale` while leaving the wait/toggle
-// actions themselves intact. Keeping that as a cleanup pass instead of an exclusion here is
-// deliberate: an exclusion would throw the wait away entirely rather than just the purchase.
+// See `meetsSaleAwareDeadline`'s doc comment for the full rule (including why `duringSale` items
+// are deliberately not excluded here — the actual purchase gets stripped out afterward instead,
+// by `runSaleAwareBuyFlow`'s cleanup sweep, since an exclusion here would throw the wait away
+// entirely rather than just the purchase).
 const nextRoiCandidate = computed(() =>
-  sortedResearches.value.find(item => item.canBuy && !item.isMaxed && !getSimulatedShowSaleWarning(item))
+  sortedResearches.value.find(item => meetsSaleAwareDeadline(item, nextSaleStart.value, 70))
 );
 
 const canBuyUntilSaleWarning = computed(() => !!nextRoiCandidate.value);
@@ -790,110 +842,98 @@ watch(
   });
 };
 
-// Repeatedly buys the best-ranked ROI research that still passes the sale-warning check,
-// recalculating the list after each purchase (since buying one research changes the math
-// for the rest). Items that fail the check are skipped rather than treated as a stopping
-// point, since a cheaper lower-ranked item may still be affordable in time. Stops only once
-// every remaining purchasable item fails the check.
-async function handleBuyUntilSaleWarning() {
+// Shared driver behind "Buy Until Sale Warning" and "Buy Until ROI Deadline": both repeatedly buy
+// whatever `getNextCandidate()` picks (pre-filtered by `meetsSaleAwareDeadline` at their own
+// target percent — 70 for the former, 100 for the latter), stopping once the target deadline is
+// reached and sweeping out any purchase that only passed via the `duringSale` bypass AND landed
+// at-or-after that deadline (see `buyUntilRealSaleStarts`'s doc comment in researchRanking.ts for
+// the full rationale). This is the Pinia-store-bound "glue" around that pure, reusable loop shape
+// — `label` distinguishes the two callers in the debug log.
+//
+// The deadline is captured ONCE, up front, rather than re-derived from "is a sale active right
+// now" each iteration: if the button is clicked while a DIFFERENT sale is already active,
+// `nextSaleStart` already points past it (getNextPacificTime never returns something at-or-before
+// its input), to the sale that's actually 6-7 days out — so buying should proceed through the
+// currently-active sale (at whatever its real price is) toward THAT target, not bail out
+// immediately just because some sale happens to be live already.
+async function runSaleAwareBuyFlow(label: string, getNextCandidate: () => ResearchViewItem | undefined) {
   const startAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
-  debugLogStart('handleBuyUntilSaleWarning', {
+  const targetDeadline = nextSaleStart.value;
+  debugLogStart(label, {
     startAbsoluteTime,
     startAbsoluteTimeIso: new Date(startAbsoluteTime * 1000).toISOString(),
-    nextSaleStart: nextSaleStart.value,
-    nextSaleStartIso: isFinite(nextSaleStart.value) ? new Date(nextSaleStart.value * 1000).toISOString() : 'Infinity',
-    roiMode: roiMode.value,
+    targetDeadline,
+    targetDeadlineIso: isFinite(targetDeadline) ? new Date(targetDeadline * 1000).toISOString() : 'Infinity',
   });
-  let iterations = 0;
-  // Populated by the buy callback below whenever a purchase lands `duringSale` — cleaned up in
-  // the sweep after the batch completes (see there for why this is a post-hoc removal rather
-  // than excluding those candidates from selection in the first place).
-  const duringSaleActionIds: string[] = [];
+
+  let result: { purchased: number; duringSalePurchases: { actionId: string; purchaseTimestamp: number }[] } = {
+    purchased: 0,
+    duringSalePurchases: [],
+  };
+  let iteration = 0;
   await batch(() => {
-    buyWhilePassingCheck(
+    result = buyUntilRealSaleStarts(
       () => {
-        // Stop the whole run the instant a real research sale is actually active — not just
-        // "the next candidate happens to be cheap during a sale". Candidate selection above
-        // deliberately still allows buying INTO the sale (a candidate whose own wait crosses the
-        // boundary via `syncEventStateForItem` gets that wait/toggle correctly inserted, same as
-        // before) — this is what stops the loop from then continuing to buy anything MORE once
-        // that transition has actually landed, handing off to "Buy Until Sale Ends" for the sale
-        // period itself instead of buying straight through it.
+        // This closure is only ever invoked when buyUntilRealSaleStarts's own `shouldStop()`
+        // check (same targetDeadline comparison, evaluated just before this) already passed —
+        // so if the log for this iteration is missing entirely, the run stopped due to the
+        // deadline; if it's present but `researchId` is undefined, getNextCandidate() found
+        // nothing left to buy on its own (ran dry before ever reaching the deadline).
+        iteration++;
         const currentAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
-        const saleActiveNow = isRealSaleActiveAt(currentAbsoluteTime);
-        debugLog('BuyUntilSaleWarning stop-check', {
-          iteration: iterations + 1,
+        const next = getNextCandidate();
+        debugLog(`${label} candidate`, {
+          iteration,
           currentAbsoluteTime,
           currentAbsoluteTimeIso: new Date(currentAbsoluteTime * 1000).toISOString(),
-          saleActiveNow,
+          targetDeadline,
+          targetDeadlineIso: isFinite(targetDeadline) ? new Date(targetDeadline * 1000).toISOString() : 'Infinity',
+          researchId: next?.research.id,
+          researchName: next?.research.name,
+          targetLevel: next?.targetLevel,
+          timeToBuySeconds: next?.timeToBuySeconds,
+          purchaseTimestamp: next?.purchaseTimestamp,
+          purchaseTimestampIso:
+            next?.purchaseTimestamp !== undefined ? new Date(next.purchaseTimestamp * 1000).toISOString() : undefined,
+          duringSale: next?.duringSale,
         });
-        if (saleActiveNow) return undefined;
-
-        const next = nextRoiCandidate.value;
-        if (next) {
-          iterations++;
-          debugLog('BuyUntilSaleWarning candidate', {
-            iteration: iterations,
-            researchId: next.research.id,
-            researchName: next.research.name,
-            targetLevel: next.targetLevel,
-            price: next.price,
-            timeToBuySeconds: next.timeToBuySeconds,
-            purchaseTimestamp: next.purchaseTimestamp,
-            purchaseTimestampIso:
-              next.purchaseTimestamp !== undefined ? new Date(next.purchaseTimestamp * 1000).toISOString() : undefined,
-            earningsDelta: next.earningsDelta,
-            duringSale: next.duringSale,
-            showSaleWarning: next.showSaleWarning,
-            // Cross-check: recompute the deadline test right here, against THIS component's own
-            // independently-computed `nextSaleStart`, to see whether it agrees with whatever
-            // internal nextSaleStart the ranking function actually used to produce showSaleWarning.
-            // If these disagree, the two nextSaleStart values have diverged somewhere.
-            componentNextSaleStart: nextSaleStart.value,
-            componentNextSaleStartIso: isFinite(nextSaleStart.value)
-              ? new Date(nextSaleStart.value * 1000).toISOString()
-              : 'Infinity',
-            recomputedMeetsROIByDeadline:
-              next.earningsDelta !== undefined && next.purchaseTimestamp !== undefined
-                ? meetsROIByDeadline(next.earningsDelta, next.price, next.purchaseTimestamp, nextSaleStart.value, 70)
-                : undefined,
-          });
-        }
-        return next ? { researchId: next.research.id } : undefined;
+        if (!next || next.purchaseTimestamp === undefined) return undefined;
+        return {
+          researchId: next.research.id,
+          duringSale: !!next.duringSale,
+          purchaseTimestamp: next.purchaseTimestamp,
+        };
       },
       researchId => {
-        const item = nextRoiCandidate.value;
+        const item = getNextCandidate();
         const research = getResearchById(researchId);
         if (!research) return false;
         if (item) syncEventStateForItem(item);
-        const bought = buyOneLevel(research);
-        // `buyOneLevel` -> `completeExecution` -> `pushAction` appends synchronously (outside the
-        // "editing a past group" path this button always runs on), so the just-added action is
-        // reliably the last one in the array here.
-        if (bought && item?.duringSale) {
-          const lastAction = actionsStore.actions[actionsStore.actions.length - 1];
-          if (lastAction) duringSaleActionIds.push(lastAction.id);
-        }
-        return bought;
-      }
+        return buyOneLevel(research);
+      },
+      () => absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime) >= targetDeadline,
+      () => actionsStore.actions[actionsStore.actions.length - 1]?.id
     );
   });
 
-  // Cleanup sweep: this button must end up with ZERO purchases at a sale-discounted price, but
-  // the candidate that carries the plan's wait through the 2x boost window and into the sale has
-  // to actually be bought for that wait to get inserted (see `nextRoiCandidate`'s doc comment).
-  // Strip out just that purchase now, in reverse order (undoing the most recently added action
-  // first keeps each `executeUndo` call's own dependent-action bookkeeping simple) — the
-  // wait/toggle actions it depended on stay in place, since nothing else depends on removing them.
-  for (const actionId of duringSaleActionIds.reverse()) {
-    debugLog('BuyUntilSaleWarning cleanup: removing duringSale purchase', { actionId });
+  // Only sweep purchases that actually landed at-or-after the target deadline — one that used a
+  // DIFFERENT, already-active sale's real price before ever reaching the target isn't the bypass
+  // this cleanup exists for (see runSaleAwareBuyFlow's own comment above).
+  const toRemove = result.duringSalePurchases.filter(p => p.purchaseTimestamp >= targetDeadline);
+  for (const { actionId } of toRemove.reverse()) {
+    debugLog(`${label} cleanup: removing duringSale purchase`, { actionId });
     await actionsStore.executeUndo(actionId, 'dependents');
   }
 
+  // The buy loop only advances time as a side effect of buying something. If it stopped because
+  // candidates ran out rather than because targetDeadline was actually reached, carry the clock
+  // (and any sale/boost toggles due along the way) the rest of the way there on its own.
+  advanceToDeadline(targetDeadline);
+
   const endAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
-  debugLogEnd('handleBuyUntilSaleWarning', {
-    iterations,
-    removedDuringSalePurchases: duringSaleActionIds.length,
+  debugLogEnd(label, {
+    iterations: result.purchased,
+    removedDuringSalePurchases: toRemove.length,
     endAbsoluteTime,
     endAbsoluteTimeIso: new Date(endAbsoluteTime * 1000).toISOString(),
     totalSecondsAdded: endAbsoluteTime - startAbsoluteTime,
@@ -901,37 +941,31 @@ async function handleBuyUntilSaleWarning() {
   });
 }
 
+// Repeatedly buys the best-ranked ROI research that still passes the 70%-by-next-sale check,
+// recalculating the list after each purchase (since buying one research changes the math for the
+// rest). Items that fail the check are skipped rather than treated as a stopping point, since a
+// cheaper lower-ranked item may still be affordable in time.
+async function handleBuyUntilSaleWarning() {
+  await runSaleAwareBuyFlow('handleBuyUntilSaleWarning', () => nextRoiCandidate.value);
+}
+
 // Best-ranked buyable ROI item that would earn back 100% of its cost before the next sale starts —
 // a stricter bar than "Buy Until Sale Warning"'s 70%, for confidently stocking up ahead of a
-// deadline. Same "skip failures, don't stop on them" semantics as nextRoiCandidate.
+// deadline. Same `meetsSaleAwareDeadline`-based rule as nextRoiCandidate, just with `100` instead
+// of `70` — see that computed's comment, and `meetsSaleAwareDeadline`'s own doc comment, for why
+// `duringSale` items aren't pre-excluded here either.
 const nextRoiDeadlineCandidate = computed(() =>
-  sortedResearches.value.find(item => {
-    if (!item.canBuy || item.isMaxed) return false;
-    if (item.earningsDelta === undefined || item.purchaseTimestamp === undefined) return false;
-    return meetsROIByDeadline(item.earningsDelta, item.price, item.purchaseTimestamp, nextSaleStart.value, 100);
-  })
+  sortedResearches.value.find(item => meetsSaleAwareDeadline(item, nextSaleStart.value, 100))
 );
 
 const canBuyUntilROIDeadline = computed(() => !!nextRoiDeadlineCandidate.value);
 
 // Repeatedly buys the best-ranked ROI research that would earn back 100% of its cost before the
-// next sale starts, recalculating after each purchase. Same loop shape as handleBuyUntilSaleWarning.
-function handleBuyUntilROIDeadline() {
-  batch(() => {
-    buyWhilePassingCheck(
-      () => {
-        const next = nextRoiDeadlineCandidate.value;
-        return next ? { researchId: next.research.id } : undefined;
-      },
-      researchId => {
-        const item = nextRoiDeadlineCandidate.value;
-        const research = getResearchById(researchId);
-        if (!research) return false;
-        if (item) syncEventStateForItem(item);
-        return buyOneLevel(research);
-      }
-    );
-  });
+// next sale starts, recalculating after each purchase. See `runSaleAwareBuyFlow` — identical shape
+// to handleBuyUntilSaleWarning, differing only in nextRoiDeadlineCandidate's stricter 100%-by-
+// deadline bar vs. nextRoiCandidate's 70%.
+async function handleBuyUntilROIDeadline() {
+  await runSaleAwareBuyFlow('handleBuyUntilROIDeadline', () => nextRoiDeadlineCandidate.value);
 }
 
 // Best-ranked buyable Delivery Impact item that would still finish before the sale ends,
