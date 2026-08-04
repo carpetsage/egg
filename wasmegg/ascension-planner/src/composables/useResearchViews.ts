@@ -38,11 +38,53 @@ import {
 } from '@/calculations/milestoneChain';
 import { type ResearchRankingItem, rankResearchByROI, rankResearchByELRImpact } from '@/calculations/researchRanking';
 import { type PurchaseEventCrossings } from '@/calculations/researchROI';
+import {
+  simulateSaleAwareBuy,
+  simulateSaleEndsBuy,
+  summarizeResearchLevelChanges,
+} from '@/calculations/smartBuyPreview';
 import { yieldForOverlayPaint } from '@/lib/yieldForOverlayPaint';
+import type { SimulationContext } from '@/engine/types';
+import { ei } from 'lib';
+
+/**
+ * Shared by `realisticSummary` (current research levels) and the Smart Buy tab's before/after
+ * delivery-rate comparisons (simulated post-purchase levels) — same "optimal artifacts + max
+ * habs/vehicles" pipeline, just parameterized over which research levels to evaluate instead of
+ * always reading the live store, so both callers stay in sync by construction.
+ */
+function computeRealisticDeliverySummary(
+  researchLevels: Record<string, number>,
+  rawBackup: ei.IBackup | null | undefined,
+  context: SimulationContext
+): { layRate: number; shippingRate: number; elr: number } | null {
+  if (!rawBackup) return null;
+
+  const optimal = getOptimalELRSet(rawBackup, {
+    assumeMaxHabsVehicles: true,
+    excludeGusset: false,
+    commonResearch: researchLevels,
+    epicResearchLevels: context.epicResearchLevels,
+    colleggtibleModifiers: context.colleggtibleModifiers,
+  });
+  const artifactMods = calculateArtifactModifiers(optimal);
+  const stats = computeRealisticELR(
+    researchLevels,
+    artifactMods,
+    context.epicResearchLevels,
+    context.colleggtibleModifiers
+  );
+
+  return {
+    layRate: stats.layRate * 3600,
+    shippingRate: stats.shippingRate * 3600,
+    elr: stats.effectiveRate * 3600,
+  };
+}
 
 export type { MilestoneTarget } from '@/calculations/milestoneChain';
 
-export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr' | 'milestones';
+export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr' | 'milestones' | 'smart_buy';
 export type ElrViewMode = 'realistic' | 'potential';
 export type ElrSortMode = 'efficiency' | 'impact';
 export type ElrRoiDisplayMode = 'hpp' | 'time';
@@ -115,6 +157,11 @@ export const VIEWS = [
   { id: 'roi', label: 'Earnings ROI', description: 'Prioritizes upgrades that pay for themselves fastest.' },
   { id: 'elr', label: 'Delivery Impact', description: 'Sorted by impact to your Delivery Rate.' },
   { id: 'milestones', label: 'Milestones', description: 'Fastest ROI path to a tier unlock or research level.' },
+  {
+    id: 'smart_buy',
+    label: 'Smart Buy',
+    description: 'Auto-buy research: sale-aware and threshold-based buying in one place.',
+  },
 ] as const;
 
 const RESEARCH_VIEW_STORAGE_KEY = 'ascension_research_view';
@@ -226,32 +273,12 @@ export function useResearchViews() {
   );
 
   const realisticSummary = computed(() => {
-    const rawBackup = initialStateStore.rawBackup;
-    if (!rawBackup || elrViewMode.value !== 'realistic') return null;
-
-    const researchLevels = commonResearchStore.researchLevels;
-    const context = getSimulationContext();
-
-    const optimal = getOptimalELRSet(rawBackup, {
-      assumeMaxHabsVehicles: true,
-      excludeGusset: false,
-      commonResearch: researchLevels,
-      epicResearchLevels: context.epicResearchLevels,
-      colleggtibleModifiers: context.colleggtibleModifiers,
-    });
-    const artifactMods = calculateArtifactModifiers(optimal);
-    const stats = computeRealisticELR(
-      researchLevels,
-      artifactMods,
-      context.epicResearchLevels,
-      context.colleggtibleModifiers
+    if (elrViewMode.value !== 'realistic') return null;
+    return computeRealisticDeliverySummary(
+      commonResearchStore.researchLevels,
+      initialStateStore.rawBackup,
+      getSimulationContext()
     );
-
-    return {
-      layRate: stats.layRate * 3600,
-      shippingRate: stats.shippingRate * 3600,
-      elr: stats.effectiveRate * 3600,
-    };
   });
 
   const viewDescription = computed(() => {
@@ -277,6 +304,8 @@ export function useResearchViews() {
       }
       case 'milestones':
         return 'Pick a tier unlock or a specific research level, and see the fastest ROI-optimal path to it.';
+      case 'smart_buy':
+        return 'Auto-buy research: sale-aware ROI buying and threshold-based smart buy, all in one place.';
       default:
         return '';
     }
@@ -690,8 +719,180 @@ export function useResearchViews() {
     };
   });
 
+  // Independent, reactive wrapper around `rankResearchByROI` — deliberately has no `currentView`
+  // dependency of its own. Vue computeds are lazy (only re-run when actually read), so whether this
+  // does real work already tracks "is something currently reading it" rather than "which tab is
+  // selected" — the roi/elr/smart_buy tabs' own `v-if`s already gate that for template consumers.
+  // Baking a view check in here would just mean updating an allowlist by hand every time a new
+  // consumer (e.g. the smart_buy tab) needs this list, which is the exact rigidity being avoided.
+  const roiRankedResearches = computed(() => {
+    const researchLevels = commonResearchStore.researchLevels;
+    const isSale = isResearchSaleActive.value;
+    const mods = costModifiers.value;
+    const context = getSimulationContext();
+    const effectiveSnapshot = actionsStore.effectiveSnapshot;
+
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (effectiveSnapshot.lastStepTime - offset);
+
+    const ranked = rankResearchByROI(
+      researchLevels,
+      effectiveSnapshot,
+      context,
+      mods,
+      isSale,
+      absoluteSimTime,
+      researchSaleDeadline.value,
+      roiMode.value,
+      deliveryImpactOnly.value
+    );
+
+    return ranked.map(item => toResearchViewItemFromROI(item, absoluteSimTime));
+  });
+
+  // Independent, reactive wrapper around `rankResearchByELRImpact` — see `roiRankedResearches`'
+  // doc comment above for why this has no `currentView` dependency of its own either.
+  const elrRankedResearches = computed(() => {
+    const researchLevels = commonResearchStore.researchLevels;
+    const isSale = isResearchSaleActive.value;
+    const mods = costModifiers.value;
+    const context = getSimulationContext();
+
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+
+    const ranked = rankResearchByELRImpact(
+      researchLevels,
+      initialStateStore.rawBackup,
+      actionsStore.effectiveSnapshot,
+      context,
+      mods,
+      isSale,
+      absoluteSimTime,
+      researchSaleDeadline.value,
+      elrViewMode.value,
+      elrSortMode.value
+    );
+
+    return ranked.map(toResearchViewItemFromELR);
+  });
+
+  // Dry-run plan for the sale-aware ROI buy flow ("70% Return" / "100% Return") — the single
+  // source of truth for "what gets bought, in what order" for both the Smart Buy preview and the
+  // real button click (see `simulateSaleAwareBuy`'s own doc comment). No `currentView` gate, same
+  // rationale as `roiRankedResearches` above.
+  const saleAwarePlan70 = computed(() => {
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+    return simulateSaleAwareBuy(
+      commonResearchStore.researchLevels,
+      actionsStore.effectiveSnapshot,
+      getSimulationContext(),
+      costModifiers.value,
+      absoluteSimTime,
+      researchSaleDeadline.value,
+      nextSaleStart.value,
+      roiMode.value,
+      deliveryImpactOnly.value,
+      70
+    );
+  });
+
+  const saleAwarePlan100 = computed(() => {
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+    return simulateSaleAwareBuy(
+      commonResearchStore.researchLevels,
+      actionsStore.effectiveSnapshot,
+      getSimulationContext(),
+      costModifiers.value,
+      absoluteSimTime,
+      researchSaleDeadline.value,
+      nextSaleStart.value,
+      roiMode.value,
+      deliveryImpactOnly.value,
+      100
+    );
+  });
+
+  const saleAwarePreview = computed(() =>
+    summarizeResearchLevelChanges(commonResearchStore.researchLevels, saleAwarePlan70.value.endLevels)
+  );
+
+  // "What 70% Return buys beyond what 100% Return would" — same summarizer, just with the two
+  // simulated end-states swapped in as "start"/"end" instead of "current"/"simulated".
+  const saleAwareExcludedAt100Preview = computed(() =>
+    summarizeResearchLevelChanges(saleAwarePlan100.value.endLevels, saleAwarePlan70.value.endLevels)
+  );
+
+  // Dry-run plan for "Buy Until Sale Ends" — only computed while a sale is actually active, same
+  // gating `canBuyUntilSaleDeadline` already applies (there's nothing meaningful to preview
+  // otherwise).
+  const saleEndsPlan = computed(() => {
+    if (!isResearchSaleActive.value) {
+      return {
+        researchIds: [] as string[],
+        endLevels: {} as Record<string, number>,
+        endSnapshot: actionsStore.effectiveSnapshot,
+      };
+    }
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+    return simulateSaleEndsBuy(
+      commonResearchStore.researchLevels,
+      actionsStore.effectiveSnapshot,
+      getSimulationContext(),
+      costModifiers.value,
+      absoluteSimTime,
+      researchSaleDeadline.value,
+      elrViewMode.value,
+      elrSortMode.value,
+      initialStateStore.rawBackup
+    );
+  });
+
+  const saleEndsPreview = computed(() =>
+    summarizeResearchLevelChanges(commonResearchStore.researchLevels, saleEndsPlan.value.endLevels)
+  );
+
+  // Current vs. simulated-post-purchase earnings rate for the 70%/100% Return buttons — the
+  // `endSnapshot` each plan already carries (see `simulateSaleAwareBuy`'s doc comment) is exactly
+  // what this needed, no extra simulation required.
+  const currentOfflineEarningsHourly = computed(() => actionsStore.effectiveSnapshot.offlineEarnings * 3600);
+
+  const saleAwareEarningsSummary70 = computed(() => ({
+    before: currentOfflineEarningsHourly.value,
+    after: saleAwarePlan70.value.endSnapshot.offlineEarnings * 3600,
+  }));
+
+  const saleAwareEarningsSummary100 = computed(() => ({
+    before: currentOfflineEarningsHourly.value,
+    after: saleAwarePlan100.value.endSnapshot.offlineEarnings * 3600,
+  }));
+
+  // Current vs. simulated-post-purchase Delivery Rate for "Buy Until Sale Ends" — same "realistic"
+  // (optimal artifacts + max habs/vehicles) calculation `realisticSummary` uses, just evaluated
+  // against the plan's simulated end levels instead of the live research levels.
+  const saleEndsDeliverySummary = computed(() => {
+    const rawBackup = initialStateStore.rawBackup;
+    const context = getSimulationContext();
+    const before = computeRealisticDeliverySummary(commonResearchStore.researchLevels, rawBackup, context);
+    const after = computeRealisticDeliverySummary(saleEndsPlan.value.endLevels, rawBackup, context);
+    if (!before || !after) return null;
+    return { before: before.elr, after: after.elr };
+  });
+
   const sortedResearches = computed(() => {
-    if (currentView.value === 'game') return [];
+    if (currentView.value === 'game' || currentView.value === 'smart_buy') return [];
+
+    if (currentView.value === 'roi') return roiRankedResearches.value;
+    if (currentView.value === 'elr') return elrRankedResearches.value;
+    if (currentView.value === 'milestones') return milestoneChainResult.value.items.map(toResearchViewItem);
 
     const all = getCommonResearches();
     const researchLevels = commonResearchStore.researchLevels;
@@ -890,52 +1091,6 @@ export function useResearchViews() {
       return result;
     }
 
-    if (currentView.value === 'roi') {
-      const context = getSimulationContext();
-      const effectiveSnapshot = actionsStore.effectiveSnapshot;
-
-      const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
-      const offset = actionsStore.planStartOffset;
-      const absoluteSimTime = baseTimestamp + (effectiveSnapshot.lastStepTime - offset);
-
-      const ranked = rankResearchByROI(
-        researchLevels,
-        effectiveSnapshot,
-        context,
-        mods,
-        isSale,
-        absoluteSimTime,
-        researchSaleDeadline.value,
-        roiMode.value,
-        deliveryImpactOnly.value
-      );
-
-      return ranked.map(item => toResearchViewItemFromROI(item, absoluteSimTime));
-    }
-
-    if (currentView.value === 'elr') {
-      const context = getSimulationContext();
-
-      const ranked = rankResearchByELRImpact(
-        researchLevels,
-        initialStateStore.rawBackup,
-        actionsStore.effectiveSnapshot,
-        context,
-        mods,
-        isSale,
-        absoluteSimTime,
-        researchSaleDeadline.value,
-        elrViewMode.value,
-        elrSortMode.value
-      );
-
-      return ranked.map(toResearchViewItemFromELR);
-    }
-
-    if (currentView.value === 'milestones') {
-      return milestoneChainResult.value.items.map(toResearchViewItem);
-    }
-
     return [];
   });
 
@@ -960,6 +1115,17 @@ export function useResearchViews() {
     tierSummaries,
     gameViewTimes,
     sortedResearches,
+    roiRankedResearches,
+    elrRankedResearches,
+    saleAwarePlan70,
+    saleAwarePlan100,
+    saleAwarePreview,
+    saleAwareExcludedAt100Preview,
+    saleEndsPlan,
+    saleEndsPreview,
+    saleAwareEarningsSummary70,
+    saleAwareEarningsSummary100,
+    saleEndsDeliverySummary,
     realisticSummary,
     researchSaleDeadline,
     nextSaleStart,

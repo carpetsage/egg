@@ -2,101 +2,19 @@
   <div class="space-y-4">
     <ResearchSaleToggle :is-active="isResearchSaleActive" @toggle="handleToggleSale" />
 
-    <SmartBuy
-      v-model:always-on="smartBuyState.alwaysOn"
-      @buy="handleSmartBuy"
-      @update="state => (smartBuyState = state)"
-    />
-
     <ResearchViewSelector v-model="currentView" :views="VIEWS" />
 
     <p class="text-sm text-gray-500 mb-4 px-1">
       {{ viewDescription }}
     </p>
 
-    <div v-if="currentView === 'roi'" class="px-1 mb-2 space-y-2">
-      <div class="flex items-center justify-between">
-        <span class="text-xs text-gray-500">Delivery Impact Only</span>
-        <button
-          class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
-          :class="deliveryImpactOnly ? 'bg-indigo-500' : 'bg-slate-200'"
-          @click="deliveryImpactOnly = !deliveryImpactOnly"
-        >
-          <span
-            class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
-            :class="deliveryImpactOnly ? 'translate-x-[22px]' : 'translate-x-1'"
-          />
-        </button>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-xs text-gray-500">Achieve ROI</span>
-        <div class="flex items-center gap-1.5">
-          <div class="flex gap-0.5 p-0.5 bg-gray-100 rounded-md shadow-inner">
-            <button
-              class="px-2 py-0.5 text-[10px] font-medium rounded transition-all whitespace-nowrap"
-              :class="
-                roiMode === 'immediate'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
-              "
-              @click="roiMode = 'immediate'"
-            >
-              Immediate Impact
-            </button>
-            <button
-              class="px-2 py-0.5 text-[10px] font-medium rounded transition-all whitespace-nowrap"
-              :class="
-                roiMode === 'maxed_vehicles'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
-              "
-              @click="roiMode = 'maxed_vehicles'"
-            >
-              Max Vehicles
-            </button>
-          </div>
-          <span
-            v-tippy="
-              'Max Vehicles mode calculates Achieve ROI as if you had gone to Kindness and bought all available vehicles and hyperloop cars — after buying the research in question.'
-            "
-            class="w-4 h-4 inline-flex items-center justify-center rounded-full bg-gray-100 text-gray-400 text-[9px] cursor-help hover:bg-gray-200 transition-colors leading-none shrink-0"
-            >?</span
-          >
-        </div>
-      </div>
-
-      <button
-        v-tippy="
-          'Buys the top-ranked research over and over, recalculating after each purchase, and stops right before one that won\'t earn back 70% of its cost before the next sale. Automatically turns the research sale and 2x earnings boost on/off in your action history to match when each purchase actually happens — look for the Sale/2x badges on each item.'
-        "
-        class="btn-premium btn-primary w-full mt-6 py-4 flex items-center justify-center gap-2 group disabled:opacity-20 shadow-lg shadow-slate-900/10"
-        :disabled="!canBuyUntilSaleWarning"
-        @click="handleBuyUntilSaleWarning"
-      >
-        <img
-          :src="iconURL('egginc-extras/icon_research_sale.png', 64)"
-          class="w-5 h-5 object-contain group-hover:scale-110 transition-transform"
-          alt="Research Sale"
-        />
-        <span>Buy Until Sale Warning</span>
-      </button>
-
-      <button
-        v-tippy="
-          'Buys the top-ranked research over and over, recalculating after each purchase, and stops right before one that won\'t earn back 100% of its cost before the next sale starts — a stricter bar than Buy Until Sale Warning\'s 70%. Automatically turns the research sale and 2x earnings boost on/off in your action history to match when each purchase actually happens.'
-        "
-        class="btn-premium btn-primary w-full py-4 flex items-center justify-center gap-2 group disabled:opacity-20 shadow-lg shadow-slate-900/10"
-        :disabled="!canBuyUntilROIDeadline"
-        @click="handleBuyUntilROIDeadline"
-      >
-        <img
-          :src="iconURL('egginc-extras/icon_research_sale.png', 64)"
-          class="w-5 h-5 object-contain group-hover:scale-110 transition-transform"
-          alt="Research Sale"
-        />
-        <span>Buy Until ROI Deadline</span>
-      </button>
-    </div>
+    <RoiViewControls
+      v-if="currentView === 'roi'"
+      :delivery-impact-only="deliveryImpactOnly"
+      :roi-mode="roiMode"
+      @update:delivery-impact-only="deliveryImpactOnly = $event"
+      @update:roi-mode="roiMode = $event"
+    />
 
     <ElrViewControls
       v-if="currentView === 'elr'"
@@ -108,22 +26,31 @@
       @update:roi-display-mode="elrRoiDisplayMode = $event"
     />
 
-    <button
-      v-if="currentView === 'elr'"
-      v-tippy="
-        'Buys the top-ranked research over and over, recalculating after each purchase, and stops right before one that wouldn\'t finish before the research sale ends. Only available while the research sale is active. Automatically turns the sale and 2x earnings boost on/off in your action history to match when each purchase actually happens.'
-      "
-      class="btn-premium btn-primary w-full py-4 flex items-center justify-center gap-2 group disabled:opacity-20 shadow-lg shadow-slate-900/10"
-      :disabled="!canBuyUntilSaleDeadline"
-      @click="handleBuyUntilSaleDeadline"
-    >
-      <img
-        :src="iconURL('egginc-extras/icon_research_sale.png', 64)"
-        class="w-5 h-5 object-contain group-hover:scale-110 transition-transform"
-        alt="Research Sale"
-      />
-      <span>Buy Until Sale Ends</span>
-    </button>
+    <SmartBuyView
+      v-if="currentView === 'smart_buy'"
+      :auto-buy-always-on="autoBuyState.alwaysOn"
+      :delivery-impact-only="deliveryImpactOnly"
+      :roi-mode="roiMode"
+      :can-buy-until-sale-warning="canBuyUntilSaleWarning"
+      :can-buy-until-roi-deadline="canBuyUntilROIDeadline"
+      :can-buy-until-sale-deadline="canBuyUntilSaleDeadline"
+      :quick-buy-preview="quickBuyPreview"
+      :sale-aware-preview="saleAwarePreview"
+      :sale-aware-excluded-at100-preview="saleAwareExcludedAt100Preview"
+      :sale-ends-preview="saleEndsPreview"
+      :sale-aware-earnings-summary70="saleAwareEarningsSummary70"
+      :sale-aware-earnings-summary100="saleAwareEarningsSummary100"
+      :sale-ends-delivery-summary="saleEndsDeliverySummary"
+      @update:auto-buy-always-on="autoBuyState.alwaysOn = $event"
+      @quick-buy="handleThresholdBuy"
+      @update:quick-buy-threshold-seconds="quickBuyThreshold = $event"
+      @auto-buy-update="state => (autoBuyState = state)"
+      @update:delivery-impact-only="deliveryImpactOnly = $event"
+      @update:roi-mode="roiMode = $event"
+      @buy-until-sale-warning="handleBuyUntilSaleWarning"
+      @buy-until-roi-deadline="handleBuyUntilROIDeadline"
+      @buy-until-sale-deadline="handleBuyUntilSaleDeadline"
+    />
 
     <MilestoneTargetPicker
       v-if="currentView === 'milestones'"
@@ -288,7 +215,7 @@
 
     <!-- Flat/Sorted Views -->
     <ResearchFlatView
-      v-else
+      v-else-if="currentView !== 'smart_buy'"
       :sorted-researches="sortedResearches"
       :view="currentView"
       :thresholds="TIER_THRESHOLDS"
@@ -320,7 +247,6 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { iconURL } from 'lib';
 import { getDiscountedVirtuePrice, getResearchById, type CommonResearch } from '@/calculations/commonResearch';
 import { formatDuration, formatNumber } from '@/lib/format';
 import { useCommonResearchStore } from '@/stores/commonResearch';
@@ -330,9 +256,9 @@ import { useVirtueStore } from '@/stores/virtue';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
-import { useResearchViews, VIEWS, type ResearchViewItem } from '@/composables/useResearchViews';
+import { useResearchViews, VIEWS } from '@/composables/useResearchViews';
 import { getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
-import { findSmartBuyCandidate } from '@/calculations/smartBuyCandidate';
+import { getSimulationContext } from '@/engine/adapter';
 import { buyWhilePassingCheck, buyUntilRealSaleStarts } from '@/calculations/researchRanking';
 import {
   getSaleAwareTimeToSave,
@@ -340,15 +266,21 @@ import {
   meetsSaleAwareDeadline,
   type EventCrossing,
 } from '@/calculations/researchROI';
+import {
+  simulateThresholdBuy,
+  summarizeResearchLevelChanges,
+  type SaleAwarePlanEntry,
+} from '@/calculations/smartBuyPreview';
 import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
 
 // Sub-components
 import ResearchSaleToggle from './ResearchSaleToggle.vue';
-import SmartBuy from './SmartBuy.vue';
 import ResearchViewSelector from './ResearchViewSelector.vue';
 import ResearchGameView from './ResearchGameView.vue';
 import ResearchFlatView from './ResearchFlatView.vue';
 import ElrViewControls from './ElrViewControls.vue';
+import RoiViewControls from './RoiViewControls.vue';
+import SmartBuyView from './SmartBuyView.vue';
 import MilestoneTargetPicker from './MilestoneTargetPicker.vue';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
@@ -368,8 +300,8 @@ const {
   deactivateAndContinue: handleExpiryDeactivateAndContinue,
 } = useEventExpiry();
 
-const smartBuyState = ref({ threshold: 0, alwaysOn: false });
-let isSmartBuying = false;
+const autoBuyState = ref({ threshold: 0, alwaysOn: false });
+let isThresholdBuying = false;
 const showEventCrossingDetails = ref(false);
 
 const {
@@ -393,11 +325,39 @@ const {
   tierSummaries,
   gameViewTimes,
   sortedResearches,
+  roiRankedResearches,
+  elrRankedResearches,
+  saleAwarePlan70,
+  saleAwarePlan100,
+  saleAwarePreview,
+  saleAwareExcludedAt100Preview,
+  saleEndsPlan,
+  saleEndsPreview,
+  saleAwareEarningsSummary70,
+  saleAwareEarningsSummary100,
+  saleEndsDeliverySummary,
   realisticSummary,
   researchSaleDeadline,
   nextSaleStart,
   TIER_THRESHOLDS,
 } = useResearchViews();
+
+// Quick Buy's own live threshold (separate from Auto Buy's) — fed up from QuickBuy.vue's input so
+// its preview can update as the user types, without QuickBuy owning any store access itself.
+const quickBuyThreshold = ref(0);
+const quickBuyPlan = computed(() =>
+  simulateThresholdBuy(
+    commonResearchStore.researchLevels,
+    actionsStore.effectiveSnapshot,
+    getSimulationContext(),
+    costModifiers.value,
+    isResearchSaleActive.value,
+    quickBuyThreshold.value
+  )
+);
+const quickBuyPreview = computed(() =>
+  summarizeResearchLevelChanges(commonResearchStore.researchLevels, quickBuyPlan.value.endLevels)
+);
 
 function getNextLevelPrice(research: CommonResearch): number {
   const currentLevel = commonResearchStore.researchLevels[research.id] || 0;
@@ -473,8 +433,8 @@ function buyOneLevel(research: CommonResearch): boolean {
   );
 
   // Trigger automated sweep if Always On is enabled
-  if (!isSmartBuying && smartBuyState.value.alwaysOn) {
-    handleSmartBuy(smartBuyState.value.threshold);
+  if (!isThresholdBuying && autoBuyState.value.alwaysOn) {
+    handleThresholdBuy(autoBuyState.value.threshold);
   }
 
   return true;
@@ -744,10 +704,10 @@ function advanceToDeadline(targetDeadline: number) {
 
 // Automatically sweep when Always On is toggled on
 watch(
-  () => smartBuyState.value.alwaysOn,
+  () => autoBuyState.value.alwaysOn,
   newVal => {
-    if (newVal && !isSmartBuying) {
-      handleSmartBuy(smartBuyState.value.threshold);
+    if (newVal && !isThresholdBuying) {
+      handleThresholdBuy(autoBuyState.value.threshold);
     }
   }
 );
@@ -767,21 +727,24 @@ function handleBuyResearch(research: CommonResearch) {
 // by `runSaleAwareBuyFlow`'s cleanup sweep, since an exclusion here would throw the wait away
 // entirely rather than just the purchase).
 const nextRoiCandidate = computed(() =>
-  sortedResearches.value.find(item => meetsSaleAwareDeadline(item, nextSaleStart.value, 70))
+  roiRankedResearches.value.find(item => meetsSaleAwareDeadline(item, nextSaleStart.value, 70))
 );
 
 const canBuyUntilSaleWarning = computed(() => !!nextRoiCandidate.value);
 
-// Diagnostic: logs the top of the ROI-sorted list whenever it changes, so the sale-warning
+// Diagnostic: logs the top of the ROI-ranked list whenever it changes, so the sale-warning
 // calculation for whatever's currently ranked #1 can be inspected without needing to click a Buy
 // button (e.g. after an undo, to check whether the warning that should show for the new top item
-// actually does).
+// actually does). The watch source only reads `roiRankedResearches.value` while on the `roi` or
+// `smart_buy` tab — since that computed no longer gates itself on `currentView` (see
+// `roiRankedResearches`'s doc comment in useResearchViews.ts), this local check is what keeps the
+// ROI ranking from being force-recomputed on every relevant store change while on an unrelated tab.
 watch(
-  sortedResearches,
+  () => (currentView.value === 'roi' || currentView.value === 'smart_buy' ? roiRankedResearches.value : null),
   list => {
-    if (currentView.value !== 'roi' || list.length === 0) return;
+    if (!list || list.length === 0) return;
     const top = list[0];
-    debugLog('sortedResearches top (roi view)', {
+    debugLog('roiRankedResearches top (roi/smart_buy view)', {
       researchId: top.research.id,
       researchName: top.research.name,
       targetLevel: top.targetLevel,
@@ -810,11 +773,11 @@ watch(
 // Diagnostic: exposes the top-of-list sale-warning inputs directly to the browser console, on
 // demand, bypassing the debugLog buffer entirely (avoids confusion from stale/leftover entries in
 // that buffer from earlier runs). Call `__debugResearchTop()` in devtools console while the ROI
-// view is open.
+// or Smart Buy view is open.
 (window as unknown as { __debugResearchTop?: () => void }).__debugResearchTop = () => {
-  const top = sortedResearches.value[0];
+  const top = roiRankedResearches.value[0];
   if (!top) {
-    console.log('[debug] sortedResearches is empty (or not on the roi view)');
+    console.log('[debug] roiRankedResearches is empty');
     return;
   }
   console.log('[debug] top ROI candidate', {
@@ -842,13 +805,15 @@ watch(
   });
 };
 
-// Shared driver behind "Buy Until Sale Warning" and "Buy Until ROI Deadline": both repeatedly buy
-// whatever `getNextCandidate()` picks (pre-filtered by `meetsSaleAwareDeadline` at their own
-// target percent — 70 for the former, 100 for the latter), stopping once the target deadline is
-// reached and sweeping out any purchase that only passed via the `duringSale` bypass AND landed
-// at-or-after that deadline (see `buyUntilRealSaleStarts`'s doc comment in researchRanking.ts for
-// the full rationale). This is the Pinia-store-bound "glue" around that pure, reusable loop shape
-// — `label` distinguishes the two callers in the debug log.
+// Shared driver behind "Buy Until Sale Warning" and "Buy Until ROI Deadline": both walk a
+// precomputed plan (`saleAwarePlan70`/`saleAwarePlan100` — see `simulateSaleAwareBuy`'s doc
+// comment in smartBuyPreview.ts) rather than independently re-deriving candidates live, so the
+// preview shown under each button and what actually gets bought are guaranteed to match — one
+// source of truth, not two. Only candidate *selection* comes from the plan; buying still goes
+// through the real `syncEventStateForItem`/`buyOneLevel` (inserting real wait/toggle/purchase
+// history) and the same post-hoc bypass-cleanup sweep as before (see `buyUntilRealSaleStarts`'s
+// doc comment in researchRanking.ts for the full rationale). `label` distinguishes the two
+// callers in the debug log.
 //
 // The deadline is captured ONCE, up front, rather than re-derived from "is a sale active right
 // now" each iteration: if the button is clicked while a DIFFERENT sale is already active,
@@ -856,7 +821,7 @@ watch(
 // its input), to the sale that's actually 6-7 days out — so buying should proceed through the
 // currently-active sale (at whatever its real price is) toward THAT target, not bail out
 // immediately just because some sale happens to be live already.
-async function runSaleAwareBuyFlow(label: string, getNextCandidate: () => ResearchViewItem | undefined) {
+async function runSaleAwareBuyFlow(label: string, plan: SaleAwarePlanEntry[]) {
   const startAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
   const targetDeadline = nextSaleStart.value;
   debugLogStart(label, {
@@ -864,51 +829,44 @@ async function runSaleAwareBuyFlow(label: string, getNextCandidate: () => Resear
     startAbsoluteTimeIso: new Date(startAbsoluteTime * 1000).toISOString(),
     targetDeadline,
     targetDeadlineIso: isFinite(targetDeadline) ? new Date(targetDeadline * 1000).toISOString() : 'Infinity',
+    planLength: plan.length,
   });
 
   let result: { purchased: number; duringSalePurchases: { actionId: string; purchaseTimestamp: number }[] } = {
     purchased: 0,
     duringSalePurchases: [],
   };
-  let iteration = 0;
+  let index = 0;
   await batch(() => {
     result = buyUntilRealSaleStarts(
       () => {
         // This closure is only ever invoked when buyUntilRealSaleStarts's own `shouldStop()`
         // check (same targetDeadline comparison, evaluated just before this) already passed —
         // so if the log for this iteration is missing entirely, the run stopped due to the
-        // deadline; if it's present but `researchId` is undefined, getNextCandidate() found
-        // nothing left to buy on its own (ran dry before ever reaching the deadline).
-        iteration++;
+        // deadline; if it's present but the plan ran dry, the precomputed plan simply had
+        // nothing left (it already accounted for the deadline itself when it was built).
+        const next = plan[index];
         const currentAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
-        const next = getNextCandidate();
         debugLog(`${label} candidate`, {
-          iteration,
+          iteration: index + 1,
           currentAbsoluteTime,
           currentAbsoluteTimeIso: new Date(currentAbsoluteTime * 1000).toISOString(),
           targetDeadline,
           targetDeadlineIso: isFinite(targetDeadline) ? new Date(targetDeadline * 1000).toISOString() : 'Infinity',
-          researchId: next?.research.id,
-          researchName: next?.research.name,
-          targetLevel: next?.targetLevel,
-          timeToBuySeconds: next?.timeToBuySeconds,
+          researchId: next?.researchId,
           purchaseTimestamp: next?.purchaseTimestamp,
           purchaseTimestampIso:
             next?.purchaseTimestamp !== undefined ? new Date(next.purchaseTimestamp * 1000).toISOString() : undefined,
           duringSale: next?.duringSale,
         });
-        if (!next || next.purchaseTimestamp === undefined) return undefined;
-        return {
-          researchId: next.research.id,
-          duringSale: !!next.duringSale,
-          purchaseTimestamp: next.purchaseTimestamp,
-        };
+        return next;
       },
       researchId => {
-        const item = getNextCandidate();
+        const next = plan[index];
+        index++;
         const research = getResearchById(researchId);
         if (!research) return false;
-        if (item) syncEventStateForItem(item);
+        if (next) syncEventStateForItem({ research });
         return buyOneLevel(research);
       },
       () => absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime) >= targetDeadline,
@@ -941,12 +899,10 @@ async function runSaleAwareBuyFlow(label: string, getNextCandidate: () => Resear
   });
 }
 
-// Repeatedly buys the best-ranked ROI research that still passes the 70%-by-next-sale check,
-// recalculating the list after each purchase (since buying one research changes the math for the
-// rest). Items that fail the check are skipped rather than treated as a stopping point, since a
-// cheaper lower-ranked item may still be affordable in time.
+// Executes the precomputed 70%-return plan (`saleAwarePlan70` — same plan the preview under the
+// button displays).
 async function handleBuyUntilSaleWarning() {
-  await runSaleAwareBuyFlow('handleBuyUntilSaleWarning', () => nextRoiCandidate.value);
+  await runSaleAwareBuyFlow('handleBuyUntilSaleWarning', saleAwarePlan70.value.entries);
 }
 
 // Best-ranked buyable ROI item that would earn back 100% of its cost before the next sale starts —
@@ -955,87 +911,73 @@ async function handleBuyUntilSaleWarning() {
 // of `70` — see that computed's comment, and `meetsSaleAwareDeadline`'s own doc comment, for why
 // `duringSale` items aren't pre-excluded here either.
 const nextRoiDeadlineCandidate = computed(() =>
-  sortedResearches.value.find(item => meetsSaleAwareDeadline(item, nextSaleStart.value, 100))
+  roiRankedResearches.value.find(item => meetsSaleAwareDeadline(item, nextSaleStart.value, 100))
 );
 
 const canBuyUntilROIDeadline = computed(() => !!nextRoiDeadlineCandidate.value);
 
-// Repeatedly buys the best-ranked ROI research that would earn back 100% of its cost before the
-// next sale starts, recalculating after each purchase. See `runSaleAwareBuyFlow` — identical shape
-// to handleBuyUntilSaleWarning, differing only in nextRoiDeadlineCandidate's stricter 100%-by-
-// deadline bar vs. nextRoiCandidate's 70%.
+// Executes the precomputed 100%-return plan (`saleAwarePlan100` — same plan the exclusion preview
+// under the button is derived from).
 async function handleBuyUntilROIDeadline() {
-  await runSaleAwareBuyFlow('handleBuyUntilROIDeadline', () => nextRoiDeadlineCandidate.value);
+  await runSaleAwareBuyFlow('handleBuyUntilROIDeadline', saleAwarePlan100.value.entries);
 }
 
 // Best-ranked buyable Delivery Impact item that would still finish before the sale ends,
 // i.e. the one "Buy Until Sale Ends" would buy next. A higher-ranked item may be skipped
 // over here because it fails the check while a cheaper, lower-ranked one still passes.
 const nextElrCandidate = computed(() =>
-  sortedResearches.value.find(item => item.canBuy && !item.isMaxed && !item.showDeadlineWarning)
+  elrRankedResearches.value.find(item => item.canBuy && !item.isMaxed && !item.showDeadlineWarning)
 );
 
 const canBuyUntilSaleDeadline = computed(() => isResearchSaleActive.value && !!nextElrCandidate.value);
 
-// Repeatedly buys the best-ranked Delivery Impact research that would still finish before
-// the sale ends, recalculating the list after each purchase. Items that fail the check are
-// skipped rather than treated as a stopping point, since a cheaper lower-ranked item may
-// still be affordable in time. Stops only once every remaining purchasable item fails the
-// check.
+// Executes the precomputed sale-ends plan (`saleEndsPlan` — same plan the preview under the
+// button displays). Candidate selection comes from the plan; buying still goes through the real
+// `syncEventStateForItem`/`buyOneLevel`.
 function handleBuyUntilSaleDeadline() {
   if (!isResearchSaleActive.value) return;
 
+  const plan = saleEndsPlan.value.researchIds;
+  let index = 0;
   batch(() => {
     buyWhilePassingCheck(
-      () => {
-        const next = nextElrCandidate.value;
-        return next ? { researchId: next.research.id } : undefined;
-      },
+      () => (index < plan.length ? { researchId: plan[index] } : undefined),
       researchId => {
-        const item = nextElrCandidate.value;
+        index++;
         const research = getResearchById(researchId);
         if (!research) return false;
-        if (item) syncEventStateForItem(item);
+        syncEventStateForItem({ research });
         return buyOneLevel(research);
       }
     );
   });
 }
 
-function handleSmartBuy(threshold: number) {
-  if (isSmartBuying) return;
-  isSmartBuying = true;
+// Shared by Quick Buy's one-time click and Auto Buy's background sweep. Executes the precomputed
+// plan from `simulateThresholdBuy` (same function backing Quick Buy's own live preview) rather
+// than independently re-deriving candidates — unifies both callers' execution onto one code path,
+// even though only Quick Buy gets a preview *displayed*.
+function handleThresholdBuy(threshold: number) {
+  if (isThresholdBuying) return;
+  isThresholdBuying = true;
 
   batch(() => {
     try {
-      let itemBought = true;
-      // Limit iterations to prevent infinite loops in edge cases
-      let iterations = 0;
-      const maxIterations = 2500;
-
-      while (itemBought && iterations < maxIterations) {
-        itemBought = false;
-        iterations++;
-
-        const levels = commonResearchStore.researchLevels;
-        const snapshot = actionsStore.effectiveSnapshot;
-        const isSale = isResearchSaleActive.value;
-        const mods = costModifiers.value;
-
-        if (snapshot.offlineEarnings <= 0) break;
-
-        // No `currentAbsoluteTime` here on purpose: Smart Buy never simulates a wait, it buys
-        // instantly at today's real price, so it shouldn't pick a candidate based on an upcoming
-        // sale it isn't actually going to wait for (see findSmartBuyCandidate's doc comment).
-        const found = findSmartBuyCandidate(levels, mods, isSale, snapshot, threshold);
-        if (found) {
-          if (buyOneLevel(found.research)) {
-            itemBought = true;
-          }
-        }
+      const plan = simulateThresholdBuy(
+        commonResearchStore.researchLevels,
+        actionsStore.effectiveSnapshot,
+        getSimulationContext(),
+        costModifiers.value,
+        isResearchSaleActive.value,
+        threshold
+      );
+      for (const researchId of plan.researchIds) {
+        const research = getResearchById(researchId);
+        if (!research) continue;
+        if (!buyOneLevel(research)) break;
       }
     } finally {
-      isSmartBuying = false;
+      isThresholdBuying = false;
     }
   });
 }
@@ -1132,8 +1074,8 @@ function handleToggleSale() {
   // Update store state
   salesStore.setSaleActive('research', !currentlyActive);
 
-  // Deactivate Smart Buy Always On whenever a sale is toggled
-  smartBuyState.value.alwaysOn = false;
+  // Deactivate Auto Buy whenever a sale is toggled
+  autoBuyState.value.alwaysOn = false;
 
   completeExecution(
     {
