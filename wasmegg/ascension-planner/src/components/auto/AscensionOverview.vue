@@ -495,13 +495,18 @@ const shifts = computed(() => {
     endTime: absoluteTime,
   };
 
+  // Indices 1 and 2 are deliberately absent: the C1 -> {K1, I1} order is chosen dynamically at
+  // simulation time (see runC1K1I1Segment in ascension.ts), so whichever shift lands in that
+  // position isn't always K1 then I1 — those two are labeled from the shift's actual target egg
+  // below instead of by fixed position.
   const titles = [
-    'C1 Shift', 'K1 Shift', 'I1 Shift', 
-    'C2 Shift', 'K2 Shift', 'R1 Shift', 
-    'C3 Shift', 'H1 Shift', 'K3 Shift', 
-    'C4 Shift', 'I2 Shift', 'R2 Shift', 
+    'C1 Shift', undefined, undefined,
+    'C2 Shift', 'K2 Shift', 'R1 Shift',
+    'C3 Shift', 'H1 Shift', 'K3 Shift',
+    'C4 Shift', 'I2 Shift', 'R2 Shift',
     'H2 Shift',
   ];
+  const eggShiftTitles: Partial<Record<VirtueEgg, string>> = { kindness: 'K1 Shift', integrity: 'I1 Shift' };
   let shiftIndex = 0;
 
   for (const action of actions) {
@@ -512,9 +517,12 @@ const shifts = computed(() => {
       }
       shiftIndex++;
       const nextEgg = action.payload.toEgg;
+      const defaultTitle = `${nextEgg.charAt(0).toUpperCase() + nextEgg.slice(1)} Shift`;
       const title = isContinueCurrent
-        ? `${nextEgg.charAt(0).toUpperCase() + nextEgg.slice(1)} Shift`
-        : (titles[shiftIndex] || `${nextEgg.charAt(0).toUpperCase() + nextEgg.slice(1)} Shift`);
+        ? defaultTitle
+        : (shiftIndex === 1 || shiftIndex === 2)
+          ? (eggShiftTitles[nextEgg as VirtueEgg] || defaultTitle)
+          : (titles[shiftIndex] || defaultTitle);
 
       currentShift = {
         title: title,
