@@ -1,6 +1,8 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { ei, requestFirstContact, resolveContractsInBackup, titleCase, ContractLeague } from 'lib';
 
+import { resolveLocalContractsFromBackup } from './contracts_local';
+
 export type ContractType = 'Original' | 'Leggacy';
 
 //enum PlayerGrade {
@@ -33,6 +35,7 @@ export async function getContractFromPlayerSave(
     throw new Error(`No backup found in /ei/bot_first_contact response for ${userId}.`);
   }
   const backup = firstContact.backup!;
+  resolveLocalContractsFromBackup(backup);
   await resolveContractsInBackup(backup, userId);
   if (!backup.contracts) {
     throw new Error(`No contracts found in ${userId}'s backup.`);

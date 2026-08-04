@@ -1,25 +1,21 @@
-// ============================================================
-// Store schema validators + tank-level logic
-// ============================================================
-//
-// The schema validators and defaults are imported and exercised
-// directly from ./schema, which is a side-effect-free module. The
-// reactive store in ./index.ts cannot be imported here: it reads
-// localStorage at module load, which throws in the node environment
-// vitest runs in. Its refs, computeds, and load/persist helpers are
-// therefore covered indirectly, through the schema functions they
-// build on.
+// These cover ./schema only. The reactive store in ./index.ts reads
+// localStorage at module load and can't be imported under node, so its
+// load/persist helpers are exercised indirectly through these validators.
 
 import { describe, it, expect } from 'vitest';
 
-import { isExtrasConfig, isOverrideFlags, newExtras, newOverrides } from './schema';
+import {
+  DEFAULT_WAIT_TIME_DAYS,
+  isExtrasConfig,
+  isMissionFilters,
+  isOverrideFlags,
+  newExtras,
+  newMissionFilters,
+  newOverrides,
+} from './schema';
 
-// ============================================================
-// Test suite
-// ============================================================
-
-describe('OverrideFlags validator and defaults', () => {
-  it('newOverrides returns correct default structure', () => {
+describe('OverrideFlags', () => {
+  it('defaults everything to off', () => {
     const flags = newOverrides();
 
     expect(flags.craftingLevel).toBe(false);
@@ -31,34 +27,32 @@ describe('OverrideFlags validator and defaults', () => {
     expect(flags.tankLevel).toBe(false);
   });
 
-  it('isOverrideFlags accepts valid OverrideFlags object', () => {
-    const valid = newOverrides();
-    expect(isOverrideFlags(valid)).toBe(true);
+  it('validates a default object', () => {
+    expect(isOverrideFlags(newOverrides())).toBe(true);
   });
 
-  it('isOverrideFlags rejects missing required fields', () => {
+  it('rejects objects with missing fields', () => {
     const invalid = {
       craftingLevel: false,
       previousCrafts: false,
-      // missing other required fields
     };
     expect(isOverrideFlags(invalid)).toBe(false);
   });
 
-  it('isOverrideFlags accepts blobs without tankLevel (backwards compat)', () => {
-    const blobWithoutTankLevel = {
+  it('accepts persisted blobs without tankLevel', () => {
+    // tankLevel was added later; old localStorage blobs don't have it
+    const old = {
       craftingLevel: false,
       previousCrafts: false,
       epicResearchFTLLevel: false,
       epicResearchZerogLevel: false,
       shipLevels: {},
       shipVisibility: {},
-      // no tankLevel
     };
-    expect(isOverrideFlags(blobWithoutTankLevel)).toBe(true);
+    expect(isOverrideFlags(old)).toBe(true);
   });
 
-  it('isOverrideFlags rejects non-object inputs', () => {
+  it('rejects non-objects', () => {
     expect(isOverrideFlags(null)).toBe(false);
     expect(isOverrideFlags(undefined)).toBe(false);
     expect(isOverrideFlags('string')).toBe(false);
@@ -66,12 +60,10 @@ describe('OverrideFlags validator and defaults', () => {
   });
 });
 
-describe('ExtrasConfig validator and defaults', () => {
-  // newExtras receives the largest tank index from the caller (game data);
-  // any value passes straight through as the default tank level.
+describe('ExtrasConfig', () => {
   const MAX_TANK_LEVEL = 7;
 
-  it('newExtras returns correct default structure', () => {
+  it('defaults to max crafting level and the given tank level', () => {
     const extras = newExtras(MAX_TANK_LEVEL);
 
     expect(extras.craftingLevel).toBe(30);
@@ -79,32 +71,56 @@ describe('ExtrasConfig validator and defaults', () => {
     expect(extras.tankLevel).toBe(MAX_TANK_LEVEL);
   });
 
-  it('isExtrasConfig accepts valid ExtrasConfig object', () => {
-    const valid = newExtras(MAX_TANK_LEVEL);
-    expect(isExtrasConfig(valid)).toBe(true);
+  it('validates a default object', () => {
+    expect(isExtrasConfig(newExtras(MAX_TANK_LEVEL))).toBe(true);
   });
 
-  it('isExtrasConfig rejects missing required fields', () => {
-    const invalid = {
-      craftingLevel: 30,
-      // missing previousCrafts and tankLevel
-    };
-    expect(isExtrasConfig(invalid)).toBe(false);
+  it('rejects objects with missing fields', () => {
+    expect(isExtrasConfig({ craftingLevel: 30 })).toBe(false);
   });
 
-  it('isExtrasConfig accepts blobs without tankLevel (backwards compat)', () => {
-    const blobWithoutTankLevel = {
+  it('accepts persisted blobs without tankLevel', () => {
+    const old = {
       craftingLevel: 30,
       previousCrafts: 0,
-      // no tankLevel
     };
-    expect(isExtrasConfig(blobWithoutTankLevel)).toBe(true);
+    expect(isExtrasConfig(old)).toBe(true);
   });
 
-  it('isExtrasConfig rejects non-object inputs', () => {
+  it('rejects non-objects', () => {
     expect(isExtrasConfig(null)).toBe(false);
     expect(isExtrasConfig(undefined)).toBe(false);
     expect(isExtrasConfig('string')).toBe(false);
     expect(isExtrasConfig(123)).toBe(false);
+  });
+});
+
+describe('MissionFilters', () => {
+  it('defaults to a medium effort and the default time budget', () => {
+    const filters = newMissionFilters();
+
+    expect(filters.effort).toBe('medium');
+    expect(filters.maxGemCostEnabled).toBe(false);
+    expect(filters.waitTimeDays).toBe(DEFAULT_WAIT_TIME_DAYS);
+  });
+
+  it('validates a default object', () => {
+    expect(isMissionFilters(newMissionFilters())).toBe(true);
+  });
+
+  it('accepts persisted blobs without waitTimeDays', () => {
+    const old = { effort: 'high', maxGemCostEnabled: true, maxGemCost: 12 };
+    expect(isMissionFilters(old)).toBe(true);
+  });
+
+  it('rejects a non-string waitTimeDays', () => {
+    expect(isMissionFilters({ ...newMissionFilters(), waitTimeDays: 30 })).toBe(false);
+  });
+
+  it('rejects non-objects', () => {
+    expect(isMissionFilters(null)).toBe(false);
+    expect(isMissionFilters(undefined)).toBe(false);
+    expect(isMissionFilters('string')).toBe(false);
+    expect(isMissionFilters(123)).toBe(false);
   });
 });

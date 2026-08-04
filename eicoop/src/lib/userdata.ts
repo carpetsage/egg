@@ -3,10 +3,12 @@ import {
   ei,
   requestContractsArchive,
   requestFirstContact,
+  resolveContractPlayerInfo,
   resolveContractsInBackup,
-  resolveLocalContracts,
   UserBackupEmptyError,
 } from 'lib';
+
+import { resolveLocalContractsFromBackup } from './contracts_local';
 
 export async function getUserBackup(userId: string): Promise<ei.IBackup> {
   const data = await requestFirstContact(userId);
@@ -20,7 +22,10 @@ export async function getUserBackup(userId: string): Promise<ei.IBackup> {
   if (!backup.farms || backup.farms.length === 0) {
     throw new Error(`${userId}: no farm info in backup`);
   }
+  // parse contracts.json for contract info, then fall back to api for anything remaining
+  resolveLocalContractsFromBackup(backup);
   await resolveContractsInBackup(backup, userId);
+  await resolveContractPlayerInfo(backup, userId);
   return backup;
 }
 
@@ -55,6 +60,5 @@ export async function getUserContractsArchive(userId: string): Promise<ei.IContr
   if (data.archive == null) {
     throw new UserBackupEmptyError(userId);
   }
-  await resolveLocalContracts(data.archive, userId);
   return data;
 }

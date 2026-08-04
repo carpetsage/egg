@@ -284,6 +284,10 @@
         </div>
       </div>
       <div class="p-4">
+        <div v-if="activeSetTab === 'earnings' && clothedTe !== null" class="mt-4 flex justify-between items-center px-1">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clothed TE</span>
+          <span class="text-sm font-mono-premium font-bold text-slate-900">{{ Math.round(clothedTe) }}</span>
+        </div>
         <template v-if="!hasArtifactSets">
           <div class="mb-4">
             <ArtifactSelector
@@ -302,7 +306,7 @@
               class="btn-premium btn-primary py-2 text-[10px] font-black uppercase tracking-widest"
               @click="$emit('save-current-to-set', 'elr')"
             >
-              Save as ELR
+              Save as Delivery
             </button>
           </div>
         </template>
@@ -626,7 +630,7 @@ import {
   formatColleggtibleBonus,
   getColleggtibleMultiplier,
   FARM_SIZE_TIERS,
-} from '@/lib/colleggtibles';
+} from 'lib/collegtibles';
 
 const props = defineProps<{
   hasData: boolean;
@@ -650,7 +654,8 @@ const props = defineProps<{
   assumeDoubleEarnings: boolean;
   artifactSets: Record<import('@/types').ArtifactSetName, EquippedArtifact[] | null>;
   activeArtifactSet: import('@/types').ArtifactSetName | null;
-  colleggtibleTiers: import('@/lib/colleggtibles').ColleggtibleTiers;
+  colleggtibleTiers: import('lib/collegtibles').ColleggtibleTiers;
+  clothedTe: number | null;
 }>();
 
 function handleInitialEggClick(egg: VirtueEgg) {
@@ -669,6 +674,7 @@ const emit = defineEmits<{
   'set-ascension-date': [value: string];
   'set-ascension-time': [value: string];
   'set-ascension-timezone': [value: string];
+  'apply-ascension-settings': [date: string, time: string, timezone: string];
   'set-tank-level': [level: number];
   'set-fuel-amount': [egg: VirtueEgg, amount: number];
   'set-eggs-delivered': [egg: VirtueEgg, amount: number];
@@ -705,10 +711,10 @@ const hasAscensionChanges = computed(() => {
 });
 
 function applyAscensionChanges() {
-  emit('set-ascension-date', localAscensionDate.value);
-  emit('set-ascension-time', localAscensionTime.value);
-  emit('set-ascension-timezone', localAscensionTimezone.value);
+  emit('apply-ascension-settings', localAscensionDate.value, localAscensionTime.value, localAscensionTimezone.value);
 }
+
+defineExpose({ hasAscensionChanges, applyAscensionChanges });
 
 // Collapsible state
 const epicResearchExpanded = ref(false);

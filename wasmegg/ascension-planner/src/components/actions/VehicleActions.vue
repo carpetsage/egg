@@ -178,9 +178,9 @@
       :event-name="expiryData.eventName"
       :end-time="expiryData.endTime"
       :completion-time="expiryData.completionTime"
-      @confirm="handleExpiryConfirm"
       @cancel="handleExpiryCancel"
-      @deactivate="handleExpiryDeactivate"
+      @deactivate-and-cancel="handleExpiryDeactivateAndCancel"
+      @deactivate-and-continue="handleExpiryDeactivateAndContinue"
     />
   </div>
 </template>
@@ -230,15 +230,15 @@ const {
   showExpiryDialog,
   expiryData,
   withExpiryCheck,
-  confirm: handleExpiryConfirm,
   cancel: handleExpiryCancel,
-  deactivateAndCancel: handleExpiryDeactivate,
+  deactivateAndCancel: handleExpiryDeactivateAndCancel,
+  deactivateAndContinue: handleExpiryDeactivateAndContinue,
 } = useEventExpiry();
 
 // Cost modifiers
 const costModifiers = computed<VehicleCostModifiers>(() => ({
   bustUnionsLevel: initialStateStore.epicResearchLevels['bust_unions'] || 0,
-  lithiumMultiplier: initialStateStore.colleggtibleModifiers.vehicleCost,
+  vehicleCostMultiplier: initialStateStore.colleggtibleModifiers.vehicleCost,
 }));
 
 const isVehicleSaleActive = computed(() => actionsStore.effectiveSnapshot.activeSales.vehicle);
@@ -266,7 +266,7 @@ const effectiveMultipliers = computed(() => {
     hoverMultiplier,
     hyperloopMultiplier,
     epicMultiplier,
-    colleggtibleMultiplier: initialStateStore.colleggtibleModifiers.shippingCap,
+    shippingCapMultiplier: initialStateStore.colleggtibleModifiers.shippingCap,
     artifactMultiplier: artifactMods.totalMultiplier,
   };
 });
@@ -362,7 +362,7 @@ function getVehicleCapacity(slot: { vehicleId: number | null; trainLength: numbe
     hoverMultiplier,
     hyperloopMultiplier,
     epicMultiplier,
-    colleggtibleMultiplier,
+    shippingCapMultiplier,
     artifactMultiplier,
   } = effectiveMultipliers.value;
 
@@ -378,7 +378,7 @@ function getVehicleCapacity(slot: { vehicleId: number | null; trainLength: numbe
     epicMultiplier *
     vehicleHoverMult *
     vehicleHyperloopMult *
-    colleggtibleMultiplier *
+    shippingCapMultiplier *
     artifactMultiplier
   );
 }

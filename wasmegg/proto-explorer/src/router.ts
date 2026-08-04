@@ -8,6 +8,7 @@ import CoopStatus from '@/views/CoopStatus.vue';
 import CoopStatusBot from '@/views/CoopStatusBot.vue';
 import FirstContact from '@/views/FirstContact.vue';
 import GetConfig from '@/views/GetConfig.vue';
+import GetContractPlayerInfo from '@/views/GetContractPlayerInfo.vue';
 import GetPeriodicals from '@/views/GetPeriodicals.vue';
 import GetContractsArchive from './views/GetContractsArchive.vue';
 import GetContractsInfo from './views/GetContractsInfo.vue';
@@ -91,6 +92,15 @@ const router = createRouter({
       path: '/get_contracts_info/',
       components: {
         default: GetContractsInfo,
+        ...header,
+      },
+      props,
+    },
+    {
+      name: 'contract_player_info',
+      path: '/get_contract_player_info/',
+      components: {
+        default: GetContractPlayerInfo,
         ...header,
       },
       props,

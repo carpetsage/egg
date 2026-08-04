@@ -20,7 +20,7 @@ export const updateArtifactSetExecutor: ActionExecutor<'update_artifact_set'> = 
   },
 
   getDisplayName(payload) {
-    const name = payload.setName === 'earnings' ? 'Earnings' : 'ELR';
+    const name = payload.setName === 'earnings' ? 'Earnings' : 'Delivery';
     return `Update ${name} Set`;
   },
 

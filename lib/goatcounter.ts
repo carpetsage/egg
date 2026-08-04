@@ -8,4 +8,4 @@ declare global {
   }
 }
 
-export const goatcounter = window.goatcounter;
+export const goatcounter = typeof window === 'undefined' ? undefined : window.goatcounter;

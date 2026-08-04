@@ -96,6 +96,7 @@
             </svg>
           </button>
           <input
+            ref="inputEl"
             v-model.number="teToGain"
             type="number"
             :min="1"
@@ -134,27 +135,13 @@
         <div class="pt-2 mt-1 border-t border-slate-100/50 space-y-2">
           <div class="flex justify-between items-center text-[10px]">
             <div class="flex items-center gap-1">
-              <span class="font-black text-slate-400 uppercase tracking-widest">ELR per hour:</span>
-              <button
-                class="p-0.5 text-slate-300 hover:text-slate-900 transition-colors"
-                v-tippy="'View calculation details'"
-                @click="$emit('show-current-details')"
-              >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </button>
+              <span class="font-black text-slate-400 uppercase tracking-widest">Delivery Rate per hour:</span>
             </div>
             <span class="font-mono-premium text-slate-500">{{ formatNumber(elrPerHour, 2) }}</span>
           </div>
           <div class="flex justify-between items-center text-[10px]">
             <div class="flex items-center gap-1">
-              <span class="font-black text-slate-400 uppercase tracking-widest">ELR per day:</span>
+              <span class="font-black text-slate-400 uppercase tracking-widest">Delivery Rate per day:</span>
             </div>
             <span class="font-mono-premium text-slate-500">{{ formatNumber(elrPerDay, 2) }}</span>
           </div>
@@ -201,6 +188,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+const inputEl = ref<HTMLInputElement | null>(null);
+defineExpose({ focus: () => inputEl.value?.focus() });
 import { iconURL } from 'lib';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useVirtueStore } from '@/stores/virtue';
@@ -221,10 +210,6 @@ const { prepareExecution, completeExecution } = useActionExecutor();
 // source FloatingStats uses. This guarantees the two always agree and avoids
 // any desync between composable-derived values and the simulation engine.
 const snapshot = computed(() => actionsStore.effectiveSnapshot);
-
-defineEmits<{
-  'show-current-details': [];
-}>();
 
 // Current egg state
 const currentEggsDelivered = computed(() => truthEggsStore.eggsDelivered[virtueStore.currentEgg]);

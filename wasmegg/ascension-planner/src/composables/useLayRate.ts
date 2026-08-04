@@ -52,7 +52,7 @@ export function useLayRate(): {
     return {
       researchLevels: researchLevels.value,
       epicComfyNestsLevel: epicResearchLevels.value['epic_egg_laying'] || 0,
-      siliconMultiplier: initialStateStore.colleggtibleModifiers.elr,
+      elrMultiplier: initialStateStore.colleggtibleModifiers.elr,
       population: population.value,
       artifactMultiplier: artifactMod.totalMultiplier,
       artifactEffects: artifactMod.effects,

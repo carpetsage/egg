@@ -67,12 +67,18 @@ export default defineComponent({
     const userId = ref(getSavedPlayerID() || userIdProp.value || '');
 
     const setUserId = (newUserId: string) => {
+      const unchanged = userId.value === newUserId;
       userId.value = newUserId;
       savePlayerID(newUserId);
       eidsStore.addEid(newUserId);
       // Navigate to /dashboard without userId in URL
       if (router.currentRoute.value.params.userId) {
         router.replace({ name: 'dashboard' });
+      }
+      // Re-submitting the same EID (the form's reload action) won't trip the
+      // userId watcher, so refresh explicitly.
+      if (unchanged) {
+        refreshBackup();
       }
     };
 

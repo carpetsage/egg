@@ -2,14 +2,15 @@ import { ei, Artifact } from 'lib';
 import { farmResearch } from './common';
 import { researchPriceMultiplierFromArtifacts } from '../effects';
 
+const LAB_UPGRADE = { id: 'cheaper_research', name: 'Lab Upgrade', maxLevel: 10, perLevel: -0.05 };
+
 export function researchPriceMultiplierFromResearches(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): number {
-  const research = farmResearch(farm, progress, {
-    id: 'cheaper_research',
-    name: 'Lab Upgrade',
-    maxLevel: 10,
-    perLevel: -0.05,
-  });
+  const research = farmResearch(farm, progress, LAB_UPGRADE);
   return 1 + (research ? research.level * research.perLevel : 0);
+}
+
+export function labUpgradeLevel(farm: ei.Backup.ISimulation, progress: ei.Backup.IGame): number {
+  return farmResearch(farm, progress, LAB_UPGRADE)?.level ?? 0;
 }
 
 /**

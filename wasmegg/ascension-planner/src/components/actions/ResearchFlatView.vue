@@ -1,5 +1,25 @@
 <template>
   <div class="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100 bg-white">
+    <!-- Unlock Next Tier Shortcut -->
+    <div v-if="unlockNextTier" class="px-4 py-3 bg-gradient-to-r from-blue-50 to-white">
+      <button
+        class="btn-premium btn-primary w-full"
+        :disabled="!unlockNextTier.canBuy"
+        @click="$emit('buy-to-here', unlockNextTier.index)"
+      >
+        Unlock Tier {{ unlockNextTier.tier }}
+      </button>
+      <div class="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[10px] text-gray-500">
+        <span>{{ unlockNextTier.purchaseCount }} {{ unlockNextTier.purchaseCount === 1 ? 'purchase' : 'purchases' }}</span>
+        <span class="text-gray-400">|</span>
+        <span>{{ unlockNextTier.time }}</span>
+        <template v-if="unlockNextTier.absoluteTime">
+          <span class="text-gray-400">|</span>
+          <span>{{ unlockNextTier.absoluteTime }}</span>
+        </template>
+      </div>
+    </div>
+
     <template v-for="(item, idx) in sortedResearches" :key="`${item.research.id}-${item.targetLevel}`">
       <!-- Tier Break Divider (Cheapest First) -->
       <div
@@ -27,6 +47,7 @@
         :can-buy="item.canBuy"
         :is-maxed="item.isMaxed"
         :show-max="false"
+        :hide-buy-button="view === 'milestones'"
         :show-tier="true"
         :show-buy-to-here="view === 'cheapest'"
         :can-buy-to-here="view === 'cheapest' ? true : item.canBuyToHere"
@@ -37,7 +58,10 @@
         :extra-label="item.extraLabel"
         :extra-seconds="item.extraSeconds"
         :hpp="item.hpp"
+        :time-roi-seconds="item.timeRoiSeconds"
+        :roi-display-mode="roiDisplayMode"
         :realistic-stats="item.realisticStats"
+        :lookahead="item.lookahead"
         :recommendation-note="item.recommendationNote"
         :show-sale-warning="item.showSaleWarning"
         :show-deadline-warning="item.showDeadlineWarning"
@@ -61,6 +85,12 @@
           Refresh & Fix Plan
         </button>
       </div>
+      <template v-else-if="view === 'milestones' && !milestoneTargetSelected">
+        Pick a milestone above to see the fastest path.
+      </template>
+      <template v-else-if="view === 'milestones'">
+        This milestone has already been reached.
+      </template>
       <template v-else>
         No researches match this criteria or all are maxed.
       </template>
@@ -71,8 +101,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { type CommonResearch } from '@/calculations/commonResearch';
-import { type ViewType } from '@/composables/useResearchViews';
+import { type ViewType, type ElrRoiDisplayMode } from '@/composables/useResearchViews';
 import { useInitialStateStore } from '@/stores/initialState';
+import { useActionsStore } from '@/stores/actions';
+import { useVirtueStore } from '@/stores/virtue';
+import { formatAbsoluteTime } from '@/lib/format';
 import ResearchItem from './ResearchItem.vue';
 
 interface SortedResearchItem {
@@ -94,7 +127,9 @@ interface SortedResearchItem {
   extraLabel?: string;
   extraSeconds?: number;
   hpp?: number;
+  timeRoiSeconds?: number;
   realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
+  lookahead?: { minLevels: number; impact: number; hpp: number };
   recommendationNote?: string;
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;
@@ -104,12 +139,45 @@ const props = defineProps<{
   sortedResearches: SortedResearchItem[];
   view: ViewType;
   thresholds: readonly number[];
+  milestoneTargetSelected?: boolean;
   getResearchTimeToBuy: (r: CommonResearch) => string;
   getResearchTimeToBuySeconds: (r: CommonResearch) => number;
+  roiDisplayMode?: ElrRoiDisplayMode;
 }>();
 
 const initialStateStore = useInitialStateStore();
 const isMissingRealisticData = computed(() => props.view === 'elr' && !initialStateStore.rawBackup);
+
+const actionsStore = useActionsStore();
+const virtueStore = useVirtueStore();
+
+const baseTimestamp = computed(() => {
+  const startTime = virtueStore.planStartTime.getTime();
+  const offset = actionsStore.planStartOffset;
+  // Wall clock time = (Plan Start) + (Current Sim Time - Initial Sim Time)
+  return startTime + (actionsStore.effectiveSnapshot.lastStepTime - offset) * 1000;
+});
+
+const unlockNextTier = computed(() => {
+  if (props.view !== 'cheapest') return null;
+
+  const dividerIndex = props.sortedResearches.findIndex(item => item.showDivider);
+  if (dividerIndex <= 0) return null;
+
+  const index = dividerIndex - 1;
+  const target = props.sortedResearches[index];
+  return {
+    index,
+    tier: props.sortedResearches[dividerIndex].unlockTier,
+    purchaseCount: dividerIndex,
+    time: target.buyToHereTime,
+    canBuy: target.canBuyToHere,
+    absoluteTime:
+      target.buyToHereSeconds !== undefined
+        ? formatAbsoluteTime(target.buyToHereSeconds, baseTimestamp.value, virtueStore.ascensionTimezone)
+        : undefined,
+  };
+});
 
 defineEmits(['buy', 'max', 'buy-to-here', 'refresh-backup']);
 </script>

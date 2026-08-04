@@ -16,6 +16,14 @@
           </svg>
         </div>
         <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resilience Summary</span>
+        <div v-if="activeArtifactSet === 'earnings'" class="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200/50">
+          <span class="text-[9px] font-black font-mono-premium text-slate-700">{{ formatNumber(hourlyOfflineEarnings, 3) }}</span>
+          <span class="text-[8px] font-black uppercase tracking-widest text-slate-400">/hr</span>
+        </div>
+        <div v-else-if="activeArtifactSet === 'elr'" class="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200/50">
+          <span class="text-[9px] font-black font-mono-premium text-slate-700">{{ formatNumber(hourlyELR, 3) }}</span>
+          <span class="text-[8px] font-black uppercase tracking-widest text-slate-400">/hr</span>
+        </div>
       </div>
 
       <!-- Stats Grid -->
@@ -46,11 +54,23 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Action } from '@/types';
+import { formatNumber } from '@/lib/format';
 
 const props = defineProps<{
   headerAction: Action;
   actions: Action[];
 }>();
+
+const finalState = computed(() => {
+  if (props.actions.length > 0) {
+    return props.actions[props.actions.length - 1].endState;
+  }
+  return props.headerAction.endState;
+});
+
+const activeArtifactSet = computed(() => finalState.value.activeArtifactSet);
+const hourlyOfflineEarnings = computed(() => finalState.value.offlineEarnings * 3600);
+const hourlyELR = computed(() => finalState.value.elr * 3600);
 
 const silosPurchased = computed(() => {
   return props.actions.filter(a => a.type === 'buy_silo').length;

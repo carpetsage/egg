@@ -18,6 +18,7 @@ export type MessageName = Exclude<keyof typeof ei, (typeof enumNames)[number]>;
 
 const messages: Record<string, MessageName[]> = {
   commonlyInspected: [
+    'BasicRequestInfo',
     'EggIncFirstContactRequest',
     'EggIncFirstContactResponse',
     'GetPeriodicalsRequest',
@@ -34,6 +35,7 @@ const messages: Record<string, MessageName[]> = {
     'Contract',
     'CustomEgg',
     'ContractSeasonInfo',
+    'ShellShowcaseListingSet',
   ],
   otherArtifactRequestResponse: [
     'ArtifactsConfigurationRequest',
@@ -46,6 +48,10 @@ const messages: Record<string, MessageName[]> = {
     'SetArtifactResponse',
   ],
   otherCoopRequestResponse: [
+    'ContractsArchive',
+    'ContractsInfoRequest',
+    'ContractsInfoResponse',
+    'ContractPlayerInfo',
     'QueryCoopRequest',
     'QueryCoopResponse',
     'CreateCoopRequest',

@@ -5,9 +5,9 @@ import {
   itemExpectedFullConsumption,
   MissionType,
   targets,
+  type ShipsConfig,
 } from 'lib';
 
-import { config } from '@/store';
 import type { lootjson, MissionLevelLootStore, MissionLootStore } from './loot-json';
 import data from './loot-json';
 
@@ -70,7 +70,7 @@ type ItemMissionLevelLootStore = {
   counts: [number, number, number, number];
 };
 
-export function getTierLootData(itemId: string): ItemLootStore {
+export function getTierLootData(itemId: string, enabledTargets: ShipsConfig['targets']): ItemLootStore {
   const item = getArtifactTierPropsFromId(itemId);
   const result: ItemLootStore = {
     missions: [],
@@ -80,7 +80,7 @@ export function getTierLootData(itemId: string): ItemLootStore {
     const withinRange = mission.params.minQuality <= item.quality && item.quality <= mission.maxBoostedMaxQuality();
     const validTargets = mission.isFTL ? targets : [ei.ArtifactSpec.Name.UNKNOWN];
     for (const target of validTargets) {
-      if (!config.value.targets[target] && item.afx_id != target) {
+      if (!enabledTargets[target] && item.afx_id != target) {
         continue;
       }
       const store: ItemMissionLootStore = {
@@ -122,13 +122,9 @@ export function missionDataNotEnough(mission: MissionType, totalDrops: number) {
   return totalDrops / mission.defaultCapacity < 20;
 }
 
-// Sparse-data gate for legendary drop estimates. The optimizer's legendary
-// drop rate per bucket is `counts[3] / totalDrops`, where counts[3] can be a
-// single observation across tens of thousands of total drops — a point
-// estimate with a >5x Wilson CI swing in either direction. We mistrust such
-// buckets unless some other bucket of the same item has accumulated at least
-// MIN_LEGENDARY_OBSERVATIONS observations, in which case those better-sampled
-// buckets carry the legendary rate and the sparse ones are zeroed out.
+// Legendary drop rates come from counts[3] / totalDrops, and counts[3] is
+// often a single observation across tens of thousands of drops — far too
+// noisy to trust. Buckets below this minimum get zeroed by the optimizer.
 export const MIN_LEGENDARY_OBSERVATIONS = 5;
 
 let _maxLegendaryByItemId: Map<string, number> | null = null;
@@ -155,5 +151,8 @@ export function getMaxLegendaryCount(itemId: string): number {
 }
 
 export function legendaryDataIsSparse(itemId: string): boolean {
-  return getMaxLegendaryCount(itemId) < MIN_LEGENDARY_OBSERVATIONS;
+  return (
+    getArtifactTierPropsFromId(itemId).available_from_missions &&
+    getMaxLegendaryCount(itemId) < MIN_LEGENDARY_OBSERVATIONS
+  );
 }

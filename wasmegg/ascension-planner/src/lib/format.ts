@@ -395,3 +395,24 @@ export function parseDuration(str: string): number {
 
   return hasMatch ? totalSeconds : NaN;
 }
+
+/**
+ * Format a Unix timestamp to a date string (YYYY-MM-DD) in a specific timezone.
+ */
+export function formatUnixToDateInput(timestamp: number, tz: string): string {
+  const d = new Date(timestamp * 1000);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(d);
+}
+
+/**
+ * Format a Unix timestamp to a 24-hour time string (HH:MM) in a specific timezone.
+ */
+export function formatUnixToTimeInput(timestamp: number, tz: string): string {
+  const d = new Date(timestamp * 1000);
+  return new Intl.DateTimeFormat('en-GB', { 
+    timeZone: tz, 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: false 
+  }).format(d);
+}

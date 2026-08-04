@@ -63,8 +63,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, PropType, ref, toRefs, watch, reactive } from 'vue';
-import { ei, formatEIValue, allModifiersFromColleggtibles, getLocalStorage, setLocalStorage, researches } from '@/lib';
+import { defineComponent, computed, PropType, ref, toRefs, watch, reactive, inject, type ComputedRef } from 'vue';
+import {
+  ei,
+  formatEIValue,
+  allModifiersFromColleggtibles,
+  getLocalStorage,
+  setLocalStorage,
+  researches,
+  type Modifiers,
+} from '@/lib';
 import { Artifact } from 'lib';
 import {
   researchPriceMultiplier,
@@ -137,6 +145,7 @@ export default defineComponent({
   },
   setup(props) {
     const { backup, earningsSet } = toRefs(props);
+    const injectedMods = inject<ComputedRef<Modifiers> | undefined>('colleggtibleModifiers', undefined);
 
     // Use reactive for expansion state - Vue tracks property access better with reactive objects
     const expandedResearches = reactive<Record<string, boolean>>({});
@@ -228,7 +237,7 @@ export default defineComponent({
       const artifacts = useEarningsSet.value ? earningsSet.value : useActiveSet.value ? activeArtifacts.value : [];
       // If neither checkbox is checked then no artis.
 
-      const modifiers = allModifiersFromColleggtibles(backup.value);
+      const modifiers = injectedMods?.value ?? allModifiersFromColleggtibles(backup.value);
       const eventMultiplier = researchSale.value ? 0.3 : 1;
       return researchPriceMultiplier(farm, backup.value.game, artifacts, modifiers.researchCost, eventMultiplier);
     });

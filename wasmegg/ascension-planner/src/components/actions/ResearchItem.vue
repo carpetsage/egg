@@ -40,6 +40,21 @@
         {{ research.description }}
         
         <div
+          v-if="lookahead"
+          class="mt-1.5 p-1.5 inline-block bg-amber-50 border border-amber-100 rounded text-[9px] text-amber-800 leading-tight shadow-sm"
+        >
+          <div class="flex items-start gap-1">
+            <svg class="w-3 h-3 text-amber-500 shrink-0 mt-px" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span>
+              <span class="font-bold uppercase tracking-tight mr-1">Lookahead:</span>
+              Needs {{ lookahead.minLevels }} levels for +{{ (lookahead.impact * 100).toFixed(3) }}% Delivery Rate ({{ lookahead.hpp.toFixed(1) }} hr/%)
+            </span>
+          </div>
+        </div>
+
+        <div
           v-if="recommendationNote"
           class="mt-1.5 p-1.5 inline-block bg-blue-50 border border-blue-100 rounded text-[9px] text-blue-800 leading-tight shadow-sm"
         >
@@ -81,9 +96,11 @@
               class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter"
               :class="{ 'cursor-help': hpp !== undefined }"
               v-tippy="
-                hpp !== undefined
-                  ? 'Estimated waiting time (hours) per 1% Egg Laying Rate impact based on current earnings. Lower is better.'
-                  : undefined
+                hpp === undefined
+                  ? undefined
+                  : roiDisplayMode === 'time'
+                    ? 'Time, laying at the boosted rate, for the extra production to pay back what it cost to buy this research.'
+                    : 'Estimated waiting time (hours) per 1% Egg Laying Rate impact based on current earnings. Lower is better.'
               "
             >
               {{ extraLabel }}
@@ -106,7 +123,12 @@
               </span>
             </div>
             <div v-if="hpp !== undefined" class="text-[9px] font-mono text-gray-400 leading-none pb-[1px]">
-              {{ hpp === Infinity || isNaN(hpp) ? '∞' : hpp.toFixed(1) }} hr/%
+              <template v-if="roiDisplayMode === 'time'">
+                {{ formatDuration(timeRoiSeconds ?? Infinity) }}
+              </template>
+              <template v-else>
+                {{ hpp === Infinity || isNaN(hpp) ? '∞' : hpp.toFixed(1) }} hr/%
+              </template>
             </div>
           </div>
         </div>
@@ -136,6 +158,7 @@
 
           <!-- Buy one level button -->
           <button
+            v-if="!hideBuyButton"
             class="w-7 h-7 flex items-center justify-center rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             :class="[
               showDeadlineWarning
@@ -184,7 +207,7 @@
          </div>
        </div>
        <div class="text-right">
-         <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-1 block text-right font-mono">ELR</span>
+         <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-1 block text-right font-mono">Delivery Rate</span>
          <div class="flex items-center justify-end gap-1 leading-none">
            <span class="text-[11px] font-mono font-bold text-gray-900">
              {{ formatNumber(realisticStats.elr) }}/hr
@@ -218,6 +241,7 @@ const props = defineProps<{
   extraLabel?: string;
   hpp?: number;
   showMax: boolean;
+  hideBuyButton?: boolean;
   showTier?: boolean;
   targetLevel?: number;
   showBuyToHere?: boolean;
@@ -230,7 +254,10 @@ const props = defineProps<{
   buyToHereSeconds?: number;
   buyToHereTooltip?: string;
   extraSeconds?: number;
+  timeRoiSeconds?: number;
+  roiDisplayMode?: 'hpp' | 'time';
   realisticStats?: { layRate: number; shippingRate: number; elr: number; elrDelta: number };
+  lookahead?: { minLevels: number; impact: number; hpp: number };
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;
 }>();

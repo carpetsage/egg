@@ -1,5 +1,6 @@
 <template>
   <InitialStateDisplay
+    ref="displayRef"
     :has-data="store.hasData"
     :epic-research-levels="store.epicResearchLevels"
     :artifact-loadout="store.artifactLoadout"
@@ -21,6 +22,7 @@
     :artifact-sets="store.artifactSets"
     :active-artifact-set="store.activeArtifactSet"
     :colleggtible-tiers="store.colleggtibleTiers"
+    :clothed-te="earningsClothedTe"
     @set-epic-research-level="handleSetEpicResearchLevel"
     @update:artifact-loadout="handleArtifactLoadout"
     @set-initial-egg="handleSetInitialEgg"
@@ -29,6 +31,7 @@
     @set-ascension-date="handleSetAscensionDate"
     @set-ascension-time="handleSetAscensionTime"
     @set-ascension-timezone="handleSetAscensionTimezone"
+    @apply-ascension-settings="handleApplyAscensionSettings"
     @set-tank-level="handleSetTankLevel"
     @set-fuel-amount="handleSetFuelAmount"
     @set-eggs-delivered="handleSetEggsDelivered"
@@ -48,7 +51,7 @@
  * Container component for Initial State.
  * Displays player info loaded from backup.
  */
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
@@ -62,6 +65,7 @@ import InitialStateDisplay from '@/components/presenters/InitialStateDisplay.vue
 import type { VirtueEgg, Action, ArtifactSetName } from '@/types';
 import { VIRTUE_EGGS } from '@/types';
 import type { EquippedArtifact } from '@/lib/artifacts';
+import { calculateClothedTEForSet } from '@/lib/artifacts';
 
 const store = useInitialStateStore();
 const virtueStore = useVirtueStore();
@@ -88,6 +92,18 @@ function updateInitialSnapshotAndRecalculate() {
 }
 
 const initialTotalTe = computed(() => Object.values(store.initialTeEarned).reduce((sum, val) => sum + val, 0));
+
+// Clothed TE for the earnings artifact set, computed from live initial-state inputs
+// (not the frozen backup snapshot) so it stays in sync as the player edits research/colleggtibles.
+const earningsClothedTe = computed<number | null>(() => {
+  if (!store.artifactSets.earnings) return null;
+  return calculateClothedTEForSet(store.artifactSets.earnings, {
+    truthEggs: initialTotalTe.value,
+    colleggtibleModifiers: store.colleggtibleModifiers,
+    labUpgradeLevel: store.epicResearchLevels['cheaper_research'] ?? 0,
+    permitLevel: store.rawBackup?.game?.permitLevel ?? null,
+  });
+});
 
 
 function handleSetEpicResearchLevel(id: string, level: number) {
@@ -234,6 +250,13 @@ function handleSetAscensionTimezone(timezone: string) {
   actionsStore.recalculateFrom(0);
 }
 
+function handleApplyAscensionSettings(date: string, time: string, timezone: string) {
+  virtueStore.setAscensionDate(date);
+  virtueStore.setAscensionTime(time);
+  virtueStore.setAscensionTimezone(timezone);
+  actionsStore.recalculateFrom(0);
+}
+
 function handleSetSoulEggs(count: number) {
   store.setSoulEggs(count);
   updateInitialSnapshotAndRecalculate();
@@ -258,4 +281,14 @@ function handleSetActiveArtifactSet(setName: ArtifactSetName) {
   store.setActiveArtifactSet(setName);
   updateInitialSnapshotAndRecalculate();
 }
+
+const displayRef = ref<InstanceType<typeof InitialStateDisplay> | null>(null);
+
+defineExpose({
+  applyPendingAscensionChanges() {
+    if (displayRef.value?.hasAscensionChanges) {
+      displayRef.value.applyAscensionChanges();
+    }
+  },
+});
 </script>

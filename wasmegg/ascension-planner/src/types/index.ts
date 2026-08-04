@@ -53,22 +53,6 @@ export interface BaseCalculationResearch {
 }
 
 /**
- * Colleggtible modifiers - multiplicative bonuses from colleggtibles
- * Values are multipliers (1.0 = no bonus, 1.1 = +10%, 0.9 = -10%)
- */
-export interface ColleggtibleModifiers {
-  earnings: number; // Multiplier on all earnings
-  eggValue: number; // Multiplier on egg value specifically
-  researchCost: number; // Multiplier on research cost
-  habCost: number; // Multiplier on hab cost
-  habCapacity: number; // Multiplier on hab capacity (PEGG: up to +5%)
-  ihr: number; // Multiplier on IHR (Easter Egg: up to +5%)
-  layRate: number; // Multiplier on lay rate (Silicon: up to +5%)
-  shippingCapacity: number; // Multiplier on shipping (Carbon Fiber + Pumpkin: up to +10%)
-  vehicleCost: number; // Multiplier on vehicle cost
-}
-
-/**
  * Artifact effect for display in breakdowns
  */
 export interface ArtifactEffectDisplay {
@@ -117,7 +101,7 @@ export interface EggValueOutput {
 export interface HabCapacityInput {
   habIds: (number | null)[]; // Array of 1-4 hab IDs (null = empty slot)
   researchLevels: ResearchLevels;
-  peggMultiplier: number; // PEGG colleggtible multiplier (e.g., 1.05 = +5%)
+  habCapMultiplier: number; // Combined hab-capacity colleggtible multiplier (e.g., 1.05 = +5%)
   artifactMultiplier: number; // Combined artifact/stone multiplier (Gusset)
   artifactEffects: ArtifactEffectDisplay[]; // Individual effects for display
 }
@@ -133,7 +117,7 @@ export interface HabCapacityOutput {
     habName: string | null;
     baseCapacity: number;
     researchMultiplier: number;
-    peggMultiplier: number;
+    habCapMultiplier: number;
     artifactMultiplier: number;
     finalCapacity: number;
   }[];
@@ -142,7 +126,7 @@ export interface HabCapacityOutput {
   totalBaseCapacity: number;
   researchMultiplier: number; // Universal research multiplier
   portalResearchMultiplier: number; // Portal-only research multiplier
-  peggMultiplier: number;
+  habCapMultiplier: number;
   artifactMultiplier: number;
   totalFinalCapacity: number;
 
@@ -171,7 +155,7 @@ export interface IHRInput {
     epicInternalIncubators: number; // Epic Int. Hatcheries (0-20)
     internalHatcheryCalm: number; // Internal Hatchery Calm (0-20)
   };
-  easterEggMultiplier: number; // Easter Egg colleggtible multiplier (e.g., 1.05 = +5%)
+  ihrMultiplier: number; // Combined IHR colleggtible multiplier (e.g., 1.05 = +5%)
   artifactMultiplier: number; // Combined artifact/stone multiplier (The chalice, Life stone)
   artifactEffects: ArtifactEffectDisplay[]; // Individual effects for display
 }
@@ -186,7 +170,7 @@ export interface IHROutput {
   // Multipliers
   teMultiplier: number; // From Eggs of Truth (1.1^TE)
   epicMultiplier: number; // From Epic Int. Hatcheries
-  easterEggMultiplier: number; // From Easter Egg colleggtible
+  ihrMultiplier: number; // From IHR colleggtibles
   artifactMultiplier: number; // From artifacts (The chalice, Life stone)
   offlineMultiplier: number; // From Internal Hatchery Calm
 
@@ -223,7 +207,7 @@ export type TimeUnit = 'minute' | 'hour' | 'day';
 export interface LayRateInput {
   researchLevels: ResearchLevels;
   epicComfyNestsLevel: number; // Epic Comfy Nests (0-20)
-  siliconMultiplier: number; // Silicon colleggtible multiplier (e.g., 1.05 = +5%)
+  elrMultiplier: number; // Combined lay-rate colleggtible multiplier (e.g., 1.05 = +5%)
   population: number; // Current chicken population for total eggs calculation
   artifactMultiplier: number; // Combined artifact/stone multiplier (Quantum metronome, Tachyon stone)
   artifactEffects: ArtifactEffectDisplay[]; // Individual effects for display
@@ -239,7 +223,7 @@ export interface LayRateOutput {
   // Multipliers
   researchMultiplier: number; // Combined multiplier from all common researches
   epicMultiplier: number; // From Epic Comfy Nests
-  siliconMultiplier: number; // From Silicon colleggtible
+  elrMultiplier: number; // From lay-rate colleggtibles
   artifactMultiplier: number; // From artifacts (Quantum metronome, Tachyon stone)
 
   // Final rates per chicken (eggs/second)
@@ -295,7 +279,7 @@ export interface ShippingCapacityInput {
   vehicles: VehicleSlot[]; // Array of vehicle slots (4-17 depending on research)
   researchLevels: ResearchLevels;
   transportationLobbyistLevel: number; // Epic research (0-30): +5% shipping capacity per level
-  colleggtibleMultiplier: number; // Combined colleggtible multiplier (Carbon Fiber * Pumpkin)
+  shippingCapMultiplier: number; // Combined shipping-capacity colleggtible multiplier
   artifactMultiplier: number; // Combined artifact/stone multiplier (Compass, Quantum stone)
   artifactEffects: ArtifactEffectDisplay[]; // Individual effects for display
 }
@@ -314,7 +298,7 @@ export interface ShippingCapacityOutput {
     universalMultiplier: number; // from universal research
     hoverMultiplier: number; // from hover-only research (if applicable)
     hyperloopMultiplier: number; // from hyperloop-only research (if applicable)
-    colleggtibleMultiplier: number;
+    shippingCapMultiplier: number;
     artifactMultiplier: number; // from artifacts (Compass, Quantum stone)
     finalCapacity: number; // eggs/second after all multipliers
   }[];
@@ -325,7 +309,7 @@ export interface ShippingCapacityOutput {
   epicMultiplier: number; // from Transportation Lobbyists
   hoverMultiplier: number; // for hover vehicles
   hyperloopMultiplier: number; // for hyperloop
-  colleggtibleMultiplier: number;
+  shippingCapMultiplier: number;
   totalFinalCapacity: number; // eggs/second
 
   // Fleet info
@@ -383,8 +367,8 @@ export interface EarningsInput {
   eggValue: number; // Value per egg ($/egg)
   effectiveLayRate: number; // eggs/second
   te: number; // Eggs of Truth - provides 1.1^TE multiplier to earnings bonus
-  fireworkMultiplier: number; // Multiplier for all earnings (from colleggtibles)
-  awayEarningsMultiplier: number; // Multiplier for offline earnings (chocolate * wood)
+  earningsMultiplier: number; // Multiplier for all earnings (from colleggtibles)
+  awayEarningsMultiplier: number; // Combined offline-earnings colleggtible multiplier
   artifactAwayMultiplier: number; // Artifact multiplier for offline earnings (lunar totem/stone - MULTIPLICATIVE)
   videoDoublerMultiplier: number; // 2x multiplier for video doubler
   eventMultiplier: number; // Multiplier from game events (e.g. 2x earnings)
@@ -397,8 +381,8 @@ export interface EarningsInput {
 export interface EarningsOutput {
   baseEarnings: number; // $/second (eggValue × ELR)
   teMultiplier: number; // 1.1^TE earnings bonus multiplier
-  fireworkMultiplier: number; // From Firework colleggtible (all earnings)
-  awayEarningsMultiplier: number; // Combined chocolate * wood (offline only)
+  earningsMultiplier: number; // From earnings colleggtibles (all earnings)
+  awayEarningsMultiplier: number; // From offline-earnings colleggtibles (offline only)
   artifactAwayMultiplier: number; // From lunar totem/stone (offline only, MULTIPLICATIVE)
   onlineEarnings: number; // $/second
   offlineEarnings: number; // $/second
@@ -407,19 +391,4 @@ export interface EarningsOutput {
   artifactBreakdown: ArtifactEffectDisplay[]; // Artifact effects for display
 }
 
-/**
- * Default/empty values
- */
-export function createDefaultColleggtibleModifiers(): ColleggtibleModifiers {
-  return {
-    earnings: 1.0,
-    eggValue: 1.0,
-    researchCost: 1.0,
-    habCost: 1.0,
-    habCapacity: 1.0,
-    ihr: 1.0,
-    layRate: 1.0,
-    shippingCapacity: 1.0,
-    vehicleCost: 1.0,
-  };
-}
+

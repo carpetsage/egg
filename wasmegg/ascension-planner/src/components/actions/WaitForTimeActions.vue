@@ -5,6 +5,7 @@
         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3"> Duration </label>
         <div class="flex flex-col sm:flex-row gap-2">
           <input
+            ref="inputEl"
             v-model="inputDuration"
             type="text"
             placeholder="e.g. 8h30m, 12:30pm, or +0"
@@ -74,9 +75,9 @@
       :event-name="expiryData.eventName"
       :end-time="expiryData.endTime"
       :completion-time="expiryData.completionTime"
-      @confirm="handleExpiryConfirm"
       @cancel="handleExpiryCancel"
-      @deactivate="handleExpiryDeactivate"
+      @deactivate-and-cancel="handleExpiryDeactivateAndCancel"
+      @deactivate-and-continue="handleExpiryDeactivateAndContinue"
     />
   </div>
 </template>
@@ -84,6 +85,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { iconURL } from 'lib';
+const inputEl = ref<HTMLInputElement | null>(null);
+defineExpose({ focus: () => inputEl.value?.focus() });
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -102,9 +105,9 @@ const {
   showExpiryDialog,
   expiryData,
   withExpiryCheck,
-  confirm: handleExpiryConfirm,
   cancel: handleExpiryCancel,
-  deactivateAndCancel: handleExpiryDeactivate,
+  deactivateAndCancel: handleExpiryDeactivateAndCancel,
+  deactivateAndContinue: handleExpiryDeactivateAndContinue,
 } = useEventExpiry();
 
 const inputDuration = ref('');

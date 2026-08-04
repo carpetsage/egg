@@ -1,21 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { ei } from 'lib';
 import { optimizeFull } from './optimizer-core';
-import type { LaunchOption, RecipeDAG, DAGNode } from './types';
+import { computeCraftChainTree } from './optimizer-tree';
+import { makeNode, makeOpt } from './spec-helpers';
+import type { RecipeDAG } from './types';
 
-// ── DAG helpers ───────────────────────────────────────────────────────────────
+const Name = ei.ArtifactSpec.Name;
 
-function makeNode(id: string, is_leaf: boolean, children: [string, number][] = [], pCraft = 0): DAGNode {
-  return {
-    id,
-    is_leaf,
-    children: children.map(([node_id, quantity]) => ({ node_id, quantity })),
-    legendaryCraftProbability: pCraft,
-  };
-}
-
-// A standard 2-node DAG: root 'A' (craftable, pCraft>0) that needs ingredient 'B' (leaf).
-// The optimizer scores Q*alpha where Q=-ln(1-pCraft). With pCraft>0, missions yielding B
-// produce positive score, giving the optimizer reason to launch.
+// Root 'A' (craftable) needing one leaf ingredient 'B'. With pCraft > 0,
+// missions yielding B produce positive score, so the optimizer has a reason
+// to launch.
 function craftDag(pCraft = 0.1): RecipeDAG {
   return new Map([
     ['A', makeNode('A', false, [['B', 1]], pCraft)],
@@ -23,126 +17,111 @@ function craftDag(pCraft = 0.1): RecipeDAG {
   ]);
 }
 
-// ── Option helper ─────────────────────────────────────────────────────────────
-
-let seq = 0;
-function makeOpt(
-  actual_fuel: number,
-  actual_time: number,
-  yieldEntries: [string, number][],
-  legendaryEntries: [string, number][] = [],
-  afxId: number = 0
-): LaunchOption {
-  return {
-    id: `opt-${seq++}`,
-    ship: 0 as unknown as LaunchOption['ship'],
-    target: null,
-    targetAfxId: afxId as LaunchOption['targetAfxId'],
-    actual_fuel,
-    fuel_by_egg: new Map(),
-    actual_time,
-    supply_vector: new Map(yieldEntries),
-    yield_vector: new Map(yieldEntries),
-    legendary_yield_vector: new Map(legendaryEntries),
-  };
-}
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
 describe('optimizeFull', () => {
-  beforeEach(() => {
-    seq = 0;
-  });
-
-  // OC-1: no options at all → trivially zero probability, no crash
-  it('OC-1: empty options → best_probability=0, empty allocation', () => {
+  it('handles an empty option list', () => {
     const sol = optimizeFull({
       options: [],
-      recipe_dag: craftDag(),
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 1000,
-      time_capacity: 100,
-      base_yield: new Map(),
+      recipeDag: craftDag(),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 1000,
+      timeCapacity: 100,
+      baseYield: new Map(),
     });
-    expect(sol.best_probability).toBeCloseTo(0, 9);
-    expect(sol.choice_history).toHaveLength(0);
-    expect(sol.fuel_used).toBeCloseTo(0, 9);
+    expect(sol.bestProbability).toBeCloseTo(0, 9);
+    expect(sol.choiceHistory).toHaveLength(0);
+    expect(sol.fuelUsed).toBeCloseTo(0, 9);
   });
 
-  // OC-2: single zero-fuel option, time budget binds
-  // s=10, S=100 → k_S=10; each launch yields 1 B → 10 B → alpha=10 crafts of A
-  it('OC-2: zero-fuel opt (s=10, S=100) → 10 B accumulated, time≤100', () => {
+  it('uses the full time budget for a zero-fuel option', () => {
+    // 10s per launch, 100s horizon, 3 slots: 10 launches per slot -> 30 B
     const sol = optimizeFull({
       options: [makeOpt(0, 10, [['B', 1]])],
-      recipe_dag: craftDag(0.1),
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 1_000_000,
-      time_capacity: 100,
-      base_yield: new Map(),
+      recipeDag: craftDag(0.1),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 1_000_000,
+      timeCapacity: 100,
+      baseYield: new Map(),
     });
-    expect(sol.time_units_used).toBeLessThanOrEqual(100);
-    const yieldB = sol.final_yield_vector.get('B') ?? 0;
-    expect(yieldB).toBeGreaterThanOrEqual(10);
+    expect(sol.timeUnitsUsed).toBeLessThanOrEqual(100);
+    const yieldB = sol.finalYieldVector.get('B') ?? 0;
+    expect(yieldB).toBeGreaterThanOrEqual(30);
   });
 
-  // OC-3: time budget binds at a smaller value
-  // actual_fuel=0 (no R constraint), actual_time=10, S=50 → k_S=5 launches
-  // 5 × 1 B = 5 B; time_units_used = 5 × 10 = 50 exactly
-  it('OC-3: S=50, s=10 → exactly 50 time units and 5 B accumulated', () => {
+  it('respects a tighter time budget exactly', () => {
+    // 10s per launch, 50s per-slot horizon, 3 slots: 5 launches per slot -> 15 B,
+    // and each slot filled to 50s so the wall-clock makespan is 50
     const sol = optimizeFull({
       options: [makeOpt(0, 10, [['B', 1]])],
-      recipe_dag: craftDag(0.1),
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 1_000_000,
-      time_capacity: 50,
-      base_yield: new Map(),
+      recipeDag: craftDag(0.1),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 1_000_000,
+      timeCapacity: 50,
+      baseYield: new Map(),
     });
-    expect(sol.time_units_used).toBe(50);
-    expect(sol.final_yield_vector.get('B')).toBeCloseTo(5, 9);
+    expect(sol.timeUnitsUsed).toBe(50);
+    expect(sol.finalYieldVector.get('B')).toBeCloseTo(15, 9);
   });
 
-  // OC-4: fuel budget binds
-  // r=100, R=300, s=1, S=10000 → k_R=3, fuel_used=300
-  it('OC-4: fuel budget R=300 with r=100/launch → fuel_used=300', () => {
+  it('respects the fuel budget', () => {
+    // 100 fuel per launch, 300 budget: 3 launches
     const sol = optimizeFull({
       options: [makeOpt(100, 1, [['B', 1]])],
-      recipe_dag: craftDag(0.1),
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 300,
-      time_capacity: 10_000,
-      base_yield: new Map(),
+      recipeDag: craftDag(0.1),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 300,
+      timeCapacity: 10_000,
+      baseYield: new Map(),
     });
-    expect(sol.fuel_used).toBeLessThanOrEqual(300);
-    expect(sol.fuel_used).toBeCloseTo(300, 6);
+    expect(sol.fuelUsed).toBeLessThanOrEqual(300);
+    expect(sol.fuelUsed).toBeCloseTo(300, 6);
   });
 
-  // OC-5: dominance pruning — opt1 yields 2× B per launch vs opt0's 1×, same cost
-  // opt0 is strictly dominated; the solution should use only opt1
-  // k = min(100/10, 100/10) = 10 launches of opt1 → 20 B exactly
-  it('OC-5: dominated option pruned; dominator captures all budget (20 B exact)', () => {
-    const opt0 = makeOpt(10, 10, [['B', 1]], [], 1); // dominated
-    const opt1 = makeOpt(10, 10, [['B', 2]], [], 2); // dominates (same cost, 2× yield)
+  it('prunes an option dominated on yield', () => {
+    const opt0 = makeOpt(10, 10, [['B', 1]], [], Name.LUNAR_TOTEM); // same cost, half the yield
+    const opt1 = makeOpt(10, 10, [['B', 2]], [], Name.TUNGSTEN_ANKH);
     const sol = optimizeFull({
       options: [opt0, opt1],
-      recipe_dag: craftDag(0.1),
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 100,
-      time_capacity: 100,
-      base_yield: new Map(),
+      recipeDag: craftDag(0.1),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 100,
+      timeCapacity: 100,
+      baseYield: new Map(),
     });
-    expect(sol.final_yield_vector.get('B')).toBeCloseTo(20, 6);
-    // opt0 is pointwise-dominated by opt1 (same cost, half the yield) and
-    // must not appear in the chosen allocation.
-    expect(sol.choice_history.find(c => c.targetAfxId === opt0.targetAfxId)).toBeUndefined();
-    expect(sol.choice_history.find(c => c.targetAfxId === opt1.targetAfxId)).toBeDefined();
+    // 10 launches of opt1, 20 B
+    expect(sol.finalYieldVector.get('B')).toBeCloseTo(20, 6);
+    expect(sol.choiceHistory.find(c => c.targetAfxId === opt0.targetAfxId)).toBeUndefined();
+    expect(sol.choiceHistory.find(c => c.targetAfxId === opt1.targetAfxId)).toBeDefined();
   });
 
-  // OC-7: Joint LP support — complementary options both get allocated
-  // DAG: A ← {B:1, C:1}; optB yields B, optC yields C — neither dominates the other.
-  // The LP optimum splits the budget evenly (x_B = x_C = 10), so the final allocation
-  // must include both options and accumulate ≥ 9 of each ingredient.
-  it('OC-7: complementary B/C options both allocated; each yield ≥ 9', () => {
-    const dag7: RecipeDAG = new Map([
+  it('does not prune the only source of a direct legendary drop', () => {
+    // optBulk dominates optDropper on every ingredient-side dimension, but
+    // optDropper is the only direct source of the target's legendary. A
+    // dominance check that ignored legendary vectors would prune it, costing
+    // the ~0.669 mixed plan in favour of optBulk's ~0.580.
+    const dag: RecipeDAG = new Map([
+      ['A', makeNode('A', false, [['B', 11]], 0.04)],
+      ['B', makeNode('B', true)],
+    ]);
+    const optBulk = makeOpt(0, 6.14, [['B', 2.69]], [], Name.LUNAR_TOTEM);
+    const optDropper = makeOpt(3.49, 6.27, [['B', 1.95]], [['A', 0.05]], Name.TUNGSTEN_ANKH);
+    const sol = optimizeFull({
+      options: [optBulk, optDropper],
+      recipeDag: dag,
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 18.56,
+      timeCapacity: 179.54,
+      baseYield: new Map(),
+    });
+
+    expect(sol.choiceHistory.find(c => c.targetAfxId === optDropper.targetAfxId)).toBeDefined();
+    expect(sol.dropProbability).toBeGreaterThan(0);
+    expect(sol.bestProbability).toBeGreaterThan(0.65);
+  });
+
+  it('allocates complementary options together', () => {
+    // A needs both B and C; one option yields each, neither dominates.
+    // The budget should be split between them.
+    const dag: RecipeDAG = new Map([
       [
         'A',
         makeNode(
@@ -158,28 +137,26 @@ describe('optimizeFull', () => {
       ['B', makeNode('B', true)],
       ['C', makeNode('C', true)],
     ]);
-    const optB = makeOpt(10, 10, [['B', 1]], [], 1);
-    const optC = makeOpt(10, 10, [['C', 1]], [], 2);
+    const optB = makeOpt(10, 10, [['B', 1]], [], Name.LUNAR_TOTEM);
+    const optC = makeOpt(10, 10, [['C', 1]], [], Name.TUNGSTEN_ANKH);
     const sol = optimizeFull({
       options: [optB, optC],
-      recipe_dag: dag7,
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 200,
-      time_capacity: 200,
-      base_yield: new Map(),
+      recipeDag: dag,
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 200,
+      timeCapacity: 200,
+      baseYield: new Map(),
     });
-    expect(sol.choice_history.length).toBe(2);
-    expect(sol.final_yield_vector.get('B') ?? 0).toBeGreaterThanOrEqual(9);
-    expect(sol.final_yield_vector.get('C') ?? 0).toBeGreaterThanOrEqual(9);
+    expect(sol.choiceHistory.length).toBe(2);
+    expect(sol.finalYieldVector.get('B') ?? 0).toBeGreaterThanOrEqual(9);
+    expect(sol.finalYieldVector.get('C') ?? 0).toBeGreaterThanOrEqual(9);
   });
 
-  // OC-8: Triple-action scan (Step 5 fallback)
-  // DAG: A ← {B:1, C:1, D:1}; one option per ingredient, all equal cost.
-  // Any pair leaves the third ingredient at 0 → 0 crafts. Pair bestScore = 0.
-  // LP allocates x_B = x_C = x_D = 10, score_LP = Q*10. gap = 1.0 > ε → Step 5 runs.
-  // Triple (k_B, k_C, k_D) = (10, 10, 10) is the unique feasible triple optimum.
-  it('OC-8: triple-scan fallback finds 3-option allocation; each yield = 10', () => {
-    const dag8: RecipeDAG = new Map([
+  it('falls back to triples when pairs are not enough', () => {
+    // A needs B, C and D, with one option per ingredient. Any pair leaves
+    // the third ingredient at zero, so only the triple scan can find the
+    // (10, 10, 10) allocation.
+    const dag: RecipeDAG = new Map([
       [
         'A',
         makeNode(
@@ -197,75 +174,63 @@ describe('optimizeFull', () => {
       ['C', makeNode('C', true)],
       ['D', makeNode('D', true)],
     ]);
-    const optB = makeOpt(10, 10, [['B', 1]], [], 1);
-    const optC = makeOpt(10, 10, [['C', 1]], [], 2);
-    const optD = makeOpt(10, 10, [['D', 1]], [], 3);
+    const optB = makeOpt(10, 10, [['B', 1]], [], Name.LUNAR_TOTEM);
+    const optC = makeOpt(10, 10, [['C', 1]], [], Name.TUNGSTEN_ANKH);
+    const optD = makeOpt(10, 10, [['D', 1]], [], Name.DEMETERS_NECKLACE);
     const sol = optimizeFull({
       options: [optB, optC, optD],
-      recipe_dag: dag8,
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 300,
-      time_capacity: 300,
-      base_yield: new Map(),
+      recipeDag: dag,
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 300,
+      timeCapacity: 300,
+      baseYield: new Map(),
     });
-    expect(sol.choice_history.length).toBe(3);
-    expect(sol.final_yield_vector.get('B')).toBeCloseTo(10, 6);
-    expect(sol.final_yield_vector.get('C')).toBeCloseTo(10, 6);
-    expect(sol.final_yield_vector.get('D')).toBeCloseTo(10, 6);
-    // alpha = min(10,10,10) = 10 deterministic crafts
-    expect(sol.expected_crafts).toBeCloseTo(10, 6);
+    expect(sol.choiceHistory.length).toBe(3);
+    expect(sol.finalYieldVector.get('B')).toBeCloseTo(10, 6);
+    expect(sol.finalYieldVector.get('C')).toBeCloseTo(10, 6);
+    expect(sol.finalYieldVector.get('D')).toBeCloseTo(10, 6);
+    expect(sol.expectedCrafts).toBeCloseTo(10, 6);
   });
 
-  // OC-9: Dominance via strict-cost only (strictYield = false)
-  // optCheap and optExpensive have identical B yield (1) but optCheap costs half the fuel.
-  // dominates(cheap, expensive): strictCost = (10 < 20) = true → pruned.
-  it('OC-9: strict-cost dominance prunes expensive option; cheap allocated 10 times', () => {
-    const optExpensive = makeOpt(20, 10, [['B', 1]], [], 1);
-    const optCheap = makeOpt(10, 10, [['B', 1]], [], 2);
+  it('prunes an option dominated on cost alone', () => {
+    const optExpensive = makeOpt(20, 10, [['B', 1]], [], Name.LUNAR_TOTEM);
+    const optCheap = makeOpt(10, 10, [['B', 1]], [], Name.TUNGSTEN_ANKH); // same yield, half the fuel
     const sol = optimizeFull({
       options: [optExpensive, optCheap],
-      recipe_dag: craftDag(0.1),
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 100,
-      time_capacity: 100,
-      base_yield: new Map(),
+      recipeDag: craftDag(0.1),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 100,
+      timeCapacity: 100,
+      baseYield: new Map(),
     });
-    // optCheap: k = min(100/10, 100/10) = 10 → 10 B
-    expect(sol.choice_history.find(c => c.targetAfxId === optExpensive.targetAfxId)).toBeUndefined();
-    expect(sol.choice_history.find(c => c.targetAfxId === optCheap.targetAfxId)).toBeDefined();
-    expect(sol.final_yield_vector.get('B')).toBeCloseTo(10, 6);
+    expect(sol.choiceHistory.find(c => c.targetAfxId === optExpensive.targetAfxId)).toBeUndefined();
+    expect(sol.choiceHistory.find(c => c.targetAfxId === optCheap.targetAfxId)).toBeDefined();
+    expect(sol.finalYieldVector.get('B')).toBeCloseTo(10, 6);
   });
 
-  // OC-10: Legendary-drop probability path via optimizer
-  // DAG: A ← B (non-leaf root, pCraft=0 → Q=0). optLeg yields B + legendary A at 0.1/launch.
-  // Score = Q*alpha + directLegendary = 0 + k*0.1; maximised at k=10 (both budget caps).
-  // lambda = 10 * 0.1 = 1 → drop_probability = 1 − e^{−1}.
-  it('OC-10: pCraft=0 → craft=0; legendary lambda=1 → drop=1−e^{−1}', () => {
-    const dag10: RecipeDAG = new Map([
+  it('values direct legendary drops when crafting is impossible', () => {
+    // pCraft=0, so the only value is the 0.1 legendary drop rate. 10 launches
+    // give lambda=1 and drop probability 1 - e^-1.
+    const dag: RecipeDAG = new Map([
       ['A', makeNode('A', false, [['B', 1]], 0)],
       ['B', makeNode('B', true)],
     ]);
     const optLeg = makeOpt(10, 10, [['B', 1]], [['A', 0.1]]);
     const sol = optimizeFull({
       options: [optLeg],
-      recipe_dag: dag10,
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 100,
-      time_capacity: 100,
-      base_yield: new Map(),
+      recipeDag: dag,
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 100,
+      timeCapacity: 100,
+      baseYield: new Map(),
     });
-    expect(sol.craft_probability).toBeCloseTo(0, 9);
-    expect(sol.drop_probability).toBeCloseTo(1 - Math.exp(-1), 6);
-    // best = 1 − (1−0)(1−drop) = drop
-    expect(sol.best_probability).toBeCloseTo(1 - Math.exp(-1), 6);
+    expect(sol.craftProbability).toBeCloseTo(0, 9);
+    expect(sol.dropProbability).toBeCloseTo(1 - Math.exp(-1), 6);
+    expect(sol.bestProbability).toBeCloseTo(1 - Math.exp(-1), 6);
   });
 
-  // OC-11: Mixed Z × P pair (Step 3b)
-  // DAG: A ← {B:1, C:1}. optZ (fuel=0) yields B; optP (fuel=10) yields C.
-  // LP optimum: x_Z = x_P = 10. pairwiseScan (Z×P path) finds k_Z = k_P = 10.
-  // Total: 10 B + 10 C → 10 A; fuel = 100 = R; time = 200 = S.
-  it('OC-11: Z×P pair from Step 3b; both options allocated; budgets fully consumed', () => {
-    const dag11: RecipeDAG = new Map([
+  it('pairs a zero-fuel option with a fueled one', () => {
+    const dag: RecipeDAG = new Map([
       [
         'A',
         makeNode(
@@ -281,38 +246,285 @@ describe('optimizeFull', () => {
       ['B', makeNode('B', true)],
       ['C', makeNode('C', true)],
     ]);
-    const optZ = makeOpt(0, 10, [['B', 1]], [], 1);
-    const optP = makeOpt(10, 10, [['C', 1]], [], 2);
+    const optZ = makeOpt(0, 10, [['B', 1]], [], Name.LUNAR_TOTEM);
+    const optP = makeOpt(10, 10, [['C', 1]], [], Name.TUNGSTEN_ANKH);
     const sol = optimizeFull({
       options: [optZ, optP],
-      recipe_dag: dag11,
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 100,
-      time_capacity: 200,
-      base_yield: new Map(),
+      recipeDag: dag,
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 100,
+      timeCapacity: 200,
+      baseYield: new Map(),
     });
-    expect(sol.choice_history.find(c => c.targetAfxId === optZ.targetAfxId)).toBeDefined();
-    expect(sol.choice_history.find(c => c.targetAfxId === optP.targetAfxId)).toBeDefined();
-    expect(sol.final_yield_vector.get('B')).toBeCloseTo(10, 6);
-    expect(sol.final_yield_vector.get('C')).toBeCloseTo(10, 6);
-    expect(sol.time_units_used).toBe(200);
-    expect(sol.fuel_used).toBeCloseTo(100, 6);
+    expect(sol.choiceHistory.find(c => c.targetAfxId === optZ.targetAfxId)).toBeDefined();
+    expect(sol.choiceHistory.find(c => c.targetAfxId === optP.targetAfxId)).toBeDefined();
+    // C is fuel-bound at 10; crafts = min(B, C) = 10. B (zero fuel) is at least
+    // enough to match C — any surplus free B is optimal-equivalent.
+    expect(sol.finalYieldVector.get('C')).toBeCloseTo(10, 6);
+    expect(sol.finalYieldVector.get('B') ?? 0).toBeGreaterThanOrEqual(10 - 1e-6);
+    expect(sol.expectedCrafts).toBeCloseTo(10, 6);
+    expect(sol.timeUnitsUsed).toBeLessThanOrEqual(200);
+    expect(sol.fuelUsed).toBeCloseTo(100, 6);
   });
 
-  // OC-6: budget feasibility invariant — never exceed R or S regardless of inputs;
-  // also verify that at least one launch actually occurred (no-op stub has 0 launches).
-  it('OC-6: fuel_used ≤ R and time_units_used ≤ S always; something launched', () => {
+  it('reaches the brute-force optimum on a tight-fuel mix', () => {
+    const dag: RecipeDAG = new Map([
+      [
+        'A',
+        makeNode(
+          'A',
+          false,
+          [
+            ['B', 1],
+            ['C', 1],
+          ],
+          0.1
+        ),
+      ],
+      ['B', makeNode('B', true)],
+      ['C', makeNode('C', true)],
+    ]);
+    const opt0 = makeOpt(
+      0,
+      3,
+      [
+        ['B', 0.8],
+        ['C', 1.5],
+      ],
+      [],
+      Name.LUNAR_TOTEM
+    );
+    const opt1 = makeOpt(
+      1,
+      3,
+      [
+        ['B', 2.43],
+        ['C', 2.03],
+      ],
+      [],
+      Name.TUNGSTEN_ANKH
+    );
+    const opt2 = makeOpt(
+      2,
+      2,
+      [
+        ['B', 1.36],
+        ['C', 0.61],
+      ],
+      [],
+      Name.DEMETERS_NECKLACE
+    );
+    const sol = optimizeFull({
+      options: [opt0, opt1, opt2],
+      recipeDag: dag,
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 6,
+      timeCapacity: 8,
+      baseYield: new Map(),
+    });
+    // Fuel binds at 6; the brute-force optimum is 6x opt1 -> min(B,C) = 12.18
+    // crafts, which a dual filter that wrongly pruned opt1 would miss.
+    expect(sol.expectedCrafts).toBeCloseTo(12.18, 2);
+    expect(sol.choiceHistory.some(c => c.targetAfxId === opt1.targetAfxId)).toBe(true);
+  });
+
+  it('keeps every mission of an allocation longest-first packing would strand', () => {
+    // Seed 1207's shape: the relaxed allocation is already exactly 3-bin
+    // packable, and best-fit-decreasing still drops one mission.
+    //
+    // A needs B, C and D; the three options are perfectly complementary, so the
+    // 3S optimum equalizes the ingredients at 1x60s + 2x24s + 4x18s = 180s = 3S,
+    // which partitions as (60) (24+18+18) (24+18+18). Longest-first best fit
+    // instead builds (60) (24+24) (18+18+18) and strands the fourth 18s mission,
+    // costing a quarter of the D supply and hence a quarter of the crafts.
+    const dag: RecipeDAG = new Map([
+      [
+        'A',
+        makeNode(
+          'A',
+          false,
+          [
+            ['B', 1],
+            ['C', 1],
+            ['D', 1],
+          ],
+          0.1
+        ),
+      ],
+      ['B', makeNode('B', true)],
+      ['C', makeNode('C', true)],
+      ['D', makeNode('D', true)],
+    ]);
+    const optB = makeOpt(0, 60, [['B', 6]], [], Name.LUNAR_TOTEM);
+    const optC = makeOpt(0, 24, [['C', 3]], [], Name.TUNGSTEN_ANKH);
+    const optD = makeOpt(0, 18, [['D', 1.5]], [], Name.DEMETERS_NECKLACE);
+    const sol = optimizeFull({
+      options: [optB, optC, optD],
+      recipeDag: dag,
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 1_000_000,
+      timeCapacity: 60,
+      baseYield: new Map(),
+    });
+
+    const launched = new Map(sol.choiceHistory.map(c => [c.targetAfxId, c.numShipsLaunched]));
+    expect(launched.get(optB.targetAfxId)).toBe(1);
+    expect(launched.get(optC.targetAfxId)).toBe(2);
+    expect(launched.get(optD.targetAfxId)).toBe(4);
+    expect(sol.finalYieldVector.get('D')).toBeCloseTo(6, 6);
+    expect(sol.expectedCrafts).toBeCloseTo(6, 6);
+    // Every slot is filled to the horizon exactly; nothing was stranded.
+    expect(sol.timeUnitsUsed).toBe(60);
+    expect((sol.slots ?? []).reduce((n, s) => n + s.missionCount, 0)).toBe(7);
+  });
+
+  it('takes an exchange out of a budget-maximal plan', () => {
+    // chunky-knapsack:1089's shape, shrunk: the plan the projection stages reach
+    // spends the fuel budget to the last unit, so no `+1` of anything fits and
+    // no `-1` can help — score is non-decreasing in inventory. Only swapping one
+    // mission for another improves, which every stage upstream of polish is
+    // structurally unable to do: they search aggregate 3S time and then project
+    // into three bins by adding or dropping.
+    //
+    // Without the exchange the solver stops at 1x optSwapOut + 2x optFiller
+    // (X=9.1, Y=14.5 -> 9.1 crafts); trading one filler for optSwapIn balances
+    // the two ingredients at 11 each. Verified against a brute force over every
+    // packable allocation inside both budgets: [1,1,1] at 11 crafts is optimal.
+    const dag: RecipeDAG = new Map([
+      [
+        'A',
+        makeNode(
+          'A',
+          false,
+          [
+            ['X', 1],
+            ['Y', 1],
+          ],
+          0.1
+        ),
+      ],
+      ['X', makeNode('X', true)],
+      ['Y', makeNode('Y', true)],
+    ]);
+    const optBase = makeOpt(
+      10,
+      26,
+      [
+        ['X', 4.5],
+        ['Y', 5.9],
+      ],
+      [],
+      Name.LUNAR_TOTEM
+    );
+    const optSwapIn = makeOpt(
+      7,
+      76,
+      [
+        ['X', 4.2],
+        ['Y', 0.8],
+      ],
+      [],
+      Name.TUNGSTEN_ANKH
+    );
+    const optFiller = makeOpt(
+      7,
+      12,
+      [
+        ['X', 2.3],
+        ['Y', 4.3],
+      ],
+      [],
+      Name.DEMETERS_NECKLACE
+    );
+    const sol = optimizeFull({
+      options: [optBase, optSwapIn, optFiller],
+      recipeDag: dag,
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 24,
+      timeCapacity: 82,
+      baseYield: new Map(),
+    });
+
+    const launched = new Map(sol.choiceHistory.map(c => [c.targetAfxId, c.numShipsLaunched]));
+    expect(launched.get(optBase.targetAfxId)).toBe(1);
+    expect(launched.get(optSwapIn.targetAfxId)).toBe(1);
+    expect(launched.get(optFiller.targetAfxId)).toBe(1);
+    expect(sol.finalYieldVector.get('X')).toBeCloseTo(11, 6);
+    expect(sol.finalYieldVector.get('Y')).toBeCloseTo(11, 6);
+    expect(sol.expectedCrafts).toBeCloseTo(11, 6);
+    // Budget-maximal, and the reported slots come off the accepted witness:
+    // 76s alone in one slot, 26+12 in another.
+    expect(sol.fuelUsed).toBeCloseTo(24, 9);
+    expect(sol.timeUnitsUsed).toBe(76);
+    expect((sol.slots ?? []).map(s => s.loadSeconds).sort((a, b) => a - b)).toEqual([0, 38, 76]);
+  });
+
+  it('snapshots base_yield and keeps it out of the dropped column', () => {
+    const root = 'puzzle-cube-2';
+    const leaf = 'puzzle-cube-1';
+    const dag: RecipeDAG = new Map([
+      [root, makeNode(root, false, [[leaf, 1]], 0.1)],
+      [leaf, makeNode(leaf, true)],
+    ]);
+    const sol = optimizeFull({
+      options: [makeOpt(0, 10, [[leaf, 1]])],
+      recipeDag: dag,
+      desiredArtifactNodeIds: [root],
+      fuelCapacity: 1_000_000,
+      timeCapacity: 50,
+      baseYield: new Map([[leaf, 5]]),
+    });
+    expect(sol.baseYield.get(leaf)).toBe(5);
+    // 10s per launch, 50s per-slot horizon, 3 slots: 5 per slot -> 15 dropped
+    expect(sol.finalYieldVector.get(leaf)).toBeCloseTo(20, 9); // 5 owned + 15 dropped
+    const leafNode = computeCraftChainTree(sol, root, null)?.children.find(n => n.nodeId === leaf);
+    expect(leafNode).toBeDefined();
+    expect(leafNode!.metrics.dropped).toBeCloseTo(15, 9);
+  });
+
+  it('never exceeds either budget', () => {
     const opts = [makeOpt(40, 5, [['B', 1]]), makeOpt(60, 8, [['B', 2]]), makeOpt(0, 3, [['B', 1]])];
     const sol = optimizeFull({
       options: opts,
-      recipe_dag: craftDag(0.1),
-      desired_artifact_node_ids: ['A'],
-      fuel_capacity: 100,
-      time_capacity: 50,
-      base_yield: new Map(),
+      recipeDag: craftDag(0.1),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 100,
+      timeCapacity: 50,
+      baseYield: new Map(),
     });
-    expect(sol.fuel_used).toBeLessThanOrEqual(100 + 1e-6);
-    expect(sol.time_units_used).toBeLessThanOrEqual(51); // +1 for integer rounding
-    expect(sol.choice_history.length).toBeGreaterThan(0);
+    expect(sol.fuelUsed).toBeLessThanOrEqual(100 + 1e-6);
+    expect(sol.timeUnitsUsed).toBeLessThanOrEqual(51); // +1 for integer rounding
+    expect(sol.choiceHistory.length).toBeGreaterThan(0);
+  });
+
+  it('treats a NaN or negative budget as zero (no launches)', () => {
+    // An empty input field upstream arrives as NaN; degrade to the no-launch
+    // baseline rather than leak it into the scans.
+    const opts = [makeOpt(10, 10, [['B', 1]]), makeOpt(0, 3, [['B', 1]])];
+    for (const timeCapacity of [NaN, -5, Infinity]) {
+      const sol = optimizeFull({
+        options: opts,
+        recipeDag: craftDag(0.1),
+        desiredArtifactNodeIds: ['A'],
+        fuelCapacity: 1000,
+        timeCapacity,
+        baseYield: new Map(),
+      });
+      expect(sol.choiceHistory).toHaveLength(0);
+      expect(sol.fuelUsed).toBe(0);
+      expect(sol.timeUnitsUsed).toBe(0);
+      expect(Number.isFinite(sol.bestProbability)).toBe(true);
+    }
+    const solNaNFuel = optimizeFull({
+      options: opts,
+      recipeDag: craftDag(0.1),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: NaN,
+      timeCapacity: 100,
+      baseYield: new Map(),
+    });
+    // the zero-fuel option is still launchable against the time budget
+    expect(solNaNFuel.fuelUsed).toBe(0);
+    expect(solNaNFuel.timeUnitsUsed).toBeLessThanOrEqual(100);
   });
 });

@@ -1,18 +1,13 @@
-// ============================================================
-// Store schema — persisted config shapes, their defaults, and the
-// type guards that validate values loaded from localStorage.
-//
-// This module is intentionally free of side effects: it never reads
-// localStorage or touches `window` at import time, so it can be unit
-// tested directly in a node environment. The reactive store in
-// ./index.ts builds its refs and load/persist helpers on top of it.
-// ============================================================
+// Persisted config shapes, defaults, and the type guards that validate
+// localStorage values. Kept free of side effects (no localStorage or window
+// access at import time) so it can be unit tested under node.
 
-import type { ei } from 'lib';
+import { virtueShipGemCosts, ei } from 'lib';
 
 type Spaceship = ei.MissionInfo.Spaceship;
 
-// Per-field override flags. true = use the manual `config` value instead of player data.
+// Per-field flags: true means use the manual config value instead of the
+// value from player data.
 export interface OverrideFlags {
   craftingLevel: boolean;
   previousCrafts: boolean;
@@ -51,16 +46,14 @@ export function isOverrideFlags(x: unknown): x is OverrideFlags {
   );
 }
 
-// Manual values that aren't part of ShipsConfig (crafting level, prior crafts on the
-// targeted artifact, fuel tank level). Persisted alongside `config` and `overrides`.
+// Manual values that aren't part of ShipsConfig, persisted alongside config
+// and overrides.
 export interface ExtrasConfig {
   craftingLevel: number;
   previousCrafts: number;
   tankLevel: number;
 }
 
-// `maxTankLevel` is the largest fuel-tank index (derived from game data by the
-// caller) and becomes the default tank level for a fresh config.
 export function newExtras(maxTankLevel: number): ExtrasConfig {
   return { craftingLevel: 30, previousCrafts: 0, tankLevel: maxTankLevel };
 }
@@ -75,17 +68,53 @@ export function isExtrasConfig(x: unknown): x is ExtrasConfig {
   );
 }
 
+// How much effort the player will put into relaunching missions. Lower effort
+// means a longer launch period, biasing the optimizer away from lots of tiny,
+// babysitting-heavy launches.
+export const EFFORT_LEVELS = ['low', 'medium', 'high', 'max'] as const;
+
+export type EffortLevel = (typeof EFFORT_LEVELS)[number];
+
+// Launch period per effort level: a floor on each mission's effective
+// duration, so a slot runs at most one launch per period.
+export const EFFORT_LAUNCH_PERIOD_SECONDS: Record<EffortLevel, number> = {
+  low: 86400, // 1 launch / slot / day
+  medium: 43200, // 2 launches / slot / day
+  high: 3600, // 1 launch / slot / hour
+  max: 0, // as often as the optimizer wants (raw durations)
+};
+
+export function isEffortLevel(x: unknown): x is EffortLevel {
+  return (EFFORT_LEVELS as readonly unknown[]).includes(x);
+}
+
+export const DEFAULT_WAIT_TIME_DAYS = '30';
+
 export interface MissionFilters {
-  minDurationHoursEnabled: boolean;
-  minDurationHours: number;
+  effort: EffortLevel;
+  // Maximum gem cost of a mission's ship on the Egg of Humility.
+  maxGemCostEnabled: boolean;
+  maxGemCost: number;
+  // Time budget, stored as typed (e.g. '30', '12d12h') and parsed at use.
+  waitTimeDays: string;
 }
 
 export function newMissionFilters(): MissionFilters {
-  return { minDurationHoursEnabled: false, minDurationHours: 0 };
+  return {
+    effort: 'medium',
+    maxGemCostEnabled: false,
+    maxGemCost: virtueShipGemCosts[ei.MissionInfo.Spaceship.ATREGGIES],
+    waitTimeDays: DEFAULT_WAIT_TIME_DAYS,
+  };
 }
 
 export function isMissionFilters(x: unknown): x is MissionFilters {
   if (!x || typeof x !== 'object') return false;
   const m = x as MissionFilters;
-  return typeof m.minDurationHoursEnabled === 'boolean' && typeof m.minDurationHours === 'number';
+  return (
+    (m.effort === undefined || isEffortLevel(m.effort)) &&
+    (m.maxGemCostEnabled === undefined || typeof m.maxGemCostEnabled === 'boolean') &&
+    (m.maxGemCost === undefined || typeof m.maxGemCost === 'number') &&
+    (m.waitTimeDays === undefined || typeof m.waitTimeDays === 'string')
+  );
 }

@@ -45,6 +45,7 @@ import { waitForEarningsBoostExecutor } from './executors/waitForEarningsBoost';
 import { waitForGemsExecutor } from './executors/waitForGems';
 import { waitForNoEarningsExecutor } from './executors/wait_for_no_earnings';
 import { notificationExecutor } from './executors/notification';
+import { modifyBankExecutor } from './executors/modifyBank';
 
 // ============================================================================
 // Executor Interface
@@ -97,9 +98,9 @@ export interface ExecutorContext {
   getTEEarned(): Record<VirtueEgg, number>;
 
   // Cost modifiers
-  getHabCostModifiers(): { cheaperContractorsLevel: number; flameRetardantMultiplier: number };
-  getVehicleCostModifiers(): { bustUnionsLevel: number; lithiumMultiplier: number };
-  getResearchCostModifiers(): { labUpgradeLevel: number; waterballoonMultiplier: number; puzzleCubeMultiplier: number };
+  getHabCostModifiers(): { cheaperContractorsLevel: number; habCostMultiplier: number };
+  getVehicleCostModifiers(): { bustUnionsLevel: number; vehicleCostMultiplier: number };
+  getResearchCostModifiers(): { labUpgradeLevel: number; researchCostMultiplier: number; puzzleCubeMultiplier: number };
 }
 
 // ============================================================================
@@ -135,6 +136,7 @@ const executorMap: { [K in ActionType]: ActionExecutor<K> } = {
   wait_for_no_earnings: waitForNoEarningsExecutor,
   toggle_earnings_boost: toggleEarningsBoostExecutor,
   notification: notificationExecutor,
+  modify_bank: modifyBankExecutor,
 };
 
 /**

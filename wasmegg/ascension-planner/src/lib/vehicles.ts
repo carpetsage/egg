@@ -73,14 +73,14 @@ export const HYPERLOOP_CAR_VIRTUE_COSTS: readonly number[] = [
  */
 export interface VehicleCostModifiers {
   bustUnionsLevel: number; // Epic research: -5% per level (max 10)
-  lithiumMultiplier: number; // Colleggtible: 0.90-1.0
+  vehicleCostMultiplier: number; // Colleggtible: 0.90-1.0
 }
 
 /**
  * Calculate the total cost multiplier from all sources.
  */
 export function getVehicleCostMultiplier(modifiers: VehicleCostModifiers, isActiveSale: boolean = false): number {
-  const multiplier = calculateCostMultiplier(modifiers.bustUnionsLevel, 0.05, modifiers.lithiumMultiplier);
+  const multiplier = calculateCostMultiplier(modifiers.bustUnionsLevel, 0.05, modifiers.vehicleCostMultiplier);
   return isActiveSale ? multiplier * 0.25 : multiplier;
 }
 

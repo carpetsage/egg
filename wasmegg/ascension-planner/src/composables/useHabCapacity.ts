@@ -33,7 +33,7 @@ export function useHabCapacity(): {
     return {
       habIds: habIds.value,
       researchLevels: researchLevels.value,
-      peggMultiplier: initialStateStore.colleggtibleModifiers.habCap,
+      habCapMultiplier: initialStateStore.colleggtibleModifiers.habCap,
       artifactMultiplier: artifactMod.totalMultiplier,
       artifactEffects: artifactMod.effects,
     };

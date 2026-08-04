@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { Inventory, requestFirstContact, resolveContractsInBackup, UserBackupEmptyError, getLocalStorage, setLocalStorage } from 'lib';
+import { Inventory, requestFirstContact, UserBackupEmptyError, getLocalStorage, setLocalStorage } from 'lib';
 
 import InventoryCanvas from '@/components/InventoryCanvas.vue';
 
@@ -36,7 +36,6 @@ if (!data.backup || !data.backup.game) {
   throw new UserBackupEmptyError(playerId);
 }
 const backup = data.backup;
-await resolveContractsInBackup(backup, playerId);
 if (!backup.settings) {
   throw new Error(`${playerId}: settings not found in backup`);
 }

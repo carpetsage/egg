@@ -33,7 +33,7 @@ export function isPortalHab(hab: { id: number }): boolean {
  */
 export interface HabCostModifiers {
   cheaperContractorsLevel: number; // Epic research: -5% per level (max 10)
-  flameRetardantMultiplier: number; // Colleggtible: 0.75-1.0
+  habCostMultiplier: number; // Colleggtible: 0.75-1.0
 }
 
 /**
@@ -43,7 +43,7 @@ export function getHabCostMultiplier(modifiers: HabCostModifiers, isActiveSale: 
   const multiplier = calculateCostMultiplier(
     modifiers.cheaperContractorsLevel,
     0.05,
-    modifiers.flameRetardantMultiplier
+    modifiers.habCostMultiplier
   );
   return isActiveSale ? multiplier * 0.2 : multiplier;
 }

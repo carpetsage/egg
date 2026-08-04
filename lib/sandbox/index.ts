@@ -36,6 +36,10 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
   const epicMultiplierResearch =
     farm.maxRunningChickenBonusResearches[farm.maxRunningChickenBonusResearches.length - 1];
   const missingEpicMultiplier = epicMultiplierResearch.maxLevel - epicMultiplierResearch.level;
+  const labUpgradeResearch = farm.researches([
+    { id: 'cheaper_research', name: 'Lab Upgrade', maxLevel: 10, perLevel: -0.05 },
+  ])[0];
+  const missingLabUpgrade = labUpgradeResearch.maxLevel - labUpgradeResearch.level;
   const config: IConfig = {
     prophecyEggs: getNumProphecyEggs(backup),
     truthEggs: getNumTruthEggs(backup),
@@ -47,6 +51,7 @@ export function farmToSandboxConfig(farm: Farm, override?: FarmToSandboxConfigOv
     missingSoulFood,
     missingProphecyBonus,
     missingEpicMultiplier,
+    missingLabUpgrade,
 
     birdFeedActive: override?.birdFeedActive ?? true,
     tachyonPrismActive: override?.tachyonPrismActive ?? true,

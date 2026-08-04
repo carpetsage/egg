@@ -7,7 +7,6 @@ import {
   getArtifactTierPropsFromId,
   getCraftingLevelFromXp,
   getLocalStorage,
-  getXPFromCraftingLevel,
   Inventory,
   isOldShipsConfig,
   isShipsConfig,
@@ -23,7 +22,10 @@ import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
 
 import {
+  DEFAULT_WAIT_TIME_DAYS,
+  EffortLevel,
   ExtrasConfig,
+  isEffortLevel,
   isExtrasConfig,
   isMissionFilters,
   isOverrideFlags,
@@ -33,12 +35,15 @@ import {
   newOverrides,
   OverrideFlags,
 } from './schema';
-export type { ExtrasConfig, MissionFilters, OverrideFlags } from './schema';
+export type { ExtrasConfig, MissionFilters, OverrideFlags, EffortLevel } from './schema';
+export { EFFORT_LEVELS, EFFORT_LAUNCH_PERIOD_SECONDS } from './schema';
 
 export const CONFIG_LOCALSTORAGE_KEY = 'config';
 export const OVERRIDES_LOCALSTORAGE_KEY = 'overrides';
 export const EXTRAS_LOCALSTORAGE_KEY = 'extras';
 export const MISSION_FILTERS_LOCALSTORAGE_KEY = 'mission_filters';
+// EID whose save the manual (override) values were last seeded from.
+export const SEEDED_EID_LOCALSTORAGE_KEY = 'seeded_eid';
 
 // config is persisted through a watch in App.vue.
 export const config = ref(loadConfig());
@@ -87,14 +92,17 @@ export function setOverrideShipVisibility(ship: Spaceship, b: boolean): void {
   overrides.value.shipVisibility[ship] = b;
 }
 
-export function resetAllOverrides(): void {
-  overrides.value = newOverrides();
-}
-
 export function takeControlOfAllShips(): void {
   for (const s of spaceshipList) {
     overrides.value.shipLevels[s] = true;
     overrides.value.shipVisibility[s] = true;
+  }
+}
+
+export function releaseControlOfAllShips(): void {
+  for (const s of spaceshipList) {
+    overrides.value.shipLevels[s] = false;
+    overrides.value.shipVisibility[s] = false;
   }
 }
 
@@ -116,15 +124,15 @@ export function setTankLevel(level: number): void {
   extras.value.tankLevel = level;
 }
 
-// Ephemeral player data — not persisted to localStorage.
+// Player data loaded from a save. Never persisted.
 export const playerShipsConfig = ref<ShipsConfig | null>(null);
 export const playerInventory = shallowRef<Inventory | null>(null);
 export const playerTotalCraftingXp = ref<number | null>(null);
 export const playerTankLevel = ref<number | null>(null);
 
-// Set by ArtifactMissionOptimizer so the override modal can show the player's prior
-// craft count for the artifact currently being targeted.
-export const currentOptimizerArtifactId = ref<string | null>(null);
+// Set by ArtifactMissionOptimizer so the settings UI can show the prior craft
+// count of every selected target.
+export const currentOptimizerArtifactIds = ref<string[]>([]);
 
 export const playerCraftingLevel = computed<number | null>(() => {
   const xp = playerTotalCraftingXp.value;
@@ -132,12 +140,22 @@ export const playerCraftingLevel = computed<number | null>(() => {
   return getCraftingLevelFromXp(xp).level;
 });
 
-export const playerPreviousCrafts = computed<number | null>(() => {
+export const playerPreviousCraftsByArtifact = computed<Map<string, number>>(() => {
+  const counts = new Map<string, number>();
   const inv = playerInventory.value;
-  const id = currentOptimizerArtifactId.value;
-  if (!inv || !id) return null;
-  const props = getArtifactTierPropsFromId(id);
-  return inv.getItem({ name: props.afx_id, level: props.afx_level }).crafted;
+  if (!inv) return counts;
+  for (const id of currentOptimizerArtifactIds.value) {
+    const props = getArtifactTierPropsFromId(id);
+    counts.set(id, inv.getItem({ name: props.afx_id, level: props.afx_level }).crafted);
+  }
+  return counts;
+});
+
+// The first target's count, used to seed the manual value.
+export const playerPreviousCrafts = computed<number | null>(() => {
+  const id = currentOptimizerArtifactIds.value[0];
+  if (id === undefined) return null;
+  return playerPreviousCraftsByArtifact.value.get(id) ?? null;
 });
 
 // Effective values consumed by the optimizer.
@@ -147,10 +165,10 @@ export const effectiveCraftingLevel = computed<number>(() => {
   return overrides.value.craftingLevel ? extras.value.craftingLevel : player;
 });
 
-export const effectivePreviousCrafts = computed<number>(() => {
-  const player = playerPreviousCrafts.value;
-  if (player == null) return extras.value.previousCrafts;
-  return overrides.value.previousCrafts ? extras.value.previousCrafts : player;
+// undefined means every target uses its own crafted count from the save.
+export const effectivePreviousCraftsOverride = computed<number | undefined>(() => {
+  if (!playerInventory.value) return extras.value.previousCrafts;
+  return overrides.value.previousCrafts ? extras.value.previousCrafts : undefined;
 });
 
 export const effectiveTankLevel = computed<number>(() => {
@@ -161,12 +179,8 @@ export const effectiveTankLevel = computed<number>(() => {
 
 export const effectiveFuelTankCapacity = computed<number>(() => fuelTankSizes[effectiveTankLevel.value]);
 
-// XP value corresponding to `effectiveCraftingLevel` — fed back into the optimizer
-// which derives the crafting level via `getCraftingLevelFromXp`.
-export const effectiveTotalCraftingXp = computed<number>(() => getXPFromCraftingLevel(effectiveCraftingLevel.value));
-
-// Optimizer always reads this. Without player data: pure manual config.
-// With player data: per-field merge governed by `overrides`.
+// What the optimizer reads: the manual config when no player data is loaded,
+// otherwise player data with overridden fields taken from the manual config.
 export const effectiveConfig = computed<ShipsConfig>(() => {
   const player = playerShipsConfig.value;
   if (!player) return config.value;
@@ -189,6 +203,30 @@ export const effectiveConfig = computed<ShipsConfig>(() => {
     targets: config.value.targets,
   };
 });
+
+// Copy the loaded save's values into the manual (override) values, so that
+// turning on an override starts from the player's real value rather than a
+// default or one left over from another account. Called by setPlayerData when
+// the save belongs to an EID we haven't seeded from before.
+function seedOverrideValuesFromPlayerData(): void {
+  const player = playerShipsConfig.value;
+  if (player) {
+    config.value.epicResearchFTLLevel = player.epicResearchFTLLevel;
+    config.value.epicResearchZerogLevel = player.epicResearchZerogLevel;
+    config.value.shipLevels = { ...player.shipLevels };
+    config.value.shipVisibility = { ...player.shipVisibility };
+  }
+  if (playerCraftingLevel.value !== null) {
+    extras.value.craftingLevel = playerCraftingLevel.value;
+  }
+  // Per-artifact, so only available while the optimizer is open.
+  if (playerPreviousCrafts.value !== null) {
+    extras.value.previousCrafts = playerPreviousCrafts.value;
+  }
+  if (playerTankLevel.value !== null) {
+    extras.value.tankLevel = playerTankLevel.value;
+  }
+}
 
 function computeShipLevelFromPoints(shipType: Spaceship, points: number): number {
   const thresholds = shipLevelLaunchPointThresholds(shipType);
@@ -227,7 +265,7 @@ export function setPlayerData(backup: ei.IBackup): void {
     base.shipVisibility[shipType] = shipType === Spaceship.CHICKEN_ONE ? true : (hasLaunched[shipType] ?? false);
   }
 
-  // Preserve user-configured targets and showNodata — neither comes from the backup.
+  // targets and showNodata aren't in the backup; keep the user's settings
   base.targets = config.value.targets;
   base.showNodata = config.value.showNodata;
 
@@ -240,6 +278,12 @@ export function setPlayerData(backup: ei.IBackup): void {
   playerInventory.value = inv;
   playerTotalCraftingXp.value = Math.floor(backup.artifacts?.craftingXp ?? 0);
   playerTankLevel.value = backup.artifacts?.tankLevel ?? null;
+
+  const eid = backup.eiUserId;
+  if (eid && getLocalStorage(SEEDED_EID_LOCALSTORAGE_KEY) !== eid) {
+    seedOverrideValuesFromPlayerData();
+    setLocalStorage(SEEDED_EID_LOCALSTORAGE_KEY, eid);
+  }
 }
 
 export function clearPlayerData(): void {
@@ -343,12 +387,20 @@ export function persistExtras(): void {
 
 export const missionFilters = ref<MissionFilters>(loadMissionFilters());
 
-export function setMinDurationHoursEnabled(enabled: boolean): void {
-  missionFilters.value.minDurationHoursEnabled = enabled;
+export function setEffort(level: EffortLevel): void {
+  missionFilters.value.effort = level;
 }
 
-export function setMinDurationHours(hours: number): void {
-  missionFilters.value.minDurationHours = Math.max(0, hours);
+export function setMaxGemCostEnabled(enabled: boolean): void {
+  missionFilters.value.maxGemCostEnabled = enabled;
+}
+
+export function setMaxGemCost(cost: number): void {
+  missionFilters.value.maxGemCost = Math.max(0, cost);
+}
+
+export function setWaitTimeDays(v: string): void {
+  missionFilters.value.waitTimeDays = v;
 }
 
 export function loadMissionFilters(): MissionFilters {
@@ -357,7 +409,13 @@ export function loadMissionFilters(): MissionFilters {
   try {
     const parsed: unknown = JSON.parse(str);
     if (isMissionFilters(parsed)) {
-      return parsed;
+      return {
+        ...parsed,
+        effort: isEffortLevel(parsed.effort) ? parsed.effort : 'medium',
+        maxGemCostEnabled: parsed.maxGemCostEnabled ?? false,
+        maxGemCost: parsed.maxGemCost ?? 0,
+        waitTimeDays: parsed.waitTimeDays ?? DEFAULT_WAIT_TIME_DAYS,
+      };
     }
   } catch (err) {
     console.warn(`error parsing mission filters: ${err}`);

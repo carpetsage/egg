@@ -21,6 +21,21 @@ export function multiplierToTE(multiplier: number): number {
 }
 
 /**
+ * Calculate the Clothed Truth Egg contribution of the Lab Upgrade epic research.
+ * Lab Upgrade reduces research cost by 5% per level (max level 10 = 50% discount).
+ * The returned value is the penalty relative to a maxed Lab Upgrade: a fully-researched
+ * player contributes 0, while missing levels yield a negative TE.
+ *
+ * @param labUpgrade - The player's Lab Upgrade level (0-10)
+ * @returns The TE equivalent value of the (missing) Lab Upgrade discount (<= 0)
+ */
+export function cteFromLabUpgrade(labUpgrade: number): number {
+  const maxLabUpgradeMultiplier = 1 + 10 * -0.05; // max level 10, -5% per level
+  const labUpgradeMultiplier = 1 + labUpgrade * -0.05;
+  return multiplierToTE(maxLabUpgradeMultiplier / labUpgradeMultiplier);
+}
+
+/**
  * Calculate the Clothed Truth Egg value of artifacts only.
  * This returns the TE bonus from artifacts without considering colleggtibles or epic research.
  *
@@ -31,7 +46,6 @@ export function cteFromArtifacts(artifacts: Artifact[]): number {
   const eggValueMult = eggValueMultiplier(artifacts);
   const awayEarningsMult = awayEarningsMultiplier(artifacts);
   const researchPriceMult = researchPriceMultiplierFromArtifacts(artifacts);
-  console.log(researchPriceMult);
   const researchDiscountEffect = 1 / researchPriceMult;
 
   // Combine all artifact multipliers

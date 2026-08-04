@@ -3,7 +3,7 @@
     <li v-for="(choice, j) of choices" :key="j" class="flex items-center gap-1.5 text-gray-800">
       <span class="w-2 h-2 rounded-full flex-shrink-0 bg-green-500"></span>
       <span
-        >{{ choice.num_ships_launched }}×
+        >{{ choice.numShipsLaunched }}×
         <mission-name :mission="choice.ship" :target="choice.targetAfxId" :no-link="true" class="inline-block"
       /></span>
     </li>

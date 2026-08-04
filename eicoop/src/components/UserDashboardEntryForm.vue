@@ -52,19 +52,26 @@
         >
           <base-input
             id="user_id"
-            v-model="userId"
+            v-model="displayValue"
             name="user_id"
             type="text"
+            :readonly="!editing"
             class="appearance-none block w-full px-3 py-2 text-base border border-gray-300 rounded-l-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-500"
+            :class="{ 'cursor-pointer': !editing && activeEid }"
+            :title="!editing && activeEid ? 'Click to reveal/edit the EID' : undefined"
             placeholder="User ID"
             spellcheck="false"
             autocapitalize="off"
+            @focus="onFocus"
+            @blur="onBlur"
           />
           <button
             type="submit"
             class="-ml-px relative inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-r-md bg-blue-600 hover:bg-blue-700 !duration-0 focus:outline-none disabled:opacity-50"
             :class="{ 'cursor-not-allowed': !submittable }"
             :disabled="!submittable"
+            :title="!editing && activeEid ? 'Reload' : undefined"
+            @mousedown.prevent
           >
             <svg class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
               <path
@@ -90,15 +97,20 @@
         <div class="text-xs text-gray-900 dark:text-gray-100 mb-1">Recent IDs:</div>
         <div class="flex flex-wrap gap-2">
           <span
-            v-for="[eid, name] in eids"
+            v-for="[eid, entry] in eids"
             :key="eid"
-            class="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-xs text-gray-800 dark:text-gray-200"
+            class="inline-flex items-center px-2 py-1 rounded-full border text-xs"
+            :class="
+              eid === activeEid
+                ? 'bg-blue-100 dark:bg-blue-900 border-blue-400 dark:border-blue-500 text-gray-900 dark:text-gray-100'
+                : 'bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200'
+            "
           >
             <button
               type="button"
               class="mr-1 text-gray-400 hover:text-blue-500 focus:outline-none"
               aria-label="Edit name"
-              @click="eidsStore.editName(eid, name)"
+              @click="eidsStore.editName(eid, entry.nickname)"
             >
               ✎
             </button>
@@ -106,12 +118,9 @@
               type="button"
               class="hover:underline mr-1"
               style="text-decoration-thickness: 1.5px"
-              @click="
-                userId = eid;
-                submit();
-              "
+              @click="loadEid(eid)"
             >
-              {{ name || eid }}
+              {{ eidsStore.displayName(eid) }}
             </button>
             <button
               type="button"
@@ -136,12 +145,12 @@ import {
   checkIfShouldOnboardUserDashboardFeature,
   getSavedPlayerID,
   savePlayerID,
-  useEidsStore,
   getLocalStorage,
   setLocalStorage,
 } from '@/lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import BaseInput from 'ui/components/BaseInput.vue';
+import { useEidInput } from 'ui/composables/eid_input';
 import { PlayerIdSchema } from 'lib/schema';
 
 const COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY = 'collapseRecentEids';
@@ -157,29 +166,39 @@ export default defineComponent({
   setup(_, { emit }) {
     const router = useRouter();
     const onboarding = checkIfShouldOnboardUserDashboardFeature();
-    const userId = ref(getSavedPlayerID() || '');
-    const eidsStore = ref(useEidsStore());
-    const eids = eidsStore.value.eids;
     const collapsed = ref(getLocalStorage(COLLAPSE_RECENT_EIDS_LOCALSTORAGE_KEY) === 'true');
+
+    const { eidsStore, eids, activeEid, editing, displayValue, submittable, onFocus, onBlur, resolveSubmit, commit } =
+      useEidInput(getSavedPlayerID() || '');
 
     const isDashboard = computed(() => {
       const name = router.currentRoute.value.name;
       return name === 'dashboard' || name === 'dashboard-legacy';
     });
 
-    const submittable = computed(() => {
-      return PlayerIdSchema.safeParse(userId.value.trim()).success;
-    });
-
-    const submit = () => {
-      const trimmedUserId = userId.value.trim();
-      savePlayerID(trimmedUserId);
-      eidsStore.value.addEid(trimmedUserId);
+    const load = (eid: string) => {
+      const trimmedUserId = eid.trim();
+      if (!PlayerIdSchema.safeParse(trimmedUserId).success) {
+        return;
+      }
+      savePlayerID(trimmedUserId); // also adds the EID to the recent-IDs store
+      commit(trimmedUserId);
       emit('submit', trimmedUserId);
       // Only navigate if not already on dashboard
       if (router.currentRoute.value.name !== 'dashboard' && router.currentRoute.value.name !== 'dashboard-legacy') {
         router.push({ name: 'dashboard' });
       }
+    };
+
+    // The arrow submits the typed EID (or reloads the active player in display
+    // mode).
+    const submit = () => {
+      load(resolveSubmit());
+    };
+
+    // Clicking a recent-ID pill loads that player.
+    const loadEid = (eid: string) => {
+      load(eid);
     };
 
     const toggleCollapse = () => {
@@ -190,9 +209,14 @@ export default defineComponent({
     return {
       onboarding,
       isDashboard,
-      userId,
+      activeEid,
+      editing,
+      displayValue,
+      onFocus,
+      onBlur,
       submittable,
       submit,
+      loadEid,
       eids,
       eidsStore,
       collapsed,

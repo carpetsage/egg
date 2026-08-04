@@ -36,7 +36,6 @@ import {
   ArtifactAssemblyStatus,
   ArtifactAssemblyStatusNonMissing,
   ArtifactSet,
-  ei,
   Farm,
   getNumProphecyEggs,
   Inventory,
@@ -44,6 +43,9 @@ import {
   Item,
   newItem,
 } from '..';
+// Separated from other barrel imports due to module level references
+// causing circular import crashes when running test frameworks
+import { ei } from '../proto';
 
 const debug = import.meta.env.DEV || import.meta.env.VITE_APP_BETA;
 import Name = ei.ArtifactSpec.Name;

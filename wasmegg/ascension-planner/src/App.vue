@@ -1,9 +1,15 @@
 <template>
-  
   <the-nav-bar active-entry-id="ascension-planner" />
 
-  <div :class="['min-h-screen bg-gray-100 transition-all duration-300', isFooterCollapsed ? 'pb-8' : 'pb-24']">
+  <div
+    :class="[
+      'min-h-screen bg-gray-100 transition-all duration-300',
+      plannerTab === 'automatic' || isFooterCollapsed ? 'pb-8' : 'pb-24',
+    ]"
+  >
     <div class="max-w-6xl mx-auto p-4">
+      <CustomEggWatcher v-if="isDev" />
+
       <!-- Collapsible Header Region -->
       <div class="bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-100 shadow-sm">
         <div
@@ -21,7 +27,57 @@
               Player Backup From: {{ lastBackupFormatted }}
             </div>
 
-            <the-player-id-form :player-id="playerId" @submit="submitPlayerId" @input="onFormInput" />
+            <the-player-id-form :player-id="playerId" @submit="submitPlayerId" />
+
+            <!-- Mode Tabs -->
+            <div
+              v-if="playerId && !loading"
+              class="mt-6 flex justify-center animate-in fade-in slide-in-from-top-4 duration-500"
+            >
+              <div class="bg-slate-50 p-1.5 rounded-2xl border border-slate-200/50 shadow-sm flex gap-1">
+                <button
+                  class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
+                  :class="
+                    plannerTab === 'manual'
+                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
+                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                  "
+                  @click="plannerTab = 'manual'"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Manual Planner
+                </button>
+                <button
+                  class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
+                  :class="
+                    plannerTab === 'automatic'
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
+                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                  "
+                  @click="handleAutoPlannerTabClick"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                  Auto Planner
+                  <span class="bg-indigo-500 text-[8px] px-1.5 py-0.5 rounded-md ml-1 border border-indigo-400/30"
+                    >BETA</span
+                  >
+                </button>
+              </div>
+            </div>
 
             <!-- Plan Library Section -->
             <div v-if="playerId" class="max-w-6xl mx-auto mt-6">
@@ -160,7 +216,6 @@
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -183,6 +238,11 @@
         </button>
       </div>
 
+      <!-- Current Mode Label -->
+      <div v-if="plannerTab === 'manual' && plannerModeLabel" class="mt-4 flex justify-center">
+        <span class="text-sm font-bold text-slate-700">{{ plannerModeLabel }}</span>
+      </div>
+
       <!-- Reconciliation Status Banner -->
       <div v-if="actionsStore.isReconciling" class="mt-4 flex flex-col items-center gap-2">
         <div
@@ -190,16 +250,26 @@
         >
           <div class="flex items-center gap-3 relative z-10">
             <!-- Icon/Status -->
-            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+            <div
+              class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm"
+            >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
-            
+
             <div class="flex flex-col gap-0 text-left">
-              <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Reconciliation Mode</span>
+              <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5"
+                >Reconciliation Mode</span
+              >
               <span class="text-[10px] font-bold text-emerald-600 tracking-tight">
-                Backup from {{ lastBackupFormatted }} <span class="text-emerald-400/80 font-medium">({{ lastBackupAge }})</span>
+                Backup from {{ lastBackupFormatted }}
+                <span class="text-emerald-400/80 font-medium">({{ lastBackupAge }})</span>
               </span>
             </div>
           </div>
@@ -218,7 +288,7 @@
                   :class="actionsStore.showIncompleteOnly ? 'translate-x-[13px]' : 'translate-x-1'"
                 />
               </button>
-            </div> 
+            </div>
 
             <!-- Refresh Button -->
             <button
@@ -227,20 +297,27 @@
               :disabled="loading"
               @click="handleRefreshReconcile"
             >
-              <svg 
-                class="w-4 h-4" 
+              <svg
+                class="w-4 h-4"
                 :class="{ 'animate-spin': loading }"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Active Event Slide Toggle (Earnings Boost) - always visible -->
-      <div class="mt-4 flex flex-col items-center gap-2">
+      <!-- Active Event Slide Toggle (Earnings Boost) -->
+      <div v-if="plannerTab === 'manual'" class="mt-4 flex flex-col items-center gap-2">
         <div
           class="w-full max-w-sm bg-gradient-to-r from-orange-50/80 via-white to-amber-50/80 rounded-2xl p-4 border border-orange-100/50 shadow-sm relative overflow-hidden flex items-center justify-between transition-all duration-300"
         >
@@ -277,144 +354,154 @@
         {{ error }}
       </div>
 
-      <!-- Action History and Available Actions side-by-side -->
-      <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Action History -->
-        <div class="section-premium overflow-visible">
-          <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
-            <h2 class="text-lg font-semibold text-gray-800">Action History</h2>
-            <button
-              class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-              @click="expandedSections.actionHistory = !expandedSections.actionHistory"
-            >
-              <ChevronIcon :expanded="expandedSections.actionHistory" />
-            </button>
+      <div v-if="plannerTab === 'manual'">
+        <!-- Action History and Available Actions side-by-side -->
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Action History -->
+          <div class="section-premium overflow-visible">
+            <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
+              <h2 class="text-lg font-semibold text-gray-800">Action History</h2>
+              <button
+                class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+                @click="expandedSections.actionHistory = !expandedSections.actionHistory"
+              >
+                <ChevronIcon :expanded="expandedSections.actionHistory" />
+              </button>
+            </div>
+            <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
+              <ActionHistory @undo="showUndoConfirmation" @clear-all="handleClearAll" />
+            </div>
           </div>
-          <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-            <ActionHistory @show-details="showActionDetails" @undo="showUndoConfirmation" @clear-all="handleClearAll" />
+
+          <!-- Available Actions -->
+          <div class="section-premium overflow-visible">
+            <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
+              <h2 class="text-lg font-semibold text-gray-800">Available Actions</h2>
+              <button
+                class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+                @click="expandedSections.availableActions = !expandedSections.availableActions"
+              >
+                <ChevronIcon :expanded="expandedSections.availableActions" />
+              </button>
+            </div>
+            <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
+              <AvailableActions @refresh-backup="handleRefreshReconcile" />
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- Available Actions -->
-        <div class="section-premium overflow-visible">
-          <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
-            <h2 class="text-lg font-semibold text-gray-800">Available Actions</h2>
-            <button
-              class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-              @click="expandedSections.availableActions = !expandedSections.availableActions"
-            >
-              <ChevronIcon :expanded="expandedSections.availableActions" />
-            </button>
+      <div v-else-if="plannerTab === 'automatic' && playerId && !loading">
+        <AutomaticPlanner />
+      </div>
+
+      <!-- Undo Confirmation Dialog -->
+      <UndoConfirmationDialog
+        v-if="undoAction"
+        :action="undoAction"
+        :dependents-a="undoDependentsA"
+        :dependents-b="undoDependentsB"
+        @confirm="executeUndo"
+        @cancel="cancelUndo"
+      />
+
+      <!-- Clear All Confirmation Dialog -->
+      <ConfirmationDialog
+        v-if="showClearAllConfirmation"
+        title="Clear All Actions"
+        message="Are you sure you want to clear all actions? This cannot be undone."
+        confirm-label="Clear All"
+        @confirm="executeClearAll"
+        @cancel="showClearAllConfirmation = false"
+      />
+
+      <!-- Unsaved Changes Protection Dialog -->
+      <ConfirmationDialog
+        v-if="showUnsavedConfirm"
+        title="Unsaved Changes"
+        message="You have unsaved changes in your current plan. If you continue, these changes will be lost. Would you like to save before proceeding?"
+        confirm-label="Continue Without Saving"
+        variant="danger"
+        @confirm="
+          showUnsavedConfirm = false;
+          pendingAction?.();
+        "
+        @cancel="
+          showUnsavedConfirm = false;
+          pendingAction = null;
+        "
+      />
+
+      <!-- Plan Selection Dialog (for Reconcile) -->
+      <PlanSelectionDialog
+        v-if="showReconcileLibraryModal"
+        @select="handleLibraryReconcile"
+        @cancel="showReconcileLibraryModal = false"
+      />
+
+      <!-- Artifact Set Selection Dialog -->
+      <div v-if="showArtifactSetConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div
+          class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        >
+          <div class="px-6 py-5 border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-800">Current Artifact Set</h3>
+            <p class="mt-2 text-sm text-slate-500">Which artifact set do you currently have equipped in game?</p>
           </div>
-          <div v-if="expandedSections.availableActions" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
-            <AvailableActions 
-              @show-current-details="showCurrentDetails" 
-              @refresh-backup="handleRefreshReconcile"
-            />
+          <div class="px-6 py-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
+            <button
+              class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              @click="handleArtifactSetSelection('elr')"
+            >
+              Delivery Rate Set
+            </button>
+            <button
+              class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              @click="handleArtifactSetSelection('earnings')"
+            >
+              Earnings Set
+            </button>
           </div>
         </div>
       </div>
+
+      <!-- Continuity Check Dialog -->
+      <ContinuityDialog />
+
+      <WarningDialog />
+
+      <RecalculationOverlay />
+
+      <PlanFinalSummary
+        v-if="plannerTab === 'manual'"
+        @update:collapsed="isFooterCollapsed = $event"
+        @save-plan="saveCurrentPlan"
+        @save-plan-as="savePlanAs"
+      />
+      <FloatingStats v-if="plannerTab === 'manual'" />
+      <FloatingNotes v-if="plannerTab === 'manual'" />
     </div>
-
-    <!-- Action Details Modal -->
-    <ActionDetailsModal v-if="showDetailsModal" :action="detailsModalAction" @close="closeActionDetails" />
-
-    <!-- Undo Confirmation Dialog -->
-    <UndoConfirmationDialog
-      v-if="undoAction"
-      :action="undoAction"
-      :dependents-a="undoDependentsA"
-      :dependents-b="undoDependentsB"
-      @confirm="executeUndo"
-      @cancel="cancelUndo"
-    />
-
-    <!-- Clear All Confirmation Dialog -->
-    <ConfirmationDialog
-      v-if="showClearAllConfirmation"
-      title="Clear All Actions"
-      message="Are you sure you want to clear all actions? This cannot be undone."
-      confirm-label="Clear All"
-      @confirm="executeClearAll"
-      @cancel="showClearAllConfirmation = false"
-    />
-
-    <!-- Unsaved Changes Protection Dialog -->
-    <ConfirmationDialog
-      v-if="showUnsavedConfirm"
-      title="Unsaved Changes"
-      message="You have unsaved changes in your current plan. If you continue, these changes will be lost. Would you like to save before proceeding?"
-      confirm-label="Continue Without Saving"
-      variant="danger"
-      @confirm="
-        showUnsavedConfirm = false;
-        pendingAction?.();
-      "
-      @cancel="
-        showUnsavedConfirm = false;
-        pendingAction = null;
-      "
-    />
-
-    <!-- Plan Selection Dialog (for Reconcile) -->
-    <PlanSelectionDialog
-      v-if="showReconcileLibraryModal"
-      @select="handleLibraryReconcile"
-      @cancel="showReconcileLibraryModal = false"
-    />
-
-    <!-- Artifact Set Selection Dialog -->
-    <div v-if="showArtifactSetConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div class="px-6 py-5 border-b border-slate-100">
-          <h3 class="text-lg font-bold text-slate-800">Current Artifact Set</h3>
-          <p class="mt-2 text-sm text-slate-500">Which artifact set do you currently have equipped in game?</p>
-        </div>
-        <div class="px-6 py-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
-          <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('elr')">
-            ELR Set
-          </button>
-          <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm" @click="handleArtifactSetSelection('earnings')">
-            Earnings Set
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Continuity Check Dialog -->
-    <ContinuityDialog />
-
-    <WarningDialog />
-
-    <RecalculationOverlay />
-
-    <PlanFinalSummary
-      @show-details="showCurrentDetails"
-      @update:collapsed="isFooterCollapsed = $event"
-      @save-plan="saveCurrentPlan"
-      @save-plan-as="savePlanAs"
-    />
-    <FloatingStats @show-details="showCurrentDetails" />
-    <FloatingNotes />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import TheNavBar from 'ui/components/NavBar.vue';
-import { getSavedPlayerID, savePlayerID, requestFirstContact, resolveContractsInBackup } from 'lib';
+import { getSavedPlayerID, savePlayerID, requestFirstContact, resolveColleggtibleContracts } from 'lib';
 import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
+import { useUIStore } from '@/stores/ui';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useEventsStore } from '@/stores/events';
 
 import { useNotesStore } from '@/stores/notes';
+import CustomEggWatcher from '@/components/CustomEggWatcher.vue';
 import ActionHistory from '@/components/ActionHistory.vue';
 import AvailableActions from '@/components/AvailableActions.vue';
-import ActionDetailsModal from '@/components/ActionDetailsModal.vue';
 import UndoConfirmationDialog from '@/components/UndoConfirmationDialog.vue';
 import PlanFinalSummary from '@/components/PlanFinalSummary.vue';
 import ContinuityDialog from '@/components/ContinuityDialog.vue';
@@ -425,6 +512,7 @@ import WarningDialog from '@/components/WarningDialog.vue';
 import RecalculationOverlay from '@/components/RecalculationOverlay.vue';
 import PlanLibrary from '@/components/PlanLibrary.vue';
 import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
+import AutomaticPlanner from '@/components/auto/AutomaticPlanner.vue';
 import { useSalesStore } from '@/stores/sales';
 import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -442,17 +530,20 @@ import {
   initPlanFuture,
   initContinueCurrent,
   initReconcile,
+  refreshReconcile,
   loadAndSyncBackup,
   captureReconciliationTargets,
   catchUpFarmState,
 } from '@/lib/modes';
 
-const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
-const loading = ref(false);
-const error = ref('');
+// Dev server only (localhost or a LAN IP hitting the Vite dev server) - never in a production build.
+const isDev = import.meta.env.DEV;
 
+const playerId = ref(new URLSearchParams(window.location.search).get('playerId') || getSavedPlayerID() || '');
 const initialStateStore = useInitialStateStore();
 const actionsStore = useActionsStore();
+const uiStore = useUIStore();
+const { plannerTab, isHeaderCollapsed, isFooterCollapsed, loading, error } = storeToRefs(uiStore);
 const virtueStore = useVirtueStore();
 const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
@@ -463,13 +554,13 @@ const notesStore = useNotesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
 const { partitionHash, saveActiveDraft, initPersistence, broadcastPresence } = usePersistence();
 
-const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot.earningsBoost.active);
+const isEarningsBoostActive = computed(() => actionsStore.effectiveSnapshot?.earningsBoost?.active ?? false);
 
 const lastBackupFormatted = computed(() => {
   const approxTime = initialStateStore.rawBackup?.approxTime;
   if (approxTime == null) return 'Unknown';
   const date = new Date(approxTime * 1000);
-  
+
   return date.toLocaleTimeString(undefined, {
     weekday: 'short',
     month: 'short',
@@ -484,12 +575,12 @@ const lastBackupAge = computed(() => {
   if (approxTime == null) return '';
   const now = Date.now() / 1000;
   const diff = Math.max(0, now - approxTime);
-  
+
   if (diff < 60) return 'Just now';
-  
+
   const minutes = Math.floor(diff / 60);
   if (minutes < 60) return `${minutes}m ago`;
-  
+
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   return `${hours}h${remainingMinutes}m ago`;
@@ -606,9 +697,25 @@ const expandedSections = ref({
   availableActions: true,
 });
 
-const isHeaderCollapsed = ref(false);
+// isHeaderCollapsed moved to UI store
 
-function handlePlanLoaded() {
+type PlannerMode = 'scratch' | 'future' | 'continue' | 'library' | 'reconcile' | null;
+const plannerMode = ref<PlannerMode>(null);
+const loadedPlanName = ref('');
+
+const plannerModeLabel = computed(() => {
+  if (plannerMode.value === 'scratch') return 'Start from Scratch';
+  if (plannerMode.value === 'future') return 'Plan Future Ascension';
+  if (plannerMode.value === 'continue') return 'Continue Current Ascension';
+  if (plannerMode.value === 'library') return loadedPlanName.value;
+  if (plannerMode.value === 'reconcile') return `Reconciling ${loadedPlanName.value}`;
+  return null;
+});
+
+function handlePlanLoaded(name: string) {
+  plannerMode.value = 'library';
+  loadedPlanName.value = name;
+  plannerTab.value = 'manual';
   isHeaderCollapsed.value = true;
   scrollToTop();
 }
@@ -619,13 +726,10 @@ const totalCost = computed(() => actionsStore.totalCost);
 const actionCount = computed(() => actionsStore.actionCount);
 
 // Modal state
-const showDetailsModal = ref(false);
-const detailsModalAction = ref<Action | null>(null);
 const undoAction = ref<Action | null>(null);
 const undoDependentsA = ref<Action[]>([]);
 const undoDependentsB = ref<Action[]>([]);
 const showClearAllConfirmation = ref(false);
-const isFooterCollapsed = ref(false);
 
 const showReconcileLibraryModal = ref(false);
 const showUnsavedConfirm = ref(false);
@@ -646,28 +750,6 @@ function confirmUnsavedChanges(action: () => void) {
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Modal handlers
-function showActionDetails(action: Action) {
-  // Temporarily restore stores to this action's end state so CalculationSummary shows correct values
-  restoreFromSnapshot(action.endState);
-  detailsModalAction.value = action;
-  showDetailsModal.value = true;
-}
-
-function showCurrentDetails() {
-  // Ensure we're in the effective snapshot
-  restoreFromSnapshot(actionsStore.effectiveSnapshot);
-  detailsModalAction.value = null;
-  showDetailsModal.value = true;
-}
-
-function closeActionDetails() {
-  // Restore stores to current state (last action's end state) or effective state if editing
-  restoreFromSnapshot(actionsStore.effectiveSnapshot);
-  detailsModalAction.value = null;
-  showDetailsModal.value = false;
 }
 
 function showUndoConfirmation(action: Action, options?: { skipConfirmation: boolean }) {
@@ -720,6 +802,8 @@ function executeClearAll() {
 async function startFromScratch() {
   error.value = '';
   try {
+    plannerMode.value = 'scratch';
+    plannerTab.value = 'manual';
     await initStartFromScratch();
     isHeaderCollapsed.value = true;
   } catch (e) {
@@ -742,6 +826,9 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
   error.value = '';
 
   try {
+    plannerMode.value = 'reconcile';
+    loadedPlanName.value = plan.name;
+    plannerTab.value = 'manual';
     savePlayerID(playerId.value);
     await initReconcile(playerId.value, plan, broadcastPresence);
     isHeaderCollapsed.value = true;
@@ -755,25 +842,11 @@ async function handleLibraryReconcile(plan: import('@/lib/storage/db').PlanData)
 
 async function handleRefreshReconcile() {
   if (!playerId.value || loading.value) return;
-  
+
   loading.value = true;
   error.value = '';
   try {
-    const data = await requestFirstContact(playerId.value);
-    if (!data.backup) throw new Error('Could not fetch player backup');
-    const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId.value);
-
-    // Save backup to DB
-    const pHash = await hashID(playerId.value);
-    await saveMetadata(pHash, 'rawBackup', backup);
-    
-    // Load into state store and sync global stores
-    loadAndSyncBackup(playerId.value, backup, 'reconcile');
-
-    // Update reconciliation targets in actionsStore
-    captureReconciliationTargets();
-
+    await refreshReconcile(playerId.value);
     // No full recalculateAll() needed here, as reconciliation statuses are reactive getters.
   } catch (err) {
     console.error(err);
@@ -783,12 +856,22 @@ async function handleRefreshReconcile() {
   }
 }
 
-function onFormInput(e: Event) {
-  const target = e.target as HTMLInputElement;
-  if (target?.id === 'playerId') {
-    playerId.value = target.value.trim();
+async function handleAutoPlannerTabClick() {
+  plannerTab.value = 'automatic';
+  isHeaderCollapsed.value = true;
+
+  if (playerId.value && !loading.value) {
+    loading.value = true;
+    try {
+      // Fetch fresh backup and initialize for "Plan Future" mode (zeroed farm)
+      await initPlanFuture(playerId.value);
+    } catch (e) {
+      console.error('Failed to auto-init Auto Planner:', e);
+      error.value = 'Failed to load fresh backup for Auto Planner.';
+    } finally {
+      loading.value = false;
+    }
   }
-  error.value = '';
 }
 
 /**
@@ -810,7 +893,7 @@ async function submitPlayerId(id: string) {
 
     const data = await requestFirstContact(id);
     const backup = data.backup!;
-    await resolveContractsInBackup(backup, id);
+    resolveColleggtibleContracts(backup);
 
     try {
       const pHash = await hashID(id);
@@ -822,12 +905,12 @@ async function submitPlayerId(id: string) {
     // Load into state store and sync global stores
     const { teEarnedPerEgg } = loadAndSyncBackup(id, backup, 'default');
 
-    // Catch-up calculations (eggs, earnings, population) are now handled 
+    // Catch-up calculations (eggs, earnings, population) are now handled
     // automatically by computeSnapshot in the engine.
     const context = getSimulationContext();
     const baseState = createBaseEngineState(null);
     const initialSnapshot = computeSnapshot(baseState, context);
-    
+
     // Sync farm state and Truth Eggs with caught-up values
     catchUpFarmState(initialSnapshot, baseState.bankValue, context.ascensionStartTime, teEarnedPerEgg);
 
@@ -898,7 +981,7 @@ async function triggerQuickContinue() {
     const data = await requestFirstContact(playerId.value);
     if (!data.backup) throw new Error('Could not fetch player backup');
     const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId.value);
+    resolveColleggtibleContracts(backup);
 
     const loadout = getArtifactLoadoutFromBackup(backup);
     const detectedSet = detectArtifactSet(loadout);
@@ -928,6 +1011,8 @@ async function quickContinueAscension(selection: 'earnings' | 'elr') {
   loading.value = true;
 
   try {
+    plannerMode.value = 'continue';
+    plannerTab.value = 'manual';
     savePlayerID(playerId.value);
     await initContinueCurrent(playerId.value, selection);
     isHeaderCollapsed.value = true;
@@ -950,6 +1035,8 @@ async function planNextAscension() {
   loading.value = true;
 
   try {
+    plannerMode.value = 'future';
+    plannerTab.value = 'manual';
     savePlayerID(playerId.value);
     await initPlanFuture(playerId.value);
     isHeaderCollapsed.value = true;
