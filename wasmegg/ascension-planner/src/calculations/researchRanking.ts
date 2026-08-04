@@ -682,3 +682,87 @@ export function buyWhilePassingCheck(
   }
   return purchased;
 }
+
+/** What `buyUntilRealSaleStarts`'s `getCandidate` returns each iteration. */
+export interface SaleAwareCandidate {
+  researchId: string;
+  duringSale: boolean;
+  // Absolute time this specific purchase actually completes at — needed (alongside `duringSale`)
+  // to tell "used an already-active, different sale's real current price" apart from "crossed
+  // INTO the target sale via the bypass" during cleanup. See `buyUntilRealSaleStarts`'s own doc
+  // comment.
+  purchaseTimestamp: number;
+}
+
+/**
+ * Wraps `buyWhilePassingCheck` with the two extra behaviors shared by any "buy until a sale-aware
+ * deadline" flow (the manual planner's "Buy Until Sale Warning" and "Buy Until ROI Deadline"
+ * buttons today; anything else built on `meetsSaleAwareDeadline`-style candidate selection later):
+ *
+ * 1. Stops the run once `shouldStop()` says the target deadline has been reached. Deliberately
+ *    NOT "is some sale live right now": a caller invoked while a DIFFERENT, already-active sale is
+ *    in progress (e.g. the button gets clicked mid-sale) has a real deadline that's the sale AFTER
+ *    that one (`getNextPacificTime`'s "always strictly after" guarantee means the caller's own
+ *    captured deadline already reflects this), and should keep buying — at whatever the real
+ *    current price happens to be — right through that already-active sale, not bail out
+ *    immediately just because a sale of some kind happens to be live. Typical callers capture
+ *    their target deadline once, before the run starts, and pass `() => currentTime() >=
+ *    capturedDeadline` — evaluated fresh each iteration since `currentTime()` advances as
+ *    purchases get made, but compared against a fixed target rather than "is a sale active" so a
+ *    same-instant match (see 2) is unambiguous.
+ * 2. `meetsSaleAwareDeadline`-based candidate selection can only make a candidate whose own wait
+ *    crosses into the TARGET sale (`duringSale: true`) pass at all by letting it through
+ *    unconditionally (see that function's doc comment) — which is necessary for the wait/toggle
+ *    insertion that purchase triggers to happen, but leaves an actual sale-priced purchase in the
+ *    plan. Every purchase bought while `duringSale` was true AND whose own `purchaseTimestamp` is
+ *    at-or-after the caller's target deadline gets undone afterward via `removeAction`, in reverse
+ *    order (undoing the most recently added action first keeps each removal's own dependent-action
+ *    bookkeeping simple) — leaving the wait/toggle actions those purchases depended on untouched,
+ *    since nothing else depends on removing them. The `purchaseTimestamp` filter matters exactly
+ *    for the "already mid-sale at the start" case in (1): a purchase priced at that OTHER,
+ *    already-active sale's real discount necessarily completes well before the target deadline
+ *    (`meetsROIByDeadline`'s own `targetTimestamp > purchaseTime` requirement guarantees this for
+ *    any candidate that isn't itself the bypass) and is legitimate, so it should stay — only the
+ *    purchase that actually lands at-or-after the target deadline is the bypass this cleanup
+ *    exists for.
+ *
+ * `getLastActionId` is called immediately after a successful `buyOne` to identify which action to
+ * potentially remove later — callers with append-only action lists (true for both the manual
+ * planner's Pinia store and the auto-planner's `EngineState`) can just return their last action's
+ * id.
+ *
+ * Cleanup is deliberately left for the caller to `await` (this function itself stays synchronous,
+ * like `buyWhilePassingCheck`) rather than folded in here, so callers can decide whether it needs
+ * to happen inside or outside their own batching — the manual planner runs it after its `batch(...)`
+ * call completes, not inside it.
+ */
+export function buyUntilRealSaleStarts(
+  getCandidate: () => SaleAwareCandidate | undefined,
+  buyOne: (researchId: string) => boolean,
+  shouldStop: () => boolean,
+  getLastActionId: () => string | undefined,
+  maxIterations = 1000
+): { purchased: number; duringSalePurchases: { actionId: string; purchaseTimestamp: number }[] } {
+  const duringSalePurchases: { actionId: string; purchaseTimestamp: number }[] = [];
+  let pending: SaleAwareCandidate | undefined;
+
+  const purchased = buyWhilePassingCheck(
+    () => {
+      if (shouldStop()) return undefined;
+      const next = getCandidate();
+      pending = next;
+      return next ? { researchId: next.researchId } : undefined;
+    },
+    researchId => {
+      const bought = buyOne(researchId);
+      if (bought && pending?.duringSale) {
+        const actionId = getLastActionId();
+        if (actionId) duringSalePurchases.push({ actionId, purchaseTimestamp: pending.purchaseTimestamp });
+      }
+      return bought;
+    },
+    maxIterations
+  );
+
+  return { purchased, duringSalePurchases };
+}
