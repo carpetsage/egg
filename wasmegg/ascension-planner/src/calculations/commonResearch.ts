@@ -149,7 +149,7 @@ export function purchasesNeededForTier(researchLevels: ResearchLevels, tier: num
  */
 export interface ResearchCostModifiers {
   labUpgradeLevel: number; // Epic research: Lab Upgrade (cheaper_research), 0-10
-  waterballoonMultiplier: number; // Colleggtible multiplier (0.95-1.0)
+  researchCostMultiplier: number; // Colleggtible multiplier (0.95-1.0)
   puzzleCubeMultiplier: number; // Artifact multiplier (e.g., 0.5 for -50%)
 }
 
@@ -161,7 +161,7 @@ export function calculateCostMultiplier(modifiers: ResearchCostModifiers, isActi
   const multiplier = calculateBaseCostMultiplier(
     modifiers.labUpgradeLevel,
     0.05,
-    modifiers.waterballoonMultiplier,
+    modifiers.researchCostMultiplier,
     modifiers.puzzleCubeMultiplier
   );
   return isActiveSale ? multiplier * 0.3 : multiplier;

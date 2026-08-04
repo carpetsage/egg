@@ -391,7 +391,7 @@ import {
   homeFarmArtifacts,
   nakedGangNickname as getNakedGangNickname,
   requestFirstContact,
-  resolveContractsInBackup,
+  resolveColleggtibleContracts,
   requiredWDLevelForEnlightenmentDiamond,
   researchPriceMultiplierFromArtifacts,
   researchPriceMultiplierFromResearches,
@@ -443,10 +443,9 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['requestRefresh'],
   // This async component does not respond to playerId changes.
 
-  async setup({ playerId }, { emit }) {
+  async setup({ playerId }) {
     // Validate and sanitize player ID.
     if (!playerId.match(/^EI\d+$/i)) {
       throw new Error(`ID ${playerId} is not in the form EI1234567890123456; please consult "Where do I find my ID?"`);
@@ -464,7 +463,7 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId);
+    resolveColleggtibleContracts(backup);
     const nickname = backup.userName;
     const progress = backup.game;
     if (!progress) {
@@ -704,7 +703,6 @@ export default defineComponent({
       nickname,
       unresolvedContractCount,
       colleggtibleTiers,
-      hasManualTiers,
       onColleggtibleTiersChange,
       onResetTiers,
       lastRefreshed,

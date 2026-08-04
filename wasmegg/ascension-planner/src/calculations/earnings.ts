@@ -14,7 +14,7 @@ export function calculateEarnings(input: EarningsInput): EarningsOutput {
     eggValue,
     effectiveLayRate,
     te,
-    fireworkMultiplier,
+    earningsMultiplier,
     awayEarningsMultiplier,
     artifactAwayMultiplier,
     videoDoublerMultiplier,
@@ -29,19 +29,19 @@ export function calculateEarnings(input: EarningsInput): EarningsOutput {
   // Base earnings = egg value × ELR × TE multiplier
   const baseEarnings = eggValue * effectiveLayRate * teMultiplier;
 
-  // Final multiplier = firework × video doubler × event boost
-  const finalMultiplier = fireworkMultiplier * videoDoublerMultiplier * eventMultiplier;
+  // Final multiplier = earnings colleggtibles × video doubler × event boost
+  const finalMultiplier = earningsMultiplier * videoDoublerMultiplier * eventMultiplier;
 
   // Online earnings
   const onlineEarnings = baseEarnings * finalMultiplier;
 
-  // Offline earnings = online × away (choc*wood) × artifact (lunar)
+  // Offline earnings = online × away-earnings colleggtibles × artifact (lunar)
   const offlineEarnings = onlineEarnings * awayEarningsMultiplier * artifactAwayMultiplier;
 
   return {
     baseEarnings,
     teMultiplier,
-    fireworkMultiplier,
+    earningsMultiplier,
     awayEarningsMultiplier,
     artifactAwayMultiplier,
     videoDoublerMultiplier,

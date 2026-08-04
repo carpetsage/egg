@@ -1,30 +1,76 @@
 <template>
-  <div class="flex flex-col gap-2 mb-4">
+  <div class="flex flex-col gap-2 mb-4" ref="containerRef">
     <div class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Sort Research By</div>
-    <div class="flex flex-wrap gap-1.5 p-1 bg-gray-100 rounded-lg shadow-inner">
+    <div class="relative">
       <button
-        v-for="v in views"
-        :key="v.id"
-        @click="$emit('update:modelValue', v.id)"
-        class="px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap"
-        :class="
-          modelValue === v.id
-            ? 'bg-white text-blue-600 shadow-sm'
-            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
-        "
+        @click="open = !open"
+        class="w-full flex items-center justify-between gap-2 px-4 py-3 text-base font-bold text-white bg-slate-800 rounded-lg shadow-md hover:bg-slate-900 transition-colors"
       >
-        {{ v.label }}
+        <span>{{ selectedLabel }}</span>
+        <ChevronDownIcon class="w-5 h-5 text-slate-400 transition-transform" :class="{ 'rotate-180': open }" />
       </button>
+
+      <div
+        v-if="open"
+        class="absolute z-10 mt-1 w-full py-1 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden"
+      >
+        <button
+          v-for="v in views"
+          :key="v.id"
+          @click="select(v.id)"
+          class="w-full flex flex-col items-start gap-0.5 px-3 py-2 text-left transition-colors"
+          :class="modelValue === v.id ? 'bg-blue-50' : 'hover:bg-gray-50'"
+        >
+          <span class="text-sm font-medium" :class="modelValue === v.id ? 'text-blue-600' : 'text-gray-700'">
+            {{ v.label }}
+          </span>
+          <span v-if="v.description" class="text-xs text-gray-400">{{ v.description }}</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ChevronDownIcon } from '@heroicons/vue/solid';
 import { type ViewType } from '@/composables/useResearchViews';
 
-defineProps<{
+const props = defineProps<{
   modelValue: ViewType;
-  views: readonly { id: ViewType; label: string }[];
+  views: readonly { id: ViewType; label: string; description?: string }[];
 }>();
-defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue']);
+
+const open = ref(false);
+const containerRef = ref<HTMLElement | null>(null);
+
+const selectedLabel = computed(() => props.views.find(v => v.id === props.modelValue)?.label ?? '');
+
+function select(id: ViewType) {
+  emit('update:modelValue', id);
+  open.value = false;
+}
+
+function handleClickOutside(event: MouseEvent) {
+  if (containerRef.value && !containerRef.value.contains(event.target as Node)) {
+    open.value = false;
+  }
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    open.value = false;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside);
+  document.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside);
+  document.removeEventListener('keydown', handleKeydown);
+});
 </script>

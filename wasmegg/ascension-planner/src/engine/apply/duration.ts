@@ -23,7 +23,7 @@ export function refreshActionPayload(
       const artifactMods = calculateArtifactModifiers(prevSnapshot.artifactLoadout);
       const modifiers = {
         labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
-        waterballoonMultiplier: context.colleggtibleModifiers.researchCost || 1,
+        researchCostMultiplier: context.colleggtibleModifiers.researchCost || 1,
         puzzleCubeMultiplier: artifactMods.researchCost.totalMultiplier,
       };
       const research = getResearchById(payload.researchId);
@@ -40,7 +40,7 @@ export function refreshActionPayload(
       const payload = action.payload as import('@/types').BuyHabPayload;
       const modifiers = {
         cheaperContractorsLevel: context.epicResearchLevels['cheaper_contractors'] || 0,
-        flameRetardantMultiplier: context.colleggtibleModifiers.habCost || 1,
+        habCostMultiplier: context.colleggtibleModifiers.habCost || 1,
       };
       const hab = getHabById(payload.habId as HabId);
       if (hab) {
@@ -53,7 +53,7 @@ export function refreshActionPayload(
       const payload = action.payload as import('@/types').BuyVehiclePayload;
       const modifiers = {
         bustUnionsLevel: context.epicResearchLevels['bust_unions'] || 0,
-        lithiumMultiplier: context.colleggtibleModifiers.vehicleCost || 1,
+        vehicleCostMultiplier: context.colleggtibleModifiers.vehicleCost || 1,
       };
       const vehicles = prevSnapshot.vehicles.slice(0, payload.slotIndex);
       const purchaseIndex = countVehiclesOfType(vehicles as { vehicleId: number | null }[], payload.vehicleId);
@@ -68,7 +68,7 @@ export function refreshActionPayload(
       const payload = action.payload as import('@/types').BuyTrainCarPayload;
       const modifiers = {
         bustUnionsLevel: context.epicResearchLevels['bust_unions'] || 0,
-        lithiumMultiplier: context.colleggtibleModifiers.vehicleCost || 1,
+        vehicleCostMultiplier: context.colleggtibleModifiers.vehicleCost || 1,
       };
       const carIndex = payload.toLength - 1;
       const refreshedCost = getDiscountedTrainCarPrice(carIndex, modifiers, prevSnapshot.activeSales.vehicle);
@@ -228,6 +228,7 @@ export function computePassiveEggsDelivered(action: Action, prevSnapshot: Calcul
     'toggle_earnings_boost',
     'notification',
     'wait_for_no_earnings',
+    'modify_bank',
   ];
   if (NO_PASSIVE_TYPES.includes(action.type)) return 0;
 

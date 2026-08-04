@@ -1,13 +1,5 @@
-// ============================================================
-// Path of Virtue Optimizer — Recipe DAG + Launch Option Enumeration
-// ============================================================
-//
-// generateRecipeDag      — build the crafting DAG for a target artifact.
-// enumerateLaunchOptions — enumerate every (spaceship × mission target) launch
-//                          option, precomputing its fuel cost, duration, and
-//                          per-launch yield vectors.
-//
-// All functions are pure.
+// Recipe DAG construction and launch option enumeration for the optimizer.
+
 import { missions } from '@/lib/filter';
 import {
   ei,
@@ -23,11 +15,7 @@ import { getMissionLootData, MIN_LEGENDARY_OBSERVATIONS } from '@/lib';
 import { sum } from '@/utils';
 import { Ingredient } from 'lib/artifacts/data-json';
 
-/**
- * Recursively populate `recipeDag` with `id` and every artifact in its crafting
- * tree (a no-op for ids already present). Mutates `recipeDag` in place; leaf
- * (non-craftable) artifacts get an empty `children` list.
- */
+// Recursively add `id` and its whole crafting tree to `recipeDag`.
 export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
   if (recipeDag.has(id)) return;
 
@@ -37,14 +25,14 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
 
   const dagNode: DAGNode = {
     id,
-    is_leaf: !artifactData.craftable,
+    isLeaf: !artifactData.craftable,
     children: artifactIngredients.map(
       (ingredient: Ingredient): DAGChildRef => ({
-        node_id: ingredient.id,
+        nodeId: ingredient.id,
         quantity: ingredient.count,
       })
     ),
-    legendaryCraftProbability: 0, // set for the targeted root by buildRecipeDag()
+    legendaryCraftProbability: 0, // buildRecipeDag fills this in for the root
   };
 
   recipeDag.set(id, dagNode);
@@ -54,57 +42,75 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
   }
 }
 
-// ------------------------------------------------------------
-// Launch option enumeration
-// ------------------------------------------------------------
-
-/**
- * Enumerate every launch option: the Cartesian product of the player's visible
- * spaceships and their applicable mission targets. Each option carries its fuel
- * cost, duration, and per-launch yield / legendary vectors.
- * @param minDurationSeconds optional floor on mission duration in seconds; shorter missions are excluded
- */
+// Every visible ship crossed with its applicable mission targets, costed per
+// single ship. launchPeriodSeconds floors each mission's effective duration,
+// penalising short missions without banning them.
 export function enumerateLaunchOptions(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
-  minDurationSeconds?: number
+  launchPeriodSeconds = 0,
+  maxGemCost?: number
 ): LaunchOption[] {
   const options: LaunchOption[] = [];
+
+  // Targeting boosts a whole family, so family is the right granularity here.
+  const dagAfxIds = new Set<ei.ArtifactSpec.Name>();
+  for (const nodeId of dag.keys()) {
+    dagAfxIds.add(getArtifactTierPropsFromId(nodeId).afx_id);
+  }
 
   for (const mission of missions) {
     if (!playerConfig.shipVisibility[mission.shipType]) continue;
 
-    if (minDurationSeconds !== undefined) {
-      const missionDuration = mission.boostedDurationSeconds(playerConfig);
-      if (missionDuration < minDurationSeconds) continue;
-    }
+    if (maxGemCost !== undefined && mission.virtueGemCost > maxGemCost) continue;
 
     const missionData = getMissionLootData(mission.missionTypeId);
     const levelLootData = missionData.levels[playerConfig.shipLevels[mission.shipType]];
-    const missionCapacity = getMissionTypeFromId(missionData.missionId).boostedCapacity(playerConfig);
+    const missionType = getMissionTypeFromId(missionData.missionId);
+    const missionCapacity = missionType.boostedCapacity(playerConfig);
+    const maxMissionCapacity = missionType.maxBoostedCapacity();
 
     const applicableTargets = mission.isFTL
       ? levelLootData.targets
       : levelLootData.targets.filter(target => target.targetAfxId === ei.ArtifactSpec.Name.UNKNOWN);
 
+    // Targets outside the DAG are interchangeable, so keep one representative:
+    // the one with the most recorded drops.
+    let bestNonDagTarget: (typeof applicableTargets)[number] | undefined;
     for (const target of applicableTargets) {
-      const option = makeLaunchOption(mission, target.targetAfxId, playerConfig);
+      if (target.targetAfxId === ei.ArtifactSpec.Name.UNKNOWN) continue;
+      if (dagAfxIds.has(target.targetAfxId)) continue;
+      if (bestNonDagTarget === undefined || target.totalDrops > bestNonDagTarget.totalDrops) {
+        bestNonDagTarget = target;
+      }
+    }
+
+    for (const target of applicableTargets) {
+      const minTotalLaunches = target.totalDrops / maxMissionCapacity;
+
+      // missionDataNotEnough is too conservative here: it divides by the base
+      // launch capacity, overestimating the expected launch count.
+      if (minTotalLaunches < 20 && !playerConfig.showNodata) continue;
+
+      if (target.targetAfxId !== ei.ArtifactSpec.Name.UNKNOWN && !dagAfxIds.has(target.targetAfxId)) {
+        if (target !== bestNonDagTarget) continue;
+      }
+
+      const option = makeLaunchOption(mission, target.targetAfxId, playerConfig, launchPeriodSeconds);
       for (const item of target.items) {
-        const expectedDropsPerBatch = (sum(item.counts) / target.totalDrops) * missionCapacity * 3.0;
-        option.supply_vector.set(item.itemId, expectedDropsPerBatch);
+        const expectedDropsPerShip = (sum(item.counts) / target.totalDrops) * missionCapacity;
+        option.supplyVector.set(item.itemId, expectedDropsPerShip);
 
         if (dag.has(item.itemId)) {
-          // Sparse-data gate: a single legendary observation across tens of
-          // thousands of drops yields a misleadingly precise rate. Trust this
-          // bucket's legendary count only if it has reached the minimum, OR if
-          // no bucket of this item has reached it (in which case zeroing every
-          // bucket would discard all signal).
+          // Zero out legendary counts below the observation minimum — a single
+          // legendary across tens of thousands of drops gives a misleadingly
+          // precise rate.
           const observed = item.counts[3];
           const legendaryCount = observed >= MIN_LEGENDARY_OBSERVATIONS || playerConfig.showNodata ? observed : 0;
-          const legendaryRate = (legendaryCount / target.totalDrops) * missionCapacity * 3.0;
+          const legendaryRate = (legendaryCount / target.totalDrops) * missionCapacity;
 
-          option.yield_vector.set(item.itemId, expectedDropsPerBatch);
-          option.legendary_yield_vector.set(item.itemId, legendaryRate);
+          option.yieldVector.set(item.itemId, expectedDropsPerShip);
+          option.legendaryYieldVector.set(item.itemId, legendaryRate);
         }
       }
 
@@ -115,22 +121,30 @@ export function enumerateLaunchOptions(
   return options;
 }
 
-function makeLaunchOption(mission: MissionType, target: ei.ArtifactSpec.Name, playerConfig: ShipsConfig): LaunchOption {
+function makeLaunchOption(
+  mission: MissionType,
+  target: ei.ArtifactSpec.Name,
+  playerConfig: ShipsConfig,
+  launchPeriodSeconds = 0
+): LaunchOption {
   const id = `${mission.missionTypeId}::${target}`;
   const fuelUse = mission.virtueFuels;
 
   const nonHumilityFuelUse = fuelUse.filter(x => x.egg !== ei.Egg.HUMILITY);
+
+  const rawTime = mission.boostedDurationSeconds(playerConfig);
 
   return {
     id,
     ship: mission,
     target: getArtifactName(target),
     targetAfxId: target,
-    actual_fuel: nonHumilityFuelUse.reduce((agg, current) => agg + current.amount, 0) * 3,
-    actual_time: mission.boostedDurationSeconds(playerConfig),
-    fuel_by_egg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount * 3), new Map()),
-    supply_vector: new Map(),
-    yield_vector: new Map(),
-    legendary_yield_vector: new Map(),
+    actualFuel: nonHumilityFuelUse.reduce((agg, current) => agg + current.amount, 0),
+    actualTime: Math.max(rawTime, launchPeriodSeconds),
+    rawTime,
+    fuelByEgg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount), new Map()),
+    supplyVector: new Map(),
+    yieldVector: new Map(),
+    legendaryYieldVector: new Map(),
   };
 }

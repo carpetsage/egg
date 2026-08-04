@@ -25,8 +25,10 @@
       </div>
 
       <!-- Name -->
-      <div class="flex-1 min-w-0 text-xs sm:text-sm font-bold truncate flex items-center gap-1.5"
-           :class="isStartAction ? 'text-slate-800' : 'text-slate-700'">
+      <div
+        class="flex-1 min-w-0 text-xs sm:text-sm font-bold truncate flex items-center gap-1.5"
+        :class="isStartAction ? 'text-slate-800' : 'text-slate-700'"
+      >
         <span v-if="eggType" class="text-[9px] uppercase font-black text-slate-400 tracking-widest">
           {{ action.type === 'start_ascension' ? 'Start:' : 'Egg:' }}
         </span>
@@ -39,15 +41,15 @@
       <div v-if="!isStartAction" class="flex flex-col items-end shrink-0">
         <span
           v-if="savingDuration > 0 || (isPurchaseAction && action.cost > 0)"
-          class="text-[8px] font-black text-rose-500 uppercase tracking-widest"
           v-tippy="timeToSaveTitle"
+          class="text-[8px] font-black text-rose-500 uppercase tracking-widest"
         >
           Save {{ savingDurationFormatted }}
         </span>
         <span
           v-if="waitDuration > 0"
-          class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
           v-tippy="timeToSaveTitle"
+          class="text-[8px] font-black text-slate-400 uppercase tracking-widest"
         >
           Wait {{ waitDurationFormatted }}
         </span>
@@ -64,28 +66,56 @@
         <!-- Recon Status -->
         <div v-if="actionsStore.isReconciling" class="flex items-center justify-center w-5 sm:w-6">
           <!-- Manual completion / Unaudiated -->
-          <div v-if="isManuallyCompleted || reconciliationStatus === 'na' || reconciliationStatus === 'pending'" class="flex items-center justify-center">
-            <label class="cursor-pointer hover:bg-slate-100 p-0.5 rounded transition-colors" 
-                   v-tippy="isManuallyCompleted ? 'Manually completed - Click to undo' : (reconciliationStatus === 'pending' ? 'Pending in-game - Click to mark complete anyway' : 'Not Audited - Click to mark complete')">
-              <input 
-                type="checkbox" 
+          <div
+            v-if="isManuallyCompleted || reconciliationStatus === 'na' || reconciliationStatus === 'pending'"
+            class="flex items-center justify-center"
+          >
+            <label
+              v-tippy="
+                isManuallyCompleted
+                  ? 'Manually completed - Click to undo'
+                  : reconciliationStatus === 'pending'
+                    ? 'Pending in-game - Click to mark complete anyway'
+                    : 'Not Audited - Click to mark complete'
+              "
+              class="cursor-pointer hover:bg-slate-100 p-0.5 rounded transition-colors"
+            >
+              <input
+                type="checkbox"
                 :checked="isManuallyCompleted"
-                @change="actionsStore.toggleManualOverride(action.id)"
                 class="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded border-slate-300 text-emerald-500 focus:ring-emerald-400 cursor-pointer transition-all"
+                @change="actionsStore.toggleManualOverride(action.id)"
               />
             </label>
           </div>
 
           <!-- System Audited Status -->
           <template v-else>
-            <div v-if="reconciliationStatus === 'completed'" class="text-emerald-500" v-tippy="'Action completed in-game'">
+            <div
+              v-if="reconciliationStatus === 'completed'"
+              v-tippy="'Action completed in-game'"
+              class="text-emerald-500"
+            >
               <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clip-rule="evenodd"
+                />
               </svg>
             </div>
-            <div v-else-if="reconciliationStatus === 'pending'" class="text-amber-500 animate-pulse" v-tippy="'Action pending in-game'">
+            <div
+              v-else-if="reconciliationStatus === 'pending'"
+              v-tippy="'Action pending in-game'"
+              class="text-amber-500 animate-pulse"
+            >
               <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
           </template>
@@ -94,12 +124,17 @@
         <!-- Undo Button -->
         <button
           v-if="!isStartAction"
-          class="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
           v-tippy="'Undo this action'"
+          class="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
           @click="handleUndo"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+            />
           </svg>
         </button>
       </div>
@@ -113,20 +148,36 @@
           class="text-[9px] uppercase tracking-widest font-black opacity-60 text-slate-500 mt-0.5"
           v-html="effectDescription"
         ></div>
-        
+
         <!-- Deltas -->
         <div
           v-if="!isStartAction || isContinued"
           class="text-[8px] mt-1 hidden sm:flex flex-wrap gap-x-3 gap-y-0.5 font-black uppercase tracking-wider"
         >
-          <span v-if="action.eggValueDelta" :class="deltaClass(action.eggValueDelta)">Val {{ formatDelta(action.eggValueDelta) }}</span>
-          <span v-if="action.habCapacityDelta" :class="deltaClass(action.habCapacityDelta)">Hab {{ formatDelta(action.habCapacityDelta) }}</span>
-          <span v-if="action.ihrDelta" :class="deltaClass(action.ihrDelta)">IHR {{ formatDelta(action.ihrDelta) }}</span>
-          <span v-if="action.layRateDelta" :class="deltaClass(action.layRateDelta)">Lay {{ formatDelta(action.layRateDelta) }}</span>
-          <span v-if="action.shippingCapacityDelta" :class="deltaClass(action.shippingCapacityDelta)">Ship {{ formatDelta(action.shippingCapacityDelta) }}</span>
-          <span v-if="action.elrDelta" :class="deltaClass(action.elrDelta)">ELR {{ formatDelta(action.elrDelta) }}</span>
-          <span v-if="action.offlineEarningsDelta" :class="deltaClass(action.offlineEarningsDelta)">Earn {{ formatDelta(action.offlineEarningsDelta) }}</span>
-          <span v-if="action.populationDelta" :class="deltaClass(action.populationDelta)">Pop {{ formatDelta(action.populationDelta) }}</span>
+          <span v-if="action.eggValueDelta" :class="deltaClass(action.eggValueDelta)"
+            >Val {{ formatDelta(action.eggValueDelta) }}</span
+          >
+          <span v-if="action.habCapacityDelta" :class="deltaClass(action.habCapacityDelta)"
+            >Hab {{ formatDelta(action.habCapacityDelta) }}</span
+          >
+          <span v-if="action.ihrDelta" :class="deltaClass(action.ihrDelta)"
+            >IHR {{ formatDelta(action.ihrDelta) }}</span
+          >
+          <span v-if="action.layRateDelta" :class="deltaClass(action.layRateDelta)"
+            >Lay {{ formatDelta(action.layRateDelta) }}</span
+          >
+          <span v-if="action.shippingCapacityDelta" :class="deltaClass(action.shippingCapacityDelta)"
+            >Ship {{ formatDelta(action.shippingCapacityDelta) }}</span
+          >
+          <span v-if="action.elrDelta" :class="deltaClass(action.elrDelta)"
+            >Delivery {{ formatDelta(action.elrDelta) }}</span
+          >
+          <span v-if="action.offlineEarningsDelta" :class="deltaClass(action.offlineEarningsDelta)"
+            >Earn {{ formatDelta(action.offlineEarningsDelta) }}</span
+          >
+          <span v-if="action.populationDelta" :class="deltaClass(action.populationDelta)"
+            >Pop {{ formatDelta(action.populationDelta) }}</span
+          >
           <span
             v-if="Math.abs(action.bankDelta) >= 0.5 && (!isPurchaseAction || action.type === 'launch_missions')"
             :class="action.bankDelta >= 0.5 ? 'text-emerald-600' : 'text-slate-400'"
@@ -144,15 +195,42 @@
             <img :src="iconURL('egginc/egg_soul.png', 32)" class="w-3 h-3" alt="SE" />
           </div>
         </template>
+        <template v-else-if="action.type === 'modify_bank'">
+          <div class="flex items-center gap-0.5 justify-end mt-0.5">
+            <span
+              class="text-xs font-bold font-mono-premium"
+              :class="
+                action.bankDelta >= 0.5
+                  ? 'text-emerald-600 font-black'
+                  : action.bankDelta <= -0.5
+                    ? 'text-rose-500 font-black'
+                    : 'text-slate-300'
+              "
+            >
+              {{ action.bankDelta >= 0.5 ? '+' : action.bankDelta <= -0.5 ? '-' : ''
+              }}{{ formatGemPrice(Math.abs(action.bankDelta)) }}
+            </span>
+            <img
+              v-if="Math.abs(action.bankDelta) >= 0.5"
+              :src="iconURL('egginc/icon_virtue_gem.png', 64)"
+              class="w-2.5 h-2.5 opacity-60"
+            />
+          </div>
+        </template>
         <template v-else>
           <div class="flex items-center gap-0.5 justify-end mt-0.5">
             <span
               class="text-xs font-bold font-mono-premium"
               :class="[
-                action.cost >= 0.5 ? 'text-slate-800' : action.bankDelta >= 0.5 ? 'text-emerald-600 font-black' : 'text-slate-300',
+                action.cost >= 0.5
+                  ? 'text-slate-800'
+                  : action.bankDelta >= 0.5
+                    ? 'text-emerald-600 font-black'
+                    : 'text-slate-300',
               ]"
             >
-              {{ action.bankDelta >= 0.5 && action.cost < 0.5 ? '+' : '' }}{{ formatGemPrice(action.cost >= 0.5 ? action.cost : action.bankDelta >= 0.5 ? action.bankDelta : 0) }}
+              {{ action.bankDelta >= 0.5 && action.cost < 0.5 ? '+' : ''
+              }}{{ formatGemPrice(action.cost >= 0.5 ? action.cost : action.bankDelta >= 0.5 ? action.bankDelta : 0) }}
             </span>
             <img
               v-if="action.cost >= 0.5 || action.bankDelta >= 0.5"
@@ -198,7 +276,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'show-details': [];
   undo: [options: { skipConfirmation: boolean }];
 }>();
 
@@ -280,7 +357,7 @@ const actionIconPath = computed(() => {
     return payload.setName === 'elr' ? 'egginc/afx_quantum_metronome_4.png' : 'egginc/afx_lunar_totem_4.png';
   }
   if (props.action.type === 'wait_for_time') {
-    return 'egginc/tiny_indicator_waiting.png';
+    return props.action.totalTimeSeconds > 3600 ? 'egginc/egg_truth.png' : 'egginc/tiny_indicator_waiting.png';
   }
   if (props.action.type === 'wait_for_missions') {
     return 'egginc/icon_afx_mission.png';
@@ -303,6 +380,9 @@ const actionIconPath = computed(() => {
   if (props.action.type === 'notification') {
     return 'egginc/tiny_indicator_waiting.png';
   }
+  if (props.action.type === 'modify_bank') {
+    return 'egginc/icon_virtue_gem.png';
+  }
   return null;
 });
 
@@ -314,8 +394,22 @@ const eggName = computed(() => {
 });
 
 const displayName = computed(() => {
+  if (props.action.type === 'wait_for_time' && props.action.totalTimeSeconds > 3600) {
+    return 'Offline Accumulation';
+  }
   const executor = getExecutor(props.action.type);
-  return executor.getDisplayName(props.action.payload);
+  const name = executor.getDisplayName(props.action.payload);
+
+  if (props.action.type === 'modify_bank') {
+    const rate = props.action.endState.offlineEarnings;
+    if (rate > 0 && Math.abs(props.action.bankDelta) >= 0.5) {
+      const seconds = Math.abs(props.action.bankDelta) / rate;
+      const sign = props.action.bankDelta >= 0 ? '+' : '-';
+      return `${name} (${sign}${formatDuration(seconds)})`;
+    }
+  }
+
+  return name;
 });
 
 const effectDescription = computed(() => {

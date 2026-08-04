@@ -65,7 +65,6 @@ export function getProphecyEggsProgress(
   params?: ProphecyEggsProgressFromContractsParams
 ): ProphecyEggsProgressAggregate {
   const completed = backup.game!.eggsOfProphecy!;
-  const fromContracts = getProphecyEggsProgressFromContracts(backup, params);
   const fromContractSeasons = getProphecyEggsProgressFromContractSeasons(backup);
   const fromTrophies = getProphecyEggsProgressFromTrophies(backup);
   const fromDailyGifts = getProphecyEggsProgressFromDailyGifts(backup);
@@ -82,13 +81,24 @@ export function getProphecyEggsProgress(
   // https://discord.com/channels/@me/849156772999462922/914078132309467196
   const fromContractsCompleted =
     completed - fromTrophies.completed - fromDailyGifts.completed - fromContractSeasons.completed;
-  if (fromContractsCompleted !== fromContracts.completed) {
-    console.warn(
-      `Discrepancy detected: ` +
-        `${fromContracts.completed} PEs from contracts according to contract archive, ` +
-        `${fromContractsCompleted} PEs from contracts according to backup.game.eggsOfProphecy`
-    );
-    fromContracts.completed = fromContractsCompleted;
+  let fromContracts: ProphecyEggsProgressFromContracts;
+  if (params) {
+    fromContracts = getProphecyEggsProgressFromContracts(backup, params);
+    if (fromContractsCompleted !== fromContracts.completed) {
+      console.warn(
+        `Discrepancy detected: ` +
+          `${fromContracts.completed} PEs from contracts according to contract archive, ` +
+          `${fromContractsCompleted} PEs from contracts according to backup.game.eggsOfProphecy`
+      );
+      fromContracts.completed = fromContractsCompleted;
+    }
+  } else {
+    fromContracts = {
+      available: 0,
+      completed: fromContractsCompleted,
+      numPEContractsAvailable: 0,
+      numPEContractsCompleted: 0,
+    };
   }
   return {
     available:

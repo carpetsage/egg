@@ -29,7 +29,7 @@ const BASE_EGG_VALUE = 1;
 export function computeSnapshot(
   state: EngineState,
   context: SimulationContext,
-  options: { skipGrowth?: boolean } = {}
+  options: { skipGrowth?: boolean; freezePopulation?: boolean; skipEpochConversion?: boolean } = {}
 ): SimulationResult {
   const { epicResearchLevels, colleggtibleModifiers } = context;
 
@@ -49,7 +49,7 @@ export function computeSnapshot(
   const habCapacityInput: HabCapacityInput = {
     habIds: state.habIds,
     researchLevels: state.researchLevels,
-    peggMultiplier: colleggtibleModifiers.habCap,
+    habCapMultiplier: colleggtibleModifiers.habCap,
     artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
     artifactEffects: artifactMods.habCapacity.effects,
   };
@@ -63,7 +63,7 @@ export function computeSnapshot(
       epicInternalIncubators: epicResearchLevels['epic_internal_incubators'] || 0,
       internalHatcheryCalm: epicResearchLevels['int_hatch_calm'] || 0,
     },
-    easterEggMultiplier: colleggtibleModifiers.ihr,
+    ihrMultiplier: colleggtibleModifiers.ihr,
     artifactMultiplier: artifactMods.internalHatcheryRate.totalMultiplier,
     artifactEffects: artifactMods.internalHatcheryRate.effects,
   };
@@ -76,13 +76,18 @@ export function computeSnapshot(
   let lastStepTime = state.lastStepTime;
 
   if (options.skipGrowth) {
-    // Force maintenance of state values
+    population = habCapacityOutput.totalFinalCapacity;
+    bankValue = state.bankValue || 0;
+  } else if (options.freezePopulation) {
+    // Population and earnings are frozen (e.g. waiting with empty silos): no growth, no gems.
     population = state.population || 0;
     bankValue = state.bankValue || 0;
   } else {
     // 8. Population growth (catch-up if starting from a backup)
-    // If time is not initialized (e.g. fresh ascension), base it on the planned start time
-    if (lastStepTime < 1e9 && context.ascensionStartTime > 1e9) {
+    // If time is not initialized (e.g. fresh ascension), base it on the planned start time.
+    // Skip this when called from simulation loops (skipEpochConversion:true) to keep lastStepTime
+    // in the same relative reference frame as the rest of the plan.
+    if (!options.skipEpochConversion && lastStepTime < 1e9 && context.ascensionStartTime > 1e9) {
       lastStepTime = context.ascensionStartTime;
     }
 
@@ -103,7 +108,7 @@ export function computeSnapshot(
   const layRateInput: LayRateInput = {
     researchLevels: state.researchLevels,
     epicComfyNestsLevel: epicResearchLevels['epic_egg_laying'] || 0,
-    siliconMultiplier: colleggtibleModifiers.elr,
+    elrMultiplier: colleggtibleModifiers.elr,
     population: population,
     artifactMultiplier: artifactMods.eggLayingRate.totalMultiplier,
     artifactEffects: artifactMods.eggLayingRate.effects,
@@ -115,7 +120,7 @@ export function computeSnapshot(
     vehicles: state.vehicles,
     researchLevels: state.researchLevels,
     transportationLobbyistLevel: epicResearchLevels['transportation_lobbyist'] || 0,
-    colleggtibleMultiplier: colleggtibleModifiers.shippingCap,
+    shippingCapMultiplier: colleggtibleModifiers.shippingCap,
     artifactMultiplier: artifactMods.shippingRate.totalMultiplier,
     artifactEffects: artifactMods.shippingRate.effects,
   };
@@ -129,7 +134,7 @@ export function computeSnapshot(
     eggValue: eggValueOutput.finalValue,
     effectiveLayRate: elrOutput.effectiveLayRate,
     te: state.te,
-    fireworkMultiplier: colleggtibleModifiers.earnings,
+    earningsMultiplier: colleggtibleModifiers.earnings,
     awayEarningsMultiplier: colleggtibleModifiers.awayEarnings,
     artifactAwayMultiplier: artifactMods.awayEarnings.totalMultiplier,
     videoDoublerMultiplier: context.assumeDoubleEarnings ? 2 : 1,
@@ -143,7 +148,12 @@ export function computeSnapshot(
   // We use 1e9 as a threshold to distinguish between 0-based simulation time
   // and absolute Unix timestamps from a backup.
   let extraEggs = 0;
-  if (state.lastStepTime > 1e9 && context.ascensionStartTime > state.lastStepTime && !options.skipGrowth) {
+  if (
+    state.lastStepTime > 1e9 &&
+    context.ascensionStartTime > state.lastStepTime &&
+    !options.skipGrowth &&
+    !options.freezePopulation
+  ) {
     const elapsedSeconds = context.ascensionStartTime - state.lastStepTime;
 
     // Accurate catch-up using integrated rate (accounts for population growth)
@@ -195,9 +205,10 @@ export function computeSnapshot(
     siloTimeMinutes,
     tankLevel: state.tankLevel,
     fuelTankAmounts: state.fuelTankAmounts,
-    eggsDelivered: extraEggs > 0 
-      ? { ...state.eggsDelivered, [state.currentEgg]: (state.eggsDelivered[state.currentEgg] || 0) + extraEggs }
-      : state.eggsDelivered,
+    eggsDelivered:
+      extraEggs > 0
+        ? { ...state.eggsDelivered, [state.currentEgg]: (state.eggsDelivered[state.currentEgg] || 0) + extraEggs }
+        : state.eggsDelivered,
     teEarned: state.teEarned,
     vehicles: state.vehicles,
     habIds: state.habIds,

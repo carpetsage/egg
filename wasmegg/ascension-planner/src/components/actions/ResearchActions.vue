@@ -14,13 +14,124 @@
       {{ viewDescription }}
     </p>
 
+    <div v-if="currentView === 'roi'" class="px-1 mb-2 space-y-2">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-gray-500">Delivery Impact Only</span>
+        <button
+          @click="deliveryImpactOnly = !deliveryImpactOnly"
+          class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+          :class="deliveryImpactOnly ? 'bg-indigo-500' : 'bg-slate-200'"
+        >
+          <span
+            class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
+            :class="deliveryImpactOnly ? 'translate-x-[22px]' : 'translate-x-1'"
+          />
+        </button>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-gray-500">Achieve ROI</span>
+        <div class="flex items-center gap-1.5">
+          <div class="flex gap-0.5 p-0.5 bg-gray-100 rounded-md shadow-inner">
+            <button
+              @click="roiMode = 'immediate'"
+              class="px-2 py-0.5 text-[10px] font-medium rounded transition-all whitespace-nowrap"
+              :class="roiMode === 'immediate' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'"
+            >
+              Immediate Impact
+            </button>
+            <button
+              @click="roiMode = 'maxed_vehicles'"
+              class="px-2 py-0.5 text-[10px] font-medium rounded transition-all whitespace-nowrap"
+              :class="roiMode === 'maxed_vehicles' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'"
+            >
+              Max Vehicles
+            </button>
+          </div>
+          <span
+            class="w-4 h-4 inline-flex items-center justify-center rounded-full bg-gray-100 text-gray-400 text-[9px] cursor-help hover:bg-gray-200 transition-colors leading-none shrink-0"
+            v-tippy="'Max Vehicles mode calculates Achieve ROI as if you had gone to Kindness and bought all available vehicles and hyperloop cars — after buying the research in question.'"
+          >?</span>
+        </div>
+      </div>
+    </div>
+
     <ElrViewControls
       v-if="currentView === 'elr'"
       :view-mode="elrViewMode"
       :sort-mode="elrSortMode"
+      :roi-display-mode="elrRoiDisplayMode"
       @update:view-mode="elrViewMode = $event"
       @update:sort-mode="elrSortMode = $event"
+      @update:roi-display-mode="elrRoiDisplayMode = $event"
     />
+
+    <MilestoneTargetPicker
+      v-if="currentView === 'milestones'"
+      v-model="milestoneTarget"
+      :next-locked-tier="milestoneNextLockedTier"
+      :research-options="milestoneResearchOptions"
+    />
+
+    <!-- Milestone Summary -->
+    <div
+      v-if="currentView === 'milestones' && milestoneSummary"
+      class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"
+    >
+      <template v-if="milestoneSummary.truncated">
+        <p class="text-xs text-gray-500 text-center italic">
+          This milestone requires too many purchases to fully calculate right now.
+        </p>
+      </template>
+      <template v-else>
+        <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-center">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">Without This Research</span>
+            <span
+              class="text-sm font-mono font-bold text-gray-900 leading-none py-1"
+              v-tippy="'Time to reach this milestone buying cheapest-first, with no ROI prioritization.'"
+            >
+              {{ formatDuration(milestoneSummary.baselineSeconds) }}
+            </span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">With This Research</span>
+            <span
+              class="text-sm font-mono font-bold text-gray-900 leading-none py-1"
+              v-tippy="'Time to reach this milestone by always buying whatever currently pays for itself fastest.'"
+            >
+              {{ formatDuration(milestoneSummary.optimizedSeconds) }}
+            </span>
+          </div>
+          <div class="flex flex-col border-l border-gray-200 pl-6">
+            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">Time Saved</span>
+            <span class="text-sm font-mono font-bold text-emerald-600 leading-none py-1">
+              {{ formatDuration(Math.max(0, milestoneSummary.timeSavedSeconds)) }}
+            </span>
+          </div>
+          <div class="flex flex-col border-l border-gray-200 pl-6">
+            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">Researches Bought</span>
+            <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1">
+              {{ milestoneSummary.purchaseCount }}
+            </span>
+          </div>
+        </div>
+        <p class="mt-2 text-[10px] text-gray-400 text-center">
+          Finishes {{ milestoneSummary.finishAbsoluteTime }}
+        </p>
+      </template>
+    </div>
+
+    <!-- Buy Entire Chain -->
+    <button
+      v-if="currentView === 'milestones' && sortedResearches.length > 0"
+      class="btn-premium btn-primary w-full mt-2"
+      @click="handleBuyMilestoneChain"
+    >
+      Buy Entire Chain
+      <span class="ml-1 text-[10px] opacity-70 font-mono lowercase tracking-normal">
+        ({{ sortedResearches.length }} {{ sortedResearches.length === 1 ? 'purchase' : 'purchases' }})
+      </span>
+    </button>
 
     <!-- Realistic Mode Summary -->
     <div 
@@ -41,7 +152,7 @@
           </span>
         </div>
         <div class="flex flex-col border-l border-gray-200 pl-6">
-          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">ELR</span>
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">Delivery Rate</span>
           <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1" v-tippy="'The lower of the two rates'">
             {{ formatNumber(realisticSummary.elr) }}/hr
           </span>
@@ -76,8 +187,10 @@
       :sorted-researches="sortedResearches"
       :view="currentView"
       :thresholds="TIER_THRESHOLDS"
+      :milestone-target-selected="!!milestoneTarget"
       :get-research-time-to-buy="getTimeToBuy"
       :get-research-time-to-buy-seconds="getTimeToBuySeconds"
+      :roi-display-mode="elrRoiDisplayMode"
       @buy="handleBuyResearch"
       @max="handleMaxResearch"
       @buy-to-here="handleBuyToHere"
@@ -89,9 +202,9 @@
       :event-name="expiryData.eventName"
       :end-time="expiryData.endTime"
       :completion-time="expiryData.completionTime"
-      @confirm="handleExpiryConfirm"
       @cancel="handleExpiryCancel"
-      @deactivate="handleExpiryDeactivate"
+      @deactivate-and-cancel="handleExpiryDeactivateAndCancel"
+      @deactivate-and-continue="handleExpiryDeactivateAndContinue"
     />
   </div>
 </template>
@@ -121,6 +234,7 @@ import ResearchViewSelector from './ResearchViewSelector.vue';
 import ResearchGameView from './ResearchGameView.vue';
 import ResearchFlatView from './ResearchFlatView.vue';
 import ElrViewControls from './ElrViewControls.vue';
+import MilestoneTargetPicker from './MilestoneTargetPicker.vue';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
 import { useEventExpiry } from '@/composables/useEventExpiry';
 
@@ -132,9 +246,9 @@ const {
   showExpiryDialog,
   expiryData,
   withExpiryCheck,
-  confirm: handleExpiryConfirm,
   cancel: handleExpiryCancel,
-  deactivateAndCancel: handleExpiryDeactivate,
+  deactivateAndCancel: handleExpiryDeactivateAndCancel,
+  deactivateAndContinue: handleExpiryDeactivateAndContinue,
 } = useEventExpiry();
 
 const smartBuyState = ref({ threshold: 0, alwaysOn: false });
@@ -144,6 +258,13 @@ const {
   currentView,
   elrViewMode,
   elrSortMode,
+  elrRoiDisplayMode,
+  deliveryImpactOnly,
+  roiMode,
+  milestoneTarget,
+  milestoneNextLockedTier,
+  milestoneResearchOptions,
+  milestoneSummary,
   viewDescription,
   costModifiers,
   isResearchSaleActive,
@@ -174,6 +295,13 @@ function getTimeToBuy(research: CommonResearch): string {
 function getTimeToBuySeconds(research: CommonResearch): number {
   const price = getNextLevelPrice(research);
   return getTimeToSave(price, actionsStore.effectiveSnapshot);
+}
+
+// Some sortedResearches branches (e.g. ROI view) don't populate buyToHereSeconds,
+// since it's simulated step-by-step and only meaningful for a defined "chain" (cheapest/milestones).
+function getSimulatedBuyToHereSeconds(item: unknown): number | undefined {
+  const seconds = (item as { buyToHereSeconds?: unknown }).buyToHereSeconds;
+  return typeof seconds === 'number' ? seconds : undefined;
 }
 
 /**
@@ -340,16 +468,43 @@ function handleBuyToHere(index: number) {
   const list = sortedResearches.value;
   if (index < 0 || index >= list.length) return;
 
-  // Estimate total duration
-  let totalDuration = 0;
-  for (let i = 0; i <= index; i++) {
-    totalDuration += getTimeToBuySeconds(list[i].research);
+  // buyToHereSeconds is simulated step-by-step (earnings rate updates as each
+  // item is bought), unlike summing getTimeToBuySeconds against today's static rate.
+  let totalDuration = getSimulatedBuyToHereSeconds(list[index]);
+  if (totalDuration === undefined) {
+    totalDuration = 0;
+    for (let i = 0; i <= index; i++) {
+      totalDuration += getTimeToBuySeconds(list[i].research);
+    }
   }
 
   withExpiryCheck(totalDuration, true, () => {
     batch(() => {
       for (let i = 0; i <= index; i++) {
         const item = list[i];
+        buyOneLevel(item.research);
+      }
+    });
+  });
+}
+
+function handleBuyMilestoneChain() {
+  const list = sortedResearches.value;
+  if (list.length === 0) return;
+
+  // Same reasoning as handleBuyToHere: use the chain's simulated final duration
+  // rather than summing individual durations against today's static earnings rate.
+  let totalDuration = getSimulatedBuyToHereSeconds(list[list.length - 1]);
+  if (totalDuration === undefined) {
+    totalDuration = 0;
+    for (const item of list) {
+      totalDuration += getTimeToBuySeconds(item.research);
+    }
+  }
+
+  withExpiryCheck(totalDuration, true, () => {
+    batch(() => {
+      for (const item of list) {
         buyOneLevel(item.research);
       }
     });

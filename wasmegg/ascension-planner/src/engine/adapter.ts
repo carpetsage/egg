@@ -29,6 +29,7 @@ export function getSimulationContext(): SimulationContext {
     ascensionStartTime,
     planStartOffset: (useActionsStore() as any).planStartOffset || 0,
     assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
+    rawBackup: initialStateStore.rawBackup || undefined,
   };
 }
 

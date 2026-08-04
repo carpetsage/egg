@@ -115,6 +115,10 @@ export default defineComponent({
         title: 'ei_ctx/get_contracts_info',
       },
       {
+        name: 'contract_player_info',
+        title: 'ei_ctx/get_contract_player_info',
+      },
+      {
         name: 'get_periodicals',
         title: '/get_periodicals',
       },

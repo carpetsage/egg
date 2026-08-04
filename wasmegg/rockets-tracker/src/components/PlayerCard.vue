@@ -42,6 +42,14 @@
               :src="badgeNAH"
               class="h-4"
             />
+            <img
+              v-else-if="hasLegacyNAH"
+              v-tippy="{
+                content: 'Proud owner of the Nobel Prize in Animal Husbandry® (Legacy Edition)',
+              }"
+              :src="badgeNAHLegacy"
+              class="h-4"
+            />
             <img v-if="hasFED" v-tippy="{ content: 'Full Egg Dedication' }" :src="badgeFED" class="h-4" />
 
             <img
@@ -823,6 +831,7 @@ import {
   getXPFromCraftingLevel,
   formatDuration,
   getNumTruthEggs,
+  maxModifierFromColleggtibles,
 } from 'lib';
 import BaseInfo from 'ui/components/BaseInfo.vue';
 import { getMissionDataPreference, getMissionDataSubmitTime, recordMissionDataPreference } from '../lib/missiondata';
@@ -840,6 +849,7 @@ import {
 import {
   numToDigClass,
   badgeNAH,
+  badgeNAHLegacy,
   badgeGoodJob,
   badgeALC,
   badgeSLC,
@@ -991,19 +1001,36 @@ const shipClub = computed((): ShipClub | null => {
   return null;
 });
 const prophecyEggsProgress = computed(() => getProphecyEggsProgress(backup.value));
-const hasNAH = computed(() => {
+const NAH_BASE_THRESHOLD = 19845000000;
+const nahCurrentThreshold = computed(
+  () => NAH_BASE_THRESHOLD * maxModifierFromColleggtibles(ei.GameModifier.GameDimension.HAB_CAPACITY)
+);
+const hasLegacyNAH = computed(() => {
   const farmsize = progress.value.maxFarmSizeReached!;
   // subtract 1 for array indexing
   const enlight = ei.Egg.ENLIGHTENMENT - 1;
-  if (farmsize[enlight] >= 19845000000) {
+  if (farmsize[enlight] >= NAH_BASE_THRESHOLD) {
     return true;
   }
   return false;
 });
+const hasNAH = computed(() => {
+  const farmsize = progress.value.maxFarmSizeReached!;
+  // subtract 1 for array indexing
+  const enlight = ei.Egg.ENLIGHTENMENT - 1;
+  if (farmsize[enlight] >= nahCurrentThreshold.value) {
+    return true;
+  }
+  return false;
+});
+const FED_BASE_THRESHOLD = 14175000000;
+const fedCurrentThreshold = computed(
+  () => FED_BASE_THRESHOLD * maxModifierFromColleggtibles(ei.GameModifier.GameDimension.HAB_CAPACITY)
+);
 const hasFED = computed(() => {
   const farmsize = progress.value.maxFarmSizeReached!;
   for (let i = 0; i < farmsize.length; i++) {
-    const compareAgainst = i == ei.Egg.ENLIGHTENMENT - 1 ? 19845000000 : 14175000000;
+    const compareAgainst = i == ei.Egg.ENLIGHTENMENT - 1 ? nahCurrentThreshold.value : fedCurrentThreshold.value;
     if (farmsize[i] < compareAgainst) {
       return false;
     }

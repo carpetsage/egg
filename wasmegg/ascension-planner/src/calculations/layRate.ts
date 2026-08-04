@@ -67,7 +67,7 @@ export function calculateResearchMultiplier(research: LayRateResearch, level: nu
  * Main calculation: compute lay rate with full breakdown.
  */
 export function calculateLayRate(input: LayRateInput): LayRateOutput {
-  const { researchLevels, epicComfyNestsLevel, siliconMultiplier, population, artifactMultiplier, artifactEffects } =
+  const { researchLevels, epicComfyNestsLevel, elrMultiplier, population, artifactMultiplier, artifactEffects } =
     input;
 
   // Calculate combined research multiplier from common researches
@@ -82,7 +82,7 @@ export function calculateLayRate(input: LayRateInput): LayRateOutput {
 
   // Calculate final rate per chicken (eggs/second)
   const ratePerChickenPerSecond =
-    BASE_RATE_PER_SECOND * researchMultiplier * epicMultiplier * siliconMultiplier * artifactMultiplier;
+    BASE_RATE_PER_SECOND * researchMultiplier * epicMultiplier * elrMultiplier * artifactMultiplier;
 
   // Calculate total rate (eggs/second)
   const totalRatePerSecond = ratePerChickenPerSecond * Math.max(0, population);
@@ -106,7 +106,7 @@ export function calculateLayRate(input: LayRateInput): LayRateOutput {
     baseRatePerSecond: BASE_RATE_PER_SECOND,
     researchMultiplier,
     epicMultiplier,
-    siliconMultiplier,
+    elrMultiplier,
     artifactMultiplier,
     ratePerChickenPerSecond,
     totalRatePerSecond,

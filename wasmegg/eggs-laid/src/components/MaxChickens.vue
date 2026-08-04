@@ -12,11 +12,13 @@
               >
                 <span
                   :class="
-                    nearMaxPossible(egg, eggTotal)
-                      ? 'text-red-400'
-                      : atMaxPossible(egg, eggTotal)
-                        ? 'text-green-400'
-                        : ''
+                    atMaxPossible(egg, eggTotal)
+                      ? 'text-green-400'
+                      : atBaseMax(egg, eggTotal)
+                        ? 'text-blue-400'
+                        : nearMaxPossible(egg, eggTotal)
+                          ? 'text-red-400'
+                          : ''
                   "
                 >
                   <pre>{{ fmtEggTotal(egg, eggTotal) }}</pre>
@@ -37,7 +39,7 @@ import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
-import { eggName, ei, fmtApprox, formatEIValue, customEggs } from 'lib';
+import { eggName, ei, fmtApprox, formatEIValue, customEggs, allModifiersFromColleggtibles } from 'lib';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
@@ -87,6 +89,8 @@ const totalsWithTotal = computed(() => {
   return result;
 });
 
+const habCapMultiplier = computed(() => allModifiersFromColleggtibles(backup.value).habCap);
+
 function farmSize(contracts: ei.ILocalContract[]): number {
   return Math.max(...contracts.map(c => c.maxFarmSizeReached ?? 0), 0);
 }
@@ -94,15 +98,29 @@ function farmSize(contracts: ei.ILocalContract[]): number {
 function fmtEggTotal(egg: string, total: number) {
   return `${egg.padEnd(15, ' ')} - ${fmtApprox(total)}`;
 }
+function baseMaxPossible(egg: string): number {
+  return egg === 'Enlightenment' ? 19_845_000_000 : 14_175_000_000;
+}
 function maxPossible(egg: string) {
-  return egg == 'Total' ? Infinity : egg === 'Enlightenment' ? 19_845_000_000 : 14_175_000_000;
+  if (egg === 'Total') {
+    return Infinity;
+  }
+  return baseMaxPossible(egg) * habCapMultiplier.value;
 }
 
 function nearMaxPossible(egg: string, total: number) {
-  return fmtApprox(total) === fmtApprox(maxPossible(egg)) && total < maxPossible(egg);
+  const isNear = (x: number, y: number): boolean => fmtApprox(x) === fmtApprox(y) && x < y;
+  return isNear(total, maxPossible(egg)) || isNear(total, baseMaxPossible(egg));
 }
 
 function atMaxPossible(egg: string, total: number) {
   return total >= maxPossible(egg);
+}
+
+function atBaseMax(egg: string, total: number) {
+  if (egg === 'Total') {
+    return false;
+  }
+  return total === baseMaxPossible(egg);
 }
 </script>

@@ -154,7 +154,7 @@ export function calculateShippingCapacity(input: ShippingCapacityInput): Shippin
     vehicles,
     researchLevels,
     transportationLobbyistLevel,
-    colleggtibleMultiplier,
+    shippingCapMultiplier,
     artifactMultiplier,
     artifactEffects,
   } = input;
@@ -184,7 +184,7 @@ export function calculateShippingCapacity(input: ShippingCapacityInput): Shippin
         universalMultiplier: 1,
         hoverMultiplier: 1,
         hyperloopMultiplier: 1,
-        colleggtibleMultiplier: 1,
+        shippingCapMultiplier: 1,
         artifactMultiplier: 1,
         finalCapacity: 0,
       };
@@ -201,7 +201,7 @@ export function calculateShippingCapacity(input: ShippingCapacityInput): Shippin
         universalMultiplier: 1,
         hoverMultiplier: 1,
         hyperloopMultiplier: 1,
-        colleggtibleMultiplier: 1,
+        shippingCapMultiplier: 1,
         artifactMultiplier: 1,
         finalCapacity: 0,
       };
@@ -223,7 +223,7 @@ export function calculateShippingCapacity(input: ShippingCapacityInput): Shippin
       epicMultiplier *
       vehicleHoverMult *
       vehicleHyperloopMult *
-      colleggtibleMultiplier *
+      shippingCapMultiplier *
       artifactMultiplier;
 
     totalBaseCapacity += baseCapacity;
@@ -238,7 +238,7 @@ export function calculateShippingCapacity(input: ShippingCapacityInput): Shippin
       universalMultiplier,
       hoverMultiplier: vehicleHoverMult,
       hyperloopMultiplier: vehicleHyperloopMult,
-      colleggtibleMultiplier,
+      shippingCapMultiplier,
       artifactMultiplier,
       finalCapacity,
     };
@@ -279,7 +279,7 @@ export function calculateShippingCapacity(input: ShippingCapacityInput): Shippin
     epicMultiplier,
     hoverMultiplier,
     hyperloopMultiplier,
-    colleggtibleMultiplier,
+    shippingCapMultiplier,
     totalFinalCapacity,
     maxVehicleSlots,
     maxTrainLength,

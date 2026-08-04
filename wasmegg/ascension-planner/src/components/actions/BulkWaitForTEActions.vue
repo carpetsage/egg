@@ -11,7 +11,8 @@
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
           </button>
-          <input 
+          <input
+            ref="inputEl"
             type="number"
             v-model.number="totalTEToGain"
             class="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 text-center font-mono-premium font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-all shadow-sm"
@@ -145,6 +146,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
+const inputEl = ref<HTMLInputElement | null>(null);
+defineExpose({ focus: () => inputEl.value?.focus() });
 import { iconURL, shiftCost } from 'lib';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useVirtueStore } from '@/stores/virtue';

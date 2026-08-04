@@ -34,7 +34,7 @@ export function useEarnings(): {
       eggValue: eggValueOutput.value.finalValue,
       effectiveLayRate: elrOutput.value.effectiveLayRate,
       te: te.value,
-      fireworkMultiplier: initialStateStore.colleggtibleModifiers.earnings,
+      earningsMultiplier: initialStateStore.colleggtibleModifiers.earnings,
       awayEarningsMultiplier: initialStateStore.colleggtibleModifiers.awayEarnings,
       artifactAwayMultiplier: artifactMod.totalMultiplier,
       videoDoublerMultiplier: initialStateStore.assumeDoubleEarnings ? 2 : 1,

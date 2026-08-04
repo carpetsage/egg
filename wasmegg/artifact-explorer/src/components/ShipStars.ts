@@ -1,9 +1,6 @@
-// A small star-rating widget for a ship's level: a "zero" (ban) icon followed
-// by `max` stars, the first `level` of which are filled. When `interactive` is
-// true, clicking the ban icon emits `set(0)` and clicking star i emits `set(i)`.
-//
-// Implemented as a render function (rather than an SFC template) because it is
-// almost entirely inline SVG. Used by PlayerOverridesModal.
+// Star rating for a ship's level: a ban icon (level 0) followed by `max`
+// stars. When interactive, clicking emits set(0..max). Render function
+// rather than an SFC since it's almost entirely inline SVG.
 
 import { defineComponent, h } from 'vue';
 
@@ -18,7 +15,6 @@ export default defineComponent({
   setup(props, { emit }) {
     return () => {
       const stars = [];
-      // Ban / zero-out icon
       stars.push(
         h(
           'svg',

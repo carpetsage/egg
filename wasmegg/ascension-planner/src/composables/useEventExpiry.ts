@@ -63,27 +63,15 @@ export function useEventExpiry() {
         action();
     }
 
-    function confirm() {
-        if (pendingAction) {
-            pendingAction();
-            pendingAction = null;
-        }
-        showExpiryDialog.value = false;
-    }
-
     function cancel() {
         pendingAction = null;
         showExpiryDialog.value = false;
     }
 
     /**
-     * Cancel the original action and instead add a deactivation action for the event.
+     * Adds an action that deactivates the currently expiring event.
      */
-    async function deactivateAndCancel() {
-        const actionToRun = pendingAction;
-        pendingAction = null;
-        showExpiryDialog.value = false;
-
+    async function deactivateEvent() {
         const beforeSnapshot = prepareExecution();
 
         if (expiryData.value.type === EventType.RESEARCH_SALE) {
@@ -128,12 +116,36 @@ export function useEventExpiry() {
         }
     }
 
+    /**
+     * Deactivate the event and discard the original pending action.
+     */
+    async function deactivateAndCancel() {
+        pendingAction = null;
+        showExpiryDialog.value = false;
+        await deactivateEvent();
+    }
+
+    /**
+     * Deactivate the event, then run the original pending action.
+     */
+    async function deactivateAndContinue() {
+        const actionToRun = pendingAction;
+        pendingAction = null;
+        showExpiryDialog.value = false;
+
+        await deactivateEvent();
+
+        if (actionToRun) {
+            actionToRun();
+        }
+    }
+
     return {
         showExpiryDialog,
         expiryData,
         withExpiryCheck,
-        confirm,
         cancel,
         deactivateAndCancel,
+        deactivateAndContinue,
     };
 }

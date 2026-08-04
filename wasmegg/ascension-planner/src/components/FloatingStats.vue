@@ -6,9 +6,9 @@
   >
     <!-- Toggle Handler -->
     <button
-      @click="isCollapsed = !isCollapsed"
-      class="w-full flex flex-col items-center group/toggle transition-colors"
       v-tippy="isCollapsed ? 'Expand Stats' : 'Collapse Stats'"
+      class="w-full flex flex-col items-center group/toggle transition-colors"
+      @click="isCollapsed = !isCollapsed"
     >
       <!-- Chevron Indicator -->
       <div class="text-slate-300 group-hover/toggle:text-slate-500 transition-colors mb-1">
@@ -45,7 +45,7 @@
     <div v-if="!isCollapsed" class="flex flex-col items-center w-full transition-all">
       <!-- Active Set Badge -->
       <div v-if="activeSet" class="badge-premium badge-brand py-0.5 mb-3 scale-90">
-        {{ activeSet === 'earnings' ? 'Earnings' : 'ELR' }} Set
+        {{ activeSet === 'earnings' ? 'Earnings' : 'Delivery Rate' }} Set
       </div>
       <div v-else class="badge-premium py-0.5 mb-3 scale-90 bg-slate-100 text-slate-500">No Active Set</div>
 
@@ -109,7 +109,7 @@
 
         <!-- ELR -->
         <div class="flex flex-col items-center">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">ELR</span>
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Delivery</span>
           <span class="font-mono-premium text-[11px] font-bold text-slate-700">
             {{ formatRate(elrHr) }}
           </span>
@@ -131,9 +131,25 @@
 
         <!-- Bank -->
         <div class="flex flex-col items-center">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-none mb-0.5"
-            >Bank</span
+          <span
+            class="flex items-center gap-1 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-none mb-0.5"
           >
+            Bank
+            <button
+              v-tippy="'Modify Bank Value'"
+              class="text-slate-500 hover:text-slate-800 transition-colors"
+              @click="showModifyBankModal = true"
+            >
+              <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+            </button>
+          </span>
           <div class="flex items-center gap-1">
             <span class="font-mono-premium text-[11px] font-bold text-slate-700">
               {{ formatNumber(Math.max(0, snapshot.bankValue), 3) }}
@@ -143,23 +159,10 @@
         </div>
       </div>
 
-      <!-- Details Button -->
-      <!-- <button
-        class="mt-3 text-slate-400 hover:text-slate-900 transition-colors p-1"
-        v-tippy="'View Full Details'"
-        @click="$emit('show-details')"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      </button> -->
     </div>
   </div>
+
+  <ModifyBankModal :show="showModifyBankModal" @close="showModifyBankModal = false" />
 </template>
 
 <script setup lang="ts">
@@ -170,8 +173,9 @@ import { iconURL } from 'lib';
 import { formatNumber } from '@/lib/format';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import type { VirtueEgg, Action, StartAscensionPayload, ShiftPayload } from '@/types';
+import ModifyBankModal from './ModifyBankModal.vue';
 
-const emit = defineEmits(['show-details']);
+const showModifyBankModal = ref(false);
 
 const actionsStore = useActionsStore();
 const virtueStore = useVirtueStore();
@@ -290,8 +294,8 @@ const dates = computed(() => {
   const headerAction = actions[headerIndex];
 
   // Find the end of this shift
-  let nextShiftIndex = actions.findIndex((a, idx) => idx > headerIndex && a.type === 'shift');
-  let endActionIndex = nextShiftIndex === -1 ? actions.length - 1 : nextShiftIndex - 1;
+  const nextShiftIndex = actions.findIndex((a, idx) => idx > headerIndex && a.type === 'shift');
+  const endActionIndex = nextShiftIndex === -1 ? actions.length - 1 : nextShiftIndex - 1;
 
   // Time before shift = header end simulation time - header duration - start offset
   const timeBeforeShift = (headerAction.endState.lastStepTime || 0) - (headerAction.totalTimeSeconds || 0) - offset;

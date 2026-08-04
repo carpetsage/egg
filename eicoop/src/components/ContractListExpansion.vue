@@ -180,7 +180,7 @@ export default defineComponent({
       return allModifiers[0].map((modifier, i) => [
         allModifiers[4][i],
         allModifiers[3][i],
-        allModifiers[3][i],
+        allModifiers[2][i],
         allModifiers[1][i],
         modifier,
       ]);

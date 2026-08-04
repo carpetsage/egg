@@ -63,6 +63,11 @@
               </button>
             </template>
           </div>
+
+          <div v-if="selectedTab === 'earnings' && earningsClothedTe !== null" class="flex items-center gap-1.5">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Clothed TE</span>
+            <span class="text-xs font-mono-premium font-bold text-gray-900">{{ Math.round(earningsClothedTe) }}</span>
+          </div>
         </div>
 
         <div v-if="selectedTab === 'elr'" class="flex flex-wrap items-center justify-end gap-y-2 gap-x-4 border-t border-gray-200/60 pt-2 -mt-1">
@@ -102,7 +107,7 @@
             class="px-3 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
             :class="isOptimalELR ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'"
             @click="equipOptimalELR"
-            v-tippy="'Find and equip the best ELR set from your inventory'"
+            v-tippy="'Find and equip the best delivery rate set from your inventory'"
           >
             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -111,7 +116,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Optimal ELR
+            Optimal Delivery Rate
           </button>
         </div>
       </div>
@@ -139,7 +144,7 @@
             <p class="text-[10px] text-blue-700 leading-tight">
               <strong>Earnings:</strong> Necklaces, Ankhs, Cubes, Lunar stones.
               <br />
-              <strong>ELR:</strong> Metronomes, Compasses, Tachyon/Quantum stones.
+              <strong>Delivery:</strong> Metronomes, Compasses, Tachyon/Quantum stones.
             </p>
           </div>
         </div>
@@ -163,7 +168,7 @@ import {
   summarizeLoadout,
   calculateArtifactModifiers,
 } from '@/lib/artifacts';
-import { getOptimalELRSet, isFunctionallyIdentical } from '@/lib/artifacts/virtue';
+import { getOptimalELRSet, isFunctionallyIdentical, calculateClothedTEForSet } from '@/lib/artifacts/virtue';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { computeDependencies } from '@/lib/actions/executor';
 import { calculateHabCapacity_Full } from '@/calculations/habCapacity';
@@ -184,6 +189,19 @@ const selectedTab = ref<ArtifactSetName>('earnings');
 const localLoadout = ref<EquippedArtifact[]>(createEmptyLoadout());
 const assumeMaxHabsVehicles = ref(true);
 const excludeGusset = ref(false);
+
+// Clothed TE for the earnings set currently being viewed (localLoadout may hold
+// unsaved edits), regardless of whether it's the equipped set.
+const earningsClothedTe = computed<number | null>(() => {
+  if (selectedTab.value !== 'earnings') return null;
+  const context = getSimulationContext();
+  return calculateClothedTEForSet(localLoadout.value, {
+    truthEggs: actionsStore.effectiveSnapshot.te,
+    colleggtibleModifiers: context.colleggtibleModifiers,
+    labUpgradeLevel: context.epicResearchLevels['cheaper_research'] ?? 0,
+    permitLevel: initialStateStore.rawBackup?.game?.permitLevel ?? null,
+  });
+});
 
 const isOptimalELR = computed(() => {
   if (!initialStateStore.rawBackup) return false;
@@ -295,7 +313,7 @@ function checkHabCapacityViolation(
   const habCapacityOutput = calculateHabCapacity_Full({
     habIds: snapshot.habIds,
     researchLevels: snapshot.researchLevels,
-    peggMultiplier: context.colleggtibleModifiers.habCap,
+    habCapMultiplier: context.colleggtibleModifiers.habCap,
     artifactMultiplier: artifactMods.habCapacity.totalMultiplier,
     artifactEffects: artifactMods.habCapacity.effects,
   });
@@ -312,6 +330,14 @@ function checkHabCapacityViolation(
     return true; // Violation found
   }
   return false;
+}
+
+// If equipping/updating a set increased hab capacity (e.g. a new or upgraded
+// gusset), queue a "Wait for Full Habs" action right after it.
+function insertWaitForFullHabsIfCapacityIncreased(beforeSnapshot: CalculationsSnapshot) {
+  if (actionsStore.effectiveSnapshot.habCapacity > beforeSnapshot.habCapacity) {
+    actionsStore.pushWaitForFullHabsAction();
+  }
 }
 
 function saveChanges() {
@@ -354,6 +380,7 @@ function saveChanges() {
     },
     beforeSnapshot
   );
+  insertWaitForFullHabsIfCapacityIncreased(beforeSnapshot);
 }
 
 function equipSet() {
@@ -388,5 +415,6 @@ function equipSet() {
     },
     beforeSnapshot
   );
+  insertWaitForFullHabsIfCapacityIncreased(beforeSnapshot);
 }
 </script>

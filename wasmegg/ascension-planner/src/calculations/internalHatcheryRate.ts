@@ -85,7 +85,7 @@ export function calculateResearchContribution(research: IHRResearch, level: numb
  * Assumes 4 habs for total rate.
  */
 export function calculateIHR(input: IHRInput): IHROutput {
-  const { te, researchLevels, epicResearchLevels, easterEggMultiplier, artifactMultiplier, artifactEffects } = input;
+  const { te, researchLevels, epicResearchLevels, ihrMultiplier, artifactMultiplier, artifactEffects } = input;
 
   // Calculate base rate from additive researches (per hab)
   let baseRatePerHab = 0;
@@ -106,7 +106,7 @@ export function calculateIHR(input: IHRInput): IHROutput {
 
   // Calculate final rates (multiply by 4 for 4 habs)
   const numHabs = 4;
-  let onlineRate = baseRatePerHab * teMultiplier * epicMultiplier * easterEggMultiplier * artifactMultiplier * numHabs;
+  let onlineRate = baseRatePerHab * teMultiplier * epicMultiplier * ihrMultiplier * artifactMultiplier * numHabs;
   let offlineRate = onlineRate * offlineMultiplier;
 
   // Apply floor of 500/min (manual chicken creation)
@@ -151,7 +151,7 @@ export function calculateIHR(input: IHRInput): IHROutput {
     baseRatePerHab,
     teMultiplier,
     epicMultiplier,
-    easterEggMultiplier,
+    ihrMultiplier,
     artifactMultiplier,
     offlineMultiplier,
     onlineRate,

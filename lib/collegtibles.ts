@@ -137,31 +137,16 @@ export function getColleggtibleMultiplier(id: string, tierIndex: number): number
 }
 
 export function modifiersFromColleggtibleTiers(tiers: ColleggtibleTiers): Modifiers {
-  const modifiers = new Map<ValidModifier, number>(
-    modifierNames.map(modifier => [modifier.name, 1])
-  );
-  const getModifier = (modifier: ValidModifier) => modifiers.get(modifier) ?? 1;
+  const result: Modifiers = { ...defaultModifiers };
 
   for (const def of colleggtibleDefs) {
     const tierIndex = tiers[def.id] ?? -1;
     if (tierIndex >= 0 && tierIndex <= 3) {
-      const value = def.tierValues[tierIndex];
-      const key = def.dimension as ValidModifier;
-      modifiers.set(key, (modifiers.get(key) ?? 1) * value);
+      result[def.dimension] *= def.tierValues[tierIndex];
     }
   }
 
-  return {
-    earnings: getModifier('EARNINGS'),
-    awayEarnings: getModifier('AWAY_EARNINGS'),
-    ihr: getModifier('INTERNAL_HATCHERY_RATE'),
-    elr: getModifier('EGG_LAYING_RATE'),
-    shippingCap: getModifier('SHIPPING_CAPACITY'),
-    habCap: getModifier('HAB_CAPACITY'),
-    vehicleCost: getModifier('VEHICLE_COST'),
-    habCost: getModifier('HAB_COST'),
-    researchCost: getModifier('RESEARCH_COST'),
-  };
+  return result;
 }
 
 export function formatColleggtibleBonus(multiplier: number, id?: string): string {

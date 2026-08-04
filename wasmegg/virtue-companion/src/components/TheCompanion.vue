@@ -1,19 +1,5 @@
 <template>
   <main>
-    <div
-      v-if="unresolvedContractCount > 0"
-      class="rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm px-4 py-2 mb-3"
-    >
-      <strong>Contract data is incomplete.</strong>
-      Due to a recent Egg, Inc. update, some contract info could not be loaded. Colleggtible bonuses may be inaccurate.
-      You can manually set your colleggtible tiers below.
-      <colleggtible-config
-        :model-value="colleggtibleTiers"
-        :has-unresolved-contracts="unresolvedContractCount > 0"
-        @update:model-value="onColleggtibleTiersChange"
-      />
-    </div>
-
     <p>{{ nickname }}</p>
     <p class="text-sm">
       Last synced to server:
@@ -180,7 +166,7 @@
       <hr />
 
       <collapsible-section
-        section-title="Currently Equipped Artifacts"
+        :section-title="`Currently Equipped Artifacts (Clothed TE: ${formatWithThousandSeparators(Math.round(clothedTE))})`"
         :visible="isVisibleSection('artifacts')"
         class="my-2 text-sm"
         @toggle="toggleSectionVisibility('artifacts')"
@@ -205,7 +191,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeUnmount, ref, watch, provide } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, ref, shallowRef, watch, provide } from 'vue';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -214,6 +200,7 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 
 import {
+  ei,
   iconURL,
   ArtifactSet,
   UserBackupEmptyError,
@@ -224,15 +211,9 @@ import {
   nextShiftCost,
   getNumTruthEggs,
   Inventory,
-  contenderToArtifactSet,
-  ArtifactAssemblyStatus,
   Farm,
-  countUnresolvedContracts,
-  getDefaultColleggtibleTiers,
-  getColleggtibleTiers,
-  modifiersFromColleggtibleTiers,
-  setActiveManualTiers,
-  type ColleggtibleTiers,
+  defaultModifiers,
+  type Modifiers,
 } from 'lib';
 import {
   allModifiersFromColleggtibles,
@@ -246,7 +227,7 @@ import {
   farmInternalHatcheryResearches,
   homeFarmArtifacts,
   requestFirstContact,
-  resolveContractsInBackup,
+  resolveColleggtibleContracts,
   farmEggLayingRate,
   pendingTruthEggs,
 } from '@/lib';
@@ -264,7 +245,6 @@ import VehiclesSection from '@/components/VehiclesSection.vue';
 import SilosSection from '@/components/SilosSection.vue';
 import InternalHatcheryInfo from '@/components/InternalHatcheryInfo.vue';
 import EarningsSection from '@/components/EarningsSection.vue';
-import ColleggtibleConfig from 'ui/components/ColleggtibleConfig.vue';
 
 // Note that timezone abbreviation may not work due to
 // https://github.com/iamkun/dayjs/issues/1154, in which case the GMT offset is
@@ -288,7 +268,6 @@ export default defineComponent({
     SilosSection,
     InternalHatcheryInfo,
     EarningsSection,
-    ColleggtibleConfig,
   },
   props: {
     playerId: {
@@ -296,17 +275,27 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['requestRefresh'],
   // This async component does not respond to playerId changes.
 
-  async setup({ playerId }, { emit }) {
+  async setup({ playerId }) {
     // Validate and sanitize player ID.
     if (!playerId.match(/^EI\d+$/i)) {
       throw new Error(`ID ${playerId} is not in the form EI1234567890123456; please consult "Where do I find my ID?"`);
     }
     playerId = playerId.toUpperCase();
 
+    // Create reactive state before await so provide/inject works across async boundary.
+    // Vue's provide() silently fails after await because getCurrentInstance() returns null.
+    const backupRef = shallowRef<ei.IBackup>();
+    const modifiers = computed<Modifiers>(() => {
+      if (!backupRef.value) return { ...defaultModifiers };
+      return allModifiersFromColleggtibles(backupRef.value);
+    });
+    provide('colleggtibleModifiers', modifiers);
+
     // Interval id used for refreshing lastRefreshedRelative.
+    // Must be declared before the await below so onBeforeUnmount is registered synchronously.
+    // eslint-disable-next-line prefer-const
     let refreshIntervalId: number | undefined;
     onBeforeUnmount(() => {
       clearInterval(refreshIntervalId);
@@ -317,7 +306,8 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId);
+    resolveColleggtibleContracts(backup);
+    backupRef.value = backup;
     const nickname = backup.userName;
     const progress = backup.game;
     if (!progress) {
@@ -326,54 +316,7 @@ export default defineComponent({
     if (!backup.farms || backup.farms.length === 0) {
       throw new Error(`${playerId}: no farm info in backup`);
     }
-    const unresolvedContractCount = countUnresolvedContracts(backup);
 
-    const COLLEGGTIBLE_TIERS_KEY = `colleggtibleTiers_${playerId}`;
-    const savedTiersRaw = getLocalStorage(COLLEGGTIBLE_TIERS_KEY);
-    const autoTiers = getColleggtibleTiers(backup);
-    const hasManualTiers = ref(savedTiersRaw !== null && savedTiersRaw !== undefined);
-    let initialTiers: ColleggtibleTiers;
-    if (savedTiersRaw) {
-      try {
-        const parsed = JSON.parse(savedTiersRaw);
-        if (typeof parsed === 'object' && parsed !== null) {
-          initialTiers = { ...getDefaultColleggtibleTiers(), ...parsed };
-        } else {
-          initialTiers = autoTiers;
-          hasManualTiers.value = false;
-        }
-      } catch {
-        initialTiers = autoTiers;
-        hasManualTiers.value = false;
-      }
-    } else {
-      initialTiers = autoTiers;
-    }
-    const colleggtibleTiers = ref(initialTiers);
-    if (hasManualTiers.value) {
-      setActiveManualTiers(initialTiers);
-    }
-
-    const modifiers = computed(() => {
-      if (hasManualTiers.value) {
-        return modifiersFromColleggtibleTiers(colleggtibleTiers.value);
-      }
-      return allModifiersFromColleggtibles(backup);
-    });
-    provide('colleggtibleModifiers', modifiers);
-
-    const onColleggtibleTiersChange = (newTiers: ColleggtibleTiers) => {
-      colleggtibleTiers.value = newTiers;
-      setLocalStorage(COLLEGGTIBLE_TIERS_KEY, JSON.stringify(newTiers));
-      hasManualTiers.value = true;
-      setActiveManualTiers(newTiers);
-    };
-    const onResetTiers = () => {
-      localStorage.removeItem(COLLEGGTIBLE_TIERS_KEY);
-      hasManualTiers.value = false;
-      setActiveManualTiers(null);
-      colleggtibleTiers.value = autoTiers;
-    };
     const farm = backup.farms[0]; // Home farm
     const homeFarm = new Farm(backup, backup.farms[0]);
     const egg = farm.eggType!;
@@ -396,13 +339,12 @@ export default defineComponent({
     // Create inventory and convert contender to artifact set with assembly statuses
     const inventory = new Inventory(backup.artifactsDb!, { virtue: true });
     // Calculate max clothed TE and optimal artifacts
-    const { clothedTE: maxClothedTE, recommendedArtifacts: maxClothedTEArtifacts } = calculateMaxClothedTE(
-      backup,
-      inventory,
-      equippedArtiSet
+    const maxClothedTEResult = computed(() =>
+      calculateMaxClothedTE(backup, inventory, equippedArtiSet, modifiers.value)
     );
-
-    const { artifactSet: cteArtiSet, assemblyStatuses: cteAssemblyStatuses } = maxClothedTEArtifacts;
+    const maxClothedTE = computed(() => maxClothedTEResult.value.clothedTE);
+    const cteArtiSet = computed(() => maxClothedTEResult.value.recommendedArtifacts.artifactSet);
+    const cteAssemblyStatuses = computed(() => maxClothedTEResult.value.recommendedArtifacts.assemblyStatuses);
 
     refreshIntervalId = window.setInterval(() => {
       currentTimestamp.value = Date.now();
@@ -443,7 +385,7 @@ export default defineComponent({
       Math.min((currentPopulation.value / lastRefreshedPopulation) * effectiveELR.value, totalVehicleSpace.value)
     );
 
-    const clothedTE = computed(() => calculateClothedTE(backup, artifacts));
+    const clothedTE = computed(() => calculateClothedTE(backup, artifacts, modifiers.value));
 
     const internalHatcheryResearches = farmInternalHatcheryResearches(farm, progress);
     const ihrRates = computed(() =>
@@ -561,11 +503,6 @@ export default defineComponent({
     return {
       // Basic farm info
       nickname,
-      unresolvedContractCount,
-      colleggtibleTiers,
-      hasManualTiers,
-      onColleggtibleTiersChange,
-      onResetTiers,
       lastRefreshed,
       lastRefreshedRelative,
       egg,

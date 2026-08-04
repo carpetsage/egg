@@ -60,7 +60,7 @@
 
     <!-- Tab content -->
     <div class="min-h-[200px]">
-      <InitialStateContainer v-if="activeTab === 'initial'" />
+      <InitialStateContainer v-if="activeTab === 'initial'" ref="initialStateContainerRef" />
       <VehicleActions v-if="activeTab === 'vehicles'" />
       <HabActions v-if="activeTab === 'habs'" />
       <ResearchActions v-if="activeTab === 'research'" @refresh-backup="$emit('refresh-backup')" />
@@ -68,7 +68,7 @@
       <ArtifactActions v-if="activeTab === 'artifacts'" />
       <SiloActions v-if="activeTab === 'silos'" />
       <FuelTankActions v-if="activeTab === 'fuel'" />
-      <WaitActions v-if="activeTab === 'wait'" @show-current-details="$emit('show-current-details')" />
+      <WaitActions v-if="activeTab === 'wait'" />
       <RocketActions v-if="activeTab === 'rockets'" />
     </div>
   </div>
@@ -93,6 +93,7 @@ import { VIRTUE_EGG_NAMES, type VirtueEgg } from '@/types';
 const actionsStore = useActionsStore();
 
 const tabsContainer = ref<HTMLElement | null>(null);
+const initialStateContainerRef = ref<InstanceType<typeof InitialStateContainer> | null>(null);
 const canScrollLeft = ref(false);
 const canScrollRight = ref(false);
 
@@ -113,7 +114,6 @@ onUnmounted(() => {
 });
 
 defineEmits<{
-  'show-current-details': [];
   'refresh-backup': [];
 }>();
 
@@ -132,7 +132,7 @@ const isEditingStartGroup = computed(() => {
 });
 
 // The effective egg to use (from effective snapshot when editing, otherwise current)
-const effectiveEgg = computed(() => actionsStore.effectiveSnapshot.currentEgg);
+const effectiveEgg = computed(() => actionsStore.effectiveSnapshot?.currentEgg ?? 'curiosity');
 
 // All available tabs
 const allTabs = [
@@ -211,6 +211,13 @@ const activeTab = ref<TabId>(
       : eggToTab[effectiveEgg.value]
     : 'initial'
 );
+
+// Auto-apply any staged Ascension Start changes before navigating away from the Initial State tab
+watch(activeTab, (newTab, oldTab) => {
+  if (oldTab === 'initial' && newTab !== oldTab) {
+    initialStateContainerRef.value?.applyPendingAscensionChanges();
+  }
+});
 
 // When effective egg changes (including when editing state changes), switch to that egg's tab
 watch(effectiveEgg, newEgg => {

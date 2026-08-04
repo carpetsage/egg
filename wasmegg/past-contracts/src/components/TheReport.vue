@@ -292,7 +292,7 @@ import {
   parseSeasonId,
   requestContractsArchive,
   requestFirstContact,
-  resolveContractsInBackup,
+  resolveContractPlayerInfo,
   resolveLocalContracts,
   setLocalStorage,
   UserBackupEmptyError,
@@ -330,8 +330,15 @@ export default defineComponent({
       throw new UserBackupEmptyError(playerId);
     }
     const backup = data.backup;
-    await resolveContractsInBackup(backup, playerId);
-    await resolveLocalContracts(contractsArchive.archive || [], playerId);
+    await resolveContractPlayerInfo(backup, playerId);
+    await resolveLocalContracts(
+      [
+        ...(backup.contracts?.contracts || []),
+        ...(backup.contracts?.archive || []),
+        ...(contractsArchive.archive || []),
+      ],
+      playerId
+    );
 
     const username = backup.userName || '';
     const { contracts, unresolvedCount } = getUserContractList(backup, contractsArchive);

@@ -11,11 +11,11 @@ import { ei, Mission } from 'lib';
 import { epicResearchDefs } from '@/lib/epicResearch';
 import {
   type ColleggtibleTiers,
-  type ColleggtibleModifiers,
+  type Modifiers as ColleggtibleModifiers,
   getDefaultColleggtibleTiers,
-  getColleggtibleTiersFromBackup,
-  calculateColleggtibleModifiers,
-} from '@/lib/colleggtibles';
+  getColleggtibleTiers,
+  modifiersFromColleggtibleTiers as calculateColleggtibleModifiers,
+} from 'lib/collegtibles';
 import {
   type EquippedArtifact,
   type ArtifactModifiers,
@@ -222,7 +222,7 @@ export const useInitialStateStore = defineStore('initialState', {
       }
 
       // Load colleggtible tiers from contracts
-      this.colleggtibleTiers = getColleggtibleTiersFromBackup(backup.contracts ?? null);
+      this.colleggtibleTiers = getColleggtibleTiers(backup);
 
       // Load artifact loadout from backup
       const backupLoadout = getArtifactLoadoutFromBackup(backup);
@@ -475,7 +475,14 @@ export const useInitialStateStore = defineStore('initialState', {
         this.epicResearchLevels = { ...data.epicResearchLevels };
       }
       if (data.colleggtibleTiers) {
-        this.colleggtibleTiers = { ...data.colleggtibleTiers };
+        // Merge onto current defaults rather than replacing outright, so
+        // colleggtibles released after this plan was saved (and therefore
+        // absent from the saved data) still get an entry instead of being
+        // silently dropped and unsettable in the UI.
+        this.colleggtibleTiers = {
+          ...getDefaultColleggtibleTiers(),
+          ...data.colleggtibleTiers,
+        };
       }
       if (data.artifactLoadout) {
         this.artifactLoadout = [...data.artifactLoadout];
@@ -557,6 +564,7 @@ export const useInitialStateStore = defineStore('initialState', {
     setInitialTePending(egg: VirtueEgg, count: number) {
       this.initialTePending[egg] = Math.max(0, count);
     },
+
 
     /**
      * Clear all initial state data

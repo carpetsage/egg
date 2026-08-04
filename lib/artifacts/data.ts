@@ -147,6 +147,13 @@ export function validateCraftingLevel(level: number) {
   }
 }
 
+export function getCraftingInfoFromLevel(level: number ): PlayerCraftingLevel {
+  const clampedLevel = validateCraftingLevel(level);
+
+  const { rarityMult } = afxCraftingLevelInfos[clampedLevel - 1];
+  return { level:clampedLevel, rarityMult};
+}
+
 export function getXPFromCraftingLevel(level: number) {
   if (level > afxCraftingLevelInfos.length) {
     return 0;
@@ -173,7 +180,7 @@ export function getCraftingLevelFromXp(craftingXp: number): PlayerCraftingLevel 
 
     const levelTargetXp = levelBaseXp + xpRequired;
 
-    if (craftingXp <= levelTargetXp || level == numLevels) {
+    if (craftingXp < levelTargetXp || level == numLevels) {
       return { level, rarityMult };
     }
 

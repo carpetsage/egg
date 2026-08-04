@@ -36,6 +36,13 @@
               <span class="Prophecy">{{ builds.config.prophecyBonus }} / 5</span>
             </span>
           </div>
+          <div v-if="builds.config.labUpgrade < 10" class="flex whitespace-nowrap">
+            <img :src="iconURL('egginc/r_icon_lab_upgrade.png', 64)" class="inline h-6 w-6 -mt-0.5" />
+            <span class="text-sm">
+              Lab upgrade
+              <span class="Soul">{{ builds.config.labUpgrade }} / 10</span>
+            </span>
+          </div>
         </template>
       </div>
     </div>

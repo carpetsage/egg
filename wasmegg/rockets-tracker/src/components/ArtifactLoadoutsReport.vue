@@ -63,7 +63,9 @@ export default defineComponent({
     const { backup } = toRefs(props);
     const activeContracts = computed(() => backup.value.contracts?.contracts || []);
     const farms = computed(() => {
-      const activeContractIds = activeContracts.value.map(c => c.contract!.identifier!);
+      const activeContractIds = activeContracts.value
+        .map(c => c.contractIdentifier || c.contract?.identifier)
+        .filter((id): id is string => !!id);
       return (backup.value.farms || [])
         .filter(
           farm =>
@@ -78,8 +80,9 @@ export default defineComponent({
         return 'Home farm';
       }
       for (const activeContract of activeContracts.value) {
-        if (activeContract.contract?.identifier === contractId) {
-          return activeContract.contract.name!;
+        const id = activeContract.contractIdentifier || activeContract.contract?.identifier;
+        if (id === contractId) {
+          return activeContract.contract?.name ?? contractId;
         }
       }
       return contractId;
