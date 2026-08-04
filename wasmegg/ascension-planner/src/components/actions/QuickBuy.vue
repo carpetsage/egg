@@ -38,6 +38,7 @@
       </button>
 
       <ResearchPurchasePreview :items="previewItems" empty-text="Nothing to buy right now" />
+      <RatePreviewDelta label="Earnings" :before="earningsSummary.before" :after="earningsSummary.after" unit="/hr" />
     </div>
   </SmartBuyCard>
 </template>
@@ -47,10 +48,12 @@ import { ref, computed, watch } from 'vue';
 import { formatDuration, parseDuration } from '@/lib/format';
 import SmartBuyCard from './SmartBuyCard.vue';
 import ResearchPurchasePreview from './ResearchPurchasePreview.vue';
+import RatePreviewDelta from './RatePreviewDelta.vue';
 import type { ResearchSummaryItem } from '@/calculations/smartBuyPreview';
 
 defineProps<{
   previewItems: ResearchSummaryItem[];
+  earningsSummary: { before: number; after: number };
 }>();
 
 const emit = defineEmits<{

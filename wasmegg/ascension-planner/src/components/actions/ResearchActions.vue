@@ -35,6 +35,7 @@
       :can-buy-until-roi-deadline="canBuyUntilROIDeadline"
       :can-buy-until-sale-deadline="canBuyUntilSaleDeadline"
       :quick-buy-preview="quickBuyPreview"
+      :quick-buy-earnings-summary="quickBuyEarningsSummary"
       :sale-aware-preview="saleAwarePreview"
       :sale-aware-excluded-at100-preview="saleAwareExcludedAt100Preview"
       :sale-ends-preview="saleEndsPreview"
@@ -358,6 +359,10 @@ const quickBuyPlan = computed(() =>
 const quickBuyPreview = computed(() =>
   summarizeResearchLevelChanges(commonResearchStore.researchLevels, quickBuyPlan.value.endLevels)
 );
+const quickBuyEarningsSummary = computed(() => ({
+  before: actionsStore.effectiveSnapshot.offlineEarnings * 3600,
+  after: quickBuyPlan.value.endSnapshot.offlineEarnings * 3600,
+}));
 
 function getNextLevelPrice(research: CommonResearch): number {
   const currentLevel = commonResearchStore.researchLevels[research.id] || 0;
