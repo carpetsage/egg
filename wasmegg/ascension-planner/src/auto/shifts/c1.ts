@@ -1,14 +1,14 @@
 import type { Action } from '@/types/actions/meta';
 import type { EngineState, SimulationContext, ShiftResult } from '../types';
-import { isTierUnlocked, type ResearchCostModifiers, getResearchById } from '../../calculations/commonResearch';
+import { isTierUnlocked, getTiers, getResearchById } from '../../calculations/commonResearch';
 import { rankResearchByROI, buyWhilePassingCheck } from '../../calculations/researchRanking';
-import { getSaleAwareTimeToSave } from '../../calculations/researchROI';
-import { advanceTimeWithBoundaries } from './helpers/advanceTime';
-import { runResearchMilestoneIfWorthwhile, runTierUnlockMilestone, runSmartBuyForSeconds } from './helpers/milestones';
-import { calculateArtifactModifiers } from '../../lib/artifacts';
+import {
+  runResearchMilestoneIfWorthwhile,
+  runTierUnlockMilestone,
+  runSmartBuyForSeconds,
+  createMilestoneShiftHelpers,
+} from './helpers/milestones';
 import { computeSnapshot } from '../../engine/compute';
-import { applyAction } from '../../engine/apply';
-import { createSimAction } from '@/types/actions/meta';
 import { isResearchSaleActive, getNextSaleEnd } from '@/lib/events';
 
 const FLEET_RESEARCH_IDS = [
@@ -22,13 +22,21 @@ const GRAVITON_COUPLING_ID = 'micro_coupling';
 
 /**
  * C1 Shift Strategy:
- * 1. Smart-buy everything affordable within 3 seconds.
- * 2. Work through fleet_size research in order: unlock its tier via the milestone chain if
- *    needed, buy it to max, smart-buy sweep, repeat — until all fleet research is maxed or the
- *    time budget runs out.
- * 3. If every fleet research got maxed, unlock tier 12 and buy graviton_coupling to max (or as
- *    far as the remaining time budget allows).
- * 4. Spend whatever time remains buying research in ROI order.
+ * 1. Climb tier-by-tier up to the highest tier any fleet_size research needs (currently Tier 10,
+ *    for autonomous_vehicles), running a 3-second smart-buy sweep before each tier-unlock attempt.
+ *    This is what catches a big/expensive earnings research a tier unlock exposes as soon as it's
+ *    available, rather than leaving it stranded until step 5's closing ROI sweep — which might
+ *    never run at all if the time budget is spent by then. `unlockTierIfNeeded` no-ops for tiers
+ *    already unlocked, so this is safe to run unconditionally even mid-ascension.
+ * 2. One more smart-buy sweep once every fleet_size tier is unlocked.
+ * 3. Buy each of FLEET_RESEARCH_IDS to max, strictly in order — no sweep interleaved here, since
+ *    step 1 already swept every tier crossing below this point and nothing new unlocks mid-loop.
+ * 4. If every fleet_size research got maxed, try to unlock Tier 12 and buy Graviton Coupling
+ *    (micro_coupling — also fleet_size, just gated behind the most expensive tier). A single level
+ *    counts as success; if the attempt buys zero levels, it's rolled back in full (state/time/
+ *    actions all restored to their pre-attempt checkpoint) so the time it would've burned goes to
+ *    step 5 instead.
+ * 5. Spend whatever time remains buying research in ROI order.
  */
 export function runC1(
   startState: EngineState,
@@ -40,71 +48,7 @@ export function runC1(
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 
-  const baseAbsTime = context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0);
-  const getAbsTime = () => baseAbsTime + elapsedSeconds;
   const remainingBudget = () => timeLimit - elapsedSeconds;
-
-  const getModifiers = (): ResearchCostModifiers => {
-    const artifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
-    return {
-      labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
-      researchCostMultiplier: context.colleggtibleModifiers.researchCost || 1,
-      puzzleCubeMultiplier: artifactMods.researchCost.totalMultiplier,
-    };
-  };
-
-  const advanceTime = (totalSeconds: number) => {
-    const result = advanceTimeWithBoundaries(currentState, actions, elapsedSeconds, context, baseAbsTime, totalSeconds);
-    currentState = result.currentState;
-    elapsedSeconds = result.elapsedSeconds;
-  };
-
-  const buyResearch = (researchId: string): boolean => {
-    const research = getResearchById(researchId);
-    if (!research) return false;
-    const currentLevel = currentState.researchLevels[researchId] || 0;
-    if (currentLevel >= research.levels) return false;
-    if (!isTierUnlocked(currentState.researchLevels, research.tier)) return false;
-
-    const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
-    const absTime = getAbsTime();
-    const purchase = getSaleAwareTimeToSave(
-      research,
-      currentLevel,
-      getModifiers(),
-      isResearchSaleActive(absTime),
-      absTime,
-      snapshot,
-      []
-    );
-
-    if (snapshot.offlineEarnings <= 0) return false;
-
-    const timeToSave = purchase.waitSeconds;
-    if (elapsedSeconds + timeToSave > timeLimit) return false;
-
-    advanceTime(timeToSave);
-
-    const action = createSimAction(
-      'buy_research',
-      {
-        researchId,
-        fromLevel: currentLevel,
-        toLevel: currentLevel + 1,
-      },
-      purchase.price
-    );
-
-    currentState = applyAction(currentState, action);
-
-    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
-    action.endState = finalSnap;
-    action.totalTimeSeconds = 0;
-    action.bankDelta = -purchase.price;
-
-    actions.push(action);
-    return true;
-  };
 
   // --- Helper: merge a milestone-helper's ShiftResult into this shift's running state ---
   const mergeMilestone = (result: ShiftResult) => {
@@ -130,51 +74,80 @@ export function runC1(
     mergeMilestone(runSmartBuyForSeconds(currentState, context, 3, remainingBudget()));
   };
 
-  // 1. Smart-buy everything affordable within 3 seconds — at typical research levels this alone
-  // unlocks most or all of the tiers the rest of this shift cares about.
+  // 1-2. Climb tier-by-tier (with a quick-buy sweep before each unlock attempt) up to the highest
+  // tier any fleet_size research needs, then one final sweep once it's reached.
+  const fleetTier = FLEET_RESEARCH_IDS.reduce((maxTier, id) => {
+    const research = getResearchById(id);
+    return research ? Math.max(maxTier, research.tier) : maxTier;
+  }, 1);
+
+  for (const tier of getTiers().filter(t => t > 1 && t <= fleetTier)) {
+    if (remainingBudget() <= 0) break;
+    smartBuySweep();
+    if (remainingBudget() <= 0) break;
+    unlockTierIfNeeded(tier);
+  }
   smartBuySweep();
 
-  // 2. Work through fleet_size research in order.
+  // 3. Buy each fleet_size research to max, strictly in FLEET_RESEARCH_IDS order.
   for (const id of FLEET_RESEARCH_IDS) {
     if (remainingBudget() <= 0) break;
-
-    const research = getResearchById(id);
-    if (!research) continue;
-
-    unlockTierIfNeeded(research.tier);
     buyResearchToMax(id);
-    smartBuySweep();
   }
 
-  // 3. Graviton coupling, only once every fleet research is maxed.
+  // 4. Graviton coupling, only once every fleet research is maxed.
   const allFleetMaxed = FLEET_RESEARCH_IDS.every(id => {
     const research = getResearchById(id);
     return !research || (currentState.researchLevels[id] || 0) >= research.levels;
   });
 
   if (allFleetMaxed) {
-    // Targeting tier 12 directly (rather than 11 then 12) is enough — tier 12's unlock threshold
-    // is purely a cumulative purchase count across tiers below it, so the milestone chain already
-    // picks up tier-11 research along the way if it's the fastest path there.
-    unlockTierIfNeeded(12);
-    if (isTierUnlocked(currentState.researchLevels, 12)) {
-      buyResearchToMax(GRAVITON_COUPLING_ID);
+    const gravitonResearch = getResearchById(GRAVITON_COUPLING_ID);
+    if (gravitonResearch) {
+      // Checkpoint so a failed attempt (zero levels bought) can be discarded in full, leaving the
+      // time it would've burned for step 5 instead.
+      const checkpointState = currentState;
+      const checkpointElapsedSeconds = elapsedSeconds;
+      const checkpointActionsLength = actions.length;
+      const gravitonLevelBefore = currentState.researchLevels[GRAVITON_COUPLING_ID] || 0;
+
+      unlockTierIfNeeded(gravitonResearch.tier);
+      if (isTierUnlocked(currentState.researchLevels, gravitonResearch.tier)) {
+        buyResearchToMax(GRAVITON_COUPLING_ID);
+      }
+
+      const gravitonLevelAfter = currentState.researchLevels[GRAVITON_COUPLING_ID] || 0;
+      if (gravitonLevelAfter <= gravitonLevelBefore) {
+        currentState = checkpointState;
+        elapsedSeconds = checkpointElapsedSeconds;
+        actions.length = checkpointActionsLength;
+      }
     }
   }
 
-  // 4. Spend whatever time remains buying research in ROI order, re-ranking after each purchase
+  // 5. Spend whatever time remains buying research in ROI order, re-ranking after each purchase
   // since buying one thing changes the ROI math for everything else. Stops the moment a purchase
-  // fails — whether from running out of time budget or nothing being worth buying.
+  // fails — whether from running out of time budget or nothing being worth buying. No shared
+  // helper matches this exactly — closest is `runBuyUntilSaleWarning`, which additionally filters
+  // out anything that would trigger a sale warning; this sweep deliberately buys in plain ROI order
+  // with no such filter. Only the ranking/check callback below is C1-specific — the purchase
+  // mechanics themselves come from `createMilestoneShiftHelpers`, the same factory
+  // `runResearchMilestoneIfWorthwhile`/`runTierUnlockMilestone`/`runSmartBuyForSeconds` build on
+  // above, rather than a local reimplementation.
+  const roiSweepBudget = remainingBudget();
+  const roiHelpers = createMilestoneShiftHelpers(currentState, context);
+
   buyWhilePassingCheck(
     () => {
-      const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
-      const absTime = getAbsTime();
+      const state = roiHelpers.getState();
+      const snapshot = computeSnapshot(state, context, { skipGrowth: true });
+      const absTime = roiHelpers.getAbsTime();
       const isSale = isResearchSaleActive(absTime);
       const ranked = rankResearchByROI(
-        currentState.researchLevels,
+        state.researchLevels,
         snapshot,
         context,
-        getModifiers(),
+        roiHelpers.getModifiers(),
         isSale,
         absTime,
         getNextSaleEnd(absTime),
@@ -184,8 +157,14 @@ export function runC1(
       const next = ranked.find(item => item.canBuy);
       return next ? { researchId: next.research.id } : undefined;
     },
-    researchId => buyResearch(researchId)
+    researchId => roiHelpers.buyResearch(researchId, roiSweepBudget)
   );
+
+  mergeMilestone({
+    actions: roiHelpers.getActions(),
+    elapsedSeconds: roiHelpers.getElapsedSeconds(),
+    endState: roiHelpers.getState(),
+  });
 
   return {
     actions,
