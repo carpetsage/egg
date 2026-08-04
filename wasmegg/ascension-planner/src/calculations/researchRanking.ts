@@ -893,3 +893,152 @@ export function buildRoiCandidateSequences(
 
   return sequences;
 }
+
+/** A purchase produced by `reorderPurchaseListByROI`: a `SequencedPurchase` plus the running total
+ *  and ROI display fields a caller building a purchase chain (e.g. the milestone chain) needs per
+ *  item. */
+export interface RankedPurchase extends SequencedPurchase {
+  buyToHereSeconds: number;
+  roiSeconds?: number;
+  totalRoiSeconds?: number;
+  showSaleWarning?: boolean;
+  showDeadlineWarning?: boolean;
+}
+
+/**
+ * Re-sequences a FIXED set of purchases (same researches, same levels — just picked by whatever
+ * order the caller originally chose them in, e.g. cheapest-first) into ROI order instead. The set
+ * of purchases and their total price don't change, but since each purchase's own price only
+ * depends on its own current level (never on what else has been bought), buying the ROI-positive
+ * ones earlier can only grow earnings sooner and speed up the rest — never slower than the
+ * original order. Per-research level order is preserved (you can't buy level N+1 before level N of
+ * the same research).
+ *
+ * Generic reordering step for any flow that has already committed to a fixed purchase list and
+ * just wants it bought in the fastest achievable order — used by the milestone chain's tier-unlock
+ * path today (re-sequencing its cheapest-first tail) but not tied to tiers in any way; only
+ * `research`/`targetLevel` are read from each input item.
+ *
+ * Doesn't consider bottleneck pairing (`buildRoiCandidateSequences`) — every item here is already
+ * committed to being bought regardless of its own ROI, unlike a detour candidate that's only taken
+ * if it's worthwhile, so there's no "is this worth pairing to justify" decision to make here.
+ */
+export function reorderPurchaseListByROI(
+  fixedItems: { research: CommonResearch; targetLevel: number }[],
+  startState: EngineState,
+  startSnapshot: CalculationsSnapshot,
+  startTotalSeconds: number,
+  context: SimulationContext,
+  mods: ResearchCostModifiers,
+  absoluteSimTimeAtStart: number,
+  researchSaleDeadline: number
+): { items: RankedPurchase[]; totalSeconds: number } {
+  const pendingByResearch = new Map<string, { research: CommonResearch; levels: number[] }>();
+  for (const item of fixedItems) {
+    const entry = pendingByResearch.get(item.research.id);
+    if (entry) {
+      entry.levels.push(item.targetLevel);
+    } else {
+      pendingByResearch.set(item.research.id, { research: item.research, levels: [item.targetLevel] });
+    }
+  }
+
+  let state = startState;
+  let snapshot = startSnapshot;
+  let totalSeconds = startTotalSeconds;
+  const items: RankedPurchase[] = [];
+
+  while (items.length < fixedItems.length) {
+    const currentAbsoluteTime = absoluteSimTimeAtStart + totalSeconds;
+    const isSale = isResearchSaleActive(currentAbsoluteTime);
+    const transitions = boostTransitionsFrom(snapshot, currentAbsoluteTime);
+    const nextSaleStart = getNextPacificTime(5, 9, currentAbsoluteTime);
+
+    const candidates = Array.from(pendingByResearch.values())
+      .filter(entry => entry.levels.length > 0)
+      .map(entry => {
+        const targetLevel = entry.levels[0];
+        const level = targetLevel - 1;
+        const roiResult = calculateResearchROI({
+          research: entry.research,
+          level,
+          mods,
+          snapshot,
+          context,
+          eventTiming: {
+            absoluteSimTime: currentAbsoluteTime,
+            nextSaleStart,
+            researchSaleDeadline,
+            isSaleActive: isSale,
+            transitions,
+          },
+        });
+        return { research: entry.research, level, targetLevel, roiResult };
+      });
+
+    if (candidates.length === 0) break;
+
+    // Sort by totalRoiSeconds (wait-to-afford + payback), not roiSeconds (payback alone) — same
+    // convention `rankResearchByROI`'s final sort already uses. Sorting by payback alone can pick
+    // an expensive item with a slightly faster payback over several cheaper, still-decent-ROI items
+    // that are individually affordable much sooner, forcing one long idle wait instead of buying
+    // things as money allows.
+    candidates.sort((a, b) => {
+      if (a.roiResult.totalRoiSeconds !== b.roiResult.totalRoiSeconds) {
+        return a.roiResult.totalRoiSeconds - b.roiResult.totalRoiSeconds;
+      }
+      return a.roiResult.price - b.roiResult.price;
+    });
+
+    const best = candidates[0];
+    // Re-derive the actual purchase with this file's own boost-staleness-aware `transitions`
+    // (calculateResearchROI's internal wait, used above for ranking, is precise about the sale but
+    // uses a simpler earnings-boost transition — fine for ranking, not for the wait we execute).
+    const bestPurchase = getSaleAwareTimeToSave(
+      best.research,
+      best.level,
+      mods,
+      isSale,
+      currentAbsoluteTime,
+      snapshot,
+      transitions
+    );
+    const secondsToBuy = bestPurchase.waitSeconds;
+    if (secondsToBuy === Infinity) break;
+
+    totalSeconds += secondsToBuy;
+
+    state = applyAction(state, {
+      type: 'buy_research',
+      payload: { researchId: best.research.id, fromLevel: best.level, toLevel: best.targetLevel },
+      cost: bestPurchase.price,
+    });
+    state = applyTime(state, secondsToBuy, snapshot, { transitions });
+    snapshot = computeSnapshot(state, context);
+
+    items.push({
+      research: best.research,
+      targetLevel: best.targetLevel,
+      currentLevel: best.level,
+      price: bestPurchase.price,
+      timeToBuySeconds: secondsToBuy,
+      buyToHereSeconds: totalSeconds,
+      roiSeconds: best.roiResult.roiSeconds,
+      totalRoiSeconds: best.roiResult.totalRoiSeconds,
+      showSaleWarning: best.roiResult.showSaleWarning,
+      showDeadlineWarning: best.roiResult.showDeadlineWarning,
+      duringSale: bestPurchase.duringSale,
+      duringEarningsBoost: isEarningsBoostActive(currentAbsoluteTime + secondsToBuy),
+      eventCrossings: findEventCrossings(
+        currentAbsoluteTime,
+        secondsToBuy,
+        isSale,
+        isEarningsBoostActive(currentAbsoluteTime)
+      ),
+    });
+
+    pendingByResearch.get(best.research.id)!.levels.shift();
+  }
+
+  return { items, totalSeconds };
+}

@@ -78,10 +78,9 @@ type ShiftRunner = (
   arg5?: C3Params
 ) => ShiftResult;
 
+// C1 -> {K1, I1} is not in this list: their order is chosen dynamically by runC1K1I1Segment,
+// which both loops below run as an explicit first step.
 const allShifts: { name: string; run: ShiftRunner }[] = [
-  { name: 'C1', run: runC1 },
-  { name: 'K1', run: runK1 },
-  { name: 'I1', run: runI1 },
   { name: 'C2', run: runC2 },
   { name: 'K2', run: runK2 },
   { name: 'R1', run: runR1 },
@@ -93,6 +92,55 @@ const allShifts: { name: string; run: ShiftRunner }[] = [
   { name: 'R2', run: runR2 },
   { name: 'H2', run: runH2 },
 ];
+
+/**
+ * Runs the C1 -> {K1, I1} opening of an ascension, choosing between shift orders based on how
+ * long I1 takes when run immediately after C1:
+ *  - If I1 (run right after C1) would take under an hour of simulated time, that's the better
+ *    order: C1, I1, K1.
+ *  - Otherwise, fall back to the default order: C1, K1, I1.
+ *
+ * I1 has no time cap (see `runI1`) — it always runs to completion (all 4 hab slots maxed) — so
+ * its duration from a given input state is deterministic. That means the speculative "run I1
+ * right after C1" call below doubles as the real result whenever that order is chosen: no need
+ * to simulate I1 twice. It's only discarded (and I1 re-simulated from the post-K1 state) when
+ * the default order wins instead, since I1's output depends on its input state and K1 changes
+ * that state first.
+ */
+function runC1K1I1Segment(startState: EngineState, context: SimulationContext): ShiftResult {
+  const actions: Action[] = [];
+  let elapsedSeconds = 0;
+  let currentState = startState;
+
+  const pushShiftResult = (result: ShiftResult) => {
+    const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
+    if (result.actions.length > 0 && result.actions[0].type === 'shift') {
+      result.actions[0].payload.eggsLaid = eggsLaid;
+    }
+    actions.push(...result.actions);
+    currentState = result.endState;
+    elapsedSeconds += result.elapsedSeconds;
+  };
+
+  currentState.lastStepTime = elapsedSeconds;
+  pushShiftResult(runC1(currentState, context));
+
+  currentState.lastStepTime = elapsedSeconds;
+  const speculativeI1 = runI1(currentState, context);
+
+  const I1_ORDER_SWAP_THRESHOLD_SECONDS = 3600;
+  if (speculativeI1.elapsedSeconds < I1_ORDER_SWAP_THRESHOLD_SECONDS) {
+    pushShiftResult(speculativeI1);
+    currentState.lastStepTime = elapsedSeconds;
+    pushShiftResult(runK1(currentState, context));
+  } else {
+    pushShiftResult(runK1(currentState, context));
+    currentState.lastStepTime = elapsedSeconds;
+    pushShiftResult(runI1(currentState, context));
+  }
+
+  return { actions, elapsedSeconds, endState: currentState };
+}
 
 /**
  * Runs the simulation until a specific shift name is reached.
@@ -108,6 +156,27 @@ export function runUntilShift(
   let totalElapsedSeconds = 0;
 
   const shiftTimings: { name: string; ms: number }[] = [];
+
+  if (stopBeforeShift === 'C1') {
+    return { state: currentState, actions: currentActions, elapsedSeconds: totalElapsedSeconds };
+  }
+  if (stopBeforeShift === 'K1' || stopBeforeShift === 'I1') {
+    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment — so stopping "before" either one
+    // specifically isn't well-defined. Every current caller passes 'C3', well past this segment.
+    throw new Error(
+      `runUntilShift: cannot stop before '${stopBeforeShift}' — its position in the shift order is chosen dynamically at runtime`
+    );
+  }
+
+  {
+    const t0 = performance.now();
+    const segmentResult = runC1K1I1Segment(currentState, context);
+    shiftTimings.push({ name: 'C1+K1+I1', ms: performance.now() - t0 });
+
+    currentActions.push(...segmentResult.actions);
+    currentState = segmentResult.endState;
+    totalElapsedSeconds += segmentResult.elapsedSeconds;
+  }
 
   for (const shift of allShifts) {
     if (shift.name === stopBeforeShift) break;
@@ -199,6 +268,27 @@ export function runAscension(
 
   let skip = resumeData ? true : false;
   const ascShiftTimings: { name: string; ms: number }[] = [];
+
+  if (!resumeData) {
+    const t0 = performance.now();
+    const segmentResult = runC1K1I1Segment(currentState, context);
+    ascShiftTimings.push({ name: 'C1+K1+I1', ms: performance.now() - t0 });
+
+    currentActions.push(...segmentResult.actions);
+    currentState = segmentResult.endState;
+    totalElapsedSeconds += segmentResult.elapsedSeconds;
+  } else if (
+    resumeData.resumeShiftName === 'C1' ||
+    resumeData.resumeShiftName === 'K1' ||
+    resumeData.resumeShiftName === 'I1'
+  ) {
+    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment — so resuming "at" either one
+    // specifically isn't well-defined. The only current caller (runAscensionFromC3Variant)
+    // always resumes at 'H1', well past this segment.
+    throw new Error(
+      `runAscension: cannot resume at '${resumeData.resumeShiftName}' — its position in the shift order is chosen dynamically at runtime`
+    );
+  }
 
   for (const shift of allShifts) {
     if (skip) {
