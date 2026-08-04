@@ -7,7 +7,6 @@ import {
   type ResearchCostModifiers,
 } from './commonResearch';
 import {
-  calculateResearchROI,
   getSaleAwareTimeToSave,
   findEventCrossings,
   type PurchaseEventCrossings,
@@ -16,6 +15,7 @@ import {
   rankResearchByROI,
   buildRoiCandidateSequences,
   simulatePurchaseSequence,
+  reorderPurchaseListByROI,
   type SequencedPurchase,
 } from './researchRanking';
 import type { EngineState, SimulationContext } from '@/engine/types';
@@ -23,7 +23,7 @@ import type { CalculationsSnapshot } from '@/types';
 import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
-import { getNextPacificTime, isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
+import { isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
 import { debugLog } from '@/lib/debugLog';
 
 // Time-based (not iteration-count-based) progress heartbeat for the milestone-chain loops below.
@@ -365,132 +365,6 @@ export function computeCheapestFirstTierChain(
   );
 }
 
-// Re-sequences a FIXED set of purchases (same researches, same levels — just picked by price) into
-// ROI order instead. The set of purchases and their total price don't change, but since each
-// purchase's own price only depends on its own current level (never on what else has been bought),
-// buying the ROI-positive ones earlier can only grow earnings sooner and speed up the rest — never
-// slower than the original price-only order. Per-research level order is preserved (you can't buy
-// level N+1 before level N of the same research).
-function reorderTierChainByROI(
-  tailItems: MilestoneChainItem[],
-  startState: EngineState,
-  startSnapshot: CalculationsSnapshot,
-  startTotalSeconds: number,
-  context: SimulationContext,
-  mods: ResearchCostModifiers,
-  absoluteSimTimeAtStart: number,
-  researchSaleDeadline: number
-): { items: MilestoneChainItem[]; totalSeconds: number } {
-  const pendingByResearch = new Map<string, { research: CommonResearch; levels: number[] }>();
-  for (const item of tailItems) {
-    const entry = pendingByResearch.get(item.research.id);
-    if (entry) {
-      entry.levels.push(item.targetLevel);
-    } else {
-      pendingByResearch.set(item.research.id, { research: item.research, levels: [item.targetLevel] });
-    }
-  }
-
-  let state = startState;
-  let snapshot = startSnapshot;
-  let totalSeconds = startTotalSeconds;
-  const items: MilestoneChainItem[] = [];
-
-  while (items.length < tailItems.length) {
-    const currentAbsoluteTime = absoluteSimTimeAtStart + totalSeconds;
-    const isSale = isResearchSaleActive(currentAbsoluteTime);
-    const transitions = boostTransitionsFrom(snapshot, currentAbsoluteTime);
-    const nextSaleStart = getNextPacificTime(5, 9, currentAbsoluteTime);
-
-    const candidates = Array.from(pendingByResearch.values())
-      .filter(entry => entry.levels.length > 0)
-      .map(entry => {
-        const targetLevel = entry.levels[0];
-        const level = targetLevel - 1;
-        const roiResult = calculateResearchROI({
-          research: entry.research,
-          level,
-          mods,
-          snapshot,
-          context,
-          eventTiming: {
-            absoluteSimTime: currentAbsoluteTime,
-            nextSaleStart,
-            researchSaleDeadline,
-            isSaleActive: isSale,
-            transitions,
-          },
-        });
-        return { research: entry.research, level, targetLevel, roiResult };
-      });
-
-    if (candidates.length === 0) break;
-
-    // Sort by totalRoiSeconds (wait-to-afford + payback), not roiSeconds (payback alone) — same
-    // convention `researchRanking.ts`'s final sort already uses. Sorting by payback alone can pick
-    // an expensive item with a slightly faster payback over several cheaper, still-decent-ROI items
-    // that are individually affordable much sooner, forcing one long idle wait instead of buying
-    // things as money allows.
-    candidates.sort((a, b) => {
-      if (a.roiResult.totalRoiSeconds !== b.roiResult.totalRoiSeconds) {
-        return a.roiResult.totalRoiSeconds - b.roiResult.totalRoiSeconds;
-      }
-      return a.roiResult.price - b.roiResult.price;
-    });
-
-    const best = candidates[0];
-    // Re-derive the actual purchase with this file's own boost-staleness-aware `transitions`
-    // (calculateResearchROI's internal wait, used above for ranking, is precise about the sale but
-    // uses a simpler earnings-boost transition — fine for ranking, not for the wait we execute).
-    const bestPurchase = getSaleAwareTimeToSave(
-      best.research,
-      best.level,
-      mods,
-      isSale,
-      currentAbsoluteTime,
-      snapshot,
-      transitions
-    );
-    const secondsToBuy = bestPurchase.waitSeconds;
-    if (secondsToBuy === Infinity) break;
-
-    totalSeconds += secondsToBuy;
-
-    state = applyAction(state, {
-      type: 'buy_research',
-      payload: { researchId: best.research.id, fromLevel: best.level, toLevel: best.targetLevel },
-      cost: bestPurchase.price,
-    });
-    state = applyTime(state, secondsToBuy, snapshot, { transitions });
-    snapshot = computeSnapshot(state, context);
-
-    items.push({
-      research: best.research,
-      targetLevel: best.targetLevel,
-      currentLevel: best.level,
-      price: bestPurchase.price,
-      timeToBuySeconds: secondsToBuy,
-      buyToHereSeconds: totalSeconds,
-      roiSeconds: best.roiResult.roiSeconds,
-      totalRoiSeconds: best.roiResult.totalRoiSeconds,
-      showSaleWarning: best.roiResult.showSaleWarning,
-      showDeadlineWarning: best.roiResult.showDeadlineWarning,
-      duringSale: bestPurchase.duringSale,
-      duringEarningsBoost: isEarningsBoostActive(currentAbsoluteTime + secondsToBuy),
-      eventCrossings: findEventCrossings(
-        currentAbsoluteTime,
-        secondsToBuy,
-        isSale,
-        isEarningsBoostActive(currentAbsoluteTime)
-      ),
-    });
-
-    pendingByResearch.get(best.research.id)!.levels.shift();
-  }
-
-  return { items, totalSeconds };
-}
-
 // Tier-unlock milestone: every purchase (in an already-unlocked tier) counts toward the threshold,
 // so there's no "wasted" purchase the way there is for a research-level target. But that doesn't
 // mean ROI-first is always fastest — an expensive, high-ROI purchase only pays off if there's
@@ -503,7 +377,7 @@ function reorderTierChainByROI(
 // finishing via cheapest-first from THAT state. Whichever is faster wins. If (b) wins, commit to
 // that purchase (or pair) and repeat the comparison (another detour may or may not be worth it
 // next); if (a) wins, stop inserting detours and finish with the cheapest-first tail, itself
-// re-sequenced by ROI (`reorderTierChainByROI`). This naturally orders the result as [ROI
+// re-sequenced by ROI (`reorderPurchaseListByROI`). This naturally orders the result as [ROI
 // detours..., cheap purchases re-sequenced by ROI...], since detours are only ever prepended while
 // they keep winning, and once cheapest-first wins the remaining tail is that same cheapest-first
 // set, just bought in ROI order instead of price order.
@@ -638,7 +512,7 @@ export function computeTierMilestoneChain(
 
     // Cheapest-first wins (or no detour is viable) — buy the same set of items, but re-sequenced
     // by ROI so any ROI-positive purchases in the tail happen before the zero-ROI filler.
-    const reordered = reorderTierChainByROI(
+    const reordered = reorderPurchaseListByROI(
       cheapPlan.items,
       state,
       snapshot,
