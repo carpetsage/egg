@@ -91,6 +91,14 @@ export interface SaleAwarePurchase {
  * the *target* price is), so the wait to reach the full price is just `getTimeToSave(fullPrice,
  * snapshot, transitions)` computed from now — the same continuous earnings integral already used
  * everywhere else, unaffected by whether it happens to cross the sale's end partway through.
+ *
+ * And the same "won't finish before the sale ends" problem applies to the *upcoming* sale too:
+ * `saleWaitFromNow` can land well past the sale's own 24-hour window (e.g. an expensive purchase
+ * where saving up to even the discounted price takes several days) — in which case the discount
+ * was never actually reachable, since the price reverts to full partway through the wait. That
+ * route has to be discarded entirely rather than reported as a (too-optimistic) discounted
+ * purchase; a purchase this far out just falls back to full price, same as if no sale were coming
+ * at all.
  */
 export function getSaleAwareTimeToSave(
   research: CommonResearch,
@@ -127,7 +135,14 @@ export function getSaleAwareTimeToSave(
   // whatever's banked by then still counts, so the wait is never more than the longer of the two.
   const trueSaleWait = Math.max(timeUntilSale, saleWaitFromNow);
 
-  if (trueSaleWait < currentWait) {
+  // The discounted price is only actually reachable if the purchase completes before the
+  // upcoming sale's own end — otherwise the price reverts to full partway through the wait (see
+  // this function's doc comment), and `trueSaleWait`/`salePrice` describe a purchase that could
+  // never really happen.
+  const saleEnd = getNextSaleEnd(currentAbsoluteTime);
+  const completesWithinSale = isFinite(saleEnd) && currentAbsoluteTime + trueSaleWait <= saleEnd;
+
+  if (completesWithinSale && trueSaleWait < currentWait) {
     return { price: salePrice, waitSeconds: trueSaleWait, duringSale: true };
   }
   return { price: currentPrice, waitSeconds: currentWait, duringSale: false };

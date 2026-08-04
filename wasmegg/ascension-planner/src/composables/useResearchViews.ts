@@ -362,10 +362,10 @@ export function useResearchViews() {
   });
 
   // Converts the pure-calculation MilestoneChainItem shape (raw seconds, no formatting) into the
-  // view's ResearchViewItem shape. roiSeconds is only ever set on tier-milestone items (the ROI
-  // detour/reorder path); timeSavedSeconds is only ever set on research-milestone detour items —
-  // the two are mutually exclusive, matching how computeTierMilestoneChain/computeResearchMilestoneChain
-  // populate them.
+  // view's ResearchViewItem shape. roiSeconds/totalRoiSeconds are only set on detour items — both
+  // computeTierMilestoneChain's ROI-reorder path and computeResearchMilestoneChain's ROI-ranked
+  // detour path populate them the same way; direct target/cheapest-first purchases leave them
+  // unset.
   function toResearchViewItem(item: MilestoneChainItem): ResearchViewItem {
     const result: ResearchViewItem = {
       research: item.research,
@@ -395,9 +395,6 @@ export function useResearchViews() {
       result.extraStats = roiLabel;
       result.extraLabel = 'ROI';
       result.extraSeconds = item.roiSeconds;
-    } else if (item.timeSavedSeconds !== undefined) {
-      result.extraStats = isFinite(item.timeSavedSeconds) ? formatDuration(item.timeSavedSeconds) : '—';
-      result.extraLabel = 'Saves';
     }
 
     return result;
@@ -547,7 +544,8 @@ export function useResearchViews() {
               startSnapshot,
               context,
               mods,
-              absoluteSimTime
+              absoluteSimTime,
+              deadline
             );
     } finally {
       debugLogEnd('milestoneChain compute', { generation });
