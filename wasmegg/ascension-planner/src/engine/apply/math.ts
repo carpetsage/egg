@@ -37,6 +37,17 @@ export interface EarningsRateTransition {
 const BOOST_TRANSITION_HORIZON_SECONDS = 3 * 365 * 86400;
 
 /**
+ * The earnings boost's fixed multiplier while active — every real `setEarningsBoost`/
+ * `toggle_earnings_boost` call site in this codebase writes exactly `2` when activating and `1`
+ * when deactivating (the `1` is a reset placeholder, not a meaningful "boost strength"; nothing
+ * ever reads `multiplier` while `active` is false except this file's own rate projection below).
+ * Used instead of `prevSnapshot.earningsBoost.multiplier` whenever a rate needs to be projected
+ * for the OPPOSITE of the snapshot's current active state — see `calculateEarningsForTime`'s and
+ * `getTimeToSave`'s `rateFor` for why relying on the snapshot field there is unsafe.
+ */
+const EARNINGS_BOOST_MULTIPLIER = 2;
+
+/**
  * Builds the earnings-rate transitions needed for a `getTimeToSave`/`calculateEarningsForTime`/
  * `applyTime` call starting at `snapshot`, given the TRUE calendar time `absTime` that call
  * represents. `snapshot.earningsBoost.active` may be stale (many callers never toggle it as
@@ -190,9 +201,14 @@ export function calculateEarningsForTime(
   const V1 = prevSnapshot.elr > 0 ? prevSnapshot.offlineEarnings / prevSnapshot.elr : 0;
   if (V1 <= 0) return 0;
 
-  const multiplier = prevSnapshot.earningsBoost.multiplier || 1;
+  // `prevSnapshot.earningsBoost.multiplier` is only trustworthy for the snapshot's OWN current
+  // `active` state — it gets reset to 1 whenever a boost is toggled off (see
+  // `EARNINGS_BOOST_MULTIPLIER`'s doc comment), so it can't be used to project the rate for the
+  // OPPOSITE state (e.g. an upcoming boost while currently inactive). Use the snapshot's real
+  // current rate (`V1`) for the current state, and the fixed constant for the other.
   const currentActive = prevSnapshot.earningsBoost.active;
-  const rateFor = (active: boolean) => (active === currentActive ? V1 : active ? V1 * multiplier : V1 / multiplier);
+  const rateFor = (active: boolean) =>
+    active === currentActive ? V1 : active ? V1 * EARNINGS_BOOST_MULTIPLIER : V1 / EARNINGS_BOOST_MULTIPLIER;
 
   const eggsAt = (t: number) =>
     integrateRate(
@@ -272,9 +288,14 @@ export function getTimeToSave(
   const V1 = prevSnapshot.elr > 0 ? prevSnapshot.offlineEarnings / prevSnapshot.elr : 0;
   if (V1 <= 0) return Infinity;
 
-  const multiplier = prevSnapshot.earningsBoost.multiplier || 1;
+  // `prevSnapshot.earningsBoost.multiplier` is only trustworthy for the snapshot's OWN current
+  // `active` state — it gets reset to 1 whenever a boost is toggled off (see
+  // `EARNINGS_BOOST_MULTIPLIER`'s doc comment), so it can't be used to project the rate for the
+  // OPPOSITE state (e.g. an upcoming boost while currently inactive). Use the snapshot's real
+  // current rate (`V1`) for the current state, and the fixed constant for the other.
   const currentActive = prevSnapshot.earningsBoost.active;
-  const rateFor = (active: boolean) => (active === currentActive ? V1 : active ? V1 * multiplier : V1 / multiplier);
+  const rateFor = (active: boolean) =>
+    active === currentActive ? V1 : active ? V1 * EARNINGS_BOOST_MULTIPLIER : V1 / EARNINGS_BOOST_MULTIPLIER;
 
   const P0 = prevSnapshot.population;
   const I = prevSnapshot.offlineIHR / 60;

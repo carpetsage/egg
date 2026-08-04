@@ -11,16 +11,18 @@ import {
   isActuallyDuringSale,
   meetsROIByDeadline,
   MAX_ROI_PAYBACK_SEARCH_SECONDS,
+  findEventCrossings,
+  type PurchaseEventCrossings,
 } from './researchROI';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength } from './shippingCapacity';
 import { getOptimalELRSet } from '@/lib/artifacts/virtue';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { computeRealisticELR } from './realisticELR';
-import type { SimulationContext } from '@/engine/types';
+import type { SimulationContext, EngineState } from '@/engine/types';
 import type { CalculationsSnapshot } from '@/types';
 import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
-import { applyAction, getTimeToSave, calculateEarningsForTime, boostTransitionsFrom } from '@/engine/apply';
+import { applyAction, applyTime, getTimeToSave, calculateEarningsForTime, boostTransitionsFrom } from '@/engine/apply';
 import { createSimAction } from '@/types/actions/meta';
 import { getNextPacificTime, isEarningsBoostActive, isResearchSaleActive } from '@/lib/events';
 import { ei } from 'lib';
@@ -765,4 +767,129 @@ export function buyUntilRealSaleStarts(
   );
 
   return { purchased, duringSalePurchases };
+}
+
+/** One purchase within a `simulatePurchaseSequence` result — same shape as `MilestoneChainItem`
+ *  minus the fields that only make sense once a caller decides where the sequence lands in a
+ *  larger chain (`buyToHereSeconds`) or how to display its ROI (`roiSeconds`/`totalRoiSeconds`/
+ *  `showSaleWarning`/`showDeadlineWarning` — a paired purchase's own solo figures are misleading;
+ *  see `buildRoiCandidateSequences`'s doc comment). */
+export interface SequencedPurchase {
+  research: CommonResearch;
+  targetLevel: number;
+  currentLevel: number;
+  price: number;
+  timeToBuySeconds: number;
+  duringSale: boolean;
+  duringEarningsBoost: boolean;
+  eventCrossings: PurchaseEventCrossings;
+}
+
+/**
+ * Simulates buying a sequence of research purchases back-to-back, starting from `state`/
+ * `snapshot`/`startAbsoluteTime`, each priced/waited via `getSaleAwareTimeToSave` at the moment
+ * it's actually reached — so a later purchase in the sequence correctly sees the earlier one's
+ * cost already paid, and any resulting change in earnings. Generic building block for any
+ * multi-purchase ROI-buying flow; pair with `buildRoiCandidateSequences` below to get pairing-
+ * aware sequences worth trying in the first place.
+ *
+ * Returns `null` if any purchase in the sequence turns out unaffordable (`waitSeconds ===
+ * Infinity`) rather than a partial result — a sequence that can't fully complete isn't a valid
+ * purchase plan, half-bought or not.
+ */
+export function simulatePurchaseSequence(
+  sequence: { research: CommonResearch; level: number }[],
+  state: EngineState,
+  snapshot: CalculationsSnapshot,
+  startAbsoluteTime: number,
+  mods: ResearchCostModifiers,
+  context: SimulationContext
+): { state: EngineState; snapshot: CalculationsSnapshot; items: SequencedPurchase[]; totalSecondsSpent: number } | null {
+  let curState = state;
+  let curSnapshot = snapshot;
+  let curTime = startAbsoluteTime;
+  let totalSecondsSpent = 0;
+  const purchasedItems: SequencedPurchase[] = [];
+
+  for (const { research, level } of sequence) {
+    const isSaleNow = isResearchSaleActive(curTime);
+    const transitionsNow = boostTransitionsFrom(curSnapshot, curTime);
+    const purchase = getSaleAwareTimeToSave(research, level, mods, isSaleNow, curTime, curSnapshot, transitionsNow);
+    if (purchase.waitSeconds === Infinity) return null;
+
+    purchasedItems.push({
+      research,
+      targetLevel: level + 1,
+      currentLevel: level,
+      price: purchase.price,
+      timeToBuySeconds: purchase.waitSeconds,
+      duringSale: purchase.duringSale,
+      duringEarningsBoost: isEarningsBoostActive(curTime + purchase.waitSeconds),
+      eventCrossings: findEventCrossings(curTime, purchase.waitSeconds, isSaleNow, isEarningsBoostActive(curTime)),
+    });
+
+    curState = applyTime(
+      applyAction(curState, {
+        type: 'buy_research',
+        payload: { researchId: research.id, fromLevel: level, toLevel: level + 1 },
+        cost: purchase.price,
+      }),
+      purchase.waitSeconds,
+      curSnapshot,
+      { transitions: transitionsNow }
+    );
+    curSnapshot = computeSnapshot(curState, context);
+    curTime += purchase.waitSeconds;
+    totalSecondsSpent += purchase.waitSeconds;
+  }
+
+  return { state: curState, snapshot: curSnapshot, items: purchasedItems, totalSecondsSpent };
+}
+
+/**
+ * Expands a `rankResearchByROI` candidate into the purchase sequence(s) worth trying in order to
+ * actually acquire it: always the solo purchase, plus — when the candidate only ranked this high
+ * because pairing it with `pairPartnerResearch` gives a great COMBINED payback (see
+ * `rankResearchByROI`'s bottleneck-pairing logic) and that partner is itself still purchasable —
+ * both orderings of buying the pair together (whichever's cheaper to save up for first can finish
+ * sooner). A bottlenecked laying/shipping research moves earnings by ~0 bought alone — that's
+ * exactly why it needed pairing to rank well at all — so any caller evaluating "is this candidate
+ * worth buying" against solo economics alone needs the pair option too, not just the single item.
+ *
+ * `excludeResearchId` guards against the partner happening to be whatever the caller is separately
+ * buying toward (e.g. a milestone's own target research) — pass that id to keep the pairing from
+ * silently reaching into a purchase the caller already accounts for elsewhere.
+ *
+ * Pure/cheap (no simulation) — feed each returned sequence through `simulatePurchaseSequence` to
+ * actually price/wait it out, then apply whatever decision policy fits the caller (the milestone
+ * chain takes whichever sequence beats buying its target directly; a plain "keep buying the best
+ * ROI" loop can just always prefer the pair sequence when one exists, since `rankResearchByROI`
+ * only offers it when the combined payback beats the solo one).
+ */
+export function buildRoiCandidateSequences(
+  candidate: ResearchRankingItem,
+  levels: Record<string, number>,
+  excludeResearchId?: string
+): { research: CommonResearch; level: number }[][] {
+  const sequences: { research: CommonResearch; level: number }[][] = [
+    [{ research: candidate.research, level: candidate.currentLevel }],
+  ];
+
+  const partner = candidate.pairPartnerResearch;
+  const partnerLevel = partner ? levels[partner.id] || 0 : undefined;
+  const partnerEligible =
+    !!partner && partner.id !== excludeResearchId && partnerLevel !== undefined && partnerLevel < partner.levels;
+
+  if (partnerEligible && partner) {
+    sequences.push([
+      { research: candidate.research, level: candidate.currentLevel },
+      { research: partner, level: partnerLevel! },
+    ]);
+    sequences.push([
+      { research: partner, level: partnerLevel! },
+      { research: candidate.research, level: candidate.currentLevel },
+    ]);
+  }
+
+  return sequences;
 }

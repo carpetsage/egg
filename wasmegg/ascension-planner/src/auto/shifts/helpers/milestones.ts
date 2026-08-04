@@ -237,10 +237,19 @@ export function runResearchMilestoneIfWorthwhile(
   const startSnapshot = computeSnapshot(startState, context, { skipGrowth: true });
   const absoluteSimTimeAtStart = helpers.getAbsTime();
   const mods = helpers.getModifiers();
+  const researchSaleDeadline = getNextSaleStart(absoluteSimTimeAtStart);
 
   const target = { researchId, targetLevel };
 
-  const chain = computeResearchMilestoneChain(target, startState, startSnapshot, context, mods, absoluteSimTimeAtStart);
+  const chain = computeResearchMilestoneChain(
+    target,
+    startState,
+    startSnapshot,
+    context,
+    mods,
+    absoluteSimTimeAtStart,
+    researchSaleDeadline
+  );
   const baseline = computeMilestoneBaseline(
     { kind: 'research', researchId, targetLevel },
     startSnapshot,
