@@ -2,14 +2,9 @@
   <div class="space-y-4">
     <QuickBuy
       :preview-items="quickBuyPreview"
+      :earnings-summary="quickBuyEarningsSummary"
       @buy="$emit('quick-buy', $event)"
       @update:threshold-seconds="$emit('update:quickBuyThresholdSeconds', $event)"
-    />
-
-    <AutoBuy
-      :always-on="autoBuyAlwaysOn"
-      @update:always-on="$emit('update:autoBuyAlwaysOn', $event)"
-      @update="$emit('auto-buy-update', $event)"
     />
 
     <SmartBuyCard title="Buy Earnings research">
@@ -105,6 +100,12 @@
         unit="/hr"
       />
     </SmartBuyCard>
+
+    <AutoBuy
+      :always-on="autoBuyAlwaysOn"
+      @update:always-on="$emit('update:autoBuyAlwaysOn', $event)"
+      @update="$emit('auto-buy-update', $event)"
+    />
   </div>
 </template>
 
@@ -132,6 +133,7 @@ defineProps<{
   canBuyUntilRoiDeadline: boolean;
   canBuyUntilSaleDeadline: boolean;
   quickBuyPreview: ResearchSummaryItem[];
+  quickBuyEarningsSummary: RateSummary;
   saleAwarePreview: ResearchSummaryItem[];
   saleAwareExcludedAt100Preview: ResearchSummaryItem[];
   saleEndsPreview: ResearchSummaryItem[];
