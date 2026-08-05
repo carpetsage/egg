@@ -32,15 +32,14 @@
       :delivery-impact-only="deliveryImpactOnly"
       :roi-mode="roiMode"
       :can-buy-until-sale-warning="canBuyUntilSaleWarning"
-      :can-buy-until-roi-deadline="canBuyUntilROIDeadline"
       :can-buy-until-sale-deadline="canBuyUntilSaleDeadline"
       :quick-buy-preview="quickBuyPreview"
       :quick-buy-earnings-summary="quickBuyEarningsSummary"
       :sale-aware-preview="saleAwarePreview"
-      :sale-aware-excluded-at100-preview="saleAwareExcludedAt100Preview"
       :sale-ends-preview="saleEndsPreview"
+      :sale-ends-earnings-preview="saleEndsEarningsPreview"
+      :sale-ends-earnings-summary="saleEndsEarningsSummary"
       :sale-aware-earnings-summary70="saleAwareEarningsSummary70"
-      :sale-aware-earnings-summary100="saleAwareEarningsSummary100"
       :sale-ends-delivery-summary="saleEndsDeliverySummary"
       @update:auto-buy-always-on="autoBuyState.alwaysOn = $event"
       @quick-buy="handleThresholdBuy"
@@ -49,7 +48,6 @@
       @update:delivery-impact-only="deliveryImpactOnly = $event"
       @update:roi-mode="roiMode = $event"
       @buy-until-sale-warning="handleBuyUntilSaleWarning"
-      @buy-until-roi-deadline="handleBuyUntilROIDeadline"
       @buy-until-sale-deadline="handleBuyUntilSaleDeadline"
     />
 
@@ -123,9 +121,6 @@
     <!-- Buy Entire Chain -->
     <button
       v-if="currentView === 'milestones' && sortedResearches.length > 0"
-      v-tippy="
-        'Buys every purchase in this chain, in order. Automatically turns the research sale and 2x earnings boost on/off in your action history to match when each purchase actually happens — look for the Sale/2x badges on each item above.'
-      "
       class="btn-premium btn-primary w-full mt-2"
       @click="handleBuyMilestoneChain"
     >
@@ -329,13 +324,12 @@ const {
   roiRankedResearches,
   elrRankedResearches,
   saleAwarePlan70,
-  saleAwarePlan100,
   saleAwarePreview,
-  saleAwareExcludedAt100Preview,
   saleEndsPlan,
   saleEndsPreview,
+  saleEndsEarningsPreview,
+  saleEndsEarningsSummary,
   saleAwareEarningsSummary70,
-  saleAwareEarningsSummary100,
   saleEndsDeliverySummary,
   realisticSummary,
   researchSaleDeadline,
@@ -810,15 +804,14 @@ watch(
   });
 };
 
-// Shared driver behind "Buy Until Sale Warning" and "Buy Until ROI Deadline": both walk a
-// precomputed plan (`saleAwarePlan70`/`saleAwarePlan100` — see `simulateSaleAwareBuy`'s doc
-// comment in smartBuyPreview.ts) rather than independently re-deriving candidates live, so the
-// preview shown under each button and what actually gets bought are guaranteed to match — one
-// source of truth, not two. Only candidate *selection* comes from the plan; buying still goes
-// through the real `syncEventStateForItem`/`buyOneLevel` (inserting real wait/toggle/purchase
-// history) and the same post-hoc bypass-cleanup sweep as before (see `buyUntilRealSaleStarts`'s
-// doc comment in researchRanking.ts for the full rationale). `label` distinguishes the two
-// callers in the debug log.
+// Driver behind "Buy Until Sale Warning": walks a precomputed plan (`saleAwarePlan70` — see
+// `simulateSaleAwareBuy`'s doc comment in smartBuyPreview.ts) rather than independently
+// re-deriving candidates live, so the preview shown under the button and what actually gets
+// bought are guaranteed to match — one source of truth, not two. Only candidate *selection*
+// comes from the plan; buying still goes through the real `syncEventStateForItem`/`buyOneLevel`
+// (inserting real wait/toggle/purchase history) and the same post-hoc bypass-cleanup sweep as
+// before (see `buyUntilRealSaleStarts`'s doc comment in researchRanking.ts for the full
+// rationale). `label` is used to tag this run's entries in the debug log.
 //
 // The deadline is captured ONCE, up front, rather than re-derived from "is a sale active right
 // now" each iteration: if the button is clicked while a DIFFERENT sale is already active,
@@ -908,23 +901,6 @@ async function runSaleAwareBuyFlow(label: string, plan: SaleAwarePlanEntry[]) {
 // button displays).
 async function handleBuyUntilSaleWarning() {
   await runSaleAwareBuyFlow('handleBuyUntilSaleWarning', saleAwarePlan70.value.entries);
-}
-
-// Best-ranked buyable ROI item that would earn back 100% of its cost before the next sale starts —
-// a stricter bar than "Buy Until Sale Warning"'s 70%, for confidently stocking up ahead of a
-// deadline. Same `meetsSaleAwareDeadline`-based rule as nextRoiCandidate, just with `100` instead
-// of `70` — see that computed's comment, and `meetsSaleAwareDeadline`'s own doc comment, for why
-// `duringSale` items aren't pre-excluded here either.
-const nextRoiDeadlineCandidate = computed(() =>
-  roiRankedResearches.value.find(item => meetsSaleAwareDeadline(item, nextSaleStart.value, 100))
-);
-
-const canBuyUntilROIDeadline = computed(() => !!nextRoiDeadlineCandidate.value);
-
-// Executes the precomputed 100%-return plan (`saleAwarePlan100` — same plan the exclusion preview
-// under the button is derived from).
-async function handleBuyUntilROIDeadline() {
-  await runSaleAwareBuyFlow('handleBuyUntilROIDeadline', saleAwarePlan100.value.entries);
 }
 
 // Best-ranked buyable Delivery Impact item that would still finish before the sale ends,
