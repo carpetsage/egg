@@ -129,10 +129,10 @@ export function useAscensionGenerator() {
       }
 
       const alternativeELRs = present
-        .filter(([key]) => key !== bestKey)
         .map(([key, v]) => ({
           elr: v.summary.maxELR,
           label: key === 'continue' ? 'Continue' : key,
+          isActive: key === bestKey,
         }));
 
       return {

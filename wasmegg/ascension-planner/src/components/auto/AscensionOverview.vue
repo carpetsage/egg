@@ -217,9 +217,12 @@
               :key="alt.label"
               class="flex items-baseline gap-0.5 sm:gap-1"
             >
-              <span class="text-[7px] sm:text-[10px] font-mono-premium font-bold text-slate-400">{{ formatNumber(alt.elr * 3600, 3) }}</span>
-              <span class="text-[6px] sm:text-[8px] font-black text-slate-300 uppercase tracking-wide">/hr</span>
-              <span class="text-[6px] sm:text-[8px] font-black text-slate-400 uppercase tracking-wide">{{ alt.label }}</span>
+              <span
+                class="text-[7px] sm:text-[10px] font-mono-premium font-bold"
+                :class="alt.isActive ? 'text-indigo-500' : 'text-slate-400'"
+              >{{ formatNumber(alt.elr * 3600, 3) }}</span>
+              <span class="text-[6px] sm:text-[8px] font-black uppercase tracking-wide" :class="alt.isActive ? 'text-indigo-400' : 'text-slate-300'">/hr</span>
+              <span class="text-[6px] sm:text-[8px] font-black uppercase tracking-wide" :class="alt.isActive ? 'text-indigo-500' : 'text-slate-400'">{{ alt.label }}<span v-if="alt.isActive"> (used)</span></span>
             </div>
           </div>
         </div>
@@ -378,6 +381,7 @@ const props = defineProps<{
     alternativeELRs?: {
       elr: number;
       label: string;
+      isActive: boolean;
     }[];
   };
   actions: any[];
