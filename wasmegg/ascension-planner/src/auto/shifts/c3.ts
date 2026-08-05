@@ -1,19 +1,12 @@
 import type { Action } from '@/types/actions/meta';
-import { createSimAction } from '@/types/actions/meta';
 import type { EngineState, SimulationContext, ShiftResult } from '../types';
-import { getTiers, isTierUnlocked } from '../../calculations/commonResearch';
-import { meetsROIByDeadline } from '../../calculations/researchROI';
-import { rankResearchByROI, buyWhilePassingCheck } from '../../calculations/researchRanking';
-import {
-  createMilestoneShiftHelpers,
-  runTierUnlockMilestone,
-  runBuyUntilSaleWarning,
-  runBuyUntilSaleDeadline,
-} from './helpers/milestones';
+import { getTiers, isTierUnlocked, type ResearchCostModifiers } from '../../calculations/commonResearch';
+import { createMilestoneShiftHelpers, runTierUnlockMilestone } from './helpers/milestones';
+import { applyShiftAction } from './helpers/actionHelpers';
 import { advanceTimeWithBoundaries } from './helpers/advanceTime';
 import { computeSnapshot } from '../../engine/compute';
-import { applyAction } from '../../engine/apply';
-import { shiftCost } from 'lib';
+import { calculateArtifactModifiers } from '../../lib/artifacts';
+import { simulateSaleAwareBuy, simulateSaleEndsBuy } from '../../calculations/smartBuyPreview';
 import { isResearchSaleActive, getNextSaleStart, getNextSaleEnd, getBuildPhaseEndForSaleCount } from '@/lib/events';
 
 export interface C3Params {
@@ -24,14 +17,28 @@ export interface C3Params {
 /**
  * C3: the "build phase" shift, spent riding out one or more weekly research sales in Curiosity.
  *
- * Algorithm (see EVENT_AWARE_PLANNING_AND_C3.md Phase 6b for the full derivation):
- * 1. If Tier 13 is wanted, try to unlock it first — return early if it can't be done in time.
- * 2. Buy earnings research until it won't have 70% ROI before the next research sale.
- * 3. Wait for that sale to start.
- * 4. If it's the final sale, buy delivery research until it ends. Otherwise buy earnings research
- *    toward the final sale's 100% ROI deadline (deferring anything that wouldn't also clear 70%
- *    ROI before the *next* sale) and loop back to step 2 for that next sale.
- * 5. Once the final sale has been spent on delivery research, stop.
+ * 1. Shift to Curiosity.
+ * 2. If Tier 13 is wanted, try to unlock it first — return early if it can't be done in time.
+ *    `runTierUnlockMilestone` is capped at exactly `buildPhaseEnd - getAbsTime()`, so this can only
+ *    ever end one of two ways: it unlocks Tier 13 within that budget (leaving `getAbsTime()` at or
+ *    before `buildPhaseEnd`, never after), or it doesn't unlock at all — there's no third case where
+ *    it "succeeds but finishes late," so a plain `isTierUnlocked` check after the attempt is the
+ *    complete impossible/possible test; no separate overrun handling is needed here.
+ * 3. Repeat: buy earnings research toward 70% ROI before the next sale, then wait for that sale to
+ *    start — until reaching the start of the final sale (the one ending at the build phase's end).
+ *    This naturally does fewer cycles (or none) if step 2's Tier 13 unlock already consumed enough
+ *    real time to cross earlier sales while buying — the loop just walks forward from wherever
+ *    `getAbsTime()` currently is via `getNextSaleStart`/`getNextSaleEnd`, it doesn't count cycles.
+ * 4. Buy delivery research until the final sale ends.
+ *
+ * Steps 3-4 both reuse the exact same plan-computation functions the manual planner's "Buy Until
+ * Sale Warning"/"Buy Until Sale Ends" buttons are built on — `simulateSaleAwareBuy`/
+ * `simulateSaleEndsBuy` in `calculations/smartBuyPreview.ts` — rather than a separate
+ * auto-planner-only implementation; see those functions' own doc comments for what each actually
+ * does. This replaces the previous design's extra "buy earnings research toward the final sale's
+ * 100% deadline" bridging step between sales: `simulateSaleAwareBuy`/`simulateSaleEndsBuy` already
+ * handle their own edge cases (sale-bypass purchases, earnings-prelude-before-delivery trimming),
+ * so a bespoke C3-only step is no longer needed.
  */
 export function runC3(
   startState: EngineState,
@@ -53,37 +60,107 @@ export function runC3(
     elapsedSeconds = result.elapsedSeconds;
   };
 
-  // Folds a sub-shift's ShiftResult into this shift's own running state — every step below (the
-  // tier 13 attempt, and the three "buy until X" helpers) is itself a self-contained mini-shift run
-  // against whatever `currentState` is at that point.
+  // Folds a sub-shift's ShiftResult into this shift's own running state.
   const runStep = (result: ShiftResult) => {
     actions.push(...result.actions);
     currentState = result.endState;
     elapsedSeconds += result.elapsedSeconds;
   };
 
-  // 1. Shift to Curiosity
-  const sCost = shiftCost(currentState.soulEggs, currentState.shiftCount);
-  const shiftAction = createSimAction(
-    'shift',
-    {
-      fromEgg: currentState.currentEgg,
-      toEgg: 'curiosity',
-      newShiftCount: currentState.shiftCount + 1,
-    },
-    sCost
-  );
-  currentState = applyAction(currentState, shiftAction);
-  const shiftSnap = computeSnapshot(currentState, context, { skipGrowth: true });
-  shiftAction.endState = shiftSnap;
-  shiftAction.totalTimeSeconds = 0;
-  actions.push(shiftAction);
+  const getModifiers = (): ResearchCostModifiers => {
+    const artifactMods = calculateArtifactModifiers(currentState.artifactLoadout);
+    return {
+      labUpgradeLevel: context.epicResearchLevels['cheaper_research'] || 0,
+      researchCostMultiplier: context.colleggtibleModifiers.researchCost || 1,
+      puzzleCubeMultiplier: artifactMods.researchCost.totalMultiplier,
+    };
+  };
 
-  // Step 0 (only when requested): try to unlock Tier 13 before anything else. Must run right here,
-  // at elapsedSeconds === 0 — runTierUnlockMilestone derives its absolute-time baseline from
+  // Executes a precomputed purchase plan (from `simulateSaleAwareBuy`/`simulateSaleEndsBuy`) for
+  // real: buys each research ID, in the order it first appears in the plan, up to its own final
+  // target level from `endLevels` — trusting the plan's `endLevels` as the correct outcome (already
+  // accounts for anything the plan itself decided to revert, e.g. `simulateSaleAwareBuy`'s
+  // sale-bypass cleanup — see its own doc comment) rather than replaying its purchase log
+  // entry-for-entry. `timeLimit` bounds this call the same way every other purchase helper here
+  // does — the plan was already computed against the same deadline, so this is a safety net against
+  // drift between the plan and real execution, not the primary stopping condition.
+  const executePlanToLevels = (researchIdsInOrder: string[], targetLevels: Record<string, number>, timeLimit: number) => {
+    const buyOrder: string[] = [];
+    const seen = new Set<string>();
+    for (const id of researchIdsInOrder) {
+      if (!seen.has(id)) {
+        seen.add(id);
+        buyOrder.push(id);
+      }
+    }
+
+    const helpers = createMilestoneShiftHelpers(currentState, context);
+    outer: for (const researchId of buyOrder) {
+      const target = targetLevels[researchId] || 0;
+      while ((helpers.getState().researchLevels[researchId] || 0) < target) {
+        if (!helpers.buyResearch(researchId, timeLimit)) break outer;
+      }
+    }
+
+    runStep({
+      actions: helpers.getActions(),
+      elapsedSeconds: helpers.getElapsedSeconds(),
+      endState: helpers.getState(),
+    });
+  };
+
+  // "Buy Until Sale Warning" (70% ROI before `targetDeadline`, the upcoming sale's start) — same
+  // plan the manual planner's button executes.
+  const buyUntilSaleWarning = (targetDeadline: number) => {
+    const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
+    const absTime = getAbsTime();
+    const plan = simulateSaleAwareBuy(
+      currentState.researchLevels,
+      snapshot,
+      context,
+      getModifiers(),
+      absTime,
+      getNextSaleEnd(absTime),
+      targetDeadline,
+      'immediate',
+      false,
+      70
+    );
+    executePlanToLevels(
+      plan.entries.map(e => e.researchId),
+      plan.endLevels,
+      Math.max(0, targetDeadline - absTime)
+    );
+  };
+
+  // "Buy Until Sale Ends" (earnings prelude + delivery research through `deadline`) — same plan the
+  // manual planner's button executes.
+  const buyUntilSaleEnds = (deadline: number) => {
+    const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
+    const absTime = getAbsTime();
+    const plan = simulateSaleEndsBuy(
+      currentState.researchLevels,
+      snapshot,
+      context,
+      getModifiers(),
+      absTime,
+      deadline,
+      'realistic',
+      'efficiency',
+      context.rawBackup
+    );
+    executePlanToLevels(plan.researchIds, plan.endLevels, Math.max(0, deadline - absTime));
+  };
+
+  // 1. Shift to Curiosity
+  const shifted = applyShiftAction(currentState, context, 'curiosity');
+  currentState = shifted.state;
+  actions.push(shifted.action);
+
+  // 2 (only when requested): try to unlock Tier 13 before anything else. Must run right here, at
+  // elapsedSeconds === 0 — runTierUnlockMilestone derives its absolute-time baseline from
   // currentState.lastStepTime, which trivially still matches startState.lastStepTime at this point
-  // (the shift action above doesn't advance time), no need to verify it stays in sync through any
-  // intermediate steps.
+  // (the shift action above doesn't advance time).
   if (params.attemptTier13Unlock) {
     const maxTier = Math.max(...getTiers());
     if (!isTierUnlocked(currentState.researchLevels, maxTier)) {
@@ -91,114 +168,42 @@ export function runC3(
       runStep(runTierUnlockMilestone(currentState, context, maxTier, timeLimit));
 
       // Tier 13 was requested but the time budget ran out before finishing — this variant is
-      // impossible. Return now rather than continuing into steps 2-5 against a state that doesn't
-      // have what was asked for; runC3Variants (the runner) recognizes this from the returned state.
+      // impossible. Return now rather than continuing into the sale-riding steps against a state
+      // that doesn't have what was asked for; runC3Variants recognizes this from the returned state.
+      // (`runTierUnlockMilestone` is capped at `timeLimit`, so this is the ONLY way this attempt can
+      // fail — it can't "succeed but finish after buildPhaseEnd"; see this function's doc comment.)
       if (!isTierUnlocked(currentState.researchLevels, maxTier)) {
         return { actions, elapsedSeconds, endState: currentState };
       }
     }
   }
 
-  const finalSaleStart = buildPhaseEnd - 86400;
-
-  // Steps 2-5: alternate "buy earnings research toward a sale deadline" / "wait for that sale" /
-  // "spend the sale" for each successive weekly research sale until the final one (the one ending
-  // at buildPhaseEnd) has been spent on delivery research, then stop.
+  // 3-4. Ride out sales until the final one, then spend it on delivery research.
   while (getAbsTime() < buildPhaseEnd) {
     const absTime = getAbsTime();
+    const isFinalSale = isResearchSaleActive(absTime) && getNextSaleEnd(absTime) >= buildPhaseEnd;
 
-    // Already inside the final sale (only possible if C3 starts mid-sale) — spend it directly,
-    // same as step 4a below, and we're done either way.
-    if (isResearchSaleActive(absTime) && getNextSaleEnd(absTime) >= buildPhaseEnd) {
-      runStep(runBuyUntilSaleDeadline(currentState, context, Math.max(0, buildPhaseEnd - absTime)));
+    if (isFinalSale) {
+      buyUntilSaleEnds(buildPhaseEnd);
+      advanceTime(Math.max(0, buildPhaseEnd - getAbsTime()));
       break;
     }
 
-    // 2. Buy earnings research until it won't have 70% ROI before the next research sale.
-    runStep(runBuyUntilSaleWarning(currentState, context, Math.max(0, buildPhaseEnd - getAbsTime())));
-
-    // 3. Wait for that sale to start.
-    const beforeWait = getAbsTime();
-    const saleStart = getNextSaleStart(beforeWait);
-    if (saleStart >= buildPhaseEnd) break; // no more sales fit in the build phase
-    advanceTime(saleStart - beforeWait);
-
-    // 4. Branch on whether the sale we just reached is the final one.
-    const saleEnd = getNextSaleEnd(getAbsTime());
-    if (saleEnd >= buildPhaseEnd) {
-      // 4a — final sale: buy delivery-impact research until the sale ends, then stop (step 5).
-      runStep(runBuyUntilSaleDeadline(currentState, context, Math.max(0, buildPhaseEnd - getAbsTime())));
+    const nextSaleStart = getNextSaleStart(absTime);
+    if (nextSaleStart >= buildPhaseEnd) {
+      // No more sales start before the deadline (shouldn't normally happen — `buildPhaseEnd` is
+      // always an exact sale-end — but kept as a defensive fallback). Spend what's left as a final
+      // delivery push.
+      buyUntilSaleEnds(buildPhaseEnd);
+      advanceTime(Math.max(0, buildPhaseEnd - getAbsTime()));
       break;
     }
 
-    // 4b — not the final sale: buy earnings research toward the final sale's 100% ROI deadline,
-    // deferring anything that wouldn't also clear 70% ROI before the *next* sale starts.
-    runStep(
-      runBuyEarningsTowardFinalSale(currentState, context, finalSaleStart, Math.max(0, buildPhaseEnd - getAbsTime()))
-    );
-    // 5. Loop back to step 2 for the next sale cycle.
+    buyUntilSaleWarning(nextSaleStart);
+    advanceTime(Math.max(0, nextSaleStart - getAbsTime()));
   }
 
   return { actions, elapsedSeconds, endState: currentState };
-}
-
-/**
- * C3 step 4b: earnings research toward the *final* sale's 100% ROI deadline — but skip (defer to a
- * later cycle) any candidate that wouldn't *also* clear 70% ROI before the *next* sale starts, since
- * those are more efficiently bought once a nearer sale discounts them. The 70% check is itself
- * skipped for candidates already landing `duringSale` — nothing to defer, they're already at the
- * discount — same short-circuit `showSaleWarning` uses elsewhere; without it this would be close to
- * a no-op, since 4b only ever runs while the sale it just waited for (step 3) is still active. A
- * composite of two already-built primitives (`meetsROIByDeadline`'s AND, `rankResearchByROI`'s
- * ranking) specific to this shift's loop structure, not promoted to a shared helper — see
- * EVENT_AWARE_PLANNING_AND_C3.md's Phase 6b.
- */
-function runBuyEarningsTowardFinalSale(
-  startState: EngineState,
-  context: SimulationContext,
-  finalSaleStart: number,
-  timeLimit: number
-): ShiftResult {
-  const helpers = createMilestoneShiftHelpers(startState, context);
-
-  buyWhilePassingCheck(
-    () => {
-      const state = helpers.getState();
-      const snapshot = computeSnapshot(state, context, { skipGrowth: true });
-      const absTime = helpers.getAbsTime();
-      const isSale = isResearchSaleActive(absTime);
-      const nextSaleStart = getNextSaleStart(absTime);
-
-      const ranked = rankResearchByROI(
-        state.researchLevels,
-        snapshot,
-        context,
-        helpers.getModifiers(),
-        isSale,
-        absTime,
-        getNextSaleEnd(absTime),
-        'immediate',
-        false
-      );
-
-      const next = ranked.find(item => {
-        if (!item.canBuy || item.earningsDelta === undefined || item.timeToBuySeconds === undefined) return false;
-        const purchaseTime = absTime + item.timeToBuySeconds;
-        if (!meetsROIByDeadline(item.earningsDelta, item.price, purchaseTime, finalSaleStart, 100)) return false;
-        // Already landing at a sale discount — nothing to defer, same short-circuit showSaleWarning
-        // uses elsewhere. Only candidates that would miss the *current* sale need the near-term check.
-        return item.duringSale || meetsROIByDeadline(item.earningsDelta, item.price, purchaseTime, nextSaleStart, 70);
-      });
-      return next ? { researchId: next.research.id } : undefined;
-    },
-    researchId => helpers.buyResearch(researchId, timeLimit)
-  );
-
-  return {
-    actions: helpers.getActions(),
-    elapsedSeconds: helpers.getElapsedSeconds(),
-    endState: helpers.getState(),
-  };
 }
 
 export interface C3Variant {
@@ -207,7 +212,6 @@ export interface C3Variant {
   buildPhaseEnd: number;
   result: ShiftResult;
   // True when attemptTier13Unlock was requested but the returned state still doesn't have it.
-  // Computed here, not carried on ShiftResult (see Step 0's comment above).
   impossible: boolean;
 }
 

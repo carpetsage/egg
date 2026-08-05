@@ -10,17 +10,12 @@ import {
   computeMilestoneSummaryCore,
   type MilestoneChainItem,
 } from '../../../calculations/milestoneChain';
-import {
-  rankResearchByROI,
-  rankResearchByELRImpact,
-  buyWhilePassingCheck,
-} from '../../../calculations/researchRanking';
-import { getSaleAwareTimeToSave, meetsROIByDeadline } from '../../../calculations/researchROI';
+import { getSaleAwareTimeToSave } from '../../../calculations/researchROI';
 import { calculateArtifactModifiers } from '../../../lib/artifacts';
 import { computeSnapshot } from '../../../engine/compute';
 import { applyAction, boostTransitionsFrom } from '../../../engine/apply';
 import { advanceTimeWithBoundaries } from './advanceTime';
-import { isResearchSaleActive, getNextSaleStart, getNextSaleEnd } from '@/lib/events';
+import { isResearchSaleActive, getNextSaleEnd } from '@/lib/events';
 
 /**
  * Shared mutable-simulation plumbing for the milestone/smart-buy helpers below.
@@ -195,7 +190,12 @@ export function runTierUnlockMilestone(
   const startSnapshot = computeSnapshot(startState, context, { skipGrowth: true });
   const absoluteSimTimeAtStart = helpers.getAbsTime();
   const mods = helpers.getModifiers();
-  const researchSaleDeadline = getNextSaleStart(absoluteSimTimeAtStart);
+  // Deadline for "would this purchase still finish before the current/next sale ends" — must match
+  // the manual planner's own `researchSaleDeadline` (`useResearchViews.ts`), which is `getNextSaleEnd`,
+  // not `getNextSaleStart`. The two had drifted apart (this used to pass `getNextSaleStart`, a much
+  // later timestamp) since this function was first extracted; manual is the better-tested source of
+  // truth here, so auto now matches it exactly.
+  const researchSaleDeadline = getNextSaleEnd(absoluteSimTimeAtStart);
 
   const chain = computeTierMilestoneChain(
     { tier: targetTier },
@@ -237,7 +237,8 @@ export function runResearchMilestoneIfWorthwhile(
   const startSnapshot = computeSnapshot(startState, context, { skipGrowth: true });
   const absoluteSimTimeAtStart = helpers.getAbsTime();
   const mods = helpers.getModifiers();
-  const researchSaleDeadline = getNextSaleStart(absoluteSimTimeAtStart);
+  // See `runTierUnlockMilestone`'s comment above — same fix, same reasoning.
+  const researchSaleDeadline = getNextSaleEnd(absoluteSimTimeAtStart);
 
   const target = { researchId, targetLevel };
 
@@ -266,158 +267,6 @@ export function runResearchMilestoneIfWorthwhile(
   for (const item of chain.items) {
     if (!helpers.executeChainItem(item, timeLimit)) break;
   }
-
-  return {
-    actions: helpers.getActions(),
-    elapsedSeconds: helpers.getElapsedSeconds(),
-    endState: helpers.getState(),
-  };
-}
-
-/**
- * C3 bullet: "Buy Until Sale Warning" — repeatedly buys the top ROI-ranked research (immediate-
- * impact mode, no delivery-impact-only filter — there's no UI toggle to source that choice from
- * in the auto planner) that wouldn't yet trigger a sale warning, re-ranking after each purchase
- * (buying one research changes the ROI math for the rest), same loop shape as the manual
- * planner's `handleBuyUntilSaleWarning` (`ResearchActions.vue`). Unlike "Buy Until Sale Ends",
- * this isn't gated on a sale being active — the check is a no-op whenever a sale already is,
- * since `showSaleWarning` only ever fires while one *isn't* (see `calculateResearchROI`).
- */
-export function runBuyUntilSaleWarning(
-  startState: EngineState,
-  context: SimulationContext,
-  timeLimit: number
-): ShiftResult {
-  const helpers = createMilestoneShiftHelpers(startState, context);
-
-  buyWhilePassingCheck(
-    () => {
-      const state = helpers.getState();
-      const snapshot = computeSnapshot(state, context, { skipGrowth: true });
-      const absTime = helpers.getAbsTime();
-      const isSale = isResearchSaleActive(absTime);
-
-      const ranked = rankResearchByROI(
-        state.researchLevels,
-        snapshot,
-        context,
-        helpers.getModifiers(),
-        isSale,
-        absTime,
-        getNextSaleEnd(absTime),
-        'immediate',
-        false
-      );
-
-      const next = ranked.find(item => item.canBuy && !item.showSaleWarning);
-      return next ? { researchId: next.research.id } : undefined;
-    },
-    researchId => helpers.buyResearch(researchId, timeLimit)
-  );
-
-  return {
-    actions: helpers.getActions(),
-    elapsedSeconds: helpers.getElapsedSeconds(),
-    endState: helpers.getState(),
-  };
-}
-
-/**
- * C3 bullet: "Buy Until Sale Ends" — only meaningful while a sale is active (same guard as the
- * manual planner's `canBuyUntilSaleDeadline`); repeatedly buys the top Delivery-Impact-ranked
- * research (realistic mode, efficiency sort — the manual planner's own defaults, since there's no
- * UI state to read the user's current view-mode/sort-mode choice from here) that would still
- * finish before the sale ends, re-ranking after each purchase, same loop shape as
- * `handleBuyUntilSaleDeadline`. A no-op (returns the unchanged `startState`) if no sale is active.
- */
-export function runBuyUntilSaleDeadline(
-  startState: EngineState,
-  context: SimulationContext,
-  timeLimit: number
-): ShiftResult {
-  const helpers = createMilestoneShiftHelpers(startState, context);
-
-  if (!isResearchSaleActive(helpers.getAbsTime())) {
-    return { actions: [], elapsedSeconds: 0, endState: startState };
-  }
-
-  buyWhilePassingCheck(
-    () => {
-      const state = helpers.getState();
-      const snapshot = computeSnapshot(state, context, { skipGrowth: true });
-      const absTime = helpers.getAbsTime();
-      const isSale = isResearchSaleActive(absTime);
-
-      const ranked = rankResearchByELRImpact(
-        state.researchLevels,
-        context.rawBackup,
-        snapshot,
-        context,
-        helpers.getModifiers(),
-        isSale,
-        absTime,
-        getNextSaleEnd(absTime),
-        'realistic',
-        'efficiency'
-      );
-
-      const next = ranked.find(item => item.canBuy && !item.showDeadlineWarning);
-      return next ? { researchId: next.research.id } : undefined;
-    },
-    researchId => helpers.buyResearch(researchId, timeLimit)
-  );
-
-  return {
-    actions: helpers.getActions(),
-    elapsedSeconds: helpers.getElapsedSeconds(),
-    endState: helpers.getState(),
-  };
-}
-
-/**
- * Generalizes `runBuyUntilSaleWarning`'s loop shape to an arbitrary ROI deadline: repeatedly buys
- * the top ROI-ranked research that would still earn back `targetPercent`% of its price by
- * `targetTimestamp` (see `meetsROIByDeadline`), re-ranking after each purchase. Used by C3's earnings
- * research buying (targeting the final sale's 100% deadline) and by the manual planner's "Buy Until
- * ROI Deadline" button.
- */
-export function runBuyUntilROIDeadline(
-  startState: EngineState,
-  context: SimulationContext,
-  targetTimestamp: number,
-  targetPercent: number,
-  timeLimit: number
-): ShiftResult {
-  const helpers = createMilestoneShiftHelpers(startState, context);
-
-  buyWhilePassingCheck(
-    () => {
-      const state = helpers.getState();
-      const snapshot = computeSnapshot(state, context, { skipGrowth: true });
-      const absTime = helpers.getAbsTime();
-      const isSale = isResearchSaleActive(absTime);
-
-      const ranked = rankResearchByROI(
-        state.researchLevels,
-        snapshot,
-        context,
-        helpers.getModifiers(),
-        isSale,
-        absTime,
-        getNextSaleEnd(absTime),
-        'immediate',
-        false
-      );
-
-      const next = ranked.find(item => {
-        if (!item.canBuy || item.earningsDelta === undefined || item.timeToBuySeconds === undefined) return false;
-        const purchaseTime = absTime + item.timeToBuySeconds;
-        return meetsROIByDeadline(item.earningsDelta, item.price, purchaseTime, targetTimestamp, targetPercent);
-      });
-      return next ? { researchId: next.research.id } : undefined;
-    },
-    researchId => helpers.buyResearch(researchId, timeLimit)
-  );
 
   return {
     actions: helpers.getActions(),

@@ -6,7 +6,7 @@
 
       <!-- Dialog -->
       <div
-        class="relative w-full max-w-2xl overflow-hidden shadow-2xl rounded-2xl border border-white/50 bg-white/95 transition-all duration-300 animate-in fade-in zoom-in-95"
+        class="relative w-full max-w-3xl overflow-hidden shadow-2xl rounded-2xl border border-white/50 bg-white/95 transition-all duration-300 animate-in fade-in zoom-in-95"
       >
         <div
           class="bg-gradient-to-r from-slate-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3"
@@ -30,10 +30,10 @@
               <tr class="text-[8px] font-black text-slate-400 uppercase tracking-wider">
                 <th class="px-2 py-1.5">Variant</th>
                 <th class="px-2 py-1.5">Tier 13</th>
+                <th class="px-2 py-1.5">Build</th>
                 <th class="px-2 py-1.5">Duration</th>
-                <th class="px-2 py-1.5">End TE</th>
                 <th class="px-2 py-1.5">Peak ELR</th>
-                <th class="px-2 py-1.5">SE Cost</th>
+                <th class="px-2 py-1.5">Peak Earnings</th>
               </tr>
             </thead>
             <tbody>
@@ -65,10 +65,48 @@
                   </span>
                   <span v-else class="text-slate-300">—</span>
                 </td>
+                <td class="px-2 py-2 font-mono-premium">{{ formatDuration(row.summary.buildDurationSeconds) }}</td>
                 <td class="px-2 py-2 font-mono-premium">{{ formatDuration(row.summary.totalDurationSeconds) }}</td>
-                <td class="px-2 py-2 font-mono-premium">{{ row.summary.endTE }}</td>
                 <td class="px-2 py-2 font-mono-premium">{{ formatNumber(row.summary.maxELR * 3600, 3) }}/hr</td>
-                <td class="px-2 py-2 font-mono-premium">{{ formatNumber(row.summary.totalShiftCost, 3) }}</td>
+                <td class="px-2 py-2 font-mono-premium">{{ formatNumber(row.summary.maxEarningsRate * 3600, 3) }}/hr</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="px-4 pb-4 overflow-x-auto">
+          <h4 class="px-2 pb-1.5 text-[8px] font-black text-slate-400 uppercase tracking-wider">Research Levels</h4>
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="text-[8px] font-black text-slate-400 uppercase tracking-wider">
+                <th class="px-2 py-1.5">Variant</th>
+                <th v-for="col in RESEARCH_COLUMNS" :key="col.id" class="px-1 py-1.5 w-[4.75rem] align-bottom">
+                  <div class="flex flex-col items-center gap-1">
+                    <img :src="iconURL(getResearchIconPath(col.id), 64)" class="w-5 h-5 object-contain" :alt="col.name" />
+                    <span class="text-[7px] leading-tight text-center normal-case tracking-normal">{{ col.name }}</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in rows"
+                :key="row.key"
+                class="text-[10px] font-bold text-slate-700 border-t border-slate-100 cursor-pointer transition-colors"
+                :class="row.key === activeVariantKey ? 'bg-indigo-50' : 'hover:bg-slate-50'"
+                @click="select(row.key)"
+              >
+                <td class="px-2 py-2">
+                  <span :class="row.key === activeVariantKey ? 'text-indigo-700' : ''">{{ row.label }}</span>
+                </td>
+                <td
+                  v-for="col in RESEARCH_COLUMNS"
+                  :key="col.id"
+                  class="px-1 py-2 text-center font-mono-premium"
+                  :class="(row.researchLevels[col.id] || 0) >= col.maxLevel ? 'text-amber-600' : ''"
+                >
+                  {{ (row.researchLevels[col.id] || 0) >= col.maxLevel ? 'Max' : row.researchLevels[col.id] || 0 }}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -89,7 +127,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { iconURL, allResearches } from 'lib';
 import { formatNumber, formatDuration } from '@/lib/format';
+import { getResearchIconPath } from '@/lib/assets';
+import type { Research } from '@/types';
 import type { VariantKey, VariantResult } from '@/stores/autoPlanner';
 
 const props = defineProps<{
@@ -103,6 +144,23 @@ const emit = defineEmits<{
   select: [variant: VariantKey];
 }>();
 
+// Tier 11-13 researches to break out in the research-levels table below the main comparison,
+// in the order they should be displayed. `maxLevel` (looked up from researches.json) lets the
+// table show "Max" instead of a number once a variant has fully maxed that research.
+const RESEARCH_COLUMNS: { id: string; name: string; maxLevel: number }[] = [
+  { id: 'dark_containment', name: 'Dark Containment' },
+  { id: 'multi_layering', name: 'Multiversal Layering' },
+  { id: 'timeline_diversion', name: 'Timeline Diversion' },
+  { id: 'wormhole_dampening', name: 'Wormhole Dampening' },
+  { id: 'micro_coupling', name: 'Graviton Coupling' },
+  { id: 'neural_net_refine', name: 'Neural Net Refinement' },
+  { id: 'hyper_portalling', name: 'Hyper Portalling' },
+  { id: 'relativity_optimization', name: 'Relativity Optimization' },
+].map(col => ({
+  ...col,
+  maxLevel: (allResearches as Research[]).find(r => r.id === col.id)?.levels ?? Infinity,
+}));
+
 const rows = computed(() =>
   (Object.entries(props.variants) as [VariantKey, VariantResult | undefined][])
     .filter((entry): entry is [VariantKey, VariantResult] => !!entry[1])
@@ -111,6 +169,10 @@ const rows = computed(() =>
       label: key === 'continue' ? 'Continue Asc.' : key.replace('-tier13', ' + T13').replace('-', ' '),
       summary: result.summary,
       tier13Unlocked: result.summary.tier13Unlocked,
+      // Research resets to empty at the start of every ascension (see deriveNextStartState),
+      // so the final snapshot's level for a given research IS the highest level purchased
+      // during this plan — no need to scan every buy_research action for it.
+      researchLevels: result.actions[result.actions.length - 1]?.endState.researchLevels ?? {},
     }))
     .sort((a, b) => a.summary.totalDurationSeconds - b.summary.totalDurationSeconds)
 );

@@ -299,6 +299,22 @@ export function getBuildPhaseEndForSaleCount(ascensionStartTime: number, saleCou
 }
 
 /**
+ * Counts how many weekly Research Sales have started between `ascensionStartTime` and `throughTime`
+ * (inclusive of one starting exactly at either end) — the inverse of `getBuildPhaseEndForSaleCount`:
+ * `countSalesThrough(t, getBuildPhaseEndForSaleCount(t, n)) === n`. Used by `ascension.ts`'s
+ * `buildPhaseSaleCount` summary field.
+ */
+export function countSalesThrough(ascensionStartTime: number, throughTime: number): number {
+  let saleCount = isResearchSaleActive(ascensionStartTime) ? 1 : 0;
+  let nextSale = getNextSaleStart(ascensionStartTime);
+  while (nextSale < throughTime) {
+    saleCount++;
+    nextSale = getNextSaleStart(nextSale + 1);
+  }
+  return saleCount;
+}
+
+/**
  * Returns the Unix timestamp (in seconds) of the next Earnings Boost start (Monday 9 AM PT).
  */
 export function getNextEarningsBoostStart(timestampSeconds: number): number {
