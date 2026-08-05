@@ -18,13 +18,23 @@ import type { VirtueEgg } from '@/types/actions/virtue';
  * thresholds), not just its current TE count — comparing raw threshold values
  * would ignore partial progress and effectively just equalize TE counts.
  *
+ * `runAscension` calls this fresh before every TE-earning shift (K3, C4, I2, R2, H2), since each
+ * shift's actual result can drift from its previously-assigned target (e.g. K3 may overshoot its
+ * kindness target because it also has to wait out the build-phase sale window). Eggs whose shift
+ * has already run this ascension are "locked in" — nothing will revisit them — so they must be
+ * excluded from the greedy candidate pool via `lockedEggs`, or this function can end up assigning
+ * the marginal TE to an egg that will never actually earn it, silently undershooting the target.
+ *
  * @param eggsDelivered - Map of lifetime eggs delivered per egg
  * @param targetTotalTE - Goal total TE for the entire ascension
+ * @param lockedEggs - Eggs whose TE-earning shift has already run this ascension and won't run
+ *   again; excluded from receiving any of the marginal TE being distributed here.
  * @returns Map of target TE per egg
  */
 export function distributeTargetTE(
   eggsDelivered: Record<VirtueEgg, number>,
-  targetTotalTE: number
+  targetTotalTE: number,
+  lockedEggs: VirtueEgg[] = []
 ): Record<VirtueEgg, number> {
   const eggs: VirtueEgg[] = ['curiosity', 'integrity', 'resilience', 'humility', 'kindness'];
   const targets: Record<VirtueEgg, number> = {} as Record<VirtueEgg, number>;
@@ -38,11 +48,14 @@ export function distributeTargetTE(
   let currentTotal = Object.values(targets).reduce((a, b) => a + b, 0);
 
   while (currentTotal < targetTotalTE) {
-    // Find the egg where the next TE needs the fewest additional eggs delivered
+    // Find the egg where the next TE needs the fewest additional eggs delivered,
+    // considering only eggs that can still actually be acted on this ascension.
     let bestEgg: VirtueEgg | null = null;
     let bestCost = Infinity;
 
     for (const egg of eggs) {
+      if (lockedEggs.includes(egg)) continue;
+
       const currentTE = targets[egg];
       if (currentTE >= TE_BREAKPOINTS.length) continue;
 
@@ -54,7 +67,7 @@ export function distributeTargetTE(
       }
     }
 
-    if (!bestEgg) break; // Should not happen unless target > max total TE
+    if (!bestEgg) break; // No unlocked egg left that can take more TE (or target > max total TE)
 
     targets[bestEgg]++;
     delivered[bestEgg] = TE_BREAKPOINTS[targets[bestEgg] - 1];
@@ -67,12 +80,16 @@ export function distributeTargetTE(
 /**
  * Finds the maximum total TE goal that can be reached within a given time budget.
  * Uses a greedy approach similar to distributeTargetTE but constrained by time.
+ *
+ * @param lockedEggs - Eggs whose TE-earning shift has already run this ascension and won't run
+ *   again; excluded from the candidate pool for the same reason as in `distributeTargetTE`.
  */
 export function solveTEForTimeBudget(
   currentTEs: Record<VirtueEgg, number>,
   currentEggsDelivered: Record<VirtueEgg, number>,
   peakELR: number,
-  timeBudgetSeconds: number
+  timeBudgetSeconds: number,
+  lockedEggs: VirtueEgg[] = []
 ): number {
   if (timeBudgetSeconds <= 0) return Object.values(currentTEs).reduce((a, b) => a + b, 0);
   if (peakELR <= 0) return Object.values(currentTEs).reduce((a, b) => a + b, 0);
@@ -81,12 +98,14 @@ export function solveTEForTimeBudget(
   const eggsDelivered = { ...currentEggsDelivered };
   const eggs: VirtueEgg[] = ['curiosity', 'integrity', 'resilience', 'humility', 'kindness'];
   let remainingTime = timeBudgetSeconds;
-  
+
   while (remainingTime > 0) {
     let bestEgg: VirtueEgg | null = null;
     let minTime = Infinity;
 
     for (const egg of eggs) {
+      if (lockedEggs.includes(egg)) continue;
+
       const currentTE = targets[egg];
       if (currentTE < TE_BREAKPOINTS.length) {
         // How long to reach the NEXT TE for this egg?
@@ -155,13 +174,12 @@ export function runTEWaitShift(
   const currentTE = countTEThresholdsPassed(currentEggsDelivered);
   const neededTE = Math.max(0, targetTEForEgg - currentTE);
 
-
   if (neededTE > 0) {
     const waitTime = timeToEarnTE(currentEggsDelivered, peakELR, neededTE);
     if (waitTime > 0 && waitTime !== Infinity) {
       const teResult = computeTEEarned(currentEggsDelivered, peakELR, waitTime);
-      
-      const waitAction = createSimAction('wait_for_te', { 
+
+      const waitAction = createSimAction('wait_for_te', {
         egg,
         targetTE: currentTE + neededTE,
         teGained: teResult.teEarned,
