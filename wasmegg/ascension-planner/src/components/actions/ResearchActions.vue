@@ -39,6 +39,8 @@
       :sale-aware-preview="saleAwarePreview"
       :sale-aware-excluded-at100-preview="saleAwareExcludedAt100Preview"
       :sale-ends-preview="saleEndsPreview"
+      :sale-ends-earnings-preview="saleEndsEarningsPreview"
+      :sale-ends-earnings-summary="saleEndsEarningsSummary"
       :sale-aware-earnings-summary70="saleAwareEarningsSummary70"
       :sale-aware-earnings-summary100="saleAwareEarningsSummary100"
       :sale-ends-delivery-summary="saleEndsDeliverySummary"
@@ -123,9 +125,6 @@
     <!-- Buy Entire Chain -->
     <button
       v-if="currentView === 'milestones' && sortedResearches.length > 0"
-      v-tippy="
-        'Buys every purchase in this chain, in order. Automatically turns the research sale and 2x earnings boost on/off in your action history to match when each purchase actually happens — look for the Sale/2x badges on each item above.'
-      "
       class="btn-premium btn-primary w-full mt-2"
       @click="handleBuyMilestoneChain"
     >
@@ -334,6 +333,8 @@ const {
   saleAwareExcludedAt100Preview,
   saleEndsPlan,
   saleEndsPreview,
+  saleEndsEarningsPreview,
+  saleEndsEarningsSummary,
   saleAwareEarningsSummary70,
   saleAwareEarningsSummary100,
   saleEndsDeliverySummary,
