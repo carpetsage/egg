@@ -82,7 +82,7 @@
         />
       </template>
       <template #description>
-        Buys delivery research during a research sale, the most efficient way possible, until the research sale ends.
+        Buys earnings and delivery research during the current sale to get maxx delivery research at maxx speed.
       </template>
       <button
         class="btn-premium btn-primary w-full text-[10px] disabled:opacity-20"
@@ -91,7 +91,22 @@
       >
         Buy Until Sale Ends
       </button>
-      <ResearchPurchasePreview :items="saleEndsPreview" empty-text="Nothing to buy right now" />
+      <ResearchPurchasePreview
+        :items="saleEndsEarningsPreview"
+        label="100% ROI before end of sale. Maximizes buying speed of delivery research"
+        empty-text="None needed"
+      />
+      <RatePreviewDelta
+        label="Earnings"
+        :before="saleEndsEarningsSummary.before"
+        :after="saleEndsEarningsSummary.after"
+        unit="/hr"
+      />
+      <ResearchPurchasePreview
+        :items="saleEndsPreview"
+        label="Most efficient delivery research until sale ends"
+        empty-text="Nothing to buy right now"
+      />
       <RatePreviewDelta
         v-if="saleEndsDeliverySummary"
         label="Delivery Rate"
@@ -137,6 +152,8 @@ defineProps<{
   saleAwarePreview: ResearchSummaryItem[];
   saleAwareExcludedAt100Preview: ResearchSummaryItem[];
   saleEndsPreview: ResearchSummaryItem[];
+  saleEndsEarningsPreview: ResearchSummaryItem[];
+  saleEndsEarningsSummary: RateSummary;
   saleAwareEarningsSummary70: RateSummary;
   saleAwareEarningsSummary100: RateSummary;
   saleEndsDeliverySummary: RateSummary | null;

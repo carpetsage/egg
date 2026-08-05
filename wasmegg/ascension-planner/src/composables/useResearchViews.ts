@@ -834,6 +834,10 @@ export function useResearchViews() {
     if (!isResearchSaleActive.value) {
       return {
         researchIds: [] as string[],
+        earningsResearchIds: [] as string[],
+        deliveryResearchIds: [] as string[],
+        earningsEndLevels: {} as Record<string, number>,
+        earningsEndSnapshot: actionsStore.effectiveSnapshot,
         endLevels: {} as Record<string, number>,
         endSnapshot: actionsStore.effectiveSnapshot,
       };
@@ -854,8 +858,16 @@ export function useResearchViews() {
     );
   });
 
+  // Split into two summaries instead of one combined diff, so the UI can label the earnings-prelude
+  // purchases (bought purely to speed up the delivery research that follows) separately from the
+  // delivery research they were bought to speed up. `earningsEndLevels` is the midpoint `simulateSaleEndsBuy`
+  // already computes between the plan's start levels and its final `endLevels`.
+  const saleEndsEarningsPreview = computed(() =>
+    summarizeResearchLevelChanges(commonResearchStore.researchLevels, saleEndsPlan.value.earningsEndLevels)
+  );
+
   const saleEndsPreview = computed(() =>
-    summarizeResearchLevelChanges(commonResearchStore.researchLevels, saleEndsPlan.value.endLevels)
+    summarizeResearchLevelChanges(saleEndsPlan.value.earningsEndLevels, saleEndsPlan.value.endLevels)
   );
 
   // Current vs. simulated-post-purchase earnings rate for the 70%/100% Return buttons — the
@@ -871,6 +883,15 @@ export function useResearchViews() {
   const saleAwareEarningsSummary100 = computed(() => ({
     before: currentOfflineEarningsHourly.value,
     after: saleAwarePlan100.value.endSnapshot.offlineEarnings * 3600,
+  }));
+
+  // Current vs. simulated-post-earnings-prelude earnings rate for "Buy Until Sale Ends" — same
+  // shape as `saleAwareEarningsSummary70/100` above, just measured at `earningsEndSnapshot` (the
+  // midpoint between the plan's earnings-prelude and delivery portions) instead of a whole plan's
+  // `endSnapshot`.
+  const saleEndsEarningsSummary = computed(() => ({
+    before: currentOfflineEarningsHourly.value,
+    after: saleEndsPlan.value.earningsEndSnapshot.offlineEarnings * 3600,
   }));
 
   // Current vs. simulated-post-purchase Delivery Rate for "Buy Until Sale Ends" — same "realistic"
@@ -1121,6 +1142,8 @@ export function useResearchViews() {
     saleAwareExcludedAt100Preview,
     saleEndsPlan,
     saleEndsPreview,
+    saleEndsEarningsPreview,
+    saleEndsEarningsSummary,
     saleAwareEarningsSummary70,
     saleAwareEarningsSummary100,
     saleEndsDeliverySummary,
