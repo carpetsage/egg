@@ -15,9 +15,11 @@ import { runC3, type C3Params, type C3Variant } from './shifts/c3';
 import { runH1 } from './shifts/h1';
 import { runK3 } from './shifts/k3';
 import { runC4, runI2, runR2, runH2, runTEWaitShift, distributeTargetTE, solveTEForTimeBudget } from './shifts/te-wait';
-import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
+import { countSalesThrough, isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { computeRealisticELR } from '@/calculations/realisticELR';
+import { calculateEggValue } from '@/calculations/eggValue';
+import { calculateEarnings } from '@/calculations/earnings';
 import { getTiers, isTierUnlocked } from '@/calculations/commonResearch';
 import type { VirtueEgg } from '@/types';
 
@@ -232,6 +234,42 @@ function calculatePeakELR(state: EngineState, context: SimulationContext): numbe
 }
 
 /**
+ * Converts a peak ELR (eggs/second) into its money/second equivalent at `te`, using `state`'s
+ * research/artifact levels for egg value and `context` for the earnings multipliers. Mirrors the
+ * egg-value and earnings steps of `computeSnapshot` (engine/compute.ts), but with the caller's own
+ * ELR override rather than the pipeline's own hab/lay/shipping calculation.
+ */
+function calculatePeakEarningsRate(
+  state: EngineState,
+  context: SimulationContext,
+  peakELR: number,
+  te: number
+): number {
+  const artifactMods = calculateArtifactModifiers(state.artifactLoadout);
+
+  const eggValueOutput = calculateEggValue({
+    baseValue: 1,
+    researchLevels: state.researchLevels,
+    artifactMultiplier: artifactMods.eggValue.totalMultiplier,
+    artifactEffects: artifactMods.eggValue.effects,
+  });
+
+  const earningsOutput = calculateEarnings({
+    eggValue: eggValueOutput.finalValue,
+    effectiveLayRate: peakELR,
+    te,
+    earningsMultiplier: context.colleggtibleModifiers.earnings,
+    awayEarningsMultiplier: context.colleggtibleModifiers.awayEarnings,
+    artifactAwayMultiplier: artifactMods.awayEarnings.totalMultiplier,
+    videoDoublerMultiplier: context.assumeDoubleEarnings ? 2 : 1,
+    eventMultiplier: state.earningsBoost.active ? state.earningsBoost.multiplier : 1,
+    artifactEffects: artifactMods.awayEarnings.effects,
+  });
+
+  return earningsOutput.onlineEarnings;
+}
+
+/**
  * Orchestrates a complete 12-shift ascension (C1 does not count as a shift).
  * 
  * @param startState - Starting engine state
@@ -268,6 +306,9 @@ export function runAscension(
 
   let skip = resumeData ? true : false;
   const ascShiftTimings: { name: string; ms: number }[] = [];
+  // Set once H1 finishes below — H1 and K3 are adjacent in `allShifts`, so "end of H1" and
+  // "start of K3" are the same instant.
+  let buildDurationSeconds = 0;
 
   if (!resumeData) {
     const t0 = performance.now();
@@ -346,6 +387,8 @@ export function runAscension(
     currentActions.push(...result.actions);
     currentState = result.endState;
     totalElapsedSeconds += result.elapsedSeconds;
+
+    if (shift.name === 'H1') buildDurationSeconds = totalElapsedSeconds;
   }
 
   // const ascTotalMs = ascShiftTimings.reduce((sum, t) => sum + t.ms, 0);
@@ -391,12 +434,7 @@ export function runAscension(
   const seResult = computeShiftCosts(startState.soulEggs, startState.shiftCount, actualShiftCount);
 
   // Calculate sale count in build phase
-  let saleCount = isResearchSaleActive(startTime) ? 1 : 0;
-  let nextSale = getNextSaleStart(startTime);
-  while (nextSale < buildPhaseEnd) {
-    saleCount++;
-    nextSale = getNextSaleStart(nextSale + 1);
-  }
+  const saleCount = countSalesThrough(startTime, buildPhaseEnd);
 
   // finalTE is the source of truth for TE totals: it's derived directly from
   // eggsDelivered, whereas currentState.te is an incrementally-maintained counter
@@ -421,10 +459,12 @@ export function runAscension(
     totalDurationSeconds: totalElapsedSeconds,
     buildPhaseEndTime: buildPhaseEnd,
     buildPhaseSaleCount: saleCount,
+    buildDurationSeconds,
     startTE: startState.te,
     endTE,
     teGained: endTE - startState.te,
     maxELR: currentState.maxELR || 0,
+    maxEarningsRate: calculatePeakEarningsRate(currentState, context, currentState.maxELR || 0, endTE),
     startSoulEggs: startState.soulEggs,
     endSoulEggs: seResult.endingSE,
     startShiftCount: startState.shiftCount,
@@ -622,10 +662,12 @@ export function runContinueCurrent(
     totalDurationSeconds: totalElapsedSeconds,
     buildPhaseEndTime: startTime, // No build phase
     buildPhaseSaleCount: 1,
+    buildDurationSeconds: 0, // No build phase
     startTE: startState.te,
     endTE,
     teGained: endTE - startState.te,
     maxELR: currentELR,
+    maxEarningsRate: calculatePeakEarningsRate(currentState, context, currentELR, endTE),
     startSoulEggs: startState.soulEggs,
     endSoulEggs: seResult.endingSE,
     startShiftCount: startState.shiftCount,

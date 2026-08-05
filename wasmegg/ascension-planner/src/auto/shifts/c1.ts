@@ -127,12 +127,12 @@ export function runC1(
 
   // 5. Spend whatever time remains buying research in ROI order, re-ranking after each purchase
   // since buying one thing changes the ROI math for everything else. Stops the moment a purchase
-  // fails — whether from running out of time budget or nothing being worth buying. No shared
-  // helper matches this exactly — closest is `runBuyUntilSaleWarning`, which additionally filters
-  // out anything that would trigger a sale warning; this sweep deliberately buys in plain ROI order
-  // with no such filter. Only the ranking/check callback below is C1-specific — the purchase
-  // mechanics themselves come from `createMilestoneShiftHelpers`, the same factory
-  // `runResearchMilestoneIfWorthwhile`/`runTierUnlockMilestone`/`runSmartBuyForSeconds` build on
+  // fails — whether from running out of time budget or nothing being worth buying. Deliberately buys
+  // in plain ROI order with no sale-warning/deadline filter — unlike the sale-aware plans C3 uses
+  // (`simulateSaleAwareBuy`/`simulateSaleEndsBuy`), which target a specific sale boundary, this sweep
+  // just wants the best ROI use of whatever time is left. Only the ranking/check callback below is
+  // C1-specific — the purchase mechanics themselves come from `createMilestoneShiftHelpers`, the same
+  // factory `runResearchMilestoneIfWorthwhile`/`runTierUnlockMilestone`/`runSmartBuyForSeconds` build on
   // above, rather than a local reimplementation.
   const roiSweepBudget = remainingBudget();
   const roiHelpers = createMilestoneShiftHelpers(currentState, context);
