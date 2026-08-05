@@ -309,6 +309,11 @@ export function runAscension(
   // Set once H1 finishes below — H1 and K3 are adjacent in `allShifts`, so "end of H1" and
   // "start of K3" are the same instant.
   let buildDurationSeconds = 0;
+  // Eggs whose TE-earning shift (K3/C4/I2/R2/H2) has already run this ascension. Passed to
+  // distributeTargetTE/solveTEForTimeBudget so they stop being candidates for the *next* shift's
+  // marginal TE allocation — otherwise a later recompute can "spend" the remaining TE budget on an
+  // egg that will never be visited again, silently undershooting the requested target.
+  const lockedEggs: VirtueEgg[] = [];
 
   if (!resumeData) {
     const t0 = performance.now();
@@ -353,25 +358,34 @@ export function runAscension(
         kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
       };
       
+      const activeEgg: VirtueEgg =
+        shift.name === 'K3' ? 'kindness' :
+        shift.name === 'C4' ? 'curiosity' :
+        shift.name === 'I2' ? 'integrity' :
+        shift.name === 'R2' ? 'resilience' : 'humility';
+
       let peakELR = currentState.maxELR || 0;
       if (shift.name === 'K3' && peakELR === 0) {
         peakELR = calculatePeakELR(currentState, context);
       }
-      
+
       let effectiveTargetTE = targetTE;
       if (targetEndTime && !effectiveTargetTE) {
         const timeBudget = Math.max(0, targetEndTime - (startTime + totalElapsedSeconds));
-        effectiveTargetTE = solveTEForTimeBudget(currentTEs, currentState.eggsDelivered, peakELR, timeBudget);
+        effectiveTargetTE = solveTEForTimeBudget(currentTEs, currentState.eggsDelivered, peakELR, timeBudget, lockedEggs);
       }
 
-      const targets = distributeTargetTE(currentState.eggsDelivered, effectiveTargetTE || currentState.te);
+      // lockedEggs excludes eggs already processed by an earlier shift this ascension — see the
+      // comment on `lockedEggs` above for why that's required (bug: 2026-08-05, off-by-one-TE).
+      const targets = distributeTargetTE(currentState.eggsDelivered, effectiveTargetTE || currentState.te, lockedEggs);
 
       if (shift.name === 'K3') {
-        result = shift.run(currentState, context, buildPhaseEnd, targets['kindness']);
+        result = shift.run(currentState, context, buildPhaseEnd, targets[activeEgg]);
       } else {
-        const eggMap: Record<string, VirtueEgg> = { 'C4': 'curiosity', 'I2': 'integrity', 'R2': 'resilience', 'H2': 'humility' };
-        result = shift.run(currentState, context, targets[eggMap[shift.name]], peakELR);
+        result = shift.run(currentState, context, targets[activeEgg], peakELR);
       }
+
+      lockedEggs.push(activeEgg);
     } else {
       result = shift.run(currentState, context);
     }

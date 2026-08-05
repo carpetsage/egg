@@ -29,7 +29,10 @@ export interface C3Params {
  *    This naturally does fewer cycles (or none) if step 2's Tier 13 unlock already consumed enough
  *    real time to cross earlier sales while buying — the loop just walks forward from wherever
  *    `getAbsTime()` currently is via `getNextSaleStart`/`getNextSaleEnd`, it doesn't count cycles.
- * 4. Buy delivery research until the final sale ends.
+ * 4. Buy delivery research until nothing more is worth buying (not necessarily until the sale
+ *    itself ends — once purchasing stalls out, C3 stops there rather than padding the clock the
+ *    rest of the way to `buildPhaseEnd`; K3, the next shift, already waits out any remaining time
+ *    against that same `buildPhaseEnd`, so a second wait here would be redundant).
  *
  * Steps 3-4 both reuse the exact same plan-computation functions the manual planner's "Buy Until
  * Sale Warning"/"Buy Until Sale Ends" buttons are built on — `simulateSaleAwareBuy`/
@@ -184,8 +187,10 @@ export function runC3(
     const isFinalSale = isResearchSaleActive(absTime) && getNextSaleEnd(absTime) >= buildPhaseEnd;
 
     if (isFinalSale) {
+      // No trailing wait to buildPhaseEnd here: once nothing more is worth buying, there's nothing
+      // productive left for C3 to do — the next shift (K3) already waits out any remaining time
+      // against this same buildPhaseEnd itself, so padding the clock here would just be redundant.
       buyUntilSaleEnds(buildPhaseEnd);
-      advanceTime(Math.max(0, buildPhaseEnd - getAbsTime()));
       break;
     }
 
@@ -193,9 +198,8 @@ export function runC3(
     if (nextSaleStart >= buildPhaseEnd) {
       // No more sales start before the deadline (shouldn't normally happen — `buildPhaseEnd` is
       // always an exact sale-end — but kept as a defensive fallback). Spend what's left as a final
-      // delivery push.
+      // delivery push; same no-trailing-wait reasoning as the `isFinalSale` branch above.
       buyUntilSaleEnds(buildPhaseEnd);
-      advanceTime(Math.max(0, buildPhaseEnd - getAbsTime()));
       break;
     }
 
