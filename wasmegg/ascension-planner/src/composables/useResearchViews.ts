@@ -777,10 +777,10 @@ export function useResearchViews() {
     return ranked.map(toResearchViewItemFromELR);
   });
 
-  // Dry-run plan for the sale-aware ROI buy flow ("70% Return" / "100% Return") — the single
-  // source of truth for "what gets bought, in what order" for both the Smart Buy preview and the
-  // real button click (see `simulateSaleAwareBuy`'s own doc comment). No `currentView` gate, same
-  // rationale as `roiRankedResearches` above.
+  // Dry-run plan for the sale-aware ROI buy flow ("70% Return") — the single source of truth for
+  // "what gets bought, in what order" for both the Smart Buy preview and the real button click
+  // (see `simulateSaleAwareBuy`'s own doc comment). No `currentView` gate, same rationale as
+  // `roiRankedResearches` above.
   const saleAwarePlan70 = computed(() => {
     const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
     const offset = actionsStore.planStartOffset;
@@ -799,32 +799,8 @@ export function useResearchViews() {
     );
   });
 
-  const saleAwarePlan100 = computed(() => {
-    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
-    const offset = actionsStore.planStartOffset;
-    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
-    return simulateSaleAwareBuy(
-      commonResearchStore.researchLevels,
-      actionsStore.effectiveSnapshot,
-      getSimulationContext(),
-      costModifiers.value,
-      absoluteSimTime,
-      researchSaleDeadline.value,
-      nextSaleStart.value,
-      roiMode.value,
-      deliveryImpactOnly.value,
-      100
-    );
-  });
-
   const saleAwarePreview = computed(() =>
     summarizeResearchLevelChanges(commonResearchStore.researchLevels, saleAwarePlan70.value.endLevels)
-  );
-
-  // "What 70% Return buys beyond what 100% Return would" — same summarizer, just with the two
-  // simulated end-states swapped in as "start"/"end" instead of "current"/"simulated".
-  const saleAwareExcludedAt100Preview = computed(() =>
-    summarizeResearchLevelChanges(saleAwarePlan100.value.endLevels, saleAwarePlan70.value.endLevels)
   );
 
   // Dry-run plan for "Buy Until Sale Ends" — only computed while a sale is actually active, same
@@ -870,8 +846,8 @@ export function useResearchViews() {
     summarizeResearchLevelChanges(saleEndsPlan.value.earningsEndLevels, saleEndsPlan.value.endLevels)
   );
 
-  // Current vs. simulated-post-purchase earnings rate for the 70%/100% Return buttons — the
-  // `endSnapshot` each plan already carries (see `simulateSaleAwareBuy`'s doc comment) is exactly
+  // Current vs. simulated-post-purchase earnings rate for the 70% Return button — the
+  // `endSnapshot` the plan already carries (see `simulateSaleAwareBuy`'s doc comment) is exactly
   // what this needed, no extra simulation required.
   const currentOfflineEarningsHourly = computed(() => actionsStore.effectiveSnapshot.offlineEarnings * 3600);
 
@@ -880,13 +856,8 @@ export function useResearchViews() {
     after: saleAwarePlan70.value.endSnapshot.offlineEarnings * 3600,
   }));
 
-  const saleAwareEarningsSummary100 = computed(() => ({
-    before: currentOfflineEarningsHourly.value,
-    after: saleAwarePlan100.value.endSnapshot.offlineEarnings * 3600,
-  }));
-
   // Current vs. simulated-post-earnings-prelude earnings rate for "Buy Until Sale Ends" — same
-  // shape as `saleAwareEarningsSummary70/100` above, just measured at `earningsEndSnapshot` (the
+  // shape as `saleAwareEarningsSummary70` above, just measured at `earningsEndSnapshot` (the
   // midpoint between the plan's earnings-prelude and delivery portions) instead of a whole plan's
   // `endSnapshot`.
   const saleEndsEarningsSummary = computed(() => ({
@@ -1137,15 +1108,12 @@ export function useResearchViews() {
     roiRankedResearches,
     elrRankedResearches,
     saleAwarePlan70,
-    saleAwarePlan100,
     saleAwarePreview,
-    saleAwareExcludedAt100Preview,
     saleEndsPlan,
     saleEndsPreview,
     saleEndsEarningsPreview,
     saleEndsEarningsSummary,
     saleAwareEarningsSummary70,
-    saleAwareEarningsSummary100,
     saleEndsDeliverySummary,
     realisticSummary,
     researchSaleDeadline,

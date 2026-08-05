@@ -66,12 +66,13 @@ export interface SimpleBuyPlan {
 }
 
 /**
- * Dry run of the sale-aware ROI buy flow ("70% Return" / "100% Return") — mirrors
- * `runSaleAwareBuyFlow` in ResearchActions.vue, but against disposable scratch state instead of
- * the live plan, so it can run reactively for a preview. Re-derives sale state from the simulated
- * clock via `isResearchSaleActive` at each step rather than replicating the real flow's
- * `insertWait`/`insertToggleSale` bookkeeping — that machinery only writes real history records
- * for the player to see later, it doesn't change which research gets picked.
+ * Dry run of the sale-aware ROI buy flow ("70% Return", parameterized by `targetPercent` so other
+ * thresholds remain possible) — mirrors `runSaleAwareBuyFlow` in ResearchActions.vue, but against
+ * disposable scratch state instead of the live plan, so it can run reactively for a preview.
+ * Re-derives sale state from the simulated clock via `isResearchSaleActive` at each step rather
+ * than replicating the real flow's `insertWait`/`insertToggleSale` bookkeeping — that machinery
+ * only writes real history records for the player to see later, it doesn't change which research
+ * gets picked.
  *
  * Returns the plan `ResearchActions.vue`'s real handler executes directly (see its own comments) —
  * this function is the single source of truth for "what gets bought, in what order" for both the
@@ -213,15 +214,15 @@ export interface EarningsPreludeCheckpoint {
 /**
  * Simulates buying earnings research, best-ROI-first, for as long as each purchase can still earn
  * back 100% of its own price before `researchSaleDeadline` — the end of the CURRENTLY ACTIVE
- * research sale, not the next sale start (unlike `simulateSaleAwareBuy`'s 70%/100% Return plans,
- * which target the next sale). Always ranks across every research category in 'immediate' ROI mode,
+ * research sale, not the next sale start (unlike `simulateSaleAwareBuy`'s 70% Return plan, which
+ * targets the next sale). Always ranks across every research category in 'immediate' ROI mode,
  * regardless of the Smart Buy tab's own `deliveryImpactOnly`/`roiMode` settings — deciding what
  * earnings research is worth buying before switching to delivery research this sale is a distinct
- * question from those buttons', with its own fixed answer, not something meant to follow whatever
+ * question from that button's, with its own fixed answer, not something meant to follow whatever
  * the tab happens to be configured for.
  *
  * Deliberately does NOT use `meetsSaleAwareDeadline`'s during-sale bypass. That bypass exists so the
- * 70%/100% Return buttons buy through an already-active sale at its real discount without also
+ * 70% Return button buys through an already-active sale at its real discount without also
  * demanding it clears the ROI bar (missing the discount, not the ROI bar, is the real cost there).
  * This function only ever runs while a sale is active (see `simulateSaleEndsBuy`'s own gating), so
  * reusing that bypass here would let nearly every candidate through regardless of ROI and defeat the
