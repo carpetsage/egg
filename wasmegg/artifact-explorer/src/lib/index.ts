@@ -3,6 +3,7 @@ export * from './missions';
 export * from './loot';
 export * from './optimizer-views';
 export * from './optimizer-tree';
+export * from './tank-ids';
 
 import type { DAGNode, LaunchSolution, OptimizerConfig, OptimizerSolution, DropRow, RecipeDAG } from './types';
 import { enumerateLaunchOptions, generateRecipeDag } from './phases';
@@ -11,9 +12,8 @@ import { ei, getArtifactTierPropsFromId, getCraftingInfoFromLevel, Inventory, In
 
 import { iconURL } from 'lib';
 
-// Build the recipe DAG for the desired artifacts, plus the player's starting
-// quantities for each ingredient node. Each root's legendaryCraftProbability
-// comes from the player's crafting XP and prior craft count.
+// An undefined previousCraftsOverride means "read each target's own crafted
+// count from the save"; a defined one applies to every target.
 export function buildRecipeDag(
   desiredArtifactNodeIds: string[],
   playerLevel: number,
@@ -46,6 +46,8 @@ export function buildRecipeDag(
   return recipeDag;
 }
 
+// Counted across all rarities: this is "copies you can feed a recipe", never
+// "you already own a legendary". See OPTIMIZER.md.
 export function computeBaseYield(
   playerInventory: Inventory | null | undefined,
   desiredArtifactNodeIds: string[],
@@ -54,10 +56,16 @@ export function computeBaseYield(
   const baseYield = new Map<string, number>();
 
   if (playerInventory) {
-    const rootIds = new Set(desiredArtifactNodeIds);
+    // Must match compileInnerLp's parent relation exactly.
+    const hasParent = new Set<string>();
+    for (const node of recipeDag.values()) {
+      if (node.isLeaf) continue;
+      for (const child of node.children) hasParent.add(child.nodeId);
+    }
+    const unconsumedTargets = new Set(desiredArtifactNodeIds.filter(id => !hasParent.has(id)));
 
     for (const nodeId of recipeDag.keys()) {
-      if (rootIds.has(nodeId)) continue;
+      if (unconsumedTargets.has(nodeId)) continue;
       const props = getArtifactTierPropsFromId(nodeId);
       const item = playerInventory.getItem({ name: props.afx_id, level: props.afx_level });
       const total = item.have;
@@ -108,9 +116,18 @@ function computeFuelByEgg(solution: OptimizerSolution): Map<ei.Egg, number> {
   return totals;
 }
 
-// Run the optimizer and fill in the presentation-only fields. Returns an
-// array though today it's always one solution. May extend this to return
-// top N solutions.
+// Presentation-only fields. The worker path applies this on the main thread
+// afterwards, so both it and optimize() below produce identical solutions.
+export function finalizeSolutions(solutions: OptimizerSolution[], dag: RecipeDAG): OptimizerSolution[] {
+  for (const solution of solutions) {
+    solution.choiceHistory.sort((a: LaunchSolution, b: LaunchSolution) => a.ship.shipType - b.ship.shipType);
+    solution.expectedDrops = computeExpectedDrops(solution, dag);
+    solution.fuelByEgg = computeFuelByEgg(solution);
+  }
+  return solutions;
+}
+
+// Returns an array though today it's always one solution.
 export function optimize(
   config: OptimizerConfig,
   playerConfig: ShipsConfig,
@@ -133,14 +150,7 @@ export function optimize(
     }),
   ];
 
-  // Properties for presentation layer, easier to compute here
-  for (const solution of solutions) {
-    solution.choiceHistory.sort((a: LaunchSolution, b: LaunchSolution) => a.ship.shipType - b.ship.shipType);
-    solution.expectedDrops = computeExpectedDrops(solution, dag);
-    solution.fuelByEgg = computeFuelByEgg(solution);
-  }
-
-  return solutions;
+  return finalizeSolutions(solutions, dag);
 }
 
 export type {

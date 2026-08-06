@@ -88,11 +88,15 @@ export function isEffortLevel(x: unknown): x is EffortLevel {
   return (EFFORT_LEVELS as readonly unknown[]).includes(x);
 }
 
+export const DEFAULT_WAIT_TIME_DAYS = '30';
+
 export interface MissionFilters {
   effort: EffortLevel;
   // Maximum gem cost of a mission's ship on the Egg of Humility.
   maxGemCostEnabled: boolean;
   maxGemCost: number;
+  // Time budget, stored as typed (e.g. '30', '12d12h') and parsed at use.
+  waitTimeDays: string;
 }
 
 export function newMissionFilters(): MissionFilters {
@@ -100,6 +104,7 @@ export function newMissionFilters(): MissionFilters {
     effort: 'medium',
     maxGemCostEnabled: false,
     maxGemCost: virtueShipGemCosts[ei.MissionInfo.Spaceship.ATREGGIES],
+    waitTimeDays: DEFAULT_WAIT_TIME_DAYS,
   };
 }
 
@@ -109,6 +114,7 @@ export function isMissionFilters(x: unknown): x is MissionFilters {
   return (
     (m.effort === undefined || isEffortLevel(m.effort)) &&
     (m.maxGemCostEnabled === undefined || typeof m.maxGemCostEnabled === 'boolean') &&
-    (m.maxGemCost === undefined || typeof m.maxGemCost === 'number')
+    (m.maxGemCost === undefined || typeof m.maxGemCost === 'number') &&
+    (m.waitTimeDays === undefined || typeof m.waitTimeDays === 'string')
   );
 }

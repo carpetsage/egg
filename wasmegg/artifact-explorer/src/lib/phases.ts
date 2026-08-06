@@ -15,8 +15,7 @@ import { getMissionLootData, MIN_LEGENDARY_OBSERVATIONS } from '@/lib';
 import { sum } from '@/utils';
 import { Ingredient } from 'lib/artifacts/data-json';
 
-// Recursively add `id` and everything in its crafting tree to `recipeDag`.
-// Non-craftable artifacts become leaves with no children.
+// Recursively add `id` and its whole crafting tree to `recipeDag`.
 export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
   if (recipeDag.has(id)) return;
 
@@ -43,11 +42,9 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
   }
 }
 
-// Enumerate launch options: every visible ship crossed with its applicable
-// mission targets, with per-single-ship costs and yields. launchPeriodSeconds
-// floors each mission's effective duration (see EFFORT_LAUNCH_PERIOD_SECONDS),
-// penalising short missions without banning them. Ships costing more gems
-// than maxGemCost (if given) are skipped.
+// Every visible ship crossed with its applicable mission targets, costed per
+// single ship. launchPeriodSeconds floors each mission's effective duration,
+// penalising short missions without banning them.
 export function enumerateLaunchOptions(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
@@ -56,8 +53,7 @@ export function enumerateLaunchOptions(
 ): LaunchOption[] {
   const options: LaunchOption[] = [];
 
-  // Artifact families represented anywhere in the DAG. Targeting boosts a
-  // whole family, so that's the granularity that matters here.
+  // Targeting boosts a whole family, so family is the right granularity here.
   const dagAfxIds = new Set<ei.ArtifactSpec.Name>();
   for (const nodeId of dag.keys()) {
     dagAfxIds.add(getArtifactTierPropsFromId(nodeId).afx_id);
@@ -78,10 +74,8 @@ export function enumerateLaunchOptions(
       ? levelLootData.targets
       : levelLootData.targets.filter(target => target.targetAfxId === ei.ArtifactSpec.Name.UNKNOWN);
 
-    // Keep every untargeted option and every option targeting a family in the
-    // DAG. Targets outside the DAG are interchangeable for our purposes, so
-    // keep just one representative: the one with the most recorded drops,
-    // since its sampled rates are the most trustworthy.
+    // Targets outside the DAG are interchangeable, so keep one representative:
+    // the one with the most recorded drops.
     let bestNonDagTarget: (typeof applicableTargets)[number] | undefined;
     for (const target of applicableTargets) {
       if (target.targetAfxId === ei.ArtifactSpec.Name.UNKNOWN) continue;

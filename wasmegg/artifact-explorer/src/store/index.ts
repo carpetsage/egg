@@ -22,6 +22,7 @@ import Spaceship = ei.MissionInfo.Spaceship;
 import DurationType = ei.MissionInfo.DurationType;
 
 import {
+  DEFAULT_WAIT_TIME_DAYS,
   EffortLevel,
   ExtrasConfig,
   isEffortLevel,
@@ -129,9 +130,9 @@ export const playerInventory = shallowRef<Inventory | null>(null);
 export const playerTotalCraftingXp = ref<number | null>(null);
 export const playerTankLevel = ref<number | null>(null);
 
-// Set by ArtifactMissionOptimizer so the override modal can show the prior
-// craft count for the targeted artifact.
-export const currentOptimizerArtifactId = ref<string | null>(null);
+// Set by ArtifactMissionOptimizer so the settings UI can show the prior craft
+// count of every selected target.
+export const currentOptimizerArtifactIds = ref<string[]>([]);
 
 export const playerCraftingLevel = computed<number | null>(() => {
   const xp = playerTotalCraftingXp.value;
@@ -139,12 +140,22 @@ export const playerCraftingLevel = computed<number | null>(() => {
   return getCraftingLevelFromXp(xp).level;
 });
 
-export const playerPreviousCrafts = computed<number | null>(() => {
+export const playerPreviousCraftsByArtifact = computed<Map<string, number>>(() => {
+  const counts = new Map<string, number>();
   const inv = playerInventory.value;
-  const id = currentOptimizerArtifactId.value;
-  if (!inv || !id) return null;
-  const props = getArtifactTierPropsFromId(id);
-  return inv.getItem({ name: props.afx_id, level: props.afx_level }).crafted;
+  if (!inv) return counts;
+  for (const id of currentOptimizerArtifactIds.value) {
+    const props = getArtifactTierPropsFromId(id);
+    counts.set(id, inv.getItem({ name: props.afx_id, level: props.afx_level }).crafted);
+  }
+  return counts;
+});
+
+// The first target's count, used to seed the manual value.
+export const playerPreviousCrafts = computed<number | null>(() => {
+  const id = currentOptimizerArtifactIds.value[0];
+  if (id === undefined) return null;
+  return playerPreviousCraftsByArtifact.value.get(id) ?? null;
 });
 
 // Effective values consumed by the optimizer.
@@ -154,10 +165,10 @@ export const effectiveCraftingLevel = computed<number>(() => {
   return overrides.value.craftingLevel ? extras.value.craftingLevel : player;
 });
 
-export const effectivePreviousCrafts = computed<number>(() => {
-  const player = playerPreviousCrafts.value;
-  if (player == null) return extras.value.previousCrafts;
-  return overrides.value.previousCrafts ? extras.value.previousCrafts : player;
+// undefined means every target uses its own crafted count from the save.
+export const effectivePreviousCraftsOverride = computed<number | undefined>(() => {
+  if (!playerInventory.value) return extras.value.previousCrafts;
+  return overrides.value.previousCrafts ? extras.value.previousCrafts : undefined;
 });
 
 export const effectiveTankLevel = computed<number>(() => {
@@ -388,6 +399,10 @@ export function setMaxGemCost(cost: number): void {
   missionFilters.value.maxGemCost = Math.max(0, cost);
 }
 
+export function setWaitTimeDays(v: string): void {
+  missionFilters.value.waitTimeDays = v;
+}
+
 export function loadMissionFilters(): MissionFilters {
   const str = getLocalStorage(MISSION_FILTERS_LOCALSTORAGE_KEY);
   if (!str) return newMissionFilters();
@@ -399,6 +414,7 @@ export function loadMissionFilters(): MissionFilters {
         effort: isEffortLevel(parsed.effort) ? parsed.effort : 'medium',
         maxGemCostEnabled: parsed.maxGemCostEnabled ?? false,
         maxGemCost: parsed.maxGemCost ?? 0,
+        waitTimeDays: parsed.waitTimeDays ?? DEFAULT_WAIT_TIME_DAYS,
       };
     }
   } catch (err) {

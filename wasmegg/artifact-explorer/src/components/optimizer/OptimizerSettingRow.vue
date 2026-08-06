@@ -36,14 +36,25 @@
           />
         </div>
         <span v-if="maxLabel" class="text-xs text-gray-400">{{ maxLabel }}</span>
-        <span v-if="hasSave && saveValue !== null" class="text-xs text-gray-400">save: {{ saveValue }}</span>
+        <span v-if="hasSave && !perTargetSave && saveValue !== null" class="text-xs text-gray-400">
+          save: {{ saveValue }}
+        </span>
       </template>
       <template v-else>
-        <span class="font-mono text-sm font-semibold text-gray-800">{{ saveValue }}</span>
+        <span v-if="!perTargetSave" class="font-mono text-sm font-semibold text-gray-800">{{ saveValue }}</span>
         <span v-if="maxLabel" class="text-xs text-gray-400">{{ maxLabel }}</span>
       </template>
       <span v-if="capacity" class="ml-auto text-xs text-gray-500">{{ capacity }}</span>
     </div>
+
+    <ul v-if="perTargetSave" class="mt-1 space-y-0.5" :class="editable ? 'opacity-60' : ''">
+      <li v-for="entry in saveEntries" :key="entry.id" class="flex items-center justify-between gap-2">
+        <span class="text-xs text-gray-500 truncate">{{ entry.label }}</span>
+        <span class="font-mono text-xs font-semibold text-gray-800 flex-shrink-0">{{ entry.value }}</span>
+      </li>
+    </ul>
+
+    <p v-if="hint && editable" class="mt-1 text-xs text-gray-400">{{ hint }}</p>
   </div>
 </template>
 
@@ -62,6 +73,11 @@ export default defineComponent({
     overridden: { type: Boolean, default: false },
     // The value loaded from the save, shown when not overriding (null if none).
     saveValue: { type: Number as PropType<number | null>, default: null },
+    // Per-target save values; listed instead of the single saveValue.
+    saveEntries: {
+      type: Array as PropType<{ id: string; label: string; value: number }[]>,
+      default: () => [],
+    },
     // The manual value edited via the input.
     manualValue: { type: Number, required: true },
     min: { type: Number, default: 0 },
@@ -69,15 +85,18 @@ export default defineComponent({
     maxLabel: { type: String, default: '' },
     // Optional caption (e.g. fuel tank capacity) shown right-aligned.
     capacity: { type: String, default: '' },
+    // Optional note shown under the input while the value is editable.
+    hint: { type: String, default: '' },
   },
   emits: {
     'update:overridden': (_b: boolean) => true,
     'update:manual': (_n: number) => true,
   },
   setup(props) {
-    const { hasSave, overridden } = toRefs(props);
+    const { hasSave, overridden, saveEntries } = toRefs(props);
     // No save data → edit inline; save data + override on → edit inline.
     const editable = computed(() => !hasSave.value || overridden.value);
+    const perTargetSave = computed(() => hasSave.value && saveEntries.value.length > 0);
     const badge = computed<'save' | 'override' | 'manual'>(() => {
       if (!hasSave.value) return 'manual';
       return overridden.value ? 'override' : 'save';
@@ -92,7 +111,7 @@ export default defineComponent({
           return 'bg-gray-100 text-gray-500';
       }
     });
-    return { editable, badge, badgeClass };
+    return { editable, perTargetSave, badge, badgeClass };
   },
 });
 </script>

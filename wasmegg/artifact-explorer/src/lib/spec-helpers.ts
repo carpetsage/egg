@@ -58,6 +58,7 @@ export function makeSolution(overrides: Partial<OptimizerSolution>): OptimizerSo
     recipeDag: new Map(),
     craftPrimal: new Map(),
     perTarget: [],
+    jointProbability: 0,
     ...overrides,
   };
 }

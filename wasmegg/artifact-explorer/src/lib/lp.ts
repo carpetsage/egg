@@ -6,7 +6,11 @@
 // Standard libraries had unaccetpable runtime characteristics where
 // this can make some simplifying assumptions
 
-export type LpStatus = 'optimal' | 'infeasible' | 'unbounded';
+// 'iteration-limit' means the pivot loop hit MAX_ITER without reaching a
+// certified-optimal basis. primal/duals then describe the last basis visited:
+// primal-feasible, but neither optimal nor a valid dual certificate. Callers
+// must not treat it as 'optimal'.
+export type LpStatus = 'optimal' | 'infeasible' | 'unbounded' | 'iteration-limit';
 
 export interface LpResult {
   status: LpStatus;
@@ -49,11 +53,32 @@ function makeResult(status: LpStatus, objective: number, n: number, m: number): 
 // (c, A) many times with only b changing, so the tableau init reduces to a
 // copy plus the RHS column. Assumes c and A are never mutated after the
 // first solve.
+//
+// The prototype holds the *equilibrated* problem. Our rows span fuel budgets
+// (~1e9..1e18) down to craft-conservation rows (~1); against an absolute EPS
+// the entering-variable test then misreads a genuinely improving column as
+// non-negative and the solve stops early claiming optimality. Two-sided
+// equilibration puts every |entry| in (0, 1] so the absolute EPS behaves like
+// a relative one. Both scalings depend only on (c, A), so they are computed
+// once here and applied per call as an O(m) scaling of b plus an O(n+m)
+// unscaling of the result:
+//
+//   r_i = max_j |A[i][j]|            row i  ->  A[i][:]/r_i,  b_i -> b_i/r_i
+//   s_j = max_i |A[i][j]|/r_i        col j  ->  A[:][j]/s_j,  c_j -> c_j/s_j
+//
+// Row scaling divides both sides of an inequality by a positive number, so the
+// feasible set and the optimal x are untouched; the dual of row i comes back as
+// y_i = y_scaled_i / r_i. Column scaling is the substitution x'_j = s_j x_j,
+// which leaves A x and c·x pointwise unchanged, so x_j = x_scaled_j / s_j and
+// the duals are unaffected. The objective value is invariant under both and is
+// returned as the solver computed it.
 interface ProtoEntry {
   c: Float64Array;
   n: number;
   m: number;
   proto: Float64Array;
+  rowScale: Float64Array; // r_i, length m
+  colScale: Float64Array; // s_j, length n
 }
 const protoCache = new WeakMap<Float64Array[], ProtoEntry>();
 
@@ -77,20 +102,47 @@ export function solveLp(c: Float64Array, A: Float64Array[], b: Float64Array): Lp
   let entry = protoCache.get(A);
   if (!entry || entry.c !== c || entry.n !== n || entry.m !== m) {
     const proto = new Float64Array(cells);
+    const rowScale = new Float64Array(m);
+    const colScale = new Float64Array(n);
+
+    for (let i = 0; i < m; i++) {
+      const Ai = A[i];
+      let r = 0;
+      for (let j = 0; j < n; j++) {
+        const v = Math.abs(Ai[j]);
+        if (v > r) r = v;
+      }
+      // an all-zero row imposes nothing; leave it alone rather than divide by 0
+      rowScale[i] = r > 0 && Number.isFinite(r) ? r : 1;
+    }
     for (let j = 0; j < n; j++) {
-      proto[j] = -c[j];
+      let s = 0;
+      for (let i = 0; i < m; i++) {
+        const v = Math.abs(A[i][j]) / rowScale[i];
+        if (v > s) s = v;
+      }
+      colScale[j] = s > 0 && Number.isFinite(s) ? s : 1;
+    }
+
+    for (let j = 0; j < n; j++) {
+      proto[j] = -c[j] / colScale[j];
     }
     for (let i = 0; i < m; i++) {
       const off = (i + 1) * W;
       const Ai = A[i];
+      const ri = rowScale[i];
       for (let j = 0; j < n; j++) {
-        proto[off + j] = Ai[j];
+        proto[off + j] = Ai[j] / (ri * colScale[j]);
       }
+      // the slack keeps a unit coefficient, i.e. it is the rescaled slack
+      // s'_i = s_i / r_i, nonnegative exactly when s_i is
       proto[off + n + i] = 1;
     }
-    entry = { c, n, m, proto };
+    entry = { c, n, m, proto, rowScale, colScale };
     protoCache.set(A, entry);
   }
+  const rowScale = entry.rowScale;
+  const colScale = entry.colScale;
 
   if (scratchT.length < cells) {
     scratchT = new Float64Array(cells);
@@ -98,7 +150,7 @@ export function solveLp(c: Float64Array, A: Float64Array[], b: Float64Array): Lp
   const T = scratchT;
   T.set(entry.proto);
   for (let i = 0; i < m; i++) {
-    T[(i + 1) * W + W - 1] = Math.max(0, b[i]);
+    T[(i + 1) * W + W - 1] = Math.max(0, b[i]) / rowScale[i];
   }
 
   if (scratchBasis.length < m) {
@@ -113,6 +165,9 @@ export function solveLp(c: Float64Array, A: Float64Array[], b: Float64Array): Lp
   // Within a few per-mil to HiGHS solver
   const MAX_ITER = 50 * (n + m + 1);
 
+  // distinguishes "no improving column exists" from "ran out of pivots";
+  // only the former certifies optimality
+  let converged = false;
   for (let iter = 0; iter < MAX_ITER; iter++) {
     // entering variable: lowest-index column with negative reduced cost (Bland)
     let pivCol = -1;
@@ -122,7 +177,10 @@ export function solveLp(c: Float64Array, A: Float64Array[], b: Float64Array): Lp
         break;
       }
     }
-    if (pivCol === -1) break; // optimal
+    if (pivCol === -1) {
+      converged = true;
+      break;
+    }
 
     // min-ratio test, ties broken by lowest basis index
     let pivRow = -1;
@@ -176,7 +234,8 @@ export function solveLp(c: Float64Array, A: Float64Array[], b: Float64Array): Lp
     basis[pivRow] = pivCol;
   }
 
-  const res = makeResult('optimal', T[W - 1], n, m);
+  // the objective is invariant under both scalings, so it needs no correction
+  const res = makeResult(converged ? 'optimal' : 'iteration-limit', T[W - 1], n, m);
   const primal = res.primal;
   primal.fill(0);
   for (let i = 0; i < m; i++) {
@@ -185,9 +244,12 @@ export function solveLp(c: Float64Array, A: Float64Array[], b: Float64Array): Lp
       primal[v] = T[(i + 1) * W + W - 1];
     }
   }
+  for (let j = 0; j < n; j++) {
+    primal[j] /= colScale[j];
+  }
   const duals = res.duals;
   for (let i = 0; i < m; i++) {
-    duals[i] = T[n + i];
+    duals[i] = T[n + i] / rowScale[i];
   }
   return res;
 }

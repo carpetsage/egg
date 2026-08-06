@@ -35,10 +35,7 @@
         </div>
 
         <div>
-          <div class="flex items-center justify-between">
-            <label class="text-sm text-gray-600">Effort</label>
-            <span class="text-xs font-medium text-gray-700">{{ effortMeta[missionFilters.effort].label }}</span>
-          </div>
+          <span class="text-sm text-gray-600">Effort</span>
           <div
             ref="effortTrack"
             role="slider"
@@ -75,8 +72,13 @@
               ></span>
             </div>
           </div>
-          <div class="mt-1 flex justify-between text-[11px] text-gray-400">
-            <span v-for="lvl in EFFORT_LEVELS" :key="'lbl-' + lvl">{{ effortMeta[lvl].short }}</span>
+          <div class="mt-1 flex items-baseline justify-between">
+            <span
+              v-for="lvl in EFFORT_LEVELS"
+              :key="'lbl-' + lvl"
+              :class="lvl === missionFilters.effort ? 'text-sm font-bold text-gray-900' : 'text-[11px] text-gray-400'"
+              >{{ effortMeta[lvl].short }}</span
+            >
           </div>
           <p class="mt-1 text-xs text-gray-400">{{ effortMeta[missionFilters.effort].hint }}</p>
         </div>
@@ -140,8 +142,10 @@
           :has-save="playerPreviousCrafts !== null"
           :overridden="overrides.previousCrafts"
           :save-value="playerPreviousCrafts"
+          :save-entries="previousCraftEntries"
           :manual-value="extras.previousCrafts"
           :min="0"
+          hint="Applies to every selected target."
           @update:overridden="setOverridePreviousCrafts"
           @update:manual="setPreviousCraftCount"
         />
@@ -201,7 +205,7 @@
     <!-- Compute -->
     <section>
       <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Compute</h3>
-      <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none mb-2">
+      <label class="flex items-center gap-2 text-sm mb-2 select-none text-gray-600 cursor-pointer">
         <input
           type="checkbox"
           class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
@@ -213,16 +217,20 @@
       <button
         v-if="!autoCompute"
         type="button"
+        :disabled="computing"
         class="w-full flex items-center justify-center px-3 py-2 border shadow-sm text-sm font-medium rounded-md focus:outline-none"
         :class="
-          pendingCompute
-            ? 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700'
-            : 'border-gray-300 text-gray-600 bg-gray-100 hover:bg-gray-200'
+          computing
+            ? 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
+            : pendingCompute
+              ? 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700'
+              : 'border-gray-300 text-gray-600 bg-gray-100 hover:bg-gray-200'
         "
         @click="$emit('runCompute')"
       >
-        {{ pendingCompute ? 'Recompute — results out of date' : 'Compute' }}
+        {{ computing ? 'Computing…' : pendingCompute ? 'Recompute — results out of date' : 'Compute' }}
       </button>
+      <p v-else-if="computing" role="status" class="text-xs text-gray-500">Computing…</p>
       <div class="mt-3">
         <loot-data-credit />
       </div>
@@ -237,6 +245,7 @@ import {
   formatDuration,
   formatEIValue,
   fuelTankSizes,
+  getArtifactTierPropsFromId,
   isDurationNormalizable,
   parseDurationDays,
   parseValueWithUnit,
@@ -250,6 +259,7 @@ import OptimizerSettingRow from './OptimizerSettingRow.vue';
 import {
   autoCompute,
   config,
+  currentOptimizerArtifactIds,
   effectiveConfig,
   EFFORT_LEVELS,
   type EffortLevel,
@@ -259,6 +269,7 @@ import {
   overrides,
   playerCraftingLevel,
   playerPreviousCrafts,
+  playerPreviousCraftsByArtifact,
   playerShipsConfig,
   playerTankLevel,
   setAutoCompute,
@@ -305,6 +316,7 @@ export default defineComponent({
   props: {
     playerId: { type: String, default: '' },
     pendingCompute: { type: Boolean, required: true },
+    computing: { type: Boolean, required: true },
     waitTimeDays: { type: String, required: true },
     timeBudgetInvalid: { type: Boolean, default: false },
   },
@@ -340,8 +352,17 @@ export default defineComponent({
     const maxTankLevel = fuelTankSizes.length - 1;
     const hasPlayerData = computed(() => !!playerShipsConfig.value);
 
-    // The tank level currently in effect for display; when editable this tracks
-    // the manual value, otherwise the save value.
+    // Shown when the override is off, in which case each target uses its own.
+    const previousCraftEntries = computed(() =>
+      currentOptimizerArtifactIds.value
+        .filter(id => playerPreviousCraftsByArtifact.value.has(id))
+        .map(id => ({
+          id,
+          label: getArtifactTierPropsFromId(id).name,
+          value: playerPreviousCraftsByArtifact.value.get(id)!,
+        }))
+    );
+
     const shownTankLevel = computed(() => {
       const editable = playerTankLevel.value === null || overrides.value.tankLevel;
       return editable ? extras.value.tankLevel : (playerTankLevel.value ?? 0);
@@ -425,6 +446,7 @@ export default defineComponent({
       onWaitTimeBlur,
       hasPlayerData,
       maxTankLevel,
+      previousCraftEntries,
       tankCapacityLabel,
       totalShips,
       shipsVisibleCount,

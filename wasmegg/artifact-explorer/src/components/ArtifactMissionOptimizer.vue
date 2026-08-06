@@ -5,11 +5,12 @@
       <optimizer-sidebar
         :player-id="playerId"
         :pending-compute="pendingCompute"
+        :computing="computing"
         :wait-time-days="waitTimeDays"
         :time-budget-invalid="!timeBudgetValid"
         @submit-player-id="submitPlayerId"
         @run-compute="runCompute"
-        @update:wait-time-days="waitTimeDays = $event"
+        @update:wait-time-days="setWaitTimeDays"
       />
     </div>
 
@@ -17,28 +18,65 @@
     <div class="min-w-0 space-y-4">
       <div class="border border-gray-200 rounded-lg p-4">
         <h3 class="text-base font-semibold text-gray-700 mb-3">Best Ship Set</h3>
-        <optimizer-solution-card
-          v-for="(view, i) in solutionViews"
-          :key="'solution-' + i"
-          :solution="view.solution"
-          :max-wait-time-seconds="lastComputedMaxWaitTimeSeconds"
-          :p-craft="view.pCraft"
-          :lambda="view.lambda"
-          :craft-chain-tree="view.craftChainTree"
-          :mission-legendary-sources="view.missionLegendarySources"
-          :has-inventory="!!playerInventory"
-          :drop-data-is-sparse="view.dropDataIsSparse"
-        />
-        <p v-if="solutionViews.length === 0" class="text-sm text-gray-400">
-          {{
-            timeBudgetValid
-              ? 'No ship set found for the current settings.'
-              : 'Enter a time budget (e.g. 30, 12d12h, 10h5m) to compute a plan.'
-          }}
-        </p>
+        <div class="relative">
+          <div :class="dimSolution ? 'opacity-40 pointer-events-none transition-opacity' : ''">
+            <optimizer-solution-card
+              v-for="(view, i) in solutionViews"
+              :key="'solution-' + i"
+              :solution="view.solution"
+              :max-wait-time-seconds="lastComputedMaxWaitTimeSeconds"
+              :has-inventory="!!playerInventory"
+              :targets="view.targets"
+            />
+            <p
+              v-if="computing && solutionViews.length === 0"
+              role="status"
+              class="flex items-center gap-2 text-sm text-gray-500"
+            >
+              <svg class="animate-spin h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Computing the best ship set…
+            </p>
+            <p v-else-if="computeError" class="text-sm text-red-600">Could not compute a plan: {{ computeError }}</p>
+            <p v-else-if="solutionViews.length === 0" class="text-sm text-gray-400">
+              {{
+                timeBudgetValid
+                  ? 'No ship set found for the current settings.'
+                  : 'Enter a time budget (e.g. 30, 12d12h, 10h5m) to compute a plan.'
+              }}
+            </p>
+          </div>
+          <div v-if="dimSolution" role="status" class="absolute inset-0 flex items-start justify-center pt-8">
+            <svg class="animate-spin h-8 w-8 text-gray-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span class="sr-only">Computing the best ship set…</span>
+          </div>
+        </div>
       </div>
 
-      <optimizer-inventory-panel :tree="inventoryTree" :has-inventory="!!playerInventory" />
+      <!-- One path for any number of targets: the per-target label is only
+           meaningful with more than one, and it has to sit under exactly the
+           same condition as the panel itself. OptimizerInventoryPanel renders
+           nothing without a tree and an inventory, so a heading outside it
+           leaves a bare list of artifact names with nothing under them
+           whenever no player id has been entered -- the default state. The
+           v-for is on a <template> so the single-target case still renders the
+           panel as a direct child of the layout's spacing container, exactly
+           as it did before there was anything to label. -->
+      <template v-for="target in inventoryTrees" :key="'inventory-' + target.nodeId">
+        <div
+          v-if="inventoryTrees.length > 1 && target.tree && playerInventory"
+          class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1"
+        >
+          <img :src="target.iconUrl" class="h-4 w-4 flex-shrink-0" alt="" />
+          <span>{{ target.name }}</span>
+        </div>
+        <optimizer-inventory-panel :tree="target.tree" :has-inventory="!!playerInventory" />
+      </template>
 
       <slot />
     </div>
@@ -46,21 +84,29 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onUnmounted, ref, toRefs, watch, watchEffect } from 'vue';
+import { computed, defineComponent, onUnmounted, PropType, ref, toRefs, watch, watchEffect } from 'vue';
 
-import { getSavedPlayerID, parseDurationDays, requestFirstContact, savePlayerID } from 'lib';
+import {
+  getArtifactTierPropsFromId,
+  getSavedPlayerID,
+  iconURL,
+  parseDurationDays,
+  requestFirstContact,
+  savePlayerID,
+} from 'lib';
 
 import {
   autoCompute,
-  currentOptimizerArtifactId,
+  currentOptimizerArtifactIds,
   effectiveConfig,
   effectiveFuelTankCapacity,
-  effectivePreviousCrafts,
+  effectivePreviousCraftsOverride,
   effectiveCraftingLevel,
   EFFORT_LAUNCH_PERIOD_SECONDS,
   missionFilters,
   playerInventory,
   setPlayerData,
+  setWaitTimeDays,
 } from '@/store';
 import {
   buildRecipeDag,
@@ -68,12 +114,15 @@ import {
   computeCraftChainTree,
   computeInventoryTree,
   computeMissionLegendaryRows,
+  finalizeSolutions,
   lambdaFromDropProbability,
   legendaryCraftProbabilityOf,
   legendaryDataIsSparse,
-  optimize,
   type OptimizerSolution,
+  type TargetView,
 } from '@/lib';
+import { enumerateLaunchOptions } from '@/lib/phases';
+import { createOptimizerClient, type OptimizerClient, type OptimizerRequestInput } from '@/lib/optimizer-client';
 import OptimizerSidebar from './optimizer/OptimizerSidebar.vue';
 import OptimizerInventoryPanel from './optimizer/OptimizerInventoryPanel.vue';
 import OptimizerSolutionCard from './optimizer/OptimizerSolutionCard.vue';
@@ -81,12 +130,14 @@ import OptimizerSolutionCard from './optimizer/OptimizerSolutionCard.vue';
 export default defineComponent({
   components: { OptimizerSidebar, OptimizerInventoryPanel, OptimizerSolutionCard },
   props: {
-    artifactId: { type: String, required: true },
+    artifactIds: { type: Array as PropType<string[]>, required: true },
   },
   setup(props) {
-    const { artifactId } = toRefs(props);
+    const { artifactIds } = toRefs(props);
 
-    const waitTimeDays = ref('30');
+    // In the store so it survives this component unmounting when the selection
+    // empties and the route falls back home.
+    const waitTimeDays = computed(() => missionFilters.value.waitTimeDays);
     const maxWaitTimeSeconds = computed(() => parseDurationDays(waitTimeDays.value));
 
     const timeBudgetValid = computed(() => Number.isFinite(maxWaitTimeSeconds.value) && maxWaitTimeSeconds.value > 0);
@@ -98,16 +149,16 @@ export default defineComponent({
       });
     }
 
-    // let the override modal show the prior craft count for this artifact
+    // let the settings UI show each target's prior craft count
     watch(
-      artifactId,
+      artifactIds,
       v => {
-        currentOptimizerArtifactId.value = v;
+        currentOptimizerArtifactIds.value = [...v];
       },
       { immediate: true }
     );
     onUnmounted(() => {
-      currentOptimizerArtifactId.value = null;
+      currentOptimizerArtifactIds.value = [];
     });
 
     const submitPlayerId = async (id: string) => {
@@ -118,87 +169,164 @@ export default defineComponent({
     };
 
     const pendingCompute = ref(false);
+    const computing = ref(false);
+    const computeError = ref('');
     const computedResults = ref<OptimizerSolution[]>([]);
-    // budget the displayed plan was computed against; the live input can
-    // change before a manual recompute
+    // what the displayed plan was computed against, not the live input
     const lastComputedMaxWaitTimeSeconds = ref(0);
 
     const recipeDag = computed<ReturnType<typeof buildRecipeDag>>(() =>
       buildRecipeDag(
-        [artifactId.value],
+        artifactIds.value,
         effectiveCraftingLevel.value,
         playerInventory.value,
-        effectivePreviousCrafts.value
+        effectivePreviousCraftsOverride.value
       )
     );
 
     const playerBaseYield = computed<ReturnType<typeof computeBaseYield>>(() =>
-      computeBaseYield(playerInventory.value, [artifactId.value], recipeDag.value)
+      computeBaseYield(playerInventory.value, artifactIds.value, recipeDag.value)
     );
 
-    function runCompute() {
-      if (!timeBudgetValid.value) {
-        computedResults.value = [];
-        pendingCompute.value = false;
-        return;
-      }
+    // Launch-option enumeration stays on the main thread: it is the only step
+    // needing the loot dataset, which this bundle already loads. See
+    // OPTIMIZER.md.
+    const computeInputs = computed<OptimizerRequestInput | null>(() => {
+      if (!timeBudgetValid.value) return null;
       const launchPeriodSeconds = EFFORT_LAUNCH_PERIOD_SECONDS[missionFilters.value.effort];
       const maxGemCost = missionFilters.value.maxGemCostEnabled ? missionFilters.value.maxGemCost : undefined;
-      lastComputedMaxWaitTimeSeconds.value = maxWaitTimeSeconds.value;
-      computedResults.value = optimize(
-        {
-          // Eventually, this will be expanded to allow multiple artifacts
-          // so array entry is a placeholder
-          desiredArtifactNodeIds: [artifactId.value],
-          includeNotEnoughData: effectiveConfig.value.showNodata,
-          fuelTankCapacity: effectiveFuelTankCapacity.value,
-          timeBudgetSeconds: maxWaitTimeSeconds.value,
-        },
-        effectiveConfig.value,
-        recipeDag.value,
-        playerBaseYield.value,
-        launchPeriodSeconds,
-        maxGemCost
-      );
-      pendingCompute.value = false;
-    }
-
-    // Recompute on any relevant change while auto-compute is on; otherwise
-    // just flag that a manual recompute is due. Note that with auto-compute
-    // off this effect only tracks autoCompute itself.
-    watchEffect(() => {
-      if (autoCompute.value) {
-        runCompute();
-      } else {
-        pendingCompute.value = true;
-      }
+      return {
+        options: enumerateLaunchOptions(effectiveConfig.value, recipeDag.value, launchPeriodSeconds, maxGemCost),
+        recipeDag: recipeDag.value,
+        desiredArtifactNodeIds: [...artifactIds.value],
+        fuelCapacity: effectiveFuelTankCapacity.value,
+        timeCapacity: maxWaitTimeSeconds.value,
+        baseYield: playerBaseYield.value,
+      };
     });
 
-    const inventoryTree = computed(() =>
-      computeInventoryTree(artifactId.value, recipeDag.value, playerInventory.value)
-    );
+    // Lazy so a page that never opens the planner doesn't pay for the worker
+    // bundle.
+    let client: OptimizerClient | null = null;
+    const optimizerClient = () => (client ??= createOptimizerClient());
 
-    const solutionViews = computed(() =>
-      computedResults.value.map(solution => ({
-        solution,
-        pCraft: legendaryCraftProbabilityOf(solution, artifactId.value),
-        lambda: lambdaFromDropProbability(solution.dropProbability),
-        craftChainTree: computeCraftChainTree(solution, artifactId.value, playerInventory.value),
-        missionLegendarySources: computeMissionLegendaryRows(solution, artifactId.value),
-        dropDataIsSparse: legendaryDataIsSparse(artifactId.value),
+    async function runCompute() {
+      const input = computeInputs.value;
+      if (!input) {
+        computedResults.value = [];
+        pendingCompute.value = false;
+        computing.value = false;
+        computeError.value = '';
+        return;
+      }
+      const budget = maxWaitTimeSeconds.value;
+      pendingCompute.value = false;
+      computing.value = true;
+      computeError.value = '';
+      try {
+        const solutions = await optimizerClient().run(input);
+        // null: a newer request owns the results and the spinner now.
+        if (solutions === null) return;
+        // Inputs went invalid mid-flight; nothing supersedes the request, so
+        // the stale plan has to be dropped here.
+        if (!computeInputs.value) {
+          computedResults.value = [];
+          computing.value = false;
+          return;
+        }
+        // Replacement solve is queued but hasn't posted, so nothing superseded
+        // this at the worker. Leave the spinner to that solve.
+        if (autoCompute.value && computeInputs.value !== input) return;
+        lastComputedMaxWaitTimeSeconds.value = budget;
+        // Needs artifact metadata the worker has no reason to carry.
+        computedResults.value = finalizeSolutions(solutions, input.recipeDag);
+        computing.value = false;
+      } catch (err) {
+        computeError.value = err instanceof Error ? err.message : String(err);
+        computedResults.value = [];
+        computing.value = false;
+      }
+    }
+
+    const AUTO_COMPUTE_DEBOUNCE_MS = 250;
+    let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+    // Reading computeInputs.value HERE is what registers the dependency; if
+    // only the debounced callback read it the effect would track autoCompute
+    // alone.
+    watchEffect(() => {
+      const input = computeInputs.value;
+      // Every exit must cancel the queued solve first, or a timer armed by the
+      // previous run still fires.
+      clearTimeout(debounceTimer);
+      if (!autoCompute.value) {
+        pendingCompute.value = true;
+        return;
+      }
+      if (!input) {
+        computedResults.value = [];
+        return;
+      }
+      debounceTimer = setTimeout(runCompute, AUTO_COMPUTE_DEBOUNCE_MS);
+    });
+
+    onUnmounted(() => {
+      clearTimeout(debounceTimer);
+      client?.terminate();
+    });
+
+    function artifactDisplay(nodeId: string): { name: string; iconUrl: string } {
+      const props = getArtifactTierPropsFromId(nodeId);
+      return { name: props.name, iconUrl: iconURL('egginc/' + props.icon_filename, 64) };
+    }
+
+    const inventoryTrees = computed(() =>
+      artifactIds.value.map(nodeId => ({
+        nodeId,
+        ...artifactDisplay(nodeId),
+        tree: computeInventoryTree(nodeId, recipeDag.value, playerInventory.value),
       }))
     );
 
+    const solutionViews = computed(() =>
+      computedResults.value.map(solution => {
+        // Iterate solution.perTarget, never the live artifactIds: the solution
+        // is stale between a selection change and the next completed solve.
+        const targets: TargetView[] = solution.perTarget.map(perTarget => {
+          const nodeId = perTarget.nodeId;
+          const display = artifactDisplay(nodeId);
+          return {
+            nodeId,
+            name: display.name,
+            iconUrl: display.iconUrl,
+            perTarget,
+            pCraft: legendaryCraftProbabilityOf(solution, nodeId),
+            lambda: lambdaFromDropProbability(perTarget.dropProbability),
+            craftChainTree: computeCraftChainTree(solution, nodeId, playerInventory.value),
+            missionLegendarySources: computeMissionLegendaryRows(solution, nodeId),
+            dropDataIsSparse: legendaryDataIsSparse(nodeId),
+          };
+        });
+        return { solution, targets };
+      })
+    );
+
+    const dimSolution = computed(() => computing.value && solutionViews.value.length > 0);
+
     return {
       waitTimeDays,
+      setWaitTimeDays,
+      dimSolution,
       lastComputedMaxWaitTimeSeconds,
       timeBudgetValid,
       pendingCompute,
+      computing,
+      computeError,
       playerId,
       runCompute,
       submitPlayerId,
       playerInventory,
-      inventoryTree,
+      inventoryTrees,
       solutionViews,
     };
   },
