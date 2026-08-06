@@ -42,7 +42,7 @@ jobs:
       run:
         working-directory: wasmegg
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up protoc
         run: |
           sudo apt-get update
@@ -132,7 +132,7 @@ jobs:
       run:
         working-directory: wasmegg
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up protoc
         run: |
           sudo apt-get update
