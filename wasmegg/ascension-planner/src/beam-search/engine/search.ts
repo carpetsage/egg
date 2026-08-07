@@ -152,6 +152,7 @@ export interface RunSearchLoopResult {
     phase3MacroCalls: number;
     phase3CacheHits: number;
     depthReached: number;
+    cancelled: boolean;
   };
 }
 
@@ -163,11 +164,18 @@ export function runSearchLoop(
   deadline: number,
   beamWidth: number,
   maxDepth: number = DEFAULT_MAX_DEPTH,
-  onProgress?: (progress: BeamSearchProgress) => void
+  onProgress?: (progress: BeamSearchProgress) => void,
+  // Checked once at the top of every generation (see BeamSearchOptions.isCancelled's doc comment
+  // for why "between generations" is the right granularity) — Phase B's Web Worker wrapper is the
+  // real caller; passed all the way down here (rather than only checked in index.ts around the
+  // whole call) so a long search actually stops early instead of running to its natural completion
+  // after a Cancel click.
+  isCancelled?: () => boolean
 ): RunSearchLoopResult {
   const startedAt = Date.now();
   let beam: BeamSearchState[] = [initial];
   const finished: BeamTerminalResult[] = [];
+  let cancelled = false;
   // Scoped to this one search run — see runPhase3Macro's doc comment (macros.ts) for why that's
   // exactly the right scope (epicResearchLevels/colleggtibleModifiers/rawBackup are fixed for the
   // whole run, so nothing here needs to reason about staleness across runs).
@@ -183,6 +191,11 @@ export function runSearchLoop(
   let bestScoreSoFar = 0;
 
   while (beam.length > 0 && depth < maxDepth) {
+    if (isCancelled?.()) {
+      cancelled = true;
+      break;
+    }
+
     // 1. Phase 3 attempts on the current beam's phase-2 members. These are already the previous
     //    generation's deduped-and-pruned survivors (or, on the first iteration, the single trivially
     //    deduped initial state) — see ../03-performance-and-optimization.md's "dedupe before Phase 3"
@@ -293,6 +306,7 @@ export function runSearchLoop(
       phase3MacroCalls,
       phase3CacheHits,
       depthReached: depth,
+      cancelled,
     },
   };
 }

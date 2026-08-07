@@ -1,6 +1,6 @@
 # Beam Search — Handoff / Status Document
 
-**Last updated:** 2026-08-07, end of the implementation session that built Phase A.
+**Last updated:** 2026-08-07, end of the implementation session that built Phase C (manual planner UI).
 **Read this first** if you're picking this work up in a new chat. It links everything else you need.
 
 ## Context
@@ -19,16 +19,17 @@ result, and applies it to the live plan in one shot. Does **not** touch `SmartBu
 `ResearchActions.vue`'s existing buttons, or `auto/shifts/c3.ts` in this pass — `c3.ts` is a
 documented *future* consumer of the same engine (see §6 of the integration doc), not touched yet.
 
-## Status: Phase A complete. Phase B (Web Worker) and Phase C (UI) not started.
+## Status: Phase A, B, and C all complete. Feature is fully wired up and live-tested.
 
 The original execution plan had three phases:
-- **Phase A — pure engine, verified in isolation.** ✅ Done, this session.
-- **Phase B — Web Worker.** ⬜ Not started.
-- **Phase C — manual planner UI wiring.** ⬜ Not started.
+- **Phase A — pure engine, verified in isolation.** ✅ Done, an earlier session.
+- **Phase B — Web Worker.** ✅ Done, an earlier session (same overall effort, one session before this one).
+- **Phase C — manual planner UI wiring.** ✅ Done, this session.
 
-**Nothing has been committed.** All of this exists only in the working tree. Recommend committing
-before starting Phase B, and reviewing the diff first — several existing production files were
-touched (see "Files touched" below), not just new beam-search files.
+**Nothing has been committed.** All of this exists only in the working tree. Recommend reviewing the
+full diff and committing now — several existing production files were touched (see "Files touched"
+below), not just new beam-search files, and this is a natural checkpoint: the feature is complete and
+has been exercised end-to-end in a real browser (see "Phase C" below), not just unit-tested.
 
 ---
 
@@ -47,6 +48,22 @@ touched (see "Files touched" below), not just new beam-search files.
 | `index.ts` | **The only export a caller needs**: `runBeamSearch(startState: EngineState, context: SimulationContext, options) → BeamSearchResult` |
 | `testFixtures.ts` | `makeTestEngineState`, `makeTestContext`, `makeBareTestContext`, `makeAutoProgressedTestState` — see "Test fixtures" below |
 
+### New Web Worker — `src/workers/`
+
+| File | Purpose |
+|---|---|
+| `beamSearch.worker.ts` | The Web Worker entry point. Thin wrapper only — imports `runBeamSearch` from `beam-search/engine` and wires its synchronous call + `onProgress` callback to `postMessage`, throttling progress to one message per `PROGRESS_THROTTLE_MS` (200ms). Also sanitizes `context.rawBackup` on receipt (see next file) before calling `runBeamSearch`. Accepts a `cancel` message for protocol completeness, but see "Live verification" below — it's not actually reachable in practice while a run is busy; `useBeamSearch.ts` cancels by terminating the worker instead. Wired up for real in Phase C (`useBeamSearch.ts` constructs it) and live-tested in a real browser this session. |
+| `beamSearch.protocol.ts` | Message types shared between main thread and worker (`MainToWorkerMessage` = `start`\|`cancel`, `WorkerToMainMessage` = `progress`\|`result`\|`cancelled`\|`error`, both carrying a `runId` per the design doc's stale-message guard), plus `sanitizeLongsForWorker` — see "rawBackup and postMessage" below and "Live verification"'s Bug 1 for its second job (stripping Vue reactivity), found this session. |
+
+### New manual planner UI
+
+| File | Purpose |
+|---|---|
+| `composables/useBeamSearch.ts` | Owns the worker instance + one run's lifecycle: `status`/`progress`/`result`/`errorMessage` refs, `start(deadline, beamWidth, maxDepth?)`, `cancel()`. Builds `startState`/`context` from live Pinia state and sanitizes both before `postMessage` (see "Live verification" Bug 1). `cancel()` terminates and respawns the worker rather than posting a message (see Bug 2) — read this file's own doc comments before touching cancellation again. |
+| `components/actions/BeamSearchView.vue` | The tab's UI — deadline (date/time/timezone, defaulting to the next research sale's end) + beam-width inputs, Run/Cancel, live progress, result preview + Apply button. Shaped like `SmartBuyView.vue`; emits `apply` with the `BeamSearchResult` rather than applying it itself. |
+| `components/actions/ResearchActions.vue` (modified) | Renders `BeamSearchView` when `currentView === 'beam_search'`; `handleApplyBeamSearchPlan` (new) replays `result.researchIds` through the exact same `syncEventStateForItem`/`buyOneLevel`/`batch`/`withExpiryCheck` pattern `handleBuyMilestoneChain` already used — no new replay logic. |
+| `composables/useResearchViews.ts` (modified) | `'beam_search'` added to `ViewType`/`VIEWS`/`viewDescription`'s switch — same registration every other view already has. |
+
 ### Tests
 
 | File | What it covers |
@@ -55,11 +72,13 @@ touched (see "Files touched" below), not just new beam-search files.
 | `dedupe.spec.ts` | `researchLevelsKey`/`researchStateKey`/`dedupeByEarliestTime` unit tests |
 | `candidates.spec.ts` | Category filtering (phase 1 excludes non-ROI, phase 2 restricts to delivery-impact), tier-lock filtering, phase2 ⊆ phase1 |
 | `reconstruct.spec.ts` | Parent-chain walking + macro-edge flattening, hand-built synthetic chains |
+| `search.spec.ts` | **New, Phase B.** `runSearchLoop`'s `isCancelled` hook: stops before any generation when already true, stops within a generation or two of flipping true mid-run, reports `metrics.cancelled: false` on an ordinary uncancelled stop |
 | `oracle/beam-oracle.spec.ts` | **Exact small-case validation** — beam matches true exhaustive-search optimum bit-for-bit; beam-width monotonicity |
 | `convergence.spec.ts` | NOT a correctness test — timing/quality benchmark across beam widths and deadlines. Gated behind `RUN_CONVERGENCE=1` (see "How to run things" below) |
+| `../../workers/beamSearch.protocol.spec.ts` | **New, Phase B.** Documents the `structuredClone`+Long risk with a direct experiment (a Long-shaped instance survives cloning but silently loses its prototype/methods), then verifies `sanitizeLongsForWorker` fixes it: converts Long-shaped values to numbers (signed and unsigned), recurses through nested objects/arrays, deep-clones (doesn't mutate input), and the sanitized output survives a real `structuredClone` with correct numbers intact |
 
 All of the above (except `convergence.spec.ts`, correctly gated) pass under plain `pnpm test`:
-**5 test files passed, 22 tests passed, 1 skipped, ~55s.**
+**7 test files passed (1 skipped), 32 tests passed (1 skipped), ~55s.**
 
 ### Files touched outside `src/beam-search/` (existing production code)
 
@@ -260,59 +279,203 @@ small-case check + one monotonicity check). Scope decision, not an oversight; se
 
 ## Remaining work
 
-### Phase B — Web Worker (next up)
+### Phase B — Web Worker ✅ Done, this session
 
-Per the original integration doc §5 and execution plan:
+What was built, against the original integration doc §5 / execution plan:
 
-1. New file `src/workers/beamSearch.worker.ts`, loaded via
+1. `src/workers/beamSearch.worker.ts` — not wired up to anything yet (that's Phase C), but it exists,
+   type-checks, and was verified to bundle cleanly as a standalone Vite entry (294 modules, no errors
+   — see its own file header). Loaded, once Phase C constructs it, via
    `new Worker(new URL('./beamSearch.worker.ts', import.meta.url), { type: 'module' })` (Vite native
-   support, no config changes needed).
-2. Message protocol, typed both directions, with a `runId` so a stale message from a superseded run
-   is ignored:
-   - main → worker: `{ type: 'start', runId, startState, context, deadline, beamWidth }`,
-     `{ type: 'cancel', runId }`
-   - worker → main: `{ type: 'progress', runId, ...BeamSearchProgress }` (throttle to a few/sec —
-     `runBeamSearch`'s `onProgress` already fires once per generation, which could be very frequent
-     at low beam widths; the worker wrapper should coalesce, not `runSearchLoop` itself),
-     `{ type: 'result', runId, result: BeamSearchResult }`, `{ type: 'error', runId, message }`
-3. Thin wrapper only — all logic stays in `engine/index.ts`. The worker file just wires
-   `runBeamSearch`'s callback to `postMessage` and handles cancellation (a checked flag the search
-   loop would need to poll between generations — **not currently implemented**, `runSearchLoop` has
-   no cancellation hook yet, this needs adding).
-4. **Verify `SimulationContext.rawBackup` survives `structuredClone`/`postMessage`.** Never tested —
-   it's a protobufjs-decoded `ei.IBackup`, which can carry non-plain prototypes or Long.js 64-bit
-   integers that don't clone cleanly. If it fails: sanitize once on the main thread before sending
-   (`JSON.parse(JSON.stringify(...))`, same trick `createBaseEngineState` already uses for
-   `artifactSets`), or pre-derive whatever's needed from it outside the worker.
-5. `engine/compute.ts`/`engine/apply/*`/`calculations/*` were verified Pinia-free this session (see
-   `06-egg-codebase-integration.md` §5) — should be safe to import directly in the worker. The one
-   thing that WAS Pinia-bound unconditionally (`createBaseEngineState`) is fixed now (see bug #1
-   above), but only when called *with* a snapshot — the no-argument fallback path still needs Pinia
-   and must never be reached from worker code.
+   support, no config changes needed — confirmed, nothing added to `vite.config.ts`).
+2. Message protocol, typed both directions, in `src/workers/beamSearch.protocol.ts` — matches the
+   planned shape with one deliberate simplification: `progress`/`result` carry their payload as a
+   nested `progress`/`result` field (`{ type: 'progress', runId, progress: BeamSearchProgress }`)
+   rather than spread inline, so the message types can be plain discriminated-union interfaces
+   without an intersection/spread trick. `runId` on every message, as planned, so a stale message
+   from a superseded run (deadline/beam-width changed and rerun before the old run finished) can be
+   ignored — enforced on the worker side (a `cancel` for anything but the currently active `runId` is
+   ignored) and left for Phase C to also enforce on the main-thread receiving end.
+3. Progress throttled inside the worker wrapper (`PROGRESS_THROTTLE_MS = 200`), not in
+   `runSearchLoop` itself — the engine has no business knowing about UI update rates. Thin wrapper
+   confirmed: the worker file's only real logic is the message switch, progress throttling,
+   cancellation bookkeeping, and rawBackup sanitization (next point) — all search logic stays in
+   `engine/*`.
+4. **Cancellation — implemented.** `runSearchLoop` (`engine/search.ts`) now takes an optional
+   `isCancelled?: () => boolean`, checked once at the top of the while loop (i.e. "poll between
+   generations", per the original plan) — `search.spec.ts` verifies both "cancelled before the first
+   generation" (zero generations run) and "cancelled mid-run" (stops within a generation or two, well
+   short of `maxDepth`). Threaded through `BeamSearchOptions.isCancelled` → `runBeamSearch` →
+   `BeamSearchResult.metrics.cancelled`. The worker owns the actual cancel *policy*, not just the
+   plumbing: a `cancel` message sets a local flag; once set, the worker reports `{ type: 'cancelled' }`
+   regardless of whether `runBeamSearch` still managed to return a usable result before next checking
+   the flag — a Cancel click is treated as "stop and discard", not "give me whatever you have so
+   far". (If Phase C's UX wants "keep the partial result" instead, that's a one-line change at the
+   worker's two `cancelledRunId === runId ? ... : ...` call sites — the plumbing already returns a
+   real result in that case, it's just discarded by policy.)
+5. **`rawBackup` vs. `structuredClone`/`postMessage` — verified, and it does NOT survive cleanly.**
+   Confirmed directly (not guessed) with a real `structuredClone` experiment, documented in
+   `src/workers/beamSearch.protocol.spec.ts`: a protobufjs-decoded Long instance (used for every
+   `ei.IBackup` int64 field — concretely, `ArtifactInventoryItem.itemId`/`ArtifactsDB.itemSequence`
+   inside `backup.artifactsDb`, which `getOptimalELRSet` (`lib/artifacts/virtue.ts`) reads directly to
+   resolve which artifact occupies which loadout slot) does **not** throw when cloned, but silently
+   loses its prototype, becoming a bare `{ low, high, unsigned }` object with none of Long's methods
+   — a silent-corruption failure mode, worse than a loud one. The doc's suggested fallback
+   (`JSON.parse(JSON.stringify(...))`) turns out **not** to fix this — `JSON.stringify` has no special
+   handling for Long either, so it produces the exact same stripped shape. The actual fix:
+   `sanitizeLongsForWorker` (`beamSearch.protocol.ts`) deep-clones a value, duck-typing any
+   `{low,high,unsigned}`-shaped object (whether still a live Long instance, or the clone's
+   already-stripped equivalent — both share the shape) and converting it to a plain number via the
+   same bit math `Long.prototype.toNumber()` uses. Applied **inside the worker**, on receipt of a
+   `start` message (not on the main thread before sending, as the doc originally suggested) —
+   deliberately, so correctness doesn't depend on a future caller (Phase C's composable, or `auto`
+   later) remembering a pre-send step; the sanitizer works identically before or after the clone
+   boundary, so doing it worker-side is strictly safer with no downside.
+6. `engine/compute.ts`/`engine/apply/*`/`calculations/*` — reconfirmed Pinia-free this session (no
+   changes needed); the worker imports `runBeamSearch` from `engine/index.ts` directly, never
+   `engine/adapter.ts`. Also reconfirmed: `vue-tsc --noEmit` passes project-wide, so no tsconfig
+   changes were needed for the worker file's types — see `beamSearch.worker.ts`'s own doc comment on
+   why it types `self` as `Worker` (the DOM-lib interface, from the main-thread side) rather than
+   pulling in the `webworker` lib (which would conflict with this project's shared `dom` lib).
 
-### Phase C — Manual planner UI
+### Phase C — Manual planner UI ✅ Done, this session
 
-1. Add `'beam_search'` to `ViewType`/`VIEWS` in `composables/useResearchViews.ts`.
-2. New component `components/actions/BeamSearchView.vue` (shaped like `SmartBuyView.vue`): deadline
-   date+time picker (via `getLocalTimestampInTimezone`, same as `engine/adapter.ts` uses for
-   ascension start) + beam-width integer input, Run/Cancel, live progress, result preview (reuse
-   `summarizeResearchLevelChanges` from `smartBuyPreview.ts`), Apply button.
-3. New composable `composables/useBeamSearch.ts` — owns the worker instance + run lifecycle,
-   independent of `useResearchViews` (matches that file's own convention).
-4. Apply adapter: flatten winning plan (already done by `reconstructPlan`), replay against the live
-   plan re-deriving real price/wait per step (see decision #6 above) — mirror `c3.ts`'s
-   `executePlanToLevels` / `ResearchActions.vue`'s `batch(() => ... buyOneLevel ...)` pattern. Keep
-   this adapter structurally separate from the engine (this is what keeps the engine reusable for
-   `auto` later, per decision #7).
+What was built, against the original plan:
+
+1. Added `'beam_search'` to `ViewType`/`VIEWS` in `composables/useResearchViews.ts`, plus a
+   `viewDescription` case — matches every other view's registration exactly, no surprises.
+2. New component `components/actions/BeamSearchView.vue` (shaped like `SmartBuyView.vue`/`QuickBuy.vue`,
+   reusing `SmartBuyCard`/`ResearchPurchasePreview`): deadline date/time/timezone inputs (defaults to
+   the **next research sale's end** — `getNextPacificTime(6, 9, ...)`, the same "next Saturday 9am
+   Pacific" HANDOFF's own convergence testing called "the only realistic deadlines" — via a "Use next
+   sale end" quick-set link, freely editable underneath) + a plain beam-width integer input
+   (default 50), Run/Cancel, live progress (generation/beam size/best delivery rate/elapsed, straight
+   off `BeamSearchProgress`), and on completion: the research-level-changes preview
+   (`summarizeResearchLevelChanges`), achieved delivery rate/purchase count/last-purchase time/search
+   time, and an Apply Plan button. Renders its own `SORT RESEARCH BY` entry the same as every other
+   view; `ResearchActions.vue`'s `ResearchFlatView` `v-else-if` was updated to also exclude
+   `'beam_search'` (it already excluded `'smart_buy'` the same way) so it doesn't render underneath.
+3. New composable `composables/useBeamSearch.ts` — owns the worker instance + run lifecycle
+   (`status`/`progress`/`result`/`errorMessage` refs, `start()`/`cancel()`), independent of
+   `useResearchViews`, instantiated directly inside `BeamSearchView.vue` (not lifted to
+   `ResearchActions.vue`) — a live search is tied to the tab being open; switching away unmounts the
+   component and tears the worker down via `onUnmounted`, rather than leaving an orphaned run with
+   nowhere for its messages to go. `start()` builds `startState`/`context` via
+   `createBaseEngineState(actionsStore.effectiveSnapshot)`/`getSimulationContext()`, exactly as
+   `06-egg-codebase-integration.md` §7 specified.
+4. Apply adapter: **not** a new function reusing `c3.ts`'s `executePlanToLevels` (that's `auto`'s own
+   simulate-only replay, not wired to real store actions) — instead, `BeamSearchView.vue` emits
+   `apply` with the whole `BeamSearchResult` up to `ResearchActions.vue`, which owns a new
+   `handleApplyBeamSearchPlan` following the *exact* pattern its own `handleBuyMilestoneChain` already
+   uses: `withExpiryCheck(...) { batch(() => { for (const researchId of result.researchIds) { ...
+   syncEventStateForItem(...); buyOneLevel(...); } }) }`. `result.researchIds` is already flat,
+   ordered, and macro-expanded (reconstructPlan's job, Phase A) — indistinguishable from an ordinary
+   purchase chain by the time it gets here, so no beam-specific replay logic was needed at all, only
+   one new handler function reusing everything `ResearchActions.vue` already had. `result.lastPurchaseTime`
+   (the engine's own computed absolute finish time) is used directly for the expiry-check duration
+   estimate, more accurate than the `getTimeToBuySeconds`-summing fallbacks other handlers there need.
+
+**Live-tested end-to-end in a real browser** (Playwright + Chromium, not just `pnpm test`) — see
+"Live verification" below. This found and fixed **two real bugs** that no amount of unit testing
+would have caught, both now fixed:
+
+- `postMessage` throwing synchronously ("could not be cloned") because `startState`/`context` were
+  live Vue-reactive Pinia objects, not plain data.
+- The Cancel button not actually cancelling a busy run — JS workers are single-threaded, so a
+  `cancel` postMessage physically cannot be processed while `runBeamSearch`'s one big synchronous
+  call is still running.
+
+See both bugs' full writeups under "Live verification" — they change the mental model for this
+feature's cancellation story, worth reading before touching `useBeamSearch.ts` or
+`beamSearch.worker.ts` again.
+
+---
+
+## Live verification (this session)
+
+`beamSearch.worker.ts` had never run as a real Worker before this session (flagged as an open
+question in an earlier version of this doc) — `pnpm test`, `vue-tsc`, and a standalone `vite build`
+probe are all real checks, but none of them actually click a button in a browser. This session did:
+Playwright + a locally-installed Chromium (not a project dependency — installed into an isolated
+scratch npm project outside the repo, purely for this session's own testing, nothing added to
+`package.json`), driving the real dev server (`pnpm dev`), through "Start from Scratch" → Research
+tab → Beam Search view → Run → (Cancel or Apply). Both bugs below were found this way, not by reading
+code more carefully — they're specifically the class of bug that only shows up with a real
+single-threaded browser Worker and real Vue reactivity, which nothing else in this project's test
+suite exercises.
+
+### Bug 1 (fixed): `postMessage` throws on live Pinia state
+
+`createBaseEngineState(actionsStore.effectiveSnapshot)` and `getSimulationContext()` (both called in
+`useBeamSearch.ts`'s `start()`) return **live Vue-reactive Pinia state**, not plain data. The very
+first real Run click threw, synchronously, on the main thread, before the message ever reached the
+worker: `Failed to execute 'postMessage' on 'Worker': #<Object> could not be cloned`. This was a gap
+neither Phase A (pure functions, no Pinia in scope) nor Phase B's own rawBackup-focused verification
+(which only checked `structuredClone` against a *plain* Long-shaped object) would ever have surfaced.
+
+Fix: `sanitizeLongsForWorker` (already built in Phase B for the Long problem) turns out to fix this
+too, as a side effect — its recursive `Object.entries`-based rebuild is transparent to Vue's reactive
+Proxy traps, so walking a reactive object through it produces a genuinely plain, structured-clone-safe
+copy. `useBeamSearch.ts`'s `start()` now wraps both `startState` and `context` through it before
+`post()`. `beamSearch.protocol.ts`'s doc comment on `sanitizeLongsForWorker` was rewritten to describe
+both jobs it does now (Long-safety AND reactivity-stripping), not just the original one. `post()` also
+gained a `try/catch` around `postMessage` itself, reporting a clean `status: 'error'` instead of an
+unhandled exception if anything new ever slips past sanitization later.
+
+### Bug 2 (fixed): Cancel didn't actually cancel a busy run
+
+Confirmed directly: started a wide/slow run (beam width 4000, ~5-week deadline), clicked Cancel after
+~400ms, then polled for 30+ seconds — the generation counter kept climbing the whole time, completely
+unaffected by the click. Root cause: `runBeamSearch` runs as **one big synchronous call** with no
+`await`/yield point anywhere inside `runSearchLoop`'s while loop, and JS Web Workers are
+single-threaded — so the queued `{ type: 'cancel' }` postMessage physically cannot be dequeued and
+handled by the worker's `onmessage` until that synchronous call already returns *on its own* (having
+already posted its own `result`/`error` by then). The `isCancelled` polling hook in `runSearchLoop`
+itself is correctly implemented and passes its own unit tests (`engine/search.spec.ts`) — those tests
+call `isCancelled` directly, bypassing the message-passing layer entirely, so they couldn't have
+caught this. This is purely a Phase B/C integration gap, not an engine bug.
+
+Fix: `useBeamSearch.ts`'s `cancel()` no longer posts a `cancel` message — it calls `worker.terminate()`
+and immediately spawns a replacement worker (`spawnWorker()`, re-wiring `onmessage`/`onerror`), then
+sets `status.value = 'cancelled'` directly. This lines up with the "Cancel discards any partial
+result" policy already decided in Phase B (there's nothing to gracefully preserve either way) and
+needs no cooperation from the worker at all. Verified: Cancel now takes effect within one Playwright
+poll interval (~2s, likely near-instant), and the replacement worker was confirmed to still handle a
+subsequent Run correctly. The worker's own `cancel`-message handling code was **left in place**
+(harmless, and correct *if* something ever reaches it — e.g. a future restructuring that makes
+`runSearchLoop` yield once per generation, noted as a follow-up below) but its doc comments, and
+`BeamSearchOptions.isCancelled`'s own doc comment in `engine/types.ts`, were updated to say plainly
+that the message-based path is currently unreachable in practice, so nobody re-discovers this the
+hard way.
+
+### What was NOT hit
+
+The success path (Run → live progress → result → Apply) was also verified end-to-end, using a
+synthetic empty `rawBackup` (`{}`) injected directly into the `initialState` Pinia store for the test
+session only (via a one-line `window.__pinia` exposure temporarily added to `main.ts`, reverted
+before this session ended — `git diff main.ts` is clean) — a real player backup wasn't available in
+this sandboxed environment. A beam-width-3 run against a bare "Start from Scratch" state completed in
+2s, found a 177-purchase plan reaching a 72.000B/hr delivery rate, and clicking Apply correctly
+inserted every purchase into the real action history with correctly re-derived prices/sale timing
+(confirmed visually — a "SAVE 22M 385" annotation appeared on one purchase, meaning the sale-aware
+timing logic actually engaged). No console errors at any point across every path tested (error,
+success, Apply, Cancel, re-run after Cancel).
 
 ---
 
 ## Open questions / follow-ups for whoever picks this up
 
-1. **Not yet tested**: does `rawBackup` survive the Worker postMessage boundary? First thing to
-   check in Phase B — see above.
-2. **Not yet implemented**: cancellation. `runSearchLoop` has no way to be told "stop early." Needed
-   for Phase B's `cancel` message to actually do anything before the run finishes on its own.
+1. ~~Not yet tested: does `rawBackup` survive the Worker postMessage boundary?~~ **Resolved in the
+   Phase B session** — tested directly, confirmed it does NOT survive cleanly (Long fields silently
+   corrupt), and fixed via `sanitizeLongsForWorker`. See Phase B's writeup above. (Turned out there
+   was a second, bigger postMessage problem — live Vue reactivity — only found once Phase C actually
+   ran the worker for real; see "Live verification" above.)
+2. ~~Not yet implemented: cancellation.~~ **`runSearchLoop`'s hook was implemented in the Phase B
+   session** — but turned out to be unreachable via the worker's message protocol in practice; **the
+   Cancel button itself was fixed this session** via terminate+respawn instead. See "Live
+   verification" above. Real follow-up now: make `runSearchLoop` yield once per generation (e.g.
+   `await` a resolved microtask right where `onProgress` already fires) so the message-based path
+   could work too — not done, since terminate+respawn already fully satisfies the UI's actual need.
 3. **The `habPurchasePlan.ts` numerical bug** (see above) — real, pre-existing, affects production
    I1/K2 shifts under certain inputs. Worth its own investigation; not touched here.
 4. **Convergence was only validated against a maxed-out fixture** where the score plateaus almost
@@ -326,11 +489,29 @@ Per the original integration doc §5 and execution plan:
 6. **No "deep fuzz" oracle campaign** was built (unlike `artifact-explorer`'s), only a smoke-tier
    equivalent (one exact-match check, one monotonicity check). Could be extended with more scenario
    variety (Part 3's own suggested benchmark scenarios: early/mid/late progression, phase-transition
-   stress test, duplicate-state stress test) if more confidence is wanted before Phase B/C.
-7. **Nothing has been committed.** Recommend reviewing the full diff and committing before starting
-   Phase B — the working tree currently mixes this session's changes with pre-existing unrelated
-   uncommitted changes to `c3.ts`/`researchRanking.ts`/`smartBuyPreview.ts` (see "Files touched"
-   above), so `git diff` on those three needs a careful read to separate the two.
+   stress test, duplicate-state stress test) if more confidence is wanted.
+7. ~~`beamSearch.worker.ts` has never actually run as a real Worker.~~ **Resolved this session** — see
+   "Live verification" above. Run/error/Apply/Cancel/re-run-after-cancel were all exercised in a real
+   browser against the real dev server.
+8. **Cancel-discards-partial-result is a policy choice, not a constraint** — still true, but the
+   *mechanism* changed this session (terminate+respawn, not a graceful worker message — see "Live
+   verification"). If a future UX wants "keep the best-so-far result on cancel" instead, that's a
+   `useBeamSearch.ts` change (skip the terminate, post a real cancel and wait for the worker's own
+   `cancelled`/`result` message) that would first need the yield-per-generation follow-up (open
+   question #2) to actually be reachable in time — terminate+respawn can't offer a partial result by
+   its very nature.
+9. **Realistic-fixture edge cases with `rawBackup: {}` weren't stress-tested** beyond the one live
+   run described above (which used a genuinely bare "Start from Scratch" state deliberately, to keep
+   the manual test fast). A real player's populated `rawBackup` — with a large `virtueAfxDb`
+   inventory — hasn't been run through the live worker at all this session; Phase A's own test suite
+   (`testFixtures.ts`'s `MAXED_RAW_BACKUP`) is the closest existing coverage for that shape, just not
+   through the actual postMessage/worker path. Worth doing once a real backup is available to test
+   with.
+10. **Nothing has been committed.** Recommend reviewing the full diff and committing now — the
+    working tree mixes this session's and the Phase A/B sessions' changes with pre-existing unrelated
+    uncommitted changes to `c3.ts`/`researchRanking.ts`/`smartBuyPreview.ts` (see "Files touched"
+    above), so `git diff` on those three needs a careful read to separate the two. The feature itself
+    is complete and live-tested — this is a natural point to commit and open a PR.
 
 ---
 
