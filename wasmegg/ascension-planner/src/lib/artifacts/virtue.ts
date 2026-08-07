@@ -18,10 +18,7 @@ import {
 } from 'lib/artifacts/virtue_effects';
 import { EquippedArtifact } from './types';
 import { libArtifactToEquippedArtifact, equippedArtifactsToLibArtifacts } from './utils';
-import {
-  calculateArtifactModifiers,
-  createEmptyLoadout,
-} from './calculator';
+import { calculateArtifactModifiers, createEmptyLoadout } from './calculator';
 import { calculateLayRate } from '@/calculations/layRate';
 import {
   calculateShippingCapacity,
@@ -114,6 +111,12 @@ export function getOptimalELRSet(
     commonResearch?: Record<string, number>;
     epicResearchLevels?: Record<string, number>;
     colleggtibleModifiers?: any;
+    /** Skip the full 1-4-artifact combination search (up to 495 combos) and only re-optimize stone
+     *  placement for exactly this family selection (each entry shaped like "metronome-4-3", same as
+     *  EquippedArtifact.artifactId) — see the `combos` construction below for the full rationale and
+     *  correctness argument. Falls back to the normal full search if these don't match anything in
+     *  the current inventory. */
+    fixedArtifactFamilies?: string[];
   } = {}
 ): EquippedArtifact[] {
   if (!backup.artifactsDb) {
@@ -200,7 +203,10 @@ export function getOptimalELRSet(
 
   // Pick top 4 of the non-target leaders based on slots
   const targetCands = finalCandidates.filter(c => c.isTarget);
-  const nonTargetCands = finalCandidates.filter(c => !c.isTarget).sort((a, b) => b.slots - a.slots).slice(0, 4);
+  const nonTargetCands = finalCandidates
+    .filter(c => !c.isTarget)
+    .sort((a, b) => b.slots - a.slots)
+    .slice(0, 4);
 
   const topCandidates = [...targetCands, ...nonTargetCands];
 
@@ -247,12 +253,32 @@ export function getOptimalELRSet(
     return result;
   }
 
-  const combos = [
-    ...combinations(topCandidates, 1),
-    ...combinations(topCandidates, 2),
-    ...combinations(topCandidates, 3),
-    ...combinations(topCandidates, 4),
-  ];
+  // Fast path: skip searching all 1-4 artifact combinations (up to 495) and only re-optimize stone
+  // placement for one caller-specified family selection instead. Correct whenever that selection
+  // really is the global optimum's family choice — true here because artifact CANDIDATE gathering
+  // above (steps 2-3) depends only on the owned inventory (backup.artifactsDb), never on
+  // commonResearch/epicResearchLevels/colleggtibleModifiers — only the per-combo stone-balancing
+  // below (which this fast path still runs in full) depends on those. So a caller that already knows
+  // the winning family selection from a prior full call against the same inventory (e.g. beam
+  // search's engine/macros.ts, evaluating many different research levels against one fixed
+  // inventory) can skip straight to re-deriving stones for it. Falls back to the full search if the
+  // requested families don't actually match anything in topCandidates (e.g. a stale caller-side
+  // cache), rather than silently returning a worse-than-optimal set.
+  const fixedCombo = options.fixedArtifactFamilies
+    ? topCandidates.filter(c =>
+        options.fixedArtifactFamilies!.includes(`${c.item.props.family.id}-${c.item.tierNumber}-${c.rarity}`)
+      )
+    : null;
+
+  const combos =
+    fixedCombo && fixedCombo.length === options.fixedArtifactFamilies!.length
+      ? [fixedCombo]
+      : [
+          ...combinations(topCandidates, 1),
+          ...combinations(topCandidates, 2),
+          ...combinations(topCandidates, 3),
+          ...combinations(topCandidates, 4),
+        ];
 
   for (const comboWrappers of combos) {
     const hasTarget = comboWrappers.some((w: Candidate) => w.isTarget);
@@ -295,9 +321,7 @@ export function getOptimalELRSet(
       const artifactMods = calculateArtifactModifiers(tempLoadout);
 
       // Hab Capacity
-      const habIds = assumeMax
-        ? [18, 18, 18, 18]
-        : (backup.farms?.[0]?.habs || []).map(h => (h === 19 ? null : h));
+      const habIds = assumeMax ? [18, 18, 18, 18] : (backup.farms?.[0]?.habs || []).map(h => (h === 19 ? null : h));
       while (!assumeMax && habIds.length < 4) habIds.push(null);
 
       const habCapOutput = calculateHabCapacity_Full({
@@ -418,8 +442,8 @@ export function getOptimalELRSet(
     const currentBestLayRate = bestMetricsForThisLoadout?.layRate ?? -1;
     const globalBestLayRate = bestMetrics?.layRate ?? -1;
 
-    const isGlobalBetter = bestELRForThisLoadout > maxELR ||
-      (bestELRForThisLoadout === maxELR && currentBestLayRate > globalBestLayRate);
+    const isGlobalBetter =
+      bestELRForThisLoadout > maxELR || (bestELRForThisLoadout === maxELR && currentBestLayRate > globalBestLayRate);
 
     if (isGlobalBetter) {
       maxELR = bestELRForThisLoadout;
