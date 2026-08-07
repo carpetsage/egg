@@ -51,6 +51,8 @@
       @buy-until-sale-deadline="handleBuyUntilSaleDeadline"
     />
 
+    <BeamSearchView v-if="currentView === 'beam_search'" @apply="handleApplyBeamSearchPlan" />
+
     <MilestoneTargetPicker
       v-if="currentView === 'milestones'"
       v-model="milestoneTarget"
@@ -211,7 +213,7 @@
 
     <!-- Flat/Sorted Views -->
     <ResearchFlatView
-      v-else-if="currentView !== 'smart_buy'"
+      v-else-if="currentView !== 'smart_buy' && currentView !== 'beam_search'"
       :sorted-researches="sortedResearches"
       :view="currentView"
       :thresholds="TIER_THRESHOLDS"
@@ -268,6 +270,7 @@ import {
   type SaleAwarePlanEntry,
 } from '@/calculations/smartBuyPreview';
 import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
+import type { BeamSearchResult } from '@/beam-search/engine';
 
 // Sub-components
 import ResearchSaleToggle from './ResearchSaleToggle.vue';
@@ -277,6 +280,7 @@ import ResearchFlatView from './ResearchFlatView.vue';
 import ElrViewControls from './ElrViewControls.vue';
 import RoiViewControls from './RoiViewControls.vue';
 import SmartBuyView from './SmartBuyView.vue';
+import BeamSearchView from './BeamSearchView.vue';
 import MilestoneTargetPicker from './MilestoneTargetPicker.vue';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
@@ -636,11 +640,7 @@ function insertEventCrossingWaits(
   for (const crossing of allCrossings) {
     const waitSeconds = crossing.absoluteTime - cursor;
     if (crossing.kind === 'sale') {
-      const waitId = insertWait(
-        crossing.togglesTo ? 'wait_for_research_sale' : 'wait_for_time',
-        waitSeconds,
-        snapshot
-      );
+      const waitId = insertWait(crossing.togglesTo ? 'wait_for_research_sale' : 'wait_for_time', waitSeconds, snapshot);
       snapshot = waitId ? prepareExecution() : snapshot;
       insertToggleSale(crossing.togglesTo, waitId, snapshot);
     } else {
@@ -1037,6 +1037,40 @@ function handleBuyMilestoneChain() {
       for (const item of list) {
         syncEventStateForItem(item);
         buyOneLevel(item.research);
+      }
+    });
+  });
+}
+
+/**
+ * Applies a beam search winning plan (BeamSearchView.vue's `apply` event) in one shot — all-or-
+ * nothing, per src/beam-search/HANDOFF.md decision #6 and
+ * src/beam-search/06-egg-codebase-integration.md §7. `result.researchIds` is already flat and
+ * ordered, with tier-macro/Phase-3-macro purchases already expanded into individual levels
+ * (src/beam-search/engine/reconstruct.ts) — indistinguishable, by the time it reaches here, from an
+ * ordinary chain of solo purchases, so it replays through exactly the same
+ * syncEventStateForItem/buyOneLevel pattern `handleBuyMilestoneChain` above uses, not a separate
+ * "macro-aware" path. Real price/wait for each purchase is re-derived live here (via
+ * syncEventStateForItem/buyOneLevel), not trusted from the beam's own scratch-simulation — same
+ * "dry run -> execute" split every other flow in this file already uses.
+ *
+ * `result.lastPurchaseTime` (an absolute timestamp the engine already computed, accounting for real
+ * sale/boost timing) gives a much better expiry-check duration estimate than the
+ * sum-of-getTimeToBuySeconds fallbacks other handlers here need, so it's used directly instead.
+ */
+function handleApplyBeamSearchPlan(result: BeamSearchResult) {
+  if (result.researchIds.length === 0) return;
+
+  const currentAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
+  const totalDuration = Math.max(0, result.lastPurchaseTime - currentAbsoluteTime);
+
+  withExpiryCheck(totalDuration, true, () => {
+    batch(() => {
+      for (const researchId of result.researchIds) {
+        const research = getResearchById(researchId);
+        if (!research) continue;
+        syncEventStateForItem({ research });
+        if (!buyOneLevel(research)) break;
       }
     });
   });
