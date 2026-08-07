@@ -137,6 +137,21 @@ export interface BeamSearchOptions {
   /** Safety-net cap on outer search decisions, same "guard rail, not a tuning knob" role
    *  MAX_SIMULATED_PURCHASES plays in calculations/smartBuyPreview.ts. */
   maxDepth?: number;
+  /** Polled once per generation (see search.ts's runSearchLoop), not mid-generation — matching
+   *  Phase B's worker plan (../HANDOFF.md), which only ever needs "stop before the next generation
+   *  starts", not sub-generation interruption. When it starts returning true, the loop stops after
+   *  finishing its current generation and returns whatever `finished` results it already has
+   *  (possibly none) instead of continuing — same shape as a natural maxDepth/empty-beam stop, just
+   *  earlier. `runBeamSearch` reports this via `BeamSearchResult.metrics.cancelled`.
+   *
+   *  Correctly implemented and unit-tested (engine/search.spec.ts) at this level — but note that the
+   *  Web Worker caller (../../workers/beamSearch.worker.ts) currently can't actually flip this to
+   *  true *while a run is busy*, since the whole call is one synchronous block on a single-threaded
+   *  worker with no yield point for its own postMessage handler to run in the meantime. That's a
+   *  Phase C integration gap (worked around there by terminating the worker instead), not a bug in
+   *  this hook — see useBeamSearch.ts's `cancel()` for the full story and the follow-up that would
+   *  close the gap (yielding once per generation here). */
+  isCancelled?: () => boolean;
 }
 
 export interface BeamSearchResult {
@@ -160,6 +175,11 @@ export interface BeamSearchResult {
      *  comment. A high ratio here confirms the cache is earning its keep. */
     phase3CacheHits: number;
     beamWidth: number;
+    /** True if `options.isCancelled` returned true before the loop reached a natural stop
+     *  (maxDepth/empty beam). The result is whatever was found up to that point — may still be a
+     *  usable plan (finished.length > 0), or may be absent (runBeamSearch throws in that case, same
+     *  as the ordinary "no plan found" path — see its own doc comment). */
+    cancelled: boolean;
   };
 }
 

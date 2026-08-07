@@ -55,10 +55,17 @@ export function runBeamSearch(
     options.deadline,
     options.beamWidth,
     options.maxDepth,
-    options.onProgress
+    options.onProgress,
+    options.isCancelled
   );
 
   if (finished.length === 0) {
+    // Same message whether this is a genuine "no plan reachable" outcome or an early cancellation
+    // that happened before any Phase 3 terminal was found — metrics.cancelled (were it reachable
+    // here) would disambiguate, but there's no result object to carry it on this branch. The Web
+    // Worker wrapper (src/workers/beamSearch.worker.ts) already knows independently whether *it*
+    // requested cancellation for this run, so it doesn't need this error's text to tell the two
+    // apart — it reports 'cancelled' instead of 'error' in that case regardless of this message.
     throw new Error(
       'Beam search found no plan that reaches a Phase 3 delivery evaluation before the deadline. ' +
         'Try a later deadline or a wider beam width.'
@@ -83,6 +90,7 @@ export function runBeamSearch(
       phase3MacroCalls: metrics.phase3MacroCalls,
       phase3CacheHits: metrics.phase3CacheHits,
       beamWidth: options.beamWidth,
+      cancelled: metrics.cancelled,
     },
   };
 }
