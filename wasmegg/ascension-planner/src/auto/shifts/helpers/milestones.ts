@@ -1,5 +1,6 @@
 import type { Action } from '@/types/actions/meta';
 import { createSimAction } from '@/types/actions/meta';
+import type { NotificationPayload } from '@/types';
 import type { EngineState, SimulationContext, ShiftResult } from '../../types';
 import { getResearchById, isTierUnlocked, type ResearchCostModifiers } from '../../../calculations/commonResearch';
 import { findSmartBuyCandidate } from '../../../calculations/smartBuyCandidate';
@@ -16,6 +17,7 @@ import { computeSnapshot } from '../../../engine/compute';
 import { applyAction, boostTransitionsFrom } from '../../../engine/apply';
 import { advanceTimeWithBoundaries } from './advanceTime';
 import { isResearchSaleActive, getNextSaleEnd } from '@/lib/events';
+import { buildQuickBuyNotePayload } from '@/lib/actions/notes';
 
 /**
  * Shared mutable-simulation plumbing for the milestone/smart-buy helpers below.
@@ -125,11 +127,26 @@ export function createMilestoneShiftHelpers(startState: EngineState, context: Si
     return true;
   };
 
+  /**
+   * Insert a zero-cost, zero-time inline note at the FRONT of the action list, dated to
+   * `startState` rather than wherever the sweep has gotten to by the time this is called — callers
+   * typically only know what to say (e.g. "N purchases over Xs") after running their loop, but the
+   * note should still read as having happened before the actions it's describing. Generic across
+   * every milestone/smart-buy helper above, not just `runSmartBuyForSeconds`.
+   */
+  const addNotification = (payload: NotificationPayload) => {
+    const action = createSimAction('notification', payload, 0);
+    action.endState = computeSnapshot(startState, context, { skipGrowth: true });
+    action.totalTimeSeconds = 0;
+    actions.unshift(action);
+  };
+
   return {
     getAbsTime,
     getModifiers,
     buyResearch,
     executeChainItem,
+    addNotification,
     getState: () => currentState,
     getElapsedSeconds: () => elapsedSeconds,
     getActions: () => actions,
@@ -149,6 +166,8 @@ export function runSmartBuyForSeconds(
   timeLimit: number
 ): ShiftResult {
   const helpers = createMilestoneShiftHelpers(startState, context);
+  let purchaseCount = 0;
+  let totalGemsSpent = 0;
 
   while (helpers.getElapsedSeconds() <= timeLimit) {
     const snapshot = computeSnapshot(helpers.getState(), context, { skipGrowth: true });
@@ -163,7 +182,20 @@ export function runSmartBuyForSeconds(
     );
     if (!candidate) break;
     if (!helpers.buyResearch(candidate.research.id, timeLimit)) break;
+    purchaseCount++;
+    totalGemsSpent += candidate.price;
   }
+
+  // Elapsed time here doubles as "total time to save" — unlike the manual planner's dry-run
+  // preview, this sweep really does advance the clock between purchases (see `buyResearch`), so the
+  // two are the same number.
+  const notePayload = buildQuickBuyNotePayload(
+    thresholdSeconds,
+    purchaseCount,
+    helpers.getElapsedSeconds(),
+    totalGemsSpent
+  );
+  if (notePayload) helpers.addNotification(notePayload);
 
   return {
     actions: helpers.getActions(),

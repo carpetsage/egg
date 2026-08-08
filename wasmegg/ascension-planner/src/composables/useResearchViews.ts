@@ -627,6 +627,7 @@ export function useResearchViews() {
       optimizedSeconds: core.optimizedSeconds!,
       timeSavedSeconds: core.timeSavedSeconds!,
       purchaseCount: core.purchaseCount!,
+      gemsSpent: core.gemsSpent!,
       finishAbsoluteTime: formatAbsoluteTime(core.optimizedSeconds!, baseTimestamp, virtueStore.ascensionTimezone),
     };
   });
@@ -863,6 +864,21 @@ export function useResearchViews() {
     after: saleAwarePlan70.value.endSnapshot.offlineEarnings * 3600,
   }));
 
+  // Purchase count / time-until-next-sale / gems spent for the "70% Return" card — the same three
+  // figures its note reports (`buildSaleAwareBuyNotePayload` in `src/lib/actions/notes.ts`), shown
+  // live in the card itself before the button is clicked.
+  const saleAwareStats70 = computed(() => {
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+    const entries = saleAwarePlan70.value.entries;
+    return {
+      purchaseCount: entries.length,
+      seconds: Math.max(0, nextSaleStart.value - absoluteSimTime),
+      gems: entries.reduce((sum, entry) => sum + entry.price, 0),
+    };
+  });
+
   // Current vs. simulated-post-earnings-prelude earnings rate for "Buy Until Sale Ends" — same
   // shape as `saleAwareEarningsSummary70` above, just measured at `earningsEndSnapshot` (the
   // midpoint between the plan's earnings-prelude and delivery portions) instead of a whole plan's
@@ -871,6 +887,20 @@ export function useResearchViews() {
     before: currentOfflineEarningsHourly.value,
     after: saleEndsPlan.value.earningsEndSnapshot.offlineEarnings * 3600,
   }));
+
+  // Purchase count / time-until-sale-ends / gems spent for "Buy Until Sale Ends" — the same three
+  // figures its note reports (`buildSaleEndsBuyNotePayload` in `src/lib/actions/notes.ts`), shown
+  // live in the card itself before the button is clicked.
+  const saleEndsStats = computed(() => {
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+    return {
+      purchaseCount: saleEndsPlan.value.researchIds.length,
+      seconds: Math.max(0, researchSaleDeadline.value - absoluteSimTime),
+      gems: saleEndsPlan.value.totalGemsSpent ?? 0,
+    };
+  });
 
   // Current vs. simulated-post-purchase Delivery Rate for "Buy Until Sale Ends" — same "realistic"
   // (optimal artifacts + max habs/vehicles) calculation `realisticSummary` uses, just evaluated
@@ -1116,12 +1146,14 @@ export function useResearchViews() {
     elrRankedResearches,
     saleAwarePlan70,
     saleAwarePreview,
+    saleAwareStats70,
     saleEndsPlan,
     saleEndsPreview,
     saleEndsEarningsPreview,
     saleEndsEarningsSummary,
     saleAwareEarningsSummary70,
     saleEndsDeliverySummary,
+    saleEndsStats,
     realisticSummary,
     researchSaleDeadline,
     nextSaleStart,
