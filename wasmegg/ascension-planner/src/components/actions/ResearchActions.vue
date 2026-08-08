@@ -35,12 +35,15 @@
       :can-buy-until-sale-deadline="canBuyUntilSaleDeadline"
       :quick-buy-preview="quickBuyPreview"
       :quick-buy-earnings-summary="quickBuyEarningsSummary"
+      :quick-buy-stats="quickBuyStats"
       :sale-aware-preview="saleAwarePreview"
+      :sale-aware-stats70="saleAwareStats70"
       :sale-ends-preview="saleEndsPreview"
       :sale-ends-earnings-preview="saleEndsEarningsPreview"
       :sale-ends-earnings-summary="saleEndsEarningsSummary"
       :sale-aware-earnings-summary70="saleAwareEarningsSummary70"
       :sale-ends-delivery-summary="saleEndsDeliverySummary"
+      :sale-ends-stats="saleEndsStats"
       @update:auto-buy-always-on="autoBuyState.alwaysOn = $event"
       @quick-buy="handleThresholdBuy"
       @update:quick-buy-threshold-seconds="quickBuyThreshold = $event"
@@ -113,6 +116,14 @@
             >
             <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1">
               {{ milestoneSummary.purchaseCount }}
+            </span>
+          </div>
+          <div class="flex flex-col border-l border-gray-200 pl-6">
+            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1"
+              >Gems Spent</span
+            >
+            <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1">
+              {{ formatGemPrice(milestoneSummary.gemsSpent) }}
             </span>
           </div>
         </div>
@@ -246,7 +257,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { getDiscountedVirtuePrice, getResearchById, type CommonResearch } from '@/calculations/commonResearch';
-import { formatDuration, formatNumber } from '@/lib/format';
+import { formatDuration, formatNumber, formatGemPrice } from '@/lib/format';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useActionsStore } from '@/stores/actions';
 import { useSalesStore } from '@/stores/sales';
@@ -254,6 +265,13 @@ import { useVirtueStore } from '@/stores/virtue';
 import { computeDependencies } from '@/lib/actions/executor';
 import { generateActionId } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import {
+  createNoteAction,
+  buildQuickBuyNotePayload,
+  buildSaleAwareBuyNotePayload,
+  buildSaleEndsBuyNotePayload,
+  buildMilestoneNotePayload,
+} from '@/lib/actions/notes';
 import { useResearchViews, VIEWS } from '@/composables/useResearchViews';
 import { getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
 import { getSimulationContext } from '@/engine/adapter';
@@ -329,12 +347,14 @@ const {
   elrRankedResearches,
   saleAwarePlan70,
   saleAwarePreview,
+  saleAwareStats70,
   saleEndsPlan,
   saleEndsPreview,
   saleEndsEarningsPreview,
   saleEndsEarningsSummary,
   saleAwareEarningsSummary70,
   saleEndsDeliverySummary,
+  saleEndsStats,
   realisticSummary,
   researchSaleDeadline,
   nextSaleStart,
@@ -360,6 +380,15 @@ const quickBuyPreview = computed(() =>
 const quickBuyEarningsSummary = computed(() => ({
   before: actionsStore.effectiveSnapshot.offlineEarnings * 3600,
   after: quickBuyPlan.value.endSnapshot.offlineEarnings * 3600,
+}));
+
+// Purchase count / time-saved / gems spent for the Quick Buy card — the same three figures its note
+// reports (`buildQuickBuyNotePayload` in `src/lib/actions/notes.ts`), shown live in the card itself
+// before the button is clicked.
+const quickBuyStats = computed(() => ({
+  purchaseCount: quickBuyPlan.value.researchIds.length,
+  seconds: quickBuyPlan.value.totalSecondsToSave ?? 0,
+  gems: quickBuyPlan.value.totalGemsSpent ?? 0,
 }));
 
 function getNextLevelPrice(research: CommonResearch): number {
@@ -836,6 +865,31 @@ async function runSaleAwareBuyFlow(label: string, plan: SaleAwarePlanEntry[]) {
   };
   let index = 0;
   await batch(() => {
+    // Note goes in ahead of the purchases it's summarizing, same as Quick Buy's. `plan` is already
+    // the exact sequence about to be bought (see this function's doc comment above), and the sale
+    // deadline is known up front, so both figures the note needs are available before anything is
+    // actually purchased.
+    const notePayload = buildSaleAwareBuyNotePayload(
+      plan.length,
+      targetDeadline - startAbsoluteTime,
+      plan.reduce((sum, entry) => sum + entry.price, 0)
+    );
+    if (notePayload) {
+      const noteBeforeSnapshot = prepareExecution();
+      completeExecution(
+        createNoteAction(
+          notePayload,
+          computeDependencies(
+            'notification',
+            notePayload,
+            actionsStore.actionsBeforeInsertion,
+            actionsStore.initialSnapshot.researchLevels
+          )
+        ),
+        noteBeforeSnapshot
+      );
+    }
+
     result = buyUntilRealSaleStarts(
       () => {
         // This closure is only ever invoked when buyUntilRealSaleStarts's own `shouldStop()`
@@ -921,6 +975,31 @@ function handleBuyUntilSaleDeadline() {
   const plan = saleEndsPlan.value.researchIds;
   let index = 0;
   batch(() => {
+    // Note goes in ahead of the purchases it's summarizing, same as the other Smart Buy notes.
+    // `plan` is already the exact sequence about to be bought, and the current sale's own end is
+    // known up front, so both figures the note needs are available before anything is purchased.
+    const startAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
+    const notePayload = buildSaleEndsBuyNotePayload(
+      plan.length,
+      researchSaleDeadline.value - startAbsoluteTime,
+      saleEndsPlan.value.totalGemsSpent ?? 0
+    );
+    if (notePayload) {
+      const noteBeforeSnapshot = prepareExecution();
+      completeExecution(
+        createNoteAction(
+          notePayload,
+          computeDependencies(
+            'notification',
+            notePayload,
+            actionsStore.actionsBeforeInsertion,
+            actionsStore.initialSnapshot.researchLevels
+          )
+        ),
+        noteBeforeSnapshot
+      );
+    }
+
     buyWhilePassingCheck(
       () => (index < plan.length ? { researchId: plan[index] } : undefined),
       researchId => {
@@ -952,6 +1031,31 @@ function handleThresholdBuy(threshold: number) {
         isResearchSaleActive.value,
         threshold
       );
+
+      // Note goes in ahead of the purchases it's summarizing, so history reads "why did these show
+      // up" before it reads the purchases themselves.
+      const notePayload = buildQuickBuyNotePayload(
+        threshold,
+        plan.researchIds.length,
+        plan.totalSecondsToSave ?? 0,
+        plan.totalGemsSpent ?? 0
+      );
+      if (notePayload) {
+        const noteBeforeSnapshot = prepareExecution();
+        completeExecution(
+          createNoteAction(
+            notePayload,
+            computeDependencies(
+              'notification',
+              notePayload,
+              actionsStore.actionsBeforeInsertion,
+              actionsStore.initialSnapshot.researchLevels
+            )
+          ),
+          noteBeforeSnapshot
+        );
+      }
+
       for (const researchId of plan.researchIds) {
         const research = getResearchById(researchId);
         if (!research) continue;
@@ -1018,6 +1122,18 @@ function handleBuyToHere(index: number) {
   });
 }
 
+// Human-readable description of the current milestone target, for the note `handleBuyMilestoneChain`
+// inserts ahead of its purchases — same wording `MilestoneTargetPicker.vue` uses for the target
+// itself ("Unlock Tier N" / "Research Name (Lv X/Y)"), so the note reads consistently with the
+// picker the player just used to choose it.
+function getMilestoneTargetLabel(): string {
+  const target = milestoneTarget.value;
+  if (!target) return 'Milestone';
+  if (target.kind === 'tier') return `Unlock Tier ${target.tier}`;
+  const research = getResearchById(target.researchId);
+  return research ? `${research.name} (Lv ${target.targetLevel}/${research.levels})` : 'Milestone';
+}
+
 function handleBuyMilestoneChain() {
   const list = sortedResearches.value;
   if (list.length === 0) return;
@@ -1034,6 +1150,35 @@ function handleBuyMilestoneChain() {
 
   withExpiryCheck(totalDuration, true, () => {
     batch(() => {
+      // Note goes in ahead of the purchases it's summarizing, same as the Smart Buy notes. Time
+      // saved only comes along when the Milestone Summary panel itself has a baseline comparison to
+      // show (see `buildMilestoneNotePayload`'s doc comment) — `milestoneSummary` reflects the
+      // target as currently selected, same source the summary panel above the button reads from.
+      const summary = milestoneSummary.value;
+      const timeSavedSeconds = summary && !summary.truncated ? summary.timeSavedSeconds : undefined;
+      const notePayload = buildMilestoneNotePayload(
+        getMilestoneTargetLabel(),
+        list.length,
+        totalDuration,
+        list.reduce((sum, item) => sum + item.price, 0),
+        timeSavedSeconds
+      );
+      if (notePayload) {
+        const noteBeforeSnapshot = prepareExecution();
+        completeExecution(
+          createNoteAction(
+            notePayload,
+            computeDependencies(
+              'notification',
+              notePayload,
+              actionsStore.actionsBeforeInsertion,
+              actionsStore.initialSnapshot.researchLevels
+            )
+          ),
+          noteBeforeSnapshot
+        );
+      }
+
       for (const item of list) {
         syncEventStateForItem(item);
         buyOneLevel(item.research);
