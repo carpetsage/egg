@@ -45,6 +45,7 @@ export interface SaleAwarePlanEntry {
   researchId: string;
   duringSale: boolean;
   purchaseTimestamp: number;
+  price: number;
 }
 
 export interface SaleAwareBuyPlan {
@@ -63,6 +64,14 @@ export interface SimpleBuyPlan {
   researchIds: string[];
   endLevels: Record<string, number>;
   endSnapshot: CalculationsSnapshot;
+  /** Sum of each purchase's own "time to save" — how long accumulating for all of them normally
+   *  would have taken, back to back. Quick Buy itself never simulates a wait (see below), so this
+   *  isn't real elapsed time; it's just the figure the Quick Buy note reports as time saved. Only
+   *  populated by `simulateThresholdBuy` — other `SimpleBuyPlan` producers leave it unset. */
+  totalSecondsToSave?: number;
+  /** Sum of each purchase's price — the Quick Buy note's "gems spent" figure. Only populated by
+   *  `simulateThresholdBuy` — other `SimpleBuyPlan` producers leave it unset. */
+  totalGemsSpent?: number;
 }
 
 /**
@@ -189,6 +198,7 @@ export function simulateSaleAwareBuy(
       researchId: e.researchId,
       duringSale: e.duringSale,
       purchaseTimestamp: e.purchaseTimestamp,
+      price: e.price,
     })),
     endLevels: cleanState.researchLevels,
     endSnapshot,
@@ -302,6 +312,7 @@ export function simulateEarningsPreludeForSaleEnd(
 export interface DeliveryPurchase {
   researchId: string;
   purchaseTimestamp: number;
+  price: number;
 }
 
 export interface DeliveryLoopResult {
@@ -372,7 +383,7 @@ export function runDeliveryBuyLoop(
       simState = applyTime(simState, purchase.waitSeconds, simSnapshot);
       simTime += purchase.waitSeconds;
       simSnapshot = computeSnapshot(simState, context);
-      purchases.push({ researchId, purchaseTimestamp: simTime });
+      purchases.push({ researchId, purchaseTimestamp: simTime, price: purchase.price });
       return true;
     },
     maxIterations
@@ -515,6 +526,9 @@ export function simulateSaleEndsBuy(
 
   const earningsResearchIds = checkpoints[bestK].purchases.map(p => p.researchId);
   const deliveryResearchIds = bestRun.purchases.map(p => p.researchId);
+  const totalGemsSpent =
+    checkpoints[bestK].purchases.reduce((sum, p) => sum + p.price, 0) +
+    bestRun.purchases.reduce((sum, p) => sum + p.price, 0);
 
   return {
     researchIds: [...earningsResearchIds, ...deliveryResearchIds],
@@ -524,6 +538,7 @@ export function simulateSaleEndsBuy(
     earningsEndSnapshot: checkpoints[bestK].snapshot,
     endLevels: bestRun.endLevels,
     endSnapshot: bestRun.endSnapshot,
+    totalGemsSpent,
   };
 }
 
@@ -544,6 +559,8 @@ export function simulateThresholdBuy(
   let simState: EngineState = { ...createBaseEngineState(snapshot), researchLevels: { ...researchLevels } };
   let simSnapshot = snapshot;
   const researchIds: string[] = [];
+  let totalSecondsToSave = 0;
+  let totalGemsSpent = 0;
 
   for (let i = 0; i < MAX_SIMULATED_PURCHASES; i++) {
     const candidate = findSmartBuyCandidate(simState.researchLevels, mods, isSale, simSnapshot, thresholdSeconds);
@@ -552,9 +569,17 @@ export function simulateThresholdBuy(
     simState = applyAction(simState, buyResearchAction(candidate.research.id, level, candidate.price));
     simSnapshot = computeSnapshot(simState, context);
     researchIds.push(candidate.research.id);
+    totalSecondsToSave += candidate.secondsToSave;
+    totalGemsSpent += candidate.price;
   }
 
-  return { researchIds, endLevels: simState.researchLevels, endSnapshot: simSnapshot };
+  return {
+    researchIds,
+    endLevels: simState.researchLevels,
+    endSnapshot: simSnapshot,
+    totalSecondsToSave,
+    totalGemsSpent,
+  };
 }
 
 export interface ResearchSummaryItem {

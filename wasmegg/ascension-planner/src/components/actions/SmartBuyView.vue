@@ -3,6 +3,7 @@
     <QuickBuy
       :preview-items="quickBuyPreview"
       :earnings-summary="quickBuyEarningsSummary"
+      :stats="quickBuyStats"
       @buy="$emit('quick-buy', $event)"
       @update:threshold-seconds="$emit('update:quickBuyThresholdSeconds', $event)"
     />
@@ -16,7 +17,7 @@
         />
       </template>
       <template #description>
-        Buys all the earnings research that should be bought before the next research sale. 
+        Buys all the earnings research that should be bought before the next research sale.
       </template>
 
       <RoiViewControls
@@ -38,6 +39,11 @@
           For strategic buying early in your build.
         </p>
         <ResearchPurchasePreview :items="saleAwarePreview" empty-text="Nothing to buy right now" />
+        <SmartBuyStats
+          :purchase-count="saleAwareStats70.purchaseCount"
+          :seconds="saleAwareStats70.seconds"
+          :gems="saleAwareStats70.gems"
+        />
         <RatePreviewDelta
           label="Earnings"
           :before="saleAwareEarningsSummary70.before"
@@ -65,6 +71,11 @@
       >
         Buy Until Sale Ends
       </button>
+      <SmartBuyStats
+        :purchase-count="saleEndsStats.purchaseCount"
+        :seconds="saleEndsStats.seconds"
+        :gems="saleEndsStats.gems"
+      />
       <ResearchPurchasePreview
         :items="saleEndsEarningsPreview"
         label="100% ROI before end of sale. Maximizes buying speed of delivery research"
@@ -108,10 +119,17 @@ import SmartBuyCard from './SmartBuyCard.vue';
 import RoiViewControls from './RoiViewControls.vue';
 import ResearchPurchasePreview from './ResearchPurchasePreview.vue';
 import RatePreviewDelta from './RatePreviewDelta.vue';
+import SmartBuyStats from './SmartBuyStats.vue';
 
 interface RateSummary {
   before: number;
   after: number;
+}
+
+interface BuyStats {
+  purchaseCount: number;
+  seconds: number;
+  gems: number;
 }
 
 defineProps<{
@@ -122,12 +140,15 @@ defineProps<{
   canBuyUntilSaleDeadline: boolean;
   quickBuyPreview: ResearchSummaryItem[];
   quickBuyEarningsSummary: RateSummary;
+  quickBuyStats: BuyStats;
   saleAwarePreview: ResearchSummaryItem[];
+  saleAwareStats70: BuyStats;
   saleEndsPreview: ResearchSummaryItem[];
   saleEndsEarningsPreview: ResearchSummaryItem[];
   saleEndsEarningsSummary: RateSummary;
   saleAwareEarningsSummary70: RateSummary;
   saleEndsDeliverySummary: RateSummary | null;
+  saleEndsStats: BuyStats;
 }>();
 
 defineEmits<{
