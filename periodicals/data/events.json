@@ -28159,5 +28159,23 @@
     "startTimestamp": 1786204800,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1786377600,
+    "id": "event-8-9",
+    "message": "30% OFF CRAFTING!",
+    "multiplier": 0.7,
+    "startTimestamp": 1786291200,
+    "type": "crafting-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1786377600,
+    "id": "ultra-8-9",
+    "message": "75% OFF VEHICLES!",
+    "multiplier": 0.25,
+    "startTimestamp": 1786291200,
+    "type": "vehicle-sale",
+    "ultra": true
   }
 ]
