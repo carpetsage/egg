@@ -45,4 +45,35 @@ describe('runBeamSearch smoke test', () => {
       runBeamSearch(startState, context, { beamWidth: 10, deadline: context.ascensionStartTime + 86400 })
     ).toThrow(/rawBackup/);
   });
+
+  test('result.trace is absent by default and populated end-to-end when options.trace is set', () => {
+    const context = makeTestContext();
+    const startState = makeTestEngineState();
+    const deadline = context.ascensionStartTime + 6 * 3600;
+
+    const plain = runBeamSearch(startState, context, { beamWidth: 5, deadline, maxDepth: 8 });
+    expect(plain.trace).toBeUndefined();
+
+    const traced = runBeamSearch(startState, context, { beamWidth: 5, deadline, maxDepth: 8, trace: true });
+    expect(traced.trace).toBeDefined();
+    // trace: true is purely additive — same plan either way (see search.spec.ts's equivalent check
+    // at the runSearchLoop level for the metrics/finished-count side of this).
+    expect(traced.researchIds).toEqual(plain.researchIds);
+    expect(traced.score).toBe(plain.score);
+
+    const trace = traced.trace!;
+    expect(trace.steps.length).toBeGreaterThan(0);
+    // Every step's depth is strictly increasing, matching the winning path's own generation order.
+    for (let i = 1; i < trace.steps.length; i++) {
+      expect(trace.steps[i].depth).toBeGreaterThan(trace.steps[i - 1].depth);
+    }
+    for (const step of trace.steps) {
+      expect(step.chosenRank).toBeGreaterThanOrEqual(1);
+      expect(step.chosenRank).toBeLessThanOrEqual(step.beamSizeThisGeneration);
+      expect(step.alternatives.length).toBeLessThanOrEqual(step.beamSizeThisGeneration - 1);
+    }
+    expect(trace.finalStep.finalScore).toBe(traced.score);
+    expect(trace.finalStep.winnerRank).toBeGreaterThanOrEqual(1);
+    expect(trace.finalStep.winnerRank).toBeLessThanOrEqual(trace.finalStep.totalPhase3AttemptsFound);
+  });
 });

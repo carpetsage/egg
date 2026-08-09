@@ -14,7 +14,17 @@ import { splitEngineState } from './types';
 import { reconstructPlan } from './reconstruct';
 import { runSearchLoop } from './search';
 
-export type { BeamSearchOptions, BeamSearchProgress, BeamSearchResult } from './types';
+export type {
+  BeamSearchOptions,
+  BeamSearchProgress,
+  BeamSearchResult,
+  // Diagnostics types (../HANDOFF.md's tooling options #1/#2) — BeamSearchProgress above already
+  // covers #1 (the new cumulative counters live right on it); these four are #2's export shape.
+  WinningPathTrace,
+  WinningPathStepTrace,
+  FinalStepTrace,
+  BeamMemberSummary,
+} from './types';
 
 function pickWinner(finished: BeamTerminalResult[]): BeamTerminalResult {
   // Primary: maximize finalScore. Secondary: minimize lastPurchaseTime. Per
@@ -47,7 +57,7 @@ export function runBeamSearch(
     puzzleCubeMultiplier: calculateArtifactModifiers(frozen.artifactLoadout).researchCost.totalMultiplier,
   };
 
-  const { finished, metrics } = runSearchLoop(
+  const { finished, metrics, generationTraces } = runSearchLoop(
     initial,
     frozen,
     context,
@@ -56,7 +66,8 @@ export function runBeamSearch(
     options.beamWidth,
     options.maxDepth,
     options.onProgress,
-    options.isCancelled
+    options.isCancelled,
+    options.trace
   );
 
   if (finished.length === 0) {
@@ -73,7 +84,7 @@ export function runBeamSearch(
   }
 
   const winner = pickWinner(finished);
-  const plan = reconstructPlan(winner, context);
+  const plan = reconstructPlan(winner, context, generationTraces ? { finished, generationTraces } : undefined);
 
   return {
     score: plan.score,
@@ -82,6 +93,7 @@ export function runBeamSearch(
     lastPurchaseTime: plan.lastPurchaseTime,
     phaseTransitionTime: plan.phaseTransitionTime,
     tierUnlockTimes: plan.tierUnlockTimes,
+    saleWaitTimes: plan.saleWaitTimes,
     metrics: {
       runtimeMs: Date.now() - startedAt,
       statesExpanded: metrics.statesExpanded,
@@ -92,5 +104,6 @@ export function runBeamSearch(
       beamWidth: options.beamWidth,
       cancelled: metrics.cancelled,
     },
+    trace: plan.trace,
   };
 }

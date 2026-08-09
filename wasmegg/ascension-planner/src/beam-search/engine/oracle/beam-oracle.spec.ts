@@ -26,7 +26,8 @@ import {
   type Phase3ArtifactFamilyCache,
   type Phase3ScoreCache,
 } from '../macros';
-import { applyResearchPurchase, phaseTransitionChild, selectCandidates } from '../search';
+import { applyResearchPurchase, fastForwardToSale, phaseTransitionChild, selectCandidates } from '../search';
+import { getNextPacificTime } from '@/lib/events';
 import { makeAutoProgressedTestState, makeTestContext } from '../testFixtures';
 import { absoluteSimTimeOf, splitEngineState, type BeamFrozenContext, type BeamSearchState } from '../types';
 import type { ResearchCostModifiers } from '@/calculations/commonResearch';
@@ -64,25 +65,52 @@ function exhaustiveBestScore(
   if (depth < maxDepth) {
     const absoluteSimTime = absoluteSimTimeOf(state, context);
     if (absoluteSimTime < deadline) {
-      const candidates = selectCandidates(getLightweightPhaseCandidates(state, frozen, context, mods, state.phase));
-      for (const candidate of candidates) {
-        if (absoluteSimTime + candidate.waitSeconds > deadline) continue;
-        const child = applyResearchPurchase(state, frozen, context, candidate);
-        best = Math.max(
-          best,
-          exhaustiveBestScore(
-            child,
-            frozen,
-            context,
-            mods,
-            deadline,
-            maxDepth,
-            depth + 1,
-            counters,
-            scoreCache,
-            artifactFamilyCache
-          )
-        );
+      const allCandidates = getLightweightPhaseCandidates(state, frozen, context, mods, state.phase);
+      const candidates = selectCandidates(allCandidates);
+      if (candidates.length > 0) {
+        for (const candidate of candidates) {
+          if (absoluteSimTime + candidate.waitSeconds > deadline) continue;
+          const child = applyResearchPurchase(state, frozen, context, candidate);
+          best = Math.max(
+            best,
+            exhaustiveBestScore(
+              child,
+              frozen,
+              context,
+              mods,
+              deadline,
+              maxDepth,
+              depth + 1,
+              counters,
+              scoreCache,
+              artifactFamilyCache
+            )
+          );
+        }
+      } else if (allCandidates.length > 0) {
+        // Mirrors search.ts's own fastForwardToSale branch exactly — the oracle has to offer this
+        // same move, or it's testing a strictly weaker search space than the real beam has (see this
+        // file's own header comment on why the oracle must stay in lockstep with the beam's actual
+        // move set, not an approximation of it).
+        const nextSaleStart = getNextPacificTime(5, 9, absoluteSimTime);
+        if (nextSaleStart <= deadline) {
+          const child = fastForwardToSale(state, frozen, context, nextSaleStart);
+          best = Math.max(
+            best,
+            exhaustiveBestScore(
+              child,
+              frozen,
+              context,
+              mods,
+              deadline,
+              maxDepth,
+              depth + 1,
+              counters,
+              scoreCache,
+              artifactFamilyCache
+            )
+          );
+        }
       }
 
       if (nextLockedTier(state) !== null) {

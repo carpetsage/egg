@@ -69,3 +69,55 @@ describe('getLightweightPhaseCandidates', () => {
     }
   });
 });
+
+/**
+ * The MAX_ROI_PAYBACK_SEARCH_SECONDS exclusion — found via a real diagnostics session (see
+ * ../HANDOFF.md): a beam-search trace, diffed against a real manual plan for the same window,
+ * showed the search buying meaningfully more shipping-capacity research (dark_containment,
+ * neural_net_refine) than a human did. Root cause candidate: when laying rate (not shipping) is the
+ * true bottleneck, effectiveLayRate.ts's min(layRate, shippingCapacity) means a shipping-capacity
+ * purchase shows ~zero earningsDelta — it should never look worth buying, and this test locks in
+ * that it's hard-excluded, not just deprioritized (deprioritization alone previously let it back in
+ * via selectCandidates' now-removed fallback).
+ */
+describe('getLightweightPhaseCandidates: infinite/999-day-payback exclusion', () => {
+  const context = makeTestContext();
+  const baseState = makeAutoProgressedTestState(context);
+  const mods = { labUpgradeLevel: 0, researchCostMultiplier: 1, puzzleCubeMultiplier: 1 };
+
+  function shippingCategoryIds(): string[] {
+    return getCommonResearches()
+      .filter(r => categoriesOf(r.id).includes('shipping_capacity'))
+      .map(r => r.id);
+  }
+
+  test('a shipping-capacity candidate is excluded once laying rate is the clear bottleneck', () => {
+    // A single, real (non-empty) hab well below the fixture's default four-maxed-habs setup pulls
+    // layRate below the fixture's own shippingCapacity (confirmed directly: 1.09B vs 3.19B in this
+    // fixture) while still leaving a large, healthy earnings rate — deliberately NOT the far more
+    // extreme "near-zero hab" override an earlier version of this test used, which crushed
+    // offlineEarnings low enough to exclude every candidate for an unrelated reason (the
+    // `offlineEarnings <= 0` guard / every candidate's delta shrinking together), not just shipping
+    // ones specifically.
+    const { frozen, initial } = splitEngineState({
+      ...baseState,
+      habIds: [14, null, null, null],
+    });
+
+    const candidates = getLightweightPhaseCandidates(initial, frozen, context, mods, 1);
+    const shippingIds = new Set(shippingCategoryIds());
+    const stillOffered = candidates.filter(c => shippingIds.has(c.researchId));
+
+    expect(stillOffered).toEqual([]);
+    // Sanity check this wasn't just an empty-candidates fluke — plenty of non-shipping research
+    // should still be offered normally.
+    expect(candidates.length).toBeGreaterThan(0);
+  });
+
+  test('the same shipping-capacity research IS offered without the vehicle override (control)', () => {
+    const { frozen, initial } = splitEngineState(baseState);
+    const candidates = getLightweightPhaseCandidates(initial, frozen, context, mods, 1);
+    const shippingIds = new Set(shippingCategoryIds());
+    expect(candidates.some(c => shippingIds.has(c.researchId))).toBe(true);
+  });
+});

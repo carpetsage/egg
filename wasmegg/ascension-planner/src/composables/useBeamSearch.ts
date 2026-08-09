@@ -12,6 +12,15 @@
  * result to the live plan is deliberately NOT this composable's job either — see BeamSearchView.vue /
  * ResearchActions.vue's handleApplyBeamSearchPlan, which reuses ResearchActions.vue's own existing
  * purchase-replay helpers (syncEventStateForItem/buyOneLevel/batch) rather than duplicating them here.
+ *
+ * Also owns `generationHistory` — the live per-generation diagnostics table (tooling option #1 in
+ * ../beam-search/HANDOFF.md's "Live verification" follow-up), derived here rather than in the engine
+ * or the worker because it's purely a "how do we want to present this" concern: `BeamSearchProgress`
+ * only ever carries cumulative counters (see its own doc comment), and turning consecutive messages
+ * into per-generation deltas is exactly the kind of UI-facing framing decision that doesn't belong
+ * upstream. `result.value?.trace` (tooling option #2, the winning-path export) needs no equivalent
+ * derivation here — engine/index.ts already hands back a fully-built, plain WinningPathTrace as part
+ * of `BeamSearchResult` when `start()`'s `trace` argument is true.
  */
 import { onUnmounted, ref } from 'vue';
 import { useActionsStore } from '@/stores/actions';
@@ -21,6 +30,69 @@ import { sanitizeLongsForWorker } from '@/workers/beamSearch.protocol';
 import type { MainToWorkerMessage, WorkerToMainMessage } from '@/workers/beamSearch.protocol';
 
 export type BeamSearchRunStatus = 'idle' | 'running' | 'done' | 'cancelled' | 'error';
+
+/**
+ * One row of the live diagnostics panel (../beam-search/HANDOFF.md's tooling option #1) — built by
+ * diffing each incoming `progress` message against the previous one, since every counter on
+ * `BeamSearchProgress` is cumulative (see its own doc comment for why). Labeled by a depth *range*
+ * (`fromDepth` exclusive, `depth` inclusive) rather than assumed to always be exactly one generation:
+ * without `trace: true` the worker still throttles `progress` posts (beamSearch.worker.ts), so two
+ * consecutive messages can span more than one generation — this keeps the row honest about that
+ * instead of mislabeling a multi-generation delta as a single one. Passing `trace: true` to `start()`
+ * makes the worker post every generation, so in practice `fromDepth === depth - 1` for every row on a
+ * traced run.
+ */
+export interface GenerationSummary {
+  depth: number;
+  fromDepth: number;
+  beamSize: number;
+  candidatesGenerated: number;
+  duplicatesRemoved: number;
+  tierMacroAttempts: number;
+  tierMacroSuccesses: number;
+  phase3Attempts: number;
+  phase3Successes: number;
+  phase3CacheHits: number;
+  /** Running total (not a delta) — already legible on its own, see BeamSearchProgress.finishedCount. */
+  finishedCount: number;
+  /** Running max (not a delta) — see BeamSearchProgress.bestScoreSoFar. */
+  bestScoreSoFar: number;
+  /** How long this row's generation(s) took — elapsedMs delta since the previous message. */
+  durationMs: number;
+}
+
+function diffProgress(previous: BeamSearchProgress | null, current: BeamSearchProgress): GenerationSummary {
+  const base = previous ?? {
+    depth: 0,
+    beamSize: 0,
+    statesExpanded: 0,
+    duplicatesRemoved: 0,
+    tierMacroCalls: 0,
+    phase3MacroCalls: 0,
+    phase3CacheHits: 0,
+    bestScoreSoFar: 0,
+    elapsedMs: 0,
+    candidatesGenerated: 0,
+    tierMacroSuccesses: 0,
+    phase3MacroSuccesses: 0,
+    finishedCount: 0,
+  };
+  return {
+    depth: current.depth,
+    fromDepth: base.depth,
+    beamSize: current.beamSize,
+    candidatesGenerated: current.candidatesGenerated - base.candidatesGenerated,
+    duplicatesRemoved: current.duplicatesRemoved - base.duplicatesRemoved,
+    tierMacroAttempts: current.tierMacroCalls - base.tierMacroCalls,
+    tierMacroSuccesses: current.tierMacroSuccesses - base.tierMacroSuccesses,
+    phase3Attempts: current.phase3MacroCalls - base.phase3MacroCalls,
+    phase3Successes: current.phase3MacroSuccesses - base.phase3MacroSuccesses,
+    phase3CacheHits: current.phase3CacheHits - base.phase3CacheHits,
+    finishedCount: current.finishedCount,
+    bestScoreSoFar: current.bestScoreSoFar,
+    durationMs: current.elapsedMs - base.elapsedMs,
+  };
+}
 
 // Vite's native worker support requires this exact literal shape (string literal + import.meta.url)
 // for its static analysis — see beamSearch.worker.ts's own header for the loading contract. Pulled
@@ -39,9 +111,13 @@ export function useBeamSearch() {
   const progress = ref<BeamSearchProgress | null>(null);
   const result = ref<BeamSearchResult | null>(null);
   const errorMessage = ref<string | null>(null);
+  // Newest first — matches how the diagnostics panel wants to display it (current status at the top,
+  // no scrolling needed to see what just happened). See GenerationSummary's own doc comment.
+  const generationHistory = ref<GenerationSummary[]>([]);
 
   let nextRunId = 0;
   let activeRunId: number | null = null;
+  let lastProgress: BeamSearchProgress | null = null;
 
   function post(message: MainToWorkerMessage): void {
     try {
@@ -66,6 +142,8 @@ export function useBeamSearch() {
 
     switch (msg.type) {
       case 'progress':
+        generationHistory.value.unshift(diffProgress(lastProgress, msg.progress));
+        lastProgress = msg.progress;
         progress.value = msg.progress;
         break;
       case 'result':
@@ -93,13 +171,15 @@ export function useBeamSearch() {
   worker.onmessage = handleWorkerMessage;
   worker.onerror = handleWorkerError;
 
-  function start(deadline: number, beamWidth: number, maxDepth?: number): void {
+  function start(deadline: number, beamWidth: number, maxDepth?: number, trace?: boolean): void {
     const runId = nextRunId++;
     activeRunId = runId;
     status.value = 'running';
     progress.value = null;
     result.value = null;
     errorMessage.value = null;
+    generationHistory.value = [];
+    lastProgress = null;
 
     // sanitizeLongsForWorker isn't just about Long — confirmed directly (a real click-through in a
     // real browser, not guessed): `createBaseEngineState(actionsStore.effectiveSnapshot)` and
@@ -114,7 +194,7 @@ export function useBeamSearch() {
     const startState = sanitizeLongsForWorker(createBaseEngineState(actionsStore.effectiveSnapshot));
     const context = sanitizeLongsForWorker(getSimulationContext());
 
-    post({ type: 'start', runId, startState, context, deadline, beamWidth, maxDepth });
+    post({ type: 'start', runId, startState, context, deadline, beamWidth, maxDepth, trace });
   }
 
   /**
@@ -154,5 +234,5 @@ export function useBeamSearch() {
   // nowhere for its messages to go.
   onUnmounted(() => worker.terminate());
 
-  return { status, progress, result, errorMessage, start, cancel };
+  return { status, progress, result, errorMessage, generationHistory, start, cancel };
 }
