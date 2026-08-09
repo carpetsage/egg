@@ -18,6 +18,11 @@ export interface BeamSearchStartMessage {
   deadline: number;
   beamWidth: number;
   maxDepth?: number;
+  /** Forwarded to `BeamSearchOptions.trace` (see beam-search/engine/types.ts's doc comment there for
+   *  what it turns on and its memory-cost tradeoff) — also read directly by beamSearch.worker.ts to
+   *  decide whether to keep throttling `progress` posts for this run; see its own doc comment on why
+   *  a traced run wants one `progress` message per generation, not coalesced. */
+  trace?: boolean;
 }
 
 export interface BeamSearchCancelMessage {

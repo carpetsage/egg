@@ -7,6 +7,7 @@ import { applyAction, applyTime, boostTransitionsFrom } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import type { SimulationContext } from '@/engine/types';
 import { createSimAction } from '@/types/actions/meta';
+import { getNextPacificTime, isEarningsBoostActive } from '@/lib/events';
 import { getLightweightPhaseCandidates, type LightweightCandidate } from './candidates';
 import { dedupeByEarliestTime } from './dedupe';
 import {
@@ -76,17 +77,84 @@ export function phaseTransitionChild(state: BeamSearchState): BeamSearchState {
 /**
  * Candidates worth generating a beam child for right now: those that clear the 70%-before-next-sale
  * bar (or are already landing inside a real sale), per the design in
- * ../06-egg-codebase-integration.md §4. Falls back to the full candidate list if none clear it, so
- * the search is never left with zero actions (e.g. no more sales remain, or every candidate is
- * genuinely still worth evaluating early in an ascension). This is also the main lever keeping the
- * branching factor near Part 3's assumed ~10 rather than the full unfiltered candidate count.
+ * ../06-egg-codebase-integration.md §4. This is the main lever keeping the branching factor near
+ * Part 3's assumed ~10 rather than the full unfiltered candidate count.
+ *
+ * Does NOT fall back to the unfiltered candidate list when nothing clears the bar (an earlier
+ * version did) — found, by directly diffing a real exported trace against a real manual plan (see
+ * ../HANDOFF.md), that this let the search settle for a weak purchase during a lean stretch instead
+ * of doing what a human naturally would: wait for the sale. `runSearchLoop`'s caller now checks for
+ * this exact "candidates existed, none were good enough" case and generates a `fastForwardToSale`
+ * successor instead — see there.
  */
 // Exported for the exhaustive-search oracle (oracle/beam-oracle.spec.ts), which needs the exact
 // same candidate-selection rule the beam itself uses — the oracle validates the beam's own
 // width/throttle limits against an unlimited version of this same algorithm, not a different one.
 export function selectCandidates(candidates: LightweightCandidate[]): LightweightCandidate[] {
-  const passing = candidates.filter(c => c.meets70);
-  return passing.length > 0 ? passing : candidates;
+  return candidates.filter(c => c.meets70);
+}
+
+/**
+ * "Nothing worth buying right now — skip straight to the next research sale", taken whenever
+ * `selectCandidates` comes back empty despite there being real (if currently poor-ROI) candidates —
+ * see its own doc comment for why this replaces the old "just buy something anyway" fallback.
+ * Mirrors the manual planner's own "Wait for Research Sale" wait action (ResearchActions.vue's
+ * insertEventCrossingWaits / lib/actions/executors/waitForResearchSale.ts): a pure time-advance, no
+ * purchase, that correctly accrues gems throughout (including across a 2x earnings boost window
+ * that starts or ends during the wait — `boostTransitionsFrom`'s transitions list is what makes
+ * `applyTime`'s earnings calc piecewise-correct across that boundary, exactly like
+ * `applyResearchPurchase`'s own wait already relies on for its own, usually shorter, waits) and then
+ * lands with `activeSales.research` correctly flipped on.
+ *
+ * Unlike `applyResearchPurchase` and `phaseTransitionChild`, this one has to set `activeSales`/
+ * `earningsBoost` explicitly rather than just carrying the pre-wait state forward: neither field is
+ * auto-derived from the clock anywhere in this codebase (see engine/apply/actions.ts's `toggle_sale`/
+ * `toggle_earnings_boost` handlers — both are the only things that ever change these fields), so a
+ * multi-day wait needs its arrival-time sale/boost status computed explicitly, not inherited from
+ * whatever was true when the wait started.
+ */
+export function fastForwardToSale(
+  state: BeamSearchState,
+  frozen: BeamFrozenContext,
+  context: SimulationContext,
+  nextSaleStart: number
+): BeamSearchState {
+  const engineState = toEngineState(state, frozen);
+  const snapshot = computeSnapshot(engineState, context, { skipGrowth: true });
+  const absoluteSimTime = absoluteSimTimeOf(state, context);
+  const waitSeconds = nextSaleStart - absoluteSimTime;
+  const nextEngineState = applyTime(engineState, waitSeconds, snapshot, {
+    transitions: boostTransitionsFrom(snapshot, absoluteSimTime),
+  });
+  const nextSnapshot = computeSnapshot(nextEngineState, context, { skipGrowth: true });
+  // Same literal 2x ResearchActions.vue's own insertToggleEarningsBoost hardcodes for a real
+  // toggle_earnings_boost action's payload — not importing engine/apply/math.ts's private
+  // EARNINGS_BOOST_MULTIPLIER constant for one read, matching that existing precedent instead.
+  const boostActiveAtArrival = isEarningsBoostActive(nextSaleStart);
+
+  return {
+    parent: state,
+    purchase: { kind: 'waitForSale' },
+    phase: state.phase,
+    researchLevels: nextEngineState.researchLevels,
+    bankValue: nextSnapshot.bankValue,
+    population: nextSnapshot.population,
+    lastStepTime: nextEngineState.lastStepTime,
+    eggsDelivered: nextEngineState.eggsDelivered,
+    fuelTankAmounts: nextEngineState.fuelTankAmounts,
+    teEarned: nextEngineState.teEarned,
+    activeSales: { ...nextEngineState.activeSales, research: true },
+    earningsBoost: boostActiveAtArrival ? { active: true, multiplier: 2 } : { active: false, multiplier: 1 },
+  };
+}
+
+/** A state paired with the earnings value `rankByEarnings` computed for it — kept together (rather
+ *  than each caller recomputing earnings again when it needs the number, not just the ordering) so
+ *  the trace-capture path below (see `trace` in runSearchLoop) can reuse this same computation
+ *  instead of calling computeSnapshot a second time purely for diagnostics. */
+export interface RankedState {
+  state: BeamSearchState;
+  earnings: number;
 }
 
 /**
@@ -98,15 +166,18 @@ export function selectCandidates(candidates: LightweightCandidate[]): Lightweigh
  * fall back to earlier lastStepTime (Part 3's own tiebreak), then to insertion order, which
  * Array.prototype.sort's stability makes fully deterministic without needing an arbitrary third key.
  *
- * Used for two purposes: trimming deduped successors down to beamWidth, and picking which current
- * beam members are worth an expensive tier-macro attempt this generation (see
- * TIER_MACRO_ATTEMPTS_PER_GENERATION below).
+ * Used for three purposes: trimming deduped successors down to beamWidth, picking which current beam
+ * members are worth an expensive tier-macro attempt this generation (see
+ * TIER_MACRO_ATTEMPTS_PER_GENERATION below), and — when `BeamSearchOptions.trace` is set — capturing
+ * this same earnings-ranked ordering as that generation's beam snapshot for the winning-path trace
+ * (see WinningPathTrace's doc comment in types.ts). Returns the computed earnings alongside each
+ * state (not just the reordered states) specifically so that last use doesn't need to recompute them.
  */
 function rankByEarnings(
   states: BeamSearchState[],
   frozen: BeamFrozenContext,
   context: SimulationContext
-): BeamSearchState[] {
+): RankedState[] {
   const withEarnings = states.map(state => ({
     state,
     earnings: computeSnapshot(toEngineState(state, frozen), context, { skipGrowth: true }).offlineEarnings,
@@ -115,7 +186,7 @@ function rankByEarnings(
     if (a.earnings !== b.earnings) return b.earnings - a.earnings;
     return a.state.lastStepTime - b.state.lastStepTime;
   });
-  return withEarnings.map(w => w.state);
+  return withEarnings;
 }
 
 /**
@@ -154,6 +225,14 @@ export interface RunSearchLoopResult {
     depthReached: number;
     cancelled: boolean;
   };
+  /** Present only when `trace` was true — see WinningPathTrace's doc comment (types.ts) for the
+   *  output this feeds and TRACE_ALTERNATIVES_LIMIT's doc comment (reconstruct.ts) for how it gets
+   *  turned into that bounded output. Keyed by generation number, matching BeamSearchProgress.depth's
+   *  numbering — `generationTraces.get(N)` is exactly this generation's beam (post-trim,
+   *  earnings-ranked, same array `beam` itself held after step 4 below), for every N from 1 up to
+   *  however far the search got. Retained for the whole run rather than discarded each generation —
+   *  the real, opt-in memory cost `BeamSearchOptions.trace`'s own doc comment describes. */
+  generationTraces?: Map<number, RankedState[]>;
 }
 
 export function runSearchLoop(
@@ -170,7 +249,9 @@ export function runSearchLoop(
   // real caller; passed all the way down here (rather than only checked in index.ts around the
   // whole call) so a long search actually stops early instead of running to its natural completion
   // after a Cancel click.
-  isCancelled?: () => boolean
+  isCancelled?: () => boolean,
+  // See BeamSearchOptions.trace's doc comment (types.ts) for what this turns on and why it's opt-in.
+  trace = false
 ): RunSearchLoopResult {
   const startedAt = Date.now();
   let beam: BeamSearchState[] = [initial];
@@ -181,12 +262,16 @@ export function runSearchLoop(
   // whole run, so nothing here needs to reason about staleness across runs).
   const phase3ScoreCache: Phase3ScoreCache = new Map();
   const phase3ArtifactFamilyCache: Phase3ArtifactFamilyCache = { families: null };
+  const generationTraces: Map<number, RankedState[]> | undefined = trace ? new Map() : undefined;
 
   let statesExpanded = 0;
   let duplicatesRemoved = 0;
   let tierMacroCalls = 0;
+  let tierMacroSuccesses = 0;
   let phase3MacroCalls = 0;
+  let phase3MacroSuccesses = 0;
   let phase3CacheHits = 0;
+  let candidatesGenerated = 0;
   let depth = 0;
   let bestScoreSoFar = 0;
 
@@ -221,7 +306,9 @@ export function runSearchLoop(
         beam.filter(s => s.phase === 2),
         frozen,
         context
-      ).slice(0, PHASE3_MACRO_ATTEMPTS_PER_GENERATION)
+      )
+        .slice(0, PHASE3_MACRO_ATTEMPTS_PER_GENERATION)
+        .map(ranked => ranked.state)
     );
     for (const state of phase3Eligible) {
       phase3MacroCalls++;
@@ -237,6 +324,7 @@ export function runSearchLoop(
       );
       if (result && phase3ScoreCache.size === cacheSizeBefore) phase3CacheHits++;
       if (!result) continue;
+      phase3MacroSuccesses++;
       finished.push({ state, edge: result.edge, lastPurchaseTime: result.lastPurchaseTime });
       if (result.edge.finalScore > bestScoreSoFar) bestScoreSoFar = result.edge.finalScore;
     }
@@ -245,7 +333,9 @@ export function runSearchLoop(
     //    member. Tier macro attempts are throttled to the most promising few — see
     //    TIER_MACRO_ATTEMPTS_PER_GENERATION's doc comment.
     const tierMacroEligible = new Set(
-      rankByEarnings(beam, frozen, context).slice(0, TIER_MACRO_ATTEMPTS_PER_GENERATION)
+      rankByEarnings(beam, frozen, context)
+        .slice(0, TIER_MACRO_ATTEMPTS_PER_GENERATION)
+        .map(ranked => ranked.state)
     );
 
     const successors: BeamSearchState[] = [];
@@ -256,15 +346,28 @@ export function runSearchLoop(
 
       if (!outOfTime) {
         const candidates = getLightweightPhaseCandidates(state, frozen, context, mods, state.phase);
-        for (const candidate of selectCandidates(candidates)) {
-          if (absoluteSimTime + candidate.waitSeconds > deadline) continue;
-          successors.push(applyResearchPurchase(state, frozen, context, candidate));
+        const selected = selectCandidates(candidates);
+        if (selected.length > 0) {
+          for (const candidate of selected) {
+            if (absoluteSimTime + candidate.waitSeconds > deadline) continue;
+            successors.push(applyResearchPurchase(state, frozen, context, candidate));
+          }
+        } else if (candidates.length > 0) {
+          // Real candidates existed, none cleared 70% — wait for the discount instead of settling.
+          // See selectCandidates' and fastForwardToSale's own doc comments.
+          const nextSaleStart = getNextPacificTime(5, 9, absoluteSimTime);
+          if (nextSaleStart <= deadline) {
+            successors.push(fastForwardToSale(state, frozen, context, nextSaleStart));
+          }
         }
 
         if (nextLockedTier(state) !== null && tierMacroEligible.has(state)) {
           tierMacroCalls++;
           const tierResult = runTierMacro(state, frozen, context, deadline);
-          if (tierResult) successors.push(tierResult.nextState);
+          if (tierResult) {
+            tierMacroSuccesses++;
+            successors.push(tierResult.nextState);
+          }
         }
       }
 
@@ -275,15 +378,18 @@ export function runSearchLoop(
         successors.push(phaseTransitionChild(state));
       }
     }
+    candidatesGenerated += successors.length;
 
     // 3. Dedupe before the next generation's Phase 3 attempts (step 1 of the next iteration).
     const { survivors, duplicatesRemoved: removedThisGen } = dedupeByEarliestTime(successors);
     duplicatesRemoved += removedThisGen;
 
     // 4. Rank and keep the best beamWidth.
-    beam = rankByEarnings(survivors, frozen, context).slice(0, beamWidth);
+    const rankedBeam = rankByEarnings(survivors, frozen, context).slice(0, beamWidth);
+    beam = rankedBeam.map(ranked => ranked.state);
 
     depth++;
+    generationTraces?.set(depth, rankedBeam);
     onProgress?.({
       depth,
       beamSize: beam.length,
@@ -294,6 +400,10 @@ export function runSearchLoop(
       phase3CacheHits,
       bestScoreSoFar,
       elapsedMs: Date.now() - startedAt,
+      candidatesGenerated,
+      tierMacroSuccesses,
+      phase3MacroSuccesses,
+      finishedCount: finished.length,
     });
   }
 
@@ -308,5 +418,6 @@ export function runSearchLoop(
       depthReached: depth,
       cancelled,
     },
+    generationTraces,
   };
 }

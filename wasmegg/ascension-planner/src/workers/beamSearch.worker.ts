@@ -46,7 +46,9 @@ const ctx = self as unknown as Worker;
 
 // runSearchLoop's onProgress fires once per generation (see search.ts) — at low beam widths/fast
 // generations that can be very frequent. Coalesced to a few/sec here, matching HANDOFF's plan,
-// rather than in the engine itself, which has no business knowing about UI update rates.
+// rather than in the engine itself, which has no business knowing about UI update rates. Skipped
+// entirely for a `trace: true` run (see below) — the diagnostics panel that flag is for wants exactly
+// one row per generation, and coalescing would silently misrepresent a few generations as one.
 const PROGRESS_THROTTLE_MS = 200;
 
 // This worker only ever runs one search at a time (matches the single-Run-button UI Phase C plans).
@@ -69,7 +71,7 @@ ctx.onmessage = (event: MessageEvent<MainToWorkerMessage>) => {
     return;
   }
 
-  const { runId, startState, context, deadline, beamWidth, maxDepth } = msg;
+  const { runId, startState, context, deadline, beamWidth, maxDepth, trace } = msg;
   activeRunId = runId;
   cancelledRunId = null;
 
@@ -92,11 +94,14 @@ ctx.onmessage = (event: MessageEvent<MainToWorkerMessage>) => {
     beamWidth,
     deadline,
     maxDepth,
+    trace,
     isCancelled: () => cancelledRunId === runId,
     onProgress: progress => {
-      const now = Date.now();
-      if (now - lastProgressPostedAt < PROGRESS_THROTTLE_MS) return;
-      lastProgressPostedAt = now;
+      if (!trace) {
+        const now = Date.now();
+        if (now - lastProgressPostedAt < PROGRESS_THROTTLE_MS) return;
+        lastProgressPostedAt = now;
+      }
       post({ type: 'progress', runId, progress });
     },
   };

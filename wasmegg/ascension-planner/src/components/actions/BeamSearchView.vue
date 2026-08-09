@@ -60,6 +60,16 @@
           </p>
         </div>
 
+        <!-- Diagnostics toggle -->
+        <label class="flex items-start gap-2 px-0.5 cursor-pointer">
+          <input v-model="traceEnabled" type="checkbox" class="mt-0.5" :disabled="status === 'running'" />
+          <span class="text-[9px] text-slate-500 leading-tight">
+            <span class="font-bold text-slate-600">Detailed diagnostics</span> — exact per-generation history below,
+            plus an exportable trace of the winning plan's alternatives at each step. Uses more memory; leave off for a
+            normal run.
+          </span>
+        </label>
+
         <button
           v-if="status !== 'running'"
           class="btn-premium btn-primary w-full text-[10px] disabled:opacity-20"
@@ -102,6 +112,53 @@
               }}</span>
             </div>
           </div>
+        </div>
+
+        <!-- Generation-by-generation diagnostics (tooling option #1) -->
+        <div v-if="generationHistory.length > 0" class="border border-gray-200 rounded-lg overflow-hidden">
+          <button
+            class="w-full flex items-center justify-between px-3 py-2 bg-gray-50 text-[9px] font-bold text-gray-500 uppercase tracking-wider"
+            @click="showGenerationHistory = !showGenerationHistory"
+          >
+            <span>Generation history ({{ generationHistory.length }})</span>
+            <span>{{ showGenerationHistory ? '▲' : '▼' }}</span>
+          </button>
+          <div v-if="showGenerationHistory" class="max-h-64 overflow-y-auto overflow-x-auto">
+            <table class="w-full text-[9px] font-mono">
+              <thead class="sticky top-0 bg-white">
+                <tr class="text-gray-400 uppercase tracking-wider text-[8px]">
+                  <th class="text-left px-2 py-1 font-bold">Gen</th>
+                  <th class="text-right px-2 py-1 font-bold">Cand.</th>
+                  <th class="text-right px-2 py-1 font-bold">Dup.</th>
+                  <th class="text-right px-2 py-1 font-bold">Kept</th>
+                  <th class="text-right px-2 py-1 font-bold">Tier</th>
+                  <th class="text-right px-2 py-1 font-bold">Ph3</th>
+                  <th class="text-right px-2 py-1 font-bold">Found</th>
+                  <th class="text-right px-2 py-1 font-bold">Best/hr</th>
+                  <th class="text-right px-2 py-1 font-bold">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in generationHistory" :key="row.depth" class="border-t border-gray-100">
+                  <td class="text-left px-2 py-1 text-gray-700">{{ generationLabel(row) }}</td>
+                  <td class="text-right px-2 py-1 text-gray-700">{{ row.candidatesGenerated }}</td>
+                  <td class="text-right px-2 py-1 text-gray-400">{{ row.duplicatesRemoved }}</td>
+                  <td class="text-right px-2 py-1 text-gray-700">{{ row.beamSize }}</td>
+                  <td class="text-right px-2 py-1 text-gray-700">
+                    {{ row.tierMacroSuccesses }}/{{ row.tierMacroAttempts }}
+                  </td>
+                  <td class="text-right px-2 py-1 text-gray-700">{{ row.phase3Successes }}/{{ row.phase3Attempts }}</td>
+                  <td class="text-right px-2 py-1 text-gray-700">{{ row.finishedCount }}</td>
+                  <td class="text-right px-2 py-1 text-gray-700">{{ formatNumber(row.bestScoreSoFar * 3600) }}</td>
+                  <td class="text-right px-2 py-1 text-gray-400">{{ row.durationMs }}ms</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-[8px] text-slate-400 px-2 py-1 leading-tight">
+            Tier/Ph3 columns read "successes/attempts". Without Detailed Diagnostics on, a row can span more than one
+            generation (progress updates are throttled) — the Gen column shows the range when that happens.
+          </p>
         </div>
 
         <!-- Cancelled -->
@@ -154,6 +211,13 @@
           </div>
 
           <button class="btn-premium btn-primary w-full text-[10px]" @click="emit('apply', result)">Apply Plan</button>
+          <button
+            v-if="result.trace"
+            class="btn-premium w-full text-[10px] bg-slate-100 text-slate-600"
+            @click="handleExportTrace"
+          >
+            Export Trace ({{ result.trace.steps.length }} steps)
+          </button>
         </template>
       </div>
     </SmartBuyCard>
@@ -168,7 +232,8 @@ import { useCommonResearchStore } from '@/stores/commonResearch';
 import { getLocalTimestampInTimezone, getNextPacificTime } from '@/lib/events';
 import { formatDuration, formatNumber, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
 import { summarizeResearchLevelChanges } from '@/calculations/smartBuyPreview';
-import { useBeamSearch } from '@/composables/useBeamSearch';
+import { useBeamSearch, type GenerationSummary } from '@/composables/useBeamSearch';
+import { downloadFile } from '@/utils/export';
 import type { BeamSearchResult } from '@/beam-search/engine';
 import SmartBuyCard from './SmartBuyCard.vue';
 import ResearchPurchasePreview from './ResearchPurchasePreview.vue';
@@ -181,7 +246,7 @@ const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
 const commonResearchStore = useCommonResearchStore();
 const beamSearch = useBeamSearch();
-const { status, progress, result, errorMessage } = beamSearch;
+const { status, progress, result, errorMessage, generationHistory } = beamSearch;
 
 /** Same formula ResearchActions.vue's own absoluteSimTimeAt/useResearchViews.ts's
  *  researchSaleDeadline use everywhere else — kept local rather than imported since it's a two-line
@@ -230,9 +295,13 @@ const deadlineTimestamp = computed(() =>
 
 const canRun = computed(() => beamWidth.value >= 1 && !!deadlineDate.value && !!deadlineTime.value);
 
+// Off by default — see the checkbox's own label text for the memory-cost tradeoff this turns on
+// (../composables/useBeamSearch.ts's GenerationSummary/BeamSearchOptions.trace's doc comments).
+const traceEnabled = ref(false);
+
 function handleRun() {
   if (!canRun.value) return;
-  beamSearch.start(deadlineTimestamp.value, beamWidth.value);
+  beamSearch.start(deadlineTimestamp.value, beamWidth.value, undefined, traceEnabled.value);
 }
 
 const previewItems = computed(() =>
@@ -250,4 +319,34 @@ const lastPurchaseLabel = computed(() => {
     timeZone: deadlineTimezone.value,
   });
 });
+
+// Collapsed by default (tooling option #1's "not an overwhelming swarm of logs" requirement) — the
+// header row above always shows the run's own live/final summary regardless of this toggle.
+const showGenerationHistory = ref(false);
+
+/** "Gen 43" for an ordinary one-generation row, "Gen 43–47" when progress-throttling coalesced
+ *  several generations into one message (see GenerationSummary's own doc comment — doesn't happen
+ *  at all once Detailed Diagnostics is on). */
+function generationLabel(row: GenerationSummary): string {
+  return row.fromDepth === row.depth - 1 ? `${row.depth}` : `${row.fromDepth + 1}–${row.depth}`;
+}
+
+/**
+ * Bundles the full result (including its winning-path trace) and the generation-by-generation
+ * history into one downloadable JSON file — tooling option #2 in ../beam-search/HANDOFF.md's "Live
+ * verification" follow-up. Uses the same downloadFile utility PlanLibrary.vue/stores/actions/io.ts
+ * already use for exporting plans, rather than a bespoke download mechanism.
+ */
+function handleExportTrace() {
+  if (!result.value?.trace) return;
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    deadline: deadlineTimestamp.value,
+    beamWidth: beamWidth.value,
+    result: result.value,
+    generationHistory: generationHistory.value,
+  };
+  const filename = `beam-search-trace-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+  downloadFile(filename, JSON.stringify(payload, null, 2), 'application/json');
+}
 </script>

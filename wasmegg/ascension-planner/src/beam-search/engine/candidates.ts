@@ -15,7 +15,12 @@ import {
   ROI_EXCLUDED_CATEGORIES,
   filterByCategories,
 } from '@/calculations/researchRanking';
-import { isActuallyDuringSale, meetsROIByDeadline, getSaleAwareTimeToSave } from '@/calculations/researchROI';
+import {
+  isActuallyDuringSale,
+  meetsROIByDeadline,
+  getSaleAwareTimeToSave,
+  MAX_ROI_PAYBACK_SEARCH_SECONDS,
+} from '@/calculations/researchROI';
 import { boostTransitionsFrom } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import type { SimulationContext } from '@/engine/types';
@@ -85,7 +90,7 @@ export function getLightweightPhaseCandidates(
     return true;
   });
 
-  return eligible.map((r): LightweightCandidate => {
+  return eligible.flatMap((r): LightweightCandidate[] => {
     const level = state.researchLevels[r.id] || 0;
     const purchase = getSaleAwareTimeToSave(r, level, mods, isSale, absoluteSimTime, snapshot, transitions);
 
@@ -96,20 +101,43 @@ export function getLightweightPhaseCandidates(
     );
     const earningsDelta = nextSnapshot.offlineEarnings - snapshot.offlineEarnings;
 
+    // Excluded outright — not just deprioritized — when this purchase would essentially never pay
+    // for itself at the current margin. Matches the MAX_ROI_PAYBACK_SEARCH_SECONDS (999 days)
+    // convention researchROI.ts/researchRanking.ts's own "real" ROI ranking already uses, so beam
+    // search doesn't silently disagree with what "infinite ROI" means everywhere else in this app.
+    // Concretely load-bearing for the shipping/laying "partner bottleneck" case (found by directly
+    // diffing a beam-search trace against a real manual plan, see ../HANDOFF.md): buying more
+    // shipping-capacity research while laying rate is the actual constraint (or vice versa) shows
+    // ~zero earningsDelta, because effectiveLayRate.ts caps earnings at min(layRate,
+    // shippingCapacity) — so it's genuinely a non-purchase, not just a weak one, and needs a HARD
+    // exclusion here rather than the meets70 deprioritization below: selectCandidates no longer
+    // falls back to the unfiltered candidate list when nothing clears 70% (search.ts fast-forwards
+    // to the next sale instead), but a candidate excluded here is excluded from that fallback
+    // consideration entirely regardless, by construction — one less thing for that policy to get
+    // right on its own.
+    //
+    // Uses this function's existing lightweight price/earningsDelta approximation (not
+    // calculateResearchROI's exact compounding binary search) — consistent with the rest of this
+    // function's cost/precision tradeoff, and sufficient to catch the case this exists for.
+    const roiSeconds = earningsDelta > 0 ? purchase.price / earningsDelta : Infinity;
+    if (roiSeconds === Infinity || roiSeconds > MAX_ROI_PAYBACK_SEARCH_SECONDS) return [];
+
     const completesAt = absoluteSimTime + purchase.waitSeconds;
     const meets70 =
       isActuallyDuringSale(purchase.duringSale, completesAt) ||
       meetsROIByDeadline(earningsDelta, purchase.price, completesAt, nextSaleStart, 70);
 
-    return {
-      researchId: r.id,
-      fromLevel: level,
-      toLevel: level + 1,
-      price: purchase.price,
-      waitSeconds: purchase.waitSeconds,
-      duringSale: purchase.duringSale,
-      earningsDelta,
-      meets70,
-    };
+    return [
+      {
+        researchId: r.id,
+        fromLevel: level,
+        toLevel: level + 1,
+        price: purchase.price,
+        waitSeconds: purchase.waitSeconds,
+        duringSale: purchase.duringSale,
+        earningsDelta,
+        meets70,
+      },
+    ];
   });
 }

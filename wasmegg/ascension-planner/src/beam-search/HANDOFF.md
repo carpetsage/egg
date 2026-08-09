@@ -1,6 +1,9 @@
 # Beam Search — Handoff / Status Document
 
-**Last updated:** 2026-08-07, end of the implementation session that built Phase C (manual planner UI).
+**Last updated:** 2026-08-09. Builds on top of the already-shipped Phase A/B/C feature, across two
+efforts on the same branch: diagnostics tooling (generation-history panel + winning-path trace
+export + a per-shift "Copy Log" button), then — using that tooling on a real run — two real fixes to
+the search algorithm itself. See "Diagnostics tooling" and "Algorithm improvements" below.
 **Read this first** if you're picking this work up in a new chat. It links everything else you need.
 
 ## Context
@@ -19,17 +22,19 @@ result, and applies it to the live plan in one shot. Does **not** touch `SmartBu
 `ResearchActions.vue`'s existing buttons, or `auto/shifts/c3.ts` in this pass — `c3.ts` is a
 documented *future* consumer of the same engine (see §6 of the integration doc), not touched yet.
 
-## Status: Phase A, B, and C all complete. Feature is fully wired up and live-tested.
+## Status: Phase A/B/C shipped and committed. Diagnostics tooling + two algorithm fixes on top.
 
-The original execution plan had three phases:
-- **Phase A — pure engine, verified in isolation.** ✅ Done, an earlier session.
-- **Phase B — Web Worker.** ✅ Done, an earlier session (same overall effort, one session before this one).
-- **Phase C — manual planner UI wiring.** ✅ Done, this session.
+The original execution plan had three phases, all committed (`git log --oneline -- src/beam-search
+src/workers`: "initial beam search work" = Phase A, "beam search phase 2" = Phase B+C together):
+- **Phase A — pure engine, verified in isolation.** ✅ Done and committed.
+- **Phase B — Web Worker.** ✅ Done and committed.
+- **Phase C — manual planner UI wiring.** ✅ Done and committed, live-tested in a real browser.
 
-**Nothing has been committed.** All of this exists only in the working tree. Recommend reviewing the
-full diff and committing now — several existing production files were touched (see "Files touched"
-below), not just new beam-search files, and this is a natural checkpoint: the feature is complete and
-has been exercised end-to-end in a real browser (see "Phase C" below), not just unit-tested.
+**This session's work (diagnostics tooling, see below) is on a feature branch
+(`beam-search-diagnostics`), not yet committed to `main`.** The user asked for it directly — not part
+of the original three-phase plan — after using the shipped feature and finding the results "not
+great" with no way to see *why*: no visibility into pruning, plan comparisons, or the search's own
+reasoning. See "Diagnostics tooling" below for what was built in response and how to use it.
 
 ---
 
@@ -39,12 +44,12 @@ has been exercised end-to-end in a real browser (see "Phase C" below), not just 
 
 | File | Purpose |
 |---|---|
-| `types.ts` | `BeamSearchState`, `BeamPurchase` (research/tierMacro/phase3Macro/phaseTransition edges), `BeamFrozenContext`, `BeamTerminalResult`, `BeamSearchOptions`/`Progress`/`Result`, `absoluteSimTimeOf`, `splitEngineState`/`toEngineState` |
+| `types.ts` | `BeamSearchState`, `BeamPurchase` (research/tierMacro/phase3Macro/phaseTransition edges), `BeamFrozenContext`, `BeamTerminalResult`, `BeamSearchOptions`/`Progress`/`Result`, `absoluteSimTimeOf`, `splitEngineState`/`toEngineState`. Also (this session, diagnostics tooling) `BeamSearchOptions.trace`, `BeamSearchProgress`'s new counters, and the trace output types `WinningPathTrace`/`WinningPathStepTrace`/`FinalStepTrace`/`BeamMemberSummary` — see "Diagnostics tooling" below |
 | `candidates.ts` | `getLightweightPhaseCandidates` — Phase 1/2 candidate generation, purpose-built (NOT `rankResearchByROI`, see integration doc §4 for why) |
 | `macros.ts` | `runTierMacro` (wraps `runTierUnlockMilestone` unchanged), `runPhase3Macro` (wraps `runDeliveryBuyLoop` unchanged + scores via `computeRealisticELR`/`getOptimalELRSet`), plus the two perf caches (`Phase3ScoreCache`, `Phase3ArtifactFamilyCache`) |
 | `dedupe.ts` | `researchLevelsKey`, `researchStateKey`, `dedupeByEarliestTime` — "earliest identical research-state wins" pruning |
-| `search.ts` | The outer beam loop: `runSearchLoop`. Also exports `selectCandidates`, `applyResearchPurchase`, `phaseTransitionChild` for the oracle test's reuse |
-| `reconstruct.ts` | `reconstructPlan` — walks parent pointers, flattens macro edges into one ordered purchase list |
+| `search.ts` | The outer beam loop: `runSearchLoop`. Also exports `selectCandidates`, `applyResearchPurchase`, `phaseTransitionChild` for the oracle test's reuse, and (this session) `RankedState` — `rankByEarnings`'s return type, reused by the diagnostics trace capture |
+| `reconstruct.ts` | `reconstructPlan` — walks parent pointers, flattens macro edges into one ordered purchase list. Also (this session) builds the optional winning-path trace when given `generationTraces`/`finished` — see `buildWinningPathTrace` and `TRACE_ALTERNATIVES_LIMIT` |
 | `index.ts` | **The only export a caller needs**: `runBeamSearch(startState: EngineState, context: SimulationContext, options) → BeamSearchResult` |
 | `testFixtures.ts` | `makeTestEngineState`, `makeTestContext`, `makeBareTestContext`, `makeAutoProgressedTestState` — see "Test fixtures" below |
 
@@ -59,26 +64,29 @@ has been exercised end-to-end in a real browser (see "Phase C" below), not just 
 
 | File | Purpose |
 |---|---|
-| `composables/useBeamSearch.ts` | Owns the worker instance + one run's lifecycle: `status`/`progress`/`result`/`errorMessage` refs, `start(deadline, beamWidth, maxDepth?)`, `cancel()`. Builds `startState`/`context` from live Pinia state and sanitizes both before `postMessage` (see "Live verification" Bug 1). `cancel()` terminates and respawns the worker rather than posting a message (see Bug 2) — read this file's own doc comments before touching cancellation again. |
-| `components/actions/BeamSearchView.vue` | The tab's UI — deadline (date/time/timezone, defaulting to the next research sale's end) + beam-width inputs, Run/Cancel, live progress, result preview + Apply button. Shaped like `SmartBuyView.vue`; emits `apply` with the `BeamSearchResult` rather than applying it itself. |
+| `composables/useBeamSearch.ts` | Owns the worker instance + one run's lifecycle: `status`/`progress`/`result`/`errorMessage` refs, `start(deadline, beamWidth, maxDepth?, trace?)`, `cancel()`. Builds `startState`/`context` from live Pinia state and sanitizes both before `postMessage` (see "Live verification" Bug 1). `cancel()` terminates and respawns the worker rather than posting a message (see Bug 2) — read this file's own doc comments before touching cancellation again. Also (this session) `generationHistory` — per-generation diagnostics derived by diffing consecutive `progress` messages, see `GenerationSummary`/`diffProgress`. |
+| `components/actions/BeamSearchView.vue` | The tab's UI — deadline (date/time/timezone, defaulting to the next research sale's end) + beam-width inputs, Run/Cancel, live progress, result preview + Apply button. Shaped like `SmartBuyView.vue`; emits `apply` with the `BeamSearchResult` rather than applying it itself. Also (this session) the "Detailed diagnostics" checkbox, the collapsible generation-history table, and the "Export Trace" button — see "Diagnostics tooling" below. |
 | `components/actions/ResearchActions.vue` (modified) | Renders `BeamSearchView` when `currentView === 'beam_search'`; `handleApplyBeamSearchPlan` (new) replays `result.researchIds` through the exact same `syncEventStateForItem`/`buyOneLevel`/`batch`/`withExpiryCheck` pattern `handleBuyMilestoneChain` already used — no new replay logic. |
 | `composables/useResearchViews.ts` (modified) | `'beam_search'` added to `ViewType`/`VIEWS`/`viewDescription`'s switch — same registration every other view already has. |
+| `lib/actionLog.ts` (new, this session) | `buildActionHistoryLog` — plain-text, one-line-per-action, absolute-timestamped log of a given `Action[]` slice, for pasting into a chat message. Not scoped itself (takes whatever actions it's given); `CuriositySummary.vue` is what scopes it to one shift group. |
+| `composables/useCopyActionLog.ts` (new, this session) | `useCopyActionLog(getActions: () => Action[])` — same Clipboard-API-with-manual-select-fallback shape as the pre-existing `useCopyDiagnosticReport.ts`, parameterized by which actions to log rather than a fixed source. |
+| `components/summaries/CuriositySummary.vue` (modified, this session) | New "Copy Log" button, scoped to just that shift group's own actions (`headerAction` + `actions`) — deliberately NOT a whole-plan export; see the button's own doc comment for why (a 1656-action whole-plan export silently truncated past a chat message size limit, found by direct testing). |
 
 ### Tests
 
 | File | What it covers |
 |---|---|
-| `index.spec.ts` | Smoke test: valid research IDs, correct level ordering, deadline respected, clean error when `rawBackup` missing |
+| `index.spec.ts` | Smoke test: valid research IDs, correct level ordering, deadline respected, clean error when `rawBackup` missing. Also (this session) `result.trace` end-to-end: absent by default, populated with `trace: true`, same plan either way, step depths strictly increasing, `chosenRank`/`beamSizeThisGeneration`/`finalStep` internally consistent |
 | `dedupe.spec.ts` | `researchLevelsKey`/`researchStateKey`/`dedupeByEarliestTime` unit tests |
-| `candidates.spec.ts` | Category filtering (phase 1 excludes non-ROI, phase 2 restricts to delivery-impact), tier-lock filtering, phase2 ⊆ phase1 |
-| `reconstruct.spec.ts` | Parent-chain walking + macro-edge flattening, hand-built synthetic chains |
-| `search.spec.ts` | **New, Phase B.** `runSearchLoop`'s `isCancelled` hook: stops before any generation when already true, stops within a generation or two of flipping true mid-run, reports `metrics.cancelled: false` on an ordinary uncancelled stop |
-| `oracle/beam-oracle.spec.ts` | **Exact small-case validation** — beam matches true exhaustive-search optimum bit-for-bit; beam-width monotonicity |
+| `candidates.spec.ts` | Category filtering (phase 1 excludes non-ROI, phase 2 restricts to delivery-impact), tier-lock filtering, phase2 ⊆ phase1. Also (this session) the `MAX_ROI_PAYBACK_SEARCH_SECONDS` exclusion: a shipping-capacity candidate disappears once laying rate is the clear bottleneck (`habIds: [14, null, null, null]` override), plus a control test confirming it's offered normally without that override |
+| `reconstruct.spec.ts` | Parent-chain walking + macro-edge flattening, hand-built synthetic chains. Also (this session) the trace: `chosenRank`/`alternatives`/`beamSizeThisGeneration` against a synthetic two-generation chain with decoys, the alternatives cap, and a regression test locking in the `winnerRank`-vs-`pickWinner` tiebreak fix (see "Diagnostics tooling" below). Also (this session) the `waitForSale` edge: adds nothing to `researchIds` but populates `saleWaitTimes`; `saleWaitTimes` stays empty when unused |
+| `search.spec.ts` | `runSearchLoop`'s `isCancelled` hook: stops before any generation when already true, stops within a generation or two of flipping true mid-run, reports `metrics.cancelled: false` on an ordinary uncancelled stop. Also (this session) the new cumulative counters (monotonic, successes ≤ attempts, `finishedCount` matches `finished.length`) and `generationTraces` (absent by default, one entry per generation when `trace: true`, doesn't change the search outcome). Also (this session) `selectCandidates` (only-meets-70% filtering, empty array — not a fallback to the unfiltered input — when nothing clears 70%, empty input stays empty) and `fastForwardToSale` (lands exactly at `nextSaleStart` with `activeSales.research` flipped on, accrues gems over the wait, correctly reflects `earningsBoost` at the arrival time rather than the departure time) |
+| `oracle/beam-oracle.spec.ts` | **Exact small-case validation** — beam matches true exhaustive-search optimum bit-for-bit; beam-width monotonicity. Also (this session) the oracle's own exhaustive walk was updated to offer the same `fastForwardToSale` move the real beam can take, so it keeps testing the actual move set rather than a strictly weaker approximation of it |
 | `convergence.spec.ts` | NOT a correctness test — timing/quality benchmark across beam widths and deadlines. Gated behind `RUN_CONVERGENCE=1` (see "How to run things" below) |
-| `../../workers/beamSearch.protocol.spec.ts` | **New, Phase B.** Documents the `structuredClone`+Long risk with a direct experiment (a Long-shaped instance survives cloning but silently loses its prototype/methods), then verifies `sanitizeLongsForWorker` fixes it: converts Long-shaped values to numbers (signed and unsigned), recurses through nested objects/arrays, deep-clones (doesn't mutate input), and the sanitized output survives a real `structuredClone` with correct numbers intact |
+| `../../workers/beamSearch.protocol.spec.ts` | Documents the `structuredClone`+Long risk with a direct experiment (a Long-shaped instance survives cloning but silently loses its prototype/methods), then verifies `sanitizeLongsForWorker` fixes it: converts Long-shaped values to numbers (signed and unsigned), recurses through nested objects/arrays, deep-clones (doesn't mutate input), and the sanitized output survives a real `structuredClone` with correct numbers intact |
 
 All of the above (except `convergence.spec.ts`, correctly gated) pass under plain `pnpm test`:
-**7 test files passed (1 skipped), 32 tests passed (1 skipped), ~55s.**
+**7 test files passed (1 skipped), 50 tests passed (1 skipped).**
 
 ### Files touched outside `src/beam-search/` (existing production code)
 
@@ -463,6 +471,192 @@ success, Apply, Cancel, re-run after Cancel).
 
 ---
 
+## Diagnostics tooling (this session)
+
+**Why:** after using the shipped feature for real, the user reported the results weren't great, but
+had no way to see *why* — no visibility into what the search pruned, how it compared plans against
+each other, or its own reasoning at each decision point. Explicitly wanted something anchored on the
+UI (pick a real start/end state, run it, then investigate "how did you get here") rather than an
+overwhelming stream of console logs. Discussed several options (a live stats panel, an exportable
+"explain the winning plan" trace, a scenario-export + convergence-test harness, A/B trace diffing);
+user picked the first two to build now — the other two remain good follow-ups, not done here.
+
+### What was built
+
+1. **A live, always-on generation-by-generation diagnostics panel** in `BeamSearchView.vue` — a
+   collapsible table (collapsed by default, per the "not overwhelming" requirement), one row per
+   progress message, showing candidates generated → deduped → kept, tier-macro and Phase 3 attempts
+   vs. successes, cumulative complete-plans-found, best score so far, and how long that row's
+   generation(s) took. Immediately useful on its own for spotting the kind of thing that would explain
+   "not great" results — e.g. dedup wiping out most of a generation, or Phase 3 rarely actually being
+   attempted.
+2. **An exportable winning-path trace** (`WinningPathTrace` in `engine/types.ts`) — a JSON download
+   (via the existing `utils/export.ts#downloadFile`, same one `PlanLibrary.vue` uses) covering every
+   generation the *winning plan itself* passed through: what was chosen, its earnings and rank within
+   that generation's beam, and the top handful of other beam members that were competitive at that
+   same fork but not chosen. Plus a final step showing how the winning Phase 3 attempt ranked among
+   every other complete plan the search found. Bounded by construction (steps ≈ generation count, a
+   few dozen to ~200, not the hundreds of individual purchases `researchIds` might list; alternatives
+   per step capped at `TRACE_ALTERNATIVES_LIMIT = 5` in `reconstruct.ts`) — this is the part that keeps
+   it from becoming "an overwhelming swarm of logs" despite covering the whole run.
+
+Both are opt-in-adjacent: the generation panel is always populated, but only gets one row per
+*generation* precisely (rather than occasionally coalescing a few together under the worker's
+progress-message throttle) when the new "Detailed diagnostics" checkbox is on; that same checkbox is
+what enables the trace capture at all (`BeamSearchOptions.trace`), since retaining a beam-sized
+snapshot every generation for the whole run is a real, if bounded, memory cost not worth paying by
+default.
+
+### How the pieces fit together (engine → worker → UI)
+
+- `engine/search.ts`: `rankByEarnings` now returns `{state, earnings}[]` (a new `RankedState` type)
+  instead of just reordered states, so its already-computed earnings values can be reused for
+  diagnostics without recomputing `computeSnapshot`. New cumulative counters on `BeamSearchProgress`
+  (`candidatesGenerated`, `tierMacroSuccesses`, `phase3MacroSuccesses`, `finishedCount`) — cumulative
+  like every other counter there (not per-generation), for the same reason those already are: progress
+  messages can be throttled/coalesced, so a "per generation" field would sometimes lie. When
+  `options.trace` is true, `runSearchLoop` also retains each generation's post-trim,
+  earnings-ranked beam (`RunSearchLoopResult.generationTraces: Map<number, RankedState[]>`) — cheap to
+  capture (the ranking was already being computed; capturing is just holding onto the array instead of
+  discarding it), but a real memory cost across a whole run (see `BeamSearchOptions.trace`'s doc
+  comment).
+- `engine/reconstruct.ts`: `reconstructPlan` optionally takes `{ finished, generationTraces }` and, if
+  given, cross-references the winning parent chain against those snapshots **by object reference**
+  (a state that's part of the winning path was, by construction, part of the beam `runSearchLoop` kept
+  for its own generation) to build the trace — no new capture logic needed here, just consuming what
+  search.ts already retained.
+- `engine/index.ts`: threads `options.trace` down to `runSearchLoop` and the captured data into
+  `reconstructPlan`; `BeamSearchResult.trace` is present only when requested.
+- `workers/beamSearch.protocol.ts` / `beamSearch.worker.ts`: `trace` added to the `start` message;
+  the worker also uses it to decide whether to keep throttling `progress` posts for that run (see
+  above).
+- `composables/useBeamSearch.ts`: new `GenerationSummary` type + `generationHistory` ref, built by
+  diffing each incoming (cumulative) `BeamSearchProgress` against the previous one — deliberately done
+  here, not upstream, since "how do we want to present this" is a UI-layer concern, matching this
+  file's own established scope. `start()` gained a `trace` parameter, threaded straight through.
+- `components/actions/BeamSearchView.vue`: the "Detailed diagnostics" checkbox, the generation-history
+  table, and the "Export Trace" button (visible once `result.trace` exists) that bundles the result +
+  trace + full generation history into one downloaded JSON file.
+
+### A real bug this caught (fixed)
+
+Live-tested the same way the Phase C work was (Playwright + Chromium against the real dev server —
+see "Live verification" above for the setup, reused as-is this session). A real exported trace showed
+`finalStep.winnerRank: 11` even though the exported plan was unambiguously the one `runBeamSearch`
+actually returned. Root cause: `buildWinningPathTrace` (reconstruct.ts) ranked `finished` by
+`finalScore` alone, but `engine/index.ts`'s `pickWinner` breaks ties by earliest `lastPurchaseTime` —
+and score ties turn out to be common in practice (the score plateaus once the delivery ceiling is hit,
+same behavior the Phase A convergence notes above already documented), so the two rankings routinely
+disagreed. Fixed by sorting with the exact same comparator `pickWinner` uses; `winnerRank` is now
+provably always 1 (kept as an explicit field anyway, as a visible consistency check rather than
+assumed and removed — see its doc comment in `types.ts`). Regression test added in
+`reconstruct.spec.ts` with a deliberate tie scenario.
+
+### Verified live (this session)
+
+Using the same synthetic-`rawBackup: {}` + `window.__pinia` probe technique as the Phase C
+verification (temporarily added to `main.ts`, reverted before this session ended — clean `git diff
+main.ts`): ran a real search with "Detailed diagnostics" on, confirmed the generation-history table
+populated correctly generation-by-generation (candidates/dedup/kept/tier/Phase 3/best-score/timing all
+sane), expanded it, clicked Export Trace, and inspected the downloaded JSON directly — confirmed
+`steps`/`alternatives`/`chosenRank`/`beamSizeThisGeneration`/`finalStep` all structurally correct
+against a real 27-generation run (12 winning-path steps, 74 total Phase 3 attempts found). This is
+also where the `winnerRank` bug above was actually found — by reading the real exported file, not by
+reasoning about the code.
+
+One genuinely interesting finding from that same real trace, worth following up on: at one step the
+winning path's chosen state was ranked **17th of 20** in its generation's beam by the earnings
+heuristic — i.e., far from what `rankByEarnings` would have called "most promising" at the time, yet
+it's what the actual winning plan went through. Either the earnings proxy is (correctly) valuing
+something the immediate number doesn't show, or the winning path only survived because beam width gave
+it enough slack, not because the heuristic favored it — exactly the kind of question this tooling was
+built to let the user chase down themselves.
+
+**Update: chased down, this session (see "Algorithm improvements" below) — not the actual cause.**
+The 17th-of-20 finding, and a follow-up "does beam width 1000 do any better" test (identical score,
+identical `endLevels`, only purchase *order* differed — width was never the bottleneck), both turned
+out to be dead ends. What the user's own manual plan actually diverged on, found by having the user
+export a real action-history log (see the new "Copy Log" button, `CuriositySummary.vue`) and diffing
+its real purchase sequence against a beam-search trace covering the identical window: beam search
+bought 5 more shipping-capacity purchases (`dark_containment`/`neural_net_refine`) than the human did,
+paid for by 5 fewer earnings-side ones. Root cause found and fixed — see below.
+
+---
+
+## Algorithm improvements (this session)
+
+Two real changes to `runSearchLoop`'s own decision-making, both suggested directly by the user after
+reviewing the diffed purchase sequence above, not just diagnostics this time — the actual search
+algorithm changed as a result of using the tooling built earlier this session.
+
+### 1. Hard-exclude candidates with an effectively-infinite ROI payback
+
+**The finding:** `getLightweightPhaseCandidates` (candidates.ts) had no equivalent of the "real" ROI
+ranking function's (`researchRanking.ts`) `MAX_ROI_PAYBACK_SEARCH_SECONDS` (999 days) cap or its
+`isBottlenecked`/partner-pairing logic for laying/shipping research. Concretely: `effectiveLayRate.ts`
+caps earnings at `min(layRate, shippingCapacity)`, so buying more shipping capacity while laying rate
+is the real constraint (or vice versa) shows ~zero marginal `earningsDelta` — genuinely worthless, not
+just weak — but nothing was hard-excluding it. Combined with `selectCandidates`'s old fallback (see
+below), a near-worthless candidate could still slip back into consideration during a lean stretch.
+
+**The fix:** `getLightweightPhaseCandidates` now computes an approximate `roiSeconds` (the same
+lightweight `price / earningsDelta` shape the rest of the function already uses, not
+`calculateResearchROI`'s exact compounding binary search) and excludes the candidate outright —
+before `meets70` is even computed, so it can never re-enter via any fallback — when that's `Infinity`
+or exceeds the existing `MAX_ROI_PAYBACK_SEARCH_SECONDS` constant (imported from `researchROI.ts`,
+not redefined).
+
+### 2. Fast-forward to the next sale instead of settling for a weak purchase
+
+**The finding:** `selectCandidates` used to fall back to the *entire unfiltered* candidate list
+whenever nothing cleared the 70%-by-next-sale bar — meaning the search could end up buying something
+it had already judged not worth buying yet, rather than doing what a human naturally would: wait.
+
+**The fix:** `selectCandidates` no longer falls back — it just returns whatever clears 70% (possibly
+empty). `runSearchLoop`'s main loop now checks for exactly that case (real candidates existed, none
+were good enough) and generates one new kind of successor instead: `fastForwardToSale` (search.ts), a
+pure time-advance to the next research sale's start, no purchase. Explicitly modeled on the manual
+planner's own "Wait for Research Sale" wait action (`lib/actions/executors/waitForResearchSale.ts` /
+`ResearchActions.vue`'s `insertEventCrossingWaits`) per the user's own instruction — reuses
+`applyTime` + `boostTransitionsFrom` exactly the way `applyResearchPurchase` already does for its own
+(usually shorter) waits, so a 2x earnings boost starting or ending *during* the wait is correctly
+integrated piecewise (`calculateEarningsForTime`'s own transition handling — verified by reading it,
+not assumed) and gems accrue throughout, landing with `activeSales.research` explicitly flipped on
+(confirmed by direct inspection that this doesn't happen automatically anywhere in this codebase —
+`engine/apply/actions.ts`'s `toggle_sale`/`toggle_earnings_boost` handlers are the *only* things that
+ever change these fields, so a multi-day simulated wait has to set them explicitly rather than
+inherit whatever was true when the wait started).
+
+New `WaitForSaleEdge` (`types.ts`) and `BeamSearchResult.saleWaitTimes: number[]` (reconstruct.ts)
+give this the same visibility `tierUnlockTimes`/`phaseTransitionTime` already have.
+
+**The oracle had to change too** (`oracle/beam-oracle.spec.ts`): since it's meant to be an unlimited,
+unthrottled version of the *same* move set the beam has (see that file's own header comment), its
+exhaustive walk now offers the identical `fastForwardToSale` branch — otherwise it would silently be
+testing a strictly weaker search space than the real beam has, and the "beam matches oracle exactly"
+assertion could break the moment the new move ever mattered in the tiny test scenario.
+
+**Testing note, worth knowing before touching this again:** getting `selectCandidates` to naturally
+return empty against a *real* fixture turned out to be surprisingly hard — `getSaleAwareTimeToSave`'s
+own sale-aware pricing routinely pulls a candidate into `meets70` via `duringSale` the moment a sale
+falls within its wait window, and several attempts at engineering a "nothing clears 70%" scenario
+(shrinking habs, maxing out tiers 1-12, positioning right before a sale, a bare/unbonused economy)
+all still cleared the bar. That's actually a reassuring sign — it suggests this really is a rare edge
+case in practice, not a common one — but it meant the two pieces (`selectCandidates`'s new no-fallback
+contract, `fastForwardToSale`'s own state-transition correctness) ended up tested in isolation with
+hand-built inputs (`search.spec.ts`) rather than via one clean end-to-end `runSearchLoop` trigger. The
+full existing suite, including the oracle's exact-match test, continues to pass unchanged with both
+new behaviors wired in — that's the integration-level confidence this change has, short of a
+dedicated end-to-end trigger.
+
+Not yet verified: whether these two changes actually close the ~1.1% gap to the user's own Smart Buy
+result on a *real* run (only unit/oracle-level correctness has been confirmed so far, on synthetic
+fixtures) — worth the user re-running the same beam-search-vs-Smart-Buy comparison against their real
+backup once they're back at it, and checking whether `dark_containment`/`neural_net_refine` purchase
+counts (or `saleWaitTimes`) look different.
+
+---
+
 ## Open questions / follow-ups for whoever picks this up
 
 1. ~~Not yet tested: does `rawBackup` survive the Worker postMessage boundary?~~ **Resolved in the
@@ -490,28 +684,44 @@ success, Apply, Cancel, re-run after Cancel).
    equivalent (one exact-match check, one monotonicity check). Could be extended with more scenario
    variety (Part 3's own suggested benchmark scenarios: early/mid/late progression, phase-transition
    stress test, duplicate-state stress test) if more confidence is wanted.
-7. ~~`beamSearch.worker.ts` has never actually run as a real Worker.~~ **Resolved this session** — see
-   "Live verification" above. Run/error/Apply/Cancel/re-run-after-cancel were all exercised in a real
-   browser against the real dev server.
-8. **Cancel-discards-partial-result is a policy choice, not a constraint** — still true, but the
-   *mechanism* changed this session (terminate+respawn, not a graceful worker message — see "Live
-   verification"). If a future UX wants "keep the best-so-far result on cancel" instead, that's a
-   `useBeamSearch.ts` change (skip the terminate, post a real cancel and wait for the worker's own
-   `cancelled`/`result` message) that would first need the yield-per-generation follow-up (open
-   question #2) to actually be reachable in time — terminate+respawn can't offer a partial result by
-   its very nature.
-9. **Realistic-fixture edge cases with `rawBackup: {}` weren't stress-tested** beyond the one live
-   run described above (which used a genuinely bare "Start from Scratch" state deliberately, to keep
-   the manual test fast). A real player's populated `rawBackup` — with a large `virtueAfxDb`
-   inventory — hasn't been run through the live worker at all this session; Phase A's own test suite
-   (`testFixtures.ts`'s `MAXED_RAW_BACKUP`) is the closest existing coverage for that shape, just not
-   through the actual postMessage/worker path. Worth doing once a real backup is available to test
-   with.
-10. **Nothing has been committed.** Recommend reviewing the full diff and committing now — the
-    working tree mixes this session's and the Phase A/B sessions' changes with pre-existing unrelated
-    uncommitted changes to `c3.ts`/`researchRanking.ts`/`smartBuyPreview.ts` (see "Files touched"
-    above), so `git diff` on those three needs a careful read to separate the two. The feature itself
-    is complete and live-tested — this is a natural point to commit and open a PR.
+7. ~~`beamSearch.worker.ts` has never actually run as a real Worker.~~ **Resolved in the Phase C
+   session** — see "Live verification" above. Run/error/Apply/Cancel/re-run-after-cancel were all
+   exercised in a real browser against the real dev server. (The diagnostics tooling session reused
+   the same technique for its own new UI — see "Diagnostics tooling"'s "Verified live" above.)
+8. **Cancel-discards-partial-result is a policy choice, not a constraint** — still true, and the
+   *mechanism* (terminate+respawn, not a graceful worker message — see "Live verification", Phase C
+   session) hasn't changed since. If a future UX wants "keep the best-so-far result on cancel"
+   instead, that's a `useBeamSearch.ts` change (skip the terminate, post a real cancel and wait for
+   the worker's own `cancelled`/`result` message) that would first need the yield-per-generation
+   follow-up (open question #2) to actually be reachable in time — terminate+respawn can't offer a
+   partial result by its very nature.
+9. **Realistic-fixture edge cases with `rawBackup: {}` weren't stress-tested** beyond the live runs
+   described above (both the Phase C and diagnostics-tooling sessions deliberately used a genuinely
+   bare "Start from Scratch" state, to keep the manual tests fast). A real player's populated
+   `rawBackup` — with a large `virtueAfxDb` inventory — still hasn't been run through the live worker
+   at all; Phase A's own test suite (`testFixtures.ts`'s `MAXED_RAW_BACKUP`) is the closest existing
+   coverage for that shape, just not through the actual postMessage/worker path. Worth doing once a
+   real backup is available to test with — and now doubly useful, since a real inventory's search
+   would also be a much more interesting subject for the new diagnostics tooling than a bare-backup
+   toy run.
+10. **The "chosen ranked 17th of 20" finding** (see "Diagnostics tooling"'s "Verified live" above) is
+    flagged, not investigated. First real thing to look at with the new tooling: pull a full trace
+    from a realistic (non-bare) run and see whether low-ranked-but-winning steps are common, and
+    whether they cluster around a particular cause (e.g. right after a tier unlock or phase
+    transition, where the earnings snapshot might be temporarily misleading).
+11. **Two of the four diagnostics options discussed with the user weren't built this session** — only
+    the live generation-history panel and the winning-path trace export were. Still on the table if
+    the two built this session don't turn out to be enough:
+    - **Scenario export + a convergence-style test.** Export the exact live starting state/context to
+      a file, drop it in as a new test fixture, run it at several beam widths (mirroring
+      `convergence.spec.ts`). Answers "is beam width the bottleneck, or is it the ranking
+      heuristic/macro throttling" — a different question than either tool built this session answers.
+    - **A/B trace diffing.** Run the trace export twice (e.g. different beam widths, or a locally
+      tweaked throttle constant) and diff the two — where do the winning paths first diverge. Most
+      powerful of the four, but only worth building once there's a specific comparison in mind.
+12. **Nothing from this session has been committed.** It's on the `beam-search-diagnostics` branch,
+    not `main` — Phase A/B/C are already committed (see "Status" above). Recommend reviewing the diff
+    and committing/opening a PR now; the tooling is complete and live-tested the same way Phase C was.
 
 ---
 
