@@ -159,6 +159,7 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { computeDependencies } from '@/lib/actions/executor';
 import { useActionExecutor } from '@/composables/useActionExecutor';
+import { resetResearchViewForCuriosityShift } from '@/composables/useResearchViews';
 import { shiftCost, iconURL } from 'lib';
 import { getColleggtibleIconPath } from '@/lib/assets';
 import { formatNumber, formatDuration } from '@/lib/format';
@@ -279,6 +280,11 @@ function handleShift(toEgg: VirtueEgg) {
 
   // Apply the shift to the store
   virtueStore.shift(toEgg);
+
+  // Land on Smart Buy when they next open the research tab, instead of wherever they left it
+  if (toEgg === 'curiosity') {
+    resetResearchViewForCuriosityShift();
+  }
 
   // Complete execution
   completeExecution(
