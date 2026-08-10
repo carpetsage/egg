@@ -12,8 +12,6 @@
     "format": "prettier --write \"src/**/*.{js,ts,vue}\"",
     "generate:pacific-time-table": "node --experimental-strip-types scripts/generatePacificTimeTable.ts",
     "test": "vitest run",
-    "test:oracle": "RUN_ORACLE=1 vitest run src/beam-search/engine/oracle/beam-oracle.spec.ts --disable-console-intercept",
-    "test:convergence": "RUN_CONVERGENCE=1 vitest run src/beam-search/engine/convergence.spec.ts --disable-console-intercept",
     "coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },

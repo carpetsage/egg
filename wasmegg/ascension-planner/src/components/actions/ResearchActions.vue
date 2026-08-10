@@ -54,8 +54,6 @@
       @buy-until-sale-deadline="handleBuyUntilSaleDeadline"
     />
 
-    <BeamSearchView v-if="currentView === 'beam_search'" @apply="handleApplyBeamSearchPlan" />
-
     <MilestoneTargetPicker
       v-if="currentView === 'milestones'"
       v-model="milestoneTarget"
@@ -224,7 +222,7 @@
 
     <!-- Flat/Sorted Views -->
     <ResearchFlatView
-      v-else-if="currentView !== 'smart_buy' && currentView !== 'beam_search'"
+      v-else-if="currentView !== 'smart_buy'"
       :sorted-researches="sortedResearches"
       :view="currentView"
       :thresholds="TIER_THRESHOLDS"
@@ -263,7 +261,7 @@ import { useActionsStore } from '@/stores/actions';
 import { useSalesStore } from '@/stores/sales';
 import { useVirtueStore } from '@/stores/virtue';
 import { computeDependencies } from '@/lib/actions/executor';
-import { generateActionId } from '@/types';
+import { generateActionId, type Action } from '@/types';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import {
   createNoteAction,
@@ -288,7 +286,6 @@ import {
   type SaleAwarePlanEntry,
 } from '@/calculations/smartBuyPreview';
 import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
-import type { BeamSearchResult } from '@/beam-search/engine';
 
 // Sub-components
 import ResearchSaleToggle from './ResearchSaleToggle.vue';
@@ -298,7 +295,6 @@ import ResearchFlatView from './ResearchFlatView.vue';
 import ElrViewControls from './ElrViewControls.vue';
 import RoiViewControls from './RoiViewControls.vue';
 import SmartBuyView from './SmartBuyView.vue';
-import BeamSearchView from './BeamSearchView.vue';
 import MilestoneTargetPicker from './MilestoneTargetPicker.vue';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
@@ -833,6 +829,63 @@ watch(
   });
 };
 
+// Action types `syncEventStateForItem`/`insertEventCrossingWaits` insert immediately ahead of a
+// purchase (wait+toggle pairs, one pair per sale/boost crossing the purchase's own wait passes
+// through) — see that function's doc comment. Used by `findBypassEventCrossingIds` below to walk
+// backward from a bypassed purchase and find just its own prelude, not anything belonging to the
+// purchase before it.
+const EVENT_CROSSING_ACTION_TYPES = new Set<Action['type']>([
+  'wait_for_time',
+  'wait_for_research_sale',
+  'wait_for_earnings_boost',
+  'toggle_sale',
+  'toggle_earnings_boost',
+]);
+
+// A single sale-to-sale gap (~6 days) or sale duration (~1 day) alone never reaches this — see the
+// threshold check below for why the SUM across a purchase's whole crossing prelude is what matters,
+// not any individual wait.
+const BYPASS_WAIT_THRESHOLD_SECONDS = 7 * 24 * 60 * 60;
+
+/**
+ * Finds the wait/toggle actions belonging to one specific bypassed purchase (`actionId`, already
+ * confirmed to have landed at-or-after the target deadline by this file's cleanup loop), so they can
+ * be swept along with it — walks backward from the purchase through `EVENT_CROSSING_ACTION_TYPES`
+ * actions until hitting something else (the previous purchase, a note, or the shift header), which
+ * is exactly the prelude `syncEventStateForItem` inserted for THIS purchase and no other.
+ *
+ * `computeDependencies` never links a purchase to the waits ahead of it (they're prerequisites its
+ * own timing already accounts for, not something else depends on removing) — see
+ * `buyUntilRealSaleStarts`'s doc comment in researchRanking.ts on why leaving them in place is
+ * normally correct. It stops being correct specifically when `getSaleAwareTimeToSave` decided a
+ * LATER sale (not the immediate one) was worth waiting for: ordinary crossings a purchase legitimately
+ * waits through (a sale ending, a boost starting) sum to at most a few days, but a purchase that
+ * jumped to a sale several cycles out leaves a prelude summing to a week or more — distinguishing the
+ * two by the SUM across the whole prelude, not any single wait in it, since a multi-cycle jump is
+ * itself built from several sub-week segments (each sale-to-sale gap is ~6 days, just under the
+ * threshold) chained together.
+ *
+ * Returns `[]` (nothing to additionally remove) whenever the prelude sums to under the threshold —
+ * that's the ordinary case, and `runSaleAwareBuyFlow`'s caller falls back to removing just the
+ * purchase itself, unchanged from before this function existed.
+ */
+function findBypassEventCrossingIds(actionId: string): string[] {
+  const index = actionsStore.actions.findIndex(a => a.id === actionId);
+  if (index === -1) return [];
+
+  const ids: string[] = [];
+  let totalWaitSeconds = 0;
+  for (let i = index - 1; i >= 0; i--) {
+    const action = actionsStore.actions[i];
+    if (!EVENT_CROSSING_ACTION_TYPES.has(action.type)) break;
+    ids.push(action.id);
+    if (action.type === 'wait_for_time' || action.type === 'wait_for_research_sale' || action.type === 'wait_for_earnings_boost') {
+      totalWaitSeconds += (action.payload as { totalTimeSeconds: number }).totalTimeSeconds;
+    }
+  }
+  return totalWaitSeconds >= BYPASS_WAIT_THRESHOLD_SECONDS ? ids : [];
+}
+
 // Driver behind "Buy Until Sale Warning": walks a precomputed plan (`saleAwarePlan70` — see
 // `simulateSaleAwareBuy`'s doc comment in smartBuyPreview.ts) rather than independently
 // re-deriving candidates live, so the preview shown under the button and what actually gets
@@ -931,8 +984,13 @@ async function runSaleAwareBuyFlow(label: string, plan: SaleAwarePlanEntry[]) {
   // this cleanup exists for (see runSaleAwareBuyFlow's own comment above).
   const toRemove = result.duringSalePurchases.filter(p => p.purchaseTimestamp >= targetDeadline);
   for (const { actionId } of toRemove.reverse()) {
-    debugLog(`${label} cleanup: removing duringSale purchase`, { actionId });
-    await actionsStore.executeUndo(actionId, 'dependents');
+    const bypassWaitIds = findBypassEventCrossingIds(actionId);
+    debugLog(`${label} cleanup: removing duringSale purchase`, { actionId, bypassWaitIds });
+    if (bypassWaitIds.length > 0) {
+      await actionsStore.removeActions([actionId, ...bypassWaitIds]);
+    } else {
+      await actionsStore.executeUndo(actionId, 'dependents');
+    }
   }
 
   // The buy loop only advances time as a side effect of buying something. If it stopped because
@@ -1187,40 +1245,6 @@ function handleBuyMilestoneChain() {
       syncEventStateForItem(item);
       buyOneLevel(item.research);
     }
-  });
-}
-
-/**
- * Applies a beam search winning plan (BeamSearchView.vue's `apply` event) in one shot — all-or-
- * nothing, per src/beam-search/HANDOFF.md decision #6 and
- * src/beam-search/06-egg-codebase-integration.md §7. `result.researchIds` is already flat and
- * ordered, with tier-macro/Phase-3-macro purchases already expanded into individual levels
- * (src/beam-search/engine/reconstruct.ts) — indistinguishable, by the time it reaches here, from an
- * ordinary chain of solo purchases, so it replays through exactly the same
- * syncEventStateForItem/buyOneLevel pattern `handleBuyMilestoneChain` above uses, not a separate
- * "macro-aware" path. Real price/wait for each purchase is re-derived live here (via
- * syncEventStateForItem/buyOneLevel), not trusted from the beam's own scratch-simulation — same
- * "dry run -> execute" split every other flow in this file already uses.
- *
- * `result.lastPurchaseTime` (an absolute timestamp the engine already computed, accounting for real
- * sale/boost timing) gives a much better expiry-check duration estimate than the
- * sum-of-getTimeToBuySeconds fallbacks other handlers here need, so it's used directly instead.
- */
-function handleApplyBeamSearchPlan(result: BeamSearchResult) {
-  if (result.researchIds.length === 0) return;
-
-  const currentAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
-  const totalDuration = Math.max(0, result.lastPurchaseTime - currentAbsoluteTime);
-
-  withExpiryCheck(totalDuration, true, () => {
-    batch(() => {
-      for (const researchId of result.researchIds) {
-        const research = getResearchById(researchId);
-        if (!research) continue;
-        syncEventStateForItem({ research });
-        if (!buyOneLevel(research)) break;
-      }
-    });
   });
 }
 

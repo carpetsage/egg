@@ -288,9 +288,18 @@ export interface C3Variant {
  * Walks `saleCount` in descending order so Tier 13 feasibility can be pruned: more time can only
  * make an unlock easier, never harder, so once a larger `saleCount` proves Tier 13 impossible, no
  * smaller `saleCount`'s Tier 13 attempt is even run — those `N-sale-tier13` combos are simply
- * absent from the returned array (not present with `impossible: true`). The non-Tier-13 variant is
- * still always computed for every `saleCount`. Returned in ascending `saleCount` order regardless
- * of the internal descending walk, so callers see a stable, predictable order.
+ * absent from the returned array (not present with `impossible: true`).
+ *
+ * For a given `saleCount`, the Tier 13 attempt (when one is made at all) always runs BEFORE the
+ * non-Tier-13 one, and the non-Tier-13 variant is skipped entirely whenever that attempt succeeds:
+ * a successful Tier 13 unlock strictly dominates not unlocking it (same total build-phase time
+ * spent either way, strictly more research afterward), so the non-Tier-13 sibling can never win the
+ * caller's comparison and isn't worth the cost of computing (here, and — more importantly — of the
+ * caller's own full ascension completion downstream). The non-Tier-13 variant is still computed
+ * whenever Tier 13 wasn't attempted at all for this `saleCount` (already unlocked before C3 started,
+ * or pruned via `tier13KnownImpossible`) or was attempted and failed — that's the only case it can
+ * legitimately win. Returned in ascending `saleCount` order regardless of the internal descending
+ * walk, so callers see a stable, predictable order.
  */
 export function runC3Variants(
   startState: EngineState,
@@ -304,19 +313,26 @@ export function runC3Variants(
   for (let saleCount = maxSaleCount; saleCount >= 1; saleCount--) {
     const buildPhaseEnd = getBuildPhaseEndForSaleCount(context.ascensionStartTime, saleCount);
 
-    variants.push({
-      saleCount,
-      attemptTier13Unlock: false,
-      buildPhaseEnd,
-      result: runC3(startState, context, buildPhaseEnd, undefined, { attemptTier13Unlock: false }),
-      impossible: false,
-    });
-
+    let tier13SucceededThisSaleCount = false;
     if (!tier13AlreadyUnlocked && !tier13KnownImpossible) {
       const result = runC3(startState, context, buildPhaseEnd, undefined, { attemptTier13Unlock: true });
       const impossible = !isTierUnlocked(result.endState.researchLevels, maxTier);
-      if (impossible) tier13KnownImpossible = true;
+      if (impossible) {
+        tier13KnownImpossible = true;
+      } else {
+        tier13SucceededThisSaleCount = true;
+      }
       variants.push({ saleCount, attemptTier13Unlock: true, buildPhaseEnd, result, impossible });
+    }
+
+    if (!tier13SucceededThisSaleCount) {
+      variants.push({
+        saleCount,
+        attemptTier13Unlock: false,
+        buildPhaseEnd,
+        result: runC3(startState, context, buildPhaseEnd, undefined, { attemptTier13Unlock: false }),
+        impossible: false,
+      });
     }
   }
   return variants.sort(

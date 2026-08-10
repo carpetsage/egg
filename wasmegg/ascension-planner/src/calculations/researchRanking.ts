@@ -27,31 +27,21 @@ import { createSimAction } from '@/types/actions/meta';
 import { getNextPacificTime, isEarningsBoostActive, isResearchSaleActive } from '@/lib/events';
 import { ei } from 'lib';
 
-// Research categories to exclude from specific ranking views. Exported so other consumers of the
-// same "which research is economically relevant" question (e.g. the beam search engine's own
-// Phase 1/2 candidate generation, see src/beam-search/engine/candidates.ts) reuse this single
-// definition instead of re-declaring it — these lists encode a real game-balance decision
-// (non-ROI research like hatchery/incubation categories is never worth buying through any of this
-// app's optimizers), not an implementation detail local to this file.
-export const ROI_EXCLUDED_CATEGORIES = [
+// Research categories to exclude from specific ranking views
+const ROI_EXCLUDED_CATEGORIES = [
   'hatchery_capacity',
   'internal_hatchery_rate',
   'running_chicken_bonus',
   'hatchery_refill_rate',
 ];
-export const ELR_EXCLUDED_CATEGORIES = [
+const ELR_EXCLUDED_CATEGORIES = [
   'hatchery_capacity',
   'internal_hatchery_rate',
   'running_chicken_bonus',
   'hatchery_refill_rate',
   'egg_value',
 ];
-export const DELIVERY_IMPACT_CATEGORIES = new Set([
-  'hab_capacity',
-  'fleet_size',
-  'egg_laying_rate',
-  'shipping_capacity',
-]);
+const DELIVERY_IMPACT_CATEGORIES = new Set(['hab_capacity', 'fleet_size', 'egg_laying_rate', 'shipping_capacity']);
 
 // Evaluation IDs for ELR "potential" mode
 const FLEET_RESEARCH_IDS = [
@@ -63,7 +53,7 @@ const FLEET_RESEARCH_IDS = [
 ];
 const TRAIN_CAR_RESEARCH_ID = 'micro_coupling';
 
-export function filterByCategories(r: CommonResearch, excluded: string[]): boolean {
+function filterByCategories(r: CommonResearch, excluded: string[]): boolean {
   const categories = r.categories.split(',').map(c => c.trim());
   return !categories.some(c => excluded.includes(c));
 }
@@ -431,16 +421,7 @@ export function rankResearchByELRImpact(
   absoluteSimTime: number,
   researchSaleDeadline: number,
   viewMode: 'realistic' | 'potential',
-  sortMode: 'efficiency' | 'impact',
-  // Optional, backward-compatible: every existing caller (the manual planner's Delivery Impact
-  // tab, auto/shifts/c3.ts) omits this and gets the exact same full-search behavior as before.
-  // When passed, skips getOptimalELRSet's own combinatorial family search — see that function's
-  // own doc comment (lib/artifacts/virtue.ts) for the full correctness argument; this just threads
-  // the same option through 'realistic' mode's three internal getOptimalELRSet call sites (they'd
-  // otherwise each independently pay that cost, and 'realistic' mode is itself called once per
-  // candidate research by callers like runDeliveryBuyLoop's own purchase loop, multiplying it
-  // further). src/beam-search/engine/macros.ts is the first caller that needs this.
-  fixedArtifactFamilies?: string[]
+  sortMode: 'efficiency' | 'impact'
 ): ResearchRankingItem[] {
   const unpurchased = getCommonResearches().filter(
     r => (researchLevels[r.id] || 0) < r.levels && filterByCategories(r, ELR_EXCLUDED_CATEGORIES)
@@ -458,7 +439,6 @@ export function rankResearchByELRImpact(
       commonResearch: researchLevels,
       epicResearchLevels: context.epicResearchLevels,
       colleggtibleModifiers: context.colleggtibleModifiers,
-      fixedArtifactFamilies,
     });
     const baselineArtifactMods = calculateArtifactModifiers(baselineOptimal);
     const baseline = computeRealisticELR(
@@ -469,14 +449,6 @@ export function rankResearchByELRImpact(
     );
 
     if (baseline.effectiveRate <= 0) return [];
-
-    // Every candidate/lookahead call below re-derives the optimal loadout for a state that's just
-    // one (or a handful of) research level(s) away from this same baseline — exactly the shape
-    // getOptimalELRSet's own stone-swap fast path (lib/artifacts/virtue.ts) is built for. Passed
-    // through as a hint, not a guarantee: that function falls back to its own full search whenever
-    // the hint doesn't apply or its fast path doesn't trust its own guess, so this is purely a
-    // performance hint, never a correctness dependency.
-    const baselineStones = baselineOptimal.flatMap(slot => slot.stones);
 
     candidates = uniqueUnpurchased
       .map((r): ResearchRankingItem => {
@@ -516,8 +488,6 @@ export function rankResearchByELRImpact(
           commonResearch: tempLevels,
           epicResearchLevels: context.epicResearchLevels,
           colleggtibleModifiers: context.colleggtibleModifiers,
-          fixedArtifactFamilies,
-          previousStoneAssignment: baselineStones,
         });
         const tempArtifactMods = calculateArtifactModifiers(tempOptimal);
         const stats = computeRealisticELR(
@@ -551,8 +521,6 @@ export function rankResearchByELRImpact(
               commonResearch: laLevels,
               epicResearchLevels: context.epicResearchLevels,
               colleggtibleModifiers: context.colleggtibleModifiers,
-              fixedArtifactFamilies,
-              previousStoneAssignment: baselineStones,
             });
             const laArtifactMods = calculateArtifactModifiers(laOptimal);
             const laStats = computeRealisticELR(

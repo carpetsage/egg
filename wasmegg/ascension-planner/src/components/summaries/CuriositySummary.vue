@@ -33,41 +33,15 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button
-          class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border transition-colors"
-          :class="
-            copyState === 'copied'
-              ? 'bg-green-50 border-green-200 text-green-600'
-              : 'bg-slate-100 border-slate-200/50 text-slate-500 hover:text-slate-700'
-          "
-          @click="handleCopyLog"
-        >
-          {{ copyState === 'copied' ? 'Copied!' : 'Copy Log' }}
-        </button>
-        <div
-          v-if="totalResearchCost > 0"
-          class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50/50 border border-amber-100/50"
-        >
-          <img :src="iconURL('egginc/icon_virtue_gem.png', 32)" class="w-3 h-3" alt="Gems" />
-          <span class="text-[10px] font-black text-amber-600 tracking-tight">{{
-            formatGemPrice(totalResearchCost)
-          }}</span>
-        </div>
+      <div
+        v-if="totalResearchCost > 0"
+        class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50/50 border border-amber-100/50"
+      >
+        <img :src="iconURL('egginc/icon_virtue_gem.png', 32)" class="w-3 h-3" alt="Gems" />
+        <span class="text-[10px] font-black text-amber-600 tracking-tight">{{
+          formatGemPrice(totalResearchCost)
+        }}</span>
       </div>
-    </div>
-
-    <div v-if="showRawText" class="mb-4">
-      <p class="text-[10px] text-slate-500 text-center mb-1">
-        Couldn't copy automatically — tap the box below, select all, then copy.
-      </p>
-      <textarea
-        ref="rawTextArea"
-        readonly
-        class="w-full h-32 text-[9px] font-mono p-2 border border-slate-200 rounded-lg bg-white"
-        :value="logText"
-        @focus="($event.target as HTMLTextAreaElement).select()"
-      />
     </div>
 
     <div v-if="summaryItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -111,36 +85,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue';
+import { computed } from 'vue';
 import type { Action, BuyResearchPayload } from '@/types';
 import { getResearchById, getResearchByTier } from '@/calculations/commonResearch';
 import { formatGemPrice, formatNumber } from '@/lib/format';
 import { iconURL } from 'lib';
 
 import { useActionsStore } from '@/stores/actions';
-import { useCopyActionLog } from '@/composables/useCopyActionLog';
 
 const props = defineProps<{
   headerAction: Action;
   actions: Action[];
 }>();
-
-// Scoped to just this shift group's own actions (headerAction + its actions), not the whole plan —
-// see useCopyActionLog.ts's doc comment for why: a whole-plan export routinely blows past chat
-// message size limits long before reaching the part of the plan worth talking about.
-const rawTextArea = ref<HTMLTextAreaElement | null>(null);
-const { copyState, showRawText, logText, copyActionLog } = useCopyActionLog(() => [
-  props.headerAction,
-  ...props.actions,
-]);
-
-async function handleCopyLog() {
-  await copyActionLog();
-  if (showRawText.value) {
-    await nextTick();
-    rawTextArea.value?.focus();
-  }
-}
 
 const actionsStore = useActionsStore();
 

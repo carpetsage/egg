@@ -98,102 +98,6 @@ export function calculateClothedTEForSet(
   );
 }
 
-/** Below this layRate/shipRate ratio, a candidate stone assignment is considered still meaningfully
- *  imbalanced — see tryStoneSwapFastPath's own doc comment for how this is used on both ends of its
- *  decision (trusting an unchanged hint outright, and trusting its own single-swap guess). */
-const STONE_FAST_PATH_TRUST_RATIO = 0.98;
-
-function stoneBalanceRatio(layRate: number, shipRate: number): number {
-  if (layRate <= 0 && shipRate <= 0) return 1;
-  if (layRate <= 0 || shipRate <= 0) return 0;
-  return Math.min(layRate, shipRate) / Math.max(layRate, shipRate);
-}
-
-/**
- * Cheap alternative to the full per-slot greedy stone fill below, for the common case where research
- * levels shifted only slightly since `hint` (a stone assignment from a PRIOR getOptimalELRSet call
- * against this same fixed artifact family) was computed — the shape every call inside
- * `rankResearchByELRImpact`'s 'realistic' mode candidate loop actually has (one research level
- * different from the baseline it re-derives per candidate).
- *
- * Per the user's own steer: since each stone only ever moves layRate OR shipRate, never both (Tachyon
- * stones feed eggLayingRateMultiplier, Quantum stones feed shippingCapacityMultiplier — see
- * lib/artifacts/effects.ts), a small research change can only plausibly shift the optimal assignment
- * by swapping one Tachyon for a Quantum (shipping fell behind) or vice versa (laying fell behind) —
- * so this only ever tries `hint` unchanged, or `hint` with exactly one such swap, rather than
- * refilling every slot from empty the way the full search below does.
- *
- * Deliberately conservative about trusting itself, and never returns a WRONG answer — only sometimes
- * declines to save the work: returns null (telling the caller to fall back to the full from-scratch
- * fill) whenever no swap can be found (no stone of the needed type left in the pool, or nothing of
- * the over-represented type placed to remove) or the best candidate it found is STILL meaningfully
- * imbalanced (`stoneBalanceRatio` below `STONE_FAST_PATH_TRUST_RATIO`) — meaning the underlying
- * change was probably too big for a single swap to be the true answer, so this hands off to the
- * guaranteed-correct full search rather than guessing further. Every trusted result still gets run
- * through the exact same `evaluateStones` the full search uses before being compared against other
- * combos, so its output is scored identically either way — this function only ever changes how that
- * result was reached, never what "better" means.
- */
-function tryStoneSwapFastPath(
-  hint: (string | null)[],
-  tachyonStones: { id: string; count: number; tier: number }[],
-  quantumStones: { id: string; count: number; tier: number }[],
-  evaluateStones: (stones: (string | null)[]) => { layRate: number; shipRate: number; elr: number }
-): (string | null)[] | null {
-  const unchanged = evaluateStones(hint);
-  if (stoneBalanceRatio(unchanged.layRate, unchanged.shipRate) >= STONE_FAST_PATH_TRUST_RATIO) {
-    return hint;
-  }
-
-  // Tachyon stones raise layRate, Quantum stones raise shipRate — whichever side is behind
-  // determines which type to add one more of, and which type is over-represented (a candidate to
-  // remove, if no empty slot exists to just fill instead).
-  const needTachyon = unchanged.layRate < unchanged.shipRate;
-  const addPool = needTachyon ? tachyonStones : quantumStones;
-  const removePrefix = needTachyon ? 'quantum-stone' : 'tachyon-stone';
-
-  const placedCounts = new Map<string, number>();
-  for (const s of hint) {
-    if (s) placedCounts.set(s, (placedCounts.get(s) || 0) + 1);
-  }
-  const addCandidate = addPool.find(s => (placedCounts.get(s.id) || 0) < s.count);
-  if (!addCandidate) return null; // no stone available to add — can't do a lightweight fix
-
-  // Prefer filling an empty slot outright over removing a placed stone.
-  let swapIdx = hint.findIndex(s => s === null);
-  if (swapIdx === -1) {
-    // No empty slot — remove the lowest-tier currently-placed stone of the over-represented type
-    // (mirrors the full fill's own bias toward keeping the highest-tier stones placed).
-    let lowestTier = Infinity;
-    for (let i = 0; i < hint.length; i++) {
-      const s = hint[i];
-      if (s && s.startsWith(removePrefix)) {
-        const tier = parseInt(s.split('-').pop() || '0', 10);
-        if (tier < lowestTier) {
-          lowestTier = tier;
-          swapIdx = i;
-        }
-      }
-    }
-  }
-  if (swapIdx === -1) return null; // nothing to remove and no empty slot — can't swap
-
-  const swapped = [...hint];
-  swapped[swapIdx] = addCandidate.id;
-  const swappedMetrics = evaluateStones(swapped);
-
-  // Same comparison the full search uses below (isGlobalBetter): elr desc, then layRate as tiebreak.
-  const swappedIsBetter =
-    swappedMetrics.elr > unchanged.elr ||
-    (swappedMetrics.elr === unchanged.elr && swappedMetrics.layRate > unchanged.layRate);
-  const best = swappedIsBetter ? { stones: swapped, metrics: swappedMetrics } : { stones: hint, metrics: unchanged };
-
-  if (stoneBalanceRatio(best.metrics.layRate, best.metrics.shipRate) >= STONE_FAST_PATH_TRUST_RATIO) {
-    return best.stones;
-  }
-  return null; // still meaningfully imbalanced even after the best single swap — don't trust it
-}
-
 /**
  * Get the optimal artifact set for ELR (Effective Lay Rate).
  * Factors in Metronomes, Compasses, Gussets, and Tachyon/Quantum stones.
@@ -207,19 +111,6 @@ export function getOptimalELRSet(
     commonResearch?: Record<string, number>;
     epicResearchLevels?: Record<string, number>;
     colleggtibleModifiers?: any;
-    /** Skip the full 1-4-artifact combination search (up to 495 combos) and only re-optimize stone
-     *  placement for exactly this family selection (each entry shaped like "metronome-4-3", same as
-     *  EquippedArtifact.artifactId) — see the `combos` construction below for the full rationale and
-     *  correctness argument. Falls back to the normal full search if these don't match anything in
-     *  the current inventory. */
-    fixedArtifactFamilies?: string[];
-    /** A flat stone-ID assignment (one entry per stone slot, `null` for unfilled) from a PRIOR
-     *  `getOptimalELRSet` call against this same `fixedArtifactFamilies` selection — lets this call
-     *  try a cheap swap-based fast path instead of refilling every stone slot from empty. Only takes
-     *  effect when `fixedArtifactFamilies` is also set and this hint's length matches that family's
-     *  total stone slot count; ignored otherwise. See `tryStoneSwapFastPath`'s own doc comment for
-     *  the full reasoning and correctness argument. */
-    previousStoneAssignment?: (string | null)[];
   } = {}
 ): EquippedArtifact[] {
   if (!backup.artifactsDb) {
@@ -356,32 +247,12 @@ export function getOptimalELRSet(
     return result;
   }
 
-  // Fast path: skip searching all 1-4 artifact combinations (up to 495) and only re-optimize stone
-  // placement for one caller-specified family selection instead. Correct whenever that selection
-  // really is the global optimum's family choice — true here because artifact CANDIDATE gathering
-  // above (steps 2-3) depends only on the owned inventory (backup.artifactsDb), never on
-  // commonResearch/epicResearchLevels/colleggtibleModifiers — only the per-combo stone-balancing
-  // below (which this fast path still runs in full) depends on those. So a caller that already knows
-  // the winning family selection from a prior full call against the same inventory (e.g. beam
-  // search's engine/macros.ts, evaluating many different research levels against one fixed
-  // inventory) can skip straight to re-deriving stones for it. Falls back to the full search if the
-  // requested families don't actually match anything in topCandidates (e.g. a stale caller-side
-  // cache), rather than silently returning a worse-than-optimal set.
-  const fixedCombo = options.fixedArtifactFamilies
-    ? topCandidates.filter(c =>
-        options.fixedArtifactFamilies!.includes(`${c.item.props.family.id}-${c.item.tierNumber}-${c.rarity}`)
-      )
-    : null;
-
-  const combos =
-    fixedCombo && fixedCombo.length === options.fixedArtifactFamilies!.length
-      ? [fixedCombo]
-      : [
-          ...combinations(topCandidates, 1),
-          ...combinations(topCandidates, 2),
-          ...combinations(topCandidates, 3),
-          ...combinations(topCandidates, 4),
-        ];
+  const combos = [
+    ...combinations(topCandidates, 1),
+    ...combinations(topCandidates, 2),
+    ...combinations(topCandidates, 3),
+    ...combinations(topCandidates, 4),
+  ];
 
   for (const comboWrappers of combos) {
     const hasTarget = comboWrappers.some((w: Candidate) => w.isTarget);
@@ -488,75 +359,58 @@ export function getOptimalELRSet(
       };
     };
 
-    // Fast path: only ever attempted when this is the single fixed-family combo (the "which
-    // artifacts" question is already settled) and the caller supplied a same-size hint from a prior
-    // call against it — see tryStoneSwapFastPath's own doc comment. Its own internal trust check is
-    // what keeps this safe; a null result here just means "fall back to the full fill below",
-    // exactly as if no hint had been passed at all.
-    const fastPathHint =
-      combos.length === 1 && options.previousStoneAssignment?.length === totalStoneSlots
-        ? options.previousStoneAssignment
-        : undefined;
-    let stoneAssignment = fastPathHint
-      ? tryStoneSwapFastPath(fastPathHint, tachyonStones, quantumStones, evaluateStones)
-      : null;
+    const remTachyonStones = tachyonStones.map(s => ({ ...s }));
+    const remQuantumStones = quantumStones.map(s => ({ ...s }));
+    const currentStones: (string | null)[] = new Array(totalStoneSlots).fill(null);
 
-    if (!stoneAssignment) {
-      const remTachyonStones = tachyonStones.map(s => ({ ...s }));
-      const remQuantumStones = quantumStones.map(s => ({ ...s }));
-      const currentStones: (string | null)[] = new Array(totalStoneSlots).fill(null);
+    for (let slotIdx = 0; slotIdx < totalStoneSlots; slotIdx++) {
+      const metrics = evaluateStones(currentStones);
 
-      for (let slotIdx = 0; slotIdx < totalStoneSlots; slotIdx++) {
-        const metrics = evaluateStones(currentStones);
-
-        if (metrics.layRate < metrics.shipRate) {
-          const bestTachyon = remTachyonStones.find(s => s.count > 0);
-          if (bestTachyon) {
-            currentStones[slotIdx] = bestTachyon.id;
-            bestTachyon.count--;
-          } else {
-            const bestQuantum = remQuantumStones.find(s => s.count > 0);
-            if (bestQuantum) {
-              currentStones[slotIdx] = bestQuantum.id;
-              bestQuantum.count--;
-            }
-          }
+      if (metrics.layRate < metrics.shipRate) {
+        const bestTachyon = remTachyonStones.find(s => s.count > 0);
+        if (bestTachyon) {
+          currentStones[slotIdx] = bestTachyon.id;
+          bestTachyon.count--;
         } else {
           const bestQuantum = remQuantumStones.find(s => s.count > 0);
           if (bestQuantum) {
             currentStones[slotIdx] = bestQuantum.id;
             bestQuantum.count--;
-          } else {
-            const bestTachyon = remTachyonStones.find(s => s.count > 0);
-            if (bestTachyon) {
-              currentStones[slotIdx] = bestTachyon.id;
-              bestTachyon.count--;
-            }
+          }
+        }
+      } else {
+        const bestQuantum = remQuantumStones.find(s => s.count > 0);
+        if (bestQuantum) {
+          currentStones[slotIdx] = bestQuantum.id;
+          bestQuantum.count--;
+        } else {
+          const bestTachyon = remTachyonStones.find(s => s.count > 0);
+          if (bestTachyon) {
+            currentStones[slotIdx] = bestTachyon.id;
+            bestTachyon.count--;
           }
         }
       }
-
-      currentStones.sort((a, b) => {
-        if (a === null && b === null) return 0;
-        if (a === null) return 1;
-        if (b === null) return -1;
-
-        const isTa = a.indexOf('quantum') === 0;
-        const isTb = b.indexOf('quantum') === 0;
-        if (isTa && !isTb) return -1;
-        if (!isTa && isTb) return 1;
-
-        const tierA = parseInt(a.split('-').pop() || '0', 10);
-        const tierB = parseInt(b.split('-').pop() || '0', 10);
-        return tierB - tierA;
-      });
-
-      stoneAssignment = currentStones;
     }
 
-    const finalMetrics = evaluateStones(stoneAssignment);
+    currentStones.sort((a, b) => {
+      if (a === null && b === null) return 0;
+      if (a === null) return 1;
+      if (b === null) return -1;
+
+      const isTa = a.indexOf('quantum') === 0;
+      const isTb = b.indexOf('quantum') === 0;
+      if (isTa && !isTb) return -1;
+      if (!isTa && isTb) return 1;
+
+      const tierA = parseInt(a.split('-').pop() || '0', 10);
+      const tierB = parseInt(b.split('-').pop() || '0', 10);
+      return tierB - tierA;
+    });
+
+    const finalMetrics = evaluateStones(currentStones);
     bestELRForThisLoadout = finalMetrics.elr;
-    bestStonesForThisLoadout = stoneAssignment;
+    bestStonesForThisLoadout = currentStones;
     bestMetricsForThisLoadout = finalMetrics;
 
     const currentBestLayRate = bestMetricsForThisLoadout?.layRate ?? -1;

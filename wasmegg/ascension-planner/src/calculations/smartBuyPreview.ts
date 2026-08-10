@@ -21,7 +21,7 @@ import { ei } from 'lib';
  * the game). Matches the same "guard rail, not a tuning knob" role Quick Buy's real execution loop
  * already gives its own iteration cap.
  */
-export const MAX_SIMULATED_PURCHASES = 2000;
+const MAX_SIMULATED_PURCHASES = 2000;
 
 /**
  * Safety-net cap on the earnings-prelude loop specifically (`simulateEarningsPreludeForSaleEnd`) —
@@ -328,12 +328,6 @@ export interface DeliveryLoopResult {
  * so it can be re-run from any starting point — `simulateSaleEndsBuy`'s trim search below re-runs it
  * from several different earnings-prelude checkpoints, but it's exported for any other caller that
  * wants the same "buy delivery research until a deadline" simulation from its own start state.
- *
- * `fixedArtifactFamilies`, when passed, is threaded straight through to every
- * `rankResearchByELRImpact` call this loop makes (one per purchase decision) — see that function's
- * own doc comment and `getOptimalELRSet`'s (lib/artifacts/virtue.ts) for what it does and why it's
- * safe. Optional and backward-compatible: omitted, this loop's existing callers (auto/shifts/c3.ts,
- * the manual planner's "Buy Until Sale Ends" preview) get identical behavior to before.
  */
 export function runDeliveryBuyLoop(
   researchLevels: Record<string, number>,
@@ -345,8 +339,7 @@ export function runDeliveryBuyLoop(
   elrViewMode: 'realistic' | 'potential',
   elrSortMode: 'efficiency' | 'impact',
   rawBackup: ei.IBackup | null | undefined,
-  maxIterations: number = MAX_SIMULATED_PURCHASES,
-  fixedArtifactFamilies?: string[]
+  maxIterations: number = MAX_SIMULATED_PURCHASES
 ): DeliveryLoopResult {
   let simState: EngineState = { ...createBaseEngineState(snapshot), researchLevels: { ...researchLevels } };
   let simSnapshot = snapshot;
@@ -366,8 +359,7 @@ export function runDeliveryBuyLoop(
         simTime,
         researchSaleDeadline,
         elrViewMode,
-        elrSortMode,
-        fixedArtifactFamilies
+        elrSortMode
       );
       const candidate = ranked.find(item => item.canBuy && !item.showDeadlineWarning);
       return candidate ? { researchId: candidate.research.id } : undefined;

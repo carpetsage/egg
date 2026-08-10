@@ -5,7 +5,6 @@ import { ei } from 'lib';
 import { EquippedArtifact } from './types';
 import { getArtifact, getStone, stoneOptions } from './data';
 import { createEmptyLoadout } from './calculator';
-import { sanitizeLongsForWorker } from '@/workers/beamSearch.protocol';
 
 /**
  * Summarize an artifact loadout for display in action history.
@@ -149,10 +148,66 @@ export function getArtifactLoadoutFromBackup(backup: ei.IBackup): EquippedArtifa
 }
 
 /**
+ * Duck-typed check for a protobufjs-decoded Long (from the 'long' package): every ei.IBackup int64/
+ * uint64/sint64/fixed64 field (e.g. ArtifactInventoryItem.itemId, ArtifactsDB.itemSequence,
+ * Backup.checksum, Game.soulEggs, ...) decodes to one of these — a plain object with exactly these
+ * three own enumerable properties, `{ low, high, unsigned }`, plus arithmetic/comparison methods on
+ * its prototype (Long.prototype). Not imported from the 'long' package directly: it isn't a direct
+ * dependency of this workspace (only a transitive one, pulled in indirectly via protobufjs/the
+ * generated ei proto — pnpm's workspace isolation makes that resolution fragile to depend on
+ * directly), and duck-typing is all sanitizeLongs actually needs anyway.
+ */
+function isLongLike(value: unknown): value is { low: number; high: number; unsigned: boolean } {
+  if (typeof value !== 'object' || value === null) return false;
+  const keys = Object.keys(value);
+  const v = value as Record<string, unknown>;
+  return (
+    keys.length === 3 && typeof v.low === 'number' && typeof v.high === 'number' && typeof v.unsigned === 'boolean'
+  );
+}
+
+/** Same bit math as Long.prototype.toNumber() (long@5's index.js) — reimplemented rather than
+ *  imported for the same reason isLongLike duck-types instead of using `instanceof Long`. Loses
+ *  precision the same way the real .toNumber() would for values beyond Number.MAX_SAFE_INTEGER;
+ *  that's an existing characteristic of calling .toNumber() anywhere in this codebase, not a
+ *  regression introduced here. */
+function longLikeToNumber(value: { low: number; high: number; unsigned: boolean }): number {
+  const TWO_PWR_32_DBL = 4294967296;
+  return value.unsigned
+    ? (value.high >>> 0) * TWO_PWR_32_DBL + (value.low >>> 0)
+    : value.high * TWO_PWR_32_DBL + (value.low >>> 0);
+}
+
+/**
+ * Deep-clones a value into a plain, JSON-safe copy: rebuilds every plain object/array from scratch
+ * via Object.entries rather than returning `value` itself, and converts any Long-shaped object
+ * encountered anywhere in the tree into a plain JS number along the way. Needed for
+ * `redactBackupForStorage` below — the redacted backup gets JSON-serialized into IndexedDB, and a
+ * protobufjs Long instance does NOT survive a JSON round-trip intact (`JSON.stringify` reads its own
+ * enumerable `{low,high,unsigned}` properties, same as any plain object, silently dropping
+ * `Long.prototype`'s methods on the way back in).
+ */
+function sanitizeLongs<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map(item => sanitizeLongs(item)) as unknown as T;
+  }
+  if (isLongLike(value)) {
+    return longLikeToNumber(value) as unknown as T;
+  }
+  if (typeof value === 'object' && value !== null) {
+    const out: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+      out[key] = sanitizeLongs(v);
+    }
+    return out as T;
+  }
+  return value;
+}
+
+/**
  * Produce a redacted `ei.IBackup` for persisting alongside a saved plan, so
- * artifact recalculation (getOptimalELRSet, getOptimalEarningsSet, beam
- * search, ...) works after reloading the plan without re-fetching the
- * player's full backup.
+ * artifact recalculation (getOptimalELRSet, getOptimalEarningsSet, ...) works
+ * after reloading the plan without re-fetching the player's full backup.
  *
  * Keeps only the two things those functions actually read for the
  * strategies this app uses:
@@ -191,7 +246,7 @@ export function redactBackupForStorage(backup: ei.IBackup): ei.IBackup | null {
   if (db) {
     // Long-typed int64 fields (itemId) decode to protobufjs Long instances that
     // don't survive a JSON round-trip intact — flatten them to plain numbers.
-    const sanitizedDb = sanitizeLongsForWorker(db) as ei.ArtifactsDB.IVirtueDB;
+    const sanitizedDb = sanitizeLongs(db) as ei.ArtifactsDB.IVirtueDB;
 
     const inventoryItems: ei.IArtifactInventoryItem[] = (sanitizedDb.inventoryItems || []).map(item => ({
       itemId: item.itemId,
