@@ -84,7 +84,7 @@ function computeRealisticDeliverySummary(
 
 export type { MilestoneTarget } from '@/calculations/milestoneChain';
 
-export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr' | 'milestones' | 'smart_buy' | 'beam_search';
+export type ViewType = 'game' | 'cheapest' | 'roi' | 'elr' | 'milestones' | 'smart_buy';
 export type ElrViewMode = 'realistic' | 'potential';
 export type ElrSortMode = 'efficiency' | 'impact';
 export type ElrRoiDisplayMode = 'hpp' | 'time';
@@ -161,11 +161,6 @@ export const VIEWS = [
     id: 'smart_buy',
     label: 'Smart Buy',
     description: 'Auto-buy research: sale-aware and threshold-based buying in one place.',
-  },
-  {
-    id: 'beam_search',
-    label: 'Beam Search',
-    description: 'Searches ahead for the best purchase order before a deadline you pick.',
   },
 ] as const;
 
@@ -311,8 +306,6 @@ export function useResearchViews() {
         return 'Pick a tier unlock or a specific research level, and see the fastest ROI-optimal path to it.';
       case 'smart_buy':
         return 'Auto-buy research: sale-aware ROI buying and threshold-based smart buy, all in one place.';
-      case 'beam_search':
-        return 'Searches ahead for the best order to buy research before a deadline you pick, then applies the whole winning plan in one shot.';
       default:
         return '';
     }

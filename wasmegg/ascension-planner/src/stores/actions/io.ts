@@ -41,7 +41,6 @@ export function exportPlanData(actions: Action[], initialSnapshot?: Calculations
   // logged to console so the shape/content can be reviewed before we rely on
   // it long-term.
   const redactedBackup = initialStateStore.rawBackup ? redactBackupForStorage(initialStateStore.rawBackup) : null;
-  console.log('[ActionIO] Storing redacted backup in plan (artifact inventory only, no account-identifying fields):', redactedBackup);
 
   return {
     version: 1,
