@@ -1,6 +1,9 @@
 <template>
-  <div class="card-premium p-4 mb-1">
-    <div class="flex flex-col gap-3">
+  <div class="card-premium p-4 mb-1 relative overflow-hidden">
+    <div
+      class="flex flex-col gap-3 transition-opacity duration-150"
+      :class="{ 'opacity-30 pointer-events-none': loading }"
+    >
       <!-- Header -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2 text-slate-800">
@@ -31,14 +34,25 @@
         {{ note }}
       </p>
     </div>
+
+    <!-- Localized busy state: dims just this card (see `loading` prop doc comment) instead of the
+         whole page locking up behind a full-screen overlay while its plan recomputes. -->
+    <div v-if="loading" class="absolute inset-0 flex items-center justify-center">
+      <InlineSpinner class="w-5 h-5 text-blue-500" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import InlineSpinner from '@/components/InlineSpinner.vue';
+
 defineProps<{
   title: string;
   badge?: string;
   badgeActive?: boolean;
   note?: string;
+  /** Whether this card's own plan is currently (re)computing — dims its body and shows a small
+   *  spinner confined to the card, rather than blocking the whole page. */
+  loading?: boolean;
 }>();
 </script>

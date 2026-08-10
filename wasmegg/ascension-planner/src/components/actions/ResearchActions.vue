@@ -44,6 +44,12 @@
       :sale-aware-earnings-summary70="saleAwareEarningsSummary70"
       :sale-ends-delivery-summary="saleEndsDeliverySummary"
       :sale-ends-stats="saleEndsStats"
+      :quick-buy-loading="isComputingQuickBuyPlan"
+      :quick-buy-applying="isThresholdBuying"
+      :sale-aware-loading="isComputingSaleAwarePlan"
+      :sale-aware-applying="isApplyingSaleAwareBuy"
+      :sale-ends-loading="isComputingSaleEndsPlan"
+      :sale-ends-applying="isApplyingSaleEndsBuy"
       @update:auto-buy-always-on="autoBuyState.alwaysOn = $event"
       @quick-buy="handleThresholdBuy"
       @update:quick-buy-threshold-seconds="quickBuyThreshold = $event"
@@ -61,102 +67,111 @@
       :research-options="milestoneResearchOptions"
     />
 
-    <!-- Milestone Summary -->
-    <div
-      v-if="currentView === 'milestones' && milestoneSummary"
-      class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"
-    >
-      <template v-if="milestoneSummary.truncated">
-        <p v-if="milestoneSummary.partialPurchaseCount > 0" class="text-xs text-gray-500 text-center italic">
-          This milestone takes at least {{ milestoneSummary.partialPurchaseCount }}
-          {{ milestoneSummary.partialPurchaseCount === 1 ? 'purchase' : 'purchases' }} (at least
-          {{ formatDuration(milestoneSummary.partialSeconds) }}) — too many to fully calculate right now.
-        </p>
-        <p v-else class="text-xs text-gray-500 text-center italic">
-          Unable to find a path to this milestone from the current state.
-        </p>
-      </template>
-      <template v-else>
-        <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-center">
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1"
-              >Without This Research</span
-            >
-            <span
-              v-tippy="'Time to reach this milestone buying cheapest-first, with no ROI prioritization.'"
-              class="text-sm font-mono font-bold text-gray-900 leading-none py-1"
-            >
-              {{ formatDuration(milestoneSummary.baselineSeconds) }}
-            </span>
+    <!-- Milestone summary/buy-chain/toggle area — wrapped so the "computing" spinner below can dim
+         just this region instead of the whole page. -->
+    <div v-if="currentView === 'milestones'" class="relative">
+      <!-- Milestone Summary -->
+      <div v-if="milestoneSummary" class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+        <template v-if="milestoneSummary.truncated">
+          <p v-if="milestoneSummary.partialPurchaseCount > 0" class="text-xs text-gray-500 text-center italic">
+            This milestone takes at least {{ milestoneSummary.partialPurchaseCount }}
+            {{ milestoneSummary.partialPurchaseCount === 1 ? 'purchase' : 'purchases' }} (at least
+            {{ formatDuration(milestoneSummary.partialSeconds) }}) — too many to fully calculate right now.
+          </p>
+          <p v-else class="text-xs text-gray-500 text-center italic">
+            Unable to find a path to this milestone from the current state.
+          </p>
+        </template>
+        <template v-else>
+          <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-center">
+            <div class="flex flex-col">
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1"
+                >Without This Research</span
+              >
+              <span
+                v-tippy="'Time to reach this milestone buying cheapest-first, with no ROI prioritization.'"
+                class="text-sm font-mono font-bold text-gray-900 leading-none py-1"
+              >
+                {{ formatDuration(milestoneSummary.baselineSeconds) }}
+              </span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1"
+                >With This Research</span
+              >
+              <span
+                v-tippy="'Time to reach this milestone by always buying whatever currently pays for itself fastest.'"
+                class="text-sm font-mono font-bold text-gray-900 leading-none py-1"
+              >
+                {{ formatDuration(milestoneSummary.optimizedSeconds) }}
+              </span>
+            </div>
+            <div class="flex flex-col border-l border-gray-200 pl-6">
+              <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1"
+                >Time Saved</span
+              >
+              <span class="text-sm font-mono font-bold text-emerald-600 leading-none py-1">
+                {{ formatDuration(Math.max(0, milestoneSummary.timeSavedSeconds)) }}
+              </span>
+            </div>
+            <div class="flex flex-col border-l border-gray-200 pl-6">
+              <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1"
+                >Researches Bought</span
+              >
+              <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1">
+                {{ milestoneSummary.purchaseCount }}
+              </span>
+            </div>
+            <div class="flex flex-col border-l border-gray-200 pl-6">
+              <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1"
+                >Gems Spent</span
+              >
+              <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1">
+                {{ formatGemPrice(milestoneSummary.gemsSpent) }}
+              </span>
+            </div>
           </div>
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1"
-              >With This Research</span
-            >
-            <span
-              v-tippy="'Time to reach this milestone by always buying whatever currently pays for itself fastest.'"
-              class="text-sm font-mono font-bold text-gray-900 leading-none py-1"
-            >
-              {{ formatDuration(milestoneSummary.optimizedSeconds) }}
-            </span>
-          </div>
-          <div class="flex flex-col border-l border-gray-200 pl-6">
-            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1"
-              >Time Saved</span
-            >
-            <span class="text-sm font-mono font-bold text-emerald-600 leading-none py-1">
-              {{ formatDuration(Math.max(0, milestoneSummary.timeSavedSeconds)) }}
-            </span>
-          </div>
-          <div class="flex flex-col border-l border-gray-200 pl-6">
-            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1"
-              >Researches Bought</span
-            >
-            <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1">
-              {{ milestoneSummary.purchaseCount }}
-            </span>
-          </div>
-          <div class="flex flex-col border-l border-gray-200 pl-6">
-            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1"
-              >Gems Spent</span
-            >
-            <span class="text-sm font-mono font-bold text-gray-900 leading-none py-1">
-              {{ formatGemPrice(milestoneSummary.gemsSpent) }}
-            </span>
-          </div>
-        </div>
-        <p class="mt-2 text-[10px] text-gray-400 text-center">Finishes {{ milestoneSummary.finishAbsoluteTime }}</p>
-      </template>
-    </div>
+          <p class="mt-2 text-[10px] text-gray-400 text-center">Finishes {{ milestoneSummary.finishAbsoluteTime }}</p>
+        </template>
+      </div>
 
-    <!-- Buy Entire Chain -->
-    <button
-      v-if="currentView === 'milestones' && sortedResearches.length > 0"
-      class="btn-premium btn-primary w-full mt-2"
-      @click="handleBuyMilestoneChain"
-    >
-      Buy Entire Chain
-      <span class="ml-1 text-[10px] opacity-70 font-mono lowercase tracking-normal">
-        ({{ sortedResearches.length }} {{ sortedResearches.length === 1 ? 'purchase' : 'purchases' }})
-      </span>
-    </button>
-
-    <!-- Event Crossing Details Toggle -->
-    <div
-      v-if="currentView === 'milestones' && sortedResearches.length > 0"
-      class="flex items-center justify-between mt-2 px-1"
-    >
-      <span class="text-xs text-gray-500">See details of sale and earnings events</span>
+      <!-- Buy Entire Chain -->
       <button
-        class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
-        :class="showEventCrossingDetails ? 'bg-indigo-500' : 'bg-slate-200'"
-        @click="showEventCrossingDetails = !showEventCrossingDetails"
+        v-if="sortedResearches.length > 0"
+        class="btn-premium btn-primary w-full mt-2 disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+        :disabled="isApplyingMilestoneChain"
+        @click="handleBuyMilestoneChain"
       >
-        <span
-          class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
-          :class="showEventCrossingDetails ? 'translate-x-[22px]' : 'translate-x-1'"
-        />
+        <InlineSpinner v-if="isApplyingMilestoneChain" class="w-3.5 h-3.5" />
+        {{ isApplyingMilestoneChain ? 'Buying…' : 'Buy Entire Chain' }}
+        <span v-if="!isApplyingMilestoneChain" class="ml-1 text-[10px] opacity-70 font-mono lowercase tracking-normal">
+          ({{ sortedResearches.length }} {{ sortedResearches.length === 1 ? 'purchase' : 'purchases' }})
+        </span>
       </button>
+
+      <!-- Event Crossing Details Toggle -->
+      <div v-if="sortedResearches.length > 0" class="flex items-center justify-between mt-2 px-1">
+        <span class="text-xs text-gray-500">See details of sale and earnings events</span>
+        <button
+          class="relative inline-flex h-5 w-10 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+          :class="showEventCrossingDetails ? 'bg-indigo-500' : 'bg-slate-200'"
+          @click="showEventCrossingDetails = !showEventCrossingDetails"
+        >
+          <span
+            class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-300 shadow-sm"
+            :class="showEventCrossingDetails ? 'translate-x-[22px]' : 'translate-x-1'"
+          />
+        </button>
+      </div>
+
+      <!-- Localized busy state: dims just this area while the milestone chain (re)computes,
+           instead of a full-page overlay locking up the whole tab. -->
+      <div
+        v-if="isComputingMilestoneChain"
+        class="absolute inset-0 flex items-center justify-center bg-white/60 rounded-lg"
+      >
+        <InlineSpinner class="w-6 h-6 text-blue-500" />
+      </div>
     </div>
 
     <!-- Realistic Mode Summary -->
@@ -202,41 +217,52 @@
       </p>
     </div>
 
-    <!-- Game View (Grouped by Tier) -->
-    <ResearchGameView
-      v-if="currentView === 'game'"
-      :tiers="tiers"
-      :research-by-tier="researchByTier"
-      :tier-summaries="tierSummaries"
-      :view-times="gameViewTimes"
-      :levels="commonResearchStore.researchLevels"
-      :get-research-price="getNextLevelPrice"
-      :get-research-time-to-buy="getTimeToBuy"
-      :get-research-time-to-buy-seconds="getTimeToBuySeconds"
-      :is-research-sale-active="isResearchSaleActive"
-      :research-sale-deadline="researchSaleDeadline"
-      @buy="handleBuyResearch"
-      @max="handleMaxResearch"
-      @max-tier="handleMaxTier"
-    />
+    <!-- Wrapped (same as the summary area above) so the milestones-view "computing" spinner dims
+         just the list instead of the whole page. Harmless no-op wrapper for every other view. -->
+    <div class="relative">
+      <!-- Game View (Grouped by Tier) -->
+      <ResearchGameView
+        v-if="currentView === 'game'"
+        :tiers="tiers"
+        :research-by-tier="researchByTier"
+        :tier-summaries="tierSummaries"
+        :view-times="gameViewTimes"
+        :levels="commonResearchStore.researchLevels"
+        :get-research-price="getNextLevelPrice"
+        :get-research-time-to-buy="getTimeToBuy"
+        :get-research-time-to-buy-seconds="getTimeToBuySeconds"
+        :is-research-sale-active="isResearchSaleActive"
+        :research-sale-deadline="researchSaleDeadline"
+        @buy="handleBuyResearch"
+        @max="handleMaxResearch"
+        @max-tier="handleMaxTier"
+      />
 
-    <!-- Flat/Sorted Views -->
-    <ResearchFlatView
-      v-else-if="currentView !== 'smart_buy'"
-      :sorted-researches="sortedResearches"
-      :view="currentView"
-      :thresholds="TIER_THRESHOLDS"
-      :milestone-target-selected="!!milestoneTarget"
-      :milestone-already-reached="milestoneAlreadyReached"
-      :show-event-crossing-details="showEventCrossingDetails"
-      :get-research-time-to-buy="getTimeToBuy"
-      :get-research-time-to-buy-seconds="getTimeToBuySeconds"
-      :roi-display-mode="elrRoiDisplayMode"
-      @buy="handleBuyResearch"
-      @max="handleMaxResearch"
-      @buy-to-here="handleBuyToHere"
-      @refresh-backup="$emit('refresh-backup')"
-    />
+      <!-- Flat/Sorted Views -->
+      <ResearchFlatView
+        v-else-if="currentView !== 'smart_buy'"
+        :sorted-researches="sortedResearches"
+        :view="currentView"
+        :thresholds="TIER_THRESHOLDS"
+        :milestone-target-selected="!!milestoneTarget"
+        :milestone-already-reached="milestoneAlreadyReached"
+        :show-event-crossing-details="showEventCrossingDetails"
+        :get-research-time-to-buy="getTimeToBuy"
+        :get-research-time-to-buy-seconds="getTimeToBuySeconds"
+        :roi-display-mode="elrRoiDisplayMode"
+        @buy="handleBuyResearch"
+        @max="handleMaxResearch"
+        @buy-to-here="handleBuyToHere"
+        @refresh-backup="$emit('refresh-backup')"
+      />
+
+      <div
+        v-if="currentView === 'milestones' && isComputingMilestoneChain"
+        class="absolute inset-0 flex items-center justify-center bg-white/60 rounded-lg"
+      >
+        <InlineSpinner class="w-6 h-6 text-blue-500" />
+      </div>
+    </div>
 
     <EventExpiryDialog
       v-if="showExpiryDialog"
@@ -247,13 +273,11 @@
       @deactivate-and-cancel="handleExpiryDeactivateAndCancel"
       @deactivate-and-continue="handleExpiryDeactivateAndContinue"
     />
-
-    <LoadingOverlay :show="isComputingMilestoneChain" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, watchEffect } from 'vue';
 import { getDiscountedVirtuePrice, getResearchById, type CommonResearch } from '@/calculations/commonResearch';
 import { formatDuration, formatNumber, formatGemPrice } from '@/lib/format';
 import { useCommonResearchStore } from '@/stores/commonResearch';
@@ -284,8 +308,11 @@ import {
   simulateThresholdBuy,
   summarizeResearchLevelChanges,
   type SaleAwarePlanEntry,
+  type SimpleBuyPlan,
 } from '@/calculations/smartBuyPreview';
 import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
+import { yieldForOverlayPaint } from '@/lib/yieldForOverlayPaint';
+import InlineSpinner from '@/components/InlineSpinner.vue';
 
 // Sub-components
 import ResearchSaleToggle from './ResearchSaleToggle.vue';
@@ -296,7 +323,6 @@ import ElrViewControls from './ElrViewControls.vue';
 import RoiViewControls from './RoiViewControls.vue';
 import SmartBuyView from './SmartBuyView.vue';
 import MilestoneTargetPicker from './MilestoneTargetPicker.vue';
-import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import EventExpiryDialog from '../EventExpiryDialog.vue';
 import { useEventExpiry } from '@/composables/useEventExpiry';
 
@@ -315,8 +341,18 @@ const {
 } = useEventExpiry();
 
 const autoBuyState = ref({ threshold: 0, alwaysOn: false });
-let isThresholdBuying = false;
+// Reactive (not a plain `let`) so the Quick Buy button can bind its disabled/spinner state to the
+// same flag that already guards against re-entrant threshold-buy calls (see `handleThresholdBuy`).
+const isThresholdBuying = ref(false);
 const showEventCrossingDetails = ref(false);
+
+// Busy flags for the other three bulk-purchase buttons ("Buy Entire Chain" on the milestones view,
+// "70% Return" and "Buy Until Sale Ends" on the Smart Buy view) — drive their disabled/spinner
+// state while the (synchronous, potentially slow) purchase loop and subsequent recalculation run,
+// same purpose `isThresholdBuying` already serves for Quick Buy.
+const isApplyingMilestoneChain = ref(false);
+const isApplyingSaleAwareBuy = ref(false);
+const isApplyingSaleEndsBuy = ref(false);
 
 const {
   currentView,
@@ -342,9 +378,11 @@ const {
   roiRankedResearches,
   elrRankedResearches,
   saleAwarePlan70,
+  isComputingSaleAwarePlan,
   saleAwarePreview,
   saleAwareStats70,
   saleEndsPlan,
+  isComputingSaleEndsPlan,
   saleEndsPreview,
   saleEndsEarningsPreview,
   saleEndsEarningsSummary,
@@ -354,22 +392,74 @@ const {
   realisticSummary,
   researchSaleDeadline,
   nextSaleStart,
+  computeThresholdBuy,
   TIER_THRESHOLDS,
 } = useResearchViews();
 
 // Quick Buy's own live threshold (separate from Auto Buy's) — fed up from QuickBuy.vue's input so
 // its preview can update as the user types, without QuickBuy owning any store access itself.
 const quickBuyThreshold = ref(0);
-const quickBuyPlan = computed(() =>
-  simulateThresholdBuy(
-    commonResearchStore.researchLevels,
-    actionsStore.effectiveSnapshot,
-    getSimulationContext(),
-    costModifiers.value,
-    isResearchSaleActive.value,
-    quickBuyThreshold.value
-  )
-);
+
+// Same worker treatment `saleAwarePlan70`/`saleEndsPlan` get in useResearchViews.ts (see their doc
+// comments) — a plain `computed` here would recompute synchronously on every keystroke in the
+// threshold input with no way to show a spinner for it, and a large enough threshold can hit the
+// same 2000-simulated-purchase cap the other three do. `computeThresholdBuy` (destructured above
+// from `useResearchViews()`) shares that composable's one worker instance rather than spawning a
+// second one just for this.
+const isComputingQuickBuyPlan = ref(false);
+const quickBuyPlanRef = ref<SimpleBuyPlan>({
+  researchIds: [],
+  endLevels: {},
+  endSnapshot: actionsStore.effectiveSnapshot,
+});
+let quickBuyPlanGeneration = 0;
+
+watchEffect(async () => {
+  // `batchMode`/`isRecalculating` guard: same reasoning as `saleAwarePlan70`'s watchEffect in
+  // useResearchViews.ts — without it, a bulk purchase elsewhere (70% Return, Buy Until Sale Ends,
+  // Buy Entire Chain) makes this effect simulate the doomed mid-batch intermediate state once, then
+  // the final settled state again a moment later.
+  if (actionsStore.isPlanInitializing || actionsStore.batchMode || actionsStore.isRecalculating) {
+    return;
+  }
+
+  const researchLevels = commonResearchStore.researchLevels;
+  const startSnapshot = actionsStore.effectiveSnapshot;
+  const context = getSimulationContext();
+  const mods = costModifiers.value;
+  const isSale = isResearchSaleActive.value;
+  const threshold = quickBuyThreshold.value;
+
+  const generation = ++quickBuyPlanGeneration;
+  // No explicit yield needed: `await computeThresholdBuy(...)` below is a genuine postMessage
+  // round-trip to the worker, so control already returns to the browser before the computation
+  // itself starts.
+  isComputingQuickBuyPlan.value = true;
+
+  try {
+    const result = await computeThresholdBuy({
+      researchLevels,
+      startSnapshot,
+      context,
+      mods,
+      isSale,
+      thresholdSeconds: threshold,
+    });
+
+    // Discard if a newer invocation has started since — only the latest result should ever land.
+    if (generation === quickBuyPlanGeneration) {
+      quickBuyPlanRef.value = result;
+    }
+  } finally {
+    // In a `finally` so a thrown error still stops the card spinning instead of leaving it dimmed
+    // forever with nothing left to reset it.
+    if (generation === quickBuyPlanGeneration) {
+      isComputingQuickBuyPlan.value = false;
+    }
+  }
+});
+
+const quickBuyPlan = computed(() => quickBuyPlanRef.value);
 const quickBuyPreview = computed(() =>
   summarizeResearchLevelChanges(commonResearchStore.researchLevels, quickBuyPlan.value.endLevels)
 );
@@ -461,7 +551,7 @@ function buyOneLevel(research: CommonResearch): boolean {
   );
 
   // Trigger automated sweep if Always On is enabled
-  if (!isThresholdBuying && autoBuyState.value.alwaysOn) {
+  if (!isThresholdBuying.value && autoBuyState.value.alwaysOn) {
     handleThresholdBuy(autoBuyState.value.threshold);
   }
 
@@ -730,7 +820,7 @@ function advanceToDeadline(targetDeadline: number) {
 watch(
   () => autoBuyState.value.alwaysOn,
   newVal => {
-    if (newVal && !isThresholdBuying) {
+    if (newVal && !isThresholdBuying.value) {
       handleThresholdBuy(autoBuyState.value.threshold);
     }
   }
@@ -1012,7 +1102,15 @@ async function runSaleAwareBuyFlow(label: string, plan: SaleAwarePlanEntry[]) {
 // Executes the precomputed 70%-return plan (`saleAwarePlan70` — same plan the preview under the
 // button displays).
 async function handleBuyUntilSaleWarning() {
-  await runSaleAwareBuyFlow('handleBuyUntilSaleWarning', saleAwarePlan70.value.entries);
+  isApplyingSaleAwareBuy.value = true;
+  // Let the button's disabled/spinner state actually paint before the purchase loop below blocks
+  // the tab.
+  await yieldForOverlayPaint();
+  try {
+    await runSaleAwareBuyFlow('handleBuyUntilSaleWarning', saleAwarePlan70.value.entries);
+  } finally {
+    isApplyingSaleAwareBuy.value = false;
+  }
 }
 
 // Best-ranked buyable Delivery Impact item that would still finish before the sale ends,
@@ -1027,60 +1125,77 @@ const canBuyUntilSaleDeadline = computed(() => isResearchSaleActive.value && !!n
 // Executes the precomputed sale-ends plan (`saleEndsPlan` — same plan the preview under the
 // button displays). Candidate selection comes from the plan; buying still goes through the real
 // `syncEventStateForItem`/`buyOneLevel`.
-function handleBuyUntilSaleDeadline() {
+async function handleBuyUntilSaleDeadline() {
   if (!isResearchSaleActive.value) return;
+
+  isApplyingSaleEndsBuy.value = true;
+  // Let the button's disabled/spinner state actually paint before the purchase loop below blocks
+  // the tab.
+  await yieldForOverlayPaint();
 
   const plan = saleEndsPlan.value.researchIds;
   let index = 0;
-  batch(() => {
-    // Note goes in ahead of the purchases it's summarizing, same as the other Smart Buy notes.
-    // `plan` is already the exact sequence about to be bought, and the current sale's own end is
-    // known up front, so both figures the note needs are available before anything is purchased.
-    const startAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
-    const notePayload = buildSaleEndsBuyNotePayload(
-      plan.length,
-      researchSaleDeadline.value - startAbsoluteTime,
-      saleEndsPlan.value.totalGemsSpent ?? 0
-    );
-    if (notePayload) {
-      const noteBeforeSnapshot = prepareExecution();
-      completeExecution(
-        createNoteAction(
-          notePayload,
-          computeDependencies(
-            'notification',
-            notePayload,
-            actionsStore.actionsBeforeInsertion,
-            actionsStore.initialSnapshot.researchLevels
-          )
-        ),
-        noteBeforeSnapshot
+  try {
+    await batch(() => {
+      // Note goes in ahead of the purchases it's summarizing, same as the other Smart Buy notes.
+      // `plan` is already the exact sequence about to be bought, and the current sale's own end is
+      // known up front, so both figures the note needs are available before anything is purchased.
+      const startAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
+      const notePayload = buildSaleEndsBuyNotePayload(
+        plan.length,
+        researchSaleDeadline.value - startAbsoluteTime,
+        saleEndsPlan.value.totalGemsSpent ?? 0
       );
-    }
-
-    buyWhilePassingCheck(
-      () => (index < plan.length ? { researchId: plan[index] } : undefined),
-      researchId => {
-        index++;
-        const research = getResearchById(researchId);
-        if (!research) return false;
-        syncEventStateForItem({ research });
-        return buyOneLevel(research);
+      if (notePayload) {
+        const noteBeforeSnapshot = prepareExecution();
+        completeExecution(
+          createNoteAction(
+            notePayload,
+            computeDependencies(
+              'notification',
+              notePayload,
+              actionsStore.actionsBeforeInsertion,
+              actionsStore.initialSnapshot.researchLevels
+            )
+          ),
+          noteBeforeSnapshot
+        );
       }
-    );
-  });
+
+      buyWhilePassingCheck(
+        () => (index < plan.length ? { researchId: plan[index] } : undefined),
+        researchId => {
+          index++;
+          const research = getResearchById(researchId);
+          if (!research) return false;
+          syncEventStateForItem({ research });
+          return buyOneLevel(research);
+        }
+      );
+    });
+  } finally {
+    isApplyingSaleEndsBuy.value = false;
+  }
 }
 
 // Shared by Quick Buy's one-time click and Auto Buy's background sweep. Executes the precomputed
 // plan from `simulateThresholdBuy` (same function backing Quick Buy's own live preview) rather
 // than independently re-deriving candidates — unifies both callers' execution onto one code path,
 // even though only Quick Buy gets a preview *displayed*.
-function handleThresholdBuy(threshold: number) {
-  if (isThresholdBuying) return;
-  isThresholdBuying = true;
+//
+// `isThresholdBuying` now stays true through the `await batch(...)` below (not just the purchase
+// loop, as before) so it can double as the Quick Buy button's busy/spinner state — it's already
+// disabled while true, so this only makes the existing re-entrancy guard a little more
+// conservative, not less correct.
+async function handleThresholdBuy(threshold: number) {
+  if (isThresholdBuying.value) return;
+  isThresholdBuying.value = true;
+  // Let the button's disabled/spinner state actually paint before the purchase loop below — fully
+  // synchronous once it starts — blocks the tab.
+  await yieldForOverlayPaint();
 
-  batch(() => {
-    try {
+  try {
+    await batch(() => {
       const plan = simulateThresholdBuy(
         commonResearchStore.researchLevels,
         actionsStore.effectiveSnapshot,
@@ -1119,10 +1234,10 @@ function handleThresholdBuy(threshold: number) {
         if (!research) continue;
         if (!buyOneLevel(research)) break;
       }
-    } finally {
-      isThresholdBuying = false;
-    }
-  });
+    });
+  } finally {
+    isThresholdBuying.value = false;
+  }
 }
 
 function handleMaxResearch(research: CommonResearch) {
@@ -1192,7 +1307,7 @@ function getMilestoneTargetLabel(): string {
   return research ? `${research.name} (Lv ${target.targetLevel}/${research.levels})` : 'Milestone';
 }
 
-function handleBuyMilestoneChain() {
+async function handleBuyMilestoneChain() {
   const list = sortedResearches.value;
   if (list.length === 0) return;
 
@@ -1206,46 +1321,55 @@ function handleBuyMilestoneChain() {
     }
   }
 
+  isApplyingMilestoneChain.value = true;
+  // Let the button's disabled/spinner state actually paint before the purchase loop below — fully
+  // synchronous once it starts — blocks the tab.
+  await yieldForOverlayPaint();
+
   // No withExpiryCheck here, unlike handleMaxResearch/handleBuyToHere: each item's
   // syncEventStateForItem call below already inserts its own wait+toggle actions for any
   // sale/boost boundary the chain crosses, so the chain resolves those boundaries on its own
   // instead of needing the player to confirm losing/keeping the event up front (same reasoning
   // as handleThresholdBuy, which skips the check for the same reason).
-  batch(() => {
-    // Note goes in ahead of the purchases it's summarizing, same as the Smart Buy notes. Time
-    // saved only comes along when the Milestone Summary panel itself has a baseline comparison to
-    // show (see `buildMilestoneNotePayload`'s doc comment) — `milestoneSummary` reflects the
-    // target as currently selected, same source the summary panel above the button reads from.
-    const summary = milestoneSummary.value;
-    const timeSavedSeconds = summary && !summary.truncated ? summary.timeSavedSeconds : undefined;
-    const notePayload = buildMilestoneNotePayload(
-      getMilestoneTargetLabel(),
-      list.length,
-      totalDuration,
-      list.reduce((sum, item) => sum + item.price, 0),
-      timeSavedSeconds
-    );
-    if (notePayload) {
-      const noteBeforeSnapshot = prepareExecution();
-      completeExecution(
-        createNoteAction(
-          notePayload,
-          computeDependencies(
-            'notification',
-            notePayload,
-            actionsStore.actionsBeforeInsertion,
-            actionsStore.initialSnapshot.researchLevels
-          )
-        ),
-        noteBeforeSnapshot
+  try {
+    await batch(() => {
+      // Note goes in ahead of the purchases it's summarizing, same as the Smart Buy notes. Time
+      // saved only comes along when the Milestone Summary panel itself has a baseline comparison to
+      // show (see `buildMilestoneNotePayload`'s doc comment) — `milestoneSummary` reflects the
+      // target as currently selected, same source the summary panel above the button reads from.
+      const summary = milestoneSummary.value;
+      const timeSavedSeconds = summary && !summary.truncated ? summary.timeSavedSeconds : undefined;
+      const notePayload = buildMilestoneNotePayload(
+        getMilestoneTargetLabel(),
+        list.length,
+        totalDuration,
+        list.reduce((sum, item) => sum + item.price, 0),
+        timeSavedSeconds
       );
-    }
+      if (notePayload) {
+        const noteBeforeSnapshot = prepareExecution();
+        completeExecution(
+          createNoteAction(
+            notePayload,
+            computeDependencies(
+              'notification',
+              notePayload,
+              actionsStore.actionsBeforeInsertion,
+              actionsStore.initialSnapshot.researchLevels
+            )
+          ),
+          noteBeforeSnapshot
+        );
+      }
 
-    for (const item of list) {
-      syncEventStateForItem(item);
-      buyOneLevel(item.research);
-    }
-  });
+      for (const item of list) {
+        syncEventStateForItem(item);
+        buyOneLevel(item.research);
+      }
+    });
+  } finally {
+    isApplyingMilestoneChain.value = false;
+  }
 }
 
 function handleToggleSale() {

@@ -4,11 +4,13 @@
       :preview-items="quickBuyPreview"
       :earnings-summary="quickBuyEarningsSummary"
       :stats="quickBuyStats"
+      :loading="quickBuyLoading"
+      :applying="quickBuyApplying"
       @buy="$emit('quick-buy', $event)"
       @update:threshold-seconds="$emit('update:quickBuyThresholdSeconds', $event)"
     />
 
-    <SmartBuyCard title="Buy Earnings research">
+    <SmartBuyCard title="Buy Earnings research" :loading="saleAwareLoading">
       <template #icon>
         <img
           :src="iconURL('egginc-extras/icon_research_sale.png', 64)"
@@ -29,11 +31,12 @@
 
       <div class="flex flex-col gap-1.5">
         <button
-          class="btn-premium btn-primary w-full text-[10px] disabled:opacity-20"
-          :disabled="!canBuyUntilSaleWarning"
+          class="btn-premium btn-primary w-full text-[10px] disabled:opacity-20 inline-flex items-center justify-center gap-1.5"
+          :disabled="!canBuyUntilSaleWarning || saleAwareLoading || saleAwareApplying"
           @click="$emit('buy-until-sale-warning')"
         >
-          70% Return
+          <InlineSpinner v-if="saleAwareApplying" class="w-3 h-3" />
+          {{ saleAwareApplying ? 'Buying…' : '70% Return' }}
         </button>
         <p class="text-[9px] text-slate-500 text-center leading-tight px-0.5">
           For strategic buying early in your build.
@@ -53,7 +56,7 @@
       </div>
     </SmartBuyCard>
 
-    <SmartBuyCard title="Buy Delivery Research">
+    <SmartBuyCard title="Buy Delivery Research" :loading="saleEndsLoading">
       <template #icon>
         <img
           :src="iconURL('egginc-extras/icon_research_sale.png', 64)"
@@ -65,11 +68,12 @@
         Buys earnings and delivery research during the current sale to get max delivery research at max speed.
       </template>
       <button
-        class="btn-premium btn-primary w-full text-[10px] disabled:opacity-20"
-        :disabled="!canBuyUntilSaleDeadline"
+        class="btn-premium btn-primary w-full text-[10px] disabled:opacity-20 inline-flex items-center justify-center gap-1.5"
+        :disabled="!canBuyUntilSaleDeadline || saleEndsLoading || saleEndsApplying"
         @click="$emit('buy-until-sale-deadline')"
       >
-        Buy Until Sale Ends
+        <InlineSpinner v-if="saleEndsApplying" class="w-3 h-3" />
+        {{ saleEndsApplying ? 'Buying…' : 'Buy Until Sale Ends' }}
       </button>
       <SmartBuyStats
         :purchase-count="saleEndsStats.purchaseCount"
@@ -120,6 +124,7 @@ import RoiViewControls from './RoiViewControls.vue';
 import ResearchPurchasePreview from './ResearchPurchasePreview.vue';
 import RatePreviewDelta from './RatePreviewDelta.vue';
 import SmartBuyStats from './SmartBuyStats.vue';
+import InlineSpinner from '@/components/InlineSpinner.vue';
 
 interface RateSummary {
   before: number;
@@ -149,6 +154,14 @@ defineProps<{
   saleAwareEarningsSummary70: RateSummary;
   saleEndsDeliverySummary: RateSummary | null;
   saleEndsStats: BuyStats;
+  /** Whether each card's own plan is currently being (re)computed — dims that card only. */
+  quickBuyLoading?: boolean;
+  saleAwareLoading?: boolean;
+  saleEndsLoading?: boolean;
+  /** Whether that card's button was clicked and its purchases are still being applied. */
+  quickBuyApplying?: boolean;
+  saleAwareApplying?: boolean;
+  saleEndsApplying?: boolean;
 }>();
 
 defineEmits<{
