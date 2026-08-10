@@ -152,7 +152,8 @@ export interface ResearchViewItem {
 
 export const VIEWS = [
   { id: 'game', label: 'Game View', description: 'Grouped by tier, exactly like the game.' },
-  { id: 'cheapest', label: 'Cheapest First', description: 'All unpurchased researches sorted by price.' },
+  // Hidden for now (not removed in case someone asks for it back):
+  // { id: 'cheapest', label: 'Cheapest First', description: 'All unpurchased researches sorted by price.' },
   { id: 'roi', label: 'Earnings ROI', description: 'Prioritizes upgrades that pay for themselves fastest.' },
   { id: 'elr', label: 'Delivery Impact', description: 'Sorted by impact to your Delivery Rate.' },
   { id: 'milestones', label: 'Milestones', description: 'Fastest ROI path to a tier unlock or research level.' },
@@ -171,9 +172,19 @@ const DELIVERY_IMPACT_ONLY_STORAGE_KEY = 'ascension_research_delivery_impact_onl
 const ROI_MODE_STORAGE_KEY = 'ascension_research_roi_mode';
 const MILESTONE_TARGET_STORAGE_KEY = 'ascension_research_milestone_target';
 
+const DEFAULT_RESEARCH_VIEW: ViewType = 'smart_buy';
+
 function loadStoredResearchView(): ViewType {
   const stored = localStorage.getItem(RESEARCH_VIEW_STORAGE_KEY);
-  return VIEWS.some(v => v.id === stored) ? (stored as ViewType) : 'game';
+  return VIEWS.some(v => v.id === stored) ? (stored as ViewType) : DEFAULT_RESEARCH_VIEW;
+}
+
+/**
+ * Called when the player shifts into Curiosity so the research tab greets them with Smart Buy
+ * again, rather than leaving them on whatever view they last happened to be looking at.
+ */
+export function resetResearchViewForCuriosityShift(): void {
+  localStorage.setItem(RESEARCH_VIEW_STORAGE_KEY, DEFAULT_RESEARCH_VIEW);
 }
 
 function loadStoredElrViewMode(): ElrViewMode {
