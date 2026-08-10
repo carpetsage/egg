@@ -79,8 +79,9 @@
       <div v-if="isMissingRealisticData" class="max-w-xs mx-auto">
         <p class="text-gray-900 font-bold not-italic mb-1 text-sm">Artifact Data Required</p>
         <p class="text-[11px] leading-relaxed mb-4 not-italic">
-          Realistic predictions require your artifact inventory. We omit this data from saved plans for privacy when sharing files.
-          Click below to refresh your local data and enable the realistic view for this session.
+          Realistic predictions require your artifact inventory, which this plan doesn't have yet (older plan, or we
+          couldn't resolve a player ID to fetch it automatically). Click below to refresh your local data and enable
+          the realistic view for this session.
         </p>
         <button
           class="btn-premium btn-primary w-full mt-2"
