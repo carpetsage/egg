@@ -23,6 +23,9 @@ export interface BeamSearchStartMessage {
    *  decide whether to keep throttling `progress` posts for this run; see its own doc comment on why
    *  a traced run wants one `progress` message per generation, not coalesced. */
   trace?: boolean;
+  /** Forwarded to `BeamSearchOptions.phase3AttemptsPerGeneration` (see beam-search/engine/types.ts's
+   *  doc comment there). */
+  phase3AttemptsPerGeneration?: number;
 }
 
 export interface BeamSearchCancelMessage {

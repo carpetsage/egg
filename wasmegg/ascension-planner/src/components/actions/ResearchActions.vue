@@ -1148,42 +1148,45 @@ function handleBuyMilestoneChain() {
     }
   }
 
-  withExpiryCheck(totalDuration, true, () => {
-    batch(() => {
-      // Note goes in ahead of the purchases it's summarizing, same as the Smart Buy notes. Time
-      // saved only comes along when the Milestone Summary panel itself has a baseline comparison to
-      // show (see `buildMilestoneNotePayload`'s doc comment) — `milestoneSummary` reflects the
-      // target as currently selected, same source the summary panel above the button reads from.
-      const summary = milestoneSummary.value;
-      const timeSavedSeconds = summary && !summary.truncated ? summary.timeSavedSeconds : undefined;
-      const notePayload = buildMilestoneNotePayload(
-        getMilestoneTargetLabel(),
-        list.length,
-        totalDuration,
-        list.reduce((sum, item) => sum + item.price, 0),
-        timeSavedSeconds
-      );
-      if (notePayload) {
-        const noteBeforeSnapshot = prepareExecution();
-        completeExecution(
-          createNoteAction(
+  // No withExpiryCheck here, unlike handleMaxResearch/handleBuyToHere: each item's
+  // syncEventStateForItem call below already inserts its own wait+toggle actions for any
+  // sale/boost boundary the chain crosses, so the chain resolves those boundaries on its own
+  // instead of needing the player to confirm losing/keeping the event up front (same reasoning
+  // as handleThresholdBuy, which skips the check for the same reason).
+  batch(() => {
+    // Note goes in ahead of the purchases it's summarizing, same as the Smart Buy notes. Time
+    // saved only comes along when the Milestone Summary panel itself has a baseline comparison to
+    // show (see `buildMilestoneNotePayload`'s doc comment) — `milestoneSummary` reflects the
+    // target as currently selected, same source the summary panel above the button reads from.
+    const summary = milestoneSummary.value;
+    const timeSavedSeconds = summary && !summary.truncated ? summary.timeSavedSeconds : undefined;
+    const notePayload = buildMilestoneNotePayload(
+      getMilestoneTargetLabel(),
+      list.length,
+      totalDuration,
+      list.reduce((sum, item) => sum + item.price, 0),
+      timeSavedSeconds
+    );
+    if (notePayload) {
+      const noteBeforeSnapshot = prepareExecution();
+      completeExecution(
+        createNoteAction(
+          notePayload,
+          computeDependencies(
+            'notification',
             notePayload,
-            computeDependencies(
-              'notification',
-              notePayload,
-              actionsStore.actionsBeforeInsertion,
-              actionsStore.initialSnapshot.researchLevels
-            )
-          ),
-          noteBeforeSnapshot
-        );
-      }
+            actionsStore.actionsBeforeInsertion,
+            actionsStore.initialSnapshot.researchLevels
+          )
+        ),
+        noteBeforeSnapshot
+      );
+    }
 
-      for (const item of list) {
-        syncEventStateForItem(item);
-        buyOneLevel(item.research);
-      }
-    });
+    for (const item of list) {
+      syncEventStateForItem(item);
+      buyOneLevel(item.research);
+    }
   });
 }
 

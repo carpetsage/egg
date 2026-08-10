@@ -57,6 +57,7 @@ function toBeamMemberSummary(ranked: RankedState, context: SimulationContext): B
     purchase: ranked.state.purchase!,
     phase: ranked.state.phase,
     earnings: ranked.earnings,
+    elr: ranked.elr,
     absoluteSimTime: absoluteSimTimeOf(ranked.state, context),
   };
 }

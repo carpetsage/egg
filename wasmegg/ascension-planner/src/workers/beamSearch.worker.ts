@@ -71,7 +71,7 @@ ctx.onmessage = (event: MessageEvent<MainToWorkerMessage>) => {
     return;
   }
 
-  const { runId, startState, context, deadline, beamWidth, maxDepth, trace } = msg;
+  const { runId, startState, context, deadline, beamWidth, maxDepth, trace, phase3AttemptsPerGeneration } = msg;
   activeRunId = runId;
   cancelledRunId = null;
 
@@ -95,6 +95,7 @@ ctx.onmessage = (event: MessageEvent<MainToWorkerMessage>) => {
     deadline,
     maxDepth,
     trace,
+    phase3AttemptsPerGeneration,
     isCancelled: () => cancelledRunId === runId,
     onProgress: progress => {
       if (!trace) {

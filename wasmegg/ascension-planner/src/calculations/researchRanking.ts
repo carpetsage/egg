@@ -470,6 +470,14 @@ export function rankResearchByELRImpact(
 
     if (baseline.effectiveRate <= 0) return [];
 
+    // Every candidate/lookahead call below re-derives the optimal loadout for a state that's just
+    // one (or a handful of) research level(s) away from this same baseline — exactly the shape
+    // getOptimalELRSet's own stone-swap fast path (lib/artifacts/virtue.ts) is built for. Passed
+    // through as a hint, not a guarantee: that function falls back to its own full search whenever
+    // the hint doesn't apply or its fast path doesn't trust its own guess, so this is purely a
+    // performance hint, never a correctness dependency.
+    const baselineStones = baselineOptimal.flatMap(slot => slot.stones);
+
     candidates = uniqueUnpurchased
       .map((r): ResearchRankingItem => {
         const level = researchLevels[r.id] || 0;
@@ -509,6 +517,7 @@ export function rankResearchByELRImpact(
           epicResearchLevels: context.epicResearchLevels,
           colleggtibleModifiers: context.colleggtibleModifiers,
           fixedArtifactFamilies,
+          previousStoneAssignment: baselineStones,
         });
         const tempArtifactMods = calculateArtifactModifiers(tempOptimal);
         const stats = computeRealisticELR(
@@ -543,6 +552,7 @@ export function rankResearchByELRImpact(
               epicResearchLevels: context.epicResearchLevels,
               colleggtibleModifiers: context.colleggtibleModifiers,
               fixedArtifactFamilies,
+              previousStoneAssignment: baselineStones,
             });
             const laArtifactMods = calculateArtifactModifiers(laOptimal);
             const laStats = computeRealisticELR(

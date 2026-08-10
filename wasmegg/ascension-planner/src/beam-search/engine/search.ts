@@ -151,10 +151,18 @@ export function fastForwardToSale(
 /** A state paired with the earnings value `rankByEarnings` computed for it — kept together (rather
  *  than each caller recomputing earnings again when it needs the number, not just the ordering) so
  *  the trace-capture path below (see `trace` in runSearchLoop) can reuse this same computation
- *  instead of calling computeSnapshot a second time purely for diagnostics. */
+ *  instead of calling computeSnapshot a second time purely for diagnostics.
+ *
+ *  `elr` rides along on the exact same `computeSnapshot` call that already computes `earnings` — free
+ *  to read, not an extra computation — specifically so `selectBeamSurvivors` (below) has a second,
+ *  honest ranking axis available without paying for it twice. Not the "realistic" (optimal-artifact)
+ *  ELR the Phase 3 macro itself scores with — this is the current-loadout `min(layRate,
+ *  shippingCapacity)`, cheap and directionally correct, same tradeoff `candidates.ts`'s own
+ *  lightweight approximations make elsewhere in this engine. */
 export interface RankedState {
   state: BeamSearchState;
   earnings: number;
+  elr: number;
 }
 
 /**
@@ -166,22 +174,24 @@ export interface RankedState {
  * fall back to earlier lastStepTime (Part 3's own tiebreak), then to insertion order, which
  * Array.prototype.sort's stability makes fully deterministic without needing an arbitrary third key.
  *
- * Used for three purposes: trimming deduped successors down to beamWidth, picking which current beam
- * members are worth an expensive tier-macro attempt this generation (see
- * TIER_MACRO_ATTEMPTS_PER_GENERATION below), and — when `BeamSearchOptions.trace` is set — capturing
- * this same earnings-ranked ordering as that generation's beam snapshot for the winning-path trace
- * (see WinningPathTrace's doc comment in types.ts). Returns the computed earnings alongside each
- * state (not just the reordered states) specifically so that last use doesn't need to recompute them.
+ * Used for four purposes: trimming deduped successors down to beamWidth (via `selectBeamSurvivors`,
+ * below — no longer a bare earnings slice, see that function's own doc comment for why), picking
+ * which current beam members are worth an expensive tier-macro attempt this generation (see
+ * TIER_MACRO_ATTEMPTS_PER_GENERATION below), feeding `selectPhase3Eligible`'s own earnings-ranked
+ * half, and — when `BeamSearchOptions.trace` is set — capturing this same ordering as that
+ * generation's beam snapshot for the winning-path trace (see WinningPathTrace's doc comment in
+ * types.ts). Returns the computed earnings (and elr) alongside each state, not just the reordered
+ * states, so none of those four uses needs to recompute them.
  */
 function rankByEarnings(
   states: BeamSearchState[],
   frozen: BeamFrozenContext,
   context: SimulationContext
 ): RankedState[] {
-  const withEarnings = states.map(state => ({
-    state,
-    earnings: computeSnapshot(toEngineState(state, frozen), context, { skipGrowth: true }).offlineEarnings,
-  }));
+  const withEarnings = states.map(state => {
+    const snapshot = computeSnapshot(toEngineState(state, frozen), context, { skipGrowth: true });
+    return { state, earnings: snapshot.offlineEarnings, elr: snapshot.elr };
+  });
   withEarnings.sort((a, b) => {
     if (a.earnings !== b.earnings) return b.earnings - a.earnings;
     return a.state.lastStepTime - b.state.lastStepTime;
@@ -211,8 +221,145 @@ const TIER_MACRO_ATTEMPTS_PER_GENERATION = 3;
 
 /** Same throttling idea as TIER_MACRO_ATTEMPTS_PER_GENERATION, applied to the Phase 3 macro — see
  *  its usage site's doc comment for why (measured even more expensive per call, and was previously
- *  unthrottled entirely). */
-const PHASE3_MACRO_ATTEMPTS_PER_GENERATION = 3;
+ *  unthrottled entirely).
+ *
+ *  Raised from 3 to 10 (later session) after a real trace showed the earnings-based eligibility
+ *  ranking systematically starving branches that invest more in delivery-relevant research (lower
+ *  short-term earnings rank) of ANY Phase 3 attempt across most generations — see ../HANDOFF.md's
+ *  "Algorithm improvements" for the trace analysis this is based on.
+ *
+ *  Now just the DEFAULT, not a hardcoded cap: `BeamSearchOptions.phase3AttemptsPerGeneration`
+ *  (types.ts) lets a caller override it — surfaced as a user-facing input next to beam width
+ *  (BeamSearchView.vue), since it's fundamentally the same "how long are you willing to wait for a
+ *  better answer" tradeoff. Still worth treating like a real throttle rather than a free knob when
+ *  choosing this particular default, though — re-measure runtime at a given width before raising
+ *  it further. */
+export const PHASE3_MACRO_ATTEMPTS_PER_GENERATION = 10;
+
+/**
+ * Splits the per-generation Phase 3 attempt budget into an earnings-ranked half (keeps finding
+ * genuinely good high-earnings branches, same as the old pure-top-N behavior) and a stratified half
+ * that guarantees eventual coverage of the WHOLE current phase-2 beam, independent of earnings rank.
+ *
+ * Why the split exists: delivery research and broad earnings research trade off against each other
+ * (the whole reason Phase 2 exists as a narrower phase than Phase 1) — a branch investing more in
+ * delivery-relevant research earlier necessarily earns less in the short term, so pure
+ * earnings-ranking systematically deprioritizes exactly the branches most likely to produce a
+ * strong Phase 3 result. Confirmed via a real trace (see ../HANDOFF.md's "Algorithm improvements"
+ * §5): the eventual winning branch ranked 6th, then 29th, then 54th by earnings at three consecutive
+ * generations — it would never have received a real Phase 3 score under a pure earnings-ranked
+ * throttle at any width small enough to be practical, and only got one because it survived to the
+ * generation the search ran out of time.
+ *
+ * The stratified half needs no persistent per-branch identity across generations — there isn't one
+ * today; states are recreated fresh each generation, not tracked by any stable ID. Instead it rotates
+ * a fixed-size window through the current phase-2 members' array positions, advancing by the window
+ * size every generation (`generation` is `depth`, already incrementing once per generation in the
+ * caller). Over `ceil(phase2Members.length / diverseBudget)` generations, every member present in an
+ * unchanged-size beam gets covered by the diverse half at least once, regardless of how it ranks by
+ * earnings in any single generation — no history bookkeeping required.
+ *
+ * `totalBudget` splits roughly evenly (earnings-ranked half gets the extra one on an odd budget) —
+ * not user-configurable independently of the total; only the total itself
+ * (`phase3AttemptsPerGeneration`) is exposed as a setting, per the user's own steer that the split
+ * itself is an implementation detail, not something they need to tune.
+ */
+export function selectPhase3Eligible(
+  phase2Members: BeamSearchState[],
+  frozen: BeamFrozenContext,
+  context: SimulationContext,
+  totalBudget: number,
+  generation: number
+): Set<BeamSearchState> {
+  if (phase2Members.length === 0 || totalBudget <= 0) return new Set();
+
+  const earnersBudget = Math.ceil(totalBudget / 2);
+  const diverseBudget = totalBudget - earnersBudget;
+
+  const eligible = new Set<BeamSearchState>(
+    rankByEarnings(phase2Members, frozen, context)
+      .slice(0, earnersBudget)
+      .map(ranked => ranked.state)
+  );
+
+  if (diverseBudget > 0) {
+    const windowStart = (generation * diverseBudget) % phase2Members.length;
+    for (let i = 0; i < diverseBudget; i++) {
+      eligible.add(phase2Members[(windowStart + i) % phase2Members.length]);
+    }
+  }
+
+  return eligible;
+}
+
+/**
+ * The main beam trim — decides which of this generation's deduped successors actually continue to
+ * exist, permanently discarding the rest. Guarantees an earnings-ranked slice (unchanged from the
+ * original single-axis trim) survives, then fills the rest of `beamWidth` by **elr rank** — not a
+ * bare `rankByEarnings(...).slice(0, beamWidth)`.
+ *
+ * Why this needed its own fix, separate from `selectPhase3Eligible` above: that function controls
+ * which *survivors* get a real Phase 3 score — missing a generation there just means "try again next
+ * generation," a soft, recoverable miss. This trim controls which branches survive to have a *next
+ * generation* at all — missing it here is permanent. Confirmed via two real traces (see
+ * ../HANDOFF.md's "Algorithm improvements" §7) that this was the actual remaining bottleneck even
+ * after `selectPhase3Eligible` was fixed and fully saturated (attempts=10 through attempts=1000 gave
+ * an *identical* score): the eventual winning branch sat at earnings-rank 900-999 of 1000, then
+ * 4200-4900 of 5000 when the beam was widened — the same relative position at two different widths,
+ * meaning it wasn't a fluke of one particular width, it's a structural property of an earnings-only
+ * trim. A branch that invests earlier in delivery-relevant research necessarily earns less near-term
+ * than a sibling that doesn't, so pure earnings-ranking is *expected* to bury it, generation after
+ * generation, until it's cut — regardless of how wide the beam is, since widening only buys the same
+ * relative-rank branch more room, not a better rank.
+ *
+ * `elr` (current-loadout `min(layRate, shippingCapacity)`, riding along on `RankedState` for free —
+ * see its own doc comment) is what protects that branch here: even while it looks mediocre by
+ * earnings, a branch that has actually built delivery capacity ranks well by elr, and this trim keeps
+ * it alive on that basis alone. The earnings slice is a fixed `ceil(beamWidth / 2)` — but the elr fill
+ * that follows isn't capped at a matching fixed-size second half; it keeps walking the elr ranking
+ * (past whatever it shares with the earnings slice) until `beamWidth` is actually reached. That
+ * matters: if the two slices overlapped a lot (a branch that's genuinely good on both axes only ever
+ * occupies one seat), a naive fixed-size union would quietly hand the leftover seats back to earnings
+ * and shrink the real elr-driven protection this trim exists to provide. Like `selectPhase3Eligible`,
+ * this split is roughly even and not separately user-configurable — `beamWidth` itself (already
+ * user-facing) is the one total budget this allocates.
+ *
+ * Deliberately a *different* strategy than `selectPhase3Eligible`'s stratified rotation, not the same
+ * one reused — a top-K-by-elr union is a more targeted, and now that elr is confirmed to be a cheap,
+ * honest signal, a strictly more informative choice than blind rotation would be. `selectPhase3Eligible`
+ * is left as-is rather than unified onto the same strategy: it's already confirmed working (score is
+ * flat across a 100x attempts range, meaning it's no longer the bottleneck), so there's no upside to
+ * risking a regression there just for architectural symmetry — worth revisiting together later if it
+ * ever becomes the constraint again.
+ *
+ * Takes `earningsRanked` (already sorted earnings-desc, from `rankByEarnings` — the caller already
+ * has to compute this for `generationTraces`, so this function doesn't repeat that work) rather than
+ * raw states, and returns a same-shaped, still earnings-sorted `RankedState[]` — the output order is
+ * unchanged so `chosenRank`/`generationTraces` stay meaningful (see BeamMemberSummary's own doc
+ * comment for how to read a high chosenRank differently now: it no longer implies "barely survived
+ * the earnings cut," since a survivor's presence may owe entirely to elr instead).
+ */
+export function selectBeamSurvivors(earningsRanked: RankedState[], beamWidth: number): RankedState[] {
+  if (earningsRanked.length <= beamWidth) return earningsRanked;
+
+  const earningsBudget = Math.ceil(beamWidth / 2);
+  const survivors = new Set<RankedState>(earningsRanked.slice(0, earningsBudget));
+
+  // Walks the FULL elr ranking, not just its own nominal "half" — since `byElr` is the same pool as
+  // `earningsRanked` (just reordered) and `earningsRanked.length > beamWidth` here, this is
+  // guaranteed to reach exactly `beamWidth` survivors before running out, however much it overlaps
+  // with the earnings slice above. See this function's own doc comment for why that matters.
+  const byElr = [...earningsRanked].sort((a, b) => {
+    if (a.elr !== b.elr) return b.elr - a.elr;
+    return a.state.lastStepTime - b.state.lastStepTime;
+  });
+  for (const ranked of byElr) {
+    if (survivors.size >= beamWidth) break;
+    survivors.add(ranked);
+  }
+
+  return earningsRanked.filter(ranked => survivors.has(ranked));
+}
 
 export interface RunSearchLoopResult {
   finished: BeamTerminalResult[];
@@ -251,7 +398,10 @@ export function runSearchLoop(
   // after a Cancel click.
   isCancelled?: () => boolean,
   // See BeamSearchOptions.trace's doc comment (types.ts) for what this turns on and why it's opt-in.
-  trace = false
+  trace = false,
+  // See BeamSearchOptions.phase3AttemptsPerGeneration's doc comment (types.ts) and
+  // selectPhase3Eligible's above for what this controls and why it defaults the way it does.
+  phase3AttemptsPerGeneration: number = PHASE3_MACRO_ATTEMPTS_PER_GENERATION
 ): RunSearchLoopResult {
   const startedAt = Date.now();
   let beam: BeamSearchState[] = [initial];
@@ -294,21 +444,15 @@ export function runSearchLoop(
     //    dominated total runtime once more than a couple of phase-2 states were in the beam
     //    simultaneously.
     //
-    //    Caveat worth flagging explicitly: this reuses the same earnings-based rankByEarnings
-    //    heuristic as the tier-macro throttle, but earnings and delivery-readiness aren't the same
-    //    signal — a state with lower current earnings but more delivery-relevant research already
-    //    bought could plausibly score higher on Phase 3 than a higher-earning sibling, and this
-    //    throttle could miss it. Flagged as a follow-up rather than solved here: a
-    //    delivery-relevance-aware ranking (or a round-robin schedule guaranteeing every phase-2
-    //    branch an attempt periodically, not just the earnings leaders) would close this gap.
-    const phase3Eligible = new Set(
-      rankByEarnings(
-        beam.filter(s => s.phase === 2),
-        frozen,
-        context
-      )
-        .slice(0, PHASE3_MACRO_ATTEMPTS_PER_GENERATION)
-        .map(ranked => ranked.state)
+    //    selectPhase3Eligible (above) splits the budget between earnings-ranked and stratified
+    //    picks rather than pure top-N-by-earnings — see its own doc comment for why pure earnings
+    //    ranking systematically starves delivery-investing branches of ever getting a real score.
+    const phase3Eligible = selectPhase3Eligible(
+      beam.filter(s => s.phase === 2),
+      frozen,
+      context,
+      phase3AttemptsPerGeneration,
+      depth
     );
     for (const state of phase3Eligible) {
       phase3MacroCalls++;
@@ -384,8 +528,9 @@ export function runSearchLoop(
     const { survivors, duplicatesRemoved: removedThisGen } = dedupeByEarliestTime(successors);
     duplicatesRemoved += removedThisGen;
 
-    // 4. Rank and keep the best beamWidth.
-    const rankedBeam = rankByEarnings(survivors, frozen, context).slice(0, beamWidth);
+    // 4. Rank and keep the best beamWidth — earnings-ranked half plus elr-ranked half, not a bare
+    //    earnings slice. See selectBeamSurvivors' own doc comment for why.
+    const rankedBeam = selectBeamSurvivors(rankByEarnings(survivors, frozen, context), beamWidth);
     beam = rankedBeam.map(ranked => ranked.state);
 
     depth++;

@@ -71,7 +71,7 @@ describe('getLightweightPhaseCandidates', () => {
 });
 
 /**
- * The MAX_ROI_PAYBACK_SEARCH_SECONDS exclusion — found via a real diagnostics session (see
+ * The negligible-relative-earnings-impact exclusion — found via a real diagnostics session (see
  * ../HANDOFF.md): a beam-search trace, diffed against a real manual plan for the same window,
  * showed the search buying meaningfully more shipping-capacity research (dark_containment,
  * neural_net_refine) than a human did. Root cause candidate: when laying rate (not shipping) is the
@@ -80,7 +80,7 @@ describe('getLightweightPhaseCandidates', () => {
  * that it's hard-excluded, not just deprioritized (deprioritization alone previously let it back in
  * via selectCandidates' now-removed fallback).
  */
-describe('getLightweightPhaseCandidates: infinite/999-day-payback exclusion', () => {
+describe('getLightweightPhaseCandidates: negligible relative earnings impact exclusion', () => {
   const context = makeTestContext();
   const baseState = makeAutoProgressedTestState(context);
   const mods = { labUpgradeLevel: 0, researchCostMultiplier: 1, puzzleCubeMultiplier: 1 };
@@ -119,5 +119,30 @@ describe('getLightweightPhaseCandidates: infinite/999-day-payback exclusion', ()
     const candidates = getLightweightPhaseCandidates(initial, frozen, context, mods, 1);
     const shippingIds = new Set(shippingCategoryIds());
     expect(candidates.some(c => shippingIds.has(c.researchId))).toBe(true);
+  });
+
+  /**
+   * Regression test for a real bug report (see ../HANDOFF.md): testers found the beam search's
+   * winning plans never bought Multiversal Layering level 2 (10x earnings, one of the best
+   * purchases available at this game stage) despite it being, in their own real play, the fastest
+   * ROI item for the entire C3 window. Confirmed directly against this exact fixture: the OLD
+   * absolute-roiSeconds exclusion (roiSeconds = price/earningsDelta vs. MAX_ROI_PAYBACK_SEARCH_SECONDS,
+   * 999 days) excluded it here even though its earningsDelta is a full ~9x of current earnings
+   * (level 0->1 is a flat 10x multiplier) — its price is just large enough, relative to this
+   * fixture's still-growing earnings, that the ABSOLUTE flat-rate payback projection comes out to
+   * roughly 387 million days. The relative-earnings-delta exclusion this test locks in doesn't
+   * make that mistake: a ~9x relative jump is nowhere near NEGLIGIBLE_RELATIVE_EARNINGS_DELTA,
+   * however long the naive flat-rate payback estimate would be.
+   */
+  test('multi_layering (Multiversal Layering) is NOT excluded despite its enormous absolute price', () => {
+    const { frozen, initial } = splitEngineState(baseState);
+    const candidates = getLightweightPhaseCandidates(initial, frozen, context, mods, 1);
+    const ml2 = candidates.find(c => c.researchId === 'multi_layering');
+
+    expect(ml2).toBeDefined();
+    // Sanity check this is really the "huge relative impact, huge absolute price" case the bug
+    // report was about, not a fixture that happens to make it cheap.
+    expect(ml2!.price).toBeGreaterThan(1e40);
+    expect(ml2!.earningsDelta).toBeGreaterThan(0);
   });
 });
