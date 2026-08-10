@@ -167,9 +167,23 @@
         </p>
 
         <!-- Error -->
-        <p v-if="status === 'error'" class="text-[10px] text-red-500 text-center px-2 leading-tight">
-          {{ errorMessage }}
-        </p>
+        <div v-if="status === 'error'" class="space-y-2">
+          <p class="text-[10px] text-red-500 text-center px-2 leading-tight">{{ errorMessage }}</p>
+          <button
+            v-if="isMissingBackupError && fetchablePlayerId"
+            class="btn-premium w-full text-[10px] bg-slate-100 text-slate-600 disabled:opacity-50"
+            :disabled="fetchingBackup"
+            @click="handleFetchBackup"
+          >
+            {{ fetchingBackup ? 'Fetching…' : 'Fetch Player Data' }}
+          </button>
+          <p v-else-if="isMissingBackupError" class="text-[9px] text-slate-400 text-center px-2 leading-tight">
+            No player ID available in this browser — realistic delivery-rate scoring needs a fetched backup.
+          </p>
+          <p v-if="fetchBackupError" class="text-[9px] text-red-400 text-center px-2 leading-tight">
+            {{ fetchBackupError }}
+          </p>
+        </div>
 
         <!-- Result -->
         <template v-if="status === 'done' && result">
@@ -229,10 +243,13 @@ import { computed, ref } from 'vue';
 import { useVirtueStore } from '@/stores/virtue';
 import { useActionsStore } from '@/stores/actions';
 import { useCommonResearchStore } from '@/stores/commonResearch';
+import { useInitialStateStore } from '@/stores/initialState';
 import { getLocalTimestampInTimezone, getNextPacificTime } from '@/lib/events';
 import { formatDuration, formatNumber, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
 import { summarizeResearchLevelChanges } from '@/calculations/smartBuyPreview';
 import { useBeamSearch, type GenerationSummary } from '@/composables/useBeamSearch';
+import { fetchPlayerBackup } from '@/lib/modes/fetchBackup';
+import { resolveFetchablePlayerId } from '@/lib/modes/utils';
 import { downloadFile } from '@/utils/export';
 import type { BeamSearchResult } from '@/beam-search/engine';
 import SmartBuyCard from './SmartBuyCard.vue';
@@ -245,8 +262,68 @@ const emit = defineEmits<{
 const virtueStore = useVirtueStore();
 const actionsStore = useActionsStore();
 const commonResearchStore = useCommonResearchStore();
+const initialStateStore = useInitialStateStore();
 const beamSearch = useBeamSearch();
 const { status, progress, result, errorMessage, generationHistory } = beamSearch;
+
+/**
+ * runBeamSearch's own guard (engine/index.ts) throws this exact message when
+ * `context.rawBackup` is missing. `initLoadPlan` backfills a redacted backup into any plan
+ * missing one as soon as it's loaded (see `backfillMissingBackup`, lib/modes/utils.ts), so this
+ * should now be rare — it still fires for a plan whose backfill itself failed (no resolvable
+ * player ID, fetch error) or hasn't completed yet. See ResearchFlatView.vue's "Artifact Data
+ * Required" panel for the same situation in the ELR view. Matched by substring since the worker
+ * only ever forwards a plain string message (beamSearch.worker.ts), not an error code.
+ */
+const isMissingBackupError = computed(
+  () => status.value === 'error' && (errorMessage.value ?? '').includes('requires context.rawBackup')
+);
+
+const fetchingBackup = ref(false);
+const fetchBackupError = ref<string | null>(null);
+
+/**
+ * `initialStateStore.playerId` is not trustworthy here — confirmed live: a plan loaded from the
+ * library has it redacted to the literal placeholder `'xxxxxxxxxx'` (same privacy reason a plan
+ * predating `redactBackupForStorage`, or saved with no resolvable player ID, may still be missing
+ * `rawBackup`), and passing that straight to `fetchPlayerBackup` doesn't fail cleanly — it reaches
+ * the proxy and comes back as a cryptic "invalid literal for int() with base 10: 'xxxxxxxxxx'" 500.
+ * `resolveFetchablePlayerId` (lib/modes/utils.ts) handles this: only trusts the store's `playerId`
+ * if it actually matches the real ID format, and otherwise falls back to the site-wide "last used
+ * player ID" — the same one `the-player-id-form` (App.vue) itself reads/writes via
+ * `lib/storage.ts`'s `getSavedPlayerID` — which is populated independently of whatever plan
+ * happens to be loaded. Shared with `initLoadPlan`'s own backfill-on-load use of the same helper.
+ */
+const fetchablePlayerId = computed<string | undefined>(() => resolveFetchablePlayerId());
+
+/**
+ * Fetches a fresh backup and stashes it as `initialStateStore.rawBackup` — the one field
+ * `runBeamSearch` actually needs (engine/macros.ts's `computeRealisticELR` pipeline) — and
+ * nothing else. Deliberately NOT App.vue's `handleRefreshReconcile`/`refreshReconcile` path: that
+ * also resyncs Virtue/FuelTank state via `loadAndSyncBackup`, which overwrites the live plan's
+ * `shiftCount`/`te` with the backup's values (virtue.ts's `setInitialState`) — exactly what must
+ * NOT happen here, since this can run against an in-progress plan that's already diverged from
+ * the live backup by design. Deliberately also does NOT overwrite `initialStateStore.playerId`
+ * (still left redacted if it was) — only `rawBackup` is what this feature needs. Clears the error
+ * afterward so the ordinary Run button reappears; doesn't auto-rerun the search itself — that
+ * stays an explicit user action.
+ */
+async function handleFetchBackup() {
+  const playerId = fetchablePlayerId.value;
+  if (!playerId || fetchingBackup.value) return;
+  fetchingBackup.value = true;
+  fetchBackupError.value = null;
+  try {
+    const { backup } = await fetchPlayerBackup(playerId);
+    initialStateStore.rawBackup = backup;
+    status.value = 'idle';
+    errorMessage.value = null;
+  } catch (err) {
+    fetchBackupError.value = err instanceof Error ? err.message : String(err);
+  } finally {
+    fetchingBackup.value = false;
+  }
+}
 
 /** Same formula ResearchActions.vue's own absoluteSimTimeAt/useResearchViews.ts's
  *  researchSaleDeadline use everywhere else — kept local rather than imported since it's a two-line
