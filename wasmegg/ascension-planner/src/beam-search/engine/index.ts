@@ -12,7 +12,7 @@ import type { EngineState, SimulationContext } from '@/engine/types';
 import type { BeamSearchOptions, BeamSearchResult, BeamTerminalResult } from './types';
 import { splitEngineState } from './types';
 import { reconstructPlan } from './reconstruct';
-import { runSearchLoop } from './search';
+import { PHASE3_MACRO_ATTEMPTS_PER_GENERATION, runSearchLoop } from './search';
 
 export type {
   BeamSearchOptions,
@@ -25,6 +25,10 @@ export type {
   FinalStepTrace,
   BeamMemberSummary,
 } from './types';
+
+// Re-exported so the UI (BeamSearchView.vue) can seed its Phase 3 Attempts input with the engine's
+// own default rather than duplicating the number.
+export { PHASE3_MACRO_ATTEMPTS_PER_GENERATION } from './search';
 
 function pickWinner(finished: BeamTerminalResult[]): BeamTerminalResult {
   // Primary: maximize finalScore. Secondary: minimize lastPurchaseTime. Per
@@ -57,6 +61,8 @@ export function runBeamSearch(
     puzzleCubeMultiplier: calculateArtifactModifiers(frozen.artifactLoadout).researchCost.totalMultiplier,
   };
 
+  const phase3AttemptsPerGeneration = options.phase3AttemptsPerGeneration ?? PHASE3_MACRO_ATTEMPTS_PER_GENERATION;
+
   const { finished, metrics, generationTraces } = runSearchLoop(
     initial,
     frozen,
@@ -67,7 +73,8 @@ export function runBeamSearch(
     options.maxDepth,
     options.onProgress,
     options.isCancelled,
-    options.trace
+    options.trace,
+    phase3AttemptsPerGeneration
   );
 
   if (finished.length === 0) {
@@ -102,6 +109,7 @@ export function runBeamSearch(
       phase3MacroCalls: metrics.phase3MacroCalls,
       phase3CacheHits: metrics.phase3CacheHits,
       beamWidth: options.beamWidth,
+      phase3AttemptsPerGeneration,
       cancelled: metrics.cancelled,
     },
     trace: plan.trace,

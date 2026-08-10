@@ -44,20 +44,37 @@
           </select>
         </div>
 
-        <!-- Beam width -->
-        <div class="space-y-1.5">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Beam Width</label>
-          <input
-            v-model.number="beamWidth"
-            type="number"
-            min="1"
-            step="1"
-            class="input-premium w-full"
-            :disabled="status === 'running'"
-          />
-          <p class="text-[9px] text-slate-400 leading-tight px-0.5">
-            Higher finds a better plan but takes longer to run — tens of seconds is typical.
-          </p>
+        <!-- Beam width / Phase 3 attempts -->
+        <div class="flex gap-3">
+          <div class="flex-1 space-y-1.5">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Beam Width</label>
+            <input
+              v-model.number="beamWidth"
+              type="number"
+              min="1"
+              step="1"
+              class="input-premium w-full"
+              :disabled="status === 'running'"
+            />
+            <p class="text-[9px] text-slate-400 leading-tight px-0.5">
+              Higher finds a better plan but takes longer to run — tens of seconds is typical.
+            </p>
+          </div>
+          <div class="flex-1 space-y-1.5">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Phase 3 Attempts</label>
+            <input
+              v-model.number="phase3AttemptsPerGeneration"
+              type="number"
+              min="1"
+              step="1"
+              class="input-premium w-full"
+              :disabled="status === 'running'"
+            />
+            <p class="text-[9px] text-slate-400 leading-tight px-0.5">
+              How many branches per generation get a real delivery-research evaluation. Higher can find a better plan
+              but is the single most expensive setting to raise — tens of seconds per few points.
+            </p>
+          </div>
         </div>
 
         <!-- Diagnostics toggle -->
@@ -251,7 +268,7 @@ import { useBeamSearch, type GenerationSummary } from '@/composables/useBeamSear
 import { fetchPlayerBackup } from '@/lib/modes/fetchBackup';
 import { resolveFetchablePlayerId } from '@/lib/modes/utils';
 import { downloadFile } from '@/utils/export';
-import type { BeamSearchResult } from '@/beam-search/engine';
+import { PHASE3_MACRO_ATTEMPTS_PER_GENERATION, type BeamSearchResult } from '@/beam-search/engine';
 import SmartBuyCard from './SmartBuyCard.vue';
 import ResearchPurchasePreview from './ResearchPurchasePreview.vue';
 
@@ -335,6 +352,9 @@ function absoluteSimTimeNow(): number {
 
 const DEFAULT_BEAM_WIDTH = 50;
 const beamWidth = ref(DEFAULT_BEAM_WIDTH);
+// Seeded from the engine's own default so this input and a from-code call never silently disagree —
+// see search.ts's PHASE3_MACRO_ATTEMPTS_PER_GENERATION doc comment for what this actually controls.
+const phase3AttemptsPerGeneration = ref(PHASE3_MACRO_ATTEMPTS_PER_GENERATION);
 
 const deadlineTimezone = ref(virtueStore.ascensionTimezone);
 // Defaults to the next research sale's end (the next Saturday 9am Pacific) — per
@@ -370,7 +390,9 @@ const deadlineTimestamp = computed(() =>
   getLocalTimestampInTimezone(deadlineDate.value, deadlineTime.value, deadlineTimezone.value)
 );
 
-const canRun = computed(() => beamWidth.value >= 1 && !!deadlineDate.value && !!deadlineTime.value);
+const canRun = computed(
+  () => beamWidth.value >= 1 && phase3AttemptsPerGeneration.value >= 1 && !!deadlineDate.value && !!deadlineTime.value
+);
 
 // Off by default — see the checkbox's own label text for the memory-cost tradeoff this turns on
 // (../composables/useBeamSearch.ts's GenerationSummary/BeamSearchOptions.trace's doc comments).
@@ -378,7 +400,13 @@ const traceEnabled = ref(false);
 
 function handleRun() {
   if (!canRun.value) return;
-  beamSearch.start(deadlineTimestamp.value, beamWidth.value, undefined, traceEnabled.value);
+  beamSearch.start(
+    deadlineTimestamp.value,
+    beamWidth.value,
+    undefined,
+    traceEnabled.value,
+    phase3AttemptsPerGeneration.value
+  );
 }
 
 const previewItems = computed(() =>
@@ -420,6 +448,7 @@ function handleExportTrace() {
     exportedAt: new Date().toISOString(),
     deadline: deadlineTimestamp.value,
     beamWidth: beamWidth.value,
+    phase3AttemptsPerGeneration: phase3AttemptsPerGeneration.value,
     result: result.value,
     generationHistory: generationHistory.value,
   };

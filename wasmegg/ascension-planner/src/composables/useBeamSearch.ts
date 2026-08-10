@@ -171,7 +171,13 @@ export function useBeamSearch() {
   worker.onmessage = handleWorkerMessage;
   worker.onerror = handleWorkerError;
 
-  function start(deadline: number, beamWidth: number, maxDepth?: number, trace?: boolean): void {
+  function start(
+    deadline: number,
+    beamWidth: number,
+    maxDepth?: number,
+    trace?: boolean,
+    phase3AttemptsPerGeneration?: number
+  ): void {
     const runId = nextRunId++;
     activeRunId = runId;
     status.value = 'running';
@@ -194,7 +200,17 @@ export function useBeamSearch() {
     const startState = sanitizeLongsForWorker(createBaseEngineState(actionsStore.effectiveSnapshot));
     const context = sanitizeLongsForWorker(getSimulationContext());
 
-    post({ type: 'start', runId, startState, context, deadline, beamWidth, maxDepth, trace });
+    post({
+      type: 'start',
+      runId,
+      startState,
+      context,
+      deadline,
+      beamWidth,
+      maxDepth,
+      trace,
+      phase3AttemptsPerGeneration,
+    });
   }
 
   /**

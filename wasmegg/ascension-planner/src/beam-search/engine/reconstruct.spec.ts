@@ -150,8 +150,11 @@ describe('reconstructPlan', () => {
  * the same way engine/index.ts wires up real ones from runSearchLoop's own capture.
  */
 describe('reconstructPlan trace', () => {
+  // elr is irrelevant to these tests (trace/chosenRank plumbing, not selectBeamSurvivors' own
+  // elr-based selection — that's covered separately in search.spec.ts), so a fixed placeholder is
+  // fine here.
   function ranked(state: BeamSearchState, earnings: number): RankedState {
-    return { state, earnings };
+    return { state, earnings, elr: 0 };
   }
 
   test('omits trace entirely when traceInputs is not passed', () => {

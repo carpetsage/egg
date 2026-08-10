@@ -202,6 +202,13 @@ export interface BeamSearchOptions {
    *  Off by default: the retained snapshots are a real, if bounded and opt-in, memory cost (roughly
    *  beamWidth × generations small objects) not worth paying on every ordinary run. */
   trace?: boolean;
+  /** How many of the current beam's phase-2 members get a Phase 3 attempt each generation — see
+   *  PHASE3_MACRO_ATTEMPTS_PER_GENERATION's doc comment (search.ts) for the throttle this overrides
+   *  and selectPhase3Eligible's for the earnings-ranked/stratified split within this budget.
+   *  User-configurable (BeamSearchView.vue, next to beam width) since it's fundamentally a
+   *  quality/runtime tradeoff the user is best positioned to make, same as beam width itself.
+   *  Defaults to PHASE3_MACRO_ATTEMPTS_PER_GENERATION when omitted. */
+  phase3AttemptsPerGeneration?: number;
 }
 
 /** One beam member's summary, stripped of its live object identity/parent chain — used only in
@@ -220,6 +227,11 @@ export interface BeamMemberSummary {
    *  in the Phase 3 sense (see BeamSearchResult.score's own doc note) — see search.ts's
    *  rankByEarnings doc comment for why this proxy is used at all for non-terminal states. */
   earnings: number;
+  /** The cheap, current-loadout `min(layRate, shippingCapacity)` `RankedState.elr` (search.ts) also
+   *  carries — the second axis `selectBeamSurvivors` trims on alongside `earnings`. Included here so
+   *  an exported trace shows *why* a low-earnings survivor is still in the beam (or isn't), without
+   *  needing to recompute it externally the way earlier diagnosis of this exact question had to. */
+  elr: number;
   absoluteSimTime: number;
 }
 
@@ -243,12 +255,19 @@ export interface WinningPathStepTrace {
    *  well below beamWidth (see reconstruct.ts's TRACE_ALTERNATIVES_LIMIT) specifically so this stays
    *  small regardless of how wide the search was run. */
   alternatives: BeamMemberSummary[];
-  /** 1-based rank of the chosen state within this generation's full beam, by the same earnings
-   *  ranking `alternatives` is sorted by — e.g. 3 means it was the 3rd-highest earner that
-   *  generation, not necessarily the top. Worth watching for: a consistently non-1 rank means the
-   *  winning branch was regularly *not* what the moment-to-moment earnings proxy liked best, which is
-   *  either the proxy being appropriately farsighted (good) or misleading (see search.ts's
-   *  rankByEarnings doc comment on that heuristic's own acknowledged limits). */
+  /** 1-based rank of the chosen state within this generation's *surviving* beam (post-trim), by the
+   *  same earnings ranking `alternatives` is sorted by — e.g. 3 means it was the 3rd-highest earner
+   *  among survivors that generation, not necessarily the top. A consistently non-1 rank means the
+   *  winning branch was regularly not what the moment-to-moment earnings proxy liked best.
+   *
+   *  Since `selectBeamSurvivors` (search.ts) started trimming on earnings-or-elr rather than earnings
+   *  alone, a high number here (say, 900+ of 1000) no longer means "barely squeaked past the earnings
+   *  cutoff" the way it used to — it can just as easily mean the branch survived *purely* on elr,
+   *  with a genuinely poor earnings rank that would have gotten it cut outright under the old
+   *  single-axis trim. Check the sibling `elr` field on this same `chosen` member to tell which case
+   *  you're looking at — this is exactly the distinction a real trace (see ../HANDOFF.md's "Algorithm
+   *  improvements" §7) was diagnosed from before this field existed, requiring an external
+   *  recomputation; it's captured directly now. */
   chosenRank: number;
   /** Full size of this generation's beam (before `alternatives` was capped), so "chosen was #3 of
    *  N" is legible without cross-referencing beamWidth. */
@@ -309,6 +328,9 @@ export interface BeamSearchResult {
      *  comment. A high ratio here confirms the cache is earning its keep. */
     phase3CacheHits: number;
     beamWidth: number;
+    /** Echoes BeamSearchOptions.phase3AttemptsPerGeneration (or the default it fell back to) — same
+     *  "what was this run actually configured with" role beamWidth plays here. */
+    phase3AttemptsPerGeneration: number;
     /** True if `options.isCancelled` returned true before the loop reached a natural stop
      *  (maxDepth/empty beam). The result is whatever was found up to that point — may still be a
      *  usable plan (finished.length > 0), or may be absent (runBeamSearch throws in that case, same

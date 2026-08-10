@@ -78,27 +78,45 @@ export interface SaleAwarePurchase {
 }
 
 /**
+ * Given how long `saveWaitSeconds` it takes (by pure continuous saving — money accrual is
+ * unaffected by sale state, only the *target* price is) to bank a sale-priced purchase from
+ * `currentAbsoluteTime`, returns the wait until the earliest instant at/after that a research sale
+ * is actually running to spend it during. Checks EVERY future sale occurrence, not just the very
+ * next one: an expensive purchase routinely needs more than one weekly sale cycle to save for even
+ * at 70% off, and a sale that arrives before the money's ready just gets skipped over (nothing to
+ * buy yet) rather than treated as the only chance at a discount. Once the money's ready, the
+ * qualifying moment is whichever comes first — that instant itself, if a sale is already running
+ * then, or the start of the next one otherwise — so no explicit cycle-by-cycle loop is needed:
+ * `getNextSaleStart` already finds it in one step.
+ *
+ * Returns `Infinity` if `saveWaitSeconds` itself is (i.e. the sale price is never affordable at
+ * all — see `getTimeToSave`'s own doc comment on what `Infinity` means there).
+ */
+function earliestSaleTimeAfterSaving(saveWaitSeconds: number, currentAbsoluteTime: number): number {
+  if (!isFinite(saveWaitSeconds)) return Infinity;
+
+  const moneyReadyAt = currentAbsoluteTime + saveWaitSeconds;
+  const saleTime = isResearchSaleActive(moneyReadyAt) ? moneyReadyAt : getNextSaleStart(moneyReadyAt);
+  return saleTime - currentAbsoluteTime;
+}
+
+/**
  * The true minimum wait to afford `research` at `level`, choosing whichever is faster: buying now
- * at the current price, or waiting for the next research sale to start and buying at the 70%-off
- * price. Money saved *before* the sale starts still counts toward the *discounted* price the
- * instant the sale begins, so waiting can be strictly faster than buying at full price now, even
- * though the sale isn't active yet at decision time. Concretely: 30 minutes before a sale, an item
- * needing 60 minutes of saving at full price only needs ~18 minutes at 70% off — so the true wait
- * is 30 minutes (wait for the sale, then buy instantly with money already banked), not 60.
+ * at the current price, or waiting for a research sale — not necessarily the very next one, see
+ * `earliestSaleTimeAfterSaving` — and buying at the 70%-off price. Money saved *before* the sale
+ * starts still counts toward the *discounted* price the instant the sale begins, so waiting can be
+ * strictly faster than buying at full price now, even though the sale isn't active yet at decision
+ * time. Concretely: 30 minutes before a sale, an item needing 60 minutes of saving at full price
+ * only needs ~18 minutes at 70% off — so the true wait is 30 minutes (wait for the sale, then buy
+ * instantly with money already banked), not 60.
  *
  * Also handles the symmetric problem in the other direction — a currently-active sale ending
  * before enough is saved for the discounted price. Money earned is unaffected by the sale (only
  * the *target* price is), so the wait to reach the full price is just `getTimeToSave(fullPrice,
  * snapshot, transitions)` computed from now — the same continuous earnings integral already used
- * everywhere else, unaffected by whether it happens to cross the sale's end partway through.
- *
- * And the same "won't finish before the sale ends" problem applies to the *upcoming* sale too:
- * `saleWaitFromNow` can land well past the sale's own 24-hour window (e.g. an expensive purchase
- * where saving up to even the discounted price takes several days) — in which case the discount
- * was never actually reachable, since the price reverts to full partway through the wait. That
- * route has to be discarded entirely rather than reported as a (too-optimistic) discounted
- * purchase; a purchase this far out just falls back to full price, same as if no sale were coming
- * at all.
+ * everywhere else, unaffected by whether it happens to cross the sale's end partway through. But
+ * that's only the fallback once no *future* sale beats it either (see below) — the discount isn't
+ * necessarily gone for good just because the current one ends too soon.
  */
 export function getSaleAwareTimeToSave(
   research: CommonResearch,
@@ -117,10 +135,18 @@ export function getSaleAwareTimeToSave(
     if (!isFinite(timeUntilSaleEnds) || currentWait <= timeUntilSaleEnds) {
       return { price: currentPrice, waitSeconds: currentWait, duringSale: true };
     }
-    // Won't finish saving the discounted price before the sale ends — the shortfall has to be
-    // covered at full price instead.
+    // Won't finish saving the discounted price before this sale ends — but the discount isn't
+    // necessarily gone for good: a LATER sale (not just this calendar one) may still beat paying
+    // full price. `currentPrice` here already IS the sale price (isSaleActive is true), so it's the
+    // right target to keep saving toward.
     const fullPrice = getDiscountedVirtuePrice(research, level, mods, false);
     const fullPriceWait = getTimeToSave(fullPrice, snapshot, transitions);
+    // `currentWait` above is already the save time for `currentPrice`, which in this branch IS the
+    // sale price — no need to recompute it.
+    const laterSaleWait = earliestSaleTimeAfterSaving(currentWait, currentAbsoluteTime);
+    if (isFinite(laterSaleWait) && laterSaleWait < fullPriceWait) {
+      return { price: currentPrice, waitSeconds: laterSaleWait, duringSale: true };
+    }
     return { price: fullPrice, waitSeconds: fullPriceWait, duringSale: false };
   }
 
@@ -131,18 +157,9 @@ export function getSaleAwareTimeToSave(
 
   const salePrice = getDiscountedVirtuePrice(research, level, mods, true);
   const saleWaitFromNow = getTimeToSave(salePrice, snapshot, transitions);
-  // Can't actually buy before the sale starts even if enough would've been saved sooner — but
-  // whatever's banked by then still counts, so the wait is never more than the longer of the two.
-  const trueSaleWait = Math.max(timeUntilSale, saleWaitFromNow);
+  const trueSaleWait = earliestSaleTimeAfterSaving(saleWaitFromNow, currentAbsoluteTime);
 
-  // The discounted price is only actually reachable if the purchase completes before the
-  // upcoming sale's own end — otherwise the price reverts to full partway through the wait (see
-  // this function's doc comment), and `trueSaleWait`/`salePrice` describe a purchase that could
-  // never really happen.
-  const saleEnd = getNextSaleEnd(currentAbsoluteTime);
-  const completesWithinSale = isFinite(saleEnd) && currentAbsoluteTime + trueSaleWait <= saleEnd;
-
-  if (completesWithinSale && trueSaleWait < currentWait) {
+  if (isFinite(trueSaleWait) && trueSaleWait < currentWait) {
     return { price: salePrice, waitSeconds: trueSaleWait, duringSale: true };
   }
   return { price: currentPrice, waitSeconds: currentWait, duringSale: false };

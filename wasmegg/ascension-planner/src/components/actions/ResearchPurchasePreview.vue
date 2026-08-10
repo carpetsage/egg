@@ -34,7 +34,7 @@ const props = withDefaults(
     label?: string;
     maxVisible?: number;
   }>(),
-  { emptyText: undefined, label: undefined, maxVisible: 8 }
+  { emptyText: undefined, label: undefined, maxVisible: 25 }
 );
 
 const visibleItems = computed(() => props.items.slice(0, props.maxVisible));

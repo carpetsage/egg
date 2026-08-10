@@ -22,19 +22,20 @@ const MULTI_LAYERING_TARGET_LEVEL = 2;
  *
  * 1. Shift to Curiosity.
  * 2. If Tier 13 is wanted: first, if Multiversal Layering 2 isn't already unlocked, try to grab it
- *    via the milestone view's research-level-target chain; then try to unlock Tier 13. Both are
- *    always eventually affordable in isolation — the only question is whether *both* fit before
- *    `buildPhaseEnd` — so each attempt gets an `X unlocked?` check immediately after it runs, and
- *    either one failing its check returns early: this variant is impossible, full stop, whether it
- *    was ML2 or Tier 13 that ran out of runway. The two attempts share one clock (ML2 runs first
- *    and can eat into Tier 13's own budget), so a failed Tier 13 check doesn't necessarily mean
- *    Tier 13 itself was the hard part. Each of `runResearchMilestoneIfWorthwhile`/
- *    `runTierUnlockMilestone` is capped at exactly the remaining `buildPhaseEnd - getAbsTime()` at
- *    the time it's called, so this can only ever end one of two ways per attempt: it finishes
- *    within that budget (leaving `getAbsTime()` at or before `buildPhaseEnd`, never after), or it
- *    doesn't finish at all — there's no third case where it "succeeds but finishes late," so a
- *    plain post-attempt level/tier check is the complete impossible/possible test; no separate
- *    overrun handling is needed here.
+ *    via the milestone view's research-level-target chain; then try to unlock Tier 13. Grabbing ML2
+ *    first is a soft preference, not a hard requirement — tier unlocks are purely a total-purchase-
+ *    count threshold (see `isTierUnlocked`), so ML2 is never actually required to reach Tier 13,
+ *    just cheap and valuable enough to be worth grabbing first *when there's room*. So if ML2 +
+ *    Tier 13 together don't fit before `buildPhaseEnd`, this rewinds to right after the Curiosity
+ *    shift and retries spending the *entire* remaining budget on Tier 13 alone, skipping ML2 —
+ *    since the two together running out of runway doesn't mean Tier 13 alone would too. Only if
+ *    that second attempt also fails to unlock Tier 13 in time is the variant declared impossible.
+ *    Each of `runResearchMilestoneIfWorthwhile`/`runTierUnlockMilestone` is capped at exactly the
+ *    remaining `buildPhaseEnd - getAbsTime()` at the time it's called, so any single attempt can
+ *    only ever end one of two ways: it finishes within its budget (leaving `getAbsTime()` at or
+ *    before `buildPhaseEnd`, never after), or it doesn't finish at all — there's no third case
+ *    where it "succeeds but finishes late," so a plain post-attempt tier check is the complete
+ *    impossible/possible test for each attempt; no separate overrun handling is needed here.
  * 3. Repeat: buy earnings research toward 70% ROI before the next sale, then wait for that sale to
  *    start — until reaching the start of the final sale (the one ending at the build phase's end).
  *    This naturally does fewer cycles (or none) if step 2's Tier 13 unlock already consumed enough
@@ -176,45 +177,66 @@ export function runC3(
   // currentState.lastStepTime, which trivially still matches startState.lastStepTime at this point
   // (the shift action above doesn't advance time).
   if (params.attemptTier13Unlock) {
-    // Multiversal Layering 2 (10x egg value, tier 11 — already a prerequisite for Tier 13) is cheap
-    // relative to the rest of a Tier 13 push, so grab it first if it isn't already there — reusing
-    // the same milestone-view "research level target" helper the manual planner's Milestones view
-    // buys through (`runResearchMilestoneIfWorthwhile`, gated on `computeResearchMilestoneChain`),
-    // with an unbounded worthwhileness threshold since this is an unconditional attempt, not a
-    // worthwhile-or-skip decision. ML2 is always eventually affordable on its own, so the only way
-    // this fails to reach level 2 is running out of `timeLimit` — and since this variant needs BOTH
-    // ML2 and Tier 13 done by `buildPhaseEnd`, that's just as fatal to the variant as Tier 13 itself
-    // failing below: return early rather than let Tier 13 be attempted (and maybe even succeed)
-    // against a state that's still missing ML2.
-    if ((currentState.researchLevels[MULTI_LAYERING_ID] || 0) < MULTI_LAYERING_TARGET_LEVEL) {
-      const timeLimit = Math.max(0, buildPhaseEnd - getAbsTime());
-      runStep(
-        runResearchMilestoneIfWorthwhile(
-          currentState,
-          context,
-          MULTI_LAYERING_ID,
-          MULTI_LAYERING_TARGET_LEVEL,
-          Infinity,
-          timeLimit
-        )
-      );
-
-      if ((currentState.researchLevels[MULTI_LAYERING_ID] || 0) < MULTI_LAYERING_TARGET_LEVEL) {
-        return { actions, elapsedSeconds, endState: currentState };
-      }
-    }
-
     const maxTier = Math.max(...getTiers());
-    if (!isTierUnlocked(currentState.researchLevels, maxTier)) {
-      const timeLimit = Math.max(0, buildPhaseEnd - getAbsTime());
-      runStep(runTierUnlockMilestone(currentState, context, maxTier, timeLimit));
 
-      // Tier 13 was requested but the time budget ran out before finishing — this variant is
-      // impossible. Return now rather than continuing into the sale-riding steps against a state
-      // that doesn't have what was asked for; runC3Variants recognizes this from the returned state.
-      // (`runTierUnlockMilestone` is capped at `timeLimit`, so this is the ONLY way this attempt can
-      // fail — it can't "succeed but finish after buildPhaseEnd"; see this function's doc comment.)
+    // Attempts to unlock Tier 13 alone (no ML2 involvement), capped at whatever's left of
+    // buildPhaseEnd. Returns whether Tier 13 ended up unlocked.
+    const attemptTier13Only = (): boolean => {
       if (!isTierUnlocked(currentState.researchLevels, maxTier)) {
+        const timeLimit = Math.max(0, buildPhaseEnd - getAbsTime());
+        runStep(runTierUnlockMilestone(currentState, context, maxTier, timeLimit));
+      }
+      return isTierUnlocked(currentState.researchLevels, maxTier);
+    };
+
+    if (!isTierUnlocked(currentState.researchLevels, maxTier)) {
+      const neededML2 = (currentState.researchLevels[MULTI_LAYERING_ID] || 0) < MULTI_LAYERING_TARGET_LEVEL;
+
+      // Snapshot right after the Curiosity shift, in case the ML2-first attempt below runs out of
+      // runway and this needs to rewind and retry Tier 13 alone.
+      const postShiftState = currentState;
+      const postShiftElapsedSeconds = elapsedSeconds;
+      const postShiftActionsLength = actions.length;
+
+      // Multiversal Layering 2 (10x egg value, tier 11) is cheap relative to the rest of a Tier 13
+      // push, so grab it first if it isn't already there — reusing the same milestone-view "research
+      // level target" helper the manual planner's Milestones view buys through
+      // (`runResearchMilestoneIfWorthwhile`, gated on `computeResearchMilestoneChain`), with an
+      // unbounded worthwhileness threshold since this is an unconditional attempt, not a
+      // worthwhile-or-skip decision. This is a soft preference, not a hard requirement — see this
+      // function's doc comment — so a failure to reach level 2 within the remaining budget doesn't
+      // return early here; it just means the Tier 13 attempt right after it is very unlikely to also
+      // fit, which the fallback below handles.
+      if (neededML2) {
+        const timeLimit = Math.max(0, buildPhaseEnd - getAbsTime());
+        runStep(
+          runResearchMilestoneIfWorthwhile(
+            currentState,
+            context,
+            MULTI_LAYERING_ID,
+            MULTI_LAYERING_TARGET_LEVEL,
+            Infinity,
+            timeLimit
+          )
+        );
+      }
+
+      let gotTier13 = attemptTier13Only();
+
+      if (!gotTier13 && neededML2) {
+        // ML2 + Tier 13 together didn't fit before buildPhaseEnd. Rewind to right after the shift and
+        // retry, spending the *entire* remaining budget on Tier 13 alone this time — going straight
+        // for Tier 13 may still make the deadline even when detouring through ML2 first wouldn't.
+        currentState = postShiftState;
+        elapsedSeconds = postShiftElapsedSeconds;
+        actions.length = postShiftActionsLength;
+        gotTier13 = attemptTier13Only();
+      }
+
+      // Tier 13 was requested but neither approach finished in time — this variant is impossible.
+      // Return now rather than continuing into the sale-riding steps against a state that doesn't
+      // have what was asked for; runC3Variants recognizes this from the returned state.
+      if (!gotTier13) {
         return { actions, elapsedSeconds, endState: currentState };
       }
     }

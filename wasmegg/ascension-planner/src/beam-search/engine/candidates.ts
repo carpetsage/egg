@@ -15,12 +15,7 @@ import {
   ROI_EXCLUDED_CATEGORIES,
   filterByCategories,
 } from '@/calculations/researchRanking';
-import {
-  isActuallyDuringSale,
-  meetsROIByDeadline,
-  getSaleAwareTimeToSave,
-  MAX_ROI_PAYBACK_SEARCH_SECONDS,
-} from '@/calculations/researchROI';
+import { isActuallyDuringSale, meetsROIByDeadline, getSaleAwareTimeToSave } from '@/calculations/researchROI';
 import { boostTransitionsFrom } from '@/engine/apply';
 import { computeSnapshot } from '@/engine/compute';
 import type { SimulationContext } from '@/engine/types';
@@ -32,6 +27,15 @@ import {
   type BeamPhase,
   type BeamSearchState,
 } from './types';
+
+/** Below this fraction of current earnings, a purchase's effect is treated as "no real effect" and
+ *  hard-excluded — see the exclusion's own doc comment (below) for why this is relative, not an
+ *  absolute-roiSeconds cutoff, and why it's small enough to only ever catch a genuinely-zero
+ *  (structurally capped) delta, not a merely-small-but-real one. The confirmed shipping/laying
+ *  bottleneck case this exists for produces an earningsDelta of exactly 0 (relative 0), so this
+ *  floor has enormous headroom before it would risk excluding anything with real, if modest,
+ *  positive impact. */
+const NEGLIGIBLE_RELATIVE_EARNINGS_DELTA = 1e-9;
 
 export interface LightweightCandidate {
   researchId: string;
@@ -101,26 +105,40 @@ export function getLightweightPhaseCandidates(
     );
     const earningsDelta = nextSnapshot.offlineEarnings - snapshot.offlineEarnings;
 
-    // Excluded outright — not just deprioritized — when this purchase would essentially never pay
-    // for itself at the current margin. Matches the MAX_ROI_PAYBACK_SEARCH_SECONDS (999 days)
-    // convention researchROI.ts/researchRanking.ts's own "real" ROI ranking already uses, so beam
-    // search doesn't silently disagree with what "infinite ROI" means everywhere else in this app.
-    // Concretely load-bearing for the shipping/laying "partner bottleneck" case (found by directly
-    // diffing a beam-search trace against a real manual plan, see ../HANDOFF.md): buying more
-    // shipping-capacity research while laying rate is the actual constraint (or vice versa) shows
-    // ~zero earningsDelta, because effectiveLayRate.ts caps earnings at min(layRate,
-    // shippingCapacity) — so it's genuinely a non-purchase, not just a weak one, and needs a HARD
-    // exclusion here rather than the meets70 deprioritization below: selectCandidates no longer
-    // falls back to the unfiltered candidate list when nothing clears 70% (search.ts fast-forwards
-    // to the next sale instead), but a candidate excluded here is excluded from that fallback
-    // consideration entirely regardless, by construction — one less thing for that policy to get
-    // right on its own.
+    // Excluded outright — not just deprioritized — only when this purchase has essentially NO
+    // effect on earnings at all, not merely a slow payback at today's earnings rate. A RELATIVE
+    // floor against current earnings, not an absolute roiSeconds-vs-calendar-time cutoff.
+    //
+    // An earlier version of this exclusion used exactly that absolute cutoff (roiSeconds =
+    // price/earningsDelta compared against MAX_ROI_PAYBACK_SEARCH_SECONDS, the same 999-day
+    // convention researchROI.ts/researchRanking.ts's "real" ROI ranking uses) — found, via a real
+    // beam-search run and confirmed by direct testing, to wrongly exclude Multiversal Layering
+    // level 2 (10x earnings, one of the best purchases available at this game stage): evaluated
+    // early in a long ascension against a realistic fixture, its earningsDelta was a full ~9x of
+    // current earnings (nowhere near negligible) — but its price is so large that roiSeconds,
+    // computed against the still-small CURRENT earnings rate, came out to ~387 million days. That
+    // absolute-time framing implicitly assumes earnings stay flat forever, which is never true this
+    // late into a run — the whole reason a purchase like this is worth buying early is that its
+    // multiplier compounds over however much of the ascension remains, growing the earnings base
+    // the "flat rate" projection can't see.
+    //
+    // The shipping/laying "partner bottleneck" case this exclusion actually exists for (found by
+    // directly diffing a beam-search trace against a real manual plan, see ../HANDOFF.md) has a
+    // categorically different signature: buying more shipping-capacity research while laying rate
+    // is the actual constraint (or vice versa) produces an earningsDelta of EXACTLY zero — confirmed
+    // directly, not approximately small — because effectiveLayRate.ts caps earnings at
+    // min(layRate, shippingCapacity), so the increased side literally doesn't move anything. A
+    // relative-to-current-earnings floor still catches that case (0 / anything = 0, always at the
+    // floor) without collateral-damaging genuinely high-value research that merely has a big price
+    // tag. "Positive impact but slow given the time actually remaining" is a different, separately
+    // handled concern — meets70/fastForwardToSale (search.ts) already deprioritize or wait out that
+    // case; this exclusion is only for purchases with no real effect at all.
     //
     // Uses this function's existing lightweight price/earningsDelta approximation (not
     // calculateResearchROI's exact compounding binary search) — consistent with the rest of this
     // function's cost/precision tradeoff, and sufficient to catch the case this exists for.
-    const roiSeconds = earningsDelta > 0 ? purchase.price / earningsDelta : Infinity;
-    if (roiSeconds === Infinity || roiSeconds > MAX_ROI_PAYBACK_SEARCH_SECONDS) return [];
+    const relativeEarningsDelta = earningsDelta / snapshot.offlineEarnings;
+    if (relativeEarningsDelta <= NEGLIGIBLE_RELATIVE_EARNINGS_DELTA) return [];
 
     const completesAt = absoluteSimTime + purchase.waitSeconds;
     const meets70 =

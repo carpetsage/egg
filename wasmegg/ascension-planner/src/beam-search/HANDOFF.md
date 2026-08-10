@@ -1,9 +1,17 @@
 # Beam Search — Handoff / Status Document
 
-**Last updated:** 2026-08-09. Builds on top of the already-shipped Phase A/B/C feature, across two
-efforts on the same branch: diagnostics tooling (generation-history panel + winning-path trace
-export + a per-shift "Copy Log" button), then — using that tooling on a real run — two real fixes to
-the search algorithm itself. See "Diagnostics tooling" and "Algorithm improvements" below.
+**Last updated:** 2026-08-10. Builds on top of the already-shipped Phase A/B/C feature, across
+several efforts on the same branch: diagnostics tooling (generation-history panel + winning-path
+trace export + a per-shift "Copy Log" button), then — using that tooling on real runs — algorithm
+fixes to the search itself (payback-cap exclusion, fast-forward-to-sale, a correction to the
+payback-cap exclusion after a real regression report, a performance optimization for
+`getOptimalELRSet`, a fix — confirmed necessary via a real re-run, not just a raised cap — for a biased
+Phase 3 eligibility throttle (now user-configurable next to Beam Width, and earnings/stratified split;
+confirmed via real re-runs to have fully saturated the eligibility question), and then — once that
+saturation *also* confirmed the same earnings-only bias existed one level up, in the main beam-width
+trim itself, permanently discarding branches rather than just under-sampling them — an earnings/elr
+dual-axis fix for that trim too (`selectBeamSurvivors`). See "Diagnostics tooling" and "Algorithm
+improvements" below.
 **Read this first** if you're picking this work up in a new chat. It links everything else you need.
 
 ## Context
@@ -78,15 +86,16 @@ reasoning. See "Diagnostics tooling" below for what was built in response and ho
 |---|---|
 | `index.spec.ts` | Smoke test: valid research IDs, correct level ordering, deadline respected, clean error when `rawBackup` missing. Also (this session) `result.trace` end-to-end: absent by default, populated with `trace: true`, same plan either way, step depths strictly increasing, `chosenRank`/`beamSizeThisGeneration`/`finalStep` internally consistent |
 | `dedupe.spec.ts` | `researchLevelsKey`/`researchStateKey`/`dedupeByEarliestTime` unit tests |
-| `candidates.spec.ts` | Category filtering (phase 1 excludes non-ROI, phase 2 restricts to delivery-impact), tier-lock filtering, phase2 ⊆ phase1. Also (this session) the `MAX_ROI_PAYBACK_SEARCH_SECONDS` exclusion: a shipping-capacity candidate disappears once laying rate is the clear bottleneck (`habIds: [14, null, null, null]` override), plus a control test confirming it's offered normally without that override |
+| `candidates.spec.ts` | Category filtering (phase 1 excludes non-ROI, phase 2 restricts to delivery-impact), tier-lock filtering, phase2 ⊆ phase1. Also the negligible-relative-earnings-impact exclusion: a shipping-capacity candidate disappears once laying rate is the clear bottleneck (`habIds: [14, null, null, null]` override), a control test confirming it's offered normally without that override, and (later session, regression test) `multi_layering` confirmed present despite its enormous absolute price — see "Algorithm improvements" §3 |
+| `../../lib/artifacts/virtue.spec.ts` (later session) | `getOptimalELRSet`'s stone-swap fast path: every scenario asserts `withHint` equals `withoutHint` bit-for-bit rather than a hardcoded loadout. Covers all three of `tryStoneSwapFastPath`'s decision branches (confirmed via throwaway instrumentation during development, not just inferred) — trusts an already-balanced hint unchanged, corrects a deliberately-mixed hint via a single swap, and falls back to the full search (large jump, stone-pool exhaustion, wrong-length/stale hint) — see "Algorithm improvements" §4 |
 | `reconstruct.spec.ts` | Parent-chain walking + macro-edge flattening, hand-built synthetic chains. Also (this session) the trace: `chosenRank`/`alternatives`/`beamSizeThisGeneration` against a synthetic two-generation chain with decoys, the alternatives cap, and a regression test locking in the `winnerRank`-vs-`pickWinner` tiebreak fix (see "Diagnostics tooling" below). Also (this session) the `waitForSale` edge: adds nothing to `researchIds` but populates `saleWaitTimes`; `saleWaitTimes` stays empty when unused |
-| `search.spec.ts` | `runSearchLoop`'s `isCancelled` hook: stops before any generation when already true, stops within a generation or two of flipping true mid-run, reports `metrics.cancelled: false` on an ordinary uncancelled stop. Also (this session) the new cumulative counters (monotonic, successes ≤ attempts, `finishedCount` matches `finished.length`) and `generationTraces` (absent by default, one entry per generation when `trace: true`, doesn't change the search outcome). Also (this session) `selectCandidates` (only-meets-70% filtering, empty array — not a fallback to the unfiltered input — when nothing clears 70%, empty input stays empty) and `fastForwardToSale` (lands exactly at `nextSaleStart` with `activeSales.research` flipped on, accrues gems over the wait, correctly reflects `earningsBoost` at the arrival time rather than the departure time) |
+| `search.spec.ts` | `runSearchLoop`'s `isCancelled` hook: stops before any generation when already true, stops within a generation or two of flipping true mid-run, reports `metrics.cancelled: false` on an ordinary uncancelled stop. Also (this session) the new cumulative counters (monotonic, successes ≤ attempts, `finishedCount` matches `finished.length`) and `generationTraces` (absent by default, one entry per generation when `trace: true`, doesn't change the search outcome). Also (this session) `selectCandidates` (only-meets-70% filtering, empty array — not a fallback to the unfiltered input — when nothing clears 70%, empty input stays empty) and `fastForwardToSale` (lands exactly at `nextSaleStart` with `activeSales.research` flipped on, accrues gems over the wait, correctly reflects `earningsBoost` at the arrival time rather than the departure time). Also (later session) `selectPhase3Eligible` — see "Algorithm improvements" §6 — and `selectBeamSurvivors` — see §7 |
 | `oracle/beam-oracle.spec.ts` | **Exact small-case validation** — beam matches true exhaustive-search optimum bit-for-bit; beam-width monotonicity. Also (this session) the oracle's own exhaustive walk was updated to offer the same `fastForwardToSale` move the real beam can take, so it keeps testing the actual move set rather than a strictly weaker approximation of it |
 | `convergence.spec.ts` | NOT a correctness test — timing/quality benchmark across beam widths and deadlines. Gated behind `RUN_CONVERGENCE=1` (see "How to run things" below) |
 | `../../workers/beamSearch.protocol.spec.ts` | Documents the `structuredClone`+Long risk with a direct experiment (a Long-shaped instance survives cloning but silently loses its prototype/methods), then verifies `sanitizeLongsForWorker` fixes it: converts Long-shaped values to numbers (signed and unsigned), recurses through nested objects/arrays, deep-clones (doesn't mutate input), and the sanitized output survives a real `structuredClone` with correct numbers intact |
 
 All of the above (except `convergence.spec.ts`, correctly gated) pass under plain `pnpm test`:
-**7 test files passed (1 skipped), 50 tests passed (1 skipped).**
+**8 test files passed (1 skipped), 72 tests passed (1 skipped).**
 
 ### Files touched outside `src/beam-search/` (existing production code)
 
@@ -116,6 +125,8 @@ explaining why.
   - Added optional `fixedArtifactFamilies?: string[]` param (11th param) to `rankResearchByELRImpact`,
     threaded through its three internal `getOptimalELRSet` call sites (baseline, per-candidate,
     lookahead loop). Backward-compatible.
+  - Later session: also threads a `previousStoneAssignment` hint (derived from the baseline's own
+    stones) through the same three call sites — see "Algorithm improvements" §4 below.
 - **`src/lib/artifacts/virtue.ts`**:
   - Added optional `fixedArtifactFamilies?: string[]` option to `getOptimalELRSet`. When present,
     skips the expensive 1-4-artifact combination search (up to 495 combos) and re-optimizes stones
@@ -123,6 +134,8 @@ explaining why.
     correctness argument (candidate-gathering is inventory-only, doesn't depend on research levels
     — confirmed by reading the code, not guessed). Falls back to the full search if the requested
     families don't match current inventory.
+  - Later session: added `previousStoneAssignment` option + `tryStoneSwapFastPath` — see "Algorithm
+    improvements" §4 below.
 - **`package.json`** / **`vitest.config.ts`** (new) — added `vitest`, test scripts
   (`test`, `test:oracle`, `test:convergence`, `coverage`, `test:watch`), 20s default test timeout.
 
@@ -654,6 +667,263 @@ result on a *real* run (only unit/oracle-level correctness has been confirmed so
 fixtures) — worth the user re-running the same beam-search-vs-Smart-Buy comparison against their real
 backup once they're back at it, and checking whether `dark_containment`/`neural_net_refine` purchase
 counts (or `saleWaitTimes`) look different.
+
+**Update, later session — the two changes above were live-tested on real data and matched/beat manual
+play convincingly** (a longer-horizon real run: beam width 50 hit 4.471q/hr vs. the user's manual
+1.961q/hr; width 1000 hit 5.685q/hr). That surfaced a real regression from change #1 above, described
+next.
+
+### 3. Fix #1's exclusion wrongly caught genuinely great research, not just worthless research
+
+**The bug report:** real testers found the beam search's winning plans never bought Multiversal
+Layering level 2 (10x earnings, one of the best purchases available at this game stage) — one tester
+specifically noted it was the fastest-ROI item for their *entire* C3 window in real play.
+
+**Root cause, confirmed directly (not guessed) via a throwaway script against the realistic test
+fixture:** `getLightweightPhaseCandidates` computed `roiSeconds = price / earningsDelta` and excluded
+anything over `MAX_ROI_PAYBACK_SEARCH_SECONDS` (999 days) — an **absolute**, flat-current-earnings-rate
+payback projection. For `multi_layering`, `earningsDelta` was a full ~9x of current earnings (its
+level 0→1 is a flat 10x multiplier — nowhere near negligible), but its price is so large that
+`roiSeconds`, computed against the fixture's still-comparatively-small current earnings, came out to
+**~387 million days**. That's not a "this research is worthless" signal — it's an artifact of
+comparing an enormous fixed price against a CURRENT earnings snapshot that's expected to grow
+enormously over however much ascension remains, which the flat-rate framing has no way to represent.
+
+The shipping/laying bottleneck case exclusion #1 actually exists for (see above) has a categorically
+different signature, also confirmed directly: `earningsDelta` for a shipping purchase while
+laying-bottlenecked is **exactly 0**, not merely small — `effectiveLayRate.ts`'s
+`min(layRate, shippingCapacity)` means the increased side genuinely doesn't move anything, regardless
+of how much ascension time remains for it to "grow into."
+
+**The fix:** replaced the absolute `roiSeconds`-vs-999-days cutoff with a **relative** floor —
+`earningsDelta / currentOfflineEarnings <= NEGLIGIBLE_RELATIVE_EARNINGS_DELTA` (1e-9). This still
+excludes the bottleneck case (0 / anything = 0, always at the floor) without excluding expensive-but-
+genuinely-valuable research like ML2 (~9.0 relative, nowhere near the floor). "Positive impact but slow
+given the time actually remaining" is left to the already-existing, already-correct mechanisms for that
+concern (`meets70`/`fastForwardToSale`) — this exclusion is now scoped to exactly what it was meant for:
+purchases with no real effect at all, not merely expensive ones.
+
+**Regression test** (`candidates.spec.ts`): `multi_layering` is confirmed present in phase-1 candidates
+against the unmodified realistic fixture, with both an enormous price (>1e40) and a positive
+`earningsDelta` — the exact shape the bug report described. The existing shipping-bottleneck exclusion
+test (and its control) both still pass unchanged, confirming the relative-floor rewrite didn't
+reintroduce the original problem while fixing this one. Full suite: still green, oracle included (the
+oracle imports `getLightweightPhaseCandidates` directly rather than reimplementing it, so it stays in
+sync with this change automatically).
+
+### 4. Stone-swap fast path for `getOptimalELRSet` (performance, not a correctness fix)
+
+**The problem, from a live cost discussion:** `rankResearchByELRImpact`'s `'realistic'` mode calls
+`getOptimalELRSet` once for a baseline, once per unpurchased candidate, and again per lookahead level
+for zero-impact candidates — and `runDeliveryBuyLoop` calls that whole ranking function once per
+purchase. Even with `fixedArtifactFamilies` already skipping the expensive 495-combo family search
+(prior session), what's left — the per-slot greedy stone fill (`evaluateStones`, called
+`totalStoneSlots + 1` times, each a fresh `JSON.parse(JSON.stringify(...))` clone plus a full
+hab/lay/ship/elr recompute) — still refills every slot from empty on every single call, even though
+consecutive calls almost always differ by exactly one research level.
+
+**The fix, the user's own idea, refined through discussion:** `getOptimalELRSet` gained a
+`previousStoneAssignment?: (string | null)[]` option. When set (and `fixedArtifactFamilies` narrowed
+the search to one combo), a new `tryStoneSwapFastPath` tries the hint unchanged first, and if
+`layRate`/`shipRate` aren't within `STONE_FAST_PATH_TRUST_RATIO` (0.98) of each other, tries exactly
+one stone swap (Tachyon feeds `eggLayingRateMultiplier`, Quantum feeds `shippingCapacityMultiplier` —
+confirmed directly in `lib/artifacts/effects.ts`, not assumed) before deciding whether to trust the
+result. Falls back to the existing full from-scratch fill — unconditionally correct, just slower —
+whenever no swap is possible (pool exhausted, nothing of the over-represented type to remove) or even
+the best single swap is still meaningfully imbalanced. Every trusted result still runs through the
+exact same `evaluateStones`/`isGlobalBetter` comparison the full search uses, so a hint can only ever
+change *how cheaply* an answer is reached, never *what* the answer is.
+
+`rankResearchByELRImpact` threads a `baselineStones` hint (the baseline's own flattened stone
+assignment) through both its per-candidate and lookahead `getOptimalELRSet` calls — exactly the shape
+those calls have (each one research-level-or-few away from the same baseline).
+
+**Testing note, worth knowing before touching this again:** building a fixture where lay/ship actually
+land close to balanced took real trial and error — an arbitrary research-level pick (e.g. just
+`comfy_nests`) reliably produced a state so lopsided (shipping capacity swings enormously per level
+once maxed vehicles are in play) that no single swap — or even the full search's own best effort —
+could balance it, which isn't representative of the common "one purchase since last call" case these
+tests exist to cover. `virtue.spec.ts`'s `baseResearch` levels were found by an empirical sweep script
+(not guessed), landing at ~99.3% lay/ship balance. A second gotcha: `assumeMaxHabsVehicles: true` only
+takes effect when `backup.farms?.[0]` exists at all (regardless of `assumeMax`) — an empty/absent
+`farms` array silently falls back to a single starter vehicle, an easy way to accidentally build an
+unfixable fixture without realizing why. All three of `tryStoneSwapFastPath`'s decision branches are
+directly confirmed exercised (not just inferred from passing tests) via a throwaway instrumented
+build during development: the "already balanced, trust unchanged" branch, the "single swap succeeds"
+branch (needed a hand-built, deliberately-mixed hint — a real `getOptimalELRSet` call against this
+fixture never organically produces a hint with both stone types present when leaning hard toward one
+side), and the "falls back" branch (four different scenarios). Every test asserts `withHint` equals
+`withoutHint` bit-for-bit rather than a hardcoded expected loadout, so they stay correct even if game
+data changes.
+
+**Not yet done:** `macros.ts`'s own two direct `getOptimalELRSet` calls (the family-cache priming call,
+and the final post-`runDeliveryBuyLoop` scoring call) don't receive a stone hint — both are one-per-
+branch, not one-per-candidate, so lower value, and threading a hint through would need
+`runDeliveryBuyLoop` to expose its own evolving stone assignment, which it doesn't today. Left as a
+smaller, separate follow-up if profiling ever shows it matters.
+
+### 5. `PHASE3_MACRO_ATTEMPTS_PER_GENERATION` raised 3 → 10, and a real bias found in the eligibility heuristic
+
+**The trigger:** a real width-1000 run (deadline ≈16 days out) scored 4.968q/hr; the user's manual
+sequence over roughly the same window (Unlock Tier 13 → Unlock Multiversal Layering 2 → 70% ROI buy →
+delivery-research buy) scored 5.379q/hr, an ~8% gap. `multi_layering` *did* reach level 2 in the beam's
+plan (confirming §3's fix works) — this gap is something else.
+
+**What the exported trace (`trace: true`) showed, read directly, not guessed:** the winning path is
+only **11 generations deep** (depth 1 = the Tier 13 macro, depths 2-10 = individual phase-1 research
+purchases, depth 11 = the phase transition) despite `statesExpanded: 138993` over the full run — most
+of the search's breadth never shows up on the winning path at all. Two things stand out:
+
+1. **`phaseTransitionTime` was 12h13m before the deadline** (`Fri Oct 9, 10:57 PM` vs. a `Sat Oct 10,
+   11:00 AM` deadline) — the winning branch spent essentially the *entire* ~16-day window in Phase 1,
+   leaving Phase 3 (the actual delivery-research spending) only half a day to work with. The user's
+   manual sequence budgeted a full day for delivery buying, on top of ML2 (which the auto-throttled
+   beam also eventually bought, just very late) — that difference alone plausibly accounts for a real
+   chunk of the score gap.
+2. **The winning branch's own `chosenRank` (by the same earnings heuristic the Phase 3 throttle uses)
+   was 6, then 29, then 54** at depths 7-9, out of a beam that grew to 1000. `phase3Eligible` is built
+   from `rankByEarnings(...).slice(0, PHASE3_MACRO_ATTEMPTS_PER_GENERATION)` — the top-N *by current
+   earnings*. A branch ranked 54th by earnings at generation 9 would not have received a real Phase 3
+   score at that point under either the old (3) or new (10) cap. It only got evaluated at all because
+   it happened to still be alive when the search reached the deadline.
+
+**The mechanism this points to, not just this one run:** delivery research and broad earnings research
+are in real tension (the whole reason Phase 2 exists as a narrower phase). A branch that invests more
+in delivery-relevant research earlier necessarily earns *less* in the short term than a sibling that
+keeps maximizing pure earnings — so it ranks lower by `rankByEarnings`, so it's less likely to receive
+a Phase 3 attempt, so the search never learns its true (possibly superior) terminal score. That's a
+systematic bias toward "stay in Phase 1 as long as possible," not just noise — and it would produce
+exactly the symptom seen here: a phase transition pushed right up against the deadline, discovered only
+because every surviving branch finally gets swept up when the search runs out of generations.
+
+**Done this session:** `PHASE3_MACRO_ATTEMPTS_PER_GENERATION` raised 3 → 10 as the default. Full suite
+still green; total `pnpm test` runtime went from ~57s to ~94s.
+
+**Confirmed this alone wasn't the fix** — the user re-ran the same width-1000 scenario with the cap at
+10: 28s runtime, **identical** 4.968q/hr score to the cap-3 run. Exactly as predicted above: raising a
+flat cap doesn't touch the underlying bias, since `rankByEarnings` was still the sole ranking signal
+either way. This is what motivated actually building the stratified approach below, same session.
+
+### 6. The stratified eligibility fix, built — plus making the cap user-configurable
+
+**User-configurable cap:** `BeamSearchOptions.phase3AttemptsPerGeneration?: number` (types.ts), threaded
+through `runSearchLoop` → `runBeamSearch` → the worker protocol (`BeamSearchStartMessage`) → the worker
+→ `useBeamSearch.ts`'s `start()` → a new "Phase 3 Attempts" number input next to Beam Width in
+`BeamSearchView.vue`. Defaults to `PHASE3_MACRO_ATTEMPTS_PER_GENERATION` (now exported from `search.ts`
+and re-exported from `engine/index.ts`) when omitted, so a from-code caller (a future `c3.ts`
+integration, tests) never has to know or care about the UI's default. Echoed back on
+`BeamSearchResult.metrics.phase3AttemptsPerGeneration` (mirrors how `beamWidth` is already echoed)
+and in the exported trace JSON's top-level payload, so an exported trace records what it was actually
+run with.
+
+**The stratified fix itself:** `selectPhase3Eligible` (search.ts, exported) replaces the old
+`rankByEarnings(...).slice(0, N)` one-liner. It splits the total budget roughly in half:
+
+- An **earnings-ranked half** — same as before, `rankByEarnings(...).slice(0, earnersBudget)`.
+- A **stratified half** that rotates a fixed-size window through the current phase-2 members' *array
+  positions*, advancing by the window size every generation (`generation` is `depth`, already
+  incrementing once per generation in the caller). Over `ceil(phase2Members.length / diverseBudget)`
+  generations, every member present in an unchanged-size beam gets covered at least once, independent
+  of how it ranks by earnings in any single generation.
+
+No persistent per-branch identity needed (there still isn't one — states are recreated fresh each
+generation) since the window is keyed purely off array position + generation number, not branch
+history. This is deliberately the simple version discussed, not the "track which branches haven't been
+tried in K generations" version — that one would still need a stable ID scheme this codebase doesn't
+have; the rotating-window version gets the same eventual-coverage guarantee without it.
+
+**Tests** (`search.spec.ts`, `describe('selectPhase3Eligible')`, 7 tests): empty input, non-positive
+budget, budget covering everyone, earnings-ranked half correctly includes the top earner the stratified
+half wouldn't reach yet, stratified half correctly includes the lowest earner the earnings-ranked half
+would never include, the stratified half's *union* across `phase2Members.length` generations covers
+every member (explicitly contrasted against a `diverseBudget: 0` run over the same generations, which
+covers only the single top earner — proving the stratified half is what closes that gap, not
+incidental overlap), and the window advances by `diverseBudget` each generation, not by a fixed step of
+one. Needed a real debugging detour to build: the fixture initially varied `comfy_nests`
+(egg_laying_rate) to get a controllable earnings ordering, following the same pattern used elsewhere in
+this file — but a direct check showed `comfy_nests` leaves `offlineEarnings` completely unchanged
+across every level tried (`rankByEarnings` ranks by `offlineEarnings`, which isn't driven by laying
+rate the way `elr`/delivery rate is). Switched to `genetic_purification` (egg_value category), confirmed
+directly to move `offlineEarnings` cleanly.
+
+**Verified on real data, same session:** the user re-ran the exact width-1000 scenario with the
+stratified split live. Score went from 4.968q/hr (cap 3 *and* cap 10, pre-fix — confirming the old
+throttle really was blind to this branch) to **5.021q/hr at cap 10**, and stayed **exactly** 5.021q/hr
+all the way through cap 1000 (attempts 10/20/50/100/500/1000 all identical, runtime 33s → 155s). Two
+real conclusions from that: the stratified fix genuinely closed part of the gap, and — since going
+fully unthrottled (cap 1000 ≈ every phase-2 branch, every generation) changed nothing further —
+Phase 3 eligibility is now **fully saturated**. It is no longer the bottleneck. See §7 for where the
+investigation went next.
+
+### 7. `selectBeamSurvivors` — the same earnings-only bias, one level up, fixed
+
+**Where the investigation went once §6 was saturated:** the user widened the beam instead (still at
+the same real deadline/scenario). Width 1000 → 5000 raised score 5.021q/hr → 5.094q/hr — real
+improvement, so branches genuinely were being lost. But `chosenRank` in the exported trace showed the
+*same* signature at both widths: the eventual winning branch sat at earnings-rank 900-999 of 1000, then
+4200-4900 of 5000 — the same *relative* position (85-98th percentile from the bottom) at two different
+widths, for the entire back half of a 100+ generation search. That rules out "just needs a wider beam"
+as a real fix: widening didn't improve the branch's *rank*, it just gave a bad rank more room to
+survive in. Diffing final research levels against the user's manual run pinned the actual score gap
+down further — nearly every research was tied or ahead; the only real shortfall was `matter_reconfig`
+(-33 levels at width 1000, -19 at width 5000) and `hyper_portalling` (-2/-1) — both explained by
+`phaseTransitionTime` still landing very late (2-4 hours of Phase 3 runway vs. the user's full day),
+which is itself a symptom of the same bias: a branch that would transition earlier necessarily earns
+less near-term than one that doesn't, so it ranks worse under `rankByEarnings` and is exactly the kind
+of branch a pure earnings trim is biased against keeping alive long enough to prove itself.
+
+**The fix — `selectBeamSurvivors` (search.ts, exported):** the main beam trim (step 4 of
+`runSearchLoop`, `rankByEarnings(survivors, ...).slice(0, beamWidth)`) is no longer a bare earnings
+slice. It now guarantees a `ceil(beamWidth / 2)` earnings-ranked slice survives, then fills the rest of
+`beamWidth` by **elr rank** — `RankedState.elr`, the current-loadout `min(layRate, shippingCapacity)`,
+now computed alongside `earnings` on the exact same `computeSnapshot` call `rankByEarnings` already
+made (free — no new `computeSnapshot` calls anywhere in this change, just one extra field read off an
+object already being built, plus one extra `.sort()` over the same array).
+
+This is a **different fix from §6's `selectPhase3Eligible`**, not the same one reused, and for a real
+reason: `selectPhase3Eligible` only decides whether a *survivor* gets scored this generation — missing
+out there just means "try again next generation," a soft, recoverable miss. This trim decides whether a
+branch survives to have a next generation *at all* — missing out here is permanent. That's a more
+consequential decision, so it gets a more targeted strategy (top-K-by-elr, using a signal now confirmed
+cheap and honest) rather than `selectPhase3Eligible`'s blind stratified rotation. `selectPhase3Eligible`
+itself was deliberately left untouched — it's confirmed working (§6's saturation result), so there's no
+upside to risking a regression there for architectural symmetry; worth unifying later only if it
+becomes the constraint again.
+
+**An implementation subtlety worth knowing before touching this again:** the first version of this
+function split the budget into two genuinely fixed-size slices (earnings half ∪ elr half) with a
+separate "top up from earnings order if the union came up short from overlap" fallback path. That
+fallback turned out to be **dead code** — since `byElr` is the same pool as `earningsRanked` just
+reordered, and this function only ever runs when `earningsRanked.length > beamWidth`, the elr-fill loop
+is *always* able to reach exactly `beamWidth` survivors on its own before exhausting the pool, however
+much it overlaps with the earnings slice. Removed in favor of a single elr-fill loop that just keeps
+walking past the overlap — simpler, and correctly means overlap between the two slices no longer
+quietly shrinks how much real elr-based protection the trim provides (a fixed-size-second-half version
+would have handed the leftover seats back to earnings instead, defeating the point).
+
+**Trace/diagnostics kept in sync:** `RankedState.elr` and `BeamMemberSummary.elr` (types.ts) mean an
+exported trace now shows *why* a low-earnings survivor is still in the beam, directly — no more
+externally recomputing it by hand the way this whole investigation had to. `chosenRank`'s doc comment
+(types.ts) was updated: a high number no longer implies "barely survived the earnings cut" the way it
+used to, since a survivor's presence may now owe entirely to elr — check the sibling `elr` field on the
+same member to tell which case you're looking at.
+
+**Tests** (`search.spec.ts`, `describe('selectBeamSurvivors')`, 7 tests): no-op when input is already
+at/under `beamWidth`, top earner survives via the earnings slice, a worst-by-earnings/best-by-elr
+member survives via the elr fill, the elr fill correctly reaches past an earnings/elr overlap instead
+of shrinking (the specific case that proved the dead-code fallback was in fact dead), output stays
+earnings-sorted (so `chosenRank` stays meaningful), never returns more than the available pool, and a
+monotonicity check (wider `beamWidth` only ever adds survivors, deterministic pseudo-random input, not
+`Math.random()` — keeps the test reproducible). Unlike `selectPhase3Eligible`'s tests, no real engine
+fixture or fixture-tuning was needed — `selectBeamSurvivors` takes plain `RankedState[]`, so
+earnings/elr values are just made up per test case. Full suite green (72 tests), oracle unaffected
+(confirmed by running it directly — it never calls this function, doesn't do beam-width trimming at
+all by design) and still bit-for-bit exact.
+
+**Not yet verified:** whether this closes the remaining gap on the user's own real scenario (only
+unit-level correctness of `selectBeamSurvivors` itself has been confirmed so far) — worth re-running
+the same width-1000/width-5000 comparisons now that this is live, and checking whether
+`phaseTransitionTime` lands meaningfully earlier and the `matter_reconfig` shortfall closes further.
 
 ---
 
