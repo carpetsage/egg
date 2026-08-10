@@ -162,7 +162,6 @@ export function importPlanLogic(jsonString: string) {
 
   // Safeguard: Ensure a start_ascension action is present for the UI Action History
   if (data.actions && data.actions.length > 0 && data.actions[0].type !== 'start_ascension') {
-    console.log('[ActionIO] Repairing imported plan: prepending missing start_ascension');
     const startAction = {
       id: 'start_' + Math.random().toString(36).substring(2, 9),
       index: 0,

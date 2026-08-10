@@ -289,9 +289,9 @@ export function useAscensionGenerator() {
         generateProgress.value = `Simulating A${i + 1} of ${loops} (build phase precompute)...`;
         await new Promise(resolve => setTimeout(resolve, 15));
 
-        // Single C1-R1 precompute, shared across every build variant below (a hard requirement —
-        // see VARIANT_MATRIX_AND_UI.md's Investigation findings — since K3-H2 completion is the
-        // expensive part of an ascension and this reuse keeps that from being repeated).
+        // Single C1-R1 precompute, shared across every build variant below (a hard requirement,
+        // since K3-H2 completion is the expensive part of an ascension and this reuse keeps that
+        // from being repeated).
         const precomputed = runUntilShift(currentBaseState, currentContext, 'C3');
         const preC3 = {
           actions: precomputed.actions,
