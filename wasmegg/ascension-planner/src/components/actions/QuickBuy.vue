@@ -1,5 +1,5 @@
 <template>
-  <SmartBuyCard title="Quick Buy" note="Quick Buy will never spend gems from your bank.">
+  <SmartBuyCard title="Quick Buy" note="Quick Buy will never spend gems from your bank." :loading="loading">
     <template #icon>
       <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -30,11 +30,12 @@
       </div>
 
       <button
-        :disabled="isInvalid"
-        class="btn-premium btn-primary w-full text-[10px]"
+        :disabled="isInvalid || loading || applying"
+        class="btn-premium btn-primary w-full text-[10px] inline-flex items-center justify-center gap-1.5"
         @click="emit('buy', parsedSeconds)"
       >
-        Buy Now
+        <InlineSpinner v-if="applying" class="w-3 h-3" />
+        {{ applying ? 'Buying…' : 'Buy Now' }}
       </button>
 
       <ResearchPurchasePreview :items="previewItems" empty-text="Nothing to buy right now" />
@@ -51,12 +52,17 @@ import SmartBuyCard from './SmartBuyCard.vue';
 import ResearchPurchasePreview from './ResearchPurchasePreview.vue';
 import RatePreviewDelta from './RatePreviewDelta.vue';
 import SmartBuyStats from './SmartBuyStats.vue';
+import InlineSpinner from '@/components/InlineSpinner.vue';
 import type { ResearchSummaryItem } from '@/calculations/smartBuyPreview';
 
 defineProps<{
   previewItems: ResearchSummaryItem[];
   earningsSummary: { before: number; after: number };
   stats: { purchaseCount: number; seconds: number; gems: number };
+  /** Whether the preview plan above is currently being (re)computed. */
+  loading?: boolean;
+  /** Whether a Buy Now click is still being applied. */
+  applying?: boolean;
 }>();
 
 const emit = defineEmits<{

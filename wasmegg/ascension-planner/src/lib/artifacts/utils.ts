@@ -186,8 +186,14 @@ function longLikeToNumber(value: { low: number; high: number; unsigned: boolean 
  * protobufjs Long instance does NOT survive a JSON round-trip intact (`JSON.stringify` reads its own
  * enumerable `{low,high,unsigned}` properties, same as any plain object, silently dropping
  * `Long.prototype`'s methods on the way back in).
+ *
+ * Exported for `researchCalc.worker.ts` too: a `postMessage`/`structuredClone` boundary hits the
+ * exact same Long-shaped-object problem (confirmed for real against protobufjs Long instances by
+ * the beam search worker this was originally written for — see git history around `ce0be3af`), and
+ * this function's duck-typed check handles either a live `Long` or its already-clone-stripped
+ * `{low,high,unsigned}` equivalent identically, so it's correct on either side of that boundary.
  */
-function sanitizeLongs<T>(value: T): T {
+export function sanitizeLongs<T>(value: T): T {
   if (Array.isArray(value)) {
     return value.map(item => sanitizeLongs(item)) as unknown as T;
   }

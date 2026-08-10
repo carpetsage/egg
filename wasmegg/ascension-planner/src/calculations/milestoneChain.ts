@@ -74,7 +74,7 @@ export interface MilestoneChainItem {
   eventCrossings?: PurchaseEventCrossings;
 }
 
-interface MilestoneChainResult {
+export interface MilestoneChainResult {
   items: MilestoneChainItem[];
   reached: boolean;
   totalSeconds: number;

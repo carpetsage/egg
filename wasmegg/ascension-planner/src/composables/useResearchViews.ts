@@ -30,20 +30,19 @@ import { computeRealisticELR } from '@/calculations/realisticELR';
 import {
   type MilestoneTarget,
   type MilestoneChainItem,
+  type MilestoneChainResult,
   isMilestoneReached,
-  computeResearchMilestoneChain,
-  computeTierMilestoneChain,
   computeMilestoneBaseline,
   computeMilestoneSummaryCore,
 } from '@/calculations/milestoneChain';
 import { type ResearchRankingItem, rankResearchByROI, rankResearchByELRImpact } from '@/calculations/researchRanking';
 import { type PurchaseEventCrossings } from '@/calculations/researchROI';
 import {
-  simulateSaleAwareBuy,
-  simulateSaleEndsBuy,
   summarizeResearchLevelChanges,
+  type SaleAwareBuyPlan,
+  type SaleEndsPlan,
 } from '@/calculations/smartBuyPreview';
-import { yieldForOverlayPaint } from '@/lib/yieldForOverlayPaint';
+import { useResearchCalcWorker } from '@/composables/useResearchCalcWorker';
 import type { SimulationContext } from '@/engine/types';
 import { ei } from 'lib';
 
@@ -227,6 +226,13 @@ export function useResearchViews() {
   const initialStateStore = useInitialStateStore();
   const actionsStore = useActionsStore();
   const virtueStore = useVirtueStore();
+  // Owns the one Web Worker all four heavy research-plan simulations below run on — see
+  // useResearchCalcWorker.ts's doc comment for why (keeps a large computation from tripping
+  // Chrome's main-thread-only "Page Unresponsive" hang detector). `computeThresholdBuy` is unused
+  // here — it's returned below purely so ResearchActions.vue's own `quickBuyPlan` watchEffect can
+  // share this same worker instance instead of spawning a second one.
+  const { computeMilestoneChain, computeSaleAwareBuy, computeSaleEndsBuy, computeThresholdBuy } =
+    useResearchCalcWorker();
 
   const currentView = ref<ViewType>(loadStoredResearchView());
   watch(currentView, v => localStorage.setItem(RESEARCH_VIEW_STORAGE_KEY, v));
@@ -479,17 +485,19 @@ export function useResearchViews() {
     };
   }
 
-  // `computeTierMilestoneChain`/`computeResearchMilestoneChain` are synchronous and can take a
-  // couple of seconds for a large tier-unlock chain. A plain `computed` can't show a loading state
-  // for that: Vue computeds are fully synchronous, so setting a flag right before calling it would
-  // never actually get painted — the flag flip and the freeze both happen within the same tick.
-  // Instead this is a `watchEffect` that captures every reactive dependency it needs SYNCHRONOUSLY
-  // (so Vue's automatic dependency tracking — which only sees reads before the first `await` —
-  // still picks all of them up), flips the loading flag, then yields (see `yieldForOverlayPaint`
-  // below) before running the actual blocking computation, so the browser gets a chance to paint
-  // the loading state first.
+  // `computeTierMilestoneChain`/`computeResearchMilestoneChain` can take a couple of seconds for a
+  // large tier-unlock chain — long enough, run on the main thread, to trip Chrome's "Page
+  // Unresponsive" hang detector (confirmed happening in practice, not just theoretical). Both now
+  // run in a Web Worker instead (`computeMilestoneChain`, from useResearchCalcWorker.ts — see its
+  // doc comment for why that fixes the hang detector specifically, not just the visual freeze). A
+  // plain `computed` still couldn't drive the loading flag below correctly even with the computation
+  // off-thread: Vue computeds are fully synchronous, and `await`ing inside one isn't meaningful —
+  // Vue never awaits a computed getter's return value. So this stays a `watchEffect`, which captures
+  // every reactive dependency it needs SYNCHRONOUSLY (so Vue's automatic dependency tracking — which
+  // only sees reads before the first `await` — still picks all of them up), flips the loading flag,
+  // then `await`s the worker request.
   const isComputingMilestoneChain = ref(false);
-  const milestoneChainResultRef = ref<{ items: MilestoneChainItem[]; reached: boolean; totalSeconds: number }>({
+  const milestoneChainResultRef = ref<MilestoneChainResult>({
     items: [],
     reached: false,
     totalSeconds: 0,
@@ -504,6 +512,16 @@ export function useResearchViews() {
     // that transitional mix has produced nonsensical absolute timestamps and hung the tab.
     if (actionsStore.isPlanInitializing) {
       debugLog('milestoneChain watchEffect: skipped, isPlanInitializing=true');
+      return;
+    }
+
+    // Same reasoning as `saleAwarePlan70`'s watchEffect in the Smart Buy section below: a bulk
+    // purchase mutates `actionsStore.effectiveSnapshot` once per item bought, then again when
+    // recalculateFrom() installs the final recalculated result — without this guard this effect
+    // computes the chain once against the doomed mid-batch intermediate state, then again against
+    // the final one once things settle.
+    if (actionsStore.batchMode || actionsStore.isRecalculating) {
+      debugLog('milestoneChain watchEffect: skipped, batch in progress');
       return;
     }
 
@@ -529,33 +547,30 @@ export function useResearchViews() {
     const offset = actionsStore.planStartOffset;
     const absoluteSimTime = baseTimestamp + (startSnapshot.lastStepTime - offset);
 
+    // No explicit yield needed here (unlike this file's other watchEffects before this one moved to
+    // a worker): `await computeMilestoneChain(...)` below is a genuine postMessage round-trip, so
+    // control already returns to the browser — and the loading flag set just above gets to paint —
+    // before the (now off-main-thread) computation itself even starts.
     isComputingMilestoneChain.value = true;
-    await yieldForOverlayPaint();
 
     debugLogStart('milestoneChain compute', { generation, target, absoluteSimTime });
-    let result: { items: MilestoneChainItem[]; reached: boolean; totalSeconds: number };
+    let result: MilestoneChainResult;
     try {
-      result =
-        target.kind === 'tier'
-          ? computeTierMilestoneChain(target, startSnapshot, context, mods, absoluteSimTime, deadline)
-          : computeResearchMilestoneChain(
-              target,
-              createBaseEngineState(startSnapshot),
-              startSnapshot,
-              context,
-              mods,
-              absoluteSimTime,
-              deadline
-            );
+      result = await computeMilestoneChain({ target, startSnapshot, context, mods, absoluteSimTime, deadline });
     } finally {
       debugLogEnd('milestoneChain compute', { generation });
+      // In this `finally` (not just after a successful compute below) so a thrown error still stops
+      // the milestones panel spinning — even showing a stale chain — rather than leaving it dimmed
+      // forever with nothing left to reset it.
+      if (generation === milestoneChainGeneration) {
+        isComputingMilestoneChain.value = false;
+      }
     }
 
     // Discard if a newer invocation has started since (e.g. the user changed the milestone target
     // again before this one finished) — only the latest result should ever land.
     if (generation === milestoneChainGeneration) {
       milestoneChainResultRef.value = result;
-      isComputingMilestoneChain.value = false;
     } else {
       debugLog('milestoneChain watchEffect: stale, discarding', {
         generation,
@@ -782,23 +797,85 @@ export function useResearchViews() {
   // "what gets bought, in what order" for both the Smart Buy preview and the real button click
   // (see `simulateSaleAwareBuy`'s own doc comment). No `currentView` gate, same rationale as
   // `roiRankedResearches` above.
-  const saleAwarePlan70 = computed(() => {
+  //
+  // Unlike `roiRankedResearches`, this dry-run simulates purchases one at a time (same class of
+  // work as the milestone chain above) and can take a noticeable moment against a large backlog —
+  // long enough on the main thread to trip Chrome's "Page Unresponsive" hang detector (confirmed in
+  // practice). So, same as the milestone chain, this runs in the shared Web Worker
+  // (`computeSaleAwareBuy`, from useResearchCalcWorker.ts) instead of a plain `computed`, with its
+  // own `isComputingSaleAwarePlan` flag so the "Buy Earnings research" card can show a spinner
+  // scoped to just that card while it (re)computes.
+  const isComputingSaleAwarePlan = ref(false);
+  const saleAwarePlan70Ref = ref<SaleAwareBuyPlan>({
+    entries: [],
+    endLevels: {},
+    endSnapshot: actionsStore.effectiveSnapshot,
+  });
+  let saleAwarePlanGeneration = 0;
+
+  watchEffect(async () => {
+    // Same transitional-state guard as the milestone chain watchEffect below, PLUS `batchMode`/
+    // `isRecalculating`: a bulk purchase (Quick Buy, 70% Return, Buy Until Sale Ends, Buy Entire
+    // Chain) pushes one action onto `actionsStore.actions` per item bought, then — once the whole
+    // batch is applied — recalculateFrom() splices the final recalculated result back in. Both are
+    // mutations of the exact array `effectiveSnapshot` (read below) depends on, so without this
+    // guard this effect fires once on the mid-batch intermediate state (already obsolete the moment
+    // recalculation finishes) AND once more on the final state — paying for two full simulated
+    // buy-throughs, of which only the second's result is ever actually used. Waiting for
+    // `batchMode`/`isRecalculating` to clear means only the state that's actually going to stick
+    // ever gets simulated.
+    if (actionsStore.isPlanInitializing || actionsStore.batchMode || actionsStore.isRecalculating) {
+      return;
+    }
+
+    const researchLevels = commonResearchStore.researchLevels;
+    const startSnapshot = actionsStore.effectiveSnapshot;
+    const context = getSimulationContext();
+    const mods = costModifiers.value;
+    const deadline = researchSaleDeadline.value;
+    const saleStart = nextSaleStart.value;
+    const mode = roiMode.value;
+    const deliveryOnly = deliveryImpactOnly.value;
     const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
     const offset = actionsStore.planStartOffset;
-    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
-    return simulateSaleAwareBuy(
-      commonResearchStore.researchLevels,
-      actionsStore.effectiveSnapshot,
-      getSimulationContext(),
-      costModifiers.value,
-      absoluteSimTime,
-      researchSaleDeadline.value,
-      nextSaleStart.value,
-      roiMode.value,
-      deliveryImpactOnly.value,
-      70
-    );
+    const absoluteSimTime = baseTimestamp + (startSnapshot.lastStepTime - offset);
+
+    const generation = ++saleAwarePlanGeneration;
+    // No explicit yield needed: `await computeSaleAwareBuy(...)` below is a genuine postMessage
+    // round-trip to the worker, so control already returns to the browser before the computation
+    // itself starts.
+    isComputingSaleAwarePlan.value = true;
+
+    try {
+      const result = await computeSaleAwareBuy({
+        researchLevels,
+        startSnapshot,
+        context,
+        mods,
+        absoluteSimTime,
+        deadline,
+        nextSaleStart: saleStart,
+        roiMode: mode,
+        deliveryImpactOnly: deliveryOnly,
+        targetPercent: 70,
+      });
+
+      // Discard if a newer invocation has started since — only the latest result should ever land.
+      if (generation === saleAwarePlanGeneration) {
+        saleAwarePlan70Ref.value = result;
+      }
+    } finally {
+      // In a `finally`, not just after a successful assignment above: if the worker request throws
+      // (or rejects — see useResearchCalcWorker.ts's `onerror` handling), the card should stop
+      // spinning (even showing a stale plan) rather than being stuck dimmed forever with no way for
+      // a future run to know it needs to reset this.
+      if (generation === saleAwarePlanGeneration) {
+        isComputingSaleAwarePlan.value = false;
+      }
+    }
   });
+
+  const saleAwarePlan70 = computed(() => saleAwarePlan70Ref.value);
 
   const saleAwarePreview = computed(() =>
     summarizeResearchLevelChanges(commonResearchStore.researchLevels, saleAwarePlan70.value.endLevels)
@@ -806,34 +883,86 @@ export function useResearchViews() {
 
   // Dry-run plan for "Buy Until Sale Ends" — only computed while a sale is actually active, same
   // gating `canBuyUntilSaleDeadline` already applies (there's nothing meaningful to preview
-  // otherwise).
-  const saleEndsPlan = computed(() => {
-    if (!isResearchSaleActive.value) {
-      return {
-        researchIds: [] as string[],
-        earningsResearchIds: [] as string[],
-        deliveryResearchIds: [] as string[],
-        earningsEndLevels: {} as Record<string, number>,
+  // otherwise). Same worker treatment as `saleAwarePlan70` above, for the same reason — its own
+  // `isComputingSaleEndsPlan` flag scopes the spinner to the "Buy Delivery Research" card. The
+  // no-active-sale branch stays a cheap synchronous assignment (nothing to wait on, nothing worth a
+  // worker round-trip for), same as the original computed's early return.
+  const isComputingSaleEndsPlan = ref(false);
+  const saleEndsPlanRef = ref<SaleEndsPlan>({
+    researchIds: [],
+    earningsResearchIds: [],
+    deliveryResearchIds: [],
+    earningsEndLevels: {},
+    earningsEndSnapshot: actionsStore.effectiveSnapshot,
+    endLevels: {},
+    endSnapshot: actionsStore.effectiveSnapshot,
+  });
+  let saleEndsPlanGeneration = 0;
+
+  watchEffect(async () => {
+    // Same reasoning as `saleAwarePlan70`'s watchEffect above — wait for a bulk purchase's
+    // intermediate mid-batch state to settle rather than simulating it too.
+    if (actionsStore.isPlanInitializing || actionsStore.batchMode || actionsStore.isRecalculating) {
+      return;
+    }
+
+    const isSaleActive = isResearchSaleActive.value;
+    const generation = ++saleEndsPlanGeneration;
+
+    if (!isSaleActive) {
+      saleEndsPlanRef.value = {
+        researchIds: [],
+        earningsResearchIds: [],
+        deliveryResearchIds: [],
+        earningsEndLevels: {},
         earningsEndSnapshot: actionsStore.effectiveSnapshot,
-        endLevels: {} as Record<string, number>,
+        endLevels: {},
         endSnapshot: actionsStore.effectiveSnapshot,
       };
+      isComputingSaleEndsPlan.value = false;
+      return;
     }
+
+    const researchLevels = commonResearchStore.researchLevels;
+    const startSnapshot = actionsStore.effectiveSnapshot;
+    const context = getSimulationContext();
+    const mods = costModifiers.value;
+    const deadline = researchSaleDeadline.value;
+    const mode = elrViewMode.value;
+    const sort = elrSortMode.value;
+    const rawBackup = initialStateStore.rawBackup;
     const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
     const offset = actionsStore.planStartOffset;
-    const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
-    return simulateSaleEndsBuy(
-      commonResearchStore.researchLevels,
-      actionsStore.effectiveSnapshot,
-      getSimulationContext(),
-      costModifiers.value,
-      absoluteSimTime,
-      researchSaleDeadline.value,
-      elrViewMode.value,
-      elrSortMode.value,
-      initialStateStore.rawBackup
-    );
+    const absoluteSimTime = baseTimestamp + (startSnapshot.lastStepTime - offset);
+
+    // No explicit yield needed — see `saleAwarePlan70`'s watchEffect above.
+    isComputingSaleEndsPlan.value = true;
+
+    try {
+      const result = await computeSaleEndsBuy({
+        researchLevels,
+        startSnapshot,
+        context,
+        mods,
+        absoluteSimTime,
+        deadline,
+        elrViewMode: mode,
+        elrSortMode: sort,
+        rawBackup,
+      });
+
+      if (generation === saleEndsPlanGeneration) {
+        saleEndsPlanRef.value = result;
+      }
+    } finally {
+      // See `saleAwarePlan70`'s watchEffect above for why this is in a `finally`.
+      if (generation === saleEndsPlanGeneration) {
+        isComputingSaleEndsPlan.value = false;
+      }
+    }
   });
+
+  const saleEndsPlan = computed(() => saleEndsPlanRef.value);
 
   // Split into two summaries instead of one combined diff, so the UI can label the earnings-prelude
   // purchases (bought purely to speed up the delivery research that follows) separately from the
@@ -1138,9 +1267,11 @@ export function useResearchViews() {
     roiRankedResearches,
     elrRankedResearches,
     saleAwarePlan70,
+    isComputingSaleAwarePlan,
     saleAwarePreview,
     saleAwareStats70,
     saleEndsPlan,
+    isComputingSaleEndsPlan,
     saleEndsPreview,
     saleEndsEarningsPreview,
     saleEndsEarningsSummary,
@@ -1150,6 +1281,10 @@ export function useResearchViews() {
     realisticSummary,
     researchSaleDeadline,
     nextSaleStart,
+    // Not used within this composable — returned so ResearchActions.vue's own `quickBuyPlan`
+    // watchEffect can share this composable's one Web Worker instance (see
+    // useResearchCalcWorker.ts's doc comment) instead of spawning a second one.
+    computeThresholdBuy,
     TIER_THRESHOLDS: TIER_UNLOCK_THRESHOLDS,
   };
 }
