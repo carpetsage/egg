@@ -310,7 +310,6 @@ import {
   type SaleAwarePlanEntry,
   type SimpleBuyPlan,
 } from '@/calculations/smartBuyPreview';
-import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
 import { yieldForOverlayPaint } from '@/lib/yieldForOverlayPaint';
 import InlineSpinner from '@/components/InlineSpinner.vue';
 
@@ -703,20 +702,6 @@ function syncEventStateForItem(item: { research: CommonResearch }) {
   );
   const crossings = findEventCrossings(absoluteSimTime, purchase.waitSeconds, isSaleActive, isBoostActive);
 
-  debugLog('syncEventStateForItem', {
-    researchId: item.research.id,
-    level,
-    absoluteSimTime,
-    absoluteSimTimeIso: new Date(absoluteSimTime * 1000).toISOString(),
-    isSaleActive,
-    isBoostActive,
-    purchasePrice: purchase.price,
-    purchaseWaitSeconds: purchase.waitSeconds,
-    purchaseDuringSale: purchase.duringSale,
-    saleCrossings: crossings.sale.map(c => ({ waitSeconds: c.waitSeconds, togglesTo: c.togglesTo })),
-    boostCrossings: crossings.boost.map(c => ({ waitSeconds: c.waitSeconds, togglesTo: c.togglesTo })),
-  });
-
   insertEventCrossingWaits(absoluteSimTime, crossings, beforeSnapshot);
 }
 
@@ -794,17 +779,6 @@ function advanceToDeadline(targetDeadline: number) {
   const isBoostActive = beforeSnapshot.earningsBoost.active;
   const crossings = findEventCrossings(absoluteSimTime, waitSeconds, isSaleActive, isBoostActive);
 
-  debugLog('advanceToDeadline', {
-    absoluteSimTime,
-    absoluteSimTimeIso: new Date(absoluteSimTime * 1000).toISOString(),
-    targetDeadline,
-    targetDeadlineIso: new Date(targetDeadline * 1000).toISOString(),
-    isSaleActive,
-    isBoostActive,
-    saleCrossings: crossings.sale.map(c => ({ waitSeconds: c.waitSeconds, togglesTo: c.togglesTo })),
-    boostCrossings: crossings.boost.map(c => ({ waitSeconds: c.waitSeconds, togglesTo: c.togglesTo })),
-  });
-
   const { snapshot: afterSnapshot, cursor } = insertEventCrossingWaits(absoluteSimTime, crossings, beforeSnapshot);
 
   // Any stretch after the last crossing (or the whole window, if there were none at all — e.g. no
@@ -845,79 +819,6 @@ const nextRoiCandidate = computed(() =>
 );
 
 const canBuyUntilSaleWarning = computed(() => !!nextRoiCandidate.value);
-
-// Diagnostic: logs the top of the ROI-ranked list whenever it changes, so the sale-warning
-// calculation for whatever's currently ranked #1 can be inspected without needing to click a Buy
-// button (e.g. after an undo, to check whether the warning that should show for the new top item
-// actually does). The watch source only reads `roiRankedResearches.value` while on the `roi` or
-// `smart_buy` tab — since that computed no longer gates itself on `currentView` (see
-// `roiRankedResearches`'s doc comment in useResearchViews.ts), this local check is what keeps the
-// ROI ranking from being force-recomputed on every relevant store change while on an unrelated tab.
-watch(
-  () => (currentView.value === 'roi' || currentView.value === 'smart_buy' ? roiRankedResearches.value : null),
-  list => {
-    if (!list || list.length === 0) return;
-    const top = list[0];
-    debugLog('roiRankedResearches top (roi/smart_buy view)', {
-      researchId: top.research.id,
-      researchName: top.research.name,
-      targetLevel: top.targetLevel,
-      price: top.price,
-      timeToBuySeconds: top.timeToBuySeconds,
-      roiSeconds: top.roiSeconds,
-      totalRoiSeconds: top.totalRoiSeconds,
-      earningsDelta: top.earningsDelta,
-      duringSale: top.duringSale,
-      showSaleWarning: top.showSaleWarning,
-      purchaseTimestamp: top.purchaseTimestamp,
-      purchaseTimestampIso:
-        top.purchaseTimestamp !== undefined ? new Date(top.purchaseTimestamp * 1000).toISOString() : undefined,
-      nextSaleStart: nextSaleStart.value,
-      nextSaleStartIso: isFinite(nextSaleStart.value) ? new Date(nextSaleStart.value * 1000).toISOString() : 'Infinity',
-      researchSaleDeadline: researchSaleDeadline.value,
-      researchSaleDeadlineIso: isFinite(researchSaleDeadline.value)
-        ? new Date(researchSaleDeadline.value * 1000).toISOString()
-        : 'Infinity',
-      roiMode: roiMode.value,
-    });
-  },
-  { immediate: true }
-);
-
-// Diagnostic: exposes the top-of-list sale-warning inputs directly to the browser console, on
-// demand, bypassing the debugLog buffer entirely (avoids confusion from stale/leftover entries in
-// that buffer from earlier runs). Call `__debugResearchTop()` in devtools console while the ROI
-// or Smart Buy view is open.
-(window as unknown as { __debugResearchTop?: () => void }).__debugResearchTop = () => {
-  const top = roiRankedResearches.value[0];
-  if (!top) {
-    console.log('[debug] roiRankedResearches is empty');
-    return;
-  }
-  console.log('[debug] top ROI candidate', {
-    researchId: top.research.id,
-    researchName: top.research.name,
-    targetLevel: top.targetLevel,
-    price: top.price,
-    timeToBuySeconds: top.timeToBuySeconds,
-    roiSeconds: top.roiSeconds,
-    totalRoiSeconds: top.totalRoiSeconds,
-    earningsDelta: top.earningsDelta,
-    duringSale: top.duringSale,
-    showSaleWarning: top.showSaleWarning,
-    purchaseTimestamp: top.purchaseTimestamp,
-    purchaseTimestampIso:
-      top.purchaseTimestamp !== undefined ? new Date(top.purchaseTimestamp * 1000).toISOString() : undefined,
-    nextSaleStart: nextSaleStart.value,
-    nextSaleStartIso: isFinite(nextSaleStart.value) ? new Date(nextSaleStart.value * 1000).toISOString() : 'Infinity',
-    researchSaleDeadline: researchSaleDeadline.value,
-    researchSaleDeadlineIso: isFinite(researchSaleDeadline.value)
-      ? new Date(researchSaleDeadline.value * 1000).toISOString()
-      : 'Infinity',
-    roiMode: roiMode.value,
-    currentView: currentView.value,
-  });
-};
 
 // Action types `syncEventStateForItem`/`insertEventCrossingWaits` insert immediately ahead of a
 // purchase (wait+toggle pairs, one pair per sale/boost crossing the purchase's own wait passes
@@ -983,7 +884,7 @@ function findBypassEventCrossingIds(actionId: string): string[] {
 // comes from the plan; buying still goes through the real `syncEventStateForItem`/`buyOneLevel`
 // (inserting real wait/toggle/purchase history) and the same post-hoc bypass-cleanup sweep as
 // before (see `buyUntilRealSaleStarts`'s doc comment in researchRanking.ts for the full
-// rationale). `label` is used to tag this run's entries in the debug log.
+// rationale).
 //
 // The deadline is captured ONCE, up front, rather than re-derived from "is a sale active right
 // now" each iteration: if the button is clicked while a DIFFERENT sale is already active,
@@ -991,16 +892,9 @@ function findBypassEventCrossingIds(actionId: string): string[] {
 // its input), to the sale that's actually 6-7 days out — so buying should proceed through the
 // currently-active sale (at whatever its real price is) toward THAT target, not bail out
 // immediately just because some sale happens to be live already.
-async function runSaleAwareBuyFlow(label: string, plan: SaleAwarePlanEntry[]) {
+async function runSaleAwareBuyFlow(plan: SaleAwarePlanEntry[]) {
   const startAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
   const targetDeadline = nextSaleStart.value;
-  debugLogStart(label, {
-    startAbsoluteTime,
-    startAbsoluteTimeIso: new Date(startAbsoluteTime * 1000).toISOString(),
-    targetDeadline,
-    targetDeadlineIso: isFinite(targetDeadline) ? new Date(targetDeadline * 1000).toISOString() : 'Infinity',
-    planLength: plan.length,
-  });
 
   let result: { purchased: number; duringSalePurchases: { actionId: string; purchaseTimestamp: number }[] } = {
     purchased: 0,
@@ -1034,28 +928,7 @@ async function runSaleAwareBuyFlow(label: string, plan: SaleAwarePlanEntry[]) {
     }
 
     result = buyUntilRealSaleStarts(
-      () => {
-        // This closure is only ever invoked when buyUntilRealSaleStarts's own `shouldStop()`
-        // check (same targetDeadline comparison, evaluated just before this) already passed —
-        // so if the log for this iteration is missing entirely, the run stopped due to the
-        // deadline; if it's present but the plan ran dry, the precomputed plan simply had
-        // nothing left (it already accounted for the deadline itself when it was built).
-        const next = plan[index];
-        const currentAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
-        debugLog(`${label} candidate`, {
-          iteration: index + 1,
-          currentAbsoluteTime,
-          currentAbsoluteTimeIso: new Date(currentAbsoluteTime * 1000).toISOString(),
-          targetDeadline,
-          targetDeadlineIso: isFinite(targetDeadline) ? new Date(targetDeadline * 1000).toISOString() : 'Infinity',
-          researchId: next?.researchId,
-          purchaseTimestamp: next?.purchaseTimestamp,
-          purchaseTimestampIso:
-            next?.purchaseTimestamp !== undefined ? new Date(next.purchaseTimestamp * 1000).toISOString() : undefined,
-          duringSale: next?.duringSale,
-        });
-        return next;
-      },
+      () => plan[index],
       researchId => {
         const next = plan[index];
         index++;
@@ -1075,7 +948,6 @@ async function runSaleAwareBuyFlow(label: string, plan: SaleAwarePlanEntry[]) {
   const toRemove = result.duringSalePurchases.filter(p => p.purchaseTimestamp >= targetDeadline);
   for (const { actionId } of toRemove.reverse()) {
     const bypassWaitIds = findBypassEventCrossingIds(actionId);
-    debugLog(`${label} cleanup: removing duringSale purchase`, { actionId, bypassWaitIds });
     if (bypassWaitIds.length > 0) {
       await actionsStore.removeActions([actionId, ...bypassWaitIds]);
     } else {
@@ -1087,16 +959,6 @@ async function runSaleAwareBuyFlow(label: string, plan: SaleAwarePlanEntry[]) {
   // candidates ran out rather than because targetDeadline was actually reached, carry the clock
   // (and any sale/boost toggles due along the way) the rest of the way there on its own.
   advanceToDeadline(targetDeadline);
-
-  const endAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
-  debugLogEnd(label, {
-    iterations: result.purchased,
-    removedDuringSalePurchases: toRemove.length,
-    endAbsoluteTime,
-    endAbsoluteTimeIso: new Date(endAbsoluteTime * 1000).toISOString(),
-    totalSecondsAdded: endAbsoluteTime - startAbsoluteTime,
-    totalDaysAdded: (endAbsoluteTime - startAbsoluteTime) / 86400,
-  });
 }
 
 // Executes the precomputed 70%-return plan (`saleAwarePlan70` — same plan the preview under the
@@ -1107,7 +969,7 @@ async function handleBuyUntilSaleWarning() {
   // the tab.
   await yieldForOverlayPaint();
   try {
-    await runSaleAwareBuyFlow('handleBuyUntilSaleWarning', saleAwarePlan70.value.entries);
+    await runSaleAwareBuyFlow(saleAwarePlan70.value.entries);
   } finally {
     isApplyingSaleAwareBuy.value = false;
   }

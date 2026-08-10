@@ -19,7 +19,6 @@ import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, getTimeToSave } from '@/engine/apply';
 import { calculateShippingCapacity } from '@/calculations/shippingCapacity';
 import { getNextPacificTime, isResearchSaleActive as isRealSaleActiveAt } from '@/lib/events';
-import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
 import { type CalculationsSnapshot } from '@/types';
 import { getOptimalELRSet } from '@/lib/artifacts/virtue';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
@@ -281,9 +280,6 @@ export function useResearchViews() {
     () => actionsStore.isPlanInitializing,
     initializing => {
       if (initializing && milestoneTarget.value !== null) {
-        debugLog('useResearchViews: clearing stale milestoneTarget on mode-init', {
-          staleTarget: milestoneTarget.value,
-        });
         milestoneTarget.value = null;
       }
     }
@@ -522,7 +518,6 @@ export function useResearchViews() {
     // actionsStore still holds the previous plan's snapshot) — computing a milestone chain against
     // that transitional mix has produced nonsensical absolute timestamps and hung the tab.
     if (actionsStore.isPlanInitializing) {
-      debugLog('milestoneChain watchEffect: skipped, isPlanInitializing=true');
       return;
     }
 
@@ -532,13 +527,11 @@ export function useResearchViews() {
     // computes the chain once against the doomed mid-batch intermediate state, then again against
     // the final one once things settle.
     if (actionsStore.batchMode || actionsStore.isRecalculating) {
-      debugLog('milestoneChain watchEffect: skipped, batch in progress');
       return;
     }
 
     const target = milestoneTarget.value;
     const generation = ++milestoneChainGeneration;
-    debugLog('milestoneChain watchEffect: fired', { generation, target });
 
     if (!target) {
       milestoneChainResultRef.value = { items: [], reached: false, totalSeconds: 0 };
@@ -564,12 +557,10 @@ export function useResearchViews() {
     // before the (now off-main-thread) computation itself even starts.
     isComputingMilestoneChain.value = true;
 
-    debugLogStart('milestoneChain compute', { generation, target, absoluteSimTime });
     let result: MilestoneChainResult;
     try {
       result = await computeMilestoneChain({ target, startSnapshot, context, mods, absoluteSimTime, deadline });
     } finally {
-      debugLogEnd('milestoneChain compute', { generation });
       // In this `finally` (not just after a successful compute below) so a thrown error still stops
       // the milestones panel spinning — even showing a stale chain — rather than leaving it dimmed
       // forever with nothing left to reset it.
@@ -582,11 +573,6 @@ export function useResearchViews() {
     // again before this one finished) — only the latest result should ever land.
     if (generation === milestoneChainGeneration) {
       milestoneChainResultRef.value = result;
-    } else {
-      debugLog('milestoneChain watchEffect: stale, discarding', {
-        generation,
-        currentGeneration: milestoneChainGeneration,
-      });
     }
   });
 

@@ -108,28 +108,6 @@
           <img :src="iconURL('egginc/icon_gift.png', 64)" class="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" alt="Donate" />
         </button>
 
-        <!-- Diagnostic Report Button: only on localhost / the staging deploy, for reporting bugs -->
-        <button
-          v-if="showTestingTools"
-          class="btn-icon-premium"
-          v-tippy="copyState === 'copied' ? 'Copied!' : 'Copy Diagnostic Report (bug reports)'"
-          @click="handleCopyDiagnostics"
-        >
-          <svg
-            class="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-            <rect x="9" y="3" width="6" height="4" rx="1" />
-            <path d="M9 12l2 2 4-4" />
-          </svg>
-        </button>
-
         <!-- Force Refresh Button: only on localhost / the staging deploy, for testers who need the
              latest build (clears any service worker + Cache Storage entries, then reloads with a
              cache-busting URL). Doesn't touch localStorage/IndexedDB, so saved plans are untouched. -->
@@ -231,45 +209,11 @@
 
     <!-- TE Modal -->
     <TeBreakdownModal :show="showTeModal" :stats="teStatsList" @close="showTeModal = false" />
-
-    <!-- Diagnostic Report fallback: only shown if the clipboard write itself failed -->
-    <Teleport to="body">
-      <div v-if="showRawText" class="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-all" @click="showRawText = false" />
-        <div
-          class="card-glass relative w-full max-w-md overflow-hidden shadow-2xl rounded-2xl border border-white/50 bg-white/95 transition-all duration-300 animate-in fade-in zoom-in-95"
-        >
-          <div class="bg-gradient-to-r from-slate-50 to-white px-6 py-4 border-b border-slate-100">
-            <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Diagnostic Report</h3>
-          </div>
-          <div class="p-6 space-y-3">
-            <p class="text-xs text-slate-500 leading-snug">
-              Couldn't copy automatically — tap the box below, select all, then copy.
-            </p>
-            <textarea
-              ref="rawTextArea"
-              readonly
-              class="w-full h-40 text-[10px] font-mono p-2 border border-slate-200 rounded-lg bg-slate-50"
-              :value="diagnosticText"
-              @focus="($event.target as HTMLTextAreaElement).select()"
-            />
-            <div class="flex justify-end">
-              <button
-                class="px-8 py-2 text-xs font-black uppercase tracking-widest bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors rounded-xl font-mono-premium"
-                @click="showRawText = false"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue';
+import { computed, ref } from 'vue';
 import { useActionsStore } from '@/stores/actions';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
@@ -279,7 +223,6 @@ import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { formatNumber } from '@/lib/format';
 import { iconURL } from 'lib';
 import TeBreakdownModal from '@/components/TeBreakdownModal.vue';
-import { useCopyDiagnosticReport } from '@/composables/useCopyDiagnosticReport';
 
 const actionsStore = useActionsStore();
 const initialStateStore = useInitialStateStore();
@@ -302,17 +245,6 @@ const showTestingTools =
   (window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||
     window.location.hostname === 'ascension-planner--wasmegg-carpet.netlify.app');
-
-const { copyState, showRawText, diagnosticText, copyDiagnostics } = useCopyDiagnosticReport();
-const rawTextArea = ref<HTMLTextAreaElement | null>(null);
-
-async function handleCopyDiagnostics() {
-  await copyDiagnostics();
-  if (showRawText.value) {
-    await nextTick();
-    rawTextArea.value?.focus();
-  }
-}
 
 /**
  * Clears any service worker registrations and Cache Storage entries, then reloads with a

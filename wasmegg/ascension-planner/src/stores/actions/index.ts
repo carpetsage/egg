@@ -30,7 +30,6 @@ import { simulateAsync } from '@/engine/simulate';
 import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState, syncStoresToSnapshot } from '@/engine/adapter';
 import { computeDependencies } from '@/lib/actions/executor';
-import { debugLog, debugLogStart, debugLogEnd } from '@/lib/debugLog';
 
 import { ActionsState } from './types';
 import { createDefaultStartAction, calculateActionResult } from './simulation';
@@ -187,38 +186,33 @@ export const useActionsStore = defineStore('actions', {
 
   actions: {
     async setInitialSnapshot(snapshot: CalculationsSnapshot, options?: { silent?: boolean }) {
-      debugLogStart('setInitialSnapshot', { silent: options?.silent });
-      try {
-        this._initialSnapshot = snapshot;
-        if (options?.silent) {
-          this.isPlanInitializing = false;
-          return;
-        }
-
-        if (this.actions.length === 0) {
-          const startAction = createDefaultStartAction();
-          this.actions.push(startAction);
-          this.expandedGroupIds.add(startAction.id);
-        }
-
-        // Add default Wait for Full Habs for fresh start (no backup data/quick continue)
-        const startAction = this.getStartAction();
-        if (
-          this.actions.length === 1 &&
-          startAction &&
-          !startAction.payload.initialFarmState &&
-          !startAction.payload.isQuickContinue &&
-          !this.batchMode
-        ) {
-          this.pushWaitForFullHabsAction();
-        }
-
-        await this.recalculateFrom(0);
-        this.lastSavedActionsJson = JSON.stringify(this.actions);
+      this._initialSnapshot = snapshot;
+      if (options?.silent) {
         this.isPlanInitializing = false;
-      } finally {
-        debugLogEnd('setInitialSnapshot');
+        return;
       }
+
+      if (this.actions.length === 0) {
+        const startAction = createDefaultStartAction();
+        this.actions.push(startAction);
+        this.expandedGroupIds.add(startAction.id);
+      }
+
+      // Add default Wait for Full Habs for fresh start (no backup data/quick continue)
+      const startAction = this.getStartAction();
+      if (
+        this.actions.length === 1 &&
+        startAction &&
+        !startAction.payload.initialFarmState &&
+        !startAction.payload.isQuickContinue &&
+        !this.batchMode
+      ) {
+        this.pushWaitForFullHabsAction();
+      }
+
+      await this.recalculateFrom(0);
+      this.lastSavedActionsJson = JSON.stringify(this.actions);
+      this.isPlanInitializing = false;
     },
 
     pushWaitForFullHabsAction() {
@@ -655,12 +649,10 @@ export const useActionsStore = defineStore('actions', {
       startIndex = Math.max(0, startIndex);
       if (this.isRecalculating) {
         this.pendingRecalculate = true;
-        debugLog('recalculateFrom: already recalculating, deferring', { startIndex });
         return;
       }
       this.isRecalculating = true;
       this.pendingRecalculate = false;
-      debugLogStart('recalculateFrom', { startIndex, actionsLength: this.actions.length });
       try {
         const context = getSimulationContext();
         const baseState =
@@ -680,7 +672,6 @@ export const useActionsStore = defineStore('actions', {
         this.relinkDependencies();
         syncStoresToSnapshot(this.effectiveSnapshot);
       } finally {
-        debugLogEnd('recalculateFrom', { startIndex });
         this.isRecalculating = false;
         this.batchMode = false;
         this.minBatchIndex = Infinity;

@@ -23,7 +23,7 @@
       </div>
 
       <!-- Peak ELR row. Minimal/unstyled list of whatever variants are present — visual layout for
-           up to 7 variants is deferred to a later pass (VARIANT_MATRIX_AND_UI.md Phase 4d). -->
+           up to 7 variants is deferred to a later pass. -->
       <div class="flex items-center gap-3 mb-4 px-1 flex-wrap">
         <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Peak Delivery Rate</span>
         <template v-for="(entry, i) in presentVariants" :key="entry.key">

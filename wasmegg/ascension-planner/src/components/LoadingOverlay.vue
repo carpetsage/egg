@@ -25,90 +25,21 @@
         <h3 class="text-xl font-black text-gray-900 tracking-tight">{{ title }}</h3>
         <p class="text-sm font-bold text-gray-500 leading-snug">{{ message }}</p>
       </div>
-
-      <!-- Stuck helper: only appears if `show` has stayed true past a threshold, so a non-technical
-           user with no console access has a way to hand over diagnostic info. -->
-      <div v-if="stuckHelperVisible" class="w-full pt-3 mt-1 border-t border-gray-100 space-y-3">
-        <p class="text-xs text-gray-500 text-center leading-snug">
-          This is taking longer than expected. If you're reporting this issue, tap below to copy a diagnostic report you
-          can paste into your message.
-        </p>
-        <button
-          class="btn-premium w-full text-sm py-2"
-          :class="copyState === 'copied' ? 'bg-green-500 text-white' : 'bg-gray-800 text-white hover:bg-gray-900'"
-          @click="copyDiagnostics"
-        >
-          {{ copyState === 'copied' ? 'Copied!' : 'Copy Diagnostic Report' }}
-        </button>
-        <div v-if="showRawText" class="space-y-1">
-          <p class="text-[11px] text-gray-500 text-center">
-            Couldn't copy automatically — tap the box below, select all, then copy.
-          </p>
-          <textarea
-            ref="rawTextArea"
-            readonly
-            class="w-full h-24 text-[10px] font-mono p-2 border border-gray-200 rounded-lg bg-gray-50"
-            :value="diagnosticText"
-            @focus="($event.target as HTMLTextAreaElement).select()"
-          />
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
-import { useCopyDiagnosticReport } from '@/composables/useCopyDiagnosticReport';
-
-const props = withDefaults(
+withDefaults(
   defineProps<{
     show: boolean;
     title?: string;
     message?: string;
-    // How long `show` must stay true before the diagnostic-copy helper appears. Kept configurable
-    // (rather than hardcoded) since different overlays have different "this is normal" durations —
-    // a milestone recompute might reasonably take a couple seconds, so the threshold there should
-    // be longer than for something expected to be near-instant.
-    stuckAfterMs?: number;
   }>(),
   {
     title: 'Optimizing Your Plan',
     message:
       'Simulating research sales and 2x earnings windows across thousands of purchase orders to chart your fastest path...',
-    stuckAfterMs: 6000,
   }
 );
-
-const stuckHelperVisible = ref(false);
-const rawTextArea = ref<HTMLTextAreaElement | null>(null);
-let stuckTimer: ReturnType<typeof setTimeout> | null = null;
-
-const { copyState, showRawText, diagnosticText, copyDiagnostics: copyDiagnosticsBase } = useCopyDiagnosticReport();
-
-watch(
-  () => props.show,
-  show => {
-    if (show) {
-      stuckTimer = setTimeout(() => {
-        stuckHelperVisible.value = true;
-      }, props.stuckAfterMs);
-    } else {
-      if (stuckTimer) clearTimeout(stuckTimer);
-      stuckTimer = null;
-      stuckHelperVisible.value = false;
-      copyState.value = 'idle';
-      showRawText.value = false;
-    }
-  },
-  { immediate: true }
-);
-
-async function copyDiagnostics() {
-  await copyDiagnosticsBase();
-  if (showRawText.value) {
-    await nextTick();
-    rawTextArea.value?.focus();
-  }
-}
 </script>
