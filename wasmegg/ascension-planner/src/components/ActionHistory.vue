@@ -20,6 +20,7 @@
         <ActionHistoryItem
           v-if="item.type === 'single'"
           :action="item.action"
+          :compact="compactActionHistory"
           @undo="handleUndoRequest(item.action, $event)"
         />
 
@@ -34,6 +35,7 @@
           :visit-count="item.visitCount"
           :is-editing="actionsStore.editingGroupId === item.headerAction.id"
           :is-current="item.isCurrent"
+          :compact="compactActionHistory"
           @undo="handleUndoRequest"
           @start-editing="handleStartEditing"
           @stop-editing="handleStopEditing"
@@ -59,6 +61,7 @@ import type { Action, StoreFuelPayload, WaitForTEPayload, LaunchMissionsPayload 
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
 import { formatNumber, formatGemPrice } from '@/lib/format';
+import { compactActionHistory } from '@/composables/useCompactActionHistory';
 import ActionHistoryItem from './ActionHistoryItem.vue';
 import ActionGroup from './ActionGroup.vue';
 

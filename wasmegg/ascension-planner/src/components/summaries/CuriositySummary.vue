@@ -1,6 +1,9 @@
 <template>
-  <div class="px-5 py-4 bg-slate-50/30 border-t border-slate-100/50">
-    <div class="flex items-center justify-between mb-4">
+  <div
+    class="border-t border-slate-100/50"
+    :class="[compact ? 'px-3 py-2' : 'px-5 py-4', hideHeader ? 'bg-amber-50/40' : 'bg-slate-50/30']"
+  >
+    <div v-if="!hideHeader" class="flex items-center justify-between" :class="compact ? 'mb-2' : 'mb-4'">
       <div class="flex items-center gap-2">
         <div
           class="w-5 h-5 rounded-lg bg-amber-50 border border-amber-100 shadow-sm flex items-center justify-center p-1"
@@ -44,7 +47,7 @@
       </div>
     </div>
 
-    <div v-if="summaryItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div v-if="summaryItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2" :class="compact ? 'gap-1.5' : 'gap-3'">
       <div v-for="(item, index) in summaryItems" :key="index" class="flex items-center gap-2.5">
         <template v-if="item.isPremium">
           <span
@@ -78,8 +81,14 @@
         </template>
       </div>
     </div>
-    <div v-else class="flex flex-col items-center py-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-100">
-      <span class="text-[11px] text-slate-400 italic font-medium">No research purchased in this shift</span>
+    <div
+      v-else
+      class="flex flex-col items-center bg-slate-50/50 rounded-xl border border-dashed border-slate-100"
+      :class="compact ? 'py-2' : 'py-4'"
+    >
+      <span class="text-[11px] text-slate-400 italic font-medium"
+        >No research purchased in this {{ hideHeader ? 'date range' : 'shift' }}</span
+      >
     </div>
   </div>
 </template>
@@ -96,6 +105,8 @@ import { useActionsStore } from '@/stores/actions';
 const props = defineProps<{
   headerAction: Action;
   actions: Action[];
+  compact?: boolean;
+  hideHeader?: boolean;
 }>();
 
 const actionsStore = useActionsStore();
