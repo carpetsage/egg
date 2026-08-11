@@ -21,7 +21,7 @@ import { ei } from 'lib';
 // function is also invoked by the manual planner's live "Buy Until Sale Warning" button, not just
 // the milestone chain. Remove once the milestone-chain investigation this was added for is
 // resolved.
-const DEBUG_SALE_AWARE_BUY = false;
+const DEBUG_SALE_AWARE_BUY = true;
 
 /**
  * Safety-net cap shared by every dry run below — protects against a runaway loop, not a real

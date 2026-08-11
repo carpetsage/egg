@@ -265,21 +265,33 @@ function walkEventCrossings(
 /**
  * Whether a purchase modeled as completing "during a sale" (`modeledDuringSale` — e.g.
  * `getSaleAwareTimeToSave`'s `duringSale`, which is only ever as fresh as whichever `isSaleActive`
- * snapshot flag the caller happened to pass in) is *actually* landing inside a real calendar sale
- * window at `completesAt`. That snapshot flag only changes when an explicit `toggle_sale` action
- * flips it, and nothing re-derives it against the calendar the way `boostTransitionsFrom` does for
- * `earningsBoost.active` — so it can go stale (stay `true` long after the real sale ended) without
+ * snapshot flag the caller happened to pass in) is *actually* landing inside the sale window
+ * `nextSaleStart` refers to — either that upcoming sale itself, or one already active right now that
+ * hasn't ended yet (being mid-sale already makes `nextSaleStart` point a full cycle further out —
+ * see `getSaleAwareTimeToSave`'s "already in a sale" branch — so `completesAt` can legitimately land
+ * before `nextSaleStart` and still be genuinely mid-sale).
+ *
+ * Deliberately NOT "is `completesAt` inside *some* real sale, whichever one that happens to be": an
+ * expensive purchase can decide it's faster to save toward a discount several sale cycles out
+ * (`getSaleAwareTimeToSave`'s `earliestSaleTimeAfterSaving` checks every future occurrence, not just
+ * the next one) — that purchase is still genuinely priced at a real, future sale discount, but it
+ * does NOT clear "70% ROI by the *next* sale," and treating "lands in some sale eventually" as
+ * equivalent to "lands in the very next one" silently suppressed `showSaleWarning` for it. Confirmed
+ * in practice: a research needing 28 days to save for showed no warning at all, because its own save
+ * time happened to land inside a sale several weeks out — clearing "is this a real sale" while
+ * failing the actual question this warning answers ("is next week's sale, specifically, achievable
+ * for this purchase"). Bounding `completesAt` to before `getNextSaleEnd(nextSaleStart)` — the end of
+ * the very next sale window — rules out that far-future case while still accepting both legitimate
+ * ones above.
+ *
+ * Also guards against the same staleness problem the snapshot flag has always had: nothing
+ * re-derives `activeSales.research` against the calendar the way `boostTransitionsFrom` does for
+ * `earningsBoost.active`, so it can go stale (stay `true` long after the real sale ended) without
  * anything noticing, if whichever purchase happened to be evaluated while it drifted didn't itself
- * straddle the real end boundary. A warning-suppression check that trusts a stale `true` here
- * unconditionally waives the "will this pay off before the real next sale" warning for every
- * candidate, however long its actual wait — which is exactly how `showSaleWarning`/
- * `showDeadlineWarning` below (and their `researchRanking.ts` equivalents) previously let
- * `handleBuyUntilSaleWarning` buy through arbitrarily slow research unchecked. Re-verifying against
- * calendar truth here closes that gap without touching the price actually charged (which is allowed
- * to keep following the plan's own modeled/manually-toggled sale state).
+ * straddle the real end boundary.
  */
-export function isActuallyDuringSale(modeledDuringSale: boolean, completesAt: number): boolean {
-  return modeledDuringSale && isResearchSaleActive(completesAt);
+export function isActuallyDuringSale(modeledDuringSale: boolean, completesAt: number, nextSaleStart: number): boolean {
+  return modeledDuringSale && isResearchSaleActive(completesAt) && completesAt < getNextSaleEnd(nextSaleStart);
 }
 
 /**
@@ -340,7 +352,7 @@ export function meetsSaleAwareDeadline(
 ): boolean {
   if (!item.canBuy || item.isMaxed) return false;
   if (item.earningsDelta === undefined || item.purchaseTimestamp === undefined) return false;
-  if (isActuallyDuringSale(item.duringSale ?? false, item.purchaseTimestamp)) return true;
+  if (isActuallyDuringSale(item.duringSale ?? false, item.purchaseTimestamp, nextSaleStart)) return true;
   return meetsROIByDeadline(item.earningsDelta, item.price, item.purchaseTimestamp, nextSaleStart, targetPercent);
 }
 
@@ -441,7 +453,7 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
   // reflect a stale `isSaleActive` snapshot flag rather than calendar truth) — there's nothing left
   // to warn about, the price/wait above already account for it.
   const showSaleWarning =
-    !isActuallyDuringSale(purchase.duringSale, completesAt) &&
+    !isActuallyDuringSale(purchase.duringSale, completesAt, nextSaleStart) &&
     !meetsROIByDeadline(earningsDelta, price, completesAt, nextSaleStart, 70);
 
   const showDeadlineWarning = isResearchSaleActive(absoluteSimTime) && completesAt > researchSaleDeadline;
