@@ -75,14 +75,14 @@
                 <button
                   class="flex-1 text-left px-2 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors flex items-center gap-1.5 rounded-lg"
                   :class="
-                    row.plainKey === activeVariantKey
+                    (row.plainKey ?? row.tier13Key) === activeVariantKey
                       ? 'bg-indigo-50 text-indigo-600'
                       : 'text-slate-600 hover:bg-slate-50'
                   "
-                  @click="selectVariant(row.plainKey)"
+                  @click="selectVariant(row.plainKey ?? row.tier13Key!)"
                 >
                   <svg
-                    v-if="row.plainKey === activeVariantKey"
+                    v-if="(row.plainKey ?? row.tier13Key) === activeVariantKey"
                     class="w-2.5 h-2.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 24 24"
@@ -90,10 +90,12 @@
                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                   </svg>
                   <span v-else class="w-2.5 flex-shrink-0" />
-                  {{ row.saleCount }}-sale build
+                  {{ row.saleCount }}-sale build{{ row.plainKey ? '' : ' +T13' }}
                 </button>
+                <!-- Only worth its own toggle when the plain build survived alongside Tier 13 —
+                     otherwise Tier 13 is baked into the row above with no non-T13 alternative to pick. -->
                 <button
-                  v-if="row.tier13Key"
+                  v-if="row.tier13Key && row.plainKey"
                   v-tippy="'Also unlocks Tier 13 research'"
                   class="px-1.5 py-1 text-[8px] font-black uppercase tracking-wider rounded-md border transition-colors flex-shrink-0"
                   :class="
@@ -423,16 +425,19 @@ const activeVariantShortLabel = computed(() => {
   return activeVariantKey.value.replace('-tier13', '+T13');
 });
 
-// One row per sale count that has at least its plain (non-Tier-13) variant present — the plain
-// variant always exists whenever that sale count was attempted at all (only the Tier-13 attempt on
-// top of it can be pruned), so grouping by sale count never needs a "row with nothing in it" case.
+// One row per sale count that has either variant present. The plain (non-Tier-13) variant is NOT
+// guaranteed whenever the Tier-13 one is: runC3Variants (auto/shifts/c3.ts) skips computing the
+// plain sibling once a Tier-13 attempt for that sale count succeeds, since it would always lose the
+// comparison anyway — so a sale count can appear with only its `-tier13` key present.
 const variantRows = computed(() => {
-  const rows: { saleCount: number; plainKey: VariantKey; tier13Key?: VariantKey }[] = [];
+  const rows: { saleCount: number; plainKey?: VariantKey; tier13Key?: VariantKey }[] = [];
   for (const saleCount of [1, 2, 3] as const) {
     const plainKey: VariantKey = `${saleCount}-sale`;
-    if (!props.variants[plainKey]) continue;
     const tier13Key: VariantKey = `${saleCount}-sale-tier13`;
-    rows.push({ saleCount, plainKey, tier13Key: props.variants[tier13Key] ? tier13Key : undefined });
+    const hasPlain = !!props.variants[plainKey];
+    const hasTier13 = !!props.variants[tier13Key];
+    if (!hasPlain && !hasTier13) continue;
+    rows.push({ saleCount, plainKey: hasPlain ? plainKey : undefined, tier13Key: hasTier13 ? tier13Key : undefined });
   }
   return rows;
 });
