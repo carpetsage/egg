@@ -17,7 +17,7 @@ import { computeSnapshot } from '../../../engine/compute';
 import { applyAction, boostTransitionsFrom } from '../../../engine/apply';
 import { advanceTimeWithBoundaries } from './advanceTime';
 import { isResearchSaleActive, getNextSaleEnd } from '@/lib/events';
-import { buildQuickBuyNotePayload } from '@/lib/actions/notes';
+import { buildQuickBuyNotePayload, buildMilestoneNotePayload } from '@/lib/actions/notes';
 
 /**
  * Shared mutable-simulation plumbing for the milestone/smart-buy helpers below.
@@ -141,11 +141,58 @@ export function createMilestoneShiftHelpers(startState: EngineState, context: Si
     actions.unshift(action);
   };
 
+  /**
+   * Execute an already-planned milestone chain item-by-item and, if anything actually landed, add
+   * the summarizing inline note ahead of it — the "run a whole planned chain" counterpart to
+   * `runSmartBuyForSeconds`'s own inline note-on-completion, factored out here so every
+   * chain-buying shift (`runTierUnlockMilestone`, `runResearchMilestoneIfWorthwhile`, and whatever
+   * gets added later) gets a correctly-annotated plan just by calling this instead of each
+   * separately re-deriving the same executed-count/gems-spent/note bookkeeping. Mirrors the manual
+   * planner's `handleBuyMilestoneChain` (`ResearchActions.vue`), which builds the same
+   * `buildMilestoneNotePayload` note for its own "Buy Entire Chain" button — this is the
+   * auto-engine side of that same shape.
+   *
+   * `timeSavedSeconds` is the baseline comparison for the FULL planned chain — dropped from the
+   * note if `timeLimit` cuts the sweep off before every item lands, since the comparison assumes
+   * the whole chain completed (same reasoning as `buildMilestoneNotePayload`'s own doc comment).
+   *
+   * Returns the number of items actually executed (may be less than `items.length` if `timeLimit`
+   * was hit).
+   */
+  const executeChain = (
+    items: MilestoneChainItem[],
+    targetLabel: string,
+    timeLimit: number,
+    timeSavedSeconds?: number
+  ): number => {
+    let executedCount = 0;
+    let totalGemsSpent = 0;
+    for (const item of items) {
+      if (!executeChainItem(item, timeLimit)) break;
+      executedCount++;
+      totalGemsSpent += item.price;
+    }
+
+    if (executedCount > 0) {
+      const notePayload = buildMilestoneNotePayload(
+        targetLabel,
+        executedCount,
+        elapsedSeconds,
+        totalGemsSpent,
+        executedCount === items.length ? timeSavedSeconds : undefined
+      );
+      if (notePayload) addNotification(notePayload);
+    }
+
+    return executedCount;
+  };
+
   return {
     getAbsTime,
     getModifiers,
     buyResearch,
     executeChainItem,
+    executeChain,
     addNotification,
     getState: () => currentState,
     getElapsedSeconds: () => elapsedSeconds,
@@ -238,9 +285,19 @@ export function runTierUnlockMilestone(
     researchSaleDeadline
   );
 
-  for (const item of chain.items) {
-    if (!helpers.executeChainItem(item, timeLimit)) break;
-  }
+  // Same baseline comparison the manual planner's Milestone Summary panel would show for this
+  // target — only meaningful when the planned chain actually reaches the tier at all.
+  const baseline = computeMilestoneBaseline(
+    { kind: 'tier', tier: targetTier },
+    startSnapshot,
+    context,
+    mods,
+    absoluteSimTimeAtStart
+  );
+  const timeSavedSeconds =
+    chain.reached && baseline.reached ? baseline.totalSeconds - chain.totalSeconds : undefined;
+
+  helpers.executeChain(chain.items, `Unlock Tier ${targetTier}`, timeLimit, timeSavedSeconds);
 
   return {
     actions: helpers.getActions(),
@@ -296,9 +353,13 @@ export function runResearchMilestoneIfWorthwhile(
     return noop;
   }
 
-  for (const item of chain.items) {
-    if (!helpers.executeChainItem(item, timeLimit)) break;
-  }
+  // Same label wording the manual planner's Milestone view uses for a research target (see
+  // `getMilestoneTargetLabel` in `ResearchActions.vue`), so the note reads consistently regardless
+  // of which side bought it.
+  const research = getResearchById(researchId);
+  const targetLabel = research ? `${research.name} (Lv ${targetLevel}/${research.levels})` : 'Milestone';
+
+  helpers.executeChain(chain.items, targetLabel, timeLimit, summary.timeSavedSeconds);
 
   return {
     actions: helpers.getActions(),
