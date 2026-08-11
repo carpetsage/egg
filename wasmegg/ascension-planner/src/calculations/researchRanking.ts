@@ -224,7 +224,7 @@ export function rankResearchByROI(
       // past a completed sale, dragging the loop out to the sale *after* next. See
       // `isActuallyDuringSale`'s doc comment for why `resultDuringSale` also can't be trusted alone.
       showSaleWarning =
-        !isActuallyDuringSale(resultDuringSale, absoluteSimTime + resultTimeToBuySeconds) &&
+        !isActuallyDuringSale(resultDuringSale, absoluteSimTime + resultTimeToBuySeconds, nextSaleStart) &&
         !meetsROIByDeadline(
           resultEarningsDelta,
           resultPrice,
@@ -359,7 +359,7 @@ export function rankResearchByROI(
                 // extra days each time. Match the same calendar-verified pattern used everywhere
                 // else instead (see `isActuallyDuringSale`'s doc comment).
                 showSaleWarning =
-                  !isActuallyDuringSale(c.duringSale, absoluteSimTime + c.timeToBuySeconds) &&
+                  !isActuallyDuringSale(c.duringSale, absoluteSimTime + c.timeToBuySeconds, nextSaleStart) &&
                   !meetsROIByDeadline(
                     pairDelta,
                     pairTotalCost,
@@ -434,6 +434,10 @@ export function rankResearchByELRImpact(
     r => (researchLevels[r.id] || 0) < r.levels && filterByCategories(r, ELR_EXCLUDED_CATEGORIES)
   );
   const uniqueUnpurchased = Array.from(new Map(unpurchased.map(r => [r.id, r])).values());
+  // Used below to narrow each candidate's displayed `duringSale` down to "actually the very next
+  // sale" (`isActuallyDuringSale`) — see that function's doc comment for why "priced at a sale,
+  // whichever one" isn't the right thing to show a player as a "Sale" badge.
+  const nextSaleStart = getNextPacificTime(5, 9, absoluteSimTime);
 
   let candidates: ResearchRankingItem[];
 
@@ -579,7 +583,11 @@ export function rankResearchByELRImpact(
           },
           showDeadlineWarning:
             isResearchSaleActive(absoluteSimTime) && absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline,
-          duringSale: withBankPurchase.duringSale,
+          duringSale: isActuallyDuringSale(
+            withBankPurchase.duringSale,
+            absoluteSimTime + secondsToBuyWithBank,
+            nextSaleStart
+          ),
           duringEarningsBoost: isEarningsBoostActive(absoluteSimTime + secondsToBuyWithBank),
         };
       })
@@ -639,7 +647,11 @@ export function rankResearchByELRImpact(
           timeRoiSeconds,
           showDeadlineWarning:
             isResearchSaleActive(absoluteSimTime) && absoluteSimTime + secondsToBuyWithBank > researchSaleDeadline,
-          duringSale: withBankPurchase.duringSale,
+          duringSale: isActuallyDuringSale(
+            withBankPurchase.duringSale,
+            absoluteSimTime + secondsToBuyWithBank,
+            nextSaleStart
+          ),
           duringEarningsBoost: isEarningsBoostActive(absoluteSimTime + secondsToBuyWithBank),
         };
       })

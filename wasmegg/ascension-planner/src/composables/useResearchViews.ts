@@ -35,7 +35,7 @@ import {
   computeMilestoneSummaryCore,
 } from '@/calculations/milestoneChain';
 import { type ResearchRankingItem, rankResearchByROI, rankResearchByELRImpact } from '@/calculations/researchRanking';
-import { type PurchaseEventCrossings } from '@/calculations/researchROI';
+import { type PurchaseEventCrossings, isActuallyDuringSale } from '@/calculations/researchROI';
 import {
   summarizeResearchLevelChanges,
   type SaleAwareBuyPlan,
@@ -379,7 +379,17 @@ export function useResearchViews() {
   // computeTierMilestoneChain's ROI-reorder path and computeResearchMilestoneChain's ROI-ranked
   // detour path populate them the same way; direct target/cheapest-first purchases leave them
   // unset.
-  function toResearchViewItem(item: MilestoneChainItem): ResearchViewItem {
+  //
+  // `item.duringSale` (from `getSaleAwareTimeToSave`) means "priced at a sale discount, whichever
+  // sale that turns out to be" — correct for the actual gems charged, but not what the "Sale" badge
+  // should mean to a player glancing at the list: a purchase that only becomes worthwhile several
+  // sale cycles out is still priced at a discount, but showing the same badge as an item landing in
+  // NEXT week's sale is misleading. `isActuallyDuringSale` (already re-derived against calendar
+  // truth for `showSaleWarning`'s sake) narrows it to "actually the very next sale" for display —
+  // needs this item's absolute completion time, derived from the chain's own start
+  // (`startAbsoluteTime`) plus its cumulative `buyToHereSeconds`.
+  function toResearchViewItem(item: MilestoneChainItem, startAbsoluteTime: number): ResearchViewItem {
+    const completesAt = startAbsoluteTime + item.buyToHereSeconds;
     const result: ResearchViewItem = {
       research: item.research,
       targetLevel: item.targetLevel,
@@ -394,7 +404,7 @@ export function useResearchViews() {
       canBuyToHere: true,
       showSaleWarning: item.showSaleWarning,
       showDeadlineWarning: item.showDeadlineWarning,
-      duringSale: item.duringSale,
+      duringSale: isActuallyDuringSale(item.duringSale, completesAt, nextSaleStart.value),
       duringEarningsBoost: item.duringEarningsBoost,
       eventCrossings: item.eventCrossings,
     };
@@ -456,7 +466,9 @@ export function useResearchViews() {
       pairRoiSeconds: item.pairRoiSeconds,
       showSaleWarning: item.showSaleWarning,
       showDeadlineWarning: item.showDeadlineWarning,
-      duringSale: item.duringSale,
+      // See `toResearchViewItem`'s identical comment: narrow "priced at a sale, whichever one" down
+      // to "actually the very next sale" for the badge's sake.
+      duringSale: isActuallyDuringSale(item.duringSale, absoluteSimTime + timeToBuySeconds, nextSaleStart.value),
       duringEarningsBoost: item.duringEarningsBoost,
       earningsDelta: item.earningsDelta,
       purchaseTimestamp: absoluteSimTime + timeToBuySeconds,
@@ -509,6 +521,11 @@ export function useResearchViews() {
     reached: false,
     totalSeconds: 0,
   });
+  // Paired with `milestoneChainResultRef` so `toResearchViewItem` can turn each item's
+  // chain-relative `buyToHereSeconds` into an absolute completion time (needed to correctly gate
+  // its "Sale" badge — see that function's own comment). Always the exact `absoluteSimTime` the
+  // chain currently in `milestoneChainResultRef` was computed from, kept in sync with it below.
+  const milestoneChainStartTimeRef = ref(0);
   let milestoneChainGeneration = 0;
 
   watchEffect(async () => {
@@ -573,6 +590,7 @@ export function useResearchViews() {
     // again before this one finished) — only the latest result should ever land.
     if (generation === milestoneChainGeneration) {
       milestoneChainResultRef.value = result;
+      milestoneChainStartTimeRef.value = absoluteSimTime;
     }
   });
 
@@ -1038,7 +1056,10 @@ export function useResearchViews() {
 
     if (currentView.value === 'roi') return roiRankedResearches.value;
     if (currentView.value === 'elr') return elrRankedResearches.value;
-    if (currentView.value === 'milestones') return milestoneChainResult.value.items.map(toResearchViewItem);
+    if (currentView.value === 'milestones') {
+      const startAbsoluteTime = milestoneChainStartTimeRef.value;
+      return milestoneChainResult.value.items.map(item => toResearchViewItem(item, startAbsoluteTime));
+    }
 
     const all = getCommonResearches();
     const researchLevels = commonResearchStore.researchLevels;

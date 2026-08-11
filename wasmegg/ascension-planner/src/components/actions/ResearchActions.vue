@@ -300,10 +300,12 @@ import { getSimulationContext } from '@/engine/adapter';
 import { buyWhilePassingCheck, buyUntilRealSaleStarts } from '@/calculations/researchRanking';
 import {
   getSaleAwareTimeToSave,
+  calculateResearchROI,
   findEventCrossings,
   meetsSaleAwareDeadline,
   type EventCrossing,
 } from '@/calculations/researchROI';
+import { getNextSaleStart } from '@/lib/events';
 import {
   simulateThresholdBuy,
   summarizeResearchLevelChanges,
@@ -338,6 +340,12 @@ const {
   deactivateAndCancel: handleExpiryDeactivateAndCancel,
   deactivateAndContinue: handleExpiryDeactivateAndContinue,
 } = useEventExpiry();
+
+// Set to true (temporarily, for debugging) to log each item `handleBuyMilestoneChain` executes —
+// `syncEventStateForItem`'s computed price/wait/crossings and `buyOneLevel`'s actual resulting
+// timestamp — so a live "Buy Entire Chain" run can be compared directly against the milestone
+// chain's own offline preview. Remove once that investigation is resolved.
+const DEBUG_MILESTONE_EXECUTION = true;
 
 const autoBuyState = ref({ threshold: 0, alwaysOn: false });
 // Reactive (not a plain `let`) so the Quick Buy button can bind its disabled/spinner state to the
@@ -533,6 +541,12 @@ function buyOneLevel(research: CommonResearch): boolean {
     actionsStore.initialSnapshot.researchLevels
   );
 
+  if (DEBUG_MILESTONE_EXECUTION) {
+    console.log(
+      `[ResearchActions] buyOneLevel: ${research.id} Lv${effectiveLevel}, now=${new Date(absoluteSimTimeAt(beforeSnapshot.lastStepTime) * 1000).toISOString()}, bank=${beforeSnapshot.bankValue}, isSaleActive=${isSaleActive} -> cost=${cost}`
+    );
+  }
+
   // Apply to store
   commonResearchStore.setResearchLevel(research.id, effectiveLevel + 1);
 
@@ -681,8 +695,19 @@ function insertToggleEarningsBoost(
  * doesn't double-count time: the wait's duration is independent of price, and the purchase that
  * follows computes its own (correspondingly shorter) remaining wait from the bank/population the
  * wait action already advanced to. When no boundary is actually crossed, nothing is inserted at all.
+ *
+ * `checkRoiGate` (only passed `true` by `handleBuyMilestoneChain`) additionally enforces the same
+ * "clears 70% ROI by the next research sale" bar `computeResearchMilestoneChain`'s own detour/target
+ * steps now require before including a purchase — see that function's doc comment
+ * (`milestoneChain.ts`) for why: without it, a purchase that only becomes affordable a few minutes
+ * before a sale gets bought immediately at full price, when waiting those few minutes would have
+ * meant 70% off. Recomputed fresh here (not trusted from the plan) for the same self-correcting
+ * reason every other number in this function is. Not applied to `runSaleAwareBuyFlow`'s or
+ * "Buy Until Sale Ends"'s own calls — their candidates are already selected by rules (the 70% button
+ * literally, "Buy Until Sale Ends" by delivery impact rather than earnings ROI) this gate would be
+ * redundant or actively wrong for.
  */
-function syncEventStateForItem(item: { research: CommonResearch }) {
+function syncEventStateForItem(item: { research: CommonResearch }, checkRoiGate = false) {
   const beforeSnapshot = prepareExecution();
   const level = beforeSnapshot.researchLevels[item.research.id] || 0;
   if (level >= item.research.levels) return;
@@ -700,7 +725,46 @@ function syncEventStateForItem(item: { research: CommonResearch }) {
     beforeSnapshot,
     transitions
   );
+
+  // Already timed to buy during a real sale (or waiting for a later one) — the ROI gate's own
+  // during-sale bypass would pass trivially, so skip the extra `calculateResearchROI` call.
+  if (checkRoiGate && !purchase.duringSale) {
+    const nextSale = getNextSaleStart(absoluteSimTime);
+    const roi = calculateResearchROI({
+      research: item.research,
+      level,
+      mods: costModifiers.value,
+      snapshot: beforeSnapshot,
+      context: getSimulationContext(),
+      eventTiming: {
+        absoluteSimTime,
+        nextSaleStart: nextSale,
+        researchSaleDeadline: researchSaleDeadline.value,
+        isSaleActive,
+        transitions,
+      },
+    });
+
+    // Only gate research that actually produces earnings — the ROI bar is meaningless otherwise.
+    if (roi.earningsDelta > 0 && roi.showSaleWarning) {
+      if (DEBUG_MILESTONE_EXECUTION) {
+        console.log(
+          `[ResearchActions] syncEventStateForItem: ${item.research.id} Lv${level} would not clear 70% ROI before nextSaleStart=${new Date(nextSale * 1000).toISOString()} at full price — waiting for the sale instead of buying now`
+        );
+      }
+      advanceToDeadline(nextSale);
+      return;
+    }
+  }
+
   const crossings = findEventCrossings(absoluteSimTime, purchase.waitSeconds, isSaleActive, isBoostActive);
+
+  if (DEBUG_MILESTONE_EXECUTION) {
+    const completesAt = absoluteSimTime + purchase.waitSeconds;
+    console.log(
+      `[ResearchActions] syncEventStateForItem: ${item.research.id} Lv${level}, now=${new Date(absoluteSimTime * 1000).toISOString()}, bank=${beforeSnapshot.bankValue}, offlineEarnings=${beforeSnapshot.offlineEarnings}, isSaleActive=${isSaleActive} -> price=${purchase.price}, waitSeconds=${purchase.waitSeconds}, duringSale=${purchase.duringSale}, completesAt=${new Date(completesAt * 1000).toISOString()}, saleCrossings=${crossings.sale.length}, boostCrossings=${crossings.boost.length}`
+    );
+  }
 
   insertEventCrossingWaits(absoluteSimTime, crossings, beforeSnapshot);
 }
@@ -870,7 +934,11 @@ function findBypassEventCrossingIds(actionId: string): string[] {
     const action = actionsStore.actions[i];
     if (!EVENT_CROSSING_ACTION_TYPES.has(action.type)) break;
     ids.push(action.id);
-    if (action.type === 'wait_for_time' || action.type === 'wait_for_research_sale' || action.type === 'wait_for_earnings_boost') {
+    if (
+      action.type === 'wait_for_time' ||
+      action.type === 'wait_for_research_sale' ||
+      action.type === 'wait_for_earnings_boost'
+    ) {
       totalWaitSeconds += (action.payload as { totalTimeSeconds: number }).totalTimeSeconds;
     }
   }
@@ -1183,6 +1251,13 @@ async function handleBuyMilestoneChain() {
     }
   }
 
+  if (DEBUG_MILESTONE_EXECUTION) {
+    const startSnapshot = actionsStore.effectiveSnapshot;
+    console.log(
+      `[ResearchActions] handleBuyMilestoneChain: START, ${list.length} items, predicted totalDuration=${totalDuration}s, now=${new Date(absoluteSimTimeAt(startSnapshot.lastStepTime) * 1000).toISOString()}, bank=${startSnapshot.bankValue}, offlineEarnings=${startSnapshot.offlineEarnings}, predicted finish=${new Date((absoluteSimTimeAt(startSnapshot.lastStepTime) + (totalDuration ?? 0)) * 1000).toISOString()}`
+    );
+  }
+
   isApplyingMilestoneChain.value = true;
   // Let the button's disabled/spinner state actually paint before the purchase loop below — fully
   // synchronous once it starts — blocks the tab.
@@ -1225,8 +1300,15 @@ async function handleBuyMilestoneChain() {
       }
 
       for (const item of list) {
-        syncEventStateForItem(item);
+        syncEventStateForItem(item, true);
         buyOneLevel(item.research);
+      }
+
+      if (DEBUG_MILESTONE_EXECUTION) {
+        const endSnapshot = actionsStore.effectiveSnapshot;
+        console.log(
+          `[ResearchActions] handleBuyMilestoneChain: DONE, now=${new Date(absoluteSimTimeAt(endSnapshot.lastStepTime) * 1000).toISOString()}, bank=${endSnapshot.bankValue}`
+        );
       }
     });
   } finally {
