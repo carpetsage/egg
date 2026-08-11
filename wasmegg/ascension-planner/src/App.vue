@@ -361,12 +361,30 @@
           <div class="section-premium overflow-visible">
             <div class="px-4 py-3 flex justify-between items-center rounded-t-lg">
               <h2 class="text-lg font-semibold text-gray-800">Action History</h2>
-              <button
-                class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-                @click="expandedSections.actionHistory = !expandedSections.actionHistory"
-              >
-                <ChevronIcon :expanded="expandedSections.actionHistory" />
-              </button>
+              <div class="flex items-center gap-3">
+                <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                  <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Compact</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    :aria-checked="compactActionHistory"
+                    class="relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none"
+                    :class="compactActionHistory ? 'bg-brand-primary' : 'bg-gray-200'"
+                    @click="compactActionHistory = !compactActionHistory"
+                  >
+                    <span
+                      class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform shadow-sm"
+                      :class="compactActionHistory ? 'translate-x-[18px]' : 'translate-x-0.5'"
+                    />
+                  </button>
+                </label>
+                <button
+                  class="p-1 -mr-1 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+                  @click="expandedSections.actionHistory = !expandedSections.actionHistory"
+                >
+                  <ChevronIcon :expanded="expandedSections.actionHistory" />
+                </button>
+              </div>
             </div>
             <div v-if="expandedSections.actionHistory" class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
               <ActionHistory @undo="showUndoConfirmation" @clear-all="handleClearAll" />
@@ -524,6 +542,7 @@ import { useSalesStore } from '@/stores/sales';
 import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { usePersistence } from '@/composables/usePersistence';
+import { compactActionHistory } from '@/composables/useCompactActionHistory';
 import { generateActionId } from '@/types';
 import { computeDependencies } from '@/lib/actions/executor';
 import { restoreFromSnapshot } from '@/lib/actions/snapshot';
