@@ -9,6 +9,7 @@ import {
 import {
   getSaleAwareTimeToSave,
   findEventCrossings,
+  meetsROIByDeadline,
   type PurchaseEventCrossings,
 } from './researchROI';
 import {
@@ -17,13 +18,15 @@ import {
   simulatePurchaseSequence,
   reorderPurchaseListByROI,
   type SequencedPurchase,
+  type ResearchRankingItem,
 } from './researchRanking';
+import { simulateSaleAwareBuy } from './smartBuyPreview';
 import type { EngineState, SimulationContext } from '@/engine/types';
 import type { CalculationsSnapshot } from '@/types';
 import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
-import { applyAction, applyTime, getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
-import { isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
+import { applyAction, applyTime, boostTransitionsFrom } from '@/engine/apply';
+import { getNextSaleStart, isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
 
 export type MilestoneTarget =
   | { kind: 'tier'; tier: number }
@@ -36,6 +39,17 @@ export function isMilestoneReached(target: MilestoneTarget, researchLevels: Reco
 }
 
 const MILESTONE_MAX_STEPS = 2000;
+
+// How many ROI-ranked candidates to try as a detour at each step before giving up and falling back
+// to the non-detour path (buying the milestone target directly, or — for a tier chain — finishing
+// via cheapest-first). Previously only the single top-ranked candidate was ever tried: the instant
+// it stopped beating the fallback, the chain committed to that fallback for good (see both call
+// sites' doc comments), even when a lower-ranked-but-still-70%-worthwhile candidate would have kept
+// helping. Capped rather than unbounded since every candidate tried costs a
+// `simulatePurchaseSequence` call (up to 3, with its pair orderings) and this loop reruns every
+// step — the cap only matters when NO candidate helps (the common case once a chain is winding
+// down), where every candidate up to the cap gets tried for nothing.
+const MAX_DETOUR_CANDIDATES_PER_STEP = 15;
 
 export interface MilestoneChainItem {
   research: CommonResearch;
@@ -66,21 +80,202 @@ export interface MilestoneChainResult {
   totalSeconds: number;
 }
 
-// For a "research level" milestone there's always a well-defined fallback: just save up and buy
-// the target directly. A detour through some other research is only worth taking if it provably
-// shortens the total time versus that direct purchase — not merely because the detour has good
-// ROI in isolation (a great-ROI item can still make you arrive at the target *later*, since you
-// also have to spend time saving up for the detour itself).
-//
-// Which detour to consider at each step is driven by `rankResearchByROI` — the same "fastest
-// total ROI time" ordering (wait-to-afford + payback) the Earnings ROI research view and Smart
-// Buy's sale-aware flow already buy in (see `roiRankedResearches`/`simulateSaleAwareBuy`) — rather
-// than a bespoke search over every candidate's effect on the target. Only the single top-ranked
-// candidate is checked each step — as a solo purchase, and, if it's a bottleneck-paired
-// recommendation (see `buildRoiCandidateSequences`), as a two-purchase sequence with its pair
-// partner: if any of those beats buying the target directly, it's taken and the loop
-// repeats (re-ranking, since a purchase can shift the ROI order); the moment the top-ranked
-// candidate no longer helps in any of those forms, detouring stops and the target itself is bought.
+// Pure crash-safety net for `computeResearchMilestoneChain`'s sweep loop below — NOT a "give up
+// after N sale cycles" heuristic (there isn't one anymore; the loop sweeps as many weeks as it
+// takes). Only exists so a genuinely-never-terminating case (e.g. a bug that makes every sweep
+// unproductive forever) fails loudly/boundedly instead of hanging the worker tab indefinitely.
+// 5000 weekly sweeps is ~96 years — nothing a real milestone should ever need.
+const MAX_SALE_SWEEPS_SAFETY_CAP = 5000;
+
+// Set to true (temporarily, for debugging) to log each round of `computeResearchMilestoneChain`'s
+// loop and `sweepUntilNextSale`'s own candidate search to the console — visible in the browser's
+// devtools Console panel even though this runs inside a Web Worker. Remove once the milestone-chain
+// investigation this was added for is resolved.
+const DEBUG_MILESTONE_CHAIN = true;
+
+function debugTime(t: number): string {
+  return new Date(t * 1000).toISOString();
+}
+
+/**
+ * Buys every currently-eligible 70%-by-next-sale-payback research, until either nothing more
+ * qualifies or simulated time reaches the very next research sale's start — then advances any
+ * leftover idle time up to that boundary, so the caller always resumes exactly at the sale start
+ * regardless of how much slack was left over.
+ *
+ * Delegates the actual candidate-selection/buying/cleanup to `simulateSaleAwareBuy`
+ * (`smartBuyPreview.ts`, `targetPercent: 70`) — the exact same dry run behind the manual planner's
+ * own "Buy Until Sale Warning" button — rather than re-deriving that logic here; this function only
+ * adapts its output into `MilestoneChainItem[]`/`EngineState` and guarantees the boundary is
+ * actually reached. It doesn't exclude the milestone's own target research from consideration — if
+ * the target itself happens to be the best-ROI candidate clearing the 70% bar, buying it here is a
+ * perfectly good outcome (the caller's next direct-purchase check will simply see it already
+ * reached).
+ */
+function sweepUntilNextSale(
+  state: EngineState,
+  snapshot: CalculationsSnapshot,
+  context: SimulationContext,
+  mods: ResearchCostModifiers,
+  absoluteSimTimeAtStart: number,
+  researchSaleDeadline: number
+): { items: MilestoneChainItem[]; state: EngineState; snapshot: CalculationsSnapshot; totalSeconds: number } {
+  const nextSaleStart = getNextSaleStart(absoluteSimTimeAtStart);
+
+  if (DEBUG_MILESTONE_CHAIN) {
+    console.log(
+      `[milestoneChain] sweepUntilNextSale: from ${debugTime(absoluteSimTimeAtStart)} to ${debugTime(nextSaleStart)}, bank=${snapshot.bankValue}, offlineEarnings=${snapshot.offlineEarnings}`
+    );
+  }
+
+  const plan = simulateSaleAwareBuy(
+    state.researchLevels,
+    snapshot,
+    context,
+    mods,
+    absoluteSimTimeAtStart,
+    researchSaleDeadline,
+    nextSaleStart,
+    'immediate',
+    false,
+    70
+  );
+
+  if (DEBUG_MILESTONE_CHAIN) {
+    console.log(
+      `[milestoneChain] sweepUntilNextSale: simulateSaleAwareBuy returned ${plan.entries.length} entries:`,
+      plan.entries.map(
+        e => `${e.researchId}@${debugTime(e.purchaseTimestamp)} (duringSale=${e.duringSale}, price=${e.price})`
+      )
+    );
+  }
+
+  // `simulateSaleAwareBuy` can accept one final "transitional" purchase whose own wait crosses INTO
+  // the target sale, then revert it during its own cleanup pass if it actually completes at/after
+  // `nextSaleStart` (see that function's doc comment) — the reverted entry is still present in
+  // `plan.entries` (so callers wanting the full history can see it), but isn't reflected in
+  // `endLevels`/`endSnapshot`. Its internal `revertIds` aren't exposed, but the same predicate it
+  // reverts by (`duringSale` AND landing at/after the deadline) is externally derivable from each
+  // entry, so the displayed items below can be kept in sync with the state actually returned.
+  const acceptedEntries = plan.entries.filter(e => !(e.duringSale && e.purchaseTimestamp >= nextSaleStart));
+
+  // Rebuild the resulting state/time by replaying only the ACCEPTED entries, from a clean start —
+  // rather than trusting `plan.endSnapshot` directly. `simulateSaleAwareBuy`'s own during-sale
+  // bypass (see `meetsSaleAwareDeadline`'s doc comment) only checks whether a candidate's modeled
+  // completion lands during *some* real sale, not specifically the one `nextSaleStart` refers to —
+  // so once cheaper candidates run out, an expensive research (even the milestone's own target, if
+  // this sweep doesn't exclude it) whose OWN price/wait modeling happens to resolve to "wait for a
+  // much LATER sale" can get selected as "the next candidate," walking `simTime` forward by however
+  // long THAT wait is (potentially many weeks past this sweep's actual boundary) before its cleanup
+  // pass reverts it. That cleanup only refunds the reverted candidate's research level and bank —
+  // there's no way to "un-simulate" the elapsed time already spent evaluating it (confirmed via
+  // logging: a sweep meant to stop at Sept 11 silently walked its internal clock to Sept 25 this
+  // way). So `plan.endSnapshot.lastStepTime` can't be trusted as this sweep's own elapsed time.
+  // Each ACCEPTED entry's own `price`/`purchaseTimestamp`, though, was computed sequentially BEFORE
+  // any such detour was ever considered, so replaying just those from `state`/`snapshot` gives an
+  // honest result without needing to re-run any of the ranking/eligibility logic itself.
+  let resultState = state;
+  let resultSnapshot = snapshot;
+  const items: MilestoneChainItem[] = [];
+  let itemTimestamp = absoluteSimTimeAtStart;
+
+  for (const entry of acceptedEntries) {
+    const research = getResearchById(entry.researchId);
+    if (!research) continue;
+    const currentLevel = resultState.researchLevels[entry.researchId] || 0;
+    const timeToBuySeconds = entry.purchaseTimestamp - itemTimestamp;
+
+    resultState = applyAction(resultState, {
+      type: 'buy_research',
+      payload: { researchId: entry.researchId, fromLevel: currentLevel, toLevel: currentLevel + 1 },
+      cost: entry.price,
+    });
+    resultState = applyTime(resultState, timeToBuySeconds, resultSnapshot, {
+      transitions: boostTransitionsFrom(resultSnapshot, itemTimestamp),
+    });
+    resultSnapshot = computeSnapshot(resultState, context, { skipEpochConversion: true });
+
+    items.push({
+      research,
+      targetLevel: currentLevel + 1,
+      currentLevel,
+      price: entry.price,
+      timeToBuySeconds,
+      buyToHereSeconds: entry.purchaseTimestamp - absoluteSimTimeAtStart,
+      duringSale: entry.duringSale,
+      duringEarningsBoost: isEarningsBoostActive(entry.purchaseTimestamp),
+    });
+    itemTimestamp = entry.purchaseTimestamp;
+  }
+
+  let totalSeconds = itemTimestamp - absoluteSimTimeAtStart;
+
+  if (DEBUG_MILESTONE_CHAIN) {
+    console.log(
+      `[milestoneChain] sweepUntilNextSale: replayed ${acceptedEntries.length} accepted entries -> totalSeconds(pre-idle-fastforward)=${totalSeconds} (${(totalSeconds / 86400).toFixed(2)}d)`
+    );
+  }
+
+  // No further worthwhile candidates before the boundary (or none at all) — advance any leftover
+  // idle time up to it, so the caller always resumes exactly at the sale start. Also what guarantees
+  // forward progress every sweep when nothing at all qualifies (an empty `plan.entries`), so
+  // `computeResearchMilestoneChain`'s outer loop can't stall re-trying the same instant forever.
+  const currentAbsoluteTime = absoluteSimTimeAtStart + totalSeconds;
+  if (currentAbsoluteTime < nextSaleStart) {
+    const idleSeconds = nextSaleStart - currentAbsoluteTime;
+    const transitions = boostTransitionsFrom(resultSnapshot, currentAbsoluteTime);
+    resultState = applyTime(resultState, idleSeconds, resultSnapshot, { transitions });
+    // `skipEpochConversion` keeps `lastStepTime` in `resultSnapshot`'s own reference frame — see
+    // `smartBuyPreview.ts`'s `simulateSaleAwareBuy` for the full story on why a mid-loop epoch flip
+    // here would corrupt the elapsed-time bookkeeping the caller derives from before/after snapshots.
+    resultSnapshot = computeSnapshot(resultState, context, { skipEpochConversion: true });
+    totalSeconds += idleSeconds;
+    if (DEBUG_MILESTONE_CHAIN) {
+      console.log(
+        `[milestoneChain] sweepUntilNextSale: fast-forwarded ${idleSeconds}s (${(idleSeconds / 86400).toFixed(2)}d) of idle time to reach boundary; totalSeconds now ${totalSeconds}`
+      );
+    }
+  }
+
+  if (DEBUG_MILESTONE_CHAIN) {
+    console.log(
+      `[milestoneChain] sweepUntilNextSale: DONE, returning ${items.length} items, totalSeconds=${totalSeconds} (${(totalSeconds / 86400).toFixed(2)}d), ends at ${debugTime(absoluteSimTimeAtStart + totalSeconds)}`
+    );
+  }
+
+  return { items, state: resultState, snapshot: resultSnapshot, totalSeconds };
+}
+
+/**
+ * Reaches a specific research level milestone as fast as possible, one level at a time. For each
+ * level still needed: check whether buying it directly (`getSaleAwareTimeToSave` — already
+ * sale-aware, choosing whichever's faster between today's price and a future discount, see that
+ * function's own doc comment) completes before the very next research sale even starts; if so, just
+ * buy it. If not — the direct purchase is stuck waiting on some LATER sale — sweep to that next sale
+ * boundary first via `sweepUntilNextSale` (buying anything that clears the 70%-by-next-sale bar
+ * along the way, mirroring what a player manually running "Buy Until Sale Warning" every week would
+ * do), then re-check from there. A denser bank/higher earnings rate at that point may put the level
+ * back in reach of the *following* sale even though it wasn't in reach of this one; repeating this
+ * for as many sale cycles as it actually takes (see `MAX_SALE_SWEEPS_SAFETY_CAP`'s own comment —
+ * there's no "give up after N cycles" heuristic here) is what lets the milestone discover "abandon
+ * waiting for any particular sale, spend a couple of weeks sweeping instead, and
+ * buy at full price before the next one even arrives" — a global strategy shift a straight one-shot
+ * `getSaleAwareTimeToSave` call could never find on its own, since that call only ever reasons about
+ * buying THIS item, not about spending the intervening time on other research first.
+ *
+ * That "abandon this sale, sweep for a while, buy at full price before the next one" strategy shift
+ * is `sweepUntilNextSale`'s job, not a per-step detour search's: a per-candidate-at-a-time
+ * comparison against a fixed point can recognize a detour that reaches the SAME landing sale sooner,
+ * but not the multi-purchase compounding needed to skip a sale entirely (confirmed the hard way —
+ * see git history). Whenever the target IS already reachable within this cycle, though
+ * (`completesAt <= nextSaleStart` below), a much narrower, genuinely useful form of that same idea
+ * still applies: a cheap, high-ROI purchase bought FIRST can make the target's OWN wait shorter than
+ * buying it outright right now — e.g. a purchase that roughly doubles earnings can cut a multi-hour
+ * wait down to a fraction of that. That comparison has none of the calendar-crossing trap's
+ * downsides (both options land within the same cycle, so there's no fixed-point-vs-compounding
+ * mismatch), so it's tried directly inline before committing to the direct purchase — see the
+ * comment where it's tried, inside the `completesAt <= nextSaleStart` branch below.
+ */
 export function computeResearchMilestoneChain(
   target: { researchId: string; targetLevel: number },
   startState: EngineState,
@@ -91,137 +286,196 @@ export function computeResearchMilestoneChain(
   researchSaleDeadline: number
 ): MilestoneChainResult {
   const targetResearch = getResearchById(target.researchId);
+  if (!targetResearch) return { items: [], reached: false, totalSeconds: 0 };
 
   let state = startState;
   let snapshot = startSnapshot;
   let totalSeconds = 0;
   const items: MilestoneChainItem[] = [];
 
-  if (!targetResearch) return { items, reached: false, totalSeconds };
+  // `items.length < MILESTONE_MAX_STEPS` bounds total PURCHASES (shared with every other
+  // milestone-chain loop in this file). `round` is purely `MAX_SALE_SWEEPS_SAFETY_CAP`'s crash
+  // guard — see that constant's own comment — not a heuristic budget.
+  let round = 0;
 
-  while (items.length < MILESTONE_MAX_STEPS && (state.researchLevels[targetResearch.id] || 0) < target.targetLevel) {
+  while (
+    items.length < MILESTONE_MAX_STEPS &&
+    round < MAX_SALE_SWEEPS_SAFETY_CAP &&
+    (state.researchLevels[targetResearch.id] || 0) < target.targetLevel
+  ) {
+    round++;
     const currentAbsoluteTime = absoluteSimTimeAtStart + totalSeconds;
     const isSale = isResearchSaleActive(currentAbsoluteTime);
     const transitions = boostTransitionsFrom(snapshot, currentAbsoluteTime);
+    const currentLevel = state.researchLevels[targetResearch.id] || 0;
 
-    const levels = state.researchLevels;
-    const targetLevel = levels[targetResearch.id] || 0;
-    const targetPurchase = getSaleAwareTimeToSave(
+    const purchase = getSaleAwareTimeToSave(
       targetResearch,
-      targetLevel,
+      currentLevel,
       mods,
       isSale,
       currentAbsoluteTime,
       snapshot,
       transitions
     );
-    const targetPrice = targetPurchase.price;
-    const directSeconds = targetPurchase.waitSeconds;
 
-    // No `deliveryImpactOnly` filter, 'immediate' roiMode — matches the Earnings ROI view's
-    // default (there's no equivalent toggle exposed for milestones), and already excludes the
-    // target itself only via the `.find` below, not the ranking itself.
-    const ranked = rankResearchByROI(
-      levels,
-      snapshot,
-      context,
-      mods,
-      isSale,
-      currentAbsoluteTime,
-      researchSaleDeadline,
-      'immediate',
-      false
-    );
-    // `showSaleWarning` (from `calculateResearchROI`, inside `rankResearchByROI`) means this
-    // candidate, bought right now, wouldn't earn back 70% of its cost before the next research
-    // sale starts — the same "not worth prepaying full price for" rule the manual planner's "Buy
-    // Until Sale Warning" button enforces (`meetsSaleAwareDeadline`). A detour is optional (the
-    // milestone chain always has the direct target purchase as its fallback), so it should never
-    // insert a purchase that flunks this rule — skip it and consider the next-best-ROI candidate
-    // instead, same as that button's own `ranked.find(...)` pattern.
-    const bestRoi = ranked.find(item => item.canBuy && item.research.id !== targetResearch.id && !item.showSaleWarning);
-
-    let bought = false;
-
-    if (bestRoi) {
-      // `bestRoi` can rank this high purely because pairing it with `pairPartnerResearch` gives a
-      // great COMBINED payback (see `rankResearchByROI`'s bottleneck-pairing logic) — a laying or
-      // shipping research capped by the other side of the pipeline moves earnings by ~0 bought
-      // alone, so evaluating it solo (the only thing the previous version of this code did) would
-      // never beat `directSeconds`, and a genuinely-worthwhile pairing would never get taken. Try
-      // it solo, and — when a partner exists and is itself still purchasable — as a two-purchase
-      // sequence in both orders (whichever's cheaper to save up for first can finish sooner);
-      // take whichever sequence both completes and beats `directSeconds` by the widest margin.
-      const sequences = buildRoiCandidateSequences(bestRoi, levels, targetResearch.id);
-
-      let bestSequence: { result: NonNullable<ReturnType<typeof simulatePurchaseSequence>>; pathSeconds: number } | null =
-        null;
-
-      for (const sequence of sequences) {
-        const result = simulatePurchaseSequence(sequence, state, snapshot, currentAbsoluteTime, mods, context);
-        if (!result) continue;
-        const secondsToTargetAfter = getTimeToSave(
-          targetPrice,
-          result.snapshot,
-          boostTransitionsFrom(result.snapshot, currentAbsoluteTime + result.totalSecondsSpent)
-        );
-        const pathSeconds = result.totalSecondsSpent + secondsToTargetAfter;
-        if (pathSeconds < directSeconds && (!bestSequence || pathSeconds < bestSequence.pathSeconds)) {
-          bestSequence = { result, pathSeconds };
-        }
-      }
-
-      if (bestSequence) {
-        const isPair = bestSequence.result.items.length > 1;
-        for (const purchase of bestSequence.result.items) {
-          totalSeconds += purchase.timeToBuySeconds;
-          items.push({
-            ...purchase,
-            buyToHereSeconds: totalSeconds,
-            // A paired purchase's own solo `roiSeconds`/`totalRoiSeconds` (near-infinite, since
-            // that's exactly why it needed pairing to be worth taking) would be misleading here —
-            // show the combined figure that actually justified buying it instead.
-            roiSeconds: isPair ? bestRoi.pairRoiSeconds : bestRoi.roiSeconds,
-            totalRoiSeconds: isPair ? bestRoi.pairRoiSeconds : bestRoi.totalRoiSeconds,
-            showSaleWarning: bestRoi.showSaleWarning,
-            showDeadlineWarning: bestRoi.showDeadlineWarning,
-          });
-        }
-        state = bestSequence.result.state;
-        snapshot = bestSequence.result.snapshot;
-        bought = true;
-      }
+    if (DEBUG_MILESTONE_CHAIN) {
+      console.log(
+        `[milestoneChain] computeResearchMilestoneChain round ${round}: now=${debugTime(currentAbsoluteTime)}, targetLevel=${currentLevel}, direct purchase price=${purchase.price}, waitSeconds=${purchase.waitSeconds} (${isFinite(purchase.waitSeconds) ? (purchase.waitSeconds / 86400).toFixed(2) + 'd' : 'Infinity'}), duringSale=${purchase.duringSale}`
+      );
     }
 
-    if (!bought) {
-      if (directSeconds === Infinity) break;
+    if (purchase.waitSeconds === Infinity) {
+      if (DEBUG_MILESTONE_CHAIN)
+        console.log(`[milestoneChain] computeResearchMilestoneChain: purchase.waitSeconds is Infinity, giving up`);
+      break;
+    }
 
-      totalSeconds += directSeconds;
+    const nextSaleStart = getNextSaleStart(currentAbsoluteTime);
+    const completesAt = currentAbsoluteTime + purchase.waitSeconds;
+
+    if (completesAt <= nextSaleStart) {
+      // Before committing to buying the target directly, check whether a cheap, high-ROI purchase
+      // FIRST would make the target itself complete sooner — e.g. a purchase that roughly doubles
+      // earnings can cut a several-hour wait down to a fraction of that. Only relevant here: the
+      // SWEEP branch below already buys everything ROI-worthwhile on its own, so a target that's
+      // calendar-locked to a future sale doesn't need this — it's specifically for a target that's
+      // ALREADY reachable within this cycle, where nothing else has had a chance to insert a
+      // same-cycle detour yet. Candidates are tried in ROI order (capped at
+      // `MAX_DETOUR_CANDIDATES_PER_STEP`, same reasoning as `computeTierMilestoneChain`'s identical
+      // cap); `<=` allows a detour that ties the direct wait too, not just strictly beats it.
+      const ranked = rankResearchByROI(
+        state.researchLevels,
+        snapshot,
+        context,
+        mods,
+        isSale,
+        currentAbsoluteTime,
+        researchSaleDeadline,
+        'immediate',
+        false
+      );
+      const eligibleCandidates = ranked.filter(
+        item => item.canBuy && item.research.id !== targetResearch.id && !item.showSaleWarning
+      );
+
+      let tookDetour = false;
+      for (const candidate of eligibleCandidates.slice(0, MAX_DETOUR_CANDIDATES_PER_STEP)) {
+        // `candidate` can rank this high purely because pairing it with `pairPartnerResearch` gives
+        // a great COMBINED payback (see `rankResearchByROI`'s bottleneck-pairing logic) — try it
+        // solo, and — when a partner exists and is itself still purchasable — as a two-purchase
+        // sequence in both orders, same as `computeTierMilestoneChain`'s own detour search.
+        const sequences = buildRoiCandidateSequences(candidate, state.researchLevels, targetResearch.id);
+        let bestSequence: {
+          result: NonNullable<ReturnType<typeof simulatePurchaseSequence>>;
+          pathSeconds: number;
+        } | null = null;
+
+        for (const sequence of sequences) {
+          const result = simulatePurchaseSequence(sequence, state, snapshot, currentAbsoluteTime, mods, context);
+          if (!result) continue;
+          const afterTime = currentAbsoluteTime + result.totalSecondsSpent;
+          const secondsToTargetAfter = getSaleAwareTimeToSave(
+            targetResearch,
+            currentLevel,
+            mods,
+            isResearchSaleActive(afterTime),
+            afterTime,
+            result.snapshot,
+            boostTransitionsFrom(result.snapshot, afterTime)
+          ).waitSeconds;
+          const pathSeconds = result.totalSecondsSpent + secondsToTargetAfter;
+          if (pathSeconds <= purchase.waitSeconds && (!bestSequence || pathSeconds < bestSequence.pathSeconds)) {
+            bestSequence = { result, pathSeconds };
+          }
+        }
+
+        if (bestSequence) {
+          if (DEBUG_MILESTONE_CHAIN) {
+            console.log(
+              `[milestoneChain] computeResearchMilestoneChain round ${round}: DETOUR — ${candidate.research.id} cuts direct wait from ${purchase.waitSeconds}s to ${bestSequence.pathSeconds}s`
+            );
+          }
+          const isPair = bestSequence.result.items.length > 1;
+          for (const detourPurchase of bestSequence.result.items) {
+            totalSeconds += detourPurchase.timeToBuySeconds;
+            items.push({
+              ...detourPurchase,
+              buyToHereSeconds: totalSeconds,
+              // A paired purchase's own solo `roiSeconds`/`totalRoiSeconds` (near-infinite, since
+              // that's exactly why it needed pairing to be worth taking) would be misleading here —
+              // show the combined figure that actually justified buying it instead.
+              roiSeconds: isPair ? candidate.pairRoiSeconds : candidate.roiSeconds,
+              totalRoiSeconds: isPair ? candidate.pairRoiSeconds : candidate.totalRoiSeconds,
+              showSaleWarning: candidate.showSaleWarning,
+              showDeadlineWarning: candidate.showDeadlineWarning,
+            });
+          }
+          state = bestSequence.result.state;
+          snapshot = bestSequence.result.snapshot;
+          tookDetour = true;
+          break;
+        }
+      }
+
+      if (tookDetour) continue;
+
+      if (DEBUG_MILESTONE_CHAIN) {
+        console.log(
+          `[milestoneChain] computeResearchMilestoneChain round ${round}: DIRECT BUY — completesAt=${debugTime(completesAt)} <= nextSaleStart=${debugTime(nextSaleStart)}`
+        );
+      }
+      totalSeconds += purchase.waitSeconds;
       state = applyAction(state, {
         type: 'buy_research',
-        payload: { researchId: targetResearch.id, fromLevel: targetLevel, toLevel: targetLevel + 1 },
-        cost: targetPrice,
+        payload: { researchId: targetResearch.id, fromLevel: currentLevel, toLevel: currentLevel + 1 },
+        cost: purchase.price,
       });
-      state = applyTime(state, directSeconds, snapshot, { transitions });
-      snapshot = computeSnapshot(state, context);
+      state = applyTime(state, purchase.waitSeconds, snapshot, { transitions });
+      // See `sweepUntilNextSale`'s identical comment on why this needs `skipEpochConversion: true`.
+      snapshot = computeSnapshot(state, context, { skipEpochConversion: true });
 
       items.push({
         research: targetResearch,
-        targetLevel: targetLevel + 1,
-        currentLevel: targetLevel,
-        price: targetPrice,
-        timeToBuySeconds: directSeconds,
+        targetLevel: currentLevel + 1,
+        currentLevel,
+        price: purchase.price,
+        timeToBuySeconds: purchase.waitSeconds,
         buyToHereSeconds: totalSeconds,
-        duringSale: targetPurchase.duringSale,
-        duringEarningsBoost: isEarningsBoostActive(currentAbsoluteTime + directSeconds),
+        duringSale: purchase.duringSale,
+        duringEarningsBoost: isEarningsBoostActive(completesAt),
         eventCrossings: findEventCrossings(
           currentAbsoluteTime,
-          directSeconds,
+          purchase.waitSeconds,
           isSale,
           isEarningsBoostActive(currentAbsoluteTime)
         ),
       });
+      continue;
     }
+
+    if (DEBUG_MILESTONE_CHAIN) {
+      console.log(
+        `[milestoneChain] computeResearchMilestoneChain round ${round}: SWEEP — completesAt=${debugTime(completesAt)} > nextSaleStart=${debugTime(nextSaleStart)}`
+      );
+    }
+
+    const sweepResult = sweepUntilNextSale(state, snapshot, context, mods, currentAbsoluteTime, researchSaleDeadline);
+    // `sweepResult.items`' own `buyToHereSeconds` are relative to THIS sweep's own start
+    // (`currentAbsoluteTime`), not the chain's overall start — rebase them onto the running total so
+    // every item in the returned chain reports its actual position in the whole plan.
+    for (const item of sweepResult.items) {
+      items.push({ ...item, buyToHereSeconds: totalSeconds + item.buyToHereSeconds });
+    }
+    state = sweepResult.state;
+    snapshot = sweepResult.snapshot;
+    totalSeconds += sweepResult.totalSeconds;
+  }
+
+  if (DEBUG_MILESTONE_CHAIN) {
+    console.log(
+      `[milestoneChain] computeResearchMilestoneChain: FINISHED after ${round} rounds, ${items.length} items, totalSeconds=${totalSeconds} (${(totalSeconds / 86400).toFixed(2)}d), reached=${(state.researchLevels[targetResearch.id] || 0) >= target.targetLevel}`
+    );
   }
 
   return { items, reached: (state.researchLevels[targetResearch.id] || 0) >= target.targetLevel, totalSeconds };
@@ -287,7 +541,8 @@ export function simulateCheapestFirstTierChain(
       cost: bestPurchase.price,
     });
     curState = applyTime(curState, secondsToBuy, curSnapshot, { transitions });
-    curSnapshot = computeSnapshot(curState, context);
+    // See `sweepUntilNextSale`'s identical comment on why this needs `skipEpochConversion: true`.
+    curSnapshot = computeSnapshot(curState, context, { skipEpochConversion: true });
 
     items.push({
       research: best.research,
@@ -328,16 +583,19 @@ export function computeCheapestFirstTierChain(
 // enough remaining runway for its earnings boost to matter; buying it when the milestone could
 // instead be finished with a pile of purchases cheaper than it just wastes time saving up.
 //
-// At each step: compare (a) finishing via pure cheapest-first from here, against (b) buying the
-// single best-ROI candidate now — solo, or as a two-purchase sequence with its bottleneck-paired
-// partner when `rankResearchByROI` recommends one (see `buildRoiCandidateSequences`) — then
-// finishing via cheapest-first from THAT state. Whichever is faster wins. If (b) wins, commit to
-// that purchase (or pair) and repeat the comparison (another detour may or may not be worth it
-// next); if (a) wins, stop inserting detours and finish with the cheapest-first tail, itself
-// re-sequenced by ROI (`reorderPurchaseListByROI`). This naturally orders the result as [ROI
-// detours..., cheap purchases re-sequenced by ROI...], since detours are only ever prepended while
-// they keep winning, and once cheapest-first wins the remaining tail is that same cheapest-first
-// set, just bought in ROI order instead of price order.
+// At each step: compare (a) finishing via pure cheapest-first from here, against (b) buying a
+// best-ROI candidate now — solo, or as a two-purchase sequence with its bottleneck-paired partner
+// when `rankResearchByROI` recommends one (see `buildRoiCandidateSequences`) — then finishing via
+// cheapest-first from THAT state. Candidates are tried in ROI order (capped at
+// `MAX_DETOUR_CANDIDATES_PER_STEP`), not just the single top-ranked one: the top candidate's ROI
+// can degrade below cheapest-first's pace partway through the chain even while a lower-ranked,
+// still-70%-worthwhile candidate would still beat it. The first candidate that beats cheapest-first
+// wins; commit to that purchase (or pair) and repeat the comparison (another detour may or may not
+// be worth it next). If no candidate up to the cap beats cheapest-first, stop inserting detours and
+// finish with the cheapest-first tail, itself re-sequenced by ROI (`reorderPurchaseListByROI`).
+// This naturally orders the result as [ROI detours..., cheap purchases re-sequenced by ROI...],
+// since detours are only ever prepended while they keep winning, and once cheapest-first wins the
+// remaining tail is that same cheapest-first set, just bought in ROI order instead of price order.
 export function computeTierMilestoneChain(
   target: { tier: number },
   startSnapshot: CalculationsSnapshot,
@@ -382,26 +640,50 @@ export function computeTierMilestoneChain(
     );
     // Skip any candidate that wouldn't earn back 70% of its cost before the next research sale
     // starts (`showSaleWarning`) — same "not worth prepaying full price for" rule the manual
-    // planner's "Buy Until Sale Warning" button enforces (`meetsSaleAwareDeadline`). A detour here
-    // is optional — cheapest-first is always the fallback — so it should never jump the queue on a
-    // purchase that flunks this rule; the next-best-ROI candidate that passes is used instead.
-    const bestRoi = ranked.find(item => item.canBuy && !item.showSaleWarning);
+    // planner's "Buy Until Sale Warning" button enforces (`meetsSaleAwareDeadline`) — UNLESS it
+    // still clears 70% by the cheapest-first fallback's own finish time (`cheapPlan`'s deadline,
+    // usually much further out than "next sale"): same reasoning as `computeResearchMilestoneChain`'s
+    // identical widening — the `restOfPlan.totalSeconds <= cheapPlan.totalSeconds` check below is
+    // what actually guarantees "won't finish later than the fallback," so this filter only needs to
+    // decide which candidates are worth spending that check on.
+    const tierDeadline = cheapPlan.reached ? absoluteSimTimeAtStart + cheapPlan.totalSeconds : Infinity;
+    const eligibleCandidates = ranked.filter(item => {
+      if (!item.canBuy) return false;
+      if (!item.showSaleWarning) return true;
+      if (item.earningsDelta === undefined || item.timeToBuySeconds === undefined) return false;
+      return meetsROIByDeadline(
+        item.earningsDelta,
+        item.price,
+        currentAbsoluteTime + item.timeToBuySeconds,
+        tierDeadline,
+        70
+      );
+    });
 
-    let bestSequence: {
+    type TierDetourSequence = {
       items: SequencedPurchase[];
       state: EngineState;
       snapshot: CalculationsSnapshot;
       totalSeconds: number;
       isPair: boolean;
-    } | null = null;
+    };
 
-    if (bestRoi) {
-      // `bestRoi` can rank this high purely because pairing it with `pairPartnerResearch` gives a
+    let bestSequence: TierDetourSequence | null = null;
+    let winningCandidate: ResearchRankingItem | undefined;
+
+    // Try candidates in ROI order (capped at `MAX_DETOUR_CANDIDATES_PER_STEP`), not just the single
+    // top-ranked one — the top candidate's marginal ROI can degrade over the course of the chain to
+    // where it no longer beats cheapest-first, even though a lower-ranked, still-70%-worthwhile
+    // candidate still would. Take the first candidate whose best sequence beats `cheapPlan`.
+    for (const candidate of eligibleCandidates.slice(0, MAX_DETOUR_CANDIDATES_PER_STEP)) {
+      // `candidate` can rank this high purely because pairing it with `pairPartnerResearch` gives a
       // great COMBINED payback (see `rankResearchByROI`'s bottleneck-pairing logic) — try it solo,
       // and — when a partner exists and is itself still purchasable — as a two-purchase sequence
       // in both orders (whichever's cheaper to save up for first can finish sooner). Whichever
       // sequence, followed by cheapest-first for whatever's left, reaches the tier fastest wins.
-      const sequences = buildRoiCandidateSequences(bestRoi, levels);
+      const sequences = buildRoiCandidateSequences(candidate, levels);
+
+      let candidateBest: TierDetourSequence | null = null;
 
       for (const sequence of sequences) {
         const result = simulatePurchaseSequence(sequence, state, snapshot, currentAbsoluteTime, mods, context);
@@ -415,8 +697,17 @@ export function computeTierMilestoneChain(
           mods,
           absoluteSimTimeAtStart
         );
-        if (restOfPlan.reached && (!bestSequence || restOfPlan.totalSeconds < bestSequence.totalSeconds)) {
-          bestSequence = {
+        // `<=`, not `<` — same reasoning as `computeResearchMilestoneChain`'s identical comparison:
+        // a candidate bought during genuinely idle time (cheapest-first's own tail is itself waiting
+        // on a future sale somewhere in its remaining purchases) often ties `cheapPlan` exactly
+        // rather than beating it, and requiring a strict win would stop the very first such
+        // no-net-cost detour from being taken.
+        if (
+          restOfPlan.reached &&
+          (!cheapPlan.reached || restOfPlan.totalSeconds <= cheapPlan.totalSeconds) &&
+          (!candidateBest || restOfPlan.totalSeconds < candidateBest.totalSeconds)
+        ) {
+          candidateBest = {
             items: result.items,
             state: result.state,
             snapshot: result.snapshot,
@@ -425,11 +716,15 @@ export function computeTierMilestoneChain(
           };
         }
       }
+
+      if (candidateBest) {
+        bestSequence = candidateBest;
+        winningCandidate = candidate;
+        break;
+      }
     }
 
-    const detourWins = bestSequence && (!cheapPlan.reached || bestSequence.totalSeconds < cheapPlan.totalSeconds);
-
-    if (detourWins && bestSequence && bestRoi) {
+    if (bestSequence && winningCandidate) {
       for (const purchase of bestSequence.items) {
         totalSeconds += purchase.timeToBuySeconds;
         items.push({
@@ -438,10 +733,10 @@ export function computeTierMilestoneChain(
           // A paired purchase's own solo `roiSeconds`/`totalRoiSeconds` (near-infinite, since
           // that's exactly why it needed pairing to be worth taking) would be misleading here —
           // show the combined figure that actually justified buying it instead.
-          roiSeconds: bestSequence.isPair ? bestRoi.pairRoiSeconds : bestRoi.roiSeconds,
-          totalRoiSeconds: bestSequence.isPair ? bestRoi.pairRoiSeconds : bestRoi.totalRoiSeconds,
-          showSaleWarning: bestRoi.showSaleWarning,
-          showDeadlineWarning: bestRoi.showDeadlineWarning,
+          roiSeconds: bestSequence.isPair ? winningCandidate.pairRoiSeconds : winningCandidate.roiSeconds,
+          totalRoiSeconds: bestSequence.isPair ? winningCandidate.pairRoiSeconds : winningCandidate.totalRoiSeconds,
+          showSaleWarning: winningCandidate.showSaleWarning,
+          showDeadlineWarning: winningCandidate.showDeadlineWarning,
         });
       }
       state = bestSequence.state;

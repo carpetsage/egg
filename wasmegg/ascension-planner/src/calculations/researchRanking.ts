@@ -73,7 +73,12 @@ function buildMaxVehiclesSnapshot(
       .fill(null)
       .map(() => ({ vehicleId: 11, trainLength: maxTrainLen })),
   };
-  return computeSnapshot(modifiedState, context);
+  // `skipEpochConversion` keeps `lastStepTime` in `baseSnapshot`'s own reference frame — this is a
+  // hypothetical "what if maxed" snapshot built FROM an existing snapshot, not a fresh ascension
+  // state, so it must not re-trigger the one-time epoch/catch-up conversion `computeSnapshot` does
+  // for genuinely fresh states (see `smartBuyPreview.ts`'s `simulateSaleAwareBuy` for the full story
+  // on what happens when a loop's repeated snapshots don't skip it).
+  return computeSnapshot(modifiedState, context, { skipEpochConversion: true });
 }
 
 /**
@@ -320,7 +325,9 @@ export function rankResearchByROI(
               )
             );
 
-            const pairSnapshot = computeSnapshot(pairState, context);
+            // Hypothetical "bought both" snapshot built FROM `baseState`, not a fresh ascension
+            // state — see `buildMaxVehiclesSnapshot`'s identical comment above.
+            const pairSnapshot = computeSnapshot(pairState, context, { skipEpochConversion: true });
             const pairEarnings = pairSnapshot.offlineEarnings;
             const partnerEarnings = partner.nextSnapshot.offlineEarnings;
 
@@ -843,7 +850,9 @@ export function simulatePurchaseSequence(
       curSnapshot,
       { transitions: transitionsNow }
     );
-    curSnapshot = computeSnapshot(curState, context);
+    // See `smartBuyPreview.ts`'s `simulateSaleAwareBuy` for why a sequential loop like this one
+    // must keep `lastStepTime` in its incoming frame across repeated snapshots.
+    curSnapshot = computeSnapshot(curState, context, { skipEpochConversion: true });
     curTime += purchase.waitSeconds;
     totalSecondsSpent += purchase.waitSeconds;
   }
@@ -1019,7 +1028,9 @@ export function reorderPurchaseListByROI(
       cost: bestPurchase.price,
     });
     state = applyTime(state, secondsToBuy, snapshot, { transitions });
-    snapshot = computeSnapshot(state, context);
+    // See `smartBuyPreview.ts`'s `simulateSaleAwareBuy` for why a sequential loop like this one
+    // must keep `lastStepTime` in its incoming frame across repeated snapshots.
+    snapshot = computeSnapshot(state, context, { skipEpochConversion: true });
 
     items.push({
       research: best.research,

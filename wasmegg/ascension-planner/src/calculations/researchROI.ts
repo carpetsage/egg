@@ -374,11 +374,17 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
     timeToBuySeconds > 0 && isFinite(timeToBuySeconds)
       ? applyAction(baseState, createSimAction('wait_for_time', { totalTimeSeconds: timeToBuySeconds }))
       : baseState;
+  // `skipEpochConversion` keeps `lastStepTime` in `snapshot`'s own reference frame — these are
+  // "project forward from now" snapshots derived from the caller's own `snapshot`, not fresh
+  // ascension states, so they must not re-trigger `computeSnapshot`'s one-time epoch/catch-up
+  // conversion (see `smartBuyPreview.ts`'s `simulateSaleAwareBuy` for the full story).
   const snapshotAtBuy =
-    timeToBuySeconds > 0 && isFinite(timeToBuySeconds) ? computeSnapshot(stateAtBuy, context) : snapshot;
+    timeToBuySeconds > 0 && isFinite(timeToBuySeconds)
+      ? computeSnapshot(stateAtBuy, context, { skipEpochConversion: true })
+      : snapshot;
 
   const nextStateAtBuy = applyAction(stateAtBuy, tempAction);
-  const nextSnapshot = computeSnapshot(nextStateAtBuy, context);
+  const nextSnapshot = computeSnapshot(nextStateAtBuy, context, { skipEpochConversion: true });
 
   const absoluteSimTimeAtBuy = absoluteSimTime + timeToBuySeconds;
   // Hoisted out of `getExtra`: neither depends on `t`, so computing them once and reusing across
