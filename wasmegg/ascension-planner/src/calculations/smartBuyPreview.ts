@@ -15,6 +15,14 @@ import { applyAction, applyTime, boostTransitionsFrom } from '@/engine/apply';
 import { isResearchSaleActive } from '@/lib/events';
 import { ei } from 'lib';
 
+// Set to true (temporarily, for debugging) to log why `simulateSaleAwareBuy`'s candidate search
+// comes up empty — i.e. what the top of the ROI ranking looked like at the moment it stopped
+// finding anything to buy. Gated separately from `milestoneChain.ts`'s own debug flag since this
+// function is also invoked by the manual planner's live "Buy Until Sale Warning" button, not just
+// the milestone chain. Remove once the milestone-chain investigation this was added for is
+// resolved.
+const DEBUG_SALE_AWARE_BUY = true;
+
 /**
  * Safety-net cap shared by every dry run below — protects against a runaway loop, not a real
  * per-scenario budget (it comfortably exceeds the total number of individual research levels in
@@ -99,6 +107,11 @@ export function simulateSaleAwareBuy(
   deliveryImpactOnly: boolean,
   targetPercent: number
 ): SaleAwareBuyPlan {
+  if (DEBUG_SALE_AWARE_BUY) {
+    console.log(
+      `[smartBuyPreview] simulateSaleAwareBuy: start, absoluteSimTime=${new Date(absoluteSimTime * 1000).toISOString()}, nextSaleStart=${new Date(nextSaleStart * 1000).toISOString()}, targetPercent=${targetPercent}, bank=${snapshot.bankValue}, offlineEarnings=${snapshot.offlineEarnings}, levelsSet=${Object.keys(researchLevels).length}`
+    );
+  }
   let simState: EngineState = { ...createBaseEngineState(snapshot), researchLevels: { ...researchLevels } };
   let simSnapshot = snapshot;
   let simTime = absoluteSimTime;
@@ -142,7 +155,37 @@ export function simulateSaleAwareBuy(
           targetPercent
         )
       );
-      if (!candidate) return undefined;
+      if (!candidate) {
+        if (DEBUG_SALE_AWARE_BUY) {
+          console.log(
+            `[smartBuyPreview] simulateSaleAwareBuy: no candidate found (${log.length} bought so far, ${ranked.length} ranked total). Top 10 ranked:`,
+            ranked.slice(0, 10).map(item => ({
+              id: item.research.id,
+              level: item.currentLevel,
+              canBuy: item.canBuy,
+              price: item.price,
+              earningsDelta: item.earningsDelta,
+              timeToBuySeconds: item.timeToBuySeconds,
+              purchaseTimestamp: simTime + (item.timeToBuySeconds ?? 0),
+              duringSale: item.duringSale,
+              showSaleWarning: item.showSaleWarning,
+              passesDeadline: meetsSaleAwareDeadline(
+                {
+                  canBuy: item.canBuy,
+                  isMaxed: false,
+                  price: item.price,
+                  earningsDelta: item.earningsDelta,
+                  purchaseTimestamp: simTime + (item.timeToBuySeconds ?? 0),
+                  duringSale: item.duringSale,
+                },
+                nextSaleStart,
+                targetPercent
+              ),
+            }))
+          );
+        }
+        return undefined;
+      }
 
       const timeToBuySeconds = candidate.timeToBuySeconds ?? 0;
       const purchaseTimestamp = simTime + timeToBuySeconds;
@@ -166,7 +209,13 @@ export function simulateSaleAwareBuy(
       simState = applyAction(simState, buyResearchAction(researchId, pending.fromLevel, pending.price));
       simState = applyTime(simState, pending.timeToBuySeconds, simSnapshot);
       simTime += pending.timeToBuySeconds;
-      simSnapshot = computeSnapshot(simState, context);
+      // `skipEpochConversion` keeps `lastStepTime` in the incoming snapshot's own reference frame
+      // (relative or absolute) across this loop's repeated `computeSnapshot` calls — same reasoning
+      // as `engine/simulate.ts`'s identical flag on its own per-step snapshot. Without it, the first
+      // call here can silently flip `lastStepTime` from a small relative offset to an absolute epoch
+      // timestamp mid-loop, corrupting any elapsed-time delta a caller derives from before/after
+      // snapshots (confirmed: this is what produced a `>999d` milestone-chain result).
+      simSnapshot = computeSnapshot(simState, context, { skipEpochConversion: true });
       log.push(pending);
       return true;
     },
@@ -191,7 +240,7 @@ export function simulateSaleAwareBuy(
       };
     }
   }
-  const endSnapshot = computeSnapshot(cleanState, context);
+  const endSnapshot = computeSnapshot(cleanState, context, { skipEpochConversion: true });
 
   return {
     entries: log.map(e => ({
@@ -293,7 +342,9 @@ export function simulateEarningsPreludeForSaleEnd(
     simState = applyAction(simState, buyResearchAction(candidate.research.id, level, candidate.price));
     simState = applyTime(simState, waitSeconds, simSnapshot);
     simTime += waitSeconds;
-    simSnapshot = computeSnapshot(simState, context);
+    // See `simulateSaleAwareBuy`'s identical comment — keeps `lastStepTime` in its incoming frame
+    // across this loop's repeated snapshots instead of risking a mid-loop epoch flip.
+    simSnapshot = computeSnapshot(simState, context, { skipEpochConversion: true });
 
     checkpoints.push({
       purchases: [
@@ -374,7 +425,9 @@ export function runDeliveryBuyLoop(
       simState = applyAction(simState, buyResearchAction(researchId, level, purchase.price));
       simState = applyTime(simState, purchase.waitSeconds, simSnapshot);
       simTime += purchase.waitSeconds;
-      simSnapshot = computeSnapshot(simState, context);
+      // See `simulateSaleAwareBuy`'s identical comment — keeps `lastStepTime` in its incoming frame
+      // across this loop's repeated snapshots instead of risking a mid-loop epoch flip.
+      simSnapshot = computeSnapshot(simState, context, { skipEpochConversion: true });
       purchases.push({ researchId, purchaseTimestamp: simTime, price: purchase.price });
       return true;
     },
@@ -559,7 +612,9 @@ export function simulateThresholdBuy(
     if (!candidate) break;
     const level = simState.researchLevels[candidate.research.id] || 0;
     simState = applyAction(simState, buyResearchAction(candidate.research.id, level, candidate.price));
-    simSnapshot = computeSnapshot(simState, context);
+    // See `simulateSaleAwareBuy`'s identical comment — keeps `lastStepTime` in its incoming frame
+    // across this loop's repeated snapshots instead of risking a mid-loop epoch flip.
+    simSnapshot = computeSnapshot(simState, context, { skipEpochConversion: true });
     researchIds.push(candidate.research.id);
     totalSecondsToSave += candidate.secondsToSave;
     totalGemsSpent += candidate.price;
