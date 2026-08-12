@@ -29,7 +29,16 @@ import { buildQuickBuyNotePayload, buildMilestoneNotePayload } from '@/lib/actio
  * earnings-boost boundary, so skipping boundary detection here would silently mis-price
  * purchases made after a boundary is crossed mid-wait.
  */
-export function createMilestoneShiftHelpers(startState: EngineState, context: SimulationContext) {
+export function createMilestoneShiftHelpers(
+  startState: EngineState,
+  context: SimulationContext,
+  // Forwarded to `shouldDeferToNextSale`'s own `roiDeadline` (via `buyResearch`'s `checkRoiGate`
+  // re-check) — see `computeResearchMilestoneChain`'s identical parameter for the full explanation.
+  // Omitted for every caller except C3's step 2 (Tier 13/Multiversal Layering), which already knows
+  // how many sales it's riding out and wants execution-time re-checks to stay consistent with what
+  // planning (`computeTierMilestoneChain`/`computeResearchMilestoneChain`) already decided was fine.
+  roiDeadlineOverride?: number
+) {
   let currentState: EngineState = { ...startState };
   let elapsedSeconds = 0;
   const actions: Action[] = [];
@@ -77,6 +86,13 @@ export function createMilestoneShiftHelpers(startState: EngineState, context: Si
 
     if (snapshot.offlineEarnings <= 0) return false;
 
+    // `Math.max`, not a plain `??` — see `rankResearchByROI`'s identical comment: `roiDeadlineOverride`
+    // is a fixed point computed once up front and can go stale relative to the calendar's own next
+    // sale as real execution time advances, so it should only ever grant MORE runway, never less.
+    const calendarNextSaleStart = getNextSaleStart(absTime);
+    const roiDeadline =
+      roiDeadlineOverride !== undefined ? Math.max(roiDeadlineOverride, calendarNextSaleStart) : calendarNextSaleStart;
+
     if (
       checkRoiGate &&
       !purchase.duringSale &&
@@ -87,7 +103,7 @@ export function createMilestoneShiftHelpers(startState: EngineState, context: Si
         snapshot,
         context,
         absTime,
-        getNextSaleStart(absTime),
+        roiDeadline,
         getNextSaleEnd(absTime),
         isSaleActive,
         transitions,
@@ -300,9 +316,12 @@ export function runTierUnlockMilestone(
   startState: EngineState,
   context: SimulationContext,
   targetTier: number,
-  timeLimit: number
+  timeLimit: number,
+  // Forwarded to `computeTierMilestoneChain`'s own `roiDeadlineOverride` (planning) and
+  // `createMilestoneShiftHelpers`'s (execution-time re-check) — see that parameter's doc comment.
+  roiDeadlineOverride?: number
 ): ShiftResult {
-  const helpers = createMilestoneShiftHelpers(startState, context);
+  const helpers = createMilestoneShiftHelpers(startState, context, roiDeadlineOverride);
 
   const startSnapshot = computeSnapshot(startState, context, { skipGrowth: true });
   const absoluteSimTimeAtStart = helpers.getAbsTime();
@@ -320,7 +339,8 @@ export function runTierUnlockMilestone(
     context,
     mods,
     absoluteSimTimeAtStart,
-    researchSaleDeadline
+    researchSaleDeadline,
+    roiDeadlineOverride
   );
 
   // Same baseline comparison the manual planner's Milestone Summary panel would show for this
@@ -356,11 +376,13 @@ export function runResearchMilestoneIfWorthwhile(
   researchId: string,
   targetLevel: number,
   maxOptimizedSeconds: number,
-  timeLimit: number
+  timeLimit: number,
+  // See `runTierUnlockMilestone`'s identical parameter.
+  roiDeadlineOverride?: number
 ): ShiftResult {
   const noop: ShiftResult = { actions: [], elapsedSeconds: 0, endState: startState };
 
-  const helpers = createMilestoneShiftHelpers(startState, context);
+  const helpers = createMilestoneShiftHelpers(startState, context, roiDeadlineOverride);
   const startSnapshot = computeSnapshot(startState, context, { skipGrowth: true });
   const absoluteSimTimeAtStart = helpers.getAbsTime();
   const mods = helpers.getModifiers();
@@ -376,7 +398,8 @@ export function runResearchMilestoneIfWorthwhile(
     context,
     mods,
     absoluteSimTimeAtStart,
-    researchSaleDeadline
+    researchSaleDeadline,
+    roiDeadlineOverride
   );
   const baseline = computeMilestoneBaseline(
     { kind: 'research', researchId, targetLevel },
