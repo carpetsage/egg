@@ -14,17 +14,18 @@ solver, and take back the answer.
 
 The objective is not linear, so the one thing that cannot be stated directly is
 `log(1 - e^-s)`. That is handled by outer approximation: hold each target's
-contribution under a family of tangents, solve the resulting MILP, add tangents
-where the answer landed, repeat. Every model in the sequence over-estimates, so
-its optimum is an upper bound on the true one, and the bound tightens
-monotonically as cuts accumulate.
+contribution under a family of tangents and solve the resulting MILP. The model
+over-estimates, so its optimum is an upper bound on the true one, and the bound
+tightens as the tangent grid gets finer. The grid is stated once, up front —
+there is exactly one MILP per plan, and section 5 records what the refinement
+rounds that used to follow it turned out to be worth.
 
 ## Module layout
 
 ```text
 model.ts       # restricted DAG, normalized budgets, merged option groups
 milp.ts        # the model itself — columns, rows, cuts, decode
-oa.ts          # the outer-approximation loop, and the certificate
+oa.ts          # the outer approximation, and the certificate
 evaluator.ts   # judge-equivalent value of an integer allocation
 simplex.ts     # the LP the evaluator prices craft splits with
 highs.ts       # the wasm loader, and the LP text either way through it
@@ -250,38 +251,44 @@ matrix, so certainty is proxied by `Q = 1e4` (`Q_CERTAIN_PROXY`), large enough
 that one craft saturates `g` to every bit of a double. The judge still sees the
 real Infinity; the proxy only steers.
 
-## 5. The loop
+## 5. The pass
 
 ```text
 theta   <- one LP per target
-cuts    <- log-spaced grid, 15 points per target, 1 down to 1e-7
-best    <- the empty plan
+cuts    <- log-spaced grid, 100 points per target, 1 down to 1e-5
 
-repeat maxRounds times:
-    solve the MILP under the current cuts
-    counts  <- round the n columns, sum over slots
-    value   <- evaluator on counts
-    keep counts if certifies(counts) and value beats best   # see section 6
-    stop if the MILP was proven optimal and its bound is within 1e-6 nats of best
-    add a cut per target where the MILP thinks the plan landed
-    add a cut per target where it actually landed
-    stop if neither added anything new
+solve the MILP under those cuts
+counts  <- round the n columns, sum over slots
+value   <- evaluator on counts
+return counts if certifies(counts) and value beats the empty plan   # section 6
+return the empty plan otherwise
 ```
 
-The grid is log-spaced because the scores span thirteen decades; a linear grid
-would put every point in a regime no plan reaches. Two cut points within `1e-3`
-of each other relatively are the same cut and the later one is dropped.
+One MILP, and the tangent set never changes while solving. The grid is
+log-spaced in units of theta because `sigma = s / theta` is "fraction of
+achievable": the thirteen decades the scores span live in theta, which the
+normalization divides out, and every sigma ever instrumented landed in
+`[0.27, 1]`. Envelope error is `(d ln10)^2 / 8` nats at `d` decades per cut, so
+100 points over five decades hold the approximation to 1.7e-3 nats where plans
+actually land — 61x tighter than the 15-point grid this replaced, which put 2 of
+its points in the observed band and 8 below `1e-2` where nothing goes.
 
-Refining at *both* points matters. The MILP's own `sigma*` is where the outer
-approximation is loose, which is what makes the next bound tighter; the judged
-score is where the plan really is, which is the value the next round has to beat.
-A round whose incumbent fails the certificate still refines from where it landed,
-so it steers even though it cannot win.
+**There used to be a refinement loop here**, adding a cut per target at the
+MILP's own `sigma*` and at the judged score, up to `maxRounds` times. It is gone,
+and it was not removed for being redundant with a finer grid — it was measured.
+A placebo round solved against a row-permutation of the identical cut set (same
+polytope, same optimum, no new information) changed the answer on 17 of 39
+instances and kept 42% of real refinement's gain, so what the second round bought
+was mostly a search restart, not a tighter envelope. Spending the same budget on
+branch-and-bound nodes in one pass buys more: see `DEFAULT_TUNING` in `oa.ts` for
+the three campaigns, and section 7.
 
-What the loop returns is the best judged iterate, never the last one. Every
-incumbent is scored by `evaluator.ts`, a re-derivation of the objective, so the
-linearized model steers and the real objective decides. The outer approximation
-never grades itself.
+What comes back is still a *judged* plan, never the MILP's answer taken on faith.
+The incumbent is scored by `evaluator.ts`, a re-derivation of the objective, so
+the linearized model steers and the real objective decides. The outer
+approximation never grades itself. A plan the empty plan beats is dropped: a
+node-limited search can return an allocation scoring probability zero, and the
+empty one at least spends nothing to do that.
 
 ## 6. Decode and certify
 
@@ -310,10 +317,11 @@ checks.
 
 ## 7. Budgets, and why they are counts
 
-The two levers are `maxRounds` (refinement rounds, each a full MILP solve) and
-`maxNodes` (branch-and-bound nodes per solve), plus a relative MIP gap of 1e-6.
-`DEFAULT_TUNING` in `oa.ts` is `{maxRounds: 2, maxNodes: 5}`, and it is what
-ships.
+The lever is `maxNodes` (branch-and-bound nodes for the one solve), plus a
+relative MIP gap of 1e-6 and the size of the tangent grid. `DEFAULT_TUNING` in
+`oa.ts` is `{maxNodes: 200}` over a 100-point grid, and it is what ships. The
+budget went up 40x when the second round came out, and the sweep still got
+faster.
 
 Every budget here is a **count**, never a number of seconds — not in the app and
 not in the arena. A wall-clock limit would make the returned plan a function of
@@ -327,7 +335,7 @@ What the budgets are worth is measured in `RESULTS.md`.
 
 ## 8. The backend
 
-`types.ts` defines the whole interface between the loop and the solver: a matrix,
+`types.ts` defines the whole interface between the planner and the solver: a matrix,
 a node budget and a gap, a solution. There is exactly one implementation.
 
 **`highs.ts`** loads `highs` (lovasoa/highs-js), HiGHS compiled to WebAssembly.

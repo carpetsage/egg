@@ -263,5 +263,14 @@ to 285 options and from 1 to 4 targets.
 The arena is not a bake-off between methodologies. It is the bar a change to the
 shipped planner has to clear before it lands.
 
+A proposed change to the shipped planner may be registered alongside it for as
+long as it takes to decide: the harness already runs every entry over the same
+instances against the same judge and prints the head-to-head, so A/B'ing a tuning
+costs one line in `registry.ts` rather than a bespoke script. Such an entry ships
+or it is deleted — the roster is not where alternatives accumulate. The roster is
+one row for that reason and not because nothing has been tried: the shipped
+single-pass tuning was chosen over five registered arms, and all five were
+deleted once it was.
+
 What each entry actually scored is written up alongside that entry rather than
 here, so a candidate's brief stays a statement of the rules.

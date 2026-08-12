@@ -7,13 +7,18 @@ import { optimizeFull } from './optimizer-core';
 // Latency guard, local-only: CI never runs the tests. Two different jobs, so
 // two very different numbers.
 //
-// Recalibrated for the MILP planner, which is roughly 10x the beam search it
-// replaced: best-of-3 on this reference machine is 1085ms for one target over
-// 240 options and 1201ms for two over 279, against the search's 108ms and
-// 237ms. That is the trade the branch made deliberately — see
-// `DEFAULT_TUNING` in `solvers/highs/oa.ts` for what the extra second buys and
-// what it does not. Most of it is branch-and-bound, not the wasm boundary, so it
-// does not come back with a faster interface.
+// Recalibrated for the MILP planner, which is several times the beam search it
+// replaced: best-of-3 on this reference machine is 716ms for one target over 240
+// options and 798ms for two over 279, against the search's 108ms and 237ms. That
+// is the trade the branch made deliberately — see `DEFAULT_TUNING` in
+// `solver/oa.ts` for what the extra time buys and what it does not. Most of it
+// is branch-and-bound, not the wasm boundary, so it does not come back with a
+// faster interface.
+//
+// Those figures were 1085ms and 1201ms under the two-round tuning this planner
+// used to ship. Dropping the refinement round for a 40x node budget in one pass
+// took about a third off both, which is why the strict cap below still has
+// headroom under it.
 //
 // STRICT is the real latency bar and is only meaningful on an idle machine,
 // which is why it is gated behind RUN_PERF=1.
@@ -51,6 +56,7 @@ describe('optimizer performance', () => {
         fuelCapacity: 1e18,
         timeCapacity: HORIZON_SECONDS,
         baseYield,
+        maximumCost: Infinity,
       });
 
     await run(); // warm up the JIT / load the wasm
@@ -98,6 +104,7 @@ describe('optimizer performance (n=2)', () => {
         fuelCapacity: 1e18,
         timeCapacity: HORIZON_SECONDS,
         baseYield,
+        maximumCost: Infinity,
       });
 
     await run(); // warm up the JIT / load the wasm

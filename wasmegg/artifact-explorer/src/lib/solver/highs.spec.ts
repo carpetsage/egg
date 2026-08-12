@@ -113,7 +113,16 @@ describe('the LP-format writer round-trips the model', () => {
         { lower: 0, upper: 3, integer: true, objective: 1 },
         { lower: 0, upper: 10, integer: true, objective: 1 },
       ],
-      [{ terms: [[0, 1], [1, 2]], lower: -INF, upper: 4 }]
+      [
+        {
+          terms: [
+            [0, 1],
+            [1, 2],
+          ],
+          lower: -INF,
+          upper: 4,
+        },
+      ]
     );
     const solution = solve(m, { maxNodes: 1000, relGap: 1e-9 });
     expect(solution.status).toBe('optimal');
@@ -132,9 +141,31 @@ describe('the LP-format writer round-trips the model', () => {
         { lower: -INF, upper: INF, objective: 1 },
       ],
       [
-        { terms: [[2, 1], [0, -2], [1, -3]], lower: 0, upper: 0 },
-        { terms: [[0, 1], [1, 1]], lower: -INF, upper: 4 },
-        { terms: [[0, 1], [1, -1]], lower: 0, upper: INF },
+        {
+          terms: [
+            [2, 1],
+            [0, -2],
+            [1, -3],
+          ],
+          lower: 0,
+          upper: 0,
+        },
+        {
+          terms: [
+            [0, 1],
+            [1, 1],
+          ],
+          lower: -INF,
+          upper: 4,
+        },
+        {
+          terms: [
+            [0, 1],
+            [1, -1],
+          ],
+          lower: 0,
+          upper: INF,
+        },
       ]
     );
     const solution = solve(m, { maxNodes: 1000, relGap: 1e-9 });
@@ -157,8 +188,22 @@ describe('the LP-format writer round-trips the model', () => {
       [
         { terms: [[0, 1234.5678]], lower: -INF, upper: 2592000 },
         { terms: [[0, 0.001371742112482853]], lower: -INF, upper: 1 },
-        { terms: [[1, 1], [0, -1e-7]], lower: -INF, upper: -3.5e-6 },
-        { terms: [[1, 1], [0, -1e7]], lower: -INF, upper: 4.25 },
+        {
+          terms: [
+            [1, 1],
+            [0, -1e-7],
+          ],
+          lower: -INF,
+          upper: -3.5e-6,
+        },
+        {
+          terms: [
+            [1, 1],
+            [0, -1e7],
+          ],
+          lower: -INF,
+          upper: 4.25,
+        },
       ]
     );
     const solution = solve(m, { maxNodes: 1000, relGap: 1e-9 });

@@ -170,12 +170,21 @@ const PROBLEM_SURFACE = [
   'types.ts',
 ];
 
-// The one candidate that is allowed to import production code, because it *is*
-// production code: `solvers/highs/index.ts` is a shim around `src/lib/solver/`,
-// so the planner users run and the planner the harness measures are one module.
-// The exception is this narrow — that file, and only into `src/lib/solver/`.
-const SHIPPED_ENTRY = join(SOLVERS, 'highs', 'index.ts');
-const SHIPPED_ENTRY_MAY_IMPORT = join(LIB, 'solver');
+// The entries allowed to import production code, because they *are* production
+// code: each is a shim around `src/lib/solver/`, so the planner users run and
+// the planner the harness measures are one module. `highs` enters it at the
+// shipped tuning; a second entry may enter the same module at a different one,
+// which is how a tuning gets A/B'd against the incumbent over the same
+// instances and the same judge.
+//
+// The exception stays narrow in the two ways that matter. Only into
+// `src/lib/solver/` — not the rest of `src/lib` — and only for a file that does
+// no solving of its own, which `the shim entries are shims and nothing more`
+// below enforces on every entry in this list. A candidate proposing a *method*
+// rather than a tuning still re-derives its own machinery; being listed here is
+// a statement that the file adds nothing to what already ships.
+const SHIM_ENTRIES = [join(SOLVERS, 'highs', 'index.ts')];
+const SHIMS_MAY_IMPORT = join(LIB, 'solver');
 
 describe('arena independence', () => {
   it('the src/lib classification is exhaustive and has no dead entries', () => {
@@ -242,11 +251,11 @@ describe('arena independence', () => {
     // packer, its search. A candidate that called into those would be measuring
     // the incumbent's method wearing a different hat.
     //
-    // One named exception, and it is the whole point of the current arrangement
-    // rather than a hole in it: `solvers/highs/index.ts` is a shim whose job is
-    // to enter the *shipped* planner, so it reaches into `src/lib/solver/`
+    // A named list of exceptions, and it is the whole point of the current
+    // arrangement rather than a hole in it: the files in `SHIM_ENTRIES` exist to
+    // enter the *shipped* planner, so they reach into `src/lib/solver/`
     // deliberately. Everything else under `solvers/` — including any future
-    // candidate, and including the shim's own reach outside `src/lib/solver/` —
+    // candidate, and including a shim's own reach outside `src/lib/solver/` —
     // is still forbidden.
     const offenders: string[] = [];
     for (const path of walk(SOLVERS)) {
@@ -254,29 +263,32 @@ describe('arena independence', () => {
       for (const spec of valueImportsOf(readFileSync(path, 'utf8'))) {
         const target = resolveSpec(path, spec);
         if (target === null || !within(LIB, target)) continue;
-        if (path === SHIPPED_ENTRY && within(SHIPPED_ENTRY_MAY_IMPORT, target)) continue;
+        if (SHIM_ENTRIES.includes(path) && within(SHIMS_MAY_IMPORT, target)) continue;
         offenders.push(`${rel} imports ${spec}`);
       }
     }
     expect(offenders).toEqual([]);
   });
 
-  it('the shipped entry is a shim and nothing more', () => {
-    // The exception above is only safe while the file it exempts contains no
-    // solving of its own — otherwise "the shipped planner" would quietly become
-    // "the shipped planner plus whatever this file does on top", and the arena
-    // would stop measuring what ships. A shim is an import list and a
-    // registration; this pins that.
-    const source = readFileSync(SHIPPED_ENTRY, 'utf8');
-    const code = source
-      .split('\n')
-      .filter(line => !/^\s*(\/\/|$)/.test(line))
-      .join('\n');
-    expect(code.length).toBeLessThan(700);
-    expect(/\bfor\s*\(|\bwhile\s*\(|\bfunction\b/.test(code)).toBe(false);
-    // It must go through the same entry points `optimizer-core.ts` does.
-    expect(code).toContain("from '@/lib/solver/oa'");
-    expect(code).toContain("from '@/lib/solver/highs'");
+  it('the shim entries are shims and nothing more', () => {
+    // The exception above is only safe while the files it exempts contain no
+    // solving of their own — otherwise "the shipped planner" would quietly
+    // become "the shipped planner plus whatever this file does on top", and the
+    // arena would stop measuring what ships. A shim is an import list and a
+    // registration; this pins that, on every exempted file rather than on the
+    // first one, so adding an entry to the list cannot smuggle logic in with it.
+    for (const entry of SHIM_ENTRIES) {
+      expect(existsSync(entry), `${entry} is listed as a shim but does not exist`).toBe(true);
+      const code = readFileSync(entry, 'utf8')
+        .split('\n')
+        .filter(line => !/^\s*(\/\/|$)/.test(line))
+        .join('\n');
+      expect(code.length, entry).toBeLessThan(700);
+      expect(/\bfor\s*\(|\bwhile\s*\(|\bfunction\b/.test(code), entry).toBe(false);
+      // It must go through the same entry points `optimizer-core.ts` does.
+      expect(code, entry).toContain("from '@/lib/solver/oa'");
+      expect(code, entry).toContain("from '@/lib/solver/highs'");
+    }
   });
 
   it('production never imports the arena', () => {

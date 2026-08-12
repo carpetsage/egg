@@ -60,33 +60,27 @@ describe.skipIf(!REQUESTED)(`arena (${MODE}, ${COUNT} instances)`, () => {
   const results: SweepResult[] = [];
 
   for (const solver of solvers) {
-    it(
-      `${solver.id} holds the invariants`,
-      () => {
-        const r = sweep(solver, seeds, checks, inst => {
-          if (inst.violations.length > 0) {
-            console.log(
-              `  ${describeInstance(generateInstance(inst.seed))} -> ${inst.violations.length} violation(s)`
-            );
-            for (const v of inst.violations.slice(0, 6)) {
-              console.log(`      ${v.invariant}  ${v.detail}`);
-            }
-            if (inst.violations.length > 6) {
-              console.log(`      ... and ${inst.violations.length - 6} more`);
-            }
+    it(`${solver.id} holds the invariants`, () => {
+      const r = sweep(solver, seeds, checks, inst => {
+        if (inst.violations.length > 0) {
+          console.log(`  ${describeInstance(generateInstance(inst.seed))} -> ${inst.violations.length} violation(s)`);
+          for (const v of inst.violations.slice(0, 6)) {
+            console.log(`      ${v.invariant}  ${v.detail}`);
           }
-        });
-        results.push(r);
-        console.log(formatScorecard(r));
-        console.log(`    results written to ${writeResults(RESULT_DIR, r)}`);
+          if (inst.violations.length > 6) {
+            console.log(`      ... and ${inst.violations.length - 6} more`);
+          }
+        }
+      });
+      results.push(r);
+      console.log(formatScorecard(r));
+      console.log(`    results written to ${writeResults(RESULT_DIR, r)}`);
 
-        const failing = r.instances
-          .flatMap(i => i.violations)
-          .filter(v => GATE_ALL || HARD_FAIL.has(v.invariant) || v.invariant.endsWith('-threw'));
-        expect(failing.map(v => `${v.invariant} ${v.instance}: ${v.detail}`)).toEqual([]);
-      },
-      3_600_000
-    );
+      const failing = r.instances
+        .flatMap(i => i.violations)
+        .filter(v => GATE_ALL || HARD_FAIL.has(v.invariant) || v.invariant.endsWith('-threw'));
+      expect(failing.map(v => `${v.invariant} ${v.instance}: ${v.detail}`)).toEqual([]);
+    }, 3_600_000);
   }
 
   it('reports head-to-head plan quality', () => {

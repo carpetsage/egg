@@ -152,7 +152,7 @@ export async function optimize(
   craftBudget?: CraftBudget
 ) {
   const { desiredArtifactNodeIds, fuelTankCapacity, timeBudgetSeconds } = config;
-  const options = enumerateLaunchOptions(playerConfig, dag, launchPeriodSeconds, maxGemCost);
+  const options = enumerateLaunchOptions(playerConfig, dag, launchPeriodSeconds);
   const { optimizeFull } = await import('./optimizer-core');
 
   const solutions: OptimizerSolution[] = [
@@ -162,6 +162,7 @@ export async function optimize(
       desiredArtifactNodeIds: desiredArtifactNodeIds,
       fuelCapacity: fuelTankCapacity,
       timeCapacity: timeBudgetSeconds,
+      maximumCost: maxGemCost,
       baseYield: baseYield,
       craftBudget,
     }),

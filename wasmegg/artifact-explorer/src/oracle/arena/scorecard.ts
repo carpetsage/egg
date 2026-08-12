@@ -252,7 +252,9 @@ export function formatComparison(a: SweepResult, b: SweepResult): string {
   lines.push('');
   lines.push(
     `    ${b.solverId} better on ${wins}, worse on ${losses}, tied on ${ties}` +
-      (counted > 0 ? `; mean delta ${(sumDelta / counted).toFixed(4)} log10 over ${counted} comparable instance(s)` : '')
+      (counted > 0
+        ? `; mean delta ${(sumDelta / counted).toFixed(4)} log10 over ${counted} comparable instance(s)`
+        : '')
   );
   return lines.join('\n');
 }

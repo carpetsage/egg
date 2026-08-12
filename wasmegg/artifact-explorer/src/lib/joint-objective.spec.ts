@@ -36,6 +36,7 @@ describe('joint objective: balanced split vs. weighted-sum winner-take-all', () 
       fuelCapacity: 1000,
       timeCapacity: 100,
       baseYield: new Map([['Z', 10]]),
+      maximumCost: Infinity,
     });
 
     const crafts = sol.perTarget.map(t => t.expectedCrafts);
@@ -80,6 +81,7 @@ describe('joint objective: balanced split vs. weighted-sum winner-take-all', () 
       fuelCapacity: 60,
       timeCapacity: 1000,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
 
     const crafts = sol.perTarget.map(t => t.expectedCrafts);
@@ -171,6 +173,7 @@ describe('the product objective reduces to the linear score at n=1', () => {
     fuelCapacity: 65,
     timeCapacity: 40,
     baseYield: new Map<string, number>(),
+    maximumCost: Infinity,
   };
 
   it('lands on the plain linear score optimum', async () => {

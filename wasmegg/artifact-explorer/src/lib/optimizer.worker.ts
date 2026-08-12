@@ -64,6 +64,7 @@ ctx.onmessage = async (e: MessageEvent<OptimizerRequest>) => {
       timeCapacity: req.timeCapacity,
       baseYield: req.baseYield,
       craftBudget: req.craftBudget,
+      maximumCost: req.maximumCost,
     });
     response = { id: req.id, ok: true, solutions: solutionsToWire([solution]) };
   } catch (err) {

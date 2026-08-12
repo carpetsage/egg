@@ -209,12 +209,13 @@ export default defineComponent({
           }
         : undefined;
       return {
-        options: enumerateLaunchOptions(effectiveConfig.value, recipeDag.value, launchPeriodSeconds, maxGemCost),
+        options: enumerateLaunchOptions(effectiveConfig.value, recipeDag.value, launchPeriodSeconds),
         recipeDag: recipeDag.value,
         desiredArtifactNodeIds: [...artifactIds.value],
         fuelCapacity: effectiveFuelTankCapacity.value,
         timeCapacity: maxWaitTimeSeconds.value,
         baseYield: playerBaseYield.value,
+        maximumCost: maxGemCost,
         craftBudget,
       };
     });

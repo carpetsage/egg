@@ -48,8 +48,7 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
 export function enumerateLaunchOptions(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
-  launchPeriodSeconds = 0,
-  maxGemCost?: number
+  launchPeriodSeconds = 0
 ): LaunchOption[] {
   const options: LaunchOption[] = [];
 
@@ -61,8 +60,6 @@ export function enumerateLaunchOptions(
 
   for (const mission of missions) {
     if (!playerConfig.shipVisibility[mission.shipType]) continue;
-
-    if (maxGemCost !== undefined && mission.virtueGemCost > maxGemCost) continue;
 
     const missionData = getMissionLootData(mission.missionTypeId);
     const levelLootData = missionData.levels[playerConfig.shipLevels[mission.shipType]];
@@ -143,6 +140,7 @@ function makeLaunchOption(
     actualTime: Math.max(rawTime, launchPeriodSeconds),
     rawTime,
     fuelByEgg: nonHumilityFuelUse.reduce((agg, current) => agg.set(current.egg, current.amount), new Map()),
+    cost: mission.virtueGemCost,
     supplyVector: new Map(),
     yieldVector: new Map(),
     legendaryYieldVector: new Map(),

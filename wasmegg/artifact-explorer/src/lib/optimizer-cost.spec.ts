@@ -82,25 +82,37 @@ describe('previousCraftsOf', () => {
 describe('fractionalCraftCost', () => {
   const params = paramsOf(lt3);
 
-  it('agrees with multiCraftCost at whole craft counts', () => {
+  it('charges every craft at the player’s next craft price', () => {
     for (const n of [1, 2, 5, 20]) {
-      expect(fractionalCraftCost(params, 0, n)).toBe(multiCraftCost(params, 0, n));
+      expect(fractionalCraftCost(params, 0, n)).toBe(n * singleCraftCost(params, 0));
+    }
+  });
+
+  // The direction matters: this is the same over-statement the golden egg cap
+  // is built on, so the reported bill can never come in under the cap that
+  // produced the plan. It agrees with what the game charges at one craft only.
+  it('over-states multiCraftCost past the first craft, never under-states it', () => {
+    expect(fractionalCraftCost(params, 0, 1)).toBe(multiCraftCost(params, 0, 1));
+    for (const n of [2, 5, 20]) {
+      expect(fractionalCraftCost(params, 0, n)).toBeGreaterThan(multiCraftCost(params, 0, n));
     }
   });
 
   it('honours the starting craft index, so a veteran pays less', () => {
-    expect(fractionalCraftCost(params, 30, 4)).toBe(multiCraftCost(params, 30, 4));
+    expect(fractionalCraftCost(params, 30, 4)).toBe(4 * singleCraftCost(params, 30));
     expect(fractionalCraftCost(params, 30, 4)).toBeLessThan(fractionalCraftCost(params, 0, 4));
   });
 
-  it('charges a partial craft at the price of the craft it has started', () => {
-    expect(fractionalCraftCost(params, 0, 3.4)).toBeCloseTo(
-      multiCraftCost(params, 0, 3) + 0.4 * singleCraftCost(params, 3),
+  it('is proportional in crafts, so a fraction costs a fraction', () => {
+    expect(fractionalCraftCost(params, 0, 3.4)).toBeCloseTo(3.4 * singleCraftCost(params, 0), 9);
+    // additive, hence no whole-craft boundary to price around
+    expect(fractionalCraftCost(params, 0, 1.4) + fractionalCraftCost(params, 0, 2)).toBeCloseTo(
+      fractionalCraftCost(params, 0, 3.4),
       9
     );
   });
 
-  it('is continuous and monotone across a whole-craft boundary', () => {
+  it('is monotone, with no jump at a whole craft count', () => {
     const justBelow = fractionalCraftCost(params, 0, 2.999);
     const at = fractionalCraftCost(params, 0, 3);
     const justAbove = fractionalCraftCost(params, 0, 3.001);
@@ -120,7 +132,7 @@ describe('fractionalCraftCost', () => {
 describe('craftCostOf', () => {
   it('prices crafts of a tier seeded with the player’s own craft count', () => {
     const inventory = inventoryWithCrafts([[Level.NORMAL, 12]]);
-    expect(craftCostOf(lt3, 5, inventory)).toBe(multiCraftCost(paramsOf(lt3), 12, 5));
+    expect(craftCostOf(lt3, 5, inventory)).toBe(5 * singleCraftCost(paramsOf(lt3), 12));
   });
 
   it('is 0 for an item with no recipe', () => {
@@ -148,23 +160,27 @@ describe('computePlanCraftingCost', () => {
 
     const { total, byNode } = computePlanCraftingCost(solution, inventory);
 
+    // each node's own previous-craft count seeds its own unit price
     const expected = {
-      [lt4]: multiCraftCost(paramsOf(lt4), 0, 2),
-      [lt3]: multiCraftCost(paramsOf(lt3), 9, 6),
-      [lt2]: multiCraftCost(paramsOf(lt2), 4, 3),
+      [lt4]: 2 * singleCraftCost(paramsOf(lt4), 0),
+      [lt3]: 6 * singleCraftCost(paramsOf(lt3), 9),
+      [lt2]: 3 * singleCraftCost(paramsOf(lt2), 4),
     };
     // the leaf is left out entirely, not billed at 0
     expect(Object.fromEntries(byNode)).toEqual(expected);
     expect(total).toBe(expected[lt4] + expected[lt3] + expected[lt2]);
   });
 
-  it('prices fractional LP craft counts by interpolation, not rounding', () => {
+  it('prices fractional LP craft counts proportionally, not by rounding', () => {
     const solution = makeSolution({
       recipeDag: totemDag(),
       craftPrimal: new Map([[lt3, 2.5]]),
     });
     const { total } = computePlanCraftingCost(solution, null);
-    expect(total).toBeCloseTo(multiCraftCost(paramsOf(lt3), 0, 2) + 0.5 * singleCraftCost(paramsOf(lt3), 2), 9);
+    expect(total).toBeCloseTo(2.5 * singleCraftCost(paramsOf(lt3), 0), 9);
+    // neither floored nor ceiled to a whole craft
+    expect(total).toBeGreaterThan(2 * singleCraftCost(paramsOf(lt3), 0));
+    expect(total).toBeLessThan(3 * singleCraftCost(paramsOf(lt3), 0));
   });
 
   it('charges nothing for a plan that crafts nothing', () => {
@@ -195,7 +211,7 @@ describe('sumCraftChainCost', () => {
     const tree = computeCraftChainTree(solution, lt4, null)!;
 
     expect(sumCraftChainCost(tree)).toBeCloseTo(
-      multiCraftCost(paramsOf(lt4), 0, 1) + multiCraftCost(paramsOf(lt3), 0, 2) + multiCraftCost(paramsOf(lt2), 0, 1),
+      singleCraftCost(paramsOf(lt4), 0) + 2 * singleCraftCost(paramsOf(lt3), 0) + singleCraftCost(paramsOf(lt2), 0),
       9
     );
   });
@@ -222,8 +238,7 @@ describe('sumCraftChainCost', () => {
     });
 
     // Each target demands half the lt2 pool, so each is billed half of the
-    // four-craft price — not the price of two crafts, which would restart the
-    // decreasing curve and overstate the bill.
+    // four-craft price.
     const lt3Cost = sumCraftChainCost(computeCraftChainTree(solution, lt3, null));
     const lt4Cost = sumCraftChainCost(computeCraftChainTree(solution, lt4, null));
     expect(lt3Cost).toBeCloseTo(craftCostOf(lt3, 1, null) + craftCostOf(lt2, 4, null) / 2, 9);
@@ -236,8 +251,11 @@ describe('sumCraftChainCost', () => {
     expect(total).toBe(craftCostOf(lt3, 1, null) + craftCostOf(lt4, 1, null) + craftCostOf(lt2, 4, null));
     expect(lt3Cost + lt4Cost).toBeCloseTo(total, 9);
 
-    // Restarting the curve per target — the pre-fix behaviour — would have
-    // billed strictly more than the plan actually costs.
-    expect(craftCostOf(lt2, 2, null) * 2).toBeGreaterThan(craftCostOf(lt2, 4, null));
+    // Under the linear price the split is purely about attribution: two crafts
+    // billed twice and four billed once come to the same number, so halving the
+    // pool cannot overstate the total the way it would against the real
+    // decreasing curve. What the split still decides is *which* target carries
+    // the lt2 bill, which is what the per-target assertions above pin.
+    expect(craftCostOf(lt2, 2, null) * 2).toBeCloseTo(craftCostOf(lt2, 4, null), 9);
   });
 });

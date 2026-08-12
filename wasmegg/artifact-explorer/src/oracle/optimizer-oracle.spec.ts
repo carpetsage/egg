@@ -46,6 +46,7 @@ async function runOptimizer(inst: OracleInstance): Promise<OptimizerSolution> {
     fuelCapacity: inst.fuelCapacity,
     timeCapacity: inst.timeCapacity,
     baseYield: inst.baseYield,
+    maximumCost: Infinity,
   });
 }
 
@@ -94,6 +95,7 @@ async function solverPricesAllocation(inst: OracleInstance, allocation: number[]
     fuelCapacity: 1,
     timeCapacity: 1,
     baseYield: inst.baseYield,
+    maximumCost: Infinity,
   });
   return solution.jointProbability;
 }

@@ -14,6 +14,7 @@ export interface OptimizerRequestInput {
   desiredArtifactNodeIds: string[];
   fuelCapacity: number;
   timeCapacity: number;
+  maximumCost: number | undefined;
   baseYield: Map<string, number>;
   craftBudget?: CraftBudget;
 }

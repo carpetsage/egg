@@ -2,7 +2,7 @@
 // builders resolve names and icons through getArtifactTierPropsFromId.
 
 import { describe, expect, it } from 'vitest';
-import { ei, getArtifactTierPropsFromId, iconURL, Inventory, multiCraftCost } from 'lib';
+import { ei, getArtifactTierPropsFromId, iconURL, Inventory, singleCraftCost } from 'lib';
 
 import {
   buildRecipeTree,
@@ -50,11 +50,13 @@ function totemInventory(): Inventory {
   });
 }
 
-// Whole-craft cost straight from lib, so the tree's cost metric is never
-// checked against a number this file made up.
+// The unit price straight from lib, so the tree's cost metric is never checked
+// against a number this file made up. Every craft goes at the player's next
+// craft price, matching the golden egg cap's own pricing — see
+// `fractionalCraftCost`.
 function libCost(nodeId: string, previousCrafts: number, crafts: number): number {
   const params = getArtifactTierPropsFromId(nodeId).recipe!.crafting_price;
-  return multiCraftCost(params, previousCrafts, crafts);
+  return crafts * singleCraftCost(params, previousCrafts);
 }
 
 describe('computeCanonicalOccurrence', () => {

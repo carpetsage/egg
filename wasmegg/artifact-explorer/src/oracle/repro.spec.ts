@@ -52,6 +52,7 @@ describe.skipIf(!SPEC)('oracle repro', () => {
       fuelCapacity: inst.fuelCapacity,
       timeCapacity: inst.timeCapacity,
       baseYield: inst.baseYield,
+      maximumCost: Infinity,
     });
     const alloc = new Array<number>(inst.options.length).fill(0);
     for (const h of sol.choiceHistory) {

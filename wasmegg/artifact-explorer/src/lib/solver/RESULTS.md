@@ -5,88 +5,125 @@ method; this file is only numbers and what they say.
 
 Everything below was measured on the arena's default cheap sweep
 (`ARENA=sweep pnpm arena`, 40 instances, seeds 2000-2039) on the development
-container, at the shipped tuning of `{maxRounds: 2, maxNodes: 5}`, unless a row
-says otherwise. `results/highs.json` is gitignored and every sweep rewrites it,
-so these are transcriptions, not a committed reference.
+container, at the shipped tuning — one MILP at `maxNodes: 200` over a 100-point
+tangent grid — unless a row says otherwise. `results/highs.json` is gitignored
+and every sweep rewrites it, so these are transcriptions, not a committed
+reference.
+
+**Counts from different eras of this file do not compare.** The invariant set has
+grown since the first scorecard was written here (A4-inventory and A9-golden-eggs
+did not exist then, B2-target-order has since been fixed outright) and the
+judge's packing budget has moved, so a violation count means something only
+against another count from the same harness on the same seeds. Older figures
+below are labelled with the tuning and era they came from.
 
 ## The scorecard
 
-Two full sweeps. The second was run after the `SAFE_LARGE_COEFFICIENT` cap in
-`milp.ts` and reproduces the first to the unit — same violation count, same clean
-count, same per-invariant counts, same worst magnitudes — which is what says that
-cap only touches rows that would otherwise have made the model unreadable.
-
-| | run 1 | run 2 |
-| --- | --- | --- |
-| violations | 63 | 63 |
-| clean instances | 23/40 | 23/40 |
-| invariants firing | 5 | 5 |
-| `p -> 0` / `0 -> p` collapses | **0** | **0** |
-| worst finite violation | 0.1951 nats | 0.1951 nats |
-| solve latency median / p90 / max | 1090 / 2738 / 3727 ms | 1093 / 2756 / 3745 ms |
-| sweep wall clock | 2228 s | 2223 s |
-| mean log10(joint) | -6.775 | -6.775 |
+| | |
+| --- | --- |
+| violations | 76 |
+| clean instances | 17/40 |
+| invariants firing | 6 |
+| `p -> 0` / `0 -> p` collapses | **0** |
+| worst finite violation | -0.1446 nats |
+| solve latency median / p90 / max | 917 / 1730 / 1911 ms |
+| sweep wall clock | 2064 s |
+| mean log10(joint) | -6.771 |
 
 | invariant | count | instances | worst finite |
 | --- | --- | --- | --- |
-| A3-menu | 39 | 13 | 0.1951 nats |
-| B2-target-order | 11 | 11 | 0.1620 nats |
-| A5-effort | 8 | 7 | -0.0366 nats |
-| A1-fuel | 4 | 4 | -0.0148 nats |
-| A2-time | 1 | 1 | -0.0595 nats |
+| A3-menu | 43 | 17 | 0.0514 nats |
+| A9-golden-eggs | 10 | 10 | -0.0170 nats |
+| A5-effort | 8 | 8 | -0.1446 nats |
+| A4-inventory | 5 | 5 | -0.0504 nats |
+| A1-fuel | 5 | 5 | -0.0488 nats |
+| A2-time | 5 | 3 | -0.0951 nats |
 
-Five invariants fire; the rest are held outright. Violations concentrate rather
-than spread: 17 instances carry all 63, and `arena:2038` alone carries 10.
+Measured twice on the same instances, on either side of the edit that made this
+the default: once as a registered arena candidate against the then-shipped
+planner (76 violations, 17/40 clean, median 919 / p90 1733 / max 1925 ms, mean
+log10 -6.771), and again after the refinement loop came out of `oa.ts`. Every
+count reproduces to the unit and the latencies agree inside 1%, which is the
+check that the deletion was a deletion: the same plans, from less code.
 
 **Every violation is a truncated search, not a modelling gap.** They all have the
-form "a more constrained problem scored better", they are all under 0.2 nats, and
-none is a collapse to or from probability zero.
+form "a more constrained problem scored better", they are all under 0.15 nats,
+and none is a collapse to or from probability zero. A3-menu dominates and always
+has: hiding a ship the plan was not going to use changes the search's path
+through the tree without changing the set of plans available to it.
 
-That the node budget is the cause is measurable directly: re-running the checks
-at `maxNodes: 5000` over the 18 instances carrying every violation takes them
-from **55 to 8**, and 0/18 clean to 12/18, with the worst magnitude going 0.0790
-to 0.0065 nats. It is also why raising the cap is not the fix — it costs about
-seven times the wall clock and provokes `HiGHS error -1` on two instances.
+That the node budget is the cause is measurable directly, though the probe below
+predates this tuning: at the retired `{2 rounds, 5 nodes}` default, re-running
+the checks at `maxNodes: 5000` over the 18 instances carrying every violation
+took them from **55 to 8**, and 0/18 clean to 12/18, with the worst magnitude
+going 0.0790 to 0.0065 nats. It is also why raising the cap is not the fix — it
+cost about seven times the wall clock and provoked `HiGHS error -1` on two
+instances.
 
 ## What the budgets buy
 
-Full sweeps with the invariant checks are the bottom three rows; the top two are
-solve-only probes.
+Three 40-instance campaigns, seed bases 2000 / 9000 / 5000, every arm run over
+the identical instances in the same invocation. Summed over the three, as
+violation count / summed severity in nats:
 
-| rounds, nodes | median | p90 | max | violations | clean | worst A3 | mean log10(joint) |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 1, 0 | 46 ms | 82 ms | 130 ms | — | — | — | **p = 0 on 39/39** |
-| 1, 50 | 658 ms | 1586 ms | 2487 ms | — | — | — | -6.7778 |
-| **2, 5** | **1090 ms** | **2738 ms** | **3727 ms** | **63** | **23/40** | 0.1951 | **-6.775** |
-| 2, 50 | 1208 ms | 2987 ms | 4064 ms | 62 | 24/40 | 0.2410 | -6.774 |
-| 3, 200 | 2103 ms | 4814 ms | 5989 ms | 55 | 22/40 | 0.0790 | -6.771 |
+| tuning | count | severity | |
+| --- | --- | --- | --- |
+| {2 rounds, 5 nodes, 15-point grid} | 222 | 2.680 | the retired default |
+| {2 rounds, 5 nodes, 50-point grid} | 208 | 1.578 | best severity, and not what ships |
+| {1 round, 5 nodes, 100-point grid} | 245 | 2.611 | |
+| {1 round, 50 nodes, 100-point grid} | 240 | 2.357 | |
+| {1 round, 100 nodes, 100-point grid} | 234 | 2.314 | |
+| **{1 round, 200 nodes, 100-point grid}** | **220** | **1.820** | **ships** |
+
+**Three campaigns, because one cannot read this.** The retired default's own
+severity swings 3x across seed bases (1.431 / 0.767 / 0.482) while the harness
+itself is exactly reproducible — a re-run of seed base 2000 returned 79 / 1.431
+against 79 / 1.431. Any single-campaign delta under about 1.5x is noise, which is
+how the 100-node arm briefly looked like a winner: on seed base 2000 alone it
+beat the default on every axis and none of it replicated.
+
+**A single pass is only worth it at 200 nodes.** Below that it loses to two
+rounds on violation count in 3 campaigns of 3. At 200 it wins on severity 3/3, on
+quality 3/3 (+0.0022, +0.0010, +0.0011 mean log10 joint; head-to-head 17/7, 16/8,
+14/9) and on wall clock 3/3 (-3.8%, -11.9%, -8.9%), with the worst single solve
+down about a third: 1925 / 2230 / 2013 ms against 2633 / 2678 / 2958 ms.
+
+**The 50-point two-round arm is the one that got away, and it stays away.** It
+wins severity outright, 1.70x against this tuning's 1.47x. It also costs 7-11%
+more wall clock, keeps a second MILP, and has a 3947 ms worst case against 1925 —
+so it buys monotonicity with the number a user actually feels. The shipped
+tuning is the only arm that improved correctness *and* latency.
+
+**What the second round was doing was not envelope repair.** A placebo round
+solved against a row-permutation of the identical cut set — same polytope, same
+optimum, zero new information — changed the answer on 17 of 39 instances and kept
+42% of real refinement's gain, with a larger worst-case swing than refinement
+produces. A decoy round placing cuts at sigma ~ 1e-4, where nothing ever goes,
+changed 26 of 39 and kept 47%. Ordered by gain: refinement 0.1724 > random
+shuffle 0.1360 > row reversal 0.0728 nats. So the round was a search restart with
+a slightly loaded die, and 200 nodes in one pass buys more than the restart did.
+
+**The variance it was cashing is small and nearly exhausted.** Eight cut-row
+shuffles of a single round: 18 of 39 instances return byte-identical plans,
+median spread 0.0006 nats, and best-of-K saturates at 0.2200 nats with K=2
+already at 0.1360. Depth does not substitute — at 50,000 nodes only 20 of 40
+instances are proven optimal, growing about 4.5 instances per decade.
 
 **Branching is not optional.** `maxNodes: 0` returns probability zero on every
 instance, even at `mip_heuristic_effort: 1.0` — the root heuristics never find an
-incumbent — so the 46 ms floor is not a mode anyone can ship.
+incumbent — so the 46 ms floor that buys is not a mode anyone can ship.
 
-**`{2,5}` and `{2,50}` are near-identical solvers.** 36 of 40 plans come out
-identical; the violation delta is eight instances moving in both directions for a
-net of one; the extra nodes cost 11% of the wall clock. Between those two, take
-the cheap one.
-
-**Quality is flat across the whole table.** The three swept means sit inside
-0.004 log10 of each other. Nothing here is a quality decision.
-
-**What extra rounds buy is monotonicity.** Going from three rounds to two roughly
-triples the worst-case violation magnitude (A3-menu 0.0790 -> 0.1951 nats) while
-leaving the count and the quality broadly alone. The likely mechanism — a
-hypothesis, not a finding — is that refinement cuts are placed where the previous
-round landed, so a second round re-linearizes around a budget-dependent point and
-amplifies path dependence, which a third round damps by converging.
-
-The default is the cheap end of the two-round plateau, chosen for the instances
-real players bring rather than for the arena's uniform-random tail.
+**Quality is flat across every tuning ever swept.** The means sit inside 0.005
+log10 of each other. Nothing in this table is a quality decision; they are
+monotonicity and latency decisions.
 
 ## Where the time goes
 
-Measured on the real MILP the loop builds for seed 2011 (953 columns, 684 of them
-integer, 353 rows):
+Measured on the real MILP built for seed 2011 (953 columns, 684 of them integer,
+353 rows) under the retired 15-point grid. The 100-point grid adds rows and
+nothing else — 85 more per target, no new columns and no new integers — so the
+table's conclusion is unaffected by it, and the sweep getting *faster* on a
+matrix with twice the rows is the same point from the other end:
 
 | | wall clock | status |
 | --- | --- | --- |
@@ -119,8 +156,18 @@ a typical plan.
 
 ## Caveats
 
-**Two sweeps, not three.** The two agree exactly. The `{2,50}` and `{3,200}` rows
-are single sweeps, as are the per-solve probes.
+**Three campaigns for the tuning decision, two sweeps for the scorecard.** The
+budget table is summed over three seed bases because one cannot resolve a delta
+this size; the scorecard is seed base 2000 twice, before and after the shipped
+edit, and they agree to the unit. The per-solve probes and the older
+`maxNodes: 5000` experiment are single runs.
+
+**An earlier pair of sweeps, at the retired `{2, 5}` tuning, bracketed the
+`SAFE_LARGE_COEFFICIENT` cap** in `milp.ts` and reproduced each other to the unit
+across every count and magnitude — which is what says that cap only touches rows
+that would otherwise have made the model unreadable. Those runs scored 63
+violations and 23/40 clean, against a smaller invariant set; see the note at the
+top about comparing eras.
 
 **The comparison against the search this replaced is not reproducible.** On the
 same 40 instances, `optimizer-core.ts`'s LP relaxation, dominance-pruned integer

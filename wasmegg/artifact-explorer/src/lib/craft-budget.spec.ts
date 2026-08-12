@@ -80,10 +80,13 @@ describe('optimize', () => {
       unitPrices,
     });
 
-    // The row is priced at the linear upper bound, so the real bill lands at or
-    // under the cap — never above it, which is the property that makes the cap
-    // mean anything.
-    expect(computePlanCraftingCost(capped, null).total).toBeLessThanOrEqual(capacity);
+    // The card reports the same linear price the budget row is written in, so
+    // the reported bill honours the cap the player set — the property that makes
+    // the cap mean anything. It can land *on* the cap rather than under it, and
+    // the two sides reach the same number by different summations through
+    // HiGHS, so the comparison carries a relative epsilon rather than being
+    // exact.
+    expect(computePlanCraftingCost(capped, null).total).toBeLessThanOrEqual(capacity * (1 + 1e-9));
     expect(capped.bestProbability).toBeLessThanOrEqual(uncapped.bestProbability + 1e-9);
   }, 60_000);
 });

@@ -121,7 +121,7 @@ once per returned solution, never in the search loop.
 ## Search structure
 
 `optimizeFull` states the whole problem as one mixed-integer program and hands
-it to HiGHS. The model, the outer-approximation loop that handles the concave
+it to HiGHS. The model, the outer approximation that handles the concave
 objective, and the numeric traps in both live in
 `src/lib/solver/SPEC.md`; what follows is only what a reader of
 this file needs.
@@ -137,16 +137,14 @@ the same matrix rather than in an inner LP the outer search re-solves.
 
 **Why it is not a linear program.** `sum_T log(1 - e^-s_T)` is concave and
 transcendental. Outer approximation handles it: hold each target's contribution
-under a family of its tangents, solve the resulting MILP, add tangents where the
-answer landed, and repeat. Each model in the sequence over-estimates the true
-objective, so *when a round is solved to proven optimality* its optimum is an
-upper bound on the true one — that is a property of the formulation, and it is
-what the loop's stopping rule reads. It is not a claim about every run: both
-budgets (`maxRounds`, `maxNodes`) can stop a round early, and a node-limited
-round returns an incumbent with no proven bound attached, so a budget-limited
-solve can and does return a non-optimal plan. The measured invariant violations
-are exactly that case. What holds unconditionally is the other half: the loop
-returns the best *judged* incumbent — every candidate plan is scored by a
+under a family of its tangents and solve the resulting MILP. The model
+over-estimates the true objective, so *when it is solved to proven optimality*
+its optimum is an upper bound on the true one — that is a property of the
+formulation. It is not a claim about every run: the node budget (`maxNodes`) can
+stop the search early, and a node-limited solve returns an incumbent with no
+proven bound attached, so it can and does return a non-optimal plan. The measured
+invariant violations are exactly that case. What holds unconditionally is the
+other half: the plan is *judged* before it is returned — scored by a
 re-derivation of the exact objective, so the linearisation steers and the real
 objective decides.
 
@@ -161,11 +159,11 @@ bound them, but only through a chain presolve has to walk tier by tier — so
 Measured at 26% of a two-target production solve, for an identical plan. The
 gap was found by accident, from a *slack* golden egg budget row speeding the
 solver up by a similar margin. Almost all of that is branch-and-bound, not the
-WebAssembly boundary, so it does not come back with a faster interface. The two
-budgets that bound it (`maxRounds`, `maxNodes`) are deliberately node- and
-round-based rather than a wall clock, because the same inputs have to produce the
-same plan; `DEFAULT_TUNING` in `solvers/highs/oa.ts` records the measured curve
-and why the default sits where it does.
+WebAssembly boundary, so it does not come back with a faster interface. The
+budget that bounds it (`maxNodes`) is deliberately a node count rather than a
+wall clock, because the same inputs have to produce the same plan;
+`DEFAULT_TUNING` in `solver/oa.ts` records the measured curve and why the default
+sits where it does.
 
 **What it buys.** Measured over the arena's 40 instances: no plan that collapses
 to probability zero, against eight for the previous search, and a worst
@@ -290,25 +288,38 @@ rejected. The gap is the node's `base`/`low` price ratio at worst, and a tighter
 treatment means relinearizing at the incumbent across rounds rather than pricing
 once.
 
-The demarcation on the solution card is a separate question from the cap and does
-not require it: with a save loaded, the card compares the plan's real (curve-priced)
-bill against `goldenEggsEarned - goldenEggsSpent` and marks the cost line when the
-plan costs more than the player has.
+**The card reports that same linear price.** `fractionalCraftCost` prices every
+craft at the player's next one too, so the bill on the card is the bill the plan
+was selected under. Reporting the true curve instead reads as a bug in the cap: a
+player who sets a maximum craft cost and is shown a plan priced well below it
+sees a cap that did not bind where it said it did. The cost of the consistency is
+that the reported figure over-states what the game will actually charge, by the
+same `base`/`low` ratio the row gives up above — the two now err together instead
+of disagreeing.
 
-`craftPrimal` is an LP relaxation, so craft counts are fractional while the curve
-is indexed by an integer craft number. `fractionalCraftCost` charges the whole
-crafts exactly and the remaining fraction at the price of the craft it has
-started: continuous in the craft count, and identical to `multiCraftCost` at
-integers.
+The demarcation on the solution card is a separate question from the cap and does
+not require it: with a save loaded, the card compares the plan's bill against
+`goldenEggsEarned - goldenEggsSpent` and marks the cost line when the plan costs
+more than the player has. It reads the same over-stating price, so it marks a
+little early rather than a little late.
+
+`craftPrimal` is an LP relaxation, so craft counts are fractional while lib's
+curve is indexed by an integer craft number. Pricing linearly sidesteps that
+entirely: `fractionalCraftCost` is proportional in the craft count, with no
+integer index to round a fraction to.
 
 Two numbers, one bill. The solution card's total comes from
 `computePlanCraftingCost`, which prices the **unsplit** `craftPrimal` — one bill
 for the whole plan. The per-node `goldenEggCost` in a craft-chain tree prices that
 same pooled quantity and then takes the target's demand-weighted share of the
 result (see above), exactly as every other metric on the node is `pooled * share`.
-Pricing the *scaled* craft count instead would restart the decreasing curve for
-every target and overstate the bill; as written, the per-target chain subtotals
-reconcile with the card's total.
+Under a linear price the two orders agree — pricing the *scaled* count would
+reach the same total, since the shares sum to one — so the split decides which
+target carries a shared node's bill, not how large the bill is. The per-target
+chain subtotals reconcile with the card's total either way. (Against lib's real
+decreasing curve they would not: scaling first restarts the curve per target and
+overstates. That is worth knowing if the report is ever moved back onto the true
+curve, which would make the pooled ordering load-bearing again.)
 
 One caveat to that reconciliation, and it predates pricing: a tree's root is never
 scaled (`shareOf` returns 1 for it). If one target's artifact is also an ingredient
@@ -324,7 +335,7 @@ Pricing always reads the real crafted counts from the save.
 | File | Role |
 | --- | --- |
 | `optimizer-core.ts` | The pipeline around the planner: `buildEvalContext` compiles the objective, `optimizeFull` states the problem and calls the MILP, `assembleFullSolution` turns an allocation into a renderable solution. |
-| `solver/` | The planner itself — the MILP, the outer-approximation loop, the HiGHS binding. `../oracle/arena/solvers/highs/index.ts` is a shim that registers this same module as the arena's entry, so the shipped solver and the measured one are one code path. See its `SPEC.md`. |
+| `solver/` | The planner itself — the MILP, the outer approximation, the HiGHS binding. `../oracle/arena/solvers/highs/index.ts` is a shim that registers this same module as the arena's entry, so the shipped solver and the measured one are one code path. See its `SPEC.md`. |
 | `packing.ts` | Exact 3-bin feasibility returning a witness assignment. Standalone by design: it imports nothing, and in particular nothing from `../oracle/`, because the oracle spec re-checks every solver plan against its own independent feasibility routine. Sharing one implementation would make that assertion circular. |
 | `value-function.ts` | Inner crafting LP, the tangent epigraph construction, `alphaToProb`, and `refineJointCraftSplit`. |
 | `lp.ts` | Small dense-tableau simplex with Bland's rule, tuned for many small re-solves. Equilibrates rows and columns before solving: an absolute epsilon against raw fuel coefficients (~1e18) and craft-conservation rows (~1) in the same tableau used to stop the pivot loop early while reporting `'optimal'`. |

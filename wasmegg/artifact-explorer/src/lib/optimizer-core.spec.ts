@@ -26,6 +26,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 1000,
       timeCapacity: 100,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.bestProbability).toBeCloseTo(0, 9);
     expect(sol.choiceHistory).toHaveLength(0);
@@ -41,6 +42,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 1_000_000,
       timeCapacity: 100,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.timeUnitsUsed).toBeLessThanOrEqual(100);
     const yieldB = sol.finalYieldVector.get('B') ?? 0;
@@ -57,6 +59,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 1_000_000,
       timeCapacity: 50,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.timeUnitsUsed).toBe(50);
     expect(sol.finalYieldVector.get('B')).toBeCloseTo(15, 9);
@@ -71,6 +74,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 300,
       timeCapacity: 10_000,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.fuelUsed).toBeLessThanOrEqual(300);
     expect(sol.fuelUsed).toBeCloseTo(300, 6);
@@ -86,6 +90,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 100,
       timeCapacity: 100,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     // 10 launches of opt1, 20 B
     expect(sol.finalYieldVector.get('B')).toBeCloseTo(20, 6);
@@ -111,6 +116,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 18.56,
       timeCapacity: 179.54,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
 
     expect(sol.choiceHistory.find(c => c.targetAfxId === optDropper.targetAfxId)).toBeDefined();
@@ -146,6 +152,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 200,
       timeCapacity: 200,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.choiceHistory.length).toBe(2);
     expect(sol.finalYieldVector.get('B') ?? 0).toBeGreaterThanOrEqual(9);
@@ -184,6 +191,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 300,
       timeCapacity: 300,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.choiceHistory.length).toBe(3);
     expect(sol.finalYieldVector.get('B')).toBeCloseTo(10, 6);
@@ -202,10 +210,37 @@ describe('optimizeFull', () => {
       fuelCapacity: 100,
       timeCapacity: 100,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.choiceHistory.find(c => c.targetAfxId === optExpensive.targetAfxId)).toBeUndefined();
     expect(sol.choiceHistory.find(c => c.targetAfxId === optCheap.targetAfxId)).toBeDefined();
     expect(sol.finalYieldVector.get('B')).toBeCloseTo(10, 6);
+  });
+
+  // The gem cap used to prune the menu inside enumerateLaunchOptions; it now
+  // rides on the option as `cost` and is applied here, where the budgets are.
+  it('drops an option whose ship costs more gems than maximumCost', async () => {
+    // The dear ship is the better mission — half the fuel for the same yield —
+    // so a cap that failed to bind would show up as it being launched.
+    const optDear = { ...makeOpt(5, 10, [['B', 1]], [], Name.LUNAR_TOTEM), cost: 130e24 };
+    const optAffordable = { ...makeOpt(10, 10, [['B', 1]], [], Name.TUNGSTEN_ANKH), cost: 129e24 };
+    const args = {
+      options: [optDear, optAffordable],
+      recipeDag: craftDag(0.1),
+      desiredArtifactNodeIds: ['A'],
+      fuelCapacity: 100,
+      timeCapacity: 100,
+      baseYield: new Map<string, number>(),
+    };
+
+    const capped = await optimizeFull({ ...args, maximumCost: 129e24 });
+    expect(capped.choiceHistory.find(c => c.targetAfxId === optDear.targetAfxId)).toBeUndefined();
+    // inclusive: a ship priced exactly at the cap is affordable
+    expect(capped.choiceHistory.find(c => c.targetAfxId === optAffordable.targetAfxId)).toBeDefined();
+
+    // An absent cap is no cap, not a cap of zero.
+    const uncapped = await optimizeFull({ ...args, maximumCost: undefined });
+    expect(uncapped.choiceHistory.find(c => c.targetAfxId === optDear.targetAfxId)).toBeDefined();
   });
 
   it('values direct legendary drops when crafting is impossible', async () => {
@@ -223,6 +258,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 100,
       timeCapacity: 100,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.craftProbability).toBeCloseTo(0, 9);
     expect(sol.dropProbability).toBeCloseTo(1 - Math.exp(-1), 6);
@@ -255,6 +291,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 100,
       timeCapacity: 200,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.choiceHistory.find(c => c.targetAfxId === optZ.targetAfxId)).toBeDefined();
     expect(sol.choiceHistory.find(c => c.targetAfxId === optP.targetAfxId)).toBeDefined();
@@ -321,6 +358,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 6,
       timeCapacity: 8,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     // Fuel binds at 6; the brute-force optimum is 6x opt1 -> min(B,C) = 12.18
     // crafts, which a dual filter that wrongly pruned opt1 would miss.
@@ -365,6 +403,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 1_000_000,
       timeCapacity: 60,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
 
     const launched = new Map(sol.choiceHistory.map(c => [c.targetAfxId, c.numShipsLaunched]));
@@ -443,6 +482,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 24,
       timeCapacity: 82,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
 
     const launched = new Map(sol.choiceHistory.map(c => [c.targetAfxId, c.numShipsLaunched]));
@@ -473,6 +513,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 1_000_000,
       timeCapacity: 50,
       baseYield: new Map([[leaf, 5]]),
+      maximumCost: Infinity,
     });
     expect(sol.baseYield.get(leaf)).toBe(5);
     // 10s per launch, 50s per-slot horizon, 3 slots: 5 per slot -> 15 dropped
@@ -491,6 +532,7 @@ describe('optimizeFull', () => {
       fuelCapacity: 100,
       timeCapacity: 50,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     expect(sol.fuelUsed).toBeLessThanOrEqual(100 + 1e-6);
     expect(sol.timeUnitsUsed).toBeLessThanOrEqual(51); // +1 for integer rounding
@@ -509,6 +551,7 @@ describe('optimizeFull', () => {
         fuelCapacity: 1000,
         timeCapacity,
         baseYield: new Map(),
+        maximumCost: Infinity,
       });
       expect(sol.choiceHistory).toHaveLength(0);
       expect(sol.fuelUsed).toBe(0);
@@ -522,6 +565,7 @@ describe('optimizeFull', () => {
       fuelCapacity: NaN,
       timeCapacity: 100,
       baseYield: new Map(),
+      maximumCost: Infinity,
     });
     // the zero-fuel option is still launchable against the time budget
     expect(solNaNFuel.fuelUsed).toBe(0);

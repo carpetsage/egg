@@ -22,6 +22,7 @@ export interface OptimizerRequest {
   desiredArtifactNodeIds: string[];
   fuelCapacity: number;
   timeCapacity: number;
+  maximumCost: number | undefined;
   baseYield: Map<string, number>;
   // Plain data (a number and a Map), so structured clone carries it intact —
   // no narrow/reconstruct pair needed, unlike `ship`.

@@ -20,12 +20,30 @@ const EPS = 1e-9;
 
 export type PackVerdict = 'packs' | 'infeasible' | 'undecided';
 
+// How much search a verdict is allowed to cost. This is a budget, not a rule:
+// raising it can only turn `undecided` into a decision, never move `packs` and
+// `infeasible` between themselves, so the goalpost does not shift when it moves.
+//
+// Sized from a plan that needed it, by measurement rather than by doubling until
+// green. A candidate returned a plan for arena:2031 filling 99.9921% of the
+// horizon — 468 seconds of slack across three slots and seven distinct durations
+// — which the packer was run against at increasing budgets:
+//
+//   500k -> undecided (34ms)    5M -> undecided (292ms)    50M -> packs (751ms)
+//
+// So the plan is feasible and the old figure was two decades short of proving
+// it. Decidable plans are unaffected: they cost about a millisecond either way,
+// and only the near-exact tail ever spends this. That tail is not rare noise —
+// it is where *better* planners land, because a plan that fills the horizon to
+// the last eight minutes is a plan that wasted nothing.
+const DEFAULT_NODE_BUDGET = 50_000_000;
+
 export function packFeasible(
   durations: readonly number[],
   counts: readonly number[],
   capacity: number,
   slots: number,
-  nodeBudget = 500_000
+  nodeBudget = DEFAULT_NODE_BUDGET
 ): PackVerdict {
   if (!(capacity > 0)) {
     // No horizon at all: only zero-length work fits.

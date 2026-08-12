@@ -79,10 +79,18 @@ export function loadHighs(): Promise<MilpSolve> {
           // between -0.6% and *+1.8%* — on arena:2001 presolve adds 104 of them.
           // What it does buy is implied-integer detection and the restart
           // machinery, which tighten the dual bound per node (gap 1.06% vs 1.98%
-          // on arena:2001 at a five-node budget) — and the outer-approximation
-          // loop in `oa.ts` re-cuts and re-solves anyway, so that advantage
-          // never reaches the plan. What it costs is search: 5058 LP iterations
-          // against 2348, with 46 sub-MIP calls eating 3.47s of a 4.73s solve.
+          // on arena:2001 at a five-node budget). What it costs is search: 5058
+          // LP iterations against 2348, with 46 sub-MIP calls eating 3.47s of a
+          // 4.73s solve.
+          //
+          // That trade was struck when `oa.ts` ran two five-node rounds, where a
+          // tighter per-node bound had a second solve to be washed out by. It no
+          // longer does — one pass at 200 nodes is the whole search — so the
+          // timings above are what carries this now, and they were measured
+          // through `optimizeFull` rather than per round. The dual-bound half of
+          // the argument is retired rather than replaced: whether presolve pays
+          // at the current tuning is open, and answering it means three campaigns
+          // like any other tuning question.
           //
           // Turning it off also removes a failure path for free. HiGHS can fail
           // inside *presolve* on a model it reads and solves perfectly well

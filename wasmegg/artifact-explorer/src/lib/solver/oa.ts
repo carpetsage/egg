@@ -1,85 +1,117 @@
-// The outer-approximation loop: what actually turns HiGHS into a planner.
+// The outer approximation: what actually turns HiGHS into a planner.
 //
 // HiGHS solves linear and mixed-integer *linear* programs, and this objective
 // is neither — sum_T log(1 - e^-s_T) is concave and transcendental. The standard
 // treatment for maximizing a concave function over an integer polytope is outer
-// approximation: hold each g(s_T) under a family of its tangents, solve the
-// resulting MILP exactly, then add tangents where the answer landed and repeat.
-// Every MILP in the sequence over-estimates, so its optimum is an upper bound on
-// the true one, and the bound tightens monotonically as cuts accumulate.
+// approximation: hold each g(s_T) under a family of its tangents and solve the
+// resulting MILP. The tangents over-estimate, so the MILP's optimum is an upper
+// bound on the true one, and the bound tightens as the tangent set gets finer.
 //
-// What the loop returns is not the last iterate but the best *judged* one:
-// every incumbent is scored by `./evaluator`, the same re-derivation of the
-// objective the other candidates use, and the winner is kept. So the linearized
-// model steers, and the real objective decides — the OA never gets to grade
-// itself.
+// Classically that set is built adaptively — solve, add tangents where the
+// answer landed, solve again. This does not. The grid is stated up front and
+// sized by the envelope-error law recorded at `DEFAULT_TUNING` below, and there
+// is exactly one MILP per plan. The refinement rounds were measured off rather
+// than reasoned off; that comment carries the campaigns and what the second
+// round turned out to be doing.
+//
+// What comes back is not the MILP's answer unconditionally. The incumbent is
+// scored by `./evaluator`, the same re-derivation of the objective the other
+// arena candidates are graded by, and is returned only if it certifies and
+// beats the empty plan. So the linearized model steers, and the real objective
+// decides — the OA never gets to grade itself.
 
 import type { MilpLimits, MilpSolve, PlanProblem, PlanResult } from './types';
 import { EXACT_PRECISION, STEERING_PRECISION, evaluateCounts } from './evaluator';
 import { buildModel, type Model } from './model';
-import {
-  buildOaMilp,
-  decodeCounts,
-  decodeSigmas,
-  effectiveQs,
-  layoutOf,
-  nCol,
-  scaleLps,
-  type Layout,
-  type Tangent,
-} from './milp';
+import { buildOaMilp, decodeCounts, effectiveQs, layoutOf, nCol, scaleLps, type Layout, type Tangent } from './milp';
 
-// The two levers on cost, and both are deterministic. The obvious third — a
+// The one lever on cost, and it is deterministic. The obvious alternative — a
 // wall-clock budget — is deliberately absent: the arena requires one allocation
 // per problem, and a time limit makes the answer a function of machine load.
 export interface Tuning {
-  // Refinement rounds. Each one is a full MILP solve.
-  maxRounds: number;
-  // Node budget per MILP. This is the reason a sweep finishes: enough symmetry
-  // survives the slot-load ordering rows that *proving* optimality routinely
-  // costs more than finding the answer did.
+  // Node budget for the MILP. This is the reason a sweep finishes: enough
+  // symmetry survives the slot-load ordering rows that *proving* optimality
+  // routinely costs more than finding the answer did.
   maxNodes: number;
+  // Tangent points per target, in units of theta (so 1 is "this target's best
+  // conceivable score"), each in (0, 1]. Stated once and solved against once —
+  // nothing is added to this set while solving.
+  grid: readonly number[];
 }
 
-// Measured, not guessed. Full 40-instance sweeps with the invariant checks:
+// WHERE THE CUTS BELONG. Instrumenting the planner over 8 arena instances / 19
+// targets recorded every sigma HiGHS visited and every sigma the plan realized.
+// All 56 values landed in [0.27, 1.0] — none below 1e-3. That is structural
+// rather than lucky: theta_t is the best score target t can reach, so sigma is
+// "fraction of achievable", and the thirteen decades the arena's *scores* span
+// live entirely in theta, which the normalization divides out. Plans reliably
+// capture a third to all of what is reachable; low joint probabilities come from
+// targets being hard, not from allocations landing in a sigma tail.
 //
-//   config     median   violations   clean   worst A3-menu   mean log10(joint)
-//   {2, 5}     1090ms           63   23/40      0.1951 nats            -6.775
-//   {2, 50}    1208ms           62   24/40      0.2410 nats            -6.774
-//   {3, 200}   2103ms           55   22/40      0.0790 nats            -6.771
+// The floor is the soft number here — it is set by an 8-instance sample, and no
+// zero-scoring target appeared in it. `SIGMA_FLOOR` is where to move if a sweep
+// ever reports a sigma below it; `SIGMA_CUTS` then follows from the error law
+// below.
+const SIGMA_FLOOR = 1e-5;
+const SIGMA_CUTS = 100;
+
+// `count` log-spaced points from 1 down to `floor`, both endpoints included.
+function logGrid(floor: number, count: number): number[] {
+  const decades = Math.log10(floor);
+  return Array.from({ length: count }, (_, i) => 10 ** ((decades * i) / (count - 1)));
+}
+
+// HOW MANY CUTS. Tangent-envelope error for a log-spaced grid is (d ln10)^2 / 8
+// nats at d decades per cut, independent of theta (the scale cancels: the slope
+// is theta g'(theta sigma), which is ~1/sigma) and agreeing with measurement to
+// 0.02%. Over the band plans are actually observed in:
 //
-// Plus a probe of the floor: `maxNodes: 0` returns probability zero on **every**
-// instance, even at `mip_heuristic_effort: 1.0` — the root heuristics never find
-// an incumbent, so branching is not optional and the 46ms that buys is not a
-// mode. One round at 50 nodes is 658ms.
+//   grid        max error on sigma in [0.27, 1]
+//   15-point    1.037e-1 nats   the retired adaptive loop's starting set
+//   50-point    6.895e-3        15x tighter
+//   100-point   1.690e-3        61x
 //
-// Two things the sweeps settled. `{2,5}` and `{2,50}` are near-identical
-// solvers: 36 of 40 plans come out byte-identical, the violation delta is eight
-// instances moving in both directions for a net of one, and the node budget
-// costs 11% of the wall clock to achieve that. And plan *quality* is flat across
-// every config here — the three means sit inside 0.004 log10, which is nothing.
-// What the extra rounds actually buy is monotonicity: the residual A/B failures
-// are a truncated search, and their worst-case magnitude roughly triples going
-// from three rounds to two.
+// The 15-point grid was misallocated rather than merely coarse: 2 of its points
+// fell inside the observed band and 8 sat below 1e-2 where nothing goes, with
+// its worst error at sigma ~= 0.305, precisely where plans land. At 100 points
+// the tangent slopes still run 1 to 1e5, exactly as they do at 50, so the
+// doubling costs rows and leaves the conditioning alone.
 //
-// The default is `{2, 5}`: the cheap end of the two-round plateau, chosen for
-// the instances real players are expected to bring rather than for the arena's
-// uniform-random tail. See SPEC.md section 7.
-export const DEFAULT_TUNING: Tuning = { maxRounds: 2, maxNodes: 5 };
+// HOW MANY NODES, AND WHY ONE PASS. Three 40-instance campaigns (seed bases
+// 2000 / 9000 / 5000), summed violation count / summed severity in nats:
+//
+//   tuning                            count   severity
+//   {2 rounds, 5 nodes, 15-point}       222      2.680   what used to ship
+//   {2 rounds, 5 nodes, 50-point}       208      1.578
+//   {1 round, 5 nodes, 100-point}       245      2.611
+//   {1 round, 50 nodes, 100-point}      240      2.357
+//   {1 round, 100 nodes, 100-point}     234      2.314
+//   {1 round, 200 nodes, 100-point}     220      1.820   this
+//
+// One pass pays only at the top of that column: below 200 nodes it loses to two
+// rounds on violation count in 3 campaigns of 3. At 200 it beats the old default
+// on severity 3/3, on plan quality 3/3 (+0.0022, +0.0010, +0.0011 mean log10
+// joint; head-to-head 17/7, 16/8, 14/9) and on time 3/3 (-3.8%, -11.9%, -8.9%
+// sweep wall clock), with the worst single solve down about a third: 1925 / 2230
+// / 2013ms against 2633 / 2678 / 2958ms.
+//
+// Three campaigns and not one because the baseline's own severity swings 3x
+// across seed bases (1.431 / 0.767 / 0.482) while the harness is exactly
+// reproducible; a single campaign cannot read a delta under about 1.5x. The
+// two-round 50-point arm is the one thing here that wins severity outright
+// (1.70x against this one's 1.47x) and it is not what ships: it costs 7-11% more
+// wall clock and a second MILP to do it, and it is worse on latency at the tail,
+// which is the number a user feels.
+//
+// WHAT THE SECOND ROUND WAS DOING, since it is gone. Not envelope repair. A
+// placebo round solved against a *row-permutation of the identical cut set* —
+// same polytope, same optimum, zero new information — changed the answer on 17
+// of 39 instances and kept 42% of real refinement's gain, with a larger worst
+// swing than refinement itself produces. It was a search restart with a slightly
+// loaded die, and 200 nodes in one pass buys more than the restart did.
+export const DEFAULT_TUNING: Tuning = { maxNodes: 200, grid: logGrid(SIGMA_FLOOR, SIGMA_CUTS) };
 
 const MIP_REL_GAP = 1e-6;
-// Stop refining once the outer bound is this close to the judged value, in nats.
-const BOUND_TOL = 1e-6;
-
-// Initial tangent points, in units of theta (so 1 is "this target's best
-// conceivable score"). Log-spaced because the arena's scores span thirteen
-// decades: a linear grid would put every point in a regime no plan reaches.
-const INITIAL_GRID = [1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01, 3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5, 1e-6, 1e-7];
-// Deepest point a refinement cut may sit at. Below this the tangent is a nearly
-// vertical line through a value no allocation can distinguish.
-const CUT_FLOOR = 1e-12;
-// Two cut points closer than this (relatively) are the same cut.
-const CUT_DEDUPE = 1e-3;
 
 // Fuel is normalized to a budget of 1, so this is a relative slack.
 const FUEL_TOL = 1e-9;
@@ -190,17 +222,6 @@ function emit(problem: PlanProblem, model: Model, counts: readonly number[]): Pl
   return { allocation, reported: { jointProbability, perTarget } };
 }
 
-function addCut(cuts: Tangent[], target: number, at: number): boolean {
-  if (!(at > 0) || !Number.isFinite(at)) return false;
-  const point = Math.min(1, Math.max(CUT_FLOOR, at));
-  for (const cut of cuts) {
-    if (cut.target !== target) continue;
-    if (Math.abs(cut.at - point) <= CUT_DEDUPE * Math.max(cut.at, point)) return false;
-  }
-  cuts.push({ target, at: point });
-  return true;
-}
-
 // The per-target scale. theta_t is the largest score target t can reach when
 // every other target is ignored and the counts are allowed to be fractional, so
 // sigma_t = s_t / theta_t lands in [0, 1] for every feasible plan. Without it
@@ -235,44 +256,22 @@ export function solveWith(problem: PlanProblem, solve: MilpSolve, tuning: Tuning
 
   const cuts: Tangent[] = [];
   for (let t = 0; t < model.targets.length; t++) {
-    for (const at of INITIAL_GRID) addCut(cuts, t, at);
+    for (const at of tuning.grid) cuts.push({ target: t, at });
   }
+
+  const solution = solve(buildOaMilp(model, qs, theta, cuts), limits);
+  if (solution.status === 'infeasible' || solution.status === 'unknown') return emit(problem, model, empty);
 
   const layout = layoutOf(model, true);
-  let best = empty;
-  let bestValue = evaluateCounts(model, empty, STEERING_PRECISION).logJoint;
+  const counts = decodeCounts(model, layout, solution.columnValues);
+  const judged = evaluateCounts(model, counts, STEERING_PRECISION);
+  // An uncertified incumbent is dropped, not patched, and so is one the empty
+  // plan already beats — which is not vacuous: a node-limited search can return
+  // an allocation scoring probability zero, and the empty plan at least spends
+  // nothing to do that.
+  const keep =
+    certifies(model, layout, solution.columnValues, counts) &&
+    judged.logJoint > evaluateCounts(model, empty, STEERING_PRECISION).logJoint;
 
-  for (let round = 0; round < tuning.maxRounds; round++) {
-    const solution = solve(buildOaMilp(model, qs, theta, cuts), limits);
-    if (solution.status === 'infeasible' || solution.status === 'unknown') break;
-
-    const counts = decodeCounts(model, layout, solution.columnValues);
-    const judged = evaluateCounts(model, counts, STEERING_PRECISION);
-    // An uncertified incumbent is dropped, not patched. It still gets to steer:
-    // the cuts below are refined from where this round landed either way, so a
-    // round that fails the check is informative rather than wasted.
-    if (certifies(model, layout, solution.columnValues, counts) && judged.logJoint > bestValue) {
-      bestValue = judged.logJoint;
-      best = counts;
-    }
-
-    // A proven-optimal outer bound within tolerance of a realized value means
-    // there is nothing left for a tighter approximation to find.
-    if (solution.status === 'optimal' && solution.objective - bestValue <= BOUND_TOL) break;
-
-    // Refine twice per target: where the model *thinks* the plan landed, and
-    // where it actually did. The first is where the approximation is loose; the
-    // second is where the plan is, and is the point the next round has to beat.
-    let added = false;
-    const sigmas = decodeSigmas(layout, solution.columnValues);
-    for (let t = 0; t < model.targets.length; t++) {
-      added = addCut(cuts, t, sigmas[t]) || added;
-      const score = judged.scores[t];
-      if (Number.isFinite(score)) added = addCut(cuts, t, score / theta[t]) || added;
-    }
-    // No new cut means the next MILP is the one just solved.
-    if (!added) break;
-  }
-
-  return emit(problem, model, best);
+  return emit(problem, model, keep ? counts : empty);
 }

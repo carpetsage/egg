@@ -82,7 +82,7 @@ export function buildProblem(inst: ArenaInstance, over: SolveOverrides = {}): Pl
     null,
     over.previousCrafts ?? inst.previousCrafts
   );
-  let options = enumerateLaunchOptions(config, dag, EFFORT_LAUNCH_PERIOD_SECONDS[effort], undefined);
+  let options = enumerateLaunchOptions(config, dag, EFFORT_LAUNCH_PERIOD_SECONDS[effort]);
   if (over.transformOptions) options = over.transformOptions(options);
 
   return {
@@ -333,5 +333,8 @@ export function run(planner: Planner, inst: ArenaInstance, over: SolveOverrides 
 }
 
 export function signature(s: Solved): string {
-  return s.allocation.map((n, i) => (n > 0 ? `${i}:${n}` : '')).filter(Boolean).join('|');
+  return s.allocation
+    .map((n, i) => (n > 0 ? `${i}:${n}` : ''))
+    .filter(Boolean)
+    .join('|');
 }

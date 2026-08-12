@@ -4,7 +4,7 @@
 //
 //   scaleLp(t)   continuous, maximize s_t alone. Gives theta_t.
 //   oaMilp       integer, maximize sum_t z_t under a set of tangents of
-//                g(s) = log(1 - e^-s), refined by the loop in `oa.ts`.
+//                g(s) = log(1 - e^-s), stated once by `oa.ts`.
 //
 // See SPEC.md sections 2-4 for the columns, rows, and scaling this builds.
 
@@ -424,13 +424,4 @@ export function decodeCounts(model: Model, layout: Layout, columnValues: Float64
     counts[g] = Math.min(total, model.groups[g].cap);
   }
   return counts;
-}
-
-export function decodeSigmas(layout: Layout, columnValues: Float64Array): number[] {
-  const out = new Array<number>(layout.targets).fill(0);
-  for (let t = 0; t < layout.targets; t++) {
-    const v = columnValues[layout.sBase + t];
-    out[t] = Number.isFinite(v) && v > 0 ? v : 0;
-  }
-  return out;
 }

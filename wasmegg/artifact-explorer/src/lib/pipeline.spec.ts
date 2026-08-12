@@ -88,18 +88,6 @@ describe('enumerateLaunchOptions', () => {
     expect(sawRaised).toBe(true);
     expect(sawUnchanged).toBe(true);
   });
-
-  it('drops missions whose ship costs more gems than maxGemCost', () => {
-    const all = enumerateLaunchOptions(perfectShipsConfig, dag);
-    const maxGemCost = 129e24; // Galeggtica price: everything up to and including it
-    const cheapOnly = enumerateLaunchOptions(perfectShipsConfig, dag, undefined, maxGemCost);
-    expect(cheapOnly.length).toBeGreaterThan(0);
-    expect(cheapOnly.length).toBeLessThan(all.length);
-    for (const o of cheapOnly) {
-      expect(o.ship.virtueGemCost).toBeLessThanOrEqual(maxGemCost);
-    }
-    expect(cheapOnly.some(o => o.ship.virtueGemCost === maxGemCost)).toBe(true);
-  });
 });
 
 describe('optimize', () => {

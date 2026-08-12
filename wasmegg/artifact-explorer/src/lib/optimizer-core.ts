@@ -34,6 +34,7 @@ export interface OptimizeArgs {
   desiredArtifactNodeIds: string[];
   fuelCapacity: number;
   timeCapacity: number;
+  maximumCost: number | undefined;
   baseYield: Map<string, number>;
   // Golden egg cap on the plan's crafts, or absent for no cap. It has to reach
   // both the MILP and the inner LPs: the MILP decides which ingredients get
@@ -217,6 +218,7 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
     desiredArtifactNodeIds,
     fuelCapacity: rawR,
     timeCapacity: rawS,
+    maximumCost,
     baseYield,
     craftBudget,
   } = args;
@@ -226,10 +228,24 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
   const R = Number.isFinite(rawR) && rawR > 0 ? rawR : 0;
   const S = Number.isFinite(rawS) && rawS > 0 ? rawS : 0;
 
-  // Missions that cannot fit a single slot are dropped before indices are
+  // Missions that cannot be launched even once are dropped before indices are
   // assigned, so an allocation index means the same thing here and inside the
-  // solver.
-  const feasibleOptions = options.filter(o => o.actualTime > ZERO_TOL && o.actualTime <= S);
+  // solver. A mission is unlaunchable if it cannot fit a single slot, if one
+  // copy alone would overrun the fuel tank, or if its ship costs more gems than
+  // the player is willing to spend.
+  //
+  // Fuel is bounded from above only. A zero-fuel mission is legitimate — it is
+  // pure time — and the fuel row it lands in normalises by `fuelCapacity`, so
+  // when that clamps to 0 every mission's fuel coefficient becomes 0 and the
+  // row stops constraining anything; `actualFuel <= R` is what still holds a
+  // NaN fuel budget to the zero-fuel missions.
+  const feasibleOptions = options.filter(
+    o =>
+      ZERO_TOL < o.actualTime &&
+      o.actualTime <= S &&
+      o.actualFuel <= R &&
+      (maximumCost === undefined || o.cost <= maximumCost)
+  );
 
   const ctx = buildEvalContext(feasibleOptions, recipeDag, desiredArtifactNodeIds, baseYield, craftBudget);
 

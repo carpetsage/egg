@@ -93,8 +93,7 @@ export interface Violation {
 // of 100 between them; the constant below is in probability, like every other
 // number this file compares.)
 const PCT_FIXED_FLOOR = 1e-8;
-const pct = (x: number) =>
-  x < PCT_FIXED_FLOOR ? `${(x * 100).toExponential(3)}%` : `${(x * 100).toFixed(6)}%`;
+const pct = (x: number) => (x < PCT_FIXED_FLOOR ? `${(x * 100).toExponential(3)}%` : `${(x * 100).toFixed(6)}%`);
 const gap = (from: number, to: number) => `${(lg(to) - lg(from)).toFixed(4)} nats`;
 
 export interface CheckContext {
@@ -278,9 +277,7 @@ export function checkA4Inventory(c: CheckContext) {
 export function checkA5Effort(c: CheckContext) {
   // Ordered least to most effort: the launch period floor shrinks, so every
   // option costs no more time than before.
-  const byPeriod = [...EFFORT_LEVELS].sort(
-    (a, b) => EFFORT_LAUNCH_PERIOD_SECONDS[b] - EFFORT_LAUNCH_PERIOD_SECONDS[a]
-  );
+  const byPeriod = [...EFFORT_LEVELS].sort((a, b) => EFFORT_LAUNCH_PERIOD_SECONDS[b] - EFFORT_LAUNCH_PERIOD_SECONDS[a]);
   monotone(
     'A5-effort',
     c,
@@ -701,14 +698,7 @@ export function checkM3UnionLowerBound(c: CheckContext) {
 // Shared engine for D1/D2. `arity` is how many option lines a single move may
 // touch: 2 is the classic exchange, 4 reaches the two-simultaneous-exchange
 // moves that sit behind a downhill valley.
-function kOpt(
-  id: string,
-  c: CheckContext,
-  arity: 2 | 4,
-  maxDelta: number,
-  thresholdNats: number,
-  maxEvals: number
-) {
+function kOpt(id: string, c: CheckContext, arity: 2 | 4, maxDelta: number, thresholdNats: number, maxEvals: number) {
   const s = solve(c);
   const alloc = s.allocation;
   const oracleInst = oracleInstanceOf(s.problem);
@@ -728,8 +718,7 @@ function kOpt(
   const heldShips = new Set(held.map(i => options[i].ship.shipType));
   const heldTargets = new Set(held.map(i => options[i].targetAfxId));
   const adjacency = (i: number) =>
-    (heldShips.has(options[i].ship.shipType) ? 1 : 0) +
-    (heldTargets.has(options[i].targetAfxId) ? 1 : 0);
+    (heldShips.has(options[i].ship.shipType) ? 1 : 0) + (heldTargets.has(options[i].targetAfxId) ? 1 : 0);
   let addable: number[];
   if (arity === 2) {
     addable = options

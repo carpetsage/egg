@@ -43,12 +43,7 @@ function mulberry32(seed: number): () => number {
 
 // Returns a description of the first defect, or null. Plain code rather than
 // `expect` so the 20k-case loop stays cheap; callers assert on the result.
-function witnessDefect(
-  witness: number[][],
-  durations: number[],
-  counts: number[],
-  capacity: number
-): string | null {
+function witnessDefect(witness: number[][], durations: number[], counts: number[], capacity: number): string | null {
   if (witness.length !== durations.length) {
     return `witness has ${witness.length} groups, expected ${durations.length}`;
   }
@@ -71,12 +66,7 @@ function witnessDefect(
   return null;
 }
 
-function expectValidWitness(
-  witness: number[][],
-  durations: number[],
-  counts: number[],
-  capacity: number
-): void {
+function expectValidWitness(witness: number[][], durations: number[], counts: number[], capacity: number): void {
   expect(witnessDefect(witness, durations, counts, capacity)).toBeNull();
 }
 
@@ -104,9 +94,7 @@ describe('packWitness', () => {
       const capacity = 5 + Math.floor(rng() * 21);
 
       const shape = () =>
-        `case ${c}: durations=${JSON.stringify(durations)} counts=${JSON.stringify(
-          counts
-        )} capacity=${capacity}`;
+        `case ${c}: durations=${JSON.stringify(durations)} counts=${JSON.stringify(counts)} capacity=${capacity}`;
 
       const expected = bruteForcePacks(durations, counts, capacity);
       const actual = packWitness(durations, counts, capacity);

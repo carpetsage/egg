@@ -15,6 +15,7 @@ export interface LaunchOption {
   // level's launch period
   actualTime: number;
   rawTime: number; // true (unfloored) boosted duration
+  cost: number;
   // everything this launch drops, per single ship — display only
   supplyVector: Map<string, number>;
   // subset of supplyVector restricted to recipe ingredients; this is what

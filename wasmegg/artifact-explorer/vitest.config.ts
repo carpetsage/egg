@@ -23,6 +23,12 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.{test,spec}.ts'],
+    // Only the sweep itself. The rest of `src/oracle/` is either a plain unit
+    // test (`evaluate-budget`, `pack-feasibility`, `independence`) or gates
+    // itself on its own env var (`repro`, the oracle's deep fuzz), and excluding
+    // the whole directory silently retires all of that — including the specs
+    // `arena:check`, `repro` and `test:oracle` name directly, which then select
+    // no files at all and exit non-zero.
     exclude: [...configDefaults.exclude, ...(ARENA_REQUESTED ? [] : ['src/oracle/arena/invariants.spec.ts'])],
     coverage: {
       provider: 'v8',

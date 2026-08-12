@@ -1,10 +1,14 @@
 // Golden egg pricing of a plan's craft chain. The price curve itself is not
-// re-derived here: `singleCraftCost`/`multiCraftCost` come straight from lib,
-// so this module only decides *how many* crafts of each node to price and from
-// which starting craft index.
+// re-derived here: `singleCraftCost` comes straight from lib, so this module
+// only decides *how many* crafts of each node to price and from which starting
+// craft index.
+//
+// One price is used throughout, for both the budget row and the reported bill:
+// every craft at the player's next craft price. `fractionalCraftCost` says why
+// that and not lib's `multiCraftCost`.
 
 import type { CraftingPriceParams, Inventory } from 'lib';
-import { getArtifactTierPropsFromId, multiCraftCost, singleCraftCost } from 'lib';
+import { getArtifactTierPropsFromId, singleCraftCost } from 'lib';
 // Type-only, so this stays a one-way runtime dependency: optimizer-tree
 // imports craftCostOf from here.
 import type { CraftChainMetrics, RecipeTreeNode } from './optimizer-tree';
@@ -23,19 +27,24 @@ export function previousCraftsOf(playerInventory: Inventory | null | undefined, 
   return playerInventory.getItem({ name: props.afx_id, level: props.afx_level }).crafted;
 }
 
-// craftPrimal is an LP relaxation, so craft counts are fractional while the
-// curve is indexed by an integer craft number. We price the whole crafts
-// exactly and charge the fraction at the price of the craft it has started:
-// continuous in `crafts`, and identical to multiCraftCost at integers.
+// Every craft charged at the player's *next* craft price — the same linear
+// price `computeCraftUnitPrices` writes into the golden egg budget row, and
+// deliberately the same, so the number the card reports is the number the plan
+// was chosen under.
+//
+// It over-states the true cost, because the curve decreases in the craft index
+// (`multiCraftCost` is what the game actually charges, and this matches it only
+// at one craft). Reporting the true curve instead would read as a bug: a player
+// who sets a maximum craft cost and gets a plan priced well under it is looking
+// at a cap that did not bind where it said it did. Pricing the report the way
+// the cap prices keeps the two consistent; see `computeCraftUnitPrices` for why
+// the cap has to err upward in the first place.
+//
+// Linear in `crafts`, which is also what makes it meaningful on the fractional
+// counts an LP relaxation produces: no integer craft index to round to.
 export function fractionalCraftCost(params: CraftingPriceParams, previousCrafts: number, crafts: number): number {
   if (!Number.isFinite(crafts) || crafts <= 0) return 0;
-  const whole = Math.floor(crafts);
-  const fraction = crafts - whole;
-  let cost = multiCraftCost(params, previousCrafts, whole);
-  if (fraction > 0) {
-    cost += fraction * singleCraftCost(params, previousCrafts + whole);
-  }
-  return cost;
+  return crafts * singleCraftCost(params, previousCrafts);
 }
 
 // Cost of performing `crafts` crafts of `nodeId` on top of what the player has

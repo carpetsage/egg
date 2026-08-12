@@ -52,9 +52,7 @@ export function generateInstance(seed: number): ArenaInstance {
   }
   if (!anyFtl) {
     config.shipVisibility[ei.MissionInfo.Spaceship.HENERPRISE] = true;
-    config.shipLevels[ei.MissionInfo.Spaceship.HENERPRISE] = shipMaxLevel(
-      ei.MissionInfo.Spaceship.HENERPRISE
-    );
+    config.shipLevels[ei.MissionInfo.Spaceship.HENERPRISE] = shipMaxLevel(ei.MissionInfo.Spaceship.HENERPRISE);
   }
 
   return {

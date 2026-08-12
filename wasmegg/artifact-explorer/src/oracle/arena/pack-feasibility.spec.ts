@@ -312,7 +312,6 @@ describe('agrees with brute force on near-exact instances built from a known pac
     const ri = (lo: number, hi: number) => lo + Math.floor(rnd() * (hi - lo + 1));
 
     let tested = 0;
-    let infeasible = 0;
     let undecided = 0;
     let perturbedInfeasible = 0;
     const wrong: string[] = [];
@@ -353,7 +352,11 @@ describe('agrees with brute force on near-exact instances built from a known pac
         const merged = slotItems[0][i0] + slotItems[1][i1];
         items = slotItems[0]
           .filter((_, i) => i !== i0)
-          .concat(slotItems[1].filter((_, i) => i !== i1), slotItems[2], [merged]);
+          .concat(
+            slotItems[1].filter((_, i) => i !== i1),
+            slotItems[2],
+            [merged]
+          );
         perturbed = true;
       }
 
@@ -382,7 +385,6 @@ describe('agrees with brute force on near-exact instances built from a known pac
         );
       }
       if (got === 'infeasible') {
-        infeasible++;
         if (perturbed) perturbedInfeasible++;
       }
     }

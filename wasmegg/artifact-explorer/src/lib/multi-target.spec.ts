@@ -97,6 +97,7 @@ describe('multi-sink weighted objective LP', () => {
       fuelCapacity: 1000,
       timeCapacity: 100,
       baseYield: new Map<string, number>(),
+      maximumCost: Infinity,
     };
     const rootFirst = await optimizeFull({ options: [optRoot, optB], ...args });
     const bFirst = await optimizeFull({ options: [optB, optRoot], ...args });
@@ -182,6 +183,7 @@ async function runNested(baseYield: Map<string, number>, targets = ['A', 'B']) {
     fuelCapacity: 1000,
     timeCapacity: 100, // per slot, so C arrives at a fixed rate the tests read back
     baseYield,
+    maximumCost: Infinity,
   });
 }
 

@@ -35,6 +35,9 @@ export function makeOpt(
     fuelByEgg: new Map(),
     actualTime,
     rawTime: actualTime,
+    // Free by default, so a fixture menu survives any `maximumCost`; the specs
+    // that exercise the gem cap override it per option.
+    cost: 0,
     supplyVector: new Map(yieldEntries),
     yieldVector: new Map(yieldEntries),
     legendaryYieldVector: new Map(legendaryEntries),
