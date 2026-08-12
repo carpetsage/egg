@@ -877,7 +877,14 @@ function handleBuyResearch(research: CommonResearch) {
 // by `runSaleAwareBuyFlow`'s cleanup sweep, since an exclusion here would throw the wait away
 // entirely rather than just the purchase).
 const nextRoiCandidate = computed(() =>
-  roiRankedResearches.value.find(item => meetsSaleAwareDeadline(item, nextSaleStart.value, 70))
+  roiRankedResearches.value.find(item =>
+    meetsSaleAwareDeadline(
+      item,
+      absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime),
+      nextSaleStart.value,
+      70
+    )
+  )
 );
 
 const canBuyUntilSaleWarning = computed(() => !!nextRoiCandidate.value);

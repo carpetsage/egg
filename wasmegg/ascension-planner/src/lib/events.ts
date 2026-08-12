@@ -285,6 +285,18 @@ export function isResearchSaleActive(timestampSeconds: number): boolean {
 }
 
 /**
+ * Returns the Unix timestamp (in seconds) of the Research Sale start that corresponds to a given
+ * sale end timestamp (e.g. `getBuildPhaseEndForSaleCount`'s result) — the inverse direction of
+ * `getNextSaleEnd`. Sales run Friday 9am PT to Saturday 9am PT, a ~24h window that can shift to
+ * ~23h/~25h across a DST transition, so this searches backward from safely before the shortest
+ * possible window (2 days) rather than assuming an exact 24h gap, then lets `getNextSaleStart` find
+ * the one real Friday in that range.
+ */
+export function getSaleStartForEnd(saleEndTimestamp: number): number {
+  return getNextSaleStart(saleEndTimestamp - 2 * 86400);
+}
+
+/**
  * Returns the Unix timestamp (in seconds) of the end of the `saleCount`-th Research Sale after
  * `ascensionStartTime` — i.e. the standard "build phase end" boundary for a C3 variant that plans
  * to ride out `saleCount` weekly sales before moving on. `saleCount === 1` is just `getNextSaleEnd`;

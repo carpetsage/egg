@@ -120,7 +120,9 @@ function sweepUntilNextSale(
   context: SimulationContext,
   mods: ResearchCostModifiers,
   absoluteSimTimeAtStart: number,
-  researchSaleDeadline: number
+  researchSaleDeadline: number,
+  // Forwarded to `simulateSaleAwareBuy`'s own `roiDeadlineOverride` — see its doc comment.
+  roiDeadlineOverride: number | undefined
 ): { items: MilestoneChainItem[]; state: EngineState; snapshot: CalculationsSnapshot; totalSeconds: number } {
   const nextSaleStart = getNextSaleStart(absoluteSimTimeAtStart);
 
@@ -140,7 +142,8 @@ function sweepUntilNextSale(
     nextSaleStart,
     'immediate',
     false,
-    70
+    70,
+    roiDeadlineOverride
   );
 
   if (DEBUG_MILESTONE_CHAIN) {
@@ -292,6 +295,8 @@ function findRoiDetour(
   mods: ResearchCostModifiers,
   currentAbsoluteTime: number,
   researchSaleDeadline: number,
+  // Forwarded to `rankResearchByROI`'s own `roiDeadlineOverride` — see its doc comment.
+  roiDeadlineOverride: number | undefined,
   fallbackSeconds: number,
   excludeResearchId: string | undefined,
   scoreSequence: (
@@ -315,7 +320,8 @@ function findRoiDetour(
     currentAbsoluteTime,
     researchSaleDeadline,
     'immediate',
-    false
+    false,
+    roiDeadlineOverride
   );
 
   const eligibleCandidates = ranked.filter(item => {
@@ -437,7 +443,13 @@ export function computeResearchMilestoneChain(
   context: SimulationContext,
   mods: ResearchCostModifiers,
   absoluteSimTimeAtStart: number,
-  researchSaleDeadline: number
+  researchSaleDeadline: number,
+  // Forwarded to `rankResearchByROI`'s own `roiDeadlineOverride` (via `findRoiDetour`/
+  // `sweepUntilNextSale`) and to the target's own direct-buy ROI check below — see its doc comment.
+  // Omitted (manual/default callers): every purchase must clear 70% ROI by the calendar's very next
+  // sale. Supplied (C3, already committed to riding out several sales): a later deadline, so a
+  // purchase gets judged against the runway actually available.
+  roiDeadlineOverride?: number
 ): MilestoneChainResult {
   const targetResearch = getResearchById(target.researchId);
   if (!targetResearch) return { items: [], reached: false, totalSeconds: 0 };
@@ -481,7 +493,10 @@ export function computeResearchMilestoneChain(
       context,
       eventTiming: {
         absoluteSimTime: currentAbsoluteTime,
-        nextSaleStart,
+        // `Math.max`, not a plain `??` — see `rankResearchByROI`'s identical comment: a fixed
+        // override computed once up front can go stale relative to next sale start as rounds
+        // advance, so it should only ever grant MORE runway than the calendar default, never less.
+        roiDeadline: roiDeadlineOverride !== undefined ? Math.max(roiDeadlineOverride, nextSaleStart) : nextSaleStart,
         researchSaleDeadline,
         isSaleActive: isSale,
         transitions,
@@ -510,6 +525,7 @@ export function computeResearchMilestoneChain(
       mods,
       currentAbsoluteTime,
       researchSaleDeadline,
+      roiDeadlineOverride,
       targetRoi.timeToBuySeconds,
       targetResearch.id,
       () => 0
@@ -580,7 +596,15 @@ export function computeResearchMilestoneChain(
       );
     }
 
-    const sweepResult = sweepUntilNextSale(state, snapshot, context, mods, currentAbsoluteTime, researchSaleDeadline);
+    const sweepResult = sweepUntilNextSale(
+      state,
+      snapshot,
+      context,
+      mods,
+      currentAbsoluteTime,
+      researchSaleDeadline,
+      roiDeadlineOverride
+    );
     if (sweepResult.items.length > 0) {
       rebaseAndPush(sweepResult.items);
       state = sweepResult.state;
@@ -590,9 +614,10 @@ export function computeResearchMilestoneChain(
     }
 
     // Step 5: nothing helped at all this round — idle-forward to the boundary as a last resort, to
-    // guarantee forward progress. The next round re-checks everything fresh from there (now inside
-    // the sale, so the target's own 70%-by-next-sale gate passes trivially via the during-sale
-    // bypass — see `isActuallyDuringSale`'s doc comment).
+    // guarantee forward progress. The next round re-checks everything fresh from there: now inside
+    // the sale, `nextSaleStart` itself rolls forward to the FOLLOWING week (see `getNextSaleStart`'s
+    // "always strictly after" contract), so the target's own ROI check is naturally judged against a
+    // full extra cycle of runway — no bypass needed for that, just the ordinary deadline math above.
     if (DEBUG_MILESTONE_CHAIN) {
       console.log(
         `[milestoneChain] computeResearchMilestoneChain round ${round}: IDLE-FORWARD to nextSaleStart=${debugTime(nextSaleStart)}`
@@ -734,7 +759,10 @@ export function computeTierMilestoneChain(
   context: SimulationContext,
   mods: ResearchCostModifiers,
   absoluteSimTimeAtStart: number,
-  researchSaleDeadline: number
+  researchSaleDeadline: number,
+  // Forwarded to `findRoiDetour`'s own `roiDeadlineOverride` — see `computeResearchMilestoneChain`'s
+  // identical parameter for the full explanation.
+  roiDeadlineOverride?: number
 ): MilestoneChainResult {
   let state = createBaseEngineState(startSnapshot);
   let snapshot = startSnapshot;
@@ -765,6 +793,7 @@ export function computeTierMilestoneChain(
       mods,
       currentAbsoluteTime,
       researchSaleDeadline,
+      roiDeadlineOverride,
       fallbackSeconds,
       undefined, // every research counts toward a tier milestone — nothing to exclude
       (result, afterAbsoluteTime) => {

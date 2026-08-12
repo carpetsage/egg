@@ -385,11 +385,15 @@ export function useResearchViews() {
   // should mean to a player glancing at the list: a purchase that only becomes worthwhile several
   // sale cycles out is still priced at a discount, but showing the same badge as an item landing in
   // NEXT week's sale is misleading. `isActuallyDuringSale` (already re-derived against calendar
-  // truth for `showSaleWarning`'s sake) narrows it to "actually the very next sale" for display —
-  // needs this item's absolute completion time, derived from the chain's own start
-  // (`startAbsoluteTime`) plus its cumulative `buyToHereSeconds`.
+  // truth for `showSaleWarning`'s sake) narrows it to "actually the very next sale" for display.
+  // Anchored on THIS item's own purchase-start time (`completesAt - timeToBuySeconds`, i.e. when its
+  // wait began), not the live `nextSaleStart`/"now" — a chain item several purchases (or idle-forward
+  // sale-boundary crossings) deep can be evaluated well after the plan's own start, and using the
+  // live "now" instead of the chain's simulated "now" at that point is the same "which sale is
+  // actually next" mistake `isActuallyDuringSale` itself guards against internally.
   function toResearchViewItem(item: MilestoneChainItem, startAbsoluteTime: number): ResearchViewItem {
     const completesAt = startAbsoluteTime + item.buyToHereSeconds;
+    const purchaseStartTime = completesAt - item.timeToBuySeconds;
     const result: ResearchViewItem = {
       research: item.research,
       targetLevel: item.targetLevel,
@@ -404,7 +408,7 @@ export function useResearchViews() {
       canBuyToHere: true,
       showSaleWarning: item.showSaleWarning,
       showDeadlineWarning: item.showDeadlineWarning,
-      duringSale: isActuallyDuringSale(item.duringSale, completesAt, nextSaleStart.value),
+      duringSale: isActuallyDuringSale(item.duringSale, completesAt, purchaseStartTime),
       duringEarningsBoost: item.duringEarningsBoost,
       eventCrossings: item.eventCrossings,
     };
@@ -467,8 +471,9 @@ export function useResearchViews() {
       showSaleWarning: item.showSaleWarning,
       showDeadlineWarning: item.showDeadlineWarning,
       // See `toResearchViewItem`'s identical comment: narrow "priced at a sale, whichever one" down
-      // to "actually the very next sale" for the badge's sake.
-      duringSale: isActuallyDuringSale(item.duringSale, absoluteSimTime + timeToBuySeconds, nextSaleStart.value),
+      // to "actually the very next sale" for the badge's sake, anchored on this ranking's own `now`
+      // rather than the live `nextSaleStart`.
+      duringSale: isActuallyDuringSale(item.duringSale, absoluteSimTime + timeToBuySeconds, absoluteSimTime),
       duringEarningsBoost: item.duringEarningsBoost,
       earningsDelta: item.earningsDelta,
       purchaseTimestamp: absoluteSimTime + timeToBuySeconds,

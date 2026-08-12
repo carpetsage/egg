@@ -7,7 +7,13 @@ import { advanceTimeWithBoundaries } from './helpers/advanceTime';
 import { computeSnapshot } from '../../engine/compute';
 import { calculateArtifactModifiers } from '../../lib/artifacts';
 import { simulateSaleAwareBuy, simulateSaleEndsBuy } from '../../calculations/smartBuyPreview';
-import { isResearchSaleActive, getNextSaleStart, getNextSaleEnd, getBuildPhaseEndForSaleCount } from '@/lib/events';
+import {
+  isResearchSaleActive,
+  getNextSaleStart,
+  getNextSaleEnd,
+  getBuildPhaseEndForSaleCount,
+  getSaleStartForEnd,
+} from '@/lib/events';
 
 export interface C3Params {
   /** Attempt to unlock Tier 13 before anything else, if it isn't already unlocked. Default false. */
@@ -40,11 +46,21 @@ const MULTI_LAYERING_TARGET_LEVEL = 2;
  *    before `buildPhaseEnd`, never after), or it doesn't finish at all — there's no third case
  *    where it "succeeds but finishes late," so a plain post-attempt tier check is the complete
  *    impossible/possible test for each attempt; no separate overrun handling is needed here.
- * 3. Repeat: buy earnings research toward 70% ROI before the next sale, then wait for that sale to
- *    start — until reaching the start of the final sale (the one ending at the build phase's end).
- *    This naturally does fewer cycles (or none) if step 2's Tier 13 unlock already consumed enough
- *    real time to cross earlier sales while buying — the loop just walks forward from wherever
- *    `getAbsTime()` currently is via `getNextSaleStart`/`getNextSaleEnd`, it doesn't count cycles.
+ * 3. Repeat: buy earnings research toward 70% ROI, then wait for the next sale to start — until
+ *    reaching the start of the final sale (the one ending at the build phase's end). This naturally
+ *    does fewer cycles (or none) if step 2's Tier 13 unlock already consumed enough real time to
+ *    cross earlier sales while buying — the loop just walks forward from wherever `getAbsTime()`
+ *    currently is via `getNextSaleStart`/`getNextSaleEnd`, it doesn't count cycles. The 70% bar
+ *    itself is judged against `roiDeadline` (`getSaleStartForEnd(buildPhaseEnd)`, computed once up
+ *    front) rather than just each cycle's own immediately-upcoming sale: unlike the manual planner's
+ *    "Buy Until Sale Warning" button — which only ever knows about the next sale, since a human
+ *    clicking it hasn't committed to riding out any particular number of further ones — this shift
+ *    already commits to `buildPhaseEnd` before step 3 even starts, so a purchase priced during one of
+ *    the sales along the way doesn't need to pay for itself by THAT sale specifically; it only needs
+ *    to clear 70% by the start of the LAST sale of the whole ride to be worth taking now rather than
+ *    saving the gems for something else. This is purely additive runway, never a way to accept a
+ *    worse deal than the manual default: every individual purchase still gets at least the calendar's
+ *    own next-sale deadline (see `rankResearchByROI`'s `Math.max` merge of the two).
  * 4. Buy delivery research until nothing more is worth buying (not necessarily until the sale
  *    itself ends — once purchasing stalls out, C3 stops there rather than padding the clock the
  *    rest of the way to `buildPhaseEnd`; K3, the next shift, already waits out any remaining time
@@ -72,6 +88,19 @@ export function runC3(
 
   const baseAbsTime = context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0);
   const getAbsTime = () => baseAbsTime + elapsedSeconds;
+
+  // Unlike the manual planner (which only ever knows about "the next sale" — a human clicking a
+  // button has no advance commitment to riding out further ones), this whole shift already commits
+  // to `buildPhaseEnd` up front — riding out every sale between now and then. So a purchase's 70%
+  // ROI bar doesn't need to clear by just the immediately upcoming sale: it only needs to clear by
+  // the start of the LAST sale of this ride (`buildPhaseEnd` is always that sale's own END — see
+  // `getBuildPhaseEndForSaleCount`), since that's the last point where "is this worth buying now, at
+  // this discount" is still being decided under this shift's own multi-sale plan. Threaded through
+  // every ROI-gated purchase below (`buyUntilSaleWarning`, and the ML/Tier-13 milestone chains) —
+  // each individual function call still only ever judges against "no earlier than the calendar's
+  // own next sale" (see `rankResearchByROI`'s `Math.max` merge), so this is purely additive runway,
+  // never a way to force a WORSE deadline than the manual default.
+  const roiDeadline = getSaleStartForEnd(buildPhaseEnd);
 
   const advanceTime = (totalSeconds: number) => {
     const result = advanceTimeWithBoundaries(currentState, actions, elapsedSeconds, context, baseAbsTime, totalSeconds);
@@ -152,7 +181,8 @@ export function runC3(
       targetDeadline,
       'immediate',
       false,
-      70
+      70,
+      roiDeadline
     );
     executePlanToLevels(
       plan.entries.map(e => e.researchId),
@@ -197,7 +227,7 @@ export function runC3(
     const attemptTier13Only = (): boolean => {
       if (!isTierUnlocked(currentState.researchLevels, maxTier)) {
         const timeLimit = Math.max(0, buildPhaseEnd - getAbsTime());
-        runStep(runTierUnlockMilestone(currentState, context, maxTier, timeLimit));
+        runStep(runTierUnlockMilestone(currentState, context, maxTier, timeLimit, roiDeadline));
       }
       return isTierUnlocked(currentState.researchLevels, maxTier);
     };
@@ -237,7 +267,8 @@ export function runC3(
               MULTI_LAYERING_ID,
               MULTI_LAYERING_LEVEL_1,
               Infinity,
-              level1TimeLimit
+              level1TimeLimit,
+              roiDeadline
             )
           );
         }
@@ -250,7 +281,8 @@ export function runC3(
             MULTI_LAYERING_ID,
             MULTI_LAYERING_TARGET_LEVEL,
             Infinity,
-            timeLimit
+            timeLimit,
+            roiDeadline
           )
         );
       }

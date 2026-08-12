@@ -105,7 +105,12 @@ export function simulateSaleAwareBuy(
   nextSaleStart: number,
   roiMode: 'immediate' | 'maxed_vehicles',
   deliveryImpactOnly: boolean,
-  targetPercent: number
+  targetPercent: number,
+  // Forwarded to `rankResearchByROI`'s own `roiDeadlineOverride` — see its doc comment. Distinct
+  // from `nextSaleStart` above, which stays the loop's own stopping boundary (always the very next
+  // sale, whether this call rides one cycle or is part of a longer multi-sale run) regardless of
+  // how far out the ROI bar itself is allowed to look.
+  roiDeadlineOverride?: number
 ): SaleAwareBuyPlan {
   if (DEBUG_SALE_AWARE_BUY) {
     console.log(
@@ -139,7 +144,8 @@ export function simulateSaleAwareBuy(
         simTime,
         researchSaleDeadline,
         roiMode,
-        deliveryImpactOnly
+        deliveryImpactOnly,
+        roiDeadlineOverride
       );
       // NOTE: intentionally NOT `meetsSaleAwareDeadline` (which `nextRoiCandidate` in
       // ResearchActions.vue still uses, for its own button-enabled/highlight preview only — not

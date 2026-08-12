@@ -42,7 +42,11 @@ export interface ROICalculationInput {
   context: SimulationContext;
   eventTiming: {
     absoluteSimTime: number;
-    nextSaleStart: number;
+    // The deadline `showSaleWarning` judges 70%-ROI payback against — the calendar's very next
+    // sale start for manual/default callers, or a caller-supplied later deadline (e.g. C3's "last
+    // sale of this ride" when it already knows it's riding out several sales in a row) for auto
+    // callers willing to judge a purchase against more runway than just the next sale.
+    roiDeadline: number;
     researchSaleDeadline: number;
     isSaleActive: boolean;
     // Precomputed via `boostTransitionsFrom(snapshot, absoluteSimTime)` — callers evaluating many
@@ -265,11 +269,16 @@ function walkEventCrossings(
 /**
  * Whether a purchase modeled as completing "during a sale" (`modeledDuringSale` — e.g.
  * `getSaleAwareTimeToSave`'s `duringSale`, which is only ever as fresh as whichever `isSaleActive`
- * snapshot flag the caller happened to pass in) is *actually* landing inside the sale window
- * `nextSaleStart` refers to — either that upcoming sale itself, or one already active right now that
- * hasn't ended yet (being mid-sale already makes `nextSaleStart` point a full cycle further out —
- * see `getSaleAwareTimeToSave`'s "already in a sale" branch — so `completesAt` can legitimately land
- * before `nextSaleStart` and still be genuinely mid-sale).
+ * snapshot flag the caller happened to pass in) is *actually* landing inside the closest sale window
+ * from `absoluteSimTime` — either a sale already active right now that hasn't ended yet, or (if none
+ * is active) the very next upcoming one. `getNextSaleEnd(absoluteSimTime)` gives exactly that
+ * boundary in both cases: mid-sale, it's today's own end (`getNextSaleStart`/`getNextPacificTime`
+ * would otherwise skip a full cycle ahead to the *following* week's start, since the current sale's
+ * start has already passed); not in a sale, it's the upcoming sale's end. Deliberately anchored on
+ * `absoluteSimTime` (when this candidate is being evaluated), not on `nextSaleStart` — a caller
+ * computing `nextSaleStart` while a sale is already active gets next week's start back, and bounding
+ * by *that* sale's end (as this used to) accepted anything landing anywhere in the current sale OR
+ * the entirety of next week's, a full extra cycle too permissive.
  *
  * Deliberately NOT "is `completesAt` inside *some* real sale, whichever one that happens to be": an
  * expensive purchase can decide it's faster to save toward a discount several sale cycles out
@@ -279,10 +288,9 @@ function walkEventCrossings(
  * equivalent to "lands in the very next one" silently suppressed `showSaleWarning` for it. Confirmed
  * in practice: a research needing 28 days to save for showed no warning at all, because its own save
  * time happened to land inside a sale several weeks out — clearing "is this a real sale" while
- * failing the actual question this warning answers ("is next week's sale, specifically, achievable
- * for this purchase"). Bounding `completesAt` to before `getNextSaleEnd(nextSaleStart)` — the end of
- * the very next sale window — rules out that far-future case while still accepting both legitimate
- * ones above.
+ * failing the actual question this warning answers ("is the next achievable sale, specifically,
+ * achievable for this purchase"). Bounding `completesAt` to before `getNextSaleEnd(absoluteSimTime)`
+ * rules out that far-future case while still accepting both legitimate ones above.
  *
  * Also guards against the same staleness problem the snapshot flag has always had: nothing
  * re-derives `activeSales.research` against the calendar the way `boostTransitionsFrom` does for
@@ -290,8 +298,8 @@ function walkEventCrossings(
  * anything noticing, if whichever purchase happened to be evaluated while it drifted didn't itself
  * straddle the real end boundary.
  */
-export function isActuallyDuringSale(modeledDuringSale: boolean, completesAt: number, nextSaleStart: number): boolean {
-  return modeledDuringSale && isResearchSaleActive(completesAt) && completesAt < getNextSaleEnd(nextSaleStart);
+export function isActuallyDuringSale(modeledDuringSale: boolean, completesAt: number, absoluteSimTime: number): boolean {
+  return modeledDuringSale && isResearchSaleActive(completesAt) && completesAt < getNextSaleEnd(absoluteSimTime);
 }
 
 /**
@@ -344,15 +352,19 @@ export interface SaleAwareDeadlineCandidate {
  * that must end up with zero purchases actually priced at the sale discount (rather than just
  * skipping the warning) are expected to sweep those back out afterward — see
  * `buyUntilRealSaleStarts` in `researchRanking.ts`.
+ *
+ * `absoluteSimTime` (separate from `nextSaleStart`) is only for `isActuallyDuringSale`'s own bound —
+ * see that function's doc comment for why it can't just reuse `nextSaleStart` itself.
  */
 export function meetsSaleAwareDeadline(
   item: SaleAwareDeadlineCandidate,
+  absoluteSimTime: number,
   nextSaleStart: number,
   targetPercent: number
 ): boolean {
   if (!item.canBuy || item.isMaxed) return false;
   if (item.earningsDelta === undefined || item.purchaseTimestamp === undefined) return false;
-  if (isActuallyDuringSale(item.duringSale ?? false, item.purchaseTimestamp, nextSaleStart)) return true;
+  if (isActuallyDuringSale(item.duringSale ?? false, item.purchaseTimestamp, absoluteSimTime)) return true;
   return meetsROIByDeadline(item.earningsDelta, item.price, item.purchaseTimestamp, nextSaleStart, targetPercent);
 }
 
@@ -363,7 +375,7 @@ export function meetsSaleAwareDeadline(
  */
 export function calculateResearchROI(input: ROICalculationInput): ROICalculationResult {
   const { research, level, mods, snapshot, context, eventTiming } = input;
-  const { absoluteSimTime, nextSaleStart, researchSaleDeadline, isSaleActive, transitions } = eventTiming;
+  const { absoluteSimTime, roiDeadline, researchSaleDeadline, isSaleActive, transitions } = eventTiming;
 
   const purchase = getSaleAwareTimeToSave(research, level, mods, isSaleActive, absoluteSimTime, snapshot, transitions);
   const price = purchase.price;
@@ -448,13 +460,14 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
 
   const completesAt = absoluteSimTime + timeToBuySeconds;
 
-  // No warning needed if this purchase is already timed to land during a REAL sale (see
-  // `isActuallyDuringSale`'s doc comment — `purchase.duringSale` alone isn't enough, since it can
-  // reflect a stale `isSaleActive` snapshot flag rather than calendar truth) — there's nothing left
-  // to warn about, the price/wait above already account for it.
-  const showSaleWarning =
-    !isActuallyDuringSale(purchase.duringSale, completesAt, nextSaleStart) &&
-    !meetsROIByDeadline(earningsDelta, price, completesAt, nextSaleStart, 70);
+  // Deliberately NOT waived just because this purchase happens to land during a real sale — a
+  // discount doesn't make a slow payback fast. `roiDeadline` is what actually decides how much
+  // slack this purchase gets: the calendar's very next sale for manual/default callers, or a
+  // caller-supplied later one for auto callers already committed to riding out several sales (see
+  // `ROICalculationInput.eventTiming.roiDeadline`'s own doc comment). `isActuallyDuringSale` still
+  // matters elsewhere (the `duringSale` display flag, and `meetsSaleAwareDeadline`'s narrower
+  // transitional-purchase exception for live execution) — just not here.
+  const showSaleWarning = !meetsROIByDeadline(earningsDelta, price, completesAt, roiDeadline, 70);
 
   const showDeadlineWarning = isResearchSaleActive(absoluteSimTime) && completesAt > researchSaleDeadline;
 
@@ -474,12 +487,12 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
 /**
  * Whether a purchase that `getSaleAwareTimeToSave` decided to buy at today's price (`purchaseDuringSale:
  * false` — i.e. buying now beat waiting for any future sale on raw speed) should nonetheless be
- * deferred to `nextSaleStart` instead, because it wouldn't earn back 70% of its own cost before then
- * at full price. Buying "fast" isn't the same as buying "well": a purchase a few minutes from being
- * affordable at full price can still be strictly worse than waiting those few minutes for a 70%
- * discount, if it wouldn't pay for itself by the time that discount would've landed anyway. Only
- * meaningful for research that actually moves earnings — the ROI bar is meaningless for anything
- * else, so this never defers a non-earnings purchase.
+ * deferred to the next real sale instead, because it wouldn't earn back 70% of its own cost before
+ * `roiDeadline` at full price. Buying "fast" isn't the same as buying "well": a purchase a few
+ * minutes from being affordable at full price can still be strictly worse than waiting those few
+ * minutes for a 70% discount, if it wouldn't pay for itself by the time that discount would've
+ * landed anyway. Only meaningful for research that actually moves earnings — the ROI bar is
+ * meaningless for anything else, so this never defers a non-earnings purchase.
  *
  * This is the single source of truth behind the manual planner's `syncEventStateForItem`
  * (`checkRoiGate`, only enforced by "Buy Entire Chain") and the auto engine's `buyResearch`
@@ -491,11 +504,13 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
  * purchase that should've landed at the very next sale out to the sale after that instead.
  *
  * Deliberately does NOT decide anything about affordability — a caller electing to defer still needs
- * to actually wait out `nextSaleStart - absoluteSimTime` (which will always be affordable by then:
- * money only grows while idle, and the sale price is never higher than the full price this branch
- * already confirmed reachable in `<=` that same span — see `getSaleAwareTimeToSave`'s own doc
- * comment) and then re-price the purchase fresh from the new, later state, rather than trusting
- * anything computed here as still valid once time has actually moved.
+ * to actually wait out `getNextSaleStart(absoluteSimTime) - absoluteSimTime` (the calendar's very
+ * next real sale — always where the caller actually waits to, regardless of how far out
+ * `roiDeadline` itself reaches; this will always be affordable by then: money only grows while idle,
+ * and the sale price is never higher than the full price this branch already confirmed reachable in
+ * `<=` that same span — see `getSaleAwareTimeToSave`'s own doc comment) and then re-price the
+ * purchase fresh from the new, later state, rather than trusting anything computed here as still
+ * valid once time has actually moved.
  */
 export function shouldDeferToNextSale(
   research: CommonResearch,
@@ -504,7 +519,7 @@ export function shouldDeferToNextSale(
   snapshot: CalculationsSnapshot,
   context: SimulationContext,
   absoluteSimTime: number,
-  nextSaleStart: number,
+  roiDeadline: number,
   researchSaleDeadline: number,
   isSaleActive: boolean,
   transitions: EarningsRateTransition[],
@@ -520,7 +535,7 @@ export function shouldDeferToNextSale(
     mods,
     snapshot,
     context,
-    eventTiming: { absoluteSimTime, nextSaleStart, researchSaleDeadline, isSaleActive, transitions },
+    eventTiming: { absoluteSimTime, roiDeadline, researchSaleDeadline, isSaleActive, transitions },
   });
 
   return roi.earningsDelta > 0 && roi.showSaleWarning;
