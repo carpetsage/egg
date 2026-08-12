@@ -77,8 +77,8 @@ chosen breakpoints allow.
 `JOINT_TANGENT_BREAKPOINTS` is the fixed grid of tangent points. It is spaced to
 roughly equalize the envelope's probability-space slack over `s` in
 `[0.05, 40]`; `g` is nearly flat above `s ~ 4`, so three points cover the tail.
-The grid is deliberately small: every row is re-solved millions of times per run
-(see `optimizer-perf.spec.ts`).
+The grid is deliberately small: every row is re-solved millions of times per
+run.
 
 `EPIGRAPH_SHIFT` exists because `g(s) < 0` for `s < ln 2`, so `z_T` can be
 negative, while the LP solver in `lp.ts` assumes `x >= 0`. Shifting every
@@ -429,15 +429,17 @@ instance sizes the oracle cannot enumerate. See `ARENA.md`.
 ## Tests are local-only
 
 Nothing in `.github/workflows/` runs the test suite — CI only builds. Every spec
-in `src/lib/` and `src/oracle/`, including the latency caps in
-`optimizer-perf.spec.ts`, is a local development tool. Run them yourself:
+in `src/lib/` and `src/oracle/` is a local development tool. Run them yourself:
 
 ```sh
-pnpm exec vitest run src/    # unit + smoke oracle
+pnpm test                    # unit + smoke oracle
 pnpm test:oracle             # + deep oracle campaign
-RUN_PERF=1 pnpm exec vitest run src/lib/optimizer-perf.spec.ts
+pnpm arena                   # the invariant sweep; ARENA=sweep for the full tier
 ```
 
-A perf cap failing on your machine means your machine, not necessarily a
-regression; the caps are calibrated against a reference machine and documented
-in that spec.
+There is no committed latency cap. One existed and was removed: with no CI to
+run it, its only reader was whoever was already doing perf work, and its
+reference figures went stale twice before anyone noticed. Time a solve directly
+when that is the question you have. A slow solve on your machine means your
+machine, not necessarily a regression; the figures worth comparing against are
+in `DEFAULT_TUNING`'s comment in `solver/oa.ts`.

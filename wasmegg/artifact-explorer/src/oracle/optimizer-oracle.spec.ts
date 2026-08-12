@@ -1,8 +1,12 @@
-// Brute-force oracle harness for the heuristic outer solver. Treats the
-// optimizer as a black box and checks three properties per instance:
-// feasibility (fuel budget and 3-slot packing), honesty (reported probability
-// matches an independent re-evaluation), and optimality (no feasible
-// allocation beats the plan by more than ORACLE_GAP_TOL).
+// Brute-force oracle harness for the outer solver: the one place a plan is
+// compared against a *proven* optimum rather than against properties of one.
+//
+// Instances are small enough to enumerate exhaustively, so `bruteForceBestJoint`
+// returns the true best allocation and the plan is scored against it. That is
+// the whole reason to keep a second harness alongside the arena — the arena runs
+// production-scale instances where no reference answer exists, and everything it
+// can check without one (feasibility, honesty, monotonicity, local optimality)
+// is checked there rather than duplicated here.
 //
 // Calibration probes and smoke fuzz always run; the deep fuzz campaign runs
 // with RUN_ORACLE=1 (pnpm test:oracle), time-boxed by ORACLE_TIME_BUDGET_MS.
@@ -12,14 +16,13 @@ import { describe, expect, test } from 'vitest';
 import { optimizeFull } from '../lib/optimizer-core';
 import type { OptimizerSolution } from '../lib/types';
 import { makeNode, makeOpt } from '../lib/spec-helpers';
-import { bruteForceBestJoint, packableInto3Bins } from './enumerate';
+import { bruteForceBestJoint } from './enumerate';
 import { evaluateAllocation, evaluateAllocationJoint, OracleInstance, targetQ } from './evaluate';
 import { FAMILIES, Family, generateInstance } from './generate';
 
 const GAP_TOL = Number(process.env.ORACLE_GAP_TOL ?? 1e-3);
 // the smoke tier only guards against catastrophic gaps
 const SMOKE_GAP_TOL = Math.max(GAP_TOL, 0.05);
-const HONESTY_TOL = Number(process.env.ORACLE_HONESTY_TOL ?? 1e-6);
 const DEEP = process.env.RUN_ORACLE === '1';
 const BUDGET_MS = Number(process.env.ORACLE_TIME_BUDGET_MS ?? 25 * 60_000);
 const SEED_BASE = Number(process.env.ORACLE_SEED_BASE ?? 1000);
@@ -27,7 +30,7 @@ const SEED_BASE = Number(process.env.ORACLE_SEED_BASE ?? 1000);
 interface InstanceFailure {
   family: string;
   seed: number;
-  kind: 'reconstruction' | 'feasibility' | 'honesty' | 'optimality' | 'harness';
+  kind: 'reconstruction' | 'optimality' | 'harness';
   detail: string;
 }
 
@@ -115,88 +118,16 @@ async function checkInstance(inst: OracleInstance, gapTol = GAP_TOL): Promise<In
     return { family: inst.label, seed: inst.seed, gap: NaN, failures };
   }
 
-  // tolerances are relative: real fuel costs run to billions of eggs
-  const fuelUsed = allocation.reduce((sum, k, i) => sum + k * inst.options[i].actualFuel, 0);
-  const slack = (x: number) => 1e-9 * Math.max(1, x);
-
-  // Reduce the allocation to per-duration counts and check 3-slot packability
-  // independently of the solver's own packer.
-  const durList: number[] = [];
-  const durCounts: number[] = [];
-  const durIndex = new Map<number, number>();
-  inst.options.forEach((opt, i) => {
-    const key = Math.round(opt.actualTime);
-    let di = durIndex.get(key);
-    if (di === undefined) {
-      di = durList.length;
-      durList.push(opt.actualTime);
-      durCounts.push(0);
-      durIndex.set(key, di);
-    }
-    durCounts[di] += allocation[i];
-  });
-  if (fuelUsed > inst.fuelCapacity + slack(inst.fuelCapacity)) {
-    fail('feasibility', `plan uses fuel=${fuelUsed}/${inst.fuelCapacity}`);
-    return { family: inst.label, seed: inst.seed, gap: NaN, failures };
-  }
-  if (!packableInto3Bins(durCounts, durList, inst.timeCapacity)) {
-    fail('feasibility', `plan [${allocation}] does not pack into 3 slots of ${inst.timeCapacity}s`);
-    return { family: inst.label, seed: inst.seed, gap: NaN, failures };
-  }
-
-  // The slot witness must be self-consistent: every slot within the horizon,
-  // mission counts summing to the plan, timeUnitsUsed = the busiest slot.
-  const slots = solution.slots ?? [];
-  const totalMissions = allocation.reduce((sum, k) => sum + k, 0);
-  const slotMissionSum = slots.reduce((sum, sl) => sum + sl.missionCount, 0);
-  const makespan = slots.reduce((m, sl) => Math.max(m, sl.loadSeconds), 0);
-  for (const sl of slots) {
-    if (sl.loadSeconds > inst.timeCapacity + slack(inst.timeCapacity)) {
-      fail('feasibility', `slot load ${sl.loadSeconds} exceeds horizon ${inst.timeCapacity}`);
-      return { family: inst.label, seed: inst.seed, gap: NaN, failures };
-    }
-  }
-  if (slotMissionSum !== totalMissions) {
-    fail('feasibility', `slot witness holds ${slotMissionSum} missions but plan has ${totalMissions}`);
-    return { family: inst.label, seed: inst.seed, gap: NaN, failures };
-  }
-  if (
-    Math.abs(solution.fuelUsed - fuelUsed) > 1e-6 * Math.max(1, fuelUsed) ||
-    Math.abs(solution.timeUnitsUsed - Math.round(makespan)) > 1
-  ) {
-    fail(
-      'feasibility',
-      `reported usage fuel=${solution.fuelUsed}, time=${solution.timeUnitsUsed} but plan uses fuel=${fuelUsed}, makespan=${makespan}`
-    );
-  }
-
-  // One checking path at every target count; at n=1 evaluateAllocationJoint
-  // delegates to the exact-arithmetic union evaluator, so rigour is unchanged.
+  // Feasibility and honesty are deliberately not re-checked here. The arena
+  // states them as C1 and C2/C3 and runs them over production-scale instances
+  // against its own packer and its own judge; asserting them a second time on
+  // these toy instances only means two places to edit when either rule moves.
+  //
+  // What this harness has and the arena structurally cannot is a *reference
+  // answer*: these instances are small enough to enumerate exhaustively, so the
+  // plan can be compared against the proven optimum rather than against
+  // properties of the optimum. That is the whole reason the file exists.
   const planEval = evaluateAllocationJoint(inst, allocation);
-  const claimed = solution.jointProbability;
-  const expected = planEval.jointProbability;
-  for (const p of planEval.perTarget) {
-    if (!solution.perTarget.some(q => q.nodeId === p.nodeId)) {
-      fail('honesty', `perTarget missing entry for ${p.nodeId}`);
-    }
-  }
-  if (Math.abs(claimed - expected) > HONESTY_TOL) {
-    fail('honesty', `claimed jointProbability=${claimed} vs independent ${expected} for allocation [${allocation}]`);
-  } else if (claimed > 0 && expected > 0) {
-    // Log space too: joint probabilities span ~1e-8 to within an ulp of 1, so
-    // a fixed 1e-6 band is vacuous at the bottom and unreachable at the top.
-    // On the joint probability, never per target: the split is unpinned
-    // wherever the objective is not strictly curved in it.
-    const claimedLog = -Math.log(claimed);
-    const expectedLog = -Math.log(expected);
-    if (Math.abs(claimedLog - expectedLog) > HONESTY_TOL * (1 + expectedLog)) {
-      fail(
-        'honesty',
-        `claimed -log(jointProbability)=${claimedLog} vs independent ${expectedLog} for allocation [${allocation}]`
-      );
-    }
-  }
-
   const oracle = bruteForceBestJoint(inst);
   const gap = Math.max(0, oracle.bestJointProbability - planEval.jointProbability);
   if (gap > gapTol) {
@@ -399,31 +330,6 @@ describe('oracle calibration', () => {
     const theirs = await runOptimizer(inst);
     expect(theirs.bestProbability).toBeCloseTo(expected, 6);
     expect(evaluateAllocation(inst, [2]).probability).toBeCloseTo(expected, 9);
-  });
-
-  test('single-target weighted-sum score still favors dumping everything on the higher-Q target', () => {
-    // Checks the oracle's own weighted-sum LP re-derivation only. That score
-    // is NOT what optimizeFull maximizes; see the next test.
-    const inst: OracleInstance = {
-      label: 'probe',
-      seed: 0,
-      options: [],
-      dag: new Map(
-        [makeNode('a', true), makeNode('t0', false, [['a', 1]], 0.5), makeNode('t1', false, [['a', 1]], 0.8)].map(n => [
-          n.id,
-          n,
-        ])
-      ),
-      targets: ['t0', 't1'],
-      fuelCapacity: 0,
-      timeCapacity: 0,
-      baseYield: new Map([['a', 2]]),
-    };
-    // both targets eat the same ingredient; all of it belongs on t1 (higher Q)
-    // under the plain weighted-sum score.
-    const bestScore = 2 * targetQ(inst, 't1');
-    const mine = evaluateAllocation(inst, []);
-    expect(mine.score).toBeCloseTo(bestScore, 9);
   });
 
   test('multi-target allocation balances instead of favoring the higher-value target (joint/AND objective)', async () => {

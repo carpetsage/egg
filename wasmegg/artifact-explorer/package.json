@@ -44,6 +44,6 @@
     "arena:check": "vitest run src/oracle/arena/independence.spec.ts",
     "coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "repro": "vitest run src/oracle/repro.spec.ts --disable-console-intercept"
+    "repro": "vite-node -c vitest.config.ts src/oracle/repro.ts --"
   }
 }

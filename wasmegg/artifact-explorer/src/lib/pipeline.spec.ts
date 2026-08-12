@@ -91,28 +91,27 @@ describe('enumerateLaunchOptions', () => {
 });
 
 describe('optimize', () => {
-  it('runs the full pipeline within budgets', async () => {
-    const config = {
-      desiredArtifactNodeIds: ['puzzle-cube-4'],
-      includeNotEnoughData: false,
-      fuelTankCapacity: 2_000_000_000,
-      timeBudgetSeconds: 3 * 24 * 3600,
-    };
+  const config = {
+    desiredArtifactNodeIds: ['puzzle-cube-4'],
+    includeNotEnoughData: false,
+    fuelTankCapacity: 2_000_000_000,
+    timeBudgetSeconds: 3 * 24 * 3600,
+  };
+
+  // That the plan fits its budgets is arena C1, over 40 instances rather than
+  // this one. What only exists here is the presentation pass `optimize` runs on
+  // top of the plan, which is what the page renders.
+  it('returns a plan the page can render', async () => {
     const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
     const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
     const [sol] = await optimize(config, perfectShipsConfig, dag, baseYield);
 
-    expect(sol.fuelUsed).toBeLessThanOrEqual(config.fuelTankCapacity + 1e-6);
-    expect(sol.timeUnitsUsed).toBeLessThanOrEqual(config.timeBudgetSeconds + 1);
-    expect(sol.bestProbability).toBeGreaterThan(0);
-    expect(sol.bestProbability).toBeLessThanOrEqual(1);
-    expect(sol.perTarget[0].bestProbability).toBeCloseTo(sol.bestProbability, 12);
     expect(sol.choiceHistory.length).toBeGreaterThan(0);
-
-    // presentation pass: sorted by ship, drop rows filled in
+    // sorted by ship, so the launch list reads in fleet order
     for (let i = 1; i < sol.choiceHistory.length; i++) {
       expect(sol.choiceHistory[i - 1].ship.shipType).toBeLessThanOrEqual(sol.choiceHistory[i].ship.shipType);
     }
+    // drop rows filled in, with resolvable icons
     expect(sol.expectedDrops.length).toBeGreaterThan(0);
     for (const row of sol.expectedDrops) {
       expect(row.expected).toBeGreaterThan(0);
@@ -121,26 +120,19 @@ describe('optimize', () => {
   });
 
   it('reports running time as the busiest slot real flight time', async () => {
-    const config = {
-      desiredArtifactNodeIds: ['puzzle-cube-4'],
-      includeNotEnoughData: false,
-      fuelTankCapacity: 2_000_000_000,
-      timeBudgetSeconds: 3 * 24 * 3600,
-    };
     const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
     const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
     const launchPeriod = 3600; // high effort: 1 launch / slot / hour
     const [sol] = await optimize(config, perfectShipsConfig, dag, baseYield, launchPeriod);
 
+    // `runningTimeSeconds` is the "you will be done in" figure on the card, and
+    // it is raw flight time rather than the floored time the solver packs with.
     expect(sol.slots).toBeDefined();
     expect(sol.slots!.length).toBe(3);
     const busiest = sol.slots!.reduce((a, b) => (b.loadSeconds > a.loadSeconds ? b : a));
     expect(busiest.missionCount).toBeGreaterThan(0);
     expect(sol.runningTimeSeconds).toBe(Math.round(busiest.rawLoadSeconds));
     expect(sol.runningTimeSeconds).toBeLessThanOrEqual(sol.timeUnitsUsed);
-    for (const slot of sol.slots!) {
-      expect(slot.loadSeconds).toBeLessThanOrEqual(config.timeBudgetSeconds + 1e-6);
-    }
 
     // with a zero launch period nothing is floored: raw flight = makespan
     const [rawSol] = await optimize(config, perfectShipsConfig, dag, baseYield, 0);

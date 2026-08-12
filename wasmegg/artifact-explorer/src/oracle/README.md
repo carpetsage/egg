@@ -49,4 +49,4 @@ pnpm test:oracle   # + deep campaign, 25 minutes by default
 
 The always-on smoke tier asserts only a catastrophic-gap guard (0.05); the
 deep campaign asserts the strict tolerance. Every failure line carries the
-family and seed for exact reproduction (see `repro.spec.ts`).
+family and seed for exact reproduction: `pnpm repro <family>:<seed>`.
