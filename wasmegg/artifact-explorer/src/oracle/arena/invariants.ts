@@ -29,6 +29,7 @@ import type { RecipeDAG } from '../../lib/types';
 import type { Planner } from './contract';
 import {
   budgetsOf,
+  craftUnitPrices,
   feasible,
   fuelWithinCapacity,
   oracleInstanceOf,
@@ -148,6 +149,51 @@ export function checkA2Time(c: CheckContext) {
       over: { timeCapacity: Math.round(c.inst.timeCapacity * m) },
     }))
   );
+}
+
+// The golden egg budget, which is the one budget that does not constrain the
+// allocation. Missions cost no golden eggs; the cap binds on the craft split,
+// which the judge solves for itself under the same row (`../evaluate.ts`). So
+// this is a pure monotonicity check and there is no C1-style feasibility twin
+// for it — there is nothing about a returned allocation left to verify.
+//
+// The axis is anchored on the baseline plan's own bill for its target crafts,
+// not on an absolute figure: golden egg prices span several decades across the
+// artifact tiers, so a fixed capacity would be slack on every cheap instance
+// and crushing on every dear one, and the check would measure the tier of the
+// target rather than the solver. The anchor understates the true bill, which
+// consumes intermediate tiers too, so the tight end of the axis genuinely bites.
+//
+// One caveat this axis shares with the rest of the A family, worth knowing
+// before reading a violation as a bug in the cap. A budget large enough to be
+// provably redundant can still change the plan at the shipped node budget:
+// measured on tachyon-deflector-4, a cap at 100x the plan's own bill returned a
+// different — and slightly better — plan than no cap at all, the two converging
+// once `maxNodes` reached 50. So a violation here can be branch-and-bound
+// truncation rather than anything about golden eggs, which is what
+// `solver/RESULTS.md` says about the A family generally.
+export function checkA9GoldenEggs(c: CheckContext) {
+  const base = solve(c);
+  const prices = craftUnitPrices(base.problem.dag, c.inst.previousCrafts);
+  let anchor = 0;
+  for (const t of base.judged.perTarget) {
+    anchor += (prices.get(t.nodeId) ?? 0) * Math.max(0, t.expectedCrafts);
+  }
+  // A plan that crafts nothing prices at nothing, and every capacity on the
+  // axis would be zero. Nothing to learn, and the axis would read as trivially
+  // monotone; the zero-probability instances the sweep is full of land here.
+  if (!(anchor > 0)) return;
+
+  monotone('A9-golden-eggs', c, [
+    ...[0.25, 0.5, 1, 2, 4].map(m => ({
+      label: `golden eggs x${m}`,
+      over: { craftBudget: { capacity: anchor * m, unitPrices: prices } } as SolveOverrides,
+    })),
+    // The cap removed altogether is the loosest point on the axis, and it is
+    // also the problem every other check in this file solves — so this step ties
+    // the budget axis back to the rest of the sweep.
+    { label: 'no golden egg cap', over: {} as SolveOverrides },
+  ]);
 }
 
 export function checkA3Menu(c: CheckContext) {
@@ -829,6 +875,7 @@ export const CHEAP_CHECKS: Check[] = [
   checkA6Capacity,
   checkA7CraftingLevel,
   checkA8Targets,
+  checkA9GoldenEggs,
   checkM1M2SoloDominance,
   checkM3UnionLowerBound,
 ];

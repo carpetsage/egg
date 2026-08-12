@@ -7,10 +7,11 @@
 // number every invariant compares is computed by the harness from the
 // candidate's allocation, never taken from the candidate's own arithmetic.
 
+import { getArtifactTierPropsFromId, singleCraftCost } from 'lib';
 import { buildRecipeDag } from '@/lib';
 import { enumerateLaunchOptions } from '@/lib/phases';
 import { EFFORT_LAUNCH_PERIOD_SECONDS, type EffortLevel } from '@/store/schema';
-import type { LaunchOption } from '../../lib/types';
+import type { CraftBudget, LaunchOption, RecipeDAG } from '../../lib/types';
 import { evaluateAllocationJoint, type OracleInstance, type OracleJointEvaluation } from '../evaluate';
 import { NUM_SLOTS, type PlanProblem, type PlanResult, type Planner } from './contract';
 import type { ArenaInstance } from './instances';
@@ -31,11 +32,32 @@ export function fuelWithinCapacity(fuel: number, capacity: number): boolean {
   return fuel <= capacity * (1 + BUDGET_TOL) + FUEL_ABS_TOL;
 }
 
+// Per-craft golden egg prices, derived here from the game's own price curve
+// rather than taken from `optimizer-cost.ts`. That module is on the
+// implementation side of `independence.spec.ts`, and the point of the arena is
+// that the numbers a candidate is graded against are the harness's own: a
+// shared pricing helper would make a mispriced curve agree with itself.
+//
+// `previousCrafts` indexes the curve; the arena builds its DAGs at a fixed
+// prior-craft count, so the price of a node is the price of every craft of it
+// the plan makes.
+export function craftUnitPrices(dag: RecipeDAG, previousCrafts = 0): Map<string, number> {
+  const prices = new Map<string, number>();
+  for (const [nodeId, node] of dag) {
+    if (node.isLeaf) continue;
+    const params = getArtifactTierPropsFromId(nodeId).recipe?.crafting_price;
+    if (!params) continue;
+    prices.set(nodeId, singleCraftCost(params, previousCrafts));
+  }
+  return prices;
+}
+
 export interface SolveOverrides {
   config?: ArenaInstance['config'];
   targets?: string[];
   fuelCapacity?: number;
   timeCapacity?: number;
+  craftBudget?: CraftBudget;
   effort?: EffortLevel;
   craftingLevel?: number;
   previousCrafts?: number;
@@ -77,6 +99,9 @@ export function buildProblem(inst: ArenaInstance, over: SolveOverrides = {}): Pl
     timeCapacity: over.timeCapacity ?? inst.timeCapacity,
     slots: NUM_SLOTS,
     baseYield: over.baseYield ?? new Map<string, number>(),
+    // Only ever set by an override: generated instances are uncapped, so the
+    // sweep every recorded result was measured on is unchanged.
+    craftBudget: over.craftBudget,
   };
 }
 
@@ -129,10 +154,18 @@ function problemKey(problem: PlanProblem): string {
       return `${id}~${node.isLeaf ? 1 : 0}~${node.legendaryCraftProbability}~${children}`;
     })
     .join(';');
+  // The budget belongs in the key like any other budget. Leaving it out would
+  // serve an uncapped plan for a capped problem, which is exactly the plan a
+  // budget check is trying to rule out — and it would do so silently, since a
+  // cache hit is indistinguishable from a solver that ignored the cap.
+  const budget = problem.craftBudget
+    ? `${problem.craftBudget.capacity}~${sortedEntries(problem.craftBudget.unitPrices)}`
+    : '';
   return [
     problem.targets.join(','),
     problem.fuelCapacity,
     problem.timeCapacity,
+    budget,
     problem.slots,
     sortedEntries(problem.baseYield),
     dag,
@@ -161,6 +194,7 @@ export function oracleInstanceOf(problem: PlanProblem): OracleInstance {
     fuelCapacity: problem.fuelCapacity,
     timeCapacity: problem.timeCapacity,
     baseYield: problem.baseYield as Map<string, number>,
+    craftBudget: problem.craftBudget,
   };
 }
 
@@ -238,6 +272,10 @@ export function budgetsOf(problem: PlanProblem, alloc: readonly number[]): Budge
   };
 }
 
+// Note what is deliberately absent: the golden egg budget. Missions cost no
+// golden eggs, so no allocation can breach it — the cap binds on the craft
+// split, which the judge chooses in `../evaluate.ts` under the same row. There
+// is nothing about a returned allocation left to check against it here.
 export function feasible(problem: PlanProblem, alloc: readonly number[]): boolean {
   const b = budgetsOf(problem, alloc);
   return fuelWithinCapacity(b.fuel, problem.fuelCapacity) && b.pack === 'packs';

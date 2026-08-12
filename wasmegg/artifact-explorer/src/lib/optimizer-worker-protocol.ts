@@ -4,7 +4,7 @@
 // fields on the way out and reconstructed on the way in. See OPTIMIZER.md.
 
 import { ei, MissionType } from 'lib';
-import type { LaunchOption, LaunchSolution, OptimizerSolution, RecipeDAG } from './types';
+import type { CraftBudget, LaunchOption, LaunchSolution, OptimizerSolution, RecipeDAG } from './types';
 
 export interface WireShip {
   shipType: ei.MissionInfo.Spaceship;
@@ -23,6 +23,9 @@ export interface OptimizerRequest {
   fuelCapacity: number;
   timeCapacity: number;
   baseYield: Map<string, number>;
+  // Plain data (a number and a Map), so structured clone carries it intact —
+  // no narrow/reconstruct pair needed, unlike `ship`.
+  craftBudget?: CraftBudget;
 }
 
 export type OptimizerResponse =

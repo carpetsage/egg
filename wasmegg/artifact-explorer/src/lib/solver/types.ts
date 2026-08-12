@@ -17,7 +17,7 @@
 // arena scores it with an independent judge. Nothing downstream trusts a number
 // a planner reports about itself.
 
-import type { LaunchOption, RecipeDAG } from '../types';
+import type { CraftBudget, LaunchOption, RecipeDAG } from '../types';
 
 export interface PlanProblem {
   // Menu of launches available, already enumerated from the player's ships,
@@ -39,6 +39,9 @@ export interface PlanProblem {
   readonly slots: number;
   // Copies of each node the player already owns, folded in before crafting.
   readonly baseYield: ReadonlyMap<string, number>;
+  // Optional cap on what the plan's crafts may cost in golden eggs. Absent
+  // means unconstrained, which is what every instance predating the cap is.
+  readonly craftBudget?: CraftBudget;
 }
 
 // Optional self-report of what a planner believes its own plan is worth.

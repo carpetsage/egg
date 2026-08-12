@@ -15,7 +15,7 @@
 // MILP never grades itself — nothing it reports about its own plan reaches the
 // screen.
 
-import type { LaunchOption, LaunchSolution, OptimizerSolution, RecipeDAG, SlotSummary } from './types';
+import type { CraftBudget, LaunchOption, LaunchSolution, OptimizerSolution, RecipeDAG, SlotSummary } from './types';
 import { ei } from 'lib';
 import { alphaToProb, compileJointInnerLp, JointInnerLp, refineJointCraftSplit } from './value-function';
 import { packWitness } from './packing';
@@ -35,6 +35,12 @@ export interface OptimizeArgs {
   fuelCapacity: number;
   timeCapacity: number;
   baseYield: Map<string, number>;
+  // Golden egg cap on the plan's crafts, or absent for no cap. It has to reach
+  // both the MILP and the inner LPs: the MILP decides which ingredients get
+  // gathered, but the craft counts that are priced and displayed come out of
+  // `assembleFullSolution` below, so a cap the inner LPs did not see would not
+  // bind on the number the card shows.
+  craftBudget?: CraftBudget;
 }
 
 type EvalFn = (multipliers: ReadonlyArray<readonly [number, number]>) => number;
@@ -48,13 +54,15 @@ interface EvalContext {
   innerLp: JointInnerLp;
   evalScoreAt: EvalFn; // returns the tangent-approximated F, not a probability
   baseScore: number;
+  craftBudget?: CraftBudget;
 }
 
 function buildEvalContext(
   options: LaunchOption[],
   recipeDag: RecipeDAG,
   desiredArtifactNodeIds: string[],
-  baseYield: Map<string, number>
+  baseYield: Map<string, number>,
+  craftBudget?: CraftBudget
 ): EvalContext {
   const targets = desiredArtifactNodeIds;
   const QByTarget = new Map<string, number>();
@@ -63,7 +71,7 @@ function buildEvalContext(
     QByTarget.set(t, pCraft <= 0 ? 0 : pCraft >= 1 ? 1e6 : -Math.log(1 - pCraft));
   }
 
-  const innerLp = compileJointInnerLp(recipeDag, targets, QByTarget);
+  const innerLp = compileJointInnerLp(recipeDag, targets, QByTarget, craftBudget);
 
   // Preindexed to constraint rows: yields to nodes without a conservation row
   // cannot affect the score.
@@ -147,7 +155,7 @@ function buildEvalContext(
 
   const baseScore = innerLp.solveScore(bBase, new Float64Array(targets.length));
 
-  return { options, recipeDag, targets, baseYield, QByTarget, innerLp, evalScoreAt, baseScore };
+  return { options, recipeDag, targets, baseYield, QByTarget, innerLp, evalScoreAt, baseScore, craftBudget };
 }
 
 // Per-slot occupancy of a chosen allocation.
@@ -203,7 +211,15 @@ function slotsOfAllocation(options: LaunchOption[], alloc: Map<number, number>, 
 // Async because the solver is a WebAssembly module that has to be fetched and
 // instantiated once; every call after the first resolves off a cached promise.
 export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolution> {
-  const { options, recipeDag, desiredArtifactNodeIds, fuelCapacity: rawR, timeCapacity: rawS, baseYield } = args;
+  const {
+    options,
+    recipeDag,
+    desiredArtifactNodeIds,
+    fuelCapacity: rawR,
+    timeCapacity: rawS,
+    baseYield,
+    craftBudget,
+  } = args;
 
   // An empty input field upstream arrives as NaN; clamp before it reaches the
   // model, where a NaN budget would make every row unsatisfiable.
@@ -215,7 +231,7 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
   // solver.
   const feasibleOptions = options.filter(o => o.actualTime > ZERO_TOL && o.actualTime <= S);
 
-  const ctx = buildEvalContext(feasibleOptions, recipeDag, desiredArtifactNodeIds, baseYield);
+  const ctx = buildEvalContext(feasibleOptions, recipeDag, desiredArtifactNodeIds, baseYield, craftBudget);
 
   const problem: PlanProblem = {
     options: feasibleOptions,
@@ -225,6 +241,7 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
     timeCapacity: S,
     slots: NUM_SLOTS,
     baseYield,
+    craftBudget,
   };
 
   const solve = await loadHighs();
@@ -276,7 +293,8 @@ function assembleFullSolution(
     ctx.QByTarget,
     finalYieldVector,
     totalLegendary,
-    seedSolve
+    seedSolve,
+    ctx.craftBudget
   );
   const perTarget = desiredArtifactNodeIds.map(t => {
     const craftCount =

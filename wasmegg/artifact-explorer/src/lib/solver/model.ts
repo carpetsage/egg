@@ -34,6 +34,14 @@ export interface Model {
   targetCraftIdx: number[]; // craft column per target; -1 when not craftable
   slots: number;
   timeCapacitySeconds: number;
+  // Upper bound per craft column. Infinity where nothing bounds it. See
+  // `craftUpperBounds` for the derivation and why it is a relaxation.
+  craftCaps: number[];
+  // Golden egg budget, dense over `craftables`. `craftBudgetCapacity` is
+  // Infinity when there is no cap, or when no craftable carries a price — in
+  // both cases `milp.ts` writes no row.
+  craftPrices: number[];
+  craftBudgetCapacity: number;
   groups: Group[];
   groupOfOption: number[]; // original option index -> group index, -1 if dropped
 }
@@ -65,6 +73,103 @@ function cmpKey(a: Candidate, b: Candidate): number {
   if (a.fuel !== b.fuel) return a.fuel - b.fuel;
   if (a.time !== b.time) return a.time - b.time;
   return cmpEntries(a.yieldEntries, b.yieldEntries) || cmpEntries(a.legendaryEntries, b.legendaryEntries);
+}
+
+// How many times each craftable could conceivably be crafted, by interval
+// propagation over the recipe DAG.
+//
+// WHY THIS EXISTS. The craft columns are the only continuous columns in the
+// model with no bound of their own: the mission columns are capped by fuel and
+// time in `buildModel`, `z` is capped at 0, and `c` was left at infinity. The
+// conservation rows *do* bound the polytope, but only through a chain — the
+// crafts of a tier are limited by its ingredients, which are limited by theirs,
+// down to the drops — and reading a per-column bound off that chain is work the
+// solver's presolve has to redo on every model. Handing it the bound directly
+// was measured at 5-38% of the solve on production-scale instances; it was
+// found because adding a *slack* golden egg row sped the solver up by that
+// margin, the row being the only thing that had ever bounded these columns.
+//
+// WHY IT IS SOUND. For each item, the most that can ever exist is what the
+// player owns plus what every mission could drop if it were launched the
+// maximum number of times, plus everything that could be crafted of it. For
+// each craftable, the most that can be crafted is the smallest, over its
+// ingredients, of that supply divided by the recipe quantity. Every step
+// ignores *aggregate competition* — each group is counted at `group.cap`, the
+// most it could be launched with the whole tank and every slot to itself, and
+// two parents drawing on one ingredient are each given all of it. Note that
+// fuel, time and the slot count are not ignored: they are already inside
+// `group.cap`. What is dropped is that the groups have to share them. Both
+// approximations over-state supply, so the result is a relaxation of the
+// feasible set and cannot cut off a feasible point.
+//
+// NOT FLOORED. `c` is continuous (SPEC.md section 2), so a fractional bound is
+// reachable: with 5 of an ingredient and a recipe taking 2, the LP may sit at
+// 2.5 crafts, and flooring to 2 would cut off the optimum. Integrality of the
+// *mission* columns is what makes a plan realisable; the craft split is an LP
+// relaxation throughout.
+function craftUpperBounds(
+  dag: RecipeDAG,
+  targets: readonly string[],
+  craftables: readonly string[],
+  craftIndex: ReadonlyMap<string, number>,
+  items: readonly string[],
+  itemIndex: ReadonlyMap<string, number>,
+  baseB: readonly number[],
+  groups: readonly Group[]
+): number[] {
+  // The most of each item that missions could ever put on the table, plus what
+  // is already owned. `grp.cap` is the whole-plan bound the fuel and time
+  // budgets already imply for that group.
+  const dropped = new Array<number>(items.length);
+  for (let i = 0; i < items.length; i++) {
+    let total = baseB[i];
+    for (const grp of groups) {
+      const y = grp.yieldByItem[i];
+      if (y > 0) total += y * grp.cap;
+    }
+    dropped[i] = Number.isFinite(total) ? total : Infinity;
+  }
+
+  // Post-order, so every ingredient's bound is known before the node that
+  // consumes it. Reverse first-visit order is NOT enough: with two targets
+  // sharing an ingredient, the second target is discovered after the shared
+  // node and would read a bound that had not been computed yet.
+  const caps = new Array<number>(craftables.length).fill(Infinity);
+  const seen = new Set<string>();
+  const order: number[] = [];
+  const visit = (id: string): void => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const node = dag.get(id);
+    if (node) for (const child of node.children) visit(child.nodeId);
+    const idx = craftIndex.get(id);
+    if (idx !== undefined) order.push(idx);
+  };
+  for (const t of targets) visit(t);
+
+  for (const idx of order) {
+    const node = dag.get(craftables[idx]);
+    if (!node || node.children.length === 0) continue; // nothing to bound it by
+    let bound = Infinity;
+    for (const child of node.children) {
+      if (!(child.quantity > 0)) continue;
+      const itemIdx = itemIndex.get(child.nodeId);
+      if (itemIdx === undefined) {
+        // Not a tracked item, so nothing here limits it.
+        bound = Infinity;
+        break;
+      }
+      let supply = dropped[itemIdx];
+      const producer = craftIndex.get(child.nodeId);
+      // A craftable ingredient can also be crafted, so its own bound adds to
+      // what could exist of it.
+      if (producer !== undefined) supply += caps[producer];
+      const limit = supply / child.quantity;
+      if (limit < bound) bound = limit;
+    }
+    caps[idx] = Number.isFinite(bound) && bound >= 0 ? bound : Infinity;
+  }
+  return caps;
 }
 
 export function buildModel(problem: PlanProblem): Model {
@@ -136,6 +241,19 @@ export function buildModel(problem: PlanProblem): Model {
     return node ? -Math.log(1 - node.legendaryCraftProbability) : 0;
   });
   const targetCraftIdx = targets.map(t => craftIndex.get(t) ?? -1);
+
+  // Golden egg prices, dense over the craft columns. A negative or non-finite
+  // price is dropped rather than trusted: the same class of bug as a negative
+  // fuel cost below, and with the same consequence — a craft that *earns*
+  // budget — except that here the column is continuous, so nothing bounds how
+  // far the solver would run with it.
+  const budget = problem.craftBudget;
+  const craftPrices = craftables.map(id => {
+    const price = budget?.unitPrices.get(id) ?? 0;
+    return Number.isFinite(price) && price > 0 ? price : 0;
+  });
+  const capped = budget !== undefined && Number.isFinite(budget.capacity) && budget.capacity >= 0;
+  const craftBudgetCapacity = capped && craftPrices.some(p => p > 0) ? budget!.capacity : Infinity;
 
   // Normalized budgets: fuel budget 1, per-slot time budget 1. fuelCapacity <= 0
   // reads as "all fuel costs are 0".
@@ -244,6 +362,9 @@ export function buildModel(problem: PlanProblem): Model {
     targetCraftIdx,
     slots,
     timeCapacitySeconds: timeCap,
+    craftCaps: craftUpperBounds(dag, targets, craftables, craftIndex, items, itemIndex, baseB, groups),
+    craftPrices,
+    craftBudgetCapacity,
     groups,
     groupOfOption,
   };

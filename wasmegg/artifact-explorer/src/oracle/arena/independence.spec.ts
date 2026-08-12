@@ -133,6 +133,11 @@ const IMPLEMENTATION = [
   'lp.ts', // the incumbent's LP
   'optimizer-client.ts', // worker-backed entry point to the planner
   'optimizer-core.ts', // the plan pipeline; calls the planner
+  // Prices a finished plan, and derives the golden egg cap's per-craft prices
+  // from the same curve. The cap is part of a problem statement, but the arena
+  // states none with one, and everything else here reads a plan — so the module
+  // sits downstream.
+  'optimizer-cost.ts',
   'optimizer-tree.ts', // craft-tree assembly from a plan
   'optimizer-views.ts', // render models built from a plan
   'optimizer-worker-protocol.ts',

@@ -70,6 +70,29 @@ optimising a different objective from the one being graded.
 `z` is bounded above by 0 before any cut is added, because `g(s) = log(1 - e^-s)`
 is the log of a probability.
 
+`c` carries an explicit upper bound per column (`craftUpperBounds` in
+`model.ts`), obtained by interval propagation over the recipe: the most of an
+item that can exist is what is owned plus what every mission could drop at its
+maximum count plus what could be crafted of it, and the most of a node that can
+be crafted is the smallest of those supplies divided by the recipe quantity.
+"Maximum count" is `group.cap`, which is already `min(floor(1/fuel),
+floor(slots/time), GROUP_CAP)` — so fuel, time and the slot count do enter the
+bound, per group. What the propagation drops is *aggregate competition*: each
+group is counted at the maximum it could reach if it had the whole tank and every
+slot to itself, and two parents drawing on one ingredient are each given all of
+it. Both approximations over-state supply, so the result is a relaxation and
+cannot cut off a feasible point.
+
+It is not floored: `c` is continuous, so 2.5 crafts is a reachable point and a
+floored bound would remove it.
+
+The conservation rows already imply all of this — but only through a chain, one
+tier at a time, which presolve has to walk on every model. Handing the bound over
+directly was measured at 26% of the solve on a two-target production instance
+(1553ms to 1146ms, identical plan). It was found by accident: adding a
+*deliberately slack* golden egg row sped the solver up by a similar margin, and
+the row turned out to be the only thing that had ever bounded these columns.
+
 ## 3. Rows
 
 ```text
@@ -78,6 +101,7 @@ conservation_i   sum_p cons[i][p] c_p - sum_g yield_g[i] N_g     <=  baseB_i
 score_t          theta_t sigma_t - Q_t c_{target t}
                                  - sum_g leg_g[t] N_g             =  0
 fuel             sum_g fuel_g N_g                                <=  1
+goldenEggs       sum_p price_p c_p                               <=  craftBudget
 slot_k           sum_g seconds_g n_{g,k}                         <=  timeCapacity
 order_k          sum_g seconds_g (n_{g,k} - n_{g,k+1})           >=  0
 cut(t, a)        z_t - theta_t g'(theta_t a) sigma_t             <=  g(theta_t a)
@@ -105,6 +129,21 @@ a hard arena failure, not a difference of opinion about rounding.
 conservation polytope and the mission counts are in one matrix, so the solver
 trades a mission for a craft directly rather than choosing missions first and
 accounting for crafts afterwards.
+
+`goldenEggs` is optional and written only when the caller supplies a budget and
+at least one craftable carries a positive price; without it the plan is priced
+after the fact and never constrained. `price_p` is a *linear* stand-in for a
+curve that decreases in the craft index — the player's next craft of `p`, the
+dearest one the plan can make — so the row's activity is an upper bound on the
+real bill and a plan that satisfies it is always affordable. The converse does
+not hold: a plan leaning many crafts on one node is over-charged and can be
+rejected despite fitting. Raw golden eggs, not normalized: prices run 1e2-1e7
+against capacities of 1e6-1e10, which sits mid-window at both ends.
+
+The row binds on this model alone, which is not where the reported bill comes
+from. `optimizer-core.ts` re-derives the craft split downstream, so the same
+budget is written into `compileJointInnerLp` and the LP inside
+`refineJointCraftSplit`; see OPTIMIZER.md.
 
 `order_k` breaks the slot symmetry by forcing slot loads non-increasing. Without
 it every plan appears `slots!` times and the tree spends its budget rediscovering

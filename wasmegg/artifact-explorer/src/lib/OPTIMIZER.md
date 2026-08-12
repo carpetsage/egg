@@ -151,7 +151,16 @@ re-derivation of the exact objective, so the linearisation steers and the real
 objective decides.
 
 **What it costs.** About a second on a production-scale instance, against ~110ms
-for the search it replaced. Almost all of that is branch-and-bound, not the
+for the search it replaced.
+
+One avoidable part of that has been removed. The craft columns used to be the
+only columns in the model with no bound of their own — the conservation rows
+bound them, but only through a chain presolve has to walk tier by tier — so
+`model.ts` now derives a per-column bound from the recipe directly
+(`craftUpperBounds`, and `solver/SPEC.md` section 2 for why it is a relaxation).
+Measured at 26% of a two-target production solve, for an identical plan. The
+gap was found by accident, from a *slack* golden egg budget row speeding the
+solver up by a similar margin. Almost all of that is branch-and-bound, not the
 WebAssembly boundary, so it does not come back with a faster interface. The two
 budgets that bound it (`maxRounds`, `maxNodes`) are deliberately node- and
 round-based rather than a wall clock, because the same inputs have to produce the
@@ -246,6 +255,70 @@ back to the pooled totals instead of showing each artifact "using" the whole
 pool. The root target itself is never scaled: every craft of it rolls for its
 own legendary. With a single target every share is 1.
 
+## Golden egg cost
+
+The plan is priced by `optimizer-cost.ts`, which reads a finished solution. The
+price curve is not re-derived here — `singleCraftCost`/`multiCraftCost` come from
+`lib`, so the numbers shown are the game's own, seeded with the player's
+`crafted` count per item (a veteran pays less for the same plan).
+
+### The cap
+
+Pricing is unconditional; *constraining* is opt-in. With the sidebar's maximum
+crafting cost on, the request carries a `CraftBudget` and the plan is capped as
+well as priced.
+
+**One linear row, in three models.** The cap is
+`sum_n price_n * crafts_n <= capacity`, and it has to be written everywhere the
+craft counts are decided or the cap does not bind on the number the card prints.
+The MILP (`solver/SPEC.md`, row `goldenEggs`) is where it changes which
+ingredients get gathered, but the reported `craftPrimal` is re-derived downstream
+by `compileJointInnerLp` and then `refineJointCraftSplit`, so both carry the same
+row. Frank-Wolfe only ever moves between the current point and a vertex of that
+same polytope, and the row is linear, so every iterate stays inside the budget.
+
+**Why the row is linear when the cost is not.** The curve decreases in the craft
+index, so the true cost is concave in the craft count and
+`sum_n cost_n(crafts_n) <= capacity` is not a convex constraint. `price_n` is
+therefore the player's *next* craft of `n` — the dearest craft the plan can make
+of it, which is the tangent of the true cost at zero. The row over-states the
+bill and never under-states it, so **a plan that satisfies it is always
+affordable**, which is the direction a hard cap has to err in. It is paid for in
+the other direction: a plan taking many crafts of one node is charged as though
+every one of them cost the first one's price, so some affordable plans are
+rejected. The gap is the node's `base`/`low` price ratio at worst, and a tighter
+treatment means relinearizing at the incumbent across rounds rather than pricing
+once.
+
+The demarcation on the solution card is a separate question from the cap and does
+not require it: with a save loaded, the card compares the plan's real (curve-priced)
+bill against `goldenEggsEarned - goldenEggsSpent` and marks the cost line when the
+plan costs more than the player has.
+
+`craftPrimal` is an LP relaxation, so craft counts are fractional while the curve
+is indexed by an integer craft number. `fractionalCraftCost` charges the whole
+crafts exactly and the remaining fraction at the price of the craft it has
+started: continuous in the craft count, and identical to `multiCraftCost` at
+integers.
+
+Two numbers, one bill. The solution card's total comes from
+`computePlanCraftingCost`, which prices the **unsplit** `craftPrimal` — one bill
+for the whole plan. The per-node `goldenEggCost` in a craft-chain tree prices that
+same pooled quantity and then takes the target's demand-weighted share of the
+result (see above), exactly as every other metric on the node is `pooled * share`.
+Pricing the *scaled* craft count instead would restart the decreasing curve for
+every target and overstate the bill; as written, the per-target chain subtotals
+reconcile with the card's total.
+
+One caveat to that reconciliation, and it predates pricing: a tree's root is never
+scaled (`shareOf` returns 1 for it). If one target's artifact is also an ingredient
+of another target, it is billed in full to its own chain and again as a share of
+the other's, so those subtotals sum to more than the plan total. The card's total
+remains the figure to trust.
+
+The manual "previous crafts" override feeds `legendaryCraftProbability` only.
+Pricing always reads the real crafted counts from the save.
+
 ## File map
 
 | File | Role |
@@ -262,6 +335,7 @@ own legendary. With a single target every share is 1.
 | `optimizer-client.ts` | Main-thread worker lifecycle, request numbering, supersession. |
 | `optimizer-tree.ts` | Recipe-tree builders for the inventory and craft-chain panels. |
 | `optimizer-views.ts` | Flat presentation helpers derived from a solution. |
+| `optimizer-cost.ts` | Golden egg pricing of a plan's craft chain, over `lib`'s price curve, and the linear per-craft prices the cap's row is built from. |
 | `types.ts` | Shared types for all of the above. |
 | `../oracle/` | Brute-force correctness harness; see its own README. |
 | `../components/ArtifactMissionOptimizer.vue` | Top-level planner: assembles inputs, drives the worker, debounces auto-compute. |

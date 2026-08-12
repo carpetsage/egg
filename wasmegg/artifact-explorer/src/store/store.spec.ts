@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 
 import {
+  DEFAULT_MAX_GOLDEN_EGG_COST,
   DEFAULT_WAIT_TIME_DAYS,
   isExtrasConfig,
   isMissionFilters,
@@ -101,6 +102,8 @@ describe('MissionFilters', () => {
 
     expect(filters.effort).toBe('medium');
     expect(filters.maxGemCostEnabled).toBe(false);
+    expect(filters.maxGoldenEggCostEnabled).toBe(false);
+    expect(filters.maxGoldenEggCost).toBe(DEFAULT_MAX_GOLDEN_EGG_COST);
     expect(filters.waitTimeDays).toBe(DEFAULT_WAIT_TIME_DAYS);
   });
 
@@ -111,6 +114,18 @@ describe('MissionFilters', () => {
   it('accepts persisted blobs without waitTimeDays', () => {
     const old = { effort: 'high', maxGemCostEnabled: true, maxGemCost: 12 };
     expect(isMissionFilters(old)).toBe(true);
+  });
+
+  // A capacity buildModel would read as "no cap" must not validate, or the
+  // checkbox stays on with nothing enforcing it.
+  it('rejects a maxGoldenEggCost that could never bind', () => {
+    for (const maxGoldenEggCost of [-1, NaN, Infinity, -Infinity]) {
+      expect(isMissionFilters({ ...newMissionFilters(), maxGoldenEggCost })).toBe(false);
+    }
+  });
+
+  it('still accepts a zero capacity, which is a real cap and not an absent one', () => {
+    expect(isMissionFilters({ ...newMissionFilters(), maxGoldenEggCost: 0 })).toBe(true);
   });
 
   it('rejects a non-string waitTimeDays', () => {

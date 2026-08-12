@@ -4,7 +4,7 @@
 // A float simplex ranks the brute-force candidates cheaply; an exact
 // BigInt-rational simplex produces the numbers that get asserted or reported.
 
-import type { LaunchOption, RecipeDAG } from '../lib/types';
+import type { CraftBudget, LaunchOption, RecipeDAG } from '../lib/types';
 import { Frac } from './rational';
 import { simplexMaximize, simplexMaximizeFloat, simplexMaximizeFloatFull } from './simplex';
 
@@ -17,6 +17,16 @@ export interface OracleInstance {
   fuelCapacity: number;
   timeCapacity: number;
   baseYield: Map<string, number>;
+  // Golden egg cap on the crafts, when the instance has one.
+  //
+  // Unlike fuel and time, this does not constrain the *allocation* — missions
+  // cost no golden eggs — so it cannot be checked after the fact against a
+  // returned plan. It constrains the craft split, which this evaluator chooses
+  // itself, so the only way for the judge to score a capped problem correctly
+  // is to solve its own polytope with the cap in it. Without that, the judge
+  // would credit a candidate with crafts the problem forbade paying for and
+  // then report the shortfall as the candidate's failure.
+  craftBudget?: CraftBudget;
 }
 
 export interface OracleEvaluation {
@@ -40,8 +50,12 @@ export function targetQ(inst: OracleInstance, target: string): number {
 interface LpTemplate {
   craftables: string[];
   items: string[];
+  // One row per item, then the golden egg row when the instance is capped. The
+  // budget row is last so that `items` still indexes the conservation rows
+  // one-for-one and only the RHS builders below know about the extra one.
   A: number[][];
   c: number[];
+  budgetCapacity: number | null; // RHS of that row; null when uncapped
   AFrac: Frac[][] | null;
   cFrac: Frac[] | null;
 }
@@ -99,9 +113,54 @@ function lpTemplate(inst: OracleInstance): LpTemplate {
     c[j] += targetQ(inst, target);
   }
 
-  template = { craftables, items, A, c, AFrac: null, cFrac: null };
+  // sum_n price_n * craft_n <= capacity. Prices come from the instance, so this
+  // evaluator never has to know how the game charges for a craft — only that a
+  // craft has a price and the plan has a purse.
+  //
+  // An unusable capacity throws rather than being read as "no cap". The judge
+  // grades candidates, so quietly dropping the row here would credit craft
+  // splits the instance asked to forbid and then report the difference as the
+  // candidate's failure — the one outcome a harness must never produce. This is
+  // deliberately stricter than `solver/model.ts`, which treats the same value as
+  // uncapped: that path takes a number typed into a field and must not crash a
+  // worker over it, and the store validates it before it gets there. Here the
+  // value is harness-constructed, so a bad one is a bug and should say so.
+  let budgetCapacity: number | null = null;
+  const budget = inst.craftBudget;
+  if (budget) {
+    if (!Number.isFinite(budget.capacity) || budget.capacity < 0) {
+      throw new Error(`craft budget capacity must be finite and non-negative, got ${budget.capacity}`);
+    }
+    const row = craftables.map(id => {
+      const price = budget.unitPrices.get(id) ?? 0;
+      return Number.isFinite(price) && price > 0 ? price : 0;
+    });
+    // No priced column is not a cap of zero: nothing in this instance is known
+    // to cost anything, so nothing can consume the purse.
+    if (row.some(p => p > 0)) {
+      A.push(row);
+      budgetCapacity = budget.capacity;
+    }
+  }
+
+  template = { craftables, items, A, c, budgetCapacity, AFrac: null, cFrac: null };
   templateCache.set(inst, template);
   return template;
+}
+
+// The LP right-hand side: the inventory over the item rows, plus the budget's
+// capacity when the template carries that row.
+function rhsFloat(template: LpTemplate, inv: ReadonlyMap<string, number>): number[] {
+  const b = template.items.map(item => inv.get(item) ?? 0);
+  if (template.budgetCapacity !== null) b.push(template.budgetCapacity);
+  return b;
+}
+
+function rhsFrac(template: LpTemplate, inv: ReadonlyMap<string, Frac>): Frac[] {
+  const b = template.items.map(item => inv.get(item) ?? Frac.ZERO);
+  // Prices and capacities are whole golden eggs, so the exact path stays exact.
+  if (template.budgetCapacity !== null) b.push(Frac.fromNumber(template.budgetCapacity));
+  return b;
 }
 
 function inventoryFor(inst: OracleInstance, allocation: number[]): Map<string, Frac> {
@@ -149,8 +208,7 @@ export function evaluateAllocationFloat(inst: OracleInstance, allocation: number
       inv.set(item, (inv.get(item) ?? 0) + allocation[i] * qty);
     }
   });
-  const b = template.items.map(item => inv.get(item) ?? 0);
-  return simplexMaximizeFloat(template.A, b, template.c) + directDrops(inst, allocation);
+  return simplexMaximizeFloat(template.A, rhsFloat(template, inv), template.c) + directDrops(inst, allocation);
 }
 
 export function evaluateAllocation(inst: OracleInstance, allocation: number[]): OracleEvaluation {
@@ -160,7 +218,7 @@ export function evaluateAllocation(inst: OracleInstance, allocation: number[]): 
     template.cFrac = template.c.map(x => Frac.fromNumber(x));
   }
   const inv = inventoryFor(inst, allocation);
-  const b = template.items.map(item => inv.get(item) ?? Frac.ZERO);
+  const b = rhsFrac(template, inv);
 
   const lpScore = simplexMaximize(template.AFrac, b, template.cFrac).toNumber();
   const drops = directDrops(inst, allocation);
@@ -419,7 +477,7 @@ export function evaluateAllocationJointFloat(inst: OracleInstance, allocation: n
   }
   const { template, idxs, Qs, targets } = jointContext(inst);
   const inv = inventoryFloat(inst, allocation);
-  const b = template.items.map(item => inv.get(item) ?? 0);
+  const b = rhsFloat(template, inv);
   const lambdas = targets.map(t => directDropsFor(inst, allocation, t));
   const { logProb } = optimizeJointFloat(template, b, idxs, Qs, lambdas);
   return Math.exp(logProb);
@@ -443,7 +501,7 @@ export function evaluateAllocationJoint(inst: OracleInstance, allocation: number
 
   const { template, idxs, Qs, targets } = jointContext(inst);
   const inv = inventoryFloat(inst, allocation);
-  const b = template.items.map(item => inv.get(item) ?? 0);
+  const b = rhsFloat(template, inv);
   const lambdas = targets.map(t => directDropsFor(inst, allocation, t));
 
   // Float FW reaches ~1e-12, far inside the 1e-6 honesty tolerance, and the
