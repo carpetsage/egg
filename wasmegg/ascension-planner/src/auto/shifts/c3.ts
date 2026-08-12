@@ -15,6 +15,7 @@ export interface C3Params {
 }
 
 const MULTI_LAYERING_ID = 'multi_layering';
+const MULTI_LAYERING_LEVEL_1 = 1;
 const MULTI_LAYERING_TARGET_LEVEL = 2;
 
 /**
@@ -22,9 +23,12 @@ const MULTI_LAYERING_TARGET_LEVEL = 2;
  *
  * 1. Shift to Curiosity.
  * 2. If Tier 13 is wanted: first, if Multiversal Layering 2 isn't already unlocked, try to grab it
- *    via the milestone view's research-level-target chain; then try to unlock Tier 13. Grabbing ML2
- *    first is a soft preference, not a hard requirement — tier unlocks are purely a total-purchase-
- *    count threshold (see `isTierUnlocked`), so ML2 is never actually required to reach Tier 13,
+ *    via the milestone view's research-level-target chain — staged as level 1 (if not already
+ *    bought) then level 2, as two separate chain attempts, so a level-1-only ML doesn't get skipped
+ *    just because a level-2 attempt run straight from level 0 couldn't fully land in time — then try
+ *    to unlock Tier 13. Grabbing ML2 first is a soft preference, not a hard requirement — tier
+ *    unlocks are purely a total-purchase-count threshold (see `isTierUnlocked`), so ML2 is never
+ *    actually required to reach Tier 13,
  *    just cheap and valuable enough to be worth grabbing first *when there's room*. So if ML2 +
  *    Tier 13 together don't fit before `buildPhaseEnd`, this rewinds to right after the Curiosity
  *    shift and retries spending the *entire* remaining budget on Tier 13 alone, skipping ML2 —
@@ -92,29 +96,33 @@ export function runC3(
   };
 
   // Executes a precomputed purchase plan (from `simulateSaleAwareBuy`/`simulateSaleEndsBuy`) for
-  // real: buys each research ID, in the order it first appears in the plan, up to its own final
-  // target level from `endLevels` — trusting the plan's `endLevels` as the correct outcome (already
-  // accounts for anything the plan itself decided to revert, e.g. `simulateSaleAwareBuy`'s
-  // sale-bypass cleanup — see its own doc comment) rather than replaying its purchase log
-  // entry-for-entry. `timeLimit` bounds this call the same way every other purchase helper here
-  // does — the plan was already computed against the same deadline, so this is a safety net against
-  // drift between the plan and real execution, not the primary stopping condition.
+  // real: walks `researchIdsInOrder` — the plan's actual, already-interleaved purchase sequence —
+  // one entry at a time, buying one level per entry. Skips an entry once its research is already at
+  // or above its own final target level from `endLevels` (this is what accounts for anything the
+  // plan itself decided to revert, e.g. `simulateSaleAwareBuy`'s sale-bypass cleanup — see its own
+  // doc comment — since a reverted id's raw entries would otherwise still be sitting in
+  // `researchIdsInOrder`). `timeLimit` bounds this call the same way every other purchase helper
+  // here does — the plan was already computed against the same deadline, so this is a safety net
+  // against drift between the plan and real execution, not the primary stopping condition.
+  //
+  // Bug (fixed 2026-08-12): this used to deduplicate `researchIdsInOrder` down to first-seen research
+  // IDs and buy every level of one id consecutively before moving to the next, discarding the plan's
+  // real interleaving entirely (e.g. turning "eggsistor, matter_reconfig, matter_reconfig,
+  // wormhole_dampening, matter_reconfig, eggsistor, ..." into "5× eggsistor, then 19× matter_reconfig,
+  // then wormhole_dampening"). Since every one of these purchases raises the earn rate, and the
+  // interleaved order is what lets that rate ramp up fastest, batching by research id took
+  // measurably longer in real elapsed time to execute the exact same final purchases — confirmed
+  // against a live manual-planner replay of the same 28-purchase plan: same items, same end levels,
+  // but ~2.5 real days slower to finish, which meant several fewer days of pure idle earnings
+  // accumulation before the following sale. The manual planner's own real execution
+  // (`runSaleAwareBuyFlow`/`handleBuyUntilSaleDeadline`) never had this bug — it already walks its
+  // plan in real order, one entry at a time — so this was a defect specific to this replay helper.
   const executePlanToLevels = (researchIdsInOrder: string[], targetLevels: Record<string, number>, timeLimit: number) => {
-    const buyOrder: string[] = [];
-    const seen = new Set<string>();
-    for (const id of researchIdsInOrder) {
-      if (!seen.has(id)) {
-        seen.add(id);
-        buyOrder.push(id);
-      }
-    }
-
     const helpers = createMilestoneShiftHelpers(currentState, context);
-    outer: for (const researchId of buyOrder) {
+    for (const researchId of researchIdsInOrder) {
       const target = targetLevels[researchId] || 0;
-      while ((helpers.getState().researchLevels[researchId] || 0) < target) {
-        if (!helpers.buyResearch(researchId, timeLimit)) break outer;
-      }
+      if ((helpers.getState().researchLevels[researchId] || 0) >= target) continue;
+      if (!helpers.buyResearch(researchId, timeLimit)) break;
     }
 
     runStep({
@@ -125,7 +133,12 @@ export function runC3(
   };
 
   // "Buy Until Sale Warning" (70% ROI before `targetDeadline`, the upcoming sale's start) — same
-  // plan the manual planner's button executes.
+  // plan the manual planner's button executes. Deliberately 'immediate' mode, not 'maxed_vehicles':
+  // this is the earnings-ROI pass and is meant to judge "does this pay for itself soon, given what's
+  // actually on the farm right now" — 'maxed_vehicles' is the delivery-research mode's job
+  // (`buyUntilSaleEnds` below already passes `'realistic'` to `rankResearchByELRImpact`, which itself
+  // assumes maxed habs/vehicles via `getOptimalELRSet`). See git history around 2026-08-12 for a
+  // reverted attempt to swap this to 'maxed_vehicles' — that conflated the two passes' jobs.
   const buyUntilSaleWarning = (targetDeadline: number) => {
     const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
     const absTime = getAbsTime();
@@ -207,7 +220,28 @@ export function runC3(
       // function's doc comment — so a failure to reach level 2 within the remaining budget doesn't
       // return early here; it just means the Tier 13 attempt right after it is very unlikely to also
       // fit, which the fallback below handles.
+      //
+      // Staged in two separate milestone-chain calls, level 1 then level 2, rather than one call
+      // straight to level 2: when ML1 hasn't been bought yet, targeting level 2 directly risks the
+      // whole attempt landing as a single all-or-nothing chain, so a run that can't fully clear level
+      // 2 within budget would leave ML at level 0 — not even level 1 grabbed — despite level 1 alone
+      // likely being cheap enough to fit easily. Going for level 1 first guarantees that cheap win is
+      // banked on its own before the (pricier) level-2 attempt gets a chance to run out of runway.
       if (neededML2) {
+        if ((currentState.researchLevels[MULTI_LAYERING_ID] || 0) < MULTI_LAYERING_LEVEL_1) {
+          const level1TimeLimit = Math.max(0, buildPhaseEnd - getAbsTime());
+          runStep(
+            runResearchMilestoneIfWorthwhile(
+              currentState,
+              context,
+              MULTI_LAYERING_ID,
+              MULTI_LAYERING_LEVEL_1,
+              Infinity,
+              level1TimeLimit
+            )
+          );
+        }
+
         const timeLimit = Math.max(0, buildPhaseEnd - getAbsTime());
         runStep(
           runResearchMilestoneIfWorthwhile(

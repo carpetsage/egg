@@ -470,3 +470,58 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
     nextSnapshot,
   };
 }
+
+/**
+ * Whether a purchase that `getSaleAwareTimeToSave` decided to buy at today's price (`purchaseDuringSale:
+ * false` — i.e. buying now beat waiting for any future sale on raw speed) should nonetheless be
+ * deferred to `nextSaleStart` instead, because it wouldn't earn back 70% of its own cost before then
+ * at full price. Buying "fast" isn't the same as buying "well": a purchase a few minutes from being
+ * affordable at full price can still be strictly worse than waiting those few minutes for a 70%
+ * discount, if it wouldn't pay for itself by the time that discount would've landed anyway. Only
+ * meaningful for research that actually moves earnings — the ROI bar is meaningless for anything
+ * else, so this never defers a non-earnings purchase.
+ *
+ * This is the single source of truth behind the manual planner's `syncEventStateForItem`
+ * (`checkRoiGate`, only enforced by "Buy Entire Chain") and the auto engine's `buyResearch`
+ * (`checkRoiGate`, only enforced by milestone-chain replay) — both call this rather than keeping
+ * their own copy, specifically because an earlier independent copy of this same idea inside
+ * `computeResearchMilestoneChain`'s own planning loop (a strict `completesAt < nextSaleStart` gate
+ * plus a same-week sweep that rejected the one candidate landing exactly on the boundary) diverged
+ * from this version under exactly this "lands exactly at the boundary" edge case, silently pushing a
+ * purchase that should've landed at the very next sale out to the sale after that instead.
+ *
+ * Deliberately does NOT decide anything about affordability — a caller electing to defer still needs
+ * to actually wait out `nextSaleStart - absoluteSimTime` (which will always be affordable by then:
+ * money only grows while idle, and the sale price is never higher than the full price this branch
+ * already confirmed reachable in `<=` that same span — see `getSaleAwareTimeToSave`'s own doc
+ * comment) and then re-price the purchase fresh from the new, later state, rather than trusting
+ * anything computed here as still valid once time has actually moved.
+ */
+export function shouldDeferToNextSale(
+  research: CommonResearch,
+  level: number,
+  mods: ResearchCostModifiers,
+  snapshot: CalculationsSnapshot,
+  context: SimulationContext,
+  absoluteSimTime: number,
+  nextSaleStart: number,
+  researchSaleDeadline: number,
+  isSaleActive: boolean,
+  transitions: EarningsRateTransition[],
+  purchaseDuringSale: boolean
+): boolean {
+  // Already timed to land during a real sale (or a later one) — the ROI gate's own during-sale
+  // bypass would pass trivially, so there's nothing to defer.
+  if (purchaseDuringSale) return false;
+
+  const roi = calculateResearchROI({
+    research,
+    level,
+    mods,
+    snapshot,
+    context,
+    eventTiming: { absoluteSimTime, nextSaleStart, researchSaleDeadline, isSaleActive, transitions },
+  });
+
+  return roi.earningsDelta > 0 && roi.showSaleWarning;
+}

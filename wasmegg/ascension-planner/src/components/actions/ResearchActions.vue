@@ -300,7 +300,7 @@ import { getSimulationContext } from '@/engine/adapter';
 import { buyWhilePassingCheck, buyUntilRealSaleStarts } from '@/calculations/researchRanking';
 import {
   getSaleAwareTimeToSave,
-  calculateResearchROI,
+  shouldDeferToNextSale,
   findEventCrossings,
   meetsSaleAwareDeadline,
   type EventCrossing,
@@ -726,27 +726,25 @@ function syncEventStateForItem(item: { research: CommonResearch }, checkRoiGate 
     transitions
   );
 
-  // Already timed to buy during a real sale (or waiting for a later one) — the ROI gate's own
-  // during-sale bypass would pass trivially, so skip the extra `calculateResearchROI` call.
+  // Already timed to buy during a real sale (or waiting for a later one) — `shouldDeferToNextSale`'s
+  // own during-sale bypass would pass trivially, so skip the extra check entirely.
   if (checkRoiGate && !purchase.duringSale) {
     const nextSale = getNextSaleStart(absoluteSimTime);
-    const roi = calculateResearchROI({
-      research: item.research,
+    const defer = shouldDeferToNextSale(
+      item.research,
       level,
-      mods: costModifiers.value,
-      snapshot: beforeSnapshot,
-      context: getSimulationContext(),
-      eventTiming: {
-        absoluteSimTime,
-        nextSaleStart: nextSale,
-        researchSaleDeadline: researchSaleDeadline.value,
-        isSaleActive,
-        transitions,
-      },
-    });
+      costModifiers.value,
+      beforeSnapshot,
+      getSimulationContext(),
+      absoluteSimTime,
+      nextSale,
+      researchSaleDeadline.value,
+      isSaleActive,
+      transitions,
+      purchase.duringSale
+    );
 
-    // Only gate research that actually produces earnings — the ROI bar is meaningless otherwise.
-    if (roi.earningsDelta > 0 && roi.showSaleWarning) {
+    if (defer) {
       if (DEBUG_MILESTONE_EXECUTION) {
         console.log(
           `[ResearchActions] syncEventStateForItem: ${item.research.id} Lv${level} would not clear 70% ROI before nextSaleStart=${new Date(nextSale * 1000).toISOString()} at full price — waiting for the sale instead of buying now`

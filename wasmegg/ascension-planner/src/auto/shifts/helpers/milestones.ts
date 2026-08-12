@@ -11,12 +11,12 @@ import {
   computeMilestoneSummaryCore,
   type MilestoneChainItem,
 } from '../../../calculations/milestoneChain';
-import { getSaleAwareTimeToSave } from '../../../calculations/researchROI';
+import { getSaleAwareTimeToSave, shouldDeferToNextSale } from '../../../calculations/researchROI';
 import { calculateArtifactModifiers } from '../../../lib/artifacts';
 import { computeSnapshot } from '../../../engine/compute';
 import { applyAction, boostTransitionsFrom } from '../../../engine/apply';
 import { advanceTimeWithBoundaries } from './advanceTime';
-import { isResearchSaleActive, getNextSaleEnd } from '@/lib/events';
+import { isResearchSaleActive, getNextSaleStart, getNextSaleEnd } from '@/lib/events';
 import { buildQuickBuyNotePayload, buildMilestoneNotePayload } from '@/lib/actions/notes';
 
 /**
@@ -52,8 +52,17 @@ export function createMilestoneShiftHelpers(startState: EngineState, context: Si
     elapsedSeconds = result.elapsedSeconds;
   };
 
-  /** Buy a single research level, deciding its own price/wait from the current state. */
-  const buyResearch = (researchId: string, timeLimit: number): boolean => {
+  /**
+   * Buy a single research level, deciding its own price/wait from the current state.
+   *
+   * `checkRoiGate` (only passed `true` by `executeChainItem`, mirroring the manual planner's
+   * `syncEventStateForItem`/`handleBuyMilestoneChain`) additionally defers a purchase that isn't
+   * already timed to land during a real sale out to the next sale's start, when buying now at full
+   * price wouldn't earn back 70% of its own cost by then — see `shouldDeferToNextSale`'s own doc
+   * comment for why this needs to be the exact same check the manual side uses rather than a second
+   * independent one.
+   */
+  const buyResearch = (researchId: string, timeLimit: number, checkRoiGate = false): boolean => {
     const research = getResearchById(researchId);
     if (!research) return false;
     const currentLevel = currentState.researchLevels[researchId] || 0;
@@ -62,17 +71,40 @@ export function createMilestoneShiftHelpers(startState: EngineState, context: Si
 
     const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
     const absTime = getAbsTime();
-    const purchase = getSaleAwareTimeToSave(
-      research,
-      currentLevel,
-      getModifiers(),
-      isResearchSaleActive(absTime),
-      absTime,
-      snapshot,
-      boostTransitionsFrom(snapshot, absTime)
-    );
+    const isSaleActive = isResearchSaleActive(absTime);
+    const transitions = boostTransitionsFrom(snapshot, absTime);
+    const purchase = getSaleAwareTimeToSave(research, currentLevel, getModifiers(), isSaleActive, absTime, snapshot, transitions);
 
     if (snapshot.offlineEarnings <= 0) return false;
+
+    if (
+      checkRoiGate &&
+      !purchase.duringSale &&
+      shouldDeferToNextSale(
+        research,
+        currentLevel,
+        getModifiers(),
+        snapshot,
+        context,
+        absTime,
+        getNextSaleStart(absTime),
+        getNextSaleEnd(absTime),
+        isSaleActive,
+        transitions,
+        purchase.duringSale
+      )
+    ) {
+      const deferSeconds = getNextSaleStart(absTime) - absTime;
+      if (elapsedSeconds + deferSeconds > timeLimit) return false;
+      advanceTime(deferSeconds);
+      // Re-price from scratch now that we're actually at the sale — same reasoning as the manual
+      // planner's `advanceToDeadline` followed by a fresh `buyOneLevel` call, just folded into one
+      // recursive call here since this function (unlike the manual side) owns both the wait and the
+      // purchase together. `purchase.duringSale` will be true on this retry (we're now inside the
+      // sale we just waited for), so `shouldDeferToNextSale`'s own during-sale bypass guarantees this
+      // never recurses more than once.
+      return buyResearch(researchId, timeLimit, checkRoiGate);
+    }
 
     const timeToSave = purchase.waitSeconds;
     if (elapsedSeconds + timeToSave > timeLimit) return false;
@@ -100,31 +132,33 @@ export function createMilestoneShiftHelpers(startState: EngineState, context: Si
     return true;
   };
 
-  /** Execute one already-planned milestone-chain item, using its precomputed price/wait. */
-  const executeChainItem = (item: MilestoneChainItem, timeLimit: number): boolean => {
-    if (elapsedSeconds + item.timeToBuySeconds > timeLimit) return false;
-
-    advanceTime(item.timeToBuySeconds);
-
-    const action = createSimAction(
-      'buy_research',
-      {
-        researchId: item.research.id,
-        fromLevel: item.currentLevel,
-        toLevel: item.targetLevel,
-      },
-      item.price
-    );
-
-    currentState = applyAction(currentState, action);
-
-    const finalSnap = computeSnapshot(currentState, context, { skipGrowth: true });
-    action.endState = finalSnap;
-    action.totalTimeSeconds = 0;
-    action.bankDelta = -item.price;
-
-    actions.push(action);
-    return true;
+  /**
+   * Execute one already-planned milestone-chain item by re-deriving its actual price/wait from the
+   * CURRENT state via `buyResearch`, rather than trusting `item`'s own precomputed `price`/
+   * `timeToBuySeconds` — those were priced once during planning and can go stale by the time this
+   * replays. In particular, `computeResearchMilestoneChain`'s `idleForwardTo` calls advance its
+   * internal planning clock/bank to skip past a dead stretch (e.g. riding out to the next sale) but
+   * leave no entry of their own in the returned `items` — so an item priced right after one of those
+   * gaps shows a `timeToBuySeconds` of ~0 (correct at planning time, since the gap had already been
+   * spent), and blindly replaying that number here would skip the gap entirely: the real elapsed
+   * time — and the bank accrual that gap was supposed to produce — would never actually happen,
+   * leaving this replay charging post-gap prices against a pre-gap bank (confirmed against a live
+   * export: exactly this pattern drove `bankValue` deeply negative across a run of "0 second wait"
+   * purchases). `item` here only decides WHICH research to buy next; the real price/wait comes from
+   * `buyResearch`, exactly the way `executePlanToLevels` (`c3.ts`) already replays ITS OWN
+   * precomputed research-ID order rather than trusting its plan's numbers directly.
+   *
+   * Returns the actual price paid, or `false` if the purchase didn't happen (unaffordable within
+   * `timeLimit`).
+   *
+   * Passes `checkRoiGate: true` to `buyResearch` — matching `handleBuyMilestoneChain`
+   * (`ResearchActions.vue`), the manual planner's own "Buy Entire Chain" replay, which is the only
+   * flow that enforces this gate on its side too. Every other `buyResearch` caller here (sale-riding
+   * buy-plan replay, Smart Buy sweeps) leaves it off, matching their own manual-planner counterparts.
+   */
+  const executeChainItem = (item: MilestoneChainItem, timeLimit: number): number | false => {
+    if (!buyResearch(item.research.id, timeLimit, true)) return false;
+    return actions[actions.length - 1].cost;
   };
 
   /**
@@ -168,9 +202,13 @@ export function createMilestoneShiftHelpers(startState: EngineState, context: Si
     let executedCount = 0;
     let totalGemsSpent = 0;
     for (const item of items) {
-      if (!executeChainItem(item, timeLimit)) break;
+      // Actual price paid, not `item.price` — see `executeChainItem`'s doc comment for why the
+      // plan's own precomputed price can no longer be trusted as of whatever real state replay has
+      // reached by this point.
+      const paid = executeChainItem(item, timeLimit);
+      if (paid === false) break;
       executedCount++;
-      totalGemsSpent += item.price;
+      totalGemsSpent += paid;
     }
 
     if (executedCount > 0) {
