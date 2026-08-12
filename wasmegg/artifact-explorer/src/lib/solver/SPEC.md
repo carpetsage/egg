@@ -148,8 +148,8 @@ to clear the bottom" and "as much as the top allows":
 at 1e12 — the same 1000x margin `SAFE_COEFFICIENT` keeps below 1e-9. A row whose
 own dynamic range is wider than the window still cannot be made to fit; the least
 bad answer is to keep its large entries readable.
-`src/lib/optimizer-plan.spec.ts` asserts the property — every emitted entry
-inside [1e-9, 1e15] — rather than any one instance.
+The property to hold is over every emitted entry — all of them inside
+[1e-9, 1e15] — rather than over any one instance.
 
 ## 4. Scaling: why `sigma` and not `s`
 

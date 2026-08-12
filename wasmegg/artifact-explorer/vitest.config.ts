@@ -1,5 +1,17 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import vue from '@vitejs/plugin-vue';
+
+// The arena is opt-in, via `ARENA`. `pnpm arena` sets it; `pnpm test` does not.
+//
+// Excluded here rather than skipped inside the spec, because a skip still pays
+// for the file's imports: the roster awaits the 3.4MB HiGHS wasm at module
+// scope and the instance generator pulls in the 82MB loot dataset, which is 90
+// seconds before a single `describe` callback runs. Dropping the file from the
+// selection is what actually keeps it out of the default suite.
+//
+// `invariants.spec.ts` carries a matching `describe.skipIf`, so invoking it
+// directly under some other config reports a skip rather than a 12-minute run.
+const ARENA_REQUESTED = process.env.ARENA !== undefined;
 
 export default defineConfig({
   plugins: [vue()],
@@ -11,10 +23,11 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.{test,spec}.ts'],
+    exclude: [...configDefaults.exclude, ...(ARENA_REQUESTED ? [] : ['src/oracle/arena/invariants.spec.ts'])],
     coverage: {
       provider: 'v8',
-    include: ["src/**/*.ts"],
-    exclude: ["src/**/*.spec.ts"]
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.spec.ts'],
     },
   },
 });
