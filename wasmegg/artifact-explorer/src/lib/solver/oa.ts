@@ -175,9 +175,18 @@ function emit(problem: PlanProblem, model: Model, counts: readonly number[]): Pl
     if (counts[g] > 0) allocation[model.groups[g].members[0]] += counts[g];
   }
   const finalEval = evaluateCounts(model, counts, EXACT_PRECISION);
-  const perTarget = finalEval.scores.map(s => (s > 0 ? -Math.expm1(-s) : 0));
+  const scored = finalEval.scores.map(s => (s > 0 ? -Math.expm1(-s) : 0));
+  // The model sorts its targets; the seam promises `perTarget` parallel to the
+  // caller's list. Permute back.
+  const perTarget = new Array<number>(scored.length);
+  for (let t = 0; t < scored.length; t++) perTarget[model.requestedOrder[t]] = scored[t];
+  // Multiplied in the model's own order, not the caller's. Float multiplication
+  // is not associative, so folding the caller-ordered array would make the
+  // reported joint differ by an ulp or two between two orderings of the same
+  // target set — reintroducing, in the number the entry reports, exactly the
+  // order dependence `buildModel` just removed from the plan.
   let jointProbability = 1;
-  for (const p of perTarget) jointProbability *= p;
+  for (const p of scored) jointProbability *= p;
   return { allocation, reported: { jointProbability, perTarget } };
 }
 

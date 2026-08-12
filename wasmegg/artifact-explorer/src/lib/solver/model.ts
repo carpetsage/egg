@@ -23,7 +23,13 @@ export interface Group {
 }
 
 export interface Model {
+  // Sorted by node id, NOT in the order the caller listed them. See
+  // `buildModel` for why, and `requestedOrder` for getting back.
   targets: string[];
+  // `requestedOrder[t]` is where model target `t` sat in `problem.targets`.
+  // Anything reported back per target has to be permuted through this, because
+  // the plan seam promises that array parallel to the caller's list.
+  requestedOrder: number[];
   craftables: string[]; // reachable non-leaf node ids
   items: string[]; // consumed item ids — one conservation row each
   consRows: number[][]; // items x craftables
@@ -174,7 +180,31 @@ function craftUpperBounds(
 
 export function buildModel(problem: PlanProblem): Model {
   const dag: RecipeDAG = problem.dag;
-  const targets = [...problem.targets];
+
+  // Targets are sorted, so the model is a function of the target *set* rather
+  // than of the order the caller happened to list them in.
+  //
+  // Reordering the caller's list used to permute the entire matrix, not just the
+  // target columns: the downward closure below visits targets in order, so
+  // `craftables` changed, `items` changed with it, and every conservation row and
+  // craft column moved. The MILP is solved under a node budget of 5, so the
+  // branch-and-bound is truncated long before it proves anything, and which
+  // incumbent it happens to hold when it stops depends on that column order. The
+  // result was a solver that returned a different — and sometimes worse — plan
+  // for a relabeling of the same problem. That is the arena's B2-target-order,
+  // which fired on 11 of 40 sweep instances at up to 0.1620 nats.
+  //
+  // Sorting here makes the whole model, and therefore the LP text and therefore
+  // HiGHS's answer, byte-identical under any permutation of the target list, so
+  // B2 is structurally inert rather than something the search has to be good
+  // enough to hold. This is the same treatment `cmpKey` already gives the option
+  // menu for B1 and B6 (SPEC.md section 1).
+  const requested = [...problem.targets];
+  const requestedOrder = requested
+    .map((_, i) => i)
+    // Ties broken by original position, so duplicate ids stay a bijection.
+    .sort((a, b) => (requested[a] < requested[b] ? -1 : requested[a] > requested[b] ? 1 : a - b));
+  const targets = requestedOrder.map(i => requested[i]);
 
   // Downward closure of the targets, in deterministic first-visit order.
   const orderIds: string[] = [];
@@ -353,6 +383,7 @@ export function buildModel(problem: PlanProblem): Model {
 
   return {
     targets,
+    requestedOrder,
     craftables,
     items,
     consRows,
