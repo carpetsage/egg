@@ -32,7 +32,7 @@ export function calculateFarmValue(
   const populationVacant = Math.max(totalHabCapacity - population, 0);
   const internalHatcheryRate = farmInternalHatcheryRates(farmInternalHatcheryResearches(farm, progress), []).onlineRate;
   const populationProjected = internalHatcheryRate * maxAwayTime(farm, progress);
-  const eggConstMultiplier = 20; // 20 for the enlightenment egg.
+  const eggConstMultiplier = 6; // 6 for the enlightenment egg.
   const eggValue = farmEggValue(farmEggValueResearches(farm), []);
   const eggLayingRatePerChicken = farmEggLayingRatePerChicken(farmEggLayingRateResearches(farm, progress), []);
   const earningBonus = farmEarningBonus(backup, farm, progress, []);
