@@ -20,7 +20,7 @@ function craftDag(pCraft = 0.1): RecipeDAG {
 }
 
 describe('joint objective: balanced split vs. weighted-sum winner-take-all', () => {
-  it('splits a shared scarce ingredient between two equal-weight targets', () => {
+  it('splits a shared scarce ingredient between two equal-weight targets', async () => {
     // Shared leaf Z, identical Q: a weighted-sum LP goes all-or-nothing here,
     // while the product objective must balance.
     const dag: RecipeDAG = new Map([
@@ -29,7 +29,7 @@ describe('joint objective: balanced split vs. weighted-sum winner-take-all', () 
       ['Z', makeNode('Z', true)],
     ]);
 
-    const sol = optimizeFull({
+    const sol = await optimizeFull({
       options: [],
       recipeDag: dag,
       desiredArtifactNodeIds: ['A1', 'A2'],
@@ -61,7 +61,7 @@ describe('joint objective: balanced split vs. weighted-sum winner-take-all', () 
     expect(Math.max(...naiveCrafts)).toBeCloseTo(10, 6);
   });
 
-  it('picks a more balanced fuel split across two options than a sum-maximizing greedy, raising jointProbability', () => {
+  it('picks a more balanced fuel split across two options than a sum-maximizing greedy, raising jointProbability', async () => {
     // Independent targets competing only for fuel. Maximizing sum(Q*crafts) is
     // indifferent to the split; the joint objective must balance it.
     const dag: RecipeDAG = new Map([
@@ -73,7 +73,7 @@ describe('joint objective: balanced split vs. weighted-sum winner-take-all', () 
     const optB1 = makeOpt(1, 1, [['B1', 1]]);
     const optB2 = makeOpt(1, 1, [['B2', 1]]);
 
-    const sol = optimizeFull({
+    const sol = await optimizeFull({
       options: [optB1, optB2],
       recipeDag: dag,
       desiredArtifactNodeIds: ['A1', 'A2'],
@@ -173,8 +173,8 @@ describe('the product objective reduces to the linear score at n=1', () => {
     baseYield: new Map<string, number>(),
   };
 
-  it('lands on the plain linear score optimum', () => {
-    const sol = optimizeFull(args);
+  it('lands on the plain linear score optimum', async () => {
+    const sol = await optimizeFull(args);
 
     // Brute force the linear score S = Q*alpha over every packable
     // multiplicity, converting to a probability once at the end.
@@ -192,8 +192,8 @@ describe('the product objective reduces to the linear score at n=1', () => {
     expect(sol.bestProbability).toBeCloseTo(1 - Math.exp(-bestScore), 9);
   });
 
-  it('reports jointProbability as that one target’s own probability', () => {
-    const sol = optimizeFull(args);
+  it('reports jointProbability as that one target’s own probability', async () => {
+    const sol = await optimizeFull(args);
     expect(sol.perTarget).toHaveLength(1);
     expect(sol.jointProbability).toBeCloseTo(sol.bestProbability, 12);
   });

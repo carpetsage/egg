@@ -38,8 +38,8 @@ interface InstanceOutcome {
   failures: InstanceFailure[];
 }
 
-function runOptimizer(inst: OracleInstance): OptimizerSolution {
-  return optimizeFull({
+async function runOptimizer(inst: OracleInstance): Promise<OptimizerSolution> {
+  return await optimizeFull({
     options: inst.options,
     recipeDag: inst.dag,
     desiredArtifactNodeIds: inst.targets,
@@ -76,7 +76,7 @@ function reconstructAllocation(inst: OracleInstance, solution: OptimizerSolution
 // Second opinion on an oracle-found allocation: collapse it into one synthetic
 // take-it-or-leave-it option and let the solver price it, so a reported gap
 // cannot be an oracle-model artifact.
-function solverPricesAllocation(inst: OracleInstance, allocation: number[]): number {
+async function solverPricesAllocation(inst: OracleInstance, allocation: number[]): Promise<number> {
   const yields = new Map<string, number>();
   const legendary = new Map<string, number>();
   inst.options.forEach((opt, i) => {
@@ -87,7 +87,7 @@ function solverPricesAllocation(inst: OracleInstance, allocation: number[]): num
       legendary.set(item, (legendary.get(item) ?? 0) + allocation[i] * qty);
     }
   });
-  const solution = optimizeFull({
+  const solution = await optimizeFull({
     options: [makeOpt(1, 1, [...yields], [...legendary])],
     recipeDag: inst.dag,
     desiredArtifactNodeIds: inst.targets,
@@ -98,12 +98,12 @@ function solverPricesAllocation(inst: OracleInstance, allocation: number[]): num
   return solution.jointProbability;
 }
 
-function checkInstance(inst: OracleInstance, gapTol = GAP_TOL): InstanceOutcome {
+async function checkInstance(inst: OracleInstance, gapTol = GAP_TOL): Promise<InstanceOutcome> {
   const failures: InstanceFailure[] = [];
   const fail = (kind: InstanceFailure['kind'], detail: string) =>
     failures.push({ family: inst.label, seed: inst.seed, kind, detail });
 
-  const solution = runOptimizer(inst);
+  const solution = await runOptimizer(inst);
 
   let allocation: number[];
   try {
@@ -198,7 +198,7 @@ function checkInstance(inst: OracleInstance, gapTol = GAP_TOL): InstanceOutcome 
   const oracle = bruteForceBestJoint(inst);
   const gap = Math.max(0, oracle.bestJointProbability - planEval.jointProbability);
   if (gap > gapTol) {
-    const solverView = solverPricesAllocation(inst, oracle.bestAllocation);
+    const solverView = await solverPricesAllocation(inst, oracle.bestAllocation);
     const confirmed = solverView - planEval.jointProbability > GAP_TOL / 2;
     fail(
       'optimality',
@@ -284,7 +284,7 @@ function assertNoFailures(outcomes: InstanceOutcome[]): void {
 // Calibration probes: instances so small the optimum is unambiguous, checked
 // against closed-form arithmetic. A failure here voids the fuzz results.
 describe('oracle calibration', () => {
-  test('inventory-only crafting matches closed form', () => {
+  test('inventory-only crafting matches closed form', async () => {
     const p = 0.5;
     const inst: OracleInstance = {
       label: 'probe',
@@ -321,13 +321,13 @@ describe('oracle calibration', () => {
     expect(mine.expectedCrafts).toBeCloseTo(crafts, 9);
     expect(mine.probability).toBeCloseTo(expected, 9);
 
-    const theirs = runOptimizer(inst);
+    const theirs = await runOptimizer(inst);
     expect(theirs.expectedCrafts).toBeCloseTo(crafts, 6);
     expect(theirs.craftProbability).toBeCloseTo(expected, 6);
     expect(theirs.bestProbability).toBeCloseTo(expected, 6);
   });
 
-  test('direct legendary drops match closed form', () => {
+  test('direct legendary drops match closed form', async () => {
     const inst: OracleInstance = {
       label: 'probe',
       seed: 0,
@@ -340,14 +340,14 @@ describe('oracle calibration', () => {
     };
     // no craftable supply at all, so the only play is 3 launches of drops
     const expected = 1 - Math.exp(-3 * 0.125);
-    const theirs = runOptimizer(inst);
+    const theirs = await runOptimizer(inst);
     expect(theirs.craftProbability).toBeCloseTo(0, 6);
     expect(theirs.dropProbability).toBeCloseTo(expected, 6);
     expect(theirs.bestProbability).toBeCloseTo(expected, 6);
     expect(evaluateAllocation(inst, [3]).probability).toBeCloseTo(expected, 9);
   });
 
-  test('multi-level recipe matches closed form', () => {
+  test('multi-level recipe matches closed form', async () => {
     const inst: OracleInstance = {
       label: 'probe',
       seed: 0,
@@ -376,12 +376,12 @@ describe('oracle calibration', () => {
     const crafts = 4 / 3;
     const mine = evaluateAllocation(inst, []);
     expect(mine.expectedCrafts).toBeCloseTo(crafts, 9);
-    const theirs = runOptimizer(inst);
+    const theirs = await runOptimizer(inst);
     expect(theirs.expectedCrafts).toBeCloseTo(crafts, 6);
     expect(theirs.bestProbability).toBeCloseTo(1 - Math.exp(-crafts * targetQ(inst, 't')), 6);
   });
 
-  test('launch yields feed crafting', () => {
+  test('launch yields feed crafting', async () => {
     const inst: OracleInstance = {
       label: 'probe',
       seed: 0,
@@ -394,7 +394,7 @@ describe('oracle calibration', () => {
     };
     // 2 launches -> inventory a = 1 + 3 = 4 -> crafts = 2
     const expected = 1 - Math.exp(-2 * targetQ(inst, 't'));
-    const theirs = runOptimizer(inst);
+    const theirs = await runOptimizer(inst);
     expect(theirs.bestProbability).toBeCloseTo(expected, 6);
     expect(evaluateAllocation(inst, [2]).probability).toBeCloseTo(expected, 9);
   });
@@ -424,7 +424,7 @@ describe('oracle calibration', () => {
     expect(mine.score).toBeCloseTo(bestScore, 9);
   });
 
-  test('multi-target allocation balances instead of favoring the higher-value target (joint/AND objective)', () => {
+  test('multi-target allocation balances instead of favoring the higher-value target (joint/AND objective)', async () => {
     // The true continuous optimum, found independently by calculus on
     // g(Q0*c0) + g(Q1*(2-c0)), balances at c0~1.16, c1~0.84, joint ~0.4095.
     const inst: OracleInstance = {
@@ -442,13 +442,13 @@ describe('oracle calibration', () => {
       timeCapacity: 0,
       baseYield: new Map([['a', 2]]),
     };
-    const theirs = runOptimizer(inst);
+    const theirs = await runOptimizer(inst);
     const crafts = theirs.perTarget.map(p => p.expectedCrafts);
     expect(Math.min(...crafts)).toBeGreaterThan(0.5); // balanced, not all-or-nothing
     expect(theirs.jointProbability).toBeCloseTo(0.409536, 2);
   });
 
-  test('three-target joint plan matches the independent oracle (n=3, exercises N-general Frank-Wolfe)', () => {
+  test('three-target joint plan matches the independent oracle (n=3, exercises N-general Frank-Wolfe)', async () => {
     // Three targets sharing ingredient 'a': the search must split the
     // inventory three ways, since zeroing any target zeroes the AND.
     const inst: OracleInstance = {
@@ -468,14 +468,14 @@ describe('oracle calibration', () => {
       timeCapacity: 3,
       baseYield: new Map([['a', 1]]),
     };
-    assertNoFailures([checkInstance(inst)]);
-    const theirs = runOptimizer(inst);
+    assertNoFailures([await checkInstance(inst)]);
+    const theirs = await runOptimizer(inst);
     const crafts = theirs.perTarget.map(p => p.expectedCrafts);
     expect(theirs.perTarget).toHaveLength(3);
     expect(Math.min(...crafts)).toBeGreaterThan(0); // every target gets a share
   });
 
-  test('three-target joint plan where targets consume each other (n=3 dependency chain)', () => {
+  test('three-target joint plan where targets consume each other (n=3 dependency chain)', async () => {
     // Dependency chain: t0 feeds t1 feeds t2, so crafting up the chain
     // consumes the lower targets even though each craft is its own legendary
     // roll. A naive "split the shared ingredient" shortcut mishandles this.
@@ -504,20 +504,20 @@ describe('oracle calibration', () => {
       timeCapacity: 3,
       baseYield: new Map([['a', 2]]),
     };
-    assertNoFailures([checkInstance(inst)]);
-    expect(runOptimizer(inst).perTarget).toHaveLength(3);
+    assertNoFailures([await checkInstance(inst)]);
+    expect((await runOptimizer(inst)).perTarget).toHaveLength(3);
   });
 });
 
 // Smoke fuzz: a deterministic handful of instances per family.
 describe('oracle smoke fuzz', () => {
-  test('optimizer within tolerance on smoke instances', () => {
+  test('optimizer within tolerance on smoke instances', async () => {
     const outcomes: InstanceOutcome[] = [];
     for (const family of FAMILIES) {
       for (let seed = 1; seed <= 3; seed++) {
         const inst = generateInstance(family, seed);
         if (inst) {
-          outcomes.push(checkInstance(inst, SMOKE_GAP_TOL));
+          outcomes.push(await checkInstance(inst, SMOKE_GAP_TOL));
         }
       }
     }
@@ -531,7 +531,7 @@ describe('oracle smoke fuzz', () => {
 describe.skipIf(!DEEP)('oracle deep fuzz', () => {
   test(
     'optimizer within tolerance across the full campaign',
-    () => {
+    async () => {
       const started = Date.now();
       const outcomes: InstanceOutcome[] = [];
       let seed = SEED_BASE;
@@ -549,7 +549,7 @@ describe.skipIf(!DEEP)('oracle deep fuzz', () => {
               skipped++;
               continue;
             }
-            outcomes.push(checkInstance(inst));
+            outcomes.push(await checkInstance(inst));
           } catch (err) {
             // a crash on one instance must not sink a half-hour campaign,
             // but it is still a reportable defect of harness or solver

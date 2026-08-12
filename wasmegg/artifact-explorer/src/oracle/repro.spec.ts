@@ -22,7 +22,7 @@ function fmtAlloc(inst: OracleInstance, alloc: number[]): string {
 }
 
 describe.skipIf(!SPEC)('oracle repro', () => {
-  test(`repro ${SPEC}`, () => {
+  test(`repro ${SPEC}`, async () => {
     const [family, seedStr] = SPEC.split(':');
     if (!FAMILIES.includes(family as Family) || !/^\d+$/.test(seedStr ?? '')) {
       throw new Error(`ORACLE_REPRO must be <family>:<seed>, e.g. random-single:1234`);
@@ -45,7 +45,7 @@ describe.skipIf(!SPEC)('oracle repro', () => {
       );
     }
 
-    const sol = optimizeFull({
+    const sol = await optimizeFull({
       options: inst.options,
       recipeDag: inst.dag,
       desiredArtifactNodeIds: inst.targets,

@@ -7,7 +7,6 @@ export * from './tank-ids';
 
 import type { DAGNode, LaunchSolution, OptimizerConfig, OptimizerSolution, DropRow, RecipeDAG } from './types';
 import { enumerateLaunchOptions, generateRecipeDag } from './phases';
-import { optimizeFull } from './optimizer-core';
 import { ei, getArtifactTierPropsFromId, getCraftingInfoFromLevel, Inventory, InventoryItem, ShipsConfig } from 'lib';
 
 import { iconURL } from 'lib';
@@ -128,7 +127,13 @@ export function finalizeSolutions(solutions: OptimizerSolution[], dag: RecipeDAG
 }
 
 // Returns an array though today it's always one solution.
-export function optimize(
+//
+// Async for two reasons: the planner is a WebAssembly module loaded on first
+// use, and `optimizer-core` is imported dynamically here on purpose. This
+// barrel is what the components import, so a static import would pull the
+// solver and its Emscripten glue into the main chunk — where nothing needs it,
+// because the app plans through the worker. Only the tests call this.
+export async function optimize(
   config: OptimizerConfig,
   playerConfig: ShipsConfig,
   dag: RecipeDAG,
@@ -138,9 +143,10 @@ export function optimize(
 ) {
   const { desiredArtifactNodeIds, fuelTankCapacity, timeBudgetSeconds } = config;
   const options = enumerateLaunchOptions(playerConfig, dag, launchPeriodSeconds, maxGemCost);
+  const { optimizeFull } = await import('./optimizer-core');
 
   const solutions: OptimizerSolution[] = [
-    optimizeFull({
+    await optimizeFull({
       options,
       recipeDag: dag,
       desiredArtifactNodeIds: desiredArtifactNodeIds,

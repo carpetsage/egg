@@ -68,7 +68,7 @@ function summarize(sol: OptimizerSolution) {
   };
 }
 
-function runPipeline(ids: string[]): OptimizerSolution {
+async function runPipeline(ids: string[]): Promise<OptimizerSolution> {
   const inventory = savedInventory();
   const config = {
     desiredArtifactNodeIds: ids,
@@ -78,11 +78,11 @@ function runPipeline(ids: string[]): OptimizerSolution {
   };
   const dag = buildRecipeDag(ids, 30, inventory);
   const baseYield = computeBaseYield(inventory, ids, dag);
-  return optimize(config, perfectShipsConfig, dag, baseYield)[0];
+  return (await optimize(config, perfectShipsConfig, dag, baseYield))[0];
 }
 
 describe('full pipeline target order', () => {
-  it('produces the same plan whichever order the targets were selected in', () => {
-    expect(summarize(runPipeline([CHALICE, FEATHER]))).toEqual(summarize(runPipeline([FEATHER, CHALICE])));
+  it('produces the same plan whichever order the targets were selected in', async () => {
+    expect(summarize(await runPipeline([CHALICE, FEATHER]))).toEqual(summarize(await runPipeline([FEATHER, CHALICE])));
   });
 });

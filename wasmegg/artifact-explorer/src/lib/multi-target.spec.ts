@@ -82,7 +82,7 @@ describe('multi-sink weighted objective LP', () => {
     expect(lp.solve(new Map([['A', 4]])).alpha).toBeCloseTo(0, 9);
   });
 
-  it('is order-independent when an option drops the root directly', () => {
+  it('is order-independent when an option drops the root directly', async () => {
     // A mission dropping the root (without legendaries) must not be
     // over-valued; the result should not depend on option order.
     const dag: RecipeDAG = new Map([
@@ -98,8 +98,8 @@ describe('multi-sink weighted objective LP', () => {
       timeCapacity: 100,
       baseYield: new Map<string, number>(),
     };
-    const rootFirst = optimizeFull({ options: [optRoot, optB], ...args });
-    const bFirst = optimizeFull({ options: [optB, optRoot], ...args });
+    const rootFirst = await optimizeFull({ options: [optRoot, optB], ...args });
+    const bFirst = await optimizeFull({ options: [optB, optRoot], ...args });
     expect(rootFirst.bestProbability).toBeCloseTo(bFirst.bestProbability, 9);
     expect(rootFirst.bestProbability).toBeGreaterThan(0.99);
     expect(rootFirst.choiceHistory.some(c => c.targetAfxId === optB.targetAfxId)).toBe(true);
@@ -174,8 +174,8 @@ function nestedDag(): RecipeDAG {
   ]);
 }
 
-function runNested(baseYield: Map<string, number>, targets = ['A', 'B']) {
-  return optimizeFull({
+async function runNested(baseYield: Map<string, number>, targets = ['A', 'B']) {
+  return await optimizeFull({
     options: [makeOpt(1, 10, [['C', 1]], [], Name.TUNGSTEN_ANKH)],
     recipeDag: nestedDag(),
     desiredArtifactNodeIds: targets,
@@ -186,20 +186,20 @@ function runNested(baseYield: Map<string, number>, targets = ['A', 'B']) {
 }
 
 describe('owned copies of a target', () => {
-  it('leave a top-level target untouched', () => {
+  it('leave a top-level target untouched', async () => {
     // Nothing consumes A, so its stock has no conservation row to relax and
     // dropping it loses nothing.
-    const without = runNested(new Map());
-    const with10A = runNested(new Map([['A', 10]]));
+    const without = await runNested(new Map());
+    const with10A = await runNested(new Map([['A', 10]]));
     expect(with10A.bestProbability).toBeCloseTo(without.bestProbability, 12);
     expect(with10A.craftProbability).toBeCloseTo(without.craftProbability, 12);
     expect(with10A.dropProbability).toBeCloseTo(without.dropProbability, 12);
     expect(with10A.jointProbability).toBeCloseTo(without.jointProbability, 12);
   });
 
-  it('raise the joint probability through the nested target, without inflating its own crafts', () => {
-    const without = runNested(new Map());
-    const with4B = runNested(new Map([['B', 4]]));
+  it('raise the joint probability through the nested target, without inflating its own crafts', async () => {
+    const without = await runNested(new Map());
+    const with4B = await runNested(new Map([['B', 4]]));
     expect(with4B.jointProbability).toBeGreaterThan(without.jointProbability);
 
     // Owned B enters its row only on the consumption side: it lets A craft
@@ -215,10 +215,10 @@ describe('owned copies of a target', () => {
     expect(parent.expectedCrafts).toBeCloseTo(without.perTarget.find(t => t.nodeId === 'A')!.expectedCrafts + 2, 9);
   });
 
-  it('never reads as an owned legendary: dropProbability ignores baseYield', () => {
+  it('never reads as an owned legendary: dropProbability ignores baseYield', async () => {
     // dropProbability is built from the mission legendary vectors alone, and
     // this option drops none, so stocking every node still leaves it at 0.
-    const stocked = runNested(
+    const stocked = await runNested(
       new Map([
         ['A', 10],
         ['B', 10],
@@ -231,8 +231,8 @@ describe('owned copies of a target', () => {
 });
 
 describe('joint probability with no targets', () => {
-  it('is 0, not the empty product', () => {
-    const solution = runNested(new Map(), []);
+  it('is 0, not the empty product', async () => {
+    const solution = await runNested(new Map(), []);
     expect(solution.jointProbability).toBe(0);
     expect(solution.perTarget).toEqual([]);
   });

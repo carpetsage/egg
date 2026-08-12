@@ -37,12 +37,13 @@ strictly increasing, so with one target `argmax F = argmax score_1`. Maximizing
 a plain weighted-sum score *is* this problem with one term. The same code path
 runs at every target count.
 
-Everything the search does — dominance pruning, the LP relaxation, the ternary
-scans, greedy repair — needs only that `F` is concave and non-decreasing in
-inventory. Each `score_T` is concave and non-decreasing, `g` is concave and
-non-decreasing, a non-decreasing concave function of such an argument stays
-concave and non-decreasing, and a sum of those keeps both properties. None of
-that machinery cares how many terms it is climbing.
+The MILP needs only that `F` is concave and non-decreasing in inventory, which is
+what makes the tangent family a valid outer approximation at any target count.
+Each `score_T` is concave and non-decreasing, `g` is concave and non-decreasing,
+a non-decreasing concave function of such an argument stays concave and
+non-decreasing, and a sum of those keeps both properties. An extra target is one
+more score column, one more epigraph column and one more block of tangent rows —
+not a different method.
 
 ### Convergence is measured in probability space
 
@@ -119,95 +120,75 @@ once per returned solution, never in the search loop.
 
 ## Search structure
 
-`optimizeFull` solves twice and repairs:
+`optimizeFull` states the whole problem as one mixed-integer program and hands
+it to HiGHS. The model, the outer-approximation loop that handles the concave
+objective, and the numeric traps in both live in
+`src/lib/solver/SPEC.md`; what follows is only what a reader of
+this file needs.
 
-- a **relaxed** solve over `3S` aggregate time, giving an upper bound `U` plus a
-  candidate allocation that may not be three-bin packable;
-- a **floor** solve over `R/3` fuel and `S` time, tripled — three identical
-  single-slot plans, always packable.
+**Why a MILP.** The three-slot packing constraint is a genuine bin packing, and
+the search this replaced could not see it: everything upstream of its packer
+worked in aggregate `3S` time and then projected into three bins, so packing was
+a repair step applied to a plan chosen without it. The MILP allocates missions
+*per slot* — one row per slot, saying exactly what the game says — so a solution
+packs by construction and no repair phase exists. The crafts are continuous
+columns over the same conservation polytope, so the craft split is optimised in
+the same matrix rather than in an inner LP the outer search re-solves.
 
-Both are then run through `packAndFill`, alongside a greedy build from empty
-slots. If the best packable plan still trails `U` by more than epsilon,
-`escalatePacking` seeds one slot full of each LP-support option and re-fills,
-exploring per-slot specializations the balanced relaxation misses.
+**Why it is not a linear program.** `sum_T log(1 - e^-s_T)` is concave and
+transcendental. Outer approximation handles it: hold each target's contribution
+under a family of its tangents, solve the resulting MILP, add tangents where the
+answer landed, and repeat. Each model in the sequence over-estimates the true
+objective, so *when a round is solved to proven optimality* its optimum is an
+upper bound on the true one — that is a property of the formulation, and it is
+what the loop's stopping rule reads. It is not a claim about every run: both
+budgets (`maxRounds`, `maxNodes`) can stop a round early, and a node-limited
+round returns an incumbent with no proven bound attached, so a budget-limited
+solve can and does return a non-optimal plan. The measured invariant violations
+are exactly that case. What holds unconditionally is the other half: the loop
+returns the best *judged* incumbent — every candidate plan is scored by a
+re-derivation of the exact objective, so the linearisation steers and the real
+objective decides.
 
-`packAndFill` caps fuel first (dropping by worst score-loss-per-fuel-freed),
-then asks `packing.ts`'s exact packer for a witness assignment and keeps every
-mission when one exists. Only a provably unpackable multiset is shrunk, one
-mission at a time, choosing the removal that costs the least score.
-Best-fit-decreasing survives as a fallback for when the packer cannot decide
-inside its node budget. This ordering matters: BFD packed longest-first and
-dropped whatever spilled, which shrank allocations that were already packable
-and, when one genuinely did not pack, chose what to shed by duration rather
-than by value.
+**What it costs.** About a second on a production-scale instance, against ~110ms
+for the search it replaced. Almost all of that is branch-and-bound, not the
+WebAssembly boundary, so it does not come back with a faster interface. The two
+budgets that bound it (`maxRounds`, `maxNodes`) are deliberately node- and
+round-based rather than a wall clock, because the same inputs have to produce the
+same plan; `DEFAULT_TUNING` in `solvers/highs/oa.ts` records the measured curve
+and why the default sits where it does.
 
-Finally `polish` runs on the winning candidate *and* on the escalation result:
-a local search in packable space over `+1`, `-1`, and the exchange `-1 i /
-+1 j`, accepting a move only when it stays inside the fuel budget, passes the
-exact packer, and improves the score. Everything upstream searches aggregate
-`3S` time and then projects into three bins, so it can only add or drop — an
-exchange is unreachable from there even when it is the optimum. It is a
-width-4 beam rather than a hill climb because a pure climb measurably cannot
-reach these optima: incumbents exist with no improving packable neighbour at
-all whose optimum is two moves out, across a downhill step, on a branch that is
-not the best-scoring one.
+**What it buys.** Measured over the arena's 40 instances: no plan that collapses
+to probability zero, against eight for the previous search, and a worst
+monotonicity violation of 0.20 nats against 1.09. See `solver/RESULTS.md`.
 
-`coreSearch` is the single-time-budget integer search inside each of those:
-
-1. **Dominance pruning.** `j` dominates `i` when it costs no more on either
-   budget and yields at least as much of everything, strictly better somewhere.
-   Yields are compared pointwise rather than by solo score, so complementary
-   options survive — the only good source of some ingredient must not be pruned
-   for having a poor standalone score. "Everything" includes each target's
-   direct legendary drops compared *per target*, never pooled: an option
-   dropping more of target A's legendary and less of target B's dominates
-   neither. Only search targets are compared, since they are the only nodes
-   whose legendary rate reaches the objective.
-2. **Single-option sweep**, which also records each option's solo score for the
-   triple scan's ranking.
-3. **LP relaxation** (`solveRelaxationLp`), giving the upper bound `U` and the
-   support set. It carries the same tangent rows as the inner LP, except that
-   here `lambda_T` is itself a linear combination of the option-count variables
-   rather than a precomputed constant, which is why it is built directly instead
-   of reusing the inner LP's fixed matrix.
-4. **Epsilon certificate.** For a non-support option with reduced cost
-   `rc <= 0`, `lp.F + rc` upper-bounds any solution forced to include it (LP
-   sensitivity, plus IP <= LP). It is pruned only when that bound cannot beat
-   the *incumbent* by more than epsilon. Measuring against the LP optimum
-   instead — as this once did — is unsound whenever the integrality gap exceeds
-   epsilon, which is the regime these instances live in. Skipped entirely when
-   the relaxation is not certified optimal.
-5. **Scan budget cap.** The survivors are ranked by `lp.F + rc` and only the top
-   `SCAN_MAX_SURVIVORS` feed the scans, with `SCAN_MAX_TRIPLE` bounding the
-   triple pool separately because one triple costs ~40x a pair on top of
-   growing as n^3. This is a **compute heuristic and nothing more** — the
-   options it excludes are *not* claimed epsilon-irrelevant. They stay reachable
-   through `repairAlloc`'s full-list scan and through `polish`'s candidate set,
-   which is exactly why capping is safe where pruning was not.
-6. **Pair scans** over the capped survivors, then **triple scans** if the gap is
-   still wide. The triple pool ranks LP support first (complementary options
-   with poor standalone scores live there), then the top-K by solo score.
-7. **Greedy repair** from the best allocation and again from the floor-rounded
-   LP solution, keeping whichever start ends up better.
-
-Both scans are nested integer ternary searches. **The concavity this relies on
-does not actually hold** — the pair lattices are sawtooth, with 25 turning
-points measured on one instance's `(0,2)` lattice. Replacing every
-`ternaryMaxOver` with an exhaustive scan was tried and changed no outcome on
-any miss examined, so this is a known unsound shortcut that has not yet cost
-anything, not a proven-safe one.
+**What is still wrong with it.** Roughly sixty invariant violations across the
+sweep, all of the form "a more constrained problem scored better", all small, and
+all attributable to the node budget rather than to the model — raising it to 5000
+removes seven-eighths of them at seven times the wall clock. There is also a
+latent issue the sweep does not isolate: the per-target scale `theta_t` is an LP
+maximum computed *subject to the budgets*, and the tangent grid is placed in
+units of theta, so changing a budget re-approximates the objective rather than
+merely enlarging the feasible set. A1/A2 are not theorems even at proven
+optimality until that is fixed.
 
 ## The worker boundary
 
-The search runs off the main thread (`optimizer.worker.ts`). A single-target
-plan solves in well under 100ms, but a multi-target joint search runs in
-seconds; on the main thread that would block paint.
+The planner runs off the main thread (`optimizer.worker.ts`). Every solve is
+around a second, and the first one in a worker's life also fetches and
+instantiates a 3.4MB WebAssembly module; on the main thread that would block
+paint outright.
 
 **Launch-option enumeration stays on the main thread.** It is the only step that
 needs the ~18MB loot dataset, and the main bundle already loads that dataset for
 the mission views — enumerating in the worker would put a second copy in the
 worker bundle. For the same reason `optimizer.worker.ts` imports `optimizeFull`
 directly rather than through the `lib` barrel, which re-exports the loot data.
+
+The traffic goes the other way too: `index.ts`'s `optimize()` imports
+`optimizer-core` *dynamically*, because the barrel is what the components import
+and a static import would drag the solver and its Emscripten glue into the main
+chunk, where nothing needs them.
 
 `optimizer-worker-protocol.ts` exists because structured clone preserves Maps
 and plain objects but **drops prototypes**. Every payload is plain data except
@@ -224,9 +205,14 @@ result but the last describes settings the user has already moved past. A
 superseded (or torn-down) request resolves with `null`, which callers read as
 "no result is coming, leave state alone".
 
+The request also carries the planner's two search budgets, so the worker never
+has to know where a setting came from. They are node- and round-based rather than
+a wall clock on purpose: the same request has to produce the same plan however
+loaded the machine is, which a time limit cannot promise.
+
 Presentation-only fields (`expectedDrops`, `fuelByEgg`, sorted `choiceHistory`)
 are filled in by `finalizeSolutions` on the main thread, so the worker path and
-the synchronous `optimize()` produce identical solutions.
+`optimize()` produce identical solutions.
 
 ## Previous crafts
 
@@ -264,13 +250,14 @@ own legendary. With a single target every share is 1.
 
 | File | Role |
 | --- | --- |
-| `optimizer-core.ts` | The outer search: pruning, LP relaxation, pair/triple scans, packing, polish, repair. `optimizeFull` is the entry point. |
+| `optimizer-core.ts` | The pipeline around the planner: `buildEvalContext` compiles the objective, `optimizeFull` states the problem and calls the MILP, `assembleFullSolution` turns an allocation into a renderable solution. |
+| `solver/` | The planner itself — the MILP, the outer-approximation loop, the HiGHS binding. `../oracle/arena/solvers/highs/index.ts` is a shim that registers this same module as the arena's entry, so the shipped solver and the measured one are one code path. See its `SPEC.md`. |
 | `packing.ts` | Exact 3-bin feasibility returning a witness assignment. Standalone by design: it imports nothing, and in particular nothing from `../oracle/`, because the oracle spec re-checks every solver plan against its own independent feasibility routine. Sharing one implementation would make that assertion circular. |
 | `value-function.ts` | Inner crafting LP, the tangent epigraph construction, `alphaToProb`, and `refineJointCraftSplit`. |
 | `lp.ts` | Small dense-tableau simplex with Bland's rule, tuned for many small re-solves. Equilibrates rows and columns before solving: an absolute epsilon against raw fuel coefficients (~1e18) and craft-conservation rows (~1) in the same tableau used to stop the pivot loop early while reporting `'optimal'`. |
 | `phases.ts` | Recipe DAG construction and launch-option enumeration from loot data. |
-| `index.ts` | Pipeline glue: `buildRecipeDag`, `computeBaseYield`, `finalizeSolutions`, synchronous `optimize`. |
-| `optimizer.worker.ts` | Worker entry point; runs `optimizeFull` only. |
+| `index.ts` | Pipeline glue: `buildRecipeDag`, `computeBaseYield`, `finalizeSolutions`, and an async `optimize` used only by tests — it imports `optimizer-core` dynamically so the solver stays out of the main chunk. |
+| `optimizer.worker.ts` | Worker entry point; awaits `optimizeFull`. The only place the *app* awaits the solve — `index.ts` has the other await site, on the test-only path. Everything below the seam is synchronous, which is also why the worker drops requests a newer one has superseded. |
 | `optimizer-worker-protocol.ts` | Wire types and `MissionType` narrow/reconstruct across structured clone. |
 | `optimizer-client.ts` | Main-thread worker lifecycle, request numbering, supersession. |
 | `optimizer-tree.ts` | Recipe-tree builders for the inventory and craft-chain panels. |
@@ -321,59 +308,38 @@ limitation. It is now solved exactly; the exact packer was what it needed.
 
 ## Campaign results
 
+The numbers below are **historical**: they measure the LP-relaxation and beam
+search that `optimizeFull` used before it became a MILP, and they are kept
+because they are why it stopped being one.
+
 Over 1022 oracle instances (seeds 1000-1179, all six families), counting a miss
 as a relative probability shortfall above 0.5%:
 
 | | misses | rate | max delta-abs |
 | --- | --- | --- | --- |
-| before this work | 69 | 6.8% | 9.5e-4 |
+| before that work | 69 | 6.8% | 9.5e-4 |
 | after the exact packer + polish | 24 | 2.3% | 4.6e-4 |
 | after the certificate/cap split | **16** | **1.6%** | **4.6e-4** |
 
-54 instances fixed, 15 of the originals still missing, and one new miss
-(`random-multi:1053`, delta-abs 1.5e-6). Of the 16 remaining, 12 have
-delta-abs below 3e-6 — several are large *relative* gaps on probabilities near
-1e-10, where relative error is not meaningful. Only `chunky-knapsack:1006`
-(4.6e-4) is materially wrong.
+The residue was diagnosed as needing "candidate generation that builds mixed
+slot profiles directly rather than reaching them by local moves from a
+uniform-slot start". That is exactly what a per-slot integer program does by
+construction, and it is the argument that eventually replaced the search
+outright.
 
-The residue needs candidate generation that builds mixed slot profiles directly
-rather than reaching them by local moves from a uniform-slot start, and it is
-bounded below by the tangent envelope's mid-range slack (~2.5e-2, far wider
-than these gaps) — no amount of search work can resolve a plan the scoring
-function itself ranks wrongly.
+An ablation over a 272-instance stratified subset produced two findings worth
+keeping now that the stages themselves are gone. The beam polish was the single
+highest-value stage — removing it doubled the miss count for ~24ms — which is a
+statement about how much of that method's quality came from *repairing* a plan
+chosen without the packing constraint. And the dominance filter was starving the
+pair and triple scans of the options they needed: with the filter on, deleting
+the scans cost nothing; with it off, they were worth 8 misses. Both are
+symptoms of a pipeline whose stages each saw a different relaxation of the same
+problem.
 
-## Which stages actually earn their keep
-
-Measured by ablation over a 272-instance stratified subset (every known miss
-plus a 200-instance random control), each config removing exactly one stage
-with everything else held fixed. Latency is best-of-9 on `tachyon-deflector-4`,
-measured serially. Do not re-derive this from win-share statistics: win share
-conflates redundancy with worthlessness, since a stage can be redundant on most
-instances and still be the only thing that solves the hard ones.
-
-| Config | misses | latency |
-| --- | --- | --- |
-| all stages on | 24 | 134ms |
-| − triple scan | 23 | 133ms |
-| − triple − pairwise | 23 | 132ms |
-| − dual filter | **15** | **23,283ms** |
-| − scans − dual filter | 23 | 133ms |
-| − LP support seeds in escalation | 26 | 118ms |
-| − `U` as escalation trigger | 24 | 136ms |
-| − polish | **49** | 110ms |
-
-Three conclusions worth keeping:
-
-- **Polish is the highest-value stage.** Removing it doubles the miss count and
-  worsens max delta-abs, for ~24ms.
-- **The scans are not dead weight, despite rows 2 and 3.** Read rows 4 and 5
-  together: with the filter pruning, deleting the scans costs nothing; with it
-  off, the scans are worth 8 misses. They were being starved of the options they
-  needed. Deleting them on the strength of rows 2-3 alone would have
-  permanently forfeited that recovery path.
-- **The LP is worth keeping as a seed generator** (row 6) even though `U` as a
-  bound earns nothing measurable (row 7). Those are separate questions about the
-  same LP and want separate answers.
+The current planner's accuracy is measured by the arena instead, on invariants
+rather than against a brute-force optimum, because the invariants scale to
+instance sizes the oracle cannot enumerate. See `ARENA.md`.
 
 ## Tests are local-only
 

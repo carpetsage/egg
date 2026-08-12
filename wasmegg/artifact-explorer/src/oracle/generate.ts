@@ -39,7 +39,7 @@ export function mulberry32(seed: number): () => number {
 
 type Rng = () => number;
 
-function randInt(rng: Rng, lo: number, hi: number): number {
+export function randInt(rng: Rng, lo: number, hi: number): number {
   return lo + Math.floor(rng() * (hi - lo + 1));
 }
 
@@ -47,7 +47,10 @@ function dyadic(rng: Rng, lo: number, hi: number, denom = 4): number {
   return randInt(rng, Math.round(lo * denom), Math.round(hi * denom)) / denom;
 }
 
-function pick<T>(rng: Rng, items: T[]): T {
+export function pick<T>(rng: Rng, items: T[]): T {
+  // An empty pool would draw `undefined` and hand it on as a `T`, surfacing far
+  // from the caller that emptied it.
+  if (items.length === 0) throw new RangeError('pick from an empty collection');
   return items[randInt(rng, 0, items.length - 1)];
 }
 
@@ -61,8 +64,10 @@ function sample<T>(rng: Rng, items: T[], count: number): T[] {
 }
 
 // Real artifacts that can actually come out legendary from a craft.
+// Exported for the invariant harness, which samples the same target space but
+// builds production-sized instances rather than enumerable ones.
 let candidateTargetsMemo: string[] | null = null;
-function candidateTargets(): string[] {
+export function candidateTargets(): string[] {
   if (candidateTargetsMemo === null) {
     candidateTargetsMemo = artifactTiers
       .filter(tier => tier.craftable)

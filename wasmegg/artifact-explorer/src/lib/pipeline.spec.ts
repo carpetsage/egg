@@ -1,5 +1,5 @@
 // End-to-end coverage of the production pipeline on real game data: recipe
-// DAG construction, launch option enumeration, and a full optimize() run.
+// DAG construction, launch option enumeration, and a full await optimize() run.
 // Assertions stick to structure and invariants so loot data refreshes don't
 // break them; the one exact-recipe check (puzzle cube) is stable game design.
 
@@ -103,7 +103,7 @@ describe('enumerateLaunchOptions', () => {
 });
 
 describe('optimize', () => {
-  it('runs the full pipeline within budgets', () => {
+  it('runs the full pipeline within budgets', async () => {
     const config = {
       desiredArtifactNodeIds: ['puzzle-cube-4'],
       includeNotEnoughData: false,
@@ -112,7 +112,7 @@ describe('optimize', () => {
     };
     const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
     const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
-    const [sol] = optimize(config, perfectShipsConfig, dag, baseYield);
+    const [sol] = await optimize(config, perfectShipsConfig, dag, baseYield);
 
     expect(sol.fuelUsed).toBeLessThanOrEqual(config.fuelTankCapacity + 1e-6);
     expect(sol.timeUnitsUsed).toBeLessThanOrEqual(config.timeBudgetSeconds + 1);
@@ -132,7 +132,7 @@ describe('optimize', () => {
     }
   });
 
-  it('reports running time as the busiest slot real flight time', () => {
+  it('reports running time as the busiest slot real flight time', async () => {
     const config = {
       desiredArtifactNodeIds: ['puzzle-cube-4'],
       includeNotEnoughData: false,
@@ -142,7 +142,7 @@ describe('optimize', () => {
     const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
     const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
     const launchPeriod = 3600; // high effort: 1 launch / slot / hour
-    const [sol] = optimize(config, perfectShipsConfig, dag, baseYield, launchPeriod);
+    const [sol] = await optimize(config, perfectShipsConfig, dag, baseYield, launchPeriod);
 
     expect(sol.slots).toBeDefined();
     expect(sol.slots!.length).toBe(3);
@@ -155,7 +155,7 @@ describe('optimize', () => {
     }
 
     // with a zero launch period nothing is floored: raw flight = makespan
-    const [rawSol] = optimize(config, perfectShipsConfig, dag, baseYield, 0);
+    const [rawSol] = await optimize(config, perfectShipsConfig, dag, baseYield, 0);
     expect(rawSol.runningTimeSeconds).toBe(rawSol.timeUnitsUsed);
   });
 });
