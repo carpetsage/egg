@@ -87,9 +87,11 @@ It is not floored: `c` is continuous, so 2.5 crafts is a reachable point and a
 floored bound would remove it.
 
 The conservation rows already imply all of this — but only through a chain, one
-tier at a time, which presolve has to walk on every model. Handing the bound over
+tier at a time, which bound propagation has to walk. Handing the bound over
 directly was measured at 26% of the solve on a two-target production instance
-(1553ms to 1146ms, identical plan). It was found by accident: adding a
+(1553ms to 1146ms, identical plan). That measurement predates turning presolve
+off in `SOLVER_OPTIONS`, and the explicit bound matters more without it, not
+less: presolve was the thing that could have derived the chain. It was found by accident: adding a
 *deliberately slack* golden egg row sped the solver up by a similar margin, and
 the row turned out to be the only thing that had ever bounded these columns.
 

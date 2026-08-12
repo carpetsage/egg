@@ -37,18 +37,129 @@ let cached: Promise<MilpSolve> | null = null;
 // every call — so the sharing is of the module, not of any search state.
 export function loadHighs(): Promise<MilpSolve> {
   cached ??= highsLoader({ locateFile: () => wasmLocation })
-    .then(
-      (highs): MilpSolve =>
-        (model, limits) =>
-          readSolution(
-            model,
-            highs.solve(writeLp(model), {
-              ...SOLVER_OPTIONS,
-              mip_max_nodes: limits.maxNodes,
-              mip_rel_gap: limits.relGap,
-            } as Parameters<typeof highs.solve>[1])
-          )
-    )
+    .then((highs): MilpSolve => {
+      const attempt = (model: MilpModel, limits: Parameters<MilpSolve>[1], presolve: 'on' | 'off') =>
+        readSolution(
+          model,
+          highs.solve(writeLp(model), {
+            ...SOLVER_OPTIONS,
+            presolve,
+            mip_max_nodes: limits.maxNodes,
+            mip_rel_gap: limits.relGap,
+          } as Parameters<typeof highs.solve>[1])
+        );
+
+      return (model, limits) => {
+        const configured = SOLVER_OPTIONS.presolve === 'off' ? 'off' : 'on';
+        try {
+          return attempt(model, limits, configured);
+        } catch {
+          // WHY PRESOLVE IS OFF IN `SOLVER_OPTIONS`, so this branch is normally
+          // unreachable — it is the fallback for a build or a caller that turns
+          // presolve back on.
+          //
+          // Presolve is a performance bet, and on this workload it loses. Over
+          // twelve arena instances through `optimizeFull`, timed both with the
+          // config order forward and reversed (agreeing within 1%):
+          //
+          //     presolve on,  tolerances as pinned    27.7s   (baseline)
+          //     presolve off, tolerances as pinned    24.7s   -11%
+          //     presolve on,  mip tolerance at 1e-6   28.1s    +1%
+          //     presolve off, mip tolerance at 1e-6   22.9s   -17%
+          //
+          // with an IDENTICAL joint probability on 12 of 12 instances, to the
+          // last bit, in every presolve-on config and in presolve-off at the
+          // pinned tolerances. The bet was that the tight `mip_feasibility_-
+          // tolerance` was handicapping presolve by running it two orders below
+          // HiGHS's default; the middle rows say otherwise — at the stock
+          // tolerance presolve gets slightly worse and the gap widens.
+          //
+          // Structurally it is doing very little. HiGHS's own reduction log on
+          // three arena MILPs: rows -3% to -6%, columns -2%, and nonzeros
+          // between -0.6% and *+1.8%* — on arena:2001 presolve adds 104 of them.
+          // What it does buy is implied-integer detection and the restart
+          // machinery, which tighten the dual bound per node (gap 1.06% vs 1.98%
+          // on arena:2001 at a five-node budget) — and the outer-approximation
+          // loop in `oa.ts` re-cuts and re-solves anyway, so that advantage
+          // never reaches the plan. What it costs is search: 5058 LP iterations
+          // against 2348, with 46 sub-MIP calls eating 3.47s of a 4.73s solve.
+          //
+          // Turning it off also removes a failure path for free. HiGHS can fail
+          // inside *presolve* on a model it reads and solves perfectly well
+          // without it, throwing "HiGHS error -1" out of `Highs_run` — not out
+          // of the reader, so this is not the ingestion window of SPEC.md
+          // section 3. Found on arena:2018 with the fuel tank doubled: identical
+          // shape and identical matrix range to the instance beside it that
+          // solves, so nothing about the model is out of range. HiGHS's own
+          // option table carries a "Presolve error" status and "Presolve
+          // returned status %d" for exactly this.
+          //
+          // WHY THIS MODEL TRIPS IT, MEASURED. Re-solving the exact rejected
+          // model one option at a time says the trigger is not presolve alone:
+          //
+          //     baseline (as shipped)                  THREW
+          //     presolve: off                          Optimal
+          //     presolve: choose                       THREW
+          //     primal_feasibility_tolerance 1e-7/1e-8 THREW
+          //     mip_feasibility_tolerance: 1e-8        Optimal
+          //     mip_feasibility_tolerance: 1e-6        Optimal
+          //     dual_feasibility_tolerance: 1e-7       THREW
+          //     mip_allow_restart: false               THREW
+          //     random_seed: 1                         Optimal
+          //     threads: 0 / parallel: on              THREW
+          //     mip_max_nodes: 50                      THREW
+          //
+          // (That table was taken with presolve on as the baseline. The rows are
+          // still what each knob does to the rejected model; the baseline itself
+          // no longer ships.)
+          //
+          // It is `mip_feasibility_tolerance` at 1e-9 that puts presolve over the
+          // edge, which is exactly the interaction ERGO-Code/HiGHS#1578 reports:
+          // presolve calling a model infeasible that solves to optimality with
+          // presolve off, once that tolerance is tightened. That issue's
+          // threshold is 1e-7; `SOLVER_OPTIONS` pins two orders tighter. (#907,
+          // #2171 and #2173 are the same shape without the tolerance angle.)
+          //
+          // That `random_seed: 1` also clears it says this is a knife-edge
+          // numerical coincidence rather than anything structural about the
+          // model — which is why the seed is not the fix. It would settle this
+          // instance and silently pick a different one to fail on.
+          //
+          // WHY PRESOLVE, OF THE THREE KNOBS THAT WORK. It is the only one that
+          // solves the model with every tolerance still at its pinned value.
+          // `mip_feasibility_tolerance` buys the same result by weakening, on
+          // every solve, the guard that keeps HiGHS's integer solutions on the
+          // judge's packing scale: at 1e-8 a slot row may be violated by more
+          // than the arena's packer admits, so `certifies` can start dropping
+          // incumbents where today it never fires (SPEC.md section 3).
+          //
+          // WHY OFF, AND NOT SOMETHING GENTLER. `presolve_reduction_limit` and
+          // `presolve_rule_off` exist in the wasm's option table, but neither is
+          // in this package's typings, and both are instance-specific bisection
+          // aids rather than settings. Of the three values the package does
+          // expose — 'off' | 'choose' | 'on' — 'choose' still throws here
+          // (measured, above). 'off' is the only remedy available.
+          //
+          // Presolve only reformulates; it cannot change the feasible set. So
+          // falling back without it can turn a failure into an answer but never
+          // a wrong answer into a right-looking one — and the answer is checked
+          // by `certifies` and priced by the evaluator regardless.
+          if (configured === 'off') {
+            // Already the configured path, so there is no second thing to try.
+            return { status: 'unknown', objective: 0, columnValues: new Float64Array(model.columnCount) };
+          }
+          try {
+            return attempt(model, limits, 'off');
+          } catch {
+            // Both attempts failed. `unknown` is a status the caller already
+            // handles — `solveWith` keeps the best plan it has judged so far —
+            // whereas an exception here propagates out of `optimizeFull` and
+            // surfaces as an app that cannot produce a plan at all.
+            return { status: 'unknown', objective: 0, columnValues: new Float64Array(model.columnCount) };
+          }
+        }
+      };
+    })
     .catch((error: unknown) => {
       // What is cached is the promise, not the module — clearing it here is
       // what keeps a rejected load from staying cached and failing every later

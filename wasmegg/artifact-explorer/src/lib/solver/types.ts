@@ -132,14 +132,34 @@ export type MilpSolve = (model: MilpModel, limits: MilpLimits) => MilpSolution;
 // for reproducibility (SPEC.md section 7); the feasibility tolerances are
 // pinned below HiGHS's defaults to stay on the judge's packer's scale
 // (SPEC.md section 3).
+//
+// A note on the two that are numbers HiGHS stores as integers: the wasm binding
+// sets a numeric option by trying `Highs_setDoubleOptionValue` first and only
+// falling back to the int setter when the value is integral, so a non-integral
+// or non-finite `threads`/`random_seed`/`mip_max_nodes` is *silently ignored*
+// rather than rejected. Anything assigned to those has to be a whole number
+// inside int32 — `Infinity` is not.
 export const SOLVER_OPTIONS: Readonly<Record<string, boolean | number | string>> = {
   output_flag: false,
   log_to_console: false,
   threads: 1,
   parallel: 'off',
   random_seed: 0,
-  presolve: 'on',
+  // Off, and measured that way rather than assumed. HiGHS defaults this to
+  // 'choose'; the case for turning it off on this workload is in `highs.ts`,
+  // above the failure path it also happens to remove.
+  presolve: 'off',
   primal_feasibility_tolerance: 1e-9,
+  // Two orders below HiGHS's 1e-6 default, and deliberately so: this is the
+  // margin SPEC.md section 3 argues for. HiGHS may satisfy a slot row only to
+  // this figure, absolute on the row activity, while the arena's packer admits
+  // a slot load of at most `capacity + 1e-9`. Loosening it lets the solver
+  // commit a violation the judge will not accept.
+  //
+  // It was tried at 1e-8 for one sweep, as the direct fix for the presolve
+  // breakdown that 1e-9 triggers (ERGO-Code/HiGHS#1578). It is back at 1e-9
+  // because turning presolve off removes that failure path outright, at no cost
+  // to the plan — so there is nothing left to buy by giving up the margin.
   mip_feasibility_tolerance: 1e-9,
   // One order of magnitude below default, not more: at HiGHS's documented
   // minimum of 1e-10 the simplex fails outright on the wider instances
