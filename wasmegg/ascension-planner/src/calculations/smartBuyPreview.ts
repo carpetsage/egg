@@ -5,7 +5,7 @@ import {
   buyWhilePassingCheck,
   buyUntilRealSaleStarts,
 } from './researchRanking';
-import { meetsSaleAwareDeadline, meetsROIByDeadline, getSaleAwareTimeToSave } from './researchROI';
+import { meetsROIByDeadline, getSaleAwareTimeToSave } from './researchROI';
 import { findSmartBuyCandidate } from './smartBuyCandidate';
 import type { CalculationsSnapshot } from '@/types';
 import type { SimulationContext, EngineState } from '@/engine/types';
@@ -141,20 +141,23 @@ export function simulateSaleAwareBuy(
         roiMode,
         deliveryImpactOnly
       );
-      const candidate = ranked.find(item =>
-        meetsSaleAwareDeadline(
-          {
-            canBuy: item.canBuy,
-            isMaxed: false,
-            price: item.price,
-            earningsDelta: item.earningsDelta,
-            purchaseTimestamp: simTime + (item.timeToBuySeconds ?? 0),
-            duringSale: item.duringSale,
-          },
-          nextSaleStart,
-          targetPercent
-        )
-      );
+      // NOTE: intentionally NOT `meetsSaleAwareDeadline` (which `nextRoiCandidate` in
+      // ResearchActions.vue still uses, for its own button-enabled/highlight preview only — not
+      // purchase execution). That function derives eligibility from the candidate's SOLO
+      // price/earningsDelta/duringSale, which is wrong for a bottleneck-paired candidate: its own
+      // solo earningsDelta can be zero (that's what "bottlenecked" means) even when the PAIR it was
+      // ranked alongside genuinely clears `targetPercent`% ROI by `nextSaleStart` — or, just as
+      // wrongly, the solo-blind "lands inside an active sale" bypass can rescue a candidate whose
+      // real (solo or paired) economics never clear the bar at all. `item.showSaleWarning` is the
+      // field `rankResearchByROI` already computes correctly for both cases (solo ROI normally,
+      // pair-combined ROI when a pairing beats the solo figure — see its own bottleneck-pairing
+      // block), so using it here instead keeps this loop consistent with the ranking that produced
+      // `ranked`'s own sort order, rather than re-deriving a second, pairing-blind answer.
+      // (`targetPercent` is always 70 for every current caller of this function, matching the 70%
+      // hardcoded into `rankResearchByROI`'s own `showSaleWarning` computation — if a future caller
+      // ever needs a different threshold, `showSaleWarning` would need to become
+      // threshold-parameterized too.)
+      const candidate = ranked.find(item => item.canBuy && !item.showSaleWarning);
       if (!candidate) {
         if (DEBUG_SALE_AWARE_BUY) {
           console.log(
@@ -169,18 +172,8 @@ export function simulateSaleAwareBuy(
               purchaseTimestamp: simTime + (item.timeToBuySeconds ?? 0),
               duringSale: item.duringSale,
               showSaleWarning: item.showSaleWarning,
-              passesDeadline: meetsSaleAwareDeadline(
-                {
-                  canBuy: item.canBuy,
-                  isMaxed: false,
-                  price: item.price,
-                  earningsDelta: item.earningsDelta,
-                  purchaseTimestamp: simTime + (item.timeToBuySeconds ?? 0),
-                  duringSale: item.duringSale,
-                },
-                nextSaleStart,
-                targetPercent
-              ),
+              pairRoiSeconds: item.pairRoiSeconds,
+              pairPartner: item.pairPartnerResearch?.id,
             }))
           );
         }
