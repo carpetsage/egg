@@ -52,8 +52,8 @@ export interface Tuning {
 // zero-scoring target appeared in it. `SIGMA_FLOOR` is where to move if a sweep
 // ever reports a sigma below it; `SIGMA_CUTS` then follows from the error law
 // below.
-const SIGMA_FLOOR = 1e-5;
-const SIGMA_CUTS = 100;
+const SIGMA_FLOOR = 1e-2;
+const SIGMA_CUTS = 50;
 
 // `count` log-spaced points from 1 down to `floor`, both endpoints included.
 function logGrid(floor: number, count: number): number[] {
@@ -73,7 +73,7 @@ function logGrid(floor: number, count: number): number[] {
 // refinement round turned out to be doing are in RESULTS.md, *What the budgets
 // buy* — a single campaign cannot read a delta under about 1.5x, so re-tuning
 // this pair means re-running that, not one sweep.
-export const DEFAULT_TUNING: Tuning = { maxNodes: 200, grid: logGrid(SIGMA_FLOOR, SIGMA_CUTS) };
+export const DEFAULT_TUNING: Tuning = { maxNodes: 400, grid: logGrid(SIGMA_FLOOR, SIGMA_CUTS) };
 
 const MIP_REL_GAP = 1e-6;
 
