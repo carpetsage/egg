@@ -178,13 +178,22 @@ export function getOptimalELRSet(
     const isTarget = targetAfxIds.has(afxId);
 
     if (isTarget) {
-      group.sort((a, b) => {
-        if (a.item.tierNumber !== b.item.tierNumber) return b.item.tierNumber - a.item.tierNumber;
-        if (a.rarity !== b.rarity) return b.rarity - a.rarity;
-        return b.slots - a.slots;
-      });
-      // Take top 2 from each target family (e.g. T4L and T3L Gussets)
-      finalCandidates.push(...group.slice(0, 2));
+      // Keep only the Pareto-optimal tier/rarity for this family: a candidate
+      // is dropped when some other owned tier is at least as good on both
+      // base effect delta and stone slots (and strictly better on one). This
+      // reduces a T4 Legendary (typically max delta AND max slots) down to a
+      // single candidate, but keeps genuine trade-offs alive -- e.g. a T2
+      // Epic Gusset (fewer tiers, more slots) survives alongside a T4 Common
+      // Gusset (more delta, no slots) because neither dominates the other,
+      // and it's the stone/ELR search below that has to settle it.
+      const delta = (c: Candidate) => c.item.effectDelta(c.rarity);
+      const pareto = group.filter(
+        a =>
+          !group.some(
+            b => b !== a && delta(b) >= delta(a) && b.slots >= a.slots && (delta(b) > delta(a) || b.slots > a.slots)
+          )
+      );
+      finalCandidates.push(...pareto);
     } else {
       group.sort((a, b) => {
         if (a.slots !== b.slots) return b.slots - a.slots;
