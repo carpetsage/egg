@@ -1,4 +1,5 @@
 import type { Action } from '@/types/actions/meta';
+import type { NotificationPayload } from '@/types';
 import type { EngineState, SimulationContext, ShiftResult } from '../types';
 import { getTiers, isTierUnlocked, type ResearchCostModifiers } from '../../calculations/commonResearch';
 import { createMilestoneShiftHelpers, runTierUnlockMilestone, runResearchMilestoneIfWorthwhile } from './helpers/milestones';
@@ -7,6 +8,7 @@ import { advanceTimeWithBoundaries } from './helpers/advanceTime';
 import { computeSnapshot } from '../../engine/compute';
 import { calculateArtifactModifiers } from '../../lib/artifacts';
 import { simulateSaleAwareBuy, simulateSaleEndsBuy } from '../../calculations/smartBuyPreview';
+import { buildSaleAwareBuyNotePayload, buildSaleEndsBuyNotePayload } from '@/lib/actions/notes';
 import {
   isResearchSaleActive,
   getNextSaleStart,
@@ -86,7 +88,7 @@ export function runC3(
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 
-  const baseAbsTime = context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0);
+  const baseAbsTime = context.ascensionStartTime + ((startState.lastStepTime || 0) - context.planStartOffset);
   const getAbsTime = () => baseAbsTime + elapsedSeconds;
 
   // Unlike the manual planner (which only ever knows about "the next sale" — a human clicking a
@@ -146,12 +148,32 @@ export function runC3(
   // accumulation before the following sale. The manual planner's own real execution
   // (`runSaleAwareBuyFlow`/`handleBuyUntilSaleDeadline`) never had this bug — it already walks its
   // plan in real order, one entry at a time — so this was a defect specific to this replay helper.
-  const executePlanToLevels = (researchIdsInOrder: string[], targetLevels: Record<string, number>, timeLimit: number) => {
+  // `buildNote`, when given, mirrors the manual planner's Smart Buy notes: it's handed the
+  // purchases actually landed here (not the plan's own precomputed count/total, which may run
+  // ahead of what `timeLimit` allows) and, if it returns a payload, that note is inserted ahead of
+  // this sweep's purchases — same "prepend a summary note" shape as `createMilestoneShiftHelpers`'
+  // own `executeChain`/`runSmartBuyForSeconds`, just for the sale-aware/sale-ends buy plans instead
+  // of a milestone chain.
+  const executePlanToLevels = (
+    researchIdsInOrder: string[],
+    targetLevels: Record<string, number>,
+    timeLimit: number,
+    buildNote?: (purchaseCount: number, totalGemsSpent: number) => NotificationPayload | null
+  ) => {
     const helpers = createMilestoneShiftHelpers(currentState, context);
+    let purchaseCount = 0;
+    let totalGemsSpent = 0;
     for (const researchId of researchIdsInOrder) {
       const target = targetLevels[researchId] || 0;
       if ((helpers.getState().researchLevels[researchId] || 0) >= target) continue;
       if (!helpers.buyResearch(researchId, timeLimit)) break;
+      purchaseCount++;
+      totalGemsSpent += helpers.getActions()[helpers.getActions().length - 1].cost;
+    }
+
+    if (buildNote && purchaseCount > 0) {
+      const notePayload = buildNote(purchaseCount, totalGemsSpent);
+      if (notePayload) helpers.addNotification(notePayload);
     }
 
     runStep({
@@ -187,7 +209,9 @@ export function runC3(
     executePlanToLevels(
       plan.entries.map(e => e.researchId),
       plan.endLevels,
-      Math.max(0, targetDeadline - absTime)
+      Math.max(0, targetDeadline - absTime),
+      (purchaseCount, totalGemsSpent) =>
+        buildSaleAwareBuyNotePayload(purchaseCount, targetDeadline - absTime, totalGemsSpent)
     );
   };
 
@@ -207,7 +231,12 @@ export function runC3(
       'efficiency',
       context.rawBackup
     );
-    executePlanToLevels(plan.researchIds, plan.endLevels, Math.max(0, deadline - absTime));
+    executePlanToLevels(
+      plan.researchIds,
+      plan.endLevels,
+      Math.max(0, deadline - absTime),
+      (purchaseCount, totalGemsSpent) => buildSaleEndsBuyNotePayload(purchaseCount, deadline - absTime, totalGemsSpent)
+    );
   };
 
   // 1. Shift to Curiosity

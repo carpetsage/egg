@@ -43,7 +43,7 @@ export function createMilestoneShiftHelpers(
   let elapsedSeconds = 0;
   const actions: Action[] = [];
 
-  const baseAbsTime = context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0);
+  const baseAbsTime = context.ascensionStartTime + ((startState.lastStepTime || 0) - context.planStartOffset);
   const getAbsTime = () => baseAbsTime + elapsedSeconds;
 
   const getModifiers = (): ResearchCostModifiers => {

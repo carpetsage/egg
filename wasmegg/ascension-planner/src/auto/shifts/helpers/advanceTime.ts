@@ -86,7 +86,9 @@ export function advanceTimeFlat(
  * @param elapsedSeconds  Elapsed simulation seconds so far.
  * @param context         Simulation context.
  * @param baseAbsTime     Absolute sim time at `elapsedSeconds === 0` (i.e.
- *                         `context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0)`).
+ *                         `context.ascensionStartTime + ((startState.lastStepTime || 0) - context.planStartOffset)`
+ *                         — same "subtract `planStartOffset` from sim time" convention used everywhere else this
+ *                         conversion happens, e.g. `engine/simulate.ts`/`engine/apply/duration.ts`).
  * @param totalSeconds    Seconds to advance.
  */
 export function advanceTimeWithBoundaries(
