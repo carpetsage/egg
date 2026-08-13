@@ -96,8 +96,6 @@ class Rows {
     row.set(column, (row.get(column) ?? 0) + coefficient);
   }
 
-  // An empty row is dropped: HiGHS accepts it, but the LP-format writer has
-  // nothing to print for it.
   end(lo: number, up: number): void {
     const row = this.current!;
     this.current = null;
@@ -236,8 +234,7 @@ function buildCore(model: Model, qs: readonly number[], theta: readonly number[]
   return { layout, rows, columnLower, columnUpper, columnIsInteger };
 }
 
-// Every model from one finisher shares these arrays; only the objective is
-// per-call. Locals rather than `core`, so the closure does not retain its `Rows`.
+// Locals rather than `core`, so the closure does not retain its `Rows`.
 function finisher(core: Core): (objective: Float64Array) => MilpModel {
   const frozen = core.rows.freeze();
   const { columnLower, columnUpper, columnIsInteger } = core;

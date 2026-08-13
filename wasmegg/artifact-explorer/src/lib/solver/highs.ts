@@ -1,29 +1,17 @@
 // HiGHS as WebAssembly (`highs`, lovasoa/highs-js): the loader, and the text
-// interface it insists on. See SPEC.md section 8 for why this is the build
-// that ships and what the text round trip costs.
+// interface it insists on. See SPEC.md section 8.
 //
-// The entry point's read-then-apply-options order, quoted here because SPEC.md
-// points at this file for it:
-//
-//     FS.writeFile(MODEL_FILENAME, model_str);
-//     Highs_readModel(highs, MODEL_FILENAME);
-//     for (const name in options) setOption(highs, name, options[name]);
-//     Highs_run(highs);
-//
-// So anything governing how a model is *ingested* — `small_matrix_value`,
-// `large_matrix_value`, `infinite_bound` — is set too late here and silently
-// does nothing. `milp.ts` scales its rows rather than relying on the first
-// group; see `SAFE_COEFFICIENT` there.
+// Options are applied *after* `Highs_readModel`, so anything governing how a model
+// is ingested (`small_matrix_value`, `large_matrix_value`, `infinite_bound`) is set
+// too late and silently does nothing; `milp.ts` scales its rows instead.
 
 import highsLoader from 'highs';
 import wasmUrl from 'highs/runtime?url';
 import { INF, SOLVER_OPTIONS, type MilpModel, type MilpSolution, type MilpSolve } from './types';
 
-// Asset resolution; see SPEC.md section 8 for why this is a loader function
-// rather than a bare import. Local warning for this exact regex: on Windows
-// `wasmUrl` arrives as `/@fs/C:/...`, and stripping only the `/@fs` prefix
-// leaves a leading slash the loader cannot open ahead of the drive letter, so
-// the drive-letter branch strips that slash too.
+// On Windows `wasmUrl` arrives as `/@fs/C:/...`, and stripping only the `/@fs`
+// prefix leaves a leading slash the loader cannot open ahead of the drive letter,
+// so the drive-letter branch strips that slash too.
 const wasmLocation = (() => {
   if (typeof self !== 'undefined' || !wasmUrl.startsWith('/@fs/')) return wasmUrl;
   const path = wasmUrl.slice('/@fs'.length);
@@ -32,17 +20,12 @@ const wasmLocation = (() => {
 
 let cached: Promise<MilpSolve> | null = null;
 
-// One module instance per realm, loaded on first use; see SPEC.md section 8.
-// Nothing here is stateful across solves — `solve` builds a fresh model string
-// every call — so the sharing is of the module, not of any search state.
 export function loadHighs(): Promise<MilpSolve> {
   cached ??= highsLoader({ locateFile: () => wasmLocation })
     .then((highs): MilpSolve => {
       return (model, limits) => {
-        // Serialized outside the `try` on purpose: the backstop below is for
-        // HiGHS throwing on a model it was handed, and laundering a crash in
-        // our own writer into `unknown` would surface as "the planner got
-        // worse" — a scorecard delta rather than a stack trace.
+        // Serialized outside the `try` on purpose: the backstop below is for HiGHS
+        // throwing, not for laundering a crash in our own writer into `unknown`.
         const lp = writeLp(model);
         let raw: RawHighsSolution;
         try {
@@ -52,22 +35,14 @@ export function loadHighs(): Promise<MilpSolve> {
             mip_rel_gap: limits.relGap,
           } as Parameters<typeof highs.solve>[1]);
         } catch {
-          // HiGHS can throw out of `Highs_run` on a model it reads perfectly
-          // well ("HiGHS error -1"). `unknown` is a status `solveWith` already
-          // handles — it keeps the best plan judged so far — whereas an
-          // exception here propagates out of `optimizeFull` and surfaces as an
-          // app that cannot produce a plan at all. See SPEC.md section 8
-          // ("Presolve, and the throw it used to cause") for the measurements
-          // behind `SOLVER_OPTIONS.presolve` and why this stayed a backstop.
+          // HiGHS can throw out of `Highs_run` on a model it reads perfectly well
+          // ("HiGHS error -1"). See SPEC.md section 8.
           return { status: 'unknown', objective: 0, columnValues: new Float64Array(model.columnCount) };
         }
         return readSolution(model, raw);
       };
     })
     .catch((error: unknown) => {
-      // What is cached is the promise, not the module — clearing it here is
-      // what keeps a rejected load from staying cached and failing every later
-      // solve in the session. See SPEC.md section 8.
       cached = null;
       throw error;
     });
@@ -85,8 +60,6 @@ function term(coefficient: number, column: number): string {
   return coefficient < 0 ? ` - ${num(-coefficient)} x${column}` : ` + ${num(coefficient)} x${column}`;
 }
 
-// CPLEX LP format. Wrapped every few terms because the format is line-oriented
-// and readers have historically had opinions about very long lines.
 const TERMS_PER_LINE = 8;
 
 function writeLp(model: MilpModel): string {
@@ -113,11 +86,9 @@ function writeLp(model: MilpModel): string {
 
     const lo = model.rowLower[r];
     const up = model.rowUpper[r];
-    // Every row this model builds is one-sided or an equality; a genuinely
-    // two-sided row is split so no reader has to support ranges.
     const relations: string[] =
       lo === up ? [`= ${num(lo)}`] : [...(up < INF ? [`<= ${num(up)}`] : []), ...(lo > -INF ? [`>= ${num(lo)}`] : [])];
-    if (relations.length === 0) continue; // free row: carries no information
+    if (relations.length === 0) continue;
 
     relations.forEach((relation, i) => {
       out.push(` r${r}_${i}:${terms[0]}`);
@@ -150,23 +121,14 @@ function writeLp(model: MilpModel): string {
   return out.join('\n');
 }
 
-// Structurally what the `highs` package returns. Named here rather than
-// imported because the package's own solution types are module-private.
 interface RawHighsSolution {
   Status: string;
   ObjectiveValue: number;
-  // `Index` is declared but never read — see `readSolution` and SPEC.md
-  // section 8 on why the name is the only reliable key. It is declared here
-  // because an infeasible solve returns columns carrying no `Primal` at all,
-  // and a type whose properties are all optional and all absent from that
-  // shape is rejected as a weak type.
   Columns: Record<string, { Primal?: number; Index?: number }>;
 }
 
 function readSolution(model: MilpModel, solution: RawHighsSolution): MilpSolution {
-  // Keyed by *name*, deliberately — see SPEC.md section 8. A column absent
-  // from the LP file (no objective, no bound, no coefficient anywhere) is
-  // absent from the solution too, and its zero is already in place.
+  // Keyed by *name*, not the reported `Index` — see SPEC.md section 8.
   const columnValues = new Float64Array(model.columnCount);
   let hasPrimal = false;
   for (const [name, column] of Object.entries(solution.Columns)) {

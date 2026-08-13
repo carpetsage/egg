@@ -1,34 +1,23 @@
 // Judge-equivalent evaluator: the value in nats of an integer allocation over
-// option groups, re-derived from the objective (SPEC.md section 2) to mirror
-// `src/oracle/evaluate.ts` numerically without importing it.
-//
-// Single target: one craft LP, s_T = Q_T * craft_T + lambda_T.
-// Multiple targets: away-step Frank-Wolfe on sum_T g(s_T), g(s) = log(1-e^-s),
-// over the craft-conservation polytope, with the judge's scheme and constants
-// (centroid seed, capped gradient, golden-section line search, 1e-12 gap).
+// option groups, mirroring `src/oracle/evaluate.ts` numerically without importing it.
 
 import type { Model } from './model';
 import { gPrime, goldenSectionArgmax, logHit } from '../concave';
 import { simplexMax } from './simplex';
 
 export interface EvalResult {
-  logJoint: number; // sum_T log(1 - exp(-s_T)) in nats; -Infinity when any s_T <= 0
-  scores: number[]; // s_T per target (may be +Infinity for a prob-1 craft)
+  logJoint: number; // nats; -Infinity when any score is <= 0
+  scores: number[]; // per target; +Infinity for a prob-1 craft
 }
 
-// Max craft_idx over the conservation polytope at inventory b, weighted by c0.
 function maxWeightedCraft(model: Model, b: number[], idx: number, c0: number): number {
   const c = new Array<number>(model.craftables.length).fill(0);
   c[idx] = c0;
   return simplexMax(model.consRows, b, c).objective;
 }
 
-// Exact structural reachability of a positive craft at inventory b: craft_p
-// can exceed 0 iff every child is either in stock or itself positively
-// craftable (an epsilon craft cascades down the DAG). Decided combinatorially
-// because the float LP answers "0 or positive?" with rounding noise (~1e-30
-// crafts), which reads as a -70-nat probability where the judge's exact
-// arithmetic says -Infinity.
+// Decided combinatorially rather than by the LP: the float LP answers "0 or
+// positive?" with ~1e-30 crafts, which score as -70 nats where the judge says -Infinity.
 function craftAvailable(model: Model, b: readonly number[], root: number): boolean {
   const memo = new Array<number>(model.craftables.length).fill(-1);
   const visit = (p: number): boolean => {
@@ -47,11 +36,6 @@ function craftAvailable(model: Model, b: readonly number[], root: number): boole
   return visit(root);
 }
 
-// Away-step Frank-Wolfe on the exact joint objective over the craft polytope,
-// for the finite-Q craftable targets. Mirrors the judge's scheme: seeded at the
-// centroid of the per-target max-craft vertices, FW-vs-away by gradient dot
-// product, 100-iteration golden-section line search, gap tolerance 1e-12,
-// at most 2000 iterations, active-set tolerance 1e-9.
 function optimizeJointCrafts(
   model: Model,
   b: number[],
@@ -151,27 +135,21 @@ function optimizeJointCrafts(
 }
 
 export interface EvalPrecision {
-  gapTol: number; // FW duality-gap tolerance in nats
+  gapTol: number; // in nats
   maxIters: number;
 }
 
 // The judge's constants; the default so parity and the reported numbers hold.
 export const EXACT_PRECISION: EvalPrecision = { gapTol: 1e-12, maxIters: 2000 };
-// DEVIATION from SPEC section 2 (which fixes gap 1e-12 / 2000 iterations).
-// Steering evaluations run at 1e-7 instead: `solveWith` scores an incumbent
-// only to rank it against the current best, and those comparisons are
-// separated by millinats, so the extra five decades decide nothing. The plan
-// actually returned is always re-scored at EXACT_PRECISION — that is the
-// number `reported` carries and the one C2/C3 check.
+// DEVIATION from SPEC section 2 (which fixes gap 1e-12 / 2000 iterations). Steering
+// only ranks incumbents; the plan returned is always re-scored at EXACT_PRECISION.
 export const STEERING_PRECISION: EvalPrecision = { gapTol: 1e-7, maxIters: 600 };
 
 interface Inventory {
-  b: number[]; // per consumed item
-  lambdas: number[]; // direct legendary rate per target
+  b: number[];
+  lambdas: number[];
 }
 
-// Drops and direct legendary rates implied by an integer allocation. Split out
-// of `evaluateCounts`.
 function inventoryOf(model: Model, counts: readonly number[]): Inventory {
   const nTargets = model.targets.length;
   const b = model.baseB.slice();
@@ -195,20 +173,14 @@ export function evaluateCounts(
   return evaluateAt(model, b, lambdas, precision);
 }
 
-// Value of a given inventory.
 function evaluateAt(model: Model, b: number[], lambdas: readonly number[], precision: EvalPrecision): EvalResult {
   const Qs = model.Qs;
   const nTargets = model.targets.length;
   const scores = new Array<number>(nTargets).fill(0);
-  // Split the targets: Q = +Infinity (craft probability 1) is handled
-  // explicitly so Infinity never enters LP arithmetic, non-craftable targets
-  // score their direct drops alone, and the rest go through the LP / FW path.
   const fwIdx: number[] = [];
   for (let t = 0; t < nTargets; t++) {
     const idx = model.targetCraftIdx[t];
     if (idx < 0 || !craftAvailable(model, b, idx)) {
-      // Not craftable at all, or no positive craft exists at this inventory:
-      // only the direct drops score.
       scores[t] = lambdas[t];
     } else if (Qs[t] === Infinity) {
       // Any craft_T > 0 gives p_T = 1; an infinitesimal craft consumes an
