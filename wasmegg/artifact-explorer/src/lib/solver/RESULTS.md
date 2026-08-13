@@ -5,10 +5,19 @@ method; this file is only numbers and what they say.
 
 Everything below was measured on the arena's default cheap sweep
 (`ARENA=sweep pnpm arena`, 40 instances, seeds 2000-2039) on the development
-container, at the shipped tuning — one MILP at `maxNodes: 200` over a 100-point
-tangent grid — unless a row says otherwise. `results/highs.json` is gitignored
-and every sweep rewrites it, so these are transcriptions, not a committed
-reference.
+container, at one MILP with `maxNodes: 200` over a 100-point tangent grid spread
+over five decades of sigma, unless a row says otherwise. `results/highs.json` is
+gitignored and every sweep rewrites it, so these are transcriptions, not a
+committed reference.
+
+**That is no longer the shipped tuning.** `DEFAULT_TUNING` in `oa.ts` is now
+`{maxNodes: 400}` over a 50-point grid down to `SIGMA_FLOOR = 1e-2`, following
+the observation recorded at `SIGMA_FLOOR` that no sigma below 0.163 has ever been
+seen — so the four decades of grid below that were rows bought and never used.
+The campaigns below have not been re-run against it; every number here is a
+measurement of the previous tuning and is kept as the record that chose the
+budgets, not as a claim about what ships today. Re-tuning means three campaigns,
+which is what the section *What the budgets buy* is.
 
 **Counts from different eras of this file do not compare.** The invariant set has
 grown since the first scorecard was written here (A4-inventory and A9-golden-eggs
@@ -73,7 +82,7 @@ violation count / summed severity in nats:
 | {1 round, 5 nodes, 100-point grid} | 245 | 2.611 | |
 | {1 round, 50 nodes, 100-point grid} | 240 | 2.357 | |
 | {1 round, 100 nodes, 100-point grid} | 234 | 2.314 | |
-| **{1 round, 200 nodes, 100-point grid}** | **220** | **1.820** | **ships** |
+| **{1 round, 200 nodes, 100-point grid}** | **220** | **1.820** | **won this campaign; see the note at the top for what ships now** |
 
 **Three campaigns, because one cannot read this.** The retired default's own
 severity swings 3x across seed bases (1.431 / 0.767 / 0.482) while the harness

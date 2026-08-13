@@ -77,15 +77,17 @@ chosen breakpoints allow.
 `JOINT_TANGENT_BREAKPOINTS` is the fixed grid of tangent points. It is spaced to
 roughly equalize the envelope's probability-space slack over `s` in
 `[0.05, 40]`; `g` is nearly flat above `s ~ 4`, so three points cover the tail.
-The grid is deliberately small: every row is re-solved millions of times per
-run.
+The grid is deliberately small: it is one row per (target, breakpoint) in a
+matrix that `refineJointCraftSplit` re-solves once per Frank-Wolfe iteration.
 
 `EPIGRAPH_SHIFT` exists because `g(s) < 0` for `s < ln 2`, so `z_T` can be
 negative, while the LP solver in `lp.ts` assumes `x >= 0`. Shifting every
 epigraph row's RHS up by a constant keeps `z_T` positive without changing the
-argmax; the objective has `targets.length * EPIGRAPH_SHIFT` subtracted back out
-before being returned. Anything building its own epigraph rows — the outer LP
-relaxation in `optimizer-core.ts` does — must subtract it too.
+argmax. Nothing has to undo it: only the LP's *primal* is read — the seed craft
+split that `refineJointCraftSplit` then improves against the exact objective —
+and no caller reads the shifted objective value. Both the constant and the
+tangent set are private to `value-function.ts`; the planner (`solver/`) builds
+its own outer approximation from scratch and shares nothing with this one.
 
 ### Why the over-estimate is safe
 
@@ -192,10 +194,13 @@ the mission views — enumerating in the worker would put a second copy in the
 worker bundle. For the same reason `optimizer.worker.ts` imports `optimizeFull`
 directly rather than through the `lib` barrel, which re-exports the loot data.
 
-The traffic goes the other way too: `index.ts`'s `optimize()` imports
-`optimizer-core` *dynamically*, because the barrel is what the components import
-and a static import would drag the solver and its Emscripten glue into the main
-chunk, where nothing needs them.
+The traffic goes the other way too: the barrel (`index.ts`) does not reach
+`optimizer-core` at all. The in-process `optimize()` the specs drive lives in
+`spec-helpers.ts` instead, precisely so the only edge from the barrel to the
+solver does not exist — the components import the barrel, and a static import
+there would drag the solver and its Emscripten glue into the main chunk, where
+nothing needs them. Keeping it out by module graph rather than by a lazy import
+is what makes that hard to undo by accident.
 
 `optimizer-worker-protocol.ts` exists because structured clone preserves Maps
 and plain objects but **drops prototypes**. Every payload is plain data except
@@ -336,14 +341,15 @@ Pricing always reads the real crafted counts from the save.
 
 | File | Role |
 | --- | --- |
-| `optimizer-core.ts` | The pipeline around the planner: `buildEvalContext` compiles the objective, `optimizeFull` states the problem and calls the MILP, `assembleFullSolution` turns an allocation into a renderable solution. |
+| `optimizer-core.ts` | The pipeline around the planner: `optimizeFull` filters the menu, compiles the inner craft LP, states the problem and calls the MILP; `assembleFullSolution` turns the returned allocation into a renderable solution through the exact objective. |
 | `solver/` | The planner itself — the MILP, the outer approximation, the HiGHS binding. `../oracle/arena/solvers/highs/index.ts` is a shim that registers this same module as the arena's entry, so the shipped solver and the measured one are one code path. See its `SPEC.md`. |
-| `packing.ts` | Exact 3-bin feasibility returning a witness assignment. Standalone by design: it imports nothing, and in particular nothing from `../oracle/`, because the oracle spec re-checks every solver plan against its own independent feasibility routine. Sharing one implementation would make that assertion circular. |
+| `packing.ts` | Exact 3-bin feasibility returning a witness assignment, plus `NUM_SLOTS`. Standalone by design: it imports nothing, and in particular nothing from `../oracle/`, because the arena re-checks every plan against its own independent packer (`arena/pack-feasibility.ts`, invariant C1). Sharing one implementation would make that check circular. |
 | `value-function.ts` | Inner crafting LP, the tangent epigraph construction, `alphaToProb`, and `refineJointCraftSplit`. |
-| `lp.ts` | Small dense-tableau simplex with Bland's rule, tuned for many small re-solves. Equilibrates rows and columns before solving: an absolute epsilon against raw fuel coefficients (~1e18) and craft-conservation rows (~1) in the same tableau used to stop the pivot loop early while reporting `'optimal'`. |
+| `lp.ts` | Small dense-tableau simplex with Bland's rule, tuned for many small re-solves. Equilibrates rows and columns before solving, because an absolute epsilon on an unscaled tableau stops the pivot loop early while still reporting `'optimal'`. Only `value-function.ts` uses it; the fuel and time budgets are the MILP's rows, not this one's. |
 | `phases.ts` | Recipe DAG construction and launch-option enumeration from loot data. |
-| `index.ts` | Pipeline glue: `buildRecipeDag`, `computeBaseYield`, `finalizeSolutions`, and an async `optimize` used only by tests — it imports `optimizer-core` dynamically so the solver stays out of the main chunk. |
-| `optimizer.worker.ts` | Worker entry point; awaits `optimizeFull`. The only place the *app* awaits the solve — `index.ts` has the other await site, on the test-only path. Everything below the seam is synchronous, which is also why the worker drops requests a newer one has superseded. |
+| `index.ts` | The barrel every component imports: `buildRecipeDag`, `computeBaseYield`, `finalizeSolutions`. Deliberately has no path to `optimizer-core`, so the solver stays out of the main chunk. |
+| `spec-helpers.ts` | Spec fixtures, plus the async in-process `optimize` the pipeline specs drive. It is here rather than in the barrel for the bundling reason above. |
+| `optimizer.worker.ts` | Worker entry point; awaits `optimizeFull`. The only place the *app* awaits the solve — `spec-helpers.ts` has the other await site, on the test-only path. Everything below the seam is synchronous, which is also why the worker drops requests a newer one has superseded. |
 | `optimizer-worker-protocol.ts` | Wire types and `MissionType` narrow/reconstruct across structured clone. |
 | `optimizer-client.ts` | Main-thread worker lifecycle, request numbering, supersession. |
 | `optimizer-tree.ts` | Recipe-tree builders for the inventory and craft-chain panels. |

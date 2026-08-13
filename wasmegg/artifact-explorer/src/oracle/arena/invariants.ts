@@ -1,5 +1,3 @@
-// Metamorphic invariants for the mission planner.
-//
 // Every check below asserts a property that must hold *without knowing the
 // optimum*: grow the feasible set and the answer cannot get worse, relabel the
 // inputs and it cannot move at all, and whatever comes back has to be a plan
@@ -9,10 +7,8 @@
 //
 // Nothing here imports a solver. The planner arrives as an argument.
 //
-// Comparisons are in log space
-// ----------------------------
-// The joint probability of a four-target plan on a mediocre fleet is routinely
-// 1e-13 or smaller. Relative comparisons with an absolute floor (the shape this
+// Comparisons are in log space. The joint probability of a four-target plan on
+// a mediocre fleet is routinely 1e-13 or smaller. Relative comparisons with an absolute floor (the shape this
 // harness originally used, floored at 1e-9) treat every one of those as
 // unmeasurable and skip it: on the default 40-seed sweep that silently disabled
 // 13 instances, including 10 of the 15 four-target ones — precisely the regime

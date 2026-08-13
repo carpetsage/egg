@@ -190,22 +190,40 @@ function copyResult(result: PlanResult): PlanResult {
 // same problem every time is a guaranteed cache miss and rebuilds the whole
 // conservation matrix per judgement. A sweep judges each problem many times over
 // (every perturbation in `invariants.ts` re-judges the base problem).
+//
+// Object identity alone is not enough to get that, and this is the part that
+// used to be missing: `buildProblem` allocates a fresh `PlanProblem` on every
+// `run`, so a WeakMap keyed on it never hit across calls and every solve — plan
+// cache hit or not — rebuilt the template it was supposed to be reusing. So the
+// shared cache is keyed structurally, on the same `problemKey` the plan cache
+// uses, which already encodes everything the judge reads (menu, DAG, targets,
+// both budgets, the golden egg cap and the inventory). The WeakMap stays in
+// front of it as the identity fast path, so a check that judges the same
+// problem object repeatedly pays no key-building at all.
 const instanceCache = new WeakMap<PlanProblem, OracleInstance>();
+const INSTANCE_CACHE_MAX = 128;
+const instancesByKey = new Map<string, OracleInstance>();
 
 export function oracleInstanceOf(problem: PlanProblem): OracleInstance {
-  let instance = instanceCache.get(problem);
-  if (instance) return instance;
-  instance = {
-    label: 'arena',
-    seed: 0,
-    options: problem.options as LaunchOption[],
-    dag: problem.dag,
-    targets: problem.targets as string[],
-    fuelCapacity: problem.fuelCapacity,
-    timeCapacity: problem.timeCapacity,
-    baseYield: problem.baseYield as Map<string, number>,
-    craftBudget: problem.craftBudget,
-  };
+  const known = instanceCache.get(problem);
+  if (known) return known;
+  const key = problemKey(problem);
+  let instance = instancesByKey.get(key);
+  if (!instance) {
+    instance = {
+      label: 'arena',
+      seed: 0,
+      options: problem.options as LaunchOption[],
+      dag: problem.dag,
+      targets: problem.targets as string[],
+      fuelCapacity: problem.fuelCapacity,
+      timeCapacity: problem.timeCapacity,
+      baseYield: problem.baseYield as Map<string, number>,
+      craftBudget: problem.craftBudget,
+    };
+    if (instancesByKey.size >= INSTANCE_CACHE_MAX) instancesByKey.clear();
+    instancesByKey.set(key, instance);
+  }
   instanceCache.set(problem, instance);
   return instance;
 }

@@ -321,9 +321,12 @@ checks.
 
 The lever is `maxNodes` (branch-and-bound nodes for the one solve), plus a
 relative MIP gap of 1e-6 and the size of the tangent grid. `DEFAULT_TUNING` in
-`oa.ts` is `{maxNodes: 200}` over a 100-point grid, and it is what ships. The
-budget went up 40x when the second round came out, and the sweep still got
-faster.
+`oa.ts` is `{maxNodes: 400}` over a 50-point grid running from sigma 1 down to
+`SIGMA_FLOOR = 1e-2`, and it is what ships. The budget went up 40x when the
+second round came out, and the sweep still got faster; the campaigns in
+`RESULTS.md` were measured at the tuning before this one (200 nodes over a
+100-point grid to 1e-5) and are the record that chose these budgets rather than a
+measurement of them.
 
 Every budget here is a **count**, never a number of seconds — not in the app and
 not in the arena. A wall-clock limit would make the returned plan a function of
@@ -401,7 +404,7 @@ against 2348, with 46 sub-MIP calls eating 3.47s of a 4.73s solve.
 
 That trade was struck when `oa.ts` ran two five-node rounds, where a tighter
 per-node bound had a second solve to be washed out by. It no longer does — one
-pass at 200 nodes is the whole search — so the timings above are what carries
+pass at `DEFAULT_TUNING.maxNodes` is the whole search — so the timings above are what carries
 this now, and they were measured through `optimizeFull` rather than per round.
 The dual-bound half of the argument is retired rather than replaced: whether
 presolve pays at the current tuning is open, and answering it means three
