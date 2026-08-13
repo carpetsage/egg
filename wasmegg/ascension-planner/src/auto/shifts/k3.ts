@@ -33,7 +33,7 @@ export function runK3(
   const actions = [shifted.action, ...vehiclePlan.actions];
 
   const getAbsTime = () =>
-    context.ascensionStartTime + context.planStartOffset + (startState.lastStepTime || 0) + elapsedSeconds;
+    context.ascensionStartTime + ((startState.lastStepTime || 0) - context.planStartOffset) + elapsedSeconds;
 
   // 3. Compute peak ELR
   const artMods = calculateArtifactModifiers(currentState.artifactLoadout);
